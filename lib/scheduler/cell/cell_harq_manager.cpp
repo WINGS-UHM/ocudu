@@ -157,18 +157,17 @@ cell_harq_repository<IsDl>::cell_harq_repository(unsigned                max_ues
                                                  unsigned                harq_retx_timeout_,
                                                  unsigned                max_harqs_per_ue_,
                                                  unsigned                ntn_cs_koffset_,
-                                                 bool                    harq_mode_b,
+                                                 bool                    harq_mode_b_,
                                                  harq_timeout_notifier&  timeout_notifier_,
                                                  ocudulog::basic_logger& logger_) :
-  max_ack_wait_in_slots(ntn_cs_koffset_ > 0 and harq_mode_b ? NTN_ACK_WAIT_TIMEOUT
-                                                            : (max_ack_wait_timeout + ntn_cs_koffset_)),
+  max_ack_wait_in_slots(max_ack_wait_timeout),
   harq_retx_timeout(harq_retx_timeout_),
   max_harqs_per_ue(max_harqs_per_ue_),
   timeout_notifier(timeout_notifier_),
   logger(logger_),
   ntn_cs_koffset(ntn_cs_koffset_),
-  alloc_hist(ntn_cs_koffset_ > 0 and harq_mode_b ? std::make_unique<harq_alloc_history>(*this, ntn_cs_koffset_)
-                                                 : nullptr)
+  alloc_hist(ntn_cs_koffset_ > 0 and harq_mode_b_ ? std::make_unique<harq_alloc_history>(*this, ntn_cs_koffset_)
+                                                  : nullptr)
 {
   // Reserve space in advance for UEs and their HARQs.
   ues.resize(max_ues);
@@ -328,7 +327,14 @@ typename cell_harq_repository<IsDl>::harq_type* cell_harq_repository<IsDl>::allo
       ue_harq_entity.last_slot_ack.valid() ? std::max(ue_harq_entity.last_slot_ack, sl_ack) : sl_ack;
 
   // Add HARQ to the timeout list.
-  h.slot_timeout = sl_ack + max_ack_wait_in_slots - ntn_cs_koffset;
+  h.slot_timeout = sl_ack + max_ack_wait_in_slots;
+
+  // If HARQ mode B set short timeout to release and reuse process quickly.
+  // Note: sl_ack - ntn_cs_koffset = k1 (or k2).
+  if (is_ntn_harq_mode_b_enabled()) {
+    h.slot_timeout = sl_ack - ntn_cs_koffset + NTN_ACK_WAIT_TIMEOUT;
+  }
+
   harq_timeout_wheel[h.slot_timeout.to_uint() % harq_timeout_wheel.size()].push_front(&h);
 
   return &h;

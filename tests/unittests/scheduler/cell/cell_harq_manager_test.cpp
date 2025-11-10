@@ -1072,7 +1072,7 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_allocated_then_i
   // Need to enable Mode B and request new harq process.
   bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
   ul_harq_mode_mask.fill(false);
-  harq_ent.reconfigure(ul_harq_mode_mask);
+  harq_ent.reconfigure(false, ul_harq_mode_mask);
   h_ul.reset();
   h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
   ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
@@ -1107,7 +1107,7 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_
   // Need to enable Mode B and request new harq process.
   bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
   ul_harq_mode_mask.fill(false);
-  harq_ent.reconfigure(ul_harq_mode_mask);
+  harq_ent.reconfigure(false, ul_harq_mode_mask);
   h_ul.reset();
   h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
   ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
@@ -1169,7 +1169,7 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_gets_acked_then_
   // Need to enable Mode B and request new harq process.
   bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
   ul_harq_mode_mask.fill(false);
-  harq_ent.reconfigure(ul_harq_mode_mask);
+  harq_ent.reconfigure(false, ul_harq_mode_mask);
   h_ul.reset();
   h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
   ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};

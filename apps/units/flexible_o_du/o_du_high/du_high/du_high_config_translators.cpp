@@ -650,6 +650,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->nof_harq_proc =
         static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(
             config.cells_cfg.front().cell.pusch_cfg.nof_harqs);
+    out_cell.ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg->dl_harq_feedback_disabled =
+        config.cells_cfg.front().cell.pdsch_cfg.harq_feedback_disabled;
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode =
         ~config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
     // Set DL MCS table.

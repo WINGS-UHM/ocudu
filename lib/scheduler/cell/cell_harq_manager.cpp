@@ -254,6 +254,10 @@ void cell_harq_repository<IsDl>::handle_harq_ack_timeout(harq_type& h, slot_poin
                      "HARQ process in wrong state");
 
   if (h.mode == harq_mode_t::feedback_disabled_or_mode_b) {
+    if (IsDl) {
+      // No feedback from UE is expected, we need to inject ACK so the metrics are displayed correctly.
+      timeout_notifier.on_feedback_disabled_harq_timeout(h.ue_idx, IsDl, units::bytes(h.prev_tx_params.tbs_bytes));
+    }
     // Deallocate HARQ so it can be reused without waiting for feedback.
     dealloc_harq(h);
     return;
@@ -332,7 +336,7 @@ typename cell_harq_repository<IsDl>::harq_type* cell_harq_repository<IsDl>::allo
   // Add HARQ to the timeout list.
   h.slot_timeout = sl_ack + max_ack_wait_in_slots;
 
-  // If HARQ mode B set short timeout to release and reuse process quickly.
+  // If HARQ mode B or DL HARQ Feedback disabled, set short timeout to release and reuse process quickly.
   // Note: sl_ack - ntn_cs_koffset = k1 (or k2).
   if (h.mode == harq_mode_t::feedback_disabled_or_mode_b) {
     h.slot_timeout = sl_ack - ntn_cs_koffset + NTN_ACK_WAIT_TIMEOUT;
@@ -700,6 +704,12 @@ dl_harq_process_handle::status_update dl_harq_process_handle::dl_ack_info(mac_ha
     return status_update::error;
   }
 
+  if (impl->mode == harq_mode_t::feedback_disabled_or_mode_b) {
+    harq_repo->logger.warning(
+        "rnti={} h_id={}: ACK arrived for DL HARQ with feedback disabled", impl->rnti, fmt::underlying(impl->h_id));
+    return status_update::no_update;
+  }
+
   if (ack != mac_harq_ack_report_status::dtx and
       (not impl->last_pucch_snr.has_value() or
        (pucch_snr.has_value() and impl->last_pucch_snr.value() < pucch_snr.value()))) {
@@ -872,12 +882,22 @@ unique_ue_harq_entity::~unique_ue_harq_entity()
   }
 }
 
-void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask)
+void unique_ue_harq_entity::reconfigure(bool                                       harq_feedback_disabled,
+                                        const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask)
 {
   if (cell_harq_mgr->ul.ntn_cs_koffset == 0) {
-    // Not NTN cell, do not set UL HARQ mode B.
+    // Not NTN cell, do not set DL HARQ Feedback Disabled and UL HARQ mode B.
     return;
   }
+
+  for (auto& h : get_dl_ue().harqs) {
+    if (harq_feedback_disabled and h.h_id > 3) {
+      h.mode = harq_mode_t::feedback_disabled_or_mode_b;
+    } else {
+      h.mode = harq_mode_t::normal;
+    }
+  }
+
   if (not ul_harq_mode_mask.empty()) {
     if (not ul_harq_mode_mask.all() and not cell_harq_mgr->ul.is_ntn_harq_mode_b_enabled()) {
       report_error("Cannot set UL HARQ process to mode B as the feature is not enabled in PUSCH config.");

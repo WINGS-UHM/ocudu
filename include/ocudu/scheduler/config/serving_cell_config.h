@@ -283,6 +283,8 @@ struct pdsch_serving_cell_config {
 
   std::optional<pdsch_code_block_group_transmission> code_block_group_tx;
   x_overhead                                         x_ov_head{x_overhead::not_set};
+  /// See TS 38.331, \c downlinkHARQ-FeedbackDisabled.
+  bool dl_harq_feedback_disabled = false;
   /// See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
   nof_harq_proc_for_pdsch          nof_harq_proc{nof_harq_proc_for_pdsch::n16};
   std::optional<serv_cell_index_t> pucch_cell;
@@ -294,7 +296,8 @@ struct pdsch_serving_cell_config {
   {
     return code_block_group_tx == rhs.code_block_group_tx && x_ov_head == rhs.x_ov_head &&
            nof_harq_proc == rhs.nof_harq_proc && pucch_cell == rhs.pucch_cell &&
-           max_mimo_layers == rhs.max_mimo_layers && processing_type_2_enabled == rhs.processing_type_2_enabled;
+           max_mimo_layers == rhs.max_mimo_layers && processing_type_2_enabled == rhs.processing_type_2_enabled &&
+           dl_harq_feedback_disabled == rhs.dl_harq_feedback_disabled;
   }
   bool operator!=(const pdsch_serving_cell_config& rhs) const { return !(rhs == *this); }
 };

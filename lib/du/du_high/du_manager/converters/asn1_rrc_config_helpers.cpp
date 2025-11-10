@@ -2700,6 +2700,23 @@ static void calculate_pdsch_serving_cell_cfg_diff(asn1::rrc_nr::pdsch_serving_ce
     }
   }
 
+  if (dest.dl_harq_feedback_disabled) {
+    if (src.dl_harq_feedback_disabled != dest.dl_harq_feedback_disabled) {
+      out.dl_harq_feedback_disabled_r17.set_present();
+      auto& dl_harq_feedback_disabled = out.dl_harq_feedback_disabled_r17->set_setup();
+      // The bit(s) set to one identify HARQ processes with disabled DL HARQ feedback and the bit(s) set to zero
+      // identify HARQ processes with enabled DL HARQ feedback.
+      // Note: Keep four HARQ processes with feedback enabled.
+      dl_harq_feedback_disabled.from_number(0x0fffffff);
+    }
+  } else if (src.dl_harq_feedback_disabled) {
+    out.dl_harq_feedback_disabled_r17.set_present();
+    out.dl_harq_feedback_disabled_r17->set_release();
+  } else {
+    out.dl_harq_feedback_disabled_r17.reset();
+  }
+  out.ext = out.dl_harq_feedback_disabled_r17.is_present() or out.nrof_harq_processes_for_pdsch_v1700_present;
+
   if (dest.pucch_cell.has_value()) {
     out.pucch_cell_present = true;
     out.pucch_cell         = dest.pucch_cell.value();

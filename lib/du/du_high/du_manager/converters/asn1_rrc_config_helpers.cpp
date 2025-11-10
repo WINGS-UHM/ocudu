@@ -2577,17 +2577,22 @@ static void calculate_pusch_serving_cell_cfg_diff(asn1::rrc_nr::pusch_serving_ce
                                                   const pusch_serving_cell_config&        dest)
 {
   if (dest.nof_harq_proc != pusch_serving_cell_config::nof_harq_proc_for_pusch::n16) {
-    out.ext                                       = true;
     out.nrof_harq_processes_for_pusch_r17_present = true;
   }
 
   if (dest.harq_mode_b) {
-    out.ext = true;
     out.ul_harq_mode_r17.set_present();
-    auto* ul_harq_mode_b_ptr = out.ul_harq_mode_r17.get();
-    auto& ul_harq_mode_b     = ul_harq_mode_b_ptr->set_setup();
-    ul_harq_mode_b.from_number(0xffffffff);
+    auto& ul_harq_mode_b = out.ul_harq_mode_r17->set_setup();
+    // A bit set to one identifies a HARQ process with HARQ modeA and a bit set to zero identifies a HARQ process with
+    // HARQ modeB.
+    ul_harq_mode_b.from_number(0x00000000);
+  } else if (src.harq_mode_b) {
+    out.ul_harq_mode_r17.set_present();
+    out.ul_harq_mode_r17->set_release();
+  } else {
+    out.ul_harq_mode_r17.reset();
   }
+  out.ext = out.ul_harq_mode_r17.is_present() or out.nrof_harq_processes_for_pusch_r17_present;
 
   // TODO: Remaining.
 }

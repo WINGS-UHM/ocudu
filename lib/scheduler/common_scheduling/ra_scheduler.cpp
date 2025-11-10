@@ -84,6 +84,8 @@ public:
     pending_msg3s[ue_idx].msg3_harq_ent.reset();
   }
 
+  void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override {}
+
 private:
   std::vector<pending_msg3_t>& pending_msg3s;
 };

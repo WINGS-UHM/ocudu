@@ -25,6 +25,13 @@ public:
     metrics_handler.handle_harq_timeout(ue_idx, is_dl);
   }
 
+  void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override
+  {
+    if (is_dl) {
+      metrics_handler.handle_dl_harq_ack(ue_idx, true, tbs);
+    }
+  }
+
 private:
   cell_metrics_handler& metrics_handler;
 };

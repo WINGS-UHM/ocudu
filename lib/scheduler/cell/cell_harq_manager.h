@@ -39,6 +39,9 @@ public:
 
   /// \brief Notifies a HARQ timeout.
   virtual void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) = 0;
+
+  /// \brief Notifies a timeout for Feedback Disabled HARQ.
+  virtual void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) = 0;
 };
 
 namespace harq_utils {

@@ -22,7 +22,10 @@ class noop_harq_timeout_notifier : public harq_timeout_notifier
 {
 public:
   void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override
-  { // do nothing
+  { // Do nothing.
+  }
+  void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override
+  { // Do nothing.
   }
 };
 

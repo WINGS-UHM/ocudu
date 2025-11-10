@@ -65,12 +65,19 @@ public:
   du_ue_index_t last_ue_index  = INVALID_DU_UE_INDEX;
   bool          last_dir_is_dl = false;
   bool          last_was_ack   = false;
+  units::bytes  last_tbs{0};
 
   void handle_harq_timeout(du_ue_index_t ue_index, bool is_dl, bool ack)
   {
     last_ue_index  = ue_index;
     last_dir_is_dl = is_dl;
     last_was_ack   = ack;
+  }
+  void handle_harq_no_feedback_timeout(du_ue_index_t ue_index, bool is_dl, units::bytes tbs)
+  {
+    last_ue_index  = ue_index;
+    last_dir_is_dl = is_dl;
+    last_tbs       = tbs;
   }
 
   std::unique_ptr<harq_timeout_notifier> make_notifier()
@@ -83,6 +90,10 @@ public:
       void on_harq_timeout(du_ue_index_t ue_index, bool is_dl, bool ack) override
       {
         parent.handle_harq_timeout(ue_index, is_dl, ack);
+      }
+      void on_feedback_disabled_harq_timeout(du_ue_index_t ue_index, bool is_dl, units::bytes tbs) override
+      {
+        parent.handle_harq_no_feedback_timeout(ue_index, is_dl, tbs);
       }
 
     private:

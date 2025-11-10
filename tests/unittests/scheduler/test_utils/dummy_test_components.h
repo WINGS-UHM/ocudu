@@ -162,6 +162,7 @@ public:
   du_ue_index_t last_ue_idx = INVALID_DU_UE_INDEX;
 
   void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override { last_ue_idx = ue_idx; }
+  void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override {}
 };
 
 class scheduler_ue_metrics_dummy_configurator : public sched_metrics_ue_configurator

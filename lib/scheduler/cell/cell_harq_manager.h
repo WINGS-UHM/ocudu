@@ -46,6 +46,12 @@ namespace harq_utils {
 /// Possible states of a HARQ process.
 enum class harq_state_t { empty, pending_retx, waiting_ack };
 
+/// HARQ operation modes as per TS38.300, Section 16.14.2.
+enum class harq_mode_t {
+  normal,                     // Standard Stop-and-Wait Operation (NTN: DL Feedback Enabled, UL Mode A)
+  feedback_disabled_or_mode_b // Re-use allowed before RTT elapses (NTN: DL Feedback Disabled, UL Mode B)
+};
+
 struct pending_retx_list_tag;
 
 /// Parameters that are common to DL and UL HARQ processes.
@@ -55,6 +61,7 @@ struct base_harq_process : public intrusive_double_linked_list_element<>,
   rnti_t        rnti;
   harq_id_t     h_id;
   harq_state_t  status = harq_state_t::empty;
+  harq_mode_t   mode   = harq_mode_t::normal;
   /// Slot at which the PxSCH was transmitted.
   slot_point slot_tx;
   /// Slot at which the respective ACK/CRC is expected to be received in the PHY.
@@ -210,6 +217,7 @@ public:
   unsigned      max_nof_retxs() const { return impl->max_nof_harq_retxs; }
   unsigned      nof_retxs() const { return impl->nof_retxs; }
   bool          ndi() const { return impl->ndi; }
+  harq_mode_t   mode() const { return impl->mode; }
 
   /// \brief Cancels any retransmissions for this HARQ process.
   /// If the HARQ process has a pending retransmission, it is reset. If the ACK/CRC info has not been received yet, the

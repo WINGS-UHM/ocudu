@@ -179,12 +179,24 @@ ue_cell_grid_allocator::setup_dl_grant_builder(const slice_ue&                  
   }
   pdcch_dl_information* pdcch = pdcch_result.value();
 
-  // Allocate UCI.
-  auto uci_result = alloc_uci(ue_cc, ss_info, pdsch_td_res_index);
-  if (not uci_result.has_value()) {
-    ++pdcch_alloc.result.failed_attempts.uci;
-    pdcch_sched.cancel_last_pdcch(pdcch_alloc);
-    return make_unexpected(dl_alloc_failure_cause::uci_alloc_failed);
+  std::optional<uci_allocation> uci_result;
+  // In NTN cell, SRBs always use DL HARQ feedback; DRBs use DL Feedback Disabled when configured.
+  const bool dl_harq_feedback_disabled = ue_cell_cfg.pdsch_serving_cell_cfg() != nullptr
+                                             ? ue_cell_cfg.pdsch_serving_cell_cfg()->dl_harq_feedback_disabled.any()
+                                             : false;
+
+  if (not dl_harq_feedback_disabled or user.ran_slice_id() == SRB_RAN_SLICE_ID) {
+    // Allocate UCI.
+    uci_result = alloc_uci(ue_cc, ss_info, pdsch_td_res_index);
+    if (not uci_result.has_value()) {
+      ++pdcch_alloc.result.failed_attempts.uci;
+      pdcch_sched.cancel_last_pdcch(pdcch_alloc);
+      return make_unexpected(dl_alloc_failure_cause::uci_alloc_failed);
+    }
+  } else {
+    // Note: k1 needed for PDSCH-to-HARQ timing-indicator, but UE sends no feedback.
+    // The values (4, 0) are arbitrary since they will not be used by the UE.
+    uci_result = uci_allocation{.k1 = 4U, .harq_bit_idx = 0};
   }
   uci_allocation& uci                     = uci_result.value();
   unsigned        k1                      = uci.k1;
@@ -197,7 +209,8 @@ ue_cell_grid_allocator::setup_dl_grant_builder(const slice_ue&                  
                .alloc_dl_harq(pdsch_alloc.slot,
                               k1 + ue_cell_cfg.cell_cfg_common.ntn_cs_koffset,
                               expert_cfg.max_nof_dl_harq_retxs,
-                              uci.harq_bit_idx)
+                              uci.harq_bit_idx,
+                              user.ran_slice_id() == SRB_RAN_SLICE_ID)
                .value();
     ocudu_assert(h_dl.has_value(), "Failed to allocate DL HARQ");
   } else {
@@ -547,7 +560,10 @@ ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                  
   // Allocate UE UL HARQ.
   if (not is_retx) {
     // It is a new tx.
-    h_ul = ue_cc.harqs.alloc_ul_harq(pusch_alloc.slot, expert_cfg.max_nof_ul_harq_retxs).value();
+    h_ul =
+        ue_cc.harqs
+            .alloc_ul_harq(pusch_alloc.slot, expert_cfg.max_nof_ul_harq_retxs, user.ran_slice_id() == SRB_RAN_SLICE_ID)
+            .value();
     ocudu_assert(h_ul.has_value(), "Failed to allocate UL HARQ");
   } else {
     // It is a retx.

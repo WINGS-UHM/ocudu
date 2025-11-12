@@ -12,6 +12,7 @@
 #include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/scheduler/result/pusch_info.h"
+#include <algorithm>
 
 using namespace ocudu;
 using namespace harq_utils;
@@ -304,7 +305,8 @@ template <bool IsDl>
 typename cell_harq_repository<IsDl>::harq_type* cell_harq_repository<IsDl>::alloc_harq(du_ue_index_t ue_idx,
                                                                                        slot_point    sl_tx,
                                                                                        slot_point    sl_ack,
-                                                                                       unsigned      max_nof_harq_retxs)
+                                                                                       unsigned      max_nof_harq_retxs,
+                                                                                       bool          select_normal_mode)
 {
   ue_harq_entity_impl& ue_harq_entity = ues[ue_idx];
   if (ue_harq_entity.free_harq_ids.empty()) {
@@ -312,6 +314,18 @@ typename cell_harq_repository<IsDl>::harq_type* cell_harq_repository<IsDl>::allo
   }
 
   // Allocation of free HARQ-id for the UE.
+  if (ntn_cs_koffset > 0 && ue_harq_entity.feedback_disabled_or_mode_b_harq_present) {
+    auto rit = std::find_if(
+        ue_harq_entity.free_harq_ids.rbegin(), ue_harq_entity.free_harq_ids.rend(), [&](const harq_id_t& h_id) {
+          bool is_normal_mode = (ue_harq_entity.harqs[h_id].mode == harq_mode_t::normal);
+          return select_normal_mode == is_normal_mode;
+        });
+
+    if (rit == ue_harq_entity.free_harq_ids.rend()) {
+      return nullptr;
+    }
+    std::iter_swap(rit, ue_harq_entity.free_harq_ids.rbegin());
+  }
   const harq_id_t h_id = ue_harq_entity.free_harq_ids.back();
   ue_harq_entity.free_harq_ids.pop_back();
   harq_type& h = ue_harq_entity.harqs[h_id];
@@ -650,9 +664,11 @@ harq_utils::dl_harq_process_impl* cell_harq_manager::new_dl_tx(du_ue_index_t ue_
                                                                slot_point    pdsch_slot,
                                                                unsigned      ack_delay,
                                                                unsigned      max_harq_nof_retxs,
-                                                               uint8_t       harq_bit_idx)
+                                                               uint8_t       harq_bit_idx,
+                                                               bool          select_normal_mode)
 {
-  dl_harq_process_impl* h = dl.alloc_harq(ue_idx, pdsch_slot, pdsch_slot + ack_delay, max_harq_nof_retxs);
+  dl_harq_process_impl* h =
+      dl.alloc_harq(ue_idx, pdsch_slot, pdsch_slot + ack_delay, max_harq_nof_retxs, select_normal_mode);
   if (h == nullptr) {
     return nullptr;
   }
@@ -667,10 +683,13 @@ harq_utils::dl_harq_process_impl* cell_harq_manager::new_dl_tx(du_ue_index_t ue_
   return h;
 }
 
-harq_utils::ul_harq_process_impl*
-cell_harq_manager::new_ul_tx(du_ue_index_t ue_idx, rnti_t rnti, slot_point pusch_slot, unsigned max_harq_nof_retxs)
+harq_utils::ul_harq_process_impl* cell_harq_manager::new_ul_tx(du_ue_index_t ue_idx,
+                                                               rnti_t        rnti,
+                                                               slot_point    pusch_slot,
+                                                               unsigned      max_harq_nof_retxs,
+                                                               bool          select_normal_mode)
 {
-  ul_harq_process_impl* h = ul.alloc_harq(ue_idx, pusch_slot, pusch_slot, max_harq_nof_retxs);
+  ul_harq_process_impl* h = ul.alloc_harq(ue_idx, pusch_slot, pusch_slot, max_harq_nof_retxs, select_normal_mode);
   if (h == nullptr) {
     return nullptr;
   }
@@ -891,6 +910,7 @@ void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true
   }
 
   if (not dl_harq_feedback_disabled_mask.empty()) {
+    get_dl_ue().feedback_disabled_or_mode_b_harq_present = dl_harq_feedback_disabled_mask.any();
     for (auto& h : get_dl_ue().harqs) {
       // A bit set to one indicates HARQ processes with disabled DL HARQ feedback and the bit set to zero with enabled.
       if (dl_harq_feedback_disabled_mask.test(h.h_id)) {
@@ -905,6 +925,7 @@ void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true
     if (not ul_harq_mode_mask.all() and not cell_harq_mgr->ul.is_ntn_harq_mode_b_enabled()) {
       report_error("Cannot set UL HARQ process to mode B as the feature is not enabled in PUSCH config.");
     }
+    get_ul_ue().feedback_disabled_or_mode_b_harq_present = not ul_harq_mode_mask.all();
     for (auto& h : get_ul_ue().harqs) {
       // A bit set to one identifies a HARQ process in mode A and a bit set to zero identifies a HARQ process in mode B.
       if (ul_harq_mode_mask.test(h.h_id)) {
@@ -913,6 +934,54 @@ void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true
         h.mode = harq_mode_t::feedback_disabled_or_mode_b;
       }
     }
+  }
+}
+
+bool unique_ue_harq_entity::has_empty_dl_harqs(bool select_normal_mode_only) const
+{
+  if (select_normal_mode_only and get_dl_ue().feedback_disabled_or_mode_b_harq_present) {
+    return std::any_of(get_dl_ue().free_harq_ids.begin(), get_dl_ue().free_harq_ids.end(), [&](auto h_id) {
+      return (get_dl_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
+              get_dl_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+    });
+  } else {
+    return not get_dl_ue().free_harq_ids.empty();
+  }
+}
+
+bool unique_ue_harq_entity::has_empty_ul_harqs(bool select_normal_mode_only) const
+{
+  if (select_normal_mode_only and get_ul_ue().feedback_disabled_or_mode_b_harq_present) {
+    return std::any_of(get_ul_ue().free_harq_ids.begin(), get_ul_ue().free_harq_ids.end(), [&](auto h_id) {
+      return (get_ul_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
+              get_ul_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+    });
+  } else {
+    return not get_ul_ue().free_harq_ids.empty();
+  }
+}
+
+size_t unique_ue_harq_entity::nof_empty_dl_harqs(bool select_normal_mode_only) const
+{
+  if (select_normal_mode_only and get_dl_ue().feedback_disabled_or_mode_b_harq_present) {
+    return std::count_if(get_dl_ue().free_harq_ids.begin(), get_dl_ue().free_harq_ids.end(), [&](auto h_id) {
+      return (get_dl_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
+              get_dl_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+    });
+  } else {
+    return get_dl_ue().free_harq_ids.size();
+  }
+}
+
+size_t unique_ue_harq_entity::nof_empty_ul_harqs(bool select_normal_mode_only) const
+{
+  if (select_normal_mode_only and get_ul_ue().feedback_disabled_or_mode_b_harq_present) {
+    return std::count_if(get_ul_ue().free_harq_ids.begin(), get_ul_ue().free_harq_ids.end(), [&](auto h_id) {
+      return (get_ul_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
+              get_ul_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+    });
+  } else {
+    return get_ul_ue().free_harq_ids.size();
   }
 }
 
@@ -968,20 +1037,21 @@ std::optional<const ul_harq_process_handle> unique_ue_harq_entity::ul_harq(harq_
 std::optional<dl_harq_process_handle> unique_ue_harq_entity::alloc_dl_harq(slot_point sl_tx,
                                                                            unsigned   ack_delay,
                                                                            unsigned   max_harq_nof_retxs,
-                                                                           unsigned   harq_bit_idx)
+                                                                           unsigned   harq_bit_idx,
+                                                                           bool       select_normal_mode)
 {
   dl_harq_process_impl* h =
-      cell_harq_mgr->new_dl_tx(ue_index, crnti, sl_tx, ack_delay, max_harq_nof_retxs, harq_bit_idx);
+      cell_harq_mgr->new_dl_tx(ue_index, crnti, sl_tx, ack_delay, max_harq_nof_retxs, harq_bit_idx, select_normal_mode);
   if (h == nullptr) {
     return std::nullopt;
   }
   return dl_harq_process_handle(cell_harq_mgr->dl, *h);
 }
 
-std::optional<ul_harq_process_handle> unique_ue_harq_entity::alloc_ul_harq(slot_point sl_tx,
-                                                                           unsigned   max_harq_nof_retxs)
+std::optional<ul_harq_process_handle>
+unique_ue_harq_entity::alloc_ul_harq(slot_point sl_tx, unsigned max_harq_nof_retxs, bool select_normal_mode)
 {
-  ul_harq_process_impl* h = cell_harq_mgr->new_ul_tx(ue_index, crnti, sl_tx, max_harq_nof_retxs);
+  ul_harq_process_impl* h = cell_harq_mgr->new_ul_tx(ue_index, crnti, sl_tx, max_harq_nof_retxs, select_normal_mode);
   if (h == nullptr) {
     return std::nullopt;
   }

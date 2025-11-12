@@ -823,6 +823,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
   if (not is_retx) {
     h_dl = u.get_pcell().harqs.alloc_dl_harq(
         pdsch_slot, uci.k1 + cell_cfg.ntn_cs_koffset, expert_cfg.max_nof_dl_harq_retxs, uci.harq_bit_idx);
+    ocudu_assert(h_dl.has_value(), "Failed to allocate DL HARQ");
   } else {
     bool result = h_dl->new_retx(pdsch_slot, uci.k1 + cell_cfg.ntn_cs_koffset, uci.harq_bit_idx);
     ocudu_sanity_check(result, "Unable to allocate HARQ retx");
@@ -1075,7 +1076,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
   const bool is_retx = h_ul_retx.has_value();
 
   // Search for empty HARQ.
-  if (not is_retx and not ue_pcell.harqs.has_empty_ul_harqs()) {
+  if (not is_retx and not ue_pcell.harqs.has_empty_ul_harqs(true)) {
     logger.debug(
         "ue={} rnti={} PUSCH allocation skipped. Cause: no HARQ available", fmt::underlying(u.ue_index), u.crnti);
     return ul_srb_sched_outcome::next_ue;
@@ -1251,6 +1252,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
     // It is a new tx.
     h_ul =
         u.get_pcell().harqs.alloc_ul_harq(pdcch_slot + k2 + cell_cfg.ntn_cs_koffset, expert_cfg.max_nof_ul_harq_retxs);
+    ocudu_assert(h_ul.has_value(), "Failed to allocate UL HARQ");
   }
 
   uint8_t                  rv                  = u.get_pcell().get_pusch_rv(h_ul->nof_retxs());

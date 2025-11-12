@@ -311,12 +311,14 @@ public:
     dl_feedback_disabled.fill(false);
     bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
     ul_harq_mode_mask.fill(false);
+    ul_harq_mode_mask.fill(0, nof_normal_mode_harqs, true);
     harq_ent.reconfigure(dl_feedback_disabled, ul_harq_mode_mask);
-    h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
+    h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs, false).value();
     ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
     pusch_info.harq_id = h_ul.id();
     h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
   }
+  static constexpr unsigned nof_normal_mode_harqs = 4;
 };
 
 // Test for a single UE HARQ process in NTN with DL feedback disabled, and UL mode A.
@@ -330,14 +332,16 @@ public:
     // Note: DL HARQ Feedback Disabled can be set during RRC Reconf if UE supports it.
     bounded_bitset<MAX_NOF_HARQS, true> dl_feedback_disabled(MAX_NOF_HARQS);
     dl_feedback_disabled.fill(true);
+    dl_feedback_disabled.fill(0, nof_normal_mode_harqs, false);
     bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
     ul_harq_mode_mask.fill(true);
     harq_ent.reconfigure(dl_feedback_disabled, ul_harq_mode_mask);
-    h_dl = harq_ent.alloc_dl_harq(current_slot, k1 + ntn_cs_koffset, max_retxs, 0).value();
+    h_dl = harq_ent.alloc_dl_harq(current_slot, k1 + ntn_cs_koffset, max_retxs, 0, false).value();
     dl_harq_alloc_context harq_ctxt{dci_dl_rnti_config_type::c_rnti_f1_0};
     ue_pdsch.pdsch_cfg.harq_id = h_dl.id();
     h_dl.save_grant_params(harq_ctxt, ue_pdsch);
   }
+  static constexpr unsigned nof_normal_mode_harqs = 4;
 };
 
 } // namespace
@@ -1154,10 +1158,10 @@ TEST_F(single_ntn_ue_ul_harq_mode_b_process_test, when_ul_harq_allocated_then_it
   while (current_slot != slot_ul_timeout + 1) {
     if (current_slot < slot_ul_timeout) {
       ASSERT_TRUE(h_ul.is_waiting_ack());
-      ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(0)));
+      ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(nof_normal_mode_harqs)));
     } else {
       ASSERT_TRUE(h_ul.empty());
-      ASSERT_FALSE(harq_ent.ul_harq(to_harq_id(0)).has_value());
+      ASSERT_FALSE(harq_ent.ul_harq(to_harq_id(nof_normal_mode_harqs)).has_value());
     }
     run_slot();
   }
@@ -1174,14 +1178,14 @@ TEST_F(single_ntn_ue_ul_harq_mode_b_process_test, ul_harq_history_is_reachable_a
   ASSERT_TRUE(h_dl.is_waiting_ack());
   ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
   ASSERT_TRUE(h_ul.is_waiting_ack());
-  ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(0)));
+  ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(nof_normal_mode_harqs)));
 
   // After timeout, HARQ not available, but NTN HARQ allocation history is available.
   while (current_slot != slot_ul_timeout) {
     run_slot();
   }
   ASSERT_TRUE(h_ul.empty());
-  ASSERT_FALSE(harq_ent.ul_harq(to_harq_id(0)).has_value());
+  ASSERT_FALSE(harq_ent.ul_harq(to_harq_id(nof_normal_mode_harqs)).has_value());
   // Get UL HARQ handlers from the NTN HARQ history.
   h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
   ASSERT_EQ(h_ul.get_grant_params().tbs_bytes, pusch_info.tb_size_bytes);
@@ -1221,7 +1225,7 @@ TEST_F(single_ntn_ue_ul_harq_mode_b_process_test, when_ul_harq_gets_acked_then_i
   ASSERT_TRUE(h_dl.is_waiting_ack());
   ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
   ASSERT_TRUE(h_ul.is_waiting_ack());
-  ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(0)));
+  ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(nof_normal_mode_harqs)));
 
   while (current_slot != uci_slot) {
     run_slot();
@@ -1247,17 +1251,17 @@ TEST_F(single_ntn_ue_harq_dl_feedback_disabled_process_test, release_dl_harq_aft
   slot_point slot_dl_timeout = current_slot + k1 + 1;
 
   ASSERT_TRUE(h_dl.is_waiting_ack());
-  ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
+  ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(nof_normal_mode_harqs)));
   ASSERT_TRUE(h_ul.is_waiting_ack());
   ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(0)));
 
   while (current_slot != slot_dl_timeout + 1) {
     if (current_slot < slot_dl_timeout) {
       ASSERT_TRUE(h_dl.is_waiting_ack());
-      ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
+      ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(nof_normal_mode_harqs)));
     } else {
       ASSERT_TRUE(h_dl.empty());
-      ASSERT_FALSE(harq_ent.dl_harq(to_harq_id(0)).has_value());
+      ASSERT_FALSE(harq_ent.dl_harq(to_harq_id(nof_normal_mode_harqs)).has_value());
       ASSERT_EQ(timeout_handler.last_tbs.value(), ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
     }
     run_slot();

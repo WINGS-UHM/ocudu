@@ -222,7 +222,7 @@ protected:
   const unsigned                         headroom_in_slots = 2;
   const subcarrier_spacing               scs               = subcarrier_spacing::kHz15;
   const slot_point                       slot              = {scs, 1, 0};
-  fapi::prach_config                     prach_cfg;
+  rach_config_common                     prach_cfg;
   fapi::carrier_config                   carrier_cfg = {0, 0, {}, {11, 51, 106, 0, 0}, 0, 0, 0, {}, {}, 0, 0, 0, 0};
   downlink_pdu_validator_dummy           dl_pdu_validator;
   uplink_pdu_validator_dummy             ul_pdu_validator;

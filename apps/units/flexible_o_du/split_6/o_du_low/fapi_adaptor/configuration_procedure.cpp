@@ -51,7 +51,7 @@ public:
 class cell_operation_request_notifier_dummy : public cell_operation_request_notifier
 {
 public:
-  bool on_start_request(const fapi_cell_config& config) override { return false; }
+  bool on_start_request(const cell_configuration& config) override { return false; }
   void on_stop_request() override {}
 };
 
@@ -119,7 +119,7 @@ void configuration_procedure::start_request(const fapi::start_request& msg)
 
   // Status is configured. Create DU low and set the status to start.
   if (!cell_operation_notifier->on_start_request(cell_cfg)) {
-    logger.error("Failed to start cell id '{}'", cell_cfg.cell_cfg.phy_cell_id);
+    logger.error("Failed to start cell id '{}'", cell_cfg.pci);
     error_indication_message indication;
     indication.message_id = message_type_id::start_request;
     indication.error_code = error_code_id::msg_invalid_config;
@@ -159,13 +159,7 @@ void configuration_procedure::stop_request(const fapi::stop_request& msg)
 bool configuration_procedure::update_cell_config(const fapi::config_request& msg)
 {
   // Update the configuration.
-  cell_cfg.carrier_cfg = msg.carrier_cfg;
-  cell_cfg.cell_cfg    = msg.cell_cfg;
-  cell_cfg.phy_cfg     = msg.phy_cfg;
-  cell_cfg.prach_cfg   = msg.prach_cfg;
-  cell_cfg.ssb_cfg     = msg.ssb_cfg;
-  cell_cfg.tdd_cfg     = msg.tdd_cfg;
-  cell_cfg.vendor_cfg  = msg.vendor_cfg;
+  cell_cfg = msg.cell_cfg;
 
   return true;
 }

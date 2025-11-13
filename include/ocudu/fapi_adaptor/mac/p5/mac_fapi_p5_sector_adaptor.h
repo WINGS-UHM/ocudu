@@ -10,30 +10,22 @@
 
 #pragma once
 
+#include "ocudu/fapi_adaptor/mac/p5/mac_fapi_p5_sector_base_adaptor.h"
+
 namespace ocudu {
-
-namespace fapi {
-class config_message_gateway;
-class config_message_notifier;
-class error_message_notifier;
-} // namespace fapi
-
 namespace fapi_adaptor {
 
 class operation_controller;
 
-/// MAC-FAPI P5 sector adaptor interface.
-class mac_fapi_p5_sector_adaptor
+/// \brief MAC-FAPI P5 sector adaptor interface.
+///
+/// The MAC-FAPI P5 sector adaptor provides an operator controller that allows to start/stop a cell using FAPI
+/// procedures.
+///
+/// Note: This interface is used to integrate a third-party L2.
+class mac_fapi_p5_sector_adaptor : public mac_fapi_p5_sector_base_adaptor
 {
 public:
-  virtual ~mac_fapi_p5_sector_adaptor() = default;
-
-  /// Returns the FAPI configuration message notifier of this adaptor.
-  virtual fapi::config_message_notifier& get_config_message_notifier() = 0;
-
-  /// Returns the FAPI error message notifier of this adaptor.
-  virtual fapi::error_message_notifier& get_error_message_notifier() = 0;
-
   /// Returns the operation controller of this adaptor.
   virtual operation_controller& get_operation_controller() = 0;
 };

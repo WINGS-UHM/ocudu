@@ -91,6 +91,12 @@ mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
   ocudu_assert(part2_mapper, "Invalid Part2 mapper");
 }
 
+void mac_to_fapi_fastpath_translator::start()
+{
+  // Make sure the stop manager is reset.
+  stop_manager.reset();
+}
+
 void mac_to_fapi_fastpath_translator::stop()
 {
   stop_manager.stop();

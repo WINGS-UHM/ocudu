@@ -50,8 +50,8 @@ struct fapi_to_phy_fastpath_translator_config {
   subcarrier_spacing scs;
   /// Common subcarrier spacing as per TS38.331 Section 6.2.2.
   subcarrier_spacing scs_common;
-  /// FAPI PRACH configuration TLV as per SCF-222 v4.0 section 3.3.2.4.
-  fapi::prach_config prach_cfg;
+  /// RACH configuration.
+  rach_config_common prach_cfg;
   /// FAPI carrier configuration TLV as per SCF-222 v4.0 section 3.3.2.4.
   fapi::carrier_config carrier_cfg;
   /// PRACH port list.
@@ -226,7 +226,7 @@ public:
   /// Configures the FAPI error-specific notifier to the given one.
   void set_error_message_notifier(fapi::error_message_notifier& fapi_error_notifier)
   {
-    error_notifier = std::ref(fapi_error_notifier);
+    error_notifier = &fapi_error_notifier;
   }
 
 private:
@@ -273,13 +273,13 @@ private:
   /// UCI Part2 correspondence repository.
   std::unique_ptr<uci_part2_correspondence_repository> part2_repo;
   /// Error indication notifier.
-  std::reference_wrapper<fapi::error_message_notifier> error_notifier;
+  fapi::error_message_notifier* error_notifier = nullptr;
   /// Subcarrier spacing as per TS38.211 Section 4.2.
   const subcarrier_spacing scs;
   /// Common subcarrier spacing as per TS38.331 Section 6.2.2.
   const subcarrier_spacing scs_common;
-  /// PRACH configuration as per SCF-222 v4.0 section 3.3.2.4.
-  const fapi::prach_config prach_cfg;
+  /// RACH configuration.
+  const rach_config_common prach_cfg;
   /// Carrier configuration as per SCF-222 v4.0 section 3.3.2.4.
   const fapi::carrier_config carrier_cfg;
   /// PRACH receive ports.

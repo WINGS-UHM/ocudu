@@ -28,6 +28,8 @@ class mac_pdu_handler;
 
 namespace fapi_adaptor {
 
+class operation_controller;
+
 /// \brief MAC-FAPI bidirectional sector fastpath adaptor interface.
 ///
 /// This adaptor is a collection of interfaces to translate FAPI messages into their MAC layer counterpart and vice
@@ -35,9 +37,9 @@ namespace fapi_adaptor {
 class mac_fapi_p7_sector_fastpath_adaptor : public mac_fapi_p7_sector_adaptor
 {
 public:
-  // Note: temporal stop method. When doing the task of stopping O-DU low using the FAPI adaptor, check if this method
-  // is still required.
-  virtual void stop() = 0;
+  // Note: temporal method. When doing the task of stopping O-DU low using the FAPI adaptor, check if this method
+  // is still required or can be moved to the implementation.
+  virtual operation_controller& get_operation_controller() = 0;
 
   /// Returns a reference to the MAC cell results notifier used by the adaptor.
   virtual mac_cell_result_notifier& get_cell_result_notifier() = 0;

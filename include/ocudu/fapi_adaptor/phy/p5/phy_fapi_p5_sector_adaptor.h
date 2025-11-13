@@ -21,7 +21,11 @@ class error_message_notifier;
 
 namespace fapi_adaptor {
 
-/// PHY-FAPI P5 sector adaptor.
+/// \brief: PHY-FAPI P5 sector adaptor.
+///
+/// The PHY-FAPI P5 sector adaptor handles FAPI P5 messages that allows to configure, start or stop a PHY.
+///
+/// Note: This interface is used to integrate a third-party L1.
 class phy_fapi_p5_sector_adaptor
 {
 public:

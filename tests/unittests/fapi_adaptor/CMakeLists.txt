@@ -8,6 +8,7 @@
 
 set_directory_properties(PROPERTIES LABELS "fapi_adaptor")
 
+add_subdirectory(mac/p5)
 add_subdirectory(mac/p7)
 add_subdirectory(phy/p7)
 

@@ -1,0 +1,77 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/p5/config_message_notifier.h"
+#include "ocudu/mac/mac_cell_slot_handler.h"
+#include "ocudu/ocudulog/logger.h"
+
+namespace ocudu {
+
+class task_executor;
+
+namespace fapi_adaptor {
+
+struct p5_transaction_outcome_manager;
+
+/// \brief FAPI P5 responses handler.
+///
+/// This class is responsible for receiving, decoding and processing FAPI P5 response messages originating from an L1
+/// instance. Its primary function is to interpret the contents of a P5 response and update the state and outcome of the
+/// associated FAPI P5 transaction.
+class p5_responses_handler : public fapi::config_message_notifier,
+                             public fapi::error_message_notifier,
+                             public mac_cell_slot_handler
+{
+public:
+  p5_responses_handler(ocudulog::basic_logger&         logger_,
+                       p5_transaction_outcome_manager& transaction_manager_,
+                       task_executor&                  fapi_ctrl_executor_) :
+    logger(logger_), transaction_manager(transaction_manager_), fapi_ctrl_executor(fapi_ctrl_executor_)
+  {
+  }
+
+  // See interface for documentation.
+  void on_param_response(const fapi::param_response& msg) override;
+
+  // See interface for documentation.
+  void on_config_response(const fapi::config_response& msg) override;
+
+  // See interface for documentation.
+  void on_stop_indication(const fapi::stop_indication& msg) override;
+
+  // See interface for documentation.
+  void on_error_indication(const fapi::error_indication_message& msg) override;
+
+  // See interface for documentation.
+  void handle_slot_indication(const mac_cell_timing_context& context) override;
+
+  // See interface for documentation.
+  void handle_error_indication(slot_point sl_tx, error_event event) override
+  {
+    // Nothing to do in this handler.
+  }
+
+  // See interface for documentation.
+  void handle_stop_indication() override
+  {
+    // Nothing to do in this handler.
+  }
+
+private:
+  ocudulog::basic_logger&         logger;
+  p5_transaction_outcome_manager& transaction_manager;
+  task_executor&                  fapi_ctrl_executor;
+};
+
+} // namespace fapi_adaptor
+} // namespace ocudu

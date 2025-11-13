@@ -1,0 +1,45 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/fapi/cell_config.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/timers.h"
+
+namespace ocudu {
+
+namespace fapi {
+class config_message_gateway;
+} // namespace fapi
+
+namespace fapi_adaptor {
+
+/// MAC-FAPI P5 sector fastpath adaptor configuration.
+struct mac_fapi_p5_sector_fastpath_adaptor_config {
+  fapi::cell_configuration cell_cfg;
+};
+
+/// MAC-FAPI P5 sector fastpath adaptor dependencies.
+struct mac_fapi_p5_sector_fastpath_adaptor_dependencies {
+  /// Logger.
+  ocudulog::basic_logger& logger;
+  /// FAPI configuration message gateway.
+  fapi::config_message_gateway& gateway;
+  /// Timer manager.
+  timer_manager& timers;
+  /// FAPI control task executor.
+  task_executor& fapi_ctrl_executor;
+  /// MAC control task executor.
+  task_executor& mac_ctrl_executor;
+};
+
+} // namespace fapi_adaptor
+} // namespace ocudu

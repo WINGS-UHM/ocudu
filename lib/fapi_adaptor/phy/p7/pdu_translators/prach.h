@@ -21,21 +21,23 @@ namespace fapi_adaptor {
 
 /// \brief Helper function that converts from a UL PRACH FAPI PDU to a PRACH buffer context.
 ///
-/// \param[out] context Context for the PRACH buffer.
-/// \param[in] fapi_pdu FAPI PRACH PDU.
-/// \param[in] prach_cfg PRACH configuration as per SCF-222 v4.0 Section 3.3.2.4 TLV 0x1031.
+/// \param[out] context    Context for the PRACH buffer.
+/// \param[in] fapi_pdu    FAPI PRACH PDU.
+/// \param[in] prach_cfg   PRACH configuration as per SCF-222 v4.0 Section 3.3.2.4 TLV 0x1031.
 /// \param[in] carrier_cfg Carrier configuration as per SCF-222 v4.0 Section 3.3.2.4 TLV 0x102d.
-/// \param[in] ports Port selection.
-/// \param[in] sfn System frame number.
-/// \param[in] slot Slot number.
-/// \param[in] sector_id Base station sector identifier.
+/// \param[in] ports       Port selection.
+/// \param[in] sfn         System frame number.
+/// \param[in] slot        Slot number.
+/// \param[in] scs         Common subcarrier spacing.
+/// \param[in] sector_id   Base station sector identifier.
 void convert_prach_fapi_to_phy(prach_buffer_context&       context,
                                const fapi::ul_prach_pdu&   fapi_pdu,
-                               const fapi::prach_config&   prach_cfg,
+                               const rach_config_common&   prach_cfg,
                                const fapi::carrier_config& carrier_cfg,
                                span<const uint8_t>         ports,
                                unsigned                    sfn,
                                unsigned                    slot,
+                               subcarrier_spacing          scs,
                                unsigned                    sector_id);
 
 } // namespace fapi_adaptor

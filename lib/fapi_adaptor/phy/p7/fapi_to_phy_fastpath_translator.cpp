@@ -67,7 +67,7 @@ fapi_to_phy_fastpath_translator::fapi_to_phy_fastpath_translator(
                        logger),
   pm_repo(std::move(dependencies.pm_repo)),
   part2_repo(std::move(dependencies.part2_repo)),
-  error_notifier(dummy_error_notifier),
+  error_notifier(&dummy_error_notifier),
   scs(config.scs),
   scs_common(config.scs_common),
   prach_cfg(config.prach_cfg),
@@ -317,7 +317,7 @@ void fapi_to_phy_fastpath_translator::dl_tti_request(const fapi::dl_tti_request_
                    msg.sfn,
                    msg.slot);
     // Raise out of sync error.
-    error_notifier.get().on_error_indication(fapi::build_out_of_sync_error_indication(
+    error_notifier->on_error_indication(fapi::build_out_of_sync_error_indication(
         msg.sfn, msg.slot, fapi::message_type_id::dl_tti_request, current_slot.sfn(), current_slot.slot_index()));
     general_critical_tracer << instant_trace_event{
         "dl_tti_req_late", instant_trace_event::cpu_scope::global, instant_trace_event::event_criticality::severe};
@@ -335,7 +335,7 @@ void fapi_to_phy_fastpath_translator::dl_tti_request(const fapi::dl_tti_request_
   if (!controller.is_initialized()) {
     logger.warning("Sector#{}: Could not acquire downlink processor for slot {}.{}", sector_id, msg.sfn, msg.slot);
     // Raise out of sync error.
-    error_notifier.get().on_error_indication(
+    error_notifier->on_error_indication(
         fapi::build_msg_error_indication(msg.sfn, msg.slot, fapi::message_type_id::dl_tti_request));
 
     return;
@@ -353,7 +353,7 @@ void fapi_to_phy_fastpath_translator::dl_tti_request(const fapi::dl_tti_request_
 
   // Raise invalid format error.
   if (!pdus.has_value()) {
-    error_notifier.get().on_error_indication(
+    error_notifier->on_error_indication(
         fapi::build_msg_error_indication(msg.sfn, msg.slot, fapi::message_type_id::dl_tti_request));
     return;
   }
@@ -411,19 +411,21 @@ static prach_detector::configuration get_prach_dectector_config_from(const prach
 /// \note If a PDU fails the validation, the whole UL_TTI.request message is dropped.
 static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tti_request_message&  msg,
                                                                const uplink_pdu_validator&          ul_pdu_validator,
-                                                               const fapi::prach_config&            prach_cfg,
+                                                               const rach_config_common&            prach_cfg,
                                                                const fapi::carrier_config&          carrier_cfg,
                                                                span<const uint8_t>                  ports,
                                                                ocudulog::basic_logger&              logger,
                                                                uci_part2_correspondence_repository& part2_repo,
-                                                               unsigned                             sector_id)
+                                                               unsigned                             sector_id,
+                                                               subcarrier_spacing                   scs)
 {
   uplink_pdus pdus;
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {
       case fapi::ul_pdu_type::PRACH: {
         prach_buffer_context& context = pdus.prach.emplace_back();
-        convert_prach_fapi_to_phy(context, pdu.prach_pdu, prach_cfg, carrier_cfg, ports, msg.sfn, msg.slot, sector_id);
+        convert_prach_fapi_to_phy(
+            context, pdu.prach_pdu, prach_cfg, carrier_cfg, ports, msg.sfn, msg.slot, scs, sector_id);
         error_type<std::string> phy_prach_validation =
             ul_pdu_validator.is_valid(get_prach_dectector_config_from(context));
         if (!phy_prach_validation.has_value()) {
@@ -508,7 +510,7 @@ void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_
                    msg.sfn,
                    msg.slot);
     // Raise out of sync error.
-    error_notifier.get().on_error_indication(fapi::build_out_of_sync_error_indication(
+    error_notifier->on_error_indication(fapi::build_out_of_sync_error_indication(
         msg.sfn, msg.slot, fapi::message_type_id::ul_tti_request, current_slot.sfn(), current_slot.slot_index()));
     general_critical_tracer << instant_trace_event{
         "ul_tti_req_late", instant_trace_event::cpu_scope::global, instant_trace_event::event_criticality::severe};
@@ -528,7 +530,7 @@ void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_
     logger.warning(
         "Sector#{}: Real-time failure in FAPI: UL processor is busy for slot {}.{}.", sector_id, msg.sfn, msg.slot);
     // Raise out of sync error.
-    error_notifier.get().on_error_indication(
+    error_notifier->on_error_indication(
         fapi::build_msg_error_indication(msg.sfn, msg.slot, fapi::message_type_id::ul_tti_request));
     general_critical_tracer << instant_trace_event{
         "ul_tti_req_busy", instant_trace_event::cpu_scope::global, instant_trace_event::event_criticality::severe};
@@ -536,11 +538,11 @@ void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_
   }
 
   expected<uplink_pdus> pdus = translate_ul_tti_pdus_to_phy_pdus(
-      msg, ul_pdu_validator, prach_cfg, carrier_cfg, prach_ports, logger, *part2_repo, sector_id);
+      msg, ul_pdu_validator, prach_cfg, carrier_cfg, prach_ports, logger, *part2_repo, sector_id, scs_common);
 
   // Raise invalid format error.
   if (!pdus.has_value()) {
-    error_notifier.get().on_error_indication(
+    error_notifier->on_error_indication(
         fapi::build_msg_error_indication(msg.sfn, msg.slot, fapi::message_type_id::ul_tti_request));
     return;
   }
@@ -582,7 +584,7 @@ void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_
                    msg.sfn,
                    msg.slot);
     // Raise out of message transmit error.
-    error_notifier.get().on_error_indication(
+    error_notifier->on_error_indication(
         fapi::build_msg_error_indication(msg.sfn, msg.slot, fapi::message_type_id::ul_tti_request));
     l1_ul_tracer << instant_trace_event{"ul_tti_failed_grid", instant_trace_event::cpu_scope::global};
     return;
@@ -605,7 +607,7 @@ void fapi_to_phy_fastpath_translator::ul_dci_request(const fapi::ul_dci_request_
                    msg.sfn,
                    msg.slot);
     // Raise invalid sfn error.
-    error_notifier.get().on_error_indication(fapi::build_invalid_sfn_error_indication(
+    error_notifier->on_error_indication(fapi::build_invalid_sfn_error_indication(
         msg.sfn, msg.slot, fapi::message_type_id::ul_dci_request, current_slot.sfn(), current_slot.slot_index()));
     general_critical_tracer << instant_trace_event{
         "ul_dci_req_late", instant_trace_event::cpu_scope::global, instant_trace_event::event_criticality::severe};
@@ -628,7 +630,7 @@ void fapi_to_phy_fastpath_translator::ul_dci_request(const fapi::ul_dci_request_
             sector_id,
             i_dci);
         // Raise invalid format error.
-        error_notifier.get().on_error_indication(fapi::build_msg_ul_dci_error_indication(msg.sfn, msg.slot));
+        error_notifier->on_error_indication(fapi::build_msg_ul_dci_error_indication(msg.sfn, msg.slot));
         return;
       }
     }
@@ -640,7 +642,7 @@ void fapi_to_phy_fastpath_translator::ul_dci_request(const fapi::ul_dci_request_
   if (!controller.is_initialized()) {
     logger.warning("Sector#{}: Could not acquire downlink processor for slot {}.{}", sector_id, msg.sfn, msg.slot);
     // Raise out of sync error.
-    error_notifier.get().on_error_indication(fapi::build_msg_ul_dci_error_indication(msg.sfn, msg.slot));
+    error_notifier->on_error_indication(fapi::build_msg_ul_dci_error_indication(msg.sfn, msg.slot));
 
     return;
   }
@@ -661,7 +663,7 @@ void fapi_to_phy_fastpath_translator::tx_data_request(const fapi::tx_data_reques
     logger.warning(
         "Sector#{}: Real-time failure in FAPI: Received TX_Data.request from slot {}.{}", sector_id, msg.sfn, msg.slot);
     // Raise invalid sfn error.
-    error_notifier.get().on_error_indication(fapi::build_invalid_sfn_error_indication(
+    error_notifier->on_error_indication(fapi::build_invalid_sfn_error_indication(
         msg.sfn, msg.slot, fapi::message_type_id::tx_data_request, current_slot.sfn(), current_slot.slot_index()));
     general_critical_tracer << instant_trace_event{
         "tx_data_req_late", instant_trace_event::cpu_scope::global, instant_trace_event::event_criticality::severe};
@@ -677,7 +679,7 @@ void fapi_to_phy_fastpath_translator::tx_data_request(const fapi::tx_data_reques
                    msg.pdus.size(),
                    pdsch_repository.pdus.size());
     // Raise invalid format error.
-    error_notifier.get().on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
+    error_notifier->on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
 
     pdsch_repository.clear();
 
@@ -706,7 +708,7 @@ void fapi_to_phy_fastpath_translator::tx_data_request(const fapi::tx_data_reques
       logger.warning("Sector#{}: Invalid TX_Data.request. Number of PDUs does not match repository size", sector_id);
 
       // Raise invalid format error.
-      error_notifier.get().on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
+      error_notifier->on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
 
       pdsch_repository.clear();
     }
@@ -719,7 +721,7 @@ void fapi_to_phy_fastpath_translator::tx_data_request(const fapi::tx_data_reques
     logger.warning("Sector#{}: Invalid TX_Data.request. Empty PDU repository", sector_id);
 
     // Raise invalid format error.
-    error_notifier.get().on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
+    error_notifier->on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
     return;
   }
 
@@ -728,7 +730,7 @@ void fapi_to_phy_fastpath_translator::tx_data_request(const fapi::tx_data_reques
   if (!controller.is_initialized()) {
     logger.warning("Sector#{}: Could not acquire downlink processor for slot {}.{}", sector_id, msg.sfn, msg.slot);
     // Raise out of sync error.
-    error_notifier.get().on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
+    error_notifier->on_error_indication(fapi::build_msg_tx_error_indication(msg.sfn, msg.slot));
 
     return;
   }

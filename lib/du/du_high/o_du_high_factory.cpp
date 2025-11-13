@@ -15,13 +15,85 @@
 #include "ocudu/du/du_high/o_du_high_config.h"
 #include "ocudu/e2/e2_du_factory.h"
 #include "ocudu/fapi/decorator_factory.h"
+#include "ocudu/fapi/p5/config_message_gateway.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 
 using namespace ocudu;
 using namespace odu;
+
+namespace {
+
+// :TODO: temporal gateway until P5 PHY adaptor is ready.
+class fapi_config_message_gateway_dummy : public fapi::config_message_gateway
+{
+public:
+  void param_request(const fapi::param_request& msg) override {}
+  void config_request(const fapi::config_request& msg) override {}
+  void stop_request(const fapi::stop_request& msg) override {}
+  void start_request(const fapi::start_request& msg) override {}
+};
+
+} // namespace
+
+// :TODO: temporal gateway until P5 PHY adaptor is ready.
+fapi_config_message_gateway_dummy dummy_p5_gateway;
+
+static fapi_adaptor::mac_fapi_p5_sector_fastpath_adaptor_dependencies
+generate_mac_fapi_p5_sector_adaptor_dependencies(const o_du_high_sector_dependencies& sector_dependencies)
+{
+  return {.logger             = ocudulog::fetch_basic_logger("FAPI"),
+          .gateway            = dummy_p5_gateway,
+          .timers             = sector_dependencies.timer_mng,
+          .fapi_ctrl_executor = sector_dependencies.fapi_ctrl_executor,
+          .mac_ctrl_executor  = sector_dependencies.mac_ctrl_executor};
+}
+
+static fapi_adaptor::mac_fapi_p5_sector_fastpath_adaptor_config
+generate_fapi_p5_cell_config(const du_cell_config& du_cell)
+{
+  fapi::cell_configuration cell_cfg;
+
+  cell_cfg.scs_common = du_cell.scs_common;
+  cell_cfg.cp         = du_cell.dl_cfg_common.init_dl_bwp.generic_params.cp;
+
+  cell_cfg.duplex = (du_cell.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
+  cell_cfg.pci    = du_cell.pci;
+
+  unsigned numerology       = to_numerology_value(du_cell.scs_common);
+  unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
+      MHz_to_bs_channel_bandwidth(du_cell.dl_carrier.carrier_bw_mhz),
+      du_cell.scs_common,
+      band_helper::get_freq_range(band_helper::get_band_from_dl_arfcn(du_cell.dl_carrier.arfcn_f_ref)));
+
+  cell_cfg.carrier_cfg.dl_bandwidth = du_cell.dl_carrier.carrier_bw_mhz;
+  cell_cfg.carrier_cfg.ul_bandwidth = du_cell.ul_carrier.carrier_bw_mhz;
+
+  cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.dl_carrier.arfcn_f_ref;
+  cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ul_carrier.arfcn_f_ref;
+
+  // NOTE; for now we only need to fill the nof_prb_ul_grid and nof_prb_dl_grid for the common SCS.
+  cell_cfg.carrier_cfg.dl_grid_size             = {};
+  cell_cfg.carrier_cfg.dl_grid_size[numerology] = grid_size_bw_prb;
+  cell_cfg.carrier_cfg.ul_grid_size             = {};
+  cell_cfg.carrier_cfg.ul_grid_size[numerology] = grid_size_bw_prb;
+
+  // Number of transmit and receive antenna ports.
+  cell_cfg.carrier_cfg.num_tx_ant     = du_cell.dl_carrier.nof_ant;
+  cell_cfg.carrier_cfg.num_rx_ant     = du_cell.ul_carrier.nof_ant;
+  cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.dmrs_typeA_pos;
+
+  cell_cfg.ssb_cfg              = du_cell.ssb_cfg;
+  cell_cfg.tdd_ul_dl_cfg_common = du_cell.tdd_ul_dl_cfg_common;
+  report_error_if_not(du_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common, "RACH configuration not present");
+
+  cell_cfg.prach_cfg = *du_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+
+  return {cell_cfg};
+}
 
 static fapi_adaptor::mac_fapi_fastpath_adaptor_config
 generate_fapi_fastpath_adaptor_config(const o_du_high_config& config)
@@ -32,11 +104,31 @@ generate_fapi_fastpath_adaptor_config(const o_du_high_config& config)
     const auto& du_cell = config.du_hi.ran.cells[i];
     unsigned    nof_prb = get_max_Nprb(
         du_cell.dl_carrier.carrier_bw_mhz, du_cell.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
-    out_config.sectors.push_back(
-        {i, nof_prb, du_cell.scs_common, config.fapi.log_level, config.fapi.l2_nof_slots_ahead});
+    fapi_adaptor::mac_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {.sector_id     = i,
+                                                                       .cell_nof_prbs = nof_prb,
+                                                                       .scs           = du_cell.scs_common,
+                                                                       .log_level     = config.fapi.log_level,
+                                                                       .l2_nof_slots_ahead =
+                                                                           config.fapi.l2_nof_slots_ahead};
+
+    out_config.sectors.push_back({.p5_config = generate_fapi_p5_cell_config(du_cell), .p7_config = p7_cfg});
   }
 
   return out_config;
+}
+
+static fapi_adaptor::mac_fapi_p7_sector_fastpath_adaptor_dependencies
+generate_mac_fapi_p7_sector_adaptor_dependencies(const o_du_high_sector_dependencies& sector_dependencies,
+                                                 unsigned                             nof_tx_antennas,
+                                                 unsigned                             sector)
+{
+  return {.gateway                = sector_dependencies.p7_gateway,
+          .last_msg_notifier      = sector_dependencies.last_msg_notifier,
+          .pm_mapper              = std::move(std::get<std::unique_ptr<fapi_adaptor::precoding_matrix_mapper>>(
+              fapi_adaptor::generate_precoding_matrix_tables(nof_tx_antennas, sector))),
+          .part2_mapper           = std::move(std::get<std::unique_ptr<fapi_adaptor::uci_part2_correspondence_mapper>>(
+              fapi_adaptor::generate_uci_part2_correspondence(1))),
+          .bufferer_task_executor = sector_dependencies.fapi_executor};
 }
 
 static fapi_adaptor::mac_fapi_fastpath_adaptor_dependencies
@@ -45,15 +137,11 @@ generate_fapi_fastpath_adaptor_dependencies(const o_du_high_config& config, o_du
   fapi_adaptor::mac_fapi_fastpath_adaptor_dependencies out_dependencies;
 
   for (unsigned i = 0, e = config.du_hi.ran.cells.size(); i != e; ++i) {
-    auto& sector_dependencies = odu_dependencies.sectors[i];
+    const auto& sector_dependencies = odu_dependencies.sectors[i];
     out_dependencies.sectors.push_back(
-        {{*sector_dependencies.gateway,
-          *sector_dependencies.last_msg_notifier,
-          std::move(std::get<std::unique_ptr<fapi_adaptor::precoding_matrix_mapper>>(
-              fapi_adaptor::generate_precoding_matrix_tables(config.du_hi.ran.cells[i].dl_carrier.nof_ant, i))),
-          std::move(std::get<std::unique_ptr<fapi_adaptor::uci_part2_correspondence_mapper>>(
-              fapi_adaptor::generate_uci_part2_correspondence(1))),
-          sector_dependencies.fapi_executor}});
+        {.p5_dependencies = generate_mac_fapi_p5_sector_adaptor_dependencies(sector_dependencies),
+         .p7_dependencies = generate_mac_fapi_p7_sector_adaptor_dependencies(
+             sector_dependencies, config.du_hi.ran.cells[i].dl_carrier.nof_ant, i)});
   }
 
   return out_dependencies;

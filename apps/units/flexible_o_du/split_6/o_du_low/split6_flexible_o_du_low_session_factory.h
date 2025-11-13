@@ -20,7 +20,8 @@ namespace ocudu {
 namespace fapi {
 class slot_message_gateway;
 class slot_last_message_notifier;
-struct fapi_cell_config;
+struct cell_configuration;
+class config_message_gateway;
 } // namespace fapi
 
 struct worker_manager;
@@ -97,15 +98,15 @@ public:
   }
 
   /// Creates the split 6 flexible O-DU low session.
-  std::unique_ptr<split6_flexible_o_du_low_session> create_o_du_low_session(const fapi::fapi_cell_config& config);
+  std::unique_ptr<split6_flexible_o_du_low_session> create_o_du_low_session(const fapi::cell_configuration& config);
 
 private:
   /// Creates Radio Unit.
   std::unique_ptr<radio_unit> create_radio_unit(split6_flexible_o_du_low_session& odu_low,
-                                                const fapi::fapi_cell_config&     config);
+                                                const fapi::cell_configuration&   config);
 
   /// Creates O-DU low.
-  o_du_low_unit create_o_du_low(const fapi::fapi_cell_config&     config,
+  o_du_low_unit create_o_du_low(const fapi::cell_configuration&   config,
                                 const o_du_low_unit_dependencies& odu_low_dependencies);
 };
 

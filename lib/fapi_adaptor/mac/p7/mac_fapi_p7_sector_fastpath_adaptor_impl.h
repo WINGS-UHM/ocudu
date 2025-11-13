@@ -13,20 +13,27 @@
 #include "fapi_to_mac_data_msg_fastpath_translator.h"
 #include "fapi_to_mac_error_msg_fastpath_translator.h"
 #include "fapi_to_mac_time_msg_fastpath_translator.h"
+#include "mac_fapi_p7_sector_fastpath_adaptor_impl_config.h"
 #include "mac_to_fapi_fastpath_translator.h"
+#include "ocudu/fapi_adaptor/mac/operation_controller.h"
 #include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
-#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor_config.h"
 
 namespace ocudu {
 namespace fapi_adaptor {
 
-/// MAC-FAPI P7 bidirectional sector fastpath adaptor implementation.
-class mac_fapi_p7_sector_fastpath_adaptor_impl : public mac_fapi_p7_sector_fastpath_adaptor
+/// \brief MAC-FAPI P7 bidirectional sector fastpath adaptor implementation.
+class mac_fapi_p7_sector_fastpath_adaptor_impl : public mac_fapi_p7_sector_fastpath_adaptor, public operation_controller
 {
 public:
   /// Constructor for the MAC-FAPI bidirectional sector adaptor.
-  mac_fapi_p7_sector_fastpath_adaptor_impl(const mac_fapi_p7_sector_fastpath_adaptor_config& config,
-                                           mac_fapi_p7_sector_fastpath_adaptor_dependencies  dependencies);
+  mac_fapi_p7_sector_fastpath_adaptor_impl(const mac_fapi_p7_sector_fastpath_adaptor_config&     config,
+                                           mac_fapi_p7_sector_fastpath_adaptor_impl_dependencies dependencies);
+
+  // See interface for documentation.
+  operation_controller& get_operation_controller() override { return *this; }
+
+  // See interface for documentation.
+  void start() override { mac_translator.start(); }
 
   // See interface for documentation.
   void stop() override { mac_translator.stop(); }

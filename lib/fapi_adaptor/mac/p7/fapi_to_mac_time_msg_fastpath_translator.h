@@ -26,7 +26,7 @@ namespace fapi_adaptor {
 class fapi_to_mac_time_msg_fastpath_translator : public fapi::slot_time_message_notifier
 {
 public:
-  explicit fapi_to_mac_time_msg_fastpath_translator(subcarrier_spacing scs_);
+  fapi_to_mac_time_msg_fastpath_translator(subcarrier_spacing scs_, mac_cell_slot_handler& fapi_slot_handler_);
 
   // See interface for documentation.
   void on_slot_indication(const fapi::slot_indication_message& msg) override;
@@ -36,6 +36,7 @@ public:
 
 private:
   const subcarrier_spacing scs;
+  mac_cell_slot_handler&   fapi_slot_handler;
   mac_cell_slot_handler*   mac_slot_handler;
 };
 

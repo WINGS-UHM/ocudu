@@ -13,7 +13,7 @@
 namespace ocudu {
 namespace fapi {
 
-struct fapi_cell_config;
+struct cell_configuration;
 
 /// \brief FAPI cell operation request notifier.
 ///
@@ -27,7 +27,7 @@ public:
   ///
   /// This method is synchronous, as such, when this callback returns the start procedure will be completed. Returns
   /// true on start success, otherwise false.
-  virtual bool on_start_request(const fapi_cell_config& config) = 0;
+  virtual bool on_start_request(const cell_configuration& config) = 0;
 
   /// \brief Notifies a stop request from FAPI.
   ///

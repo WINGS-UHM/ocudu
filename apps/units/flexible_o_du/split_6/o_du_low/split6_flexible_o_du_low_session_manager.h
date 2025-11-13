@@ -32,7 +32,7 @@ public:
   }
 
   // See interface for documentation.
-  bool on_start_request(const fapi::fapi_cell_config& config) override;
+  bool on_start_request(const fapi::cell_configuration& config) override;
 
   // See interface for documentation.
   void on_stop_request() override { flexible_odu_low.reset(); }

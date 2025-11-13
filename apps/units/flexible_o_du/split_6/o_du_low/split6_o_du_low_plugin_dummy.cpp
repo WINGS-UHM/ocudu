@@ -74,7 +74,7 @@ public:
 class mac_fapi_p7_sector_adaptor_factory_dummy : public fapi_adaptor::mac_fapi_p7_sector_adaptor_factory
 {
   // See interface for documentation.
-  std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> create(const fapi::fapi_cell_config&     fapi_cfg,
+  std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> create(const fapi::cell_configuration&   fapi_cfg,
                                                                    fapi::slot_message_gateway&       gateway,
                                                                    fapi::slot_last_message_notifier& last_msg_notifier,
                                                                    ru_controller&                    ru_ctrl) override

@@ -60,7 +60,7 @@ private:
 
 private:
   ocudulog::basic_logger&          logger;
-  fapi_cell_config                 cell_cfg;
+  cell_configuration               cell_cfg;
   config_message_notifier*         notifier                = nullptr;
   error_message_notifier*          error_notifier          = nullptr;
   cell_operation_request_notifier* cell_operation_notifier = nullptr;

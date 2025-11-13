@@ -6,9 +6,11 @@
 # the distribution.
 #
 
+add_subdirectory(p5)
 add_subdirectory(p7)
 
 add_library(ocudu_mac_fapi_fastpath_adaptor STATIC mac_fapi_fastpath_adaptor_factory_impl.cpp
-                                           mac_fapi_fastpath_adaptor_impl.cpp
-                                           mac_fapi_sector_fastpath_adaptor_impl.cpp)
-target_link_libraries(ocudu_mac_fapi_fastpath_adaptor PRIVATE ocudu_mac_to_fapi_p7_sector_fastpath_adaptor)
+    mac_fapi_fastpath_adaptor_impl.cpp
+    mac_fapi_sector_fastpath_adaptor_impl.cpp)
+target_link_libraries(ocudu_mac_fapi_fastpath_adaptor PRIVATE ocudu_mac_to_fapi_p7_sector_fastpath_adaptor
+    ocudu_mac_to_fapi_p5_sector_fastpath_adaptor)

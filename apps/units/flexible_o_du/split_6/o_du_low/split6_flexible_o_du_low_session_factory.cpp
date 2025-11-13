@@ -9,7 +9,6 @@
  */
 
 #include "split6_flexible_o_du_low_session_factory.h"
-#include "apps/services/metrics/metrics_config.h"
 #include "apps/services/worker_manager/worker_manager.h"
 #include "apps/units/flexible_o_du/o_du_low/du_low_config_validator.h"
 #include "apps/units/flexible_o_du/o_du_low/o_du_low_unit_factory.h"
@@ -62,7 +61,7 @@ split6_flexible_o_du_low_session_factory::start_time_calculator::calculate_start
 }
 
 std::unique_ptr<split6_flexible_o_du_low_session>
-split6_flexible_o_du_low_session_factory::create_o_du_low_session(const fapi::fapi_cell_config& config)
+split6_flexible_o_du_low_session_factory::create_o_du_low_session(const fapi::cell_configuration& config)
 {
   auto odu = std::make_unique<split6_flexible_o_du_low_session>(
       notifier, std::chrono::milliseconds(unit_config.du_report_period));
@@ -106,106 +105,18 @@ split6_flexible_o_du_low_session_factory::create_o_du_low_session(const fapi::fa
   return odu;
 }
 
-/// Return the TDD period in slots for the given period and slots per subframe.
-static unsigned get_period_in_slots(unsigned period, unsigned nof_slots_per_subframe)
-{
-  switch (period) {
-    // 0.5 ms.
-    case 0:
-      ocudu_assert(nof_slots_per_subframe % 2 == 0, "Invalid number of slots per subframe to get periodicity 0.5ms");
-      return nof_slots_per_subframe / 2;
-      // 0.625 ms.
-    case 1:
-      ocudu_assert((nof_slots_per_subframe * 5) % 8 == 0,
-                   "Invalid number of slots per subframe to get periodicity 0.625ms");
-      return nof_slots_per_subframe * 5 / 8;
-      // 1 ms.
-    case 2:
-      return nof_slots_per_subframe;
-      // 1.25 ms.
-    case 3:
-      ocudu_assert((nof_slots_per_subframe * 5) % 4 == 0,
-                   "Invalid number of slots per subframe to get 1.25ms periodicity");
-      return nof_slots_per_subframe * 5 / 4;
-      // 2 ms.
-    case 4:
-      return 2 * nof_slots_per_subframe;
-      // 2.5 ms.
-    case 5:
-      ocudu_assert((nof_slots_per_subframe * 5) % 2 == 0,
-                   "Invalid number of slots per subframe to get periodicity 2.5ms");
-      return nof_slots_per_subframe * 5 / 2;
-      // 5 ms.
-    case 6:
-      return nof_slots_per_subframe * 5;
-      // 10 ms.
-    case 7:
-      return nof_slots_per_subframe * 10;
-    default:
-      ocudu_assert(0, "TDD period '{}' not supported", period);
-  }
-
-  return nof_slots_per_subframe;
-}
-
-/// Generates the TDD pattern from the given FAPI structure.
-static tdd_ul_dl_config_common generate_tdd_pattern(subcarrier_spacing scs, const fapi::tdd_phy_config& pattern)
-{
-  // Note: initializing the struct is important to set all values to 0.
-  tdd_ul_dl_config_common out = {};
-  out.ref_scs                 = scs;
-
-  // [Implementation defined] For now only fill one pattern.
-  auto& pattern1 = out.pattern1;
-
-  unsigned nof_slots_per_subframe    = slot_point(scs, 0).nof_slots_per_subframe();
-  pattern1.dl_ul_tx_period_nof_slots = get_period_in_slots(pattern.tdd_period, nof_slots_per_subframe);
-
-  for (unsigned i = 0; i != pattern1.dl_ul_tx_period_nof_slots; ++i) {
-    const auto& slot = pattern.slot_config[i];
-    if (std::all_of(slot.cbegin(), slot.cend(), [](const fapi::tdd_slot_symbol_type& value) {
-          return value == fapi::tdd_slot_symbol_type::dl_symbol;
-        })) {
-      ++pattern1.nof_dl_slots;
-    } else if (std::all_of(slot.cbegin(), slot.cend(), [](const fapi::tdd_slot_symbol_type& value) {
-                 return value == fapi::tdd_slot_symbol_type::ul_symbol;
-               })) {
-      ++pattern1.nof_ul_slots;
-    } else {
-      if (auto I = std::find_if(
-              slot.crbegin(),
-              slot.crend(),
-              [](const fapi::tdd_slot_symbol_type& value) { return value == fapi::tdd_slot_symbol_type::dl_symbol; });
-          I != slot.crend()) {
-        pattern1.nof_dl_symbols = std::distance(I, slot.crend());
-      }
-
-      if (const auto* I = std::find_if(
-              slot.cbegin(),
-              slot.cend(),
-              [](const fapi::tdd_slot_symbol_type& value) { return value == fapi::tdd_slot_symbol_type::ul_symbol; });
-          I != slot.cend()) {
-        pattern1.nof_ul_symbols = std::distance(I, slot.cend());
-      }
-    }
-  }
-
-  return out;
-}
-
 static std::vector<du_low_prach_validation_config>
-get_du_low_validation_dependencies(const fapi::fapi_cell_config& config)
+get_du_low_validation_dependencies(const fapi::cell_configuration& config)
 {
   std::vector<du_low_prach_validation_config> out_cfg(split6_du_low::NOF_CELLS_SUPPORTED);
 
   du_low_prach_validation_config& out_cell = out_cfg.front();
 
   // Get PRACH info.
-  subcarrier_spacing common_scs = config.phy_cfg.scs;
+  subcarrier_spacing common_scs = config.scs_common;
 
-  prach_configuration prach_info = prach_configuration_get(split6_du_low::freq_range,
-                                                           static_cast<duplex_mode>(config.cell_cfg.frame_duplex_type),
-                                                           config.prach_cfg.prach_config_index);
+  prach_configuration prach_info = prach_configuration_get(
+      split6_du_low::freq_range, config.duplex, config.prach_cfg.rach_cfg_generic.prach_config_index);
   // PRACH format type.
   out_cell.format = prach_info.format;
 
@@ -216,7 +127,7 @@ get_du_low_validation_dependencies(const fapi::fapi_cell_config& config)
           : get_prach_preamble_short_info(prach_info.format, to_ra_subcarrier_spacing(common_scs), false);
 
   out_cell.prach_scs             = preamble_info.scs;
-  out_cell.zero_correlation_zone = config.prach_cfg.fd_occasions.front().prach_zero_corr_conf;
+  out_cell.zero_correlation_zone = config.prach_cfg.rach_cfg_generic.zero_correlation_zone_config;
   out_cell.nof_prach_ports       = split6_du_low::PRACH_NOF_PORTS;
   out_cell.nof_antennas_ul       = config.carrier_cfg.num_rx_ant;
 
@@ -224,7 +135,7 @@ get_du_low_validation_dependencies(const fapi::fapi_cell_config& config)
 }
 
 o_du_low_unit
-split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::fapi_cell_config&     config,
+split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::cell_configuration&   config,
                                                           const o_du_low_unit_dependencies& odu_low_dependencies)
 {
   odu::cell_prach_ports_entry prach_ports = {split6_du_low::PRACH_PORT};
@@ -244,14 +155,14 @@ split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::fapi_cell_
       unit_config.du_low_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot;
   p7_fapi_sector.nof_slots_request_headroom = unit_config.du_low_cfg.expert_phy_cfg.nof_slots_request_headroom;
   p7_fapi_sector.prach_ports                = prach_ports;
-  p7_fapi_sector.scs                        = config.phy_cfg.scs;
-  p7_fapi_sector.scs_common                 = config.phy_cfg.scs;
+  p7_fapi_sector.scs                        = config.scs_common;
+  p7_fapi_sector.scs_common                 = config.scs_common;
   p7_fapi_sector.dBFS_calibration_value     = 1.F;
   // When the sampling rate is provided, calculate the dBFS calibration value as sqrt(sampling rate / subcarrier
   // spacing). This factor is the magnitude of a single subcarrier in normalized PHY linear units equivalent to
   // a constant signal with a power of 0 dBFS.
   if (sampling_rate_MHz) {
-    p7_fapi_sector.dBFS_calibration_value = calculate_dBFS_calibration_value(*sampling_rate_MHz, config.phy_cfg.scs);
+    p7_fapi_sector.dBFS_calibration_value = calculate_dBFS_calibration_value(*sampling_rate_MHz, config.scs_common);
   }
 
   // :TODO: add a parse option for the sector, so it will be easier to debug problems when running more than one
@@ -260,22 +171,19 @@ split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::fapi_cell_
 
   auto& du_low_cell = odu_low_cfg.cells.emplace_back();
 
-  du_low_cell.duplex               = static_cast<duplex_mode>(config.cell_cfg.frame_duplex_type);
+  du_low_cell.duplex               = config.duplex;
   du_low_cell.freq_range           = split6_du_low::freq_range;
-  du_low_cell.bw_rb                = config.carrier_cfg.dl_grid_size[to_numerology_value(config.phy_cfg.scs)];
+  du_low_cell.bw_rb                = config.carrier_cfg.dl_grid_size[to_numerology_value(config.scs_common)];
   du_low_cell.nof_rx_antennas      = config.carrier_cfg.num_rx_ant;
   du_low_cell.nof_tx_antennas      = config.carrier_cfg.num_tx_ant;
   du_low_cell.prach_ports          = prach_ports;
-  du_low_cell.scs_common           = config.phy_cfg.scs;
-  du_low_cell.prach_config_index   = config.prach_cfg.prach_config_index;
+  du_low_cell.scs_common           = config.scs_common;
+  du_low_cell.prach_config_index   = config.prach_cfg.rach_cfg_generic.prach_config_index;
   du_low_cell.max_puschs_per_slot  = MAX_PUSCH_PDUS_PER_SLOT;
   du_low_cell.pusch_max_nof_layers = split6_du_low::PUSCH_MAX_NOF_LAYERS;
 
   // TDD pattern.
-  if (config.cell_cfg.frame_duplex_type == 1) {
-    // [Implementation defined] Start with one pattern for now.
-    du_low_cell.tdd_pattern.emplace(generate_tdd_pattern(config.phy_cfg.scs, config.tdd_cfg));
-  }
+  du_low_cell.tdd_pattern = config.tdd_ul_dl_cfg_common;
 
   o_du_low_unit_factory odu_low_factory(unit_config.du_low_cfg.hal_config);
 
@@ -283,7 +191,7 @@ split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::fapi_cell_
 }
 
 static flexible_o_du_ru_config
-generate_o_du_ru_config(const fapi::fapi_cell_config& config, unsigned expected_max_proc_delay, bool uses_ofh)
+generate_o_du_ru_config(const fapi::cell_configuration& config, unsigned expected_max_proc_delay, bool uses_ofh)
 {
   flexible_o_du_ru_config out_cfg;
   out_cfg.prach_nof_ports = split6_du_low::PRACH_NOF_PORTS;
@@ -293,38 +201,35 @@ generate_o_du_ru_config(const fapi::fapi_cell_config& config, unsigned expected_
     out_cfg.max_processing_delay = expected_max_proc_delay;
   } else {
     // Split 8 notifies OTA + max_proc_delay + 1ms.
-    out_cfg.max_processing_delay = expected_max_proc_delay - get_nof_slots_per_subframe(config.phy_cfg.scs);
+    out_cfg.max_processing_delay = expected_max_proc_delay - get_nof_slots_per_subframe(config.scs_common);
   }
 
   // Add one cell.
   auto& out_cell           = out_cfg.cells.emplace_back();
   out_cell.nof_rx_antennas = config.carrier_cfg.num_rx_ant;
   out_cell.nof_tx_antennas = config.carrier_cfg.num_tx_ant;
-  out_cell.scs             = config.phy_cfg.scs;
+  out_cell.scs             = config.scs_common;
   out_cell.dl_arfcn        = config.carrier_cfg.dl_f_ref_arfcn;
   out_cell.ul_arfcn        = config.carrier_cfg.ul_f_ref_arfcn;
   out_cell.bw              = MHz_to_bs_channel_bandwidth(config.carrier_cfg.dl_bandwidth);
-  out_cell.cp              = config.phy_cfg.cp;
+  out_cell.cp              = config.cp;
   out_cell.freq_range      = split6_du_low::freq_range;
 
   // TDD pattern.
-  if (config.cell_cfg.frame_duplex_type == 1) {
-    // [Implementation defined] Start with one pattern for now.
-    out_cell.tdd_config.emplace(generate_tdd_pattern(config.phy_cfg.scs, config.tdd_cfg));
-  }
+  out_cell.tdd_config = config.tdd_ul_dl_cfg_common;
 
   return out_cfg;
 }
 
 static std::vector<ru_ofh_cell_validation_config>
-get_ru_ofh_validation_dependencies(const fapi::fapi_cell_config& config)
+get_ru_ofh_validation_dependencies(const fapi::cell_configuration& config)
 {
   std::vector<ru_ofh_cell_validation_config> out_cfg(split6_du_low::NOF_CELLS_SUPPORTED);
 
   ru_ofh_cell_validation_config& out_cell = out_cfg.front();
 
   // Validates the sampling rate is compatible with the PRACH sequence.
-  out_cell.scs             = config.phy_cfg.scs;
+  out_cell.scs             = config.scs_common;
   out_cell.nof_prach_ports = split6_du_low::PRACH_NOF_PORTS;
   out_cell.nof_antennas_dl = config.carrier_cfg.num_tx_ant;
   out_cell.nof_antennas_ul = config.carrier_cfg.num_rx_ant;
@@ -333,26 +238,26 @@ get_ru_ofh_validation_dependencies(const fapi::fapi_cell_config& config)
 }
 
 static std::vector<ru_sdr_cell_validation_config>
-get_ru_sdr_validation_dependencies(const fapi::fapi_cell_config& config)
+get_ru_sdr_validation_dependencies(const fapi::cell_configuration& config)
 {
   std::vector<ru_sdr_cell_validation_config> out_cfg(split6_du_low::NOF_CELLS_SUPPORTED);
 
   ru_sdr_cell_validation_config& out_cell = out_cfg.front();
 
   // Validates the sampling rate is compatible with the PRACH sequence.
-  out_cell.common_scs     = config.phy_cfg.scs;
+  out_cell.common_scs     = config.scs_common;
   out_cell.channel_bw_mhz = MHz_to_bs_channel_bandwidth(config.carrier_cfg.dl_bandwidth);
-  out_cell.dplx_mode      = static_cast<duplex_mode>(config.cell_cfg.frame_duplex_type);
+  out_cell.dplx_mode      = config.duplex;
 
-  prach_configuration prach_info =
-      prach_configuration_get(frequency_range::FR1, out_cell.dplx_mode, config.prach_cfg.prach_config_index);
+  prach_configuration prach_info = prach_configuration_get(
+      frequency_range::FR1, out_cell.dplx_mode, config.prach_cfg.rach_cfg_generic.prach_config_index);
 
   out_cell.prach_format = prach_info.format;
 
   out_cell.preamble_info =
       is_long_preamble(prach_info.format)
           ? get_prach_preamble_long_info(prach_info.format)
-          : get_prach_preamble_short_info(prach_info.format, to_ra_subcarrier_spacing(config.phy_cfg.scs), false);
+          : get_prach_preamble_short_info(prach_info.format, to_ra_subcarrier_spacing(config.scs_common), false);
 
   return out_cfg;
 }
@@ -373,7 +278,7 @@ static double derive_srate_MHz_from_bandwith(unsigned bandwidth_MHz)
 
 std::unique_ptr<radio_unit>
 split6_flexible_o_du_low_session_factory::create_radio_unit(split6_flexible_o_du_low_session& odu_low,
-                                                            const fapi::fapi_cell_config&     config)
+                                                            const fapi::cell_configuration&   config)
 {
   auto ru_config = generate_o_du_ru_config(config,
                                            unit_config.du_low_cfg.expert_phy_cfg.max_processing_delay_slots,

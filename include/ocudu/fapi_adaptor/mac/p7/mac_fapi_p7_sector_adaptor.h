@@ -24,6 +24,8 @@ namespace fapi_adaptor {
 ///
 /// This adaptor is a collection of interfaces to get the FAPI message notifiers from the MAC-FAPI sector adaptor
 /// to connect them to the PHY-FAPI sector adaptor, so this sector adaptor receives FAPI notifications.
+///
+/// Note: This interface is used to integrate a third-party L2.
 class mac_fapi_p7_sector_adaptor
 {
 public:

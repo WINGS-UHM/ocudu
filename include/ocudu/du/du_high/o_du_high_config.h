@@ -19,6 +19,7 @@ class e2_du_metrics_interface;
 class e2_connection_client;
 
 namespace fapi {
+class config_message_gateway;
 class slot_message_gateway;
 class slot_last_message_notifier;
 } // namespace fapi
@@ -43,8 +44,15 @@ struct o_du_high_config {
 
 /// O-RAN DU high sector dependencies. Contains the dependencies of one sector.
 struct o_du_high_sector_dependencies {
-  fapi::slot_message_gateway*       gateway           = nullptr;
-  fapi::slot_last_message_notifier* last_msg_notifier = nullptr;
+  fapi::config_message_gateway*     p5_gateway = nullptr;
+  fapi::slot_message_gateway&       p7_gateway;
+  fapi::slot_last_message_notifier& last_msg_notifier;
+  /// Timer manager.
+  timer_manager& timer_mng;
+  /// FAPI control executor.
+  task_executor& fapi_ctrl_executor;
+  /// MAC control executor.
+  task_executor& mac_ctrl_executor;
   /// FAPI message bufferer executor.
   task_executor* fapi_executor = nullptr;
 };

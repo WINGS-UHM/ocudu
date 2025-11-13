@@ -33,34 +33,6 @@
 
 using namespace ocudu;
 
-static fapi::prach_config generate_prach_config_tlv(const odu::du_cell_config& cell_cfg)
-{
-  fapi::prach_config config     = {};
-  config.prach_res_config_index = 0;
-  config.prach_sequence_length  = fapi::prach_sequence_length_type::long_sequence;
-  config.prach_scs              = prach_subcarrier_spacing::kHz1_25;
-  config.prach_ul_bwp_pusch_scs = cell_cfg.scs_common;
-  config.restricted_set         = restricted_set_config::UNRESTRICTED;
-  config.num_prach_fd_occasions = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_fdm;
-  config.prach_config_index =
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index;
-  config.prach_format           = prach_format_type::zero;
-  config.num_prach_td_occasions = 1;
-  config.num_preambles          = 1;
-  config.start_preamble_index   = 0;
-
-  // Add FD occasion info.
-  fapi::prach_fd_occasion_config& fd_occasion = config.fd_occasions.emplace_back();
-  fd_occasion.prach_root_sequence_index =
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().prach_root_seq_index;
-  fd_occasion.prach_freq_offset =
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_frequency_start;
-  fd_occasion.prach_zero_corr_conf =
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.zero_correlation_zone_config;
-
-  return config;
-}
-
 static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
   // Deduce common numerology and grid size for DL and UL.
@@ -97,8 +69,11 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
     const auto& du_hi_cell     = du_hi_cells[i];
     auto&       p7_fapi_sector = odu_low_cfg.fapi_cfg.sectors.emplace_back().p7_config;
 
+    report_error_if_not(cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
+                        "RACH configuration for the cell is not present");
+
     p7_fapi_sector.carrier_cfg                   = generate_carrier_config_tlv(cell);
-    p7_fapi_sector.prach_cfg                     = generate_prach_config_tlv(cell);
+    p7_fapi_sector.prach_cfg                     = *cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
     p7_fapi_sector.allow_request_on_empty_ul_tti = du_low_unit_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot;
     p7_fapi_sector.nof_slots_request_headroom    = du_low_unit_cfg.expert_phy_cfg.nof_slots_request_headroom;
     p7_fapi_sector.prach_ports                   = du_hi_cell.cell.prach_cfg.ports;
@@ -251,17 +226,24 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
 
   // Adjust the dependencies.
   for (unsigned i = 0, e = du_cells.size(); i != e; ++i) {
-    auto& sector_dependencies   = odu_hi_unit_dependencies.o_du_hi_dependencies.sectors.emplace_back();
-    sector_dependencies.gateway = &odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
-                                       .get_sector_adaptor(i)
-                                       .get_p7_sector_adaptor()
-                                       .get_slot_message_gateway();
-    sector_dependencies.last_msg_notifier = &odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
-                                                 .get_sector_adaptor(i)
-                                                 .get_p7_sector_adaptor()
-                                                 .get_slot_last_message_notifier();
-    sector_dependencies.fapi_executor =
-        config.odu_high_cfg.fapi_cfg.l2_nof_slots_ahead != 0 ? dependencies.workers->fapi_exec[i] : nullptr;
+    odu::o_du_high_sector_dependencies sector_dependencies = {
+        .p5_gateway = nullptr,
+        .p7_gateway = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
+                          .get_sector_adaptor(i)
+                          .get_p7_sector_adaptor()
+                          .get_slot_message_gateway(),
+        .last_msg_notifier = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
+                                 .get_sector_adaptor(i)
+                                 .get_p7_sector_adaptor()
+                                 .get_slot_last_message_notifier(),
+        .timer_mng          = dependencies.timer_ctrl->get_timer_manager(),
+        .fapi_ctrl_executor = dependencies.workers->get_cmd_line_executor(),
+        .mac_ctrl_executor  = dependencies.workers->get_du_high_executor_mapper().du_control_executor(),
+        .fapi_executor =
+            config.odu_high_cfg.fapi_cfg.l2_nof_slots_ahead != 0 ? dependencies.workers->fapi_exec[i] : nullptr,
+    };
+
+    odu_hi_unit_dependencies.o_du_hi_dependencies.sectors.push_back(sector_dependencies);
   }
 
   o_du_high_unit odu_hi_unit = make_o_du_high_unit(config.odu_high_cfg, std::move(odu_hi_unit_dependencies));

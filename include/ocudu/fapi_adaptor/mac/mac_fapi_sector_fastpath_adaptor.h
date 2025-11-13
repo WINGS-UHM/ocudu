@@ -13,6 +13,7 @@
 namespace ocudu {
 namespace fapi_adaptor {
 
+class mac_fapi_p5_sector_fastpath_adaptor;
 class mac_fapi_p7_sector_fastpath_adaptor;
 class operation_controller;
 
@@ -27,6 +28,9 @@ public:
 
   /// Returns the operation controller of this sector adaptor.
   virtual operation_controller& get_operation_controller() = 0;
+
+  /// Returns the P5 adaptor of this sector fastpath adaptor.
+  virtual mac_fapi_p5_sector_fastpath_adaptor& get_p5_sector_fastpath_adaptor() = 0;
 
   /// Returns the P7 adaptor of this sector fastpath adaptor.
   virtual mac_fapi_p7_sector_fastpath_adaptor& get_p7_sector_adaptor() = 0;

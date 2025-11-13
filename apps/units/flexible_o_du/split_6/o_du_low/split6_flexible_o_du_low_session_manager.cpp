@@ -13,7 +13,7 @@
 
 using namespace ocudu;
 
-bool split6_flexible_o_du_low_session_manager::on_start_request(const fapi::fapi_cell_config& config)
+bool split6_flexible_o_du_low_session_manager::on_start_request(const fapi::cell_configuration& config)
 {
   // Call the factory.
   flexible_odu_low = odu_low_session_factory->create_o_du_low_session(config);

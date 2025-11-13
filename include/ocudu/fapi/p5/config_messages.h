@@ -10,10 +10,9 @@
 
 #pragma once
 
+#include "ocudu/fapi/cell_config.h"
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/common/error_code.h"
-#include "ocudu/fapi/p5/config_request_tlvs.h"
-#include <any>
 
 namespace ocudu {
 namespace fapi {
@@ -31,14 +30,7 @@ struct param_response : public base_message {
 
 /// Config request message.
 struct config_request : public base_message {
-  phy_config     phy_cfg;
-  carrier_config carrier_cfg;
-  cell_config    cell_cfg;
-  prach_config   prach_cfg;
-  ssb_config     ssb_cfg;
-  tdd_phy_config tdd_cfg;
-  /// Vendor specific parameters.
-  std::any vendor_cfg;
+  cell_configuration cell_cfg;
 };
 
 /// Config response message.

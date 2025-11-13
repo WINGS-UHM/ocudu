@@ -58,6 +58,9 @@ public:
   mac_to_fapi_fastpath_translator(const mac_to_fapi_fastpath_translator_config& config,
                                   mac_to_fapi_fastpath_translator_dependencies  dependencies);
 
+  /// Starts the MAC to FAPI translator.
+  void start();
+
   /// Stops the MAC to FAPI translator.
   void stop();
 

@@ -14,6 +14,7 @@
 #include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_repository.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/prach/rach_config_common.h"
 
 namespace ocudu {
 
@@ -45,7 +46,7 @@ struct phy_fapi_p7_sector_fastpath_adaptor_config {
   /// Carrier cell configuration.
   fapi::carrier_config carrier_cfg;
   /// PRACH cell configuration.
-  fapi::prach_config prach_cfg;
+  rach_config_common prach_cfg;
   /// PRACH port list.
   std::vector<uint8_t> prach_ports;
   /// dBFS calibration value.

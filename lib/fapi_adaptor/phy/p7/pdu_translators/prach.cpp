@@ -10,18 +10,18 @@
 
 #include "prach.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
-#include <numeric>
 
 using namespace ocudu;
 using namespace fapi_adaptor;
 
 void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       context,
                                                     const fapi::ul_prach_pdu&   fapi_pdu,
-                                                    const fapi::prach_config&   prach_cfg,
+                                                    const rach_config_common&   prach_cfg,
                                                     const fapi::carrier_config& carrier_cfg,
                                                     span<const uint8_t>         ports,
                                                     unsigned                    sfn,
                                                     unsigned                    slot,
+                                                    subcarrier_spacing          scs,
                                                     unsigned                    sector_id)
 {
   ocudu_assert(fapi_pdu.maintenance_v3.prach_config_scope == fapi::prach_config_scope_type::phy_context,
@@ -30,7 +30,7 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
                "Only PRACH resource configuration index 0 supported.");
   ocudu_assert(fapi_pdu.index_fd_ra == 0, "Only one FD occasion supported.");
 
-  context.slot                 = slot_point(prach_cfg.prach_ul_bwp_pusch_scs, sfn, slot);
+  context.slot                 = slot_point(scs, sfn, slot);
   context.sector               = sector_id;
   context.format               = fapi_pdu.prach_format;
   context.nof_td_occasions     = fapi_pdu.num_prach_ocas;
@@ -39,15 +39,13 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
   context.start_preamble_index = fapi_pdu.maintenance_v3.start_preamble_index;
   context.nof_preamble_indices = fapi_pdu.maintenance_v3.num_preamble_indices;
 
-  context.pusch_scs       = prach_cfg.prach_ul_bwp_pusch_scs;
+  context.pusch_scs       = scs;
   context.restricted_set  = prach_cfg.restricted_set;
   context.nof_prb_ul_grid = carrier_cfg.ul_grid_size[to_numerology_value(context.pusch_scs)];
 
-  ocudu_assert(fapi_pdu.index_fd_ra < prach_cfg.fd_occasions.size(), "Index FD RA out of bounds");
-  const fapi::prach_fd_occasion_config& fd_occas = prach_cfg.fd_occasions[fapi_pdu.index_fd_ra];
-  context.rb_offset                              = fd_occas.prach_freq_offset;
-  context.root_sequence_index                    = fd_occas.prach_root_sequence_index;
-  context.zero_correlation_zone                  = fd_occas.prach_zero_corr_conf;
+  context.rb_offset             = prach_cfg.rach_cfg_generic.msg1_frequency_start;
+  context.root_sequence_index   = prach_cfg.prach_root_seq_index;
+  context.zero_correlation_zone = prach_cfg.rach_cfg_generic.zero_correlation_zone_config;
 
   context.ports.assign(ports.begin(), ports.end());
 }

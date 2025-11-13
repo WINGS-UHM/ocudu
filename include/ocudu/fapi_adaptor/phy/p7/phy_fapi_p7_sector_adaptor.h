@@ -25,6 +25,8 @@ namespace fapi_adaptor {
 /// \brief PHY-FAPI bidirectional P7 sector adaptor interface.
 ///
 /// This adaptor is a collection of interfaces to connect a P7 MAC-FAPI sector adaptor to a PHY-FAPI P7 sector adaptor.
+///
+/// Note: This interface is used to integrate a third-party L1.
 class phy_fapi_p7_sector_adaptor
 {
 public:

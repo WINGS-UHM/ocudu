@@ -17,29 +17,26 @@ using namespace fapi_adaptor;
 static mac_to_fapi_fastpath_translator_config
 generate_translator_config(const mac_fapi_p7_sector_fastpath_adaptor_config& config)
 {
-  mac_to_fapi_fastpath_translator_config out_config;
-  out_config.cell_nof_prbs = config.cell_nof_prbs;
-  out_config.sector_id     = config.sector_id;
-
-  return out_config;
+  return {.cell_nof_prbs = config.cell_nof_prbs, .sector_id = config.sector_id};
 }
 
 static mac_to_fapi_fastpath_translator_dependencies
 generate_translator_dependencies(mac_fapi_p7_sector_fastpath_adaptor_dependencies dependencies)
 {
-  return {ocudulog::fetch_basic_logger("FAPI"),
-          dependencies.gateway,
-          dependencies.last_msg_notifier,
-          std::move(dependencies.pm_mapper),
-          std::move(dependencies.part2_mapper)};
+  return {.logger            = ocudulog::fetch_basic_logger("FAPI"),
+          .msg_gw            = dependencies.gateway,
+          .last_msg_notifier = dependencies.last_msg_notifier,
+          .pm_mapper         = std::move(dependencies.pm_mapper),
+          .part2_mapper      = std::move(dependencies.part2_mapper)};
 }
 
 mac_fapi_p7_sector_fastpath_adaptor_impl::mac_fapi_p7_sector_fastpath_adaptor_impl(
-    const mac_fapi_p7_sector_fastpath_adaptor_config& config,
-    mac_fapi_p7_sector_fastpath_adaptor_dependencies  dependencies) :
-  mac_translator(generate_translator_config(config), generate_translator_dependencies(std::move(dependencies))),
+    const mac_fapi_p7_sector_fastpath_adaptor_config&     config,
+    mac_fapi_p7_sector_fastpath_adaptor_impl_dependencies dependencies) :
+  mac_translator(generate_translator_config(config),
+                 generate_translator_dependencies(std::move(dependencies.base_dependencies))),
   fapi_data_translator(config.scs, config.sector_id),
-  fapi_time_translator(config.scs),
+  fapi_time_translator(config.scs, dependencies.slot_handler),
   fapi_error_translator(config.scs)
 {
 }

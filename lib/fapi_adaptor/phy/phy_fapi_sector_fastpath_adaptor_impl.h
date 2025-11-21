@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/fapi_adaptor/phy/p5/phy_fapi_p5_sector_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
 #include <memory>
@@ -23,12 +24,17 @@ namespace fapi_adaptor {
 class phy_fapi_sector_fastpath_adaptor_impl : public phy_fapi_sector_fastpath_adaptor
 {
 public:
-  explicit phy_fapi_sector_fastpath_adaptor_impl(std::unique_ptr<phy_fapi_p7_sector_fastpath_adaptor> p7_adaptor_);
+  phy_fapi_sector_fastpath_adaptor_impl(std::unique_ptr<phy_fapi_p5_sector_adaptor>          p5_adaptor_,
+                                        std::unique_ptr<phy_fapi_p7_sector_fastpath_adaptor> p7_adaptor_);
+
+  // See interface for documentation.
+  phy_fapi_p5_sector_adaptor& get_p5_sector_adaptor() override;
 
   // See interface for documentation.
   phy_fapi_p7_sector_fastpath_adaptor& get_p7_sector_adaptor() override;
 
 private:
+  std::unique_ptr<phy_fapi_p5_sector_adaptor>          p5_adaptor;
   std::unique_ptr<phy_fapi_p7_sector_fastpath_adaptor> p7_adaptor;
 };
 

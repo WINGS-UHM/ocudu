@@ -10,11 +10,21 @@
 
 #include "upper_phy_impl.h"
 #include "upper_phy_rx_symbol_handler_printer_decorator.h"
+#include "ocudu/phy/upper/upper_phy_operation_controller.h"
 #include "ocudu/phy/upper/upper_phy_timing_notifier.h"
 
 using namespace ocudu;
 
 namespace {
+
+/// Dummy operation controller.
+class upper_phy_operation_controller_dummy : public upper_phy_operation_controller
+{
+public:
+  void start() override {}
+
+  void stop() override {}
+};
 
 /// Dummy implementation of an upper PHY timing notifier.
 class upper_phy_timing_notifier_dummy : public upper_phy_timing_notifier
@@ -25,7 +35,8 @@ public:
 
 } // namespace
 
-static upper_phy_timing_notifier_dummy notifier_dummy;
+static upper_phy_timing_notifier_dummy      notifier_dummy;
+static upper_phy_operation_controller_dummy controller_dummy;
 
 upper_phy_impl::upper_phy_impl(upper_phy_impl_config&& config) :
   logger(ocudulog::fetch_basic_logger("PHY", true)),
@@ -54,6 +65,11 @@ upper_phy_impl::upper_phy_impl(upper_phy_impl_config&& config) :
   ocudu_assert(rx_symbol_handler, "Invalid Rx symbol handler");
 
   logger.set_level(config.log_level);
+}
+
+upper_phy_operation_controller& upper_phy_impl::get_operation_controller()
+{
+  return controller_dummy;
 }
 
 upper_phy_error_handler& upper_phy_impl::get_error_handler()

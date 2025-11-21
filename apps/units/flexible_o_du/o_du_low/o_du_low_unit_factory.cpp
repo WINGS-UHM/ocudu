@@ -65,8 +65,9 @@ o_du_low_unit o_du_low_unit_factory::create(const o_du_low_unit_config& params, 
   generate_o_du_low_config(o_du_low_cfg, params.du_low_unit_cfg, params.cells);
 
   // Generate O-DU low dependencies.
-  odu::o_du_low_dependencies o_du_low_deps;
-  o_du_low_deps.du_low_deps = generate_du_low_dependencies(deps, hal_dependencies, params.cells.size());
+  odu::o_du_low_dependencies o_du_low_deps = {
+      .du_low_deps      = generate_du_low_dependencies(deps, hal_dependencies, params.cells.size()),
+      .fapi_p5_executor = deps.fapi_p5_executor};
 
   o_du_low_unit unit;
   unit.o_du_lo = odu::make_o_du_low(o_du_low_cfg, o_du_low_deps);

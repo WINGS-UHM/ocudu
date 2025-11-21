@@ -76,7 +76,8 @@ split6_flexible_o_du_low_session_factory::create_o_du_low_session(const fapi::ce
   auto odu_low = create_o_du_low(config,
                                  {odu->get_upper_ru_dl_rg_adapter(),
                                   odu->get_upper_ru_ul_request_adapter(),
-                                  workers.get_du_low_executor_mapper()});
+                                  workers.get_du_low_executor_mapper(),
+                                  workers.get_cmd_line_executor()});
 
   if (!odu_low.o_du_lo) {
     return nullptr;
@@ -147,27 +148,24 @@ split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::cell_confi
 
   o_du_low_unit_config odu_low_cfg = {unit_config.du_low_cfg, {}, {}};
 
-  auto& p7_fapi_sector = odu_low_cfg.fapi_cfg.sectors.emplace_back().p7_config;
+  fapi_adaptor::phy_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {
+      .sector_id                     = 0,
+      .nof_slots_request_headroom    = unit_config.du_low_cfg.expert_phy_cfg.nof_slots_request_headroom,
+      .allow_request_on_empty_ul_tti = unit_config.du_low_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot,
+      .scs                           = config.scs_common,
+      .scs_common                    = config.scs_common,
+      .carrier_cfg                   = config.carrier_cfg,
+      .prach_cfg                     = config.prach_cfg,
+      .prach_ports                   = prach_ports,
+      // When the sampling rate is provided, calculate the dBFS calibration value as sqrt(sampling rate / subcarrier
+      // spacing). This factor is the magnitude of a single subcarrier in normalized PHY linear units equivalent to
+      // a constant signal with a power of 0 dBFS.
+      .dBFS_calibration_value =
+          (sampling_rate_MHz) ? calculate_dBFS_calibration_value(*sampling_rate_MHz, config.scs_common) : 1.F,
 
-  p7_fapi_sector.carrier_cfg = config.carrier_cfg;
-  p7_fapi_sector.prach_cfg   = config.prach_cfg;
-  p7_fapi_sector.allow_request_on_empty_ul_tti =
-      unit_config.du_low_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot;
-  p7_fapi_sector.nof_slots_request_headroom = unit_config.du_low_cfg.expert_phy_cfg.nof_slots_request_headroom;
-  p7_fapi_sector.prach_ports                = prach_ports;
-  p7_fapi_sector.scs                        = config.scs_common;
-  p7_fapi_sector.scs_common                 = config.scs_common;
-  p7_fapi_sector.dBFS_calibration_value     = 1.F;
-  // When the sampling rate is provided, calculate the dBFS calibration value as sqrt(sampling rate / subcarrier
-  // spacing). This factor is the magnitude of a single subcarrier in normalized PHY linear units equivalent to
-  // a constant signal with a power of 0 dBFS.
-  if (sampling_rate_MHz) {
-    p7_fapi_sector.dBFS_calibration_value = calculate_dBFS_calibration_value(*sampling_rate_MHz, config.scs_common);
-  }
+  };
 
-  // :TODO: add a parse option for the sector, so it will be easier to debug problems when running more than one
-  // instance.
-  p7_fapi_sector.sector_id = 0;
+  odu_low_cfg.fapi_cfg.sectors.push_back({.p5_config = {.sector_id = 0}, .p7_config = p7_cfg});
 
   auto& du_low_cell = odu_low_cfg.cells.emplace_back();
 

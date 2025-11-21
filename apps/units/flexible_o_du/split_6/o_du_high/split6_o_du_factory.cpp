@@ -16,6 +16,7 @@
 #include "split6_o_du_impl.h"
 #include "split6_o_du_unit_config.h"
 #include "ocudu/e2/e2_du_metrics_connector.h"
+#include "ocudu/fapi_adaptor/phy/p5/phy_fapi_p5_sector_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
 #include "ocudu/mac/mac_clock_controller.h"
 
@@ -44,9 +45,10 @@ o_du_unit ocudu::create_o_du_split6(const split6_o_du_unit_config&              
   // Adjust the dependencies.
   const auto& du_hi_unit_cfg = du_unit_cfg.odu_high_cfg.du_high_cfg.config;
   for (unsigned i = 0, e = du_hi_unit_cfg.cells_cfg.size(); i != e; ++i) {
+    auto&                              p5_sector_adaptor = fapi_adaptor->get_sector_adaptor(i).get_p5_sector_adaptor();
     auto&                              p7_sector_adaptor = fapi_adaptor->get_sector_adaptor(i).get_p7_sector_adaptor();
     odu::o_du_high_sector_dependencies sector_dependencies = {
-        .p5_gateway         = nullptr,
+        .p5_gateway         = p5_sector_adaptor.get_config_message_gateway(),
         .p7_gateway         = p7_sector_adaptor.get_slot_message_gateway(),
         .last_msg_notifier  = p7_sector_adaptor.get_slot_last_message_notifier(),
         .timer_mng          = du_dependencies.timer_ctrl->get_timer_manager(),
@@ -58,8 +60,6 @@ o_du_unit ocudu::create_o_du_split6(const split6_o_du_unit_config&              
     };
 
     odu_hi_unit_dependencies.o_du_hi_dependencies.sectors.push_back(sector_dependencies);
-
-    // :TODO: add P5 dependencies.
   }
 
   o_du_high_unit odu_hi_unit = make_o_du_high_unit(du_unit_cfg.odu_high_cfg, std::move(odu_hi_unit_dependencies));

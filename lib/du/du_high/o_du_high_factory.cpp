@@ -25,28 +25,11 @@
 using namespace ocudu;
 using namespace odu;
 
-namespace {
-
-// :TODO: temporal gateway until P5 PHY adaptor is ready.
-class fapi_config_message_gateway_dummy : public fapi::config_message_gateway
-{
-public:
-  void param_request(const fapi::param_request& msg) override {}
-  void config_request(const fapi::config_request& msg) override {}
-  void stop_request(const fapi::stop_request& msg) override {}
-  void start_request(const fapi::start_request& msg) override {}
-};
-
-} // namespace
-
-// :TODO: temporal gateway until P5 PHY adaptor is ready.
-fapi_config_message_gateway_dummy dummy_p5_gateway;
-
 static fapi_adaptor::mac_fapi_p5_sector_fastpath_adaptor_dependencies
 generate_mac_fapi_p5_sector_adaptor_dependencies(const o_du_high_sector_dependencies& sector_dependencies)
 {
   return {.logger             = ocudulog::fetch_basic_logger("FAPI"),
-          .gateway            = dummy_p5_gateway,
+          .gateway            = sector_dependencies.p5_gateway,
           .timers             = sector_dependencies.timer_mng,
           .fapi_ctrl_executor = sector_dependencies.fapi_ctrl_executor,
           .mac_ctrl_executor  = sector_dependencies.mac_ctrl_executor};

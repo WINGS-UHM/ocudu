@@ -31,6 +31,8 @@ struct o_du_low_config {
 struct o_du_low_dependencies {
   /// DU Low dependencies.
   du_low_dependencies du_low_deps;
+  /// FAPI P5 executor.
+  task_executor& fapi_p5_executor;
 };
 
 } // namespace odu

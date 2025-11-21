@@ -45,6 +45,7 @@ struct o_du_low_unit_dependencies {
   upper_phy_rg_gateway&                 rg_gateway;
   upper_phy_rx_symbol_request_notifier& rx_symbol_request_notifier;
   odu::du_low_executor_mapper&          workers;
+  task_executor&                        fapi_p5_executor;
 };
 
 } // namespace ocudu

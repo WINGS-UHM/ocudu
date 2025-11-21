@@ -13,6 +13,7 @@
 namespace ocudu {
 namespace fapi_adaptor {
 
+class phy_fapi_p5_sector_adaptor;
 class phy_fapi_p7_sector_fastpath_adaptor;
 
 /// \brief PHY-FAPI bidirectional sector adaptor interface.
@@ -23,7 +24,8 @@ class phy_fapi_sector_fastpath_adaptor
 public:
   virtual ~phy_fapi_sector_fastpath_adaptor() = default;
 
-  // :TODO: return p5 adaptor.
+  /// Returns the P5 sector adaptor of this PHY-FAPI sector adaptor.
+  virtual phy_fapi_p5_sector_adaptor& get_p5_sector_adaptor() = 0;
 
   /// Returns the P7 sector adaptor of this PHY-FAPI sector adaptor.
   virtual phy_fapi_p7_sector_fastpath_adaptor& get_p7_sector_adaptor() = 0;

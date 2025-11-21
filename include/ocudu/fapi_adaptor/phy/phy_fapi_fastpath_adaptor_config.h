@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/fapi_adaptor/phy/p5/phy_fapi_p5_sector_fastpath_adaptor_config.h"
 #include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor_config.h"
 
 namespace ocudu {
@@ -17,11 +18,13 @@ namespace fapi_adaptor {
 
 /// PHY-FAPI sector fastpath adaptor configuration.
 struct phy_fapi_sector_fastpath_adaptor_config {
+  phy_fapi_p5_sector_fastpath_adaptor_config p5_config;
   phy_fapi_p7_sector_fastpath_adaptor_config p7_config;
 };
 
 /// PHY-FAPI sector fastpath adaptor dependencies.
 struct phy_fapi_sector_fastpath_adaptor_dependencies {
+  phy_fapi_p5_sector_fastpath_adaptor_dependencies p5_dependencies;
   phy_fapi_p7_sector_fastpath_adaptor_dependencies p7_dependencies;
 };
 

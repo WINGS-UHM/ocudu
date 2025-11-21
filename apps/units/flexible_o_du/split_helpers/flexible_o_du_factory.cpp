@@ -25,7 +25,9 @@
 #include "ocudu/e2/e2_du_metrics_connector.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p5/mac_fapi_p5_sector_fastpath_adaptor.h"
 #include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p5/phy_fapi_p5_sector_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
@@ -65,22 +67,26 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
   o_du_low_unit_config odu_low_cfg = {du_low_unit_cfg, {}, {}};
 
   for (unsigned i = 0, e = cells.size(); i != e; ++i) {
-    const auto& cell           = cells[i];
-    const auto& du_hi_cell     = du_hi_cells[i];
-    auto&       p7_fapi_sector = odu_low_cfg.fapi_cfg.sectors.emplace_back().p7_config;
+    const auto& cell       = cells[i];
+    const auto& du_hi_cell = du_hi_cells[i];
+
+    fapi_adaptor::phy_fapi_p5_sector_fastpath_adaptor_config p5_cfg{.sector_id = i};
+
+    fapi_adaptor::phy_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {
+        .sector_id                     = i,
+        .nof_slots_request_headroom    = du_low_unit_cfg.expert_phy_cfg.nof_slots_request_headroom,
+        .allow_request_on_empty_ul_tti = du_low_unit_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot,
+        .scs                           = cell.scs_common,
+        .scs_common                    = cell.scs_common,
+        .carrier_cfg                   = generate_carrier_config_tlv(cell),
+        .prach_cfg                     = *cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
+        .prach_ports                   = du_hi_cell.cell.prach_cfg.ports,
+        .dBFS_calibration_value        = dBFS_calibration_value};
+
+    odu_low_cfg.fapi_cfg.sectors.push_back({.p5_config = p5_cfg, .p7_config = p7_cfg});
 
     report_error_if_not(cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
                         "RACH configuration for the cell is not present");
-
-    p7_fapi_sector.carrier_cfg                   = generate_carrier_config_tlv(cell);
-    p7_fapi_sector.prach_cfg                     = *cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
-    p7_fapi_sector.allow_request_on_empty_ul_tti = du_low_unit_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot;
-    p7_fapi_sector.nof_slots_request_headroom    = du_low_unit_cfg.expert_phy_cfg.nof_slots_request_headroom;
-    p7_fapi_sector.prach_ports                   = du_hi_cell.cell.prach_cfg.ports;
-    p7_fapi_sector.scs                           = cell.scs_common;
-    p7_fapi_sector.scs_common                    = cell.scs_common;
-    p7_fapi_sector.dBFS_calibration_value        = dBFS_calibration_value;
-    p7_fapi_sector.sector_id                     = i;
 
     auto&   du_low_cell    = odu_low_cfg.cells.emplace_back();
     nr_band band           = cell.dl_carrier.band;
@@ -205,7 +211,8 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
   o_du_low_unit_dependencies odu_low_dependencies = {.rg_gateway = du_impl->get_upper_ru_dl_rg_adapter(),
                                                      .rx_symbol_request_notifier =
                                                          du_impl->get_upper_ru_ul_request_adapter(),
-                                                     .workers = dependencies.workers->get_du_low_executor_mapper()};
+                                                     .workers = dependencies.workers->get_du_low_executor_mapper(),
+                                                     .fapi_p5_executor = dependencies.workers->get_cmd_line_executor()};
   o_du_low_unit_factory      odu_low_factory(du_lo.hal_config);
   auto                       odu_lo_unit = odu_low_factory.create(odu_low_cfg, odu_low_dependencies);
 
@@ -227,7 +234,10 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
   // Adjust the dependencies.
   for (unsigned i = 0, e = du_cells.size(); i != e; ++i) {
     odu::o_du_high_sector_dependencies sector_dependencies = {
-        .p5_gateway = nullptr,
+        .p5_gateway = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
+                          .get_sector_adaptor(i)
+                          .get_p5_sector_adaptor()
+                          .get_config_message_gateway(),
         .p7_gateway = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
                           .get_sector_adaptor(i)
                           .get_p7_sector_adaptor()
@@ -250,13 +260,23 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
 
   // Connect the adaptors.
   for (unsigned i = 0, e = du_cells.size(); i != e; ++i) {
-    auto& odu_lo = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
-    auto& odu_hi = odu_hi_unit.o_du_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
+    auto& p5_phy_adaptor =
+        odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p5_sector_adaptor();
+    auto& p5_mac_adaptor =
+        odu_hi_unit.o_du_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p5_sector_fastpath_adaptor();
 
-    // Connect O-DU low with O-DU high.
-    odu_lo.set_slot_time_message_notifier(odu_hi.get_slot_time_message_notifier());
-    odu_lo.set_error_message_notifier(odu_hi.get_error_message_notifier());
-    odu_lo.set_slot_data_message_notifier(odu_hi.get_slot_data_message_notifier());
+    p5_phy_adaptor.set_config_message_notifier(p5_mac_adaptor.get_config_message_notifier());
+    p5_phy_adaptor.set_error_message_notifier(p5_mac_adaptor.get_error_message_notifier());
+
+    auto& p7_phy_adaptor =
+        odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
+    auto& p7_mac_adaptor =
+        odu_hi_unit.o_du_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
+
+    // Connect P7 O-DU low with O-DU high.
+    p7_phy_adaptor.set_slot_time_message_notifier(p7_mac_adaptor.get_slot_time_message_notifier());
+    p7_phy_adaptor.set_error_message_notifier(p7_mac_adaptor.get_error_message_notifier());
+    p7_phy_adaptor.set_slot_data_message_notifier(p7_mac_adaptor.get_slot_data_message_notifier());
   }
 
   std::for_each(odu_hi_unit.metrics.begin(), odu_hi_unit.metrics.end(), [&](auto& e) {

@@ -92,6 +92,8 @@ public:
   /// Constructs an upper PHY implementation object with the given configuration.
   explicit upper_phy_impl(upper_phy_impl_config&& config);
 
+  upper_phy_operation_controller& get_operation_controller() override;
+
   // See interface for documentation.
   upper_phy_error_handler& get_error_handler() override;
 

@@ -10,8 +10,10 @@
 
 #include "split6_plugin_dummy.h"
 #include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/fapi/p5/config_message_gateway.h"
 #include "ocudu/fapi/p7/slot_last_message_notifier.h"
 #include "ocudu/fapi/p7/slot_message_gateway.h"
+#include "ocudu/fapi_adaptor/phy/p5/phy_fapi_p5_sector_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 
@@ -29,8 +31,18 @@ namespace {
 /// Dummy FAPI adaptor implementation.
 class fapi_adaptor_dummy : public fapi_adaptor::phy_fapi_adaptor,
                            fapi_adaptor::phy_fapi_sector_adaptor,
-                           fapi_adaptor::phy_fapi_p7_sector_adaptor
+                           fapi_adaptor::phy_fapi_p7_sector_adaptor,
+                           fapi_adaptor::phy_fapi_p5_sector_adaptor
 {
+  class config_message_gateway_dummy : public fapi::config_message_gateway
+  {
+  public:
+    void param_request(const fapi::param_request& msg) override {}
+    void config_request(const fapi::config_request& msg) override {}
+    void start_request(const fapi::start_request& msg) override {}
+    void stop_request(const fapi::stop_request& msg) override {}
+  };
+
   /// Dummy slot message gateway implementation.
   class slot_message_gateway_dummy : public fapi::slot_message_gateway
   {
@@ -53,8 +65,9 @@ class fapi_adaptor_dummy : public fapi_adaptor::phy_fapi_adaptor,
     void on_last_message(slot_point slot) override {}
   };
 
-  std::unique_ptr<slot_message_gateway_dummy>       gateway  = std::make_unique<slot_message_gateway_dummy>();
-  std::unique_ptr<slot_last_message_notifier_dummy> notifier = std::make_unique<slot_last_message_notifier_dummy>();
+  slot_message_gateway_dummy       gateway;
+  slot_last_message_notifier_dummy notifier;
+  config_message_gateway_dummy     config_gateway;
 
 public:
   // See interface for documentation.
@@ -67,22 +80,31 @@ public:
   phy_fapi_p7_sector_adaptor& get_p7_sector_adaptor() override { return *this; }
 
   // See interface for documentation.
+  phy_fapi_p5_sector_adaptor& get_p5_sector_adaptor() override { return *this; }
+
+  // See interface for documentation.
   phy_fapi_sector_adaptor& get_sector_adaptor(unsigned cell_id) override { return *this; }
 
   // See interface for documentation.
-  fapi::slot_message_gateway& get_slot_message_gateway() override { return *gateway; }
+  fapi::config_message_gateway& get_config_message_gateway() override { return config_gateway; }
 
   // See interface for documentation.
-  fapi::slot_last_message_notifier& get_slot_last_message_notifier() override { return *notifier; }
+  void set_error_message_notifier(fapi::error_message_notifier& fapi_error_notifier) override {}
+
+  // See interface for documentation.
+  void set_config_message_notifier(fapi::config_message_notifier& config_notifier) override {}
+
+  // See interface for documentation.
+  fapi::slot_message_gateway& get_slot_message_gateway() override { return gateway; }
+
+  // See interface for documentation.
+  fapi::slot_last_message_notifier& get_slot_last_message_notifier() override { return notifier; }
 
   // See interface for documentation.
   void set_slot_time_message_notifier(fapi::slot_time_message_notifier& notifier_) override {}
 
   // See interface for documentation.
   void set_slot_data_message_notifier(fapi::slot_data_message_notifier& notifier_) override {}
-
-  // See interface for documentation.
-  void set_error_message_notifier(fapi::error_message_notifier& notifier_) override {}
 };
 
 } // namespace

@@ -9,6 +9,7 @@
  */
 
 #include "phy_fapi_fastpath_adaptor_factory_impl.h"
+#include "p5/phy_fapi_p5_sector_fastpath_adaptor_impl.h"
 #include "p7/phy_fapi_p7_sector_fastpath_adaptor_impl.h"
 #include "phy_fapi_fastpath_adaptor_impl.h"
 #include "phy_fapi_sector_fastpath_adaptor_impl.h"
@@ -22,10 +23,15 @@ phy_fapi_fastpath_adaptor_factory_impl::create(const phy_fapi_fastpath_adaptor_c
 {
   std::vector<std::unique_ptr<phy_fapi_sector_fastpath_adaptor>> sectors;
   for (unsigned i = 0, e = config.sectors.size(); i != e; ++i) {
+    const auto& p5_sector_cfg          = config.sectors[i].p5_config;
+    const auto& p5_sector_dependencies = dependencies.sectors[i].p5_dependencies;
+    auto p5_adaptor = std::make_unique<phy_fapi_p5_sector_fastpath_adaptor_impl>(p5_sector_cfg, p5_sector_dependencies);
+
     const auto& p7_sector_cfg          = config.sectors[i].p7_config;
     auto&       p7_sector_dependencies = dependencies.sectors[i].p7_dependencies;
 
     sectors.push_back(std::make_unique<phy_fapi_sector_fastpath_adaptor_impl>(
+        std::move(p5_adaptor),
         std::make_unique<phy_fapi_p7_sector_fastpath_adaptor_impl>(p7_sector_cfg, std::move(p7_sector_dependencies))));
   }
 

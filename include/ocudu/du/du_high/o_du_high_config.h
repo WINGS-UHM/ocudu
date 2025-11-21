@@ -44,7 +44,7 @@ struct o_du_high_config {
 
 /// O-RAN DU high sector dependencies. Contains the dependencies of one sector.
 struct o_du_high_sector_dependencies {
-  fapi::config_message_gateway*     p5_gateway = nullptr;
+  fapi::config_message_gateway&     p5_gateway;
   fapi::slot_message_gateway&       p7_gateway;
   fapi::slot_last_message_notifier& last_msg_notifier;
   /// Timer manager.

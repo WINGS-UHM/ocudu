@@ -20,6 +20,7 @@ class uplink_request_processor;
 class upper_phy_error_handler;
 class upper_phy_error_notifier;
 class upper_phy_metrics_collector;
+class upper_phy_operation_controller;
 class upper_phy_rx_results_notifier;
 class upper_phy_rx_symbol_handler;
 class upper_phy_timing_handler;
@@ -40,6 +41,9 @@ class upper_phy
 public:
   /// Default destructor.
   virtual ~upper_phy() = default;
+
+  /// Returns the operation controller of this upper PHY.
+  virtual upper_phy_operation_controller& get_operation_controller() = 0;
 
   /// Returns a reference to the receive symbol handler of this upper PHY.
   virtual upper_phy_rx_symbol_handler& get_rx_symbol_handler() = 0;

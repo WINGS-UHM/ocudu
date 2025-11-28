@@ -14,65 +14,6 @@
 
 using namespace ocudu;
 
-// class ue_cell_repository
-
-ue_cell_repository::ue_cell_repository(du_cell_index_t cell_idx_, ocudulog::basic_logger& logger_) :
-  cell_idx(cell_idx_), logger(logger_)
-{
-  rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
-  ues.reserve(MAX_NOF_DU_UES);
-}
-
-void ue_cell_repository::add_ue(ue_cell& u)
-{
-  rnti_t        rnti     = u.rnti();
-  du_ue_index_t ue_index = u.ue_index;
-  if (not channel_states.contains(ue_index)) {
-    channel_states.emplace(ue_index, u.cfg().cell_cfg_common.expert_cfg.ue, u.cfg().get_nof_dl_ports());
-    ue_mcs_calculators.emplace(ue_index, u.cfg().cell_cfg_common, channel_states[ue_index]);
-    pusch_pwr_controllers.emplace(ue_index, u.cfg(), u.channel_state_manager());
-    pucch_pwr_controllers.emplace(ue_index, u.cfg());
-  }
-  u.setup(ue_cell_components{&channel_states[ue_index],
-                             &ue_mcs_calculators[ue_index],
-                             &pusch_pwr_controllers[ue_index],
-                             &pucch_pwr_controllers[ue_index]});
-  bool ret = ues.insert(u.ue_index, &u);
-  ocudu_assert(ret, "UE with duplicate index being added to the cell UE repository");
-  auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
-  ocudu_assert(res.second, "UE with duplicate RNTI being added to the cell UE repository");
-}
-
-void ue_cell_repository::rem_ue(du_ue_index_t ue_index)
-{
-  if (not ues.contains(ue_index)) {
-    logger.error("ue={} : UE not found in the cell UE repository", fmt::underlying(ue_index));
-  }
-  const ue_cell&      u      = *ues[ue_index];
-  const rnti_t        crnti  = u.rnti();
-  const du_ue_index_t ue_idx = u.ue_index;
-
-  // Remove UE from lookup.
-  auto it = rnti_to_ue_index_lookup.find(crnti);
-  if (it != rnti_to_ue_index_lookup.end()) {
-    rnti_to_ue_index_lookup.erase(it);
-  } else {
-    logger.error("ue={} rnti={}: UE with provided c-rnti not found in RNTI-to-UE-index lookup table.",
-                 fmt::underlying(ue_idx),
-                 crnti);
-  }
-
-  pucch_pwr_controllers.erase(ue_idx);
-  pusch_pwr_controllers.erase(ue_idx);
-  ue_mcs_calculators.erase(ue_idx);
-  channel_states.erase(ue_idx);
-
-  // Take the ue cell from the repository.
-  ues.erase(ue_idx);
-}
-
-// class ue_repository
-
 ue_repository::ue_repository() : logger(ocudulog::fetch_basic_logger("SCHED")), ues_to_destroy(MAX_NOF_DU_UES)
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
@@ -161,8 +102,8 @@ void ue_repository::slot_indication(slot_point sl_tx)
 ue_cell_repository& ue_repository::add_cell(du_cell_index_t cell_index)
 {
   ocudu_sanity_check(not cell_ues.contains(cell_index), "Cell index {} is duplicate", fmt::underlying(cell_index));
-  cell_ues.emplace(cell_index, cell_index, logger);
-  return cell_ues[cell_index];
+  cell_ues.emplace(cell_index, std::make_unique<ue_cell_repository>(cell_index, logger));
+  return *cell_ues[cell_index];
 }
 
 void ue_repository::rem_cell(du_cell_index_t cell_index)
@@ -188,7 +129,7 @@ void ue_repository::add_ue(std::unique_ptr<ue> u, logical_channel_config_list_pt
   auto& ue_added = ues[ue_index];
   for (unsigned i = 0, sz = ue_added->nof_cells(); i != sz; ++i) {
     auto& ue_cc = ue_added->get_cell(to_ue_cell_index(i));
-    cell_ues[ue_cc.cell_index].add_ue(ue_cc);
+    cell_ues[ue_cc.cell_index]->add_ue(ue_cc);
   }
 }
 
@@ -197,10 +138,10 @@ void ue_repository::reconfigure_ue(const ue_reconf_command& cmd, bool reestablis
   ocudu_sanity_check(
       ues.contains(cmd.cfg.ue_index), "ue={} : UE not found in the repository", fmt::underlying(cmd.cfg.ue_index));
 
-  for (ue_cell_repository& cell_repo : cell_ues) {
-    if (cell_repo.contains(cmd.cfg.ue_index) and not cmd.cfg.contains(cell_repo.cell_index())) {
+  for (std::unique_ptr<ue_cell_repository>& cell_repo : cell_ues) {
+    if (cell_repo->contains(cmd.cfg.ue_index) and not cmd.cfg.contains(cell_repo->cell_index())) {
       // Cell has been removed from the UE configuration.
-      cell_repo.rem_ue(cmd.cfg.ue_index);
+      cell_repo->rem_ue(cmd.cfg.ue_index);
     }
   }
 
@@ -211,9 +152,9 @@ void ue_repository::reconfigure_ue(const ue_reconf_command& cmd, bool reestablis
     const auto&           cell_cfg   = cmd.cfg.ue_cell_cfg(to_ue_cell_index(i));
     const du_cell_index_t cell_index = cell_cfg.cell_cfg_common.cell_index;
 
-    if (not cell_ues[cell_index].contains(u->ue_index)) {
+    if (not cell_ues[cell_index]->contains(u->ue_index)) {
       // New cell being instantiated.
-      cell_ues[cell_index].add_ue(*u->find_cell(cell_index));
+      cell_ues[cell_index]->add_ue(*u->find_cell(cell_index));
     }
   }
 }
@@ -270,7 +211,7 @@ void ue_repository::rem_ue(const ue& u)
   // Remove UE cc from the cell-specific repositories.
   for (unsigned i = 0, sz = u.nof_cells(); i != sz; ++i) {
     const auto& ue_cc = u.get_cell(to_ue_cell_index(i));
-    cell_ues[ue_cc.cell_index].rem_ue(ue_idx);
+    cell_ues[ue_cc.cell_index]->rem_ue(ue_idx);
   }
 
   // Remove UE from lookup.

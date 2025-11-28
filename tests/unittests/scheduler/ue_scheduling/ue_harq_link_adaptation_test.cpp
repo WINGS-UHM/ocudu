@@ -36,6 +36,8 @@ protected:
     cfg_pool.add_cell(sched_cell_cfg_req);
     cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, sched_cell_cfg_req));
     cell_cfg = cell_cfg_list[to_du_cell_index(0)].get();
+    channel_state.emplace(sched_cfg.ue, params.nof_dl_ports);
+    ue_mcs_calculator.emplace(*cell_cfg, *channel_state);
 
     next_slot = test_helper::generate_random_slot_point(cell_cfg->dl_cfg_common.init_dl_bwp.generic_params.scs);
 
@@ -51,6 +53,7 @@ protected:
         ue_creation_req.ue_index, ue_creation_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_creation_req));
     ue_ptr = std::make_unique<ue>(ue_creation_command{*ue_ded_cfg, ue_creation_req.starts_in_fallback, cell_harqs});
     ue_cc  = &ue_ptr->get_cell(to_ue_cell_index(0));
+    ue_cc->setup(ue_cell_components{&*channel_state, &*ue_mcs_calculator});
   }
 
   void run_slot()
@@ -99,6 +102,8 @@ protected:
   cell_configuration*             cell_cfg = nullptr;
   std::optional<ue_configuration> ue_ded_cfg;
   cell_harq_manager cell_harqs{1, MAX_NOF_HARQS, std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
+  std::optional<ue_channel_state_manager>      channel_state;
+  std::optional<ue_link_adaptation_controller> ue_mcs_calculator;
 
   ocudulog::basic_logger& logger;
 

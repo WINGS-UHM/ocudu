@@ -40,5 +40,6 @@ add_library(ocudu_sched STATIC ${SOURCES}
         $<TARGET_OBJECTS:sched_config_manager>
         $<TARGET_OBJECTS:sched_cell>
         $<TARGET_OBJECTS:common_sched>
+        $<TARGET_OBJECTS:sched_ue_context>
         $<TARGET_OBJECTS:ue_sched>)
 target_link_libraries(ocudu_sched ocudu_ran sched_config sched_ue_context sched_support scheduler_logger)

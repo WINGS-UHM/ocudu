@@ -13,6 +13,8 @@ set(SOURCES
         ue_channel_state_manager.cpp
         ue_link_adaptation_controller.cpp
         ue_drx_controller.cpp
+        ue_cell_repository.cpp
+        ue_repository.cpp
         ue.cpp
         ue_cell.cpp)
 

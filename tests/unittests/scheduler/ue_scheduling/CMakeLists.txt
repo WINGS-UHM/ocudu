@@ -8,7 +8,6 @@
 
 add_executable(ue_scheduler_test
         fallback_scheduler_test.cpp
-        ue_cell_test.cpp
         ue_configuration_test.cpp
         ue_grid_allocator_test.cpp
         ue_link_adaptation_controller_test.cpp

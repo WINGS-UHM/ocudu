@@ -19,10 +19,10 @@
 using namespace ocudu;
 
 /// Test suit to hold context which are required to test a UE cell implementation.
-class ue_cell_tester : public ::testing::Test
+class ue_repository_tester : public ::testing::Test
 {
 protected:
-  ue_cell_tester() :
+  ue_repository_tester() :
     expert_cfg(config_helpers::make_default_scheduler_expert_config()),
     sched_cfg(sched_config_helper::make_default_sched_cell_configuration_request()),
     serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config()),
@@ -101,9 +101,11 @@ protected:
                                    lc_ch_mng,
                                                           {},
                                    logger};
+  ue_channel_state_manager                 channel_state{expert_cfg.ue, 1};
+  ue_link_adaptation_controller            ue_mcs_calculator{cell_cfg, channel_state};
 };
 
-TEST_F(ue_cell_tester, when_dl_nof_prb_allocated_increases_estimated_dl_rate_increases)
+TEST_F(ue_repository_tester, when_dl_nof_prb_allocated_increases_estimated_dl_rate_increases)
 {
   ue_cell ue_cc{to_du_ue_index(0),
                 to_rnti(0x4601),
@@ -112,6 +114,7 @@ TEST_F(ue_cell_tester, when_dl_nof_prb_allocated_increases_estimated_dl_rate_inc
                 cell_harqs,
                 ue_shared_context{drx_controller},
                 std::nullopt};
+  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
 
   double current_rate = 0;
 
@@ -131,7 +134,7 @@ TEST_F(ue_cell_tester, when_dl_nof_prb_allocated_increases_estimated_dl_rate_inc
   }
 }
 
-TEST_F(ue_cell_tester, when_mcs_increases_estimated_dl_rate_increases)
+TEST_F(ue_repository_tester, when_mcs_increases_estimated_dl_rate_increases)
 {
   // Maximum MCS value for 64QAM MCS table.
   const sch_mcs_index max_mcs = 28;
@@ -143,6 +146,7 @@ TEST_F(ue_cell_tester, when_mcs_increases_estimated_dl_rate_increases)
                 cell_harqs,
                 ue_shared_context{drx_controller},
                 std::nullopt};
+  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
 
   double current_rate = 0;
 
@@ -164,7 +168,7 @@ TEST_F(ue_cell_tester, when_mcs_increases_estimated_dl_rate_increases)
   }
 }
 
-TEST_F(ue_cell_tester, when_ul_nof_prb_allocated_increases_estimated_ul_rate_increases)
+TEST_F(ue_repository_tester, when_ul_nof_prb_allocated_increases_estimated_ul_rate_increases)
 {
   ue_cell ue_cc{to_du_ue_index(0),
                 to_rnti(0x4601),
@@ -173,6 +177,7 @@ TEST_F(ue_cell_tester, when_ul_nof_prb_allocated_increases_estimated_ul_rate_inc
                 cell_harqs,
                 ue_shared_context{drx_controller},
                 std::nullopt};
+  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
 
   double current_rate = 0;
 
@@ -192,7 +197,7 @@ TEST_F(ue_cell_tester, when_ul_nof_prb_allocated_increases_estimated_ul_rate_inc
   }
 }
 
-TEST_F(ue_cell_tester, when_mcs_increases_estimated_ul_rate_increases)
+TEST_F(ue_repository_tester, when_mcs_increases_estimated_ul_rate_increases)
 {
   // Maximum MCS value for 64QAM MCS table.
   const sch_mcs_index max_mcs = 28;
@@ -204,6 +209,7 @@ TEST_F(ue_cell_tester, when_mcs_increases_estimated_ul_rate_increases)
                 cell_harqs,
                 ue_shared_context{drx_controller},
                 std::nullopt};
+  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
 
   double current_rate = 0;
 

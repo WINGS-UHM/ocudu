@@ -49,11 +49,7 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
   ue_cfg(&ue_cell_cfg_),
   expert_cfg(cell_cfg.expert_cfg.ue),
   shared_ctx(shared_ctx_),
-  logger(ocudulog::fetch_basic_logger("SCHED")),
-  channel_state(cell_cfg.expert_cfg.ue, ue_cfg->get_nof_dl_ports()),
-  ue_mcs_calculator(ue_cell_cfg_.cell_cfg_common, channel_state),
-  pusch_pwr_controller(ue_cell_cfg_, channel_state),
-  pucch_pwr_controller(ue_cell_cfg_)
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   if (ue_cell_index_ == to_ue_cell_index(0)) {
     // Set ConRes procedure complete by default. Variable only needed for RACHs where MSG3 contains ConRes MAC-CE.
@@ -63,6 +59,11 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
       pcell_state->msg3_rx_slot = msg3_slot_rx.value();
     }
   }
+}
+
+void ue_cell::setup(const ue_cell_components& components_)
+{
+  components = components_;
 }
 
 void ue_cell::deactivate()
@@ -150,10 +151,10 @@ std::optional<ue_cell::dl_ack_info_result> ue_cell::handle_dl_ack_info(slot_poin
   if (outcome == dl_harq_process_handle::status_update::acked or
       outcome == dl_harq_process_handle::status_update::nacked) {
     // HARQ is not expecting more ACK bits. Consider the feedback in the link adaptation controller.
-    ue_mcs_calculator.handle_dl_ack_info(outcome == dl_harq_process_handle::status_update::acked,
-                                         h_dl->get_grant_params().mcs,
-                                         h_dl->get_grant_params().mcs_table,
-                                         h_dl->get_grant_params().olla_mcs);
+    components.ue_mcs_calculator->handle_dl_ack_info(outcome == dl_harq_process_handle::status_update::acked,
+                                                     h_dl->get_grant_params().mcs,
+                                                     h_dl->get_grant_params().mcs_table,
+                                                     h_dl->get_grant_params().olla_mcs);
   }
 
   return dl_ack_info_result{outcome, h_dl.value()};
@@ -178,14 +179,14 @@ int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& 
     // HARQ with matching ID and UCI slot was found.
 
     // Update link adaptation controller.
-    ue_mcs_calculator.handle_ul_crc_info(crc_pdu.tb_crc_success,
-                                         h_ul->get_grant_params().mcs,
-                                         h_ul->get_grant_params().mcs_table,
-                                         h_ul->get_grant_params().olla_mcs);
+    components.ue_mcs_calculator->handle_ul_crc_info(crc_pdu.tb_crc_success,
+                                                     h_ul->get_grant_params().mcs,
+                                                     h_ul->get_grant_params().mcs_table,
+                                                     h_ul->get_grant_params().olla_mcs);
 
     // Update PUSCH SNR reported from PHY.
     if (crc_pdu.ul_sinr_dB.has_value()) {
-      channel_state.update_pusch_snr(crc_pdu.ul_sinr_dB.value());
+      components.channel_state->update_pusch_snr(crc_pdu.ul_sinr_dB.value());
     }
   }
 
@@ -194,13 +195,13 @@ int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& 
 
 void ue_cell::handle_srs_channel_matrix(const srs_channel_matrix& channel_matrix)
 {
-  channel_state.update_srs_channel_matrix(channel_matrix, ue_cfg->get_pusch_codebook_config());
+  components.channel_state->update_srs_channel_matrix(channel_matrix, ue_cfg->get_pusch_codebook_config());
 }
 
 void ue_cell::handle_csi_report(const csi_report_data& csi_report)
 {
   apply_link_adaptation_procedures(csi_report);
-  if (not channel_state.handle_csi_report(csi_report)) {
+  if (not components.channel_state->handle_csi_report(csi_report)) {
     logger.warning("ue={} rnti={}: Invalid CSI report received", fmt::underlying(ue_index), rnti());
   }
 
@@ -425,19 +426,20 @@ void ue_cell::apply_link_adaptation_procedures(const csi_report_data& csi_report
 {
   // Early return if no decrease in CQI and RI.
   const bool cqi_decreased = csi_report.first_tb_wideband_cqi.has_value() and
-                             csi_report.first_tb_wideband_cqi.value() < channel_state.get_wideband_cqi();
-  const bool ri_decreased = csi_report.ri.has_value() and csi_report.ri.value() < channel_state.get_nof_dl_layers();
+                             csi_report.first_tb_wideband_cqi.value() < components.channel_state->get_wideband_cqi();
+  const bool ri_decreased =
+      csi_report.ri.has_value() and csi_report.ri.value() < components.channel_state->get_nof_dl_layers();
   if (not cqi_decreased and not ri_decreased) {
     return;
   }
 
   const csi_report_wideband_cqi_type wideband_cqi = csi_report.first_tb_wideband_cqi.has_value()
                                                         ? csi_report.first_tb_wideband_cqi.value()
-                                                        : channel_state.get_wideband_cqi();
+                                                        : components.channel_state->get_wideband_cqi();
   const unsigned                     recommended_dl_layers =
       csi_report.ri.has_value() and csi_report.ri.value() <= ue_cfg->get_nof_dl_ports()
                               ? csi_report.ri->value()
-                              : channel_state.get_nof_dl_layers();
+                              : components.channel_state->get_nof_dl_layers();
 
   // Link adaptation for HARQs.
   // [Implementation-defined] If the drop in RI or CQI when compared to the RI or CQI at the time of new HARQ

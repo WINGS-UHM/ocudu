@@ -34,6 +34,13 @@ struct ue_shared_context {
   ue_drx_controller& drx_ctrl;
 };
 
+struct ue_cell_components {
+  ue_channel_state_manager*      channel_state        = nullptr;
+  ue_link_adaptation_controller* ue_mcs_calculator    = nullptr;
+  pusch_power_controller*        pusch_pwr_controller = nullptr;
+  pucch_power_controller*        pucch_pwr_controller = nullptr;
+};
+
 /// \brief Context respective to a UE serving cell.
 class ue_cell
 {
@@ -78,6 +85,8 @@ public:
   bool is_in_fallback_mode() const { return pcell_state.has_value() and pcell_state->in_fallback_mode; }
 
   const ue_cell_configuration& cfg() const { return *ue_cfg; }
+
+  void setup(const ue_cell_components& components);
 
   /// \brief Deactivates cell.
   void deactivate();
@@ -148,7 +157,7 @@ public:
 
   sch_mcs_index get_ul_mcs(pusch_mcs_table mcs_table, bool use_transform_precoder) const
   {
-    return ue_mcs_calculator.calculate_ul_mcs(mcs_table, use_transform_precoder);
+    return components.ue_mcs_calculator->calculate_ul_mcs(mcs_table, use_transform_precoder);
   }
 
   /// \brief Get recommended aggregation level for PDCCH at a given CQI.
@@ -165,16 +174,16 @@ public:
                               std::optional<dci_ul_rnti_config_type> required_dci_rnti_type = {}) const;
 
   /// \brief Get UE channel state handler.
-  ue_channel_state_manager&       channel_state_manager() { return channel_state; }
-  const ue_channel_state_manager& channel_state_manager() const { return channel_state; }
+  ue_channel_state_manager&       channel_state_manager() { return *components.channel_state; }
+  const ue_channel_state_manager& channel_state_manager() const { return *components.channel_state; }
 
-  const ue_link_adaptation_controller& link_adaptation_controller() const { return ue_mcs_calculator; }
+  const ue_link_adaptation_controller& link_adaptation_controller() const { return *components.ue_mcs_calculator; }
 
-  pusch_power_controller&       get_pusch_power_controller() { return pusch_pwr_controller; }
-  const pusch_power_controller& get_pusch_power_controller() const { return pusch_pwr_controller; }
+  pusch_power_controller&       get_pusch_power_controller() { return *components.pusch_pwr_controller; }
+  const pusch_power_controller& get_pusch_power_controller() const { return *components.pusch_pwr_controller; }
 
-  pucch_power_controller&       get_pucch_power_controller() { return pucch_pwr_controller; }
-  const pucch_power_controller& get_pucch_power_controller() const { return pucch_pwr_controller; }
+  pucch_power_controller&       get_pucch_power_controller() { return *components.pucch_pwr_controller; }
+  const pucch_power_controller& get_pucch_power_controller() const { return *components.pucch_pwr_controller; }
 
   /// \brief Returns an estimated DL rate in bytes per slot based on the given input parameters.
   double get_estimated_dl_rate(const pdsch_config_params& pdsch_cfg, sch_mcs_index mcs, unsigned nof_prbs) const;
@@ -206,12 +215,7 @@ private:
   /// State relative to the PCell of the UE, if applicable.
   std::optional<ue_pcell_state> pcell_state;
 
-  ue_channel_state_manager channel_state;
-
-  ue_link_adaptation_controller ue_mcs_calculator;
-
-  pusch_power_controller pusch_pwr_controller;
-  pucch_power_controller pucch_pwr_controller;
+  ue_cell_components components;
 };
 
 } // namespace ocudu

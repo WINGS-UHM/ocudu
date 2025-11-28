@@ -69,6 +69,12 @@ private:
 
   // Mapping of RNTIs to UE indexes.
   flat_map<rnti_t, du_ue_index_t> rnti_to_ue_index_lookup;
+
+  // UE carrier components.
+  slotted_id_table<du_ue_index_t, ue_channel_state_manager, MAX_NOF_DU_UES>      channel_states;
+  slotted_id_table<du_ue_index_t, ue_link_adaptation_controller, MAX_NOF_DU_UES> ue_mcs_calculators;
+  slotted_id_table<du_ue_index_t, pusch_power_controller, MAX_NOF_DU_UES>        pusch_pwr_controllers;
+  slotted_id_table<du_ue_index_t, pucch_power_controller, MAX_NOF_DU_UES>        pucch_pwr_controllers;
 };
 
 /// Container that stores all scheduler UEs.

@@ -27,7 +27,17 @@ void ue_cell_repository::add_ue(ue_cell& u)
 {
   rnti_t        rnti     = u.rnti();
   du_ue_index_t ue_index = u.ue_index;
-  bool          ret      = ues.insert(u.ue_index, &u);
+  if (not channel_states.contains(ue_index)) {
+    channel_states.emplace(ue_index, u.cfg().cell_cfg_common.expert_cfg.ue, u.cfg().get_nof_dl_ports());
+    ue_mcs_calculators.emplace(ue_index, u.cfg().cell_cfg_common, channel_states[ue_index]);
+    pusch_pwr_controllers.emplace(ue_index, u.cfg(), u.channel_state_manager());
+    pucch_pwr_controllers.emplace(ue_index, u.cfg());
+  }
+  u.setup(ue_cell_components{&channel_states[ue_index],
+                             &ue_mcs_calculators[ue_index],
+                             &pusch_pwr_controllers[ue_index],
+                             &pucch_pwr_controllers[ue_index]});
+  bool ret = ues.insert(u.ue_index, &u);
   ocudu_assert(ret, "UE with duplicate index being added to the cell UE repository");
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
   ocudu_assert(res.second, "UE with duplicate RNTI being added to the cell UE repository");
@@ -51,6 +61,12 @@ void ue_cell_repository::rem_ue(du_ue_index_t ue_index)
                  fmt::underlying(ue_idx),
                  crnti);
   }
+
+  pucch_pwr_controllers.erase(ue_idx);
+  pusch_pwr_controllers.erase(ue_idx);
+  ue_mcs_calculators.erase(ue_idx);
+  channel_states.erase(ue_idx);
+
   // Take the ue cell from the repository.
   ues.erase(ue_idx);
 }

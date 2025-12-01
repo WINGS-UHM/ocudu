@@ -481,7 +481,7 @@ void cell_harq_repository<IsDl>::reserve_ue_harqs(du_ue_index_t ue_idx, rnti_t r
     ues[ue_idx].harqs[h_id].ndi                      = false;
     ues[ue_idx].harqs[h_id].mode                     = harq_mode_t::normal;
 
-    if (is_ntn_harq_mode_b_enabled()) {
+    if (IsDl and is_ntn_harq_mode_b_enabled()) {
       ues[ue_idx].harqs[h_id].mode = harq_mode_t::feedback_disabled_or_mode_b;
     }
   }
@@ -630,7 +630,7 @@ unique_ue_harq_entity
 cell_harq_manager::add_ue(du_ue_index_t ue_idx, rnti_t crnti, unsigned nof_dl_harq_procs, unsigned nof_ul_harq_procs)
 {
   ocudu_assert(nof_dl_harq_procs <= max_harqs_per_ue and nof_dl_harq_procs > 0, "Invalid number of DL HARQs");
-  ocudu_assert(nof_ul_harq_procs <= max_harqs_per_ue and nof_ul_harq_procs > 0, "Invalid number of DL HARQs");
+  ocudu_assert(nof_ul_harq_procs <= max_harqs_per_ue and nof_ul_harq_procs > 0, "Invalid number of UL HARQs");
   ocudu_assert(ue_idx < dl.ues.size(), "Invalid ue_index");
   ocudu_assert(not contains(ue_idx), "Creating UE with duplicate ue_index");
   dl.reserve_ue_harqs(ue_idx, crnti, nof_dl_harq_procs);
@@ -822,7 +822,7 @@ void ul_harq_process_handle::save_grant_params(const ul_harq_alloc_context& ctx,
   ocudu_sanity_check(pusch.rnti == impl->rnti, "RNTI mismatch");
   ocudu_sanity_check(pusch.harq_id == impl->h_id, "HARQ-id mismatch");
   ocudu_assert(impl->status == harq_utils::harq_state_t::waiting_ack,
-               "Setting allocation parameters for DL HARQ process id={} in invalid state",
+               "Setting allocation parameters for UL HARQ process id={} in invalid state",
                fmt::underlying(id()));
 
   ul_harq_process_impl::alloc_params& prev_tx_params = impl->prev_tx_params;
@@ -882,6 +882,27 @@ unique_ue_harq_entity::~unique_ue_harq_entity()
 {
   if (cell_harq_mgr != nullptr) {
     cell_harq_mgr->destroy_ue(ue_index);
+  }
+}
+
+void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask)
+{
+  if (cell_harq_mgr->ul.ntn_cs_koffset == 0) {
+    // Not NTN cell, do not set UL HARQ mode B.
+    return;
+  }
+  if (not ul_harq_mode_mask.empty()) {
+    if (not ul_harq_mode_mask.all() and not cell_harq_mgr->ul.is_ntn_harq_mode_b_enabled()) {
+      report_error("Cannot set UL HARQ process to mode B as the feature is not enabled in PUSCH config.");
+    }
+    for (auto& h : get_ul_ue().harqs) {
+      // A bit set to one identifies a HARQ process in mode A and a bit set to zero identifies a HARQ process in mode B.
+      if (ul_harq_mode_mask.test(h.h_id)) {
+        h.mode = harq_mode_t::normal;
+      } else {
+        h.mode = harq_mode_t::feedback_disabled_or_mode_b;
+      }
+    }
   }
 }
 

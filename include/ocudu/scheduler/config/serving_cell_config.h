@@ -26,6 +26,7 @@
 #include "ocudu/ran/tci.h"
 #include "ocudu/ran/time_alignment_config.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/harq_id.h"
 #include "ocudu/scheduler/result/resource_block_group.h"
 
 namespace ocudu {
@@ -228,7 +229,8 @@ struct pusch_serving_cell_config {
   enum class nof_harq_proc_for_pusch { n16 = 16, n32 = 32 };
 
   /// See TS 38.331, \c uplinkHARQ-mode.
-  bool harq_mode_b = false;
+  /// A bit set to one identifies a HARQ process in modeA and a bit set to zero identifies a HARQ process in modeB.
+  bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode = {~bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
 
   /// See TS 38.331, \c nrofHARQ-ProcessesForPUSCH.
   nof_harq_proc_for_pusch nof_harq_proc{nof_harq_proc_for_pusch::n16};
@@ -239,7 +241,7 @@ struct pusch_serving_cell_config {
   bool operator==(const pusch_serving_cell_config& other) const
   {
     return cbg_tx == other.cbg_tx and x_ov_head == other.x_ov_head and nof_harq_proc == other.nof_harq_proc and
-           harq_mode_b == other.harq_mode_b;
+           ul_harq_mode == other.ul_harq_mode;
   }
 
   bool operator!=(const pusch_serving_cell_config& rhs) const { return !(rhs == *this); }

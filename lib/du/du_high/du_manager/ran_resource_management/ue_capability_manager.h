@@ -99,7 +99,7 @@ private:
   /// Selects the UL HARQ Process Number field size.
   unsigned select_ul_dci_harq_num_field_size(du_cell_index_t cell_idx) const;
   /// Selects the UL HARQ Mode B.
-  bool select_ul_harq_mode_b(du_cell_index_t cell_idx) const;
+  bounded_bitset<MAX_NOF_HARQS, true> select_ul_harq_mode(du_cell_index_t cell_idx) const;
 
   // Updates the DRX config of the UE.
   void update_drx(du_ue_resource_config& ue_res_cfg);

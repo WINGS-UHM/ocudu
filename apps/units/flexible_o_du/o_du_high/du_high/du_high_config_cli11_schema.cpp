@@ -24,6 +24,7 @@
 #include "ocudu/support/cli11_utils.h"
 #include "ocudu/support/config_parsers.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
+#include <charconv>
 
 using namespace ocudu;
 
@@ -37,6 +38,52 @@ static expected<Integer, std::string> parse_int(const std::string& value)
   } catch (const std::out_of_range& e) {
     return make_unexpected(e.what());
   }
+}
+
+static expected<uint32_t, std::string> parse_32bit_mask_input(std::string_view value)
+{
+  if (value.empty()) {
+    return make_unexpected("Input is empty");
+  }
+
+  const char* first               = value.data();
+  const char* last                = value.data() + value.size();
+  unsigned    base                = 10;
+  unsigned    expected_nof_digits = 0;
+
+  // Detect prefix and adjust first pointer and base.
+  if (value.size() >= 2 && value[0] == '0') {
+    char format = std::tolower(value[1]);
+    if (format == 'x') {
+      base = 16;
+      first += 2; // Skip 0x.
+      expected_nof_digits = 8;
+    } else if (format == 'b') {
+      base = 2;
+      first += 2; // Skip 0b.
+      expected_nof_digits = 32;
+    }
+  }
+
+  if ((last - first) != expected_nof_digits) {
+    return make_unexpected(base == 16 ? "hex string must be exactly 8 characters (32 bits)"
+                                      : "binary string must be exactly 32 characters (32 bits)");
+  }
+
+  uint32_t result;
+  auto [ptr, ec] = std::from_chars(first, last, result, base);
+
+  if (ec == std::errc::invalid_argument) {
+    return make_unexpected("Not a number");
+  }
+  if (ec == std::errc::result_out_of_range) {
+    return make_unexpected("Number too large for type");
+  }
+  // Strict check: Ensure the whole string was consumed.
+  if (ptr != last) {
+    return make_unexpected("Invalid characters in string");
+  }
+  return result;
 }
 
 /// Returns a default capture function for vectors of integers.
@@ -739,8 +786,35 @@ static void configure_cli11_pusch_args(CLI::App& app, du_high_unit_pusch_config&
   add_option(app, "--max_ue_mcs", pusch_params.max_ue_mcs, "Maximum UE MCS")
       ->capture_default_str()
       ->check(CLI::Range(0, 28));
-  add_option(app, "--harq_mode_b", pusch_params.harq_mode_b, "Set HARQ Mode B (only for NTN cells)")
-      ->always_capture_default();
+  add_option_function<std::string>(
+      app,
+      "--harq_mode_b",
+      [&pusch_params](const std::string& value) {
+        uint32_t harq_mode_b;
+        if (value == "false") {
+          harq_mode_b = 0x00000000;
+        } else if (value == "true") {
+          // Note: Keep four HARQ processes in mode A.
+          harq_mode_b = 0x0fffffff;
+        } else {
+          harq_mode_b = parse_32bit_mask_input(value).value();
+        }
+        for (unsigned i = 0; i != MAX_NOF_HARQS; ++i) {
+          pusch_params.harq_mode_b.set(i, (harq_mode_b >> (31 - i)) & 1);
+        }
+      },
+      "Set HARQ Mode B (only for NTN cells).\n"
+      "If set to true, applies the mask 0x0fffffff to set HARQ Mode B for all except the first four HARQ processes.\n"
+      "If set to a string, it must be a 32-bit bitmap (0x… or 0b…) indicating which HARQ processes use Mode B.\n"
+      "A bit set to 1 indicates HARQ Mode B; a bit set to 0 indicates HARQ Mode A.\n"
+      "The leftmost bit corresponds to HARQ process ID 0; bits for unconfigured HARQ process IDs are ignored.\n")
+      ->default_str("false")
+      ->check(CLI::IsMember({"true", "false"}) | CLI::Validator(
+                                                     [](const std::string& str) -> std::string {
+                                                       auto result = parse_32bit_mask_input(str);
+                                                       return result.has_value() ? "" : result.error();
+                                                     },
+                                                     "32_bitmask_validator"));
   add_option(app, "--nof_harqs", pusch_params.nof_harqs, "Number of UL HARQ processes")
       ->capture_default_str()
       ->check(CLI::IsMember({16, 32}));

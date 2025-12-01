@@ -1059,12 +1059,25 @@ TEST_F(multi_ue_harq_manager_test, when_new_tx_occur_for_different_ues_then_ndi_
 
 TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_allocated_then_it_flushes_soon_after)
 {
-  // we cannot flush in the next TTI, as we need to disambiguate HARQ IDs in case a HARQ-ACK contains ACKs for several
+  // Note: DL HARQ Mode B enabled by default.
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+  ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::normal);
+
+  // We cannot flush in the next TTI, as we need to disambiguate HARQ IDs in case a HARQ-ACK contains ACKs for several
   // HARQs -> we flush in the next TTH after k1/k2
   slot_point slot_dl_timeout = current_slot + k1 + 1;
   slot_point slot_ul_timeout = current_slot + k2 + 1;
 
-  // here
+  // Note: UL HARQ Mode B is be set during RRC Reconf if UE supports it.
+  // Need to enable Mode B and request new harq process.
+  bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
+  ul_harq_mode_mask.fill(false);
+  harq_ent.reconfigure(ul_harq_mode_mask);
+  h_ul.reset();
+  h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
+  ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
+  h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
+
   while (current_slot != std::max(slot_dl_timeout, slot_ul_timeout) + 1) {
     if (current_slot < slot_dl_timeout) {
       ASSERT_TRUE(h_dl.is_waiting_ack());
@@ -1086,10 +1099,24 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_allocated_then_i
 
 TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_after_timeout)
 {
+  // Note: DL HARQ Mode B enabled by default.
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+  ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::normal);
+
   slot_point slot_dl_timeout = current_slot + k1 + 1;
   slot_point slot_ul_timeout = current_slot + k2 + 1;
   slot_point uci_slot        = current_slot + ntn_cs_koffset + k1;
   slot_point pusch_slot      = current_slot + ntn_cs_koffset + k2;
+
+  // Note: UL HARQ Mode B is be set during RRC Reconf if UE supports it.
+  // Need to enable Mode B and request new harq process.
+  bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
+  ul_harq_mode_mask.fill(false);
+  harq_ent.reconfigure(ul_harq_mode_mask);
+  h_ul.reset();
+  h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
+  ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
+  h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
 
   // HARQ available, NTN HARQ history available
   ASSERT_TRUE(h_dl.is_waiting_ack());
@@ -1155,8 +1182,23 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_
 
 TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_gets_acked_then_it_reports_the_correct_tbs)
 {
+  // Note: DL HARQ Mode B enabled by default.
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+  ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::normal);
+
   slot_point uci_slot   = current_slot + ntn_cs_koffset + k1;
   slot_point pusch_slot = current_slot + ntn_cs_koffset + k2;
+
+  // Note: UL HARQ Mode B is be set during RRC Reconf if UE supports it.
+  // Need to enable Mode B and request new harq process.
+  bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode_mask(MAX_NOF_HARQS);
+  ul_harq_mode_mask.fill(false);
+  harq_ent.reconfigure(ul_harq_mode_mask);
+  h_ul.reset();
+  h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value();
+  ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
+  h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
+
   while (current_slot != uci_slot) {
     run_slot();
   }

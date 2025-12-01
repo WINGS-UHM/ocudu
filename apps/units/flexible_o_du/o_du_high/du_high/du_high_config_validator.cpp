@@ -405,7 +405,7 @@ static bool validate_pusch_cell_unit_config(const du_high_unit_pusch_config& con
     return false;
   }
 
-  if (config.harq_mode_b and not is_ntn_band) {
+  if (config.harq_mode_b.any() and not is_ntn_band) {
     fmt::print("UL HARQ Mode B can be used only in NTN cells.\n");
     return false;
   }

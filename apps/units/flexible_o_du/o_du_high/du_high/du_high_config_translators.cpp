@@ -536,7 +536,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     out_cell.dl_harq_mode_b = cell.cell.pdsch_cfg.harq_mode_b;
-    out_cell.ul_harq_mode_b = cell.cell.pusch_cfg.harq_mode_b;
+    out_cell.ul_harq_mode_b = cell.cell.pusch_cfg.harq_mode_b.any();
 
     // Parameters for PUCCH-ConfigCommon.
     if (not out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
@@ -651,8 +651,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->nof_harq_proc =
         static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(
             config.cells_cfg.front().cell.pusch_cfg.nof_harqs);
-    out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->harq_mode_b =
-        config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
+    out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode =
+        ~config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
     // Set DL MCS table.
     out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = base_cell.pdsch_cfg.mcs_table;
     // Set DMRS additional position.

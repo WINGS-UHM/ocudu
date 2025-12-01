@@ -95,7 +95,7 @@ struct sched_cell_configuration_request_message {
   unsigned ntn_cs_koffset = 0;
   /// DL HARQ Mode B.
   bool dl_harq_mode_b = false;
-  /// UL HARQ Mode B.
+  /// Indicates whether UL HARQ Mode B is enabled (if there is at least one UL HARQ process in mode B).
   bool ul_harq_mode_b = false;
 
   bool cfra_enabled = false;

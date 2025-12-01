@@ -101,6 +101,7 @@ void ue_cell::handle_reconfiguration_request(const ue_cell_configuration& ue_cel
       h_ul->cancel_retxs();
     }
   }
+  harqs.reconfigure(ue_cell_cfg.pusch_serving_cell_cfg()->ul_harq_mode);
 
   get_pusch_power_controller().reconfigure(ue_cell_cfg);
 }

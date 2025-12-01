@@ -128,7 +128,7 @@ struct du_cell_config {
   /// Whether DL HARQ Mode B is enabled for this NTN cell.
   bool dl_harq_mode_b = false;
 
-  /// Whether UL HARQ Mode B is enabled for this NTN cell.
+  /// Whether UL HARQ Mode B is enabled for this NTN cell (if there is at least one UL HARQ process in mode B).
   bool ul_harq_mode_b = false;
 
   /// PUSCH Maximum of transmission layers. Limits the PUSCH maximum rank the UE is configured with.

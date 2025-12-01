@@ -391,8 +391,12 @@ static YAML::Node build_du_high_pusch_section(const du_high_unit_pusch_config& c
 {
   YAML::Node node;
 
-  node["min_ue_mcs"]                 = config.min_ue_mcs;
-  node["max_ue_mcs"]                 = config.max_ue_mcs;
+  node["min_ue_mcs"]  = config.min_ue_mcs;
+  node["max_ue_mcs"]  = config.max_ue_mcs;
+  node["harq_mode_b"] = !config.harq_mode_b.empty() ? fmt::format("0x{:08x}", config.harq_mode_b.to_uint64()) : "false";
+  node["nof_harqs"]   = config.nof_harqs;
+  node["max_nof_harq_retxs"]         = config.max_nof_harq_retxs;
+  node["harq_retx_timeout"]          = config.harq_retx_timeout;
   node["max_consecutive_kos"]        = config.max_consecutive_kos;
   node["mcs_table"]                  = to_string(config.mcs_table);
   node["max_rank"]                   = config.max_rank;

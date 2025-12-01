@@ -35,6 +35,7 @@
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tac.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/harq_id.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -213,9 +214,14 @@ struct du_high_unit_pusch_config {
   /// Maximum modulation and coding scheme index for C-RNTI PUSCH allocations. To set a fixed MCS, set \c min_ue_mcs
   /// equal to the \c max_ue_mcs.
   unsigned max_ue_mcs = 28;
-  /// Set UL HARQ Mode B in NTN cell.
+  /// Set UL HARQ Mode B for specific UL HARQ processes in an NTN cell.
   /// HARQ mode B allows scheduling and reusing a HARQ process before the RTT of the previous HARQ process has elapsed.
-  bool harq_mode_b = false;
+  /// A bit set to one identifies a HARQ process in mode B and a bit set to zero identifies a HARQ process in mode A.
+  /// The flipped harq_mode_b mask is used to fill the RRC IE uplinkHARQ-mode (TS 38.331), where bits set to 1 indicate
+  /// HARQ processes with feedback disabled, and 0 indicate feedback enabled.
+  /// The bitset has size of MAX_NOF_HARQS. The first/leftmost bit corresponds to HARQ process ID 0. Bits corresponding
+  /// to HARQ process IDs that are not configured are ignored.
+  bounded_bitset<MAX_NOF_HARQS, true> harq_mode_b = {bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
   /// Number of UE UL HARQ processes.
   unsigned nof_harqs = 16;
   /// Maximum number of times a UL HARQ process can be retransmitted, before it gets discarded.

@@ -147,8 +147,12 @@ struct du_high_unit_pdsch_config {
   unsigned fixed_rar_mcs = 0;
   /// SI modulation and coding scheme index.
   unsigned fixed_sib1_mcs = 5;
-  /// Disable DL HARQ Feedback in NTN cell.
-  bool harq_feedback_disabled = false;
+  /// Disable DL HARQ feedback for specific HARQ processes in an NTN cell.
+  /// This sets the harq_feedback_disabled mask (RRC IE downlinkHARQ-FeedbackDisabled, TS 38.331),
+  /// where bits set to 1 indicate HARQ processes with feedback disabled, and 0 indicate feedback enabled.
+  /// The bitset has size of MAX_NOF_HARQS. The first/leftmost bit corresponds to HARQ process ID 0. Bits corresponding
+  /// to HARQ process IDs that are not configured are ignored.
+  bounded_bitset<MAX_NOF_HARQS, true> harq_feedback_disabled = {bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
   /// Number of UE DL HARQ processes.
   unsigned nof_harqs = 16;
   /// Maximum number of times a DL HARQ process can be retransmitted, before it gets discarded.

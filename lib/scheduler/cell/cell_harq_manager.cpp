@@ -882,7 +882,7 @@ unique_ue_harq_entity::~unique_ue_harq_entity()
   }
 }
 
-void unique_ue_harq_entity::reconfigure(bool                                       harq_feedback_disabled,
+void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true>& dl_harq_feedback_disabled_mask,
                                         const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask)
 {
   if (cell_harq_mgr->ul.ntn_cs_koffset == 0) {
@@ -890,11 +890,14 @@ void unique_ue_harq_entity::reconfigure(bool                                    
     return;
   }
 
-  for (auto& h : get_dl_ue().harqs) {
-    if (harq_feedback_disabled and h.h_id > 3) {
-      h.mode = harq_mode_t::feedback_disabled_or_mode_b;
-    } else {
-      h.mode = harq_mode_t::normal;
+  if (not dl_harq_feedback_disabled_mask.empty()) {
+    for (auto& h : get_dl_ue().harqs) {
+      // A bit set to one indicates HARQ processes with disabled DL HARQ feedback and the bit set to zero with enabled.
+      if (dl_harq_feedback_disabled_mask.test(h.h_id)) {
+        h.mode = harq_mode_t::feedback_disabled_or_mode_b;
+      } else {
+        h.mode = harq_mode_t::normal;
+      }
     }
   }
 

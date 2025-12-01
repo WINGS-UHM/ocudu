@@ -99,7 +99,7 @@ private:
   /// Selects the UL HARQ Process Number field size.
   unsigned select_ul_dci_harq_num_field_size(du_cell_index_t cell_idx) const;
   /// Selects the DL HARQ feedback disabled.
-  bool select_disabled_dl_harq_feedback(du_cell_index_t cell_idx) const;
+  bounded_bitset<MAX_NOF_HARQS, true> select_disabled_dl_harq_feedback(du_cell_index_t cell_idx) const;
   /// Selects the UL HARQ Mode B.
   bounded_bitset<MAX_NOF_HARQS, true> select_ul_harq_mode(du_cell_index_t cell_idx) const;
 

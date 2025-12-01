@@ -310,7 +310,7 @@ static bool validate_pdsch_cell_unit_config(const du_high_unit_pdsch_config& con
     return false;
   }
 
-  if (config.harq_feedback_disabled and not is_ntn_band) {
+  if (config.harq_feedback_disabled.any() and not is_ntn_band) {
     fmt::print("DL HARQ Feedback can be disabled only in NTN cells.\n");
     return false;
   }

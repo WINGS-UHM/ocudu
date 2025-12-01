@@ -264,11 +264,36 @@ static void configure_cli11_pdsch_args(CLI::App& app, du_high_unit_pdsch_config&
   add_option(app, "--fixed_sib1_mcs", pdsch_params.fixed_sib1_mcs, "Fixed SIB1 MCS")
       ->capture_default_str()
       ->check(CLI::Range(0, 28));
-  add_option(app,
-             "--harq_feedback_disabled",
-             pdsch_params.harq_feedback_disabled,
-             "Disable DL HARQ Feedback (only for NTN cells)")
-      ->always_capture_default();
+  add_option_function<std::string>(
+      app,
+      "--harq_feedback_disabled",
+      [&pdsch_params](const std::string& value) {
+        uint32_t harq_feedback_disabled;
+        if (value == "false") {
+          harq_feedback_disabled = 0x00000000;
+        } else if (value == "true") {
+          // Note: Keep four HARQ processes with feedback enabled.
+          harq_feedback_disabled = 0x0fffffff;
+        } else {
+          harq_feedback_disabled = parse_32bit_mask_input(value).value();
+        }
+        for (unsigned i = 0; i != MAX_NOF_HARQS; ++i) {
+          pdsch_params.harq_feedback_disabled.set(i, (harq_feedback_disabled >> (31 - i)) & 1);
+        }
+      },
+      "Disable DL HARQ Feedback (only for NTN cells).\n"
+      "If set to true, applies the mask 0x0fffffff and disables HARQ feedback for all except the first four HARQs\n."
+      "If set to a string, it must be a 32-bit bitmap (0x… or 0b…) of the HARQ processes to disable.\n"
+      "The bit set to 1 indicates HARQ processes with disabled DL HARQ feedback and the bit set to 0,\n"
+      "identify HARQ processes with enabled DL HARQ feedback."
+      "The leftmost bit corresponds to HARQ process ID 0; bits for unconfigured HARQ process IDs are ignored.\n")
+      ->default_str("false")
+      ->check(CLI::IsMember({"true", "false"}) | CLI::Validator(
+                                                     [](const std::string& str) -> std::string {
+                                                       auto result = parse_32bit_mask_input(str);
+                                                       return result.has_value() ? "" : result.error();
+                                                     },
+                                                     "32_bitmask_validator"));
   add_option(app, "--nof_harqs", pdsch_params.nof_harqs, "Number of DL HARQ processes")
       ->capture_default_str()
       ->check(CLI::IsMember({2, 4, 6, 8, 10, 12, 16, 32}));

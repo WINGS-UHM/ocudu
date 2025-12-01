@@ -343,6 +343,9 @@ static YAML::Node build_du_high_pdsch_section(const du_high_unit_pdsch_config& c
   node["fixed_rar_mcs"]                    = config.fixed_rar_mcs;
   node["fixed_sib1_mcs"]                   = config.fixed_sib1_mcs;
   node["nof_harqs"]                        = config.nof_harqs;
+  node["harq_feedback_disabled"]           = !config.harq_feedback_disabled.empty()
+                                                 ? fmt::format("0x{:08x}", config.harq_feedback_disabled.to_uint64())
+                                                 : "false";
   node["max_nof_harq_retxs"]               = config.max_nof_harq_retxs;
   node["max_consecutive_kos"]              = config.max_consecutive_kos;
   node["mcs_table"]                        = to_string(config.mcs_table);

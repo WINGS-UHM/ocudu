@@ -284,7 +284,8 @@ struct pdsch_serving_cell_config {
   std::optional<pdsch_code_block_group_transmission> code_block_group_tx;
   x_overhead                                         x_ov_head{x_overhead::not_set};
   /// See TS 38.331, \c downlinkHARQ-FeedbackDisabled.
-  bool dl_harq_feedback_disabled = false;
+  /// A bit set to 1 indicates HARQ processes with disabled DL HARQ feedback; a bit set to 0 indicate feedback enabled.
+  bounded_bitset<MAX_NOF_HARQS, true> dl_harq_feedback_disabled = {bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
   /// See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
   nof_harq_proc_for_pdsch          nof_harq_proc{nof_harq_proc_for_pdsch::n16};
   std::optional<serv_cell_index_t> pucch_cell;

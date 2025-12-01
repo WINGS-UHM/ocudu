@@ -6,11 +6,6 @@
 # the distribution.
 #
 
-# How to test nighlt/weekly schedules
-# Generate a schedule for your branch whit a CI_DESCRIPTION variable
-# that contains "Nightly"/"Weekly" and an extra word
-# Ex: "Test Weekly", "Nighlty add feature"
-
 include:
   - local: .gitlab/ci/build.yml
 
@@ -18,9 +13,6 @@ stages:
   - ci
   - static
   - build and unit tests
-  - zmq
-  - test mode
-  - rf
   - manual
   - documentation
 
@@ -383,56 +375,6 @@ clangsa:
     ANALYZER: clangsa
     ANALYZER_ARGS: --ctu
   timeout: 8 hours
-
-# .coverity_base:
-#   image: $CR_REGISTRY_URI/coverity_image/2022.6.0:1.0.0
-#   stage: static
-#   needs: []
-#   variables:
-#     KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
-#     KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
-#     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
-#     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
-#   tags:
-#     - amd64
-#   interruptible: false
-#   timeout: 2 hours
-#   script:
-#     - |
-#       mkdir -p build
-#       cd build
-#       cmake ..
-#       cov-build --dir cov-int make -j${KUBERNETES_CPU_REQUEST}
-#       tar czvf srsgnb.tgz cov-int
-#       ver=$(git rev-parse HEAD)
-#     - |
-#       curl --form token=$COV_TOKEN \
-#         --form email=${COVERITY_EMAIL} \
-#         --form file=@srsgnb.tgz \
-#         --form version=$ver \
-#         --form description="${DESCRIPTION}" \
-#         https://scan.coverity.com/builds?project=${PROJECT_NAME}
-
-# coverity-dev:
-#   extends: .coverity_base
-#   rules:
-#     - if: $CI_DESCRIPTION =~ /Weekly/
-#   before_script:
-#     - export PROJECT_NAME="srsRAN_5G"
-#     - export DESCRIPTION="srsRAN Project dev build"
-#     - export COV_TOKEN="${COVERITY_TOKEN_DEV}"
-
-e2e tests tox:
-  stage: static
-  rules:
-    - if: $ON_MR
-      changes:
-        - tests/e2e/**/*
-  variables:
-    PY_DIR: tests/e2e
-  before_script:
-    - apk add build-base
-  extends: .tox
 
 ################################################################################
 ## Build + Unit Tests + Integration tests

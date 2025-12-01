@@ -1,0 +1,17 @@
+include:
+  - local: .gitlab/ci-shared/docker.yml
+
+stages:
+  - publish
+
+build-and-publish:
+  extends: .docker-builder
+  stage: publish
+  rules:
+    - if: $ON_MR
+  variables:
+    NAME: doxygen
+    CONTEXT: .gitlab/ci/doxygen
+    VERSION: "1.9.8-1.2023.7"
+    BUILD_ARGS: DOXYGEN_VERSION=Release_1_9_8;PLANTUML_VERSION=1.2023.7
+    MODE: publish

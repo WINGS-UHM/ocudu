@@ -1,0 +1,181 @@
+variables:
+  BUILDKIT_CLI_VERSION: "0.23.2"
+
+.docker-builder:
+  tags:
+    - ${PLATFORM}
+  variables:
+    NAME: ""
+    CONTEXT: ""
+    DOCKERFILE: ""
+    PLATFORM: "amd64"
+    VERSION: ""
+    BUILD_ARGS: "" # ; separated
+    BUILD_SECRETS: "" # ; separated, format id=secret_name,src=secret_file
+    MODE: "build"
+    MULTI_ARCH_BUILD: ""
+    PLATFORM_OS: "linux"
+    CACHE: "false"
+    OVERWRITE: "false"
+    ATTESTATION_FILE: ""
+    COSIGN_YES: "true" # Used by Cosign to skip confirmation prompts for non-destructive operations
+  id_tokens:
+    SIGSTORE_ID_TOKEN: # Used by Cosign to get certificate from Fulcio
+      aud: sigstore
+  image: ${CI_REGISTRY_IMAGE}/buildkit-cli:$BUILDKIT_CLI_VERSION
+  script:
+    - |
+      check_if_image_exists() {
+        IMAGE_NAME_TO_CHECK=$1
+        echo "docker manifest inspect $IMAGE_NAME_TO_CHECK"
+        if \
+          docker manifest inspect $IMAGE_NAME_TO_CHECK;
+        then
+          echo "Image ${IMAGE_NAME_TO_CHECK} already exists. Aborting"
+          exit 0
+        fi
+      }
+
+    # Validate parameters
+    - |
+      [ -z "$NAME" ] && echo "NAME parameter is mandatory" && exit 1
+      [ -z "$CONTEXT" ] && CONTEXT="${CI_PROJECT_DIR}"
+      [ -z "$DOCKERFILE" ] && DOCKERFILE="${CONTEXT}"
+      [ -z "$VERSION" ] && VERSION=$(date +%Y)_$(date +%m)_$(date +%d)
+      IMAGE_NAME="${CI_REGISTRY_IMAGE}/${NAME}"
+      IMAGE_NAME_VERSION="${IMAGE_NAME}:${VERSION}"
+      if [ -n "$BUILD_ARGS" ]; then
+        BUILD_ARGS="--opt build-arg:$(echo $BUILD_ARGS | sed 's/;/ --opt build-arg:/g')"
+      fi
+      if [ -n "$BUILD_SECRETS" ]; then
+        BUILD_SECRETS=$(echo "$BUILD_SECRETS" | sed 's/;/ --secret /g; s/^/--secret /')
+      fi
+      BUILD_ARGS="${BUILD_ARGS} ${BUILD_SECRETS} --opt build-arg:PIP_EXTRA_INDEX_URL=https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple"
+
+    # Add docker config
+    - &docker_login |
+      echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+
+    # check if exists
+    - |
+      if [[ "${OVERWRITE}" != "true" ]]; then
+        check_if_image_exists $IMAGE_NAME_VERSION
+      fi
+
+    # Prepare build
+    - |
+      OUTPUT="type=image,name=${IMAGE_NAME_VERSION}"
+
+      # Publish
+      if [ ${MODE} = "publish" ]; then
+        if [[ ${MULTI_ARCH_BUILD} == "true" ]]; then
+          # Multi arch build, join to manifest later.
+          IMAGE_NAME_VERSION="${IMAGE_NAME_VERSION}-${PLATFORM}"
+          OUTPUT="type=image,name=${IMAGE_NAME_VERSION}"
+        fi
+        OUTPUT="${OUTPUT},push=true"
+      fi
+
+    # Use and generate build cache
+    - |
+      if [[ "${CACHE}" == "true" ]]; then
+        BUILD_ARGS="--import-cache type=registry,ref=${IMAGE_NAME}:cache-${PLATFORM} --export-cache type=registry,ref=${IMAGE_NAME}:cache-${PLATFORM} ${BUILD_ARGS}"
+      fi
+
+    # Build & publish
+    - |
+      sh -c "buildctl-daemonless.sh build \
+        --progress=plain \
+        --opt platform=${PLATFORM_OS}/${PLATFORM} \
+        --frontend=dockerfile.v0 \
+        --local context="${CONTEXT}" \
+        --local dockerfile=${DOCKERFILE} \
+        ${BUILD_ARGS} \
+        --output ${OUTPUT}"
+
+    # Attestation
+    - |
+      if [ ${MODE} = "publish" ]; then
+        IMAGE_DIGEST="$IMAGE_NAME_VERSION@$(docker manifest inspect "$IMAGE_NAME_VERSION" | jq -r '.config.digest')"
+        if [ -z "$ATTESTATION_FILE" ]; then
+          cosign sign $IMAGE_DIGEST || true
+        else
+          regctl image get-file ${IMAGE_NAME_VERSION} ${ATTESTATION_FILE} >image.spdx
+          cosign attest --predicate image.spdx --type spdx ${IMAGE_DIGEST}
+        fi
+      fi
+
+.docker manifest:
+  stage: publish
+  image: ${CI_REGISTRY_IMAGE}/buildkit-cli:$BUILDKIT_CLI_VERSION
+  tags:
+    - untagged
+  rules:
+    - if: $ON_DEFAULT_BRANCH
+    - if: $ON_MR
+  variables:
+    GIT_STRATEGY: none
+    NAME: none
+    VERSION: none
+  before_script:
+    - *docker_login
+  script:
+    - *docker_login # Setup duplicated on purpose so both before_script and script can be overwritten
+    - |
+      docker manifest create \
+        ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION} \
+        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-amd64 \
+        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-arm64
+      docker manifest push ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}
+      echo "Image ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION} pushed"
+
+.docker copy:
+  stage: publish
+  image: ${CI_REGISTRY_IMAGE}/buildkit-cli:$BUILDKIT_CLI_VERSION
+  tags:
+    - amd64
+  rules:
+    - if: $ON_DEFAULT_BRANCH
+    - if: $ON_MR
+  variables:
+    GIT_STRATEGY: none
+  before_script:
+    - *docker_login
+    - |
+      DEBIAN_FRONTEND=noninteractive apt-get update && \
+        apt-get install -y --no-install-recommends skopeo
+
+.check image exists for all supported ubuntu versions:
+  extends: .docker-builder
+  variables:
+    VERSIONS_TO_IGNORE: ""
+  before_script:
+    # Add docker config
+    - *docker_login
+    # Install
+    - . /etc/os-release
+    - |
+      DEBIAN_FRONTEND=noninteractive apt-get update && \
+        apt-get install -y --no-install-recommends distro-info &&
+        apt-get install -y --only-upgrade distro-info-data
+    - |
+      distro_info_cmd="distro-info --release --date $(date -d '+5 days' --iso-8601)"
+      if echo "$($distro_info_cmd --unsupported 2>&1)" | grep -q "$VERSION_ID"; then
+        echo "Current OS distribution is not supported anymore so its distro-info could be outdated."
+        exit 1
+      fi
+    - |
+      check_if_image_exists() {
+        IMAGE_NAME_BEFORE=$1
+        IMAGE_NAME_AFTER=$2
+        distro_info_cmd="distro-info --release --date $(date -d '+5 days' --iso-8601)"
+        for _ubuntu_version_ in $($distro_info_cmd --supported | grep -v "$($distro_info_cmd --devel 2>/dev/null || echo 'no devel')" | sed 's/ LTS//g'); do
+          if [[ $VERSIONS_TO_IGNORE != *$_ubuntu_version_* ]]; then
+            image_to_check="${IMAGE_NAME_BEFORE}${_ubuntu_version_}${IMAGE_NAME_AFTER}"
+            echo "##################################################"
+            echo "Checking $image_to_check ..."
+            echo "##################################################"
+            docker manifest inspect $image_to_check
+          fi
+        done
+      }

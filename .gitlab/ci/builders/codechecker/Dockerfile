@@ -6,11 +6,28 @@
 # the distribution.
 #
 
-ARG CR_REGISTRY_URI
-ARG CI_TOOLS_REPO
 ARG CODECHECKER_VERSION=6.26.1
 
-FROM ${CR_REGISTRY_URI}/${CI_TOOLS_REPO}/codechecker:${CODECHECKER_VERSION}
+FROM ubuntu:22.04 AS codecheck_builder
+ARG CODECHECKER_VERSION
+RUN DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid \ 
+  apt-get update && apt-get install -y --no-install-recommends \
+  git python3-pip python3-dev gcc\
+  && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN pip install codechecker==${CODECHECKER_VERSION} 
+
+FROM ubuntu:22.04
+ARG CODECHECKER_VERSION
+RUN DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid \ 
+  apt-get update && apt-get install -y --no-install-recommends \
+  python3-pip clang clang-tidy cppcheck \
+  cmake make ccache \
+  && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY --from=codecheck_builder /root/.cache/pip/wheels /root/.cache/pip/wheels
+RUN pip install codechecker==${CODECHECKER_VERSION} 
+
+ADD static-analyzer.sh cppcheck_suppress_unspecified.py /usr/local/bin/
+RUN chmod +x /usr/local/bin/static-analyzer.sh /usr/local/bin/cppcheck_suppress_unspecified.py
 
 ADD install_dependencies.sh builder.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh

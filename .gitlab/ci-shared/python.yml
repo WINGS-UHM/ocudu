@@ -1,0 +1,109 @@
+variables:
+  PY_DIR: $CI_PROJECT_DIR
+  PYTHON_VERSION: "3.14"
+  TWINE_PASSWORD: $CI_JOB_TOKEN
+  TWINE_USERNAME: gitlab-ci-token
+  TWINE_REPO: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi
+  PIP_EXTRA_INDEX_URL: https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple
+
+.parallel-python-versions:
+  parallel: &matrix-python-version
+    matrix:
+      - PYTHON_VERSION: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+
+.python_base:
+  image: python:${PYTHON_VERSION}-alpine # sh entrypoint
+
+.python_publish:
+  extends: .python_base
+  rules:
+    - if: $ON_DEFAULT_BRANCH
+    - if: $ON_MR
+      when: manual
+      allow_failure: true
+
+.version_changed_pyproject:
+  stage: static
+  rules:
+    - if: $ON_MR
+  image: python:${PYTHON_VERSION}-alpine # sh entrypoint
+  before_script:
+    - apk add git git-lfs
+    - pip install semver
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 20
+  script:
+    - NEW_VERSION=$(cat $PY_DIR/pyproject.toml | grep '^version' | cut -d'"' -f2)
+    - export NEW_VERSION
+    - |
+      git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
+      if [ ! -e "$PY_DIR/pyproject.toml" ]; then
+          exit 0
+      fi
+    - OLD_VERSION=$(cat $PY_DIR/pyproject.toml | grep '^version' | cut -d'"' -f2)
+    - export OLD_VERSION
+    - |
+      echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
+    - python3 -c "import semver; import os; exit(0) if (semver.compare(os.environ['NEW_VERSION'], os.environ['OLD_VERSION']) > 0) else exit(1)"
+
+# Tools
+
+.tox:
+  extends: .python_base
+  rules:
+    - if: $ON_MR
+  script:
+    - pip install 'tox<5'
+    - cd $PY_DIR
+    - tox -r
+  parallel: *matrix-python-version
+
+.publish deps:
+  extends: .python_publish
+  script:
+    - pip install twine
+    - cd $PY_DIR
+    - pip install .
+    - find /root/.cache/pip/ -iname "*.whl" -exec python -m twine upload --verbose --disable-progress-bar --repository-url ${TWINE_REPO} {} \;
+  parallel: *matrix-python-version
+
+.publish wheel:
+  # cibuildwheel is a tool that builds your wheel for multiple platforms
+  # and python versions using pypa docker images
+  # Doc: https://cibuildwheel.readthedocs.io/en/stable/
+  # Gitlab Integration: https://cibuildwheel.readthedocs.io/en/stable/setup/#gitlab-ci
+  extends: .python_publish
+  image: ubuntu:22.04
+  tags:
+    - untagged
+  variables:
+    CIBW_ENVIRONMENT_PASS_LINUX: ""
+    TWINE_PASSWORD: $CI_JOB_TOKEN
+    # See https://github.com/docker-library/docker/pull/166
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - name: docker:20.10.15-dind
+      alias: docker
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+  script:
+    # Install tools
+    - DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends curl apt-transport-https ca-certificates python3-pip python3-venv
+    - pip install cibuildwheel build twine
+    # Build sdist and check if already uploaded to the repo
+    - cd $PY_DIR
+    - python3 -m build --sdist
+    - |
+      file=$(ls dist/*.tar.gz)
+      file="${file#*/}"
+      file="${file/.tar.gz/}"
+      VERSION="${file#*-}"
+      PY_LIB_NAME="${file%%-*}"
+    # Exit 0 if already exists
+    - (pip index versions ${PY_LIB_NAME} --extra-index-url https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_API_V4_URL#"https://"}/projects/${CI_PROJECT_ID}/packages/pypi/simple | grep "$VERSION") && exit 0 || true
+    # If it's a new package/version, setup cibuildwheel and run it. If it's a pure python wheel, run build instead.
+    - curl -sSL https://get.docker.com/ | sh
+    - cibuildwheel --platform linux --output-dir dist || python3 -m build --wheel
+    # Upload generated wheels & sdist
+    - twine upload --verbose --disable-progress-bar --repository-url ${TWINE_REPO} dist/*

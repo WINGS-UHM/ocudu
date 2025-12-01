@@ -12,22 +12,7 @@
 # Ex: "Test Weekly", "Nighlty add feature"
 
 include:
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/setup/all.yml
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/features/all.yml
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/tools/python.yml
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/tools/tagger.yml
   - local: .gitlab/ci/build.yml
-  - local: .gitlab/ci/trx.yml
-  - local: .gitlab/ci/e2e.yml
-  - local: .gitlab/ci/release.yml
 
 stages:
   - ci
@@ -38,20 +23,60 @@ stages:
   - rf
   - manual
   - documentation
-  # release
-  - pre private
-  - private
-  - post private
-  - public
-  - post public
-  - release
-  - post release
+
+workflow:
+  rules:
+    # There is no need to import this file in a child pipeline (same project or multi project)!!!
+    # - We always want to run the child pipeline.
+    #     Filter is done in the parent trigger job & for each jon inside the child pipeline
+    # - ON_X variables are available in the child pipeline because they are inherited from
+    #     - Global parent pipeline variables (its workflow:rules)
+    #     - Parent trigger job specific variables
+    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "web"
+      variables:
+        ON_WEB: "true"
+    - if: $CI_PIPELINE_SOURCE == "api"
+      variables:
+        ON_API: "true"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      variables:
+        ON_SCHEDULE: "true"
+    - if: $CI_COMMIT_TAG
+      variables:
+        ON_TAG: "true"
+    - if: $CI_MERGE_REQUEST_IID
+      variables:
+        ON_MR: "true"
+      # Why $CI_MERGE_REQUEST_IID instead of $CI_PIPELINE_SOURCE == "merge_request_event" ?
+      # Child pipelines in a MR have CI_PIPELINE_SOURCE = parent_pipeline
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      variables:
+        ON_DEFAULT_BRANCH: "true"
+    - when: never
 
 variables:
-  SLACK_CHANNEL_OK: "#ci_gnb"
-  SLACK_CHANNEL_FAIL: "#ci_gnb"
-  SLACK_CHANNEL_INFO_MSG: "#ci_gnb_verbose"
-  AUTOREBASER_PRS_IN_QUEUE: 1
+  GIT_STRATEGY: fetch
+  GIT_DEPTH: "1"
+  GET_SOURCES_ATTEMPTS: 3
+  ARTIFACT_DOWNLOAD_ATTEMPTS: 3
+  RESTORE_CACHE_ATTEMPTS: 3
+  CLICOLOR_FORCE: 1
+  FORCE_COLOR: 1
+
+default:
+  interruptible: true
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - api_failure
+      - runner_system_failure
+      - runner_unsupported
+      - unmet_prerequisites
+      - scheduler_failure
+      - data_integrity_failure
 
 ################################################################################
 ## CI MR
@@ -162,11 +187,25 @@ trigger builder:
     - if: $ON_MR
       changes:
         paths:
-          - .gitlab/ci/builders.yml
           - .gitlab/ci/builders/**/*
           - docker/scripts/**/*
   trigger:
-    include: .gitlab/ci/builders.yml
+    include: .gitlab/ci/builders/.gitlab-ci.yml
+    strategy: depend
+  needs:
+    - job: trigger buildkit
+      optional: true
+      artifacts: false
+
+trigger buildkit:
+  stage: ci
+  rules:
+    - if: $ON_MR
+      changes:
+        paths:
+          - .gitlab/ci/buildkit-cli/**/*
+  trigger:
+    include: .gitlab/ci/buildkit-cli/.gitlab-ci.yml
     strategy: depend
 
 trigger docker:
@@ -177,7 +216,7 @@ trigger docker:
     - if: $ON_MR
       changes:
         paths:
-          - .gitlab/ci/docker.yml
+          - .gitlab/ci/docker/**/*
           - docker/**/*.{yml,env,json,toml,py,sh,csv,py,toml}
           - docker/**/Dockerfile
           - .gdbinit
@@ -188,49 +227,29 @@ trigger docker:
       variables:
         CI_DESCRIPTION: $CI_DESCRIPTION
   trigger:
-    include: .gitlab/ci/docker.yml
+    include: .gitlab/ci/docker/.gitlab-ci.yml
     strategy: depend
   variables:
     PY_DIR: docker/metrics_server
+  needs:
+    - job: trigger buildkit
+      optional: true
+      artifacts: false
 
-################################################################################
-## CI Scheduled pipelines
-################################################################################
-
-job cleaner:
-  extends: .job cleaner
-  timeout: 4h
+trigger doxygen image:
+  stage: ci
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-
-pr reminder:
-  extends: .pr reminder
-  rules:
-    - if: $NOTIFY_SLACK != "true"
-      when: never
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-
-handle stale issues:
-  extends: .handle_stale_issues
-  rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-  variables:
-    WARN_LABEL: "not seen in a while"
-    CLOSE_MESSAGE: "Issue closed due to inactivity. Please reopen it if it happens again."
-  parallel:
-    matrix:
-      - LABELS_INCLUDE: "bug::ci"
-        LABELS_EXCLUDE: "low_priority,mid_priority"
-        WARN_THRESHOLD: 10
-        CLOSE_THRESHOLD: 30
-      - LABELS_INCLUDE: "bug::ci,mid_priority"
-        LABELS_EXCLUDE: "low_priority"
-        WARN_THRESHOLD: 20
-        CLOSE_THRESHOLD: 60
-      - LABELS_INCLUDE: "bug::ci,low_priority"
-        LABELS_EXCLUDE: ""
-        WARN_THRESHOLD: 30
-        CLOSE_THRESHOLD: 90
+    - if: $ON_MR
+      changes:
+        paths:
+          - .gitlab/ci/doxygen/**/*
+  trigger:
+    include: .gitlab/ci/doxygen/.gitlab-ci.yml
+    strategy: depend
+  needs:
+    - job: trigger buildkit
+      optional: true
+      artifacts: false
 
 matlab nightly:
   stage: ci
@@ -321,25 +340,88 @@ plugin nightly:
 ################################################################################
 ## Static
 ################################################################################
-headers:
+.static:
   image: ubuntu:24.04
   stage: static
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
   rules:
     - if: $ON_MR
       exists:
-        - "**/CMakeLists.txt"
-        - "**/Dockerfile"
-        - "**/*.cmake"
-        - "**/*.yml"
-        - "**/*.sh"
-  script:
-    - .gitlab/ci/release/update_headers.sh
+        - "**/*.cpp"
+        - "**/*.c"
+        - "**/*.c++"
+        - "**/*.cxx"
+        - "**/*.c"
+        - "**/*.cl"
+        - "**/*.h"
+        - "**/*.hh"
+        - "**/*.hpp"
   needs: []
+  variables:
+    CPP_SRC_DIR: $CI_PROJECT_DIR
+    GIT_DEPTH: 0
+    GIT_LFS_SKIP_SMUDGE: 1
+  before_script:
+    - |
+      DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid apt-get update && apt-get install -y --no-install-recommends \
+        clang-format git colordiff apt-transport-https ca-certificates gawk
+  artifacts:
+    paths:
+      - $CPP_SRC_DIR/ci.patch
+    when: on_failure
+
+code-format:
+  extends: .static
+  script:
+    - |
+      check_code_format() {
+        .gitlab/ci/static/run-clang-format-diff.sh $CI_MERGE_REQUEST_DIFF_BASE_SHA
+        .gitlab/ci/static/hex2lowercase.sh
+        .gitlab/ci/static/is-pristine-repo.sh
+      }
+    - cd $CPP_SRC_DIR
+    - check_code_format
+
+full-code-format:
+  extends: .static
+  rules:
+    - if: $ON_MR
+      changes:
+        - .clang-format
+  script:
+    - |
+      full_code_format() {
+        FILE_EXTENSION_REGEX='.*\.(cpp|cc|c\+\+|cxx|c|cl|h|hh|hpp)$'
+        files=$(find . | grep -E "${FILE_EXTENSION_REGEX}" | tr '\n' ' ')
+        clang-format -style=file -i ${files}
+        .gitlab/ci/static/hex2lowercase.sh
+        .gitlab/ci/static/is-pristine-repo.sh
+      }
+    - cd $CPP_SRC_DIR
+    - full_code_format
 
 include-guards:
-  extends: .include-guards
+  extends: .static
+  variables:
+    AUTOCORRECTION: 1
+    PRAGMA: 1
+    TARGET_BRANCH: origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    INPUT_PATH: "."
+    INPUT_IGNORE: "/bundled/"
+  rules:
+    - if: $ON_MR
+      changes:
+        - .clang-format
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+  script:
+    - |
+      include-guards-check() {
+        EXIT_CODE=0
+        .gitlab/ci/static/include-guards-check.sh || EXIT_CODE=$?
+        .gitlab/ci/static/is-pristine-repo.sh || EXIT_CODE=$?
+        exit $EXIT_CODE
+      }
+    - cd $CPP_SRC_DIR
+    - include-guards-check
   parallel:
     matrix:
       - INPUT_PATH: "include/srsran"
@@ -347,16 +429,8 @@ include-guards:
       - INPUT_PATH: "."
         INPUT_IGNORE: "^\\(include\\|docs\\|external\\)/.*"
 
-full-code-format:
-  extends: .full-code-format
-  rules:
-    - if: $ON_MR
-      changes:
-        - .clang-format
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-
 .codechecker:
-  image: ${CR_REGISTRY_URI}/srsgnb/codechecker:${DOCKER_BUILDER_VERSION}
+  image: ${CI_REGISTRY_IMAGE}/codechecker:${DOCKER_BUILDER_VERSION}
   stage: static
   tags:
     - amd64
@@ -364,9 +438,6 @@ full-code-format:
     - job: trigger builder
       optional: true
       artifacts: false
-    - job: get plugin commit
-      optional: true
-      artifacts: true
   variables:
     ANALYZER: ""
     ANALYZER_ARGS: ""
@@ -559,7 +630,7 @@ e2e tests tox:
 unit coverage:
   stage: documentation
   image:
-    name: ${GITLAB_REGISTRY_URI}/${CI_TOOLS_REPO}/report-generator:5.1.26
+    name: mcr.microsoft.com/dotnet/sdk:8.0-alpine
     entrypoint: ["/bin/sh", "-c"]
   rules:
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
@@ -571,6 +642,8 @@ unit coverage:
   variables:
     GIT_LFS_SKIP_SMUDGE: 1
   before_script:
+    - export PATH="$PATH:/root/.dotnet/tools"
+    - dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.5.0
     - PACKAGE_URL=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/coverage/${CI_COMMIT_BRANCH}${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}/coverage_history.tar.gz
     # Download coverage history from the registry
     - |
@@ -578,7 +651,7 @@ unit coverage:
         apk add curl
         
         cd ${CI_PROJECT_DIR}
-        http_code=$(curl -w "%{http_code}" --header "PRIVATE-TOKEN: $CODEBOT_TOKEN" "${PACKAGE_URL}" -o output.tar.gz)
+        http_code=$(curl -w "%{http_code}" --header "JOB-TOKEN: $CI_JOB_TOKEN" "${PACKAGE_URL}" -o output.tar.gz)
         if [[ $http_code == "200" ]]; then
           tar -xf output.tar.gz
         fi
@@ -610,13 +683,6 @@ unit coverage:
       if [[ $coverage_report = "full" ]]; then
         publish_to_registry
       fi
-    - |
-      export metric_prefix=""
-      if [[ $ON_MR == "true" ]]; then metric_prefix="_pr"; fi
-      echo "coverage${metric_prefix},pipeline=${CI_PIPELINE_ID},os=${OS} value=${coverage_value}" >> build/build_time_metrics.txt
-    - |
-      influx write --host $INFLUXDB_URL --token $INFLUXDB_TOKEN --org $INFLUXDB_ORG \
-        --bucket ci --file build/build_time_metrics.txt || true
   coverage: /^\s*Line coverage:\s*\d+.\d+\%/
   artifacts: &unit_coverage_artifacts
     paths:
@@ -651,7 +717,7 @@ pages:
     - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
       when: always # Even if previous stages/required jobs fail
       allow_failure: true
-  image: ${GITLAB_REGISTRY_URI}/${CI_TOOLS_REPO}/doxygen:1.9.8-1.2023.7
+  image: ${CI_REGISTRY_IMAGE}/doxygen:1.9.8-1.2023.7
   script:
     - mkdir public
     - mv coverage_html public/

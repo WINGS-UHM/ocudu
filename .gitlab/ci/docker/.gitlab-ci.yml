@@ -7,15 +7,8 @@
 #
 
 include:
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/setup/all.yml
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/tools/python.yml
-  - project: softwareradiosystems/ci/tools
-    ref: "23"
-    file: .gitlab/ci-shared/tools/docker.yml
+  - local: .gitlab/ci-shared/docker.yml
+  - local: .gitlab/ci-shared/python.yml
 
 ################################################################################
 # Stages
@@ -104,18 +97,6 @@ telegraf version changed:
     - |
       echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
     - python3 -c "import semver; import os; exit(0) if (semver.compare(os.environ['NEW_VERSION'], os.environ['OLD_VERSION']) > 0) else exit(1)"
-
-telegraf version check in retina:
-  extends: telegraf version changed
-  script:
-    - |
-      VERSION_IN_COMPOSE=$(cat docker/telegraf/version.yml | grep  SRS_TELEGRAF_VERSION | cut -d'"' -f2)
-      VERSION_IN_RETINA=$(cat .gitlab/ci/e2e/.env | grep TELEGRAF_VERSION | cut -d'=' -f2)
-      echo "compose version: $VERSION_IN_COMPOSE -- retina version: $VERSION_IN_RETINA"
-    - |
-      export VERSION_IN_COMPOSE
-      export VERSION_IN_RETINA
-    - python3 -c "import semver; import os; exit(semver.compare(os.environ['VERSION_IN_RETINA'], os.environ['VERSION_IN_COMPOSE']))"
 
 ################################################################################
 # Docker Compose
@@ -268,26 +249,14 @@ grafana image:
     NAME: grafana
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
     MODE: publish
-  before_script: &grafana_before_script
-    - |
-      if [ -n "$LOGO_URL" ]; then
-        DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends ca-certificates wget
-        wget --header="PRIVATE-TOKEN: $CODEBOT_TOKEN" -O ${CONTEXT}/provisioning/logo.png ${LOGO_URL}
-        export BUILD_ARGS="LOGO_SRC=/etc/grafana/provisioning/logo.png"
-      fi
+  before_script:
     - |
       export VERSION=$(cat docker/grafana/version.yml | grep SRS_GF_VERSION | cut -d'"' -f2)
-  parallel:
-    matrix:
-      - REGISTRY_ORG: /${CI_PROJECT_NAME}
-      - REGISTRY_ORG: /${SRSRAN_IMAGE_PREFIX}
-        LOGO_URL: ${SRSRAN_IMAGE_LOGO_URL}
 
 grafana image latest:
   extends: grafana image
   variables:
     OVERWRITE: "true"
   before_script:
-    - *grafana_before_script
     - |
       export VERSION=latest

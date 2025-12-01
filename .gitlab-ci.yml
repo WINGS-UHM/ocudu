@@ -114,12 +114,12 @@ trigger docker:
           - docker/**/*.{yml,env,json,toml,py,sh,csv,py,toml}
           - docker/**/Dockerfile
           - .gdbinit
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       variables:
-        CI_DESCRIPTION: $CI_DESCRIPTION
-    - if: $CI_DESCRIPTION =~ /Weekly/
+        CI_PIPELINE_SCHEDULE_DESCRIPTION: $CI_PIPELINE_SCHEDULE_DESCRIPTION
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       variables:
-        CI_DESCRIPTION: $CI_DESCRIPTION
+        CI_PIPELINE_SCHEDULE_DESCRIPTION: $CI_PIPELINE_SCHEDULE_DESCRIPTION
   trigger:
     include: .gitlab/ci/docker/.gitlab-ci.yml
     strategy: depend
@@ -307,7 +307,7 @@ include-guards:
 clang-tidy:
   extends: .codechecker
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   interruptible: false
   retry: 2
   variables:
@@ -350,7 +350,7 @@ clang-tidy incremental:
 cppcheck:
   extends: .codechecker
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   interruptible: false
   timeout: 2 hours
   retry: 2
@@ -364,10 +364,10 @@ cppcheck:
 clangsa:
   extends: .codechecker
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: manual
       allow_failure: true
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: manual
       allow_failure: true
   interruptible: false
@@ -461,7 +461,7 @@ unit coverage:
 unit coverage dev:
   extends: unit coverage
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       variables:
         coverage_report: full
       when: always # Even if previous stages/required jobs fail
@@ -472,7 +472,7 @@ unit coverage dev:
 pages:
   stage: documentation
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: always # Even if previous stages/required jobs fail
       allow_failure: true
   image: ${CI_REGISTRY_IMAGE}/doxygen:1.9.8-1.2023.7

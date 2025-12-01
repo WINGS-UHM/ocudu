@@ -612,7 +612,7 @@ check builders ubuntu versions:
   extends: .check image exists for all supported ubuntu versions
   stage: static
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 15 minutes
   variables:
@@ -625,7 +625,7 @@ check builders ubuntu versions:
 smoke release update cache:
   extends: .smoke release
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   retry: 2
@@ -636,7 +636,7 @@ smoke release update cache:
 smoke relwithdeb update cache:
   extends: .smoke relwithdeb
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   retry: 2
@@ -647,7 +647,7 @@ smoke relwithdeb update cache:
 smoke tsan update cache:
   extends: .smoke tsan
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   interruptible: false
@@ -658,7 +658,7 @@ smoke tsan update cache:
 smoke archlinux update cache:
   extends: .smoke archlinux
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   retry: 2
@@ -669,7 +669,7 @@ smoke archlinux update cache:
 smoke dpdk update cache:
   extends: .smoke dpdk
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   retry: 2
@@ -680,7 +680,7 @@ smoke dpdk update cache:
 smoke valgrind update cache:
   extends: .smoke valgrind
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   interruptible: false
@@ -691,7 +691,7 @@ smoke valgrind update cache:
 smoke avx512 update cache:
   extends: .smoke avx512
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   interruptible: false
@@ -702,7 +702,7 @@ smoke avx512 update cache:
 smoke arm update cache:
   extends: .smoke arm
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   retry: 2
@@ -713,7 +713,7 @@ smoke arm update cache:
 smoke arm neon update cache:
   extends: .smoke arm neon
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   retry: 2
@@ -724,7 +724,7 @@ smoke arm neon update cache:
 smoke asan:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   variables:
@@ -739,7 +739,7 @@ smoke asan:
 smoke rtsan:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   variables:
@@ -758,7 +758,7 @@ smoke rtsan:
 export on amd64:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 75 minutes
   interruptible: false
@@ -787,7 +787,7 @@ export on amd64 avx512:
 ubuntu-25.04 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 300 minutes
   interruptible: false
@@ -802,7 +802,7 @@ ubuntu-25.04 amd64 avx2:
 ubuntu-25.10 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 105 minutes
   interruptible: false
@@ -817,7 +817,7 @@ ubuntu-25.10 amd64 avx2:
 ubuntu-24.04 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 135 minutes
   interruptible: false
@@ -835,7 +835,7 @@ ubuntu-24.04 amd64 avx2:
 ubuntu-24.04 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 165 minutes
   interruptible: false
@@ -853,7 +853,7 @@ ubuntu-24.04 amd64 avx512:
 ubuntu-22.04 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 195 minutes
   interruptible: false
@@ -868,7 +868,7 @@ ubuntu-22.04 amd64 avx2:
 rhel-8 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 225 minutes
   interruptible: false
@@ -887,7 +887,7 @@ rhel-8 amd64 avx2:
 ubuntu-24.04 arm neon:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 75 minutes
   interruptible: false
@@ -907,7 +907,7 @@ ubuntu-24.04 arm neon:
 ubuntu dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 260 minutes
   interruptible: false
@@ -938,7 +938,7 @@ ubuntu dpdk:
 ubsan avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   variables:
@@ -960,7 +960,7 @@ ubsan avx2:
 archlinux amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
   interruptible: false
   variables:
     OS: archlinux-latest
@@ -973,7 +973,7 @@ archlinux amd64 native:
 archlinux amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -989,7 +989,7 @@ archlinux amd64 avx2:
 archlinux amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
   interruptible: false
   variables:
     OS: archlinux-latest
@@ -1003,7 +1003,7 @@ archlinux amd64 avx512:
 debian 12 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 60 minutes
   interruptible: false
@@ -1018,7 +1018,7 @@ debian 12 amd64 native:
 debian 12 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 90 minutes
   interruptible: false
@@ -1034,7 +1034,7 @@ debian 12 amd64 avx2:
 debian 12 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -1050,7 +1050,7 @@ debian 12 amd64 avx512:
 debian 13 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1065,7 +1065,7 @@ debian 13 amd64 native:
 debian 13 amd64 avx2:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 150 minutes
   interruptible: false
@@ -1081,7 +1081,7 @@ debian 13 amd64 avx2:
 debian 13 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 90 minutes
   interruptible: false
@@ -1103,7 +1103,7 @@ debian 13 amd64 avx512:
 .weekly sanitizers:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -1257,7 +1257,7 @@ sanitizers arm neon:
 build uhd alt:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 15 minutes
   interruptible: false
@@ -1287,7 +1287,7 @@ build uhd alt:
 gdb pretty printers:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 300 minutes
   interruptible: false
@@ -1299,7 +1299,7 @@ gdb pretty printers:
 ubuntu-25.04 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 430 minutes
   interruptible: false
@@ -1313,7 +1313,7 @@ ubuntu-25.04 amd64 native:
 ubuntu-25.04 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 430 minutes
   interruptible: false
@@ -1328,7 +1328,7 @@ ubuntu-25.04 amd64 avx512:
 ubuntu-25.04 arm native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 430 minutes
   interruptible: false
@@ -1342,7 +1342,7 @@ ubuntu-25.04 arm native:
 ubuntu-25.04 arm neon:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 430 minutes
   interruptible: false
@@ -1357,7 +1357,7 @@ ubuntu-25.04 arm neon:
 ubuntu-25.10 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -1371,7 +1371,7 @@ ubuntu-25.10 amd64 native:
 ubuntu-25.10 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -1386,7 +1386,7 @@ ubuntu-25.10 amd64 avx512:
 ubuntu-25.10 arm native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -1400,7 +1400,7 @@ ubuntu-25.10 arm native:
 ubuntu-25.10 arm neon:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
   interruptible: false
@@ -1415,7 +1415,7 @@ ubuntu-25.10 arm neon:
 ubuntu-24.04 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 60 minutes
   interruptible: false
@@ -1432,7 +1432,7 @@ ubuntu-24.04 amd64 native:
 ubuntu-24.04 amd64 avx:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 400 minutes
   interruptible: false
@@ -1450,7 +1450,7 @@ ubuntu-24.04 amd64 avx:
 ubuntu-24.04 amd64 avx512 TRACE:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 400 minutes
   interruptible: false
@@ -1469,7 +1469,7 @@ ubuntu-24.04 amd64 avx512 TRACE:
 ubuntu-24.04 arm native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 60 minutes
   interruptible: false
@@ -1486,7 +1486,7 @@ ubuntu-24.04 arm native:
 ubuntu-22.04 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1500,7 +1500,7 @@ ubuntu-22.04 amd64 native:
 ubuntu-22.04 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1515,7 +1515,7 @@ ubuntu-22.04 amd64 avx512:
 ubuntu-22.04 arm native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1529,7 +1529,7 @@ ubuntu-22.04 arm native:
 ubuntu-22.04 arm neon:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1544,7 +1544,7 @@ ubuntu-22.04 arm neon:
 rhel-8 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 150 minutes
   interruptible: false
@@ -1560,7 +1560,7 @@ rhel-8 amd64 native:
 rhel-8 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 150 minutes
   interruptible: false
@@ -1577,7 +1577,7 @@ rhel-8 amd64 avx512:
 rhel-8 arm native:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 150 minutes
   interruptible: false
@@ -1593,7 +1593,7 @@ rhel-8 arm native:
 rhel-8 arm neon:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 150 minutes
   interruptible: false
@@ -1619,7 +1619,7 @@ rhel-8 arm neon:
 ubuntu-22.04 amd64 avx2 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 210 minutes
   interruptible: false
@@ -1635,7 +1635,7 @@ ubuntu-22.04 amd64 avx2 dpdk:
 ubuntu-22.04 amd64 avx512 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 240 minutes
   interruptible: false
@@ -1651,7 +1651,7 @@ ubuntu-22.04 amd64 avx512 dpdk:
 ubuntu-24.04 amd64 avx2 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 270 minutes
   interruptible: false
@@ -1677,7 +1677,7 @@ ubuntu-24.04 amd64 avx2 dpdk:
 ubuntu-24.04 amd64 avx512 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 320 minutes
   interruptible: false
@@ -1703,7 +1703,7 @@ ubuntu-24.04 amd64 avx512 dpdk:
 ubuntu-25.10 amd64 avx2 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 360 minutes
   interruptible: false
@@ -1719,7 +1719,7 @@ ubuntu-25.10 amd64 avx2 dpdk:
 ubuntu-25.10 amd64 avx512 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 360 minutes
   interruptible: false
@@ -1735,7 +1735,7 @@ ubuntu-25.10 amd64 avx512 dpdk:
 ubuntu-25.04 amd64 avx2 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 460 minutes
   interruptible: false
@@ -1751,7 +1751,7 @@ ubuntu-25.04 amd64 avx2 dpdk:
 ubuntu-25.04 amd64 avx512 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 460 minutes
   interruptible: false

@@ -135,7 +135,7 @@ gnb docker compose:
       changes:
         paths:
           - docker/docker-compose.yml
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       interruptible: false
   before_script:
     - *docker_setup
@@ -163,7 +163,7 @@ gnb docker compose:
         paths:
           - docker/open5gs/**/*
           - docker/docker-compose.yml
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       interruptible: false
   script:
     - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${KUBERNETES_CPU_LIMIT} 5gc
@@ -178,7 +178,7 @@ grafana docker compose:
           - docker/.env
           - docker/grafana/**/*
           - docker/docker-compose.ui.yml
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       interruptible: false
   script:
     - docker compose -f docker/docker-compose.ui.yml run --no-deps grafana --version
@@ -192,7 +192,7 @@ influxdb and telegraf docker compose:
           - docker/.env
           - docker/telegraf/**/*
           - docker/docker-compose.ui.yml
-    - if: $CI_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       interruptible: false
   script:
     - docker compose -f docker/docker-compose.ui.yml up influxdb telegraf -d --wait
@@ -219,7 +219,6 @@ telegraf image:
           - docker/telegraf/**/*
   variables:
     GIT_LFS_SKIP_SMUDGE: 1
-    REGISTRY_URI: $GITLAB_REGISTRY_URI
     NAME: telegraf
     CONTEXT: ${CI_PROJECT_DIR}/docker/telegraf
     MODE: publish
@@ -245,7 +244,6 @@ grafana image:
           - docker/grafana/**/*
   variables:
     GIT_LFS_SKIP_SMUDGE: 1
-    REGISTRY_URI: $GITLAB_REGISTRY_URI
     NAME: grafana
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
     MODE: publish

@@ -7,7 +7,6 @@ import os
 import sys
 from xml.etree import ElementTree
 
-
 UNSPECIFIED_CHECK_NAME_ARRAY = (
     "cppcheck-templateRecursion",
     "cppcheck-syntaxError",
@@ -19,11 +18,11 @@ CPPCHECK_RESULT_EXT = ".plist"
 def _parse_file(filename: str):
     changed = False
     tree = ElementTree.parse(filename)
-    diagnostic_array = tree.getroot().find("dict").find("array")
-    for entry in diagnostic_array.findall("dict"):
+    diagnostic_array = tree.getroot().find("dict").find("array")  # type: ignore
+    for entry in diagnostic_array.findall("dict"):  # type: ignore
         for string_item in entry.findall("string"):
             if string_item.text in UNSPECIFIED_CHECK_NAME_ARRAY:
-                diagnostic_array.remove(entry)
+                diagnostic_array.remove(entry)  # type: ignore
                 changed = True
                 break
     if changed:

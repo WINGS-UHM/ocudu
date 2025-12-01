@@ -325,7 +325,7 @@ ubuntu-uhd-builder arm64:
         dpdk_version: ["22.11.8", "23.11.4", "24.11.2"]
       - &dpdk_2204_matrix
         os_version: "22.04"
-        dpdk_version: ["21.08", "22.11.8", "23.11.4", "24.11.2"]
+        dpdk_version: ["22.11.8", "23.11.4", "24.11.2"]
       - &dpdk_2404_matrix
         os_version: "24.04"
         dpdk_version: ["23.11.4", "24.11.2"]
@@ -485,12 +485,12 @@ image-build-publish [ubuntu, 22.04, amd64]:
       parallel:
         matrix:
           - os_version: "22.04"
-            dpdk_version: ["21.08", "22.11.8", "23.11.4", "24.11.2"]
+            dpdk_version: ["22.11.8", "23.11.4", "24.11.2"]
     - job: ubuntu-dpdk-builder avx512
       parallel:
         matrix:
           - os_version: "22.04"
-            dpdk_version: ["21.08", "22.11.8", "23.11.4", "24.11.2"]
+            dpdk_version: ["22.11.8", "23.11.4", "24.11.2"]
 
 image-build-publish [ubuntu, 22.04, arm64]:
   extends:
@@ -514,7 +514,7 @@ image-build-publish [ubuntu, 22.04, arm64]:
       parallel:
         matrix:
           - os_version: "22.04"
-            dpdk_version: ["21.08", "22.11.8", "23.11.4", "24.11.2"]
+            dpdk_version: ["22.11.8", "23.11.4", "24.11.2"]
 
 manifest [ubuntu, 22.04]:
   extends: .manifest
@@ -845,3 +845,18 @@ image-build-publish [archlinux, latest, amd64]:
     OS_NAME: archlinux
     OS_VERSION: latest
     PLATFORM: amd64
+
+manifest [archlinux, latest]:
+  extends: .docker copy
+  stage: manifest
+  variables:
+    OS_NAME: archlinux
+    OS_VERSION: latest
+  script:
+    - |
+      skopeo copy \
+        docker://${CI_REGISTRY_IMAGE}/builder-$OS_NAME-$OS_VERSION:${DOCKER_BUILDER_VERSION}-amd64 \
+        docker://${CI_REGISTRY_IMAGE}/builder-$OS_NAME-$OS_VERSION:${DOCKER_BUILDER_VERSION}
+  needs:
+    - job: image-build-publish [archlinux, latest, amd64]
+      optional: false

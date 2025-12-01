@@ -23,8 +23,8 @@ RUN TZ=Europe/Madrid && \
     apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* && \
     git lfs install
 
-ADD install_dependencies.sh builder.sh changed_tests.py ram_reporter.py /usr/local/bin/
-RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py /usr/local/bin/ram_reporter.py && \
+ADD install_dependencies.sh builder.sh changed_tests.py /usr/local/bin/
+RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py && \
     /usr/local/bin/install_dependencies.sh && \
     apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* && \
     python3 -m venv /usr/local/builder_tools && \

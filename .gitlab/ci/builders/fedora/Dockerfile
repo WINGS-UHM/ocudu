@@ -23,8 +23,8 @@ RUN TZ=Europe/Madrid && \
     dnf autoremove -y && dnf clean all && rm -rf /var/cache/dnf && \
     git lfs install
 
-ADD install_dependencies.sh builder.sh changed_tests.py ram_reporter.py /usr/local/bin/
-RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py /usr/local/bin/ram_reporter.py && \
+ADD install_dependencies.sh builder.sh changed_tests.py /usr/local/bin/
+RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py && \
     /usr/local/bin/install_dependencies.sh && \
     dnf autoremove -y && dnf clean all && rm -rf /var/cache/dnf && \
     python3 -m venv /usr/local/builder_tools && \

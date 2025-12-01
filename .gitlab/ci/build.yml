@@ -8,6 +8,7 @@
 
 include:
   - local: .gitlab/ci-shared/build.yml
+  - local: .gitlab/ci-shared/docker.yml
 
 ################
 # Build caches #

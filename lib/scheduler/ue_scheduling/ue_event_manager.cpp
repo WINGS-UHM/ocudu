@@ -261,7 +261,7 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
   const du_cell_index_t ue_pcell_index = ev.next_config().pcell_common_cfg().cell_index;
 
   // Create UE object outside the scheduler slot indication handler to minimize latency.
-  std::unique_ptr<ue> u = std::make_unique<ue>(ue_creation_command{ev.next_config(), ev.get_ul_ccch_slot_rx()});
+  std::unique_ptr<ue> u = std::make_unique<ue>(ev.next_config());
 
   auto handle_ue_creation_impl = [this, u = std::move(u), ev = std::move(ev)]() mutable {
     if (ue_db.contains(u->ue_index)) {

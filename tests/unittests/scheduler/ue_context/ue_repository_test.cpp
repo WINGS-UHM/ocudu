@@ -98,8 +98,8 @@ protected:
   ue_drx_controller                        drx_controller{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
                                    cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
                                    std::nullopt,
-                                   lc_ch_mng,
-                                                          {},
+                                   lc_ch_mng.view(),
+                                   std::nullopt,
                                    logger};
   ue_channel_state_manager                 channel_state{expert_cfg.ue, 1};
   ue_link_adaptation_controller            ue_mcs_calculator{cell_cfg, channel_state};

@@ -74,6 +74,7 @@ public:
 
 private:
   friend class ue_logical_channel_repository;
+  friend class ue_logical_channel_repository_view;
   static constexpr size_t MAX_RAN_SLICES_PER_UE = 8;
 
   /// Information relative to a slice of the scheduler.
@@ -316,8 +317,36 @@ private:
   ue_table ues;
 };
 
+/// Non-owning view to UE logical channel repository.
+class ue_logical_channel_repository_view
+{
+  using ue_row       = logical_channel_system::ue_row;
+  using const_ue_row = logical_channel_system::const_ue_row;
+
+public:
+  ue_logical_channel_repository_view() = default;
+
+  /// \brief Checks whether a SR indication handling is pending.
+  [[nodiscard]] bool has_pending_sr() const { return parent->ues_with_pending_sr.test(ue_index); }
+
+private:
+  friend class ue_logical_channel_repository;
+
+  ue_logical_channel_repository_view(logical_channel_system& parent_, du_ue_index_t ue_index_, soa::row_id ue_row_) :
+    parent(&parent_), ue_index(ue_index_), ue_row_id(ue_row_)
+  {
+  }
+
+  const_ue_row get_ue_row() const { return parent->get_ue(ue_row_id); }
+  ue_row       get_ue_row() { return parent->ues.row(ue_row_id); }
+
+  logical_channel_system* parent   = nullptr;
+  du_ue_index_t           ue_index = INVALID_DU_UE_INDEX;
+  soa::row_id             ue_row_id{std::numeric_limits<uint32_t>::max()};
+};
+
 /// Handle of UE logical channel repository.
-class ue_logical_channel_repository
+class ue_logical_channel_repository : private ue_logical_channel_repository_view
 {
   using mac_ce_info           = logical_channel_system::mac_ce_info;
   using ue_config_context     = logical_channel_system::ue_config_context;
@@ -330,24 +359,27 @@ class ue_logical_channel_repository
   using const_ue_row          = logical_channel_system::const_ue_row;
 
   ue_logical_channel_repository(logical_channel_system& parent_, du_ue_index_t ue_index_, soa::row_id ue_row_) :
-    parent(&parent_), ue_index(ue_index_), ue_row_id(ue_row_)
+    ue_logical_channel_repository_view(parent_, ue_index_, ue_row_)
   {
   }
 
 public:
+  // inherited methods
+  using ue_logical_channel_repository_view::has_pending_sr;
+
   ue_logical_channel_repository()                                     = default;
   ue_logical_channel_repository(const ue_logical_channel_repository&) = delete;
   ue_logical_channel_repository(ue_logical_channel_repository&& other) noexcept :
-    parent(std::exchange(other.parent, nullptr)),
-    ue_index(std::exchange(other.ue_index, INVALID_DU_UE_INDEX)),
-    ue_row_id(other.ue_row_id)
+    ue_logical_channel_repository_view(*other.parent, other.ue_index, other.ue_row_id)
   {
+    other.parent   = nullptr;
+    other.ue_index = INVALID_DU_UE_INDEX;
   }
   ue_logical_channel_repository& operator=(const ue_logical_channel_repository&) = delete;
   ue_logical_channel_repository& operator=(ue_logical_channel_repository&& other) noexcept
   {
     parent    = std::exchange(other.parent, nullptr);
-    ue_index  = other.ue_index;
+    ue_index  = std::exchange(other.ue_index, INVALID_DU_UE_INDEX);
     ue_row_id = other.ue_row_id;
     return *this;
   }
@@ -502,9 +534,6 @@ public:
     return parent->ues_with_pending_ces.test(ue_index) or get_ue_row().at<ue_context>().pending_con_res_id;
   }
 
-  /// \brief Checks whether a SR indication handling is pending.
-  [[nodiscard]] bool has_pending_sr() const { return parent->ues_with_pending_sr.test(ue_index); }
-
   /// \brief Calculates total number of DL bytes, including MAC header overhead, and without taking into account
   /// the UE state.
   unsigned total_dl_pending_bytes() const { return parent->total_dl_pending_bytes(get_ue_row()); }
@@ -632,15 +661,13 @@ public:
     return get_ue_row().at<ue_channel_context>().sorted_channels;
   }
 
+  ue_logical_channel_repository_view view() const
+  {
+    return ue_logical_channel_repository_view{*parent, ue_index, ue_row_id};
+  }
+
 private:
   friend class logical_channel_system;
-
-  const_ue_row get_ue_row() const { return parent->get_ue(ue_row_id); }
-  ue_row       get_ue_row() { return parent->ues.row(ue_row_id); }
-
-  logical_channel_system* parent   = nullptr;
-  du_ue_index_t           ue_index = INVALID_DU_UE_INDEX;
-  soa::row_id             ue_row_id{std::numeric_limits<uint32_t>::max()};
 };
 
 /// \brief Allocate MAC SDUs and corresponding MAC subPDU subheaders.

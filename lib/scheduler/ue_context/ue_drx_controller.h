@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "logical_channel_system.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/drx_config.h"
 #include "ocudu/ran/slot_point.h"
@@ -19,18 +20,17 @@ namespace ocudu {
 
 class cell_configuration;
 class ue_cell_configuration;
-class ue_logical_channel_repository;
 
 /// Class that determines UE DRX active time.
 class ue_drx_controller
 {
 public:
-  ue_drx_controller(subcarrier_spacing                   scs_common,
-                    std::chrono::milliseconds            conres_timer,
-                    const std::optional<drx_config>&     drx_cfg,
-                    const ue_logical_channel_repository& ul_lc_mng,
-                    std::optional<slot_point>            ul_ccch_slot_rx,
-                    ocudulog::basic_logger&              logger);
+  ue_drx_controller(subcarrier_spacing                 scs_common,
+                    std::chrono::milliseconds          conres_timer,
+                    const std::optional<drx_config>&   drx_cfg,
+                    ue_logical_channel_repository_view ul_lc_mng,
+                    std::optional<slot_point>          ul_ccch_slot_rx,
+                    ocudulog::basic_logger&            logger);
 
   /// Update UE DRX configuration.
   void reconfigure(const std::optional<drx_config>& new_drx_cfg);
@@ -58,11 +58,11 @@ private:
   bool is_active_time() const;
   void update_inactivity_timer(slot_point pdcch_slot);
 
-  const subcarrier_spacing             scs_common;
-  std::chrono::milliseconds            conres_timer;
-  const ue_logical_channel_repository& ul_lc_mng;
-  std::optional<slot_point>            ul_ccch_slot_rx;
-  ocudulog::basic_logger&              logger;
+  const subcarrier_spacing           scs_common;
+  std::chrono::milliseconds          conres_timer;
+  ue_logical_channel_repository_view ul_lc_mng;
+  std::optional<slot_point>          ul_ccch_slot_rx;
+  ocudulog::basic_logger&            logger;
 
   // Current UE DRX config.
   std::optional<drx_config> drx_cfg;

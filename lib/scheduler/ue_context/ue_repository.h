@@ -11,9 +11,10 @@
 #pragma once
 
 #include "../config/sched_config_manager.h"
-#include "../ue_context/logical_channel_system.h"
-#include "../ue_context/ue.h"
+#include "logical_channel_system.h"
+#include "ue.h"
 #include "ue_cell_repository.h"
+#include "ue_drx_controller.h"
 #include "ocudu/adt/ring_buffer.h"
 
 namespace ocudu {
@@ -93,6 +94,9 @@ private:
 
   /// Management of all UE logical channels.
   logical_channel_system lc_ch_sys;
+
+  /// DRX controllers per UE.
+  slotted_id_table<du_ue_index_t, ue_drx_controller, MAX_NOF_DU_UES> ue_drx_controllers;
 
   // Repository of UEs.
   ue_list ues;

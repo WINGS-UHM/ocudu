@@ -19,12 +19,6 @@
 
 namespace ocudu {
 
-/// Parameters used to create a UE.
-struct ue_creation_command {
-  const ue_configuration&   cfg;
-  std::optional<slot_point> ul_ccch_slot_rx;
-};
-
 /// Parameters used to reconfigure a UE.
 struct ue_reconf_command {
   const ue_configuration& cfg;
@@ -33,7 +27,7 @@ struct ue_reconf_command {
 class ue
 {
 public:
-  ue(const ue_creation_command& cmd);
+  ue(const ue_configuration& cfg_);
   ue(const ue&)            = delete;
   ue(ue&&)                 = delete;
   ue& operator=(const ue&) = delete;
@@ -44,6 +38,7 @@ public:
 
   void setup(const ue_configuration&       ue_cfg,
              ue_logical_channel_repository dl_lch_repo,
+             ue_drx_controller&            drx_ctrl,
              bool                          starts_fallback,
              std::optional<slot_point>     ul_ccch_slot_rx,
              cell_harq_manager&            pcell_harq_pool_);
@@ -126,7 +121,7 @@ public:
   unsigned pending_ul_newtx_bytes() const;
 
   /// \brief Retrieves UE DRX controller.
-  ue_drx_controller& drx_controller() { return drx; }
+  ue_drx_controller& drx_controller() { return *drx; }
 
   /// Retrieve UE logical channel manager.
   const ue_logical_channel_repository& logical_channels() const { return lc_ch_mgr; }
@@ -163,7 +158,7 @@ private:
   ta_manager ta_mgr;
 
   // Controller of DRX active timer.
-  ue_drx_controller drx;
+  ue_drx_controller* drx = nullptr;
 };
 
 } // namespace ocudu

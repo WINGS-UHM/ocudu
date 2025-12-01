@@ -42,7 +42,7 @@ protected:
   ue_logical_channel_repository   ue_lc_chs;
   slot_point                      ul_ccch_slot{to_numerology_value(scs), 0};
   ocudulog::basic_logger&         logger = ocudulog::fetch_basic_logger("SCHED");
-  ue_drx_controller               drx{scs, conres_timer, drx_cfg, ue_lc_chs, ul_ccch_slot, logger};
+  ue_drx_controller               drx{scs, conres_timer, drx_cfg, ue_lc_chs.view(), ul_ccch_slot, logger};
 
   const unsigned period_slots = drx_cfg.has_value() ? drx_cfg->long_cycle.count() * get_nof_slots_per_subframe(scs) : 0;
   const unsigned offset_slot =

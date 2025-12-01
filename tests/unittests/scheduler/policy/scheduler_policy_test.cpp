@@ -118,7 +118,7 @@ protected:
   {
     ue_ded_cell_cfg_list.push_back(
         std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));
-    ues.add_ue(std::make_unique<ue>(ue_creation_command{*ue_ded_cell_cfg_list.back()}),
+    ues.add_ue(std::make_unique<ue>(*ue_ded_cell_cfg_list.back()),
                *ue_ded_cell_cfg_list.back(),
                ue_req.starts_in_fallback,
                std::nullopt,

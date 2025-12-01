@@ -116,7 +116,7 @@ struct test_bench {
     }
 
     // Add UE to UE DB.
-    auto u = std::make_unique<ue>(ue_creation_command{ev.next_config(), create_req.ul_ccch_slot_rx});
+    auto u = std::make_unique<ue>(ev.next_config());
     if (ue_db.contains(create_req.ue_index)) {
       // UE already exists.
       return false;

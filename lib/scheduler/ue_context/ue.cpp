@@ -14,33 +14,30 @@
 
 using namespace ocudu;
 
-ue::ue(const ue_creation_command& cmd) :
-  ue_index(cmd.cfg.ue_index),
-  crnti(cmd.cfg.crnti),
-  expert_cfg(cmd.cfg.expert_cfg()),
-  cell_cfg_common(cmd.cfg.pcell_cfg().cell_cfg_common),
-  ue_ded_cfg(&cmd.cfg),
+ue::ue(const ue_configuration& cfg) :
+  ue_index(cfg.ue_index),
+  crnti(cfg.crnti),
+  expert_cfg(cfg.expert_cfg()),
+  cell_cfg_common(cfg.pcell_cfg().cell_cfg_common),
+  ue_ded_cfg(&cfg),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   ta_mgr(expert_cfg.ta_control,
          cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs,
          ue_ded_cfg->pcell_cfg().tag_id(),
-         &lc_ch_mgr),
-  drx(cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs,
-      cell_cfg_common.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
-      cmd.cfg.drx_cfg(),
-      lc_ch_mgr,
-      cmd.ul_ccch_slot_rx,
-      logger)
+         &lc_ch_mgr)
 {
 }
 
 void ue::setup(const ue_configuration&       ue_cfg,
                ue_logical_channel_repository dl_lch_repo,
+               ue_drx_controller&            drx_ctrl,
                bool                          starts_fallback,
                std::optional<slot_point>     ul_ccch_slot_rx,
                cell_harq_manager&            pcell_harq_pool_)
 {
   pcell_harq_pool = &pcell_harq_pool_;
+  drx             = &drx_ctrl;
+  ue_ded_cfg      = &ue_cfg;
 
   // Setups UE DL logical channel manager.
   lc_ch_mgr = std::move(dl_lch_repo);
@@ -59,7 +56,7 @@ void ue::slot_indication(slot_point sl_tx)
 {
   last_sl_tx = sl_tx;
   ta_mgr.slot_indication(sl_tx);
-  drx.slot_indication(sl_tx);
+  drx->slot_indication(sl_tx);
 }
 
 void ue::deactivate()
@@ -114,7 +111,7 @@ void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> m
 
   // DRX config.
   if (ue_ded_cfg->drx_cfg().has_value()) {
-    drx.reconfigure(ue_ded_cfg->drx_cfg());
+    drx->reconfigure(ue_ded_cfg->drx_cfg());
   }
 
   // Cell configuration.
@@ -136,7 +133,7 @@ void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> m
                           to_ue_cell_index(ue_cell_index),
                           ue_ded_cfg->ue_cell_cfg(cell_index),
                           *pcell_harq_pool,
-                          ue_shared_context{drx},
+                          ue_shared_context{*drx},
                           msg3_slot_rx);
       if (ue_cell_index >= ue_cells.size()) {
         ue_cells.resize(ue_cell_index + 1);

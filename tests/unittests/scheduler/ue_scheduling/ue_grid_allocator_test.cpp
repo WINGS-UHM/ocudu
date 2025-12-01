@@ -133,7 +133,7 @@ protected:
   ue& add_ue(const sched_ue_creation_request_message& ue_creation_req)
   {
     auto ev = cfg_mng.add_ue(ue_creation_req);
-    ues.add_ue(std::make_unique<ue>(ue_creation_command{ev.next_config()}),
+    ues.add_ue(std::make_unique<ue>(ev.next_config()),
                ev.next_config(),
                ue_creation_req.starts_in_fallback,
                std::nullopt,

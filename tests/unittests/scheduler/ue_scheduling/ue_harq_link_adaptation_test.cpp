@@ -12,6 +12,7 @@
 #include "../test_utils/sched_random_utils.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/ue_context/ue.h"
+#include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
@@ -51,16 +52,10 @@ protected:
     }
     ue_ded_cfg.emplace(
         ue_creation_req.ue_index, ue_creation_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_creation_req));
-    ue_ptr = std::make_unique<ue>(ue_creation_command{*ue_ded_cfg});
-    ue_ptr->setup(*ue_ded_cfg,
-                  lc_sys.create_ue(ue_creation_req.ue_index,
-                                   cell_cfg->dl_cfg_common.init_dl_bwp.generic_params.scs,
-                                   ue_creation_req.starts_in_fallback,
-                                   ue_ded_cfg->logical_channels()),
-                  ue_creation_req.starts_in_fallback,
-                  std::nullopt,
-                  cell_harqs);
-    ue_cc = &ue_ptr->get_cell(to_ue_cell_index(0));
+    auto ue_obj = std::make_unique<ue>(*ue_ded_cfg);
+    ues.add_ue(std::move(ue_obj), *ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ue_ptr = &ues[ue_creation_req.ue_index];
+    ue_cc  = &ue_ptr->get_cell(to_ue_cell_index(0));
     ue_cc->setup(ue_cell_components{&*channel_state, &*ue_mcs_calculator});
   }
 
@@ -116,8 +111,9 @@ protected:
 
   ocudulog::basic_logger& logger;
 
-  std::unique_ptr<ue> ue_ptr;
-  ue_cell*            ue_cc = nullptr;
+  ue_repository ues;
+  ue*           ue_ptr = nullptr;
+  ue_cell*      ue_cc  = nullptr;
 
   slot_point next_slot;
 };

@@ -117,12 +117,21 @@ void ue_repository::add_ue(std::unique_ptr<ue>       u,
                            std::optional<slot_point> ul_ccch_slot_rx,
                            cell_harq_manager&        cell_harqs)
 {
-  // Add UE in repository.
+  // Create UE components.
   const du_ue_index_t      ue_index = u->ue_index;
   const rnti_t             rnti     = u->crnti;
   const subcarrier_spacing scs      = ue_cfg.pcell_common_cfg().dl_cfg_common.init_dl_bwp.generic_params.scs;
   auto ue_lc_mng                    = lc_ch_sys.create_ue(ue_index, scs, starts_in_fallback, ue_cfg.logical_channels());
-  u->setup(ue_cfg, std::move(ue_lc_mng), starts_in_fallback, ul_ccch_slot_rx, cell_harqs);
+  ue_drx_controllers.emplace(ue_index,
+                             ue_cfg.pcell_common_cfg().ul_cfg_common.init_ul_bwp.generic_params.scs,
+                             ue_cfg.pcell_common_cfg().ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
+                             ue_cfg.drx_cfg(),
+                             ue_lc_mng.view(),
+                             ul_ccch_slot_rx,
+                             logger);
+
+  // Add UE in the repository.
+  u->setup(ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], starts_in_fallback, ul_ccch_slot_rx, cell_harqs);
   bool ret = ues.insert(ue_index, std::move(u));
   ocudu_assert(ret, "UE with duplicate index being added to the repository");
 
@@ -228,6 +237,9 @@ void ue_repository::rem_ue(const ue& u)
                  fmt::underlying(ue_idx),
                  crnti);
   }
+
+  // Remove UE components.
+  ue_drx_controllers.erase(ue_idx);
 
   // Take the UE from the repository and release its resources.
   auto ue_ptr = std::move(ues[ue_idx]);

@@ -76,7 +76,7 @@ protected:
     }
     req.cfg.lc_config_list         = lc_cfg_list;
     const ue_configuration* ue_cfg = test_cfg.add_ue(req);
-    std::unique_ptr<ue>     u      = std::make_unique<ue>(ue_creation_command{*ue_cfg});
+    std::unique_ptr<ue>     u      = std::make_unique<ue>(*ue_cfg);
     ue_db.add_ue(std::move(u), *ue_cfg, req.starts_in_fallback, std::nullopt, cell_harqs);
 
     for (const auto& lc_ch : lc_chs) {

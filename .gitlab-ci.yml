@@ -81,104 +81,6 @@ default:
 ################################################################################
 ## CI MR
 ################################################################################
-
-.blocked MRs:
-  image: alpine/curl:8.12.1
-  retry: 2
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
-  before_script:
-    - apk add --no-cache jq
-    - |
-      REPO_PLUGIN_COMMIT_SHA=$(cat .gitlab/ci/plugin_version.txt)
-    - |
-      MR_JSON=$(
-        curl -s -H "PRIVATE-TOKEN: $CODEBOT_TOKEN" \
-          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/blockees?state=opened" | \
-        jq --argjson PLUGIN_PROJECT_ID "$PLUGIN_PROJECT_ID" -r '
-          .[] 
-          | select(.blocked_merge_request.project_id == $PLUGIN_PROJECT_ID) 
-          | select(.blocked_merge_request.target_branch == "main") 
-          | .blocked_merge_request'
-      )
-      echo $MR_JSON | jq
-    - |
-      if test $(echo $MR_JSON | jq '.id' | wc -l) -gt 1; then
-        echo "Found multiple plugin MRs blocked by this one! Only 1 is allowed"
-        exit 1
-      fi
-
-get plugin commit:
-  extends: .blocked MRs
-  stage: ci
-  rules:
-    - if: $CI_DISABLE_PLUGINS
-      when: never
-    - if: $ON_MR
-    - if: $ON_WEB
-    - if: $ON_API
-    - if: $ON_TAG
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests/
-    - if: $CI_DESCRIPTION =~ /Nightly E2E Tests/
-    - if: $CI_DESCRIPTION =~ /Weekly/
-    - if: $CI_DESCRIPTION =~ /Alternative OSs/
-  script:
-    - |
-      CI_PLUGIN_COMMIT_SHA=$(echo $MR_JSON | jq -r '.sha')
-      if [[ -z $CI_PLUGIN_COMMIT_SHA ]]; then
-        CI_PLUGIN_COMMIT_SHA=$REPO_PLUGIN_COMMIT_SHA
-      fi
-    - echo "CI_PLUGIN_COMMIT_SHA=$CI_PLUGIN_COMMIT_SHA" >> info.env
-    - cat info.env
-  artifacts:
-    reports:
-      dotenv: info.env
-  needs: []
-
-validate blocked MRs:
-  extends: .blocked MRs
-  stage: .post
-  rules:
-    - if: $ON_MR
-  script:
-    # Validate the last pipeline is green
-    - |
-      CI_PLUGIN_MERGE_REQUEST_IID=$(echo $MR_JSON | jq -r '.iid')
-      PLUGIN_PROJECT_ID=$(echo $MR_JSON | jq -r '.project_id')
-    - |
-      if [[ -z $CI_PLUGIN_MERGE_REQUEST_IID ]]; then
-        LATEST_PIPELINE_STATUS="success"
-      else
-        LATEST_PIPELINE_STATUS=$(
-          curl -s -H "PRIVATE-TOKEN: $CODEBOT_TOKEN" \
-            "${CI_API_V4_URL}/projects/${PLUGIN_PROJECT_ID}/merge_requests/${CI_PLUGIN_MERGE_REQUEST_IID}/pipelines" | \
-          jq -r '
-            [.[] | select(.source == "merge_request_event")]
-            | first
-            | .status'
-        )
-      fi
-    - test "$LATEST_PIPELINE_STATUS" = "success"
-    # Validate the plugin commit is the same as the one in the MR
-    - |
-      TO_VALIDATE_PLUGIN_COMMIT_SHA=$(
-        echo $MR_JSON | jq -r '
-          select(.draft==false) 
-          | select(.work_in_progress==false) 
-          | select(.merge_when_pipeline_succeeds==true) 
-          | select(.has_conflicts==false) 
-          | select(.blocking_discussions_resolved==true) 
-          | select(.detailed_merge_status=="merge_request_blocked") 
-          | .sha'
-      )
-      if [[ -z $TO_VALIDATE_PLUGIN_COMMIT_SHA ]]; then
-        TO_VALIDATE_PLUGIN_COMMIT_SHA=$REPO_PLUGIN_COMMIT_SHA
-      fi
-      echo "Validating if the related MR is ready, with a successful pipeline and in auto-merge state!"
-    - test "$TO_VALIDATE_PLUGIN_COMMIT_SHA" = "$CI_PLUGIN_COMMIT_SHA"
-  dependencies:
-    - get plugin commit
-
 trigger builder:
   stage: ci
   rules:
@@ -250,92 +152,6 @@ trigger doxygen image:
     - job: trigger buildkit
       optional: true
       artifacts: false
-
-matlab nightly:
-  stage: ci
-  rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-      variables:
-        ON_SCHEDULE: "true"
-        CI_DESCRIPTION: Nightly
-        SRSRAN_COMMIT: $CI_COMMIT_SHA
-        NOTIFY_SLACK: "true"
-  inherit:
-    variables: false
-  trigger:
-    project: softwareradiosystems/srsgnb_matlab
-    branch: master
-
-matlab weekly:
-  stage: ci
-  rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
-      variables:
-        ON_SCHEDULE: "true"
-        CI_DESCRIPTION: Weekly
-        SRSRAN_COMMIT: $CI_COMMIT_SHA
-        NOTIFY_SLACK: "true"
-  inherit:
-    variables: false
-  trigger:
-    project: softwareradiosystems/srsgnb_matlab
-    branch: master
-
-generate nightly plugin:
-  stage: ci
-  image: ubuntu:24.04
-  rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - |
-      echo """
-      include:
-        - project: softwareradiosystems/ci/tools
-          ref: \"21\"
-          file: .gitlab/ci-shared/setup/all.yml
-
-      stages:
-        - trigger
-      """ >> trigger_nightly_plugins.yml
-
-      while IFS='|' read -r PLUGIN_PATH PLUGIN_REPO PLUGIN_REF; do
-          echo """
-      ${PLUGIN_PATH} nightly:
-        stage: trigger
-        interruptible: false
-        variables:
-          ON_SCHEDULE: "true"
-          CI_DESCRIPTION: Nightly
-          NOTIFY_SLACK: "false"
-        trigger:
-          project: ${PLUGIN_REPO}
-          branch: main
-          strategy: depend
-      """ >> trigger_nightly_plugins.yml
-      done < <(grep -v '^#' "$PLUGINS_DATA_FILE")
-    - cat trigger_nightly_plugins.yml
-  artifacts:
-    paths:
-      - trigger_nightly_plugins.yml
-    expire_in: 1 day
-
-plugin nightly:
-  stage: ci
-  interruptible: false
-  rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests Plugin/
-  inherit:
-    variables: false
-  trigger:
-    include:
-      - artifact: trigger_nightly_plugins.yml
-        job: generate nightly plugin
-    strategy: depend
-  needs:
-    - job: generate nightly plugin
-      artifacts: true
 
 ################################################################################
 ## Static
@@ -622,7 +438,7 @@ e2e tests tox:
 ## Build + Unit Tests + Integration tests
 ################################################################################
 
-# In build.yml
+# In .gitlab/ci/build.yml
 
 ################################################################################
 # Doc generation

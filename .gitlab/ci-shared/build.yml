@@ -2,12 +2,13 @@ include:
   - local: .gitlab/ci/builders/version.yml
 
 .build_and_unit_template:
-  image: ${CR_REGISTRY_URI}/srsgnb/builder-${OS}:${DOCKER_BUILDER_VERSION}
+  image: ${CI_REGISTRY_IMAGE}/builder-${OS}:${DOCKER_BUILDER_VERSION}
   variables:
     OS: "ubuntu-24.04"
     COMPILER: "gcc"
     UHD_VERSION: ""
     DPDK_VERSION: ""
+    BUILD_ARGS: ""
     CMAKE_BUILD_TYPE: "" # Empty for cmake default
     ASSERT_LEVEL: "" # Empty for cmake default
     ENABLE_EXPORT: "" # Empty for cmake default
@@ -25,7 +26,6 @@ include:
     ENABLE_UBSAN_MIN: "" # Empty for cmake default
     ENABLE_RTSAN: "" # Empty for cmake default
     ENABLE_WERROR: "" # Empty for cmake default
-    ENABLE_PLUGINS: "" # Empty for cmake default
     TEST_GDB_PRINTERS: "" # Empty for cmake default
     FORCE_DEBUG_INFO: "" # Empty for cmake default
     MARCH: "" # Empty for cmake default
@@ -37,6 +37,7 @@ include:
     TEST_MODE: "default"
     TEST_EXECUTION_TIMEOUT: 0
     # CI
+    SRSRANDIR: ${CI_PROJECT_DIR}
     INFRASTRUCTURE_TAG: amd64-avx2
     TRANSFER_METER_FREQUENCY: 5s
     ARTIFACT_COMPRESSION_LEVEL: slowest
@@ -60,7 +61,7 @@ include:
         ENABLE_UHD ENABLE_DPDK ENABLE_ZEROMQ \
         ENABLE_ASAN ENABLE_TSAN ENABLE_GCOV \
         ENABLE_UBSAN ENABLE_UBSAN_MIN ENABLE_RTSAN \
-        ENABLE_WERROR ENABLE_PLUGINS TEST_GDB_PRINTERS \
+        ENABLE_WERROR TEST_GDB_PRINTERS \
         FORCE_DEBUG_INFO MARCH MTUNE \
       ; do
         if [ -n "${!var}" ]; then

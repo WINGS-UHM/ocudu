@@ -7,54 +7,7 @@
 #
 
 include:
-  - project: softwareradiosystems/ci/srsran_project_packaging
-    ref: "10"
-    file: .gitlab/ci-shared/package.yml
   - local: .gitlab/ci-shared/build.yml
-
-variables:
-  INFRASTRUCTURE_TAG:
-    description: Computer architecture and supported instruction sets
-    options:
-      - amd64
-      - amd64-avx2
-      - amd64-avx2-avx512
-      - arm64
-      - on-prem-amd64
-      - on-prem-arm64
-      - aws-spot-amd64
-      - aws-spot-arm64
-    value: "amd64-avx2"
-  OS:
-    description: Operating system
-    options:
-      - "ubuntu-24.10"
-      - "ubuntu-24.04"
-      - "ubuntu-22.04"
-      - "debian-12"
-      - "debian-11"
-      - "archlinux-latest"
-      - "rhel-8"
-    value: "ubuntu-24.04"
-  COMPILER:
-    description: Compiler to use
-    options:
-      - "gcc"
-      - "clang"
-    value: "gcc"
-  BUILD_ARGS:
-    description: It will be passed to cmake
-    value: ""
-  UHD_VERSION:
-    description: must be one version supported in the specified OS
-    value: ""
-  DPDK_VERSION:
-    description: must be one version supported in the specified OS
-    value: ""
-  TEST_MODE:
-    description: Run tests with labels matching regular expression. "none" won't run any test at all.
-    value: "default"
-  SRSRANDIR: ${CI_PROJECT_DIR}
 
 ################
 # Build caches #
@@ -83,22 +36,10 @@ variables:
     - job: trigger builder
       optional: true
       artifacts: false
-    - job: get plugin commit
-      optional: true
-      artifacts: true
-  variables:
-    PLUGIN_INDEX_ARRAY: "0" # Space separated list of indexes of plugins to build. f.e. "0 1 2"
   script:
     - &srs_functions |
       build_srsgnb() {
         target="$1"
-
-        start_time=$(date +%s)
-        if [ -e "/usr/local/bin/ram_reporter.py" ]; then
-          /usr/local/builder_tools/bin/python3 /usr/local/bin/ram_reporter.py ${CI_PROJECT_DIR}/ram_usage.txt &
-          ram_reporter_pid=$!
-        fi
-
         build_srsran
         if [[ -n "$OUTPUT_FINGERPRINT" ]]; then
           echo "Storing fingerprints of all executables to $OUTPUT_FINGERPRINT"
@@ -106,21 +47,6 @@ variables:
           /usr/local/builder_tools/bin/python /usr/local/bin/changed_tests.py -b . -o "../$OUTPUT_FINGERPRINT"
           cd ..
         fi
-
-        end_time=$(date +%s)
-        execution_time=$((end_time - start_time))
-        echo "Build time is: $execution_time seconds"
-
-        export metric_prefix=""
-        if [[ $ON_MR == "true" ]]; then metric_prefix="_pr"; fi
-
-        if [ -e "${CI_PROJECT_DIR}/ram_usage.txt" ]; then
-          ram_usage=$(cat ${CI_PROJECT_DIR}/ram_usage.txt)
-          echo "RAM usage is: $ram_usage GB"
-          kill $ram_reporter_pid
-          echo "ram_usage${metric_prefix},pipeline=${CI_PIPELINE_ID},os=${OS} value=${ram_usage}" >> ${CI_PROJECT_DIR}/build/build_time_metrics.txt
-        fi
-        echo "build_time${metric_prefix},pipeline=${CI_PIPELINE_ID},os=${OS} value=${execution_time}" >> ${CI_PROJECT_DIR}/build/build_time_metrics.txt
       }
 
       launch_tests() {
@@ -165,8 +91,6 @@ variables:
             --exclude=${CI_PROJECT_DIR}/lib/asn1/ngap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/nrppa/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/rrc_nr/.* \
-            --exclude=${CI_PROJECT_DIR}/plugins/.*/include/srsran/asn1/nrppa/.* \
-            --exclude=${CI_PROJECT_DIR}/plugins/.*/lib/asn1/nrppa/.* \
             --exclude-lines-by-pattern \".*srsran_assert.*|.*srsran_sanity_check.*\" \
             --root=${CI_PROJECT_DIR} \
             --gcov-ignore-parse-errors=all \
@@ -196,35 +120,6 @@ variables:
         exit $ret
       }
 
-      if [[ $CI_DISABLE_PLUGINS != "True" ]]; then
-        PLUGIN_PATH_ARRAY=()
-        PLUGIN_REPO_ARRAY=()
-        PLUGIN_REF_ARRAY=()
-        while IFS='|' read -r path repo ref; do
-            PLUGIN_PATH_ARRAY+=("$path")
-            PLUGIN_REPO_ARRAY+=("$repo")
-            PLUGIN_REF_ARRAY+=("$ref")
-        done < <(grep -v '^#' "$PLUGINS_DATA_FILE")
-
-        for index in $PLUGIN_INDEX_ARRAY; do
-            PLUGIN_PATH="${PLUGIN_PATH_ARRAY[$index]}"
-            PLUGIN_REPO="${PLUGIN_REPO_ARRAY[$index]}"
-            PLUGIN_REF="${PLUGIN_REF_ARRAY[$index]}"
-            PLUGIN_REF=$(eval echo $PLUGIN_REF)
-            
-            if [[ ! -f "$PLUGIN_PATH" ]]; then
-              echo "#############################"
-              echo "#### $PLUGIN_PATH checkout ####"
-              echo "#############################"
-              git submodule add https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_SHELL_SSH_HOST}/${PLUGIN_REPO}.git plugins/${PLUGIN_PATH}
-              cd plugins/${PLUGIN_PATH}
-              git fetch --depth=1 origin ${PLUGIN_REF} > /dev/null
-              git config advice.detachedHead false
-              git checkout ${PLUGIN_REF}
-              cd ${CI_PROJECT_DIR}
-            fi
-        done
-      fi
     - build_srsgnb
     - launch_tests
   timeout: 6h
@@ -649,8 +544,6 @@ intermediate commits cached:
       when: never
     - if: $ON_MR
   timeout: 2 hours
-  variables:
-    CI_DISABLE_PLUGINS: "True"
   script:
     - *srs_functions
     - git config advice.detachedHead false
@@ -692,34 +585,22 @@ valgrind changed tests:
     TEST_EXECUTION_TIMEOUT: 20m
   script:
     - *srs_functions
-    - |
-      PLUGIN_PATH="${PLUGIN_PATH_ARRAY[0]}"
-      PLUGIN_REF="${PLUGIN_REF_ARRAY[0]}"
-      PLUGIN_REF=$(eval echo $PLUGIN_REF)
-      REPO_PLUGIN_COMMIT_SHA=$(cat .gitlab/ci/plugin_version.txt)
     - git config advice.detachedHead false
     - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 40
     - |
       FORK_POINT=$(git merge-base origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME)
-      echo "#############################################################################################"
-      echo "#### $FORK_POINT | $REPO_PLUGIN_COMMIT_SHA ####"
-      echo "#############################################################################################"
+      echo "##################################################"
+      echo "#### $FORK_POINT ####"
+      echo "##################################################"
       git checkout $FORK_POINT
-      cd plugins/${PLUGIN_PATH}
-      git fetch origin ${REPO_PLUGIN_COMMIT_SHA} > /dev/null
-      git checkout ${REPO_PLUGIN_COMMIT_SHA}
-      cd ${CI_PROJECT_DIR}
       OUTPUT_FINGERPRINT="${FINGERPRINT}"
       build_srsgnb
       OUTPUT_FINGERPRINT=""
     - |
-      echo "#############################################################################################"
-      echo "#### $CI_COMMIT_SHA | $PLUGIN_REF ####"
-      echo "#############################################################################################"
+      echo "##################################################"
+      echo "#### $CI_COMMIT_SHA ####"
+      echo "##################################################"
       git checkout origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
-      cd plugins/${PLUGIN_PATH}
-      git checkout ${PLUGIN_REF}
-      cd ${CI_PROJECT_DIR}      
       build_srsgnb
     - echo "This test execution has a timeout of ${TEST_EXECUTION_TIMEOUT}. If the execution excess that timer, the job will be marked as allowed_to_fail. This will avoid the job to have a huge duration in a MR pipeline."
     - launch_tests
@@ -755,7 +636,6 @@ build on release branch:
   variables:
     ENABLE_MKL: # default
     ENABLE_ARMPL: # default
-    PLUGIN_INDEX_ARRAY: ""
   tags: ["amd64-avx2"]
   needs:
     - job: load build env for release branch
@@ -775,7 +655,7 @@ check builders ubuntu versions:
   variables:
     VERSIONS_TO_IGNORE: "20.04"
   script:
-    - check_if_image_exists ${CR_REGISTRY_URI}/srsgnb/builder-ubuntu- :${DOCKER_BUILDER_VERSION}
+    - check_if_image_exists ${CI_REGISTRY_IMAGE}/builder-ubuntu- :${DOCKER_BUILDER_VERSION}
 
 # Update cache for MR jobs
 
@@ -787,13 +667,8 @@ smoke release update cache:
       start_in: 45 minutes
   retry: 2
   interruptible: false
-  after_script:
-    - *build_after_script
   cache:
     - *cache_build_set
-  artifacts:
-    <<: *build_artifacts
-    expire_in: 3 day
 
 smoke relwithdeb update cache:
   extends: .smoke relwithdeb
@@ -914,62 +789,6 @@ smoke rtsan:
     TEST_MODE: rtsan
     MARCH: x86-64-v3
     INFRASTRUCTURE_TAG: amd64-avx2
-
-# Packaging
-
-package:
-  extends: .deb-package
-  stage: build and unit tests
-  rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests OpenSource/
-      when: delayed
-      start_in: 45 minutes
-  variables: &package_variables
-    PROJECT_NAME: srsran-project
-    RELEASE_VERSION: "99.9"
-    KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
-    KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
-    KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
-    KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
-    DEB_BUILD_OPTIONS: parallel=${KUBERNETES_CPU_LIMIT}
-    MAKEFLAGS: -j${KUBERNETES_CPU_LIMIT}
-    extraopts: -DMARCH=x86-64-v3
-  tags: [amd64-avx2]
-  parallel:
-    matrix:
-      - OS_VERSION: "22.04"
-      - OS_VERSION: "24.04"
-      - OS_VERSION: "25.04"
-      - OS_VERSION: "25.10"
-  needs: []
-
-install-package:
-  extends: .deb-install
-  stage: build and unit tests
-  rules:
-    - if: $CI_DESCRIPTION =~ /Nightly Build Unit Tests OpenSource/
-  variables:
-    PROJECT_NAME: srsran-project
-    RELEASE_VERSION: "99.9"
-  tags: [amd64-avx2]
-  script:
-    - gnb --version
-  parallel:
-    matrix:
-      - OS_VERSION: "22.04"
-      - OS_VERSION: "24.04"
-      - OS_VERSION: "25.04"
-      - OS_VERSION: "25.10"
-  needs:
-    - package
-
-check package ubuntu versions:
-  extends: .check packaging ubuntu images
-  stage: static
-  rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 15 minutes
 
 # Validate export on, enabled for test vector generation
 

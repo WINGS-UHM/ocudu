@@ -52,7 +52,11 @@ public:
   const ue* find_by_rnti(rnti_t rnti) const;
 
   /// \brief Add new UE in the UE repository.
-  void add_ue(std::unique_ptr<ue> u, logical_channel_config_list_ptr lc_cfgs);
+  void add_ue(std::unique_ptr<ue>       u,
+              const ue_configuration&   ue_cfg,
+              bool                      starts_in_fallback,
+              std::optional<slot_point> ul_ccch_slot_rx,
+              cell_harq_manager&        cell_harqs);
 
   /// \brief Reconfigure existing UE.
   void reconfigure_ue(const ue_reconf_command& cmd, bool reestablished_);

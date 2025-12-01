@@ -20,7 +20,6 @@ ue::ue(const ue_creation_command& cmd) :
   expert_cfg(cmd.cfg.expert_cfg()),
   cell_cfg_common(cmd.cfg.pcell_cfg().cell_cfg_common),
   ue_ded_cfg(&cmd.cfg),
-  pcell_harq_pool(cmd.pcell_harq_pool),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   ta_mgr(expert_cfg.ta_control,
          cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs,
@@ -33,22 +32,27 @@ ue::ue(const ue_creation_command& cmd) :
       cmd.ul_ccch_slot_rx,
       logger)
 {
-  // Apply configuration.
-  set_config(cmd.cfg, cmd.ul_ccch_slot_rx);
-
-  // Set the UE carriers as fallback or normal operation.
-  for (auto& cell : ue_du_cells) {
-    if (cell != nullptr) {
-      cell->set_fallback_state(cmd.starts_in_fallback, false, false);
-    }
-  }
 }
 
-void ue::setup(ue_logical_channel_repository dl_lch_repo)
+void ue::setup(const ue_configuration&       ue_cfg,
+               ue_logical_channel_repository dl_lch_repo,
+               bool                          starts_fallback,
+               std::optional<slot_point>     ul_ccch_slot_rx,
+               cell_harq_manager&            pcell_harq_pool_)
 {
+  pcell_harq_pool = &pcell_harq_pool_;
+
   // Setups UE DL logical channel manager.
   lc_ch_mgr = std::move(dl_lch_repo);
   lc_ch_mgr.configure(ue_ded_cfg->logical_channels());
+
+  // Apply UE dedicated configuration.
+  set_config(ue_cfg, ul_ccch_slot_rx);
+
+  // Set the UE carriers as fallback or normal operation.
+  for (auto& cell : ue_du_cells) {
+    cell.set_fallback_state(starts_fallback, false, false);
+  }
 }
 
 void ue::slot_indication(slot_point sl_tx)
@@ -67,9 +71,7 @@ void ue::deactivate()
 
   // Cancel HARQ retransmissions in all UE cells.
   for (auto& cell : ue_du_cells) {
-    if (cell != nullptr) {
-      cell->deactivate();
-    }
+    cell.deactivate();
   }
 }
 
@@ -77,9 +79,7 @@ void ue::release_resources()
 {
   // Reset all HARQ processes in all UE cells.
   for (auto& cell : ue_du_cells) {
-    if (cell != nullptr) {
-      cell->harqs.reset();
-    }
+    cell.harqs.reset();
   }
 
   // Destroy UE logical channel manager.
@@ -120,7 +120,7 @@ void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> m
   // Cell configuration.
   // Handle removed cells.
   for (unsigned i = 0, e = ue_du_cells.size(); i != e; ++i) {
-    if (ue_du_cells[i] != nullptr) {
+    if (ue_du_cells.contains(to_du_cell_index(i))) {
       if (not ue_ded_cfg->contains(to_du_cell_index(i))) {
         // TODO: Handle SCell deletions.
       }
@@ -128,22 +128,22 @@ void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> m
   }
   // Handle new cell creations or reconfigurations.
   for (unsigned ue_cell_index = 0, e = ue_ded_cfg->nof_cells(); ue_cell_index != e; ++ue_cell_index) {
-    du_cell_index_t cell_index   = ue_ded_cfg->ue_cell_cfg(to_ue_cell_index(ue_cell_index)).cell_cfg_common.cell_index;
-    auto&           ue_cell_inst = ue_du_cells[cell_index];
-    if (ue_cell_inst == nullptr) {
-      ue_cell_inst = std::make_unique<ue_cell>(ue_index,
-                                               crnti,
-                                               to_ue_cell_index(ue_cell_index),
-                                               ue_ded_cfg->ue_cell_cfg(cell_index),
-                                               pcell_harq_pool,
-                                               ue_shared_context{drx},
-                                               msg3_slot_rx);
+    du_cell_index_t cell_index = ue_ded_cfg->ue_cell_cfg(to_ue_cell_index(ue_cell_index)).cell_cfg_common.cell_index;
+    if (not ue_du_cells.contains(cell_index)) {
+      ue_du_cells.emplace(cell_index,
+                          ue_index,
+                          crnti,
+                          to_ue_cell_index(ue_cell_index),
+                          ue_ded_cfg->ue_cell_cfg(cell_index),
+                          *pcell_harq_pool,
+                          ue_shared_context{drx},
+                          msg3_slot_rx);
       if (ue_cell_index >= ue_cells.size()) {
         ue_cells.resize(ue_cell_index + 1);
       }
     } else {
       // Reconfiguration of the cell.
-      ue_cell_inst->handle_reconfiguration_request(ue_ded_cfg->ue_cell_cfg(cell_index));
+      ue_du_cells[cell_index].handle_reconfiguration_request(ue_ded_cfg->ue_cell_cfg(cell_index));
     }
   }
 
@@ -152,7 +152,7 @@ void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> m
   for (unsigned ue_cell_index = 0, e = ue_ded_cfg->nof_cells(); ue_cell_index != e; ++ue_cell_index) {
     auto& ue_cell_inst =
         ue_du_cells[ue_ded_cfg->ue_cell_cfg(to_ue_cell_index(ue_cell_index)).cell_cfg_common.cell_index];
-    ue_cells[ue_cell_index] = ue_cell_inst.get();
+    ue_cells[ue_cell_index] = &ue_cell_inst;
   }
 }
 

@@ -111,13 +111,18 @@ void ue_repository::rem_cell(du_cell_index_t cell_index)
   cell_ues.erase(cell_index);
 }
 
-void ue_repository::add_ue(std::unique_ptr<ue> u, logical_channel_config_list_ptr lc_cfgs)
+void ue_repository::add_ue(std::unique_ptr<ue>       u,
+                           const ue_configuration&   ue_cfg,
+                           bool                      starts_in_fallback,
+                           std::optional<slot_point> ul_ccch_slot_rx,
+                           cell_harq_manager&        cell_harqs)
 {
   // Add UE in repository.
   const du_ue_index_t      ue_index = u->ue_index;
   const rnti_t             rnti     = u->crnti;
-  const subcarrier_spacing scs      = u->get_pcell().active_bwp().dl_common->value().generic_params.scs;
-  u->setup(lc_ch_sys.create_ue(ue_index, scs, u->get_pcell().is_in_fallback_mode(), lc_cfgs));
+  const subcarrier_spacing scs      = ue_cfg.pcell_common_cfg().dl_cfg_common.init_dl_bwp.generic_params.scs;
+  auto ue_lc_mng                    = lc_ch_sys.create_ue(ue_index, scs, starts_in_fallback, ue_cfg.logical_channels());
+  u->setup(ue_cfg, std::move(ue_lc_mng), starts_in_fallback, ul_ccch_slot_rx, cell_harqs);
   bool ret = ues.insert(ue_index, std::move(u));
   ocudu_assert(ret, "UE with duplicate index being added to the repository");
 

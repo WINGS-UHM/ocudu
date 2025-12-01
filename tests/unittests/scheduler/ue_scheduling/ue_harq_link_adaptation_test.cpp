@@ -51,8 +51,16 @@ protected:
     }
     ue_ded_cfg.emplace(
         ue_creation_req.ue_index, ue_creation_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_creation_req));
-    ue_ptr = std::make_unique<ue>(ue_creation_command{*ue_ded_cfg, ue_creation_req.starts_in_fallback, cell_harqs});
-    ue_cc  = &ue_ptr->get_cell(to_ue_cell_index(0));
+    ue_ptr = std::make_unique<ue>(ue_creation_command{*ue_ded_cfg});
+    ue_ptr->setup(*ue_ded_cfg,
+                  lc_sys.create_ue(ue_creation_req.ue_index,
+                                   cell_cfg->dl_cfg_common.init_dl_bwp.generic_params.scs,
+                                   ue_creation_req.starts_in_fallback,
+                                   ue_ded_cfg->logical_channels()),
+                  ue_creation_req.starts_in_fallback,
+                  std::nullopt,
+                  cell_harqs);
+    ue_cc = &ue_ptr->get_cell(to_ue_cell_index(0));
     ue_cc->setup(ue_cell_components{&*channel_state, &*ue_mcs_calculator});
   }
 
@@ -104,6 +112,7 @@ protected:
   cell_harq_manager cell_harqs{1, MAX_NOF_HARQS, std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
   std::optional<ue_channel_state_manager>      channel_state;
   std::optional<ue_link_adaptation_controller> ue_mcs_calculator;
+  logical_channel_system                       lc_sys;
 
   ocudulog::basic_logger& logger;
 

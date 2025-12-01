@@ -35,9 +35,8 @@ protected:
   {
     ue_cfg_pool.push_back(
         std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_db, cfg_pool.add_ue(ue_req)));
-    std::unique_ptr<ue> u =
-        std::make_unique<ue>(ue_creation_command{*ue_cfg_pool.back(), ue_req.starts_in_fallback, cell_harqs});
-    ue_db.add_ue(std::move(u), ue_cfg_pool.back()->logical_channels());
+    std::unique_ptr<ue> u = std::make_unique<ue>(ue_creation_command{*ue_cfg_pool.back()});
+    ue_db.add_ue(std::move(u), *ue_cfg_pool.back(), ue_req.starts_in_fallback, std::nullopt, cell_harqs);
     return ue_db[ue_req.ue_index];
   }
 };

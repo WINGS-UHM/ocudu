@@ -22,8 +22,6 @@ namespace ocudu {
 /// Parameters used to create a UE.
 struct ue_creation_command {
   const ue_configuration&   cfg;
-  bool                      starts_in_fallback;
-  cell_harq_manager&        pcell_harq_pool;
   std::optional<slot_point> ul_ccch_slot_rx;
 };
 
@@ -44,7 +42,11 @@ public:
   const du_ue_index_t ue_index;
   const rnti_t        crnti;
 
-  void setup(ue_logical_channel_repository dl_lch_repo);
+  void setup(const ue_configuration&       ue_cfg,
+             ue_logical_channel_repository dl_lch_repo,
+             bool                          starts_fallback,
+             std::optional<slot_point>     ul_ccch_slot_rx,
+             cell_harq_manager&            pcell_harq_pool_);
 
   void slot_indication(slot_point sl_tx);
 
@@ -55,12 +57,12 @@ public:
   ue_cell* find_cell(du_cell_index_t cell_index)
   {
     ocudu_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
-    return ue_du_cells[cell_index].get();
+    return &ue_du_cells[cell_index];
   }
   const ue_cell* find_cell(du_cell_index_t cell_index) const
   {
     ocudu_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
-    return ue_du_cells[cell_index].get();
+    return &ue_du_cells[cell_index];
   }
 
   /// \brief Fetch UE cell based on UE-specific cell identifier. E.g. PCell corresponds to ue_cell_index==0.
@@ -139,13 +141,13 @@ private:
   // Cell configuration. This is common to all UEs within the same cell.
   const cell_configuration& cell_cfg_common;
   // Dedicated configuration for the UE.
-  const ue_configuration* ue_ded_cfg = nullptr;
-  cell_harq_manager&      pcell_harq_pool;
+  const ue_configuration* ue_ded_cfg      = nullptr;
+  cell_harq_manager*      pcell_harq_pool = nullptr;
   ocudulog::basic_logger& logger;
 
   /// List of UE cells indexed by \c du_cell_index_t. If an element is null, it means that the DU cell is not
   /// configured to be used by the UE.
-  std::array<std::unique_ptr<ue_cell>, MAX_NOF_DU_CELLS> ue_du_cells;
+  slotted_id_table<du_cell_index_t, ue_cell, MAX_NOF_DU_CELLS> ue_du_cells;
 
   /// List of UE cells indexed by \c ue_cell_index_t. The size of the list is equal to the number of cells aggregated
   /// and configured for the UE. PCell corresponds to ue_cell_index=0. the first SCell corresponds to ue_cell_index=1,

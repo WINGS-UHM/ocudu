@@ -261,11 +261,7 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
   const du_cell_index_t ue_pcell_index = ev.next_config().pcell_common_cfg().cell_index;
 
   // Create UE object outside the scheduler slot indication handler to minimize latency.
-  std::unique_ptr<ue> u = std::make_unique<ue>(
-      ue_creation_command{ev.next_config(),
-                          ev.get_fallback_command().has_value() and ev.get_fallback_command().value(),
-                          cell_harqs,
-                          ev.get_ul_ccch_slot_rx()});
+  std::unique_ptr<ue> u = std::make_unique<ue>(ue_creation_command{ev.next_config(), ev.get_ul_ccch_slot_rx()});
 
   auto handle_ue_creation_impl = [this, u = std::move(u), ev = std::move(ev)]() mutable {
     if (ue_db.contains(u->ue_index)) {
@@ -276,10 +272,11 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
     }
 
     // Insert UE in UE repository.
-    du_ue_index_t   ueidx       = u->ue_index;
-    rnti_t          rnti        = u->crnti;
-    du_cell_index_t pcell_index = u->get_pcell().cell_index;
-    ue_db.add_ue(std::move(u), ev.next_config().logical_channels());
+    du_ue_index_t   ueidx          = u->ue_index;
+    rnti_t          rnti           = u->crnti;
+    du_cell_index_t pcell_index    = ev.next_config().pcell_common_cfg().cell_index;
+    bool            is_in_fallback = ev.get_fallback_command().has_value() and ev.get_fallback_command().value();
+    ue_db.add_ue(std::move(u), ev.next_config(), is_in_fallback, ev.get_ul_ccch_slot_rx(), cell_harqs);
 
     const auto& added_ue = ue_db[ueidx];
     for (unsigned i = 0, e = added_ue.nof_cells(); i != e; ++i) {

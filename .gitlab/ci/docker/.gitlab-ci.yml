@@ -59,17 +59,17 @@ grafana version changed:
       changes:
         - docker/grafana/**/*
   script:
-    - NEW_VERSION=$(cat docker/grafana/version.yml | grep SRS_GF_VERSION | cut -d'"' -f2)
+    - NEW_VERSION=$(cat docker/grafana/version.yml | grep OCUDU_GF_VERSION | cut -d'"' -f2)
     - export NEW_VERSION
     - |
       git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
       if [ ! -e "docker/grafana/version.yml" ]; then
           exit 0
       fi
-      if [ ! $(cat docker/grafana/version.yml | grep SRS_GF_VERSION) ]; then
+      if [ ! $(cat docker/grafana/version.yml | grep OCUDU_GF_VERSION) ]; then
           exit 0
       fi
-    - OLD_VERSION=$(cat docker/grafana/version.yml | grep SRS_GF_VERSION | cut -d'"' -f2)
+    - OLD_VERSION=$(cat docker/grafana/version.yml | grep OCUDU_GF_VERSION | cut -d'"' -f2)
     - export OLD_VERSION
     - |
       echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
@@ -85,14 +85,14 @@ telegraf version changed:
       changes:
         - docker/telegraf/**/*
   script:
-    - NEW_VERSION=$(cat docker/telegraf/version.yml | grep  SRS_TELEGRAF_VERSION | cut -d'"' -f2)
+    - NEW_VERSION=$(cat docker/telegraf/version.yml | grep  OCUDU_TELEGRAF_VERSION | cut -d'"' -f2)
     - export NEW_VERSION
     - |
       git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
-      if [ ! $(cat docker/telegraf/version.yml | grep  SRS_TELEGRAF_VERSION) ]; then
+      if [ ! $(cat docker/telegraf/version.yml | grep  OCUDU_TELEGRAF_VERSION) ]; then
           exit 0
       fi
-    - OLD_VERSION=$(cat docker/telegraf/version.yml | grep  SRS_TELEGRAF_VERSION | cut -d'"' -f2)
+    - OLD_VERSION=$(cat docker/telegraf/version.yml | grep  OCUDU_TELEGRAF_VERSION | cut -d'"' -f2)
     - export OLD_VERSION
     - |
       echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
@@ -224,7 +224,7 @@ telegraf image:
     MODE: publish
   before_script:
     - |
-      export VERSION=$(cat ${CONTEXT}/version.yml | grep SRS_TELEGRAF_VERSION | cut -d'"' -f2)
+      export VERSION=$(cat ${CONTEXT}/version.yml | grep OCUDU_TELEGRAF_VERSION | cut -d'"' -f2)
 
 telegraf image latest:
   extends: telegraf image
@@ -249,7 +249,7 @@ grafana image:
     MODE: publish
   before_script:
     - |
-      export VERSION=$(cat docker/grafana/version.yml | grep SRS_GF_VERSION | cut -d'"' -f2)
+      export VERSION=$(cat docker/grafana/version.yml | grep OCUDU_GF_VERSION | cut -d'"' -f2)
 
 grafana image latest:
   extends: grafana image

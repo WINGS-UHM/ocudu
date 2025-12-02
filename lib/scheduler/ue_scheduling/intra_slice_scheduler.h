@@ -30,7 +30,6 @@ public:
                         uci_allocator&                    uci_alloc,
                         cell_resource_allocator&          cell_alloc,
                         cell_metrics_handler&             cell_metrics_,
-                        cell_harq_manager&                cell_harqs_,
                         ocudulog::basic_logger&           logger_);
 
   /// Reset context in preparation for new slot.

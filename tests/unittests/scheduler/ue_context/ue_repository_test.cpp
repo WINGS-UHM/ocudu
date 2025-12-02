@@ -29,13 +29,13 @@ protected:
     cell_cfg(*cfg_mng.add_cell(sched_cfg)),
     serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config())
   {
-    ue_db.add_cell(to_du_cell_index(0));
+    ue_db.add_cell(cell_cfg, nullptr);
 
     sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request(
         builder_params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
     ue_config_update_event  ev     = cfg_mng.add_ue(ue_req);
     const ue_configuration& ue_cfg = ev.next_config();
-    ue_db.add_ue(ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx, cell_harqs);
+    ue_db.add_ue(ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx);
   }
 
   pdsch_config_params get_pdsch_cfg_params(const ue_cell&                               ue_cc,
@@ -96,7 +96,6 @@ protected:
   sched_cell_configuration_request_message sched_cfg;
   const cell_configuration&                cell_cfg;
   serving_cell_config                      serv_cell_cfg;
-  cell_harq_manager                        cell_harqs{1, MAX_NOF_HARQS};
   ocudulog::basic_logger&                  logger = ocudulog::fetch_basic_logger("SCHED");
   ue_repository                            ue_db;
 };

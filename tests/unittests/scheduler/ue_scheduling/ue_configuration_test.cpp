@@ -28,14 +28,13 @@ protected:
   cell_common_configuration_list                 cell_cfg_db;
   du_cell_group_config_pool                      cfg_pool;
   std::vector<std::unique_ptr<ue_configuration>> ue_cfg_pool;
-  cell_harq_manager cell_harqs{1, MAX_NOF_HARQS, std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
-  ue_repository     ue_db;
+  ue_repository                                  ue_db;
 
   ue& add_ue(const sched_ue_creation_request_message& ue_req)
   {
     ue_cfg_pool.push_back(
         std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_db, cfg_pool.add_ue(ue_req)));
-    ue_db.add_ue(*ue_cfg_pool.back(), ue_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ue_db.add_ue(*ue_cfg_pool.back(), ue_req.starts_in_fallback, std::nullopt);
     return ue_db[ue_req.ue_index];
   }
 };
@@ -93,7 +92,7 @@ TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_l
 {
   // Test Preamble.
   cell_cfg_db.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, msg));
-  ue_db.add_cell(to_du_cell_index(0));
+  ue_db.add_cell(*cell_cfg_db[to_du_cell_index(0)], nullptr);
   cfg_pool.add_cell(msg);
   auto& u = add_ue(ue_create_msg);
 
@@ -105,7 +104,7 @@ TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_l
   recfg.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(uint_to_lcid(4)));
   ue_configuration ue_ded_cfg2{*u.ue_cfg_dedicated()};
   ue_ded_cfg2.update(cell_cfg_db, cfg_pool.reconf_ue(recfg));
-  ue_db.reconfigure_ue(ue_ded_cfg2, false, cell_harqs);
+  ue_db.reconfigure_ue(ue_ded_cfg2, false);
 
   // Confirm that the UE is in fallback.
   ASSERT_TRUE(u.get_pcell().is_in_fallback_mode());

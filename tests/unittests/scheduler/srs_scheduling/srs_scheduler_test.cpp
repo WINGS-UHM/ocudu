@@ -161,8 +161,7 @@ public:
       cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(expert_cfg, cell_req));
       return *cell_cfg_list[to_du_cell_index(0)];
     }()},
-    cell_harqs{MAX_NOF_DU_UES, MAX_NOF_HARQS, std::make_unique<dummy_harq_timeout_notifier>()},
-    cell_ues(ues.add_cell(to_du_cell_index(0))),
+    cell_ues(ues.add_cell(cell_cfg, nullptr)),
     srs_sched(cell_cfg, ues),
     current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
@@ -175,7 +174,6 @@ public:
   du_cell_group_config_pool      cfg_pool;
   cell_common_configuration_list cell_cfg_list{};
   const cell_configuration&      cell_cfg;
-  cell_harq_manager              cell_harqs;
   ue_repository                  ues;
   ue_cell_repository&            cell_ues;
   std::vector<ue_configuration>  ue_ded_cfgs;
@@ -194,7 +192,7 @@ public:
         cell_cfg_list[to_du_cell_index(0)]->ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
         cell_cfg.tdd_cfg_common);
     ue_ded_cfgs.emplace_back(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req));
-    ues.add_ue(ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ues.add_ue(ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
     srs_sched.add_ue(ues[ue_req.ue_index].get_pcell().cfg());
   }
 

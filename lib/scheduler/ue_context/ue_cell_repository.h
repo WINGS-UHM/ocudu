@@ -16,6 +16,8 @@
 
 namespace ocudu {
 
+class cell_metrics_handler;
+
 /// Container that stores all the UEs that are configured in a given cell.
 class ue_cell_repository
 {
@@ -26,7 +28,7 @@ public:
   using iterator       = ue_list::iterator;
   using const_iterator = ue_list::const_iterator;
 
-  ue_cell_repository(du_cell_index_t cell_idx, ocudulog::basic_logger& logger_);
+  ue_cell_repository(const cell_configuration& cell_cfg, cell_metrics_handler* cell_metrics);
 
   du_cell_index_t cell_index() const { return cell_idx; }
   bool            contains(du_ue_index_t ue_index) const { return ues.contains(ue_index); }
@@ -53,13 +55,21 @@ public:
     return it != rnti_to_ue_index_lookup.end() ? &ues[it->second] : nullptr;
   }
 
+  /// Get HARQs managed by this cell.
+  cell_harq_manager& get_cell_harqs() { return cell_harqs; }
+
+  /// Update last processed slot for this cell.
+  void slot_indication(slot_point sl_tx);
+
+  /// Stop all UE-related operations in this cell repository.
+  void deactivate();
+
 private:
   friend class ue_repository;
 
   /// Add a new UE to the UE cell repository.
   ue_cell& add_ue(const ue_configuration&   ue_cfg,
                   ue_cell_index_t           ue_cell_index,
-                  cell_harq_manager&        harq_pool,
                   ue_drx_controller&        drx,
                   std::optional<slot_point> msg3_slot_rx);
 
@@ -68,17 +78,24 @@ private:
   const du_cell_index_t   cell_idx;
   ocudulog::basic_logger& logger;
 
+  /// HARQs manager for the cell.
+  cell_harq_manager cell_harqs;
+
+  /// Channel state management for different UEs in this cell.
+  slotted_id_table<du_ue_index_t, ue_channel_state_manager, MAX_NOF_DU_UES> channel_states;
+
+  /// Link adaptation controllers for different UEs in this cell.
+  slotted_id_table<du_ue_index_t, ue_link_adaptation_controller, MAX_NOF_DU_UES> ue_mcs_calculators;
+
+  /// PUSCH and PUCCH power controllers for different UEs in this cell.
+  slotted_id_table<du_ue_index_t, pusch_power_controller, MAX_NOF_DU_UES> pusch_pwr_controllers;
+  slotted_id_table<du_ue_index_t, pucch_power_controller, MAX_NOF_DU_UES> pucch_pwr_controllers;
+
   // List of UEs in the cell.
   ue_list ues;
 
   // Mapping of RNTIs to UE indexes.
   flat_map<rnti_t, du_ue_index_t> rnti_to_ue_index_lookup;
-
-  // UE carrier components.
-  slotted_id_table<du_ue_index_t, ue_channel_state_manager, MAX_NOF_DU_UES>      channel_states;
-  slotted_id_table<du_ue_index_t, ue_link_adaptation_controller, MAX_NOF_DU_UES> ue_mcs_calculators;
-  slotted_id_table<du_ue_index_t, pusch_power_controller, MAX_NOF_DU_UES>        pusch_pwr_controllers;
-  slotted_id_table<du_ue_index_t, pucch_power_controller, MAX_NOF_DU_UES>        pucch_pwr_controllers;
 };
 
 } // namespace ocudu

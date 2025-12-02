@@ -47,7 +47,7 @@ protected:
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 
-    ues.add_cell(cell_cfg.cell_index);
+    ues.add_cell(cell_cfg, nullptr);
   }
 
   ~slice_scheduler_test() { ocudulog::flush(); }
@@ -62,7 +62,7 @@ protected:
   const ue_configuration* add_ue(const sched_ue_creation_request_message& req)
   {
     const ue_configuration* ue_cfg = test_cfg.add_ue(req);
-    ues.add_ue(*ue_cfg, req.starts_in_fallback, std::nullopt, cell_harqs);
+    ues.add_ue(*ue_cfg, req.starts_in_fallback, std::nullopt);
     slice_sched.add_ue(req.ue_index);
     return ue_cfg;
   }
@@ -71,10 +71,7 @@ protected:
   test_helpers::test_sched_config_manager test_cfg;
   const cell_configuration&               cell_cfg;
 
-  cell_harq_manager cell_harqs{MAX_NOF_DU_UES,
-                               MAX_NOF_HARQS,
-                               std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
-  ue_repository     ues;
+  ue_repository ues;
 
   cell_resource_allocator dummy_alloc{cell_cfg};
   inter_slice_scheduler   slice_sched{cell_cfg, ues};

@@ -37,8 +37,7 @@ public:
      ue_logical_channel_repository dl_lch_repo,
      ue_drx_controller&            drx_ctrl,
      ta_manager&                   ta_mgr_,
-     const ue_cell_lookup&         ue_cells,
-     cell_harq_manager&            pcell_harq_pool_);
+     const ue_cell_lookup&         ue_cells);
   ue(const ue&)            = delete;
   ue(ue&&)                 = delete;
   ue& operator=(const ue&) = delete;
@@ -116,8 +115,7 @@ private:
   // Cell configuration. This is common to all UEs within the same cell.
   const cell_configuration& cell_cfg_common;
   // Dedicated configuration for the UE.
-  const ue_configuration* ue_ded_cfg      = nullptr;
-  cell_harq_manager*      pcell_harq_pool = nullptr;
+  const ue_configuration* ue_ded_cfg = nullptr;
   /// UE Logical Channel Manager.
   ue_logical_channel_repository lc_ch_mgr;
   /// UE Timing Advance Manager.

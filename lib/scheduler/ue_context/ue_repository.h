@@ -41,7 +41,7 @@ public:
   ue&       operator[](du_ue_index_t ue_index) { return ues[ue_index]; }
   const ue& operator[](du_ue_index_t ue_index) const { return ues[ue_index]; }
 
-  ue_cell_repository& add_cell(du_cell_index_t cell_index);
+  ue_cell_repository& add_cell(const cell_configuration& cell_cfg, cell_metrics_handler* cell_metrics);
   void                rem_cell(du_cell_index_t cell_index);
 
   // Access UEs per cell.
@@ -53,13 +53,10 @@ public:
   const ue* find_by_rnti(rnti_t rnti) const;
 
   /// \brief Add new UE in the UE repository.
-  void add_ue(const ue_configuration&   ue_cfg,
-              bool                      starts_in_fallback,
-              std::optional<slot_point> ul_ccch_slot_rx,
-              cell_harq_manager&        cell_harqs);
+  void add_ue(const ue_configuration& ue_cfg, bool starts_in_fallback, std::optional<slot_point> ul_ccch_slot_rx);
 
   /// \brief Reconfigure existing UE.
-  void reconfigure_ue(const ue_configuration& new_cfg, bool reestablished_, cell_harq_manager& cell_harqs);
+  void reconfigure_ue(const ue_configuration& new_cfg, bool reestablished_);
 
   /// \brief Called when UE configuration has been applied (e.g. after RRC ReconfigurationComplete).
   void ue_config_applied(du_ue_index_t ue_index);
@@ -92,6 +89,9 @@ private:
 
   ocudulog::basic_logger& logger;
 
+  // List of UEs per cell.
+  slotted_id_table<du_cell_index_t, std::unique_ptr<ue_cell_repository>, MAX_NOF_DU_CELLS> cell_ues;
+
   /// Management of all UE logical channels.
   logical_channel_system lc_ch_sys;
 
@@ -101,13 +101,10 @@ private:
   /// UE Timing Advance Manager.
   slotted_id_table<du_ue_index_t, ta_manager, MAX_NOF_DU_UES, false> ta_managers;
 
-  // List of UEs per cell.
-  slotted_id_table<du_cell_index_t, std::unique_ptr<ue_cell_repository>, MAX_NOF_DU_CELLS> cell_ues;
-
-  // Lookup of UE cells per UE.
+  /// Lookup of UE cells per UE.
   slotted_id_table<du_ue_index_t, ue_cell_lookup, MAX_NOF_DU_UES, false> ue_cell_lookups;
 
-  // Repository of UEs.
+  /// Repository of UE objects.
   ue_list ues;
 
   // Mapping of RNTIs to UE indexes.

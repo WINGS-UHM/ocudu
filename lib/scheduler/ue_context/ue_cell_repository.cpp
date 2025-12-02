@@ -9,18 +9,58 @@
  */
 
 #include "ue_cell_repository.h"
+#include "../logging/scheduler_metrics_handler.h"
 
 using namespace ocudu;
 
-ue_cell_repository::ue_cell_repository(du_cell_index_t cell_idx_, ocudulog::basic_logger& logger_) :
-  cell_idx(cell_idx_), logger(logger_)
+namespace {
+
+class harq_manager_timeout_notifier : public harq_timeout_notifier
+{
+public:
+  explicit harq_manager_timeout_notifier(cell_metrics_handler& metrics_handler_) : metrics_handler(metrics_handler_) {}
+
+  void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override
+  {
+    metrics_handler.handle_harq_timeout(ue_idx, is_dl);
+  }
+
+private:
+  cell_metrics_handler& metrics_handler;
+};
+
+} // namespace
+
+ue_cell_repository::ue_cell_repository(const cell_configuration& cell_cfg, cell_metrics_handler* cell_metrics) :
+  cell_idx(cell_cfg.cell_index),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
+  cell_harqs(MAX_NOF_DU_UES,
+             MAX_NOF_HARQS,
+             cell_metrics != nullptr ? std::make_unique<harq_manager_timeout_notifier>(*cell_metrics) : nullptr,
+             cell_metrics != nullptr ? std::make_unique<harq_manager_timeout_notifier>(*cell_metrics) : nullptr,
+             cell_cfg.expert_cfg.ue.dl_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),
+             cell_cfg.expert_cfg.ue.ul_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),
+             cell_harq_manager::DEFAULT_ACK_TIMEOUT_SLOTS,
+             cell_cfg.ntn_cs_koffset,
+             cell_cfg.dl_harq_mode_b,
+             cell_cfg.ul_harq_mode_b)
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
 }
 
+void ue_cell_repository::slot_indication(slot_point sl_tx)
+{
+  // Process pending HARQ timeouts.
+  cell_harqs.slot_indication(sl_tx);
+}
+
+void ue_cell_repository::deactivate()
+{
+  cell_harqs.stop();
+}
+
 ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
                                     ue_cell_index_t           ue_cell_index,
-                                    cell_harq_manager&        harq_pool,
                                     ue_drx_controller&        drx,
                                     std::optional<slot_point> msg3_slot_rx)
 {
@@ -39,7 +79,7 @@ ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
               ue_cfg.crnti,
               ue_cell_index,
               ue_cell_cfg,
-              harq_pool,
+              cell_harqs,
               ue_shared_context{drx},
               ue_cell_components{&channel_states[ue_cfg.ue_index],
                                  &ue_mcs_calculators[ue_cfg.ue_index],

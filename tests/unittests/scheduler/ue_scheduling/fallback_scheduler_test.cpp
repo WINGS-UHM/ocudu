@@ -82,9 +82,6 @@ struct test_bench {
   const cell_configuration& cell_cfg;
 
   cell_resource_allocator       res_grid{cell_cfg};
-  cell_harq_manager             cell_harqs{MAX_NOF_DU_UES,
-                               MAX_NOF_HARQS,
-                               std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
   pdcch_resource_allocator_impl pdcch_sch{cell_cfg};
   pucch_allocator_impl          pucch_alloc{cell_cfg, 31U, 32U};
   uci_allocator_impl            uci_alloc{pucch_alloc};
@@ -99,7 +96,7 @@ struct test_bench {
     sched_cfg{std::move(sched_cfg_)},
     builder_params{builder_params_},
     cell_cfg{*[&]() { return cfg_mng.add_cell(cell_req); }()},
-    ue_cell_db(ue_db.add_cell(to_du_cell_index(0))),
+    ue_cell_db(ue_db.add_cell(cell_cfg, nullptr)),
     fallback_sched(expert_cfg, cell_cfg, pdcch_sch, pucch_alloc, uci_alloc, ue_db),
     csi_rs_sched(cell_cfg)
   {
@@ -120,7 +117,7 @@ struct test_bench {
       // UE already exists.
       return false;
     }
-    ue_db.add_ue(ev.next_config(), create_req.starts_in_fallback, create_req.ul_ccch_slot_rx, cell_harqs);
+    ue_db.add_ue(ev.next_config(), create_req.starts_in_fallback, create_req.ul_ccch_slot_rx);
     auto& ue = ue_db[create_req.ue_index];
     ue.get_pcell().set_fallback_state(true, false, false);
     ev.notify_completion();
@@ -1740,7 +1737,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
   ue_cfg.cfg.reestablished = true;
   sched_ue_reconfiguration_message reconf_msg{.ue_index = du_ue_index, .crnti = rnti, .cfg = ue_cfg.cfg};
   auto                             ev = bench->cfg_mng.update_ue(reconf_msg);
-  bench->ue_db.reconfigure_ue(ev.next_config(), true, bench->cell_harqs);
+  bench->ue_db.reconfigure_ue(ev.next_config(), true);
 
   slot_point slot_update_srb_traffic{current_slot.numerology(), generate_srb_traffic_slot()};
 

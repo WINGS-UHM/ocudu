@@ -37,7 +37,7 @@ protected:
     cfg_pool.add_cell(sched_cell_cfg_req);
     cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, sched_cell_cfg_req));
     cell_cfg = cell_cfg_list[to_du_cell_index(0)].get();
-    ues.add_cell(to_du_cell_index(0));
+    ues.add_cell(*cell_cfg, nullptr);
 
     next_slot = test_helper::generate_random_slot_point(cell_cfg->dl_cfg_common.init_dl_bwp.generic_params.scs);
 
@@ -51,7 +51,7 @@ protected:
     }
     ue_ded_cfg.emplace(
         ue_creation_req.ue_index, ue_creation_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_creation_req));
-    ues.add_ue(*ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ues.add_ue(*ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt);
     ue_ptr = &ues[ue_creation_req.ue_index];
     ue_cc  = &ue_ptr->get_cell(to_ue_cell_index(0));
   }
@@ -101,7 +101,6 @@ protected:
   cell_common_configuration_list  cell_cfg_list;
   cell_configuration*             cell_cfg = nullptr;
   std::optional<ue_configuration> ue_ded_cfg;
-  cell_harq_manager cell_harqs{1, MAX_NOF_HARQS, std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
 
   ocudulog::basic_logger& logger;
 

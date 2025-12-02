@@ -53,9 +53,6 @@ private:
 
     cell_resource_allocator* cell_res_alloc;
 
-    /// HARQ pool for this cell.
-    cell_harq_manager cell_harqs;
-
     /// Repository of UEs for this cell.
     ue_cell_repository& ue_cell_db;
 

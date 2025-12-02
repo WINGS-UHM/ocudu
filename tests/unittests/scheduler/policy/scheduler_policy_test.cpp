@@ -56,10 +56,10 @@ protected:
       return cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, cell_cfg_req))
           .get();
     }()),
-    cell_ues(ues.add_cell(to_du_cell_index(0))),
-    slice_sched(cell_cfg, ues),
     cell_metrics(cell_cfg, cell_cfg_req.metrics),
-    intra_slice_sched(cell_cfg.expert_cfg.ue, ues, pdcch_alloc, uci_alloc, res_grid, cell_metrics, cell_harqs, logger)
+    cell_ues(ues.add_cell(cell_cfg, &cell_metrics)),
+    slice_sched(cell_cfg, ues),
+    intra_slice_sched(cell_cfg.expert_cfg.ue, ues, pdcch_alloc, uci_alloc, res_grid, cell_metrics, logger)
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
@@ -74,10 +74,10 @@ protected:
     logger.set_context(next_slot.sfn(), next_slot.slot_index());
 
     res_grid.slot_indication(next_slot);
-    cell_harqs.slot_indication(next_slot);
     pdcch_alloc.slot_indication(next_slot);
     pucch_alloc.slot_indication(next_slot);
     uci_alloc.slot_indication(next_slot);
+    ues.slot_indication(next_slot);
     intra_slice_sched.slot_indication(next_slot);
     slice_sched.slot_indication(next_slot, res_grid);
 
@@ -118,7 +118,7 @@ protected:
   {
     ue_ded_cell_cfg_list.push_back(
         std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));
-    ues.add_ue(*ue_ded_cell_cfg_list.back(), ue_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ues.add_ue(*ue_ded_cell_cfg_list.back(), ue_req.starts_in_fallback, std::nullopt);
     slice_sched.add_ue(ue_req.ue_index);
     return ues[ue_req.ue_index];
   }
@@ -182,17 +182,14 @@ protected:
   scheduler_ue_metrics_dummy_notifier metrics_notif;
 
   cell_resource_allocator       res_grid{cell_cfg};
-  cell_harq_manager             cell_harqs{MAX_NOF_DU_UES,
-                               MAX_NOF_HARQS,
-                               std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
   pdcch_resource_allocator_impl pdcch_alloc{cell_cfg};
   pucch_allocator_impl pucch_alloc{cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot};
   uci_allocator_impl   uci_alloc{pucch_alloc};
+  cell_metrics_handler cell_metrics;
   ue_repository        ues;
   ue_cell_repository&  cell_ues;
   // NOTE: Policy scheduler is part of RAN slice instances created in slice scheduler.
   inter_slice_scheduler slice_sched;
-  cell_metrics_handler  cell_metrics;
   intra_slice_scheduler intra_slice_sched;
 
   slot_point next_slot{0, test_rgen::uniform_int<unsigned>(0, 10239)};

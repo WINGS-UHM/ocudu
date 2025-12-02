@@ -136,16 +136,6 @@ bool ocudu::pucch_info_match(const pucch_info& expected, const pucch_info& test)
   return is_equal;
 }
 
-namespace {
-
-class dummy_harq_timeout_notifier : public harq_timeout_notifier
-{
-public:
-  void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override {}
-};
-
-} // namespace
-
 /////////        TEST BENCH for PUCCH scheduler        /////////
 
 // Test bench with all that is needed for the PUCCH.
@@ -211,12 +201,11 @@ test_bench::test_bench(const test_bench_params& params,
 
     return *cell_cfg_list[to_du_cell_index(0)];
   }()},
-  cell_harqs{MAX_NOF_DU_UES, MAX_NOF_HARQS, std::make_unique<dummy_harq_timeout_notifier>()},
   dci_info{make_default_dci(params.n_cces, &cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value())},
   k0(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0),
   max_pucchs_per_slot{max_pucchs_per_slot_},
   max_ul_grants_per_slot{max_ul_grants_per_slot_},
-  ue_cell_db(ues.add_cell(to_du_cell_index(0))),
+  ue_cell_db(ues.add_cell(cell_cfg, nullptr)),
   pucch_f2_f3_more_prbs{params.pucch_f2_f3_more_prbs},
   formats(params.formats),
   pucch_alloc{cell_cfg, max_pucchs_per_slot, max_ul_grants_per_slot},
@@ -347,7 +336,7 @@ test_bench::test_bench(const test_bench_params& params,
   ue_req_main = ue_req;
   ue_ded_cfgs.push_back(
       std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));
-  ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt, cell_harqs);
+  ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
   uci_sched.add_ue(ues[ue_req.ue_index].get_pcell().cfg());
   last_allocated_rnti   = ue_req.crnti;
   last_allocated_ue_idx = main_ue_idx;
@@ -379,7 +368,7 @@ void test_bench::add_ue()
 
   ue_ded_cfgs.push_back(
       std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));
-  ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt, cell_harqs);
+  ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
   last_allocated_rnti = ue_req.crnti;
 }
 

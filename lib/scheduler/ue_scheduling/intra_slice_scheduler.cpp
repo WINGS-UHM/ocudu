@@ -132,12 +132,11 @@ intra_slice_scheduler::intra_slice_scheduler(const scheduler_ue_expert_config& e
                                              uci_allocator&                    uci_alloc_,
                                              cell_resource_allocator&          cell_alloc_,
                                              cell_metrics_handler&             cell_metrics_,
-                                             cell_harq_manager&                cell_harqs_,
                                              ocudulog::basic_logger&           logger_) :
   expert_cfg(expert_cfg_),
   cell_alloc(cell_alloc_),
   cell_metrics(cell_metrics_),
-  cell_harqs(cell_harqs_),
+  cell_harqs(ues_.cell(cell_alloc_.cell_index()).get_cell_harqs()),
   uci_alloc(uci_alloc_),
   ues(ues_),
   logger(logger_),

@@ -200,7 +200,7 @@ ue_cell_event_manager::ue_cell_event_manager(ue_event_manager&          parent_,
   logger(logger_),
   cfg(cell_ev.cell_res_grid.cfg),
   res_grid(cell_ev.cell_res_grid),
-  cell_harqs(cell_ev.cell_harqs),
+  cell_harqs(cell_ev.ue_cell_db.get_cell_harqs()),
   fallback_sched(cell_ev.fallback_sched),
   uci_sched(cell_ev.uci_sched),
   slice_sched(cell_ev.slice_sched),
@@ -273,7 +273,7 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
     // Insert UE in UE repository.
     const du_cell_index_t pcell_index    = ev.next_config().pcell_common_cfg().cell_index;
     bool                  is_in_fallback = ev.get_fallback_command().has_value() and ev.get_fallback_command().value();
-    ue_db.add_ue(ev.next_config(), is_in_fallback, ev.get_ul_ccch_slot_rx(), cell_harqs);
+    ue_db.add_ue(ev.next_config(), is_in_fallback, ev.get_ul_ccch_slot_rx());
 
     const auto& added_ue = ue_db[ue_index];
     for (unsigned i = 0, e = added_ue.nof_cells(); i != e; ++i) {
@@ -342,7 +342,7 @@ void ue_cell_event_manager::handle_ue_reconfiguration(ue_config_update_event ev)
     }
 
     // Configure existing UE.
-    ue_db.reconfigure_ue(ev.next_config(), ev.is_reestablished(), cell_harqs);
+    ue_db.reconfigure_ue(ev.next_config(), ev.is_reestablished());
 
     // Update slice scheduler.
     for (unsigned i = 0, e = u.nof_cells(); i != e; ++i) {

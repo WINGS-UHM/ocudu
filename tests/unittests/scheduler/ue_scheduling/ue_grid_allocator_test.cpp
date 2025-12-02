@@ -48,7 +48,7 @@ protected:
       ocudu_assert(cfg != nullptr, "Cell configuration failed");
       return cfg;
     }()),
-    cell_ues(ues.add_cell(to_du_cell_index(0))),
+    cell_ues(ues.add_cell(cell_cfg, nullptr)),
     slice_ues(ran_slice_id_t{0}, to_du_cell_index(0), ues),
     alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, res_grid, logger),
     current_slot(cfg_builder_params.scs_common, 0)
@@ -75,7 +75,6 @@ protected:
     logger.set_context(current_slot.sfn(), current_slot.slot_index());
 
     res_grid.slot_indication(current_slot);
-    cell_harqs.slot_indication(current_slot);
     pdcch_alloc.slot_indication(current_slot);
     pucch_alloc.slot_indication(current_slot);
     uci_alloc.slot_indication(current_slot);
@@ -133,7 +132,7 @@ protected:
   ue& add_ue(const sched_ue_creation_request_message& ue_creation_req)
   {
     auto ev = cfg_mng.add_ue(ue_creation_req);
-    ues.add_ue(ev.next_config(), ue_creation_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ues.add_ue(ev.next_config(), ue_creation_req.starts_in_fallback, std::nullopt);
     for (const auto& lc_cfg : *ue_creation_req.cfg.lc_config_list) {
       slice_ues.add_logical_channel(ues[ue_creation_req.ue_index], lc_cfg.lcid, lc_cfg.lc_group);
     }
@@ -222,9 +221,6 @@ protected:
   sched_config_manager       cfg_mng{scheduler_config{sched_cfg, mac_notif}, metrics};
   const cell_configuration&  cell_cfg;
 
-  cell_harq_manager       cell_harqs{MAX_NOF_DU_UES,
-                               MAX_NOF_HARQS,
-                               std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
   cell_resource_allocator res_grid{cell_cfg};
 
   pdcch_resource_allocator_impl pdcch_alloc{cell_cfg};
@@ -525,7 +521,7 @@ TEST_P(ue_grid_allocator_tester, successfully_allocates_pdsch_with_gbr_lc_priori
   (*cfg_req.lc_config_list)[3].qos->arp_priority = arp_prio_level_t::max();
   (*cfg_req.lc_config_list)[3].qos->gbr_qos_info = gbr_qos_flow_information{128000, 128000, 128000, 128000};
   ue_config_update_event ev                      = cfg_mng.update_ue(reconf_msg);
-  ues.reconfigure_ue(ev.next_config(), false, cell_harqs);
+  ues.reconfigure_ue(ev.next_config(), false);
   ues.ue_config_applied(ev.get_ue_index());
 
   // Add LCID to the bearers of the UE belonging to this slice.

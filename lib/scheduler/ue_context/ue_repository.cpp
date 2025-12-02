@@ -92,6 +92,11 @@ void ue_repository::slot_indication(slot_point sl_tx)
     ues_to_rem.pop();
   }
 
+  // Update state of existing cells.
+  for (auto& c : cell_ues) {
+    c->slot_indication(sl_tx);
+  }
+
   // Update state of existing UEs.
   lc_ch_sys.slot_indication();
   for (auto& u : ues) {
@@ -99,11 +104,12 @@ void ue_repository::slot_indication(slot_point sl_tx)
   }
 }
 
-ue_cell_repository& ue_repository::add_cell(du_cell_index_t cell_index)
+ue_cell_repository& ue_repository::add_cell(const cell_configuration& cell_cfg, cell_metrics_handler* cell_metrics)
 {
-  ocudu_sanity_check(not cell_ues.contains(cell_index), "Cell index {} is duplicate", fmt::underlying(cell_index));
-  cell_ues.emplace(cell_index, std::make_unique<ue_cell_repository>(cell_index, logger));
-  return *cell_ues[cell_index];
+  ocudu_sanity_check(
+      not cell_ues.contains(cell_cfg.cell_index), "Cell index {} is duplicate", fmt::underlying(cell_cfg.cell_index));
+  cell_ues.emplace(cell_cfg.cell_index, std::make_unique<ue_cell_repository>(cell_cfg, cell_metrics));
+  return *cell_ues[cell_cfg.cell_index];
 }
 
 void ue_repository::rem_cell(du_cell_index_t cell_index)
@@ -113,8 +119,7 @@ void ue_repository::rem_cell(du_cell_index_t cell_index)
 
 void ue_repository::add_ue(const ue_configuration&   ue_cfg,
                            bool                      starts_in_fallback,
-                           std::optional<slot_point> ul_ccch_slot_rx,
-                           cell_harq_manager&        cell_harqs)
+                           std::optional<slot_point> ul_ccch_slot_rx)
 {
   ocudu_assert(not ues.contains(ue_cfg.ue_index), "UE with duplicate index being added to the repository");
 
@@ -143,8 +148,8 @@ void ue_repository::add_ue(const ue_configuration&   ue_cfg,
   for (unsigned i = 0, sz = ue_cfg.nof_cells(); i != sz; ++i) {
     const auto&           cell_cfg   = ue_cfg.ue_cell_cfg(to_ue_cell_index(i));
     const du_cell_index_t cell_index = cell_cfg.cell_cfg_common.cell_index;
-    auto&                 ue_cc      = cell_ues[cell_index]->add_ue(
-        ue_cfg, to_ue_cell_index(i), cell_harqs, ue_drx_controllers[ue_index], ul_ccch_slot_rx);
+    auto&                 ue_cc =
+        cell_ues[cell_index]->add_ue(ue_cfg, to_ue_cell_index(i), ue_drx_controllers[ue_index], ul_ccch_slot_rx);
     cell_lookup.du_cells.emplace(cell_index, &ue_cc);
     cell_lookup.ue_cells.push_back(&ue_cc);
   }
@@ -155,20 +160,14 @@ void ue_repository::add_ue(const ue_configuration&   ue_cfg,
   }
 
   // Add UE in the repository.
-  ues.emplace(ue_index,
-              ue_cfg,
-              std::move(ue_lc_mng),
-              ue_drx_controllers[ue_index],
-              ta_managers[ue_index],
-              cell_lookup,
-              cell_harqs);
+  ues.emplace(ue_index, ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], ta_managers[ue_index], cell_lookup);
 
   // Update RNTI -> UE index lookup.
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
   ocudu_assert(res.second, "UE with duplicate RNTI being added to the repository");
 }
 
-void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestablished_, cell_harq_manager& cell_harqs)
+void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestablished_)
 {
   ocudu_assert(
       ues.contains(new_cfg.ue_index), "ue={} : UE not found in the repository", fmt::underlying(new_cfg.ue_index));
@@ -207,7 +206,7 @@ void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestab
     if (not prev_cell_lookup.du_cells.contains(cell_index)) {
       // New cell being instantiated.
       auto& ue_cc = cell_ues[cell_index]->add_ue(
-          new_cfg, to_ue_cell_index(i), cell_harqs, ue_drx_controllers[new_cfg.ue_index], std::nullopt);
+          new_cfg, to_ue_cell_index(i), ue_drx_controllers[new_cfg.ue_index], std::nullopt);
       new_lookup.du_cells.emplace(cell_index, &ue_cc);
       new_lookup.ue_cells.push_back(&ue_cc);
     } else {
@@ -288,7 +287,6 @@ void ue_repository::rem_ue(const ue& u)
   // Remove UE components.
   ue_drx_controllers.erase(ue_idx);
   ta_managers.erase(ue_idx);
-  ues[ue_idx].logical_channels().reset();
 
   // Remove UE from RNTI->UE lookup.
   auto it = rnti_to_ue_index_lookup.find(crnti);
@@ -329,4 +327,7 @@ void ue_repository::handle_cell_deactivation(du_cell_index_t cell_index)
       }
     }
   }
+
+  // Stop cell activity.
+  cell_ues[cell_index]->deactivate();
 }

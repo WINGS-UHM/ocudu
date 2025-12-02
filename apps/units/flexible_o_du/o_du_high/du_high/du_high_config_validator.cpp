@@ -310,11 +310,6 @@ static bool validate_pdsch_cell_unit_config(const du_high_unit_pdsch_config& con
     return false;
   }
 
-  if (config.harq_mode_b and not is_ntn_band) {
-    fmt::print("DL HARQ Mode B can be used only in NTN cells.\n");
-    return false;
-  }
-
   return true;
 }
 

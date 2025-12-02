@@ -97,10 +97,7 @@ public:
 class base_harq_manager_test
 {
 protected:
-  base_harq_manager_test(unsigned nof_ues,
-                         unsigned ntn_cs_koffset = 0,
-                         bool     dl_harq_mode_b = false,
-                         bool     ul_harq_mode_b = false) :
+  base_harq_manager_test(unsigned nof_ues, unsigned ntn_cs_koffset = 0, bool ul_harq_mode_b = false) :
     cell_harqs(nof_ues,
                max_harqs_per_ue,
                timeout_handler.make_notifier(),
@@ -109,7 +106,6 @@ protected:
                max_harq_retx_timeout,
                max_ack_wait_timeout,
                ntn_cs_koffset,
-               dl_harq_mode_b,
                ul_harq_mode_b)
   {
     logger.set_level(ocudulog::basic_levels::warning);
@@ -140,11 +136,8 @@ protected:
 class base_single_harq_entity_test : public base_harq_manager_test
 {
 protected:
-  base_single_harq_entity_test(unsigned max_retxs_      = 4,
-                               unsigned ntn_cs_koffset_ = 0,
-                               bool     dl_harq_mode_b  = false,
-                               bool     ul_harq_mode_b  = false) :
-    base_harq_manager_test(1, ntn_cs_koffset_, dl_harq_mode_b, ul_harq_mode_b)
+  base_single_harq_entity_test(unsigned max_retxs_ = 4, unsigned ntn_cs_koffset_ = 0, bool ul_harq_mode_b = false) :
+    base_harq_manager_test(1, ntn_cs_koffset_, ul_harq_mode_b)
   {
     max_retxs      = max_retxs_;
     ntn_cs_koffset = ntn_cs_koffset_;
@@ -179,11 +172,8 @@ class single_ue_harq_entity_test : public base_single_harq_entity_test, public :
 class single_harq_process_test : public base_single_harq_entity_test, public ::testing::Test
 {
 protected:
-  single_harq_process_test(unsigned max_retxs_      = 4,
-                           unsigned ntn_cs_koffset_ = 0,
-                           bool     dl_harq_mode_b  = false,
-                           bool     ul_harq_mode_b  = false) :
-    base_single_harq_entity_test(max_retxs_, ntn_cs_koffset_, dl_harq_mode_b, ul_harq_mode_b)
+  single_harq_process_test(unsigned max_retxs_ = 4, unsigned ntn_cs_koffset_ = 0, bool ul_harq_mode_b = false) :
+    base_single_harq_entity_test(max_retxs_, ntn_cs_koffset_, ul_harq_mode_b)
   {
     ue_pdsch = make_dummy_ue_pdsch_info();
     dl_harq_alloc_context harq_ctxt{dci_dl_rnti_config_type::c_rnti_f1_0};
@@ -294,7 +284,7 @@ class single_ue_harq_entity_harq_5bit_tester : public base_single_harq_entity_te
 class single_ntn_ue_harq_process_test : public single_harq_process_test
 {
 public:
-  single_ntn_ue_harq_process_test() : single_harq_process_test(0, NTN_CELL_SPECIFIC_KOFFSET_MAX, true, true) {}
+  single_ntn_ue_harq_process_test() : single_harq_process_test(0, NTN_CELL_SPECIFIC_KOFFSET_MAX, true) {}
 };
 
 } // namespace
@@ -1059,8 +1049,7 @@ TEST_F(multi_ue_harq_manager_test, when_new_tx_occur_for_different_ues_then_ndi_
 
 TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_allocated_then_it_flushes_soon_after)
 {
-  // Note: DL HARQ Mode B enabled by default.
-  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::normal);
   ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::normal);
 
   // We cannot flush in the next TTI, as we need to disambiguate HARQ IDs in case a HARQ-ACK contains ACKs for several
@@ -1078,14 +1067,10 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_allocated_then_i
   ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
   h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
 
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::normal);
+  ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+
   while (current_slot != std::max(slot_dl_timeout, slot_ul_timeout) + 1) {
-    if (current_slot < slot_dl_timeout) {
-      ASSERT_TRUE(h_dl.is_waiting_ack());
-      ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
-    } else {
-      ASSERT_TRUE(h_dl.empty());
-      ASSERT_FALSE(harq_ent.dl_harq(to_harq_id(0)).has_value());
-    }
     if (current_slot < slot_ul_timeout) {
       ASSERT_TRUE(h_ul.is_waiting_ack());
       ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(0)));
@@ -1099,8 +1084,7 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_allocated_then_i
 
 TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_after_timeout)
 {
-  // Note: DL HARQ Mode B enabled by default.
-  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::normal);
   ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::normal);
 
   slot_point slot_dl_timeout = current_slot + k1 + 1;
@@ -1118,6 +1102,9 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_
   ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
   h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
 
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::normal);
+  ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+
   // HARQ available, NTN HARQ history available
   ASSERT_TRUE(h_dl.is_waiting_ack());
   ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
@@ -1128,36 +1115,15 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_
   while (current_slot != std::max(slot_dl_timeout, slot_ul_timeout)) {
     run_slot();
   }
-  ASSERT_TRUE(h_dl.empty());
-  ASSERT_FALSE(harq_ent.dl_harq(to_harq_id(0)).has_value());
+
   ASSERT_TRUE(h_ul.empty());
   ASSERT_FALSE(harq_ent.ul_harq(to_harq_id(0)).has_value());
   // Get HARQ handlers from the NTN HARQ history.
-  h_dl = harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).value();
   h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
-  ASSERT_FALSE(h_dl.empty() and h_ul.empty());
-  ASSERT_EQ(h_dl.get_grant_params().tbs_bytes, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
   ASSERT_EQ(h_ul.get_grant_params().tbs_bytes, pusch_info.tb_size_bytes);
   ASSERT_EQ(h_ul.get_grant_params().tbs_bytes, harq_ent.total_ul_bytes_waiting_ack());
 
   while (current_slot != std::max(uci_slot, pusch_slot) + 1) {
-    if (current_slot < uci_slot) {
-      h_dl = harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).value();
-      ASSERT_FALSE(h_dl.empty());
-      ASSERT_EQ(h_dl.get_grant_params().tbs_bytes, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
-    } else if (current_slot == uci_slot) {
-      // At uci_slot, DL HARQ history still waiting for ACK.
-      h_dl = harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).value();
-      ASSERT_FALSE(h_dl.empty());
-      ASSERT_TRUE(h_dl.is_waiting_ack());
-      ASSERT_EQ(h_dl.get_grant_params().tbs_bytes, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
-      ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-                dl_harq_process_handle::status_update::acked);
-      ASSERT_TRUE(h_dl.empty());
-    } else {
-      // After uci_slot and ack, DL HARQ history not available
-      ASSERT_FALSE(harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).has_value());
-    }
     if (current_slot < pusch_slot) {
       h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
       ASSERT_FALSE(h_ul.empty());
@@ -1182,8 +1148,7 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_harq_history_is_reachable_
 
 TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_gets_acked_then_it_reports_the_correct_tbs)
 {
-  // Note: DL HARQ Mode B enabled by default.
-  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::normal);
   ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::normal);
 
   slot_point uci_slot   = current_slot + ntn_cs_koffset + k1;
@@ -1199,16 +1164,13 @@ TEST_F(single_ntn_ue_harq_process_test, harq_disabled_when_harq_gets_acked_then_
   ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
   h_ul.save_grant_params(ul_harq_ctxt, pusch_info);
 
+  ASSERT_EQ(h_dl.mode(), harq_utils::harq_mode_t::normal);
+  ASSERT_EQ(h_ul.mode(), harq_utils::harq_mode_t::feedback_disabled_or_mode_b);
+
   while (current_slot != uci_slot) {
     run_slot();
   }
-  h_dl = harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).value();
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-            dl_harq_process_handle::status_update::acked);
-  ASSERT_EQ(h_dl.get_grant_params().tbs_bytes, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
-  while (current_slot != pusch_slot) {
-    run_slot();
-  }
+
   h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
   ASSERT_EQ(harq_ent.total_ul_bytes_waiting_ack(), pusch_info.tb_size_bytes);
   ASSERT_EQ(h_ul.ul_crc_info(true), pusch_info.tb_size_bytes);

@@ -125,9 +125,6 @@ struct du_cell_config {
   /// Defines the maximum allowable channel delay in slots when running in NTN mode. see TS38.300 section 16.14.2.
   unsigned ntn_cs_koffset = 0;
 
-  /// Whether DL HARQ Mode B is enabled for this NTN cell.
-  bool dl_harq_mode_b = false;
-
   /// Whether UL HARQ Mode B is enabled for this NTN cell (if there is at least one UL HARQ process in mode B).
   bool ul_harq_mode_b = false;
 

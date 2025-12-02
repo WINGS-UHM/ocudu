@@ -264,8 +264,6 @@ static void configure_cli11_pdsch_args(CLI::App& app, du_high_unit_pdsch_config&
   add_option(app, "--fixed_sib1_mcs", pdsch_params.fixed_sib1_mcs, "Fixed SIB1 MCS")
       ->capture_default_str()
       ->check(CLI::Range(0, 28));
-  add_option(app, "--harq_mode_b", pdsch_params.harq_mode_b, "Set HARQ Mode B (only for NTN cells)")
-      ->always_capture_default();
   add_option(app, "--nof_harqs", pdsch_params.nof_harqs, "Number of DL HARQ processes")
       ->capture_default_str()
       ->check(CLI::IsMember({2, 4, 6, 8, 10, 12, 16, 32}));

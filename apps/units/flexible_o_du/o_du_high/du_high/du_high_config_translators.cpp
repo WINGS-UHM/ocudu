@@ -535,7 +535,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       }
     }
 
-    out_cell.dl_harq_mode_b = cell.cell.pdsch_cfg.harq_mode_b;
     out_cell.ul_harq_mode_b = cell.cell.pusch_cfg.harq_mode_b.any();
 
     // Parameters for PUCCH-ConfigCommon.

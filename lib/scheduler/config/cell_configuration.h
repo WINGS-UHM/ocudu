@@ -80,8 +80,6 @@ public:
   /// NTN parameters.
   /// Cell-Specific K-offset.
   unsigned ntn_cs_koffset;
-  /// DL HARQ Mode B.
-  bool dl_harq_mode_b;
   /// UL HARQ Mode B.
   bool ul_harq_mode_b;
 

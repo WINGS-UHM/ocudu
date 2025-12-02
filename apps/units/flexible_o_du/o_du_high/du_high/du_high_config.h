@@ -147,9 +147,6 @@ struct du_high_unit_pdsch_config {
   unsigned fixed_rar_mcs = 0;
   /// SI modulation and coding scheme index.
   unsigned fixed_sib1_mcs = 5;
-  /// Set DL HARQ Mode B in NTN cell.
-  /// HARQ mode B allows scheduling and reusing a HARQ process before the RTT of the previous HARQ process has elapsed.
-  bool harq_mode_b = false;
   /// Number of UE DL HARQ processes.
   unsigned nof_harqs = 16;
   /// Maximum number of times a DL HARQ process can be retransmitted, before it gets discarded.

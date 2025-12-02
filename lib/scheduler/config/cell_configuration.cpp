@@ -52,7 +52,6 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   band(msg.dl_carrier.band),
   L_max(ssb_get_L_max(msg.ssb_config.scs, msg.dl_carrier.arfcn_f_ref, msg.dl_carrier.band)),
   ntn_cs_koffset(msg.ntn_cs_koffset),
-  dl_harq_mode_b(msg.dl_harq_mode_b),
   ul_harq_mode_b(msg.ul_harq_mode_b)
 {
   // Initiate dedicated sched BWP configs.

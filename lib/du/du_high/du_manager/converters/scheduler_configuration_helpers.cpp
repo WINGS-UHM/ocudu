@@ -67,7 +67,6 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.nof_beams            = 1;
   // NTN parameters.
   sched_req.ntn_cs_koffset = du_cfg.ntn_cs_koffset;
-  sched_req.dl_harq_mode_b = du_cfg.dl_harq_mode_b;
   sched_req.ul_harq_mode_b = du_cfg.ul_harq_mode_b;
 
   sched_req.coreset0     = du_cfg.coreset0_idx;

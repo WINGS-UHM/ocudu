@@ -440,7 +440,6 @@ public:
                     unsigned                               ul_harq_retx_timeout = DEFAULT_HARQ_RETX_TIMEOUT_SLOTS,
                     unsigned                               max_ack_wait_timeout = DEFAULT_ACK_TIMEOUT_SLOTS,
                     unsigned                               ntn_cs_koffset       = 0,
-                    bool                                   dl_harq_mode_b       = false,
                     bool                                   ul_harq_mode_b       = false);
 
   /// Update slot, and checks if there are HARQ processes that have reached maxReTx with no ACK

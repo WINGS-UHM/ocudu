@@ -480,10 +480,6 @@ void cell_harq_repository<IsDl>::reserve_ue_harqs(du_ue_index_t ue_idx, rnti_t r
     ues[ue_idx].harqs[h_id].h_id                     = h_id;
     ues[ue_idx].harqs[h_id].ndi                      = false;
     ues[ue_idx].harqs[h_id].mode                     = harq_mode_t::normal;
-
-    if (IsDl and is_ntn_harq_mode_b_enabled()) {
-      ues[ue_idx].harqs[h_id].mode = harq_mode_t::feedback_disabled_or_mode_b;
-    }
   }
 }
 
@@ -573,11 +569,9 @@ cell_harq_manager::cell_harq_manager(unsigned                               max_
                                      unsigned                               ul_harq_retx_timeout,
                                      unsigned                               max_ack_wait_timeout,
                                      unsigned                               ntn_cs_koffset,
-                                     bool                                   dl_harq_mode_b,
                                      bool                                   ul_harq_mode_b) :
   max_harqs_per_ue(max_harqs_per_ue_),
-  dl_timeout_notifier(dl_notifier != nullptr and not dl_harq_mode_b ? std::move(dl_notifier)
-                                                                    : std::make_unique<noop_harq_timeout_notifier>()),
+  dl_timeout_notifier(dl_notifier != nullptr ? std::move(dl_notifier) : std::make_unique<noop_harq_timeout_notifier>()),
   ul_timeout_notifier(not ul_harq_mode_b ? std::move(ul_notifier) : std::make_unique<noop_harq_timeout_notifier>()),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   dl(max_ues,
@@ -585,7 +579,7 @@ cell_harq_manager::cell_harq_manager(unsigned                               max_
      dl_harq_retx_timeout,
      max_harqs_per_ue,
      ntn_cs_koffset,
-     dl_harq_mode_b,
+     false,
      *dl_timeout_notifier,
      logger),
   ul(max_ues,
@@ -725,11 +719,6 @@ dl_harq_process_handle::status_update dl_harq_process_handle::dl_ack_info(mac_ha
   impl->pucch_ack_to_receive--;
   impl->ack_on_timeout = impl->chosen_ack == mac_harq_ack_report_status::ack;
 
-  if (impl->mode == harq_mode_t::feedback_disabled_or_mode_b) {
-    // Timeouts don't need to be updated in NTN mode B.
-    return status_update::no_update;
-  }
-
   // We reduce the HARQ process timeout to receive the next HARQ-ACK. This is done because the two HARQ-ACKs should
   // arrive almost simultaneously, and in case the second goes missing, we don't want to block the HARQ for too long.
   auto& wheel = harq_repo->harq_timeout_wheel;
@@ -790,11 +779,6 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
   prev_params.mcs         = cw.mcs_index;
   prev_params.rbs         = pdsch.rbs;
   prev_params.nof_symbols = pdsch.symbols.length();
-
-  if (impl->mode == harq_mode_t::feedback_disabled_or_mode_b) {
-    // In NTN mode B, save the HARQ info in history.
-    harq_repo->alloc_hist->save_harq_newtx_info(*impl);
-  }
 }
 
 bool ul_harq_process_handle::new_retx(slot_point pusch_slot)
@@ -1044,14 +1028,6 @@ std::optional<ul_harq_process_handle> unique_ue_harq_entity::find_ul_harq_waitin
 std::optional<dl_harq_process_handle> unique_ue_harq_entity::find_dl_harq_waiting_ack(slot_point uci_slot,
                                                                                       uint8_t    harq_bit_idx)
 {
-  if (cell_harq_mgr->dl.is_ntn_harq_mode_b_enabled()) {
-    // First try to find in the allocation history.
-    auto harq_mode_b = cell_harq_mgr->dl.alloc_hist->find_dl_harq(ue_index, uci_slot, harq_bit_idx);
-    if (harq_mode_b.has_value()) {
-      return harq_mode_b;
-    }
-  }
-
   std::vector<dl_harq_process_impl>& dl_harqs = cell_harq_mgr->dl.ues[ue_index].harqs;
   for (dl_harq_process_impl& h : dl_harqs) {
     if (h.mode == harq_utils::harq_mode_t::normal and h.status == harq_utils::harq_state_t::waiting_ack and

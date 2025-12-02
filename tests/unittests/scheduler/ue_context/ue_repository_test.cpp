@@ -35,8 +35,7 @@ protected:
         builder_params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
     ue_config_update_event  ev     = cfg_mng.add_ue(ue_req);
     const ue_configuration& ue_cfg = ev.next_config();
-    auto                    u      = std::make_unique<ue>(ue_cfg);
-    ue_db.add_ue(std::move(u), ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx, cell_harqs);
+    ue_db.add_ue(ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx, cell_harqs);
   }
 
   pdsch_config_params get_pdsch_cfg_params(const ue_cell&                               ue_cc,

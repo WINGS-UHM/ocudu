@@ -13,35 +13,24 @@
 
 using namespace ocudu;
 
-ue::ue(const ue_configuration& cfg) :
+ue::ue(const ue_configuration&       cfg,
+       ue_logical_channel_repository lch_repo,
+       ue_drx_controller&            drx_ctrl,
+       ta_manager&                   ta_mgr_,
+       const ue_cell_lookup&         ue_cells_,
+       cell_harq_manager&            pcell_harq_pool_) :
   ue_index(cfg.ue_index),
   crnti(cfg.crnti),
   expert_cfg(cfg.expert_cfg()),
   cell_cfg_common(cfg.pcell_cfg().cell_cfg_common),
   ue_ded_cfg(&cfg),
+  pcell_harq_pool(&pcell_harq_pool_),
+  lc_ch_mgr(std::move(lch_repo)),
+  ta_mgr(&ta_mgr_),
+  drx(&drx_ctrl),
+  cells(&ue_cells_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
-}
-
-void ue::setup(const ue_configuration&       ue_cfg,
-               ue_logical_channel_repository dl_lch_repo,
-               ue_drx_controller&            drx_ctrl,
-               ta_manager&                   ta_mgr_,
-               const ue_cell_lookup&         ue_cells_,
-               cell_harq_manager&            pcell_harq_pool_)
-{
-  pcell_harq_pool = &pcell_harq_pool_;
-  drx             = &drx_ctrl;
-  ta_mgr          = &ta_mgr_;
-  ue_ded_cfg      = &ue_cfg;
-  cells           = &ue_cells_;
-
-  // Setups UE DL logical channel manager.
-  lc_ch_mgr = std::move(dl_lch_repo);
-  lc_ch_mgr.configure(ue_ded_cfg->logical_channels());
-
-  // Apply UE dedicated configuration.
-  ue_ded_cfg = &ue_cfg;
 }
 
 void ue::slot_indication(slot_point sl_tx)

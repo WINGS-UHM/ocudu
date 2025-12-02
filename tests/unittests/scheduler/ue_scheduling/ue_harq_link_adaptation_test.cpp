@@ -51,8 +51,7 @@ protected:
     }
     ue_ded_cfg.emplace(
         ue_creation_req.ue_index, ue_creation_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_creation_req));
-    auto ue_obj = std::make_unique<ue>(*ue_ded_cfg);
-    ues.add_ue(std::move(ue_obj), *ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt, cell_harqs);
+    ues.add_ue(*ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt, cell_harqs);
     ue_ptr = &ues[ue_creation_req.ue_index];
     ue_cc  = &ue_ptr->get_cell(to_ue_cell_index(0));
   }

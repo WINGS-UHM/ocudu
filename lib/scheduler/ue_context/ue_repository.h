@@ -22,7 +22,7 @@ namespace ocudu {
 /// Container that stores all scheduler UEs.
 class ue_repository
 {
-  using ue_list = slotted_id_table<du_ue_index_t, std::unique_ptr<ue>, MAX_NOF_DU_UES>;
+  using ue_list = slotted_id_table<du_ue_index_t, ue, MAX_NOF_DU_UES>;
 
 public:
   using value_type     = ue_list::value_type;
@@ -38,8 +38,8 @@ public:
   /// \brief Contains ue index.
   bool contains(du_ue_index_t ue_index) const { return ues.contains(ue_index); }
 
-  ue&       operator[](du_ue_index_t ue_index) { return *ues[ue_index]; }
-  const ue& operator[](du_ue_index_t ue_index) const { return *ues[ue_index]; }
+  ue&       operator[](du_ue_index_t ue_index) { return ues[ue_index]; }
+  const ue& operator[](du_ue_index_t ue_index) const { return ues[ue_index]; }
 
   ue_cell_repository& add_cell(du_cell_index_t cell_index);
   void                rem_cell(du_cell_index_t cell_index);
@@ -53,8 +53,7 @@ public:
   const ue* find_by_rnti(rnti_t rnti) const;
 
   /// \brief Add new UE in the UE repository.
-  void add_ue(std::unique_ptr<ue>       u,
-              const ue_configuration&   ue_cfg,
+  void add_ue(const ue_configuration&   ue_cfg,
               bool                      starts_in_fallback,
               std::optional<slot_point> ul_ccch_slot_rx,
               cell_harq_manager&        cell_harqs);
@@ -70,8 +69,8 @@ public:
 
   bounded_bitset<MAX_NOF_DU_UES> get_ues_with_pending_newtx_data(ran_slice_id_t slice_id, bool is_dl) const;
 
-  ue*       find(du_ue_index_t ue_index) { return ues.contains(ue_index) ? ues[ue_index].get() : nullptr; }
-  const ue* find(du_ue_index_t ue_index) const { return ues.contains(ue_index) ? ues[ue_index].get() : nullptr; }
+  ue*       find(du_ue_index_t ue_index) { return ues.contains(ue_index) ? &ues[ue_index] : nullptr; }
+  const ue* find(du_ue_index_t ue_index) const { return ues.contains(ue_index) ? &ues[ue_index] : nullptr; }
 
   size_t size() const { return ues.size(); }
 
@@ -83,8 +82,6 @@ public:
   const_iterator end() const { return ues.end(); }
 
   const_iterator lower_bound(du_ue_index_t ue_index) const { return ues.lower_bound(ue_index); }
-
-  void destroy_pending_ues();
 
   /// Handle cell deactivation by removing all UEs that are associated with the cell.
   void handle_cell_deactivation(du_cell_index_t cell_index);
@@ -122,9 +119,6 @@ private:
 
   // Last slot indication.
   slot_point last_sl_tx;
-
-  // UE objects pending to be destroyed by a low priority thread.
-  concurrent_queue<std::unique_ptr<ue>, concurrent_queue_policy::lockfree_mpmc> ues_to_destroy;
 };
 
 } // namespace ocudu

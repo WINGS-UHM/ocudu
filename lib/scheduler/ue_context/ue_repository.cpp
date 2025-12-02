@@ -14,7 +14,7 @@
 
 using namespace ocudu;
 
-ue_repository::ue_repository() : logger(ocudulog::fetch_basic_logger("SCHED")), ues_to_destroy(MAX_NOF_DU_UES)
+ue_repository::ue_repository() : logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
 }
@@ -70,7 +70,7 @@ void ue_repository::slot_indication(slot_point sl_tx)
       rem_ev.reset();
       continue;
     }
-    ue&    u     = *ues[ue_idx];
+    ue&    u     = ues[ue_idx];
     rnti_t crnti = u.crnti;
 
     // Check if UEs can be safely removed.
@@ -95,7 +95,7 @@ void ue_repository::slot_indication(slot_point sl_tx)
   // Update state of existing UEs.
   lc_ch_sys.slot_indication();
   for (auto& u : ues) {
-    u->slot_indication(sl_tx);
+    u.slot_indication(sl_tx);
   }
 }
 
@@ -111,15 +111,16 @@ void ue_repository::rem_cell(du_cell_index_t cell_index)
   cell_ues.erase(cell_index);
 }
 
-void ue_repository::add_ue(std::unique_ptr<ue>       u,
-                           const ue_configuration&   ue_cfg,
+void ue_repository::add_ue(const ue_configuration&   ue_cfg,
                            bool                      starts_in_fallback,
                            std::optional<slot_point> ul_ccch_slot_rx,
                            cell_harq_manager&        cell_harqs)
 {
+  ocudu_assert(not ues.contains(ue_cfg.ue_index), "UE with duplicate index being added to the repository");
+
   // Create UE components.
-  const du_ue_index_t      ue_index  = u->ue_index;
-  const rnti_t             rnti      = u->crnti;
+  const du_ue_index_t      ue_index  = ue_cfg.ue_index;
+  const rnti_t             rnti      = ue_cfg.crnti;
   const auto&              pcell_cmn = ue_cfg.pcell_common_cfg();
   const subcarrier_spacing scs       = pcell_cmn.dl_cfg_common.init_dl_bwp.generic_params.scs;
   auto ue_lc_mng = lc_ch_sys.create_ue(ue_index, scs, starts_in_fallback, ue_cfg.logical_channels());
@@ -154,9 +155,13 @@ void ue_repository::add_ue(std::unique_ptr<ue>       u,
   }
 
   // Add UE in the repository.
-  u->setup(ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], ta_managers[ue_index], cell_lookup, cell_harqs);
-  bool ret = ues.insert(ue_index, std::move(u));
-  ocudu_assert(ret, "UE with duplicate index being added to the repository");
+  ues.emplace(ue_index,
+              ue_cfg,
+              std::move(ue_lc_mng),
+              ue_drx_controllers[ue_index],
+              ta_managers[ue_index],
+              cell_lookup,
+              cell_harqs);
 
   // Update RNTI -> UE index lookup.
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
@@ -169,10 +174,10 @@ void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestab
       ues.contains(new_cfg.ue_index), "ue={} : UE not found in the repository", fmt::underlying(new_cfg.ue_index));
   ocudu_sanity_check(new_cfg.nof_cells() > 0, "Creation of a UE requires at least PCell configuration.");
   auto& u      = ues[new_cfg.ue_index];
-  auto& lc_mng = u->logical_channels();
+  auto& lc_mng = u.logical_channels();
 
   // UE enters fallback mode when a Reconfiguration takes place.
-  u->get_pcell().set_fallback_state(true, true, reestablished_);
+  u.get_pcell().set_fallback_state(true, true, reestablished_);
   lc_mng.set_fallback_state(true);
 
   // Configure Logical Channels.
@@ -180,7 +185,7 @@ void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestab
 
   // DRX config.
   if (new_cfg.drx_cfg().has_value()) {
-    u->drx_controller().reconfigure(new_cfg.drx_cfg());
+    u.drx_controller().reconfigure(new_cfg.drx_cfg());
   }
 
   // Update UE cells.
@@ -216,13 +221,13 @@ void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestab
   ue_cell_lookups[new_cfg.ue_index] = std::move(new_lookup);
 
   // Handle UE reconfiguration.
-  u->handle_reconfiguration_request(new_cfg);
+  u.handle_reconfiguration_request(new_cfg);
 }
 
 void ue_repository::ue_config_applied(du_ue_index_t ue_index)
 {
   ocudu_assert(ues.contains(ue_index), "ue={} : UE not found in the repository", fmt::underlying(ue_index));
-  auto& u = *ues[ue_index];
+  auto& u = ues[ue_index];
 
   // The UE gets out of fallback mode once it has applied the new configuration.
   u.get_pcell().set_fallback_state(false, false, false);
@@ -234,14 +239,14 @@ void ue_repository::schedule_ue_rem(ue_config_delete_event ev)
   if (contains(ev.ue_index())) {
     // Start deactivation of UE bearers.
     auto& u = ues[ev.ue_index()];
-    u->deactivate();
+    u.deactivate();
 
     // Register UE for later removal.
     // We define a time window when the UE removal is not allowed, as there are pending CSI/SR PDUs in the resource
     // grid ready to be sent to the PHY. Removing the UE earlier would mean that its PUCCH resources would become
     // available to a newly created UE and there could be a PUCCH collision.
     slot_point rem_slot =
-        last_sl_tx + get_max_slot_ul_alloc_delay(u->get_pcell().cfg().cell_cfg_common.ntn_cs_koffset) + 1;
+        last_sl_tx + get_max_slot_ul_alloc_delay(u.get_pcell().cfg().cell_cfg_common.ntn_cs_koffset) + 1;
     ues_to_rem.push(std::make_pair(rem_slot, std::move(ev)));
   }
 }
@@ -257,20 +262,13 @@ bounded_bitset<MAX_NOF_DU_UES> ue_repository::get_ues_with_pending_newtx_data(ra
 ue* ue_repository::find_by_rnti(rnti_t rnti)
 {
   auto it = rnti_to_ue_index_lookup.find(rnti);
-  return it != rnti_to_ue_index_lookup.end() ? ues[it->second].get() : nullptr;
+  return it != rnti_to_ue_index_lookup.end() ? &ues[it->second] : nullptr;
 }
 
 const ue* ue_repository::find_by_rnti(rnti_t rnti) const
 {
   auto it = rnti_to_ue_index_lookup.find(rnti);
-  return it != rnti_to_ue_index_lookup.end() ? ues[it->second].get() : nullptr;
-}
-
-void ue_repository::destroy_pending_ues()
-{
-  std::unique_ptr<ue> removed_ue;
-  while (ues_to_destroy.try_pop(removed_ue)) {
-  }
+  return it != rnti_to_ue_index_lookup.end() ? &ues[it->second] : nullptr;
 }
 
 void ue_repository::rem_ue(const ue& u)
@@ -290,7 +288,7 @@ void ue_repository::rem_ue(const ue& u)
   // Remove UE components.
   ue_drx_controllers.erase(ue_idx);
   ta_managers.erase(ue_idx);
-  ues[ue_idx]->logical_channels().reset();
+  ues[ue_idx].logical_channels().reset();
 
   // Remove UE from RNTI->UE lookup.
   auto it = rnti_to_ue_index_lookup.find(crnti);
@@ -302,20 +300,14 @@ void ue_repository::rem_ue(const ue& u)
                  crnti);
   }
 
-  // Take the UE from the repository and release its resources.
-  auto ue_ptr = std::move(ues[ue_idx]);
+  // Finally, remove UE from the repository.
   ues.erase(ue_idx);
-
-  // schedule UE object destruction outside the real-time thread.
-  if (not ues_to_destroy.try_push(std::move(ue_ptr))) {
-    logger.warning("Failed to offload UE destruction. Performance may be affected");
-  }
 }
 
 void ue_repository::handle_cell_deactivation(du_cell_index_t cell_index)
 {
-  for (std::unique_ptr<ue>& u : ues) {
-    ue_cell* ue_cc = u->find_cell(cell_index);
+  for (ue& u : ues) {
+    ue_cell* ue_cc = u.find_cell(cell_index);
     if (ue_cc == nullptr) {
       // UE does not have this cell, so we can skip it.
       continue;
@@ -323,7 +315,7 @@ void ue_repository::handle_cell_deactivation(du_cell_index_t cell_index)
 
     // Note: We now remove the UE from the repository, indepedently of whether it is a PCell or SCell. It would be
     // very hard to handle a UE that has a config for a cell that is not active.
-    rem_ue(*u);
+    rem_ue(u);
   }
 
   // We may have removed UEs that were scheduled for removal in an earlier slot. We need to clean up the ues_to_rem.

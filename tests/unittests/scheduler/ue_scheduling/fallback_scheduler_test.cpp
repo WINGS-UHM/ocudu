@@ -116,12 +116,11 @@ struct test_bench {
     }
 
     // Add UE to UE DB.
-    auto u = std::make_unique<ue>(ev.next_config());
     if (ue_db.contains(create_req.ue_index)) {
       // UE already exists.
       return false;
     }
-    ue_db.add_ue(std::move(u), ev.next_config(), create_req.starts_in_fallback, create_req.ul_ccch_slot_rx, cell_harqs);
+    ue_db.add_ue(ev.next_config(), create_req.starts_in_fallback, create_req.ul_ccch_slot_rx, cell_harqs);
     auto& ue = ue_db[create_req.ue_index];
     ue.get_pcell().set_fallback_state(true, false, false);
     ev.notify_completion();

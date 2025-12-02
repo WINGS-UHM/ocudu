@@ -260,25 +260,22 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
 {
   const du_cell_index_t ue_pcell_index = ev.next_config().pcell_common_cfg().cell_index;
 
-  // Create UE object outside the scheduler slot indication handler to minimize latency.
-  std::unique_ptr<ue> u = std::make_unique<ue>(ev.next_config());
-
-  auto handle_ue_creation_impl = [this, u = std::move(u), ev = std::move(ev)]() mutable {
-    if (ue_db.contains(u->ue_index)) {
+  auto handle_ue_creation_impl = [this, ev = std::move(ev)]() mutable {
+    const du_ue_index_t ue_index = ev.get_ue_index();
+    const rnti_t        crnti    = ev.next_config().crnti;
+    if (ue_db.contains(ue_index)) {
       logger.error("ue={} rnti={}: Discarding UE creation. Cause: A UE with the same index already exists",
-                   fmt::underlying(u->ue_index),
-                   u->crnti);
+                   fmt::underlying(ue_index),
+                   crnti);
       return event_result::processed;
     }
 
     // Insert UE in UE repository.
-    du_ue_index_t   ueidx          = u->ue_index;
-    rnti_t          rnti           = u->crnti;
-    du_cell_index_t pcell_index    = ev.next_config().pcell_common_cfg().cell_index;
-    bool            is_in_fallback = ev.get_fallback_command().has_value() and ev.get_fallback_command().value();
-    ue_db.add_ue(std::move(u), ev.next_config(), is_in_fallback, ev.get_ul_ccch_slot_rx(), cell_harqs);
+    const du_cell_index_t pcell_index    = ev.next_config().pcell_common_cfg().cell_index;
+    bool                  is_in_fallback = ev.get_fallback_command().has_value() and ev.get_fallback_command().value();
+    ue_db.add_ue(ev.next_config(), is_in_fallback, ev.get_ul_ccch_slot_rx(), cell_harqs);
 
-    const auto& added_ue = ue_db[ueidx];
+    const auto& added_ue = ue_db[ue_index];
     for (unsigned i = 0, e = added_ue.nof_cells(); i != e; ++i) {
       // Update UCI scheduler with new UE UCI resources.
       uci_sched.add_ue(added_ue.get_cell(to_ue_cell_index(i)).cfg());
@@ -288,11 +285,11 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
 
       // Add UE to slice scheduler.
       // Note: This action only has effect when UE is created in non-fallback mode.
-      slice_sched.add_ue(ueidx);
+      slice_sched.add_ue(ue_index);
     }
 
     // Log Event.
-    ev_logger.enqueue(scheduler_event_logger::ue_creation_event{ueidx, rnti, pcell_index});
+    ev_logger.enqueue(scheduler_event_logger::ue_creation_event{ue_index, crnti, pcell_index});
 
     // Notify config manager that creation is complete with success.
     ev.notify_completion();
@@ -302,9 +299,6 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
 
   // Defer UE object addition to ue list to the slot indication handler.
   push_event(ue_pcell_index, event_t{"ue_add", std::move(handle_ue_creation_impl)});
-
-  // Destroy any pending UEs in the repository outside the critical section.
-  ue_db.destroy_pending_ues();
 }
 
 void ue_cell_event_manager::handle_ue_reconfiguration(ue_config_update_event ev)
@@ -401,9 +395,6 @@ void ue_cell_event_manager::handle_ue_deletion(ue_config_delete_event ev)
   };
 
   push_event(pcell_index, event_t{"ue_rem", ue_index, std::move(handle_ue_deletion_impl)});
-
-  // Destroy any pending UEs in the repository outside the critical section.
-  ue_db.destroy_pending_ues();
 }
 
 void ue_cell_event_manager::handle_ue_config_applied(du_cell_index_t pcell_idx, du_ue_index_t ue_idx)

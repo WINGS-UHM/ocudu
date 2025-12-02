@@ -29,10 +29,16 @@ struct ue_cell_lookup {
   static_vector<ue_cell*, MAX_NOF_DU_CELLS> ue_cells;
 };
 
+/// UE handle used by the MAC scheduler to manage UE-specific state and operations.
 class ue
 {
 public:
-  ue(const ue_configuration& cfg_);
+  ue(const ue_configuration&       cfg_,
+     ue_logical_channel_repository dl_lch_repo,
+     ue_drx_controller&            drx_ctrl,
+     ta_manager&                   ta_mgr_,
+     const ue_cell_lookup&         ue_cells,
+     cell_harq_manager&            pcell_harq_pool_);
   ue(const ue&)            = delete;
   ue(ue&&)                 = delete;
   ue& operator=(const ue&) = delete;
@@ -40,13 +46,6 @@ public:
 
   const du_ue_index_t ue_index;
   const rnti_t        crnti;
-
-  void setup(const ue_configuration&       ue_cfg,
-             ue_logical_channel_repository dl_lch_repo,
-             ue_drx_controller&            drx_ctrl,
-             ta_manager&                   ta_mgr_,
-             const ue_cell_lookup&         ue_cells,
-             cell_harq_manager&            pcell_harq_pool_);
 
   void slot_indication(slot_point sl_tx);
 
@@ -119,21 +118,17 @@ private:
   // Dedicated configuration for the UE.
   const ue_configuration* ue_ded_cfg      = nullptr;
   cell_harq_manager*      pcell_harq_pool = nullptr;
-  ocudulog::basic_logger& logger;
-
   /// UE Logical Channel Manager.
   ue_logical_channel_repository lc_ch_mgr;
-
-  slot_point last_sl_tx;
-
   /// UE Timing Advance Manager.
   ta_manager* ta_mgr = nullptr;
-
   /// Controller of DRX active timer.
   ue_drx_controller* drx = nullptr;
-
   /// Configured cells for the UE.
-  const ue_cell_lookup* cells = nullptr;
+  const ue_cell_lookup*   cells = nullptr;
+  ocudulog::basic_logger& logger;
+
+  slot_point last_sl_tx;
 };
 
 } // namespace ocudu

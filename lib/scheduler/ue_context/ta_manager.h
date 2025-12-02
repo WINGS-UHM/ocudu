@@ -25,7 +25,7 @@ public:
   explicit ta_manager(const scheduler_ta_control_config& ta_cfg_,
                       subcarrier_spacing                 ul_scs_,
                       time_alignment_group::id_t         pcell_tag_id,
-                      ue_logical_channel_repository*     dl_lc_ch_mgr_);
+                      ue_logical_channel_repository_view dl_lc_ch_mgr_);
 
   void update_tags(span<const time_alignment_group::id_t> tag_ids);
 
@@ -36,6 +36,8 @@ public:
   void handle_ul_n_ta_update_indication(time_alignment_group::id_t tag_id, int64_t n_ta_diff_, float ul_sinr);
 
 private:
+  /// (Implementation-defined) Maximum number of TAGs supported.
+  static constexpr size_t MAX_TAG_MEASUREMENTS = 2;
   /// TA command offset for a zero value.
   static constexpr int ta_cmd_offset_zero = 31;
 
@@ -69,7 +71,7 @@ private:
   /// Subcarrier spacing of UL BWP for which Timing Advance Command is applicable.
   const subcarrier_spacing ul_scs;
   /// DL logical channel manager to push Timing Advance Command to UE.
-  ue_logical_channel_repository* dl_lc_ch_mgr = nullptr;
+  ue_logical_channel_repository_view dl_lc_ch_mgr;
   /// TA control config parameters.
   const scheduler_ta_control_config& ta_cfg;
   ocudulog::basic_logger&            logger;
@@ -81,7 +83,7 @@ private:
   /// List of N_TA update (N_TA_new - N_TA_old value in T_C units) measurements maintained per Timing Advance Group.
   /// The array index corresponds to TAG ID. And, the corresponding array value (i.e. vector) holds N_TA update
   /// measurements for that TAG ID.
-  std::vector<tag_measurement> n_ta_reports;
+  static_vector<tag_measurement, MAX_TAG_MEASUREMENTS> n_ta_reports;
   /// State of the Timing Advance manager.
   state_t state;
 };

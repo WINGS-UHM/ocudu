@@ -19,9 +19,14 @@
 
 namespace ocudu {
 
-/// Parameters used to reconfigure a UE.
-struct ue_reconf_command {
-  const ue_configuration& cfg;
+/// \brief Structure to lookup UE cells based on DU cell index or UE-specific cell index.
+struct ue_cell_lookup {
+  /// List of UE cells indexed by \c du_cell_index_t.
+  slotted_id_table<du_cell_index_t, ue_cell*, MAX_NOF_DU_CELLS> du_cells;
+  /// List of UE cells indexed by \c ue_cell_index_t. The size of the list is equal to the number of cells aggregated
+  /// and configured for the UE. PCell corresponds to ue_cell_index=0. the first SCell corresponds to ue_cell_index=1,
+  /// etc.
+  static_vector<ue_cell*, MAX_NOF_DU_CELLS> ue_cells;
 };
 
 class ue
@@ -39,50 +44,32 @@ public:
   void setup(const ue_configuration&       ue_cfg,
              ue_logical_channel_repository dl_lch_repo,
              ue_drx_controller&            drx_ctrl,
-             bool                          starts_fallback,
-             std::optional<slot_point>     ul_ccch_slot_rx,
+             ta_manager&                   ta_mgr_,
+             const ue_cell_lookup&         ue_cells,
              cell_harq_manager&            pcell_harq_pool_);
 
   void slot_indication(slot_point sl_tx);
 
   void deactivate();
 
-  void release_resources();
-
-  ue_cell* find_cell(du_cell_index_t cell_index)
-  {
-    ocudu_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
-    return &ue_du_cells[cell_index];
-  }
-  const ue_cell* find_cell(du_cell_index_t cell_index) const
-  {
-    ocudu_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
-    return &ue_du_cells[cell_index];
-  }
+  ue_cell*       find_cell(du_cell_index_t cell_index) { return cells->du_cells[cell_index]; }
+  const ue_cell* find_cell(du_cell_index_t cell_index) const { return cells->du_cells[cell_index]; }
 
   /// \brief Fetch UE cell based on UE-specific cell identifier. E.g. PCell corresponds to ue_cell_index==0.
-  ue_cell& get_cell(ue_cell_index_t ue_cell_index)
-  {
-    ocudu_assert(ue_cell_index < ue_cells.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
-    return *ue_cells[ue_cell_index];
-  }
-  const ue_cell& get_cell(ue_cell_index_t ue_cell_index) const
-  {
-    ocudu_assert(ue_cell_index < ue_cells.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
-    return *ue_cells[ue_cell_index];
-  }
+  ue_cell&       get_cell(ue_cell_index_t ue_cell_index) { return *cells->ue_cells[ue_cell_index]; }
+  const ue_cell& get_cell(ue_cell_index_t ue_cell_index) const { return *cells->ue_cells[ue_cell_index]; }
 
   /// \brief Fetch UE PCell.
-  ue_cell&       get_pcell() { return *ue_cells[0]; }
-  const ue_cell& get_pcell() const { return *ue_cells[0]; }
+  ue_cell&       get_pcell() { return *cells->ue_cells[0]; }
+  const ue_cell& get_pcell() const { return *cells->ue_cells[0]; }
 
   /// \brief Number of cells configured for the UE.
-  unsigned nof_cells() const { return ue_cells.size(); }
+  unsigned nof_cells() const { return cells->ue_cells.size(); }
 
   /// \brief Returns dedicated configuration for the UE.
   const ue_configuration* ue_cfg_dedicated() const { return ue_ded_cfg; }
 
-  bool is_ca_enabled() const { return ue_cells.size() > 1; }
+  bool is_ca_enabled() const { return cells->ue_cells.size() > 1; }
 
   void activate_cells(bounded_bitset<MAX_NOF_DU_CELLS> activ_bitmap) {}
 
@@ -96,7 +83,7 @@ public:
   void handle_ul_n_ta_update_indication(du_cell_index_t cell_index, float ul_sinr, phy_time_unit n_ta_diff)
   {
     const ue_cell* ue_cc = find_cell(cell_index);
-    ta_mgr.handle_ul_n_ta_update_indication(ue_cc->cfg().tag_id(), n_ta_diff.to_Tc(), ul_sinr);
+    ta_mgr->handle_ul_n_ta_update_indication(ue_cc->cfg().tag_id(), n_ta_diff.to_Tc(), ul_sinr);
   }
 
   /// \brief Handles MAC CE indication.
@@ -108,10 +95,7 @@ public:
   }
 
   /// Called when a new UE configuration is passed to the scheduler, as part of the RRC Reconfiguration procedure.
-  void handle_reconfiguration_request(const ue_reconf_command& params, bool reestablished_);
-
-  /// Called when the UE confirms that it applied the new configuration.
-  void handle_config_applied();
+  void handle_reconfiguration_request(const ue_configuration& new_cfg);
 
   /// \brief Handles DL Buffer State indication.
   void handle_dl_buffer_state_indication(lcid_t lcid, unsigned bs, slot_point hol_toa = {});
@@ -128,9 +112,6 @@ public:
   ue_logical_channel_repository&       logical_channels() { return lc_ch_mgr; }
 
 private:
-  /// Update UE configuration.
-  void set_config(const ue_configuration& new_cfg, std::optional<slot_point> msg3_rx_slot = std::nullopt);
-
   // Expert config parameters used for UE scheduler.
   const scheduler_ue_expert_config& expert_cfg;
   // Cell configuration. This is common to all UEs within the same cell.
@@ -140,25 +121,19 @@ private:
   cell_harq_manager*      pcell_harq_pool = nullptr;
   ocudulog::basic_logger& logger;
 
-  /// List of UE cells indexed by \c du_cell_index_t. If an element is null, it means that the DU cell is not
-  /// configured to be used by the UE.
-  slotted_id_table<du_cell_index_t, ue_cell, MAX_NOF_DU_CELLS> ue_du_cells;
-
-  /// List of UE cells indexed by \c ue_cell_index_t. The size of the list is equal to the number of cells aggregated
-  /// and configured for the UE. PCell corresponds to ue_cell_index=0. the first SCell corresponds to ue_cell_index=1,
-  /// etc.
-  static_vector<ue_cell*, MAX_NOF_DU_CELLS> ue_cells;
-
   /// UE Logical Channel Manager.
   ue_logical_channel_repository lc_ch_mgr;
 
   slot_point last_sl_tx;
 
   /// UE Timing Advance Manager.
-  ta_manager ta_mgr;
+  ta_manager* ta_mgr = nullptr;
 
-  // Controller of DRX active timer.
+  /// Controller of DRX active timer.
   ue_drx_controller* drx = nullptr;
+
+  /// Configured cells for the UE.
+  const ue_cell_lookup* cells = nullptr;
 };
 
 } // namespace ocudu

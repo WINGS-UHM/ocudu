@@ -16,7 +16,7 @@ using namespace ocudu;
 ta_manager::ta_manager(const scheduler_ta_control_config& ta_cfg_,
                        subcarrier_spacing                 ul_scs_,
                        time_alignment_group::id_t         pcell_tag_id,
-                       ue_logical_channel_repository*     dl_lc_ch_mgr_) :
+                       ue_logical_channel_repository_view dl_lc_ch_mgr_) :
   ul_scs(ul_scs_),
   dl_lc_ch_mgr(dl_lc_ch_mgr_),
   ta_cfg(ta_cfg_),
@@ -100,7 +100,7 @@ void ta_manager::slot_indication(slot_point current_sl)
     const unsigned new_t_a = compute_new_t_a(compute_avg_n_ta_difference(tag_idx));
     if (abs(static_cast<int>(new_t_a) - ta_cmd_offset_zero) >= ta_cfg.ta_cmd_offset_threshold) {
       // Send Timing Advance Command to UE.
-      if (dl_lc_ch_mgr->handle_mac_ce_indication(
+      if (dl_lc_ch_mgr.handle_mac_ce_indication(
               {.ce_lcid    = lcid_dl_sch_t::TA_CMD,
                .ce_payload = ta_cmd_ce_payload{.tag_id = tag_id, .ta_cmd = new_t_a}})) {
         ta_cmd_sent = true;

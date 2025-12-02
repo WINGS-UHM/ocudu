@@ -8,30 +8,35 @@
  *
  */
 
+#include "lib/scheduler/config/sched_config_manager.h"
 #include "lib/scheduler/support/sch_pdu_builder.h"
-#include "lib/scheduler/ue_context/logical_channel_system.h"
-#include "lib/scheduler/ue_context/ue_cell.h"
-#include "lib/scheduler/ue_context/ue_drx_controller.h"
+#include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
+#include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 
 /// Test suit to hold context which are required to test a UE cell implementation.
-class ue_repository_tester : public ::testing::Test
+class sched_ue_test : public ::testing::Test
 {
 protected:
-  ue_repository_tester() :
+  sched_ue_test() :
     expert_cfg(config_helpers::make_default_scheduler_expert_config()),
-    sched_cfg(sched_config_helper::make_default_sched_cell_configuration_request()),
-    serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config()),
-    ue_cc_cfg(to_rnti(0x4601), cell_cfg, cfg_pool.update_ue(serv_cell_cfg)),
-    lc_ch_mng(lc_ch_sys.create_ue(to_du_ue_index(0),
-                                  cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs,
-                                  false,
-                                  lc_cfg_pool.create({})))
+    cfg_mng(scheduler_config{expert_cfg, metric_notif}, metrics_handler),
+    sched_cfg(sched_config_helper::make_default_sched_cell_configuration_request(builder_params)),
+    cell_cfg(*cfg_mng.add_cell(sched_cfg)),
+    serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config())
   {
+    ue_db.add_cell(to_du_cell_index(0));
+
+    sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request(
+        builder_params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
+    ue_config_update_event  ev     = cfg_mng.add_ue(ue_req);
+    const ue_configuration& ue_cfg = ev.next_config();
+    auto                    u      = std::make_unique<ue>(ue_cfg);
+    ue_db.add_ue(std::move(u), ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx, cell_harqs);
   }
 
   pdsch_config_params get_pdsch_cfg_params(const ue_cell&                               ue_cc,
@@ -85,37 +90,21 @@ protected:
   }
 
   scheduler_expert_config                  expert_cfg;
+  sched_cfg_dummy_notifier                 metric_notif;
+  scheduler_metrics_handler                metrics_handler;
+  cell_config_builder_params               builder_params;
+  sched_config_manager                     cfg_mng;
   sched_cell_configuration_request_message sched_cfg;
-  cell_configuration                       cell_cfg{expert_cfg, sched_cfg};
+  const cell_configuration&                cell_cfg;
   serving_cell_config                      serv_cell_cfg;
-  logical_channel_config_pool              lc_cfg_pool;
-  du_cell_config_pool                      cfg_pool{sched_cfg};
-  ue_cell_configuration                    ue_cc_cfg;
   cell_harq_manager                        cell_harqs{1, MAX_NOF_HARQS};
-  logical_channel_system                   lc_ch_sys;
-  ue_logical_channel_repository            lc_ch_mng;
   ocudulog::basic_logger&                  logger = ocudulog::fetch_basic_logger("SCHED");
-  ue_drx_controller                        drx_controller{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
-                                   cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
-                                   std::nullopt,
-                                   lc_ch_mng.view(),
-                                   std::nullopt,
-                                   logger};
-  ue_channel_state_manager                 channel_state{expert_cfg.ue, 1};
-  ue_link_adaptation_controller            ue_mcs_calculator{cell_cfg, channel_state};
+  ue_repository                            ue_db;
 };
 
-TEST_F(ue_repository_tester, when_dl_nof_prb_allocated_increases_estimated_dl_rate_increases)
+TEST_F(sched_ue_test, when_dl_nof_prb_allocated_increases_estimated_dl_rate_increases)
 {
-  ue_cell ue_cc{to_du_ue_index(0),
-                to_rnti(0x4601),
-                to_ue_cell_index(0),
-                ue_cc_cfg,
-                cell_harqs,
-                ue_shared_context{drx_controller},
-                std::nullopt};
-  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
-
+  auto&  ue_cc        = ue_db[to_du_ue_index(0)].get_pcell();
   double current_rate = 0;
 
   // We keep MCS constant for this test.
@@ -134,19 +123,12 @@ TEST_F(ue_repository_tester, when_dl_nof_prb_allocated_increases_estimated_dl_ra
   }
 }
 
-TEST_F(ue_repository_tester, when_mcs_increases_estimated_dl_rate_increases)
+TEST_F(sched_ue_test, when_mcs_increases_estimated_dl_rate_increases)
 {
+  auto& ue_cc = ue_db[to_du_ue_index(0)].get_pcell();
+
   // Maximum MCS value for 64QAM MCS table.
   const sch_mcs_index max_mcs = 28;
-
-  ue_cell ue_cc{to_du_ue_index(0),
-                to_rnti(0x4601),
-                to_ue_cell_index(0),
-                ue_cc_cfg,
-                cell_harqs,
-                ue_shared_context{drx_controller},
-                std::nullopt};
-  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
 
   double current_rate = 0;
 
@@ -168,17 +150,9 @@ TEST_F(ue_repository_tester, when_mcs_increases_estimated_dl_rate_increases)
   }
 }
 
-TEST_F(ue_repository_tester, when_ul_nof_prb_allocated_increases_estimated_ul_rate_increases)
+TEST_F(sched_ue_test, when_ul_nof_prb_allocated_increases_estimated_ul_rate_increases)
 {
-  ue_cell ue_cc{to_du_ue_index(0),
-                to_rnti(0x4601),
-                to_ue_cell_index(0),
-                ue_cc_cfg,
-                cell_harqs,
-                ue_shared_context{drx_controller},
-                std::nullopt};
-  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
-
+  auto&  ue_cc        = ue_db[to_du_ue_index(0)].get_pcell();
   double current_rate = 0;
 
   // We keep MCS constant for this test.
@@ -197,19 +171,12 @@ TEST_F(ue_repository_tester, when_ul_nof_prb_allocated_increases_estimated_ul_ra
   }
 }
 
-TEST_F(ue_repository_tester, when_mcs_increases_estimated_ul_rate_increases)
+TEST_F(sched_ue_test, when_mcs_increases_estimated_ul_rate_increases)
 {
+  auto& ue_cc = ue_db[to_du_ue_index(0)].get_pcell();
+
   // Maximum MCS value for 64QAM MCS table.
   const sch_mcs_index max_mcs = 28;
-
-  ue_cell ue_cc{to_du_ue_index(0),
-                to_rnti(0x4601),
-                to_ue_cell_index(0),
-                ue_cc_cfg,
-                cell_harqs,
-                ue_shared_context{drx_controller},
-                std::nullopt};
-  ue_cc.setup(ue_cell_components{&channel_state, &ue_mcs_calculator, nullptr, nullptr});
 
   double current_rate = 0;
 

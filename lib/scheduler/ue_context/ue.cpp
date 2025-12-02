@@ -9,7 +9,6 @@
  */
 
 #include "ue.h"
-#include "../support/dmrs_helpers.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
 using namespace ocudu;
@@ -20,42 +19,35 @@ ue::ue(const ue_configuration& cfg) :
   expert_cfg(cfg.expert_cfg()),
   cell_cfg_common(cfg.pcell_cfg().cell_cfg_common),
   ue_ded_cfg(&cfg),
-  logger(ocudulog::fetch_basic_logger("SCHED")),
-  ta_mgr(expert_cfg.ta_control,
-         cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs,
-         ue_ded_cfg->pcell_cfg().tag_id(),
-         &lc_ch_mgr)
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
 }
 
 void ue::setup(const ue_configuration&       ue_cfg,
                ue_logical_channel_repository dl_lch_repo,
                ue_drx_controller&            drx_ctrl,
-               bool                          starts_fallback,
-               std::optional<slot_point>     ul_ccch_slot_rx,
+               ta_manager&                   ta_mgr_,
+               const ue_cell_lookup&         ue_cells_,
                cell_harq_manager&            pcell_harq_pool_)
 {
   pcell_harq_pool = &pcell_harq_pool_;
   drx             = &drx_ctrl;
+  ta_mgr          = &ta_mgr_;
   ue_ded_cfg      = &ue_cfg;
+  cells           = &ue_cells_;
 
   // Setups UE DL logical channel manager.
   lc_ch_mgr = std::move(dl_lch_repo);
   lc_ch_mgr.configure(ue_ded_cfg->logical_channels());
 
   // Apply UE dedicated configuration.
-  set_config(ue_cfg, ul_ccch_slot_rx);
-
-  // Set the UE carriers as fallback or normal operation.
-  for (auto& cell : ue_du_cells) {
-    cell.set_fallback_state(starts_fallback, false, false);
-  }
+  ue_ded_cfg = &ue_cfg;
 }
 
 void ue::slot_indication(slot_point sl_tx)
 {
   last_sl_tx = sl_tx;
-  ta_mgr.slot_indication(sl_tx);
+  ta_mgr->slot_indication(sl_tx);
   drx->slot_indication(sl_tx);
 }
 
@@ -67,90 +59,15 @@ void ue::deactivate()
   lc_ch_mgr.deactivate();
 
   // Cancel HARQ retransmissions in all UE cells.
-  for (auto& cell : ue_du_cells) {
-    cell.deactivate();
+  for (auto& cell : cells->du_cells) {
+    cell->deactivate();
   }
 }
 
-void ue::release_resources()
+void ue::handle_reconfiguration_request(const ue_configuration& new_cfg)
 {
-  // Reset all HARQ processes in all UE cells.
-  for (auto& cell : ue_du_cells) {
-    cell.harqs.reset();
-  }
-
-  // Destroy UE logical channel manager.
-  lc_ch_mgr.reset();
-}
-
-void ue::handle_reconfiguration_request(const ue_reconf_command& cmd, bool reestablished_)
-{
-  // UE enters fallback mode when a Reconfiguration takes place.
-  get_pcell().set_fallback_state(true, true, reestablished_);
-  lc_ch_mgr.set_fallback_state(true);
-
   // Update UE config.
-  set_config(cmd.cfg);
-}
-
-void ue::handle_config_applied()
-{
-  get_pcell().set_fallback_state(false, false, false);
-  lc_ch_mgr.set_fallback_state(false);
-}
-
-void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> msg3_slot_rx)
-{
-  ocudu_assert(new_cfg.nof_cells() > 0, "Creation of a UE requires at least PCell configuration.");
   ue_ded_cfg = &new_cfg;
-
-  // Configure Logical Channels.
-  if (lc_ch_mgr.valid()) {
-    lc_ch_mgr.configure(ue_ded_cfg->logical_channels());
-  }
-
-  // DRX config.
-  if (ue_ded_cfg->drx_cfg().has_value()) {
-    drx->reconfigure(ue_ded_cfg->drx_cfg());
-  }
-
-  // Cell configuration.
-  // Handle removed cells.
-  for (unsigned i = 0, e = ue_du_cells.size(); i != e; ++i) {
-    if (ue_du_cells.contains(to_du_cell_index(i))) {
-      if (not ue_ded_cfg->contains(to_du_cell_index(i))) {
-        // TODO: Handle SCell deletions.
-      }
-    }
-  }
-  // Handle new cell creations or reconfigurations.
-  for (unsigned ue_cell_index = 0, e = ue_ded_cfg->nof_cells(); ue_cell_index != e; ++ue_cell_index) {
-    du_cell_index_t cell_index = ue_ded_cfg->ue_cell_cfg(to_ue_cell_index(ue_cell_index)).cell_cfg_common.cell_index;
-    if (not ue_du_cells.contains(cell_index)) {
-      ue_du_cells.emplace(cell_index,
-                          ue_index,
-                          crnti,
-                          to_ue_cell_index(ue_cell_index),
-                          ue_ded_cfg->ue_cell_cfg(cell_index),
-                          *pcell_harq_pool,
-                          ue_shared_context{*drx},
-                          msg3_slot_rx);
-      if (ue_cell_index >= ue_cells.size()) {
-        ue_cells.resize(ue_cell_index + 1);
-      }
-    } else {
-      // Reconfiguration of the cell.
-      ue_du_cells[cell_index].handle_reconfiguration_request(ue_ded_cfg->ue_cell_cfg(cell_index));
-    }
-  }
-
-  // Recompute mapping of UE cell indexing to DU cell indexing.
-  ue_cells.resize(ue_ded_cfg->nof_cells(), nullptr);
-  for (unsigned ue_cell_index = 0, e = ue_ded_cfg->nof_cells(); ue_cell_index != e; ++ue_cell_index) {
-    auto& ue_cell_inst =
-        ue_du_cells[ue_ded_cfg->ue_cell_cfg(to_ue_cell_index(ue_cell_index)).cell_cfg_common.cell_index];
-    ue_cells[ue_cell_index] = &ue_cell_inst;
-  }
 }
 
 void ue::handle_dl_buffer_state_indication(lcid_t lcid, unsigned bs, slot_point hol_toa)
@@ -166,7 +83,7 @@ void ue::handle_dl_buffer_state_indication(lcid_t lcid, unsigned bs, slot_point 
   // tiny grant. To avoid this, we make the pessimization that every HARQ contains one RLC header due to segmentation.
   static constexpr unsigned RLC_AM_HEADER_SIZE_ESTIM = 4;
   for (unsigned c = 0, ce = nof_cells(); c != ce; ++c) {
-    auto& ue_cc = *ue_cells[c];
+    auto& ue_cc = *cells->ue_cells[c];
 
     if (last_sl_tx.valid() and ue_cc.harqs.last_pdsch_slot().valid() and ue_cc.harqs.last_pdsch_slot() > last_sl_tx) {
       unsigned rem_harqs = ue_cc.harqs.nof_dl_harqs() - ue_cc.harqs.nof_empty_dl_harqs();
@@ -199,7 +116,7 @@ unsigned ue::pending_ul_newtx_bytes() const
   unsigned pending_bytes = lc_ch_mgr.ul_pending_bytes();
 
   // Subtract the bytes already allocated in UL HARQs.
-  for (const ue_cell* ue_cc : ue_cells) {
+  for (const ue_cell* ue_cc : cells->ue_cells) {
     if (pending_bytes == 0) {
       break;
     }

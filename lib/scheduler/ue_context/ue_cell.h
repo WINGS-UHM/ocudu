@@ -26,7 +26,6 @@ namespace ocudu {
 struct ul_crc_pdu_indication;
 struct pdsch_config_params;
 struct pusch_config_params;
-class dl_logical_channel_manager;
 
 /// State shared across UE carriers.
 struct ue_shared_context {
@@ -66,6 +65,7 @@ public:
           const ue_cell_configuration& ue_cell_cfg_,
           cell_harq_manager&           cell_harq_pool,
           ue_shared_context            shared_ctx,
+          const ue_cell_components&    components,
           std::optional<slot_point>    msg3_slot_rx);
 
   const du_ue_index_t   ue_index;
@@ -85,8 +85,6 @@ public:
   bool is_in_fallback_mode() const { return pcell_state.has_value() and pcell_state->in_fallback_mode; }
 
   const ue_cell_configuration& cfg() const { return *ue_cfg; }
-
-  void setup(const ue_cell_components& components);
 
   /// \brief Deactivates cell.
   void deactivate();
@@ -207,6 +205,7 @@ private:
   const ue_cell_configuration*      ue_cfg;
   const scheduler_ue_expert_config& expert_cfg;
   ue_shared_context                 shared_ctx;
+  ue_cell_components                components;
   ocudulog::basic_logger&           logger;
 
   /// \brief Whether cell is currently active.
@@ -214,8 +213,6 @@ private:
 
   /// State relative to the PCell of the UE, if applicable.
   std::optional<ue_pcell_state> pcell_state;
-
-  ue_cell_components components;
 };
 
 } // namespace ocudu

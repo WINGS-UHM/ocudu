@@ -971,7 +971,7 @@ void ue_logical_channel_repository::handle_dl_buffer_status_indication(lcid_t   
   parent->handle_dl_buffer_status_indication(ue_row_id, lcid, buffer_status, hol_toa);
 }
 
-bool ue_logical_channel_repository::handle_mac_ce_indication(const mac_ce_info& ce)
+bool ue_logical_channel_repository_view::handle_mac_ce_indication(const mac_ce_info& ce)
 {
   return parent->handle_mac_ce_indication(ue_row_id, ce);
 }

@@ -324,10 +324,16 @@ class ue_logical_channel_repository_view
   using const_ue_row = logical_channel_system::const_ue_row;
 
 public:
+  using mac_ce_info = logical_channel_system::mac_ce_info;
+
   ue_logical_channel_repository_view() = default;
 
   /// \brief Checks whether a SR indication handling is pending.
   [[nodiscard]] bool has_pending_sr() const { return parent->ues_with_pending_sr.test(ue_index); }
+
+  /// \brief Enqueue new MAC CE to be scheduled.
+  /// \return True if the MAC CE was enqueued successfully, false if the queue was full.
+  [[nodiscard]] bool handle_mac_ce_indication(const mac_ce_info& ce);
 
 private:
   friend class ue_logical_channel_repository;
@@ -365,6 +371,7 @@ class ue_logical_channel_repository : private ue_logical_channel_repository_view
 
 public:
   // inherited methods
+  using ue_logical_channel_repository_view::handle_mac_ce_indication;
   using ue_logical_channel_repository_view::has_pending_sr;
 
   ue_logical_channel_repository()                                     = default;
@@ -620,10 +627,6 @@ public:
 
   /// \brief Update DL buffer status for a given LCID.
   void handle_dl_buffer_status_indication(lcid_t lcid, unsigned buffer_status, slot_point hol_toa = {});
-
-  /// \brief Enqueue new MAC CE to be scheduled.
-  /// \return True if the MAC CE was enqueued successfully, false if the queue was full.
-  [[nodiscard]] bool handle_mac_ce_indication(const mac_ce_info& ce);
 
   /// \brief Handle a new Buffer Status Report.
   void handle_bsr_indication(const ul_bsr_indication_message& msg);

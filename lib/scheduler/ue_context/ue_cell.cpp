@@ -34,6 +34,7 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
                  const ue_cell_configuration& ue_cell_cfg_,
                  cell_harq_manager&           cell_harq_pool,
                  ue_shared_context            shared_ctx_,
+                 const ue_cell_components&    components_,
                  std::optional<slot_point>    msg3_slot_rx) :
   ue_index(ue_index_),
   cell_index(ue_cell_cfg_.cell_cfg_common.cell_index),
@@ -49,6 +50,7 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
   ue_cfg(&ue_cell_cfg_),
   expert_cfg(cell_cfg.expert_cfg.ue),
   shared_ctx(shared_ctx_),
+  components(components_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   if (ue_cell_index_ == to_ue_cell_index(0)) {
@@ -59,11 +61,6 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
       pcell_state->msg3_rx_slot = msg3_slot_rx.value();
     }
   }
-}
-
-void ue_cell::setup(const ue_cell_components& components_)
-{
-  components = components_;
 }
 
 void ue_cell::deactivate()

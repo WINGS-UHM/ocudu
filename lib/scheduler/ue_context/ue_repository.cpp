@@ -118,59 +118,115 @@ void ue_repository::add_ue(std::unique_ptr<ue>       u,
                            cell_harq_manager&        cell_harqs)
 {
   // Create UE components.
-  const du_ue_index_t      ue_index = u->ue_index;
-  const rnti_t             rnti     = u->crnti;
-  const subcarrier_spacing scs      = ue_cfg.pcell_common_cfg().dl_cfg_common.init_dl_bwp.generic_params.scs;
-  auto ue_lc_mng                    = lc_ch_sys.create_ue(ue_index, scs, starts_in_fallback, ue_cfg.logical_channels());
+  const du_ue_index_t      ue_index  = u->ue_index;
+  const rnti_t             rnti      = u->crnti;
+  const auto&              pcell_cmn = ue_cfg.pcell_common_cfg();
+  const subcarrier_spacing scs       = pcell_cmn.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  auto ue_lc_mng = lc_ch_sys.create_ue(ue_index, scs, starts_in_fallback, ue_cfg.logical_channels());
   ue_drx_controllers.emplace(ue_index,
-                             ue_cfg.pcell_common_cfg().ul_cfg_common.init_ul_bwp.generic_params.scs,
-                             ue_cfg.pcell_common_cfg().ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
+                             pcell_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                             pcell_cmn.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
                              ue_cfg.drx_cfg(),
                              ue_lc_mng.view(),
                              ul_ccch_slot_rx,
                              logger);
+  ta_managers.emplace(ue_index,
+                      pcell_cmn.expert_cfg.ue.ta_control,
+                      pcell_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                      ue_cfg.pcell_cfg().tag_id(),
+                      ue_lc_mng.view());
+
+  // Setup UE cells.
+  ue_cell_lookups.emplace(ue_index);
+  auto& cell_lookup = ue_cell_lookups[ue_index];
+  for (unsigned i = 0, sz = ue_cfg.nof_cells(); i != sz; ++i) {
+    const auto&           cell_cfg   = ue_cfg.ue_cell_cfg(to_ue_cell_index(i));
+    const du_cell_index_t cell_index = cell_cfg.cell_cfg_common.cell_index;
+    auto&                 ue_cc      = cell_ues[cell_index]->add_ue(
+        ue_cfg, to_ue_cell_index(i), cell_harqs, ue_drx_controllers[ue_index], ul_ccch_slot_rx);
+    cell_lookup.du_cells.emplace(cell_index, &ue_cc);
+    cell_lookup.ue_cells.push_back(&ue_cc);
+  }
+
+  // Set the UE carriers as fallback or normal operation.
+  for (auto& ue_cc : cell_lookup.ue_cells) {
+    ue_cc->set_fallback_state(starts_in_fallback, false, false);
+  }
 
   // Add UE in the repository.
-  u->setup(ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], starts_in_fallback, ul_ccch_slot_rx, cell_harqs);
+  u->setup(ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], ta_managers[ue_index], cell_lookup, cell_harqs);
   bool ret = ues.insert(ue_index, std::move(u));
   ocudu_assert(ret, "UE with duplicate index being added to the repository");
 
   // Update RNTI -> UE index lookup.
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
   ocudu_assert(res.second, "UE with duplicate RNTI being added to the repository");
-
-  // Add UE in cell-specific repositories.
-  auto& ue_added = ues[ue_index];
-  for (unsigned i = 0, sz = ue_added->nof_cells(); i != sz; ++i) {
-    auto& ue_cc = ue_added->get_cell(to_ue_cell_index(i));
-    cell_ues[ue_cc.cell_index]->add_ue(ue_cc);
-  }
 }
 
-void ue_repository::reconfigure_ue(const ue_reconf_command& cmd, bool reestablished_)
+void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestablished_, cell_harq_manager& cell_harqs)
 {
-  ocudu_sanity_check(
-      ues.contains(cmd.cfg.ue_index), "ue={} : UE not found in the repository", fmt::underlying(cmd.cfg.ue_index));
+  ocudu_assert(
+      ues.contains(new_cfg.ue_index), "ue={} : UE not found in the repository", fmt::underlying(new_cfg.ue_index));
+  ocudu_sanity_check(new_cfg.nof_cells() > 0, "Creation of a UE requires at least PCell configuration.");
+  auto& u      = ues[new_cfg.ue_index];
+  auto& lc_mng = u->logical_channels();
 
-  for (std::unique_ptr<ue_cell_repository>& cell_repo : cell_ues) {
-    if (cell_repo->contains(cmd.cfg.ue_index) and not cmd.cfg.contains(cell_repo->cell_index())) {
+  // UE enters fallback mode when a Reconfiguration takes place.
+  u->get_pcell().set_fallback_state(true, true, reestablished_);
+  lc_mng.set_fallback_state(true);
+
+  // Configure Logical Channels.
+  lc_mng.configure(new_cfg.logical_channels());
+
+  // DRX config.
+  if (new_cfg.drx_cfg().has_value()) {
+    u->drx_controller().reconfigure(new_cfg.drx_cfg());
+  }
+
+  // Update UE cells.
+  auto& prev_cell_lookup = ue_cell_lookups[new_cfg.ue_index];
+  for (unsigned i = 0, sz = prev_cell_lookup.ue_cells.size(); i != sz; ++i) {
+    const ue_cell&        ue_cc      = *prev_cell_lookup.ue_cells[i];
+    const du_cell_index_t cell_index = ue_cc.cell_index;
+    if (not new_cfg.contains(cell_index) or
+        new_cfg.ue_cell_cfg(to_ue_cell_index(i)).cell_cfg_common.cell_index != cell_index) {
+      ocudu_assert(i != 0, "PCell removal is not supported in UE reconfiguration.");
       // Cell has been removed from the UE configuration.
-      cell_repo->rem_ue(cmd.cfg.ue_index);
+      cell_ues[cell_index]->rem_ue(new_cfg.ue_index);
     }
   }
-
-  auto& u = ues[cmd.cfg.ue_index];
-  u->handle_reconfiguration_request(cmd, reestablished_);
-
-  for (unsigned i = 0, sz = cmd.cfg.nof_cells(); i != sz; ++i) {
-    const auto&           cell_cfg   = cmd.cfg.ue_cell_cfg(to_ue_cell_index(i));
-    const du_cell_index_t cell_index = cell_cfg.cell_cfg_common.cell_index;
-
-    if (not cell_ues[cell_index]->contains(u->ue_index)) {
+  ue_cell_lookup new_lookup;
+  for (unsigned i = 0, sz = new_cfg.nof_cells(); i != sz; ++i) {
+    const auto&           ue_cc_cfg  = new_cfg.ue_cell_cfg(to_ue_cell_index(i));
+    const du_cell_index_t cell_index = ue_cc_cfg.cell_cfg_common.cell_index;
+    if (not prev_cell_lookup.du_cells.contains(cell_index)) {
       // New cell being instantiated.
-      cell_ues[cell_index]->add_ue(*u->find_cell(cell_index));
+      auto& ue_cc = cell_ues[cell_index]->add_ue(
+          new_cfg, to_ue_cell_index(i), cell_harqs, ue_drx_controllers[new_cfg.ue_index], std::nullopt);
+      new_lookup.du_cells.emplace(cell_index, &ue_cc);
+      new_lookup.ue_cells.push_back(&ue_cc);
+    } else {
+      // Existing cell being reconfigured.
+      ue_cell& ue_cc = *prev_cell_lookup.du_cells[cell_index];
+      ue_cc.handle_reconfiguration_request(ue_cc_cfg);
+      new_lookup.du_cells.emplace(cell_index, &ue_cc);
+      new_lookup.ue_cells.push_back(&ue_cc);
     }
   }
+  ue_cell_lookups[new_cfg.ue_index] = std::move(new_lookup);
+
+  // Handle UE reconfiguration.
+  u->handle_reconfiguration_request(new_cfg);
+}
+
+void ue_repository::ue_config_applied(du_ue_index_t ue_index)
+{
+  ocudu_assert(ues.contains(ue_index), "ue={} : UE not found in the repository", fmt::underlying(ue_index));
+  auto& u = *ues[ue_index];
+
+  // The UE gets out of fallback mode once it has applied the new configuration.
+  u.get_pcell().set_fallback_state(false, false, false);
+  u.logical_channels().set_fallback_state(false);
 }
 
 void ue_repository::schedule_ue_rem(ue_config_delete_event ev)
@@ -222,13 +278,21 @@ void ue_repository::rem_ue(const ue& u)
   const rnti_t        crnti  = u.crnti;
   const du_ue_index_t ue_idx = u.ue_index;
 
-  // Remove UE cc from the cell-specific repositories.
-  for (unsigned i = 0, sz = u.nof_cells(); i != sz; ++i) {
-    const auto& ue_cc = u.get_cell(to_ue_cell_index(i));
-    cell_ues[ue_cc.cell_index]->rem_ue(ue_idx);
+  // Remove UE from the cell-specific repositories.
+  for (auto& ue_cc : ue_cell_lookups[ue_idx].ue_cells) {
+    // Reset HARQ processes.
+    ue_cc->harqs.reset();
+    // Remove UE carrier.
+    cell_ues[ue_cc->cell_index]->rem_ue(ue_idx);
   }
+  ue_cell_lookups.erase(ue_idx);
 
-  // Remove UE from lookup.
+  // Remove UE components.
+  ue_drx_controllers.erase(ue_idx);
+  ta_managers.erase(ue_idx);
+  ues[ue_idx]->logical_channels().reset();
+
+  // Remove UE from RNTI->UE lookup.
   auto it = rnti_to_ue_index_lookup.find(crnti);
   if (it != rnti_to_ue_index_lookup.end()) {
     rnti_to_ue_index_lookup.erase(it);
@@ -238,13 +302,9 @@ void ue_repository::rem_ue(const ue& u)
                  crnti);
   }
 
-  // Remove UE components.
-  ue_drx_controllers.erase(ue_idx);
-
   // Take the UE from the repository and release its resources.
   auto ue_ptr = std::move(ues[ue_idx]);
   ues.erase(ue_idx);
-  ue_ptr->release_resources();
 
   // schedule UE object destruction outside the real-time thread.
   if (not ues_to_destroy.try_push(std::move(ue_ptr))) {

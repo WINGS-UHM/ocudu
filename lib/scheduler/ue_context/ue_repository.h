@@ -60,7 +60,10 @@ public:
               cell_harq_manager&        cell_harqs);
 
   /// \brief Reconfigure existing UE.
-  void reconfigure_ue(const ue_reconf_command& cmd, bool reestablished_);
+  void reconfigure_ue(const ue_configuration& new_cfg, bool reestablished_, cell_harq_manager& cell_harqs);
+
+  /// \brief Called when UE configuration has been applied (e.g. after RRC ReconfigurationComplete).
+  void ue_config_applied(du_ue_index_t ue_index);
 
   /// \brief Initiate removal of existing UE from the repository.
   void schedule_ue_rem(ue_config_delete_event ev);
@@ -96,16 +99,22 @@ private:
   logical_channel_system lc_ch_sys;
 
   /// DRX controllers per UE.
-  slotted_id_table<du_ue_index_t, ue_drx_controller, MAX_NOF_DU_UES> ue_drx_controllers;
+  slotted_id_table<du_ue_index_t, ue_drx_controller, MAX_NOF_DU_UES, false> ue_drx_controllers;
+
+  /// UE Timing Advance Manager.
+  slotted_id_table<du_ue_index_t, ta_manager, MAX_NOF_DU_UES, false> ta_managers;
+
+  // List of UEs per cell.
+  slotted_id_table<du_cell_index_t, std::unique_ptr<ue_cell_repository>, MAX_NOF_DU_CELLS> cell_ues;
+
+  // Lookup of UE cells per UE.
+  slotted_id_table<du_ue_index_t, ue_cell_lookup, MAX_NOF_DU_UES, false> ue_cell_lookups;
 
   // Repository of UEs.
   ue_list ues;
 
   // Mapping of RNTIs to UE indexes.
   flat_map<rnti_t, du_ue_index_t> rnti_to_ue_index_lookup;
-
-  // List of UEs per cell.
-  slotted_id_table<du_cell_index_t, std::unique_ptr<ue_cell_repository>, MAX_NOF_DU_CELLS> cell_ues;
 
   // Queue of UEs marked for later removal. For each UE, we store the slot after which its removal can be safely
   // carried out, and the original UE removal command.

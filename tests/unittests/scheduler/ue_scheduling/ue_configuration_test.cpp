@@ -106,7 +106,7 @@ TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_l
   recfg.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(uint_to_lcid(4)));
   ue_configuration ue_ded_cfg2{*u.ue_cfg_dedicated()};
   ue_ded_cfg2.update(cell_cfg_db, cfg_pool.reconf_ue(recfg));
-  u.handle_reconfiguration_request(ue_reconf_command{ue_ded_cfg2}, false);
+  ue_db.reconfigure_ue(ue_ded_cfg2, false, cell_harqs);
 
   // Confirm that the UE is in fallback.
   ASSERT_TRUE(u.get_pcell().is_in_fallback_mode());
@@ -126,7 +126,7 @@ TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_l
   }
 
   // Confirm that UE config applied config.
-  u.handle_config_applied();
+  ue_db.ue_config_applied(ue_create_msg.ue_index);
 
   // Verify that DL buffer state indications affect newly active logical channels.
   for (const auto& lc : *recfg.cfg.lc_config_list) {

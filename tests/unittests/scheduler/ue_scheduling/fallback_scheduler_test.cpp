@@ -1741,7 +1741,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
   ue_cfg.cfg.reestablished = true;
   sched_ue_reconfiguration_message reconf_msg{.ue_index = du_ue_index, .crnti = rnti, .cfg = ue_cfg.cfg};
   auto                             ev = bench->cfg_mng.update_ue(reconf_msg);
-  u.handle_reconfiguration_request(ue_reconf_command{.cfg = ev.next_config()}, true);
+  bench->ue_db.reconfigure_ue(ev.next_config(), true, bench->cell_harqs);
 
   slot_point slot_update_srb_traffic{current_slot.numerology(), generate_srb_traffic_slot()};
 

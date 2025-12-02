@@ -348,7 +348,7 @@ void ue_cell_event_manager::handle_ue_reconfiguration(ue_config_update_event ev)
     }
 
     // Configure existing UE.
-    ue_db.reconfigure_ue(ue_reconf_command{ev.next_config()}, ev.is_reestablished());
+    ue_db.reconfigure_ue(ev.next_config(), ev.is_reestablished(), cell_harqs);
 
     // Update slice scheduler.
     for (unsigned i = 0, e = u.nof_cells(); i != e; ++i) {
@@ -409,19 +409,14 @@ void ue_cell_event_manager::handle_ue_deletion(ue_config_delete_event ev)
 void ue_cell_event_manager::handle_ue_config_applied(du_cell_index_t pcell_idx, du_ue_index_t ue_idx)
 {
   auto handle_ue_config_applied_impl = [this, ue_idx]() {
-    if (not ue_db.contains(ue_idx)) {
-      return event_result::invalid_ue;
-    }
-    ue& u = ue_db[ue_idx];
-
     // Confirm that UE applied new config.
-    u.handle_config_applied();
+    ue_db.ue_config_applied(ue_idx);
 
     // Add UE to slice scheduler, once it leaves fallback mode.
     slice_sched.config_applied(ue_idx);
 
     // Log UE config applied event.
-    ev_logger.enqueue(scheduler_event_logger::ue_cfg_applied_event{ue_idx, u.crnti});
+    ev_logger.enqueue(scheduler_event_logger::ue_cfg_applied_event{ue_idx, ue_db[ue_idx].crnti});
 
     return event_result::processed;
   };

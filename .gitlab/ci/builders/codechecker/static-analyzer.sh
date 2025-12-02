@@ -2,14 +2,15 @@
 
 # Print help and syntax
 print_help() {
-    echo "Script for building srsGNB"
+    echo "Script for running CodeChecker"
     echo
-    echo "Syntax: builder.sh -args /folder"
+    echo "Syntax: static-analyzer.sh -args /folder"
     echo "args:"
-    echo "  -h | --help        - Print his message"
-    echo "  -c | --compiler    - Compiler tool (gcc or clang)"
-    echo "  -u | --uhd         - UHD version"
-    echo "  others             - Extra args will be sent to 'cmake'"
+    echo "  -h | --help                             - Print his message"
+    echo "  --dryrun                                - Dry run. Parse previous analysis instead of running a new one"
+    echo "  --jobs                                  - Number of parallel jobs for the analysis (default: number of CPU cores)"
+    echo "  --cppcheck-max-template-recursion=<num> - Set the maximum template recursion for cppcheck (default: 100)"
+    echo "  others                                  - Extra args will be sent to 'CodeChecker'"
     echo "folder:"
     echo "  Folder where source code is located. It should be the last parameter"
     echo ""

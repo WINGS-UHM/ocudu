@@ -20,7 +20,7 @@ stages:
   - publish
 
 .gnb-docker:
-  - changes: &srs_container_changes
+  - changes: &container_changes
       paths:
         - docker/scripts/**/*
         - docker/Dockerfile
@@ -130,7 +130,7 @@ gnb docker compose:
   rules:
     - if: $ON_MR
       changes:
-        <<: *srs_container_changes
+        <<: *container_changes
     - if: $ON_MR
       changes:
         paths:

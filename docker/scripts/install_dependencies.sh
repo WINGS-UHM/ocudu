@@ -6,7 +6,7 @@
 # forth in the LICENSE file which can be found at the top level of
 # the distribution.
 #
-# This script will install srsran dependencies
+# This script will install ocudu dependencies
 #
 # Run like this: ./install_dependencies.sh [<mode>]
 # E.g.: ./install_dependencies
@@ -31,7 +31,7 @@ main() {
 
     . /etc/os-release
 
-    echo "== Installing srsRAN dependencies, mode $mode =="
+    echo "== Installing OCUDU dependencies, mode $mode =="
 
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         if [[ "$mode" == "all" || "$mode" == "build" ]]; then

@@ -2,14 +2,14 @@
 #
 # Copyright 2013-2022 Software Radio Systems Limited
 #
-# This file is part of srsRAN
+# This file is part of OCUDU
 #
-# srsRAN is free software: you can redistribute it and/or modify
+# OCUDU is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
 # published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
 #
-# srsRAN is distributed in the hope that it will be useful,
+# OCUDU is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
@@ -29,23 +29,23 @@
 ### Usage Examples
 ###################################################################################################
 #
-# Check whole srsGNB project for include guards (pattern: SRSGNB_{path}) and enable auto correction
+# Check whole project for include guards (pattern: {path}) and enable auto correction
 #
-#   AUTOCORRECTION=1 INPUT_PATH="include/srsgnb" INPUT_IGNORE="/bundled/" INPUT_PATTERN="SRSGNB_{path}" include-guards-check.sh
-#   AUTOCORRECTION=1 INPUT_PATH="." INPUT_IGNORE="^include/.*" INPUT_PATTERN="SRSGNB_{path}" include-guards-check.sh
+#   AUTOCORRECTION=1 INPUT_PATH="include/ocudu" INPUT_IGNORE="/bundled/" INPUT_PATTERN="ocudu_{path}" include-guards-check.sh
+#   AUTOCORRECTION=1 INPUT_PATH="." INPUT_IGNORE="^include/.*" INPUT_PATTERN="ocudu_{path}" include-guards-check.sh
 #
 #
 #
-# Check whole srsGNB project for "#pragma once" include guards and enable auto correction
+# Check whole project for "#pragma once" include guards and enable auto correction
 #
-#   AUTOCORRECTION=1 PRAGMA=1 INPUT_PATH="include/srsgnb" INPUT_IGNORE="/bundled/" include-guards-check.sh
+#   AUTOCORRECTION=1 PRAGMA=1 INPUT_PATH="include/ocudu" INPUT_IGNORE="/bundled/" include-guards-check.sh
 #   AUTOCORRECTION=1 PRAGMA=1 INPUT_PATH="." INPUT_IGNORE="^include/.*" include-guards-check.sh
 #
 #
 #
 # Same as above, but only check modified files since "origin/dev" branch
 #
-#   AUTOCORRECTION=1 PRAGMA=1 TARGET_BRANCH=origin/dev INPUT_PATH="include/srsgnb" INPUT_IGNORE="/bundled/" include-guards-check.sh
+#   AUTOCORRECTION=1 PRAGMA=1 TARGET_BRANCH=origin/dev INPUT_PATH="include/ocudu" INPUT_IGNORE="/bundled/" include-guards-check.sh
 #   AUTOCORRECTION=1 PRAGMA=1 TARGET_BRANCH=origin/dev INPUT_PATH="." INPUT_IGNORE="^include/.*" include-guards-check.sh
 #
 #

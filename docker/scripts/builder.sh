@@ -11,7 +11,7 @@ set -eo pipefail
 
 # Print help and syntax
 print_help() {
-    echo "Script for building srsGNB"
+    echo "Script for building OCUDU"
     echo
     echo "Syntax: builder.sh -args /folder"
     echo "args:"

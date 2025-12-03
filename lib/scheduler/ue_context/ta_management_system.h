@@ -43,16 +43,22 @@ public:
 private:
   friend class ue_ta_manager;
   static constexpr double n_ta_diff_avg_decay = 0.01;
+  /// TA command offset for a zero value.
+  static constexpr int ta_cmd_offset_zero = 31;
 
   struct tag_measurement {
     time_alignment_group::id_t     tag_id;
     exp_average_fast_start<double> n_ta_diff_averager{n_ta_diff_avg_decay};
     exp_average_fast_start<double> n_ta_diff_sq_averager{n_ta_diff_avg_decay};
     uint32_t                       count_until_outlier_detection = 0;
+    /// Time count at which forbid period. If absent, forbid period is not active.
+    std::optional<unsigned> forbid_period_start;
     /// Number of samples within the current measurement window.
     uint32_t window_count_samples = 0;
     /// Sum of samples within the current measurement window.
     int64_t window_sum_samples = 0;
+    /// Last computed Timing Advance Command value.
+    int last_t_a = ta_cmd_offset_zero;
   };
 
   struct ue_ta_context {
@@ -62,6 +68,15 @@ private:
     /// The array index corresponds to TAG ID. And, the corresponding array value (i.e. vector) holds N_TA update
     /// measurements for that TAG ID.
     static_vector<tag_measurement, MAX_NOF_TAG_MEASUREMENTS> n_ta_reports;
+  };
+
+  struct wheel_list_node {
+    /// Position in the time wheel.
+    std::optional<uint16_t> wheel_meas_pos;
+    /// Time at which the UE started the measurement period.
+    std::optional<unsigned> meas_start_time;
+    /// Next node in the linked list of a given time wheel slot.
+    soa::row_id next = invalid_row_id;
   };
 
   /// Each slot in the time wheel.
@@ -82,7 +97,7 @@ private:
                                         float                      ul_sinr);
 
   /// \brief Computes the average of N_TA update measurements.
-  static int64_t compute_avg_n_ta_difference(const ue_ta_context& ue_ctxt, unsigned tag_idx);
+  static int64_t compute_avg_n_ta_difference(const tag_measurement& ta_meas);
 
   /// \brief Computes new Timing Advance Command value (T_A) as per TS 38.213, clause 4.2.
   /// \return Timing Advance Command value. Values [0,...,63].
@@ -95,7 +110,7 @@ private:
   ocudulog::basic_logger&           logger;
 
   enum class ue_component { context, wheel_next_node };
-  soa::table<ue_component, ue_ta_context, soa::row_id> ues;
+  soa::table<ue_component, ue_ta_context, wheel_list_node> ues;
 
   /// \brief Time wheel for UEs.
   /// Each entry index corresponds to a slot offset within a window of size prohibit+measurement period.
@@ -103,7 +118,7 @@ private:
   std::vector<time_wheel_slot> time_wheel;
 
   /// Current index in the time wheel.
-  unsigned current_wheel_index = 0;
+  unsigned next_wheel_index = 0;
 };
 
 /// Handle to the TA manager of a single UE.

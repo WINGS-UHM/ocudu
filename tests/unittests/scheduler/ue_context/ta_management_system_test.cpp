@@ -168,8 +168,14 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_not_triggered_when_reported_ul_n_ta_
   ASSERT_FALSE(run_until_next_ta_cmd().has_value()) << "TA command should not be triggered";
 }
 
-TEST_F(single_ue_ta_manager_test, ta_cmd_is_successfully_triggered)
+TEST_F(single_ue_ta_manager_test, when_n_ta_update_with_high_snr_then_ta_cmd_is_successfully_triggered)
 {
+  // Start from a random slot.
+  unsigned rand_start_slot = test_rgen::uniform_int<unsigned>(0, expert_cfg.ue.ta_control.measurement_period - 1);
+  for (unsigned i = 0; i < rand_start_slot; ++i) {
+    run_slot();
+  }
+
   // Enqueue a UL N_TA update indication of high SINR.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
@@ -177,7 +183,8 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_successfully_triggered)
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
-  std::optional<dl_msg_lc_info> ta_cmd_mac_ce_alloc = run_until_next_ta_cmd();
+  std::optional<dl_msg_lc_info> ta_cmd_mac_ce_alloc =
+      run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_period);
   ASSERT_TRUE(ta_cmd_mac_ce_alloc.has_value()) << "Missing TA command CE allocation";
   ASSERT_TRUE(ta_cmd_mac_ce_alloc->lcid == lcid_dl_sch_t::TA_CMD) << "TA command is not be triggered";
   ASSERT_TRUE(std::holds_alternative<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload))
@@ -211,7 +218,7 @@ TEST_F(single_ue_ta_manager_test, verify_computed_new_ta_cmd_based_on_multiple_n
   }
 
   std::optional<dl_msg_lc_info> ta_cmd_mac_ce_alloc =
-      run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_period * 4);
+      run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_period);
   ASSERT_TRUE(ta_cmd_mac_ce_alloc.has_value()) << "Missing TA command CE allocation";
   ASSERT_TRUE(ta_cmd_mac_ce_alloc->lcid == lcid_dl_sch_t::TA_CMD) << "TA command is not be triggered";
   ASSERT_TRUE(std::holds_alternative<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload))
@@ -237,18 +244,16 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_not_triggered_if_ue_is_reset)
 
 TEST_F(single_ue_ta_manager_test, n_ta_indications_ignored_during_prohibit_period)
 {
-  // Enqueue a UL N_TA update indication of high SINR.
+  // Enqueue a UL N_TA update indication of high SINR, and wait for respective TA command.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
   ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
-
-  // Ensure MAC CE is allocated for TA command.
-  ASSERT_TRUE(run_until_next_ta_cmd().has_value()) << "Missing TA command CE allocation";
+  ASSERT_TRUE(run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_period).has_value())
+      << "Missing TA command CE allocation";
 
   // Enqueue multiple UL N_TA update indications during prohibit period.
-  const unsigned n_ta_indications_during_prohibit = expert_cfg.ue.ta_control.measurement_prohibit_period;
-  for (unsigned i = 0; i < n_ta_indications_during_prohibit; ++i) {
+  for (unsigned i = 0; i < expert_cfg.ue.ta_control.measurement_prohibit_period; ++i) {
     ta_mgr->handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
     run_slot();
@@ -256,7 +261,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_ignored_during_prohibit_perio
         << "TA command should not be triggered during prohibit period";
   }
 
-  // Ensure MAC CE is not allocated for TA command.
+  // TEST CASE: Ensure MAC CE is not allocated for TA command.
   ASSERT_FALSE(run_until_next_ta_cmd().has_value()) << "TA command should not be triggered after UE reset";
 }
 
@@ -269,7 +274,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_considered_after_prohibit_per
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
-  std::optional<dl_msg_lc_info> ta_cmd_mac_ce_alloc = run_until_next_ta_cmd();
+  auto ta_cmd_mac_ce_alloc = run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_period);
   ASSERT_TRUE(ta_cmd_mac_ce_alloc.has_value()) << "Missing TA command CE allocation";
 
   // Run through prohibit period.
@@ -282,7 +287,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_considered_after_prohibit_per
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd2), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
-  ta_cmd_mac_ce_alloc = run_until_next_ta_cmd();
+  ta_cmd_mac_ce_alloc = run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_period);
   ASSERT_TRUE(ta_cmd_mac_ce_alloc.has_value()) << "Missing TA command CE allocation";
   auto ta_cmd_ce = std::get<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload);
   ASSERT_EQ(ta_cmd_ce.ta_cmd, new_ta_cmd2) << "New TA command does not match the expected TA command value";

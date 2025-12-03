@@ -87,7 +87,8 @@ void ta_management_system::slot_indication(slot_point sl_tx)
 
     bool ta_cmd_sent = false;
     for (unsigned tag_idx = 0; tag_idx != u.n_ta_reports.size(); ++tag_idx) {
-      if (u.n_ta_reports[tag_idx].samples.empty()) {
+      if (u.n_ta_reports[tag_idx].window_count_samples == 0) {
+        // No N_TA update measurements for this TAG ID.
         continue;
       }
       const time_alignment_group::id_t tag_id = u.n_ta_reports[tag_idx].tag_id;
@@ -110,8 +111,9 @@ void ta_management_system::slot_indication(slot_point sl_tx)
         }
       }
 
-      // Reset stored measurements.
-      u.n_ta_reports[tag_idx].samples.clear();
+      // Reset stored measurements within the measurement window.
+      u.n_ta_reports[tag_idx].window_count_samples = 0;
+      u.n_ta_reports[tag_idx].window_sum_samples   = 0;
     }
 
     // Add UE to prohibit list.
@@ -126,12 +128,16 @@ void ta_management_system::slot_indication(slot_point sl_tx)
 
 void ta_management_system::update_tags(soa::row_id ue_id, span<const time_alignment_group::id_t> tag_ids)
 {
+  // TODO: Avoid losing all history.
   auto& ue_ctxt = ues.at<ue_component::context>(ue_id);
   ue_ctxt.n_ta_reports.resize(tag_ids.size());
   for (unsigned i = 0, e = ue_ctxt.n_ta_reports.size(); i != e; ++i) {
     ue_ctxt.n_ta_reports[i].tag_id = tag_ids[i];
-    ue_ctxt.n_ta_reports[i].samples.clear();
-    ue_ctxt.n_ta_reports[i].samples.reserve(ta_cfg.measurement_period);
+    ue_ctxt.n_ta_reports[i].n_ta_diff_averager.reset();
+    ue_ctxt.n_ta_reports[i].n_ta_diff_sq_averager.reset();
+    ue_ctxt.n_ta_reports[i].count_until_outlier_detection = 0;
+    ue_ctxt.n_ta_reports[i].window_sum_samples            = 0;
+    ue_ctxt.n_ta_reports[i].window_count_samples          = 0;
   }
 }
 
@@ -144,41 +150,26 @@ unsigned ta_management_system::compute_new_t_a(int64_t n_ta_diff)
 
 int64_t ta_management_system::compute_avg_n_ta_difference(const ue_ta_context& ue_ctxt, unsigned tag_idx)
 {
-  // Adjust this threshold as needed.
-  static constexpr double num_std_deviations = 1.75;
+  auto& report = ue_ctxt.n_ta_reports[tag_idx];
+  return report.window_count_samples > 0 ? report.window_sum_samples / static_cast<int64_t>(report.window_count_samples)
+                                         : ta_cmd_offset_zero;
+}
 
-  span<const int64_t> samples = ue_ctxt.n_ta_reports[tag_idx].samples;
-  if (samples.size() == 1) {
-    return samples.front();
-  }
-  if (samples.size() == 2) {
-    return (samples[0] + samples[1]) / 2;
-  }
+/// \brief Determines whether a sample is an outlier based on Welford's algorithm.
+static bool is_outlier(double sample, double mean, double sq_mean, double thres = 1.75)
+{
+  double var     = sq_mean - mean * mean;
+  var            = var < 0.0 ? 0.0 : var; // small numerical errors can lead to negative variance
+  double std_dev = std::sqrt(var);
 
-  // Compute mean.
-  const double sum  = std::accumulate(samples.begin(), samples.end(), 0.0);
-  const double mean = sum / static_cast<double>(samples.size());
-
-  // Compute standard deviation.
-  const double sample_variance =
-      std::accumulate(samples.begin(),
-                      samples.end(),
-                      0.0,
-                      [mean](double acc, int64_t samp) { return acc + std::pow(samp - mean, 2); }) /
-      (samples.size() - 1);
-  const double sample_std_dev = std::sqrt(sample_variance);
-
-  int64_t  sum_n_ta_difference = 0;
-  unsigned count               = 0;
-  for (const int64_t meas : samples) {
-    // Filter out outliers.
-    if (std::abs(static_cast<double>(meas) - mean) <= num_std_deviations * sample_std_dev) {
-      sum_n_ta_difference += meas;
-      ++count;
-    }
+  if (std_dev == 0) {
+    // There is no spread, so no outlier detection possible. Accept all samples.
+    return false;
   }
 
-  return sum_n_ta_difference / static_cast<int64_t>(count);
+  // [Implementation-defined] Welford's algorithm z-threshold. Adjust this threshold as needed.
+  // There is spread, so we can apply the outlier detection algorithm.
+  return std::abs(sample - mean) > thres * std_dev;
 }
 
 void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id                ue_id,
@@ -186,21 +177,42 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
                                                             int64_t                    n_ta_diff_,
                                                             float                      ul_sinr)
 {
-  // [Implementation-defined] N_TA update (N_TA_new - N_TA_old value in T_C units) measurements are considered only if
-  // the UL SINR reported in the corresponding indication message is higher than the threshold.
-  // NOTE: From the testing with COTS UE its observed that N_TA update measurements with UL SINR less than 10 dB were
-  // majorly outliers.
-  ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-  if (u.state == state_t::measure and ul_sinr > ta_cfg.update_measurement_ul_sinr_threshold) {
-    // Note: Linear search is faster than binary for very small arrays.
-    auto it = std::find_if(
-        u.n_ta_reports.begin(), u.n_ta_reports.end(), [tag_id](const auto& meas) { return meas.tag_id == tag_id; });
-    if (it != u.n_ta_reports.end() and it->tag_id == tag_id) {
-      u.n_ta_reports[tag_id.value()].samples.emplace_back(n_ta_diff_);
-    } else {
-      logger.warning("Discarding TA report. Cause: TAG Id {} is not configured", tag_id.value());
-    }
+  if (ul_sinr <= ta_cfg.update_measurement_ul_sinr_threshold) {
+    // [Implementation-defined] Discard measurement due to low UL SINR.
+    // NOTE: From the testing with COTS UE its observed that N_TA update measurements with UL SINR less than 10 dB were
+    // majorly outliers.
+    return;
   }
+
+  ue_ta_context& u = ues.at<ue_component::context>(ue_id);
+  if (u.state != state_t::measure) {
+    return;
+  }
+
+  auto it = std::find_if(
+      u.n_ta_reports.begin(), u.n_ta_reports.end(), [tag_id](const auto& meas) { return meas.tag_id == tag_id; });
+  if (it == u.n_ta_reports.end()) {
+    logger.warning("Discarding TA report. Cause: TAG Id {} is not configured", tag_id.value());
+    return;
+  }
+
+  // Decide whether to filter out outlier using Welford's algorithm and using a exponential average.
+  constexpr static unsigned min_samples_for_outlier_detection = 10;
+  if (it->count_until_outlier_detection < min_samples_for_outlier_detection) {
+    // Note: for small number of samples, outlier detection is not performed.
+    it->count_until_outlier_detection++;
+  } else if (is_outlier(n_ta_diff_,
+                        it->n_ta_diff_averager.get_average_value(),
+                        it->n_ta_diff_sq_averager.get_average_value())) {
+    // Outlier detected, discard measurement.
+    return;
+  }
+
+  // Passed outlier detection. Update statistics.
+  it->n_ta_diff_averager.push(n_ta_diff_);
+  it->n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
+  it->window_sum_samples += n_ta_diff_;
+  it->window_count_samples++;
 }
 
 ue_ta_manager::~ue_ta_manager()

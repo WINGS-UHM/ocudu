@@ -163,10 +163,21 @@ TEST_F(single_ue_ta_manager_test, verify_computed_new_ta_cmd_based_on_multiple_n
 {
   // Expected value. Average of ta_values_reported excluding the outlier 45.
   const unsigned expected_new_ta_cmd = 34;
+  const float    ul_sinr             = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
 
-  // TA values used to compute N_TA diff to be reported.
-  const std::vector<uint8_t> ta_values_reported = {34, 35, 43, 34, 33};
-  const float                ul_sinr            = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
+  // Pass enough TA values until outlier detection is activated.
+  // Note: We use i%3 to add some variance in the samples.
+  unsigned nof_init_samples = 10;
+  for (unsigned i = 0; i < nof_init_samples; ++i) {
+    ta_mgr.handle_ul_n_ta_update_indication(
+        time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(33 + (i % 3)), ul_sinr);
+  }
+  ASSERT_TRUE(run_until_next_ta_cmd().has_value()) << "TA command should be triggered";
+  ASSERT_FALSE(run_until_next_ta_cmd(expert_cfg.ue.ta_control.measurement_prohibit_period).has_value())
+      << "TA command should not be triggered during prohibit period";
+
+  // New measurement window.
+  const std::vector<uint8_t> ta_values_reported = {35, 34, 45, 34, 33};
   for (const auto ta : ta_values_reported) {
     ta_mgr.handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(ta), ul_sinr);

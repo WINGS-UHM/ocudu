@@ -15,6 +15,7 @@
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/time_alignment_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/support/math/exponential_averager.h"
 
 namespace ocudu {
 
@@ -24,6 +25,8 @@ class ue_ta_manager;
 
 class ta_management_system
 {
+  /// Maximum number of TAG measurements supported per UE.
+  constexpr static size_t      MAX_NOF_TAG_MEASUREMENTS = 4;
   constexpr static soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
 public:
@@ -40,6 +43,7 @@ public:
 
 private:
   friend class ue_ta_manager;
+  static constexpr double n_ta_diff_avg_decay = 0.01;
 
   /// State of the Timing Advance manager.
   enum class state_t : uint8_t {
@@ -50,8 +54,14 @@ private:
   };
 
   struct tag_measurement {
-    time_alignment_group::id_t tag_id;
-    std::vector<int64_t>       samples;
+    time_alignment_group::id_t     tag_id;
+    exp_average_fast_start<double> n_ta_diff_averager{n_ta_diff_avg_decay};
+    exp_average_fast_start<double> n_ta_diff_sq_averager{n_ta_diff_avg_decay};
+    uint32_t                       count_until_outlier_detection = 0;
+    /// Number of samples within the current measurement window.
+    uint32_t window_count_samples = 0;
+    /// Sum of samples within the current measurement window.
+    int64_t window_sum_samples = 0;
   };
 
   struct ue_ta_context {
@@ -64,7 +74,7 @@ private:
     /// List of N_TA update (N_TA_new - N_TA_old value in T_C units) measurements maintained per Timing Advance Group.
     /// The array index corresponds to TAG ID. And, the corresponding array value (i.e. vector) holds N_TA update
     /// measurements for that TAG ID.
-    std::vector<tag_measurement> n_ta_reports;
+    static_vector<tag_measurement, MAX_NOF_TAG_MEASUREMENTS> n_ta_reports;
   };
 
   /// Remove a UE from the TA management system.

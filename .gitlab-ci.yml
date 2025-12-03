@@ -116,10 +116,10 @@ trigger docker:
           - .gdbinit
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       variables:
-        CI_PIPELINE_SCHEDULE_DESCRIPTION: $CI_PIPELINE_SCHEDULE_DESCRIPTION
+        CI_PIPELINE_SCHEDULE_DESCRIPTION: Nightly
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       variables:
-        CI_PIPELINE_SCHEDULE_DESCRIPTION: $CI_PIPELINE_SCHEDULE_DESCRIPTION
+        CI_PIPELINE_SCHEDULE_DESCRIPTION: Weekly
   trigger:
     include: .gitlab/ci/docker/.gitlab-ci.yml
     strategy: depend

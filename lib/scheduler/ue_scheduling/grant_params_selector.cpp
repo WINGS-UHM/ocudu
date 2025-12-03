@@ -282,6 +282,7 @@ static std::optional<dl_sched_context> get_dl_sched_context(const slice_ue&     
     ctxt.recommended_mcs    = mcs;
     ctxt.recommended_ri     = nof_layers;
     ctxt.expected_nof_rbs   = nof_rbs;
+    ctxt.pending_bytes      = units::bytes{pending_bytes};
     return ctxt;
   }
 
@@ -453,6 +454,7 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
     ctxt.nof_rb_lims        = nof_rb_lims;
     ctxt.recommended_mcs    = mcs;
     ctxt.expected_nof_rbs   = nof_rbs;
+    ctxt.pending_bytes      = units::bytes{pending_bytes};
     ctxt.pusch_cfg          = pusch_cfg;
     return ctxt;
   }

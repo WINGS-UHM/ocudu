@@ -253,6 +253,10 @@ public:
     this->vec.clear();
   }
 
+  /// Get iterator to element with the given index
+  iterator       find(size_t idx) { return contains(idx) ? iterator{vec, idx} : end(); }
+  const_iterator find(size_t idx) const { return contains(idx) ? const_iterator{vec, idx} : end(); }
+
   /// Get iterator with index equal or higher than the provided index.
   iterator       lower_bound(size_t idx) { return iterator{vec, std::min(idx, vec.size())}; }
   const_iterator lower_bound(size_t idx) const { return const_iterator{vec, std::min(idx, vec.size())}; }
@@ -365,6 +369,9 @@ public:
   {
     return IdToIntConversion::get_id(find_first_empty(to_index(start_guess)));
   }
+
+  iterator       find(key_type id) { return sl_ar.find(to_index(id)); }
+  const_iterator find(key_type id) const { return sl_ar.find(to_index(id)); }
 
   iterator       lower_bound(key_type id) { return sl_ar.lower_bound(to_index(id)); }
   const_iterator lower_bound(key_type id) const { return sl_ar.lower_bound(to_index(id)); }

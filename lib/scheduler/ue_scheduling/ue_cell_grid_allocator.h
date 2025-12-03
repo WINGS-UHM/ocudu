@@ -103,7 +103,6 @@ class ue_cell_grid_allocator
     pdcch_dl_information*          pdcch;
     dl_msg_alloc*                  pdsch;
     uci_allocation                 uci_alloc;
-    unsigned                       pending_bytes;
   };
 
   // Information relative to a pending UL grant for this slot.
@@ -113,7 +112,6 @@ class ue_cell_grid_allocator
     ul_harq_process_handle         h_ul;
     pdcch_ul_information*          pdcch;
     ul_sched_info*                 pusch;
-    unsigned                       pending_bytes;
   };
 
 public:
@@ -140,7 +138,7 @@ public:
     /// Getters for grant immutable parameters.
     const slice_ue&                       ue() const { return *grant_info().user; }
     const sched_helper::dl_sched_context& context() const { return grant_info().cfg; }
-    unsigned                              pending_bytes() const { return grant_info().pending_bytes; }
+    units::bytes                          pending_bytes() const { return grant_info().cfg.pending_bytes; }
 
   private:
     friend class ue_cell_grid_allocator;
@@ -177,7 +175,7 @@ public:
     /// Getters for grant immutable parameters.
     const slice_ue&                       ue() const { return *grant_info().user; }
     const sched_helper::ul_sched_context& context() const { return grant_info().cfg; }
-    unsigned                              pending_bytes() const { return grant_info().pending_bytes; }
+    units::bytes                          pending_bytes() const { return grant_info().cfg.pending_bytes; }
 
   private:
     friend class ue_cell_grid_allocator;
@@ -219,16 +217,15 @@ public:
 
 private:
   // Setup DL grant builder.
-  expected<dl_grant_info, dl_alloc_failure_cause> setup_dl_grant_builder(const slice_ue&                       user,
-                                                                         const sched_helper::dl_sched_context& params,
-                                                                         std::optional<dl_harq_process_handle> h_dl,
-                                                                         unsigned pending_bytes) const;
+  expected<dl_grant_info, dl_alloc_failure_cause>
+  setup_dl_grant_builder(const slice_ue&                       user,
+                         const sched_helper::dl_sched_context& params,
+                         std::optional<dl_harq_process_handle> h_dl) const;
 
   // Setup UL grant builder.
   expected<ul_grant_info, alloc_status> setup_ul_grant_builder(const slice_ue&                       user,
                                                                const sched_helper::ul_sched_context& params,
-                                                               std::optional<ul_harq_process_handle> h_ul,
-                                                               unsigned pending_bytes) const;
+                                                               std::optional<ul_harq_process_handle> h_ul) const;
 
   // Set final PDSCH parameters and allocate remaining DL grant resources.
   void set_pdsch_params(dl_grant_info&                        grant,

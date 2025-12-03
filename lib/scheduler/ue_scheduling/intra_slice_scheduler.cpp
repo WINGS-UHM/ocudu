@@ -103,9 +103,8 @@ void intra_slice_scheduler::slice_ue_group_scheduler::fill_ue_candidate_group(
       continue;
     }
 
-    auto ue_it = slice_ues.lower_bound(to_du_ue_index(ueidx));
-    ocudu_assert(ue_it != slice_ues.end() and ue_it->ue_index() == to_du_ue_index(ueidx),
-                  "Invalid ue index in slice UE repository");
+    auto ue_it = slice_ues.find(to_du_ue_index(ueidx));
+    ocudu_assert(ue_it != slice_ues.end(), "Invalid ue index in slice UE repository");
     std::optional<ue_newtx_candidate> ue_candidate =
         is_dl ? parent->create_newtx_dl_candidate(*ue_it) : parent->create_newtx_ul_candidate(*ue_it);
     if (ue_candidate.has_value()) {

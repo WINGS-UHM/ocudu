@@ -135,7 +135,7 @@ ue_cell_grid_allocator::allocate_dl_grant(const ue_newtx_dl_grant_request& reque
   }
 
   // Setup a DL grant.
-  auto result = setup_dl_grant_builder(request.user, sched_ctxt.value(), std::nullopt, request.pending_bytes);
+  auto result = setup_dl_grant_builder(request.user, sched_ctxt.value(), std::nullopt);
   if (not result.has_value()) {
     return make_unexpected(result.error());
   }
@@ -148,8 +148,7 @@ ue_cell_grid_allocator::allocate_dl_grant(const ue_newtx_dl_grant_request& reque
 expected<ue_cell_grid_allocator::dl_grant_info, dl_alloc_failure_cause>
 ue_cell_grid_allocator::setup_dl_grant_builder(const slice_ue&                       user,
                                                const sched_helper::dl_sched_context& params,
-                                               std::optional<dl_harq_process_handle> h_dl,
-                                               unsigned                              pending_bytes) const
+                                               std::optional<dl_harq_process_handle> h_dl) const
 {
   const bool            is_retx            = h_dl.has_value();
   const search_space_id ss_id              = params.ss_id;
@@ -211,7 +210,7 @@ ue_cell_grid_allocator::setup_dl_grant_builder(const slice_ue&                  
   auto& msg = pdsch_alloc.result.dl.ue_grants.emplace_back();
 
   // Create a DL grant builder.
-  return dl_grant_info{&user, params, h_dl.value(), pdcch, &msg, uci, pending_bytes};
+  return dl_grant_info{&user, params, h_dl.value(), pdcch, &msg, uci};
 }
 
 void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                        grant,
@@ -379,8 +378,8 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
                                   msg.pdsch_cfg.codewords[0].tb_size_bytes,
                                   grant.user->ran_slice_id());
 
-    // Update context with buffer occupancy after the TB is built.
-    msg.context.buffer_occupancy = u.logical_channels().dl_pending_bytes();
+    // Update context with buffer occupancy of the slice after the TB is built.
+    msg.context.buffer_occupancy = grant.user->pending_dl_newtx_bytes();
   }
 
   // Save PDSCH parameters in DL HARQ.
@@ -407,7 +406,7 @@ ue_cell_grid_allocator::allocate_dl_grant(const ue_retx_dl_grant_request& reques
   }
 
   // Allocate PDCCH, PDSCH and UCI PDUs.
-  auto grant = setup_dl_grant_builder(request.user, sched_ctxt.value(), request.h_dl, 0);
+  auto grant = setup_dl_grant_builder(request.user, sched_ctxt.value(), request.h_dl);
   if (not grant.has_value()) {
     return make_unexpected(grant.error());
   }
@@ -447,7 +446,7 @@ ue_cell_grid_allocator::allocate_ul_grant(const ue_newtx_ul_grant_request& reque
   }
 
   // Setup a UL grant.
-  auto result = setup_ul_grant_builder(request.user, sched_ctxt.value(), std::nullopt, request.pending_bytes);
+  auto result = setup_ul_grant_builder(request.user, sched_ctxt.value(), std::nullopt);
   if (not result.has_value()) {
     return make_unexpected(result.error());
   }
@@ -481,7 +480,7 @@ ue_cell_grid_allocator::allocate_ul_grant(const ue_retx_ul_grant_request& reques
   }
 
   // Allocate PDCCH, PUSCH PDUs.
-  auto grant = setup_ul_grant_builder(request.user, sched_ctxt.value(), request.h_ul, 0);
+  auto grant = setup_ul_grant_builder(request.user, sched_ctxt.value(), request.h_ul);
   if (not grant.has_value()) {
     return make_unexpected(grant.error());
   }
@@ -495,8 +494,7 @@ ue_cell_grid_allocator::allocate_ul_grant(const ue_retx_ul_grant_request& reques
 expected<ue_cell_grid_allocator::ul_grant_info, alloc_status>
 ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                       user,
                                                const sched_helper::ul_sched_context& params,
-                                               std::optional<ul_harq_process_handle> h_ul,
-                                               unsigned                              pending_bytes) const
+                                               std::optional<ul_harq_process_handle> h_ul) const
 {
   // Derive remaining parameters from \c ul_grant_params.
   ue&                                          u                  = ues[user.ue_index()];
@@ -561,7 +559,7 @@ ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                  
   auto& msg = pusch_alloc.result.ul.puschs.emplace_back();
 
   // Create a UL grant builder.
-  return ul_grant_info{&user, params, h_ul.value(), pdcch, &msg, pending_bytes};
+  return ul_grant_info{&user, params, h_ul.value(), pdcch, &msg};
 }
 
 void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_interval& vrbs) const

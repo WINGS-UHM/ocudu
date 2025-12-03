@@ -34,6 +34,8 @@ struct dl_sched_context {
   unsigned recommended_ri;
   /// Expected number of RBs to allocate.
   unsigned expected_nof_rbs;
+  /// Pending bytes for newTx.
+  units::bytes pending_bytes;
 };
 
 /// Retrieve recommended PDCCH and PDSCH parameters for a newTx DL grant.
@@ -72,6 +74,8 @@ struct ul_sched_context {
   sch_mcs_index recommended_mcs;
   /// Expected number of RBs to allocate.
   unsigned expected_nof_rbs;
+  /// Pending bytes for newTx.
+  units::bytes pending_bytes;
   /// PUSCH config params.
   pusch_config_params pusch_cfg;
 };

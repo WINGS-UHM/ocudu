@@ -144,6 +144,7 @@ public:
   auto end() { return ue_map.end(); }
   auto end() const { return ue_map.end(); }
 
+  auto find(du_ue_index_t ue_index) const { return ue_map.find(ue_index); }
   auto lower_bound(du_ue_index_t ue_index) const { return ue_map.lower_bound(ue_index); }
 
   /// Retrieve UEs with pending data for this RAN slice.

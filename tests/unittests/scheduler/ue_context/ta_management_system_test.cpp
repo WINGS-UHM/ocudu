@@ -20,10 +20,10 @@ TEST(inactive_ta_management_system_test, add_ue_returns_inactive_manager)
 {
   scheduler_expert_config expert_cfg               = config_helpers::make_default_scheduler_expert_config();
   expert_cfg.ue.ta_control.ta_cmd_offset_threshold = -1; // Disable TA management.
-  ta_management_system ta_sys(expert_cfg.ue.ta_control, subcarrier_spacing::kHz15);
+  ta_management_system ta_sys(expert_cfg.ue.ta_control);
 
   ue_logical_channel_repository ue_lc_chs;
-  ue_ta_manager                 ta_mgr = ta_sys.add_ue(time_alignment_group::id_t{0}, ue_lc_chs);
+  ue_ta_manager ta_mgr = ta_sys.add_ue(time_alignment_group::id_t{0}, subcarrier_spacing::kHz15, ue_lc_chs);
 
   ASSERT_FALSE(ta_mgr.active()) << "TA manager should be inactive when TA management is disabled";
   auto ta_mgr_moved = std::move(ta_mgr);
@@ -37,7 +37,7 @@ class base_ta_management_system_test
 protected:
   base_ta_management_system_test() :
     ul_scs(subcarrier_spacing::kHz30),
-    ta_sys(expert_cfg.ue.ta_control, ul_scs),
+    ta_sys(expert_cfg.ue.ta_control),
     next_sl_tx(to_numerology_value(ul_scs), test_rgen::uniform_int<unsigned>(0, 10239))
   {
   }
@@ -53,7 +53,7 @@ protected:
     unsigned ue_index = ues.size();
     auto&    u        = ues.emplace_back();
     u.ue_lc_chs       = lc_ch_sys.create_ue(to_du_ue_index(ue_index), ul_scs, false, cfg_pool.create({}));
-    u.ta_mgr          = ta_sys.add_ue(time_alignment_group::id_t{0}, u.ue_lc_chs);
+    u.ta_mgr          = ta_sys.add_ue(time_alignment_group::id_t{0}, ul_scs, u.ue_lc_chs);
     return ue_index;
   }
 

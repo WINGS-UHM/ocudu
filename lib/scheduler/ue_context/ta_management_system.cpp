@@ -15,8 +15,8 @@
 
 using namespace ocudu;
 
-ta_management_system::ta_management_system(const scheduler_ta_control_config& ta_cfg_, subcarrier_spacing ul_scs_) :
-  ta_cfg(ta_cfg_), ul_scs(ul_scs_), logger(ocudulog::fetch_basic_logger("SCHED"))
+ta_management_system::ta_management_system(const scheduler_ta_control_config& ta_cfg_) :
+  ta_cfg(ta_cfg_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   ocudu_assert(ta_cfg.measurement_period > 0, "Invalid measurement period");
   if (ta_cfg.ta_cmd_offset_threshold < 0) {
@@ -33,6 +33,7 @@ ta_management_system::ta_management_system(const scheduler_ta_control_config& ta
 }
 
 ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_tag_id,
+                                           subcarrier_spacing             ul_scs,
                                            ue_logical_channel_repository& lc_ch_mgr)
 {
   if (ta_cfg.ta_cmd_offset_threshold < 0) {
@@ -41,7 +42,7 @@ ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_
   }
 
   // Create UE context.
-  auto row_id = ues.insert(ue_ta_context{&lc_ch_mgr}, wheel_list_node{});
+  auto row_id = ues.insert(ue_ta_context{ul_scs, &lc_ch_mgr}, wheel_list_node{});
   update_tags(row_id, std::array<time_alignment_group::id_t, 1>{pcell_tag_id});
 
   return ue_ta_manager{*this, row_id};
@@ -149,11 +150,11 @@ void ta_management_system::update_tags(soa::row_id ue_id, span<const time_alignm
   }
 }
 
-unsigned ta_management_system::compute_new_t_a(int64_t n_ta_diff)
+unsigned ta_management_system::compute_new_t_a(int64_t n_ta_diff, subcarrier_spacing ul_scs)
 {
-  return static_cast<unsigned>(
-      std::round(static_cast<float>(n_ta_diff * get_nof_slots_per_subframe(ul_scs)) / static_cast<float>(16U * 64) +
-                 static_cast<float>(ta_cmd_offset_zero) - ta_cfg.target));
+  const float ta_offset = static_cast<float>(ta_cmd_offset_zero) - ta_cfg.target;
+  return static_cast<unsigned>(std::round(
+      static_cast<float>(n_ta_diff * get_nof_slots_per_subframe(ul_scs)) / static_cast<float>(16U * 64U) + ta_offset));
 }
 
 int64_t ta_management_system::compute_avg_n_ta_difference(const tag_measurement& report)
@@ -193,7 +194,7 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
 
   // Find respective TAG-ID measurement context.
   ue_ta_context& u  = ues.at<ue_component::context>(ue_id);
-  auto           it = std::find_if(
+  auto*          it = std::find_if(
       u.n_ta_reports.begin(), u.n_ta_reports.end(), [tag_id](const auto& meas) { return meas.tag_id == tag_id; });
   if (it == u.n_ta_reports.end()) {
     logger.warning("Discarding TA report. Cause: TAG Id {} is not configured", tag_id.value());
@@ -222,12 +223,12 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
     return;
   }
 
-  // Passed outlier detection. Update statistics.
+  // Passed outlier detection. Update statistics for this TAG measurement.
   tag_meas.n_ta_diff_averager.push(n_ta_diff_);
   tag_meas.n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
   tag_meas.window_sum_samples += n_ta_diff_;
   tag_meas.window_count_samples++;
-  tag_meas.last_t_a = compute_new_t_a(compute_avg_n_ta_difference(tag_meas));
+  tag_meas.last_t_a = compute_new_t_a(compute_avg_n_ta_difference(tag_meas), u.ul_scs);
 
   // If UE has already pending TA CMDs, no need to add it again to the time wheel.
   wheel_list_node& ue_node = ues.at<ue_component::wheel_next_node>(ue_id);

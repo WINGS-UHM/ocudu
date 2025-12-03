@@ -29,10 +29,11 @@ class ta_management_system
   constexpr static soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
 public:
-  explicit ta_management_system(const scheduler_ta_control_config& ta_cfg_, subcarrier_spacing ul_scs_);
+  explicit ta_management_system(const scheduler_ta_control_config& ta_cfg_);
 
   /// \brief Adds a new UE to the TA management system.
-  ue_ta_manager add_ue(time_alignment_group::id_t pcell_tag_id, ue_logical_channel_repository& lc_ch_mgr_);
+  ue_ta_manager
+  add_ue(time_alignment_group::id_t pcell_tag_id, subcarrier_spacing ul_scs, ue_logical_channel_repository& lc_ch_mgr_);
 
   /// \brief Handles Timing Advance adaptation related tasks at slot indication.
   void slot_indication(slot_point sl_tx);
@@ -47,10 +48,16 @@ private:
   static constexpr int ta_cmd_offset_zero = 31;
 
   struct tag_measurement {
-    time_alignment_group::id_t     tag_id;
+    /// TAG ID associated to this measurement.
+    time_alignment_group::id_t tag_id;
+    /// \brief Exponential average of N_TA differences for outlier detection.
+    /// This average does not get reset on each measurement.
     exp_average_fast_start<double> n_ta_diff_averager{n_ta_diff_avg_decay};
+    /// \brief Exponential average of squared N_TA differences for outlier detection.
+    /// This average does not get reset on each measurement.
     exp_average_fast_start<double> n_ta_diff_sq_averager{n_ta_diff_avg_decay};
-    uint32_t                       count_until_outlier_detection = 0;
+    /// Number of samples collected until outlier detection is enabled.
+    uint32_t count_until_outlier_detection = 0;
     /// Time count at which forbid period. If absent, forbid period is not active.
     std::optional<unsigned> forbid_period_start;
     /// Number of samples within the current measurement window.
@@ -62,6 +69,8 @@ private:
   };
 
   struct ue_ta_context {
+    /// Uplink subcarrier spacing of the UE.
+    subcarrier_spacing ul_scs;
     /// Logical channel manager for the UE.
     ue_logical_channel_repository* lc_ch_mgr = nullptr;
     /// List of N_TA update (N_TA_new - N_TA_old value in T_C units) measurements maintained per Timing Advance Group.
@@ -101,12 +110,11 @@ private:
 
   /// \brief Computes new Timing Advance Command value (T_A) as per TS 38.213, clause 4.2.
   /// \return Timing Advance Command value. Values [0,...,63].
-  unsigned compute_new_t_a(int64_t n_ta_diff);
+  unsigned compute_new_t_a(int64_t n_ta_diff, subcarrier_spacing ul_scs);
 
   void update_tags(soa::row_id ue_id, span<const time_alignment_group::id_t> tag_ids);
 
   const scheduler_ta_control_config ta_cfg;
-  const subcarrier_spacing          ul_scs;
   ocudulog::basic_logger&           logger;
 
   enum class ue_component { context, wheel_next_node };

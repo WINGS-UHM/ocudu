@@ -20,7 +20,6 @@
 namespace ocudu {
 
 class ue_logical_channel_repository;
-
 class ue_ta_manager;
 
 class ta_management_system
@@ -45,14 +44,6 @@ private:
   friend class ue_ta_manager;
   static constexpr double n_ta_diff_avg_decay = 0.01;
 
-  /// State of the Timing Advance manager.
-  enum class state_t : uint8_t {
-    /// Performing measurements.
-    measure,
-    /// Prohibit state.
-    prohibit
-  };
-
   struct tag_measurement {
     time_alignment_group::id_t     tag_id;
     exp_average_fast_start<double> n_ta_diff_averager{n_ta_diff_avg_decay};
@@ -65,20 +56,25 @@ private:
   };
 
   struct ue_ta_context {
+    /// Logical channel manager for the UE.
     ue_logical_channel_repository* lc_ch_mgr = nullptr;
-    /// State of the Timing Advance manager.
-    state_t state = state_t::prohibit;
-    /// Starting point of the measurement/prohibit interval (depending on state).
-    /// \remark In case state == prohibit and not \c start_time.valid(), prohibit period has duration 0.
-    slot_point start_time;
     /// List of N_TA update (N_TA_new - N_TA_old value in T_C units) measurements maintained per Timing Advance Group.
     /// The array index corresponds to TAG ID. And, the corresponding array value (i.e. vector) holds N_TA update
     /// measurements for that TAG ID.
     static_vector<tag_measurement, MAX_NOF_TAG_MEASUREMENTS> n_ta_reports;
   };
 
+  /// Each slot in the time wheel.
+  struct time_wheel_slot {
+    /// Linked list head of UEs scheduled to complete their measurement at this time wheel slot.
+    soa::row_id head = invalid_row_id;
+  };
+
   /// Remove a UE from the TA management system.
   void rem_ue(soa::row_id ue_id);
+
+  /// Handle all pending TA commands for a given UE.
+  void handle_ue_ta_cmds(ue_ta_context& u);
 
   void handle_ul_n_ta_update_indication(soa::row_id                ue_id,
                                         time_alignment_group::id_t tag_id,
@@ -98,14 +94,16 @@ private:
   const subcarrier_spacing          ul_scs;
   ocudulog::basic_logger&           logger;
 
-  enum class ue_component { context };
-  soa::table<ue_component, ue_ta_context> ues;
+  enum class ue_component { context, wheel_next_node };
+  soa::table<ue_component, ue_ta_context, soa::row_id> ues;
 
-  /// UEs in prohibit state.
-  std::vector<soa::row_id> prohibit_ues;
+  /// \brief Time wheel for UEs.
+  /// Each entry index corresponds to a slot offset within a window of size prohibit+measurement period.
+  /// In each entry, a linked list of UE row IDs is stored, which are scheduled to complete their measurement.
+  std::vector<time_wheel_slot> time_wheel;
 
-  /// UEs in measurement state.
-  std::vector<soa::row_id> meas_ues;
+  /// Current index in the time wheel.
+  unsigned current_wheel_index = 0;
 };
 
 /// Handle to the TA manager of a single UE.

@@ -21,11 +21,14 @@ static constexpr int ta_cmd_offset_zero = 31;
 ta_management_system::ta_management_system(const scheduler_ta_control_config& ta_cfg_, subcarrier_spacing ul_scs_) :
   ta_cfg(ta_cfg_), ul_scs(ul_scs_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
-  if (ta_cfg.ta_cmd_offset_threshold >= 0) {
-    ues.reserve(MAX_NOF_DU_UES);
-    prohibit_ues.reserve(MAX_NOF_DU_UES);
-    meas_ues.reserve(MAX_NOF_DU_UES);
+  ocudu_assert(ta_cfg.measurement_period > 0, "Invalid measurement period");
+  if (ta_cfg.ta_cmd_offset_threshold < 0) {
+    // TA management disabled.
+    return;
   }
+
+  ues.reserve(MAX_NOF_DU_UES);
+  time_wheel.resize(ta_cfg.measurement_period + ta_cfg.measurement_prohibit_period);
 }
 
 ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_tag_id,
@@ -37,93 +40,86 @@ ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_
   }
 
   // Create UE context.
-  auto row_id = ues.insert(ue_ta_context{&lc_ch_mgr});
+  auto row_id = ues.insert(ue_ta_context{&lc_ch_mgr}, invalid_row_id);
   update_tags(row_id, std::array<time_alignment_group::id_t, 1>{pcell_tag_id});
 
-  // Set initial state to prohibit with undefined start time.
-  prohibit_ues.push_back(row_id);
+  // Push new node to the wheel linked list head.
+  auto&        wheel_head = time_wheel[row_id.value() % time_wheel.size()].head;
+  soa::row_id& next       = ues.at<ue_component::wheel_next_node>(row_id);
+  next                    = wheel_head;
+  wheel_head              = row_id;
 
   return ue_ta_manager{*this, row_id};
 }
 
 void ta_management_system::rem_ue(soa::row_id ue_id)
 {
-  ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-  if (u.state == state_t::prohibit) {
-    prohibit_ues.erase(std::remove(prohibit_ues.begin(), prohibit_ues.end(), ue_id), prohibit_ues.end());
-  } else {
-    meas_ues.erase(std::remove(meas_ues.begin(), meas_ues.end(), ue_id), meas_ues.end());
+  // Remove UE from the wheel.
+  soa::row_id next       = ues.at<ue_component::wheel_next_node>(ue_id);
+  auto&       wheel_head = time_wheel[ue_id.value() % time_wheel.size()].head;
+  soa::row_id node       = wheel_head;
+  for (soa::row_id prev = invalid_row_id; node != invalid_row_id;) {
+    if (node == ue_id) {
+      if (prev == invalid_row_id) {
+        // Head node.
+        wheel_head = next;
+      } else {
+        soa::row_id& prev_next = ues.at<ue_component::wheel_next_node>(prev);
+        prev_next              = next;
+      }
+      break;
+    }
+    prev = node;
+    node = ues.at<ue_component::wheel_next_node>(node);
   }
+  ocudu_assert(node != invalid_row_id, "UE not found in time wheel");
+
+  // Remove UE from repository.
   ues.erase(ue_id);
 }
 
 void ta_management_system::slot_indication(slot_point sl_tx)
 {
-  // Update UEs in prohibit state, if needed.
-  auto exit_prohibit = [this, sl_tx](soa::row_id ue_id) {
+  // Select a time wheel position based on the current index.
+  auto& wheel_head = time_wheel[current_wheel_index % time_wheel.size()].head;
+  ++current_wheel_index;
+
+  // Consider that all UEs in the wheel slot have completed their measurements.
+  for (soa::row_id ue_id = wheel_head; ue_id != invalid_row_id; ue_id = ues.at<ue_component::wheel_next_node>(ue_id)) {
     ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-    ocudu_sanity_check(u.state == state_t::prohibit, "UE TA manager in invalid state");
+    handle_ue_ta_cmds(u);
+  }
+}
 
-    if (not u.start_time.valid() or (sl_tx - u.start_time) > static_cast<int>(ta_cfg.measurement_prohibit_period)) {
-      // Move UE to measurement state.
-      u.start_time = sl_tx;
-      u.state      = state_t::measure;
-      meas_ues.push_back(ue_id);
-      return true;
+void ta_management_system::handle_ue_ta_cmds(ue_ta_context& u)
+{
+  for (unsigned tag_idx = 0; tag_idx != u.n_ta_reports.size(); ++tag_idx) {
+    if (u.n_ta_reports[tag_idx].window_count_samples == 0) {
+      // No N_TA update measurements for this TAG ID.
+      continue;
     }
-    return false;
-  };
-  prohibit_ues.erase(std::remove_if(prohibit_ues.begin(), prohibit_ues.end(), exit_prohibit), prohibit_ues.end());
+    const time_alignment_group::id_t tag_id = u.n_ta_reports[tag_idx].tag_id;
 
-  // Update UEs in measurement state, if needed.
-  auto exit_measure = [this, sl_tx](soa::row_id ue_id) {
-    ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-    ocudu_sanity_check(u.state == state_t::measure, "UE TA manager in invalid state");
-
-    // Early return if measurement interval is short.
-    if ((sl_tx - u.start_time) < static_cast<int>(ta_cfg.measurement_period)) {
-      return false;
-    }
-
-    bool ta_cmd_sent = false;
-    for (unsigned tag_idx = 0; tag_idx != u.n_ta_reports.size(); ++tag_idx) {
-      if (u.n_ta_reports[tag_idx].window_count_samples == 0) {
-        // No N_TA update measurements for this TAG ID.
-        continue;
+    // Send Timing Advance command only if the offset is equal to or greater than the threshold.
+    // The new Timing Advance Command is a value ranging from [0,...,63] as per TS 38.213, clause 4.2. Hence, we
+    // need to subtract a value of 31 (as per equation in the same clause) to get the change in Timing Advance
+    // Command.
+    const unsigned new_t_a = compute_new_t_a(compute_avg_n_ta_difference(u, tag_idx));
+    if (abs(static_cast<int>(new_t_a) - ta_cmd_offset_zero) >= ta_cfg.ta_cmd_offset_threshold) {
+      // Send Timing Advance Command to UE.
+      if (not u.lc_ch_mgr->handle_mac_ce_indication(
+              {.ce_lcid    = lcid_dl_sch_t::TA_CMD,
+               .ce_payload = ta_cmd_ce_payload{.tag_id = tag_id, .ta_cmd = new_t_a}})) {
+        // Early return if queueing the TA CMD indication failed. Will try again in the future.
+        logger.warning("Dropped TA command, queue is full.");
+        return;
       }
-      const time_alignment_group::id_t tag_id = u.n_ta_reports[tag_idx].tag_id;
-
-      // Send Timing Advance command only if the offset is equal to or greater than the threshold.
-      // The new Timing Advance Command is a value ranging from [0,...,63] as per TS 38.213, clause 4.2. Hence, we
-      // need to subtract a value of 31 (as per equation in the same clause) to get the change in Timing Advance
-      // Command.
-      const unsigned new_t_a = compute_new_t_a(compute_avg_n_ta_difference(u, tag_idx));
-      if (abs(static_cast<int>(new_t_a) - ta_cmd_offset_zero) >= ta_cfg.ta_cmd_offset_threshold) {
-        // Send Timing Advance Command to UE.
-        if (u.lc_ch_mgr->handle_mac_ce_indication(
-                {.ce_lcid    = lcid_dl_sch_t::TA_CMD,
-                 .ce_payload = ta_cmd_ce_payload{.tag_id = tag_id, .ta_cmd = new_t_a}})) {
-          ta_cmd_sent = true;
-        } else {
-          // Early return if queueing the TA CMD indication failed. Will try again at the next slot indication.
-          logger.warning("Dropped TA command, queue is full.");
-          return false;
-        }
-      }
-
-      // Reset stored measurements within the measurement window.
-      u.n_ta_reports[tag_idx].window_count_samples = 0;
-      u.n_ta_reports[tag_idx].window_sum_samples   = 0;
     }
 
-    // Add UE to prohibit list.
-    // Note: If no TA CMD was sent, UE goes to prohibit list of duration 0.
-    u.state      = state_t::prohibit;
-    u.start_time = ta_cmd_sent and ta_cfg.measurement_prohibit_period > 0 ? sl_tx : slot_point{};
-    prohibit_ues.push_back(ue_id);
-    return true;
-  };
-  meas_ues.erase(std::remove_if(meas_ues.begin(), meas_ues.end(), exit_measure), meas_ues.end());
+    // Reset stored measurements within the measurement window.
+    u.n_ta_reports[tag_idx].window_count_samples = 0;
+    u.n_ta_reports[tag_idx].window_sum_samples   = 0;
+  }
 }
 
 void ta_management_system::update_tags(soa::row_id ue_id, span<const time_alignment_group::id_t> tag_ids)
@@ -144,7 +140,7 @@ void ta_management_system::update_tags(soa::row_id ue_id, span<const time_alignm
 unsigned ta_management_system::compute_new_t_a(int64_t n_ta_diff)
 {
   return static_cast<unsigned>(
-      std::round(static_cast<float>(n_ta_diff * pow2(to_numerology_value(ul_scs))) / static_cast<float>(16U * 64) +
+      std::round(static_cast<float>(n_ta_diff * get_nof_slots_per_subframe(ul_scs)) / static_cast<float>(16U * 64) +
                  static_cast<float>(ta_cmd_offset_zero) - ta_cfg.target));
 }
 
@@ -184,35 +180,40 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
     return;
   }
 
-  ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-  if (u.state != state_t::measure) {
+  ue_ta_context& u                    = ues.at<ue_component::context>(ue_id);
+  const unsigned wheel_diff           = (time_wheel.size() + current_wheel_index - ue_id.value()) % time_wheel.size();
+  const bool     is_in_prohibit_state = wheel_diff < ta_cfg.measurement_prohibit_period;
+  if (is_in_prohibit_state) {
+    // Discard measurement since UE is in prohibit state.
     return;
   }
 
+  // Find respective TAG-ID measurement context.
   auto it = std::find_if(
       u.n_ta_reports.begin(), u.n_ta_reports.end(), [tag_id](const auto& meas) { return meas.tag_id == tag_id; });
   if (it == u.n_ta_reports.end()) {
     logger.warning("Discarding TA report. Cause: TAG Id {} is not configured", tag_id.value());
     return;
   }
+  tag_measurement& tag_meas = *it;
 
   // Decide whether to filter out outlier using Welford's algorithm and using a exponential average.
   constexpr static unsigned min_samples_for_outlier_detection = 10;
-  if (it->count_until_outlier_detection < min_samples_for_outlier_detection) {
+  if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
     // Note: for small number of samples, outlier detection is not performed.
-    it->count_until_outlier_detection++;
+    tag_meas.count_until_outlier_detection++;
   } else if (is_outlier(n_ta_diff_,
-                        it->n_ta_diff_averager.get_average_value(),
-                        it->n_ta_diff_sq_averager.get_average_value())) {
+                        tag_meas.n_ta_diff_averager.get_average_value(),
+                        tag_meas.n_ta_diff_sq_averager.get_average_value())) {
     // Outlier detected, discard measurement.
     return;
   }
 
   // Passed outlier detection. Update statistics.
-  it->n_ta_diff_averager.push(n_ta_diff_);
-  it->n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
-  it->window_sum_samples += n_ta_diff_;
-  it->window_count_samples++;
+  tag_meas.n_ta_diff_averager.push(n_ta_diff_);
+  tag_meas.n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
+  tag_meas.window_sum_samples += n_ta_diff_;
+  tag_meas.window_count_samples++;
 }
 
 ue_ta_manager::~ue_ta_manager()

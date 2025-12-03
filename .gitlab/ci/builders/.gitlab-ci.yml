@@ -34,13 +34,10 @@ tox python in builder:
           - .gitlab/ci/builders/**/*.py
   variables:
     PY_DIR: .gitlab/ci/builders
-    GIT_LFS_SKIP_SMUDGE: 1
 
 builder version increased:
   stage: ci
   image: alpine:3.16.0
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
   rules:
     - if: $ON_MR
       changes:
@@ -392,7 +389,6 @@ ubuntu-dpdk-builder arm64:
   extends: .docker-builder
   stage: publish
   variables:
-    GIT_LFS_SKIP_SMUDGE: 1
     OS_FAMILY: none
     OS_NAME: none
     OS_VERSION: none

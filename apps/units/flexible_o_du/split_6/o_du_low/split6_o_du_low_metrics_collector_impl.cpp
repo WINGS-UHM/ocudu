@@ -5,7 +5,8 @@
  * By using this file, you agree to the terms and conditions set
  * forth in the LICENSE file which can be found at the top level of
  * the distribution.
- **/
+ *
+ */
 
 #include "split6_o_du_low_metrics_collector_impl.h"
 #include "metrics/split6_flexible_o_du_low_metrics.h"

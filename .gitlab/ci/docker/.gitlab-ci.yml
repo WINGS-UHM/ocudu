@@ -51,8 +51,6 @@ no docker changes:
 
 grafana version changed:
   extends: .version_changed_pyproject
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
   stage: static
   rules:
     - if: $ON_MR
@@ -78,8 +76,6 @@ grafana version changed:
 telegraf version changed:
   extends: .version_changed_pyproject
   stage: static
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
   rules:
     - if: $ON_MR
       changes:
@@ -109,7 +105,6 @@ telegraf version changed:
   timeout: 2h
   retry: 2
   variables:
-    GIT_LFS_SKIP_SMUDGE: 1
     KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
     KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
@@ -218,7 +213,6 @@ telegraf image:
         paths:
           - docker/telegraf/**/*
   variables:
-    GIT_LFS_SKIP_SMUDGE: 1
     NAME: telegraf
     CONTEXT: ${CI_PROJECT_DIR}/docker/telegraf
     MODE: publish
@@ -243,7 +237,6 @@ grafana image:
         paths:
           - docker/grafana/**/*
   variables:
-    GIT_LFS_SKIP_SMUDGE: 1
     NAME: grafana
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
     MODE: publish

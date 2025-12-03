@@ -48,6 +48,15 @@ protected:
     ta_sys.slot_indication(next_sl_tx);
   }
 
+  unsigned add_ue()
+  {
+    unsigned ue_index = ues.size();
+    auto&    u        = ues.emplace_back();
+    u.ue_lc_chs       = lc_ch_sys.create_ue(to_du_ue_index(ue_index), ul_scs, false, cfg_pool.create({}));
+    u.ta_mgr          = ta_sys.add_ue(time_alignment_group::id_t{0}, u.ue_lc_chs);
+    return ue_index;
+  }
+
   /// Computes the N_TA update i.e. N_TA_new - N_TA_old value in T_C units, which will result in new TA command
   /// (new_ta_cmd) being computed by the TA manager.
   int64_t compute_n_ta_diff_leading_to_new_ta_cmd(uint8_t new_ta_cmd)
@@ -55,6 +64,35 @@ protected:
     return static_cast<int64_t>(std::round(static_cast<double>(((static_cast<int64_t>(new_ta_cmd) - 31) * 16 * 64)) /
                                            static_cast<double>(pow2(to_numerology_value(ul_scs)))));
   }
+
+  std::optional<dl_msg_lc_info> fetch_ta_cmd_mac_ce_allocation(unsigned ue_index)
+  {
+    static const lcid_dl_sch_t lcid            = lcid_dl_sch_t::TA_CMD;
+    static const unsigned      remaining_bytes = lcid.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + 3;
+    dl_msg_lc_info             subpdu{};
+    if (ues.at(ue_index).ue_lc_chs.allocate_mac_ce(subpdu, remaining_bytes) > 0) {
+      return subpdu;
+    }
+    return {};
+  }
+
+  std::optional<dl_msg_lc_info> run_until_next_ta_cmd(unsigned ue_index, unsigned max_slots = 0)
+  {
+    max_slots = max_slots == 0 ? expert_cfg.ue.ta_control.measurement_period * 2 : max_slots;
+    for (unsigned count = 0; count != max_slots; ++count) {
+      run_slot();
+      auto ta_cmd_mac_ce_alloc = fetch_ta_cmd_mac_ce_allocation(ue_index);
+      if (ta_cmd_mac_ce_alloc.has_value()) {
+        return ta_cmd_mac_ce_alloc;
+      }
+    }
+    return std::nullopt;
+  }
+
+  struct ue_context {
+    ue_logical_channel_repository ue_lc_chs;
+    ue_ta_manager                 ta_mgr;
+  };
 
   subcarrier_spacing          ul_scs;
   scheduler_expert_config     expert_cfg = config_helpers::make_default_scheduler_expert_config();
@@ -64,63 +102,52 @@ protected:
   ta_management_system ta_sys;
 
   slot_point next_sl_tx;
+
+  std::deque<ue_context> ues;
 };
 
 /// Test fixture for the TA management of a single UE.
 class single_ue_ta_manager_test : public base_ta_management_system_test, public ::testing::Test
 {
 protected:
-  single_ue_ta_manager_test() :
-    ue_lc_chs(lc_ch_sys.create_ue(to_du_ue_index(0), ul_scs, false, cfg_pool.create({}))),
-    ta_mgr(ta_sys.add_ue(time_alignment_group::id_t{0}, ue_lc_chs))
+  single_ue_ta_manager_test()
   {
+    unsigned offset = add_ue();
+    ue_lc_chs       = &ues[offset].ue_lc_chs;
+    ta_mgr          = &ues[offset].ta_mgr;
     run_slot();
   }
 
   std::optional<dl_msg_lc_info> fetch_ta_cmd_mac_ce_allocation()
   {
-    static const lcid_dl_sch_t lcid            = lcid_dl_sch_t::TA_CMD;
-    static const unsigned      remaining_bytes = lcid.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + 3;
-    dl_msg_lc_info             subpdu{};
-    if (ue_lc_chs.allocate_mac_ce(subpdu, remaining_bytes) > 0) {
-      return subpdu;
-    }
-    return {};
+    return base_ta_management_system_test::fetch_ta_cmd_mac_ce_allocation(0);
   }
 
   std::optional<dl_msg_lc_info> run_until_next_ta_cmd(unsigned max_slots = 0)
   {
-    max_slots = max_slots == 0 ? expert_cfg.ue.ta_control.measurement_period * 2 : max_slots;
-    for (unsigned count = 0; count != max_slots; ++count) {
-      run_slot();
-      auto ta_cmd_mac_ce_alloc = fetch_ta_cmd_mac_ce_allocation();
-      if (ta_cmd_mac_ce_alloc.has_value()) {
-        return ta_cmd_mac_ce_alloc;
-      }
-    }
-    return std::nullopt;
+    return base_ta_management_system_test::run_until_next_ta_cmd(0, max_slots);
   }
 
-  ue_logical_channel_repository ue_lc_chs;
-  ue_ta_manager                 ta_mgr;
+  ue_logical_channel_repository* ue_lc_chs;
+  ue_ta_manager*                 ta_mgr;
 };
 
 TEST_F(single_ue_ta_manager_test, ue_ta_manager_lifetime)
 {
   ASSERT_EQ(ta_sys.nof_active_ues(), 1U);
-  ASSERT_TRUE(ta_mgr.active());
+  ASSERT_TRUE(ta_mgr->active());
 
-  auto ta_mgr_moved = std::move(ta_mgr);
+  auto ta_mgr_moved = std::move(*ta_mgr);
   ASSERT_EQ(ta_sys.nof_active_ues(), 1U);
   ASSERT_TRUE(ta_mgr_moved.active());
-  ASSERT_FALSE(ta_mgr.active());
+  ASSERT_FALSE(ta_mgr->active());
 
-  ta_mgr = std::move(ta_mgr_moved);
+  *ta_mgr = std::move(ta_mgr_moved);
   ASSERT_EQ(ta_sys.nof_active_ues(), 1U);
-  ASSERT_TRUE(ta_mgr.active());
+  ASSERT_TRUE(ta_mgr->active());
   ASSERT_FALSE(ta_mgr_moved.active());
 
-  ta_mgr.reset();
+  ta_mgr->reset();
   ASSERT_EQ(ta_sys.nof_active_ues(), 0U);
 }
 
@@ -134,7 +161,7 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_not_triggered_when_reported_ul_n_ta_
   // Enqueue a UL N_TA update indication of low SINR.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold - 10;
-  ta_mgr.handle_ul_n_ta_update_indication(
+  ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Ensure MAC CE is not allocated for TA command.
@@ -146,7 +173,7 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_successfully_triggered)
   // Enqueue a UL N_TA update indication of high SINR.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
-  ta_mgr.handle_ul_n_ta_update_indication(
+  ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
@@ -169,7 +196,7 @@ TEST_F(single_ue_ta_manager_test, verify_computed_new_ta_cmd_based_on_multiple_n
   // Note: We use i%3 to add some variance in the samples.
   unsigned nof_init_samples = 10;
   for (unsigned i = 0; i < nof_init_samples; ++i) {
-    ta_mgr.handle_ul_n_ta_update_indication(
+    ta_mgr->handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(33 + (i % 3)), ul_sinr);
   }
   ASSERT_TRUE(run_until_next_ta_cmd().has_value()) << "TA command should be triggered";
@@ -179,7 +206,7 @@ TEST_F(single_ue_ta_manager_test, verify_computed_new_ta_cmd_based_on_multiple_n
   // New measurement window.
   const std::vector<uint8_t> ta_values_reported = {35, 34, 45, 34, 33};
   for (const auto ta : ta_values_reported) {
-    ta_mgr.handle_ul_n_ta_update_indication(
+    ta_mgr->handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(ta), ul_sinr);
   }
 
@@ -198,11 +225,11 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_not_triggered_if_ue_is_reset)
   // Enqueue a UL N_TA update indication of high SINR.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
-  ta_mgr.handle_ul_n_ta_update_indication(
+  ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Reset the UE from the TA management system.
-  ta_mgr.reset();
+  ta_mgr->reset();
 
   // Ensure MAC CE is not allocated for TA command.
   ASSERT_FALSE(run_until_next_ta_cmd().has_value()) << "TA command should not be triggered after UE reset";
@@ -213,7 +240,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_ignored_during_prohibit_perio
   // Enqueue a UL N_TA update indication of high SINR.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
-  ta_mgr.handle_ul_n_ta_update_indication(
+  ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
@@ -222,7 +249,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_ignored_during_prohibit_perio
   // Enqueue multiple UL N_TA update indications during prohibit period.
   const unsigned n_ta_indications_during_prohibit = expert_cfg.ue.ta_control.measurement_prohibit_period;
   for (unsigned i = 0; i < n_ta_indications_during_prohibit; ++i) {
-    ta_mgr.handle_ul_n_ta_update_indication(
+    ta_mgr->handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
     run_slot();
     ASSERT_FALSE(fetch_ta_cmd_mac_ce_allocation().has_value())
@@ -238,7 +265,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_considered_after_prohibit_per
   // Enqueue a UL N_TA update indication of high SINR.
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
-  ta_mgr.handle_ul_n_ta_update_indication(
+  ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
@@ -251,7 +278,7 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_considered_after_prohibit_per
 
   // Enqueue a UL N_TA update indication after prohibit period.
   const uint8_t new_ta_cmd2 = 40;
-  ta_mgr.handle_ul_n_ta_update_indication(
+  ta_mgr->handle_ul_n_ta_update_indication(
       time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd2), ul_sinr);
 
   // Ensure MAC CE is allocated for TA command.
@@ -259,4 +286,97 @@ TEST_F(single_ue_ta_manager_test, n_ta_indications_considered_after_prohibit_per
   ASSERT_TRUE(ta_cmd_mac_ce_alloc.has_value()) << "Missing TA command CE allocation";
   auto ta_cmd_ce = std::get<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload);
   ASSERT_EQ(ta_cmd_ce.ta_cmd, new_ta_cmd2) << "New TA command does not match the expected TA command value";
+}
+
+/// Test fixture for the TA management of a multiple UEs.
+class multi_ue_ta_manager_test : public base_ta_management_system_test, public ::testing::Test
+{
+protected:
+  multi_ue_ta_manager_test() = default;
+};
+
+TEST_F(multi_ue_ta_manager_test, ta_cmd_is_successfully_triggered_for_multiple_ues)
+{
+  const unsigned nof_ues = 5;
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    add_ue();
+  }
+  run_slot();
+
+  const uint8_t new_ta_cmd = 33;
+  const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
+
+  // Enqueue a UL N_TA update indication of high SINR for all UEs.
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    ues[i].ta_mgr.handle_ul_n_ta_update_indication(
+        time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
+  }
+
+  // Ensure MAC CE is allocated for TA command for all UEs.
+  std::vector<unsigned> ues_count(ues.size(), 0);
+  unsigned              count_ues = 0;
+  unsigned              max_slots = expert_cfg.ue.ta_control.measurement_period * 2;
+  for (unsigned count = 0; count != max_slots; ++count) {
+    run_slot();
+    for (unsigned ue_index = 0; ue_index < ues.size(); ++ue_index) {
+      auto ta_cmd_mac_ce_alloc = fetch_ta_cmd_mac_ce_allocation(ue_index);
+      if (ta_cmd_mac_ce_alloc.has_value()) {
+        if (ues_count[ue_index] == 0) {
+          ASSERT_EQ(ues_count[ue_index], 0U) << "Multiple TA commands allocated for UE " << ue_index;
+          ++ues_count[ue_index];
+          count_ues++;
+        }
+        ASSERT_EQ(ta_cmd_mac_ce_alloc->lcid, lcid_dl_sch_t::TA_CMD) << "TA command is not be triggered for UE ";
+        auto ta_cmd_ce = std::get<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload);
+        ASSERT_EQ(ta_cmd_ce.ta_cmd, new_ta_cmd);
+      }
+    }
+  }
+  ASSERT_EQ(count_ues, nof_ues) << "Not all UEs received TA command";
+}
+
+TEST_F(multi_ue_ta_manager_test, ta_cmd_is_successfully_triggered_for_ues_not_reset)
+{
+  const unsigned nof_ues = 10;
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    add_ue();
+  }
+  run_slot();
+
+  // Enqueue a UL N_TA update indication of high SINR for all UEs.
+  const uint8_t new_ta_cmd = 33;
+  const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    ues[i].ta_mgr.handle_ul_n_ta_update_indication(
+        time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
+  }
+
+  std::vector<unsigned> reset_ues = {2, 7};
+  for (unsigned idx : reset_ues) {
+    ues[idx].ta_mgr.reset();
+  }
+
+  // Ensure MAC CE is allocated for TA command for all non-reset UEs.
+  std::vector<unsigned> ues_count(ues.size(), 0);
+  unsigned              count_ues = 0;
+  unsigned              max_slots = expert_cfg.ue.ta_control.measurement_period * 2;
+  for (unsigned count = 0; count != max_slots; ++count) {
+    run_slot();
+    for (unsigned ue_index = 0; ue_index < ues.size(); ++ue_index) {
+      auto ta_cmd_mac_ce_alloc = fetch_ta_cmd_mac_ce_allocation(ue_index);
+      if (ta_cmd_mac_ce_alloc.has_value()) {
+        ASSERT_FALSE(std::find(reset_ues.begin(), reset_ues.end(), ue_index) != reset_ues.end())
+            << "TA command should not be allocated for reset UE " << ue_index;
+        if (ues_count[ue_index] == 0) {
+          ASSERT_EQ(ues_count[ue_index], 0U) << "Multiple TA commands allocated for UE " << ue_index;
+          ++ues_count[ue_index];
+          count_ues++;
+        }
+        ASSERT_EQ(ta_cmd_mac_ce_alloc->lcid, lcid_dl_sch_t::TA_CMD) << "TA command is not be triggered for UE ";
+        auto ta_cmd_ce = std::get<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload);
+        ASSERT_EQ(ta_cmd_ce.ta_cmd, new_ta_cmd);
+      }
+    }
+  }
+  ASSERT_EQ(count_ues, nof_ues - reset_ues.size()) << "Not all UEs received TA command";
 }

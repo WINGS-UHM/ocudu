@@ -291,8 +291,6 @@ smoke relwithdeb cached:
   extends: .smoke relwithdeb
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR
@@ -304,8 +302,6 @@ smoke tsan cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -320,8 +316,6 @@ smoke archlinux cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -336,8 +330,6 @@ smoke dpdk cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -359,8 +351,6 @@ smoke avx512 cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -379,8 +369,6 @@ smoke arm cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -399,8 +387,6 @@ smoke arm neon cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -419,8 +405,6 @@ smoke pretty printers cached:
   stage: manual
   timeout: 1 hour
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -440,36 +424,26 @@ smoke pretty printers cached:
 smoke relwithdeb clean:
   extends: .smoke relwithdeb
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
 
 smoke tsan clean:
   extends: .smoke tsan
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
 
 smoke archlinux clean:
   extends: .smoke archlinux
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
 
 smoke dpdk clean:
   extends: .smoke dpdk
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
 
 smoke avx512 clean:
   extends: .smoke avx512
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       changes:
         <<: *instruction_set_changes
@@ -477,8 +451,6 @@ smoke avx512 clean:
 smoke arm clean:
   extends: .smoke arm
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       changes:
         <<: *instruction_set_changes
@@ -486,8 +458,6 @@ smoke arm clean:
 smoke arm neon clean:
   extends: .smoke arm neon
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       changes:
         <<: *instruction_set_changes
@@ -495,8 +465,6 @@ smoke arm neon clean:
 smoke pretty printers clean:
   extends: .smoke printers
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       changes:
         <<: *gdb_printers_changes
@@ -506,8 +474,6 @@ smoke pretty printers clean:
 intermediate commits cached:
   extends: .smoke release
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR
@@ -535,8 +501,6 @@ valgrind changed tests:
   allow_failure:
     exit_codes: 124 # timeout command's exit code when the time is reached
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-memcheck/
       when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
@@ -574,36 +538,8 @@ valgrind changed tests:
 intermediate commits clean:
   extends: intermediate commits cached
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
 
-# Target branch is a release branch
-
-load build env for release branch:
-  stage: ci
-  image: ubuntu:24.04
-  rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
-  script:
-    - cat .gitlab/ci/release_build.env
-  artifacts:
-    reports:
-      dotenv: .gitlab/ci/release_build.env
-
-build on release branch:
-  extends: .build_and_unit
-  rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-  variables:
-    ENABLE_MKL: # default
-    ENABLE_ARMPL: # default
-  tags: ["amd64-avx2"]
-  needs:
-    - job: load build env for release branch
-      artifacts: true
 
 #################
 # Build Nightly #

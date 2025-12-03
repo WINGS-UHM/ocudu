@@ -153,21 +153,10 @@ trigger doxygen image:
   stage: static
   rules:
     - if: $ON_MR
-      exists:
-        - "**/*.cpp"
-        - "**/*.c"
-        - "**/*.c++"
-        - "**/*.cxx"
-        - "**/*.c"
-        - "**/*.cl"
-        - "**/*.h"
-        - "**/*.hh"
-        - "**/*.hpp"
   needs: []
   variables:
     CPP_SRC_DIR: $CI_PROJECT_DIR
     GIT_DEPTH: 0
-    GIT_LFS_SKIP_SMUDGE: 1
   before_script:
     - |
       DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid apt-get update && apt-get install -y --no-install-recommends \
@@ -176,6 +165,23 @@ trigger doxygen image:
     paths:
       - $CPP_SRC_DIR/ci.patch
     when: on_failure
+
+headers:
+  extends: .static
+  stage: static
+  rules:
+    - if: $ON_MR
+      when: manual
+      allow_failure: true
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+  before_script:
+    - |
+      check_headers() {
+        .gitlab/ci/static/update_headers.sh
+        .gitlab/ci/static/is-pristine-repo.sh
+      }
+  script:
+    - check_headers
 
 code-format:
   extends: .static
@@ -215,11 +221,6 @@ include-guards:
     TARGET_BRANCH: origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     INPUT_PATH: "."
     INPUT_IGNORE: "/bundled/"
-  rules:
-    - if: $ON_MR
-      changes:
-        - .clang-format
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   script:
     - |
       include-guards-check() {
@@ -255,7 +256,6 @@ include-guards:
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
     CHECK_PER_FILE_TIMEOUT: 600
-    GIT_LFS_SKIP_SMUDGE: 1
   before_script:
     - |
       echo "
@@ -319,8 +319,6 @@ clang-tidy incremental:
   extends: clang-tidy
   stage: manual
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
       when: manual
@@ -391,14 +389,10 @@ unit coverage:
     name: mcr.microsoft.com/dotnet/sdk:8.0-alpine
     entrypoint: ["/bin/sh", "-c"]
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED == "true" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != $CI_DEFAULT_BRANCH
-      when: never
     - if: $ON_MR
       variables:
         coverage_report: summary
       when: always # Even if previous stages/required jobs fail
-  variables:
-    GIT_LFS_SKIP_SMUDGE: 1
   before_script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.5.0
@@ -432,7 +426,7 @@ unit coverage:
         HISTORY=
       fi
     - |
-      ReportGenerator -reports:*coverage.xml -targetdir:coverage_html ${HISTORY} \
+      reportgenerator -reports:*coverage.xml -targetdir:coverage_html ${HISTORY} \
         -title:${CI_PROJECT_NAME} -tag:${CI_COMMIT_SHA} \
         -reporttypes:"${HTML_TYPE};TextSummary"
     - cat coverage_html/Summary.txt

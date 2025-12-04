@@ -9,12 +9,12 @@
  */
 
 #include "nzp_csi_rs_generator_impl.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
-#include "srsran/ran/csi_rs/csi_rs_pattern.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
+#include "ocudu/ran/csi_rs/csi_rs_pattern.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string>
 nzp_csi_rs_configuration_validator_impl::is_valid(const nzp_csi_rs_generator::config_t& config) const
@@ -164,21 +164,21 @@ void nzp_csi_rs_generator_impl::map(resource_grid_writer& grid, const config_t& 
 {
   unsigned nof_ports = csi_rs::get_nof_csi_rs_ports(config.csi_rs_mapping_table_row);
 
-  srsran_assert(nof_ports == config.precoding.get_nof_ports(),
-                "CSI-RS number of ports, i.e., {}, does not match the precoding number of ports, i.e., {}.",
-                nof_ports,
-                config.precoding.get_nof_ports());
+  ocudu_assert(nof_ports == config.precoding.get_nof_ports(),
+               "CSI-RS number of ports, i.e., {}, does not match the precoding number of ports, i.e., {}.",
+               nof_ports,
+               config.precoding.get_nof_ports());
 
-  srsran_assert(nof_ports == config.precoding.get_nof_layers(),
-                "CSI-RS precoding number of ports, i.e., {} and number of layers, i.e., {}, must be equal.",
-                nof_ports,
-                config.precoding.get_nof_layers());
+  ocudu_assert(nof_ports == config.precoding.get_nof_layers(),
+               "CSI-RS precoding number of ports, i.e., {} and number of layers, i.e., {}, must be equal.",
+               nof_ports,
+               config.precoding.get_nof_layers());
 
   interval<unsigned, false> l0_range(0, get_nsymb_per_slot(config.cp));
-  srsran_assert(l0_range.contains(config.symbol_l0),
-                "CSI-RS Mapping: l_0, i.e., {} outside the valid range, i.e., {}.",
-                config.symbol_l0,
-                l0_range);
+  ocudu_assert(l0_range.contains(config.symbol_l0),
+               "CSI-RS Mapping: l_0, i.e., {} outside the valid range, i.e., {}.",
+               config.symbol_l0,
+               l0_range);
 
   // Generate the grid allocations patterns for each port.
   csi_rs_pattern_configuration mapping_config;
@@ -240,8 +240,8 @@ void nzp_csi_rs_generator_impl::map(resource_grid_writer& grid, const config_t& 
       unsigned i_port_layer = i_cdm_group * cdm_group_size + i_cdm_port;
 
       // Make sure all the CDM group shares the same pattern.
-      srsran_assert(pattern == get_re_pattern_port(pattern_all_port, i_port_layer),
-                    "All ports within a CDM group must have the same pattern.");
+      ocudu_assert(pattern == get_re_pattern_port(pattern_all_port, i_port_layer),
+                   "All ports within a CDM group must have the same pattern.");
 
       // Load the port coefficients for the CDM port.
       for (unsigned i_port = 0, i_port_end = nof_ports; i_port != i_port_end; ++i_port) {
@@ -309,14 +309,14 @@ void nzp_csi_rs_generator_impl::apply_cdm(span<cf_t>            seq_out,
   // Apply CDM4-FD2-TD2 or CDM8-FD2-TD4.
   else if (cdm == csi_rs_cdm_type::cdm4_FD2_TD2 || cdm == csi_rs_cdm_type::cdm8_FD2_TD4) {
     if (cdm == csi_rs_cdm_type::cdm4_FD2_TD2) {
-      srsran_assert(
+      ocudu_assert(
           l_idx <= L_PRIME_MAX_TD2, "l_idx value: {} outside of range: 0..{} for CDM4-FD2-TD2", l_idx, L_PRIME_MAX_TD2);
 
       // Get the CDM table.
       table = span<const cdm_sequence>(cdm4_fd2_td2_table);
 
     } else {
-      srsran_assert(
+      ocudu_assert(
           l_idx <= L_PRIME_MAX_TD4, "l_idx value: {} outside of range: 0..{} for CDM8-FD2-TD4", l_idx, L_PRIME_MAX_TD4);
 
       // Get the CDM table.

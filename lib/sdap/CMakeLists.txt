@@ -8,5 +8,5 @@
 
 set(SOURCES sdap_factory.cpp)
 
-add_library(srsran_sdap STATIC ${SOURCES})
-target_link_libraries(srsran_sdap)
+add_library(ocudu_sdap STATIC ${SOURCES})
+target_link_libraries(ocudu_sdap)

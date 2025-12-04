@@ -14,15 +14,15 @@
 #include "lib/cu_up/ngu_session_manager_impl.h"
 #include <gtest/gtest.h>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// Fixture base class for PDU session manager tests
 class ngu_session_manager_test : public ::testing::Test
 {
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     unsigned nof_gws = 2;
     for (unsigned i = 0; i < nof_gws; i++) {
@@ -42,7 +42,7 @@ class ngu_session_manager_test : public ::testing::Test
     ngu_session_mngr.reset();
 
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 protected:
@@ -50,4 +50,4 @@ protected:
   std::vector<std::unique_ptr<gtpu_tnl_pdu_session>> ngu_gws;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

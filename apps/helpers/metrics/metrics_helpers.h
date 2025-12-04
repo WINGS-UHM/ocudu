@@ -10,23 +10,23 @@
 
 #pragma once
 
-namespace srslog {
+namespace ocudulog {
 class log_channel;
 }
 
-namespace srsran {
+namespace ocudu {
 namespace app_helpers {
 
 struct metrics_config;
 
 /// Returns the metrics log channel for the logger type.
-srslog::log_channel& fetch_logger_metrics_log_channel();
+ocudulog::log_channel& fetch_logger_metrics_log_channel();
 
 /// Returns the metrics log channel for the JSON type.
-srslog::log_channel& fetch_json_metrics_log_channel();
+ocudulog::log_channel& fetch_json_metrics_log_channel();
 
 /// Initializes the metrics log channels using the given configuration.
 void initialize_metrics_log_channels(const metrics_config& config, unsigned hex_dump_size);
 
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

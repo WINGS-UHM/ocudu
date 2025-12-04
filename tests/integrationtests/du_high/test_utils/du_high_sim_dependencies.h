@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_metrics_notifier.h"
-#include "srsran/f1ap/gateways/f1c_connection_client.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/du/du_high/du_metrics_notifier.h"
+#include "ocudu/f1ap/gateways/f1c_connection_client.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <map>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// Dummy F1C connection client that emulates the CU-CP side.
 class dummy_f1c_test_client : public f1c_connection_client
@@ -73,5 +73,5 @@ private:
   task_executor& exec;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -39,6 +39,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     list(APPEND ldpc_sources ldpc_rate_dematcher_neon_impl.cpp)
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 
-add_library(srsran_ldpc STATIC ${ldpc_sources})
+add_library(ocudu_ldpc STATIC ${ldpc_sources})
 
-target_link_libraries(srsran_ldpc log_likelihood_ratio)
+target_link_libraries(ocudu_ldpc log_likelihood_ratio)

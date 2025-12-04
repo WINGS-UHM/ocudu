@@ -11,15 +11,15 @@
 #pragma once
 
 #include "ethernet_rx_buffer_impl.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/units.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/units.h"
 #include <optional>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 namespace ether {
 
 /// Pool of buffers accessed by a socket-based Ethernet receiver.
@@ -72,10 +72,10 @@ public:
   /// Returns the span of data belonging to a buffer with the given ID.
   span<uint8_t> get_data(unsigned id)
   {
-    srsran_assert(id < entries.size(), "Buffer index ({}) is out of range ({}).", id, entries.size());
+    ocudu_assert(id < entries.size(), "Buffer index ({}) is out of range ({}).", id, entries.size());
     return {entries[id].data(), entries[id].size()};
   }
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

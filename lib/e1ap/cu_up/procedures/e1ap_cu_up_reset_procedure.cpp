@@ -9,17 +9,17 @@
  */
 
 #include "e1ap_cu_up_reset_procedure.h"
-#include "srsran/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
 #include <utility>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 e1ap_cu_up_reset_procedure::e1ap_cu_up_reset_procedure(asn1::e1ap::reset_s          reset_msg_,
                                                        e1ap_ue_context_list&        ue_ctxt_list_,
                                                        e1ap_cu_up_manager_notifier& cu_up_notifier_,
                                                        e1ap_message_notifier&       tx_pdu_notifier_,
-                                                       srslog::basic_logger&        logger_) :
+                                                       ocudulog::basic_logger&      logger_) :
   reset_msg(std::move(reset_msg_)),
   ue_ctxt_list(ue_ctxt_list_),
   cu_up_notifier(cu_up_notifier_),

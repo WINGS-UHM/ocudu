@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace csi_helper;
 
 /// Get CRBs across which a CSI resource spans as per TS 38.331, "CSI-FrequencyOccupation".
@@ -30,15 +30,15 @@ static crb_interval get_csi_freq_occupation_rbs(unsigned nof_crbs, unsigned bwp_
 }
 
 /// \brief Compute default CSI-RS signalling period to use, while constrained by TS 38.214, 5.1.6.1.1.
-csi_resource_periodicity srsran::csi_helper::get_max_csi_rs_period(subcarrier_spacing pdsch_scs)
+csi_resource_periodicity ocudu::csi_helper::get_max_csi_rs_period(subcarrier_spacing pdsch_scs)
 {
   const csi_resource_periodicity max_csi_period =
       static_cast<csi_resource_periodicity>(std::min(80U * get_nof_slots_per_subframe(pdsch_scs), 640U));
   return max_csi_period;
 }
 
-bool srsran::csi_helper::is_csi_rs_period_valid(csi_resource_periodicity       csi_rs_period,
-                                                const tdd_ul_dl_config_common& tdd_cfg)
+bool ocudu::csi_helper::is_csi_rs_period_valid(csi_resource_periodicity       csi_rs_period,
+                                               const tdd_ul_dl_config_common& tdd_cfg)
 {
   // The CSI-RS period must be multiple of the TDD period.
   const unsigned tdd_period = nof_slots_per_tdd_period(tdd_cfg);
@@ -59,7 +59,7 @@ bool srsran::csi_helper::is_csi_rs_period_valid(csi_resource_periodicity       c
 }
 
 std::optional<csi_resource_periodicity>
-srsran::csi_helper::find_valid_csi_rs_period(const tdd_ul_dl_config_common& tdd_cfg)
+ocudu::csi_helper::find_valid_csi_rs_period(const tdd_ul_dl_config_common& tdd_cfg)
 {
   const unsigned tdd_period = nof_slots_per_tdd_period(tdd_cfg);
 
@@ -102,17 +102,17 @@ static bool is_csi_slot_offset_valid(unsigned                       slot_offset,
   return get_active_tdd_dl_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() > max_csi_symbol_index;
 }
 
-bool srsran::csi_helper::derive_valid_csi_rs_slot_offsets(csi_builder_params&            csi_params,
-                                                          const std::optional<unsigned>& meas_csi_slot_offset,
-                                                          const std::optional<unsigned>& tracking_csi_slot_offset,
-                                                          const std::optional<unsigned>& zp_csi_slot_offset,
-                                                          const tdd_ul_dl_config_common& tdd_cfg,
-                                                          unsigned                       max_csi_symbol_index,
-                                                          unsigned                       ssb_period_ms)
+bool ocudu::csi_helper::derive_valid_csi_rs_slot_offsets(csi_builder_params&            csi_params,
+                                                         const std::optional<unsigned>& meas_csi_slot_offset,
+                                                         const std::optional<unsigned>& tracking_csi_slot_offset,
+                                                         const std::optional<unsigned>& zp_csi_slot_offset,
+                                                         const tdd_ul_dl_config_common& tdd_cfg,
+                                                         unsigned                       max_csi_symbol_index,
+                                                         unsigned                       ssb_period_ms)
 {
-  srsran_assert(is_csi_rs_period_valid(csi_params.csi_rs_period, tdd_cfg),
-                "Invalid CSI-RS period {} for provided TDD pattern",
-                fmt::underlying(csi_params.csi_rs_period));
+  ocudu_assert(is_csi_rs_period_valid(csi_params.csi_rs_period, tdd_cfg),
+               "Invalid CSI-RS period {} for provided TDD pattern",
+               fmt::underlying(csi_params.csi_rs_period));
 
   // Fill the pre-specified parameters and verify if valid.
   if (meas_csi_slot_offset.has_value()) {
@@ -197,7 +197,7 @@ static zp_csi_rs_resource make_default_zp_csi_rs_resource(const csi_builder_para
 }
 
 std::vector<zp_csi_rs_resource>
-srsran::csi_helper::make_periodic_zp_csi_rs_resource_list(const csi_builder_params& params)
+ocudu::csi_helper::make_periodic_zp_csi_rs_resource_list(const csi_builder_params& params)
 {
   if (params.nof_ports > 4) {
     report_error("Unsupported number of antenna ports {}", params.nof_ports);
@@ -216,7 +216,7 @@ srsran::csi_helper::make_periodic_zp_csi_rs_resource_list(const csi_builder_para
   return list;
 }
 
-zp_csi_rs_resource_set srsran::csi_helper::make_periodic_zp_csi_rs_resource_set(const csi_builder_params& params)
+zp_csi_rs_resource_set ocudu::csi_helper::make_periodic_zp_csi_rs_resource_set(const csi_builder_params& params)
 {
   if (params.nof_ports > 4) {
     report_error("Unsupported number of antenna ports {}", params.nof_ports);
@@ -262,7 +262,7 @@ static csi_report_periodicity convert_csi_resource_period_to_report_period(csi_r
     case csi_resource_periodicity::slots640:
       return csi_report_periodicity::slots320;
   }
-  return srsran::csi_report_periodicity::slots320;
+  return ocudu::csi_report_periodicity::slots320;
 }
 
 // Fills the values that are common to all CSI-RS resources.
@@ -287,10 +287,10 @@ static nzp_csi_rs_resource make_common_nzp_csi_rs_resource(const csi_builder_par
 
 static nzp_csi_rs_resource make_channel_measurement_nzp_csi_rs_resource(const csi_builder_params& params)
 {
-  srsran_assert(params.meas_csi_slot_offset < csi_resource_periodicity_to_uint(params.csi_rs_period),
-                "Invalid CSI slot offset {} >= {}",
-                params.meas_csi_slot_offset,
-                csi_resource_periodicity_to_uint(params.csi_rs_period));
+  ocudu_assert(params.meas_csi_slot_offset < csi_resource_periodicity_to_uint(params.csi_rs_period),
+               "Invalid CSI slot offset {} >= {}",
+               params.meas_csi_slot_offset,
+               csi_resource_periodicity_to_uint(params.csi_rs_period));
   nzp_csi_rs_resource res = make_common_nzp_csi_rs_resource(params);
 
   res.res_id                              = static_cast<nzp_csi_rs_res_id_t>(0);
@@ -341,9 +341,9 @@ fill_tracking_nzp_csi_rs_resource(span<nzp_csi_rs_resource> tracking_csi_rs,
 {
   static size_t NOF_TRACKING_RESOURCES = 4;
 
-  srsran_assert(tracking_csi_rs.size() == NOF_TRACKING_RESOURCES, "Invalid tracking CSI-RS resource list size");
-  srsran_assert(params.tracking_csi_slot_offset + 1 < csi_resource_periodicity_to_uint(params.csi_rs_period),
-                "Invalid CSI slot offset");
+  ocudu_assert(tracking_csi_rs.size() == NOF_TRACKING_RESOURCES, "Invalid tracking CSI-RS resource list size");
+  ocudu_assert(params.tracking_csi_slot_offset + 1 < csi_resource_periodicity_to_uint(params.csi_rs_period),
+               "Invalid CSI slot offset");
   nzp_csi_rs_resource res = make_common_nzp_csi_rs_resource(params);
 
   res.res_mapping.nof_ports    = 1;
@@ -364,7 +364,7 @@ fill_tracking_nzp_csi_rs_resource(span<nzp_csi_rs_resource> tracking_csi_rs,
   }
 }
 
-std::vector<nzp_csi_rs_resource> srsran::csi_helper::make_nzp_csi_rs_resource_list(const csi_builder_params& params)
+std::vector<nzp_csi_rs_resource> ocudu::csi_helper::make_nzp_csi_rs_resource_list(const csi_builder_params& params)
 {
   std::vector<nzp_csi_rs_resource> list(5);
 
@@ -406,27 +406,27 @@ static unsigned get_subcarrier_location_from_fd_alloc_bit_location(int     fd_al
   // See TS 38.211, clause 7.4.1.5.3.
   switch (fd_alloc_bitmap_size) {
     case 4: {
-      srsran_assert(fd_alloc_bit_location < 4,
-                    "Invalid bit location={} in frequency domain allocation of CSI-RS for row 1",
-                    fd_alloc_bit_location);
+      ocudu_assert(fd_alloc_bit_location < 4,
+                   "Invalid bit location={} in frequency domain allocation of CSI-RS for row 1",
+                   fd_alloc_bit_location);
       return fd_alloc_bit_location;
     }
     case 12: {
-      srsran_assert(fd_alloc_bit_location < 12,
-                    "Invalid bit location={} in frequency domain allocation of CSI-RS for row 2",
-                    fd_alloc_bit_location);
+      ocudu_assert(fd_alloc_bit_location < 12,
+                   "Invalid bit location={} in frequency domain allocation of CSI-RS for row 2",
+                   fd_alloc_bit_location);
       return fd_alloc_bit_location;
     }
     case 3: {
-      srsran_assert(fd_alloc_bit_location < 3,
-                    "Invalid bit location={} in frequency domain allocation of CSI-RS for row 4",
-                    fd_alloc_bit_location);
+      ocudu_assert(fd_alloc_bit_location < 3,
+                   "Invalid bit location={} in frequency domain allocation of CSI-RS for row 4",
+                   fd_alloc_bit_location);
       return 4 * fd_alloc_bit_location;
     }
     case 6: {
-      srsran_assert(fd_alloc_bit_location < 6,
-                    "Invalid bit location={} in frequency domain allocation of CSI-RS for row other",
-                    fd_alloc_bit_location);
+      ocudu_assert(fd_alloc_bit_location < 6,
+                   "Invalid bit location={} in frequency domain allocation of CSI-RS for row other",
+                   fd_alloc_bit_location);
       return 2 * fd_alloc_bit_location;
     }
     default:
@@ -541,8 +541,8 @@ static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_
     }
 
     // Maximum number of layers must be in line with available number of ports.
-    srsran_assert(params.max_nof_layers <= params.nof_ports,
-                  "Maximum number of layers cannot be greater than number of ports");
+    ocudu_assert(params.max_nof_layers <= params.nof_ports,
+                 "Maximum number of layers cannot be greater than number of ports");
 
     // Limit the number of DL layers that can be requested by the UE via the Rank Indicator (RI).
     // As per TS 38.214, section 5.2.2.2.1, this can be done by setting the RI restriction bitmap to 0b11...11,
@@ -561,7 +561,7 @@ static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_
   return reps;
 }
 
-csi_meas_config srsran::csi_helper::make_csi_meas_config(const csi_builder_params& params)
+csi_meas_config ocudu::csi_helper::make_csi_meas_config(const csi_builder_params& params)
 {
   csi_meas_config csi_meas{};
 

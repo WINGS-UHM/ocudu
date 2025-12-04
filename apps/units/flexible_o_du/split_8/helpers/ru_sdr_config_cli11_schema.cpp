@@ -13,10 +13,10 @@
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "apps/services/worker_manager/cli11_cpu_affinities_parser_helper.h"
 #include "ru_sdr_config.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_amplitude_control_args(CLI::App& app, amplitude_control_unit_config& amplitude_params)
 {
@@ -260,7 +260,7 @@ static void configure_cli11_metrics_args(CLI::App& app, ru_sdr_unit_metrics_conf
   add_option(*layers_subcmd, "--enable_ru", config.enable_ru_metrics, "Enable Radio Unit metrics");
 }
 
-void srsran::configure_cli11_with_ru_sdr_config_schema(CLI::App& app, srsran::ru_sdr_unit_config& parsed_cfg)
+void ocudu::configure_cli11_with_ru_sdr_config_schema(CLI::App& app, ocudu::ru_sdr_unit_config& parsed_cfg)
 {
   /// RU SDR section.
   CLI::App* ru_sdr_subcmd = add_subcommand(app, "ru_sdr", "SDR Radio Unit configuration")->configurable();
@@ -280,9 +280,9 @@ void srsran::configure_cli11_with_ru_sdr_config_schema(CLI::App& app, srsran::ru
   configure_cli11_metrics_args(*metrics_subcmd, parsed_cfg.metrics_cfg);
 }
 
-void srsran::autoderive_ru_sdr_parameters_after_parsing(CLI::App&           app,
-                                                        ru_sdr_unit_config& parsed_cfg,
-                                                        unsigned            nof_cells)
+void ocudu::autoderive_ru_sdr_parameters_after_parsing(CLI::App&           app,
+                                                       ru_sdr_unit_config& parsed_cfg,
+                                                       unsigned            nof_cells)
 {
   if (parsed_cfg.expert_execution_cfg.cell_affinities.size() < nof_cells) {
     parsed_cfg.expert_execution_cfg.cell_affinities.resize(nof_cells);

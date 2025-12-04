@@ -14,11 +14,11 @@
 #include "ldpc_decoder_neon.h"
 #include "ldpc_graph_impl.h"
 #include "neon_support.h"
-#include "srsran/srsvec/circ_shift.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/circ_shift.h"
+#include "ocudu/ocuduvec/copy.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 // NEON vectors filled with useful constants.
 static __always_inline int8x16_t LLR_MAX_s8()
@@ -60,14 +60,14 @@ void ldpc_decoder_neon::compute_var_to_check_msgs(span<log_likelihood_ratio>    
                                                   span<const log_likelihood_ratio> this_soft_bits,
                                                   span<const log_likelihood_ratio> this_check_to_var)
 {
-  srsran_srsvec_assert_size(this_check_to_var, this_soft_bits);
-  srsran_srsvec_assert_size(this_check_to_var, this_var_to_check);
+  ocudu_ocuduvec_assert_size(this_check_to_var, this_soft_bits);
+  ocudu_ocuduvec_assert_size(this_check_to_var, this_var_to_check);
 
   // Compute the number of nodes of the lifted graph represented by the spans.
   unsigned neon_blocks = this_var_to_check.size() / NEON_SIZE_BYTE;
 
-  srsran_assert(this_var_to_check.size() == neon_blocks * NEON_SIZE_BYTE,
-                "The spans do not correspond to an integer number of AVX2 registers.");
+  ocudu_assert(this_var_to_check.size() == neon_blocks * NEON_SIZE_BYTE,
+               "The spans do not correspond to an integer number of AVX2 registers.");
   neon::neon_span       var_to_check_neon(this_var_to_check, neon_blocks);
   neon::neon_const_span soft_bits_neon(this_soft_bits, neon_blocks);
   neon::neon_const_span check_to_var_neon(this_check_to_var, neon_blocks);
@@ -186,7 +186,7 @@ void ldpc_decoder_neon::compute_check_to_var_msgs(span<log_likelihood_ratio> thi
   }
 
   // Rotate the message back before storing it.
-  srsvec::circ_shift_forward(
+  ocuduvec::circ_shift_forward(
       this_check_to_var.first(lifting_size), span<log_likelihood_ratio>(help_check_to_var).first(lifting_size), shift);
 }
 

@@ -12,7 +12,7 @@
 
 #include "os_sched_affinity_manager.h"
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 class executor_metrics_channel_registry;
@@ -150,4 +150,4 @@ struct worker_manager_config {
   executor_metrics_channel_registry* exec_metrics_channel_registry;
 };
 
-} // namespace srsran
+} // namespace ocudu

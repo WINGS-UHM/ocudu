@@ -12,9 +12,9 @@
 
 #include "../f1ap_du_context.h"
 #include "../ue_context/f1ap_du_ue.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 class f1ap_du_ue_manager;
 
@@ -53,7 +53,7 @@ private:
   f1ap_du_ue_manager&                          ue_mng;
   f1ap_du_configurator&                        du_mng;
   const du_ue_index_t                          ue_index;
-  srslog::basic_logger&                        logger;
+  ocudulog::basic_logger&                      logger;
 
   f1ap_du_ue* ue = nullptr;
 
@@ -64,4 +64,4 @@ private:
   f1ap_ue_context_update_response                  du_ue_cfg_response;
   std::vector<f1ap_drb_failed_to_setupmod>         failed_drbs;
 };
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

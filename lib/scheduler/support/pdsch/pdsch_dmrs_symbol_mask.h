@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/scheduler/config/dmrs.h"
+#include "ocudu/scheduler/config/dmrs.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Collects the necessary parameters to calculate the DMRS symbol mask for a TypeA PDSCH mapping and single
 /// duration DMRS.
@@ -47,4 +47,4 @@ struct pdsch_dmrs_symbol_mask_mapping_type_A_single_configuration {
 dmrs_symbol_mask pdsch_dmrs_symbol_mask_mapping_type_A_single_get(
     const pdsch_dmrs_symbol_mask_mapping_type_A_single_configuration& config);
 
-} // namespace srsran
+} // namespace ocudu

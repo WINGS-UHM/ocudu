@@ -11,7 +11,7 @@ set(SOURCES
   metrics/mobility_manager_metrics_aggregator.cpp
 )
 
-add_library(srsran_cu_cp_mobility_manager STATIC ${SOURCES})
-target_link_libraries(srsran_cu_cp_mobility_manager srsran_ran)
+add_library(ocudu_cu_cp_mobility_manager STATIC ${SOURCES})
+target_link_libraries(ocudu_cu_cp_mobility_manager ocudu_ran)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

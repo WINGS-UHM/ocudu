@@ -9,10 +9,10 @@
  */
 
 #include "polar_decoder_impl.h"
-#include "srsran/srsvec/binary.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/binary.h"
+#include "ocudu/ocuduvec/zero.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Polar decoder function \f$f\f$.
 ///
@@ -20,8 +20,8 @@ using namespace srsran;
 static void
 vec_function_f(span<log_likelihood_ratio> z, span<const log_likelihood_ratio> x, span<const log_likelihood_ratio> y)
 {
-  srsran_assert(y.size() == x.size(), "Input spans must have the same size.");
-  srsran_assert(z.size() == x.size(), "Input and output spans must have the same size.");
+  ocudu_assert(y.size() == x.size(), "Input spans must have the same size.");
+  ocudu_assert(z.size() == x.size(), "Input and output spans must have the same size.");
 
   std::transform(x.begin(), x.end(), y.begin(), z.begin(), log_likelihood_ratio::soft_xor);
 }
@@ -40,8 +40,8 @@ static void vec_function_g(span<log_likelihood_ratio>       z,
                            span<const log_likelihood_ratio> y,
                            span<const uint8_t>              b)
 {
-  srsran_assert((y.size() == x.size()) && (b.size() == x.size()), "Input spans must have the same size.");
-  srsran_assert(z.size() == x.size(), "Input and output spans must have the same size.");
+  ocudu_assert((y.size() == x.size()) && (b.size() == x.size()), "Input spans must have the same size.");
+  ocudu_assert(z.size() == x.size(), "Input and output spans must have the same size.");
 
   for (unsigned i = 0, len = x.size(); i != len; ++i) {
     z[i] = switch_combine(y[i], x[i], b[i]);
@@ -51,7 +51,7 @@ static void vec_function_g(span<log_likelihood_ratio>       z,
 /// Vectorial form of soft-to-hard bit conversion.
 static void vec_hard_bit(span<log_likelihood_ratio> x, span<uint8_t> z)
 {
-  srsran_assert(x.size() == z.size(), "Input span sizes must be identical");
+  ocudu_assert(x.size() == z.size(), "Input span sizes must be identical");
 
   std::transform(x.begin(), x.end(), z.begin(), [](log_likelihood_ratio a) { return a.to_hard_bit(); });
 }
@@ -81,8 +81,8 @@ void polar_decoder_impl::tmp_node_s::compute(std::vector<node_rate*>& node_type,
   uint8_t  code_size_log_1 = code_size_log - 1;
   uint16_t code_half_size  = (1U << code_size_log_1);
 
-  srsvec::zero(span<uint16_t>(i_even).first(code_half_size));
-  srsvec::zero(span<uint16_t>(i_odd).first(code_half_size));
+  ocuduvec::zero(span<uint16_t>(i_even).first(code_half_size));
+  ocuduvec::zero(span<uint16_t>(i_odd).first(code_half_size));
   for (uint16_t i = 0; i != code_half_size; ++i) {
     i_even[i] = 2 * i;
     i_odd[i]  = 2 * i + 1;
@@ -174,10 +174,10 @@ void polar_decoder_impl::init(span<uint8_t>                    data_decoded,
   uint16_t code_half_size = param.code_stage_size[code_size_log - 1];
 
   // Initializes the data_decoded_vector to all zeros.
-  srsvec::zero(data_decoded.first(code_size));
+  ocuduvec::zero(data_decoded.first(code_size));
 
   // Initialize est_bit vector to all zeros.
-  srsvec::zero(span<uint8_t>(est_bit).first(code_size));
+  ocuduvec::zero(span<uint8_t>(est_bit).first(code_size));
 
   // Initializes LLR buffer for the last stage/level with the input LLRs values.
   for (uint16_t i = 0; i != code_half_size; ++i) {
@@ -187,7 +187,7 @@ void polar_decoder_impl::init(span<uint8_t>                    data_decoded,
 
   // Initializes the state of the decoding tree: start from the only one node at the last stage + 1.
   state.stage = code_size_log + 1;
-  srsvec::zero(span<uint16_t>(state.active_node_per_stage).first(code_size_log + 1));
+  ocuduvec::zero(span<uint16_t>(state.active_node_per_stage).first(code_size_log + 1));
   state.flag_finished = false;
 
   // Computes the node types for the decoding tree.
@@ -222,7 +222,7 @@ void polar_decoder_impl::rate_1_node(span<uint8_t> message)
   uint16_t code_stage_size = param.code_stage_size[stage];
 
   span<uint8_t> codeword = span<uint8_t>(est_bit).subspan(bit_pos, code_stage_size);
-  srsran_assert(llr0[stage].size() == code_stage_size, "Invalid size ({} != {})", llr0[stage].size(), code_stage_size);
+  ocudu_assert(llr0[stage].size() == code_stage_size, "Invalid size ({} != {})", llr0[stage].size(), code_stage_size);
 
   vec_hard_bit(llr0[stage], codeword);
 
@@ -287,9 +287,9 @@ void polar_decoder_impl::rate_r_node(span<uint8_t> message)
   estbits0 = est_bit.data() + offset0;
   estbits1 = est_bit.data() + offset1;
 
-  srsvec::binary_xor(span<uint8_t>(estbits0, stage_half_size),
-                     span<uint8_t>(estbits1, stage_half_size),
-                     span<uint8_t>(estbits0, stage_half_size));
+  ocuduvec::binary_xor(span<uint8_t>(estbits0, stage_half_size),
+                       span<uint8_t>(estbits1, stage_half_size),
+                       span<uint8_t>(estbits0, stage_half_size));
 
   // Update this node index and return to the father node.
   ++state.active_node_per_stage[stage];
@@ -314,7 +314,7 @@ void polar_decoder_impl::simplified_node(span<uint8_t> message)
       rate_r_node(message);
       break;
     default:
-      srsran_assertion_failure("ERROR: wrong node type {}.", fmt::underlying(param.node_type[stage][bit_pos]));
+      ocudu_assertion_failure("ERROR: wrong node type {}.", fmt::underlying(param.node_type[stage][bit_pos]));
   }
   // Go back to the parent node.
   ++state.stage;

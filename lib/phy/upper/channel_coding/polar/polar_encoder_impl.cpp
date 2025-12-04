@@ -9,10 +9,10 @@
  */
 
 #include "polar_encoder_impl.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_code.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_code.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Templated recursive stage function.
 template <unsigned CODE_SIZE_LOG>
@@ -60,10 +60,10 @@ void polar_encode<1>(uint8_t* output, const uint8_t* input, unsigned /**/)
 
 void polar_encoder_impl::encode(span<uint8_t> output, span<const uint8_t> input, unsigned code_size_log)
 {
-  srsran_assert(code_size_log > 0 && code_size_log <= polar_code::eMAX,
-                "The logarithmic code size {} is invalid. It must be greater than zero and less than or equal to {}.",
-                code_size_log,
-                static_cast<unsigned>(polar_code::eMAX));
+  ocudu_assert(code_size_log > 0 && code_size_log <= polar_code::eMAX,
+               "The logarithmic code size {} is invalid. It must be greater than zero and less than or equal to {}.",
+               code_size_log,
+               static_cast<unsigned>(polar_code::eMAX));
 
   // Start with the largest encoder.
   polar_encode<polar_code::eMAX>(output.data(), input.data(), code_size_log);

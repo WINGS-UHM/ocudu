@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/rlc/rlc_rx_metrics.h"
+#include "ocudu/rlc/rlc_rx_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rlc_rx_metrics_container
 {
@@ -78,14 +78,14 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(metrics.mode == rlc_mode::am, "Wrong mode for AM metrics.");
+    ocudu_assert(metrics.mode == rlc_mode::am, "Wrong mode for AM metrics.");
     metrics.mode_specific.am.num_ctrl_pdus += num_ctrl_;
     metrics.mode_specific.am.num_ctrl_pdu_bytes += num_ctrl_pdu_bytes_;
   }
 
   rlc_rx_metrics get_metrics()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -94,7 +94,7 @@ public:
 
   rlc_rx_metrics get_and_reset_metrics()
   {
-    srsran_assert(enabled, "Trying to get and reset metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get and reset metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -105,7 +105,7 @@ public:
 
   void reset_metrics()
   {
-    srsran_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
     if (not enabled) {
       return;
     }
@@ -116,4 +116,4 @@ public:
     metrics.counter      = tmp_counter;
   }
 };
-} // namespace srsran
+} // namespace ocudu

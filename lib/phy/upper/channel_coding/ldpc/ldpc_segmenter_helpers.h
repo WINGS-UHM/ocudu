@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
-#include "srsran/phy/upper/codeblock_metadata.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/phy/upper/codeblock_metadata.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct segment_parameters {
   /// \name Attributes relative to TS38.212 Section 5.2.2.
@@ -105,4 +105,4 @@ generate_cb_metadata(const segment_parameters& seg_param, const segmenter_config
   return tmp_description;
 }
 
-} // namespace srsran
+} // namespace ocudu

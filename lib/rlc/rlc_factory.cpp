@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/rlc/rlc_factory.h"
+#include "ocudu/rlc/rlc_factory.h"
 #include "rlc_am_entity.h"
 #include "rlc_tm_entity.h"
 #include "rlc_um_entity.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<rlc_entity> srsran::create_rlc_entity(const rlc_entity_creation_message& msg)
+std::unique_ptr<rlc_entity> ocudu::create_rlc_entity(const rlc_entity_creation_message& msg)
 {
   switch (msg.config.mode) {
     case rlc_mode::tm:
@@ -66,7 +66,7 @@ std::unique_ptr<rlc_entity> srsran::create_rlc_entity(const rlc_entity_creation_
                                              *msg.ue_executor,
                                              *msg.timers);
     default:
-      srsran_terminate("RLC mode not supported.");
+      ocudu_terminate("RLC mode not supported.");
   }
   return nullptr;
 }

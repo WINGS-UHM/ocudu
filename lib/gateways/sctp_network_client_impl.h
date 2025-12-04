@@ -11,14 +11,14 @@
 #pragma once
 
 #include "sctp_network_gateway_common_impl.h"
-#include "srsran/gateways/sctp_network_client.h"
-#include "srsran/support/io/transport_layer_address.h"
+#include "ocudu/gateways/sctp_network_client.h"
+#include "ocudu/support/io/transport_layer_address.h"
 #include <condition_variable>
 #include <mutex>
 
 struct sctp_sndrcvinfo;
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief SCTP client implementation
 ///
@@ -76,4 +76,4 @@ private:
   std::condition_variable connection_cvar;
 };
 
-} // namespace srsran
+} // namespace ocudu

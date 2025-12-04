@@ -14,35 +14,35 @@
 #include "tests/test_doubles/mac/mac_test_messages.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "tests/unittests/scheduler/test_utils/result_test_helpers.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_high/du_high_factory.h"
-#include "srsran/du/du_high/du_qos_config_helpers.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_high/du_high_factory.h"
+#include "ocudu/du/du_high/du_qos_config_helpers.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static void init_loggers()
 {
-  srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("RLC").set_level(srslog::basic_levels::info);
-  srslog::fetch_basic_logger("DU-MNG").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("DU-F1-U").set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("DU-F1").set_level(srslog::basic_levels::info);
-  srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-  srslog::init();
+  ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("RLC").set_level(ocudulog::basic_levels::info);
+  ocudulog::fetch_basic_logger("DU-MNG").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("DU-F1-U").set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("DU-F1").set_level(ocudulog::basic_levels::info);
+  ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 }
 
-du_high_configuration srs_du::create_du_high_configuration(const du_high_env_sim_params& params)
+du_high_configuration odu::create_du_high_configuration(const du_high_env_sim_params& params)
 {
   du_high_configuration cfg{};
   cfg.ran.sched_cfg.log_broadcast_messages = false;
@@ -91,7 +91,7 @@ du_high_env_simulator::du_high_env_simulator(const du_high_configuration& du_hi_
                                              bool                         auto_start,
                                              bool                         active_cells_on_start) :
   broker(create_io_broker(io_broker_type::epoll)),
-  timer_ctrl(srs_du::create_du_high_clock_controller(timers, *broker, *workers.time_exec)),
+  timer_ctrl(odu::create_du_high_clock_controller(timers, *broker, *workers.time_exec)),
   cu_notifier(workers.test_worker, active_cells_on_start),
   du_metrics(workers.test_worker),
   du_high_cfg(du_hi_cfg_),
@@ -797,7 +797,7 @@ async_task<bool> du_high_env_simulator::launch_send_dl_rrc_msg_and_await_ul_rrc_
                                                                                          const f1ap_message&   dl_msg,
                                                                                          uint32_t rlc_ul_sn)
 {
-  srsran_assert(test_helpers::is_valid_dl_rrc_message_transfer(dl_msg), "Expected F1AP DL RRC Message");
+  ocudu_assert(test_helpers::is_valid_dl_rrc_message_transfer(dl_msg), "Expected F1AP DL RRC Message");
   lcid_t                    dl_lcid   = uint_to_lcid(dl_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->srb_id);
   lcid_t                    ul_lcid   = dl_lcid == LCID_SRB0 ? LCID_SRB1 : dl_lcid;
   constexpr static unsigned dl_msg_k1 = 4;

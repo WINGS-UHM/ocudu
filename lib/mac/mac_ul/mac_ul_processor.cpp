@@ -9,14 +9,14 @@
  */
 
 #include "mac_ul_processor.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/execute_on_blocking.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/execute_on_blocking.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_ul_processor::mac_ul_processor(const mac_ul_config& cfg_) :
   cfg(cfg_),
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   ue_manager(cfg.rnti_table),
   pdu_handler(cfg.ul_ccch_notifier, cfg.ue_exec_mapper, cfg.sched, ue_manager, cfg.rnti_table, cfg.pcap)
 {

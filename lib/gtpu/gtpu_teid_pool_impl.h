@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/compiler.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/compiler.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class gtpu_teid_pool_impl final : public gtpu_teid_pool
 {
 public:
   explicit gtpu_teid_pool_impl(uint32_t max_nof_teids_) :
-    max_nof_teids(max_nof_teids_), teid_pool(max_nof_teids_), logger(srslog::fetch_basic_logger("GTPU"))
+    max_nof_teids(max_nof_teids_), teid_pool(max_nof_teids_), logger(ocudulog::fetch_basic_logger("GTPU"))
   {
   }
 
@@ -78,6 +78,6 @@ private:
 
   std::vector<bool> teid_pool;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
-} // namespace srsran
+} // namespace ocudu

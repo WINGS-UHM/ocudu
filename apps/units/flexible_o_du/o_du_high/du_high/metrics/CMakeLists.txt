@@ -14,6 +14,6 @@ set(SOURCES
         du_metrics_consumers.cpp
         du_metrics_producer.cpp)
 
-add_library(srsran_du_high_unit_metrics_helpers STATIC ${SOURCES})
-target_include_directories(srsran_du_high_unit_metrics_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_du_high_unit_metrics_helpers PRIVATE srsran_du_high_unit_metrics_consumers srsran_metrics_json_generators)
+add_library(ocudu_du_high_unit_metrics_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_du_high_unit_metrics_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_du_high_unit_metrics_helpers PRIVATE ocudu_du_high_unit_metrics_consumers ocudu_metrics_json_generators)

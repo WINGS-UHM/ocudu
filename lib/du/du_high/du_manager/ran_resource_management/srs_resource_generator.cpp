@@ -10,21 +10,21 @@
 
 #include "srs_resource_generator.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-std::vector<du_srs_resource> srsran::srs_du::generate_cell_srs_list(const du_cell_config& du_cell_cfg)
+std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_config& du_cell_cfg)
 {
   std::vector<du_srs_resource> srs_res_list;
   // TX comb offsets values, depending on the TX comb value, as per TS 38.331, \c transmissionComb, \c SRS-Resource,
   // \c SRS-Config.
-  std::vector<unsigned> tx_comb_offsets = du_cell_cfg.srs_cfg.tx_comb == srsran::tx_comb_size::n2
+  std::vector<unsigned> tx_comb_offsets = du_cell_cfg.srs_cfg.tx_comb == ocudu::tx_comb_size::n2
                                               ? std::vector<unsigned>{0U, 1U}
                                               : std::vector<unsigned>{0U, 1U, 2U, 3U};
 
   // Cyclic Shifts values, depending on the TX comb value, as per TS 38.331, \c cyclicShift, \c SRS-Resource,
   // \c SRS-Config.
-  const unsigned        max_cs  = du_cell_cfg.srs_cfg.tx_comb == srsran::tx_comb_size::n2 ? 8U : 12U;
+  const unsigned        max_cs  = du_cell_cfg.srs_cfg.tx_comb == ocudu::tx_comb_size::n2 ? 8U : 12U;
   const unsigned        cs_step = max_cs / static_cast<unsigned>(du_cell_cfg.srs_cfg.cyclic_shift_reuse_factor);
   std::vector<unsigned> cs_values;
   for (unsigned cs = 0; cs < max_cs; cs += cs_step) {

@@ -11,11 +11,11 @@
 #pragma once
 
 #include "lib/cu_cp/cell_meas_manager/cell_meas_manager_impl.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class dummy_mobility_manager : public cell_meas_mobility_manager_notifier
 {
@@ -45,8 +45,8 @@ protected:
   void verify_meas_cfg(const std::optional<rrc_meas_cfg>& meas_cfg);
   void verify_empty_meas_cfg(const std::optional<rrc_meas_cfg>& meas_cfg);
 
-  srslog::basic_logger& test_logger  = srslog::fetch_basic_logger("TEST");
-  srslog::basic_logger& cu_cp_logger = srslog::fetch_basic_logger("CU-CP", false);
+  ocudulog::basic_logger& test_logger  = ocudulog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP", false);
 
   std::unique_ptr<cell_meas_manager> manager;
   dummy_mobility_manager             mobility_manager;
@@ -57,5 +57,5 @@ protected:
   ue_manager ue_mng{cu_cp_cfg};
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

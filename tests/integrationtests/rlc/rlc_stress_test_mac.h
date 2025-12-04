@@ -12,11 +12,11 @@
 
 #include "lib/rlc/rlc_bearer_logger.h"
 #include "rlc_stress_test_args.h"
-#include "srsran/rlc/rlc_rx.h"
-#include "srsran/rlc/rlc_tx.h"
+#include "ocudu/rlc/rlc_rx.h"
+#include "ocudu/rlc/rlc_tx.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 class mac_dummy : public rlc_tx_lower_layer_notifier
 {
   const stress_test_args& args;
@@ -51,4 +51,4 @@ public:
   void set_rlc_rx_lower(rlc_rx_lower_layer_interface* rlc_rx_lower_) { this->rlc_rx_lower = rlc_rx_lower_; }
 };
 
-} // namespace srsran
+} // namespace ocudu

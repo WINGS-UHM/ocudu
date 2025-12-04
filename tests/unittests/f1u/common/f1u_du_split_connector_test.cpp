@@ -9,17 +9,17 @@
  */
 
 #include "../..//gateways/test_helpers.h"
-#include "srsran/f1u/du/split_connector/f1u_split_connector_factory.h"
-#include "srsran/gateways/udp_network_gateway_factory.h"
-#include "srsran/gtpu/gtpu_demux_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/f1u/du/split_connector/f1u_split_connector_factory.h"
+#include "ocudu/gateways/udp_network_gateway_factory.h"
+#include "ocudu/gtpu/gtpu_demux_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -60,7 +60,7 @@ struct dummy_f1u_du_gateway_bearer_rx_notifier final : f1u_du_gateway_bearer_rx_
   }
 
 private:
-  srslog::basic_logger&      logger = srslog::fetch_basic_logger("CU-F1-U", false);
+  ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("CU-F1-U", false);
   std::queue<nru_dl_message> msg_queue;
   std::mutex                 rx_mutex;
   std::condition_variable    rx_cvar;
@@ -78,15 +78,15 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init logger
-    f1u_logger_du.set_level(srslog::basic_levels::debug);
+    f1u_logger_du.set_level(ocudulog::basic_levels::debug);
     f1u_logger_du.set_hex_dump_max_size(100);
-    gtpu_logger_du.set_level(srslog::basic_levels::debug);
+    gtpu_logger_du.set_level(ocudulog::basic_levels::debug);
     gtpu_logger_du.set_hex_dump_max_size(100);
-    udp_logger_du.set_level(srslog::basic_levels::debug);
+    udp_logger_du.set_level(ocudulog::basic_levels::debug);
     udp_logger_du.set_hex_dump_max_size(100);
 
     logger.info("Creating F1-U connector");
@@ -132,7 +132,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
 
     stop_token.store(true, std::memory_order_relaxed);
     if (rx_thread.joinable()) {
@@ -207,10 +207,10 @@ protected:
   std::unique_ptr<f1u_du_udp_gateway> du_gw;
   std::optional<uint16_t>             du_gw_bind_port = 0;
 
-  srslog::basic_logger& logger         = srslog::fetch_basic_logger("TEST", false);
-  srslog::basic_logger& f1u_logger_du  = srslog::fetch_basic_logger("CU-F1-U", false);
-  srslog::basic_logger& gtpu_logger_du = srslog::fetch_basic_logger("GTPU", false);
-  srslog::basic_logger& udp_logger_du  = srslog::fetch_basic_logger("UDP-GW", false);
+  ocudulog::basic_logger& logger         = ocudulog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& f1u_logger_du  = ocudulog::fetch_basic_logger("CU-F1-U", false);
+  ocudulog::basic_logger& gtpu_logger_du = ocudulog::fetch_basic_logger("GTPU", false);
+  ocudulog::basic_logger& udp_logger_du  = ocudulog::fetch_basic_logger("UDP-GW", false);
 };
 
 class f1u_du_split_connector_external_address_test : public f1u_du_split_connector_test,

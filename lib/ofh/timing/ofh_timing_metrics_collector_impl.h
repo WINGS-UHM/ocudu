@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ofh/timing/ofh_timing_metrics_collector.h"
+#include "ocudu/ofh/timing/ofh_timing_metrics_collector.h"
 #include <atomic>
 #include <chrono>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul timing metrics collector implementation.
@@ -45,4 +45,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

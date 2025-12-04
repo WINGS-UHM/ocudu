@@ -14,7 +14,7 @@
 #include "e2/o_du_high_e2_config.h"
 #include "fapi/fapi_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-DU high unit configuration.
 struct o_du_high_unit_config {
@@ -23,4 +23,4 @@ struct o_du_high_unit_config {
   fapi_unit_config      fapi_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

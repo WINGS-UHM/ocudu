@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 #ifdef BUILD_TYPE_RELEASE
 static const char build_mode[] = "Release";
@@ -30,4 +30,4 @@ static const char build_hash[] = "@GIT_COMMIT_HASH@";
 
 static const char build_info[] = "commit @GIT_COMMIT_HASH@ on branch @GIT_BRANCH@";
 
-} // namespace srsran
+} // namespace ocudu

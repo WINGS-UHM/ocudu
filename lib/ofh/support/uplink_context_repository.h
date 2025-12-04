@@ -11,23 +11,23 @@
 #pragma once
 
 #include "context_repository_helpers.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_block.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Uplink context.
@@ -82,7 +82,7 @@ public:
   /// Writes the given RE IQ buffer into the port and start RE.
   void write_grid(unsigned port, unsigned start_re, span<const cbf16_t> re_iq_buffer)
   {
-    srsran_assert(grid.grid, "Invalid resource grid");
+    ocudu_assert(grid.grid, "Invalid resource grid");
     resource_grid_writer& writer = grid.grid->get_writer();
 
     // Skip writing if the given port does not fit in the grid.
@@ -90,7 +90,7 @@ public:
       return;
     }
     span<cbf16_t> grid_view = grid.grid->get_writer().get_view(port, symbol).subspan(start_re, re_iq_buffer.size());
-    srsvec::copy(grid_view, re_iq_buffer);
+    ocuduvec::copy(grid_view, re_iq_buffer);
     re_written[port].fill(start_re, start_re + re_iq_buffer.size());
   }
 
@@ -143,7 +143,7 @@ class uplink_context_repository
   /// Returns the entry of the repository for the given slot and symbol.
   uplink_context& entry(slot_point slot, unsigned symbol)
   {
-    srsran_assert(symbol < MAX_NSYMB_PER_SLOT, "Invalid symbol index '{}'", symbol);
+    ocudu_assert(symbol < MAX_NSYMB_PER_SLOT, "Invalid symbol index '{}'", symbol);
 
     unsigned index = calculate_repository_index(slot, buffer.size());
     return buffer[index][symbol];
@@ -152,7 +152,7 @@ class uplink_context_repository
   /// Returns the entry of the repository for the given slot and symbol.
   const uplink_context& entry(slot_point slot, unsigned symbol) const
   {
-    srsran_assert(symbol < MAX_NSYMB_PER_SLOT, "Invalid symbol index '{}'", symbol);
+    ocudu_assert(symbol < MAX_NSYMB_PER_SLOT, "Invalid symbol index '{}'", symbol);
 
     unsigned index = calculate_repository_index(slot, buffer.size());
     return buffer[index][symbol];
@@ -165,7 +165,7 @@ public:
   void add(const resource_grid_context& context,
            const shared_resource_grid&  grid,
            const ofdm_symbol_range&     symbol_range,
-           srslog::basic_logger&        logger)
+           ocudulog::basic_logger&      logger)
   {
     if (!pending_context_to_add.try_push([context, rg = grid.copy(), symbol_range, this]() {
           std::lock_guard<std::mutex> lock(mutex);
@@ -256,4 +256,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

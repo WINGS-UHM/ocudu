@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/signal_processors/prs/prs_generator_configuration.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator_validator.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator_validator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a PRS generator configuration validator.
 class prs_generator_validator_impl : public prs_generator_validator
@@ -79,4 +79,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ofh/compression/iq_compressor.h"
-#include "srsran/ofh/compression/iq_decompressor.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/compression/iq_compressor.h"
+#include "ocudu/ofh/compression/iq_decompressor.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Implementation of the IQ data compression by quantizing floating point numbers without compression.
@@ -22,7 +22,7 @@ class iq_compression_none_impl : public iq_compressor, public iq_decompressor
 {
 public:
   // Constructor.
-  explicit iq_compression_none_impl(srslog::basic_logger& logger_, float iq_scaling_ = 1.0) :
+  explicit iq_compression_none_impl(ocudulog::basic_logger& logger_, float iq_scaling_ = 1.0) :
     logger(logger_), iq_scaling(iq_scaling_)
   {
   }
@@ -41,10 +41,10 @@ protected:
   /// \param[in] samples - Quantized samples.
   void log_post_quantization_rms(span<const int16_t> samples);
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Scaling factor applied to IQ data prior to quantization.
   const float iq_scaling;
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

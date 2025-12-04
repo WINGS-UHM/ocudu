@@ -11,13 +11,13 @@
 #pragma once
 
 #include "ul_bsr.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/logical_channel/lcid_dl_sch.h"
-#include "srsran/ran/logical_channel/phr_report.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/logical_channel/lcid_dl_sch.h"
+#include "ocudu/ran/logical_channel/phr_report.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Information and context relative to a decoded MAC CE BSR.
 struct mac_bsr_ce_info {
@@ -75,4 +75,4 @@ public:
   virtual void handle_crnti_ce_indication(du_ue_index_t old_ue_index, du_cell_index_t cell_index) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

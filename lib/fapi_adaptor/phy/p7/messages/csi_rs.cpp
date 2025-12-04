@@ -9,12 +9,12 @@
  */
 
 #include "csi_rs.h"
-#include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
-#include "srsran/ran/csi_rs/frequency_allocation_type.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
+#include "ocudu/ran/csi_rs/frequency_allocation_type.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// Translates the \c power_control_offset_ss enum to a linear amplitude value.
@@ -24,11 +24,11 @@ static float translate_amplitude(fapi::power_control_offset_ss power)
   return convert_dB_to_amplitude(power_dB);
 }
 
-void srsran::fapi_adaptor::convert_csi_rs_fapi_to_phy(nzp_csi_rs_generator::config_t& proc_pdu,
-                                                      const fapi::dl_csi_rs_pdu&      fapi_pdu,
-                                                      uint16_t                        sfn,
-                                                      uint16_t                        slot,
-                                                      uint16_t                        cell_bandwidth_prb)
+void ocudu::fapi_adaptor::convert_csi_rs_fapi_to_phy(nzp_csi_rs_generator::config_t& proc_pdu,
+                                                     const fapi::dl_csi_rs_pdu&      fapi_pdu,
+                                                     uint16_t                        sfn,
+                                                     uint16_t                        slot,
+                                                     uint16_t                        cell_bandwidth_prb)
 {
   proc_pdu.slot = slot_point(fapi_pdu.scs, sfn, slot);
   proc_pdu.cp   = fapi_pdu.cp;
@@ -50,9 +50,9 @@ void srsran::fapi_adaptor::convert_csi_rs_fapi_to_phy(nzp_csi_rs_generator::conf
   proc_pdu.precoding = precoding_configuration::make_wideband(make_identity(nof_ports));
 }
 
-void srsran::fapi_adaptor::get_csi_rs_pattern_from_fapi_pdu(csi_rs_pattern&            pattern,
-                                                            const fapi::dl_csi_rs_pdu& fapi_pdu,
-                                                            uint16_t                   cell_bandwidth_prb)
+void ocudu::fapi_adaptor::get_csi_rs_pattern_from_fapi_pdu(csi_rs_pattern&            pattern,
+                                                           const fapi::dl_csi_rs_pdu& fapi_pdu,
+                                                           uint16_t                   cell_bandwidth_prb)
 {
   // Fill the CSI-RS pattern configuration.
   csi_rs_pattern_configuration config;

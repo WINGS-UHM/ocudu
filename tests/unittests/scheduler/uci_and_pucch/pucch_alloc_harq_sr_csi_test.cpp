@@ -13,7 +13,7 @@
 #include "uci_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class test_pucch_f2_alloc_several_prbs : public ::testing::Test, public pucch_allocator_base_tester
 {
@@ -227,8 +227,8 @@ TEST_F(test_pucch_allocator_ded_resources_reached_ul_grants, test_csi_max_ul_all
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::info);
-  srslog::init();
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::info);
+  ocudulog::init();
 
   ::testing::InitGoogleTest(&argc, argv);
 

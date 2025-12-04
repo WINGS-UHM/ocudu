@@ -19,9 +19,9 @@
 #include "apps/services/worker_manager/worker_manager_cli11_schema.h"
 #include "du_low_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::configure_cli11_with_du_low_appconfig_schema(CLI::App& app, du_low_appconfig& config)
+void ocudu::configure_cli11_with_du_low_appconfig_schema(CLI::App& app, du_low_appconfig& config)
 {
   app.add_flag("--dryrun", config.enable_dryrun, "Enable application dry run mode")->capture_default_str();
 
@@ -68,7 +68,7 @@ static void manage_hal_optional(CLI::App& app, du_low_appconfig& gnb_cfg)
 }
 #endif
 
-void srsran::autoderive_du_low_parameters_after_parsing(CLI::App& app, du_low_appconfig& config)
+void ocudu::autoderive_du_low_parameters_after_parsing(CLI::App& app, du_low_appconfig& config)
 {
 #ifdef DPDK_FOUND
   manage_hal_optional(app, config);

@@ -12,7 +12,7 @@
 #include "lib/scheduler/logging/scheduler_metrics_ue_configurator.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace test_helpers;
 
 namespace {

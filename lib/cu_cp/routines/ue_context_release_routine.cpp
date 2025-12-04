@@ -9,10 +9,10 @@
  */
 
 #include "ue_context_release_routine.h"
-#include "srsran/ran/cause/ngap_cause_converters.h"
+#include "ocudu/ran/cause/ngap_cause_converters.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 ue_context_release_routine::ue_context_release_routine(const cu_cp_ue_context_release_command& command_,
@@ -20,7 +20,7 @@ ue_context_release_routine::ue_context_release_routine(const cu_cp_ue_context_re
                                                        f1ap_ue_context_manager&                f1ap_ue_ctxt_mng_,
                                                        cu_cp_ue_removal_handler&               ue_removal_handler_,
                                                        ue_manager&                             ue_mng_,
-                                                       srslog::basic_logger&                   logger_) :
+                                                       ocudulog::basic_logger&                 logger_) :
   command(command_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
@@ -28,7 +28,7 @@ ue_context_release_routine::ue_context_release_routine(const cu_cp_ue_context_re
   ue_mng(ue_mng_),
   logger(logger_)
 {
-  srsran_assert(!command.cause.valueless_by_exception(), "Release command needs to be set.");
+  ocudu_assert(!command.cause.valueless_by_exception(), "Release command needs to be set.");
 }
 
 void ue_context_release_routine::operator()(coro_context<async_task<cu_cp_ue_context_release_complete>>& ctx)

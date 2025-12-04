@@ -10,18 +10,18 @@
 
 #include "mac_to_fapi_fastpath_translator.h"
 #include "messages/helpers.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/fapi/messages/tx_data_request.h"
-#include "srsran/fapi/messages/ul_dci_request.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/fapi/slot_last_message_notifier.h"
-#include "srsran/fapi/slot_message_gateway.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/messages/tx_data_request.h"
+#include "ocudu/fapi/messages/ul_dci_request.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
@@ -122,7 +122,7 @@ protected:
 
   mac_to_fapi_translator_fixture() :
     translator({0, nof_prbs},
-               {srslog::fetch_basic_logger("FAPI"),
+               {ocudulog::fetch_basic_logger("FAPI"),
                 gateway_spy,
                 notifier_spy,
                 std::move(std::get<0>(pm_tools)),
@@ -139,7 +139,7 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
 {
   ASSERT_FALSE(gateway_spy.has_dl_tti_request_method_called());
 
-  const unittests::mac_dl_sched_result_test_helper& result_test = srsran::unittests::build_valid_mac_dl_sched_result();
+  const unittests::mac_dl_sched_result_test_helper& result_test = ocudu::unittests::build_valid_mac_dl_sched_result();
   const mac_dl_sched_result&                        result      = result_test.result;
   translator.on_new_downlink_scheduler_results(result);
 
@@ -166,7 +166,7 @@ TEST_F(mac_to_fapi_translator_fixture, invalid_dl_sched_results_with_no_mac_slot
 
   ASSERT_DEATH(
       { translator.on_new_downlink_scheduler_results(result); },
-      "srsRAN ERROR: Dummy MAC cell slot handler cannot handle error indication");
+      "OCUDU ERROR: Dummy MAC cell slot handler cannot handle error indication");
 }
 
 TEST_F(mac_to_fapi_translator_fixture, invalid_ssb_in_dl_sched_results_reports_error)
@@ -348,7 +348,7 @@ TEST_F(mac_to_fapi_translator_fixture, tx_data_message_with_all_pdus_passes)
 
 TEST_F(mac_to_fapi_translator_fixture, ul_tti_message_with_all_pdus_passes)
 {
-  srslog::fetch_basic_logger("FAPI").set_level(srslog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("FAPI").set_level(ocudulog::basic_levels::debug);
 
   ASSERT_FALSE(gateway_spy.has_ul_tti_request_method_called());
 

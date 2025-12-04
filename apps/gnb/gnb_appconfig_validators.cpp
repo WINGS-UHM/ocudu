@@ -14,7 +14,7 @@
 #include "apps/units/flexible_o_du/o_du_high/du_high/du_high_config.h"
 #include "apps/units/o_cu_cp/cu_cp/cu_cp_unit_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool validate_hal_config(const std::optional<hal_appconfig>& config)
 {
@@ -27,7 +27,7 @@ static bool validate_hal_config(const std::optional<hal_appconfig>& config)
   return true;
 }
 
-bool srsran::validate_appconfig(const gnb_appconfig& config)
+bool ocudu::validate_appconfig(const gnb_appconfig& config)
 {
   if (!validate_logger_appconfig(config.log_cfg)) {
     return false;
@@ -44,7 +44,7 @@ bool srsran::validate_appconfig(const gnb_appconfig& config)
   return true;
 }
 
-bool srsran::validate_plmn_and_tacs(const du_high_unit_config& du_hi_cfg, const cu_cp_unit_config& cu_cp_cfg)
+bool ocudu::validate_plmn_and_tacs(const du_high_unit_config& du_hi_cfg, const cu_cp_unit_config& cu_cp_cfg)
 {
   if (cu_cp_cfg.amf_config.no_core) {
     return true;

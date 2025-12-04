@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../../ue_manager/ue_manager_impl.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 #include <chrono>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the handover of a UE between two different DUs.
 /// TODO Add seqdiag
@@ -29,7 +29,7 @@ public:
       cu_cp_ue&                                       source_ue_,
       f1ap_ue_context_manager&                        source_f1ap_ue_ctxt_mng_,
       cu_cp_ue_context_manipulation_handler&          cu_cp_handler_,
-      srslog::basic_logger&                           logger_);
+      ocudulog::basic_logger&                         logger_);
 
   void operator()(coro_context<async_task<bool>>& ctx);
 
@@ -49,7 +49,7 @@ private:
   f1ap_ue_context_manager&               source_f1ap_ue_ctxt_mng; // to send UE context modification to source UE
   cu_cp_ue_context_manipulation_handler& cu_cp_handler; // To receive the reconfigurationComplete from target UE
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // (sub-)routine results
   std::chrono::milliseconds               target_ue_release_timeout;
@@ -58,5 +58,5 @@ private:
   f1ap_ue_context_modification_response   ue_context_mod_response;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

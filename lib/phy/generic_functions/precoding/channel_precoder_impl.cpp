@@ -10,7 +10,7 @@
 
 #include "channel_precoder_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void channel_precoder_impl::apply_precoding(re_buffer_writer<cbf16_t>&     output,
                                             const re_buffer_reader<>&      input,
@@ -21,28 +21,28 @@ void channel_precoder_impl::apply_precoding(re_buffer_writer<cbf16_t>&     outpu
   unsigned nof_tx_ports = output.get_nof_slices();
   unsigned nof_layers   = input.get_nof_slices();
 
-  srsran_assert(
+  ocudu_assert(
       nof_re_slice == input.get_nof_re(),
       "The number of output RE per slice, i.e., {}, does not match the number of input RE per slice, i.e., {}.",
       nof_re_slice,
       input.get_nof_re());
 
-  srsran_assert(nof_tx_ports >= nof_layers,
-                "The number of TX ports, i.e., {}, must be equal to or larger than the number of layers, i.e., {}.",
-                nof_tx_ports,
-                nof_layers);
+  ocudu_assert(nof_tx_ports >= nof_layers,
+               "The number of TX ports, i.e., {}, must be equal to or larger than the number of layers, i.e., {}.",
+               nof_tx_ports,
+               nof_layers);
 
-  srsran_assert(nof_tx_ports == precoding.get_nof_ports(),
-                "The number on TX ports on the output buffer, i.e., {}, does not match the number of ports of the "
-                "precoding matrix, i.e., {}.",
-                nof_tx_ports,
-                precoding.get_nof_ports());
+  ocudu_assert(nof_tx_ports == precoding.get_nof_ports(),
+               "The number on TX ports on the output buffer, i.e., {}, does not match the number of ports of the "
+               "precoding matrix, i.e., {}.",
+               nof_tx_ports,
+               precoding.get_nof_ports());
 
-  srsran_assert(nof_layers == precoding.get_nof_layers(),
-                "The number on layers on the input buffer, i.e., {}, does not match the number of layers of the "
-                "precoding matrix, i.e., {}.",
-                nof_layers,
-                precoding.get_nof_layers());
+  ocudu_assert(nof_layers == precoding.get_nof_layers(),
+               "The number on layers on the input buffer, i.e., {}, does not match the number of layers of the "
+               "precoding matrix, i.e., {}.",
+               nof_layers,
+               precoding.get_nof_layers());
 
   for (unsigned i_port = 0; i_port != nof_tx_ports; ++i_port) {
     // View of the output RE for a single antenna port.

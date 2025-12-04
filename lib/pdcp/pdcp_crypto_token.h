@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdcp_crypto_token_manager
 {
@@ -36,8 +36,8 @@ private:
   void return_token()
   {
     uint32_t prev_token = tokens.fetch_sub(1, std::memory_order_relaxed);
-    srsran_assert(prev_token != UINT32_MAX,
-                  "Error counting crypto tokens. There are less tokens available then the ones granted.");
+    ocudu_assert(prev_token != UINT32_MAX,
+                 "Error counting crypto tokens. There are less tokens available then the ones granted.");
 
     // If there is one less token then the ones granted, the stop() has been called,
     // and all tokens have been returned.
@@ -77,4 +77,4 @@ private:
   pdcp_crypto_token_manager& mngr;
 };
 
-} // namespace srsran
+} // namespace ocudu

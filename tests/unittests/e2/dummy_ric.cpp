@@ -10,14 +10,14 @@
 
 #include "dummy_ric.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 class ric_to_gw_pdu_notifier final : public e2_message_notifier
 {
 public:
   ric_to_gw_pdu_notifier(std::unique_ptr<sctp_association_sdu_notifier> sctp_sender_,
                          dlt_pcap&                                      pcap_writer_,
-                         srslog::basic_logger&                          logger_) :
+                         ocudulog::basic_logger&                        logger_) :
     sctp_sender(std::move(sctp_sender_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -28,7 +28,7 @@ public:
     // pack E2AP PDU into SCTP SDU.
     byte_buffer   tx_sdu{byte_buffer::fallback_allocation_tag{}};
     asn1::bit_ref bref(tx_sdu);
-    if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to pack E2AP PDU");
       return;
     }
@@ -45,7 +45,7 @@ public:
 private:
   std::unique_ptr<sctp_association_sdu_notifier> sctp_sender;
   dlt_pcap&                                      pcap_writer;
-  srslog::basic_logger&                          logger;
+  ocudulog::basic_logger&                        logger;
 };
 
 /// Notifier passed to the SCTP GW, which the GW will use to forward E2AP Rx PDUs to the RIC.
@@ -54,7 +54,7 @@ class gw_to_ric_pdu_notifier final : public sctp_association_sdu_notifier
 public:
   gw_to_ric_pdu_notifier(std::unique_ptr<e2_message_notifier> e2_notifier_,
                          dlt_pcap&                            pcap_writer_,
-                         srslog::basic_logger&                logger_,
+                         ocudulog::basic_logger&              logger_,
                          e2_message_notifier*                 rx_sniffer_) :
     e2_notifier(std::move(e2_notifier_)), pcap_writer(pcap_writer_), logger(logger_), rx_sniffer(rx_sniffer_)
   {
@@ -65,7 +65,7 @@ public:
     // Unpack SCTP SDU into E2AP PDU.
     asn1::cbit_ref bref(sdu);
     e2_message     msg;
-    if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Couldn't unpack E2AP PDU");
       return false;
     }
@@ -88,7 +88,7 @@ public:
 private:
   std::unique_ptr<e2_message_notifier> e2_notifier;
   dlt_pcap&                            pcap_writer;
-  srslog::basic_logger&                logger;
+  ocudulog::basic_logger&              logger;
   e2_message_notifier*                 rx_sniffer;
 };
 
@@ -131,12 +131,12 @@ public:
 
 private:
   const ric_sctp_gateway_config        params;
-  srslog::basic_logger&                logger             = srslog::fetch_basic_logger("RIC");
+  ocudulog::basic_logger&              logger             = ocudulog::fetch_basic_logger("RIC");
   ric_e2_handler*                      ric_e2_con_handler = nullptr;
   std::unique_ptr<sctp_network_server> sctp_server;
 };
 
-std::unique_ptr<e2_connection_server> srsran::create_e2_gateway_server(const ric_sctp_gateway_config& cfg)
+std::unique_ptr<e2_connection_server> ocudu::create_e2_gateway_server(const ric_sctp_gateway_config& cfg)
 {
   return std::make_unique<ric_sctp_server>(cfg);
 }
@@ -160,7 +160,7 @@ private:
 };
 
 e2_agent_connection_manager::e2_agent_connection_manager(e2_agent_repository& e2_agents_) :
-  logger(srslog::fetch_basic_logger("E2-RIC")), e2_agents(e2_agents_)
+  logger(ocudulog::fetch_basic_logger("E2-RIC")), e2_agents(e2_agents_)
 {
 }
 
@@ -191,7 +191,7 @@ e2_agent_connection_manager::handle_new_du_connection(std::unique_ptr<e2_message
   return std::make_unique<e2_gw_to_ric_pdu_adapter>(*this, agent_idx);
 }
 
-near_rt_ric::near_rt_ric() : logger(srslog::fetch_basic_logger("E2-RIC")), e2_agent_mng(e2_agents) {}
+near_rt_ric::near_rt_ric() : logger(ocudulog::fetch_basic_logger("E2-RIC")), e2_agent_mng(e2_agents) {}
 
 void near_rt_ric::send_msg(unsigned e2_agent_idx, const e2_message& msg)
 {

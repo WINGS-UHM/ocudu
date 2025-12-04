@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/du_setup_notifier.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/du_setup_notifier.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Generate a valid dummy F1 Setup Request.
 void generate_valid_f1_setup_request(du_setup_request& setup_request,
@@ -42,5 +42,5 @@ ue_rrc_context_creation_request generate_ue_rrc_context_creation_request(
     rnti_t           c_rnti,
     nr_cell_identity nrcell_id = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value());
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

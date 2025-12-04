@@ -9,11 +9,11 @@
  */
 
 #include "modulation_mapper_lut_impl.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -46,12 +46,12 @@ struct modulator_table_s {
     }
 
     // Calculate average power to calculate scaling for having a power average of one.
-    float avg_power = srsvec::average_power(cf_table);
-    srsran_assert(std::isnormal(avg_power), "Corrupted modulation average power.");
+    float avg_power = ocuduvec::average_power(cf_table);
+    ocudu_assert(std::isnormal(avg_power), "Corrupted modulation average power.");
 
     // Perform scaling.
     scaling = std::sqrt(1 / avg_power);
-    srsvec::sc_prod(cf_table, cf_table, scaling);
+    ocuduvec::sc_prod(cf_table, cf_table, scaling);
   }
 
   // Modulates the input bits.
@@ -207,11 +207,11 @@ static const modulator_table_s<8>      qam256_modulator;
 
 void modulation_mapper_lut_impl::modulate(span<cf_t> symbols, const bit_buffer& input, modulation_scheme scheme)
 {
-  srsran_assert(input.size() == get_bits_per_symbol(scheme) * symbols.size(),
-                "The number of bits {} is not consistent with the number of symbols {} for modulation scheme {}.",
-                input.size(),
-                symbols.size(),
-                fmt::underlying(scheme));
+  ocudu_assert(input.size() == get_bits_per_symbol(scheme) * symbols.size(),
+               "The number of bits {} is not consistent with the number of symbols {} for modulation scheme {}.",
+               input.size(),
+               symbols.size(),
+               fmt::underlying(scheme));
 
   switch (scheme) {
     case modulation_scheme::PI_2_BPSK:
@@ -233,11 +233,11 @@ void modulation_mapper_lut_impl::modulate(span<cf_t> symbols, const bit_buffer& 
       qam256_modulator.modulate(symbols, input);
       break;
     default:
-      srsran_assertion_failure("Invalid modulation scheme.");
+      ocudu_assertion_failure("Invalid modulation scheme.");
   }
 }
 
-float srsran::modulation_mapper::get_modulation_scaling(modulation_scheme modulation)
+float ocudu::modulation_mapper::get_modulation_scaling(modulation_scheme modulation)
 {
   switch (modulation) {
     case modulation_scheme::PI_2_BPSK:
@@ -258,11 +258,11 @@ float srsran::modulation_mapper::get_modulation_scaling(modulation_scheme modula
 
 float modulation_mapper_lut_impl::modulate(span<ci8_t> symbols, const bit_buffer& input, modulation_scheme scheme)
 {
-  srsran_assert(input.size() == get_bits_per_symbol(scheme) * symbols.size(),
-                "The number of bits {} is not consistent with the number of symbols {} for modulation scheme {}.",
-                input.size(),
-                symbols.size(),
-                fmt::underlying(scheme));
+  ocudu_assert(input.size() == get_bits_per_symbol(scheme) * symbols.size(),
+               "The number of bits {} is not consistent with the number of symbols {} for modulation scheme {}.",
+               input.size(),
+               symbols.size(),
+               fmt::underlying(scheme));
 
   float scaling = 0.0;
 
@@ -286,7 +286,7 @@ float modulation_mapper_lut_impl::modulate(span<ci8_t> symbols, const bit_buffer
       scaling = qam256_modulator.modulate(symbols, input);
       break;
     default:
-      srsran_assertion_failure("Invalid modulation scheme.");
+      ocudu_assertion_failure("Invalid modulation scheme.");
   }
 
   return scaling;

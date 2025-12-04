@@ -12,13 +12,13 @@
 
 #include "ru_ofh_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers the Open Fronthaul Radio Unit loggers in the logger service.
 inline void register_ru_ofh_loggers(const ru_ofh_unit_logger_config& log_cfg)
 {
-  srslog::basic_logger& ofh_logger = srslog::fetch_basic_logger("OFH", false);
+  ocudulog::basic_logger& ofh_logger = ocudulog::fetch_basic_logger("OFH", false);
   ofh_logger.set_level(log_cfg.ofh_level);
 }
 
-} // namespace srsran
+} // namespace ocudu

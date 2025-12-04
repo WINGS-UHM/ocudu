@@ -10,14 +10,14 @@
 
 #include "../../support/prach_buffer_test_doubles.h"
 #include "ofdm_prach_demodulator_test_data.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 static float ASSERT_MAX_ERROR = 1e-3;
 
@@ -56,12 +56,12 @@ std::ostream& operator<<(std::ostream& os, test_case_t test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 template <>
-struct fmt::formatter<srsran::ofdm_prach_demodulator::configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::ofdm_prach_demodulator::configuration> : ostream_formatter {};
 
-using namespace srsran;
+using namespace ocudu;
 
 class ofdm_prach_demodulator_tester : public ::testing::TestWithParam<test_case_t>
 {

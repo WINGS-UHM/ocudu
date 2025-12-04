@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/executors/metrics/executor_metrics_backend.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/metrics/executor_metrics_notifier.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/executors/metrics/executor_metrics_backend.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/metrics/executor_metrics_notifier.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void executor_metrics_backend::start(std::chrono::milliseconds  period_,
                                      unique_timer               timer_,
@@ -32,7 +32,7 @@ void executor_metrics_backend::start(std::chrono::milliseconds  period_,
   timer.set(period, [this](timer_id_t tid) { fetch_metrics(); });
   timer.run();
 
-  srslog::fetch_basic_logger("METRICS").info("Started the executor metrics backend worker");
+  ocudulog::fetch_basic_logger("METRICS").info("Started the executor metrics backend worker");
 }
 
 void executor_metrics_backend::stop()
@@ -44,7 +44,7 @@ void executor_metrics_backend::stop()
 
   notifier = nullptr;
 
-  srslog::fetch_basic_logger("METRICS").info("Stopped the executor metrics backend worker");
+  ocudulog::fetch_basic_logger("METRICS").info("Stopped the executor metrics backend worker");
 }
 
 executor_metrics_backend::~executor_metrics_backend()
@@ -54,7 +54,7 @@ executor_metrics_backend::~executor_metrics_backend()
 
 executor_metrics_channel& executor_metrics_backend::add_channel(const std::string& exec_name)
 {
-  srsran_assert(!notifier, "Cannot add new metrics channel when the backend is running");
+  ocudu_assert(!notifier, "Cannot add new metrics channel when the backend is running");
 
   auto  unique_channel = std::make_unique<executor_metrics_channel>(exec_name);
   auto& channel        = *unique_channel.get();
@@ -70,14 +70,14 @@ void executor_metrics_backend::fetch_metrics()
   auto token = stop_control.get_token();
 
   // Do not rearm the timer and process metrics if stop was requested.
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
   // Rearm the timer.
   timer.run();
 
-  srsran_assert(notifier, "Invalid notifier");
+  ocudu_assert(notifier, "Invalid notifier");
 
   // Notify new metrics.
   for (auto& channel : channels) {

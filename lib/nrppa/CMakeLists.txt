@@ -12,10 +12,10 @@ set(SOURCES
     )
 
 
-add_library(srsran_nrppa STATIC ${SOURCES})
+add_library(ocudu_nrppa STATIC ${SOURCES})
 
-target_link_libraries(srsran_nrppa
-	srsran_cu_cp
+target_link_libraries(ocudu_nrppa
+	ocudu_cu_cp
 )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

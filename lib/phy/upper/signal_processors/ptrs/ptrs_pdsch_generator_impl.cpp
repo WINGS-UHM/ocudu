@@ -9,11 +9,11 @@
  */
 
 #include "ptrs_pdsch_generator_impl.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/ran/precoding/precoding_weight_matrix_formatters.h"
-#include "srsran/ran/ptrs/ptrs_pattern.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/ran/precoding/precoding_weight_matrix_formatters.h"
+#include "ocudu/ran/ptrs/ptrs_pattern.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ptrs_pdsch_generator_generic_impl::generate(resource_grid_writer& grid, const configuration& config)
 {

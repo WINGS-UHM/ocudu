@@ -10,12 +10,12 @@
 
 #include "lib/du/du_high/du_manager/ran_resource_management/ue_capability_manager.h"
 #include "lib/du/du_high/du_manager/ran_resource_management/ue_capability_summary_formatter.h"
-#include "srsran/adt/to_array.h"
+#include "ocudu/adt/to_array.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 /// Pairs an encoded ASN.1 message containing a real UE-NR-Capability with the expected UE capability summary.
 struct decode_ue_nr_cap_container_params {
@@ -27,17 +27,17 @@ struct decode_ue_nr_cap_container_params {
   ue_capability_summary expected_capabilities;
 };
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
-std::ostream& operator<<(std::ostream& os, const srsran::srs_du::ue_capability_summary& params)
+std::ostream& operator<<(std::ostream& os, const ocudu::odu::ue_capability_summary& params)
 {
   fmt::print(os, "{:n}", params);
   return os;
 }
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu
 
 std::ostream& operator<<(std::ostream& os, const decode_ue_nr_cap_container_params& params)
 {
@@ -80,7 +80,7 @@ static constexpr ue_capability_summary::supported_band supported_band_no_ul_mimo
     .ul_ta_reporting_supported      = false,
     .ue_specific_k_offset_supported = false};
 
-#ifdef SRSRAN_HAS_ENTERPRISE
+#ifdef OCUDU_HAS_ENTERPRISE
 static constexpr ue_capability_summary::supported_band supported_band_2x2_non_coherent = {
     .pusch_qam256_supported         = true,
     .pusch_tx_coherence             = tx_scheme_codebook_subset::non_coherent,
@@ -91,7 +91,7 @@ static constexpr ue_capability_summary::supported_band supported_band_2x2_non_co
     .ul_pre_compensation_supported  = false,
     .ul_ta_reporting_supported      = false,
     .ue_specific_k_offset_supported = false};
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 const auto test_cases = to_array<decode_ue_nr_cap_container_params>(
     {decode_ue_nr_cap_container_params{
@@ -151,11 +151,11 @@ const auto test_cases = to_array<decode_ue_nr_cap_container_params>(
                                    .pusch_qam64lowse_supported = false,
                                    .bands =
                                        {
-#ifdef SRSRAN_HAS_ENTERPRISE
+#ifdef OCUDU_HAS_ENTERPRISE
                                            {nr_band::n78, supported_band_2x2_non_coherent},
-#else  // SRSRAN_HAS_ENTERPRISE
+#else  // OCUDU_HAS_ENTERPRISE
                                            {nr_band::n78, supported_band_no_ul_mimo},
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
                                            {nr_band::n71, supported_band_no_ul_mimo},
                                            {nr_band::n77, supported_band_no_ul_mimo},
                                            {nr_band::n38, supported_band_no_ul_mimo},

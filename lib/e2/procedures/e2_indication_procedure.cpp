@@ -9,16 +9,16 @@
  */
 
 #include "e2_indication_procedure.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 
 e2_indication_procedure::e2_indication_procedure(e2_message_notifier&    notif_,
                                                  e2_event_manager&       ev_mng_,
                                                  e2_subscription_info_t& subscription_info_,
-                                                 srslog::basic_logger&   logger_) :
+                                                 ocudulog::basic_logger& logger_) :
   notifier(notif_), ev_mng(ev_mng_), subscription(subscription_info_), logger(logger_)
 {
 }

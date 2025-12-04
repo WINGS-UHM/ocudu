@@ -9,9 +9,9 @@
  */
 
 #include "ofh_rx_symbol_reorderer.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void rx_symbol_reorderer::on_new_uplink_symbol(const uplane_rx_symbol_context& context,

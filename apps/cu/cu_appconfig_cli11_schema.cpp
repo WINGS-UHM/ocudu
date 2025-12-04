@@ -17,16 +17,16 @@
 #include "apps/services/remote_control/remote_control_appconfig_cli11_schema.h"
 #include "apps/services/worker_manager/worker_manager_cli11_schema.h"
 #include "cu_appconfig.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-static void configure_cli11_f1ap_args(CLI::App& app, srs_cu::cu_f1ap_appconfig& f1ap_params)
+static void configure_cli11_f1ap_args(CLI::App& app, ocu::cu_f1ap_appconfig& f1ap_params)
 {
   add_option(app, "--bind_addr", f1ap_params.bind_addr, "F1-C bind address")->capture_default_str();
 }
 
-void srsran::configure_cli11_with_cu_appconfig_schema(CLI::App& app, cu_appconfig& cu_cfg)
+void ocudu::configure_cli11_with_cu_appconfig_schema(CLI::App& app, cu_appconfig& cu_cfg)
 {
   app.add_flag("--dryrun", cu_cfg.enable_dryrun, "Enable application dry run mode")->capture_default_str();
 

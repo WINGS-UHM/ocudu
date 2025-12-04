@@ -30,11 +30,11 @@ set(SOURCES
     )
 
 
-add_library(srsran_ngap STATIC ${SOURCES})
+add_library(ocudu_ngap STATIC ${SOURCES})
 
-target_link_libraries(srsran_ngap
-	srsran_cu_cp
+target_link_libraries(ocudu_ngap
+	ocudu_cu_cp
 	ngap_asn1
-	srsran_support)
+	ocudu_support)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

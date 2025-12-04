@@ -6,5 +6,5 @@
 # the distribution.
 #
 
-add_library(srsran_short_block STATIC short_block_encoder_impl.cpp short_block_detector_impl.cpp)
-target_link_libraries(srsran_short_block srsran_support log_likelihood_ratio srsvec)
+add_library(ocudu_short_block STATIC short_block_encoder_impl.cpp short_block_detector_impl.cpp)
+target_link_libraries(ocudu_short_block ocudu_support log_likelihood_ratio ocuduvec)

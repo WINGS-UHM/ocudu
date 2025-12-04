@@ -12,10 +12,10 @@
 #include "gtpu_pdu.h"
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 gtpu_demux_impl::gtpu_demux_impl(gtpu_demux_cfg_t cfg_, dlt_pcap& gtpu_pcap_) :
-  cfg(cfg_), gtpu_pcap(gtpu_pcap_), logger(srslog::fetch_basic_logger("GTPU"))
+  cfg(cfg_), gtpu_pcap(gtpu_pcap_), logger(ocudulog::fetch_basic_logger("GTPU"))
 {
   logger.info("GTP-U demux. {}", cfg);
 }

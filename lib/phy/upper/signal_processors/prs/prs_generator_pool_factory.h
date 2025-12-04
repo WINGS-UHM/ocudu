@@ -12,7 +12,7 @@
 
 #include "prs_generator_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Concurrent PRS generator pool factory - instantiates PRS generators that can be executed concurrently.
 class prs_generator_pool_factory : public prs_generator_factory
@@ -21,8 +21,8 @@ public:
   prs_generator_pool_factory(std::shared_ptr<prs_generator_factory> factory_, unsigned nof_concurrent_threads_) :
     factory(std::move(factory_)), nof_concurrent_threads(nof_concurrent_threads_)
   {
-    srsran_assert(factory, "Invalid PRS generator factory.");
-    srsran_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
+    ocudu_assert(factory, "Invalid PRS generator factory.");
+    ocudu_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
   }
 
   // See interface for documentation.
@@ -38,7 +38,7 @@ public:
   }
 
   // See interface for documentation.
-  std::unique_ptr<prs_generator> create(srslog::basic_logger& logger) override
+  std::unique_ptr<prs_generator> create(ocudulog::basic_logger& logger) override
   {
     if (!pool) {
       std::vector<std::unique_ptr<prs_generator>> generators(nof_concurrent_threads);
@@ -61,4 +61,4 @@ private:
   std::shared_ptr<prs_generator_pool::generator_pool_type> pool;
 };
 
-} // namespace srsran
+} // namespace ocudu

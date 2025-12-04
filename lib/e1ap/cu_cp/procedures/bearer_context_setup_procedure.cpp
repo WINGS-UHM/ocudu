@@ -13,8 +13,8 @@
 #include "common/e1ap_asn1_utils.h"
 #include "cu_cp/ue_context/e1ap_bearer_transaction_manager.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::e1ap;
 
 bearer_context_setup_procedure::bearer_context_setup_procedure(const e1ap_configuration&        e1ap_cfg_,
@@ -65,9 +65,9 @@ e1ap_bearer_context_setup_response bearer_context_setup_procedure::handle_bearer
     const asn1::e1ap::bearer_context_setup_resp_s& resp = transaction_sink.response();
 
     // Add CU-UP-UE-E1AP-ID to UE context.
-    srsran_sanity_check(ue_ctxt_list.contains(int_to_gnb_cu_cp_ue_e1ap_id(resp->gnb_cu_cp_ue_e1ap_id)),
-                        "Cannot find UE with cu-cp-ue-e1ap-id={} while running its own procedure",
-                        resp->gnb_cu_cp_ue_e1ap_id);
+    ocudu_sanity_check(ue_ctxt_list.contains(int_to_gnb_cu_cp_ue_e1ap_id(resp->gnb_cu_cp_ue_e1ap_id)),
+                       "Cannot find UE with cu-cp-ue-e1ap-id={} while running its own procedure",
+                       resp->gnb_cu_cp_ue_e1ap_id);
     auto& u = ue_ctxt_list[int_to_gnb_cu_cp_ue_e1ap_id(resp->gnb_cu_cp_ue_e1ap_id)];
     u.update_cu_up_ue_e1ap_id(int_to_gnb_cu_up_ue_e1ap_id(resp->gnb_cu_up_ue_e1ap_id));
 
@@ -81,9 +81,9 @@ e1ap_bearer_context_setup_response bearer_context_setup_procedure::handle_bearer
     logger.log_debug("Received BearerContextSetupFailure cause={}", get_cause_str(fail->cause));
 
     // Add CU-UP UE E1AP ID to UE context.
-    srsran_sanity_check(ue_ctxt_list.contains(int_to_gnb_cu_cp_ue_e1ap_id(fail->gnb_cu_cp_ue_e1ap_id)),
-                        "Cannot find UE with cu-cp-ue-e1ap-id={} while running its own procedure",
-                        fail->gnb_cu_cp_ue_e1ap_id);
+    ocudu_sanity_check(ue_ctxt_list.contains(int_to_gnb_cu_cp_ue_e1ap_id(fail->gnb_cu_cp_ue_e1ap_id)),
+                       "Cannot find UE with cu-cp-ue-e1ap-id={} while running its own procedure",
+                       fail->gnb_cu_cp_ue_e1ap_id);
     auto& u = ue_ctxt_list[int_to_gnb_cu_cp_ue_e1ap_id(fail->gnb_cu_cp_ue_e1ap_id)];
     u.update_cu_up_ue_e1ap_id(int_to_gnb_cu_up_ue_e1ap_id(fail->gnb_cu_up_ue_e1ap_id));
 

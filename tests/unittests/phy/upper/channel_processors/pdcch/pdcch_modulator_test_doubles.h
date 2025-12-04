@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_modulator.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_modulator.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class pdcch_modulator_spy : public pdcch_modulator
 {
@@ -42,4 +42,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(pdcch_modulator);
 
-} // namespace srsran
+} // namespace ocudu

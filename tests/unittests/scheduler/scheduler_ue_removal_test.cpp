@@ -14,26 +14,26 @@
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/resource_grid_util.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 const unsigned MAX_UCI_SLOT_DELAY = get_max_slot_ul_alloc_delay(0);
 
 // Setup the log spy to intercept error and warning log entries when removing a UE.
-srsran::log_sink_spy& test_spy = []() -> srsran::log_sink_spy& {
-  if (!srslog::install_custom_sink(
-          srsran::log_sink_spy::name(),
-          std::unique_ptr<srsran::log_sink_spy>(new srsran::log_sink_spy(srslog::get_default_log_formatter())))) {
+ocudu::log_sink_spy& test_spy = []() -> ocudu::log_sink_spy& {
+  if (!ocudulog::install_custom_sink(
+          ocudu::log_sink_spy::name(),
+          std::unique_ptr<ocudu::log_sink_spy>(new ocudu::log_sink_spy(ocudulog::get_default_log_formatter())))) {
     report_fatal_error("Unable to create logger spy");
   }
-  auto* spy = static_cast<srsran::log_sink_spy*>(srslog::find_sink(srsran::log_sink_spy::name()));
+  auto* spy = static_cast<ocudu::log_sink_spy*>(ocudulog::find_sink(ocudu::log_sink_spy::name()));
   if (spy == nullptr) {
     report_fatal_error("Unable to create logger spy");
   }
 
-  srslog::fetch_basic_logger("SCHED", *spy, true);
+  ocudulog::fetch_basic_logger("SCHED", *spy, true);
   return *spy;
 }();
 
@@ -53,10 +53,10 @@ protected:
 
   bool is_rnti_scheduled(rnti_t rnti) const
   {
-    if (srsran::find_ue_dl_pdcch(rnti, *last_sched_result()) != nullptr) {
+    if (ocudu::find_ue_dl_pdcch(rnti, *last_sched_result()) != nullptr) {
       return true;
     }
-    if (srsran::find_ue_ul_pdcch(rnti, *last_sched_result()) != nullptr) {
+    if (ocudu::find_ue_ul_pdcch(rnti, *last_sched_result()) != nullptr) {
       return true;
     }
     if (find_ue_pdsch(rnti, *last_sched_result()) != nullptr) {

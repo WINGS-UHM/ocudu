@@ -18,21 +18,21 @@
 #include "messages/pusch.h"
 #include "messages/srs.h"
 #include "messages/ssb.h"
-#include "srsran/adt/expected.h"
-#include "srsran/fapi/message_builders.h"
-#include "srsran/instrumentation/traces/critical_traces.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/resource_grid_pool.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/channel_processors/prach_detector.h"
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
-#include "srsran/phy/upper/uplink_pdu_validator.h"
-#include "srsran/phy/upper/uplink_request_processor.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/instrumentation/traces/critical_traces.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/resource_grid_pool.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/phy/upper/uplink_pdu_validator.h"
+#include "ocudu/phy/upper/uplink_request_processor.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
@@ -74,9 +74,9 @@ fapi_to_phy_fastpath_translator::fapi_to_phy_fastpath_translator(
   carrier_cfg(config.carrier_cfg),
   prach_ports(config.prach_ports.begin(), config.prach_ports.end())
 {
-  srsran_assert(pm_repo, "Invalid precoding matrix repository");
-  srsran_assert(part2_repo, "Invalid UCI Part2 repository");
-  srsran_assert(!prach_ports.empty(), "The PRACH ports must not be empty.");
+  ocudu_assert(pm_repo, "Invalid precoding matrix repository");
+  ocudu_assert(part2_repo, "Invalid UCI Part2 repository");
+  ocudu_assert(!prach_ports.empty(), "The PRACH ports must not be empty.");
 }
 
 fapi_to_phy_fastpath_translator::slot_based_upper_phy_controller::slot_based_upper_phy_controller(
@@ -84,7 +84,7 @@ fapi_to_phy_fastpath_translator::slot_based_upper_phy_controller::slot_based_upp
     resource_grid_pool&      rg_pool,
     slot_point               slot_,
     unsigned                 sector_id,
-    srslog::basic_logger&    logger) :
+    ocudulog::basic_logger&  logger) :
   slot(slot_)
 {
   resource_grid_context context = {slot_, sector_id};
@@ -183,7 +183,7 @@ generate_csi_re_pattern_list(const fapi::dl_tti_request_message& msg, uint16_t c
 /// \note If a PDU fails the validation, the whole DL_TTI.request message is dropped.
 static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_tti_request_message& msg,
                                                                  const downlink_pdu_validator&       dl_pdu_validator,
-                                                                 srslog::basic_logger&               logger,
+                                                                 ocudulog::basic_logger&             logger,
                                                                  subcarrier_spacing                  scs_common,
                                                                  uint16_t                            cell_bandwidth_prb,
                                                                  const precoding_matrix_repository&  pm_repo,
@@ -278,10 +278,10 @@ static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_
         break;
       }
       default:
-        srsran_assert(0,
-                      "Sector#{}: DL_TTI.request PDU type value '{}' not recognized.",
-                      sector_id,
-                      static_cast<unsigned>(pdu.pdu_type));
+        ocudu_assert(0,
+                     "Sector#{}: DL_TTI.request PDU type value '{}' not recognized.",
+                     sector_id,
+                     static_cast<unsigned>(pdu.pdu_type));
     }
   }
 
@@ -414,7 +414,7 @@ static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tt
                                                                const fapi::prach_config&            prach_cfg,
                                                                const fapi::carrier_config&          carrier_cfg,
                                                                span<const uint8_t>                  ports,
-                                                               srslog::basic_logger&                logger,
+                                                               ocudulog::basic_logger&              logger,
                                                                uci_part2_correspondence_repository& part2_repo,
                                                                unsigned                             sector_id)
 {
@@ -480,10 +480,10 @@ static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tt
         break;
       }
       default:
-        srsran_assert(0,
-                      "Sector#{}: UL_TTI.request PDU type value '{}' not recognized.",
-                      sector_id,
-                      static_cast<unsigned>(pdu.pdu_type));
+        ocudu_assert(0,
+                     "Sector#{}: UL_TTI.request PDU type value '{}' not recognized.",
+                     sector_id,
+                     static_cast<unsigned>(pdu.pdu_type));
     }
   }
 
@@ -576,7 +576,7 @@ void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_
   rg_context.sector = sector_id;
 
   // Abort UL processing for this slot if the resource grid is not available.
-  if (SRSRAN_UNLIKELY(!ul_rg)) {
+  if (OCUDU_UNLIKELY(!ul_rg)) {
     logger.warning("Sector#{}: Failed to allocate UL resource grid for UL_TTI.request from slot {}.{}",
                    sector_id,
                    msg.sfn,
@@ -800,7 +800,7 @@ fapi_to_phy_fastpath_translator::slot_based_upper_phy_controller_manager::slot_b
     resource_grid_pool&      rg_pool_,
     unsigned                 sector_id_,
     unsigned                 nof_slots_request_headroom,
-    srslog::basic_logger&    logger_) :
+    ocudulog::basic_logger&  logger_) :
   dl_processor_pool(dl_processor_pool_),
   rg_pool(rg_pool_),
   sector_id(sector_id_),

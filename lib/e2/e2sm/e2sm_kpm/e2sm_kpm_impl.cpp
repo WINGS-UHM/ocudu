@@ -10,13 +10,13 @@
 
 #include "e2sm_kpm_impl.h"
 #include "e2sm_kpm_report_service_impl.h"
-#include "srsran/asn1/asn1_utils.h"
+#include "ocudu/asn1/asn1_utils.h"
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
-e2sm_kpm_impl::e2sm_kpm_impl(srslog::basic_logger&   logger_,
+e2sm_kpm_impl::e2sm_kpm_impl(ocudulog::basic_logger& logger_,
                              e2sm_handler&           e2sm_packer_,
                              e2sm_kpm_meas_provider& du_meas_provider_) :
   logger(logger_), e2sm_packer(e2sm_packer_), du_meas_provider(du_meas_provider_)
@@ -217,8 +217,7 @@ bool e2sm_kpm_impl::process_action_definition_format5(const e2sm_kpm_action_defi
   return process_action_definition_format1(subscript_info, level);
 }
 
-std::unique_ptr<e2sm_report_service>
-e2sm_kpm_impl::get_e2sm_report_service(const srsran::byte_buffer& action_definition)
+std::unique_ptr<e2sm_report_service> e2sm_kpm_impl::get_e2sm_report_service(const ocudu::byte_buffer& action_definition)
 {
   e2sm_action_definition action_def = e2sm_packer.handle_packed_e2sm_action_definition(action_definition);
   if (action_def.service_model != e2sm_service_model_t::KPM) {

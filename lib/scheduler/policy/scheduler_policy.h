@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 class slice_ue;
 class ue_cell;
@@ -72,4 +72,4 @@ public:
   virtual void save_ul_newtx_grants(span<const ul_sched_info> ul_grants) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

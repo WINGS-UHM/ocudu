@@ -15,16 +15,16 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config_cli11_schema.h"
 #include "split6_constants.h"
 #include "split6_o_du_low_unit_config.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/slot_point_extended.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/slot_point_extended.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static ru_ofh_unit_parsed_config ofh_cfg;
 static ru_sdr_unit_config        sdr_cfg;
 
-void srsran::configure_cli11_with_split6_o_du_low_unit_config_schema(CLI::App& app, split6_o_du_low_unit_config& config)
+void ocudu::configure_cli11_with_split6_o_du_low_unit_config_schema(CLI::App& app, split6_o_du_low_unit_config& config)
 {
   configure_cli11_with_du_low_config_schema(app, config.du_low_cfg);
   configure_cli11_with_ru_ofh_config_schema(app, ofh_cfg);
@@ -63,7 +63,7 @@ static void manage_ru(const CLI::App& app, split6_o_du_low_unit_config& config)
   nof_ru_types += (nof_sdr_entries != 0) ? 1 : 0;
 
   if (nof_ru_types > 1) {
-    srsran_terminate(
+    ocudu_terminate(
         "Radio Unit configuration allows either a SDR or Open Fronthaul but not both types at the same time");
   }
 
@@ -78,7 +78,7 @@ static void manage_ru(const CLI::App& app, split6_o_du_low_unit_config& config)
   ofh_subcmd->disabled();
 }
 
-void srsran::autoderive_split6_o_du_low_parameters_after_parsing(CLI::App& app, split6_o_du_low_unit_config& config)
+void ocudu::autoderive_split6_o_du_low_parameters_after_parsing(CLI::App& app, split6_o_du_low_unit_config& config)
 {
   if (CLI::App* expert_cmd = app.get_subcommand("expert_phy");
       expert_cmd->count_all() == 0 || expert_cmd->count("--max_proc_delay") == 0) {

@@ -9,11 +9,11 @@
  */
 
 #include "pdcp_rx_reestablish_test.h"
-#include "srsran/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_config.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test SRB reestablishment
 TEST_P(pdcp_rx_reestablish_test, when_srb_reestablish_then_sdus_dropped)

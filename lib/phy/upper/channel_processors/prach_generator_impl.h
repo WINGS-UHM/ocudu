@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/prach_generator.h"
-#include "srsran/ran/prach/prach_constants.h"
+#include "ocudu/phy/upper/channel_processors/prach_generator.h"
+#include "ocudu/ran/prach/prach_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief On-demand PRACH time-domain signal generator.
 ///
@@ -62,4 +62,4 @@ public:
   span<const cf_t> generate(const configuration& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

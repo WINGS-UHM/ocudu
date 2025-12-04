@@ -11,18 +11,18 @@
 #pragma once
 
 #include "pdu_session_manager.h"
-#include "srsran/cu_up/cu_up_config.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
+#include "ocudu/cu_up/cu_up_config.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 inline void process_successful_pdu_resource_modification_outcome(
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_modified_item>& pdu_session_resource_modified_list,
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_failed_item>&
                                            pdu_session_resource_failed_to_modify_list,
     const pdu_session_modification_result& result,
-    const srslog::basic_logger&            logger)
+    const ocudulog::basic_logger&          logger)
 {
   if (result.success) {
     e1ap_pdu_session_resource_modified_item modified_item;
@@ -159,9 +159,9 @@ inline e1ap_security_info fill_test_mode_security_info(cu_up_test_mode_config te
 {
   e1ap_security_info sec_info;
   sec_info.security_algorithm.ciphering_algo =
-      static_cast<srsran::security::ciphering_algorithm>(test_mode_cfg.nea_algo);
+      static_cast<ocudu::security::ciphering_algorithm>(test_mode_cfg.nea_algo);
   sec_info.security_algorithm.integrity_protection_algorithm =
-      static_cast<srsran::security::integrity_algorithm>(test_mode_cfg.nia_algo);
+      static_cast<ocudu::security::integrity_algorithm>(test_mode_cfg.nia_algo);
   sec_info.up_security_key.encryption_key =
       make_byte_buffer("0001020304050607080910111213141516171819202122232425262728293031").value();
   sec_info.up_security_key.integrity_protection_key =
@@ -250,4 +250,4 @@ inline e1ap_bearer_context_modification_request fill_test_mode_bearer_context_mo
   return bearer_modify;
 }
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

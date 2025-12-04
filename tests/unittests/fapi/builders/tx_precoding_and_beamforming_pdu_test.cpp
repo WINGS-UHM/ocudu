@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/fapi/message_builders.h"
+#include "ocudu/fapi/message_builders.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 TEST(tx_precoding_and_beamforming_pdu_builder, creating_builder_sets_trp_scheme_to_zero)

@@ -9,12 +9,12 @@
  */
 
 #include "f1ap_asn1_packer.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 f1ap_asn1_packer::f1ap_asn1_packer(sctp_network_gateway_data_handler& gw_, f1ap_message_handler& f1ap_handler) :
-  logger(srslog::fetch_basic_logger("F1AP-ASN1-PCK")), gw(gw_), f1ap(f1ap_handler)
+  logger(ocudulog::fetch_basic_logger("F1AP-ASN1-PCK")), gw(gw_), f1ap(f1ap_handler)
 {
 }
 
@@ -25,7 +25,7 @@ void f1ap_asn1_packer::handle_packed_pdu(const byte_buffer& bytes)
 
   asn1::cbit_ref bref(bytes);
   f1ap_message   msg = {};
-  if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Couldn't unpack PDU");
     return;
   }
@@ -40,7 +40,7 @@ void f1ap_asn1_packer::handle_message(const f1ap_message& msg)
   // pack PDU into temporary buffer
   byte_buffer   tx_pdu;
   asn1::bit_ref bref(tx_pdu);
-  if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+  if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack PDU");
     return;
   }

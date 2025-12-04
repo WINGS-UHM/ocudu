@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/phy_time_unit.h"
+#include "ocudu/ran/phy_time_unit.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(phy_time_unit_test, build_from_negative_seconds_store_negative_tc)
 {

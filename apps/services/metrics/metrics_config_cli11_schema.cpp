@@ -10,9 +10,9 @@
 
 #include "metrics_config_cli11_schema.h"
 #include "metrics_appconfig.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 static void configure_cli11_metrics_args(CLI::App& app, metrics_appconfig& metrics_params)
@@ -25,7 +25,7 @@ static void configure_cli11_metrics_args(CLI::App& app, metrics_appconfig& metri
       ->capture_default_str();
 }
 
-void srsran::app_services::configure_cli11_with_metrics_appconfig_schema(CLI::App& app, metrics_appconfig& config)
+void ocudu::app_services::configure_cli11_with_metrics_appconfig_schema(CLI::App& app, metrics_appconfig& config)
 {
   CLI::App* metircs_subcmd = add_subcommand(app, "metrics", "Metrics configuration")->configurable();
   configure_cli11_metrics_args(*metircs_subcmd, config);

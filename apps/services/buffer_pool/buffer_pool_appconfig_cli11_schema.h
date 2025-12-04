@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 struct buffer_pool_appconfig;
@@ -21,4 +21,4 @@ struct buffer_pool_appconfig;
 void configure_cli11_with_buffer_pool_appconfig_schema(CLI::App& app, buffer_pool_appconfig& config);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

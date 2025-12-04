@@ -13,8 +13,8 @@
 #include "../cu_cp_impl_interface.h"
 #include "../mobility_manager/mobility_manager_impl.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Adapter between mobility manager and CU-CP to trigger handover.
 class mobility_manager_adapter : public mobility_manager_cu_cp_notifier
@@ -29,7 +29,7 @@ public:
                                 du_index_t                             source_du_index,
                                 du_index_t                             target_du_index) override
   {
-    srsran_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
     return cu_cp_handler->handle_intra_cu_handover_request(request, source_du_index, target_du_index);
   }
 
@@ -37,5 +37,5 @@ private:
   cu_cp_mobility_manager_handler* cu_cp_handler = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -23,19 +23,19 @@
 #include "du_processor/du_processor_repository.h"
 #include "ngap_repository.h"
 #include "ue_manager/ue_manager_impl.h"
-#include "srsran/cu_cp/cu_configurator.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e2/e2_cu.h"
-#include "srsran/e2/e2_cu_up_factory.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/nrppa/nrppa.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/cu_configurator.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e2/e2_cu.h"
+#include "ocudu/e2/e2_cu_up_factory.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/nrppa/nrppa.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <dlfcn.h>
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_cp_common_task_scheduler : public common_task_scheduler
 {
@@ -189,7 +189,7 @@ private:
   cu_cp_configuration cfg;
 
   // Logger.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-CP");
 
   // Components.
   // UE manager.
@@ -255,5 +255,5 @@ private:
   std::unique_ptr<metrics_report_session> metrics_session;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

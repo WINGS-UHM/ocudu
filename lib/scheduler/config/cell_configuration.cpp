@@ -9,11 +9,11 @@
  */
 
 #include "cell_configuration.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

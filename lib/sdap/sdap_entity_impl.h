@@ -13,13 +13,13 @@
 #include "sdap_entity_rx_impl.h"
 #include "sdap_entity_tx_impl.h"
 #include "sdap_session_logger.h"
-#include "srsran/sdap/sdap.h"
-#include "srsran/support/timers.h"
+#include "ocudu/sdap/sdap.h"
+#include "ocudu/support/timers.h"
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_up {
+namespace ocuup {
 
 class sdap_entity_impl : public sdap_entity, public sdap_tx_sdu_handler
 {
@@ -33,7 +33,7 @@ public:
   sdap_rx_pdu_handler& get_sdap_rx_pdu_handler(drb_id_t drb_id) final
   {
     auto rx_it = rx_map.find(drb_id);
-    srsran_assert(rx_it != rx_map.end(), "Cannot find QFI mapping for {}", drb_id);
+    ocudu_assert(rx_it != rx_map.end(), "Cannot find QFI mapping for {}", drb_id);
     return *rx_it->second;
   }
   sdap_tx_sdu_handler& get_sdap_tx_sdu_handler() final { return *this; }
@@ -103,6 +103,6 @@ private:
   std::unordered_map<drb_id_t, std::unique_ptr<sdap_entity_rx_impl>>      rx_map;
 };
 
-} // namespace srs_cu_up
+} // namespace ocuup
 
-} // namespace srsran
+} // namespace ocudu

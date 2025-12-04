@@ -13,9 +13,9 @@
 #include "packing_utils_avx2.h"
 #include "packing_utils_generic.h"
 #include "quantizer.h"
-#include "srsran/ofh/compression/compression_properties.h"
+#include "ocudu/ofh/compression/compression_properties.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void iq_compression_none_avx2::compress(span<uint8_t>                buffer,
@@ -42,7 +42,7 @@ void iq_compression_none_avx2::compress(span<uint8_t>                buffer,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
+  ocudu_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
 
   // Auxiliary arrays used for float to fixed point conversion of the input data.
   std::array<int16_t, NOF_SAMPLES_PER_PRB * MAX_NOF_PRBS> input_quantized;
@@ -104,9 +104,9 @@ void iq_compression_none_avx2::decompress(span<cbf16_t>                iq_data,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned comp_prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(compressed_data.size() >= nof_prbs * comp_prb_size,
-                "Input does not contain enough bytes to decompress {} PRBs",
-                nof_prbs);
+  ocudu_assert(compressed_data.size() >= nof_prbs * comp_prb_size,
+               "Input does not contain enough bytes to decompress {} PRBs",
+               nof_prbs);
 
   // Quantizer object.
   quantizer q(params.data_width);

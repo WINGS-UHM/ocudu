@@ -11,17 +11,17 @@
 #pragma once
 
 #include "lib/cu_up/ngu_session_manager.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/cu_up/cu_up_executor_mapper.h"
-#include "srsran/cu_up/cu_up_manager.h"
-#include "srsran/e1ap/common/e1ap_common.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/gtpu/gtpu_gateway.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/gtpu/gtpu_tunnel_common_tx.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/cu_up/cu_up_executor_mapper.h"
+#include "ocudu/cu_up/cu_up_manager.h"
+#include "ocudu/e1ap/common/e1ap_common.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/gtpu/gtpu_gateway.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
 #include <chrono>
 #include <condition_variable>
 #include <list>
@@ -30,12 +30,12 @@
 
 constexpr auto default_wait_timeout = std::chrono::seconds(3);
 
-namespace srsran {
+namespace ocudu {
 
 /// Dummy CU-UP executor pool used for testing
-class dummy_cu_up_executor_mapper final : public srs_cu_up::cu_up_executor_mapper
+class dummy_cu_up_executor_mapper final : public ocuup::cu_up_executor_mapper
 {
-  class dummy_pdu_session_executor_mapper_impl : public srs_cu_up::ue_executor_mapper
+  class dummy_pdu_session_executor_mapper_impl : public ocuup::ue_executor_mapper
   {
   public:
     dummy_pdu_session_executor_mapper_impl(task_executor& exec_) : exec(&exec_) {}
@@ -65,7 +65,7 @@ public:
 
   task_executor& f1u_rx_executor() override { return *test_executor; }
 
-  std::unique_ptr<srs_cu_up::ue_executor_mapper> create_ue_executor_mapper() override
+  std::unique_ptr<ocuup::ue_executor_mapper> create_ue_executor_mapper() override
   {
     return std::make_unique<dummy_pdu_session_executor_mapper_impl>(*test_executor);
   }
@@ -78,7 +78,7 @@ private:
 class dummy_gtpu_demux_ctrl final : public gtpu_demux_ctrl
 {
 public:
-  dummy_gtpu_demux_ctrl() : logger(srslog::fetch_basic_logger("GTPU")) {}
+  dummy_gtpu_demux_ctrl() : logger(ocudulog::fetch_basic_logger("GTPU")) {}
   ~dummy_gtpu_demux_ctrl() = default;
 
   expected<std::unique_ptr<gtpu_demux_dispatch_queue>>
@@ -103,7 +103,7 @@ public:
   std::list<gtpu_teid_t> removed_teid_list = {};
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy GTP-U TEID pool
@@ -138,7 +138,7 @@ public:
   void on_new_pdu(byte_buffer /*buf*/, const ::sockaddr_storage& /*addr*/) override {}
 };
 
-class dummy_inner_f1u_bearer final : srs_cu_up::f1u_tx_pdu_notifier
+class dummy_inner_f1u_bearer final : ocuup::f1u_tx_pdu_notifier
 {
 private:
   f1u_cu_up_gateway_bearer_rx_notifier* rx_sdu_notifier = nullptr;
@@ -161,7 +161,7 @@ public:
   void handle_pdu(nru_ul_message msg)
   {
     // Forward T-PDU to PDCP
-    srsran_assert(rx_sdu_notifier != nullptr, "The rx_sdu_notifier must not be a nullptr!");
+    ocudu_assert(rx_sdu_notifier != nullptr, "The rx_sdu_notifier must not be a nullptr!");
     rx_sdu_notifier->on_new_pdu(std::move(msg));
   }
 
@@ -197,9 +197,9 @@ public:
 class dummy_f1u_gateway_bearer final : public f1u_cu_up_gateway_bearer
 {
 public:
-  dummy_f1u_gateway_bearer(dummy_inner_f1u_bearer&             inner_,
-                           srs_cu_up::f1u_bearer_disconnector& disconnector_,
-                           const up_transport_layer_info&      ul_up_tnl_info_) :
+  dummy_f1u_gateway_bearer(dummy_inner_f1u_bearer&         inner_,
+                           ocuup::f1u_bearer_disconnector& disconnector_,
+                           const up_transport_layer_info&  ul_up_tnl_info_) :
     inner(inner_), disconnector(disconnector_), ul_up_tnl_info(ul_up_tnl_info_)
   {
   }
@@ -224,10 +224,10 @@ public:
   expected<std::string> get_bind_address() const override { return "127.0.0.2"; }
 
 private:
-  bool                                stopped = false;
-  dummy_inner_f1u_bearer&             inner;
-  srs_cu_up::f1u_bearer_disconnector& disconnector;
-  up_transport_layer_info             ul_up_tnl_info;
+  bool                            stopped = false;
+  dummy_inner_f1u_bearer&         inner;
+  ocuup::f1u_bearer_disconnector& disconnector;
+  up_transport_layer_info         ul_up_tnl_info;
 };
 
 class dummy_f1u_gateway final : public f1u_cu_up_gateway
@@ -244,7 +244,7 @@ public:
                                                              s_nssai_t                             snssai,
                                                              drb_id_t                              drb_id,
                                                              five_qi_t                             five_qi,
-                                                             const srs_cu_up::f1u_config&          config,
+                                                             const ocuup::f1u_config&              config,
                                                              const gtpu_teid_t&                    ul_teid,
                                                              f1u_cu_up_gateway_bearer_rx_notifier& rx_notifier,
                                                              task_executor&                        ul_exec) override
@@ -292,7 +292,7 @@ private:
   std::string ip_addr = "127.0.0.2";
 };
 
-class dummy_ngu_session_manager final : public srs_cu_up::ngu_session_manager
+class dummy_ngu_session_manager final : public ocuup::ngu_session_manager
 {
 public:
   gtpu_tnl_pdu_session& get_next_ngu_gateway() override { return ngu_gw; }
@@ -301,21 +301,21 @@ private:
   dummy_gtpu_gateway ngu_gw;
 };
 
-class dummy_cu_up_manager_pdcp_interface final : public srs_cu_up::cu_up_manager_pdcp_interface
+class dummy_cu_up_manager_pdcp_interface final : public ocuup::cu_up_manager_pdcp_interface
 {
 public:
-  void handle_pdcp_protocol_failure(srs_cu_up::ue_index_t ue_index) override {}
+  void handle_pdcp_protocol_failure(ocuup::ue_index_t ue_index) override {}
 
-  void handle_pdcp_max_count_reached(srs_cu_up::ue_index_t ue_index) override {}
+  void handle_pdcp_max_count_reached(ocuup::ue_index_t ue_index) override {}
 };
 
-class dummy_e1ap final : public srs_cu_up::e1ap_interface
+class dummy_e1ap final : public ocuup::e1ap_interface
 {
 public:
   explicit dummy_e1ap()  = default;
   ~dummy_e1ap() override = default;
-  void handle_bearer_context_inactivity_notification(
-      const srs_cu_up::e1ap_bearer_context_inactivity_notification& msg) override
+  void
+  handle_bearer_context_inactivity_notification(const ocuup::e1ap_bearer_context_inactivity_notification& msg) override
   {
   }
   void handle_connection_loss() override {}
@@ -333,7 +333,7 @@ public:
 
   void handle_message(const e1ap_message& msg) override {}
 
-  void handle_bearer_context_release_request_required(srs_cu_up::ue_index_t ue_index) override {}
+  void handle_bearer_context_release_request_required(ocuup::ue_index_t ue_index) override {}
 };
 
 inline e1ap_message generate_bearer_context_setup_request(unsigned cu_cp_ue_e1ap_id)
@@ -423,4 +423,4 @@ inline security::sec_as_config get_dummy_up_security_info()
   return sec_info;
 }
 
-} // namespace srsran
+} // namespace ocudu

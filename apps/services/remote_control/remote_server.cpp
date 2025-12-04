@@ -12,9 +12,9 @@
 #include "apps/services/remote_control/remote_command.h"
 #include "apps/services/remote_control/remote_control_appconfig.h"
 #include "nlohmann/json.hpp"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/synchronization/stop_event.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/synchronization/stop_event.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #ifndef __clang__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
@@ -24,12 +24,12 @@
 #pragma GCC diagnostic pop
 #endif
 #include "apps/helpers/metrics/helpers.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/support/executors/unique_thread.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/support/executors/unique_thread.h"
 #include <csignal>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 /// Builds an error response encoded in JSON format.
@@ -75,19 +75,19 @@ public:
 
 class remote_server_impl;
 /// Receives the formatted JSON metrics from the metrics log channel.
-class remote_server_sink : public srslog::sink
+class remote_server_sink : public ocudulog::sink
 {
 public:
-  explicit remote_server_sink(std::unique_ptr<srslog::log_formatter> f) : srslog::sink(std::move(f)) {}
+  explicit remote_server_sink(std::unique_ptr<ocudulog::log_formatter> f) : ocudulog::sink(std::move(f)) {}
 
   /// Identifier of this custom sink.
   static const char* name() { return "remote_server_sink"; }
 
   // See interface for documentation.
-  srslog::detail::error_string write(srslog::detail::memory_buffer buffer) override;
+  ocudulog::detail::error_string write(ocudulog::detail::memory_buffer buffer) override;
 
   // See interface for documentation.
-  srslog::detail::error_string flush() override { return {}; }
+  ocudulog::detail::error_string flush() override { return {}; }
 
   void set_server(remote_server_impl* server_)
   {
@@ -235,7 +235,7 @@ public:
           server      = &ws_server;
           server_loop = uWS::Loop::get();
           if (enable_metrics_subscription) {
-            static_cast<remote_server_sink*>(srslog::find_sink(remote_server_sink::name()))->set_server(this);
+            static_cast<remote_server_sink*>(ocudulog::find_sink(remote_server_sink::name()))->set_server(this);
           }
           token.reset();
           ws_server.run();
@@ -257,7 +257,7 @@ public:
 
       server_loop.load()->defer([this]() {
         // Disconnect remote sink from the server, this will prevent metrics being processed after the server is closed.
-        static_cast<remote_server_sink*>(srslog::find_sink(remote_server_sink::name()))->set_server(nullptr);
+        static_cast<remote_server_sink*>(ocudulog::find_sink(remote_server_sink::name()))->set_server(nullptr);
         server.load()->close();
       });
 
@@ -271,7 +271,7 @@ public:
   void send_metrics(std::string metrics_)
   {
     auto token = stop_control.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -286,14 +286,14 @@ private:
   /// Adds the client that invoked this method to the metrics subscription list.
   void subscribe_metrics_client()
   {
-    srsran_assert(current_cmd_client, "Invalid client");
+    ocudu_assert(current_cmd_client, "Invalid client");
     metrics_subscribers.emplace(current_cmd_client);
   }
 
   /// Removes the client that invoked this method from the metrics subscription list.
   void unsubscribe_metrics_client()
   {
-    srsran_assert(current_cmd_client, "Invalid client");
+    ocudu_assert(current_cmd_client, "Invalid client");
     metrics_subscribers.erase(current_cmd_client);
   }
 
@@ -330,7 +330,7 @@ private:
   }
 };
 
-srslog::detail::error_string remote_server_sink::write(srslog::detail::memory_buffer buffer)
+ocudulog::detail::error_string remote_server_sink::write(ocudulog::detail::memory_buffer buffer)
 {
   std::scoped_lock lock(mutex);
   if (server) {
@@ -341,21 +341,20 @@ srslog::detail::error_string remote_server_sink::write(srslog::detail::memory_bu
 
 } // namespace
 
-void srsran::app_services::initialize_json_channel()
+void ocudu::app_services::initialize_json_channel()
 {
   /// Log channel name for the JSON type.
   static std::string json_channel_name = "JSON_channel";
 
-  srslog::install_custom_sink(remote_server_sink::name(),
-                              std::make_unique<remote_server_sink>(srslog::create_text_formatter()));
-  srslog::log_channel& json_channel =
-      srslog::fetch_log_channel(json_channel_name, *srslog::find_sink(remote_server_sink::name()), {});
+  ocudulog::install_custom_sink(remote_server_sink::name(),
+                                std::make_unique<remote_server_sink>(ocudulog::create_text_formatter()));
+  ocudulog::log_channel& json_channel =
+      ocudulog::fetch_log_channel(json_channel_name, *ocudulog::find_sink(remote_server_sink::name()), {});
   json_channel.set_enabled(true);
 }
 
-std::unique_ptr<remote_server>
-srsran::app_services::create_remote_server(const remote_control_appconfig&       cfg,
-                                           span<std::unique_ptr<remote_command>> commands)
+std::unique_ptr<remote_server> ocudu::app_services::create_remote_server(const remote_control_appconfig&       cfg,
+                                                                         span<std::unique_ptr<remote_command>> commands)
 {
   if (!cfg.enabled) {
     return nullptr;

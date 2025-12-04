@@ -9,9 +9,9 @@
 set_directory_properties(PROPERTIES LABELS "ecpri")
 
 add_executable(ecpri_packet_builder_impl_test ecpri_packet_builder_test.cpp)
-target_link_libraries(ecpri_packet_builder_impl_test srsran_ofh_ecpri srsran_support srslog gtest gtest_main)
+target_link_libraries(ecpri_packet_builder_impl_test ocudu_ofh_ecpri ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(ecpri_packet_builder_impl_test)
 
 add_executable(ecpri_packet_decoder_impl_test ecpri_packet_decoder_impl_test.cpp)
-target_link_libraries(ecpri_packet_decoder_impl_test srsran_ofh_ecpri srsran_support srslog gtest gtest_main)
+target_link_libraries(ecpri_packet_decoder_impl_test ocudu_ofh_ecpri ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(ecpri_packet_decoder_impl_test)

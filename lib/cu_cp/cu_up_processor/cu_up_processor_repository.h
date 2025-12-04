@@ -11,12 +11,12 @@
 #pragma once
 
 #include "cu_up_processor.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct cu_cp_configuration;
 
@@ -24,7 +24,7 @@ struct cu_up_repository_config {
   const cu_cp_configuration& cu_cp;
   e1ap_cu_cp_notifier&       e1ap_ev_notifier;
   common_task_scheduler&     common_task_sched;
-  srslog::basic_logger&      logger;
+  ocudulog::basic_logger&    logger;
 };
 
 class cu_up_processor_repository
@@ -68,10 +68,10 @@ private:
   cu_up_index_t allocate_cu_up_index();
 
   cu_up_repository_config cfg;
-  srslog::basic_logger&   logger;
+  ocudulog::basic_logger& logger;
 
   std::map<cu_up_index_t, cu_up_context> cu_up_db;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

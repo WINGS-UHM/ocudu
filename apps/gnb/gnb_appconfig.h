@@ -19,10 +19,10 @@
 #include "apps/services/metrics/metrics_appconfig.h"
 #include "apps/services/remote_control/remote_control_appconfig.h"
 #include "apps/services/worker_manager/worker_manager_appconfig.h"
-#include "srsran/ran/gnb_id.h"
+#include "ocudu/ran/gnb_id.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_up_appconfig {
   bool warn_on_drop = false;
@@ -62,4 +62,4 @@ struct gnb_appconfig {
   bool enable_dryrun = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

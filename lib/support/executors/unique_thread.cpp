@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/adt/static_vector.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/adt/static_vector.h"
 #include "fmt/std.h"
 #include <cstdio>
 #include <mutex>
 #include <pthread.h>
 #include <sys/types.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Sets thread OS scheduling real-time priority.
 static bool thread_set_param(::pthread_t t, os_thread_realtime_priority prio)
@@ -204,7 +204,7 @@ public:
   {
     std::unique_lock<std::mutex> lock(mutex);
 
-    srsran_sanity_check(id < MAX_NOF_THREADS, "Invalid unique thread identifier being released");
+    ocudu_sanity_check(id < MAX_NOF_THREADS, "Invalid unique thread identifier being released");
     free_list.push_back(id);
   }
 
@@ -305,19 +305,19 @@ std::thread unique_thread::make_thread(const std::string&               name,
   });
 }
 
-unsigned srsran::get_thread_index()
+unsigned ocudu::get_thread_index()
 {
   return unique_thread_index;
 }
 
-const char* srsran::this_thread_name()
+const char* ocudu::this_thread_name()
 {
   // Storage of current thread name, set via unique_thread.
   thread_local std::string this_thread_name_val = compute_this_thread_name();
   return this_thread_name_val.c_str();
 }
 
-void srsran::print_this_thread_priority()
+void ocudu::print_this_thread_priority()
 {
   print_thread_priority(::pthread_self(), this_thread_name(), std::this_thread::get_id());
 }

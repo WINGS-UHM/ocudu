@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ethernet_tx_metrics_collector_impl.h"
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ether {
 
 struct transmitter_config;
@@ -25,11 +25,11 @@ class dpdk_transmitter_impl : public transmitter
 {
 public:
   dpdk_transmitter_impl(std::shared_ptr<dpdk_port_context> port_ctx_,
-                        srslog::basic_logger&              logger_,
+                        ocudulog::basic_logger&            logger_,
                         bool                               are_metrics_enabled) :
     logger(logger_), port_ctx(std::move(port_ctx_)), metrics_collector(are_metrics_enabled)
   {
-    srsran_assert(port_ctx, "Invalid port context");
+    ocudu_assert(port_ctx, "Invalid port context");
   }
 
   // See interface for documentation.
@@ -39,10 +39,10 @@ public:
   transmitter_metrics_collector* get_metrics_collector() override;
 
 private:
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   std::shared_ptr<dpdk_port_context> port_ctx;
   transmitter_metrics_collector_impl metrics_collector;
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

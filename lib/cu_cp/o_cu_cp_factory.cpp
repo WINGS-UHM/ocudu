@@ -8,17 +8,16 @@
  *
  */
 
-#include "srsran/cu_cp/o_cu_cp_factory.h"
+#include "ocudu/cu_cp/o_cu_cp_factory.h"
 #include "o_cu_cp_impl.h"
-#include "srsran/cu_cp/cu_cp_factory.h"
-#include "srsran/cu_cp/o_cu_cp_config.h"
-#include "srsran/e2/e2_cu_cp_factory.h"
+#include "ocudu/cu_cp/cu_cp_factory.h"
+#include "ocudu/cu_cp/o_cu_cp_config.h"
+#include "ocudu/e2/e2_cu_cp_factory.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-std::unique_ptr<o_cu_cp> srs_cu_cp::create_o_cu_cp(const o_cu_cp_config&       config,
-                                                   const o_cu_cp_dependencies& dependencies)
+std::unique_ptr<o_cu_cp> ocucp::create_o_cu_cp(const o_cu_cp_config& config, const o_cu_cp_dependencies& dependencies)
 {
   auto cu = create_cu_cp(config.cu_cp_config);
 

@@ -15,10 +15,10 @@
 #include "../support/sr_helper.h"
 #include "../uci_scheduling/uci_scheduler_impl.h"
 #include "../ue_scheduling/ue_cell_grid_allocator.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief More than one DL buffer occupancy update may be received per slot for the same UE and bearer. This class
 /// ensures that the UE DL buffer occupancy is updated only once per bearer per slot for efficiency reasons.
@@ -119,7 +119,7 @@ private:
   ue_event_queue pending_evs;
 };
 
-class srsran::pdu_indication_pool
+class ocudu::pdu_indication_pool
 {
   // We use this value as a safety margin to account for skipped slot indications.
   static constexpr size_t MAX_EXPECTED_SLOTS        = 4;
@@ -140,7 +140,7 @@ class srsran::pdu_indication_pool
   using slice_reconf_pool = bounded_object_pool<du_cell_slice_reconfig_request>;
 
 public:
-  pdu_indication_pool(srslog::basic_logger& logger_) :
+  pdu_indication_pool(ocudulog::basic_logger& logger_) :
     logger(logger_),
     pending_ucis(UCI_INITIAL_POOL_SIZE),
     pending_phrs(PHR_INITIAL_POOL_SIZE),
@@ -167,7 +167,7 @@ public:
   }
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   uci_pool          pending_ucis;
   phr_pool          pending_phrs;
@@ -194,7 +194,7 @@ static constexpr size_t CELL_EVENT_LIST_SIZE = MAX_NOF_DU_UES * 2;
 ue_cell_event_manager::ue_cell_event_manager(ue_event_manager&          parent_,
                                              const cell_creation_event& cell_ev,
                                              ue_repository&             ue_db_,
-                                             srslog::basic_logger&      logger_) :
+                                             ocudulog::basic_logger&    logger_) :
   parent(parent_),
   ue_db(ue_db_),
   logger(logger_),
@@ -731,9 +731,9 @@ void ue_cell_event_manager::handle_ul_phr_indication(const ul_phr_indication_mes
     auto& u = ue_db[phr_ind->ue_index];
 
     for (const cell_ph_report& cell_phr : phr_ind->phr.get_phr()) {
-      srsran_sanity_check(cell_phr.serv_cell_id < u.nof_cells(),
-                          "Invalid serving cell index={}",
-                          fmt::underlying(cell_phr.serv_cell_id));
+      ocudu_sanity_check(cell_phr.serv_cell_id < u.nof_cells(),
+                         "Invalid serving cell index={}",
+                         fmt::underlying(cell_phr.serv_cell_id));
       auto& ue_cc = u.get_cell(cell_phr.serv_cell_id);
 
       ue_cc.get_pusch_power_controller().handle_phr(cell_phr, phr_ind->slot_rx);
@@ -785,7 +785,7 @@ void ue_cell_event_manager::handle_dl_mac_ce_indication(const dl_mac_ce_indicati
 void ue_cell_event_manager::handle_positioning_measurement_request(
     const positioning_measurement_request::cell_info& req)
 {
-  srsran_assert(req.cell_index == cfg.cell_index, "Received positioning request for wrong cell");
+  ocudu_assert(req.cell_index == cfg.cell_index, "Received positioning request for wrong cell");
 
   auto req_ptr = ind_pdu_pool->create_pdu(req);
   if (req_ptr == nullptr) {
@@ -991,7 +991,7 @@ void ue_cell_event_manager::handle_csi(ue_cell& ue_cc, slot_point sl_rx, const c
 
 void ue_cell_event_manager::push_event(du_cell_index_t cell_index, event_t event)
 {
-  if (SRSRAN_UNLIKELY(not active.load(std::memory_order_acquire))) {
+  if (OCUDU_UNLIKELY(not active.load(std::memory_order_acquire))) {
     // Note: PHY events should not arrive after the cell has been stopped.
     if (event.ue_index == INVALID_DU_UE_INDEX) {
       logger.warning(
@@ -1023,7 +1023,7 @@ void ue_cell_event_manager::log_invalid_ue_index(du_ue_index_t ue_index,
                                                  const char*   event_name,
                                                  bool          warn_if_ignored) const
 {
-  srslog::log_channel& log_channel = warn_if_ignored ? logger.warning : logger.info;
+  ocudulog::log_channel& log_channel = warn_if_ignored ? logger.warning : logger.info;
   log_channel("cell={} ue={}: Discarding {} event. Cause: UE with provided Id does not exist",
               fmt::underlying(cfg.cell_index),
               fmt::underlying(ue_index),
@@ -1032,14 +1032,14 @@ void ue_cell_event_manager::log_invalid_ue_index(du_ue_index_t ue_index,
 
 void ue_cell_event_manager::log_invalid_cc(du_ue_index_t ue_idx, const char* event_name, bool warn_if_ignored) const
 {
-  srslog::log_channel& log_channel = warn_if_ignored ? logger.warning : logger.info;
+  ocudulog::log_channel& log_channel = warn_if_ignored ? logger.warning : logger.info;
   log_channel("cell={} ue={}: Discarding {} event. Cause: UE is not configured in this cell",
               fmt::underlying(cfg.cell_index),
               fmt::underlying(ue_idx),
               event_name);
 }
 
-ue_event_manager::ue_event_manager(ue_repository& ue_db_) : ue_db(ue_db_), logger(srslog::fetch_basic_logger("SCHED"))
+ue_event_manager::ue_event_manager(ue_repository& ue_db_) : ue_db(ue_db_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   std::fill(cells.begin(), cells.end(), nullptr);
 }
@@ -1047,7 +1047,7 @@ ue_event_manager::ue_event_manager(ue_repository& ue_db_) : ue_db(ue_db_), logge
 std::unique_ptr<ue_cell_event_manager> ue_event_manager::add_cell(const cell_creation_event& cell_ev)
 {
   const du_cell_index_t cell_index = cell_ev.cell_res_grid.cell_index();
-  srsran_assert(not cell_exists(cell_index), "Overwriting cell configurations not supported");
+  ocudu_assert(not cell_exists(cell_index), "Overwriting cell configurations not supported");
 
   // Create ue_cell_event_manager.
   auto cell = std::make_unique<ue_cell_event_manager>(*this, cell_ev, ue_db, logger);

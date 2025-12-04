@@ -9,12 +9,12 @@
  */
 
 #include "pdsch_encoder_hw_impl.h"
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/support/units.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/support/units.h"
 #include <climits>
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 void pdsch_encoder_hw_impl::encode(span<uint8_t>        codeword,
                                    span<const uint8_t>  transport_block,
@@ -124,7 +124,7 @@ void pdsch_encoder_hw_impl::encode(span<uint8_t>        codeword,
       span<uint8_t> codeblock;
       if (cb_mode) {
         rm_length = segment_buffer->get_rm_length(cb_id);
-        srsran_assert(offset + rm_length <= codeword.size(), "Wrong codeword length.");
+        ocudu_assert(offset + rm_length <= codeword.size(), "Wrong codeword length.");
 
         codeblock = span<uint8_t>(codeword).subspan(offset, rm_length);
         codeblock_packed.resize(units::bits(rm_length).round_up_to_bytes().value());

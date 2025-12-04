@@ -10,7 +10,7 @@
 
 #include "pucch.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 static void fill_format0_parameters(pucch_processor::format0_configuration& config,
@@ -192,11 +192,11 @@ static void fill_pucch_format_0_1_context(ul_pucch_context& context, const fapi:
   ctx.is_sr_opportunity       = fapi_pdu.sr_bit_len == 1U;
 }
 
-void srsran::fapi_adaptor::convert_pucch_fapi_to_phy(uplink_pdu_slot_repository::pucch_pdu& pdu,
-                                                     const fapi::ul_pucch_pdu&              fapi_pdu,
-                                                     uint16_t                               sfn,
-                                                     uint16_t                               slot,
-                                                     uint16_t                               num_rx_ant)
+void ocudu::fapi_adaptor::convert_pucch_fapi_to_phy(uplink_pdu_slot_repository::pucch_pdu& pdu,
+                                                    const fapi::ul_pucch_pdu&              fapi_pdu,
+                                                    uint16_t                               sfn,
+                                                    uint16_t                               slot,
+                                                    uint16_t                               num_rx_ant)
 {
   // Fill main context fields.
   ul_pucch_context& context = pdu.context;
@@ -230,6 +230,6 @@ void srsran::fapi_adaptor::convert_pucch_fapi_to_phy(uplink_pdu_slot_repository:
       fill_format4_parameters(format4, fapi_pdu, slot_point(fapi_pdu.scs, sfn, slot), num_rx_ant);
     } break;
     default:
-      srsran_assert(0, "Unsupported PUCCH format {}", fmt::underlying(context.format));
+      ocudu_assert(0, "Unsupported PUCCH format {}", fmt::underlying(context.format));
   }
 }

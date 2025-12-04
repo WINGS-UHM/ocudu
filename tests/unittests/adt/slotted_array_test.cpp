@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/adt/slotted_array.h"
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <random>
 
@@ -21,7 +21,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 std::random_device rd;
 std::mt19937       g(rd());

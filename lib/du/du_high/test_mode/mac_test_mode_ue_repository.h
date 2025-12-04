@@ -11,14 +11,14 @@
 #pragma once
 
 #include "mac_test_mode_event_handler.h"
-#include "srsran/adt/flat_map.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/adt/flat_map.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Handles information related to the test UE(s).
 class mac_test_mode_ue_repository
@@ -87,4 +87,4 @@ private:
   std::vector<std::unique_ptr<cell_info>> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

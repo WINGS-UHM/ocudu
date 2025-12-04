@@ -11,21 +11,21 @@
 #include "dci_builder.h"
 #include "../cell/cell_harq_manager.h"
 #include "rb_helper.h"
-#include "srsran/ran/pdcch/dci_packing.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/ran/pdsch/pdsch_antenna_ports_mapping.h"
-#include "srsran/ran/pusch/pusch_antenna_ports_mapping.h"
-#include "srsran/ran/pusch/pusch_configuration.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/pdsch/pdsch_antenna_ports_mapping.h"
+#include "ocudu/ran/pusch/pusch_antenna_ports_mapping.h"
+#include "ocudu/ran/pusch/pusch_configuration.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Get PDSCH-to-HARQ-timing-indicator field as per TS38.213, 9.2.3.
 static unsigned get_dci_1_0_pdsch_to_harq_timing_indicator(unsigned k1)
 {
   // PDSCH-to-HARQ-timing-indicator maps to {1,2,3,4,5,6,7,8} for DCI 1_0.
-  srsran_assert(k1 <= 8, "Invalid k1 value");
+  ocudu_assert(k1 <= 8, "Invalid k1 value");
   return k1 - 1;
 }
 
@@ -35,16 +35,16 @@ static unsigned get_dci_1_1_pdsch_to_harq_timing_indicator(unsigned k1, span<con
   // PDSCH-to-HARQ-timing-indicator maps to dl-DataToUL-ACK for DCI 1_1.
   const auto* it = std::find_if(
       dl_data_to_ul_ack.begin(), dl_data_to_ul_ack.end(), [k1](const auto& k1_cfg) { return k1 == k1_cfg; });
-  srsran_assert(it != dl_data_to_ul_ack.end(), "Invalid k1 value");
+  ocudu_assert(it != dl_data_to_ul_ack.end(), "Invalid k1 value");
   return it - dl_data_to_ul_ack.begin();
 }
 
-void srsran::build_dci_f1_0_si_rnti(dci_dl_info&               dci,
-                                    const bwp_downlink_common& init_dl_bwp,
-                                    crb_interval               crbs,
-                                    unsigned                   time_resource,
-                                    sch_mcs_index              mcs_index,
-                                    uint8_t                    si_indicator)
+void ocudu::build_dci_f1_0_si_rnti(dci_dl_info&               dci,
+                                   const bwp_downlink_common& init_dl_bwp,
+                                   crb_interval               crbs,
+                                   unsigned                   time_resource,
+                                   sch_mcs_index              mcs_index,
+                                   uint8_t                    si_indicator)
 {
   dci.type                              = dci_dl_rnti_config_type::si_f1_0;
   dci.si_f1_0                           = {};
@@ -66,11 +66,11 @@ void srsran::build_dci_f1_0_si_rnti(dci_dl_info&               dci,
   si_dci.system_information_indicator = si_indicator;
 }
 
-void srsran::build_dci_f1_0_p_rnti(dci_dl_info&               dci,
-                                   const bwp_downlink_common& init_dl_bwp,
-                                   crb_interval               crbs,
-                                   unsigned                   time_resource,
-                                   sch_mcs_index              mcs_index)
+void ocudu::build_dci_f1_0_p_rnti(dci_dl_info&               dci,
+                                  const bwp_downlink_common& init_dl_bwp,
+                                  crb_interval               crbs,
+                                  unsigned                   time_resource,
+                                  sch_mcs_index              mcs_index)
 {
   dci.type        = dci_dl_rnti_config_type::p_rnti_f1_0;
   dci.p_rnti_f1_0 = {};
@@ -89,7 +89,7 @@ void srsran::build_dci_f1_0_p_rnti(dci_dl_info&               dci,
   p_dci.modulation_coding_scheme    = mcs_index.to_uint();
 }
 
-void srsran::build_dci_f1_0_p_rnti(dci_dl_info& dci, const bwp_downlink_common& init_dl_bwp, unsigned short_messages)
+void ocudu::build_dci_f1_0_p_rnti(dci_dl_info& dci, const bwp_downlink_common& init_dl_bwp, unsigned short_messages)
 {
   dci.type        = dci_dl_rnti_config_type::p_rnti_f1_0;
   dci.p_rnti_f1_0 = {};
@@ -100,11 +100,11 @@ void srsran::build_dci_f1_0_p_rnti(dci_dl_info& dci, const bwp_downlink_common& 
   p_dci.short_messages           = short_messages;
 }
 
-void srsran::build_dci_f1_0_ra_rnti(dci_dl_info&               dci,
-                                    const bwp_downlink_common& init_dl_bwp,
-                                    crb_interval               crbs,
-                                    unsigned                   time_resource,
-                                    sch_mcs_index              mcs_index)
+void ocudu::build_dci_f1_0_ra_rnti(dci_dl_info&               dci,
+                                   const bwp_downlink_common& init_dl_bwp,
+                                   crb_interval               crbs,
+                                   unsigned                   time_resource,
+                                   sch_mcs_index              mcs_index)
 {
   dci.type                              = dci_dl_rnti_config_type::ra_f1_0;
   dci.ra_f1_0                           = {};
@@ -123,15 +123,15 @@ void srsran::build_dci_f1_0_ra_rnti(dci_dl_info&               dci,
   ra_dci.tb_scaling                  = 0; // TODO.
 }
 
-void srsran::build_dci_f1_0_tc_rnti(dci_dl_info&                  dci,
-                                    const bwp_downlink_common&    init_dl_bwp,
-                                    vrb_interval                  vrbs,
-                                    unsigned                      time_resource,
-                                    unsigned                      k1,
-                                    unsigned                      pucch_res_indicator,
-                                    sch_mcs_index                 mcs_index,
-                                    uint8_t                       rv,
-                                    const dl_harq_process_handle& h_dl)
+void ocudu::build_dci_f1_0_tc_rnti(dci_dl_info&                  dci,
+                                   const bwp_downlink_common&    init_dl_bwp,
+                                   vrb_interval                  vrbs,
+                                   unsigned                      time_resource,
+                                   unsigned                      k1,
+                                   unsigned                      pucch_res_indicator,
+                                   sch_mcs_index                 mcs_index,
+                                   uint8_t                       rv,
+                                   const dl_harq_process_handle& h_dl)
 {
   dci.type                            = dci_dl_rnti_config_type::tc_rnti_f1_0;
   dci.tc_rnti_f1_0                    = {};
@@ -161,17 +161,17 @@ void srsran::build_dci_f1_0_tc_rnti(dci_dl_info&                  dci,
   f1_0.redundancy_version  = rv;
 }
 
-void srsran::build_dci_f1_0_c_rnti(dci_dl_info&                  dci,
-                                   const search_space_info&      ss_info,
-                                   const bwp_downlink_common&    init_dl_bwp,
-                                   vrb_interval                  vrbs,
-                                   unsigned                      time_resource,
-                                   unsigned                      k1,
-                                   unsigned                      pucch_res_indicator,
-                                   unsigned                      dai,
-                                   sch_mcs_index                 mcs_index,
-                                   uint8_t                       rv,
-                                   const dl_harq_process_handle& h_dl)
+void ocudu::build_dci_f1_0_c_rnti(dci_dl_info&                  dci,
+                                  const search_space_info&      ss_info,
+                                  const bwp_downlink_common&    init_dl_bwp,
+                                  vrb_interval                  vrbs,
+                                  unsigned                      time_resource,
+                                  unsigned                      k1,
+                                  unsigned                      pucch_res_indicator,
+                                  unsigned                      dai,
+                                  sch_mcs_index                 mcs_index,
+                                  uint8_t                       rv,
+                                  const dl_harq_process_handle& h_dl)
 {
   const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common.value();
   const bwp_configuration&   active_dl_bwp     = active_dl_bwp_cmn.generic_params;
@@ -212,23 +212,23 @@ void srsran::build_dci_f1_0_c_rnti(dci_dl_info&                  dci,
   f1_0.redundancy_version  = rv;
 }
 
-void srsran::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
-                                   const ue_cell_configuration&  ue_cell_cfg,
-                                   search_space_id               ss_id,
-                                   vrb_interval                  vrbs,
-                                   unsigned                      time_resource,
-                                   unsigned                      k1,
-                                   unsigned                      pucch_res_indicator,
-                                   unsigned                      dai,
-                                   sch_mcs_index                 tb1_mcs_index,
-                                   uint8_t                       rv,
-                                   const dl_harq_process_handle& h_dl,
-                                   unsigned                      nof_layers,
-                                   uint8_t                       tpc,
-                                   bool                          enable_interleaving)
+void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
+                                  const ue_cell_configuration&  ue_cell_cfg,
+                                  search_space_id               ss_id,
+                                  vrb_interval                  vrbs,
+                                  unsigned                      time_resource,
+                                  unsigned                      k1,
+                                  unsigned                      pucch_res_indicator,
+                                  unsigned                      dai,
+                                  sch_mcs_index                 tb1_mcs_index,
+                                  uint8_t                       rv,
+                                  const dl_harq_process_handle& h_dl,
+                                  unsigned                      nof_layers,
+                                  uint8_t                       tpc,
+                                  bool                          enable_interleaving)
 {
   const search_space_info& ss_info = ue_cell_cfg.search_space(ss_id);
-  srsran_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
+  ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
 
   // TODO: Update the value based on nof. CWs enabled.
   static const bool are_both_cws_enabled = false;
@@ -244,8 +244,8 @@ void srsran::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   f1_1.tpc_command             = static_cast<unsigned>(tpc);
   f1_1.srs_request             = 0;
   f1_1.dmrs_seq_initialization = 0;
-  srsran_assert(ss_info.bwp->dl_ded.value()->pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value(),
-                "No DMRS configured in PDSCH configuration");
+  ocudu_assert(ss_info.bwp->dl_ded.value()->pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value(),
+               "No DMRS configured in PDSCH configuration");
   const auto& dmrs_cfg = ss_info.bwp->dl_ded.value()->pdsch_cfg->pdsch_mapping_type_a_dmrs.value();
   f1_1.antenna_ports   = get_pdsch_antenna_port_mapping_row_index(
       nof_layers,
@@ -288,13 +288,13 @@ void srsran::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   f1_1.tb1_redundancy_version = rv;
 }
 
-void srsran::build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
-                                    const bwp_downlink_common& init_dl_bwp,
-                                    const bwp_configuration&   ul_bwp,
-                                    const crb_interval&        crbs,
-                                    unsigned                   time_resource,
-                                    sch_mcs_index              mcs_index,
-                                    uint8_t                    rv)
+void ocudu::build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
+                                   const bwp_downlink_common& init_dl_bwp,
+                                   const bwp_configuration&   ul_bwp,
+                                   const crb_interval&        crbs,
+                                   unsigned                   time_resource,
+                                   sch_mcs_index              mcs_index,
+                                   uint8_t                    rv)
 {
   dci.type                            = dci_ul_rnti_config_type::tc_rnti_f0_0;
   dci.tc_rnti_f0_0                    = {};
@@ -316,7 +316,7 @@ void srsran::build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
       ul_bwp.crbs.length(),
       init_dl_bwp.pdcch_common.coreset0.has_value() ? init_dl_bwp.pdcch_common.coreset0->coreset0_crbs().length() : 0,
       false};
-  srsran_assert(validate_dci_size_config(dci_sz_cfg), "Invalid DCI size configuration for DCI Format 0_0 (TC-RNTI)");
+  ocudu_assert(validate_dci_size_config(dci_sz_cfg), "Invalid DCI size configuration for DCI Format 0_0 (TC-RNTI)");
   dci_sizes dci_sz        = get_dci_sizes(dci_sz_cfg);
   f0_0.payload_size       = dci_sz.format0_0_common_size;
   const vrb_interval vrbs = rb_helper::crb_to_vrb_ul_non_interleaved(crbs, ul_bwp.crbs.start());
@@ -330,15 +330,15 @@ void srsran::build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
   f0_0.redundancy_version = rv;
 }
 
-void srsran::build_dci_f0_0_c_rnti(dci_ul_info&                  dci,
-                                   const search_space_info&      ss_info,
-                                   const bwp_uplink_common&      init_ul_bwp,
-                                   const vrb_interval&           vrbs,
-                                   unsigned                      time_resource,
-                                   sch_mcs_index                 mcs_index,
-                                   uint8_t                       rv,
-                                   const ul_harq_process_handle& h_ul,
-                                   uint8_t                       tpc_command)
+void ocudu::build_dci_f0_0_c_rnti(dci_ul_info&                  dci,
+                                  const search_space_info&      ss_info,
+                                  const bwp_uplink_common&      init_ul_bwp,
+                                  const vrb_interval&           vrbs,
+                                  unsigned                      time_resource,
+                                  sch_mcs_index                 mcs_index,
+                                  uint8_t                       rv,
+                                  const ul_harq_process_handle& h_ul,
+                                  uint8_t                       tpc_command)
 {
   const bwp_configuration& active_ul_bwp = ss_info.bwp->ul_common->value().generic_params;
 
@@ -376,21 +376,21 @@ void srsran::build_dci_f0_0_c_rnti(dci_ul_info&                  dci,
   f0_0.redundancy_version  = rv;
 }
 
-void srsran::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
-                                   const ue_cell_configuration&  ue_cell_cfg,
-                                   search_space_id               ss_id,
-                                   const vrb_interval&           vrbs,
-                                   unsigned                      time_resource,
-                                   sch_mcs_index                 mcs_index,
-                                   uint8_t                       rv,
-                                   const ul_harq_process_handle& h_ul,
-                                   unsigned                      dai,
-                                   unsigned                      nof_layers,
-                                   unsigned                      tpmi,
-                                   uint8_t                       tpc_command)
+void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
+                                  const ue_cell_configuration&  ue_cell_cfg,
+                                  search_space_id               ss_id,
+                                  const vrb_interval&           vrbs,
+                                  unsigned                      time_resource,
+                                  sch_mcs_index                 mcs_index,
+                                  uint8_t                       rv,
+                                  const ul_harq_process_handle& h_ul,
+                                  unsigned                      dai,
+                                  unsigned                      nof_layers,
+                                  unsigned                      tpmi,
+                                  uint8_t                       tpc_command)
 {
   const search_space_info& ss_info = ue_cell_cfg.search_space(ss_id);
-  srsran_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
+  ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
 
   const bwp_configuration& active_ul_bwp = ss_info.bwp->ul_common->value().generic_params;
 

@@ -10,13 +10,13 @@
 
 #include "scheduler_metrics_handler.h"
 #include "../config/cell_configuration.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -468,7 +468,7 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
                                               const sched_result&       slot_result,
                                               std::chrono::microseconds slot_decision_latency)
 {
-  if (SRSRAN_UNLIKELY(not last_slot_tx.valid())) {
+  if (OCUDU_UNLIKELY(not last_slot_tx.valid())) {
     data.nof_slots = 1;
   } else {
     data.nof_slots += sl_tx - last_slot_tx;
@@ -690,7 +690,7 @@ cell_metrics_handler* scheduler_metrics_handler::add_cell(
     const std::optional<sched_cell_configuration_request_message::metrics_config>& metrics_cfg)
 {
   if (cells.contains(cell_cfg.cell_index)) {
-    srslog::fetch_basic_logger("SCHED").warning("Cell={} already exists", fmt::underlying(cell_cfg.cell_index));
+    ocudulog::fetch_basic_logger("SCHED").warning("Cell={} already exists", fmt::underlying(cell_cfg.cell_index));
     return nullptr;
   }
 

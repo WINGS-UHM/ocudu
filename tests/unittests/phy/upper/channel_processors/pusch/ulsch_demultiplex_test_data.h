@@ -13,11 +13,11 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsULSCHDemultiplexUnittest.m"
 
-#include "srsran/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_context {
   ulsch_demultiplex::configuration config;
@@ -190,4 +190,4 @@ static const std::vector<test_case_t> ulsch_demultiplex_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

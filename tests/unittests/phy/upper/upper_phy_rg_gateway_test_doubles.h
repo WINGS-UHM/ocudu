@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/upper_phy_rg_gateway.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/upper_phy_rg_gateway.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implemetantion of an upper phy resource grid gateway for test only. It provides a bool that will be set to true when
 /// the send method is called.
@@ -25,4 +25,4 @@ public:
   void clear_sent() { sent = false; }
 };
 
-} // namespace srsran
+} // namespace ocudu

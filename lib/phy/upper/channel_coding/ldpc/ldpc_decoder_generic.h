@@ -15,7 +15,7 @@
 
 #include "ldpc_decoder_impl.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic LDPC decoder implementation without any optimization.
 class ldpc_decoder_generic : public ldpc_decoder_impl
@@ -56,4 +56,4 @@ private:
                                  unsigned                         var_node) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

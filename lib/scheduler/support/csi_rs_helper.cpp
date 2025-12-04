@@ -10,7 +10,7 @@
 
 #include "csi_rs_helpers.h"
 
-bool srsran::csi_helper::is_csi_rs_slot(const cell_configuration& cell_cfg, slot_point sl_tx)
+bool ocudu::csi_helper::is_csi_rs_slot(const cell_configuration& cell_cfg, slot_point sl_tx)
 {
   if (not cell_cfg.is_dl_enabled(sl_tx)) {
     return false;

@@ -10,11 +10,11 @@
 
 #include "message_builder_helpers.h"
 #include "prach.h"
-#include "srsran/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittest;
 

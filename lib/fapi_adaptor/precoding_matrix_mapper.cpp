@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/fapi_adaptor/precoding_matrix_mapper.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
 #include "precoding_matrix_mapper_functions.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 precoding_matrix_mapper::precoding_matrix_mapper(unsigned sector_id_,
                                                  unsigned nof_ports_,
                                                  const precoding_matrix_mapper_codebook_offset_configuration& config) :
   sector_id(sector_id_),
-  logger(srslog::fetch_basic_logger("FAPI")),
+  logger(ocudulog::fetch_basic_logger("FAPI")),
   nof_ports(nof_ports_),
   pdsch_omni_offset(config.pdsch_omni_offset),
   ssb_codebook_offsets(config.ssb_codebook_offsets),
@@ -28,10 +28,10 @@ precoding_matrix_mapper::precoding_matrix_mapper(unsigned sector_id_,
   pdcch_codebook_offsets(config.pdcch_codebook_offsets),
   csi_rs_codebook_offsets(config.csi_rs_codebook_offsets)
 {
-  srsran_assert(!ssb_codebook_offsets.empty(), "Invalid offset configuration");
-  srsran_assert(!pdsch_codebook_offsets.empty(), "Invalid offset configuration");
-  srsran_assert(!pdcch_codebook_offsets.empty(), "Invalid offset configuration");
-  srsran_assert(!csi_rs_codebook_offsets.empty(), "Invalid offset configuration");
+  ocudu_assert(!ssb_codebook_offsets.empty(), "Invalid offset configuration");
+  ocudu_assert(!pdsch_codebook_offsets.empty(), "Invalid offset configuration");
+  ocudu_assert(!pdcch_codebook_offsets.empty(), "Invalid offset configuration");
+  ocudu_assert(!csi_rs_codebook_offsets.empty(), "Invalid offset configuration");
 }
 
 unsigned precoding_matrix_mapper::map(const mac_csi_rs_precoding_info& precoding_info) const
@@ -51,12 +51,12 @@ unsigned precoding_matrix_mapper::map(const mac_pdcch_precoding_info& precoding_
 
 /// Returns the precoding matrix index for the PDSCH codebook using the given offset, precoding information and number
 /// of ports.
-static unsigned get_pdsch_precoding_matrix_index(unsigned              offset,
-                                                 const csi_report_pmi& precoding_info,
-                                                 unsigned              nof_ports,
-                                                 unsigned              nof_layers,
-                                                 unsigned              sector_id,
-                                                 srslog::basic_logger& logger)
+static unsigned get_pdsch_precoding_matrix_index(unsigned                offset,
+                                                 const csi_report_pmi&   precoding_info,
+                                                 unsigned                nof_ports,
+                                                 unsigned                nof_layers,
+                                                 unsigned                sector_id,
+                                                 ocudulog::basic_logger& logger)
 {
   if (nof_ports == 1U) {
     logger.debug("Sector#{}: One port PDSCH precoding matrix, nof_layers={}", sector_id, nof_layers);
@@ -65,8 +65,8 @@ static unsigned get_pdsch_precoding_matrix_index(unsigned              offset,
   }
 
   if (nof_ports == 2U) {
-    srsran_assert(std::holds_alternative<csi_report_pmi::two_antenna_port>(precoding_info.type),
-                  "Expected PMI information");
+    ocudu_assert(std::holds_alternative<csi_report_pmi::two_antenna_port>(precoding_info.type),
+                 "Expected PMI information");
     unsigned pmi = std::get<csi_report_pmi::two_antenna_port>(precoding_info.type).pmi;
 
     logger.debug("Sector#{}: Two ports PDSCH precoding matrix, pmi={}, nof_layers={}", sector_id, pmi, nof_layers);
@@ -75,8 +75,8 @@ static unsigned get_pdsch_precoding_matrix_index(unsigned              offset,
   }
 
   if (nof_ports == 4U) {
-    srsran_assert(std::holds_alternative<csi_report_pmi::typeI_single_panel_4ports_mode1>(precoding_info.type),
-                  "Invalid PMI information");
+    ocudu_assert(std::holds_alternative<csi_report_pmi::typeI_single_panel_4ports_mode1>(precoding_info.type),
+                 "Invalid PMI information");
     const auto& report = std::get<csi_report_pmi::typeI_single_panel_4ports_mode1>(precoding_info.type);
 
     logger.debug("Sector#{}: Four ports PDSCH precoding matrix, i11={}, i13={}, i2={}, nof_layers={}",
@@ -95,7 +95,7 @@ static unsigned get_pdsch_precoding_matrix_index(unsigned              offset,
 
 unsigned precoding_matrix_mapper::map(const mac_pdsch_precoding_info& precoding_info, unsigned nof_layers) const
 {
-  srsran_assert(nof_layers > 0, "Invalid number of layers={}", nof_layers);
+  ocudu_assert(nof_layers > 0, "Invalid number of layers={}", nof_layers);
 
   if (!precoding_info.report) {
     logger.debug("Sector#{}: Omnidirectional PDSCH precoding matrix, nof_layers={}", sector_id, nof_layers);
@@ -104,7 +104,7 @@ unsigned precoding_matrix_mapper::map(const mac_pdsch_precoding_info& precoding_
   }
 
   unsigned layer_index = nof_layers - 1U;
-  srsran_assert(layer_index < pdsch_codebook_offsets.size(), "Invalid layer index value {}", layer_index);
+  ocudu_assert(layer_index < pdsch_codebook_offsets.size(), "Invalid layer index value {}", layer_index);
 
   return get_pdsch_precoding_matrix_index(
       pdsch_codebook_offsets[layer_index], *precoding_info.report, nof_ports, nof_layers, sector_id, logger);

@@ -12,7 +12,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 namespace app_helpers {
 
 struct metrics_config;
@@ -21,4 +21,4 @@ struct metrics_config;
 void fill_metrics_appconfig_in_yaml_schema(YAML::Node& node, const metrics_config& config);
 
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

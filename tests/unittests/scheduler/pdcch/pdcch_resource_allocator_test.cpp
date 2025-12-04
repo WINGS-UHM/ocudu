@@ -12,16 +12,16 @@
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/support/pdcch/pdcch_mapping.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
 #include <random>
 #include <unordered_map>
 
-using namespace srsran;
+using namespace ocudu;
 
 enum class alloc_type { si_rnti, ra_rnti, dl_crnti, ul_crnti };
 const char* to_string(alloc_type a)
@@ -57,9 +57,9 @@ protected:
             const ue_cell_config_ptr&                ue_cfg_ptr) :
       rnti(req.crnti), cfg(std::make_unique<ue_cell_configuration>(req.crnti, cell_cfg, ue_cfg_ptr))
     {
-      srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::debug);
+      ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
 
-      srslog::init();
+      ocudulog::init();
     }
   };
 
@@ -73,8 +73,8 @@ protected:
     default_ue_cell_req(ue_cell.serv_cell_cfg),
     default_ue_cfg{crnti, cell_cfg, cfg_pool.update_ue(default_ue_cell_req)}
   {
-    test_logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    test_logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     run_slot();
   }
@@ -247,8 +247,8 @@ protected:
     test_logger.info("{}", to_string(fmtbuf));
   }
 
-  srslog::basic_logger&         logger      = srslog::fetch_basic_logger("SCHED");
-  srslog::basic_logger&         test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&       logger      = ocudulog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger&       test_logger = ocudulog::fetch_basic_logger("TEST");
   const scheduler_expert_config sched_cfg   = config_helpers::make_default_scheduler_expert_config();
   du_cell_config_pool           cfg_pool;
   cell_configuration            cell_cfg;
@@ -365,7 +365,7 @@ protected:
     auto ue_creation_req = base_pdcch_resource_allocator_tester::create_ue_cfg(rnti);
     (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets[0].pdcch_dmrs_scrambling_id =
         cs1_n_id_dmrs;
-    if (ss2_type == srsran::search_space_type::common) {
+    if (ss2_type == ocudu::search_space_type::common) {
       (*ue_creation_req.cfg.cells)[0]
           .serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]
           .set_non_ss0_monitored_dci_formats(search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});
@@ -653,7 +653,7 @@ TEST_P(multi_alloc_pdcch_resource_allocator_tester, pdcch_allocation_outcome)
 {
   test_logger.info("Test params: {}", params);
   print_cfg();
-  srslog::flush();
+  ocudulog::flush();
 
   for (const multi_alloc_test_params::alloc& a : params.allocs) {
     this->allocate_pdcch(a);

@@ -9,8 +9,8 @@
 add_executable(sched_ue_context_test ue_drx_controller_test.cpp logical_channel_system_test.cpp)
 target_link_libraries(sched_ue_context_test
         sched_ue_context
-        srsran_support
-        srslog
+        ocudu_support
+        ocudulog
         gtest
         gtest_main)
 add_test(sched_ue_context_test sched_ue_context_test)

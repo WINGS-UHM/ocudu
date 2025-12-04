@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/scheduler/config/dmrs.h"
-#include "srsran/scheduler/config/pxsch_time_domain_resource.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/scheduler/config/dmrs.h"
+#include "ocudu/scheduler/config/pxsch_time_domain_resource.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct search_space_configuration;
 struct bwp_uplink_common;
@@ -65,4 +65,4 @@ get_c_rnti_pusch_time_domain_list(const search_space_configuration& ss_cfg,
                                   const bwp_uplink_common&          active_bwp_ul_common,
                                   const bwp_uplink_dedicated*       active_bwp_ul_ded);
 
-} // namespace srsran
+} // namespace ocudu

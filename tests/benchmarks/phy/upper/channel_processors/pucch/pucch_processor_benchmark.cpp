@@ -8,22 +8,22 @@
  *
  */
 
-#include "srsran/adt/to_array.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/math/complex_normal_random.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/math/complex_normal_random.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 #include <variant>
 
-using namespace srsran;
+using namespace ocudu;
 
 // The benchmark configuration consists any of the PUCCH configurations.
 using pucch_configuration = std::variant<pucch_processor::format0_configuration,
@@ -269,14 +269,14 @@ static int parse_args(int argc, char** argv)
     for (const auto& candidate_profile : profile_set) {
       if (selected_profile_name == candidate_profile.name) {
         selected_profile = candidate_profile;
-        srslog::fetch_basic_logger("TEST").info("Loading profile: {}", selected_profile.name);
+        ocudulog::fetch_basic_logger("TEST").info("Loading profile: {}", selected_profile.name);
         profile_found = true;
         break;
       }
     }
     if (!profile_found) {
       usage(argv[0]);
-      srslog::fetch_basic_logger("TEST").error("Invalid profile: {}.", selected_profile_name);
+      ocudulog::fetch_basic_logger("TEST").error("Invalid profile: {}.", selected_profile_name);
       fmt::print(stderr, "Invalid profile: {}.\n", selected_profile_name);
       return -1;
     }

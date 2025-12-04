@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/complex_exponential_table.h"
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_estimator.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_generator.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/complex_exponential_table.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic Sounding Reference Signal estimator.
 class srs_estimator_generic_impl : public srs_estimator
@@ -34,8 +34,8 @@ public:
   srs_estimator_generic_impl(dependencies deps_, unsigned max_nof_prb_) :
     cexp_table(cexp_table_size, cexp_table_amplitude), deps(std::move(deps_)), max_nof_prb(max_nof_prb_)
   {
-    srsran_assert(deps.sequence_generator, "Invalid sequence generator.");
-    srsran_assert(deps.ta_estimator, "Invalid TA estimator.");
+    ocudu_assert(deps.sequence_generator, "Invalid sequence generator.");
+    ocudu_assert(deps.ta_estimator, "Invalid TA estimator.");
   }
 
   srs_estimator_result estimate(const resource_grid_reader& grid, const srs_estimator_configuration& config) override;
@@ -86,4 +86,4 @@ private:
   std::array<cf_t, max_symbol_size> temp_cexp;
 };
 
-} // namespace srsran
+} // namespace ocudu

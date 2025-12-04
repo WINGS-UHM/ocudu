@@ -1,0 +1,39 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+namespace ocudu {
+namespace fapi {
+
+struct fapi_cell_config;
+
+/// \brief FAPI cell operation request notifier.
+///
+/// Notifies that FAPI START/STOP request messages have been processed and request a change of operation of the cell.
+class cell_operation_request_notifier
+{
+public:
+  virtual ~cell_operation_request_notifier() = default;
+
+  /// \brief Notifies a start request from FAPI.
+  ///
+  /// This method is synchronous, as such, when this callback returns the start procedure will be completed. Returns
+  /// true on start success, otherwise false.
+  virtual bool on_start_request(const fapi_cell_config& config) = 0;
+
+  /// \brief Notifies a stop request from FAPI.
+  ///
+  /// This method is synchronous, so when this function returns the stop process is already finished.
+  virtual void on_stop_request() = 0;
+};
+
+} // namespace fapi
+} // namespace ocudu

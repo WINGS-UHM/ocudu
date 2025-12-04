@@ -10,7 +10,7 @@
 
 #include "ran_slice_instance.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned get_min_k2(span<const pusch_time_domain_resource_allocation> pusch_td_res)
 {

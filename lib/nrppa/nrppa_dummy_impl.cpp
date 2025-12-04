@@ -9,13 +9,13 @@
  */
 
 #include "nrppa_dummy_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-nrppa_dummy_impl::nrppa_dummy_impl() : logger(srslog::fetch_basic_logger("NRPPA")) {}
+nrppa_dummy_impl::nrppa_dummy_impl() : logger(ocudulog::fetch_basic_logger("NRPPA")) {}
 
 // Note: For fwd declaration of member types, dtor cannot be trivial.
 nrppa_dummy_impl::~nrppa_dummy_impl() {}

@@ -9,10 +9,10 @@
  */
 
 #include "downlink_processor_test_doubles.h"
-#include "srsran/phy/upper/upper_phy_factories.h"
+#include "ocudu/phy/upper/upper_phy_factories.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(DownlingProcessorPool, ProcessorOk)
 {

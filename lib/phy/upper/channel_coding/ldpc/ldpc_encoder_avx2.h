@@ -15,7 +15,7 @@
 
 #include "ldpc_encoder_impl.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief LDPC encoder implementation based on AVX2 intrinsics.
 /// \warning Instantiating an object of this class entails a heap memory allocation.
@@ -91,4 +91,4 @@ private:
   unsigned node_size_avx2 = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

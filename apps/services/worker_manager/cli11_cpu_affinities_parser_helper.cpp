@@ -10,10 +10,10 @@
 
 #include "cli11_cpu_affinities_parser_helper.h"
 #include "os_sched_affinity_manager.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/interval.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/interval.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 template <typename Integer>
 static expected<Integer, std::string> parse_int(const std::string& value)
@@ -88,9 +88,9 @@ static expected<interval<unsigned, true>, std::string> parse_cpu_range(const std
   return interval<unsigned, true>(range[0], range[1]);
 }
 
-void srsran::parse_affinity_mask(os_sched_affinity_bitmask& mask,
-                                 const std::string&         value,
-                                 const std::string&         property_name)
+void ocudu::parse_affinity_mask(os_sched_affinity_bitmask& mask,
+                                const std::string&         value,
+                                const std::string&         property_name)
 {
   std::stringstream ss(value);
 

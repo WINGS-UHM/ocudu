@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/unique_fd.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/unique_fd.h"
 #include <future>
 #include <unordered_map>
 #include <utility>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implementation of an IO broker using epoll.
 class io_broker_epoll final : public io_broker
@@ -91,7 +91,7 @@ private:
 
   void rearm_fd(int fd);
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // Main epoll file descriptor
   unique_fd epoll_fd;
@@ -112,4 +112,4 @@ private:
   std::vector<std::pair<int, std::promise<bool>*>> pending_fds_to_remove;
 };
 
-} // namespace srsran
+} // namespace ocudu

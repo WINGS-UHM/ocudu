@@ -16,11 +16,11 @@
 #include "ofh_data_flow_uplane_uplink_data.h"
 #include "ofh_uplane_rx_symbol_data_flow_notifier.h"
 #include "ofh_uplane_rx_symbol_data_flow_writer.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/serdes/ofh_uplane_message_decoder.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul User-Plane uplink data flow implementation configuration.
@@ -36,7 +36,7 @@ struct data_flow_uplane_uplink_data_impl_config {
 /// Open Fronthaul User-Plane uplink data flow implementation dependencies.
 struct data_flow_uplane_uplink_data_impl_dependencies {
   /// Logger.
-  srslog::basic_logger* logger;
+  ocudulog::basic_logger* logger;
   /// User-Plane received symbol notifier.
   std::shared_ptr<uplane_rx_symbol_notifier> notifier;
   /// Control-Plane context repository.
@@ -66,7 +66,7 @@ private:
   bool should_uplane_packet_be_filtered(unsigned eaxc, const uplane_message_decoder_results& results) const;
 
 private:
-  srslog::basic_logger&                             logger;
+  ocudulog::basic_logger&                           logger;
   std::shared_ptr<uplink_cplane_context_repository> ul_cplane_context_repo;
   std::unique_ptr<uplane_message_decoder>           uplane_decoder;
   uplane_rx_symbol_data_flow_writer                 rx_symbol_writer;
@@ -76,4 +76,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

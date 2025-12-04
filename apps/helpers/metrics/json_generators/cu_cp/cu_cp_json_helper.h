@@ -11,11 +11,11 @@
 #pragma once
 
 #include "external/nlohmann/json.hpp"
-#include "srsran/cu_cp/cu_cp_metrics_notifier.h"
-#include "srsran/support/timers.h"
+#include "ocudu/cu_cp/cu_cp_metrics_notifier.h"
+#include "ocudu/support/timers.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_cp_metrics_report;
 
@@ -30,4 +30,4 @@ std::string generate_string(const cu_cp_metrics_report& report, int indent = -1)
 
 } // namespace json_generators
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

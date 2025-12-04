@@ -13,11 +13,11 @@
 #include "../ngap_validators/ngap_validators.h"
 #include "../ue_context/ngap_ue_context.h"
 #include "metrics/ngap_metrics_aggregator.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ngap_pdu_session_resource_setup_procedure
 {
@@ -60,5 +60,5 @@ private:
   pdu_session_resource_setup_validation_outcome verification_outcome;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
+#include "ocudu/support/timers.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct callback_flag_setter {
   callback_flag_setter(bool& flag_) : flag(flag_) { flag = false; }
@@ -35,9 +35,9 @@ class unique_timer_manual_tester : public ::testing::Test
 protected:
   unique_timer_manual_tester(bool blocking_worker = true) : worker(64, blocking_worker)
   {
-    logger.set_level(srslog::basic_levels::debug);
+    logger.set_level(ocudulog::basic_levels::debug);
 
-    srslog::init();
+    ocudulog::init();
 
     // randomize time wheel start.
     unsigned nof_ticks = test_rgen::uniform_int<unsigned>(0, 100);
@@ -54,9 +54,9 @@ protected:
     worker.run_pending_tasks();
   }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("ALL");
-  timer_manager         timer_mng;
-  manual_task_worker    worker;
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("ALL");
+  timer_manager           timer_mng;
+  manual_task_worker      worker;
 };
 
 TEST(unique_timer_test, default_ctor)

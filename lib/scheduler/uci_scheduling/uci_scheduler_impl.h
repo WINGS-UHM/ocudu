@@ -13,7 +13,7 @@
 #include "../ue_context/ue_repository.h"
 #include "uci_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 class uci_allocator;
@@ -62,7 +62,7 @@ private:
   uci_allocator& uci_alloc;
   ue_repository& ues;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // Storage of the periodic UCIs to be scheduled in the resource grid. Each position of the vector represents a slot
   // in a ring-like structure (ie slot % WHEEL_SIZE). Each of these vector indexes/slots contains a list of periodic
@@ -73,4 +73,4 @@ private:
   std::vector<rnti_t> updated_ues;
 };
 
-} // namespace srsran
+} // namespace ocudu

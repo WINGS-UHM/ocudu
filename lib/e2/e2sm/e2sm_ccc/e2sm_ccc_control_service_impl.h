@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/e2/e2sm/e2sm.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 struct e2sm_ccc_control_service_def_t {
   uint32_t    style_id;
@@ -59,7 +59,7 @@ public:
   async_task<e2sm_ric_control_response> execute_control_request(const e2sm_ric_control_request& req) override = 0;
 
 protected:
-  srslog::basic_logger&                                                logger;
+  ocudulog::basic_logger&                                              logger;
   uint32_t                                                             style_id;
   e2sm_ccc_control_service_def_t                                       control_service_def;
   std::map<std::string, std::unique_ptr<e2sm_control_action_executor>> config_req_executors;
@@ -75,4 +75,4 @@ public:
   async_task<e2sm_ric_control_response> execute_control_request(const e2sm_ric_control_request& req) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

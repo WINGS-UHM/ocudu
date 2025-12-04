@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
 #include "prach_detector_generic_impl.h"
 #include "prach_detector_pool.h"
 #include "prach_generator_impl.h"
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/phy/upper/sequence_generators/sequence_generator_factories.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -42,8 +42,8 @@ public:
     idft_short_size(config.idft_short_size),
     combine_symbols(config.combine_symbols)
   {
-    srsran_assert(dft_factory, "Invalid DFT factory.");
-    srsran_assert(prach_gen_factory, "Invalid PRACH generator factory.");
+    ocudu_assert(dft_factory, "Invalid DFT factory.");
+    ocudu_assert(prach_gen_factory, "Invalid PRACH generator factory.");
   }
 
   std::unique_ptr<prach_detector> create() override
@@ -72,8 +72,8 @@ public:
   prach_detector_pool_factory(std::shared_ptr<prach_detector_factory> factory_, unsigned nof_concurrent_threads_) :
     factory(std::move(factory_)), nof_concurrent_threads(nof_concurrent_threads_)
   {
-    srsran_assert(factory, "Invalid PRACH detector factory.");
-    srsran_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
+    ocudu_assert(factory, "Invalid PRACH detector factory.");
+    ocudu_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
   }
 
   std::unique_ptr<prach_detector> create() override
@@ -87,7 +87,7 @@ public:
     return std::make_unique<prach_detector_pool>(pool);
   }
 
-  std::unique_ptr<prach_detector> create(srslog::basic_logger& logger, bool log_all_opportunities) override
+  std::unique_ptr<prach_detector> create(ocudulog::basic_logger& logger, bool log_all_opportunities) override
   {
     if (!pool) {
       std::vector<std::unique_ptr<prach_detector>> detectors(nof_concurrent_threads);
@@ -117,21 +117,21 @@ public:
 } // namespace
 
 std::shared_ptr<prach_detector_factory>
-srsran::create_prach_detector_factory_sw(std::shared_ptr<dft_processor_factory>         dft_factory,
-                                         std::shared_ptr<prach_generator_factory>       prach_gen_factory,
-                                         const prach_detector_factory_sw_configuration& config)
+ocudu::create_prach_detector_factory_sw(std::shared_ptr<dft_processor_factory>         dft_factory,
+                                        std::shared_ptr<prach_generator_factory>       prach_gen_factory,
+                                        const prach_detector_factory_sw_configuration& config)
 {
   return std::make_shared<prach_detector_factory_sw>(std::move(dft_factory), std::move(prach_gen_factory), config);
 }
 
 std::shared_ptr<prach_detector_factory>
-srsran::create_prach_detector_pool_factory(std::shared_ptr<prach_detector_factory> factory,
-                                           unsigned                                nof_concurrent_threads)
+ocudu::create_prach_detector_pool_factory(std::shared_ptr<prach_detector_factory> factory,
+                                          unsigned                                nof_concurrent_threads)
 {
   return std::make_shared<prach_detector_pool_factory>(std::move(factory), nof_concurrent_threads);
 }
 
-std::shared_ptr<prach_generator_factory> srsran::create_prach_generator_factory_sw()
+std::shared_ptr<prach_generator_factory> ocudu::create_prach_generator_factory_sw()
 {
   return std::make_shared<prach_generator_factory_sw>();
 }
@@ -151,12 +151,12 @@ class logging_prach_detector_decorator : public prach_detector
   }
 
 public:
-  logging_prach_detector_decorator(srslog::basic_logger&           logger_,
+  logging_prach_detector_decorator(ocudulog::basic_logger&         logger_,
                                    bool                            log_all_opportunities_,
                                    std::unique_ptr<prach_detector> detector_) :
     logger(logger_), log_all_opportunities(log_all_opportunities_), detector(std::move(detector_))
   {
-    srsran_assert(detector, "Invalid detector.");
+    ocudu_assert(detector, "Invalid detector.");
   }
 
   prach_detection_result detect(const prach_buffer& input, const configuration& config) override
@@ -187,14 +187,15 @@ public:
   }
 
 private:
-  srslog::basic_logger&           logger;
+  ocudulog::basic_logger&         logger;
   bool                            log_all_opportunities;
   std::unique_ptr<prach_detector> detector;
 };
 
 } // namespace
 
-std::unique_ptr<prach_detector> prach_detector_factory::create(srslog::basic_logger& logger, bool log_all_opportunities)
+std::unique_ptr<prach_detector> prach_detector_factory::create(ocudulog::basic_logger& logger,
+                                                               bool                    log_all_opportunities)
 {
   return std::make_unique<logging_prach_detector_decorator>(logger, log_all_opportunities, create());
 }

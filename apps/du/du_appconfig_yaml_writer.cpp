@@ -18,7 +18,7 @@
 #include "apps/services/metrics/metrics_config_yaml_writer.h"
 #include "du_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_du_appconfig_hal_section(YAML::Node node, const std::optional<hal_appconfig>& config)
 {
@@ -61,19 +61,19 @@ static void fill_du_appconfig_remote_control_section(YAML::Node node, const remo
   node["port"]         = config.port;
 }
 
-static void fill_du_appconfig_f1u_section(YAML::Node node, const srs_du::f1u_appconfig& config)
+static void fill_du_appconfig_f1u_section(YAML::Node node, const odu::f1u_appconfig& config)
 {
   node["queue_size"] = config.pdu_queue_size;
   fill_f1u_config_yaml_schema(node, config.f1u_sockets);
 }
 
-static void fill_du_appconfig_f1ap_section(YAML::Node node, const srs_du::f1ap_appconfig& config)
+static void fill_du_appconfig_f1ap_section(YAML::Node node, const odu::f1ap_appconfig& config)
 {
   node["cu_cp_addr"] = config.cu_cp_address;
   node["bind_addr"]  = config.bind_address;
 }
 
-void srsran::fill_du_appconfig_in_yaml_schema(YAML::Node& node, const du_appconfig& config)
+void ocudu::fill_du_appconfig_in_yaml_schema(YAML::Node& node, const du_appconfig& config)
 {
   app_services::fill_app_resource_usage_config_in_yaml_schema(node, config.metrics_cfg.rusage_config);
   app_services::fill_metrics_appconfig_in_yaml_schema(node, config.metrics_cfg.metrics_service_cfg);

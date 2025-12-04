@@ -9,9 +9,9 @@
  */
 
 #include "pdsch_processor_validator_impl.h"
-#include "srsran/ran/dmrs.h"
+#include "ocudu/ran/dmrs.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Checks that reserved elements do not collide with DM-RS.
 static bool check_dmrs_and_reserved_collision(const pdsch_processor::pdu_t& config)

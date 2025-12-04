@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/support/async/event_signal.h"
-#include "srsran/support/async/protocol_transaction_manager.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/support/async/event_signal.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class f1ap_ue_transaction_manager
 {
@@ -62,5 +62,5 @@ public:
       positioning_activation_outcome;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

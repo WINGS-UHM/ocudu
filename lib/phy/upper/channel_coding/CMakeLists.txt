@@ -52,22 +52,22 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 
 
-add_library(srsran_crc_calculator STATIC ${CRC_CALCULATOR_SOURCES})
+add_library(ocudu_crc_calculator STATIC ${CRC_CALCULATOR_SOURCES})
 
 add_subdirectory(polar)
 add_subdirectory(ldpc)
 add_subdirectory(short)
 
-add_library(srsran_channel_coding STATIC channel_coding_factories.cpp)
+add_library(ocudu_channel_coding STATIC channel_coding_factories.cpp)
 
-target_link_libraries(srsran_channel_coding
-        srsran_crc_calculator
-        srsran_polar
-        srsran_ldpc
-        srsran_short_block)
+target_link_libraries(ocudu_channel_coding
+        ocudu_crc_calculator
+        ocudu_polar
+        ocudu_ldpc
+        ocudu_short_block)
 
-add_to_exported_libs(srsran_channel_coding
-        srsran_crc_calculator
-        srsran_polar
-        srsran_ldpc
-        srsran_short_block)
+add_to_exported_libs(ocudu_channel_coding
+        ocudu_crc_calculator
+        ocudu_polar
+        ocudu_ldpc
+        ocudu_short_block)

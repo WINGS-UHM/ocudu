@@ -11,10 +11,10 @@
 #pragma once
 
 #include "rnti_value_table.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
+namespace ocudu {
 
 using du_rnti_table = rnti_value_table<du_ue_index_t, du_ue_index_t::INVALID_DU_UE_INDEX>;
 
@@ -25,7 +25,7 @@ public:
   rnti_manager(rnti_t initial_rnti = to_rnti(0x4601)) :
     rnti_counter(to_value(initial_rnti) - to_value(rnti_t::MIN_CRNTI))
   {
-    srsran_assert(is_crnti(initial_rnti), "Invalid initial c-rnti={}", initial_rnti);
+    ocudu_assert(is_crnti(initial_rnti), "Invalid initial c-rnti={}", initial_rnti);
   }
 
   /// \brief Allocates new unique TC-RNTI.
@@ -50,4 +50,4 @@ private:
   std::atomic<std::underlying_type_t<rnti_t>> rnti_counter;
 };
 
-} // namespace srsran
+} // namespace ocudu

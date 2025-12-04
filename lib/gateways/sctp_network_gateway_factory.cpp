@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/gateways/sctp_network_gateway_factory.h"
+#include "ocudu/gateways/sctp_network_gateway_factory.h"
 #include "sctp_network_gateway_impl.h"
 #include "sctp_network_server_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 std::unique_ptr<sctp_network_gateway>
-srsran::create_sctp_network_gateway(const sctp_network_gateway_creation_message& msg)
+ocudu::create_sctp_network_gateway(const sctp_network_gateway_creation_message& msg)
 {
   return std::make_unique<sctp_network_gateway_impl>(
       msg.config, msg.ctrl_notifier, msg.data_notifier, msg.io_rx_executor);

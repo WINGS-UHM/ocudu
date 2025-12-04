@@ -12,9 +12,9 @@
 
 #include "apps/helpers/metrics/metrics_config.h"
 #include "apps/services/metrics/metrics_config.h"
-#include "srsran/ran/pci.h"
+#include "ocudu/ran/pci.h"
 
-namespace srsran {
+namespace ocudu {
 
 class split6_flexible_o_du_low_metrics_notifier;
 
@@ -34,4 +34,4 @@ build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::metrics_
                                               const std::vector<pci_t>&                  pci_cell_map,
                                               std::chrono::nanoseconds                   symbol_duration);
 
-} // namespace srsran
+} // namespace ocudu

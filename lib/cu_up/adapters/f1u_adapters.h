@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/f1u/cu_up/f1u_rx_delivery_notifier.h"
-#include "srsran/f1u/cu_up/f1u_rx_sdu_notifier.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/f1u/cu_up/f1u_rx_delivery_notifier.h"
+#include "ocudu/f1u/cu_up/f1u_rx_sdu_notifier.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// Adapter between F1-U and PDCP
 class f1u_pdcp_adapter final : public f1u_rx_sdu_notifier, public f1u_rx_delivery_notifier
@@ -33,7 +33,7 @@ public:
   void on_new_sdu(byte_buffer_chain sdu) override
   {
     if (pdcp_rx_handler == nullptr) {
-      srslog::fetch_basic_logger("F1-U").warning("Unconnected PDCP handler. Dropping F1-U SDU");
+      ocudulog::fetch_basic_logger("F1-U").warning("Unconnected PDCP handler. Dropping F1-U SDU");
     } else {
       pdcp_rx_handler->handle_pdu(std::move(sdu));
     }
@@ -80,7 +80,7 @@ public:
 
   void on_new_pdu(nru_ul_message msg) override
   {
-    srsran_assert(f1u_handler != nullptr, "GTP-U handler must not be nullptr");
+    ocudu_assert(f1u_handler != nullptr, "GTP-U handler must not be nullptr");
     f1u_handler->handle_pdu(std::move(msg));
   }
 
@@ -88,5 +88,5 @@ private:
   f1u_rx_pdu_handler* f1u_handler = nullptr;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

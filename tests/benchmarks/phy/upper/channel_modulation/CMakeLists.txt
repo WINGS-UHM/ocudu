@@ -7,5 +7,5 @@
 #
 
 add_executable(modulation_chain_benchmark modulation_chain_benchmark.cpp)
-target_link_libraries(modulation_chain_benchmark srsran_channel_modulation srsvec srslog)
+target_link_libraries(modulation_chain_benchmark ocudu_channel_modulation ocuduvec ocudulog)
 add_test(modulation_chain_benchmark modulation_chain_benchmark -s -R 1)

@@ -14,11 +14,11 @@
 /// \brief Generation of packed RRC messages for testing purposes. Use this file when you don't want to include
 /// the RRC ASN.1 headers.
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 
-namespace srsran {
+namespace ocudu {
 namespace test_helpers {
 
 /// Generates a dummy RRC handoverPrepInformation as per TS 38.331.
@@ -37,4 +37,4 @@ std::string create_sib1_hex_string(const plmn_identity& plmn = plmn_identity::te
 byte_buffer create_cell_group_config();
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

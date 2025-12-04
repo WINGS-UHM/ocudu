@@ -9,17 +9,17 @@
  */
 
 #include "rrc_ue_test_messages.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/security/security.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/security/security.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-security::sec_key srsran::srs_cu_cp::make_sec_key(std::string hex_str)
+security::sec_key ocudu::ocucp::make_sec_key(std::string hex_str)
 {
   byte_buffer       key_buf = make_byte_buffer(hex_str).value();
   security::sec_key key     = {};
@@ -27,7 +27,7 @@ security::sec_key srsran::srs_cu_cp::make_sec_key(std::string hex_str)
   return key;
 }
 
-security::sec_128_key srsran::srs_cu_cp::make_sec_128_key(std::string hex_str)
+security::sec_128_key ocudu::ocucp::make_sec_128_key(std::string hex_str)
 {
   byte_buffer           key_buf = make_byte_buffer(hex_str).value();
   security::sec_128_key key     = {};
@@ -35,7 +35,7 @@ security::sec_128_key srsran::srs_cu_cp::make_sec_128_key(std::string hex_str)
   return key;
 }
 
-rrc_meas_cfg srsran::srs_cu_cp::generate_dummy_meas_config()
+rrc_meas_cfg ocudu::ocucp::generate_dummy_meas_config()
 {
   rrc_meas_cfg meas_cfg;
 
@@ -125,7 +125,7 @@ rrc_meas_cfg srsran::srs_cu_cp::generate_dummy_meas_config()
   return meas_cfg;
 }
 
-rrc_reconfiguration_procedure_request srsran::srs_cu_cp::generate_rrc_reconfiguration_procedure_request()
+rrc_reconfiguration_procedure_request ocudu::ocucp::generate_rrc_reconfiguration_procedure_request()
 {
   rrc_reconfiguration_procedure_request args;
 
@@ -182,7 +182,7 @@ rrc_reconfiguration_procedure_request srsran::srs_cu_cp::generate_rrc_reconfigur
   return args;
 }
 
-byte_buffer srsran::srs_cu_cp::generate_invalid_rrc_reestablishment_request_pdu(pci_t pci, rnti_t c_rnti)
+byte_buffer ocudu::ocucp::generate_invalid_rrc_reestablishment_request_pdu(pci_t pci, rnti_t c_rnti)
 {
   byte_buffer   pdu;
   asn1::bit_ref bref{pdu};
@@ -196,16 +196,16 @@ byte_buffer srsran::srs_cu_cp::generate_invalid_rrc_reestablishment_request_pdu(
   rrc_reest_req.rrc_reest_request.reest_cause = asn1::rrc_nr::reest_cause_opts::options::other_fail;
   rrc_reest_req.rrc_reest_request.spare.from_number(0);
 
-  const asn1::SRSASN_CODE ret = ul_ccch_msg.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack RRC PDU.");
+  const asn1::OCUDUASN_CODE ret = ul_ccch_msg.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack RRC PDU.");
 
   return pdu;
 }
 
-byte_buffer srsran::srs_cu_cp::generate_valid_rrc_reestablishment_request_pdu(pci_t                       pci,
-                                                                              rnti_t                      c_rnti,
-                                                                              std::string                 short_mac_i,
-                                                                              asn1::rrc_nr::reest_cause_e cause)
+byte_buffer ocudu::ocucp::generate_valid_rrc_reestablishment_request_pdu(pci_t                       pci,
+                                                                         rnti_t                      c_rnti,
+                                                                         std::string                 short_mac_i,
+                                                                         asn1::rrc_nr::reest_cause_e cause)
 {
   byte_buffer   pdu;
   asn1::bit_ref bref{pdu};
@@ -219,13 +219,13 @@ byte_buffer srsran::srs_cu_cp::generate_valid_rrc_reestablishment_request_pdu(pc
   rrc_reest_req.rrc_reest_request.reest_cause = cause;
   rrc_reest_req.rrc_reest_request.spare.from_number(0);
 
-  const asn1::SRSASN_CODE ret = ul_ccch_msg.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack RRC PDU.");
+  const asn1::OCUDUASN_CODE ret = ul_ccch_msg.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack RRC PDU.");
 
   return pdu;
 }
 
-byte_buffer srsran::srs_cu_cp::generate_rrc_reestablishment_complete_pdu()
+byte_buffer ocudu::ocucp::generate_rrc_reestablishment_complete_pdu()
 {
   byte_buffer   pdu;
   asn1::bit_ref bref{pdu};
@@ -234,13 +234,13 @@ byte_buffer srsran::srs_cu_cp::generate_rrc_reestablishment_complete_pdu()
   ul_dcch_msg.msg.set_c1().set_rrc_reest_complete();
   ul_dcch_msg.msg.c1().rrc_reest_complete().crit_exts.set_rrc_reest_complete();
 
-  const asn1::SRSASN_CODE ret = ul_dcch_msg.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack RRC PDU.");
+  const asn1::OCUDUASN_CODE ret = ul_dcch_msg.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack RRC PDU.");
 
   return pdu;
 }
 
-byte_buffer srsran::srs_cu_cp::generate_measurement_report_pdu()
+byte_buffer ocudu::ocucp::generate_measurement_report_pdu()
 {
   byte_buffer   pdu;
   asn1::bit_ref bref{pdu};
@@ -281,8 +281,8 @@ byte_buffer srsran::srs_cu_cp::generate_measurement_report_pdu()
 
   meas_results.meas_result_serving_mo_list.push_back(meas_result_serv_mo);
 
-  const asn1::SRSASN_CODE ret = ul_dcch_msg.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack RRC PDU.");
+  const asn1::OCUDUASN_CODE ret = ul_dcch_msg.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack RRC PDU.");
 
   return pdu;
 }

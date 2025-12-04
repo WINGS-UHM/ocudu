@@ -10,17 +10,17 @@
 
 #include "../../generic_functions/dft_processor_test_doubles.h"
 #include "../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/support/test_utils.h"
 #include <random>
 
 /// Defines the maximum allowed error at the OFDM modulator output.
 static constexpr float ASSERT_MAX_ERROR = 1e-6;
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {
@@ -132,17 +132,17 @@ int main()
             span<const cf_t> dft_input = dft_entries[symbol_idx].input;
 
             // Verify DFT input.
-            TESTASSERT(srsvec::equal(rg_data.first(nsubc / 2), dft_input.last(nsubc / 2)));
-            TESTASSERT(srsvec::equal(rg_data.last(nsubc / 2), dft_input.first(nsubc / 2)));
-            TESTASSERT(srsvec::equal(zero_guard, dft_input.subspan(nsubc / 2, zero_guard.size())));
+            TESTASSERT(ocuduvec::equal(rg_data.first(nsubc / 2), dft_input.last(nsubc / 2)));
+            TESTASSERT(ocuduvec::equal(rg_data.last(nsubc / 2), dft_input.first(nsubc / 2)));
+            TESTASSERT(ocuduvec::equal(zero_guard, dft_input.subspan(nsubc / 2, zero_guard.size())));
 
             // Generate ideal time domain output.
             unsigned cp_len =
                 cp.get_length(nsymb * slot_idx + symbol_idx, scs).to_samples(to_sampling_rate_Hz(scs, dft_size));
             std::vector<cf_t> expected_output_data(dft_size + cp_len);
             span<cf_t>        expected_output = expected_output_data;
-            srsvec::sc_prod(expected_output.last(dft_size), dft_entries[symbol_idx].output, ofdm_config.scale);
-            srsvec::copy(expected_output.first(cp_len), expected_output.last(cp_len));
+            ocuduvec::sc_prod(expected_output.last(dft_size), dft_entries[symbol_idx].output, ofdm_config.scale);
+            ocuduvec::copy(expected_output.first(cp_len), expected_output.last(cp_len));
 
             // Select a view of the OFDM modulator output.
             span<const cf_t> output_symbol(output);

@@ -13,15 +13,15 @@
 
 #pragma once
 
-#include "srsran/hal/hw_accelerator.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc.h"
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_encoder.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/hal/hw_accelerator.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_encoder.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic hardware-accelerated implementation of the PDSCH encoder.
 class pdsch_encoder_hw_impl : public pdsch_encoder
@@ -54,17 +54,17 @@ public:
     segmenter(std::move(seg)),
     encoder(std::move(hw))
   {
-    srsran_assert(crc_set.crc16, "Invalid CRC16 calculator.");
-    srsran_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
-    srsran_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
-    srsran_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16,
-                  "Not a CRC generator of type CRC16.");
-    srsran_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A,
-                  "Not a CRC generator of type CRC24A.");
-    srsran_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B,
-                  "Not a CRC generator of type CRC24B.");
-    srsran_assert(segmenter, "Invalid LDPC segmenter factory.");
-    srsran_assert(encoder, "Invalid hardware-accelerated PDSCH encoder.");
+    ocudu_assert(crc_set.crc16, "Invalid CRC16 calculator.");
+    ocudu_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
+    ocudu_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
+    ocudu_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16,
+                 "Not a CRC generator of type CRC16.");
+    ocudu_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A,
+                 "Not a CRC generator of type CRC24A.");
+    ocudu_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B,
+                 "Not a CRC generator of type CRC24B.");
+    ocudu_assert(segmenter, "Invalid LDPC segmenter factory.");
+    ocudu_assert(encoder, "Invalid hardware-accelerated PDSCH encoder.");
   }
 
   // See interface for the documentation.
@@ -121,4 +121,4 @@ private:
   crc_calculator_checksum_t compute_tb_crc(span<const uint8_t> transport_block, unsigned nof_tb_crc_bits);
 };
 
-} // namespace srsran
+} // namespace ocudu

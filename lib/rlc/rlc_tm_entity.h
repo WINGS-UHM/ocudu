@@ -14,7 +14,7 @@
 #include "rlc_rx_tm_entity.h"
 #include "rlc_tx_tm_entity.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rlc_tm_entity : public rlc_base_entity
 {
@@ -52,4 +52,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

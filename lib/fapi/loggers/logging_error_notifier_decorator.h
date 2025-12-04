@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/fapi/error_message_notifier.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Adds logging information over the implemented interface.
 class logging_error_notifier_decorator : public error_message_notifier
 {
 public:
-  logging_error_notifier_decorator(unsigned sector_id_, srslog::basic_logger& logger_);
+  logging_error_notifier_decorator(unsigned sector_id_, ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
   void on_error_indication(const error_indication_message& msg) override;
@@ -32,10 +32,10 @@ private:
   /// Sector identifier.
   const unsigned sector_id;
   /// FAPI logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Error notifier.
   error_message_notifier* notifier;
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

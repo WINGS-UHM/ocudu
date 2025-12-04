@@ -9,12 +9,12 @@
  */
 
 #include "../../../../lib/ofh/serdes/ofh_uplane_message_decoder_dynamic_compression_impl.h"
-#include "srsran/ofh/compression/iq_decompressor.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ofh/compression/iq_decompressor.h"
+#include "ocudu/ran/cyclic_prefix.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 namespace {
@@ -45,7 +45,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, valid_packet_should_decode_correctl
       0x02, 0xc6, 0x02, 0xd0, 0x02, 0xd0, 0x02, 0xda, 0x02, 0xda};
 
   const ru_compression_params                     compr_params = {compression_type::none, 16};
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -84,7 +84,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, missing_one_iq_sample_must_fail)
       0x02, 0x80, 0x02, 0x80, 0x02, 0x8a, 0x02, 0x8a, 0x02, 0x94, 0x02, 0x94, 0x02, 0x9e, 0x02, 0x9e, 0x02, 0xa8, 0x02,
       0xa8, 0x02, 0xb2, 0x02, 0xb2, 0x02, 0xbc, 0x02, 0xbc, 0x02, 0xc6, 0x02, 0xc6, 0x02, 0xd0, 0x02, 0xd0};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -108,7 +108,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, missing_one_prb_must_fail)
       0x02, 0x12, 0x02, 0x1c, 0x02, 0x1c, 0x02, 0x26, 0x02, 0x26, 0x02, 0x30, 0x02, 0x30, 0x02, 0x3a, 0x02, 0x3a,
       0x02, 0x44, 0x02, 0x44, 0x02, 0x4e, 0x02, 0x4e, 0x02, 0x58, 0x02, 0x58, 0x02};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -132,7 +132,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, dynamic_compression_with_no_compres
       0x02, 0x12, 0x02, 0x12, 0x02, 0x1c, 0x02, 0x1c, 0x02, 0x26, 0x02, 0x26, 0x02, 0x30, 0x02, 0x30, 0x02,
       0x3a, 0x02, 0x3a, 0x02, 0x44, 0x02, 0x44, 0x02, 0x4e, 0x02, 0x4e, 0x02, 0x58, 0x02, 0x58, 0x02};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -154,7 +154,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, decoding_one_section_and_failing_to
                                  0x01, 0xc2, 0x01, 0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6, 0x01,
                                  0xe0, 0x01, 0xe0, 0x01, 0xea, 0x01, 0xea, 0x01, 0xea, 0x01, 0xea};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -172,7 +172,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, missing_section_header_must_fail)
 {
   std::vector<uint8_t> packet = {0x10, 0x02, 0x40, 0x42, 0x00, 0x70, 0x24};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -189,7 +189,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, missing_header_must_fail)
 {
   std::vector<uint8_t> packet = {0x10, 0x02, 0x40};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -206,7 +206,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, missing_compression_header_must_fai
 {
   std::vector<uint8_t> packet = {0x10, 0x02, 0x40, 0x42, 0x00, 0x70, 0x24, 0x01, 0x00};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -227,7 +227,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, downlink_packet_should_fail)
                                  0x01, 0xc2, 0x01, 0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6,
                                  0x01, 0xe0, 0x01, 0xe0, 0x01, 0xea, 0x01, 0xea, 0xea, 0x01, 0xea};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -248,7 +248,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, reserved_filter_index_should_fail)
                                  0x01, 0xc2, 0x01, 0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6,
                                  0x01, 0xe0, 0x01, 0xe0, 0x01, 0xea, 0x01, 0xea, 0xea, 0x01, 0xea};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -269,7 +269,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, symbol_index_out_of_range_should_fa
                                  0x01, 0xc2, 0x01, 0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6,
                                  0x01, 0xe0, 0x01, 0xe0, 0x01, 0xea, 0x01, 0xea, 0xea, 0x01, 0xea};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -290,7 +290,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, invalid_subframe_should_fail)
                                  0x01, 0xc2, 0x01, 0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6,
                                  0x01, 0xe0, 0x01, 0xe0, 0x01, 0xea, 0x01, 0xea, 0xea, 0x01, 0xea};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -325,7 +325,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, invalid_slot_should_fail)
                                  0x01, 0xe0, 0x01, 0xe0, 0x01, 0xea, 0x01, 0xea, 0xea, 0x01, 0xea};
 
   subcarrier_spacing                              scs = subcarrier_spacing::kHz30;
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           scs,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -361,7 +361,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, invalid_compression_type_should_fai
                                  0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6, 0x01, 0xe0, 0x01, 0xe0,
                                  0x01, 0xea, 0x01, 0xea, 0xea, 0x01, 0xea, 0x01, 0xea};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -393,7 +393,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, none_compression_with_15_bits_shoul
                                  0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6, 0x01, 0xe0, 0x01, 0xe0, 0x01};
 
   const ru_compression_params                     compr_params = {compression_type::none, 15};
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -417,7 +417,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, bfp_with_9_bits_should_pass)
                                  0xc2, 0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6, 0x01, 0xe0, 0x01, 0xe0, 0x01};
 
   const ru_compression_params                     compr_params = {compression_type::BFP, 9};
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -440,7 +440,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, bfp_with_15_bits_without_ud_comp_pa
                                  0x01, 0xa4, 0x01, 0xae, 0x01, 0xae, 0x01, 0xb8, 0x01, 0xb8, 0x01, 0xc2, 0x01, 0xc2,
                                  0x01, 0xcc, 0x01, 0xcc, 0x01, 0xd6, 0x01, 0xd6, 0x01, 0xe0, 0x01, 0xe0, 0x01};
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           273,
@@ -463,7 +463,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, if_message_num_prbs_equals_zero_dec
 
   const unsigned ru_nof_prbs = 2;
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           ru_nof_prbs,
@@ -487,7 +487,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, if_message_contains_one_valid_secti
 
   const unsigned ru_nof_prbs = 2;
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           ru_nof_prbs,
@@ -520,7 +520,7 @@ TEST(ofh_uplane_packet_decoder_dynamic_impl, message_containing_more_than_one_se
 
   const unsigned ru_nof_prbs = 2;
 
-  uplane_message_decoder_dynamic_compression_impl decoder(srslog::fetch_basic_logger("TEST"),
+  uplane_message_decoder_dynamic_compression_impl decoder(ocudulog::fetch_basic_logger("TEST"),
                                                           subcarrier_spacing::kHz30,
                                                           get_nsymb_per_slot(cyclic_prefix::NORMAL),
                                                           ru_nof_prbs,

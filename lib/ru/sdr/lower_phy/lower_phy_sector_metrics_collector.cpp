@@ -9,11 +9,11 @@
  */
 
 #include "lower_phy_sector_metrics_collector.h"
-#include "srsran/phy/lower/lower_phy_baseband_metrics.h"
-#include "srsran/ru/sdr/ru_sdr_metrics.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
+#include "ocudu/ru/sdr/ru_sdr_metrics.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void lower_phy_sector_metrics_collector::on_new_transmit_metrics(const lower_phy_baseband_metrics& metrics)
 {

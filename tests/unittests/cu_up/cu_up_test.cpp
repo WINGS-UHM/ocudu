@@ -11,18 +11,18 @@
 #include "cu_up_test_helpers.h"
 #include "lib/cu_up/cu_up_impl.h"
 #include "lib/e1ap/cu_up/e1ap_cu_up_asn1_helpers.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/pdcp/pdcp_sn_util.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <arpa/inet.h>
 #include <chrono>
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 using namespace asn1::e1ap;
 
 /// This implementation returns back to the E1 interface a dummy CU-UP E1 Setup Response message upon the receival of
@@ -92,12 +92,12 @@ class cu_up_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
-    srslog::fetch_basic_logger("CU-UP").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("GTPU").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("E1AP").set_level(srslog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("CU-UP").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("GTPU").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("E1AP").set_level(ocudulog::basic_levels::debug);
 
     // create worker thread and executor
     worker   = std::make_unique<task_worker>("thread", 128, os_thread_realtime_priority::no_realtime());
@@ -148,14 +148,14 @@ protected:
   void init(const cu_up_config& cfg, cu_up_dependencies&& deps)
   {
     auto cfg_copy = cfg;
-    cu_up         = std::make_unique<srs_cu_up::cu_up>(cfg_copy, std::move(deps));
+    cu_up         = std::make_unique<ocuup::cu_up>(cfg_copy, std::move(deps));
     cu_up->start();
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<task_worker>                 worker;
@@ -169,8 +169,8 @@ protected:
   std::unique_ptr<dummy_f1u_gateway> f1u_gw;
   std::unique_ptr<io_broker>         broker;
   std::unique_ptr<gtpu_gateway>      ngu_gw;
-  std::unique_ptr<srs_cu_up::cu_up>  cu_up;
-  srslog::basic_logger&              test_logger = srslog::fetch_basic_logger("TEST");
+  std::unique_ptr<ocuup::cu_up>      cu_up;
+  ocudulog::basic_logger&            test_logger = ocudulog::fetch_basic_logger("TEST");
 
   udp_network_gateway_config cu_up_udp_cfg{};
 

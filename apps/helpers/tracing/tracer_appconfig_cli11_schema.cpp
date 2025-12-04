@@ -10,9 +10,9 @@
 
 #include "tracer_appconfig_cli11_schema.h"
 #include "tracer_appconfig.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_tracing_args(CLI::App& app, tracer_appconfig& tracing_params)
 {
@@ -30,7 +30,7 @@ static void configure_cli11_tracing_args(CLI::App& app, tracer_appconfig& tracin
       ->capture_default_str();
 }
 
-void srsran::configure_cli11_with_tracer_appconfig_schema(CLI::App& app, tracer_appconfig& config)
+void ocudu::configure_cli11_with_tracer_appconfig_schema(CLI::App& app, tracer_appconfig& config)
 {
   // Tracing section.
   CLI::App* trace_subcmd = add_subcommand(app, "trace", "General tracer configuration")->configurable();

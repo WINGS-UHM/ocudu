@@ -12,11 +12,11 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct remote_control_appconfig;
 
 /// Configures the given CLI11 application with the remote control application configuration schema.
 void configure_cli11_with_remote_control_appconfig_schema(CLI::App& app, remote_control_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

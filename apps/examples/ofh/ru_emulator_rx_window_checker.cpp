@@ -10,7 +10,7 @@
 
 #include "ru_emulator_rx_window_checker.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 static constexpr unsigned OFH_MAX_NOF_SFN = 256U;
@@ -29,10 +29,10 @@ static slot_symbol_point calculate_ofh_slot_symbol_point(slot_symbol_point symbo
 /// Calculate the distance between the given slot symbol points in symbols.
 static int calculate_slot_symbol_point_distance(slot_symbol_point lhs, slot_symbol_point rhs)
 {
-  srsran_assert(rhs.get_numerology() == lhs.get_numerology(),
-                "Cannot calculate the distance of two slot symbol points that have different numerologies");
-  srsran_assert(rhs.get_nof_symbols() == lhs.get_nof_symbols(),
-                "Cannot calculate the distance of two slot symbol points that have a different number of symbols");
+  ocudu_assert(rhs.get_numerology() == lhs.get_numerology(),
+               "Cannot calculate the distance of two slot symbol points that have different numerologies");
+  ocudu_assert(rhs.get_nof_symbols() == lhs.get_nof_symbols(),
+               "Cannot calculate the distance of two slot symbol points that have a different number of symbols");
 
   const int nof_symbols_per_slot_wrap = OFH_MAX_NOF_SFN * NOF_SUBFRAMES_PER_FRAME *
                                         get_nof_slots_per_subframe(to_subcarrier_spacing(rhs.get_numerology())) *

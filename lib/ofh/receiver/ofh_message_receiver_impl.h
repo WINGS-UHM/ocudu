@@ -17,17 +17,17 @@
 #include "ofh_message_receiver.h"
 #include "ofh_message_receiver_metrics_collector.h"
 #include "ofh_sequence_id_checker_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ofh/ecpri/ecpri_packet_decoder.h"
-#include "srsran/ofh/ethernet/ethernet_receiver.h"
-#include "srsran/ofh/ethernet/vlan_ethernet_frame_decoder.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ofh/serdes/ofh_message_properties.h"
-#include "srsran/ofh/serdes/ofh_uplane_message_decoder.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_decoder.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver.h"
+#include "ocudu/ofh/ethernet/vlan_ethernet_frame_decoder.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ofh/serdes/ofh_message_properties.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class rx_window_checker;
@@ -57,7 +57,7 @@ struct message_receiver_config {
 /// Message receiver dependencies.
 struct message_receiver_dependencies {
   /// Logger.
-  srslog::basic_logger* logger = nullptr;
+  ocudulog::basic_logger* logger = nullptr;
   /// Ethernet receiver.
   std::unique_ptr<ether::receiver> eth_receiver;
   /// Reception window checker.
@@ -105,7 +105,7 @@ private:
   bool should_ecpri_packet_be_filtered(const ecpri::packet_parameters& ecpri_params) const;
 
 private:
-  srslog::basic_logger&                                 logger;
+  ocudulog::basic_logger&                               logger;
   const unsigned                                        sector_id;
   const unsigned                                        nof_symbols;
   const subcarrier_spacing                              scs;
@@ -126,4 +126,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

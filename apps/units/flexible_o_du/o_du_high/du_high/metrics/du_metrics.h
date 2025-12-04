@@ -13,14 +13,14 @@
 #include "apps/services/metrics/metrics_consumer.h"
 #include "apps/services/metrics/metrics_properties.h"
 #include "apps/services/metrics/metrics_set.h"
-#include "srsran/adt/span.h"
-#include "srsran/du/du_high/du_metrics_report.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/du/du_high/du_metrics_report.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <utility>
 
-namespace srsran {
+namespace ocudu {
 
 /// DU metrics properties implementation.
 class du_metrics_properties_impl : public app_services::metrics_properties
@@ -33,23 +33,23 @@ public:
 class du_metrics_impl : public app_services::metrics_set
 {
   du_metrics_properties_impl properties;
-  srs_du::du_metrics_report  report;
+  odu::du_metrics_report     report;
 
 public:
-  explicit du_metrics_impl(srs_du::du_metrics_report report_) : report(std::move(report_)) {}
+  explicit du_metrics_impl(odu::du_metrics_report report_) : report(std::move(report_)) {}
 
   // See interface for documentation.
   const app_services::metrics_properties& get_properties() const override { return properties; }
 
   // Returns the DU metrics report.
-  const srs_du::du_metrics_report& get_report() const { return report; }
+  const odu::du_metrics_report& get_report() const { return report; }
 };
 
 /// Callback for the DU metrics.
 inline auto du_metrics_callback = [](const app_services::metrics_set&      report,
                                      span<app_services::metrics_consumer*> consumers,
                                      task_executor&                        executor,
-                                     srslog::basic_logger&                 logger,
+                                     ocudulog::basic_logger&               logger,
                                      stop_event_token                      token) {
   const auto& metric = static_cast<const du_metrics_impl&>(report);
 
@@ -62,4 +62,4 @@ inline auto du_metrics_callback = [](const app_services::metrics_set&      repor
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

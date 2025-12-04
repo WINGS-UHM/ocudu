@@ -15,9 +15,9 @@
 
 #include "dmrs_pucch_estimator_format2.h"
 #include "dmrs_pucch_estimator_formats3_4.h"
-#include "srsran/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
+#include "ocudu/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// DM-RS PUCCH estimator implementation.
 class dmrs_pucch_estimator_impl : public dmrs_pucch_estimator
@@ -31,8 +31,8 @@ public:
                             std::unique_ptr<dmrs_pucch_estimator_formats3_4> estimator_formats3_4_) :
     estimator_format2(std::move(estimator_format2_)), estimator_formats3_4(std::move(estimator_formats3_4_))
   {
-    srsran_assert(estimator_format2, "Invalid pointer to dmrs_pucch_estimator_format2 object.");
-    srsran_assert(estimator_formats3_4, "Invalid pointer to dmrs_pucch_estimator_formats3_4 object.");
+    ocudu_assert(estimator_format2, "Invalid pointer to dmrs_pucch_estimator_format2 object.");
+    ocudu_assert(estimator_formats3_4, "Invalid pointer to dmrs_pucch_estimator_formats3_4 object.");
   }
 
   // See interface for the documentation.
@@ -63,4 +63,4 @@ private:
   std::unique_ptr<dmrs_pucch_estimator_formats3_4> estimator_formats3_4;
 };
 
-} // namespace srsran
+} // namespace ocudu

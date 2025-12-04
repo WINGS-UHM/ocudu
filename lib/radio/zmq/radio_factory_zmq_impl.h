@@ -11,9 +11,9 @@
 #pragma once
 
 #include "radio_config_zmq_validator.h"
-#include "srsran/radio/radio_factory.h"
+#include "ocudu/radio/radio_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes a ZeroMQ Radio based factory.
 class radio_factory_zmq_impl : public radio_factory
@@ -28,4 +28,4 @@ public:
                                         radio_event_notifier&             notifier) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,20 +11,20 @@
 #pragma once
 
 #include "../baseband_cfo_processor.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_baseband.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_baseband.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a software generic lower PHY uplink processor.
 class lower_phy_uplink_processor_impl : public lower_phy_uplink_processor, private uplink_processor_baseband
@@ -156,4 +156,4 @@ private:
   dynamic_tensor<2, cf_t> temp_cf_buffer;
 };
 
-} // namespace srsran
+} // namespace ocudu

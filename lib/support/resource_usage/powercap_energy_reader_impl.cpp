@@ -12,7 +12,7 @@
 #include <charconv>
 #include <fstream>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace resource_usage_utils;
 
 /// Intel_rapl_msr and intel_rapl_common drivers support Intel CPUs,
@@ -55,7 +55,7 @@ void resource_usage_utils::sysfs_powercap_reader::read_value_from_sysfs(const st
 }
 
 std::unique_ptr<energy_consumption_reader>
-resource_usage_utils::build_sysfs_powercap_reader(srslog::basic_logger& logger)
+resource_usage_utils::build_sysfs_powercap_reader(ocudulog::basic_logger& logger)
 {
   // Checks whether the RAPL Powercap sysfs is available.
   std::ifstream rapl_sysfs(rapl_powercap_path);

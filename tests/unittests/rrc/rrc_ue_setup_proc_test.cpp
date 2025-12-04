@@ -11,21 +11,21 @@
 #include "rrc_ue_test_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class RRC Setup tests preparation.
 class rrc_ue_setup : public rrc_ue_test_helper, public ::testing::Test
 {
 protected:
-  static void SetUpTestSuite() { srslog::init(); }
+  static void SetUpTestSuite() { ocudulog::init(); }
 
   void SetUp() override { init(); }
 
   void TearDown() override
   {
     // Flush logger after each test.
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 

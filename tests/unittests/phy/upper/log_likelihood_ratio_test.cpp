@@ -12,11 +12,11 @@
 /// \brief Unit test for the log-likelihood ratio type.
 ///
 /// Tests all the operators and functions defined for the type.
-#include "srsran/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 bool operator==(span<const log_likelihood_ratio> lhs, span<const log_likelihood_ratio> rhs)
 {

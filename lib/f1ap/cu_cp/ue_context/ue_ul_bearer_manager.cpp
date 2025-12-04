@@ -9,10 +9,10 @@
  */
 
 #include "ue_ul_bearer_manager.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 

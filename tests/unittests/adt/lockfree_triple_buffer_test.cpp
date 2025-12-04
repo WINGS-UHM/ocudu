@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/lockfree_triple_buffer.h"
+#include "ocudu/adt/lockfree_triple_buffer.h"
 #include <gtest/gtest.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(lockfree_triple_buffer, basic)
 {

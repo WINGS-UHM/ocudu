@@ -18,16 +18,16 @@
 #include "pdcp_pdu.h"
 #include "pdcp_tx_metrics_impl.h"
 #include "pdcp_tx_window.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/byte_buffer_chain.h"
-#include "srsran/adt/ring_buffer.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/security/security.h"
-#include "srsran/security/security_engine.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/byte_buffer_chain.h"
+#include "ocudu/adt/ring_buffer.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/security/security.h"
+#include "ocudu/security/security_engine.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PDCP TX state variables,
 /// TS 38.323, section 7.1
@@ -322,11 +322,11 @@ private:
   pdcp_tx_metrics          metrics;
   pdcp_metrics_aggregator& metrics_agg;
 };
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::pdcp_tx_state> {
+struct formatter<ocudu::pdcp_tx_state> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -334,7 +334,7 @@ struct formatter<srsran::pdcp_tx_state> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::pdcp_tx_state& st, FormatContext& ctx) const
+  auto format(const ocudu::pdcp_tx_state& st, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "tx_next_ack={} tx_trans_crypto={} tx_reord_crypto={} tx_trans={} tx_next={}",
@@ -347,7 +347,7 @@ struct formatter<srsran::pdcp_tx_state> {
 };
 
 template <>
-struct formatter<srsran::pdcp_entity_tx::early_drop_reason> {
+struct formatter<ocudu::pdcp_entity_tx::early_drop_reason> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -355,16 +355,16 @@ struct formatter<srsran::pdcp_entity_tx::early_drop_reason> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::pdcp_entity_tx::early_drop_reason& drop_reason, FormatContext& ctx) const
+  auto format(const ocudu::pdcp_entity_tx::early_drop_reason& drop_reason, FormatContext& ctx) const
   {
     switch (drop_reason) {
-      case srsran::pdcp_entity_tx::early_drop_reason::zero_dbs:
+      case ocudu::pdcp_entity_tx::early_drop_reason::zero_dbs:
         return format_to(ctx.out(), "desired buffer size is 0");
-      case srsran::pdcp_entity_tx::early_drop_reason::full_rlc_queue:
+      case ocudu::pdcp_entity_tx::early_drop_reason::full_rlc_queue:
         return format_to(ctx.out(), "RLC SDU queue is full");
-      case srsran::pdcp_entity_tx::early_drop_reason::full_window:
+      case ocudu::pdcp_entity_tx::early_drop_reason::full_window:
         return format_to(ctx.out(), "PDCP TX window is full");
-      case srsran::pdcp_entity_tx::early_drop_reason::no_drop:
+      case ocudu::pdcp_entity_tx::early_drop_reason::no_drop:
         return format_to(ctx.out(), "no drop");
     }
     return format_to(ctx.out(), "unkown");

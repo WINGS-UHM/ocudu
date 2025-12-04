@@ -8,37 +8,37 @@
  *
  */
 
-#include "srsran/asn1/e2sm/e2sm_ccc.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/e2sm/e2sm_ccc.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace asn1;
 using namespace asn1::e2sm_ccc;
-using namespace srsran;
+using namespace ocudu;
 
 class asn1_e2sm_ccc_test : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 static std::string remove_whitespace(const std::string& str)
@@ -63,8 +63,8 @@ const char simple_struct_plmn_info_json[] = R"json(
 
 TEST_F(asn1_e2sm_ccc_test, simple_struct_plmn_info_s)
 {
-  auto& logger = srslog::fetch_basic_logger("ASN1", false);
-  logger.set_level(srslog::basic_levels::debug);
+  auto& logger = ocudulog::fetch_basic_logger("ASN1", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(-1);
 
   plmn_info_s plmn_info;
@@ -241,8 +241,8 @@ const char ran_func_def_json[] = R"json(
 
 TEST_F(asn1_e2sm_ccc_test, test_ran_func_def)
 {
-  auto& logger = srslog::fetch_basic_logger("ASN1", false);
-  logger.set_level(srslog::basic_levels::debug);
+  auto& logger = ocudulog::fetch_basic_logger("ASN1", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(-1);
 
   const std::string short_name       = "ORAN-E2SM-CCC";
@@ -433,8 +433,8 @@ const char ric_ctrl_msg_json[] = R"json(
 
 TEST_F(asn1_e2sm_ccc_test, test_ric_ctrl_msg)
 {
-  auto& logger = srslog::fetch_basic_logger("ASN1", false);
-  logger.set_level(srslog::basic_levels::debug);
+  auto& logger = ocudulog::fetch_basic_logger("ASN1", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(-1);
 
   ric_ctrl_hdr_s ric_ctrl_hdr;
@@ -575,8 +575,8 @@ const char ric_ind_msg_json[] = R"json(
 
 TEST_F(asn1_e2sm_ccc_test, test_ric_ind_msg)
 {
-  auto& logger = srslog::fetch_basic_logger("ASN1", false);
-  logger.set_level(srslog::basic_levels::debug);
+  auto& logger = ocudulog::fetch_basic_logger("ASN1", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(-1);
 
   ric_ind_hdr_s ric_ind_hdr;

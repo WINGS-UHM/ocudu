@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/adt/interval.h"
+#include "ocudu/adt/interval.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Generates the pseudo-random sequence defined in TS38.211 Section 5.2.1.
 ///
@@ -40,8 +40,8 @@ public:
 
   pseudo_random_generator_sequence(state_type x1_, state_type x2_) : x1(x1_), x2(x2_)
   {
-    srsran_assert((x1 & 1U) != 1U, "Invalid X1 state (i.e., {}).", x1);
-    srsran_assert((x2 & 1U) != 1U, "Invalid X2 state (i.e., {}).", x2);
+    ocudu_assert((x1 & 1U) != 1U, "Invalid X1 state (i.e., {}).", x1);
+    ocudu_assert((x2 & 1U) != 1U, "Invalid X2 state (i.e., {}).", x2);
   }
 
   /// \brief Steps the sequence a number of bits simultaneously.
@@ -79,10 +79,10 @@ public:
   /// \remark The step size must not exceed \ref max_step_size.
   sequence_type step(unsigned step_size = 1)
   {
-    srsran_assert(step_size <= max_step_size,
-                  "The step size (i.e., {}) exceeds the maximum step size (i.e., {}).",
-                  step_size,
-                  static_cast<unsigned>(max_step_size));
+    ocudu_assert(step_size <= max_step_size,
+                 "The step size (i.e., {}) exceeds the maximum step size (i.e., {}).",
+                 step_size,
+                 static_cast<unsigned>(max_step_size));
 
     if (step_size == 0) {
       return 0;
@@ -130,4 +130,4 @@ private:
   state_type x2;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -13,7 +13,7 @@
 #include "phy_fapi_fastpath_adaptor_impl.h"
 #include "phy_fapi_sector_fastpath_adaptor_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 std::unique_ptr<phy_fapi_fastpath_adaptor>
@@ -32,7 +32,7 @@ phy_fapi_fastpath_adaptor_factory_impl::create(const phy_fapi_fastpath_adaptor_c
   return std::make_unique<phy_fapi_fastpath_adaptor_impl>(std::move(sectors));
 }
 
-std::unique_ptr<phy_fapi_fastpath_adaptor_factory> srsran::fapi_adaptor::create_phy_fapi_fastpath_adaptor_factory()
+std::unique_ptr<phy_fapi_fastpath_adaptor_factory> ocudu::fapi_adaptor::create_phy_fapi_fastpath_adaptor_factory()
 {
   return std::make_unique<phy_fapi_fastpath_adaptor_factory_impl>();
 }

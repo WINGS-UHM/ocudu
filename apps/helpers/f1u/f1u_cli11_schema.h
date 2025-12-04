@@ -12,11 +12,11 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct f1u_sockets_appconfig;
 
 /// Configures the given CLI11 application with the F1U sockets application configuration schema.
 void configure_cli11_f1u_sockets_args(CLI::App& app, f1u_sockets_appconfig& f1u_params);
 
-} // namespace srsran
+} // namespace ocudu

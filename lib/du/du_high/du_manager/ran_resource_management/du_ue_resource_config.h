@@ -11,17 +11,17 @@
 #pragma once
 
 #include "../converters/rlc_config_helpers.h"
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/mac/mac_cell_group_config.h"
-#include "srsran/ran/logical_channel/lcid.h"
-#include "srsran/ran/meas_gap_config.h"
-#include "srsran/ran/physical_cell_group.h"
-#include "srsran/ran/qos/qos_parameters.h"
-#include "srsran/rlc/rlc_config.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/mac/mac_cell_group_config.h"
+#include "ocudu/ran/logical_channel/lcid.h"
+#include "ocudu/ran/meas_gap_config.h"
+#include "ocudu/ran/physical_cell_group.h"
+#include "ocudu/ran/qos/qos_parameters.h"
+#include "ocudu/rlc/rlc_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// This struct stores the accumulated CellGroupConfig.
 struct cell_group_config {
@@ -73,5 +73,5 @@ struct du_ue_resource_config {
   std::optional<cfra_config> cfra;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

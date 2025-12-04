@@ -9,13 +9,13 @@
  */
 
 #include "pdcch_modulator_impl.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pdcch_modulator_impl::scramble(span<uint8_t> b_hat, span<const uint8_t> b, const pdcch_modulator::config_t& config)
 {
@@ -33,14 +33,14 @@ void pdcch_modulator_impl::modulate(span<cf_t> d_pdcch, span<const uint8_t> b_ha
 {
   // Adapt the bits for the modulator.
   static_bit_buffer<MAX_BITS> b_hat_packed(b_hat.size());
-  srsvec::bit_pack(b_hat_packed, b_hat);
+  ocuduvec::bit_pack(b_hat_packed, b_hat);
 
   // Modulate as QPSK.
   modulator->modulate(d_pdcch, b_hat_packed, modulation_scheme::QPSK);
 
   // Apply scaling to conform power.
   if (std::isnormal(scaling)) {
-    srsvec::sc_prod(d_pdcch, d_pdcch, scaling);
+    ocuduvec::sc_prod(d_pdcch, d_pdcch, scaling);
   }
 }
 

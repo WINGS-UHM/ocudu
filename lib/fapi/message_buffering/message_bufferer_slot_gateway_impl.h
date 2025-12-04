@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/fapi/messages/tx_data_request.h"
-#include "srsran/fapi/messages/ul_dci_request.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/fapi/slot_message_gateway.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/messages/tx_data_request.h"
+#include "ocudu/fapi/messages/ul_dci_request.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/ocudulog/logger.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Maximum number of buffered messages.
@@ -91,7 +91,7 @@ private:
   const unsigned                                                                   l2_nof_slots_ahead;
   const subcarrier_spacing                                                         scs;
   slot_message_gateway&                                                            gateway;
-  srslog::basic_logger&                                                            logger;
+  ocudulog::basic_logger&                                                          logger;
   std::atomic<uint32_t>                                                            current_slot_count_val;
   static_vector<std::optional<dl_tti_request_message>, MAX_NUM_BUFFERED_MESSAGES>  dl_tti_pool;
   static_vector<std::optional<ul_tti_request_message>, MAX_NUM_BUFFERED_MESSAGES>  ul_tti_pool;
@@ -100,4 +100,4 @@ private:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

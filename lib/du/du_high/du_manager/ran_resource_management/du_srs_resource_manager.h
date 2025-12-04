@@ -11,11 +11,11 @@
 #pragma once
 
 #include "srs_resource_generator.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct cell_group_config;
 
@@ -70,7 +70,7 @@ private:
     std::vector<du_srs_resource>::const_iterator get_du_srs_res_cfg(unsigned cell_res_id)
     {
       if (cell_res_id >= cell_srs_res_list.size() or cell_srs_res_list[cell_res_id].cell_res_id != cell_res_id) {
-        srsran_assertion_failure("Cell resource ID out of range or invalid");
+        ocudu_assertion_failure("Cell resource ID out of range or invalid");
         return cell_srs_res_list.end();
       }
       return cell_srs_res_list.cbegin() + cell_res_id;
@@ -90,7 +90,7 @@ private:
       // If the counter is a non-zero multiple (i.e, N) of nof_res_per_symb_interval, then the symbol interval of index
       // N-1 has been filled completely and the next symbol interval of index N is free. In any other case, the symbol
       // interval N-1 is partially filled.
-      srsran_assert(offset < slot_resource_cnt.size(), "Offset out of range");
+      ocudu_assert(offset < slot_resource_cnt.size(), "Offset out of range");
       return slot_resource_cnt[offset] % nof_res_per_symb_interval != 0U;
     }
 
@@ -123,5 +123,5 @@ private:
   static_vector<cell_context, MAX_NOF_DU_CELLS> cells;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

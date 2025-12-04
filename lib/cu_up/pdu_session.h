@@ -13,13 +13,13 @@
 #include "adapters/gtpu_adapters.h"
 #include "adapters/sdap_adapters.h"
 #include "drb_context.h"
-#include "srsran/adt/batched_dispatch_queue.h"
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu.h"
-#include "srsran/ran/up_transport_layer_info.h"
+#include "ocudu/adt/batched_dispatch_queue.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 #define MAX_NUM_PDU_SESSIONS_PER_UE (8) /// Todo: find 3GPP spec reference
 
@@ -89,4 +89,4 @@ struct pdu_session {
   std::map<drb_id_t, std::unique_ptr<drb_context>> drbs;                  // key is drb_id
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/ngap/gateways/n2_connection_client_factory.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/gateways/sctp_network_client_factory.h"
-#include "srsran/gateways/sctp_network_gateway_factory.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/pcap/dlt_pcap.h"
+#include "ocudu/ngap/gateways/n2_connection_client_factory.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/gateways/sctp_network_client_factory.h"
+#include "ocudu/gateways/sctp_network_gateway_factory.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/pcap/dlt_pcap.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -28,7 +28,7 @@ class sctp_to_n2_pdu_notifier final : public sctp_association_sdu_notifier
 public:
   sctp_to_n2_pdu_notifier(std::unique_ptr<ngap_rx_message_notifier> cu_cp_rx_pdu_notifier_,
                           dlt_pcap&                                 pcap_writer_,
-                          srslog::basic_logger&                     logger_) :
+                          ocudulog::basic_logger&                   logger_) :
     cu_cp_rx_pdu_notifier(std::move(cu_cp_rx_pdu_notifier_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -38,7 +38,7 @@ public:
     // Unpack NGAP PDU.
     asn1::cbit_ref bref(sdu);
     ngap_message   msg;
-    if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Couldn't unpack NGAP PDU");
       return false;
     }
@@ -56,7 +56,7 @@ public:
 private:
   std::unique_ptr<ngap_rx_message_notifier> cu_cp_rx_pdu_notifier;
   dlt_pcap&                                 pcap_writer;
-  srslog::basic_logger&                     logger;
+  ocudulog::basic_logger&                   logger;
 };
 
 /// \brief Notifier for converting unpacked NGAP PDUs coming from the CU-CP into packed NGAP PDUs and forward them to
@@ -66,7 +66,7 @@ class n2_to_sctp_pdu_notifier final : public ngap_message_notifier
 public:
   n2_to_sctp_pdu_notifier(std::unique_ptr<sctp_association_sdu_notifier> sctp_rx_pdu_notifier_,
                           dlt_pcap&                                      pcap_writer_,
-                          srslog::basic_logger&                          logger_) :
+                          ocudulog::basic_logger&                        logger_) :
     sctp_rx_pdu_notifier(std::move(sctp_rx_pdu_notifier_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -76,7 +76,7 @@ public:
     // pack NGAP PDU into SCTP SDU.
     byte_buffer   tx_sdu{byte_buffer::fallback_allocation_tag{}};
     asn1::bit_ref bref(tx_sdu);
-    if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to pack NGAP PDU");
       return false;
     }
@@ -95,7 +95,7 @@ public:
 private:
   std::unique_ptr<sctp_association_sdu_notifier> sctp_rx_pdu_notifier;
   dlt_pcap&                                      pcap_writer;
-  srslog::basic_logger&                          logger;
+  ocudulog::basic_logger&                        logger;
 };
 
 /// Stub for the operation of the CU-CP without a core.
@@ -141,7 +141,7 @@ private:
     if (pcap_writer.is_write_enabled()) {
       byte_buffer   packed_pdu;
       asn1::bit_ref bref{packed_pdu};
-      if (msg.pdu.pack(bref) == asn1::SRSASN_SUCCESS) {
+      if (msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
         pcap_writer.push_pdu(std::move(packed_pdu));
       } else {
         logger.warning("Failed to encode NGAP Tx PDU.");
@@ -153,7 +153,7 @@ private:
       // CU-CP is requesting an NG Setup. Automatically reply with NG Setup Response.
 
       const auto& req = msg.pdu.init_msg().value.ng_setup_request();
-      srsran_assert(req->supported_ta_list.size() > 0, "NG Setup Request has no supported TA list");
+      ocudu_assert(req->supported_ta_list.size() > 0, "NG Setup Request has no supported TA list");
       const auto& broadcast_plmns = req->supported_ta_list[0].broadcast_plmn_list;
 
       // Generate fake NG Setup Response.
@@ -186,14 +186,14 @@ private:
   // Forward NGAP message to CU-CP.
   void send_rx_pdu_to_cu_cp(const ngap_message& msg)
   {
-    srsran_assert(cu_cp_rx_notifier != nullptr, "Adapter is disconnected");
+    ocudu_assert(cu_cp_rx_notifier != nullptr, "Adapter is disconnected");
 
     if (pcap_writer.is_write_enabled()) {
       // PCAP writer is enabled. Encode ASN.1 message and send to PCAP.
-      byte_buffer       bytes;
-      asn1::bit_ref     bref{bytes};
-      asn1::SRSASN_CODE code = msg.pdu.pack(bref);
-      if (code != asn1::SRSASN_SUCCESS) {
+      byte_buffer         bytes;
+      asn1::bit_ref       bref{bytes};
+      asn1::OCUDUASN_CODE code = msg.pdu.pack(bref);
+      if (code != asn1::OCUDUASN_SUCCESS) {
         logger.warning("Failed to encode NGAP Rx PDU. NGAP PCAP will miss some messages.");
       } else {
         pcap_writer.push_pdu(std::move(bytes));
@@ -204,8 +204,8 @@ private:
     cu_cp_rx_notifier->on_new_message(msg);
   }
 
-  dlt_pcap&             pcap_writer;
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("CU-CP");
+  dlt_pcap&               pcap_writer;
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-CP");
 
   std::unique_ptr<ngap_rx_message_notifier> cu_cp_rx_notifier;
 };
@@ -228,7 +228,7 @@ public:
   std::unique_ptr<ngap_message_notifier>
   handle_cu_cp_connection_request(std::unique_ptr<ngap_rx_message_notifier> cu_cp_rx_pdu_notifier) override
   {
-    srsran_assert(cu_cp_rx_pdu_notifier != nullptr, "CU-CP Rx PDU notifier is null");
+    ocudu_assert(cu_cp_rx_pdu_notifier != nullptr, "CU-CP Rx PDU notifier is null");
 
     // Establish SCTP connection and register SCTP Rx message handler.
     logger.debug("Establishing TNL connection to {} ({}:{})...",
@@ -265,7 +265,7 @@ private:
   io_broker&                          broker;
   const sctp_network_connector_config sctp_cfg;
   dlt_pcap&                           pcap_writer;
-  srslog::basic_logger&               logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger&             logger = ocudulog::fetch_basic_logger("CU-CP");
 
   // SCTP network adapter
   std::unique_ptr<sctp_network_client> sctp_gateway;
@@ -274,7 +274,7 @@ private:
 } // namespace
 
 std::unique_ptr<n2_connection_client>
-srsran::srs_cu_cp::create_n2_connection_client(const n2_connection_client_config& params)
+ocudu::ocucp::create_n2_connection_client(const n2_connection_client_config& params)
 {
   if (std::holds_alternative<n2_connection_client_config::no_core>(params.mode)) {
     // Connection to local AMF stub.
@@ -282,8 +282,8 @@ srsran::srs_cu_cp::create_n2_connection_client(const n2_connection_client_config
   }
 
   // Connection to AMF through SCTP.
-  const auto&                           nw_mode = std::get<n2_connection_client_config::network>(params.mode);
-  srsran::sctp_network_connector_config sctp_cfg;
+  const auto&                          nw_mode = std::get<n2_connection_client_config::network>(params.mode);
+  ocudu::sctp_network_connector_config sctp_cfg;
   sctp_cfg.dest_name         = "AMF";
   sctp_cfg.if_name           = "N2";
   sctp_cfg.connect_address   = nw_mode.amf_address;

@@ -15,11 +15,11 @@ add_subdirectory(metrics)
 add_subdirectory(network)
 add_subdirectory(tracing)
 
-add_library(srsran_app_helpers INTERFACE)
-target_link_libraries(srsran_app_helpers INTERFACE  srsran_e2_app_helpers
-                                                    srsran_f1u_app_helpers
-                                                    srsran_hal_app_helpers
-                                                    srsran_logger_app_helpers
-                                                    srsran_metrics_app_helpers
-                                                    srsran_network_app_helpers
-                                                    srsran_tracing_app_helpers)
+add_library(ocudu_app_helpers INTERFACE)
+target_link_libraries(ocudu_app_helpers INTERFACE  ocudu_e2_app_helpers
+                                                    ocudu_f1u_app_helpers
+                                                    ocudu_hal_app_helpers
+                                                    ocudu_logger_app_helpers
+                                                    ocudu_metrics_app_helpers
+                                                    ocudu_network_app_helpers
+                                                    ocudu_tracing_app_helpers)

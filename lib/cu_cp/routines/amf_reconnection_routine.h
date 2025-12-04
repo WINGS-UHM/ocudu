@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../ngap_repository.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 async_task<bool>
 start_amf_reconnection(ngap_interface& ngap, timer_factory timers, std::chrono::milliseconds reconnection_retry_time);
@@ -34,8 +34,8 @@ public:
   void operator()(coro_context<async_task<bool>>& ctx);
 
 private:
-  ngap_interface&       ngap;
-  srslog::basic_logger& logger;
+  ngap_interface&         ngap;
+  ocudulog::basic_logger& logger;
 
   unique_timer              amf_tnl_connection_retry_timer;
   std::chrono::milliseconds reconnection_retry_time;
@@ -44,5 +44,5 @@ private:
   bool                 success    = false;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,9 +10,9 @@
 
 #include "log_helpers.h"
 #include "ngap_asn1_utils.h"
-#include "srsran/support/format/custom_formattable.h"
+#include "ocudu/support/format/custom_formattable.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace fmt {
 
@@ -29,11 +29,11 @@ struct formatter<asn1::ngap::ngap_pdu_c> : public basic_parser {
 
 } // namespace fmt
 
-void srsran::srs_cu_cp::log_ngap_pdu(srslog::basic_logger&            logger,
-                                     bool                             json_log,
-                                     bool                             is_rx,
-                                     const std::optional<ue_index_t>& ue_idx,
-                                     const asn1::ngap::ngap_pdu_c&    pdu)
+void ocudu::ocucp::log_ngap_pdu(ocudulog::basic_logger&          logger,
+                                bool                             json_log,
+                                bool                             is_rx,
+                                const std::optional<ue_index_t>& ue_idx,
+                                const asn1::ngap::ngap_pdu_c&    pdu)
 {
   if (not logger.info.enabled()) {
     return;

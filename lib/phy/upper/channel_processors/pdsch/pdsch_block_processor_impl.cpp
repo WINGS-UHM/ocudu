@@ -11,7 +11,7 @@
 #include "pdsch_block_processor_impl.h"
 #include "pdsch_processor_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 resource_grid_mapper::symbol_buffer&
 pdsch_block_processor_impl::configure_new_transmission(span<const uint8_t>           data,
@@ -35,10 +35,10 @@ pdsch_block_processor_impl::configure_new_transmission(span<const uint8_t>      
   // Initialize the codeblock counter.
   next_i_cb = start_i_cb;
   last_i_cb = start_i_cb + cb_batch_len - 1;
-  srsran_assert(last_i_cb < segment_buffer_.get_nof_codeblocks(),
-                "The last codeblock index in the batch (i.e., {}) exceeds the number of codeblocks (i.e., {})",
-                last_i_cb,
-                segment_buffer_.get_nof_codeblocks());
+  ocudu_assert(last_i_cb < segment_buffer_.get_nof_codeblocks(),
+               "The last codeblock index in the batch (i.e., {}) exceeds the number of codeblocks (i.e., {})",
+               last_i_cb,
+               segment_buffer_.get_nof_codeblocks());
 
   // Save the pointer to the input data.
   transport_block = data;
@@ -96,10 +96,10 @@ span<const ci8_t> pdsch_block_processor_impl::pop_symbols(unsigned block_size)
     new_codeblock();
   }
 
-  srsran_assert(block_size <= codeblock_symbols.size(),
-                "The block size (i.e., {}) exceeds the number of available symbols (i.e., {}).",
-                block_size,
-                codeblock_symbols.size());
+  ocudu_assert(block_size <= codeblock_symbols.size(),
+               "The block size (i.e., {}) exceeds the number of available symbols (i.e., {}).",
+               block_size,
+               codeblock_symbols.size());
 
   // Select view of the current block.
   span<ci8_t> symbols = codeblock_symbols.first(block_size);

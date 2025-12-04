@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const pdsch_mcs_table& mcs_table)
 {
@@ -30,9 +30,9 @@ std::ostream& operator<<(std::ostream& os, const pdsch_mcs_table& mcs_table)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 // Combined test parameters. MCS table and index.
 using pdsch_mcs_param = std::tuple<pdsch_mcs_table, unsigned>;

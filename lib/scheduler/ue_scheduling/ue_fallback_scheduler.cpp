@@ -20,15 +20,15 @@
 #include "../support/pucch/pucch_guardbands.h"
 #include "../support/pusch/pusch_td_resource_indices.h"
 #include "../uci_scheduling/uci_allocator.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
-#include "srsran/scheduler/result/pusch_info.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/format/custom_formattable.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/scheduler/result/pusch_info.h"
+#include "ocudu/support/format/custom_formattable.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& expert_cfg_,
                                              const cell_configuration&         cell_cfg_,
@@ -46,8 +46,8 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   ss_cfg(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common
              .search_spaces[cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id]),
   cs_cfg(cell_cfg.get_common_coreset(ss_cfg.get_coreset_id())),
-  pucch_crbs(srsran::compute_pucch_crbs(cell_cfg)),
-  logger(srslog::fetch_basic_logger("SCHED"))
+  pucch_crbs(ocudu::compute_pucch_crbs(cell_cfg)),
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   // Pre-reserve memory to avoid allocations in RT.
   pending_dl_ues_new_tx.reserve(MAX_NOF_DU_UES);
@@ -60,7 +60,7 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   // implementations that we work with do not handle well the value k1=8. Instead, in the particular context of RRC
   // Reestablishment, they PRACH instead of sending the PUCCH.
   const unsigned max_k1 = 7U;
-  srsran_sanity_check(expert_cfg.min_k1 <= max_k1, "Invalid min_k1 value");
+  ocudu_sanity_check(expert_cfg.min_k1 <= max_k1, "Invalid min_k1 value");
   for (unsigned k1_value = expert_cfg.min_k1; k1_value <= max_k1; ++k1_value) {
     dci_1_0_k1_values.push_back(k1_value);
   }
@@ -399,7 +399,7 @@ ue_fallback_scheduler::schedule_dl_srb(cell_resource_allocator&              res
     }
 
     const pdsch_time_domain_resource_allocation& pdsch_td_cfg = get_pdsch_td_cfg(time_res_idx.value());
-    srsran_sanity_check(pdsch_td_cfg.k0 == 0, "Fallback scheduler only supports k0=0");
+    ocudu_sanity_check(pdsch_td_cfg.k0 == 0, "Fallback scheduler only supports k0=0");
 
     // We do not support multiplexing of PDSCH for SRB0 and SRB1 when in fallback with CSI-RS.
     const bool is_csi_rs_slot = next_slot == sched_ref_slot ? not pdsch_alloc.result.dl.csi_rs.empty()
@@ -474,7 +474,7 @@ static std::optional<uci_allocation> allocate_ue_fallback_pucch(ue&             
                                                                 bool                        common_alloc,
                                                                 bool                        ded_alloc)
 {
-  srsran_assert(ded_alloc or common_alloc, "Invalid params passed to this function");
+  ocudu_assert(ded_alloc or common_alloc, "Invalid params passed to this function");
   const unsigned pdsch_delay = pdsch_slot - res_alloc.slot_tx();
 
   if (not common_alloc and ded_alloc) {
@@ -578,7 +578,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
     const unsigned only_srb0_bytes   = u.logical_channels().pending_bytes(LCID_SRB0);
     const unsigned only_srb1_bytes   = u.logical_channels().pending_bytes(LCID_SRB1);
     const unsigned pending_bytes     = only_conres_bytes + only_srb0_bytes + only_srb1_bytes;
-    srsran_assert(pending_bytes > 0, "Unexpected number of pending bytes");
+    ocudu_assert(pending_bytes > 0, "Unexpected number of pending bytes");
     // There must be space for ConRes CE, if it is pending. If only SRB0 is pending (no ConRes), there must be space
     // for it, as the SRB0 cannot be segmented.
     const unsigned min_pending_bytes = only_conres_bytes > 0 ? only_conres_bytes : only_srb0_bytes;
@@ -586,7 +586,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
     std::optional<sch_mcs_index> fixed_mcs;
     if (only_srb1_bytes > 0) {
       fixed_mcs = map_cqi_to_mcs(expert_cfg.initial_cqi, pdsch_cfg.mcs_table);
-      srsran_assert(fixed_mcs.has_value(), "Invalid Initial CQI {}", expert_cfg.initial_cqi);
+      ocudu_assert(fixed_mcs.has_value(), "Invalid Initial CQI {}", expert_cfg.initial_cqi);
     }
     std::tuple<unsigned, sch_mcs_index, units::bytes> result =
         select_tbs(pdsch_cfg, pending_bytes, unused_crbs, fixed_mcs);
@@ -825,7 +825,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
         pdsch_slot, uci.k1 + cell_cfg.ntn_cs_koffset, expert_cfg.max_nof_dl_harq_retxs, uci.harq_bit_idx);
   } else {
     bool result = h_dl->new_retx(pdsch_slot, uci.k1 + cell_cfg.ntn_cs_koffset, uci.harq_bit_idx);
-    srsran_sanity_check(result, "Unable to allocate HARQ retx");
+    ocudu_sanity_check(result, "Unable to allocate HARQ retx");
   }
 
   // Fill DL PDCCH DCI.
@@ -848,7 +848,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
                                                       ss_info.cfg->is_common_search_space());
     } break;
     default:
-      srsran_assert(false, "Invalid DCI type for SRB1");
+      ocudu_assert(false, "Invalid DCI type for SRB1");
   }
 
   switch (dci_type) {
@@ -880,7 +880,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
       break;
     }
     default: {
-      srsran_assert(false, "Invalid DCI type for SRB1");
+      ocudu_assert(false, "Invalid DCI type for SRB1");
     }
   }
 
@@ -910,7 +910,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
       break;
     }
     default: {
-      srsran_assert(false, "Invalid DCI type for SRB0 or SRB1");
+      ocudu_assert(false, "Invalid DCI type for SRB0 or SRB1");
     }
   }
 
@@ -947,8 +947,8 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
       get_pusch_td_resource_indices(cell_cfg, pdcch_slot);
 
   if (is_retx) {
-    srsran_sanity_check(h_ul_retx->get_grant_params().dci_cfg_type == dci_ul_rnti_config_type::c_rnti_f0_0,
-                        "Invalid DCI type for UL retransmission for fallback UE");
+    ocudu_sanity_check(h_ul_retx->get_grant_params().dci_cfg_type == dci_ul_rnti_config_type::c_rnti_f0_0,
+                       "Invalid DCI type for UL retransmission for fallback UE");
   }
   static_vector<const search_space_info*, MAX_NOF_SEARCH_SPACE_PER_BWP> search_spaces =
       u.get_pcell().get_active_ul_search_spaces(pdcch_slot, dci_ul_rnti_config_type::c_rnti_f0_0);
@@ -1200,7 +1200,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
   if (remove_pucch) {
     // If the PUCCH needs to be removed, it implies the UE has the dedicated config. This is because the only
     // case in which we remove the PUCCH is when the UCI bits only have SR (see explanation in the calling function).
-    srsran_assert(u.ue_cfg_dedicated() != nullptr, "UE has no dedicated configuration");
+    ocudu_assert(u.ue_cfg_dedicated() != nullptr, "UE has no dedicated configuration");
     pucch_alloc.remove_ue_uci_from_pucch(pusch_alloc, u.crnti, u.get_pcell().cfg());
   }
 
@@ -1246,7 +1246,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
   if (is_retx) {
     // It is a retx.
     bool result = h_ul->new_retx(pdcch_slot + k2 + cell_cfg.ntn_cs_koffset);
-    srsran_sanity_check(result, "Failed to setup HARQ retx");
+    ocudu_sanity_check(result, "Failed to setup HARQ retx");
   } else {
     // It is a new tx.
     h_ul =
@@ -1337,19 +1337,18 @@ ue_fallback_scheduler::get_pdsch_time_res_idx(const pdsch_config_common&        
 
 void ue_fallback_scheduler::store_harq_tx(du_ue_index_t ue_index, const dl_harq_process_handle& h_dl)
 {
-  srsran_sanity_check(ongoing_ues_ack_retxs.end() ==
-                          std::find_if(ongoing_ues_ack_retxs.begin(),
-                                       ongoing_ues_ack_retxs.end(),
-                                       [ue_index, h_dl](const ack_and_retx_tracker& tracker) {
-                                         return tracker.match_ue_harq(ue_index, h_dl);
-                                       }),
-                      "This UE and HARQ process were already in the list");
+  ocudu_sanity_check(ongoing_ues_ack_retxs.end() == std::find_if(ongoing_ues_ack_retxs.begin(),
+                                                                 ongoing_ues_ack_retxs.end(),
+                                                                 [ue_index, h_dl](const ack_and_retx_tracker& tracker) {
+                                                                   return tracker.match_ue_harq(ue_index, h_dl);
+                                                                 }),
+                     "This UE and HARQ process were already in the list");
 
   ongoing_ues_ack_retxs.emplace_back(ue_index, h_dl);
 }
 
 /// Helper function to check if the conRes timer has expired for a given UE in fallback mode.
-static bool handle_conres_expiry(ue& u, slot_point sl_tx, srslog::basic_logger& logger, unsigned ntn_cs_koffset = 0)
+static bool handle_conres_expiry(ue& u, slot_point sl_tx, ocudulog::basic_logger& logger, unsigned ntn_cs_koffset = 0)
 {
   auto& ue_pcell = u.get_pcell();
 
@@ -1417,8 +1416,8 @@ static bool handle_conres_expiry(ue& u, slot_point sl_tx, srslog::basic_logger& 
 void ue_fallback_scheduler::slot_indication(slot_point sl)
 {
   // If there is any skipped slot, reset \ref slots_with_no_pdxch_space for all the skipped slots.
-  if (SRSRAN_LIKELY(last_sl_ind.valid())) {
-    if (SRSRAN_UNLIKELY(last_sl_ind + 1 != sl)) {
+  if (OCUDU_LIKELY(last_sl_ind.valid())) {
+    if (OCUDU_UNLIKELY(last_sl_ind + 1 != sl)) {
       logger.info("UE fallback scheduler: Detected skipped slots within [{}, {}).", last_sl_ind + 1, sl);
       while (last_sl_ind + 1 != sl) {
         // Reset the flag that indicates that there are no resources for the slot that has passed.

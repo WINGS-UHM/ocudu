@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Holds the configuration of a cell.
 /// Additionally, this class pre-caches the computation of some const values related to the cell configuration
@@ -213,4 +213,4 @@ private:
 /// Note: Pointers to cell configurations should remain valid on cell removal/addition.
 using cell_common_configuration_list = slotted_id_vector<du_cell_index_t, std::unique_ptr<cell_configuration>>;
 
-} // namespace srsran
+} // namespace ocudu

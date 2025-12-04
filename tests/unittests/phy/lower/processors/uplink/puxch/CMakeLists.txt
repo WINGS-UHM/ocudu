@@ -7,5 +7,5 @@
 #
 
 add_executable(puxch_processor_test puxch_processor_test.cpp)
-target_link_libraries(puxch_processor_test srsran_lower_phy_puxch_processor srslog gtest gtest_main)
+target_link_libraries(puxch_processor_test ocudu_lower_phy_puxch_processor ocudulog gtest gtest_main)
 add_test(puxch_processor_test puxch_processor_test)

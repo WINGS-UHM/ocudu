@@ -10,12 +10,12 @@
 
 #include "pdu_session_resource_setup_routine.h"
 #include "pdu_session_routine_helpers.h"
-#include "srsran/ran/cause/common.h"
-#include "srsran/ran/cause/e1ap_cause_converters.h"
-#include "srsran/ran/cause/ngap_cause.h"
+#include "ocudu/ran/cause/common.h"
+#include "ocudu/ran/cause/e1ap_cause_converters.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 // Free function to amend to the final procedure response message. This will take the results from the various
@@ -28,7 +28,7 @@ bool handle_bearer_context_modification_response(
     const e1ap_bearer_context_modification_response& bearer_context_modification_response,
     up_resource_manager&                             up_resource_mng,
     const security_indication_t&                     default_security_indication,
-    srslog::basic_logger&                            logger);
+    ocudulog::basic_logger&                          logger);
 
 // Same as above but taking the result from E1AP Bearer Context Setup message.
 bool handle_bearer_context_setup_response(cu_cp_pdu_session_resource_setup_response&      response_msg,
@@ -38,7 +38,7 @@ bool handle_bearer_context_setup_response(cu_cp_pdu_session_resource_setup_respo
                                           up_config_update&                               next_config,
                                           up_resource_manager&                            up_resource_mng_,
                                           const security_indication_t&                    default_security_indication,
-                                          srslog::basic_logger&                           logger);
+                                          ocudulog::basic_logger&                         logger);
 
 // This method takes the F1AP UE Context Modification Response message and pre-fills the subsequent
 // bearer context modification message to be send to the CU-UP.
@@ -49,17 +49,17 @@ bool handle_ue_context_modification_response(
     const cu_cp_pdu_session_resource_setup_request& setup_msg,
     const f1ap_ue_context_modification_response&    ue_context_modification_response,
     const up_config_update&                         next_config,
-    const srslog::basic_logger&                     logger);
+    const ocudulog::basic_logger&                   logger);
 
 bool handle_rrc_reconfiguration_response(cu_cp_pdu_session_resource_setup_response&      response_msg,
                                          const cu_cp_pdu_session_resource_setup_request& setup_msg,
                                          bool                                            rrc_reconfig_result,
-                                         const srslog::basic_logger&                     logger);
+                                         const ocudulog::basic_logger&                   logger);
 
 pdu_session_resource_setup_routine::pdu_session_resource_setup_routine(
     const cu_cp_pdu_session_resource_setup_request& setup_msg_,
     const ue_configuration&                         ue_cfg_,
-    const srsran::security::sec_as_config&          security_cfg_,
+    const ocudu::security::sec_as_config&           security_cfg_,
     const security_indication_t&                    default_security_indication_,
     e1ap_bearer_context_manager&                    e1ap_bearer_ctxt_mng_,
     f1ap_ue_context_manager&                        f1ap_ue_ctxt_mng_,
@@ -67,7 +67,7 @@ pdu_session_resource_setup_routine::pdu_session_resource_setup_routine(
     cu_cp_rrc_ue_interface&                         cu_cp_notifier_,
     ue_task_scheduler&                              ue_task_sched_,
     up_resource_manager&                            up_resource_mng_,
-    srslog::basic_logger&                           logger_) :
+    ocudulog::basic_logger&                         logger_) :
   setup_msg(setup_msg_),
   ue_cfg(ue_cfg_),
   security_cfg(security_cfg_),
@@ -284,10 +284,10 @@ static bool update_setup_list_with_bearer_ctxt_setup_mod_response(
     up_config_update&                                                               next_config,
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>&    ngap_setup_list,
     const slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_setup_modification_item>&
-                                 pdu_session_resource_setup_list,
-    up_resource_manager&         up_resource_mng,
-    const security_indication_t& default_security_indication,
-    const srslog::basic_logger&  logger)
+                                  pdu_session_resource_setup_list,
+    up_resource_manager&          up_resource_mng,
+    const security_indication_t&  default_security_indication,
+    const ocudulog::basic_logger& logger)
 {
   // Set up SRB2 if this is the first DRB to be setup.
   if (up_resource_mng.get_nof_drbs() == 0) {
@@ -444,7 +444,7 @@ static bool validate_next_config_with_bearer_ctxt_mod_response(
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& ngap_setup_list,
     const e1ap_bearer_context_modification_response&                             bearer_contxt_mod_response,
     const up_config_update&                                                      next_config,
-    const srslog::basic_logger&                                                  logger)
+    const ocudulog::basic_logger&                                                logger)
 {
   for (const auto& e1ap_item : bearer_contxt_mod_response.pdu_session_resource_modified_list) {
     const auto& psi = e1ap_item.pdu_session_id;
@@ -524,7 +524,7 @@ bool handle_bearer_context_modification_response(
     const e1ap_bearer_context_modification_response& bearer_context_modification_response,
     up_resource_manager&                             up_resource_mng,
     const security_indication_t&                     default_security_indication,
-    srslog::basic_logger&                            logger)
+    ocudulog::basic_logger&                          logger)
 {
   // Traverse setup list.
   if (!update_setup_list_with_bearer_ctxt_setup_mod_response(
@@ -567,7 +567,7 @@ bool handle_bearer_context_setup_response(cu_cp_pdu_session_resource_setup_respo
                                           up_config_update&                               next_config,
                                           up_resource_manager&                            up_resource_mng_,
                                           const security_indication_t&                    default_security_indication,
-                                          srslog::basic_logger&                           logger)
+                                          ocudulog::basic_logger&                         logger)
 {
   // Traverse setup list.
   if (!update_setup_list_with_bearer_ctxt_setup_mod_response(
@@ -610,7 +610,7 @@ bool handle_ue_context_modification_response(
     const cu_cp_pdu_session_resource_setup_request& setup_msg,
     const f1ap_ue_context_modification_response&    ue_context_modification_response,
     const up_config_update&                         next_config,
-    const srslog::basic_logger&                     logger)
+    const ocudulog::basic_logger&                   logger)
 {
   // Fail procedure if (single) DRB couldn't be setup.
   if (!ue_context_modification_response.drbs_failed_to_be_setup_list.empty()) {
@@ -637,7 +637,7 @@ bool handle_ue_context_modification_response(
 bool handle_rrc_reconfiguration_response(cu_cp_pdu_session_resource_setup_response&      response_msg,
                                          const cu_cp_pdu_session_resource_setup_request& setup_msg,
                                          bool                                            rrc_reconfig_result,
-                                         const srslog::basic_logger&                     logger)
+                                         const ocudulog::basic_logger&                   logger)
 {
   // Let all PDU sessions fail if response is negative.
   if (!rrc_reconfig_result) {

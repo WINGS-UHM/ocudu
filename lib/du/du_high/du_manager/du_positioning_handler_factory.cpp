@@ -8,20 +8,20 @@
  *
  */
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 #include "du_positioning_handler_factory.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
 class dummy_du_positioning_handler : public f1ap_du_positioning_handler
 {
 public:
-  dummy_du_positioning_handler(srslog::basic_logger& logger_) : logger(logger_) {}
+  dummy_du_positioning_handler(ocudulog::basic_logger& logger_) : logger(logger_) {}
 
   du_trp_info_response request_trp_info() override
   {
@@ -43,15 +43,15 @@ public:
   }
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace
 
-std::unique_ptr<f1ap_du_positioning_handler> srs_du::create_du_positioning_handler(const du_manager_params& du_params,
-                                                                                   du_cell_manager&         cell_mng,
-                                                                                   du_ue_manager&           ue_mng,
-                                                                                   srslog::basic_logger&    logger)
+std::unique_ptr<f1ap_du_positioning_handler> odu::create_du_positioning_handler(const du_manager_params& du_params,
+                                                                                du_cell_manager&         cell_mng,
+                                                                                du_ue_manager&           ue_mng,
+                                                                                ocudulog::basic_logger&  logger)
 {
   return std::make_unique<dummy_du_positioning_handler>(logger);
 }

@@ -12,7 +12,7 @@
 #include "apps/helpers/e2/e2_config_yaml_writer.h"
 #include "o_cu_up_e2_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_o_cu_up_e2_pcap_section(YAML::Node node, const o_cu_up_e2_pcap_config& config)
 {
@@ -20,7 +20,7 @@ static void fill_o_cu_up_e2_pcap_section(YAML::Node node, const o_cu_up_e2_pcap_
   node["e2ap_cu_up_enable"]   = config.enabled;
 }
 
-void srsran::fill_o_cu_up_e2_config_in_yaml_schema(YAML::Node& node, const o_cu_up_e2_config& config)
+void ocudu::fill_o_cu_up_e2_config_in_yaml_schema(YAML::Node& node, const o_cu_up_e2_config& config)
 {
   YAML::Node e2_node         = node["e2"];
   e2_node["enable_cu_up_e2"] = config.base_config.enable_unit_e2;

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_du {
+namespace odu {
 struct o_du_low_metrics;
 }
 
@@ -22,33 +22,34 @@ struct o_du_low_metrics;
 class o_du_low_metrics_consumer_json
 {
 public:
-  explicit o_du_low_metrics_consumer_json(srslog::log_channel& log_chan_) : log_chan(log_chan_)
+  explicit o_du_low_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
   {
-    srsran_assert(log_chan.enabled(), "JSON log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // Handles the O-RU metrics.
-  void handle_metric(const srs_du::o_du_low_metrics& metric);
+  void handle_metric(const odu::o_du_low_metrics& metric);
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// Logger consumer for the O-DU low metrics.
 class o_du_low_metrics_consumer_log
 {
 public:
-  o_du_low_metrics_consumer_log(srslog::log_channel& log_chan_, bool verbose_) : log_chan(log_chan_), verbose(verbose_)
+  o_du_low_metrics_consumer_log(ocudulog::log_channel& log_chan_, bool verbose_) :
+    log_chan(log_chan_), verbose(verbose_)
   {
-    srsran_assert(log_chan.enabled(), "JSON log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // Handles the O-RU metrics.
-  void handle_metric(const srs_du::o_du_low_metrics& metric);
+  void handle_metric(const odu::o_du_low_metrics& metric);
 
 private:
-  srslog::log_channel& log_chan;
-  const bool           verbose;
+  ocudulog::log_channel& log_chan;
+  const bool             verbose;
 };
 
-} // namespace srsran
+} // namespace ocudu

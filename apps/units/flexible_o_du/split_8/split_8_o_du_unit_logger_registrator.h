@@ -15,7 +15,7 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_logger_registrator.h"
 #include "split_8_o_du_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers all the loggers for the O-RAN DU split 8.
 inline void register_split_8_o_du_loggers(const split_8_o_du_unit_config& config)
@@ -25,4 +25,4 @@ inline void register_split_8_o_du_loggers(const split_8_o_du_unit_config& config
   register_ru_sdr_logs(config.ru_cfg.loggers);
 }
 
-} // namespace srsran
+} // namespace ocudu

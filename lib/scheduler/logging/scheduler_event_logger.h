@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/pusch/pusch_tpmi_select.h"
-#include "srsran/scheduler/mac_scheduler.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/pusch/pusch_tpmi_select.h"
+#include "ocudu/scheduler/mac_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class scheduler_event_logger
 {
@@ -144,12 +144,12 @@ private:
   void enqueue_impl(const srs_indication_event& srs_ev);
   void enqueue_impl(const slice_reconfiguration_event& slice_reconf_ev);
 
-  const du_cell_index_t cell_index;
-  const pci_t           pci;
-  srslog::basic_logger& logger;
-  mode_t                mode = none;
+  const du_cell_index_t   cell_index;
+  const pci_t             pci;
+  ocudulog::basic_logger& logger;
+  mode_t                  mode = none;
 
   fmt::memory_buffer fmtbuf;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,20 +10,20 @@
 
 #include "ru_controller_sdr_impl.h"
 #include "lower_phy/lower_phy_sector.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter_metadata.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
-#include "srsran/phy/lower/lower_phy_controller.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/lower/processors/lower_phy_cfo_controller.h"
-#include "srsran/phy/lower/processors/lower_phy_tx_time_offset_controller.h"
-#include "srsran/radio/radio_session.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter_metadata.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
+#include "ocudu/phy/lower/lower_phy_controller.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/lower/processors/lower_phy_cfo_controller.h"
+#include "ocudu/phy/lower/processors/lower_phy_tx_time_offset_controller.h"
+#include "ocudu/radio/radio_session.h"
+#include "ocudu/support/math/math_utils.h"
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 ru_controller_sdr_impl::ru_controller_sdr_impl(double                                               srate_MHz_,
                                                std::optional<std::chrono::system_clock::time_point> start_time_) :
@@ -33,8 +33,8 @@ ru_controller_sdr_impl::ru_controller_sdr_impl(double                           
 
 void ru_controller_sdr_impl::start()
 {
-  srsran_assert(radio, "Null radio");
-  srsran_assert(!lower_phy_sectors.empty(), "Empty list of lower phy sectors");
+  ocudu_assert(radio, "Null radio");
+  ocudu_assert(!lower_phy_sectors.empty(), "Empty list of lower phy sectors");
 
   // Start streaming at the given time.
   if (start_time.has_value()) {
@@ -96,7 +96,7 @@ void ru_controller_sdr_impl::stop()
 
 void ru_controller_sdr_impl::set_lower_phy_sectors(std::vector<lower_phy_sector*> sectors)
 {
-  srsran_assert(!sectors.empty(), "Could not set empty sectors");
+  ocudu_assert(!sectors.empty(), "Could not set empty sectors");
 
   lower_phy_sectors = std::move(sectors);
 

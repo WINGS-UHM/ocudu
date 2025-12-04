@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ran/csi_report/csi_report_configuration.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 constexpr unsigned MAX_NUM_RI_RESTRICTIONS = (1U << 4);
@@ -32,4 +32,4 @@ inline unsigned get_uci_part2_correspondence_index(unsigned nof_csi_resources,
 }
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

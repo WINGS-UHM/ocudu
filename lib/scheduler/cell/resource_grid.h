@@ -13,13 +13,13 @@
 #include "../config/cell_configuration.h"
 #include "../support/bwp_helpers.h"
 #include "../support/rb_helper.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/adt/circular_vector.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/adt/circular_vector.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/resource_grid_util.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Parameters of a PDSCH or PUSCH grant allocation within a BWP.
 struct bwp_sch_grant_info {
@@ -31,8 +31,8 @@ struct bwp_sch_grant_info {
   bwp_sch_grant_info(const bwp_configuration& bwp_, ofdm_symbol_range symbols_, prb_interval prbs_) :
     bwp_cfg(&bwp_), symbols(symbols_), prbs(prbs_)
   {
-    srsran_sanity_check(symbols.stop() <= get_nsymb_per_slot(bwp_cfg->cp), "OFDM symbols do not fit slot");
-    srsran_sanity_check(prbs.stop() <= bwp_cfg->crbs.length(), "PRBs={} do not fit BWP={}", prbs, bwp_cfg->crbs);
+    ocudu_sanity_check(symbols.stop() <= get_nsymb_per_slot(bwp_cfg->cp), "OFDM symbols do not fit slot");
+    ocudu_sanity_check(prbs.stop() <= bwp_cfg->crbs.length(), "PRBs={} do not fit BWP={}", prbs, bwp_cfg->crbs);
   }
 };
 
@@ -310,7 +310,7 @@ struct cell_resource_allocator {
     assert_valid_sl(slot_delay);
     slot_point                          sl_tx = last_slot_ind + slot_delay;
     const cell_slot_resource_allocator& r     = slots[sl_tx.count()];
-    srsran_assert(r.slot == sl_tx, "Bad access to uninitialized cell_resource_grid");
+    ocudu_assert(r.slot == sl_tx, "Bad access to uninitialized cell_resource_grid");
     return r;
   }
   cell_slot_resource_allocator& operator[](unsigned slot_delay)
@@ -318,7 +318,7 @@ struct cell_resource_allocator {
     assert_valid_sl(slot_delay);
     slot_point                    sl_tx = last_slot_ind + slot_delay;
     cell_slot_resource_allocator& r     = slots[sl_tx.count()];
-    srsran_assert(r.slot == sl_tx, "Bad access to uninitialized cell_resource_grid");
+    ocudu_assert(r.slot == sl_tx, "Bad access to uninitialized cell_resource_grid");
     return r;
   }
 
@@ -336,7 +336,7 @@ struct cell_resource_allocator {
       return nullptr;
     }
     const cell_slot_resource_allocator& r = slots[slot.count()];
-    srsran_assert(r.slot == slot, "Bad access to uninitialized cell_resource_grid");
+    ocudu_assert(r.slot == slot, "Bad access to uninitialized cell_resource_grid");
     return &r;
   }
 
@@ -344,9 +344,9 @@ private:
   /// Ensure we are not overflowing the ring.
   void assert_valid_sl(unsigned slot_delay) const
   {
-    srsran_sanity_check(slot_delay <= max_ul_slot_alloc_delay,
-                        "The cell resource pool is too small for accessing a slot with delay: {}",
-                        slot_delay);
+    ocudu_sanity_check(slot_delay <= max_ul_slot_alloc_delay,
+                       "The cell resource pool is too small for accessing a slot with delay: {}",
+                       slot_delay);
   }
 
   /// The latest slot value indicated by the PHY to the MAC/scheduler.
@@ -356,12 +356,12 @@ private:
   circular_vector<cell_slot_resource_allocator> slots;
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::carrier_subslot_resource_grid> {
+struct formatter<ocudu::carrier_subslot_resource_grid> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -369,9 +369,9 @@ struct formatter<srsran::carrier_subslot_resource_grid> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::carrier_subslot_resource_grid& grid, FormatContext& ctx) const
+  auto format(const ocudu::carrier_subslot_resource_grid& grid, FormatContext& ctx) const
   {
-    for (unsigned i = 0; i != srsran::NOF_OFDM_SYM_PER_SLOT_NORMAL_CP; ++i) {
+    for (unsigned i = 0; i != ocudu::NOF_OFDM_SYM_PER_SLOT_NORMAL_CP; ++i) {
       format_to(ctx.out(), "\n{}", grid.used_crbs({0, grid.nof_rbs()}, {i, i + 1}));
     }
     return ctx.out();
@@ -379,7 +379,7 @@ struct formatter<srsran::carrier_subslot_resource_grid> {
 };
 
 template <>
-struct formatter<srsran::cell_slot_resource_grid> {
+struct formatter<ocudu::cell_slot_resource_grid> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -387,10 +387,10 @@ struct formatter<srsran::cell_slot_resource_grid> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::cell_slot_resource_grid& grid, FormatContext& ctx) const
+  auto format(const ocudu::cell_slot_resource_grid& grid, FormatContext& ctx) const
   {
     auto scs_list = grid.active_scs();
-    for (srsran::subcarrier_spacing scs : scs_list) {
+    for (ocudu::subcarrier_spacing scs : scs_list) {
       const auto& carrier_grid = grid.get_carrier_res_grid(scs);
       format_to(ctx.out(), "{}kHz: {}\n", scs_to_khz(scs), carrier_grid);
     }

@@ -12,10 +12,10 @@
 #include "lib/scheduler/config/logical_channel_config_pool.h"
 #include "lib/scheduler/ue_context/logical_channel_system.h"
 #include "lib/scheduler/ue_context/ue_drx_controller.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using msec = std::chrono::milliseconds;
 
@@ -41,7 +41,7 @@ protected:
   logical_channel_system          lc_ch_sys;
   ue_logical_channel_repository   ue_lc_chs;
   slot_point                      ul_ccch_slot{to_numerology_value(scs), 0};
-  srslog::basic_logger&           logger = srslog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger&         logger = ocudulog::fetch_basic_logger("SCHED");
   ue_drx_controller               drx{scs, conres_timer, drx_cfg, ue_lc_chs, ul_ccch_slot, logger};
 
   const unsigned period_slots = drx_cfg.has_value() ? drx_cfg->long_cycle.count() * get_nof_slots_per_subframe(scs) : 0;

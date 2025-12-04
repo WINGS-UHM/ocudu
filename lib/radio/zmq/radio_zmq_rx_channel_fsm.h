@@ -14,7 +14,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// Finite state machine for the ZeroMQ-based radio receive channel.
 class radio_zmq_rx_channel_fsm
@@ -136,4 +136,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

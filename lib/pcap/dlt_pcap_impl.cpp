@@ -10,16 +10,16 @@
 
 #include "dlt_pcap_impl.h"
 #include "pcap_dlts.h"
-#include "srsran/adt/byte_buffer.h"
+#include "ocudu/adt/byte_buffer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 dlt_pcap_impl::dlt_pcap_impl(uint32_t           dlt,
                              const std::string& layer_name_,
                              const std::string& filename,
                              const std::string& dissector_,
                              task_executor&     backend_exec_) :
-  logger(srslog::fetch_basic_logger("ALL")), writer(dlt, layer_name_, filename, dissector_, backend_exec_)
+  logger(ocudulog::fetch_basic_logger("ALL")), writer(dlt, layer_name_, filename, dissector_, backend_exec_)
 {
 }
 
@@ -66,36 +66,36 @@ static std::unique_ptr<dlt_pcap> create_dlt_pcap(unsigned           dlt,
                                                  const char*        dissector,
                                                  task_executor&     backend_exec)
 {
-  srsran_assert(not filename.empty(), "File name is empty");
+  ocudu_assert(not filename.empty(), "File name is empty");
   return std::make_unique<dlt_pcap_impl>(dlt, layer_name, filename, dissector, backend_exec);
 }
 
-std::unique_ptr<dlt_pcap> srsran::create_null_dlt_pcap()
+std::unique_ptr<dlt_pcap> ocudu::create_null_dlt_pcap()
 {
   return std::make_unique<null_dlt_pcap>();
 }
 
-std::unique_ptr<dlt_pcap> srsran::create_ngap_pcap(const std::string& filename, task_executor& backend_exec)
+std::unique_ptr<dlt_pcap> ocudu::create_ngap_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "NGAP", filename, "ngap", backend_exec);
 }
 
-std::unique_ptr<dlt_pcap> srsran::create_f1ap_pcap(const std::string& filename, task_executor& backend_exec)
+std::unique_ptr<dlt_pcap> ocudu::create_f1ap_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "F1AP", filename, "f1ap", backend_exec);
 }
 
-std::unique_ptr<dlt_pcap> srsran::create_e1ap_pcap(const std::string& filename, task_executor& backend_exec)
+std::unique_ptr<dlt_pcap> ocudu::create_e1ap_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "E1AP", filename, "e1ap", backend_exec);
 }
 
-std::unique_ptr<dlt_pcap> srsran::create_gtpu_pcap(const std::string& filename, task_executor& backend_exec)
+std::unique_ptr<dlt_pcap> ocudu::create_gtpu_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "GTPU", filename, "gtp", backend_exec);
 }
 
-std::unique_ptr<dlt_pcap> srsran::create_e2ap_pcap(const std::string& filename, task_executor& backend_exec)
+std::unique_ptr<dlt_pcap> ocudu::create_e2ap_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "E2AP", filename, "e2ap", backend_exec);
 }

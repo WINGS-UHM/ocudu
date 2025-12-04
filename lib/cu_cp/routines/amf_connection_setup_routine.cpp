@@ -9,24 +9,24 @@
  */
 
 #include "amf_connection_setup_routine.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_setup.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/support/async/coroutine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 async_task<bool>
-srsran::srs_cu_cp::start_amf_connection_setup(ngap_repository&                                    ngap_db,
-                                              std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected)
+ocudu::ocucp::start_amf_connection_setup(ngap_repository&                                    ngap_db,
+                                         std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected)
 {
   amfs_connected.emplace(ngap_db.get_ngaps().begin()->first, false);
   return launch_async<amf_connection_setup_routine>(ngap_db, amfs_connected.begin()->second);
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 amf_connection_setup_routine::amf_connection_setup_routine(ngap_repository&   ngap_db_,
                                                            std::atomic<bool>& amf_connected_) :
@@ -34,7 +34,7 @@ amf_connection_setup_routine::amf_connection_setup_routine(ngap_repository&   ng
   amf_connected(amf_connected_),
   amf_index(ngap_db_.get_ngaps().begin()->first),
   ngap(ngap_db_.get_ngaps().begin()->second),
-  logger(srslog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

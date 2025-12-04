@@ -14,22 +14,22 @@
 #include "uplink_pdu_slot_repository_impl.h"
 #include "uplink_processor_fsm.h"
 #include "uplink_slot_processor_alt_impl.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/phy/upper/phy_tap/phy_tap.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator.h"
-#include "srsran/phy/upper/uplink_processor.h"
-#include "srsran/phy/upper/uplink_slot_processor.h"
-#include "srsran/phy/upper/upper_phy_rx_results_notifier.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/phy/upper/phy_tap/phy_tap.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator.h"
+#include "ocudu/phy/upper/uplink_processor.h"
+#include "ocudu/phy/upper/uplink_slot_processor.h"
+#include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <utility>
 
-namespace srsran {
+namespace ocudu {
 namespace detail {
 
 /// \brief Adapts the PUSCH processor result notifier to the upper PHY receive results notifier.
@@ -72,7 +72,7 @@ private:
   // See interface for documentation.
   void on_uci(const pusch_processor_result_control& uci) override
   {
-    srsran_assert(notifier != nullptr, "Invalid notifier.");
+    ocudu_assert(notifier != nullptr, "Invalid notifier.");
 
     ul_pusch_results_control result;
     result.rnti = rnti;
@@ -102,7 +102,7 @@ private:
     // Gets the notifier and invalidates. It makes sure the notifier is no longer available after the exchange.
     upper_phy_rx_results_notifier* notifier_ = nullptr;
     std::exchange(notifier_, notifier);
-    srsran_assert(notifier_ != nullptr, "Invalid notifier.");
+    ocudu_assert(notifier_ != nullptr, "Invalid notifier.");
 
     // Notify the completion of PUSCH data.
     ul_pusch_results_data result;
@@ -264,7 +264,7 @@ private:
   /// Pool of containers for the payload.
   rx_payload_buffer_pool rx_payload_pool;
   /// General PHY logger, used to notify pool failures.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Slot context.
   slot_point current_slot;
   /// Upper physical layer receive results notifier reference.
@@ -277,4 +277,4 @@ private:
   /// contain any receive requests.
   uplink_slot_processor_alt_impl alternative_processor;
 };
-} // namespace srsran
+} // namespace ocudu

@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_cp/ue_task_scheduler.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/timers.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/ue_task_scheduler.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/timers.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ue_task_scheduler_manager;
 
@@ -53,7 +53,7 @@ public:
   /// \return true if the task was successfully enqueued. False, otherwise.
   bool schedule_async_task(async_task<void> task) override
   {
-    srsran_assert(parent != nullptr, "UE task scheduler not set");
+    ocudu_assert(parent != nullptr, "UE task scheduler not set");
     return ue_sched->second->schedule(std::move(task));
   }
 
@@ -76,7 +76,7 @@ private:
 class ue_task_scheduler_manager
 {
 public:
-  explicit ue_task_scheduler_manager(timer_manager& timers_, task_executor& exec_, srslog::basic_logger& logger_);
+  explicit ue_task_scheduler_manager(timer_manager& timers_, task_executor& exec_, ocudulog::basic_logger& logger_);
 
   void stop();
 
@@ -97,9 +97,9 @@ private:
 
   void rem_ue_task_loop(ue_index_t ue_idx);
 
-  timer_manager&        timers;
-  task_executor&        exec;
-  srslog::basic_logger& logger;
+  timer_manager&          timers;
+  task_executor&          exec;
+  ocudulog::basic_logger& logger;
 
   // task event loops indexed by ue_index
   std::unordered_map<ue_index_t, std::unique_ptr<fifo_async_task_scheduler>> ue_ctrl_loop;
@@ -107,5 +107,5 @@ private:
   fifo_async_task_scheduler ues_to_rem;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

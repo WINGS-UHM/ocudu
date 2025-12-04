@@ -10,16 +10,16 @@
 
 #include "ofh_data_flow_uplane_downlink_data_impl.h"
 #include "ofh_uplane_fragment_size_calculator.h"
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/ofh/timing/slot_symbol_point.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/ofh/timing/slot_symbol_point.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ran/resource_block.h"
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Generates and returns the downlink Open Fronthaul user parameters for the given context.
@@ -75,11 +75,11 @@ data_flow_uplane_downlink_data_impl::data_flow_uplane_downlink_data_impl(
   up_builder(std::move(dependencies.up_builder)),
   formatted_trace_names(config.dl_eaxc)
 {
-  srsran_assert(eth_builder, "Invalid Ethernet VLAN packet builder");
-  srsran_assert(ecpri_builder, "Invalid eCPRI packet builder");
-  srsran_assert(compressor_sel, "Invalid compressor selector");
-  srsran_assert(up_builder, "Invalid User-Plane message builder");
-  srsran_assert(frame_pool, "Invalid frame pool");
+  ocudu_assert(eth_builder, "Invalid Ethernet VLAN packet builder");
+  ocudu_assert(ecpri_builder, "Invalid eCPRI packet builder");
+  ocudu_assert(compressor_sel, "Invalid compressor selector");
+  ocudu_assert(up_builder, "Invalid User-Plane message builder");
+  ocudu_assert(frame_pool, "Invalid frame pool");
 }
 
 void data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message(
@@ -100,7 +100,7 @@ void data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message_symbol_
 
   // Temporary buffer used to store IQ data when the RU operating bandwidth is not the same to the cell bandwidth.
   std::array<cbf16_t, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB> temp_buffer;
-  if (SRSRAN_UNLIKELY(ru_nof_prbs * NOF_SUBCARRIERS_PER_RB != reader.get_nof_subc())) {
+  if (OCUDU_UNLIKELY(ru_nof_prbs * NOF_SUBCARRIERS_PER_RB != reader.get_nof_subc())) {
     // Zero out the elements that won't be filled after reading the resource grid.
     std::fill(temp_buffer.begin() + reader.get_nof_subc(), temp_buffer.end(), 0);
   }
@@ -116,7 +116,7 @@ void data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message_symbol_
     slot_symbol_point symbol_point(context.slot, symbol_id, nof_symbols_per_slot);
 
     span<const cbf16_t> iq_data;
-    if (SRSRAN_LIKELY(ru_nof_prbs * NOF_SUBCARRIERS_PER_RB == reader.get_nof_subc())) {
+    if (OCUDU_LIKELY(ru_nof_prbs * NOF_SUBCARRIERS_PER_RB == reader.get_nof_subc())) {
       iq_data = reader.get_view(context.port, symbol_id);
     } else {
       span<cbf16_t> temp_iq_data(temp_buffer.data(), ru_nof_prbs * NOF_SUBCARRIERS_PER_RB);
@@ -134,7 +134,7 @@ void data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message_symbol_
       auto        scoped_buffer  = frame_pool->reserve(symbol_point);
       ofh_tracer << trace_event("ofh_uplane_pool_access", pool_access_tp);
 
-      if (SRSRAN_UNLIKELY(!scoped_buffer)) {
+      if (OCUDU_UNLIKELY(!scoped_buffer)) {
         logger.warning(
             "Sector#{}: not enough space in the buffer pool to create a downlink User-Plane message for slot "
             "'{}' and eAxC '{}', symbol_id '{}'",
@@ -150,7 +150,7 @@ void data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message_symbol_
           fragment_start_prb, fragment_nof_prbs, data.size() - headers_size.value());
 
       // Skip frame buffers so small that cannot carry one PRB.
-      if (SRSRAN_UNLIKELY(fragment_nof_prbs == 0)) {
+      if (OCUDU_UNLIKELY(fragment_nof_prbs == 0)) {
         logger.warning("Sector#{}: skipped frame buffer as it cannot store data for a single PRB, required buffer size "
                        "is '{}' bytes",
                        sector_id,
@@ -198,7 +198,7 @@ unsigned data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message_sym
   span<uint8_t> eth_buffer = span<uint8_t>(buffer).first(ether_header_size.value() + bytes_written);
   eth_builder->build_frame(eth_buffer);
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sector#{}: packing a downlink User-Plane message for slot '{}' and eAxC '{}', symbol_id '{}', PRB "
                  "range '{}:{}', size '{}' bytes",
                  sector_id,

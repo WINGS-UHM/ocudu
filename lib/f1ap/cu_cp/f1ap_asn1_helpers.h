@@ -12,18 +12,18 @@
 
 #include "../asn1_helpers.h"
 #include "f1ap_asn1_converters.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Convert the \c cu_cp_paging_message type to ASN.1.
 /// \param[out] asn1_paging The ASN.1 type struct to store the result.
@@ -71,5 +71,5 @@ inline void fill_asn1_paging_message(asn1::f1ap::paging_s& asn1_paging, const cu
   }
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

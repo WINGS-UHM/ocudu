@@ -12,7 +12,7 @@
 
 #include "apps/services/metrics/metrics_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 class metrics_set;
@@ -35,4 +35,4 @@ public:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

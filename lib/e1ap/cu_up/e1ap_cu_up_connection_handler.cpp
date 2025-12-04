@@ -11,8 +11,8 @@
 #include "e1ap_cu_up_connection_handler.h"
 #include <utility>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 namespace {
 
@@ -43,7 +43,7 @@ e1ap_cu_up_connection_handler::e1ap_cu_up_connection_handler(e1_connection_clien
   e1ap_pdu_handler(e1ap_pdu_handler_),
   cu_up_manager(cu_up_manager_),
   cu_up_executor(cu_up_executor_),
-  logger(srslog::fetch_basic_logger("CU-UP-E1"))
+  logger(ocudulog::fetch_basic_logger("CU-UP-E1"))
 {
 }
 

@@ -10,8 +10,8 @@
 
 #include "o_cu_up_impl.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 void o_cu_up_impl::start()
 {

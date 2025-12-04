@@ -11,16 +11,16 @@
 #pragma once
 
 #include "ofh_timing_metrics_collector_impl.h"
-#include "srsran/adt/span.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier_manager.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier_manager.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class ota_symbol_boundary_notifier;
@@ -73,7 +73,7 @@ class realtime_timing_worker : public operation_controller, public ota_symbol_bo
     }
   };
 
-  srslog::basic_logger&                          logger;
+  ocudulog::basic_logger&                        logger;
   std::vector<ota_symbol_boundary_notifier*>     ota_notifiers;
   task_executor&                                 executor;
   const subcarrier_spacing                       scs;
@@ -89,7 +89,7 @@ class realtime_timing_worker : public operation_controller, public ota_symbol_bo
   timing_metrics_collector_impl                  metrics_collector;
 
 public:
-  realtime_timing_worker(srslog::basic_logger& logger_, task_executor& executor_, const realtime_worker_cfg& cfg);
+  realtime_timing_worker(ocudulog::basic_logger& logger_, task_executor& executor_, const realtime_worker_cfg& cfg);
 
   // See interface for documentation.
   void start() override;
@@ -132,4 +132,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

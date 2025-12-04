@@ -12,7 +12,7 @@
 
 #include "ngu_session_manager.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class ngu_session_manager_impl : public ngu_session_manager
 {
@@ -27,4 +27,4 @@ private:
   uint32_t                                                  next_gw = 0;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

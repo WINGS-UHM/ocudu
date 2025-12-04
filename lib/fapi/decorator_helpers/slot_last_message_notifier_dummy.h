@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/slot_last_message_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Dummy FAPI slot last message notifier that will close the application if its methods are called.
@@ -24,4 +24,4 @@ public:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

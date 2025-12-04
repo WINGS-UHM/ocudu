@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 class f1ap_message_notifier;
 
-namespace srs_du {
+namespace odu {
 
 class f1ap_du_ue_manager;
 
@@ -45,10 +45,10 @@ private:
   f1ap_du_configurator&     du_mng;
   f1ap_du_ue_manager&       ue_mng;
   f1ap_message_notifier&    msg_notifier;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 
   std::vector<asn1::f1ap::ue_associated_lc_f1_conn_item_s> ues_reset;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

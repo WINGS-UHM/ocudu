@@ -11,16 +11,16 @@
 #pragma once
 
 #include "../du_ue/du_bearer.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/f1ap/du/f1ap_du_ue_config.h"
-#include "srsran/mac/mac_lc_config.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/rlc/rlc_config.h"
-#include "srsran/rlc/rlc_factory.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/f1ap/du/f1ap_du_ue_config.h"
+#include "ocudu/mac/mac_lc_config.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/rlc/rlc_config.h"
+#include "ocudu/rlc/rlc_factory.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Create configuration for RLC SRB entity.
 rlc_entity_creation_message make_rlc_entity_creation_message(gnb_du_id_t                              du_id,
@@ -43,5 +43,5 @@ rlc_entity_creation_message make_rlc_entity_creation_message(gnb_du_id_t        
                                                              rlc_metrics_notifier*                    rlc_metrics_notif,
                                                              rlc_pcap&                                rlc_pcap);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

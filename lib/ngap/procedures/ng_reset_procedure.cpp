@@ -10,11 +10,11 @@
 
 #include "ng_reset_procedure.h"
 #include "ngap_asn1_converters.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/ngap/ngap_message.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/ngap/ngap_message.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
 static constexpr std::chrono::milliseconds ng_reset_response_timeout{5000};
@@ -23,7 +23,7 @@ ng_reset_procedure::ng_reset_procedure(const cu_cp_reset&        msg_,
                                        ngap_message_notifier&    amf_notif_,
                                        ngap_transaction_manager& ev_mng_,
                                        ngap_ue_context_list&     ue_ctxt_list_,
-                                       srslog::basic_logger&     logger_) :
+                                       ocudulog::basic_logger&   logger_) :
   msg(msg_), amf_notifier(amf_notif_), ev_mng(ev_mng_), ue_ctxt_list(ue_ctxt_list_), logger(logger_)
 {
 }

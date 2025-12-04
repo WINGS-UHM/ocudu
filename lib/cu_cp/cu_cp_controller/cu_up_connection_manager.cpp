@@ -10,13 +10,13 @@
 
 #include "cu_up_connection_manager.h"
 #include "../cu_up_processor/cu_up_processor_repository.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/support/executors/sync_task_executor.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/support/executors/sync_task_executor.h"
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Context of a CU-UP connection which is shared between the cu_up_connection_manager and the e1ap_message_notifier.
 class cu_up_connection_manager::shared_cu_up_connection_context
@@ -120,7 +120,7 @@ cu_up_connection_manager::cu_up_connection_manager(unsigned                    m
   cu_ups(cu_ups_),
   cu_cp_exec(cu_cp_exec_),
   common_task_sched(common_task_sched_),
-  logger(srslog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

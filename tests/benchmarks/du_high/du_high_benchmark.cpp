@@ -35,27 +35,27 @@
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/du/du_high/du_metrics_notifier.h"
-#include "srsran/du/du_high/du_qos_config_helpers.h"
-#include "srsran/f1u/du/f1u_gateway.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/test_utils.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/du/du_high/du_metrics_notifier.h"
+#include "ocudu/du/du_high/du_qos_config_helpers.h"
+#include "ocudu/f1u/du/f1u_gateway.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/rtsan.h"
+#include "ocudu/support/test_utils.h"
+#include "ocudu/support/tracing/event_tracing.h"
 #include <pthread.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 /// Constant used to bound the number of bytes pushed to the DU DL F1-U interface per slot.
 const unsigned MAX_F1U_DL_BITRATE_PER_PORT_BPS = 500e6;
@@ -206,7 +206,7 @@ static void print_args(const bench_params& params)
 
   fmt::print("Arguments ({} tests):\n", nof_tests);
   fmt::print("- Number of repetitions: {}\n", params.nof_repetitions);
-  fmt::print("- Duplex Mode: {}\n", params.dplx_mode == srsran::duplex_mode::FDD ? "FDD" : "TDD");
+  fmt::print("- Duplex Mode: {}\n", params.dplx_mode == ocudu::duplex_mode::FDD ? "FDD" : "TDD");
   if (nof_tests == 1) {
     fmt::print("- Number of UEs: {}\n", params.nof_ues[0]);
   } else {
@@ -215,7 +215,7 @@ static void print_args(const bench_params& params)
       fmt::print("  - Number of UEs: {}\n", params.nof_ues[i]);
     }
   }
-  const double slot_dur_sec = params.dplx_mode == srsran::duplex_mode::FDD ? 0.001 : 0.0005;
+  const double slot_dur_sec = params.dplx_mode == ocudu::duplex_mode::FDD ? 0.001 : 0.0005;
   fmt::print("- F1-U DL Bitrate [Mbps]: {}\n", params.dl_bytes_per_slot * 8.0 * 1.0e-6 / slot_dur_sec);
   fmt::print("- F1-U DL PDU size [bytes]: {}\n", params.pdu_size);
   fmt::print("- BSR size [bytes]: {}\n", params.ul_bsr_bytes);
@@ -228,15 +228,15 @@ static void print_args(const bench_params& params)
   fmt::print("- Scheduler tracing: {}\n", params.sched_trace_enabled ? "enabled" : "disabled");
 }
 
-class dummy_metrics_handler : public srs_du::du_metrics_notifier
+class dummy_metrics_handler : public odu::du_metrics_notifier
 {
 public:
   dummy_metrics_handler() :
-    logger(srslog::fetch_basic_logger("METRICS")), pending_metrics(logger.info.enabled() ? 128 : 1)
+    logger(ocudulog::fetch_basic_logger("METRICS")), pending_metrics(logger.info.enabled() ? 128 : 1)
   {
   }
 
-  void on_new_metric_report(const srs_du::du_metrics_report& report) override
+  void on_new_metric_report(const odu::du_metrics_report& report) override
   {
     if (report.mac.has_value()) {
       for (const scheduler_cell_metrics& cell : report.mac->sched.cells) {
@@ -286,7 +286,7 @@ public:
     }
   }
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // This metric is used by benchmark to determine whether to push more traffic to DU F1-U. Therefore, it needs to be
   // protected.
@@ -294,14 +294,14 @@ public:
 
   concurrent_queue<scheduler_cell_metrics,
                    concurrent_queue_policy::lockfree_mpmc,
-                   srsran::concurrent_queue_wait_policy::non_blocking>
+                   ocudu::concurrent_queue_wait_policy::non_blocking>
                      pending_metrics;
   fmt::memory_buffer fmtbuf;
 };
 
 /// \brief Simulator of the CU-CP from the perspective of the DU. This class should reply to the F1AP messages
 /// that the DU sends in order for the DU normal operation to proceed.
-class cu_cp_simulator : public srs_du::f1c_connection_client
+class cu_cp_simulator : public odu::f1c_connection_client
 {
 public:
   cu_cp_simulator() : rx_f1ap_pdus(MAX_NOF_DU_UES) {}
@@ -409,19 +409,19 @@ public:
 class cu_up_simulator : public f1u_du_gateway
 {
 public:
-  static_vector<f1u_gw_dummy_bearer*, MAX_NOF_DU_UES>                       bearer_list;
-  static_vector<srs_du::f1u_du_gateway_bearer_rx_notifier*, MAX_NOF_DU_UES> du_notif_list;
+  static_vector<f1u_gw_dummy_bearer*, MAX_NOF_DU_UES>                    bearer_list;
+  static_vector<odu::f1u_du_gateway_bearer_rx_notifier*, MAX_NOF_DU_UES> du_notif_list;
 
-  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                   ue_index,
-                                                          drb_id_t                                   drb_id,
-                                                          s_nssai_t                                  s_nssai,
-                                                          five_qi_t                                  five_qi,
-                                                          srs_du::f1u_config                         config,
-                                                          const gtpu_teid_t&                         dl_teid,
-                                                          const up_transport_layer_info&             ul_up_tnl_info,
-                                                          srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx,
-                                                          timer_factory                              timers,
-                                                          task_executor& ue_executor) override
+  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                ue_index,
+                                                          drb_id_t                                drb_id,
+                                                          s_nssai_t                               s_nssai,
+                                                          five_qi_t                               five_qi,
+                                                          odu::f1u_config                         config,
+                                                          const gtpu_teid_t&                      dl_teid,
+                                                          const up_transport_layer_info&          ul_up_tnl_info,
+                                                          odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
+                                                          timer_factory                           timers,
+                                                          task_executor&                          ue_executor) override
   {
     auto f1u_bearer = std::make_unique<f1u_gw_dummy_bearer>();
     du_notif_list.push_back(&du_rx);
@@ -501,7 +501,7 @@ public:
   /// \brief Notifies the completion of all cell results for the given slot.
   void on_cell_results_completion(slot_point slot) override
   {
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     {
       std::lock_guard<std::mutex> lock(mutex);
       slot_ended = true;
@@ -583,7 +583,7 @@ public:
     // Compute LBSR buffer size. According to TS38.321, 254 is the maximum value for the LBSR size.
     unsigned lbsr_buff_sz = 0;
     for (; lbsr_buff_sz < 255; ++lbsr_buff_sz) {
-      if (buff_size_field_to_bytes(lbsr_buff_sz, srsran::bsr_format::LONG_BSR) > ul_bsr_bytes) {
+      if (buff_size_field_to_bytes(lbsr_buff_sz, ocudu::bsr_format::LONG_BSR) > ul_bsr_bytes) {
         break;
       }
     }
@@ -592,7 +592,7 @@ public:
 
     // Instantiate a DU-high object.
     cfg.ran.gnb_du_id   = (gnb_du_id_t)1;
-    cfg.ran.gnb_du_name = fmt::format("srsgnb{}", fmt::underlying(cfg.ran.gnb_du_id));
+    cfg.ran.gnb_du_name = fmt::format("ocudu{}", fmt::underlying(cfg.ran.gnb_du_id));
 
     cfg.ran.cells                                  = {config_helpers::make_default_du_cell_config(params)};
     cfg.ran.sched_cfg                              = config_helpers::make_default_scheduler_expert_config();
@@ -632,7 +632,7 @@ public:
         "Unable to allocate PDU");
     // Create MAC PDU.
     report_fatal_error_if_not(mac_pdu.append(test_rgen::random_vector<uint8_t>(
-                                  buff_size_field_to_bytes(lbsr_buff_sz, srsran::bsr_format::LONG_BSR))),
+                                  buff_size_field_to_bytes(lbsr_buff_sz, ocudu::bsr_format::LONG_BSR))),
                               "Unable to allocate PDU");
 
     // Start DU-high operation.
@@ -1134,14 +1134,14 @@ public:
   unsigned     f1u_dl_pdu_bytes_per_slot;
   units::bytes f1u_pdu_size{DEFAULT_DL_PDU_SIZE};
 
-  srslog::basic_logger&                                 test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                               test_logger = ocudulog::fetch_basic_logger("TEST");
   dummy_metrics_handler                                 metrics_handler;
   timer_manager                                         timers{2048};
   std::unique_ptr<test_helpers::du_high_worker_manager> workers;
   std::unique_ptr<io_broker>                            broker{
       create_io_broker(io_broker_type::epoll, io_broker_config{os_thread_realtime_priority::min() + 5})};
   std::unique_ptr<mac_clock_controller> timer_ctrl{
-      srs_du::create_du_high_clock_controller(timers, *broker, workers->timer_executor())};
+      odu::create_du_high_clock_controller(timers, *broker, workers->timer_executor())};
   null_mac_pcap                 mac_pcap;
   null_rlc_pcap                 rlc_pcap;
   std::unique_ptr<du_high_impl> du_hi;
@@ -1193,7 +1193,7 @@ static cell_config_builder_params generate_custom_cell_config_builder_params(dup
   params.dl_f_ref_arfcn = dplx_mode == duplex_mode::FDD ? 530000 : 520002;
   params.band           = band_helper::get_band_from_dl_arfcn(params.dl_f_ref_arfcn);
   params.channel_bw_mhz =
-      dplx_mode == duplex_mode::FDD ? srsran::bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz100;
+      dplx_mode == duplex_mode::FDD ? ocudu::bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz100;
   const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
       params.channel_bw_mhz, params.scs_common, band_helper::get_freq_range(*params.band));
   static const uint8_t                                   ss0_idx = 0;
@@ -1276,7 +1276,7 @@ void benchmark_dl_ul_only_rlc_um(benchmarker&                   bm,
 
   // Stop benchmark.
   bench.stop();
-  srslog::flush();
+  ocudulog::flush();
 
   const subcarrier_spacing scs = bench.cfg.ran.cells[0].scs_common;
   const double pdschs_per_slot = bench.sim_phy.metrics.nof_dl_grants / (double)bench.sim_phy.metrics.slot_dl_count;
@@ -1355,18 +1355,18 @@ int main(int argc, char** argv)
   static const std::size_t byte_buffer_segment_size = 2048;
 
   // Set DU-high logging.
-  auto all_log_level  = srslog::basic_levels::warning;
-  auto test_log_level = srslog::basic_levels::warning;
-  srslog::fetch_basic_logger("TEST").set_level(test_log_level);
-  srslog::fetch_basic_logger("RLC").set_level(all_log_level);
-  srslog::fetch_basic_logger("MAC", true).set_level(test_log_level);
-  srslog::fetch_basic_logger("SCHED", true).set_level(test_log_level);
-  srslog::fetch_basic_logger("DU-F1").set_level(test_log_level);
-  srslog::fetch_basic_logger("DU-F1-U").set_level(all_log_level);
-  srslog::fetch_basic_logger("UE-MNG").set_level(test_log_level);
-  srslog::fetch_basic_logger("DU-MNG").set_level(test_log_level);
-  srslog::fetch_basic_logger("METRICS").set_level(test_log_level);
-  srslog::init();
+  auto all_log_level  = ocudulog::basic_levels::warning;
+  auto test_log_level = ocudulog::basic_levels::warning;
+  ocudulog::fetch_basic_logger("TEST").set_level(test_log_level);
+  ocudulog::fetch_basic_logger("RLC").set_level(all_log_level);
+  ocudulog::fetch_basic_logger("MAC", true).set_level(test_log_level);
+  ocudulog::fetch_basic_logger("SCHED", true).set_level(test_log_level);
+  ocudulog::fetch_basic_logger("DU-F1").set_level(test_log_level);
+  ocudulog::fetch_basic_logger("DU-F1-U").set_level(all_log_level);
+  ocudulog::fetch_basic_logger("UE-MNG").set_level(test_log_level);
+  ocudulog::fetch_basic_logger("DU-MNG").set_level(test_log_level);
+  ocudulog::fetch_basic_logger("METRICS").set_level(test_log_level);
+  ocudulog::init();
 
   std::string tracing_filename = "";
   if (not tracing_filename.empty()) {
@@ -1384,7 +1384,7 @@ int main(int argc, char** argv)
   init_byte_buffer_segment_pool(byte_buffer_nof_segments, byte_buffer_segment_size);
 
   if (params.sched_trace_enabled) {
-    srslog::fetch_basic_logger("METRICS").set_level(srslog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("METRICS").set_level(ocudulog::basic_levels::debug);
   }
 
   // Configure main thread.

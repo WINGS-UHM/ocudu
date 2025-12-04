@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic interface of an N-point DFT calculator.
 class generic_dft_N
@@ -57,4 +57,4 @@ public:
   span<const cf_t> run() override;
 };
 
-} // namespace srsran
+} // namespace ocudu

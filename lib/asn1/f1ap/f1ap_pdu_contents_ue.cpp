@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 using namespace asn1;
 using namespace asn1::f1ap;
 
@@ -401,7 +401,7 @@ void dl_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE dl_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE dl_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -449,11 +449,11 @@ SRSASN_CODE dl_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "dl_rrc_msg_transfer_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE dl_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE dl_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -501,9 +501,9 @@ SRSASN_CODE dl_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "dl_rrc_msg_transfer_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* dl_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() const
@@ -527,7 +527,7 @@ const char* dl_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() const
 
 template struct asn1::protocol_ie_field_s<dl_rrc_msg_transfer_ies_o>;
 
-SRSASN_CODE dl_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE dl_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 4;
   nof_ies += old_gnb_du_ue_f1ap_id_present ? 1 : 0;
@@ -627,9 +627,9 @@ SRSASN_CODE dl_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(srb_map_info.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE dl_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE dl_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -729,15 +729,15 @@ SRSASN_CODE dl_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void dl_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
 {
@@ -1148,7 +1148,7 @@ void init_ul_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1190,11 +1190,11 @@ SRSASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "init_ul_rrc_msg_transfer_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1236,9 +1236,9 @@ SRSASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "init_ul_rrc_msg_transfer_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* init_ul_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() const
@@ -1620,7 +1620,7 @@ void ue_context_mod_confirm_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_mod_confirm_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_confirm_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1662,11 +1662,11 @@ SRSASN_CODE ue_context_mod_confirm_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_confirm_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_confirm_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_confirm_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1708,9 +1708,9 @@ SRSASN_CODE ue_context_mod_confirm_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_confirm_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_mod_confirm_ies_o::value_c::types_opts::to_string() const
@@ -1910,7 +1910,7 @@ void ue_context_mod_fail_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_mod_fail_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_fail_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1931,11 +1931,11 @@ SRSASN_CODE ue_context_mod_fail_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_fail_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_fail_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_fail_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1956,9 +1956,9 @@ SRSASN_CODE ue_context_mod_fail_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_fail_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_mod_fail_ies_o::value_c::types_opts::to_string() const
@@ -2124,7 +2124,7 @@ void ue_context_mod_refuse_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_mod_refuse_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_refuse_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -2142,11 +2142,11 @@ SRSASN_CODE ue_context_mod_refuse_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_refuse_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_refuse_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_refuse_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -2164,9 +2164,9 @@ SRSASN_CODE ue_context_mod_refuse_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_refuse_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_mod_refuse_ies_o::value_c::types_opts::to_string() const
@@ -4129,7 +4129,7 @@ void ue_context_mod_request_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_mod_request_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_request_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -4363,11 +4363,11 @@ SRSASN_CODE ue_context_mod_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_request_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_request_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -4601,9 +4601,9 @@ SRSASN_CODE ue_context_mod_request_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_mod_request_ies_o::value_c::types_opts::to_string() const
@@ -5235,7 +5235,7 @@ void ue_context_mod_required_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_mod_required_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_required_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -5295,11 +5295,11 @@ SRSASN_CODE ue_context_mod_required_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_required_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_required_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_required_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -5359,9 +5359,9 @@ SRSASN_CODE ue_context_mod_required_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_required_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_mod_required_ies_o::value_c::types_opts::to_string() const
@@ -6446,7 +6446,7 @@ void ue_context_mod_resp_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_mod_resp_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_resp_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -6566,11 +6566,11 @@ SRSASN_CODE ue_context_mod_resp_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_resp_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_resp_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_resp_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -6690,9 +6690,9 @@ SRSASN_CODE ue_context_mod_resp_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_resp_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_mod_resp_ies_o::value_c::types_opts::to_string() const
@@ -7058,7 +7058,7 @@ void ue_context_release_cmd_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_release_cmd_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_release_cmd_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7097,11 +7097,11 @@ SRSASN_CODE ue_context_release_cmd_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_cmd_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_release_cmd_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_release_cmd_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7140,9 +7140,9 @@ SRSASN_CODE ue_context_release_cmd_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_cmd_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_release_cmd_ies_o::value_c::types_opts::to_string() const
@@ -7293,7 +7293,7 @@ void ue_context_release_complete_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_release_complete_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_release_complete_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7308,11 +7308,11 @@ SRSASN_CODE ue_context_release_complete_ies_o::value_c::pack(bit_ref& bref) cons
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_complete_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_release_complete_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_release_complete_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7327,9 +7327,9 @@ SRSASN_CODE ue_context_release_complete_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_complete_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_release_complete_ies_o::value_c::types_opts::to_string() const
@@ -7497,7 +7497,7 @@ void ue_context_release_request_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_release_request_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_release_request_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7515,11 +7515,11 @@ SRSASN_CODE ue_context_release_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_request_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_release_request_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_release_request_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7537,9 +7537,9 @@ SRSASN_CODE ue_context_release_request_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_request_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_release_request_ies_o::value_c::types_opts::to_string() const
@@ -7755,7 +7755,7 @@ void ue_context_setup_fail_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_setup_fail_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_setup_fail_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7779,11 +7779,11 @@ SRSASN_CODE ue_context_setup_fail_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_fail_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_setup_fail_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_setup_fail_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -7807,9 +7807,9 @@ SRSASN_CODE ue_context_setup_fail_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_fail_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_setup_fail_ies_o::value_c::types_opts::to_string() const
@@ -9136,7 +9136,7 @@ void ue_context_setup_request_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_setup_request_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_setup_request_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -9295,11 +9295,11 @@ SRSASN_CODE ue_context_setup_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_request_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_setup_request_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_setup_request_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -9458,9 +9458,9 @@ SRSASN_CODE ue_context_setup_request_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_request_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_setup_request_ies_o::value_c::types_opts::to_string() const
@@ -10197,7 +10197,7 @@ void ue_context_setup_resp_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_context_setup_resp_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_setup_resp_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -10275,11 +10275,11 @@ SRSASN_CODE ue_context_setup_resp_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_resp_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_setup_resp_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_setup_resp_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -10357,9 +10357,9 @@ SRSASN_CODE ue_context_setup_resp_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_resp_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_context_setup_resp_ies_o::value_c::types_opts::to_string() const
@@ -10549,7 +10549,7 @@ void ue_inactivity_notif_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ue_inactivity_notif_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_inactivity_notif_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -10567,11 +10567,11 @@ SRSASN_CODE ue_inactivity_notif_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ue_inactivity_notif_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_inactivity_notif_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_inactivity_notif_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -10589,9 +10589,9 @@ SRSASN_CODE ue_inactivity_notif_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ue_inactivity_notif_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_inactivity_notif_ies_o::value_c::types_opts::to_string() const
@@ -10801,7 +10801,7 @@ void ul_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -10825,11 +10825,11 @@ SRSASN_CODE ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "ul_rrc_msg_transfer_ies_o::value_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -10853,9 +10853,9 @@ SRSASN_CODE ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "ul_rrc_msg_transfer_ies_o::value_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ul_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() const
@@ -10871,7 +10871,7 @@ const char* ul_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() const
 
 template struct asn1::protocol_ie_field_s<init_ul_rrc_msg_transfer_ies_o>;
 
-SRSASN_CODE init_ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 5;
   nof_ies += du_to_cu_rrc_container_present ? 1 : 0;
@@ -10956,9 +10956,9 @@ SRSASN_CODE init_ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(sidelink_relay_cfg.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE init_ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -11046,15 +11046,15 @@ SRSASN_CODE init_ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void init_ul_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
 {
@@ -11114,7 +11114,7 @@ void init_ul_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_confirm_ies_o>;
 
-SRSASN_CODE ue_context_mod_confirm_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_confirm_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 2;
   nof_ies += res_coordination_transfer_container_present ? 1 : 0;
@@ -11202,9 +11202,9 @@ SRSASN_CODE ue_context_mod_confirm_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, ue_multicast_m_rbs_confirmed_to_be_modified_list, 1, 64, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_confirm_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_confirm_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -11292,15 +11292,15 @@ SRSASN_CODE ue_context_mod_confirm_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_mod_confirm_ies_container::to_json(json_writer& j) const
 {
@@ -11386,7 +11386,7 @@ void ue_context_mod_confirm_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_fail_ies_o>;
 
-SRSASN_CODE ue_context_mod_fail_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_fail_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += crit_diagnostics_present ? 1 : 0;
@@ -11424,9 +11424,9 @@ SRSASN_CODE ue_context_mod_fail_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(requested_target_cell_global_id.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_fail_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_fail_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -11472,15 +11472,15 @@ SRSASN_CODE ue_context_mod_fail_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_mod_fail_ies_container::to_json(json_writer& j) const
 {
@@ -11509,7 +11509,7 @@ void ue_context_mod_fail_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_refuse_ies_o>;
 
-SRSASN_CODE ue_context_mod_refuse_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_refuse_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += crit_diagnostics_present ? 1 : 0;
@@ -11540,9 +11540,9 @@ SRSASN_CODE ue_context_mod_refuse_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_diagnostics.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_refuse_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_refuse_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -11582,15 +11582,15 @@ SRSASN_CODE ue_context_mod_refuse_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_mod_refuse_ies_container::to_json(json_writer& j) const
 {
@@ -11614,7 +11614,7 @@ void ue_context_mod_refuse_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_request_ies_o>;
 
-SRSASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 2;
   nof_ies += sp_cell_id_present ? 1 : 0;
@@ -12150,9 +12150,9 @@ SRSASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(cp_acmcg_info.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_request_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_request_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -12625,15 +12625,15 @@ SRSASN_CODE ue_context_mod_request_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_mod_request_ies_container::to_json(json_writer& j) const
 {
@@ -13127,7 +13127,7 @@ void ue_context_mod_request_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_required_ies_o>;
 
-SRSASN_CODE ue_context_mod_required_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_required_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += res_coordination_transfer_container_present ? 1 : 0;
@@ -13256,9 +13256,9 @@ SRSASN_CODE ue_context_mod_required_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, ue_multicast_m_rbs_required_to_be_released_list, 1, 64, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_required_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_required_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -13382,15 +13382,15 @@ SRSASN_CODE ue_context_mod_required_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_mod_required_ies_container::to_json(json_writer& j) const
 {
@@ -13536,7 +13536,7 @@ void ue_context_mod_required_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_resp_ies_o>;
 
-SRSASN_CODE ue_context_mod_resp_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_mod_resp_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 2;
   nof_ies += res_coordination_transfer_container_present ? 1 : 0;
@@ -13806,9 +13806,9 @@ SRSASN_CODE ue_context_mod_resp_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, serving_cell_mo_encoded_in_cgc_list, 1, 8, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_mod_resp_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_mod_resp_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -14052,15 +14052,15 @@ SRSASN_CODE ue_context_mod_resp_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_mod_resp_ies_container::to_json(json_writer& j) const
 {
@@ -14364,7 +14364,7 @@ void ue_context_mod_resp_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_release_cmd_ies_o>;
 
-SRSASN_CODE ue_context_release_cmd_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_release_cmd_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += rrc_container_present ? 1 : 0;
@@ -14444,9 +14444,9 @@ SRSASN_CODE ue_context_release_cmd_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(cg_sdt_kept_ind.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_release_cmd_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_release_cmd_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -14528,15 +14528,15 @@ SRSASN_CODE ue_context_release_cmd_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_release_cmd_ies_container::to_json(json_writer& j) const
 {
@@ -14599,7 +14599,7 @@ void ue_context_release_cmd_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_release_complete_ies_o>;
 
-SRSASN_CODE ue_context_release_complete_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_release_complete_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 2;
   nof_ies += crit_diagnostics_present ? 1 : 0;
@@ -14624,9 +14624,9 @@ SRSASN_CODE ue_context_release_complete_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_diagnostics.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_release_complete_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_release_complete_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -14660,15 +14660,15 @@ SRSASN_CODE ue_context_release_complete_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_release_complete_ies_container::to_json(json_writer& j) const
 {
@@ -14689,7 +14689,7 @@ void ue_context_release_complete_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_release_request_ies_o>;
 
-SRSASN_CODE ue_context_release_request_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_release_request_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += target_cells_to_cancel_present ? 1 : 0;
@@ -14720,9 +14720,9 @@ SRSASN_CODE ue_context_release_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, target_cells_to_cancel, 1, 8, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_release_request_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_release_request_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -14762,15 +14762,15 @@ SRSASN_CODE ue_context_release_request_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_release_request_ies_container::to_json(json_writer& j) const
 {
@@ -14798,7 +14798,7 @@ void ue_context_release_request_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_setup_fail_ies_o>;
 
-SRSASN_CODE ue_context_setup_fail_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_setup_fail_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 2;
   nof_ies += gnb_du_ue_f1ap_id_present ? 1 : 0;
@@ -14844,9 +14844,9 @@ SRSASN_CODE ue_context_setup_fail_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(requested_target_cell_global_id.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_setup_fail_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_setup_fail_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -14898,15 +14898,15 @@ SRSASN_CODE ue_context_setup_fail_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_setup_fail_ies_container::to_json(json_writer& j) const
 {
@@ -14946,7 +14946,7 @@ void ue_context_setup_fail_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_setup_request_ies_o>;
 
-SRSASN_CODE ue_context_setup_request_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_setup_request_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 4;
   nof_ies += gnb_du_ue_f1ap_id_present ? 1 : 0;
@@ -15305,9 +15305,9 @@ SRSASN_CODE ue_context_setup_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, serving_cell_mo_list, 1, 16, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_setup_request_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_setup_request_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -15630,15 +15630,15 @@ SRSASN_CODE ue_context_setup_request_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_setup_request_ies_container::to_json(json_writer& j) const
 {
@@ -15947,7 +15947,7 @@ void ue_context_setup_request_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_context_setup_resp_ies_o>;
 
-SRSASN_CODE ue_context_setup_resp_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_context_setup_resp_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += c_rnti_present ? 1 : 0;
@@ -16118,9 +16118,9 @@ SRSASN_CODE ue_context_setup_resp_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, serving_cell_mo_encoded_in_cgc_list, 1, 8, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_context_setup_resp_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_context_setup_resp_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -16280,15 +16280,15 @@ SRSASN_CODE ue_context_setup_resp_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_context_setup_resp_ies_container::to_json(json_writer& j) const
 {
@@ -16468,7 +16468,7 @@ void ue_context_setup_resp_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ue_inactivity_notif_ies_o>;
 
-SRSASN_CODE ue_inactivity_notif_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_inactivity_notif_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 3;
   nof_ies += sdt_termination_request_present ? 1 : 0;
@@ -16499,9 +16499,9 @@ SRSASN_CODE ue_inactivity_notif_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(sdt_termination_request.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_inactivity_notif_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_inactivity_notif_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -16541,15 +16541,15 @@ SRSASN_CODE ue_inactivity_notif_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ue_inactivity_notif_ies_container::to_json(json_writer& j) const
 {
@@ -16577,7 +16577,7 @@ void ue_inactivity_notif_ies_container::to_json(json_writer& j) const
 
 template struct asn1::protocol_ie_field_s<ul_rrc_msg_transfer_ies_o>;
 
-SRSASN_CODE ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
+OCUDUASN_CODE ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 4;
   nof_ies += sel_plmn_id_present ? 1 : 0;
@@ -16621,9 +16621,9 @@ SRSASN_CODE ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, new_gnb_du_ue_f1ap_id, (uint64_t)0u, (uint64_t)4294967295u, false, true));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
+OCUDUASN_CODE ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
 {
   uint32_t nof_ies = 0;
   unpack_length(nof_ies, bref, 0u, 65535u, true);
@@ -16675,15 +16675,15 @@ SRSASN_CODE ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
       }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
-        return SRSASN_ERROR_DECODE_FAIL;
+        return OCUDUASN_ERROR_DECODE_FAIL;
     }
   }
   if (nof_mandatory_ies > 0) {
     asn1::log_error("Mandatory fields are missing\n");
 
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void ul_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
 {

@@ -10,10 +10,10 @@
 
 #include "rlc_tx_um_entity.h"
 #include "rlc_um_pdu.h"
-#include "srsran/pdcp/pdcp_sn_util.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_tx_um_entity::rlc_tx_um_entity(gnb_du_id_t                          du_id,
                                    du_ue_index_t                        ue_index,
@@ -49,12 +49,12 @@ rlc_tx_um_entity::rlc_tx_um_entity(gnb_du_id_t                          du_id,
   metrics_low.metrics_set_mode(rlc_mode::um_bidir);
 
   // check PDCP SN length
-  srsran_assert(config.pdcp_sn_len == pdcp_sn_size::size12bits || config.pdcp_sn_len == pdcp_sn_size::size18bits,
-                "Cannot create RLC TX AM, unsupported pdcp_sn_len={}. du={} ue={} {}",
-                config.pdcp_sn_len,
-                fmt::underlying(du_id),
-                fmt::underlying(ue_index),
-                rb_id);
+  ocudu_assert(config.pdcp_sn_len == pdcp_sn_size::size12bits || config.pdcp_sn_len == pdcp_sn_size::size18bits,
+               "Cannot create RLC TX AM, unsupported pdcp_sn_len={}. du={} ue={} {}",
+               config.pdcp_sn_len,
+               fmt::underlying(du_id),
+               fmt::underlying(ue_index),
+               rb_id);
 
   logger.log_info("RLC UM configured. {}", cfg);
 }
@@ -69,7 +69,7 @@ void rlc_tx_um_entity::handle_sdu(byte_buffer sdu_buf, bool is_retx)
   sdu_.pdcp_sn = get_pdcp_sn(sdu_.buf, cfg.pdcp_sn_len, /* is_srb = */ false, logger.get_basic_logger());
 
   // Sanity check for PDCP ReTx in RLC UM
-  if (SRSRAN_UNLIKELY(is_retx)) {
+  if (OCUDU_UNLIKELY(is_retx)) {
     logger.log_error("Ignored unexpected PDCP retransmission flag in RLC UM SDU");
   }
 
@@ -103,7 +103,7 @@ void rlc_tx_um_entity::discard_sdu(uint32_t pdcp_sn)
 }
 
 // TS 38.322 v16.2.0 Sec. 5.2.2.1
-size_t rlc_tx_um_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept SRSRAN_RTSAN_NONBLOCKING
+size_t rlc_tx_um_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept OCUDU_RTSAN_NONBLOCKING
 
 {
   uint32_t grant_len = mac_sdu_buf.size();
@@ -122,7 +122,7 @@ size_t rlc_tx_um_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept SRSRAN_RTS
 
   // Get a new SDU, if none is currently being transmitted
   if (sdu.buf.empty()) {
-    srsran_sanity_check(next_so == 0, "New TX SDU, but next_so={} > 0.", next_so);
+    ocudu_sanity_check(next_so == 0, "New TX SDU, but next_so={} > 0.", next_so);
 
     // Read new SDU
     if (not sdu_queue.read(sdu)) {
@@ -164,10 +164,10 @@ size_t rlc_tx_um_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept SRSRAN_RTS
 
   // Pack header
   size_t header_len = rlc_um_write_data_pdu_header(mac_sdu_buf, header);
-  srsran_sanity_check(header_len = expected_hdr_len,
-                      "Failed to write header. header_len={} expected_hdr_len={}",
-                      header_len,
-                      expected_hdr_len);
+  ocudu_sanity_check(header_len = expected_hdr_len,
+                     "Failed to write header. header_len={} expected_hdr_len={}",
+                     header_len,
+                     expected_hdr_len);
 
   // Calculate the amount of data to move
   uint32_t space       = grant_len - header_len;
@@ -219,7 +219,7 @@ size_t rlc_tx_um_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept SRSRAN_RTS
   }
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   // Write PCAP
   pcap.push_pdu(pcap_context, mac_sdu_buf.subspan(0, pdu_size));
@@ -292,7 +292,7 @@ void rlc_tx_um_entity::handle_changed_buffer_state()
   }
 }
 
-void rlc_tx_um_entity::update_mac_buffer_state() noexcept SRSRAN_RTSAN_NONBLOCKING
+void rlc_tx_um_entity::update_mac_buffer_state() noexcept OCUDU_RTSAN_NONBLOCKING
 {
   pending_buffer_state.clear(std::memory_order_seq_cst);
   rlc_buffer_state bs = get_buffer_state();

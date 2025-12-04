@@ -11,10 +11,10 @@
 #pragma once
 
 #include "mbedtls/aes.h"
-#include "srsran/security/integrity_engine.h"
-#include "srsran/security/security.h"
+#include "ocudu/security/integrity_engine.h"
+#include "ocudu/security/security.h"
 
-namespace srsran {
+namespace ocudu {
 namespace security {
 
 class integrity_engine_nia2_non_cmac final : public integrity_engine
@@ -40,8 +40,8 @@ private:
   std::array<uint8_t, sec_max_pdu_size>    msg_buf;
   static constexpr std::array<uint8_t, 16> zeros = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace security
-} // namespace srsran
+} // namespace ocudu

@@ -9,10 +9,10 @@
  */
 
 #include "ofh_metrics_collector_impl.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
-#include "srsran/ofh/ofh_metrics.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
+#include "ocudu/ofh/ofh_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 metrics_collector_impl::metrics_collector_impl(receiver_metrics_collector*    rx_metrics_collector_,

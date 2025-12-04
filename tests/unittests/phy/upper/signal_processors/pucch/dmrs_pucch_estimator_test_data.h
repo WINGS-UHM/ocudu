@@ -14,11 +14,11 @@
 //   + "srsPUCCHdmrsUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
+#include "ocudu/support/file_vector.h"
 #include <variant>
 
-namespace srsran {
+namespace ocudu {
 
 using estimator_config = std::variant<dmrs_pucch_estimator::format2_configuration,
                                       dmrs_pucch_estimator::format3_configuration,
@@ -58,4 +58,4 @@ static const std::vector<test_case_t> dmrs_pucch_estimator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

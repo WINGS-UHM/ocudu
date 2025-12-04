@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/pusch/pusch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Empty PUSCH decoder implementation.
 ///
@@ -89,4 +89,4 @@ private:
   decoder_buffer_impl decoder_buffer;
 };
 
-} // namespace srsran
+} // namespace ocudu

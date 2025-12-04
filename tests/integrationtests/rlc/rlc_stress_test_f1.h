@@ -11,12 +11,12 @@
 #pragma once
 
 #include "lib/rlc/rlc_bearer_logger.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/rlc/rlc_rx.h"
-#include "srsran/rlc/rlc_tx.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/rlc/rlc_rx.h"
+#include "ocudu/rlc/rlc_tx.h"
 
-namespace srsran {
+namespace ocudu {
 class f1ap_dummy : public pdcp_tx_lower_notifier,
                    public rlc_tx_upper_layer_data_notifier,
                    public rlc_tx_upper_layer_control_notifier,
@@ -91,4 +91,4 @@ public:
   void set_pdcp_rx_lower(pdcp_rx_lower_interface* pdcp_rx_lower_) { this->pdcp_rx_lower = pdcp_rx_lower_; }
 };
 
-} // namespace srsran
+} // namespace ocudu

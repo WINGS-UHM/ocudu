@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/phy/support/re_pattern.h"
+#include "ocudu/phy/support/re_pattern.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const
 {
@@ -23,7 +23,7 @@ void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   int      i_crb_lowest  = crb_mask.find_lowest();
   int      i_crb_highest = crb_mask.find_highest();
   unsigned crb_count     = crb_mask.count();
-  srsran_assert((i_crb_lowest <= i_crb_highest) && (i_crb_highest >= 0), "Invalid CRB allocation.");
+  ocudu_assert((i_crb_lowest <= i_crb_highest) && (i_crb_highest >= 0), "Invalid CRB allocation.");
   if ((static_cast<unsigned>(i_crb_highest + 1 - i_crb_lowest) == crb_count) && re_mask.all()) {
     unsigned i_re_begin = i_crb_lowest * NRE;
     unsigned i_re_end   = std::min(NRE * (i_crb_highest + 1), static_cast<unsigned>(mask.size()));
@@ -58,7 +58,7 @@ void re_pattern::get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   int      i_crb_lowest  = crb_mask.find_lowest();
   int      i_crb_highest = crb_mask.find_highest();
   unsigned crb_count     = crb_mask.count();
-  srsran_assert((i_crb_lowest <= i_crb_highest) && (i_crb_highest >= 0), "Invalid CRB allocation.");
+  ocudu_assert((i_crb_lowest <= i_crb_highest) && (i_crb_highest >= 0), "Invalid CRB allocation.");
   if ((static_cast<unsigned>(i_crb_highest + 1 - i_crb_lowest) == crb_count) && re_mask.all()) {
     unsigned i_re_begin = i_crb_lowest * NRE;
     unsigned i_re_end   = std::min(NRE * (i_crb_highest + 1), static_cast<unsigned>(mask.size()));
@@ -127,7 +127,7 @@ void re_pattern_list::merge(const re_pattern& pattern)
   }
 
   // If reached here, no pattern was matched. Check if there is free space.
-  srsran_assert(
+  ocudu_assert(
       !list.full(), "RE pattern list is full. It seems {} maximum entries are not enough.", (unsigned)MAX_RE_PATTERN);
 
   // Append pattern.

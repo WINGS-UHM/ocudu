@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/ocuduvec/conversion.h"
 #include <cmath>
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Describes quantization of floating point number in the range [-1; +1] to a fixed point number of a given bit width.
@@ -46,7 +46,7 @@ public:
   /// \return Resultant quantized value.
   int16_t to_fixed_point(bf16_t value) const
   {
-    float input_value = srsran::to_float(value);
+    float input_value = ocudu::to_float(value);
     return to_fixed_point(input_value);
   }
 
@@ -60,7 +60,7 @@ public:
   void to_fixed_point(span<int16_t> z, span<const float> x, float in_scale) const
   {
     float scale = gain * in_scale;
-    srsvec::convert(z, x, scale);
+    ocuduvec::convert(z, x, scale);
   }
 
   /// \brief Quantizes a sequence of brain float values into 16-bit integers.
@@ -73,7 +73,7 @@ public:
   void to_fixed_point(span<int16_t> z, span<const bf16_t> x, float in_scale) const
   {
     float scale = gain * in_scale;
-    srsvec::convert(z, x, scale);
+    ocuduvec::convert(z, x, scale);
   }
 
   /// \brief Converts fixed point value to floating point.
@@ -93,7 +93,7 @@ public:
   void to_float(span<cf_t> z, span<const int16_t> x, int16_t in_scale) const
   {
     float scale = gain / in_scale;
-    srsvec::convert(z, x, scale);
+    ocuduvec::convert(z, x, scale);
   }
 
   /// \brief Converts a sequence of fixed point values to complex brain floating point values.
@@ -107,7 +107,7 @@ public:
   void to_brain_float(span<cbf16_t> z, span<const int16_t> x, int16_t in_scale) const
   {
     float scale = gain / in_scale;
-    srsvec::convert(z, x, scale);
+    ocuduvec::convert(z, x, scale);
   }
 
   /// Sign extends the input value.
@@ -127,4 +127,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

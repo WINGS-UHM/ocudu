@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
+#include "ocudu/adt/expected.h"
 #include <cerrno>
 #include <charconv>
 #include <cstdlib>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Parses integer values from a console command.
@@ -78,4 +78,4 @@ inline expected<double, std::string> parse_double(const std::string& value)
 }
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/ran/gnb_du_id.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/ran/gnb_du_id.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct f1ap_du_cell_context {
   // DU-specific cell index.
@@ -43,5 +43,5 @@ struct f1ap_du_context {
   }
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

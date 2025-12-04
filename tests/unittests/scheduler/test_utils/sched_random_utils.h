@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/test_utils.h"
 
-namespace srsran {
+namespace ocudu {
 namespace test_helper {
 
 inline slot_point generate_random_slot_point(subcarrier_spacing scs)
@@ -31,4 +31,4 @@ inline slot_point generate_random_slot_point(subcarrier_spacing scs)
 }
 
 } // namespace test_helper
-} // namespace srsran
+} // namespace ocudu

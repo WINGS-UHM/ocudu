@@ -11,13 +11,13 @@
 #include "f1ap_du_ue_context_release_procedure.h"
 #include "../f1ap_du_context.h"
 #include "proc_logger.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 /// Wait period for RRC container in UE CONTEXT RELEASE REQUEST to be delivered in the lower layers.
 /// Note: This timeout should account for the delay for the UE to receive the RRC container, which is non-deterministic,

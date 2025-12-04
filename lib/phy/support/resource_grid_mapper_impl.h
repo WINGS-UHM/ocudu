@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/precoding/channel_precoder.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/generic_functions/precoding/channel_precoder.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a resource grid mapper.
 class resource_grid_mapper_impl : public resource_grid_mapper
@@ -64,4 +64,4 @@ private:
   std::unique_ptr<channel_precoder> precoder;
 };
 
-} // namespace srsran
+} // namespace ocudu

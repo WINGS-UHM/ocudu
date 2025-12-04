@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/support/resource_usage/resource_usage_utils.h"
+#include "ocudu/support/resource_usage/resource_usage_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace resource_usage_utils;
 
 /// Converts rusage struct to the snapshot.

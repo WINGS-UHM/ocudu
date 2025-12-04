@@ -9,33 +9,33 @@
  */
 
 #include "ldpc_segmenter_rx_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
-#include "srsran/phy/upper/codeblock_metadata.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 /// Length of the CRC checksum added to the segments.
 static constexpr units::bits SEG_CRC_LENGTH{24};
 
 static void check_inputs_rx(span<const log_likelihood_ratio> codeword_llrs, const segmenter_config& cfg)
 {
-  srsran_assert(!codeword_llrs.empty(), "Argument transport_block should not be empty.");
-  srsran_assert(codeword_llrs.size() == cfg.nof_ch_symbols * get_bits_per_symbol(cfg.mod),
-                "Wrong number of LLRs {} (expected {}).",
-                codeword_llrs.size(),
-                cfg.nof_ch_symbols * get_bits_per_symbol(cfg.mod));
+  ocudu_assert(!codeword_llrs.empty(), "Argument transport_block should not be empty.");
+  ocudu_assert(codeword_llrs.size() == cfg.nof_ch_symbols * get_bits_per_symbol(cfg.mod),
+               "Wrong number of LLRs {} (expected {}).",
+               codeword_llrs.size(),
+               cfg.nof_ch_symbols * get_bits_per_symbol(cfg.mod));
 
-  srsran_assert((cfg.rv >= 0) && (cfg.rv <= 3), "Invalid redundancy version.");
+  ocudu_assert((cfg.rv >= 0) && (cfg.rv <= 3), "Invalid redundancy version.");
 
-  srsran_assert((cfg.nof_layers >= 1) && (cfg.nof_layers <= 4), "Invalid number of layers.");
+  ocudu_assert((cfg.nof_layers >= 1) && (cfg.nof_layers <= 4), "Invalid number of layers.");
 
-  srsran_assert(cfg.nof_ch_symbols % (cfg.nof_layers) == 0,
-                "The number of channel symbols should be a multiple of the product between the number of layers.");
+  ocudu_assert(cfg.nof_ch_symbols % (cfg.nof_layers) == 0,
+               "The number of channel symbols should be a multiple of the product between the number of layers.");
 }
 
 void ldpc_segmenter_rx_impl::segment(static_vector<described_rx_codeblock, MAX_NOF_SEGMENTS>& described_codeblocks,
@@ -90,5 +90,5 @@ void ldpc_segmenter_rx_impl::segment(static_vector<described_rx_codeblock, MAX_N
     cw_offset += rm_length;
   }
   // After accumulating all codeblock rate-matched lengths, cw_offset should be the same as cw_length.
-  srsran_assert(params.cw_length.value() == cw_offset, "Cw offset must be equal to the cw length");
+  ocudu_assert(params.cw_length.value() == cw_offset, "Cw offset must be equal to the cw length");
 }

@@ -12,17 +12,17 @@
 
 #include "pusch_processor_notifier_adaptor.h"
 #include "pusch_uci_decoder_wrapper.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor.h"
-#include "srsran/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
-#include "srsran/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
+#include "ocudu/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic software PUSCH processor.
 class pusch_processor_impl : public pusch_processor
@@ -54,10 +54,10 @@ public:
                         pusch_constants::get_max_codeword_size(ce_dims.nof_prb, ce_dims.nof_tx_layers).value())
 
     {
-      srsran_assert(estimator, "Invalid channel estimator.");
-      srsran_assert(demodulator, "Invalid demodulator.");
-      srsran_assert(demultiplex, "Invalid demultiplex.");
-      srsran_assert(uci_dec, "Invalid UCI decoder.");
+      ocudu_assert(estimator, "Invalid channel estimator.");
+      ocudu_assert(demodulator, "Invalid demodulator.");
+      ocudu_assert(demultiplex, "Invalid demultiplex.");
+      ocudu_assert(uci_dec, "Invalid UCI decoder.");
     }
 
     dmrs_pusch_estimator&      get_estimator() { return *estimator; }
@@ -160,12 +160,12 @@ private:
       nof_cdm_groups_without_data             = cdm_;
 
       // Ensure that no parameter was overwritten.
-      srsran_assert(prev_data.data() == nullptr, "Detected data overwrite.");
-      srsran_assert(!prev_rm_buffer.is_valid(), "Detected RM buffer overwrite.");
-      srsran_assert(prev_notifier == nullptr, "Detected notifier overwrite.");
-      srsran_assert(prev_dependencies == nullptr, "Detected dependencies overwrite.");
-      srsran_assert(prev_grid == nullptr, "Detected grid overwrite.");
-      srsran_assert(prev_pdu == nullptr, "Detected PDU overwrite.");
+      ocudu_assert(prev_data.data() == nullptr, "Detected data overwrite.");
+      ocudu_assert(!prev_rm_buffer.is_valid(), "Detected RM buffer overwrite.");
+      ocudu_assert(prev_notifier == nullptr, "Detected notifier overwrite.");
+      ocudu_assert(prev_dependencies == nullptr, "Detected dependencies overwrite.");
+      ocudu_assert(prev_grid == nullptr, "Detected grid overwrite.");
+      ocudu_assert(prev_pdu == nullptr, "Detected PDU overwrite.");
 
       // Return its own reference to the estimator callback interface.
       return *this;
@@ -182,10 +182,10 @@ private:
       span<uint8_t>                    current_data     = std::exchange(data, {});
 
       // Verify the parameters are valid before continuing with the processing.
-      srsran_assert(current_notifier != nullptr, "Invalid notifier.");
-      srsran_assert(current_grid != nullptr, "Invalid grid.");
-      srsran_assert(current_pdu != nullptr, "Invalid PDU.");
-      srsran_assert((current_data.data() != nullptr) && (!current_data.empty()), "Invalid data.");
+      ocudu_assert(current_notifier != nullptr, "Invalid notifier.");
+      ocudu_assert(current_grid != nullptr, "Invalid grid.");
+      ocudu_assert(current_pdu != nullptr, "Invalid PDU.");
+      ocudu_assert((current_data.data() != nullptr) && (!current_data.empty()), "Invalid data.");
 
       // Keep processing the PUSCH reception. The notifier can be configured for a different reception before returning.
       notified_processor.process_data(current_data,
@@ -220,7 +220,7 @@ private:
   /// Channel estimator notifier configurator.
   dmrs_pusch_estimator_notifier_impl estimator_notifier_configurator;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Dependencies pool.
   std::shared_ptr<concurrent_dependencies_pool_type> dependencies_pool;
   /// UL-SCH transport block decoder.
@@ -255,4 +255,4 @@ private:
                     unsigned                               nof_cdm_groups_without_data);
 };
 
-} // namespace srsran
+} // namespace ocudu

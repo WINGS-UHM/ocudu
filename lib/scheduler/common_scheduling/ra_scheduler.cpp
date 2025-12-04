@@ -20,18 +20,18 @@
 #include "../support/pucch/pucch_guardbands.h"
 #include "../support/rb_helper.h"
 #include "../support/sch_pdu_builder.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
-#include "srsran/support/compiler.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
+#include "ocudu/support/compiler.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-unsigned srsran::get_msg3_delay(const pusch_time_domain_resource_allocation& pusch_td_res_alloc,
-                                subcarrier_spacing                           pusch_scs)
+unsigned ocudu::get_msg3_delay(const pusch_time_domain_resource_allocation& pusch_td_res_alloc,
+                               subcarrier_spacing                           pusch_scs)
 {
   // In TS 38.214, Table 6.1.2.1.1-5, Delta is only defined for PUSCH SCS within [kHz15, kHz120kHz].
-  srsran_sanity_check(to_numerology_value(pusch_scs) <= to_numerology_value(subcarrier_spacing::kHz120),
-                      "PUSCH subcarrier spacing not supported for MSG3 delay");
+  ocudu_sanity_check(to_numerology_value(pusch_scs) <= to_numerology_value(subcarrier_spacing::kHz120),
+                     "PUSCH subcarrier spacing not supported for MSG3 delay");
 
   // The array represents Table 6.1.2.1.1-5, in TS 38.214.
   static constexpr std::array<uint8_t, 4> DELTAS{2, 3, 4, 6};
@@ -43,7 +43,7 @@ unsigned srsran::get_msg3_delay(const pusch_time_domain_resource_allocation& pus
   return static_cast<int>(pusch_td_res_alloc.k2 + DELTAS[to_numerology_value(pusch_scs)]);
 }
 
-uint16_t srsran::get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul)
+uint16_t ocudu::get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul)
 {
   // See 38.321, 5.1.3 - Random Access Preamble transmission.
   // RA-RNTI = 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id.
@@ -78,7 +78,7 @@ public:
 
   void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override
   {
-    srsran_sanity_check(pending_msg3s[ue_idx].busy(), "timeout called but HARQ entity does not exist");
+    ocudu_sanity_check(pending_msg3s[ue_idx].busy(), "timeout called but HARQ entity does not exist");
 
     // Delete Msg3 HARQ entity to make it available again.
     pending_msg3s[ue_idx].msg3_harq_ent.reset();
@@ -131,7 +131,7 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
   pending_rachs(RACH_IND_QUEUE_SIZE),
   pending_crcs(CRC_IND_QUEUE_SIZE),
   pending_msg3s(MAX_NOF_MSG3),
-  pucch_crbs(srsran::compute_pucch_crbs(cell_cfg))
+  pucch_crbs(ocudu::compute_pucch_crbs(cell_cfg))
 {
   // Precompute RAR PDSCH and DCI PDUs.
   precompute_rar_fields();
@@ -284,7 +284,7 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
           break;
         }
       }
-      srsran_sanity_check(rar_req->rar_window.length() != 0, "Invalid configuration");
+      ocudu_sanity_check(rar_req->rar_window.length() != 0, "Invalid configuration");
     } else {
       // FDD case.
       rar_req->rar_window = {rar_req->prach_slot_rx + prach_duration,
@@ -336,7 +336,7 @@ void ra_scheduler::handle_pending_crc_indications_impl(cell_resource_allocator& 
   ul_crc_indication crc_ind;
   while (pending_crcs.try_pop(crc_ind)) {
     for (const ul_crc_pdu_indication& crc : crc_ind.crcs) {
-      srsran_assert(crc.ue_index == INVALID_DU_UE_INDEX, "Msg3 HARQ CRCs cannot have a ue index assigned yet");
+      ocudu_assert(crc.ue_index == INVALID_DU_UE_INDEX, "Msg3 HARQ CRCs cannot have a ue index assigned yet");
       auto& pending_msg3 = pending_msg3s[to_value(crc.rnti) % MAX_NOF_MSG3];
       if (pending_msg3.preamble.tc_rnti != crc.rnti or pending_msg3.msg3_harq_ent.empty()) {
         logger.warning("Invalid UL CRC, cell={}, rnti={}, h_id={}. Cause: Nonexistent tc-rnti",
@@ -563,7 +563,7 @@ void ra_scheduler::schedule_pending_rars(cell_resource_allocator& res_alloc, slo
             rar_req.tc_rntis.size() > nof_allocs ? rar_req.tc_rntis.size() - nof_allocs : 0;
         if (new_pending_msg3s > MAX_PREAMBLES_PER_PRACH_OCCASION) {
           // Note: This check must be added to avoid compilation issue in gcc9.4.0. Potentially a false alarm.
-          SRSRAN_UNREACHABLE;
+          OCUDU_UNREACHABLE;
         }
         rar_req.tc_rntis.resize(new_pending_msg3s);
         break;
@@ -636,7 +636,7 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
     const auto              available_crbs = rb_helper::find_empty_interval_of_length(used_crbs, nof_rar_rbs);
     // Check how many allocations can we fit in the available interval.
     // Note: we have to call \c get_nof_pdsch_prbs_required for every nof_allocs because the number of PRBs is not
-    // linear w.r.t. the payload size (all RARs are sent in the same PDSCH grant). See \ref srsran::get_nof_prbs.
+    // linear w.r.t. the payload size (all RARs are sent in the same PDSCH grant). See \ref ocudu::get_nof_prbs.
     unsigned nof_allocs = rar.tc_rntis.size();
     while (nof_allocs != 0 &&
            get_nof_pdsch_prbs_required(time_resource, nof_allocs).nof_prbs > available_crbs.length()) {
@@ -787,12 +787,12 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
     const vrb_interval            vrbs       = msg3_crb_to_vrb(cell_cfg, msg3_candidate.crbs);
 
     auto& pending_msg3 = pending_msg3s[to_value(rar_request.tc_rntis[i]) % MAX_NOF_MSG3];
-    srsran_sanity_check(pending_msg3.busy(), "Pending Msg3 entry should have been reserved when RACH was received");
+    ocudu_sanity_check(pending_msg3.busy(), "Pending Msg3 entry should have been reserved when RACH was received");
 
     // Allocate Msg3 UL HARQ.
     std::optional<ul_harq_process_handle> h_ul =
         pending_msg3.msg3_harq_ent.alloc_ul_harq(msg3_alloc.slot, sched_cfg.max_nof_msg3_harq_retxs);
-    srsran_sanity_check(h_ul.has_value(), "Pending Msg3 HARQ must be available when RAR is allocated");
+    ocudu_sanity_check(h_ul.has_value(), "Pending Msg3 HARQ must be available when RAR is allocated");
 
     if (rar.grants.full() or msg3_alloc.result.ul.puschs.full()) {
       logger.error("RAR grant for tc-rnti={} will be dropped. Cause: no available free RAR or UL grants",
@@ -851,7 +851,7 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
   }
 
   ul_harq_process_handle h_ul = msg3_ctx.msg3_harq_ent.ul_harq(to_harq_id(0)).value();
-  srsran_sanity_check(h_ul.has_pending_retx(), "schedule_msg3_retx called when HARQ has no pending reTx");
+  ocudu_sanity_check(h_ul.has_pending_retx(), "schedule_msg3_retx called when HARQ has no pending reTx");
   const ul_harq_process_handle::grant_params& last_harq_params = h_ul.get_grant_params();
 
   const span<const pusch_time_domain_resource_allocation> pusch_td_alloc_list =
@@ -951,7 +951,7 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
 sch_prbs_tbs ra_scheduler::get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const
 {
-  srsran_assert(nof_ul_grants > 0, "Invalid number of UL grants");
+  ocudu_assert(nof_ul_grants > 0, "Invalid number of UL grants");
 
   return rar_data[time_res_idx].prbs_tbs_per_nof_grants
       [std::min(nof_ul_grants, static_cast<unsigned>(rar_data[time_res_idx].prbs_tbs_per_nof_grants.size())) - 1];

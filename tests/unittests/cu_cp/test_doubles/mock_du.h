@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/rb_id.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 struct f1ap_message;
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 class cu_cp_f1c_handler;
 
@@ -53,5 +53,5 @@ struct mock_du_params {
 /// Creates an emulator of a DU from the perspective of the CU-CP.
 std::unique_ptr<mock_du> create_mock_du(mock_du_params params);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

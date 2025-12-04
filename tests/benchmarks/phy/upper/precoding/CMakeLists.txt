@@ -7,5 +7,5 @@
 #
 
 add_executable(channel_precoder_benchmark channel_precoder_benchmark.cpp)
-target_link_libraries(channel_precoder_benchmark srslog srsran_channel_precoder)
+target_link_libraries(channel_precoder_benchmark ocudulog ocudu_channel_precoder)
 add_test(channel_precoder_benchmark channel_precoder_benchmark -s -R 1)

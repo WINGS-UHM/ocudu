@@ -16,9 +16,9 @@
 #include "../support/pdsch/pdsch_resource_allocation.h"
 #include "../support/prbs_calculator.h"
 #include "../support/sch_pdu_builder.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 si_message_scheduler::si_message_scheduler(const cell_configuration&                  cfg_,
                                            pdcch_resource_allocator&                  pdcch_sch_,
@@ -27,7 +27,7 @@ si_message_scheduler::si_message_scheduler(const cell_configuration&            
   cell_cfg(cfg_),
   pdcch_sch(pdcch_sch_),
   si_sched_cfg(si_sched_cfg_),
-  logger(srslog::fetch_basic_logger("SCHED"))
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   if (si_sched_cfg.has_value()) {
     pending_messages.resize(si_sched_cfg->si_messages.size());

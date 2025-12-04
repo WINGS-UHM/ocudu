@@ -11,10 +11,10 @@
 #pragma once
 
 #include "apps/services/remote_control/remote_command.h"
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 struct remote_control_appconfig;
 
@@ -41,4 +41,4 @@ std::unique_ptr<remote_server> create_remote_server(const remote_control_appconf
 void initialize_json_channel();
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

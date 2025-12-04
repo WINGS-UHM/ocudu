@@ -10,7 +10,7 @@
 
 #include "lower_phy_sector_timing_handler.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

@@ -8,40 +8,40 @@
  *
  */
 
-#include "srsran/pcap/mac_pcap.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/pcap/mac_pcap.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-void write_pcap_nr_thread_function_byte_buffer(srsran::mac_pcap* pcap, uint32_t num_pdus);
-void write_pcap_nr_thread_function_large_byte_buffer(srsran::mac_pcap* pcap, uint32_t num_pdus);
-void write_pcap_nr_thread_function_spans(srsran::mac_pcap* pcap, uint32_t num_pdus);
+void write_pcap_nr_thread_function_byte_buffer(ocudu::mac_pcap* pcap, uint32_t num_pdus);
+void write_pcap_nr_thread_function_large_byte_buffer(ocudu::mac_pcap* pcap, uint32_t num_pdus);
+void write_pcap_nr_thread_function_spans(ocudu::mac_pcap* pcap, uint32_t num_pdus);
 
 class pcap_mac_test : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("PCAP").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("PCAP").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("PCAP").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("PCAP").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  task_worker           worker{"pcap", 1024};
-  task_worker_executor  pcap_exec{worker};
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  task_worker             worker{"pcap", 1024};
+  task_worker_executor    pcap_exec{worker};
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(pcap_mac_test, write_pdu)
@@ -49,19 +49,19 @@ TEST_F(pcap_mac_test, write_pdu)
   auto                    mac_pcap_writer = create_mac_pcap("/tmp/mac_write_pdu.pcap", mac_pcap_type::udp, pcap_exec);
   std::array<uint8_t, 17> tv              = {
       0x04, 0x0a, 0x0d, 0x72, 0x80, 0xd3, 0x96, 0x02, 0x7b, 0x01, 0xbd, 0x26, 0x3f, 0x00, 0x00, 0x00, 0x00};
-  int                         crnti   = 0x01011;
-  int                         ue_id   = 2;
-  int                         harqid  = 0;
-  int                         tti     = 10;
-  srsran::mac_nr_context_info context = {};
-  context.radioType                   = srsran::PCAP_FDD_RADIO;
-  context.direction                   = srsran::PCAP_DIRECTION_DOWNLINK;
-  context.rntiType                    = srsran::PCAP_C_RNTI;
-  context.rnti                        = crnti;
-  context.ueid                        = ue_id;
-  context.harqid                      = harqid;
-  context.system_frame_number         = tti / 10;
-  context.sub_frame_number            = tti % 10;
+  int                        crnti   = 0x01011;
+  int                        ue_id   = 2;
+  int                        harqid  = 0;
+  int                        tti     = 10;
+  ocudu::mac_nr_context_info context = {};
+  context.radioType                  = ocudu::PCAP_FDD_RADIO;
+  context.direction                  = ocudu::PCAP_DIRECTION_DOWNLINK;
+  context.rntiType                   = ocudu::PCAP_C_RNTI;
+  context.rnti                       = crnti;
+  context.ueid                       = ue_id;
+  context.harqid                     = harqid;
+  context.system_frame_number        = tti / 10;
+  context.sub_frame_number           = tti % 10;
   mac_pcap_writer->push_pdu(context, tv);
   worker.wait_pending_tasks();
 }
@@ -117,19 +117,19 @@ TEST_F(pcap_mac_test, write_dlt_pdu)
   auto mac_pcap_writer       = create_mac_pcap("/tmp/mac_write_dlt_pdu.pcap", mac_pcap_type::dlt, pcap_exec);
   std::array<uint8_t, 17> tv = {
       0x04, 0x0a, 0x0d, 0x72, 0x80, 0xd3, 0x96, 0x02, 0x7b, 0x01, 0xbd, 0x26, 0x3f, 0x00, 0x00, 0x00, 0x00};
-  int                         crnti   = 0x01011;
-  int                         ue_id   = 2;
-  int                         harqid  = 0;
-  int                         tti     = 10;
-  srsran::mac_nr_context_info context = {};
-  context.radioType                   = srsran::PCAP_FDD_RADIO;
-  context.direction                   = srsran::PCAP_DIRECTION_DOWNLINK;
-  context.rntiType                    = srsran::PCAP_C_RNTI;
-  context.rnti                        = crnti;
-  context.ueid                        = ue_id;
-  context.harqid                      = harqid;
-  context.system_frame_number         = tti / 10;
-  context.sub_frame_number            = tti % 10;
+  int                        crnti   = 0x01011;
+  int                        ue_id   = 2;
+  int                        harqid  = 0;
+  int                        tti     = 10;
+  ocudu::mac_nr_context_info context = {};
+  context.radioType                  = ocudu::PCAP_FDD_RADIO;
+  context.direction                  = ocudu::PCAP_DIRECTION_DOWNLINK;
+  context.rntiType                   = ocudu::PCAP_C_RNTI;
+  context.rnti                       = crnti;
+  context.ueid                       = ue_id;
+  context.harqid                     = harqid;
+  context.system_frame_number        = tti / 10;
+  context.sub_frame_number           = tti % 10;
   mac_pcap_writer->push_pdu(context, tv);
   worker.wait_pending_tasks();
 }
@@ -204,23 +204,23 @@ TEST_F(pcap_mac_test, write_large_byte_buffers)
 }
 
 // Write #num_pdus DL MAC NR PDUs using PCAP handle (spans)
-void write_pcap_nr_thread_function_spans(srsran::mac_pcap* pcap, uint32_t num_pdus)
+void write_pcap_nr_thread_function_spans(ocudu::mac_pcap* pcap, uint32_t num_pdus)
 {
   std::array<uint8_t, 17> tv = {
       0x04, 0x0a, 0x0d, 0x72, 0x80, 0xd3, 0x96, 0x02, 0x7b, 0x01, 0xbd, 0x26, 0x3f, 0x00, 0x00, 0x00, 0x00};
-  int                         crnti   = 0x01011;
-  int                         ue_id   = 2;
-  int                         harqid  = 0;
-  int                         tti     = 10;
-  srsran::mac_nr_context_info context = {};
-  context.radioType                   = srsran::PCAP_FDD_RADIO;
-  context.direction                   = srsran::PCAP_DIRECTION_DOWNLINK;
-  context.rntiType                    = srsran::PCAP_C_RNTI;
-  context.rnti                        = crnti;
-  context.ueid                        = ue_id;
-  context.harqid                      = harqid;
-  context.system_frame_number         = tti / 10;
-  context.sub_frame_number            = tti % 10;
+  int                        crnti   = 0x01011;
+  int                        ue_id   = 2;
+  int                        harqid  = 0;
+  int                        tti     = 10;
+  ocudu::mac_nr_context_info context = {};
+  context.radioType                  = ocudu::PCAP_FDD_RADIO;
+  context.direction                  = ocudu::PCAP_DIRECTION_DOWNLINK;
+  context.rntiType                   = ocudu::PCAP_C_RNTI;
+  context.rnti                       = crnti;
+  context.ueid                       = ue_id;
+  context.harqid                     = harqid;
+  context.system_frame_number        = tti / 10;
+  context.sub_frame_number           = tti % 10;
   for (uint32_t i = 0; i < num_pdus; i++) {
     pcap->push_pdu(context, tv);
   }
@@ -229,25 +229,25 @@ void write_pcap_nr_thread_function_spans(srsran::mac_pcap* pcap, uint32_t num_pd
 }
 
 // Write #num_pdus DL MAC NR PDUs using PCAP handle (byte_buffer)
-void write_pcap_nr_thread_function_byte_buffer(srsran::mac_pcap* pcap, uint32_t num_pdus)
+void write_pcap_nr_thread_function_byte_buffer(ocudu::mac_pcap* pcap, uint32_t num_pdus)
 {
-  srsran::byte_buffer tv =
+  ocudu::byte_buffer tv =
       byte_buffer::create(
           {0x04, 0x0a, 0x0d, 0x72, 0x80, 0xd3, 0x96, 0x02, 0x7b, 0x01, 0xbd, 0x26, 0x3f, 0x00, 0x00, 0x00, 0x00})
           .value();
-  int                         crnti   = 0x01011;
-  int                         ue_id   = 2;
-  int                         harqid  = 0;
-  int                         tti     = 10;
-  srsran::mac_nr_context_info context = {};
-  context.radioType                   = srsran::PCAP_FDD_RADIO;
-  context.direction                   = srsran::PCAP_DIRECTION_DOWNLINK;
-  context.rntiType                    = srsran::PCAP_C_RNTI;
-  context.rnti                        = crnti;
-  context.ueid                        = ue_id;
-  context.harqid                      = harqid;
-  context.system_frame_number         = tti / 10;
-  context.sub_frame_number            = tti % 10;
+  int                        crnti   = 0x01011;
+  int                        ue_id   = 2;
+  int                        harqid  = 0;
+  int                        tti     = 10;
+  ocudu::mac_nr_context_info context = {};
+  context.radioType                  = ocudu::PCAP_FDD_RADIO;
+  context.direction                  = ocudu::PCAP_DIRECTION_DOWNLINK;
+  context.rntiType                   = ocudu::PCAP_C_RNTI;
+  context.rnti                       = crnti;
+  context.ueid                       = ue_id;
+  context.harqid                     = harqid;
+  context.system_frame_number        = tti / 10;
+  context.sub_frame_number           = tti % 10;
   for (uint32_t i = 0; i < num_pdus; i++) {
     pcap->push_pdu(context, tv.copy());
   }
@@ -256,10 +256,10 @@ void write_pcap_nr_thread_function_byte_buffer(srsran::mac_pcap* pcap, uint32_t 
 }
 
 // Write #num_pdus DL MAC NR PDUs using PCAP handle (byte_buffer)
-void write_pcap_nr_thread_function_large_byte_buffer(srsran::mac_pcap* pcap, uint32_t num_pdus)
+void write_pcap_nr_thread_function_large_byte_buffer(ocudu::mac_pcap* pcap, uint32_t num_pdus)
 {
-  srsran::byte_buffer tv =
-      srsran::make_byte_buffer(
+  ocudu::byte_buffer tv =
+      ocudu::make_byte_buffer(
           "44057e80042080042045000578b506400040066c1c0a2d0001"
           "0a2d0003145196440dc78535f4439577801001fd348500000101080a7e069e553740bf250a43116ae9c7fb384dde95580b51f982cee5"
           "b1d7"
@@ -3114,19 +3114,19 @@ void write_pcap_nr_thread_function_large_byte_buffer(srsran::mac_pcap* pcap, uin
           "beb25106cf2e60c0aa9f8c0f745bdc1ecb8e9bfe71e9b4846bbea0dc5d2d982d17176c3119432b90e3a8f48195d21a06")
           .value();
 
-  int                         crnti   = 0x01011;
-  int                         ue_id   = 2;
-  int                         harqid  = 0;
-  int                         tti     = 10;
-  srsran::mac_nr_context_info context = {};
-  context.radioType                   = srsran::PCAP_FDD_RADIO;
-  context.direction                   = srsran::PCAP_DIRECTION_DOWNLINK;
-  context.rntiType                    = srsran::PCAP_C_RNTI;
-  context.rnti                        = crnti;
-  context.ueid                        = ue_id;
-  context.harqid                      = harqid;
-  context.system_frame_number         = tti / 10;
-  context.sub_frame_number            = tti % 10;
+  int                        crnti   = 0x01011;
+  int                        ue_id   = 2;
+  int                        harqid  = 0;
+  int                        tti     = 10;
+  ocudu::mac_nr_context_info context = {};
+  context.radioType                  = ocudu::PCAP_FDD_RADIO;
+  context.direction                  = ocudu::PCAP_DIRECTION_DOWNLINK;
+  context.rntiType                   = ocudu::PCAP_C_RNTI;
+  context.rnti                       = crnti;
+  context.ueid                       = ue_id;
+  context.harqid                     = harqid;
+  context.system_frame_number        = tti / 10;
+  context.sub_frame_number           = tti % 10;
   for (uint32_t i = 0; i < num_pdus; i++) {
     pcap->push_pdu(context, tv.copy());
   }

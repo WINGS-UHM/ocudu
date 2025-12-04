@@ -9,15 +9,15 @@
  */
 
 #include "ldpc_segmenter_tx_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
-#include "srsran/phy/upper/codeblock_metadata.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 /// Length of the CRC checksum added to the segments.
 static constexpr units::bits SEG_CRC_LENGTH{24};
@@ -29,17 +29,17 @@ static_assert(MAX_TBS.is_byte_exact(), "Value is not a multiple of 8");
 static void check_inputs_tx(span<const uint8_t> transport_block, const segmenter_config& cfg)
 {
   using namespace units::literals;
-  srsran_assert(!transport_block.empty(), "Argument transport_block should not be empty.");
-  srsran_assert(units::bytes(transport_block.size()).to_bits() + 24_bits <= MAX_TBS,
-                "Transport block too long. The admissible size, including CRC, is {}.",
-                MAX_TBS.truncate_to_bytes());
+  ocudu_assert(!transport_block.empty(), "Argument transport_block should not be empty.");
+  ocudu_assert(units::bytes(transport_block.size()).to_bits() + 24_bits <= MAX_TBS,
+               "Transport block too long. The admissible size, including CRC, is {}.",
+               MAX_TBS.truncate_to_bytes());
 
-  srsran_assert((cfg.rv >= 0) && (cfg.rv <= 3), "Invalid redundancy version.");
+  ocudu_assert((cfg.rv >= 0) && (cfg.rv <= 3), "Invalid redundancy version.");
 
-  srsran_assert((cfg.nof_layers >= 1) && (cfg.nof_layers <= 4), "Invalid number of layers.");
+  ocudu_assert((cfg.nof_layers >= 1) && (cfg.nof_layers <= 4), "Invalid number of layers.");
 
-  srsran_assert(cfg.nof_ch_symbols % (cfg.nof_layers) == 0,
-                "The number of channel symbols should be a multiple of the product between the number of layers.");
+  ocudu_assert(cfg.nof_ch_symbols % (cfg.nof_layers) == 0,
+               "The number of channel symbols should be a multiple of the product between the number of layers.");
 }
 
 // For the Tx-chain segmenter without using an intermediate buffer.
@@ -116,15 +116,15 @@ ldpc_segmenter_buffer& ldpc_segmenter_tx_impl::new_transmission(span<const uint8
   }
 
   // After segmenting no bits should be left in the buffer.
-  srsran_assert(params.nof_tb_bits_in.value() == tb_offset,
-                "Transport block offset ({}) must be equal to the transport block size including CRC ({}).",
-                tb_offset,
-                params.nof_tb_bits_in);
+  ocudu_assert(params.nof_tb_bits_in.value() == tb_offset,
+               "Transport block offset ({}) must be equal to the transport block size including CRC ({}).",
+               tb_offset,
+               params.nof_tb_bits_in);
   // After accumulating all codeblock rate-matched lengths, cw_offset should be the same as cw_length.
-  srsran_assert(params.cw_length.value() == cw_offset,
-                "Codeblock offset ({}) must be equal to the codeword size ({}).",
-                cw_offset,
-                params.cw_length.value());
+  ocudu_assert(params.cw_length.value() == cw_offset,
+               "Codeblock offset ({}) must be equal to the codeword size ({}).",
+               cw_offset,
+               params.cw_length.value());
 
   return *this;
 }
@@ -133,14 +133,14 @@ void ldpc_segmenter_tx_impl::read_codeblock(bit_buffer          codeblock,
                                             span<const uint8_t> transport_block,
                                             unsigned            cb_index) const
 {
-  srsran_assert(codeblock.size() == params.segment_length.value(),
-                "Invalid codeblock size (i.e., {}), expected {}.",
-                codeblock.size(),
-                params.segment_length.value());
-  srsran_assert(cb_index < params.nof_segments,
-                "Codeblock index ({}) must be lower than the number of segments ({}).",
-                cb_index,
-                params.nof_segments);
+  ocudu_assert(codeblock.size() == params.segment_length.value(),
+               "Invalid codeblock size (i.e., {}), expected {}.",
+               codeblock.size(),
+               params.segment_length.value());
+  ocudu_assert(cb_index < params.nof_segments,
+               "Codeblock index ({}) must be lower than the number of segments ({}).",
+               cb_index,
+               params.nof_segments);
 
   using namespace units::literals;
 
@@ -150,7 +150,7 @@ void ldpc_segmenter_tx_impl::read_codeblock(bit_buffer          codeblock,
   // Copy codeblock data.
   {
     bit_buffer message = codeblock.first(nof_segment_bits);
-    srsvec::copy_offset(message, transport_block, params.tb_offset[cb_index]);
+    ocuduvec::copy_offset(message, transport_block, params.tb_offset[cb_index]);
     nof_used_bits += units::bits(nof_segment_bits);
   }
 
@@ -211,20 +211,20 @@ void ldpc_segmenter_tx_impl::read_codeblock(bit_buffer          codeblock,
 
 codeblock_metadata ldpc_segmenter_tx_impl::get_cb_metadata(unsigned cb_index) const
 {
-  srsran_assert(cb_index < params.nof_segments,
-                "Codeblock index ({}) must be lower than the number of segments ({}).",
-                cb_index,
-                params.nof_segments);
+  ocudu_assert(cb_index < params.nof_segments,
+               "Codeblock index ({}) must be lower than the number of segments ({}).",
+               cb_index,
+               params.nof_segments);
 
   return params.cb_metadata[cb_index];
 }
 
 units::bits ldpc_segmenter_tx_impl::get_cb_info_bits(unsigned cb_index) const
 {
-  srsran_assert(cb_index < params.nof_segments,
-                "Codeblock index ({}) must be lower than the number of segments ({}).",
-                cb_index,
-                params.nof_segments);
+  ocudu_assert(cb_index < params.nof_segments,
+               "Codeblock index ({}) must be lower than the number of segments ({}).",
+               cb_index,
+               params.nof_segments);
 
   bool last_cb = (cb_index == params.nof_segments - 1);
 
@@ -233,10 +233,10 @@ units::bits ldpc_segmenter_tx_impl::get_cb_info_bits(unsigned cb_index) const
 
 unsigned ldpc_segmenter_tx_impl::get_rm_length(unsigned cb_index) const
 {
-  srsran_assert(cb_index < params.nof_segments,
-                "Codeblock index ({}) must be lower than the number of segments ({}).",
-                cb_index,
-                params.nof_segments);
+  ocudu_assert(cb_index < params.nof_segments,
+               "Codeblock index ({}) must be lower than the number of segments ({}).",
+               cb_index,
+               params.nof_segments);
 
   return params.cb_metadata[cb_index].cb_specific.rm_length;
 }

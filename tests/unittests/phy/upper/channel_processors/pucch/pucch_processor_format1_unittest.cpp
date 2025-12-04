@@ -12,24 +12,24 @@
 #include "../../signal_processors/pucch/dmrs_pucch_estimator_test_doubles.h"
 #include "../uci/uci_decoder_test_doubles.h"
 #include "pucch_detector_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr unsigned nof_repetitions = 100;
 static constexpr unsigned nof_mux_ues     = 5;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& out, span<const uint8_t> data)
 {
   return out << fmt::format("[{}]", data);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

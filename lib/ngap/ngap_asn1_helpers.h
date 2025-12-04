@@ -11,27 +11,27 @@
 #pragma once
 
 #include "ngap_asn1_converters.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/ngap/ngap_ies.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_context.h"
-#include "srsran/ngap/ngap_handover.h"
-#include "srsran/ngap/ngap_init_context_setup.h"
-#include "srsran/ngap/ngap_nas.h"
-#include "srsran/ngap/ngap_rrc_inactive_transition.h"
-#include "srsran/ngap/ngap_setup.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/tac.h"
-#include "srsran/security/security.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_context.h"
+#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/ngap/ngap_init_context_setup.h"
+#include "ocudu/ngap/ngap_nas.h"
+#include "ocudu/ngap/ngap_rrc_inactive_transition.h"
+#include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/tac.h"
+#include "ocudu/security/security.h"
 #include <string>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 /// \brief Fills ASN.1 NGSetupRequest struct.
 /// \param[out] asn1_request The NGSetupRequest ASN.1 struct to fill.
@@ -226,8 +226,8 @@ inline bool fill_cu_cp_pdu_session_resource_setup_item_base(cu_cp_pdu_session_re
   asn1::ngap::pdu_session_res_setup_request_transfer_s asn1_setup_req_transfer;
   asn1::cbit_ref bref({asn1_request_transfer.begin(), asn1_request_transfer.end()});
 
-  if (asn1_setup_req_transfer.unpack(bref) != asn1::SRSASN_SUCCESS) {
-    srslog::fetch_basic_logger("NGAP").error("Couldn't unpack PDU Session Resource Setup Request Transfer PDU");
+  if (asn1_setup_req_transfer.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+    ocudulog::fetch_basic_logger("NGAP").error("Couldn't unpack PDU Session Resource Setup Request Transfer PDU");
     return false;
   }
 
@@ -243,8 +243,9 @@ inline bool fill_cu_cp_pdu_session_resource_setup_item_base(cu_cp_pdu_session_re
   if (asn1_setup_req_transfer->ul_ngu_up_tnl_info.type() ==
           asn1::ngap::up_transport_layer_info_c::types_opts::gtp_tunnel &&
       asn1_setup_req_transfer->ul_ngu_up_tnl_info.gtp_tunnel().transport_layer_address.length() == 160) {
-    srslog::fetch_basic_logger("NGAP").error("Invalid PDU Session Resource Setup Request Transfer PDU. Cause: Combined "
-                                             "IPv4 and IPv6 addresses are currently not supported");
+    ocudulog::fetch_basic_logger("NGAP").error(
+        "Invalid PDU Session Resource Setup Request Transfer PDU. Cause: Combined "
+        "IPv4 and IPv6 addresses are currently not supported");
     return false;
   }
 
@@ -252,7 +253,7 @@ inline bool fill_cu_cp_pdu_session_resource_setup_item_base(cu_cp_pdu_session_re
 
   // Fill PDU session type.
   if (!asn1_to_pdu_session_type(setup_item.pdu_session_type, asn1_setup_req_transfer->pdu_session_type)) {
-    srslog::fetch_basic_logger("NGAP").error(
+    ocudulog::fetch_basic_logger("NGAP").error(
         "Invalid PDU Session Type in PDU Session Resource Setup Request Transfer PDU");
     return false;
   }
@@ -561,8 +562,8 @@ inline bool fill_cu_cp_pdu_session_resource_modify_item_base(
 
   asn1::ngap::pdu_session_res_modify_request_transfer_s asn1_modify_req_transfer;
   asn1::cbit_ref                                        bref(asn1_session_item.pdu_session_res_modify_request_transfer);
-  if (asn1_modify_req_transfer.unpack(bref) != asn1::SRSASN_SUCCESS) {
-    srslog::fetch_basic_logger("NGAP").error("Couldn't unpack PDU Session Resource Modify Request Transfer PDU.");
+  if (asn1_modify_req_transfer.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+    ocudulog::fetch_basic_logger("NGAP").error("Couldn't unpack PDU Session Resource Modify Request Transfer PDU.");
     return false;
   }
 
@@ -678,8 +679,8 @@ inline void fill_asn1_pdu_session_res_setup_response(asn1::ngap::pdu_session_res
   if (!cu_cp_resp.pdu_session_res_failed_to_setup_items.empty()) {
     resp->pdu_session_res_failed_to_setup_list_su_res_present = true;
     for (const auto& cu_cp_setup_failed_item : cu_cp_resp.pdu_session_res_failed_to_setup_items) {
-      srsran_assert(!cu_cp_setup_failed_item.unsuccessful_transfer.cause.valueless_by_exception(),
-                    "Failed cause must not be null.");
+      ocudu_assert(!cu_cp_setup_failed_item.unsuccessful_transfer.cause.valueless_by_exception(),
+                   "Failed cause must not be null.");
       asn1::ngap::pdu_session_res_failed_to_setup_item_su_res_s setup_failed_item;
 
       pdu_session_res_setup_failed_item_to_asn1(setup_failed_item, cu_cp_setup_failed_item);
@@ -732,8 +733,8 @@ inline void fill_cu_cp_pdu_session_resource_release_command(
     asn1::ngap::pdu_session_res_release_cmd_transfer_s asn1_pdu_session_res_release_cmd_transfer;
     asn1::cbit_ref bref(pdu_session_res_to_release_item.pdu_session_res_release_cmd_transfer);
 
-    if (asn1_pdu_session_res_release_cmd_transfer.unpack(bref) != asn1::SRSASN_SUCCESS) {
-      srslog::fetch_basic_logger("NGAP").error("Couldn't unpack PDU Session Resource Release Command Transfer PDU.");
+    if (asn1_pdu_session_res_release_cmd_transfer.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+      ocudulog::fetch_basic_logger("NGAP").error("Couldn't unpack PDU Session Resource Release Command Transfer PDU.");
       return;
     }
 
@@ -967,7 +968,7 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
     if (!fill_cu_cp_pdu_session_resource_setup_item_base(pdu_session_res_setup_item,
                                                          asn1_pdu_session_res_setup_item,
                                                          asn1_pdu_session_res_setup_item.ho_request_transfer.copy())) {
-      srslog::fetch_basic_logger("NGAP").error("Couldn't convert PDU Session Resource Setup List HO Request.");
+      ocudulog::fetch_basic_logger("NGAP").error("Couldn't convert PDU Session Resource Setup List HO Request.");
       return false;
     }
 
@@ -990,8 +991,8 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
   // Fill source to target transparent container.
   asn1::cbit_ref bref(asn1_request->source_to_target_transparent_container);
   asn1::ngap::source_ngran_node_to_target_ngran_node_transparent_container_s asn1_transparent_container;
-  if (asn1_transparent_container.unpack(bref) != asn1::SRSASN_SUCCESS) {
-    srslog::fetch_basic_logger("NGAP").error("Couldn't unpack Source to Target Transparent Container.");
+  if (asn1_transparent_container.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+    ocudulog::fetch_basic_logger("NGAP").error("Couldn't unpack Source to Target Transparent Container.");
     return false;
   }
   asn1_to_source_to_target_transport_container(request.source_to_target_transparent_container,
@@ -1148,5 +1149,5 @@ inline void fill_asn1_rrc_inactive_transition_report(asn1::ngap::rrc_inactive_tr
   user_loc_info_nr       = cu_cp_user_location_info_to_asn1(report.user_location_info);
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

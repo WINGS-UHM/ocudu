@@ -14,16 +14,16 @@
 #include "ofh_data_flow_uplane_downlink_data.h"
 #include "ofh_downlink_handler_metrics_collector.h"
 #include "ofh_tx_window_checker.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ofh/transmitter/ofh_downlink_handler.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_configuration.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ofh/transmitter/ofh_downlink_handler.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_configuration.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Downlink handler implementation configuration.
@@ -49,7 +49,7 @@ struct downlink_handler_impl_config {
 /// Downlink handler implementation dependencies.
 struct downlink_handler_impl_dependencies {
   /// Logger
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Error notifier.
   error_notifier& err_notifier;
   /// Data flow for Control-Plane.
@@ -87,7 +87,7 @@ public:
 
 private:
   const unsigned                                        sector_id;
-  srslog::basic_logger&                                 logger;
+  ocudulog::basic_logger&                               logger;
   const cyclic_prefix                                   cp;
   const std::optional<tdd_ul_dl_config_common>          tdd_config;
   const static_vector<unsigned, MAX_NOF_SUPPORTED_EAXC> dl_eaxc;
@@ -103,4 +103,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

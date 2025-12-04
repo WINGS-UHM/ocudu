@@ -15,10 +15,10 @@ set(SOURCES
         vlan_ethernet_frame_builder_impl.cpp
         vlan_ethernet_frame_decoder_impl.cpp)
 
-add_library(srsran_ofh_ethernet STATIC ${SOURCES})
-target_link_libraries(srsran_ofh_ethernet srslog srsran_instrumentation)
+add_library(ocudu_ofh_ethernet STATIC ${SOURCES})
+target_link_libraries(ocudu_ofh_ethernet ocudulog ocudu_instrumentation)
 
 if (DPDK_FOUND)
     add_subdirectory(dpdk)
-    target_link_libraries(srsran_ofh_ethernet srsran_ofh_dpdk_ethernet)
+    target_link_libraries(ocudu_ofh_ethernet ocudu_ofh_dpdk_ethernet)
 endif (DPDK_FOUND)

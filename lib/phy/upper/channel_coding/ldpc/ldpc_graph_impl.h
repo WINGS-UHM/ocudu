@@ -12,10 +12,10 @@
 ///\brief ldpc_graph: class describing LDPC Tanner graphs.
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 #include <array>
 
-namespace srsran {
+namespace ocudu {
 namespace ldpc {
 
 /// Placeholder for invalid lifting-size values.
@@ -108,7 +108,7 @@ public:
   ///
   /// If the base graph has an edge between check node \c m and variable node \c n, the returned value is
   /// the shift applied to the lifted node. Conversely, if there is no edge, then the returned value is
-  /// srsran::ldpc::NO_EDGE.
+  /// ocudu::ldpc::NO_EDGE.
   uint16_t get_lifted_node(unsigned m, unsigned n) const { return parity_check_matrix[m][n]; }
 
   /// Returns the number of check nodes of the underlying base graph.
@@ -161,4 +161,4 @@ const std::array<ldpc_graph_impl, TOTAL_NOF_GRAPHS> graph_array = create_graph_a
 
 } // namespace ldpc
 
-} // namespace srsran
+} // namespace ocudu

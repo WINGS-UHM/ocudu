@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../du_processor/du_processor.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_cp_controller;
 
@@ -27,7 +27,7 @@ public:
 
   void on_ul_ccch_pdu(byte_buffer pdu) override
   {
-    srsran_assert(rrc_pdu_handler != nullptr, "RRC UL handler must not be nullptr");
+    ocudu_assert(rrc_pdu_handler != nullptr, "RRC UL handler must not be nullptr");
     rrc_pdu_handler->handle_ul_ccch_pdu(std::move(pdu));
   }
 
@@ -47,7 +47,7 @@ public:
 
   void on_ul_dcch_pdu(byte_buffer pdu) override
   {
-    srsran_assert(rrc_pdu_handler != nullptr, "RRC UL handler must not be nullptr");
+    ocudu_assert(rrc_pdu_handler != nullptr, "RRC UL handler must not be nullptr");
     rrc_pdu_handler->handle_ul_dcch_pdu(srb_id, std::move(pdu));
   }
 
@@ -73,5 +73,5 @@ private:
   f1ap_rrc_ul_dcch_adapter srb2_adapter;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

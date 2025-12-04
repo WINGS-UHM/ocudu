@@ -9,19 +9,19 @@
 set_directory_properties(PROPERTIES LABELS "security")
 
 add_executable(security_test security_test.cpp)
-target_link_libraries(security_test srsran_security srsran_support srslog gtest gtest_main)
+target_link_libraries(security_test ocudu_security ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(security_test)
 
 add_executable(integrity_engine_test integrity_engine_test.cpp)
 target_include_directories(integrity_engine_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(integrity_engine_test srsran_security srsran_support srslog gtest gtest_main)
+target_link_libraries(integrity_engine_test ocudu_security ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(integrity_engine_test)
 
 add_executable(ciphering_engine_test ciphering_engine_test.cpp)
 target_include_directories(ciphering_engine_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(ciphering_engine_test srsran_security srsran_support srslog gtest gtest_main)
+target_link_libraries(ciphering_engine_test ocudu_security ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(ciphering_engine_test)
 
 add_executable(k_gnb_star_gen_helper k_gnb_star_gen_helper.cpp)
 target_include_directories(k_gnb_star_gen_helper PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(k_gnb_star_gen_helper srsran_security srsran_support srslog)
+target_link_libraries(k_gnb_star_gen_helper ocudu_security ocudu_support ocudulog)

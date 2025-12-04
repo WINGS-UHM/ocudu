@@ -13,12 +13,12 @@
 
 #pragma once
 
-#include "srsran/hal/dpdk/dpdk_eal.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/hal/dpdk/dpdk_eal.h"
+#include "ocudu/ocudulog/logger.h"
 #include <rte_eal.h>
 #include <rte_mbuf.h>
 
-namespace srsran {
+namespace ocudu {
 namespace dpdk {
 
 /// \file
@@ -26,8 +26,8 @@ namespace dpdk {
 
 /// EAL initialization (called at application init).
 /// \param[in]  argc, argv Command line arguments.
-/// \param[in]  logger     SRS logger.
-bool eal_init(int argc, char** argv, srslog::basic_logger& logger);
+/// \param[in]  logger     OCUDU logger.
+bool eal_init(int argc, char** argv, ocudulog::basic_logger& logger);
 
 /// Creates a new memory pool for a given hardware-accelerator device.
 /// \param[in]  pool_name          Unique ID for the new mbuf pool.
@@ -35,14 +35,14 @@ bool eal_init(int argc, char** argv, srslog::basic_logger& logger);
 /// \param[in]  n_mbuf             Number of elements in the mbuf pool.
 /// \param[in]  mempool_cache_size Size of the per-core object cache.
 /// \param[in]  mbuf_data_size     Size of data buffer in each mbuf.
-/// \param[in]  logger             SRS logger.
+/// \param[in]  logger             OCUDU logger.
 /// \return Pointer to the created mbuf pool.
-rte_mempool* create_mem_pool(const char*           pool_name,
-                             int                   socket,
-                             unsigned              n_mbuf,
-                             unsigned              mempool_cache_size,
-                             unsigned              mbuf_data_size,
-                             srslog::basic_logger& logger);
+rte_mempool* create_mem_pool(const char*             pool_name,
+                             int                     socket,
+                             unsigned                n_mbuf,
+                             unsigned                mempool_cache_size,
+                             unsigned                mbuf_data_size,
+                             ocudulog::basic_logger& logger);
 
 } // namespace dpdk
-} // namespace srsran
+} // namespace ocudu

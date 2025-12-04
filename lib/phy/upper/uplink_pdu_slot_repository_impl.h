@@ -11,13 +11,13 @@
 #pragma once
 
 #include "uplink_processor_fsm.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include <array>
 #include <variant>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements an the uplink slot repository.
 ///
@@ -67,7 +67,7 @@ public:
   void add_pusch_pdu(const pusch_pdu& pdu) override
   {
     unsigned end_symbol_index = pdu.pdu.start_symbol_index + pdu.pdu.nof_symbols - 1;
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
 
     pusch_repository[end_symbol_index].push_back(pdu);
     fsm_notifier.increment_pending_pdu_count();
@@ -82,7 +82,7 @@ public:
     };
 
     unsigned end_symbol_index = fetch_end_symbol_index(pdu);
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
 
     if (!std::holds_alternative<pucch_processor::format1_configuration>(pdu.config)) {
       pucch_repository[end_symbol_index].push_back(pdu);
@@ -128,7 +128,7 @@ public:
   {
     unsigned end_symbol_index =
         pdu.config.resource.start_symbol.to_uint() + static_cast<unsigned>(pdu.config.resource.nof_symbols) - 1;
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
     srs_repository[end_symbol_index].push_back(pdu);
     fsm_notifier.increment_pending_pdu_count();
   }
@@ -165,28 +165,28 @@ public:
   /// Returns a span that contains the PUSCH PDUs for the given slot and symbol index.
   span<const pusch_pdu> get_pusch_pdus(unsigned end_symbol_index) const
   {
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
     return pusch_repository[end_symbol_index];
   }
 
   /// Returns a span that contains the PUCCH PDUs for the given slot and symbol index.
   span<const pucch_pdu> get_pucch_pdus(unsigned end_symbol_index) const
   {
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
     return pucch_repository[end_symbol_index];
   }
 
   /// Returns a span that contains the PUCCH PDUs for the given slot and symbol index.
   span<const pucch_f1_collection> get_pucch_f1_repository(unsigned end_symbol_index) const
   {
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
     return pucch_f1_repository[end_symbol_index];
   }
 
   /// Returns a span that contains the SRS PDUs for the given slot and symbol index.
   span<const srs_pdu> get_srs_pdus(unsigned end_symbol_index) const
   {
-    srsran_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
+    ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
     return srs_repository[end_symbol_index];
   }
 
@@ -212,4 +212,4 @@ private:
   /// Notifier for the uplink processor finite-state machine.
   uplink_processor_fsm_notifier& fsm_notifier;
 };
-} // namespace srsran
+} // namespace ocudu

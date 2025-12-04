@@ -12,10 +12,10 @@
 
 #include "../ue_context/f1ap_du_ue.h"
 #include "../ue_context/f1ap_du_ue_manager.h"
-#include "srsran/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct f1ap_du_context;
 
@@ -38,7 +38,7 @@ private:
 
   const asn1::f1ap::ue_context_release_cmd_s msg;
   f1ap_du_ue&                                ue;
-  srslog::basic_logger&                      logger = srslog::fetch_basic_logger("DU-F1");
+  ocudulog::basic_logger&                    logger = ocudulog::fetch_basic_logger("DU-F1");
   f1ap_message_notifier&                     cu_msg_notifier; // used after the UE context as been released.
   const f1ap_du_context&                     du_ctxt;
   timer_factory                              timers;
@@ -47,5 +47,5 @@ private:
   bool                      success = false;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

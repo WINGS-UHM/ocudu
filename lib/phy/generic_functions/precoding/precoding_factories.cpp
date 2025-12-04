@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/phy/generic_functions/precoding/precoding_factories.h"
+#include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
 #include "channel_precoder_generic.h"
-#include "srsran/support/cpu_features.h"
+#include "ocudu/support/cpu_features.h"
 
 #ifdef __x86_64__
 #include "channel_precoder_avx2.h"
@@ -20,7 +20,7 @@
 #include "channel_precoder_neon.h"
 #endif // __ARM_NEON
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -62,7 +62,7 @@ private:
 
 } // namespace
 
-std::shared_ptr<channel_precoder_factory> srsran::create_channel_precoder_factory(const std::string& precoder_type)
+std::shared_ptr<channel_precoder_factory> ocudu::create_channel_precoder_factory(const std::string& precoder_type)
 {
   return std::make_shared<channel_precoder_factory_impl>(precoder_type);
 }

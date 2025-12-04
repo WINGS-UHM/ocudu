@@ -9,14 +9,14 @@
  */
 
 #include "low_papr_sequence_generator_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/phy/constants.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Sequence sizes used in PUCCH Format 1, SRS and PUSCH with transform precoding.
 const std::set<unsigned> low_papr_sequence_generator_impl::sequence_sizes = {
@@ -164,10 +164,10 @@ span<const int> low_papr_sequence_generator_impl::phi_M_sc_30(unsigned u)
 span<const int> low_papr_sequence_generator_impl::r_uv_arg_mprb(unsigned u, unsigned v, unsigned M_zc)
 {
   // Select temporary argument.
-  srsran_assert(M_zc <= temp_r_uv_arg.size(),
-                "Sequence length (i.e., {}) exceeds maximum sequence size (i.e., {})",
-                M_zc,
-                temp_r_uv_arg.size());
+  ocudu_assert(M_zc <= temp_r_uv_arg.size(),
+               "Sequence length (i.e., {}) exceeds maximum sequence size (i.e., {})",
+               M_zc,
+               temp_r_uv_arg.size());
   span<int> r_uv_arg = span<int>(temp_r_uv_arg).first(M_zc);
   unsigned  N_zc     = get_N_zc(M_zc);
   int64_t   q        = zc_sequence_q(u, v, N_zc);
@@ -205,7 +205,7 @@ span<const int> low_papr_sequence_generator_impl::r_uv_arg(unsigned u, unsigned 
     return r_uv_arg_mprb(u, v, M_zc);
   }
 
-  srsran_terminate("Invalid sequence length {}", M_zc);
+  ocudu_terminate("Invalid sequence length {}", M_zc);
   return {};
 }
 
@@ -236,16 +236,16 @@ void low_papr_sequence_generator_impl::generate(span<cf_t> sequence,
 {
   // Select number of elements in the complex exponential.
   unsigned table_size = 2 * get_N_zc(sequence.size());
-  srsran_assert(tables.count(table_size), "Sequence generator was not initialized with table size {}", table_size);
+  ocudu_assert(tables.count(table_size), "Sequence generator was not initialized with table size {}", table_size);
 
   // Select complex exponential table.
   complex_exponential_table& table = tables.at(table_size);
 
   // Verify the cyclic shift is valid.
-  srsran_assert((alpha_num == 0) || (cs_table.size() % alpha_den == 0),
-                "The cyclic shift denominator (i.e., {}) is not compatible with a table size of (i.e., {})",
-                alpha_den,
-                cs_table.size());
+  ocudu_assert((alpha_num == 0) || (cs_table.size() % alpha_den == 0),
+               "The cyclic shift denominator (i.e., {}) is not compatible with a table size of (i.e., {})",
+               alpha_den,
+               cs_table.size());
 
   // Calculate argument.
   span<const int> arg = r_uv_arg(u, v, sequence.size());
@@ -257,6 +257,6 @@ void low_papr_sequence_generator_impl::generate(span<cf_t> sequence,
   if (alpha_num != 0) {
     span<cf_t> cyclic_shift = span<cf_t>(temp_cyclic_shift).first(sequence.size());
     cs_table.generate(cyclic_shift, 0, alpha_num * cs_table.size() / alpha_den);
-    srsvec::prod(sequence, cyclic_shift, sequence);
+    ocuduvec::prod(sequence, cyclic_shift, sequence);
   }
 }

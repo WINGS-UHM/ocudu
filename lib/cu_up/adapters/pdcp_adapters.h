@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/cu_up/cu_up_manager.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/f1u/cu_up/f1u_tx_sdu_handler.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/sdap/sdap.h"
+#include "ocudu/cu_up/cu_up_manager.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/f1u/cu_up/f1u_tx_sdu_handler.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/sdap/sdap.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// Adapter between PDCP and SDAP
 class pdcp_sdap_adapter : public pdcp_rx_upper_data_notifier
@@ -31,7 +31,7 @@ public:
 
   void on_new_sdu(byte_buffer sdu) override
   {
-    srsran_assert(sdap_handler != nullptr, "SDAP handler must not be nullptr");
+    ocudu_assert(sdap_handler != nullptr, "SDAP handler must not be nullptr");
     sdap_handler->handle_pdu(std::move(sdu));
   }
 
@@ -54,18 +54,18 @@ public:
 
   void on_protocol_failure() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Ignoring on_protocol_failure() from PDCP Rx: No E1AP handler.");
+    ocudulog::fetch_basic_logger("PDCP").warning("Ignoring on_protocol_failure() from PDCP Rx: No E1AP handler.");
   }
 
   void on_integrity_failure() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Ignoring on_integrity_failure() from PDCP Rx: No E1AP handler.");
+    ocudulog::fetch_basic_logger("PDCP").warning("Ignoring on_integrity_failure() from PDCP Rx: No E1AP handler.");
   }
 
   void on_max_count_reached() override
   {
     if (cu_up_mngr == nullptr) {
-      srslog::fetch_basic_logger("PDCP").debug(
+      ocudulog::fetch_basic_logger("PDCP").debug(
           "Max COUNT reached from PDCP Rx, but no E1AP handler present. Ignoring.");
       return;
     }
@@ -89,7 +89,7 @@ public:
   void on_new_pdu(byte_buffer pdu, bool is_retx) override
   {
     if (f1u_handler == nullptr) {
-      srslog::fetch_basic_logger("PDCP").info("Dropped DL PDU. F1-U handler is not connected");
+      ocudulog::fetch_basic_logger("PDCP").info("Dropped DL PDU. F1-U handler is not connected");
     } else {
       f1u_handler->handle_sdu(std::move(pdu), is_retx);
     }
@@ -98,7 +98,7 @@ public:
   void on_discard_pdu(uint32_t pdcp_sn) override
   {
     if (f1u_handler == nullptr) {
-      srslog::fetch_basic_logger("PDCP").info("Dropped discard command. F1-U handler is not connected");
+      ocudulog::fetch_basic_logger("PDCP").info("Dropped discard command. F1-U handler is not connected");
     } else {
       f1u_handler->discard_sdu(pdcp_sn);
     }
@@ -123,13 +123,13 @@ public:
 
   void on_protocol_failure() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Ignoring on_protocol_failure() from PDCP Tx: No E1AP handler");
+    ocudulog::fetch_basic_logger("PDCP").warning("Ignoring on_protocol_failure() from PDCP Tx: No E1AP handler");
   }
 
   void on_max_count_reached() override
   {
     if (cu_up_mngr == nullptr) {
-      srslog::fetch_basic_logger("PDCP").warning(
+      ocudulog::fetch_basic_logger("PDCP").warning(
           "No CU-UP manager handler for PDCP Tx control events. All events will be ignored");
       return;
     }
@@ -141,5 +141,5 @@ private:
   ue_index_t                    ue_index   = INVALID_UE_INDEX;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

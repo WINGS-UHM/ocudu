@@ -26,14 +26,14 @@
 #include "split6_o_du_low_unit_config_validator.h"
 #include "split6_o_du_low_unit_logger_registrator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 split6_o_du_low_application_unit_impl::split6_o_du_low_application_unit_impl(
     std::string_view                        app_name,
     std::unique_ptr<split6_o_du_low_plugin> plugin_) :
   plugin(std::move(plugin_))
 {
-  srsran_assert(plugin, "Invalid split 6 O-DU low plugin");
+  ocudu_assert(plugin, "Invalid split 6 O-DU low plugin");
 }
 
 void split6_o_du_low_application_unit_impl::on_loggers_registration()
@@ -103,7 +103,7 @@ split6_o_du_low_unit
 split6_o_du_low_application_unit_impl::create_flexible_o_du_low(worker_manager&                 workers,
                                                                 app_services::metrics_notifier& metrics_notifier,
                                                                 timer_manager&                  timers,
-                                                                srslog::basic_logger&           logger)
+                                                                ocudulog::basic_logger&         logger)
 {
   split6_o_du_low_unit output;
 
@@ -137,7 +137,7 @@ split6_o_du_low_application_unit_impl::create_flexible_o_du_low(worker_manager& 
 }
 
 std::unique_ptr<split6_o_du_low_application_unit_impl>
-srsran::create_flexible_o_du_low_application_unit(std::string_view app_name)
+ocudu::create_flexible_o_du_low_application_unit(std::string_view app_name)
 {
   return std::make_unique<split6_o_du_low_application_unit_impl>(app_name, create_split6_o_du_low_plugin(app_name));
 }

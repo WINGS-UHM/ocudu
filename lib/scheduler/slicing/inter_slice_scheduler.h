@@ -14,7 +14,7 @@
 #include "ran_slice_candidate.h"
 #include "ran_slice_instance.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_resource_allocator;
 
@@ -139,7 +139,7 @@ private:
   std::optional<std::conditional_t<IsDownlink, dl_ran_slice_candidate, ul_ran_slice_candidate>> get_next_candidate();
 
   const cell_configuration& cell_cfg;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 
   // Represents current slot in the scheduler. This is updated on each slot indication.
   slot_point current_slot;
@@ -157,4 +157,4 @@ private:
   slice_prio_queue ul_prio_queue;
 };
 
-} // namespace srsran
+} // namespace ocudu

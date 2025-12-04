@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH UCI decoder interface to notify the decoding of a UCI message field.
 class pusch_uci_decoder_notifier
@@ -27,4 +27,4 @@ public:
   virtual void on_uci_decoded(span<const uint8_t> message, const uci_status& status) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

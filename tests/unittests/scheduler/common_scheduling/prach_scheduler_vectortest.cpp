@@ -12,14 +12,14 @@
 #include "prach_scheduler_test_data.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/prach/prach_cyclic_shifts.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/prach/prach_cyclic_shifts.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 bool operator==(const prach_occasion_info& left, const prach_occasion_info& right)
 {
@@ -79,9 +79,9 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& params)
                            params.symbols);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace prach_vectortest {
 
@@ -96,7 +96,7 @@ make_custom_sched_cell_configuration_request(subcarrier_spacing scs_common,
                                              uint8_t            nof_fd_ra)
 {
   cell_config_builder_params params = {
-      .pci = pci, .scs_common = scs_common, .channel_bw_mhz = srsran::bs_channel_bandwidth::MHz20, .band = band};
+      .pci = pci, .scs_common = scs_common, .channel_bw_mhz = ocudu::bs_channel_bandwidth::MHz20, .band = band};
 
   // For TDD, set DL ARFCN according to the band.
   if (not band_helper::is_paired_spectrum(band)) {

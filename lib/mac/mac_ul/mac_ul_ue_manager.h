@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../rnti_value_table.h"
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/mac/mac_sdu_handler.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/du_ue_list.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/mac/mac_sdu_handler.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/du_ue_list.h"
 
-namespace srsran {
+namespace ocudu {
 
 using du_rnti_table = rnti_value_table<du_ue_index_t, du_ue_index_t::INVALID_DU_UE_INDEX>;
 
@@ -72,11 +72,11 @@ public:
 
 private:
   /// Arguments of UE manager.
-  srslog::basic_logger& logger;
-  du_rnti_table&        rnti_table;
+  ocudulog::basic_logger& logger;
+  du_rnti_table&          rnti_table;
 
   /// MAC UL UE repository.
   du_ue_list<mac_ul_ue_context> ue_db;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/equalization/channel_equalizer.h"
-#include "srsran/phy/upper/equalization/channel_equalizer_algorithm_type.h"
+#include "ocudu/phy/upper/equalization/channel_equalizer.h"
+#include "ocudu/phy/upper/equalization/channel_equalizer_algorithm_type.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Channel equalizer implementation for the Zero Forcing and the MMSE algorithms.
 class channel_equalizer_generic_impl : public channel_equalizer
@@ -94,4 +94,4 @@ private:
   channel_equalizer_algorithm_type type;
 };
 
-} // namespace srsran
+} // namespace ocudu

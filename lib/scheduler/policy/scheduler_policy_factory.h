@@ -13,7 +13,7 @@
 #include "scheduler_policy.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 struct scheduler_ue_expert_config;
 
@@ -21,4 +21,4 @@ struct scheduler_ue_expert_config;
 std::unique_ptr<scheduler_policy> create_scheduler_strategy(const scheduler_ue_expert_config& expert_cfg_,
                                                             du_cell_index_t                   cell_index);
 
-} // namespace srsran
+} // namespace ocudu

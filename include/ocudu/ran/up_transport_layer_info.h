@@ -1,0 +1,90 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/gtpu/gtpu_teid.h"
+#include "ocudu/support/io/transport_layer_address.h"
+
+namespace ocudu {
+
+/// \brief Identifier for F1-U transport layer associated to a DRB.
+struct up_transport_layer_info {
+  transport_layer_address tp_address = transport_layer_address::create_from_string("0.0.0.0");
+  gtpu_teid_t             gtp_teid;
+
+  up_transport_layer_info() = default;
+
+  up_transport_layer_info(const transport_layer_address& tp_address_, gtpu_teid_t gtp_teid_) :
+    tp_address(tp_address_), gtp_teid(gtp_teid_)
+  {
+  }
+
+  bool operator==(const up_transport_layer_info& other) const
+  {
+    return tp_address == other.tp_address and gtp_teid == other.gtp_teid;
+  }
+
+  bool operator!=(const up_transport_layer_info& other) const { return not(*this == other); }
+
+  bool operator<(const up_transport_layer_info& other) const
+  {
+    return gtp_teid < other.gtp_teid or (gtp_teid == other.gtp_teid and tp_address < other.tp_address);
+  }
+};
+
+/// \brief Converts type \c up_transport_layer_info to an ASN.1 type.
+/// \param asn1obj ASN.1 object where the result of the conversion is stored.
+/// \param up_tp_layer_info UP Transport Layer Info object.
+template <typename Asn1Type>
+void up_transport_layer_info_to_asn1(Asn1Type& asn1obj, const up_transport_layer_info& up_tp_layer_info)
+{
+  asn1obj.set_gtp_tunnel();
+  asn1obj.gtp_tunnel().gtp_teid.from_number(up_tp_layer_info.gtp_teid.value());
+  asn1obj.gtp_tunnel().transport_layer_address.from_string(up_tp_layer_info.tp_address.to_bitstring());
+}
+
+/// \brief Converts ASN.1 type into \c up_transport_layer_info.
+/// \param asn1obj ASN.1 object which is going to be converted.
+/// \return UP Transport Layer Info object where the result of the conversion is stored.
+template <typename Asn1Type>
+up_transport_layer_info asn1_to_up_transport_layer_info(const Asn1Type& asn1obj)
+{
+  return {transport_layer_address::create_from_bitstring(asn1obj.gtp_tunnel().transport_layer_address.to_string()),
+          int_to_gtpu_teid(asn1obj.gtp_tunnel().gtp_teid.to_number())};
+}
+
+} // namespace ocudu
+
+namespace std {
+
+template <>
+struct hash<ocudu::up_transport_layer_info> {
+  size_t operator()(const ocudu::up_transport_layer_info& s) const noexcept
+  {
+    return (hash<ocudu::transport_layer_address>{}(s.tp_address) ^
+            (hash<ocudu::gtpu_teid_t::value_type>{}(s.gtp_teid.value()) << 1U) >> 1U);
+  }
+};
+
+} // namespace std
+
+namespace fmt {
+
+template <>
+struct formatter<ocudu::up_transport_layer_info> : public formatter<std::string> {
+  template <typename FormatContext>
+  auto format(const ocudu::up_transport_layer_info& s, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(), "{{Addr={} TEID={}}}", s.tp_address, s.gtp_teid);
+  }
+};
+
+} // namespace fmt

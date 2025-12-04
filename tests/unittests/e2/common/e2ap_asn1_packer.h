@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/e2/e2.h"
-#include "srsran/gateways/sctp_network_client.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/gateways/sctp_network_client.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/pcap/dlt_pcap.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// This E2AP packer class is used to pack outgoing and unpack incoming E2 message in ASN1 format.
 class e2ap_asn1_packer
@@ -31,10 +31,10 @@ public:
   void handle_message(const e2_message& msg);
 
 private:
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
   sctp_association_sdu_notifier& gw;
   e2_message_handler&            e2;
   dlt_pcap&                      pcap;
 };
 
-} // namespace srsran
+} // namespace ocudu

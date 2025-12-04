@@ -11,15 +11,15 @@
 #pragma once
 
 #include "cu_cp/ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/common/e1ap_common.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/common/e1ap_common.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class e1ap_cu_cp_notifier;
 class e1ap_ue_context_list;
@@ -34,7 +34,7 @@ public:
                        e1ap_cu_cp_notifier&                    cu_cp_notifier_,
                        e1ap_ue_context_list&                   ue_list_,
                        timer_factory                           timers_,
-                       srslog::basic_logger&                   logger_);
+                       ocudulog::basic_logger&                 logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -47,12 +47,12 @@ private:
   e1ap_message_notifier&                 pdu_notifier;
   e1ap_cu_cp_notifier&                   cu_cp_notifier;
   e1ap_ue_context_list&                  ue_list;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 
   unique_timer                                                          ue_release_wait_timer;
   cu_cp_ue_context_release_request                                      release_request;
   std::unordered_map<gnb_cu_cp_ue_e1ap_id_t, e1ap_ue_context>::iterator ue;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

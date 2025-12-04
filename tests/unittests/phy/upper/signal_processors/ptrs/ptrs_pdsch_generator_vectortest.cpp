@@ -10,15 +10,15 @@
 
 #include "../../../support/resource_grid_test_doubles.h"
 #include "ptrs_pdsch_generator_test_data.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator_factory.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator_factory.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

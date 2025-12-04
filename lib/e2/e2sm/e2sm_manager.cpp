@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/e2/e2sm/e2sm.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 
 using namespace asn1::e2ap;
-using namespace srsran;
+using namespace ocudu;
 
-e2sm_manager::e2sm_manager(srslog::basic_logger& logger_) : logger(logger_) {}
+e2sm_manager::e2sm_manager(ocudulog::basic_logger& logger_) : logger(logger_) {}
 
 void e2sm_manager::add_e2sm_service(std::string oid, std::unique_ptr<e2sm_interface> e2sm_iface)
 {

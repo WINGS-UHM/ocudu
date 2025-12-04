@@ -9,10 +9,10 @@
  */
 
 #include "pdcch_encoder_test_data.h"
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

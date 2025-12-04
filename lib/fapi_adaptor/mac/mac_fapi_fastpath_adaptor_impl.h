@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// MAC-FAPI fastpath adaptor implementation.
@@ -36,4 +36,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

@@ -12,6 +12,6 @@ set(SOURCES
         dpdk_ethernet_factories.cpp
         dpdk_ethernet_receiver.cpp)
 
-add_library(srsran_ofh_dpdk_ethernet STATIC ${SOURCES})
-target_compile_options(srsran_ofh_dpdk_ethernet PRIVATE ${DPDK_CFLAGS})
-target_link_libraries(srsran_ofh_dpdk_ethernet srslog srsran_instrumentation ${DPDK_LIBRARIES})
+add_library(ocudu_ofh_dpdk_ethernet STATIC ${SOURCES})
+target_compile_options(ocudu_ofh_dpdk_ethernet PRIVATE ${DPDK_CFLAGS})
+target_link_libraries(ocudu_ofh_dpdk_ethernet ocudulog ocudu_instrumentation ${DPDK_LIBRARIES})

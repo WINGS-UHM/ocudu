@@ -9,12 +9,12 @@
  */
 
 #include "uci_cell_decoder.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/scheduler/result/pucch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/scheduler/resource_grid_util.h"
+#include "ocudu/scheduler/result/pucch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Size, in number of slots, of the ring buffer used to store the pending UCIs to be decoded. This size
 /// should account for potential latencies in the PHY in forwarding the decoded UCI to the MAC.
@@ -34,7 +34,7 @@ uci_cell_decoder::uci_cell_decoder(const sched_cell_configuration_request_messag
   rnti_table(rnti_table_),
   cell_index(cell_cfg.cell_index),
   rlf_handler(rlf_hdlr_),
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   expected_uci_report_grid(get_ring_size(cell_cfg))
 {
 }
@@ -47,7 +47,7 @@ static auto convert_mac_harq_bits_to_sched_harq_values(bool harq_status,
   if (harq_status) {
     for (unsigned i = 0, e = harqs.size(); i != e; ++i) {
       if (payload.test(i)) {
-        harqs[i] = srsran::mac_harq_ack_report_status::ack;
+        harqs[i] = ocudu::mac_harq_ack_report_status::ack;
       }
     }
   }
@@ -84,7 +84,7 @@ static std::optional<csi_report_data> decode_csi_bits(const mac_uci_pdu::pusch_t
 
 uci_indication uci_cell_decoder::decode_uci(const mac_uci_indication_message& msg)
 {
-  // Convert MAC UCI indication to srsRAN scheduler UCI indication.
+  // Convert MAC UCI indication to OCUDU scheduler UCI indication.
   uci_indication ind{};
   ind.slot_rx    = msg.sl_rx;
   ind.cell_index = cell_index;

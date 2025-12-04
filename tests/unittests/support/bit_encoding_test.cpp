@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/span.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void test_bit_encoder()
 {

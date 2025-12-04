@@ -15,9 +15,9 @@
 #include "flexible_o_du_metrics_consumers.h"
 #include "flexible_o_du_metrics_producer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-flexible_o_du_metrics_notifier* srsran::build_flexible_o_du_metrics_config(
+flexible_o_du_metrics_notifier* ocudu::build_flexible_o_du_metrics_config(
     std::vector<app_services::metrics_config>& metrics,
     std::vector<std::unique_ptr<app_services::toggle_stdout_metrics_app_command::metrics_subcommand>>&
                                        metrics_subcommands,

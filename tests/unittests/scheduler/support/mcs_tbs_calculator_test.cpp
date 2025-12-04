@@ -13,13 +13,13 @@
 #include "lib/scheduler/support/mcs_tbs_calculator.h"
 #include "lib/scheduler/support/sch_pdu_builder.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 ///////////////       HELPER FUNCTIONS         ///////////////
 

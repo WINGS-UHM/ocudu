@@ -11,8 +11,8 @@
 #include "cu_configurator_impl.h"
 #include "du_processor/du_processor_repository.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ue_index_t cu_configurator_impl::get_ue_index(const amf_ue_id_t&         amf_ue_id,
                                               const guami_t&             guami,

@@ -9,10 +9,10 @@
  */
 
 #include "uci_decoder_impl.h"
-#include "srsran/ran/uci/uci_info.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ran/uci/uci_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Maximum UCI message size for block detector.
 static constexpr unsigned MAX_UCI_BLOCK_SIZE = 11;
@@ -98,7 +98,7 @@ uci_status uci_decoder_impl::decode_codeblock_polar(span<uint8_t>               
   uci_status status = (checksum == 0) ? uci_status::valid : uci_status::invalid;
 
   // Copy message without CRC.
-  srsvec::copy(message, deallocator_buffer.subspan(nof_filler_bits, message_size - nof_filler_bits - crc_size));
+  ocuduvec::copy(message, deallocator_buffer.subspan(nof_filler_bits, message_size - nof_filler_bits - crc_size));
 
   return status;
 }

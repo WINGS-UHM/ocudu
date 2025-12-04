@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/adt/unique_function.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 struct C {
   std::unique_ptr<int> val{new int{5}};

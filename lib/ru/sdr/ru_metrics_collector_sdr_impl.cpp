@@ -10,9 +10,9 @@
 
 #include "ru_metrics_collector_sdr_impl.h"
 #include "ru_radio_metrics_collector.h"
-#include "srsran/ru/ru_metrics.h"
+#include "ocudu/ru/ru_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_metrics_collector_sdr_impl::collect_metrics(ru_metrics& metrics)
 {

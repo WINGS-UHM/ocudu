@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/adt/span.h"
-#include "srsran/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Soft-demodulates QPSK modulation.
 /// \param[out] llrs       Resultant log-likelihood ratios.
@@ -22,4 +22,4 @@ namespace srsran {
 /// \param[in]  noise_vars Noise variance for each symbol in the constellation.
 void demodulate_soft_QPSK(span<log_likelihood_ratio> llrs, span<const cf_t> symbols, span<const float> noise_vars);
 
-} // namespace srsran
+} // namespace ocudu

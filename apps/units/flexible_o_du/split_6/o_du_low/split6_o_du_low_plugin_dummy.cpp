@@ -9,13 +9,13 @@
  */
 
 #include "split6_o_du_low_plugin_dummy.h"
-#include "srsran/fapi/config_message_notifier.h"
-#include "srsran/fapi/error_message_notifier.h"
-#include "srsran/fapi/slot_data_message_notifier.h"
-#include "srsran/fapi/slot_time_message_notifier.h"
-#include "srsran/fapi_adaptor/mac/operation_controller.h"
+#include "ocudu/fapi/config_message_notifier.h"
+#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/fapi/slot_data_message_notifier.h"
+#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/fapi_adaptor/mac/operation_controller.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -127,8 +127,8 @@ split6_o_du_low_plugin_dummy::create_fapi_p7_sector_adaptor_factory(task_executo
   return std::make_unique<mac_fapi_p7_sector_adaptor_factory_dummy>();
 }
 
-#ifndef SRSRAN_HAS_SPLIT6_ENTERPRISE
-std::unique_ptr<split6_o_du_low_plugin> srsran::create_split6_o_du_low_plugin(std::string_view app_name)
+#ifndef OCUDU_HAS_SPLIT6_ENTERPRISE
+std::unique_ptr<split6_o_du_low_plugin> ocudu::create_split6_o_du_low_plugin(std::string_view app_name)
 {
   return std::make_unique<split6_o_du_low_plugin_dummy>();
 }

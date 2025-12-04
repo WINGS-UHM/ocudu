@@ -10,14 +10,14 @@
 
 #include "lib/rlc/rlc_rx_am_entity.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <list>
 #include <queue>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Config params
 rlc_rx_am_config cfg_12bit = {/*sn_field_length=*/rlc_am_sn_size::size12bits,
@@ -70,18 +70,18 @@ public:
   void report_metrics(const rlc_metrics& metrics) override {}
 };
 
-srsran::log_sink_spy& test_spy = []() -> srsran::log_sink_spy& {
-  if (!srslog::install_custom_sink(
-          srsran::log_sink_spy::name(),
-          std::unique_ptr<srsran::log_sink_spy>(new srsran::log_sink_spy(srslog::get_default_log_formatter())))) {
+ocudu::log_sink_spy& test_spy = []() -> ocudu::log_sink_spy& {
+  if (!ocudulog::install_custom_sink(
+          ocudu::log_sink_spy::name(),
+          std::unique_ptr<ocudu::log_sink_spy>(new ocudu::log_sink_spy(ocudulog::get_default_log_formatter())))) {
     report_fatal_error("Unable to create logger spy");
   }
-  auto* spy = static_cast<srsran::log_sink_spy*>(srslog::find_sink(srsran::log_sink_spy::name()));
+  auto* spy = static_cast<ocudu::log_sink_spy*>(ocudulog::find_sink(ocudu::log_sink_spy::name()));
   if (spy == nullptr) {
     report_fatal_error("Unable to create logger spy");
   }
 
-  srslog::fetch_basic_logger("RLC", *spy, true);
+  ocudulog::fetch_basic_logger("RLC", *spy, true);
   return *spy;
 }();
 
@@ -93,15 +93,15 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // reset log spy
     test_spy.reset_counters();
 
     // init RLC logger
-    srslog::fetch_basic_logger("RLC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("RLC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(100);
 
     logger.info("Creating RLC Rx AM entity ({})", config);
 
@@ -130,7 +130,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   size_t copy_bytes(span<uint8_t> dst, byte_buffer_view src) const
@@ -433,7 +433,7 @@ protected:
     ue_worker.run_pending_tasks();
   }
 
-  srslog::basic_logger&                         logger  = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&                       logger  = ocudulog::fetch_basic_logger("TEST", false);
   rlc_rx_am_config                              config  = GetParam();
   rlc_am_sn_size                                sn_size = config.sn_field_length;
   timer_manager                                 timers;

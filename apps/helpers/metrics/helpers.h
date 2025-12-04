@@ -13,7 +13,7 @@
 #include "fmt/chrono.h"
 #include <cmath>
 
-namespace srsran {
+namespace ocudu {
 namespace app_helpers {
 
 /// Returns the current UTC time and date with millisecond precision.
@@ -35,4 +35,4 @@ inline double validate_fp_value(double value)
 }
 
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

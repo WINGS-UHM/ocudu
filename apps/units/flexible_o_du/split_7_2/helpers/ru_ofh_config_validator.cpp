@@ -9,9 +9,9 @@
  */
 
 #include "ru_ofh_config_validator.h"
-#include "srsran/ran/cyclic_prefix.h"
+#include "ocudu/ran/cyclic_prefix.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Validates that the given ports are not duplicated. Returns true on success, otherwise false.
 template <typename T>
@@ -168,8 +168,8 @@ static bool validate_hal_config(const std::optional<ru_ofh_unit_hal_config>& con
   return true;
 }
 
-bool srsran::validate_ru_ofh_config(const ru_ofh_unit_config&                 config,
-                                    span<const ru_ofh_cell_validation_config> cell_config)
+bool ocudu::validate_ru_ofh_config(const ru_ofh_unit_config&                 config,
+                                   span<const ru_ofh_cell_validation_config> cell_config)
 {
   if (config.cells.size() != cell_config.size()) {
     fmt::print("Number of cells in the DU={} don't match the number of cells in the RU={}\n",

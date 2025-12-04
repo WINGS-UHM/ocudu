@@ -13,11 +13,11 @@
 #include "resource_grid_mapper_impl.h"
 #include "resource_grid_reader_impl.h"
 #include "resource_grid_writer_impl.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_dimensions.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_dimensions.h"
 
-namespace srsran {
+namespace ocudu {
 
 class resource_grid_mapper;
 
@@ -61,4 +61,4 @@ public:
   const resource_grid_reader& get_reader() const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
 #include "demodulation_mapper_impl.h"
 #include "evm_calculator_generic_impl.h"
 #include "modulation_mapper_lut_impl.h"
-#include "srsran/support/cpu_features.h"
+#include "ocudu/support/cpu_features.h"
 
 #ifdef __x86_64__
 #include "modulation_mapper_avx512_impl.h"
@@ -21,7 +21,7 @@
 #include "modulation_mapper_neon_impl.h"
 #endif // __aarch64__
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -58,7 +58,7 @@ public:
   evm_calculator_factory_impl(std::shared_ptr<modulation_mapper_factory> modulator_factory_) :
     modulator_factory(std::move(modulator_factory_))
   {
-    srsran_assert(modulator_factory, "Invalid modulator mapper factory.");
+    ocudu_assert(modulator_factory, "Invalid modulator mapper factory.");
   }
 
   std::unique_ptr<evm_calculator> create() override
@@ -72,17 +72,17 @@ private:
 
 } // namespace
 
-std::shared_ptr<modulation_mapper_factory> srsran::create_modulation_mapper_factory()
+std::shared_ptr<modulation_mapper_factory> ocudu::create_modulation_mapper_factory()
 {
   return std::make_shared<modulation_mapper_factory_impl>();
 }
 
-std::shared_ptr<demodulation_mapper_factory> srsran::create_demodulation_mapper_factory()
+std::shared_ptr<demodulation_mapper_factory> ocudu::create_demodulation_mapper_factory()
 {
   return std::make_shared<demodulation_mapper_factory_impl>();
 }
 
-std::shared_ptr<evm_calculator_factory> srsran::create_evm_calculator_factory()
+std::shared_ptr<evm_calculator_factory> ocudu::create_evm_calculator_factory()
 {
   return std::make_shared<evm_calculator_factory_impl>(create_modulation_mapper_factory());
 }

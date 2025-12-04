@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/adt/tiny_optional.h"
+#include "ocudu/adt/tiny_optional.h"
 
 int main()
 {
-  srsran::tiny_optional<std::unique_ptr<int>> a;
-  srsran::tiny_optional<float>                b;
-  srsran::tiny_optional<std::unique_ptr<int>> c = {};
-  srsran::tiny_optional<float>                d;
+  ocudu::tiny_optional<std::unique_ptr<int>> a;
+  ocudu::tiny_optional<float>                b;
+  ocudu::tiny_optional<std::unique_ptr<int>> c = {};
+  ocudu::tiny_optional<float>                d;
 
   int a_val = 8;
   a         = &a_val;

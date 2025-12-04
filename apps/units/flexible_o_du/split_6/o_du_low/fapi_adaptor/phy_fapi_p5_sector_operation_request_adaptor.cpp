@@ -10,7 +10,7 @@
 
 #include "phy_fapi_p5_sector_operation_request_adaptor.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 fapi::config_message_gateway& phy_fapi_p5_sector_operation_request_adaptor::get_config_message_gateway()

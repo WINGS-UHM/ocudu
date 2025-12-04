@@ -20,13 +20,13 @@
 #include "procedures/ue_context_modification_procedure.h"
 #include "procedures/ue_context_release_procedure.h"
 #include "procedures/ue_context_setup_procedure.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/positioning/measurement_information.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/positioning/measurement_information.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 f1ap_cu_impl::f1ap_cu_impl(const f1ap_configuration&   f1ap_cfg_,
                            f1ap_message_notifier&      tx_pdu_notifier_,
@@ -34,7 +34,7 @@ f1ap_cu_impl::f1ap_cu_impl(const f1ap_configuration&   f1ap_cfg_,
                            timer_manager&              timers_,
                            task_executor&              ctrl_exec_) :
   cfg(f1ap_cfg_),
-  logger(srslog::fetch_basic_logger("CU-CP-F1")),
+  logger(ocudulog::fetch_basic_logger("CU-CP-F1")),
   ue_ctxt_list(timer_factory{timers_, ctrl_exec_}, logger),
   du_processor_notifier(f1ap_du_processor_notifier_),
   ctrl_exec(ctrl_exec_),
@@ -111,9 +111,9 @@ bool f1ap_cu_impl::handle_ue_id_update(ue_index_t ue_index, ue_index_t old_ue_in
   }
 
   // Mark that an old gNB-DU UE F1AP ID needs to be sent to the DU in the next DL RRC Message Transfer.
-  srsran_assert(ue_ctxt_list[old_ue_index].ue_ids.du_ue_f1ap_id &&
-                    ue_ctxt_list[old_ue_index].ue_ids.du_ue_f1ap_id != gnb_du_ue_f1ap_id_t::invalid,
-                "GNB-DU-UE-F1AP-ID should be valid");
+  ocudu_assert(ue_ctxt_list[old_ue_index].ue_ids.du_ue_f1ap_id &&
+                   ue_ctxt_list[old_ue_index].ue_ids.du_ue_f1ap_id != gnb_du_ue_f1ap_id_t::invalid,
+               "GNB-DU-UE-F1AP-ID should be valid");
   ue_ctxt_list[ue_index].pending_old_ue_id = *ue_ctxt_list[old_ue_index].ue_ids.du_ue_f1ap_id;
   return true;
 }
@@ -169,7 +169,7 @@ void f1ap_cu_impl::remove_ue_context(ue_index_t ue_index)
   ue_ctxt_list.remove_ue(ue_index);
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 async_task<expected<trp_information_response_t, trp_information_failure_t>>
 f1ap_cu_impl::handle_trp_information_request(const trp_information_request_t& request)
@@ -215,7 +215,7 @@ f1ap_cu_impl::handle_positioning_measurement_request(const measurement_request_t
   });
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 async_task<f1ap_gnb_cu_configuration_update_response>
 f1ap_cu_impl::handle_gnb_cu_configuration_update(const f1ap_gnb_cu_configuration_update& request)
@@ -351,7 +351,7 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
 
   // Forward RRC container.
   f1c_ul_bearer_handler* bearer = ue_ctxt.get_ul_bearer_manager().get_srb(srb_id_t::srb0);
-  srsran_assert(bearer, "SRB0 should be always active");
+  ocudu_assert(bearer, "SRB0 should be always active");
   bearer->handle_ul_rrc_message(msg->rrc_container.copy());
 }
 
@@ -407,9 +407,9 @@ void f1ap_cu_impl::handle_successful_outcome(const asn1::f1ap::successful_outcom
   auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::f1ap::successful_outcome_s& outcome_) -> f1ap_ue_context* {
     std::optional<gnb_cu_ue_f1ap_id_t> cu_ue_id = get_gnb_cu_ue_f1ap_id(outcome_);
     // The GNB-CU-UE-F1AP-ID field is mandatory in all UE associated successful messages.
-    srsran_assert(cu_ue_id,
-                  "Discarding received \"{}\". Cause: GNB-CU-UE-F1AP-ID field is mandatory",
-                  outcome_.value.type().to_string());
+    ocudu_assert(cu_ue_id,
+                 "Discarding received \"{}\". Cause: GNB-CU-UE-F1AP-ID field is mandatory",
+                 outcome_.value.type().to_string());
 
     f1ap_ue_context* ue_ctxt = ue_ctxt_list.find(*cu_ue_id);
     if (ue_ctxt == nullptr) {
@@ -490,9 +490,9 @@ void f1ap_cu_impl::handle_unsuccessful_outcome(const asn1::f1ap::unsuccessful_ou
   auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::f1ap::unsuccessful_outcome_s& outcome_) -> f1ap_ue_context* {
     std::optional<gnb_cu_ue_f1ap_id_t> cu_ue_id = get_gnb_cu_ue_f1ap_id(outcome_);
     // The GNB-CU-UE-F1AP-ID field is mandatory in all UE associated failure messages.
-    srsran_assert(cu_ue_id,
-                  "Discarding received \"{}\". Cause: GNB-CU-UE-F1AP-ID field is mandatory",
-                  outcome_.value.type().to_string());
+    ocudu_assert(cu_ue_id,
+                 "Discarding received \"{}\". Cause: GNB-CU-UE-F1AP-ID field is mandatory",
+                 outcome_.value.type().to_string());
 
     f1ap_ue_context* ue_ctxt = ue_ctxt_list.find(*cu_ue_id);
     if (ue_ctxt == nullptr) {

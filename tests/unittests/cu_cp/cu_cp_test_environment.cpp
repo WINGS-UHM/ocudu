@@ -18,26 +18,26 @@
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/cu_cp/cell_meas_manager_config.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/cu_cp/cu_cp_factory.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/security/integrity.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/cu_cp/cell_meas_manager_config.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_factory.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/security/integrity.h"
+#include "ocudu/support/executors/task_worker.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_test_environment::worker_manager
 {
@@ -61,14 +61,14 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   amf_configs(std::move(params.amf_configs))
 {
   // Initialize logging
-  test_logger.set_level(srslog::basic_levels::debug);
-  cu_cp_logger.set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("NRPPA").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("PDCP").set_level(srslog::basic_levels::info);
-  srslog::fetch_basic_logger("NGAP").set_hex_dump_max_size(32);
-  srslog::fetch_basic_logger("RRC").set_hex_dump_max_size(32);
-  srslog::fetch_basic_logger("SEC").set_hex_dump_max_size(32);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  cu_cp_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("NRPPA").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("PDCP").set_level(ocudulog::basic_levels::info);
+  ocudulog::fetch_basic_logger("NGAP").set_hex_dump_max_size(32);
+  ocudulog::fetch_basic_logger("RRC").set_hex_dump_max_size(32);
+  ocudulog::fetch_basic_logger("SEC").set_hex_dump_max_size(32);
+  ocudulog::init();
 
   // Create CU-CP config
   cu_cp_cfg                               = config_helpers::make_default_cu_cp_config();
@@ -154,7 +154,7 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
       // Add periodic event
       {
         rrc_periodical_report_cfg periodical_cfg;
-        periodical_cfg.rs_type                 = srs_cu_cp::rrc_nr_rs_type::ssb;
+        periodical_cfg.rs_type                 = ocucp::rrc_nr_rs_type::ssb;
         periodical_cfg.report_interv           = 1024;
         periodical_cfg.report_amount           = -1;
         periodical_cfg.report_quant_cell.rsrp  = true;
@@ -180,7 +180,7 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
         event_a3.time_to_trigger                                           = 100;
         event_a3.use_allowed_cell_list                                     = false;
 
-        event_trigger_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+        event_trigger_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
         event_trigger_cfg.report_interv          = 1024;
         event_trigger_cfg.report_amount          = -1;
         event_trigger_cfg.report_quant_cell.rsrp = true;
@@ -226,7 +226,7 @@ cu_cp_test_environment::~cu_cp_test_environment()
   cu_ups.clear();
   cu_cp_workers->stop();
 
-  srslog::flush();
+  ocudulog::flush();
 }
 
 void cu_cp_test_environment::tick()
@@ -312,7 +312,7 @@ const cu_cp_test_environment::ue_context* cu_cp_test_environment::find_ue_contex
 void cu_cp_test_environment::run_ng_setup()
 {
   for (const auto& [amf_index, amf_config] : amf_configs) {
-    get_amf(amf_index).enqueue_next_tx_pdu(srs_cu_cp::generate_ng_setup_response());
+    get_amf(amf_index).enqueue_next_tx_pdu(ocucp::generate_ng_setup_response());
   }
   report_fatal_error_if_not(get_cu_cp().start(), "Failed to start CU-CP");
 
@@ -410,9 +410,9 @@ bool cu_cp_test_environment::connect_new_ue(unsigned            du_idx,
                                             plmn_identity       plmn)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   // Inject Initial UL RRC message
   f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(du_ue_id, crnti, plmn);
@@ -464,16 +464,16 @@ bool cu_cp_test_environment::connect_new_ue(unsigned            du_idx,
 bool cu_cp_test_environment::authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id, amf_ue_id_t amf_ue_id)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   auto& ue_ctx     = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
   ue_ctx.amf_ue_id = amf_ue_id;
 
   // Inject NGAP DL message (authentication request)
   ngap_message dl_nas_transport =
-      srs_cu_cp::generate_downlink_nas_transport_message(ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value());
+      ocucp::generate_downlink_nas_transport_message(ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value());
   get_amf().push_tx_pdu(dl_nas_transport);
 
   // Wait for DL RRC message transfer (containing NAS message)
@@ -531,9 +531,9 @@ bool cu_cp_test_environment::authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_
 bool cu_cp_test_environment::setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -609,7 +609,7 @@ bool cu_cp_test_environment::setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_i
 bool cu_cp_test_environment::finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -630,9 +630,9 @@ bool cu_cp_test_environment::request_pdu_session_resource_setup(unsigned        
                                                                 gnb_du_ue_f1ap_id_t du_ue_id)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -668,8 +668,8 @@ bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_b
     gnb_du_ue_f1ap_id_t du_ue_id)
 {
   e1ap_message e1ap_pdu;
-  srsran_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
-                "there are still E1AP messages to pop from CU-UP");
+  ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+               "there are still E1AP messages to pop from CU-UP");
 
   // Inject PDU Session Resource Setup Request and wait for Bearer Context Setup Request
   get_amf().push_tx_pdu(pdu_session_resource_setup_request);
@@ -690,8 +690,8 @@ bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_b
     unsigned            cu_up_idx)
 {
   e1ap_message e1ap_pdu;
-  srsran_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
-                "there are still E1AP messages to pop from CU-UP");
+  ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+               "there are still E1AP messages to pop from CU-UP");
 
   // Inject PDU Session Resource Setup Request and wait for Bearer Context Setup Request
   get_amf().push_tx_pdu(pdu_session_resource_setup_request);
@@ -712,7 +712,7 @@ bool cu_cp_test_environment::send_bearer_context_setup_response_and_await_ue_con
     qos_flow_id_t          qfi)
 {
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   auto& ue_ctx         = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
   ue_ctx.cu_up_e1ap_id = cu_up_e1ap_id;
@@ -737,7 +737,7 @@ bool cu_cp_test_environment::send_bearer_context_modification_response_and_await
     qos_flow_id_t       qfi)
 {
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -759,8 +759,8 @@ bool cu_cp_test_environment::send_ue_context_modification_response_and_await_bea
     rnti_t              crnti)
 {
   e1ap_message e1ap_pdu;
-  srsran_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
-                "there are still E1AP messages to pop from CU-UP");
+  ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+               "there are still E1AP messages to pop from CU-UP");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -786,7 +786,7 @@ bool cu_cp_test_environment::send_bearer_context_modification_response_and_await
     const std::vector<pdu_session_id_t>&               pdu_sessions_failed_to_modify)
 {
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -819,7 +819,7 @@ bool cu_cp_test_environment::send_rrc_reconfiguration_complete_and_await_pdu_ses
     const std::vector<pdu_session_id_t>& expected_pdu_sessions_failed_to_setup)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
@@ -849,12 +849,12 @@ bool cu_cp_test_environment::setup_pdu_session(unsigned               du_idx,
                                                bool                   is_initial_session)
 {
   ngap_message ngap_pdu;
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
   f1ap_message f1ap_pdu;
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
   e1ap_message e1ap_pdu;
-  srsran_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
-                "there are still E1AP messages to pop from CU-UP");
+  ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+               "there are still E1AP messages to pop from CU-UP");
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 

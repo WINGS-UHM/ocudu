@@ -9,9 +9,9 @@
  */
 
 #include "mac_dl_processor.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_dl_processor::mac_dl_processor(const mac_dl_config&             mac_cfg,
                                    mac_scheduler_cell_info_handler& sched_,
@@ -28,7 +28,7 @@ bool mac_dl_processor::has_cell(du_cell_index_t cell_index) const
 mac_cell_controller& mac_dl_processor::add_cell(const mac_cell_creation_request& cell_cfg_req,
                                                 mac_cell_config_dependencies     dependencies)
 {
-  srsran_assert(not has_cell(cell_cfg_req.cell_index), "Overwriting existing cell is invalid.");
+  ocudu_assert(not has_cell(cell_cfg_req.cell_index), "Overwriting existing cell is invalid.");
 
   // Create MAC cell and add it to list.
   cells[cell_cfg_req.cell_index] =
@@ -48,7 +48,7 @@ mac_cell_controller& mac_dl_processor::add_cell(const mac_cell_creation_request&
 
 void mac_dl_processor::remove_cell(du_cell_index_t cell_index)
 {
-  srsran_assert(has_cell(cell_index), "Accessing non-existing cell.");
+  ocudu_assert(has_cell(cell_index), "Accessing non-existing cell.");
 
   // Remove cell from cell manager.
   cells[cell_index].reset();

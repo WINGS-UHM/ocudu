@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class pdcch_encoder_spy : public pdcch_encoder
 {
@@ -55,4 +55,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(pdcch_encoder);
 
-} // namespace srsran
+} // namespace ocudu

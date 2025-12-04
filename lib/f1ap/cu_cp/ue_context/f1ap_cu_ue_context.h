@@ -13,13 +13,13 @@
 #include "f1ap_cu_ue_transaction_manager.h"
 #include "f1ap_ue_logger.h"
 #include "ue_ul_bearer_manager.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct f1ap_ue_context {
   f1ap_ue_ids ue_ids;
@@ -48,7 +48,7 @@ private:
 class f1ap_ue_context_list
 {
 public:
-  f1ap_ue_context_list(timer_factory timers_, srslog::basic_logger& logger_) : timers(timers_), logger(logger_) {}
+  f1ap_ue_context_list(timer_factory timers_, ocudulog::basic_logger& logger_) : timers(timers_), logger(logger_) {}
 
   bool contains(gnb_cu_ue_f1ap_id_t cu_ue_id) const { return ues.find(cu_ue_id) != ues.end(); }
 
@@ -68,17 +68,17 @@ public:
 
   f1ap_ue_context& operator[](gnb_cu_ue_f1ap_id_t cu_ue_id)
   {
-    srsran_assert(ues.find(cu_ue_id) != ues.end(), "cu_ue={}: F1AP UE context not found", fmt::underlying(cu_ue_id));
+    ocudu_assert(ues.find(cu_ue_id) != ues.end(), "cu_ue={}: F1AP UE context not found", fmt::underlying(cu_ue_id));
     return ues.at(cu_ue_id);
   }
   f1ap_ue_context& operator[](ue_index_t ue_index)
   {
-    srsran_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
-                  "ue={} gNB-CU-UE-F1AP-ID not found",
-                  fmt::underlying(ue_index));
-    srsran_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
-                  "cu_ue={}: F1AP UE context not found",
-                  fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
+    ocudu_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
+                 "ue={} gNB-CU-UE-F1AP-ID not found",
+                 fmt::underlying(ue_index));
+    ocudu_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
+                 "cu_ue={}: F1AP UE context not found",
+                 fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
     return ues.at(ue_index_to_ue_f1ap_id.at(ue_index));
   }
 
@@ -116,8 +116,8 @@ public:
 
   f1ap_ue_context& add_ue(ue_index_t ue_index, gnb_cu_ue_f1ap_id_t cu_ue_id)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));
-    srsran_assert(cu_ue_id != gnb_cu_ue_f1ap_id_t::invalid, "Invalid cu_ue={}", fmt::underlying(cu_ue_id));
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(cu_ue_id != gnb_cu_ue_f1ap_id_t::invalid, "Invalid cu_ue={}", fmt::underlying(cu_ue_id));
 
     logger.debug("ue={} cu_ue={}: Adding F1AP UE context", fmt::underlying(ue_index), fmt::underlying(cu_ue_id));
     ues.emplace(
@@ -128,9 +128,9 @@ public:
 
   void add_du_ue_f1ap_id(gnb_cu_ue_f1ap_id_t cu_ue_id, gnb_du_ue_f1ap_id_t du_ue_id)
   {
-    srsran_assert(cu_ue_id != gnb_cu_ue_f1ap_id_t::invalid, "Invalid cu_ue={}", fmt::underlying(cu_ue_id));
-    srsran_assert(du_ue_id != gnb_du_ue_f1ap_id_t::invalid, "Invalid du_ue={}", fmt::underlying(du_ue_id));
-    srsran_assert(ues.find(cu_ue_id) != ues.end(), "cu_ue={}: F1AP UE context not found", fmt::underlying(cu_ue_id));
+    ocudu_assert(cu_ue_id != gnb_cu_ue_f1ap_id_t::invalid, "Invalid cu_ue={}", fmt::underlying(cu_ue_id));
+    ocudu_assert(du_ue_id != gnb_du_ue_f1ap_id_t::invalid, "Invalid du_ue={}", fmt::underlying(du_ue_id));
+    ocudu_assert(ues.find(cu_ue_id) != ues.end(), "cu_ue={}: F1AP UE context not found", fmt::underlying(cu_ue_id));
 
     auto& ue = ues.at(cu_ue_id);
     ue.logger.log_debug("Adding du_ue={}", fmt::underlying(du_ue_id));
@@ -141,7 +141,7 @@ public:
 
   void remove_ue(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
 
     if (ue_index_to_ue_f1ap_id.find(ue_index) == ue_index_to_ue_f1ap_id.end()) {
       logger.warning("ue={}: gNB-CU-UE-F1AP-ID not found", fmt::underlying(ue_index));
@@ -163,42 +163,42 @@ public:
 
   void add_srb0_rrc_notifier(ue_index_t ue_index, f1ap_ul_ccch_notifier* srb0_notifier)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
-                  "ue={}: gNB-CU-UE-F1AP-ID not found",
-                  fmt::underlying(ue_index));
-    srsran_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
-                  "cu_ue={}: F1AP UE context not found",
-                  fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
-    srsran_assert(srb0_notifier, "Invalid SRB0 notifier");
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
+                 "ue={}: gNB-CU-UE-F1AP-ID not found",
+                 fmt::underlying(ue_index));
+    ocudu_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
+                 "cu_ue={}: F1AP UE context not found",
+                 fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
+    ocudu_assert(srb0_notifier, "Invalid SRB0 notifier");
 
     ues.at(ue_index_to_ue_f1ap_id.at(ue_index)).get_ul_bearer_manager().activate_srb0(*srb0_notifier);
   }
 
   void add_srb1_rrc_notifier(ue_index_t ue_index, f1ap_ul_dcch_notifier* srb1_notifier)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
-                  "ue={}: gNB-CU-UE-F1AP-ID not found",
-                  ue_index);
-    srsran_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
-                  "cu_ue={}: F1AP UE context not found",
-                  fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
-    srsran_assert(srb1_notifier, "Invalid SRB1 notifier");
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
+                 "ue={}: gNB-CU-UE-F1AP-ID not found",
+                 ue_index);
+    ocudu_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
+                 "cu_ue={}: F1AP UE context not found",
+                 fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
+    ocudu_assert(srb1_notifier, "Invalid SRB1 notifier");
 
     ues.at(ue_index_to_ue_f1ap_id.at(ue_index)).get_ul_bearer_manager().activate_srb1(*srb1_notifier);
   }
 
   void add_srb2_rrc_notifier(ue_index_t ue_index, f1ap_ul_dcch_notifier* srb2_notifier)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
-                  "ue={}: gNB-CU-UE-F1AP-ID not found",
-                  ue_index);
-    srsran_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
-                  "cu_ue={}: F1AP UE context not found",
-                  fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
-    srsran_assert(srb2_notifier, "Invalid SRB2 notifier");
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ue_index_to_ue_f1ap_id.find(ue_index) != ue_index_to_ue_f1ap_id.end(),
+                 "ue={}: gNB-CU-UE-F1AP-ID not found",
+                 ue_index);
+    ocudu_assert(ues.find(ue_index_to_ue_f1ap_id.at(ue_index)) != ues.end(),
+                 "cu_ue={}: F1AP UE context not found",
+                 fmt::underlying(ue_index_to_ue_f1ap_id.at(ue_index)));
+    ocudu_assert(srb2_notifier, "Invalid SRB2 notifier");
 
     ues.at(ue_index_to_ue_f1ap_id.at(ue_index)).get_ul_bearer_manager().activate_srb2(*srb2_notifier);
   }
@@ -253,8 +253,8 @@ protected:
   gnb_cu_ue_f1ap_id_t next_cu_ue_f1ap_id = gnb_cu_ue_f1ap_id_t::min;
 
 private:
-  timer_factory         timers;
-  srslog::basic_logger& logger;
+  timer_factory           timers;
+  ocudulog::basic_logger& logger;
 
   void increase_next_cu_ue_f1ap_id()
   {
@@ -272,5 +272,5 @@ private:
   std::unordered_map<gnb_cu_ue_f1ap_id_t, f1ap_ue_context> ues;                    // indexed by gnb_cu_ue_f1ap_id
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

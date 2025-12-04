@@ -12,14 +12,14 @@
 
 #include "adapters/ngap_adapters.h"
 #include "task_schedulers/ngap_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/gateways/n2_connection_client.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/gateways/n2_connection_client.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ran/plmn_identity.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Interface used to capture the NGAP metrics from all the connected AMFs to the CU-CP.
 class ngap_repository_metrics_handler
@@ -37,7 +37,7 @@ struct ngap_repository_config {
   const cu_cp_configuration& cu_cp;
   cu_cp_ngap_handler&        cu_cp_notifier;
   paging_message_handler&    paging_handler;
-  srslog::basic_logger&      logger;
+  ocudulog::basic_logger&    logger;
 };
 
 class ngap_repository : public ngap_repository_metrics_handler
@@ -87,8 +87,8 @@ private:
     std::unique_ptr<ngap_message_notifier> ngap_tx_pdu_notifier;
   };
 
-  ngap_repository_config cfg;
-  srslog::basic_logger&  logger;
+  ngap_repository_config  cfg;
+  ocudulog::basic_logger& logger;
 
   ngap_task_scheduler amf_task_sched;
 
@@ -96,5 +96,5 @@ private:
   std::map<amf_index_t, ngap_context>            ngap_db;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

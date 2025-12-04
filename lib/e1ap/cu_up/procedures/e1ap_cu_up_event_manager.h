@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/support/async/event_signal.h"
-#include "srsran/support/async/protocol_transaction_manager.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/support/async/event_signal.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// Response type of a E1AP CU-UP transaction.
 using e1ap_transaction_response = expected<asn1::e1ap::successful_outcome_s, asn1::e1ap::unsuccessful_outcome_s>;
@@ -35,5 +35,5 @@ public:
   explicit e1ap_event_manager(timer_factory timer_service) : transactions(MAX_NOF_TRANSACTIONS, timer_service) {}
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

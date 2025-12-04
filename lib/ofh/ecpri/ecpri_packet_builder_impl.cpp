@@ -10,10 +10,10 @@
 
 #include "ecpri_packet_builder_impl.h"
 #include "../support/network_order_binary_serializer.h"
-#include "srsran/ofh/ecpri/ecpri_constants.h"
-#include "srsran/ofh/ecpri/ecpri_packet_properties.h"
+#include "ocudu/ofh/ecpri/ecpri_constants.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_properties.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ecpri;
 
 units::bytes packet_builder_impl::get_header_size(message_type msg_type) const
@@ -31,7 +31,7 @@ units::bytes packet_builder_impl::get_header_size(message_type msg_type) const
 /// Returns the first byte in the eCPRI Common Header.
 static uint8_t get_first_byte_in_common_header(bool concatenate = false)
 {
-  srsran_assert(!concatenate, "eCPRI concatenation is currently not supported");
+  ocudu_assert(!concatenate, "eCPRI concatenation is currently not supported");
 
   uint8_t header = 0;
   // Protocol revision (4 highest bits).

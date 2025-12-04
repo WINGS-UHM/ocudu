@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
+#include "ocudu/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
 #include "f1u_split_connector.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
-std::unique_ptr<f1u_cu_up_udp_gateway> srsran::srs_cu_up::create_split_f1u_gw(f1u_cu_up_split_gateway_creation_msg msg)
+std::unique_ptr<f1u_cu_up_udp_gateway> ocudu::ocuup::create_split_f1u_gw(f1u_cu_up_split_gateway_creation_msg msg)
 {
   return std::make_unique<f1u_split_connector>(msg.udp_gw_maps, msg.demux, msg.gtpu_pcap, msg.peer_port);
 }

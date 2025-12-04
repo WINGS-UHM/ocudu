@@ -11,34 +11,34 @@
 #pragma once
 
 #include "apps/services/app_resource_usage/metrics/app_resource_usage_metrics.h"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/ocudulog/log_channel.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Log consumer for the resource usage metrics.
 class resource_usage_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit resource_usage_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit resource_usage_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// JSON consumer for the resource usage metrics.
 class resource_usage_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit resource_usage_metrics_consumer_json(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit resource_usage_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
-} // namespace srsran
+} // namespace ocudu

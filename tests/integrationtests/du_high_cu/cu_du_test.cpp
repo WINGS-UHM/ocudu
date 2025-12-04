@@ -13,18 +13,18 @@
 #include "tests/unittests/cu_cp/test_doubles/mock_amf.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
 #include "tests/unittests/ngap/test_helpers.h"
-#include "srsran/cu_cp/cu_cp.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/cu_cp/cu_cp_factory.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_high/du_high_factory.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_factory.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_high/du_high_factory.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 // Dummy classes required by DU
 struct phy_cell_dummy : public mac_cell_result_notifier {
@@ -46,14 +46,14 @@ class cu_du_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // create CU-CP config
-    srs_cu_cp::cu_cp_configuration cu_cfg = config_helpers::make_default_cu_cp_config();
-    cu_cfg.services.cu_cp_executor        = &workers.exec_mapper->du_control_executor(); // reuse du-high ctrl exec
-    cu_cfg.services.timers                = &timers;
-    cu_cfg.ngap.ngaps.push_back(srs_cu_cp::cu_cp_configuration::ngap_config{
+    ocucp::cu_cp_configuration cu_cfg = config_helpers::make_default_cu_cp_config();
+    cu_cfg.services.cu_cp_executor    = &workers.exec_mapper->du_control_executor(); // reuse du-high ctrl exec
+    cu_cfg.services.timers            = &timers;
+    cu_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{
         &*amf, {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}}});
     cu_cfg.metrics.layers_cfg.enable_ngap = true;
     cu_cfg.metrics.layers_cfg.enable_rrc  = true;
@@ -62,7 +62,7 @@ protected:
     cu_cp_obj = create_cu_cp(cu_cfg);
 
     // Create AMF response to NG Setup.
-    amf->enqueue_next_tx_pdu(srs_cu_cp::generate_ng_setup_response());
+    amf->enqueue_next_tx_pdu(ocucp::generate_ng_setup_response());
 
     // Start CU-CP.
     cu_cp_obj->start();
@@ -95,7 +95,7 @@ protected:
   ~cu_du_test() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 public:
@@ -103,14 +103,14 @@ public:
   timer_manager                         timers;
   std::unique_ptr<io_broker>            broker{create_io_broker(io_broker_type::epoll)};
   std::unique_ptr<mac_clock_controller> timer_ctrl{
-      srs_du::create_du_high_clock_controller(timers, *broker, *workers.time_exec)};
-  srslog::basic_logger&  test_logger = srslog::fetch_basic_logger("TEST");
-  f1c_test_local_gateway f1c_gw{};
-  f1u_test_local_gateway f1u_gw{};
+      odu::create_du_high_clock_controller(timers, *broker, *workers.time_exec)};
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
+  f1c_test_local_gateway  f1c_gw{};
+  f1u_test_local_gateway  f1u_gw{};
 
-  std::unique_ptr<srs_cu_cp::mock_amf> amf{srs_cu_cp::create_mock_amf()};
-  std::unique_ptr<srs_cu_cp::cu_cp>    cu_cp_obj;
-  std::unique_ptr<du_high>             du_obj;
+  std::unique_ptr<ocucp::mock_amf> amf{ocucp::create_mock_amf()};
+  std::unique_ptr<ocucp::cu_cp>    cu_cp_obj;
+  std::unique_ptr<du_high>         du_obj;
 };
 
 /// Test the f1 setup procedure was successful

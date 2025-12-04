@@ -10,12 +10,12 @@
 
 #include "gnb_cu_configuration_update_procedure.h"
 #include "../../asn1_helpers.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 
 gnb_cu_configuration_update_procedure::gnb_cu_configuration_update_procedure(const asn1::f1ap::gnb_cu_cfg_upd_s& msg_,
                                                                              f1ap_du_configurator&  du_mng_,

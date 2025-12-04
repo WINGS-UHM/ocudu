@@ -10,7 +10,7 @@
 
 #include "ru_sdr_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ru_sdr_impl::ru_sdr_impl(const ru_sdr_impl_config& config, const ru_sdr_impl_dependencies& dependencies) :
   are_metrics_enabled(config.are_metrics_enabled),
@@ -31,7 +31,7 @@ void ru_sdr_impl::set_lower_phy_sectors(std::vector<std::unique_ptr<lower_phy_se
 {
   phy_sectors = std::move(lower_phy_sectors);
 
-  srsran_assert(!phy_sectors.empty(), "SDR Radio Unit received an empty list of sectors");
+  ocudu_assert(!phy_sectors.empty(), "SDR Radio Unit received an empty list of sectors");
 
   radio_unit_controller.set_lower_phy_sectors([this]() -> std::vector<lower_phy_sector*> {
     std::vector<lower_phy_sector*> sectors;

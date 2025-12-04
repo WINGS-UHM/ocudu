@@ -12,9 +12,9 @@
 
 #include "apps/services/metrics/metrics_notifier.h"
 #include "apps/services/metrics/metrics_producer.h"
-#include "srsran/rlc/rlc_metrics.h"
+#include "ocudu/rlc/rlc_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// RLC metrics producer implementation.
 class rlc_metrics_producer_impl : public rlc_metrics_notifier, public app_services::metrics_producer
@@ -32,4 +32,4 @@ private:
   app_services::metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

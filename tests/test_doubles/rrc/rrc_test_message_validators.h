@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/ran/rb_id.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 namespace test_helpers {
 
 /// \brief Check if DL-CCCH message is a valid RRC Setup message.
@@ -54,4 +54,4 @@ bool is_valid_rrc_handover_preparation_info(const asn1::rrc_nr::ho_prep_info_s& 
 bool is_valid_rrc_handover_preparation_info(const byte_buffer& ho_prep_info);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

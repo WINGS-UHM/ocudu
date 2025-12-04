@@ -12,5 +12,5 @@ set(SOURCES
         ru_dummy_impl.cpp
         ru_dummy_metrics_collector.cpp)
 
-add_library(srsran_ru_dummy STATIC ${SOURCES})
-target_link_libraries(srsran_ru_dummy srslog)
+add_library(ocudu_ru_dummy STATIC ${SOURCES})
+target_link_libraries(ocudu_ru_dummy ocudulog)

@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/bounded_integer.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/bounded_integer.h"
+#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Constexpr checks.
 static_assert(bounded_integer<int, 2, 5>(3) == 3, "Constexpr ctor failed");

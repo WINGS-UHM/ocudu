@@ -13,12 +13,12 @@
 #include "../e1ap_cu_cp_impl.h"
 #include "../ue_context/e1ap_cu_cp_ue_context.h"
 #include "common/e1ap_asn1_utils.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class bearer_context_modification_procedure
 {
@@ -50,5 +50,5 @@ private:
       transaction_sink;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

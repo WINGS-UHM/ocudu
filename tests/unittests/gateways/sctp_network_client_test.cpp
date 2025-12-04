@@ -9,13 +9,13 @@
  */
 
 #include "sctp_test_helpers.h"
-#include "srsran/gateways/sctp_network_client_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/io/sctp_socket.h"
+#include "ocudu/gateways/sctp_network_client_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/io/sctp_socket.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -74,15 +74,15 @@ class sctp_network_client_test : public ::testing::Test
 public:
   sctp_network_client_test()
   {
-    srslog::fetch_basic_logger("SCTP-GW").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("SCTP-GW").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     client_cfg.sctp.ppid = NGAP_PPID;
   }
   ~sctp_network_client_test() override
   {
     close_client();
-    srslog::flush();
+    ocudulog::flush();
   }
 
   // Forces client shutdown.

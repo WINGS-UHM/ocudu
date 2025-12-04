@@ -10,11 +10,11 @@
 
 #include "lib/rlc/rlc_tx_am_entity.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Mocking class of the surrounding layers invoked by the RLC AM Tx entity.
 class rlc_tx_am_test_frame : public rlc_tx_upper_layer_data_notifier,
@@ -182,9 +182,9 @@ void benchmark_tx_pdu(const bench_params& params)
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("RLC").set_level(srslog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("RLC").set_level(ocudulog::basic_levels::warning);
 
-  srslog::init();
+  ocudulog::init();
 
   bench_params params{};
   parse_args(argc, argv, params);
@@ -194,5 +194,5 @@ int main(int argc, char** argv)
 
   benchmark_tx_pdu(params);
 
-  srslog::flush();
+  ocudulog::flush();
 }

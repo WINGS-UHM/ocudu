@@ -10,10 +10,10 @@
 
 #include "lib/scheduler/cell/scheduler_prb.h"
 #include "lib/scheduler/support/rb_helper.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(prb_grant_test, test_all)
 {

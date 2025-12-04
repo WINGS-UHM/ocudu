@@ -9,11 +9,11 @@
  */
 
 #include "sctp_network_server_impl.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/io/sockets.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/sockets.h"
 #include <netinet/sctp.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Stream number to use for sending.
 static constexpr unsigned stream_no = 0;
@@ -23,7 +23,7 @@ class sctp_network_server_impl::sctp_send_notifier : public sctp_association_sdu
 public:
   sctp_send_notifier(sctp_network_server_impl&                                parent,
                      const sctp_network_server_impl::sctp_associaton_context& assoc,
-                     srslog::basic_logger&                                    logger_) :
+                     ocudulog::basic_logger&                                  logger_) :
     ppid(parent.node_cfg.ppid),
     fd(parent.socket.fd().value()),
     if_name(parent.node_cfg.if_name),
@@ -120,7 +120,7 @@ private:
   // This flag is shared by the server main class and this notifier and is used to signal the association shut down.
   // Note: shared_ptr copy used to avoid the case when the notifier outlives the association.
   std::shared_ptr<std::atomic<bool>> assoc_shutdown_flag;
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
 
   // Buffer used to store data to send to client.
   std::array<uint8_t, network_gateway_sctp_max_len> send_buffer;
@@ -128,10 +128,10 @@ private:
 
 sctp_network_server_impl::sctp_associaton_context::sctp_associaton_context(int assoc_id_) : assoc_id(assoc_id_) {}
 
-sctp_network_server_impl::sctp_network_server_impl(const srsran::sctp_network_gateway_config& sctp_cfg_,
-                                                   io_broker&                                 broker_,
-                                                   task_executor&                             io_rx_executor_,
-                                                   sctp_network_association_factory&          assoc_factory_) :
+sctp_network_server_impl::sctp_network_server_impl(const ocudu::sctp_network_gateway_config& sctp_cfg_,
+                                                   io_broker&                                broker_,
+                                                   task_executor&                            io_rx_executor_,
+                                                   sctp_network_association_factory&         assoc_factory_) :
   sctp_network_gateway_common_impl(sctp_cfg_),
   broker(broker_),
   io_rx_executor(io_rx_executor_),
@@ -382,11 +382,12 @@ std::unique_ptr<sctp_network_server> sctp_network_server_impl::create(const sctp
 {
   // Validate arguments
   if (sctp_cfg.if_name.empty()) {
-    srslog::fetch_basic_logger("SCTP-GW").error("Cannot create SCTP server. Cause: No name was provided");
+    ocudulog::fetch_basic_logger("SCTP-GW").error("Cannot create SCTP server. Cause: No name was provided");
     return nullptr;
   }
   if (sctp_cfg.bind_address.empty()) {
-    srslog::fetch_basic_logger("SCTP-GW").error("{}: Cannot create SCTP server without bind address", sctp_cfg.if_name);
+    ocudulog::fetch_basic_logger("SCTP-GW").error("{}: Cannot create SCTP server without bind address",
+                                                  sctp_cfg.if_name);
     return nullptr;
   }
 

@@ -9,9 +9,9 @@
  */
 
 #include "ru_ofh_rx_symbol_handler_impl.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_ofh_rx_symbol_handler_impl::on_new_uplink_symbol(const ofh::uplane_rx_symbol_context& context,
                                                          shared_resource_grid                 grid,

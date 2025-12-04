@@ -10,23 +10,23 @@
 
 #include "o_cu_up_unit_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 o_cu_up_unit_impl::o_cu_up_unit_impl(std::vector<std::unique_ptr<gtpu_gateway>>       gateways_,
                                      std::unique_ptr<e2_cu_metrics_connector_manager> e2_metric_connector_,
-                                     std::unique_ptr<srs_cu_up::o_cu_up>              cu_up_) :
+                                     std::unique_ptr<ocuup::o_cu_up>                  cu_up_) :
   gateways(std::move(gateways_)), e2_metric_connector(std::move(e2_metric_connector_)), cu_up(std::move(cu_up_))
 {
-  srsran_assert(not gateways.empty(), "Invalid NG-U gateway");
-  srsran_assert(cu_up, "Invalid CU-UP");
+  ocudu_assert(not gateways.empty(), "Invalid NG-U gateway");
+  ocudu_assert(cu_up, "Invalid CU-UP");
 }
 
-srs_cu_up::cu_up_interface& o_cu_up_unit_impl::get_cu_up()
+ocuup::cu_up_interface& o_cu_up_unit_impl::get_cu_up()
 {
   return cu_up->get_cu_up();
 }
 
-srs_cu_up::cu_up_operation_controller& o_cu_up_unit_impl::get_operation_controller()
+ocuup::cu_up_operation_controller& o_cu_up_unit_impl::get_operation_controller()
 {
   return cu_up->get_operation_controller();
 }

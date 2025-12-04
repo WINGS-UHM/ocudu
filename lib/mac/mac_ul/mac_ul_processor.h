@@ -13,23 +13,23 @@
 #include "../mac_config_interfaces.h"
 #include "mac_ul_ue_manager.h"
 #include "pdu_rx_handler.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/mac/mac.h"
-#include "srsran/mac/mac_config.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/mac/mac_config.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 
 struct mac_ul_config {
-  task_executor&                      ctrl_exec;
-  srs_du::du_high_ue_executor_mapper& ue_exec_mapper;
-  mac_ul_ccch_notifier&               ul_ccch_notifier;
-  mac_scheduler_ce_info_handler&      sched;
-  du_rnti_table&                      rnti_table;
-  mac_pcap&                           pcap;
-  timer_manager&                      timers;
+  task_executor&                   ctrl_exec;
+  odu::du_high_ue_executor_mapper& ue_exec_mapper;
+  mac_ul_ccch_notifier&            ul_ccch_notifier;
+  mac_scheduler_ce_info_handler&   sched;
+  du_rnti_table&                   rnti_table;
+  mac_pcap&                        pcap;
+  timer_manager&                   timers;
 };
 
 class mac_ul_processor final : public mac_ul_configurator, public mac_pdu_handler
@@ -55,8 +55,8 @@ public:
   void handle_rx_data_indication(mac_rx_data_indication msg) override;
 
 private:
-  const mac_ul_config   cfg;
-  srslog::basic_logger& logger;
+  const mac_ul_config     cfg;
+  ocudulog::basic_logger& logger;
 
   mac_ul_ue_manager ue_manager;
 
@@ -64,4 +64,4 @@ private:
   pdu_rx_handler pdu_handler;
 };
 
-} // namespace srsran
+} // namespace ocudu

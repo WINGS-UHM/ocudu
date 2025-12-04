@@ -10,11 +10,11 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct du_low_appconfig;
 
 /// Validates the given DU low application configuration. Returns true on success, false otherwise.
 bool validate_du_low_appconfig(const du_low_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

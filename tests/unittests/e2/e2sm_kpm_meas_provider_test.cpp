@@ -12,12 +12,12 @@
 #include "lib/e2/e2sm/e2sm_kpm/e2sm_kpm_cu_meas_provider_impl.h"
 #include "lib/e2/e2sm/e2sm_kpm/e2sm_kpm_du_meas_provider_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/ocudu_test.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Helper global variables to pass pcap_writer to all tests.
 static bool      g_enable_pcap = false;
@@ -75,8 +75,8 @@ protected:
   {
     external_pcap_writer = GetParam();
 
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
@@ -105,7 +105,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
     pcap->close();
   }
 };
@@ -119,8 +119,8 @@ protected:
   {
     external_pcap_writer = GetParam();
 
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
@@ -137,7 +137,7 @@ protected:
   void TearDown() override
   {
     // Flush logger after each test.
-    srslog::flush();
+    ocudulog::flush();
     pcap->close();
   }
 
@@ -159,7 +159,7 @@ protected:
   manual_task_worker                                   task_worker{64};
   std::unique_ptr<dummy_e2_pdu_notifier>               msg_notifier;
   std::unique_ptr<dummy_e2_connection_client>          e2_client;
-  srslog::basic_logger&                                test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                              test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 class e2sm_kpm_du_meas_provider_test : public e2sm_kpm_meas_provider_test
@@ -369,7 +369,7 @@ TEST_P(e2sm_kpm_du_meas_provider_test, e2sm_kpm_ind_three_drb_rlc_metrics)
   // Decode RIC Indication and check the content.
   asn1::e2sm::e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref                 ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -477,7 +477,7 @@ TEST_P(e2sm_kpm_du_meas_provider_test, e2sm_kpm_ind_e2_level_rlc_metrics)
   // Decode RIC Indication and check the content.
   asn1::e2sm::e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref                 ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -581,7 +581,7 @@ TEST_P(e2sm_kpm_du_meas_provider_test, e2sm_kpm_ind_e2_level_prb_metrics)
   // Decode RIC Indication and check the content.
   asn1::e2sm::e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref                 ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -615,7 +615,7 @@ int main(int argc, char** argv)
     }
   }
 
-  srslog::init();
+  ocudulog::init();
 
   std::unique_ptr<task_worker_executor> pcap_exec;
   std::unique_ptr<task_worker>          pcap_worker;

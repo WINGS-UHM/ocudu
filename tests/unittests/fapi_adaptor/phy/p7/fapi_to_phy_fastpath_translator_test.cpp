@@ -13,17 +13,17 @@
 #include "../../../phy/upper/downlink_processor_test_doubles.h"
 #include "../../../phy/upper/uplink_request_processor_test_doubles.h"
 #include "fapi_to_phy_fastpath_translator.h"
-#include "srsran/fapi/message_builders.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
-#include "srsran/phy/support/resource_grid_pool.h"
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
-#include "srsran/phy/upper/uplink_pdu_validator.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/phy/support/resource_grid_pool.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/phy/upper/uplink_pdu_validator.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittest;
 
@@ -106,7 +106,7 @@ public:
   {
     unsigned expected_available_ref_count = 0;
     bool     available                    = ref_count.compare_exchange_strong(expected_available_ref_count, 1);
-    srsran_assert(available, "The grid must NOT be reserved.");
+    ocudu_assert(available, "The grid must NOT be reserved.");
     return {*this, ref_count};
   }
 
@@ -117,12 +117,12 @@ public:
 private:
   resource_grid& get() override
   {
-    srsran_assert(ref_count != 0, "Reference counter must NOT be zero.");
+    ocudu_assert(ref_count != 0, "Reference counter must NOT be zero.");
     ++getter_count;
     return grid;
   }
 
-  void notify_release_scope() override { srsran_assert(ref_count == 0, "Reference counter must be zero."); }
+  void notify_release_scope() override { ocudu_assert(ref_count == 0, "Reference counter must be zero."); }
 
   std::atomic<unsigned> ref_count    = {};
   unsigned              getter_count = 0;
@@ -180,9 +180,9 @@ public:
 
   unique_uplink_pdu_slot_repository get_pdu_slot_repository(slot_point slot) override
   {
-    srsran_assert(pusch_pdus.empty(), "PUSCH PDU list is not empty.");
-    srsran_assert(pucch_pdus.empty(), "PUCCH PDU list is not empty.");
-    srsran_assert(srs_pdus.empty(), "SRS PDU list is not empty.");
+    ocudu_assert(pusch_pdus.empty(), "PUSCH PDU list is not empty.");
+    ocudu_assert(pucch_pdus.empty(), "PUCCH PDU list is not empty.");
+    ocudu_assert(srs_pdus.empty(), "SRS PDU list is not empty.");
     current_slot = slot;
     return unique_uplink_pdu_slot_repository(*this);
   }
@@ -232,7 +232,7 @@ protected:
   fapi_to_phy_fastpath_translator_config config =
       {sector_id, headroom_in_slots, false, scs, scs, prach_cfg, carrier_cfg, {0}};
   fapi_to_phy_fastpath_translator_dependencies dependencies = {
-      srslog::fetch_basic_logger("FAPI"),
+      ocudulog::fetch_basic_logger("FAPI"),
       dl_processor_pool,
       rg_pool,
       dl_pdu_validator,
@@ -444,7 +444,7 @@ TEST_F(fapi_to_phy_translator_fixture, empty_ul_tti_generates_request_when_allow
 {
   fapi_to_phy_fastpath_translator translator_allow(
       {sector_id, headroom_in_slots, true, scs, scs, prach_cfg, carrier_cfg, {0}},
-      {srslog::fetch_basic_logger("FAPI"),
+      {ocudulog::fetch_basic_logger("FAPI"),
        dl_processor_pool,
        rg_pool,
        dl_pdu_validator,

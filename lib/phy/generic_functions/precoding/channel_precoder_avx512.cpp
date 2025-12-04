@@ -11,7 +11,7 @@
 #include "channel_precoder_avx512.h"
 #include <immintrin.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Size of an AVX512 register in complex numbers with 32-bit floating point precision.
 static constexpr unsigned AVX512_CF_SIZE = 8;

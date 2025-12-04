@@ -15,17 +15,17 @@
 #include "rlc_stress_test_mac.h"
 #include "rlc_stress_test_rrc.h"
 #include "rlc_stress_test_traffic.h"
-#include "srsran/pcap/rlc_pcap.h"
-#include "srsran/pdcp/pdcp_entity.h"
-#include "srsran/pdcp/pdcp_metrics.h"
-#include "srsran/rlc/rlc_entity.h"
-#include "srsran/rlc/rlc_metrics.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/pcap/rlc_pcap.h"
+#include "ocudu/pdcp/pdcp_entity.h"
+#include "ocudu/pdcp/pdcp_metrics.h"
+#include "ocudu/rlc/rlc_entity.h"
+#include "ocudu/rlc/rlc_metrics.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <condition_variable>
 #include <mutex>
 #include <unistd.h>
 
-namespace srsran {
+namespace ocudu {
 
 class mock_pdcp_metrics_notifier : public pdcp_metrics_notifier
 {
@@ -119,10 +119,10 @@ private:
   std::unique_ptr<stress_traffic_source> traffic_source = nullptr;
 
   // Logging
-  srsran::rlc_bearer_logger logger;
+  ocudu::rlc_bearer_logger logger;
 
   // PCAP
   null_rlc_pcap pcap;
 };
 
-} // namespace srsran
+} // namespace ocudu

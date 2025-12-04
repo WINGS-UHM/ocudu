@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2_event_manager.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2_event_manager.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 class e2_setup_procedure
 {
@@ -23,7 +23,7 @@ public:
                      e2_message_notifier&            notif_,
                      e2_event_manager&               ev_mng_,
                      timer_factory                   timers,
-                     srslog::basic_logger&           logger);
+                     ocudulog::basic_logger&         logger);
 
   void operator()(coro_context<async_task<e2_setup_response_message>>& ctx);
 
@@ -40,7 +40,7 @@ private:
   const e2_setup_request_message request;
   e2_message_notifier&           notifier;
   e2_event_manager&              ev_mng;
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
 
   unique_timer e2_setup_wait_timer;
 
@@ -49,4 +49,4 @@ private:
   std::chrono::seconds time_to_wait{0};
 };
 
-} // namespace srsran
+} // namespace ocudu

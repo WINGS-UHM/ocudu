@@ -14,7 +14,7 @@ add_library(du_high_worker_manager
         test_utils/du_high_sim_dependencies.cpp)
 target_include_directories(du_high_worker_manager PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(du_high_worker_manager
-        srsran_du_high
+        ocudu_du_high
         f1ap_du_test_helpers
         pdcp_test_doubles
         sched_test_doubles
@@ -27,10 +27,10 @@ add_executable(du_high_test du_high_test.cpp
         du_high_connectivity_test.cpp
         paging_test.cpp)
 target_link_libraries(du_high_test
-        srsran_du_high
+        ocudu_du_high
         du_high_worker_manager
-        srsran_du_high_unit_helpers
-        srsran_gateway
+        ocudu_du_high_unit_helpers
+        ocudu_gateway
         gtest
         gtest_main)
 target_include_directories(du_high_test PRIVATE ${CMAKE_SOURCE_DIR})
@@ -39,6 +39,6 @@ set_tests_properties(du_high_test PROPERTIES LABELS "tsan")
 gtest_discover_tests(du_high_test)
 
 add_executable(mac_test_mode_adapter_test mac_test_mode_adapter_test.cpp)
-target_link_libraries(mac_test_mode_adapter_test srsran_du_high gtest gtest_main)
+target_link_libraries(mac_test_mode_adapter_test ocudu_du_high gtest gtest_main)
 target_include_directories(mac_test_mode_adapter_test PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(mac_test_mode_adapter_test mac_test_mode_adapter_test)

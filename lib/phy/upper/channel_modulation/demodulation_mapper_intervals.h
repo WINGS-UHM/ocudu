@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/support/math/math_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Helper function to calculate an interval index from floating point value.
 /// \param[in] value          Input value.
@@ -51,4 +51,4 @@ inline float interval_function(float        value,
   return l_value;
 }
 
-} // namespace srsran
+} // namespace ocudu

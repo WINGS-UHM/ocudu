@@ -9,8 +9,8 @@
  */
 
 #include "pusch_tpmi_select_test_data.h"
-#include "srsran/ran/pusch/pusch_tpmi_select.h"
-#include "srsran/ran/srs/srs_channel_matrix_formatters.h"
+#include "ocudu/ran/pusch/pusch_tpmi_select.h"
+#include "ocudu/ran/srs/srs_channel_matrix_formatters.h"
 #include <cstdlib>
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
@@ -19,7 +19,7 @@ namespace fmt {
 
 /// \brief Custom formatter for \c pusch_tpmi_select_info
 template <>
-struct formatter<srsran::pusch_tpmi_select_info> {
+struct formatter<ocudu::pusch_tpmi_select_info> {
   /// Default constructor.
   formatter() = default;
 
@@ -30,7 +30,7 @@ struct formatter<srsran::pusch_tpmi_select_info> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::pusch_tpmi_select_info& info, FormatContext& ctx) const
+  auto format(const ocudu::pusch_tpmi_select_info& info, FormatContext& ctx) const
   {
     unsigned max_nof_layers = info.get_max_nof_layers();
 
@@ -53,7 +53,7 @@ struct formatter<srsran::pusch_tpmi_select_info> {
 
 } // namespace fmt
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -96,9 +96,9 @@ bool operator==(const pusch_tpmi_select_info& left, const pusch_tpmi_select_info
   return true;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 class PuschTpmiSelectFixture : public ::testing::TestWithParam<test_case_t>
 {};

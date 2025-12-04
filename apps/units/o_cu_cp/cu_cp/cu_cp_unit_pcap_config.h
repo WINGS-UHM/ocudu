@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Configuration of packet capture functionalities.
 struct cu_cp_unit_pcap_config {
@@ -30,4 +30,4 @@ struct cu_cp_unit_pcap_config {
   } f1ap;
 };
 
-} // namespace srsran
+} // namespace ocudu

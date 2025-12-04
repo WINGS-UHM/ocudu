@@ -11,9 +11,9 @@
 #include "tracer_appconfig_yaml_writer.h"
 #include "tracer_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::fill_tracer_appconfig_in_yaml_schema(YAML::Node& node, const tracer_appconfig& config)
+void ocudu::fill_tracer_appconfig_in_yaml_schema(YAML::Node& node, const tracer_appconfig& config)
 {
   YAML::Node log_node                         = node["trace"];
   log_node["filename"]                        = config.filename;

@@ -12,10 +12,10 @@
 #include "scheduler_time_qos.h"
 #include "scheduler_time_rr.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<scheduler_policy> srsran::create_scheduler_strategy(const scheduler_ue_expert_config& expert_cfg_,
-                                                                    du_cell_index_t                   cell_index)
+std::unique_ptr<scheduler_policy> ocudu::create_scheduler_strategy(const scheduler_ue_expert_config& expert_cfg_,
+                                                                   du_cell_index_t                   cell_index)
 {
   if (std::holds_alternative<time_rr_scheduler_config>(expert_cfg_.policy_cfg)) {
     return std::make_unique<scheduler_time_rr>(expert_cfg_);

@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Ent-to-end test for the Polar coding chain including: subchannel allocator, encoder, rate-matcher,

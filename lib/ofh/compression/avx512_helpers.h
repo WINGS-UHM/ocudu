@@ -15,7 +15,7 @@
 
 #include <immintrin.h>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace mm512 {
 
@@ -144,4 +144,4 @@ inline __m512i determine_bfp_exponent(__m512i r0_epi16, __m512i r1_epi16, __m512
 
 } // namespace mm512
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

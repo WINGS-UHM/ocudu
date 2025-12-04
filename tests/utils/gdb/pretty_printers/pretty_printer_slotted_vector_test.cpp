@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/slotted_vector.h"
+#include "ocudu/adt/slotted_vector.h"
 
 int main()
 {
-  srsran::slotted_vector<int> a;
+  ocudu::slotted_vector<int> a;
 
   a.insert(1, 3);
   a.insert(3, -5);

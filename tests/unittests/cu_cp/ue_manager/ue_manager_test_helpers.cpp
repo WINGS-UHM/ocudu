@@ -9,13 +9,13 @@
  */
 
 #include "ue_manager_test_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <gtest/gtest.h>
 #include <memory>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ue_manager_test::ue_manager_test() :
   cu_cp_cfg([this]() {
@@ -27,13 +27,13 @@ ue_manager_test::ue_manager_test() :
     return cucfg;
   }())
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  ue_mng_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  ue_mng_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 }
 
 ue_manager_test::~ue_manager_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }

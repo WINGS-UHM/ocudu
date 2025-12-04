@@ -8,22 +8,22 @@
  *
  */
 
-#include "srsran/ran/band_helper.h"
+#include "ocudu/ran/band_helper.h"
 #include "ssb/ssb_freq_position_generator.h"
-#include "srsran/adt/interval.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
-#include "srsran/ran/ssb/ssb_gscn.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/ran/ssb/ssb_gscn.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/scheduler/sched_consts.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/std.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 using namespace band_helper;
 
@@ -448,7 +448,7 @@ static nr_band_raster fetch_band_raster(nr_band band, std::optional<delta_freq_r
 {
   if (band == nr_band::n41 or band == nr_band::n48 or band == nr_band::n77 or band == nr_band::n78 or
       band == nr_band::n79 or band == nr_band::n90 or band == nr_band::n104) {
-    srsran_assert(
+    ocudu_assert(
         delta_freq_raster.has_value(),
         "For band n41, n48, n77, n78, n79, n90 and n104, the band freq. raster require Delta Freq. Raster as an input");
   }
@@ -497,7 +497,7 @@ static bool is_valid_raster_param(const nr_raster_params& raster)
 static error_type<std::string> validate_band_n28(uint32_t arfcn, bs_channel_bandwidth bw, bool is_dl = true)
 {
   const nr_band_raster band_raster = fetch_band_raster(nr_band::n28, {});
-  if (band_raster.band == srsran::nr_band::invalid) {
+  if (band_raster.band == ocudu::nr_band::invalid) {
     return make_unexpected(fmt::format("Band n28 channel raster not found"));
   }
 
@@ -511,7 +511,7 @@ static error_type<std::string> validate_band_n28(uint32_t arfcn, bs_channel_band
 
   // Extra ARFCN value as per Table 5.4.2.3-1, TS 38.104, version 17.8.0 (see NOTE 4 in the table).
   const uint32_t arfnc_40MHz = is_dl ? 155608U : 144608U;
-  if (bw == srsran::bs_channel_bandwidth::MHz40 and arfcn == arfnc_40MHz) {
+  if (bw == ocudu::bs_channel_bandwidth::MHz40 and arfcn == arfnc_40MHz) {
     return error_type<std::string>{};
   }
 
@@ -680,7 +680,7 @@ static error_type<std::string> validate_band_n102(uint32_t arfcn, bs_channel_ban
   static constexpr std::array<unsigned, 6> b_100_dlarfnc = {799668, 803668, 810332, 814332, 821000, 825000};
 
   const nr_band_raster band_raster = fetch_band_raster(nr_band::n102, {});
-  if (band_raster.band == srsran::nr_band::invalid or arfcn < band_raster.dl_nref_first or
+  if (band_raster.band == ocudu::nr_band::invalid or arfcn < band_raster.dl_nref_first or
       arfcn > band_raster.dl_nref_last) {
     return make_unexpected(fmt::format("Band n102 channel raster not found"));
   }
@@ -723,7 +723,7 @@ static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spac
   // freq raster equal to the SCS common and check whether the DL ARFCN is compatible with this value.
   // Try first 100kHz channel raster.
   nr_band_raster band_raster = fetch_band_raster(nr_band::n90, delta_freq_raster::kHz100);
-  if (band_raster.band == srsran::nr_band::invalid) {
+  if (band_raster.band == ocudu::nr_band::invalid) {
     return make_unexpected(fmt::format("Band n90 channel raster for SCS {} not found", to_string(scs)));
   }
 
@@ -735,7 +735,7 @@ static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spac
   // The previous check failed, try now with freq raster equal to the SCS common.
   band_raster = fetch_band_raster(
       nr_band::n90, scs == subcarrier_spacing::kHz15 ? delta_freq_raster::kHz15 : delta_freq_raster::kHz30);
-  if (band_raster.band != srsran::nr_band::invalid) {
+  if (band_raster.band != ocudu::nr_band::invalid) {
     if (arfcn >= band_raster.dl_nref_first and arfcn <= band_raster.dl_nref_last and
         ((arfcn - band_raster.dl_nref_first) % band_raster.dl_nref_step) == 0) {
       return error_type<std::string>{};
@@ -747,7 +747,7 @@ static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spac
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-nr_band srsran::band_helper::get_band_from_dl_arfcn(uint32_t arfcn_f_ref)
+nr_band ocudu::band_helper::get_band_from_dl_arfcn(uint32_t arfcn_f_ref)
 {
   // As per Table 5.4.2.3-1, TS 38.104, v17.8.0, band n28 has an additional ARFCN value outside the interval of step 20.
   const uint32_t arfcn_n28 = 155608U;
@@ -765,10 +765,10 @@ nr_band srsran::band_helper::get_band_from_dl_arfcn(uint32_t arfcn_f_ref)
   return nr_band::invalid;
 }
 
-error_type<std::string> srsran::band_helper::is_dl_arfcn_valid_given_band(nr_band              band,
-                                                                          uint32_t             arfcn_f_ref,
-                                                                          subcarrier_spacing   scs,
-                                                                          bs_channel_bandwidth bw)
+error_type<std::string> ocudu::band_helper::is_dl_arfcn_valid_given_band(nr_band              band,
+                                                                         uint32_t             arfcn_f_ref,
+                                                                         subcarrier_spacing   scs,
+                                                                         bs_channel_bandwidth bw)
 {
   // Validates first the bands with non-standard ARFCN values.
   if (band == nr_band::n28) {
@@ -826,7 +826,7 @@ error_type<std::string> srsran::band_helper::is_dl_arfcn_valid_given_band(nr_ban
 }
 
 error_type<std::string>
-srsran::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f_ref, bs_channel_bandwidth bw)
+ocudu::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f_ref, bs_channel_bandwidth bw)
 {
   if (get_duplex_mode(band) != duplex_mode::FDD) {
     return {};
@@ -866,7 +866,7 @@ srsran::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f
   return make_unexpected(fmt::format("Band {} is not valid", fmt::underlying(band)));
 }
 
-uint32_t srsran::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std::optional<nr_band> band)
+uint32_t ocudu::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std::optional<nr_band> band)
 {
   // NOTE: The procedure implemented in this function is implementation-defined.
   const nr_band operating_band = band.value_or(get_band_from_dl_arfcn(dl_arfcn));
@@ -899,7 +899,7 @@ uint32_t srsran::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std:
   return 0;
 }
 
-double srsran::band_helper::nr_arfcn_to_freq(uint32_t nr_arfcn)
+double ocudu::band_helper::nr_arfcn_to_freq(uint32_t nr_arfcn)
 {
   const nr_raster_params params = get_raster_params(nr_arfcn);
   if (not is_valid_raster_param(params)) {
@@ -908,7 +908,7 @@ double srsran::band_helper::nr_arfcn_to_freq(uint32_t nr_arfcn)
   return (params.F_REF_Offs_MHz * 1e6 + params.delta_F_global_kHz * (nr_arfcn - params.N_REF_Offs) * 1e3);
 }
 
-uint32_t srsran::band_helper::freq_to_nr_arfcn(double freq)
+uint32_t ocudu::band_helper::freq_to_nr_arfcn(double freq)
 {
   const nr_raster_params params = get_raster_params(freq);
   if (not is_valid_raster_param(params)) {
@@ -918,24 +918,24 @@ uint32_t srsran::band_helper::freq_to_nr_arfcn(double freq)
                                params.N_REF_Offs);
 }
 
-bool srsran::band_helper::is_band_for_shared_spectrum(nr_band band)
+bool ocudu::band_helper::is_band_for_shared_spectrum(nr_band band)
 {
   // As per TS 38.104, Table 5.2-1, only bands where Note 3 or Note 4 apply.
   return band == nr_band::n46 or band == nr_band::n96 or band == nr_band::n102;
 }
 
-bool srsran::band_helper::is_band_40mhz_min_ch_bw_equivalent(nr_band band)
+bool ocudu::band_helper::is_band_40mhz_min_ch_bw_equivalent(nr_band band)
 {
   // As per TS 38.101, Table 5.2-1, only bands where Note 17 applies.
   return band == nr_band::n79 or band == nr_band::n104;
 }
 
-bool srsran::band_helper::is_ntn_band(nr_band band)
+bool ocudu::band_helper::is_ntn_band(nr_band band)
 {
   return band == nr_band::n254 or band == nr_band::n255 or band == nr_band::n256;
 }
 
-ssb_pattern_case srsran::band_helper::get_ssb_pattern(nr_band band, subcarrier_spacing scs)
+ssb_pattern_case ocudu::band_helper::get_ssb_pattern(nr_band band, subcarrier_spacing scs)
 {
   // Look for the given band and SCS.
   for (const nr_band_ssb_scs_case& ssb_scs_case : nr_ssb_band_scs_case_table) {
@@ -953,7 +953,7 @@ ssb_pattern_case srsran::band_helper::get_ssb_pattern(nr_band band, subcarrier_s
   return ssb_pattern_case::invalid;
 }
 
-uint8_t srsran::band_helper::get_ssb_l_max(nr_band band, subcarrier_spacing scs, uint32_t nr_arfcn)
+uint8_t ocudu::band_helper::get_ssb_l_max(nr_band band, subcarrier_spacing scs, uint32_t nr_arfcn)
 {
   // As per TS 38.213, Section 4.1.
   switch (get_ssb_pattern(band, scs)) {
@@ -976,7 +976,7 @@ uint8_t srsran::band_helper::get_ssb_l_max(nr_band band, subcarrier_spacing scs,
   }
 }
 
-subcarrier_spacing srsran::band_helper::get_most_suitable_ssb_scs(nr_band band, subcarrier_spacing scs_common)
+subcarrier_spacing ocudu::band_helper::get_most_suitable_ssb_scs(nr_band band, subcarrier_spacing scs_common)
 {
   subcarrier_spacing lowest_scs = subcarrier_spacing::invalid;
 
@@ -1005,7 +1005,7 @@ subcarrier_spacing srsran::band_helper::get_most_suitable_ssb_scs(nr_band band, 
   return subcarrier_spacing::invalid;
 }
 
-duplex_mode srsran::band_helper::get_duplex_mode(nr_band band)
+duplex_mode ocudu::band_helper::get_duplex_mode(nr_band band)
 {
   // Look for the given band.
   for (const nr_operating_band& b : nr_operating_bands) {
@@ -1024,16 +1024,16 @@ duplex_mode srsran::band_helper::get_duplex_mode(nr_band band)
   return duplex_mode::INVALID;
 }
 
-bool srsran::band_helper::is_paired_spectrum(nr_band band)
+bool ocudu::band_helper::is_paired_spectrum(nr_band band)
 {
   const duplex_mode mode = get_duplex_mode(band);
-  srsran_assert(mode < duplex_mode::INVALID, "Returned invalid duplex MODE");
+  ocudu_assert(mode < duplex_mode::INVALID, "Returned invalid duplex MODE");
   return mode == duplex_mode::FDD;
 }
 
-bool srsran::band_helper::is_unlicensed_band(nr_band band)
+bool ocudu::band_helper::is_unlicensed_band(nr_band band)
 {
-  srsran_assert(band != nr_band::invalid, "Band must be a valid NR band.");
+  ocudu_assert(band != nr_band::invalid, "Band must be a valid NR band.");
   switch (band) {
     case nr_band::n46:
     case nr_band::n48:
@@ -1046,17 +1046,17 @@ bool srsran::band_helper::is_unlicensed_band(nr_band band)
   }
 }
 
-frequency_range srsran::band_helper::get_freq_range(nr_band band)
+frequency_range ocudu::band_helper::get_freq_range(nr_band band)
 {
-  srsran_assert(band != nr_band::invalid, "Band must be a valid NR band.");
+  ocudu_assert(band != nr_band::invalid, "Band must be a valid NR band.");
   return (band <= nr_band::n104 || band == nr_band::n255 || band == nr_band::n256) ? frequency_range::FR1
                                                                                    : frequency_range::FR2;
 }
 
-double srsran::band_helper::get_abs_freq_point_a_from_f_ref(double             f_ref,
-                                                            uint32_t           nof_rbs,
-                                                            subcarrier_spacing scs,
-                                                            uint32_t           offset_to_carrier)
+double ocudu::band_helper::get_abs_freq_point_a_from_f_ref(double             f_ref,
+                                                           uint32_t           nof_rbs,
+                                                           subcarrier_spacing scs,
+                                                           uint32_t           offset_to_carrier)
 {
   // NOTE (i): It is unclear whether the SCS should always be 15kHz for FR1 (\ref get_abs_freq_point_a_from_center_freq
   // and see note).
@@ -1075,10 +1075,10 @@ double srsran::band_helper::get_abs_freq_point_a_from_f_ref(double             f
   return f_ref - static_cast<double>(delta_point_a_f_ref * scs_to_khz(scs) * KHZ_TO_HZ);
 }
 
-double srsran::band_helper::get_f_ref_from_abs_freq_point_a(double             abs_freq_point_a,
-                                                            uint32_t           nof_rbs,
-                                                            subcarrier_spacing scs,
-                                                            uint32_t           offset_to_carrier)
+double ocudu::band_helper::get_f_ref_from_abs_freq_point_a(double             abs_freq_point_a,
+                                                           uint32_t           nof_rbs,
+                                                           subcarrier_spacing scs,
+                                                           uint32_t           offset_to_carrier)
 {
   // See notes in \ref get_abs_freq_point_a_from_f_ref.
 
@@ -1092,7 +1092,7 @@ double srsran::band_helper::get_f_ref_from_abs_freq_point_a(double             a
   return abs_freq_point_a + static_cast<double>(delta_point_a_f_ref * scs_to_khz(scs) * KHZ_TO_HZ);
 }
 
-unsigned srsran::band_helper::get_n_rbs_from_bw(bs_channel_bandwidth bw, subcarrier_spacing scs, frequency_range fr)
+unsigned ocudu::band_helper::get_n_rbs_from_bw(bs_channel_bandwidth bw, subcarrier_spacing scs, frequency_range fr)
 {
   // Search on the table \ref tx_bw_config_fr2 for the BS channel bandwidth and return the N_RB corresponding to SCS.
   if (fr == frequency_range::FR2) {
@@ -1132,7 +1132,7 @@ unsigned srsran::band_helper::get_n_rbs_from_bw(bs_channel_bandwidth bw, subcarr
   return 0;
 }
 
-min_channel_bandwidth srsran::band_helper::get_min_channel_bw(nr_band nr_band, subcarrier_spacing scs)
+min_channel_bandwidth ocudu::band_helper::get_min_channel_bw(nr_band nr_band, subcarrier_spacing scs)
 {
   switch (nr_band) {
     case nr_band::n1:
@@ -1346,13 +1346,13 @@ static interval<unsigned> get_ssb_crbs(subcarrier_spacing    scs_common,
 }
 
 std::optional<ssb_coreset0_freq_location>
-srsran::band_helper::get_ssb_coreset0_freq_location(unsigned           dl_arfcn,
-                                                    nr_band            band,
-                                                    unsigned           n_rbs,
-                                                    subcarrier_spacing scs_common,
-                                                    subcarrier_spacing scs_ssb,
-                                                    uint8_t            ss0_idx,
-                                                    uint8_t            max_coreset0_duration)
+ocudu::band_helper::get_ssb_coreset0_freq_location(unsigned           dl_arfcn,
+                                                   nr_band            band,
+                                                   unsigned           n_rbs,
+                                                   subcarrier_spacing scs_common,
+                                                   subcarrier_spacing scs_ssb,
+                                                   uint8_t            ss0_idx,
+                                                   uint8_t            max_coreset0_duration)
 {
   std::optional<ssb_coreset0_freq_location> result;
 
@@ -1409,16 +1409,16 @@ srsran::band_helper::get_ssb_coreset0_freq_location(unsigned           dl_arfcn,
 }
 
 std::optional<ssb_coreset0_freq_location>
-srsran::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(unsigned           dl_arfcn,
-                                                                  nr_band            band,
-                                                                  unsigned           n_rbs,
-                                                                  subcarrier_spacing scs_common,
-                                                                  subcarrier_spacing scs_ssb,
-                                                                  uint8_t            ss0_idx,
-                                                                  unsigned           cset0_idx)
+ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(unsigned           dl_arfcn,
+                                                                 nr_band            band,
+                                                                 unsigned           n_rbs,
+                                                                 subcarrier_spacing scs_common,
+                                                                 subcarrier_spacing scs_ssb,
+                                                                 uint8_t            ss0_idx,
+                                                                 unsigned           cset0_idx)
 {
-  srsran_assert(scs_ssb < subcarrier_spacing::kHz60,
-                "Only 15kHz and 30kHz currently supported for SSB subcarrier spacing");
+  ocudu_assert(scs_ssb < subcarrier_spacing::kHz60,
+               "Only 15kHz and 30kHz currently supported for SSB subcarrier spacing");
 
   std::optional<ssb_coreset0_freq_location> result;
 
@@ -1485,15 +1485,15 @@ srsran::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(unsigned      
   return result;
 }
 
-std::optional<unsigned> srsran::band_helper::get_coreset0_index(nr_band                 band,
-                                                                unsigned                n_rbs,
-                                                                subcarrier_spacing      scs_common,
-                                                                subcarrier_spacing      scs_ssb,
-                                                                ssb_offset_to_pointA    offset_to_point_A,
-                                                                ssb_subcarrier_offset   k_ssb,
-                                                                uint8_t                 ssb_first_symbol,
-                                                                uint8_t                 ss0_idx,
-                                                                std::optional<unsigned> nof_coreset0_symb)
+std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band                 band,
+                                                               unsigned                n_rbs,
+                                                               subcarrier_spacing      scs_common,
+                                                               subcarrier_spacing      scs_ssb,
+                                                               ssb_offset_to_pointA    offset_to_point_A,
+                                                               ssb_subcarrier_offset   k_ssb,
+                                                               uint8_t                 ssb_first_symbol,
+                                                               uint8_t                 ss0_idx,
+                                                               std::optional<unsigned> nof_coreset0_symb)
 {
   // Determine the frequency range.
   bool is_fr2 = (get_freq_range(band) == frequency_range::FR2);
@@ -1552,12 +1552,12 @@ std::optional<unsigned> srsran::band_helper::get_coreset0_index(nr_band         
   return chosen_cset0_idx;
 }
 
-unsigned srsran::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(unsigned              cset0_idx,
-                                                                        nr_band               band,
-                                                                        subcarrier_spacing    scs_common,
-                                                                        subcarrier_spacing    scs_ssb,
-                                                                        ssb_offset_to_pointA  offset_to_point_A,
-                                                                        ssb_subcarrier_offset k_ssb)
+unsigned ocudu::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(unsigned              cset0_idx,
+                                                                       nr_band               band,
+                                                                       subcarrier_spacing    scs_common,
+                                                                       subcarrier_spacing    scs_ssb,
+                                                                       ssb_offset_to_pointA  offset_to_point_A,
+                                                                       ssb_subcarrier_offset k_ssb)
 {
   // Coreset0 configuration for the provided CORESET#0 index.
   auto cset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.to_uint());
@@ -1569,12 +1569,12 @@ unsigned srsran::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(unsigned
   return cset0_cfg.nof_rb_coreset - cset0_prbs.intersect(ssb_prbs).length();
 }
 
-n_ta_offset srsran::band_helper::get_ta_offset(nr_band band)
+n_ta_offset ocudu::band_helper::get_ta_offset(nr_band band)
 {
   return get_ta_offset(get_freq_range(band));
 }
 
-n_ta_offset srsran::band_helper::get_ta_offset(frequency_range freq_range)
+n_ta_offset ocudu::band_helper::get_ta_offset(frequency_range freq_range)
 {
   if (freq_range == frequency_range::FR1) {
     // Assume no LTE-NR coexistence.
@@ -1583,13 +1583,13 @@ n_ta_offset srsran::band_helper::get_ta_offset(frequency_range freq_range)
   return n_ta_offset::n13792;
 }
 
-std::optional<unsigned> srsran::band_helper::get_ssb_arfcn(unsigned              dl_arfcn,
-                                                           nr_band               band,
-                                                           unsigned              n_rbs,
-                                                           subcarrier_spacing    scs_common,
-                                                           subcarrier_spacing    scs_ssb,
-                                                           ssb_offset_to_pointA  offset_to_point_A,
-                                                           ssb_subcarrier_offset k_ssb)
+std::optional<unsigned> ocudu::band_helper::get_ssb_arfcn(unsigned              dl_arfcn,
+                                                          nr_band               band,
+                                                          unsigned              n_rbs,
+                                                          subcarrier_spacing    scs_common,
+                                                          subcarrier_spacing    scs_ssb,
+                                                          ssb_offset_to_pointA  offset_to_point_A,
+                                                          ssb_subcarrier_offset k_ssb)
 {
   // Get f_ref, point_A from dl_f_ref_arfcn, band and bandwidth.
   ssb_freq_position_generator du_cfg{dl_arfcn, band, n_rbs, scs_common, scs_ssb};
@@ -1603,10 +1603,10 @@ std::optional<unsigned> srsran::band_helper::get_ssb_arfcn(unsigned             
   return {};
 }
 
-error_type<std::string> srsran::band_helper::is_ssb_arfcn_valid_given_band(uint32_t             ssb_arfcn,
-                                                                           nr_band              band,
-                                                                           subcarrier_spacing   ssb_scs,
-                                                                           bs_channel_bandwidth bw)
+error_type<std::string> ocudu::band_helper::is_ssb_arfcn_valid_given_band(uint32_t             ssb_arfcn,
+                                                                          nr_band              band,
+                                                                          subcarrier_spacing   ssb_scs,
+                                                                          bs_channel_bandwidth bw)
 {
   // Convert the ARFCN to GSCN.
   std::optional<unsigned> gscn = band_helper::get_gscn_from_ss_ref(nr_arfcn_to_freq(ssb_arfcn));

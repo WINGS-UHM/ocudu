@@ -11,13 +11,13 @@
 #pragma once
 
 #include "lib/sdap/sdap_entity_impl.h"
-#include "srsran/sdap/sdap.h"
+#include "ocudu/sdap/sdap.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_up {
+namespace ocuup {
 
 /// Mocking class of the upper layers invoked by the SDAP entity.
 class sdap_upper_dummy : public sdap_rx_sdu_notifier
@@ -46,12 +46,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init SDAP logger
-    srslog::fetch_basic_logger("SDAP", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("SDAP", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("SDAP", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("SDAP", false).set_hex_dump_max_size(-1);
 
     logger.info("Creating SDAP entity.");
 
@@ -67,16 +67,16 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger&             logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&           logger = ocudulog::fetch_basic_logger("TEST", false);
   std::unique_ptr<sdap_upper_dummy> ul_sink;
   std::unique_ptr<sdap_lower_dummy> dl_sink1;
   std::unique_ptr<sdap_lower_dummy> dl_sink2;
   std::unique_ptr<sdap_entity_impl> sdap;
 };
 
-} // namespace srs_cu_up
+} // namespace ocuup
 
-} // namespace srsran
+} // namespace ocudu

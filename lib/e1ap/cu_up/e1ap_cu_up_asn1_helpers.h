@@ -11,18 +11,18 @@
 #pragma once
 
 #include "../common/e1ap_asn1_converters.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_ies.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/common/e1_setup_messages.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/ran/qos/five_qi.h"
-#include "srsran/ran/qos/qos_prio_level.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_ies.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/common/e1_setup_messages.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/ran/qos/five_qi.h"
+#include "ocudu/ran/qos/qos_prio_level.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 inline asn1::e1ap::gnb_cu_up_e1_setup_request_s cu_up_e1_setup_request_to_asn1(const cu_up_e1_setup_request& request)
 {
@@ -115,7 +115,7 @@ inline asn1::e1ap::gnb_cu_up_e1_setup_request_s cu_up_e1_setup_request_to_asn1(c
 
 inline bool
 check_e1ap_bearer_context_setup_request_valid(const asn1::e1ap::bearer_context_setup_request_s& asn1_request,
-                                              srslog::basic_logger&                             logger)
+                                              ocudulog::basic_logger&                           logger)
 {
   // We only support NG-RAN Bearer.
   if (asn1_request->sys_bearer_context_setup_request.type() !=
@@ -873,5 +873,5 @@ inline void fill_asn1_bearer_context_modification_response(asn1::e1ap::sys_beare
   }
 }
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

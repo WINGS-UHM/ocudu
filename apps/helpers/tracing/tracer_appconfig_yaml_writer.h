@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct tracer_appconfig;
 
 /// Fills the given node with the tracer application configuration values.
 void fill_tracer_appconfig_in_yaml_schema(YAML::Node& node, const tracer_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

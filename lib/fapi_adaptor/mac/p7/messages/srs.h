@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/message_builders.h"
+#include "ocudu/fapi/message_builders.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct srs_info;
 
@@ -31,4 +31,4 @@ void convert_srs_mac_to_fapi(fapi::ul_srs_pdu& fapi_pdu, const srs_info& mac_pdu
 void convert_srs_mac_to_fapi(fapi::ul_srs_pdu_builder& builder, const srs_info& mac_pdu);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

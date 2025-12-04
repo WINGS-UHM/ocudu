@@ -12,15 +12,15 @@
 #include "lib/scheduler/cell/resource_grid.h"
 #include "lib/scheduler/support/pdcch/pdcch_mapping.h"
 #include "lib/scheduler/support/sched_result_helpers.h"
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::vector<grant_info> srsran::get_pdcch_grant_info(pci_t pci, const pdcch_dl_information& pdcch)
+std::vector<grant_info> ocudu::get_pdcch_grant_info(pci_t pci, const pdcch_dl_information& pdcch)
 {
   std::vector<grant_info> grants;
 
@@ -35,7 +35,7 @@ std::vector<grant_info> srsran::get_pdcch_grant_info(pci_t pci, const pdcch_dl_i
   return grants;
 }
 
-std::vector<grant_info> srsran::get_pdcch_grant_info(pci_t pci, const pdcch_ul_information& pdcch)
+std::vector<grant_info> ocudu::get_pdcch_grant_info(pci_t pci, const pdcch_ul_information& pdcch)
 {
   std::vector<grant_info> grants;
 
@@ -57,25 +57,25 @@ static grant_info get_common_pdsch_grant_info(const bwp_downlink_common& bwp_cfg
   return grant_info{bwp_cfg.generic_params.scs, pdsch.symbols, crbs};
 }
 
-grant_info srsran::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg, const sib_information& sib)
+grant_info ocudu::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg, const sib_information& sib)
 {
   return get_common_pdsch_grant_info(bwp_cfg, sib.pdsch_cfg);
 }
 
-grant_info srsran::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg, const rar_information& rar)
+grant_info ocudu::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg, const rar_information& rar)
 {
   return get_common_pdsch_grant_info(bwp_cfg, rar.pdsch_cfg);
 }
 
-grant_info srsran::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg, const dl_paging_allocation& pg)
+grant_info ocudu::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg, const dl_paging_allocation& pg)
 {
   // See TS 38.212, section 7.3.1.2.1. DCI Format 1_0.
   return get_common_pdsch_grant_info(bwp_cfg, pg.pdsch_cfg);
 }
 
-std::pair<grant_info, grant_info> srsran::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg,
-                                                               const dl_msg_alloc&        ue_grant,
-                                                               vrb_to_prb::mapping_type   interleaving_bundle_size)
+std::pair<grant_info, grant_info> ocudu::get_pdsch_grant_info(const bwp_downlink_common& bwp_cfg,
+                                                              const dl_msg_alloc&        ue_grant,
+                                                              vrb_to_prb::mapping_type   interleaving_bundle_size)
 {
   const vrb_interval vrbs   = ue_grant.pdsch_cfg.rbs.type1();
   unsigned           ref_rb = 0;
@@ -107,7 +107,7 @@ std::pair<grant_info, grant_info> srsran::get_pdsch_grant_info(const bwp_downlin
   }
 }
 
-std::vector<test_grant_info> srsran::get_dl_grants(const cell_configuration& cell_cfg, const dl_sched_result& dl_res)
+std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell_cfg, const dl_sched_result& dl_res)
 {
   std::vector<test_grant_info> grants;
 
@@ -183,7 +183,7 @@ std::vector<test_grant_info> srsran::get_dl_grants(const cell_configuration& cel
   return grants;
 }
 
-std::vector<test_grant_info> srsran::get_ul_grants(const cell_configuration& cell_cfg, const ul_sched_result& ul_res)
+std::vector<test_grant_info> ocudu::get_ul_grants(const cell_configuration& cell_cfg, const ul_sched_result& ul_res)
 {
   std::vector<test_grant_info> grants;
 

@@ -9,11 +9,11 @@
  */
 
 #include "e2_connection_handler.h"
-#include "srsran/e2/gateways/e2_connection_client.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/e2/gateways/e2_connection_client.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -46,7 +46,7 @@ private:
 class e2_tx_channel final : public e2_message_notifier
 {
 public:
-  e2_tx_channel(std::unique_ptr<e2_message_notifier>& e2_notifier_, srslog::basic_logger& logger_) :
+  e2_tx_channel(std::unique_ptr<e2_message_notifier>& e2_notifier_, ocudulog::basic_logger& logger_) :
     e2_notifier(e2_notifier_), logger(logger_)
   {
   }
@@ -67,7 +67,7 @@ public:
 
 private:
   std::unique_ptr<e2_message_notifier>& e2_notifier;
-  srslog::basic_logger&                 logger;
+  ocudulog::basic_logger&               logger;
 };
 
 } // namespace
@@ -80,7 +80,7 @@ e2_connection_handler::e2_connection_handler(e2_connection_client&  client_handl
   rx_pdu_handler(rx_pdu_handler_),
   agent_notifier(agent_notifier_),
   ctrl_exec(ctrl_exec_),
-  logger(srslog::fetch_basic_logger("E2AP"))
+  logger(ocudulog::fetch_basic_logger("E2AP"))
 {
 }
 

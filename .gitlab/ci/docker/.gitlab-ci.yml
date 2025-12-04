@@ -136,13 +136,13 @@ gnb docker compose:
     - *docker_setup
   script:
     - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${KUBERNETES_CPU_LIMIT} --build-arg UHD_VERSION=${DOCKER_UHD_VERSION} --build-arg DPDK_VERSION=${DOCKER_DPDK_VERSION} gnb
-    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srscu"
+    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which ocu"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srscucp"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srscuup"
-    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srsdu"
-    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srsdu_split_8"
-    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srsdu_split_7_2"
-    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which srsdu_low"
+    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which odu"
+    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which odu_split_8"
+    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which odu_split_7_2"
+    - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which odu_low"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which gnb"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which gnb_split_8"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which gnb_split_7_2"

@@ -10,13 +10,13 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::f1ap;
 
 class f1ap_cu_ue_context_modification_test : public f1ap_cu_test

@@ -12,11 +12,11 @@
 
 #include "../du_cell_manager.h"
 #include "../du_ue/du_ue_manager_repository.h"
-#include "srsran/du/du_high/du_manager/du_configurator.h"
-#include "srsran/mac/mac_cell_manager.h"
+#include "ocudu/du/du_high/du_manager/du_configurator.h"
+#include "ocudu/mac/mac_cell_manager.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// DU procedure to dynamically change the parameters of the DU during its operation.
 class du_param_config_procedure
@@ -42,7 +42,7 @@ private:
   const du_manager_params&      du_params;
   du_cell_manager&              du_cells;
   error_type<std::string>       req_validation_outcome;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 
   unsigned next_cell_idx = 0;
 
@@ -51,5 +51,5 @@ private:
   du_param_config_response resp;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

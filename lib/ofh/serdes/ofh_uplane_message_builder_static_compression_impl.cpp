@@ -10,7 +10,7 @@
 
 #include "ofh_uplane_message_builder_static_compression_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void ofh_uplane_message_builder_static_compression_impl::serialize_compression_header(

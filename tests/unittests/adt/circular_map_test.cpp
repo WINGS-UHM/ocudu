@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/adt/circular_map.h"
+#include "ocudu/adt/circular_map.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
 #ifdef __clang__

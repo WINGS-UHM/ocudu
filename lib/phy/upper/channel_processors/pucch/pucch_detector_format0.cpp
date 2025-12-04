@@ -9,12 +9,12 @@
  */
 
 #include "pucch_detector_format0.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/srsvec/dot_prod.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
 #include <algorithm>
 #include <complex>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -91,16 +91,16 @@ static float pick_threshold(unsigned nof_ports, unsigned nof_symbols, unsigned n
                               threshold_index(nof_degrees, nof_sequences),
                               [](const threshold_entry& a, const threshold_index& b) { return (a.first < b); });
 
-  srsran_assert(it != pucch_detector_format0_thresholds.end(),
-                "Requested configuration ({} antenna ports, {} OFDM symbols, {} sequences) not supported.",
-                nof_ports,
-                nof_symbols,
-                nof_sequences);
+  ocudu_assert(it != pucch_detector_format0_thresholds.end(),
+               "Requested configuration ({} antenna ports, {} OFDM symbols, {} sequences) not supported.",
+               nof_ports,
+               nof_symbols,
+               nof_sequences);
   return it->second;
 }
 
 std::pair<pucch_uci_message, channel_state_information>
-pucch_detector_format0::detect(const srsran::resource_grid_reader&          grid,
+pucch_detector_format0::detect(const ocudu::resource_grid_reader&           grid,
                                const pucch_detector::format0_configuration& config)
 {
   // Minimum noise variance.
@@ -128,8 +128,8 @@ pucch_detector_format0::detect(const srsran::resource_grid_reader&          grid
   unsigned nof_symbols = config.nof_symbols;
 
   // Verify parameters are correct.
-  srsran_assert(!m_cs_table.empty(), "Invalid payload combination.");
-  srsran_assert(nof_ports * nof_symbols != 0, "The number of ports or symbols is zero.");
+  ocudu_assert(!m_cs_table.empty(), "Invalid payload combination.");
+  ocudu_assert(nof_ports * nof_symbols != 0, "The number of ports or symbols is zero.");
 
   // Prepare the temporary RE storage.
   temp_re.resize({NRE, nof_symbols, nof_ports});
@@ -153,7 +153,7 @@ pucch_detector_format0::detect(const srsran::resource_grid_reader&          grid
   float epre = 0.0F;
   for (unsigned i_symbol = 0; i_symbol != nof_symbols; ++i_symbol) {
     for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-      epre += srsvec::average_power(temp_re.get_view({i_symbol, i_port}));
+      epre += ocuduvec::average_power(temp_re.get_view({i_symbol, i_port}));
     }
   }
   epre /= static_cast<float>(nof_symbols * nof_ports);
@@ -191,10 +191,10 @@ pucch_detector_format0::detect(const srsran::resource_grid_reader&          grid
         span<const cf_t> rx_symbols = temp_re.get_view({i_symbol, i_port});
 
         // Received power.
-        float rx_power = srsvec::average_power(rx_symbols);
+        float rx_power = ocuduvec::average_power(rx_symbols);
 
         // Correlation between received symbols and spreading sequence.
-        cf_t rx_seq_corr = srsvec::dot_prod(rx_symbols, sequence);
+        cf_t rx_seq_corr = ocuduvec::dot_prod(rx_symbols, sequence);
 
         // Update cumulative values.
         float corr_contribution = std::norm(rx_seq_corr) / static_cast<float>(NRE);

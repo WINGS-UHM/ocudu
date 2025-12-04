@@ -10,15 +10,15 @@
 
 #include "pdcp_entity_tx.h"
 #include "../security/security_engine_impl.h"
-#include "srsran/instrumentation/traces/tracy_profiler.h"
-#include "srsran/instrumentation/traces/up_traces.h"
-#include "srsran/rohc/rohc_support.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/executors/execution_context_description.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/instrumentation/traces/tracy_profiler.h"
+#include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/rohc/rohc_support.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/executors/execution_context_description.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcp_entity_tx::pdcp_entity_tx(uint32_t                        ue_index,
                                rb_id_t                         rb_id_,
@@ -175,7 +175,7 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
   metrics.add_sdus(1, buf.length());
   logger.log_debug(buf.begin(), buf.end(), "TX SDU. sdu_len={}", buf.length());
 
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     if (not cfg.custom.warn_on_drop) {
       logger.log_info("Dropping SDU. Entity is stopped");
     } else {
@@ -325,7 +325,7 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
 
 void pdcp_entity_tx::apply_reordering(pdcp_tx_buffer_info buf_info)
 {
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     logger.log_debug("Dropping security protected PDU. Entity is stopped");
     return;
   }
@@ -531,7 +531,7 @@ void pdcp_entity_tx::handle_status_report(byte_buffer_chain status)
 void pdcp_entity_tx::apply_security(pdcp_tx_buffer_info buf_info)
 
 {
-  SRSRAN_ZONE_SCOPED_NC("pdcp_tx::apply_security", tracy::Color::LightSeaGreen);
+  OCUDU_ZONE_SCOPED_NC("pdcp_tx::apply_security", tracy::Color::LightSeaGreen);
   auto     pre      = std::chrono::high_resolution_clock::now();
   uint32_t tx_count = buf_info.count;
 
@@ -541,19 +541,19 @@ void pdcp_entity_tx::apply_security(pdcp_tx_buffer_info buf_info)
   if (!result.buf.has_value()) {
     auto handle_failure = [this, sec_err = result.buf.error(), count = result.count]() {
       switch (sec_err) {
-        case srsran::security::security_error::integrity_failure:
+        case ocudu::security::security_error::integrity_failure:
           logger.log_warning("Applying integrity failed, dropping PDU. count={}", count);
           upper_cn.on_protocol_failure();
           break;
-        case srsran::security::security_error::ciphering_failure:
+        case ocudu::security::security_error::ciphering_failure:
           logger.log_warning("Applying ciphering failed, dropping PDU. count={}", count);
           upper_cn.on_protocol_failure();
           break;
-        case srsran::security::security_error::buffer_failure:
+        case ocudu::security::security_error::buffer_failure:
           logger.log_error("Buffer error when ciphering and applying integrity, dropping PDU. count={}", count);
           upper_cn.on_protocol_failure();
           break;
-        case srsran::security::security_error::engine_failure:
+        case ocudu::security::security_error::engine_failure:
           logger.log_error("Engine error when ciphering and applying integrity, dropping PDU. count={}", count);
           upper_cn.on_protocol_failure();
           break;
@@ -595,13 +595,13 @@ security::security_result pdcp_entity_tx::apply_ciphering_and_integrity_protecti
   uint32_t worker_idx = execution_context::get_current_worker_index();
 
   if (worker_idx >= max_nof_crypto_workers) {
-    srsran_assertion_failure("Worker index exceeds number of crypto workers. worker_idx={} max_nof_crypto_workers={}",
-                             worker_idx,
-                             max_nof_crypto_workers);
+    ocudu_assertion_failure("Worker index exceeds number of crypto workers. worker_idx={} max_nof_crypto_workers={}",
+                            worker_idx,
+                            max_nof_crypto_workers);
     logger.log_error("Worker index exceeds number of crypto workers. worker_idx={} max_nof_crypto_workers={}",
                      worker_idx,
                      max_nof_crypto_workers);
-    return {.buf = make_unexpected(srsran::security::security_error::engine_failure), .count = count};
+    return {.buf = make_unexpected(ocudu::security::security_error::engine_failure), .count = count};
   }
 
   logger.log_debug("Using sec_engine with worker_idx={}. count={} pdu_len={}", worker_idx, count, buf.length());
@@ -613,12 +613,12 @@ security::security_result pdcp_entity_tx::apply_ciphering_and_integrity_protecti
       security::sec_mac mac = {};
       if (not buf.append(mac)) {
         logger.log_warning("Failed to append MAC-I to PDU. count={}", count);
-        return {.buf = make_unexpected(srsran::security::security_error::buffer_failure), .count = count};
+        return {.buf = make_unexpected(ocudu::security::security_error::buffer_failure), .count = count};
       }
       return {.buf = std::move(buf), .count = count};
     }
     logger.log_error("Empty engine for DRB bearer. count={}", count);
-    return {.buf = make_unexpected(srsran::security::security_error::engine_failure), .count = count};
+    return {.buf = make_unexpected(ocudu::security::security_error::engine_failure), .count = count};
   }
 
   // TS 38.323, section 5.8: Ciphering
@@ -645,12 +645,12 @@ void pdcp_entity_tx::configure_security(security::sec_128_as_config sec_cfg,
                                         security::integrity_enabled integrity_enabled_,
                                         security::ciphering_enabled ciphering_enabled_)
 {
-  srsran_assert((is_srb() && sec_cfg.domain == security::sec_domain::rrc) ||
-                    (!is_srb() && sec_cfg.domain == security::sec_domain::up),
-                "Invalid sec_domain={} for {} in {}",
-                sec_cfg.domain,
-                rb_type,
-                rb_id);
+  ocudu_assert((is_srb() && sec_cfg.domain == security::sec_domain::rrc) ||
+                   (!is_srb() && sec_cfg.domain == security::sec_domain::up),
+               "Invalid sec_domain={} for {} in {}",
+               sec_cfg.domain,
+               rb_type,
+               rb_id);
   // The 'NULL' integrity protection algorithm (nia0) is used only for SRBs and for the UE in limited service mode,
   // see TS 33.501 [11] and when used for SRBs, integrity protection is disabled for DRBs. In case the ′NULL'
   // integrity protection algorithm is used, 'NULL' ciphering algorithm is also used.
@@ -677,7 +677,7 @@ void pdcp_entity_tx::configure_security(security::sec_128_as_config sec_cfg,
       return;
     }
   } else {
-    srsran_assert(!is_srb(), "Integrity protection cannot be disabled for SRBs.");
+    ocudu_assert(!is_srb(), "Integrity protection cannot be disabled for SRBs.");
   }
   integrity_enabled = integrity_enabled_;
 
@@ -725,7 +725,7 @@ void pdcp_entity_tx::send_status_report()
 
 void pdcp_entity_tx::data_recovery()
 {
-  srsran_assert(!is_srb() && cfg.rlc_mode == pdcp_rlc_mode::am, "Invalid bearer type for data recovery.");
+  ocudu_assert(!is_srb() && cfg.rlc_mode == pdcp_rlc_mode::am, "Invalid bearer type for data recovery.");
   logger.log_info("Data recovery requested.");
 
   /*
@@ -814,7 +814,7 @@ void pdcp_entity_tx::retransmit_all_pdus()
  */
 void pdcp_entity_tx::handle_transmit_notification(uint32_t notif_sn)
 {
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     logger.log_debug("Dropping transmit notification. Entity is stopped");
     return;
   }
@@ -869,7 +869,7 @@ void pdcp_entity_tx::handle_transmit_notification_impl(uint32_t notif_sn, bool i
 
 void pdcp_entity_tx::handle_delivery_notification(uint32_t notif_sn)
 {
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     logger.log_debug("Dropping delivery notification. Entity is stopped");
     return;
   }
@@ -906,16 +906,16 @@ void pdcp_entity_tx::handle_delivery_notification_impl(uint32_t notif_sn, bool i
 
 void pdcp_entity_tx::handle_retransmit_notification(uint32_t notif_sn)
 {
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     logger.log_debug("Dropping retransmit notification. Entity is stopped");
     return;
   }
 
-  if (SRSRAN_UNLIKELY(is_srb())) {
+  if (OCUDU_UNLIKELY(is_srb())) {
     logger.log_error("Ignored unexpected PDU retransmit notification in SRB. notif_sn={}", notif_sn);
     return;
   }
-  if (SRSRAN_UNLIKELY(is_um())) {
+  if (OCUDU_UNLIKELY(is_um())) {
     logger.log_error("Ignored unexpected PDU retransmit notification in UM bearer. notif_sn={}", notif_sn);
     return;
   }
@@ -925,16 +925,16 @@ void pdcp_entity_tx::handle_retransmit_notification(uint32_t notif_sn)
 
 void pdcp_entity_tx::handle_delivery_retransmitted_notification(uint32_t notif_sn)
 {
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     logger.log_debug("Dropping delivery retransmitted notification. Entity is stopped");
     return;
   }
 
-  if (SRSRAN_UNLIKELY(is_srb())) {
+  if (OCUDU_UNLIKELY(is_srb())) {
     logger.log_error("Ignored unexpected PDU delivery retransmitted notification in SRB. notif_sn={}", notif_sn);
     return;
   }
-  if (SRSRAN_UNLIKELY(is_um())) {
+  if (OCUDU_UNLIKELY(is_um())) {
     logger.log_error("Ignored unexpected PDU delivery retransmitted notification in UM bearer. notif_sn={}", notif_sn);
     return;
   }
@@ -944,7 +944,7 @@ void pdcp_entity_tx::handle_delivery_retransmitted_notification(uint32_t notif_s
 
 void pdcp_entity_tx::handle_desired_buffer_size_notification(uint32_t desired_bs)
 {
-  if (SRSRAN_UNLIKELY(stopped)) {
+  if (OCUDU_UNLIKELY(stopped)) {
     logger.log_debug("Dropping desired buffer size notification. Entity is stopped");
     return;
   }
@@ -990,7 +990,7 @@ uint32_t pdcp_entity_tx::notification_count_estimation(uint32_t notification_sn)
 bool pdcp_entity_tx::write_data_pdu_header(byte_buffer& buf, const pdcp_data_pdu_header& hdr) const
 {
   // Sanity check: 18-bit SN not allowed for SRBs
-  srsran_assert(
+  ocudu_assert(
       !(is_srb() && cfg.sn_size == pdcp_sn_size::size18bits), "Invalid SN size for SRB. sn_size={}", cfg.sn_size);
 
   unsigned hdr_len = cfg.sn_size == pdcp_sn_size::size12bits ? 2 : 3;
@@ -1098,9 +1098,9 @@ void pdcp_entity_tx::stop_discard_timer(uint32_t highest_count)
   // There are still old PDUs, restart discard timer.
   if (st.tx_next_ack != st.tx_next) {
     auto& window_elem = tx_window[st.tx_next_ack];
-    srsran_assert(window_elem.sdu_info.tick_point_of_arrival.has_value(),
-                  "Cannot update discard timer for SDU without arrival time. count={}",
-                  window_elem.sdu_info.count);
+    ocudu_assert(window_elem.sdu_info.tick_point_of_arrival.has_value(),
+                 "Cannot update discard timer for SDU without arrival time. count={}",
+                 window_elem.sdu_info.count);
     tick_point_t now = discard_timer.now();
     unsigned     new_timeout =
         window_elem.sdu_info.tick_point_of_arrival.value() + (unsigned)cfg.discard_timer.value() - now;
@@ -1159,9 +1159,9 @@ void pdcp_entity_tx::discard_callback()
 
   // Discard all PDUs that match the discard timer tick.
   pdcp_tx_window_element& oldest_window_elem = tx_window[st.tx_next_ack];
-  srsran_assert(oldest_window_elem.sdu_info.tick_point_of_arrival.has_value(),
-                "Cannot determine oldest time point in discard callback: SDU without arrival time. count={}",
-                oldest_window_elem.sdu_info.count);
+  ocudu_assert(oldest_window_elem.sdu_info.tick_point_of_arrival.has_value(),
+               "Cannot determine oldest time point in discard callback: SDU without arrival time. count={}",
+               oldest_window_elem.sdu_info.count);
   tick_point_t oldest_timepoint = oldest_window_elem.sdu_info.tick_point_of_arrival.value();
   do {
     discard_pdu(st.tx_next_ack); // this updates st.tx_next_ack to the oldest PDU still in the window.
@@ -1170,9 +1170,9 @@ void pdcp_entity_tx::discard_callback()
       break;
     }
     pdcp_tx_window_element& window_elem = tx_window[st.tx_next_ack];
-    srsran_assert(window_elem.sdu_info.tick_point_of_arrival.has_value(),
-                  "Cannot update discard timer for SDU without arrival time. count={}",
-                  window_elem.sdu_info.count);
+    ocudu_assert(window_elem.sdu_info.tick_point_of_arrival.has_value(),
+                 "Cannot update discard timer for SDU without arrival time. count={}",
+                 window_elem.sdu_info.count);
     if (window_elem.sdu_info.tick_point_of_arrival != oldest_timepoint) {
       // Restart timeout for any pending SDUs.
       unsigned new_timeout = (window_elem.sdu_info.tick_point_of_arrival.value() - oldest_timepoint);

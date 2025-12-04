@@ -9,9 +9,9 @@
  */
 
 #include "radio_uhd_rx_stream.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/zero.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 bool radio_uhd_rx_stream::receive_block(unsigned&                       nof_rxd_samples,
                                         baseband_gateway_buffer_writer& data,
@@ -22,7 +22,7 @@ bool radio_uhd_rx_stream::receive_block(unsigned&                       nof_rxd_
   unsigned num_samples = data.get_nof_samples() - offset;
 
   // Make sure the number of channels is equal.
-  srsran_assert(data.get_nof_channels() == nof_channels, "Number of channels does not match.");
+  ocudu_assert(data.get_nof_channels() == nof_channels, "Number of channels does not match.");
 
   // Flatten buffers.
   static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr(nof_channels);
@@ -42,7 +42,7 @@ radio_uhd_rx_stream::radio_uhd_rx_stream(uhd::usrp::multi_usrp::sptr& usrp,
                                          radio_event_notifier&        notifier_) :
   id(description.id), srate_Hz(description.srate_Hz), notifier(notifier_)
 {
-  srsran_assert(std::isnormal(srate_Hz) && (srate_Hz > 0.0), "Invalid sampling rate {}.", srate_Hz);
+  ocudu_assert(std::isnormal(srate_Hz) && (srate_Hz > 0.0), "Invalid sampling rate {}.", srate_Hz);
 
   // Build stream arguments.
   uhd::stream_args_t stream_args = {};
@@ -100,9 +100,9 @@ baseband_gateway_receiver::metadata radio_uhd_rx_stream::receive(baseband_gatewa
   uhd::rx_metadata_t                  md;
 
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     for (unsigned i = 0, e = buffs.get_nof_channels(); i != e; ++i) {
-      srsvec::zero(buffs[i]);
+      ocuduvec::zero(buffs[i]);
     }
     ret.ts = md.time_spec.to_ticks(srate_Hz);
     return ret;

@@ -12,7 +12,7 @@
 
 #include "split6_plugin.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct worker_manager_config;
 
@@ -34,8 +34,8 @@ public:
 
   // See interface for documentation.
   std::unique_ptr<fapi_adaptor::phy_fapi_adaptor>
-  create_fapi_adaptor(const srs_du::du_high_configuration& du_high_cfg,
-                      const o_du_unit_dependencies&        dependencies) override;
+  create_fapi_adaptor(const odu::du_high_configuration& du_high_cfg,
+                      const o_du_unit_dependencies&     dependencies) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

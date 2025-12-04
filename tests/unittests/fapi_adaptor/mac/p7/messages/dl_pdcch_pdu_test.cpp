@@ -10,11 +10,11 @@
 
 #include "helpers.h"
 #include "pdcch.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/mac/mac_cell_result.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/mac/mac_cell_result.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittests;
 

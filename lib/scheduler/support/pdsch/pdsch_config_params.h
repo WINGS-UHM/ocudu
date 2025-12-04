@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/pdsch/pdsch_mcs.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
-#include "srsran/scheduler/result/dmrs_info.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/result/dmrs_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 struct pdsch_config;
@@ -57,4 +57,4 @@ pdsch_config_params get_pdsch_config_f1_1_c_rnti(const cell_configuration&      
                                                  unsigned                                     nof_layers);
 
 } // namespace sched_helper
-} // namespace srsran
+} // namespace ocudu

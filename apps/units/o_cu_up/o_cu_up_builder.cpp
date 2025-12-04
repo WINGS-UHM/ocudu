@@ -17,9 +17,9 @@
 #include "cu_up/metrics/cu_up_pdcp_metrics_producer.h"
 #include "e2/o_cu_up_e2_config_translators.h"
 #include "o_cu_up_unit_config.h"
-#include "srsran/cu_up/o_cu_up_factory.h"
+#include "ocudu/cu_up/o_cu_up_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static pdcp_metrics_notifier* build_pdcp_metrics_config(std::vector<app_services::metrics_config>& cu_up_services_cfg,
                                                         app_services::metrics_notifier&            metrics_notifier,
@@ -45,7 +45,7 @@ static pdcp_metrics_notifier* build_pdcp_metrics_config(std::vector<app_services
   const app_helpers::metrics_config& unit_metrics_cfg = cu_up_metrics_cfg.common_metrics_cfg;
   if (unit_metrics_cfg.enable_json_metrics) {
     metrics_cfg.consumers.push_back(
-        std::make_unique<cu_up_pdcp_metrics_consumer_json>(srslog::fetch_basic_logger("APP"),
+        std::make_unique<cu_up_pdcp_metrics_consumer_json>(ocudulog::fetch_basic_logger("APP"),
                                                            app_helpers::fetch_json_metrics_log_channel(),
                                                            workers.get_metrics_executor(),
                                                            timers.create_unique_timer(workers.get_metrics_executor()),
@@ -63,14 +63,14 @@ static pdcp_metrics_notifier* build_pdcp_metrics_config(std::vector<app_services
   return out;
 }
 
-o_cu_up_unit srsran::build_o_cu_up(const o_cu_up_unit_config& unit_cfg, const o_cu_up_unit_dependencies& dependencies)
+o_cu_up_unit ocudu::build_o_cu_up(const o_cu_up_unit_config& unit_cfg, const o_cu_up_unit_dependencies& dependencies)
 {
-  o_cu_up_unit              ocu_unit = {};
-  srs_cu_up::o_cu_up_config config;
+  o_cu_up_unit          ocu_unit = {};
+  ocuup::o_cu_up_config config;
   config.cu_up_cfg     = generate_cu_up_config(unit_cfg.cu_up_cfg);
   config.cu_up_cfg.qos = generate_cu_up_qos_config(unit_cfg.cu_up_cfg);
 
-  srs_cu_up::o_cu_up_dependencies ocu_up_dependencies;
+  ocuup::o_cu_up_dependencies ocu_up_dependencies;
   ocu_up_dependencies.cu_dependencies.exec_mapper    = &dependencies.workers->get_cu_up_executor_mapper();
   ocu_up_dependencies.cu_dependencies.e1_conn_client = dependencies.e1ap_conn_client;
   ocu_up_dependencies.cu_dependencies.f1u_gateway    = dependencies.f1u_gateway;
@@ -136,10 +136,9 @@ o_cu_up_unit srsran::build_o_cu_up(const o_cu_up_unit_config& unit_cfg, const o_
     }
   }
 
-  ocu_unit.unit =
-      std::make_unique<o_cu_up_unit_impl>(std::move(ngu_gws),
-                                          std::move(e2_metric_connectors),
-                                          srs_cu_up::create_o_cu_up(config, std::move(ocu_up_dependencies)));
+  ocu_unit.unit = std::make_unique<o_cu_up_unit_impl>(std::move(ngu_gws),
+                                                      std::move(e2_metric_connectors),
+                                                      ocuup::create_o_cu_up(config, std::move(ocu_up_dependencies)));
 
   return ocu_unit;
 }

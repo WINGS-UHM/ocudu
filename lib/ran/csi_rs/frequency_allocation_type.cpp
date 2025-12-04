@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/csi_rs/frequency_allocation_type.h"
+#include "ocudu/ran/csi_rs/frequency_allocation_type.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace csi_rs;
 
 // Returns the scaling value applied to the bit position in the frequency allocation bitmap as per TS38.211
@@ -30,9 +30,9 @@ static unsigned get_bitpos_scale(unsigned row)
 }
 
 // Converts a frequency domain bitmap to the corresponding k_n values.
-void srsran::csi_rs::convert_freq_domain(freq_allocation_index_type&      dst,
-                                         const freq_allocation_mask_type& src,
-                                         unsigned                         row)
+void ocudu::csi_rs::convert_freq_domain(freq_allocation_index_type&      dst,
+                                        const freq_allocation_mask_type& src,
+                                        unsigned                         row)
 {
   const unsigned scale = get_bitpos_scale(row);
   for (const auto pos : src.get_bit_positions()) {

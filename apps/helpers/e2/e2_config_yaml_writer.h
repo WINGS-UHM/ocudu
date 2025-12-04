@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct e2_config;
 
 /// Fills the E2 configuration in the given YAML node.
 void fill_e2_config_in_yaml_schema(YAML::Node node, const e2_config& config);
 
-} // namespace srsran
+} // namespace ocudu

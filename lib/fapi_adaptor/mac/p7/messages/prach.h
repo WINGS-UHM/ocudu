@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/message_builders.h"
+#include "ocudu/fapi/message_builders.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct prach_occasion_info;
 
@@ -31,4 +31,4 @@ void convert_prach_mac_to_fapi(fapi::ul_prach_pdu& fapi_pdu, const prach_occasio
 void convert_prach_mac_to_fapi(fapi::ul_prach_pdu_builder& builder, const prach_occasion_info& mac_pdu);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

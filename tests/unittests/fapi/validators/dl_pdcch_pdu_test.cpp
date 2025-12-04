@@ -11,9 +11,9 @@
 #include "../../../lib/fapi/validators/dl_pdcch_pdu.h"
 #include "../message_builder_helpers.h"
 #include "helpers.h"
-#include "srsran/fapi/message_validators.h"
+#include "ocudu/fapi/message_validators.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 using namespace unittest;
 
@@ -34,7 +34,7 @@ TEST_P(validate_pdcch_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_dl_pdcch_pdu,
                validator,
-               srsran::fapi::message_type_id::dl_tti_request,
+               ocudu::fapi::message_type_id::dl_tti_request,
                dl_pdu_type::PDCCH);
 }
 

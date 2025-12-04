@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include <cmath>
 
-namespace srsran {
+namespace ocudu {
 
 /// Calculates the dBFS calibration value as sqrt(sampling rate / subcarrier spacing). This factor is the magnitude of a
 /// single subcarrier in normalized PHY linear units equivalent to a constant signal with a power of 0 dBFS.
@@ -22,4 +22,4 @@ inline float calculate_dBFS_calibration_value(double sampling_rate_MHz, subcarri
   return std::sqrt(sampling_rate_MHz * 1e3 / scs_to_khz(scs));
 }
 
-} // namespace srsran
+} // namespace ocudu

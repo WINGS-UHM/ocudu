@@ -9,12 +9,12 @@
  */
 
 #include "e1ap_cu_cp_test_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::e1ap;
 
 class e1ap_cu_cp_bearer_context_setup_test : public e1ap_cu_cp_test

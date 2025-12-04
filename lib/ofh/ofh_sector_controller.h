@@ -12,12 +12,12 @@
 
 #include "support/prach_context_repository.h"
 #include "support/uplink_context_repository.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ofh/receiver/ofh_receiver.h"
-#include "srsran/ofh/transmitter/ofh_transmitter.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ofh/receiver/ofh_receiver.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul controller for the sector.
@@ -46,4 +46,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

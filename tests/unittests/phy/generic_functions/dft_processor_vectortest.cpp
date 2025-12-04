@@ -9,17 +9,17 @@
  */
 
 #include "dft_processor_test_data.h"
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Maximum allowed error.
 static constexpr float ASSERT_MAX_ERROR = 4e-3;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t test_case)
 {
@@ -48,7 +48,7 @@ static bool operator==(span<const cf_t> transform, span<const cf_t> dft_output)
                     });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using DFTprocessorParams = std::tuple<std::string, test_case_t>;
 
@@ -89,7 +89,7 @@ TEST_P(DFTprocessorFixture, DFTProcessorUnittest)
   std::unique_ptr<dft_processor> dft = dft_factory->create(config);
 
   // Provide the input data to the DFT.
-  srsvec::copy(dft->get_input(), input);
+  ocuduvec::copy(dft->get_input(), input);
 
   // Run DFT.
   span<const cf_t> dft_output = dft->run();

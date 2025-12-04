@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/cu_cp/up_context.h"
+#include "ocudu/cu_cp/up_context.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 /// \brief Update for a PDU session.
 struct up_pdu_session_context_update {
@@ -96,9 +96,9 @@ private:
 
   up_context context; // The currently active state.
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_cu_cp
+} // namespace ocucp
 
-} // namespace srsran
+} // namespace ocudu

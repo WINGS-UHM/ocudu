@@ -9,9 +9,9 @@
  */
 
 #include "ssb.h"
-#include "srsran/ran/ssb/pbch_mib_pack.h"
+#include "ocudu/ran/ssb/pbch_mib_pack.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// \brief Converts the given \c ssb_pss_to_sss_epre value into a \c beta_pss_profile_type value.
@@ -50,18 +50,18 @@ static uint32_t generate_bch_payload(const dl_ssb_pdu& mac_pdu, uint32_t sfn, bo
   return pbch_mib_pack(msg);
 }
 
-void srsran::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu& fapi_pdu,
-                                                   const dl_ssb_pdu& mac_pdu,
-                                                   slot_point        slot)
+void ocudu::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu& fapi_pdu,
+                                                  const dl_ssb_pdu& mac_pdu,
+                                                  slot_point        slot)
 {
   fapi::dl_ssb_pdu_builder builder(fapi_pdu);
 
   convert_ssb_mac_to_fapi(builder, mac_pdu, slot);
 }
 
-void srsran::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& builder,
-                                                   const dl_ssb_pdu&         mac_pdu,
-                                                   slot_point                slot)
+void ocudu::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& builder,
+                                                  const dl_ssb_pdu&         mac_pdu,
+                                                  slot_point                slot)
 {
   builder.set_basic_parameters(mac_pdu.pci,
                                convert_to_beta_pss_profile_nr(mac_pdu.pss_to_sss_epre),

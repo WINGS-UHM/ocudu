@@ -24,21 +24,21 @@
 #include "procedures/ngap_pdu_session_resource_release_procedure.h"
 #include "procedures/ngap_pdu_session_resource_setup_procedure.h"
 #include "procedures/ngap_ue_context_release_procedure.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/ngap/ngap_setup.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/ran/cause/ngap_cause.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::ngap;
-using namespace srs_cu_cp;
+using namespace ocucp;
 
 ngap_impl::ngap_impl(const ngap_configuration& ngap_cfg_,
                      ngap_cu_cp_notifier&      cu_cp_notifier_,
                      n2_connection_client&     n2_gateway,
                      timer_manager&            timers_,
                      task_executor&            ctrl_exec_) :
-  logger(srslog::fetch_basic_logger("NGAP")),
+  logger(ocudulog::fetch_basic_logger("NGAP")),
   ue_ctxt_list(timer_factory{timers_, ctrl_exec_}, logger),
   cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),
@@ -184,11 +184,11 @@ void ngap_impl::handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& ms
   ngap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   if (ue_ctxt.release_scheduled) {
     ue_ctxt.logger.log_info("Dropping UlNasTransportMessage. UE is already scheduled for release");
@@ -238,11 +238,11 @@ void ngap_impl::handle_tx_ue_radio_capability_info_indication_required(
   ngap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt ::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt ::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   ngap_message ngap_msg = {};
   ngap_msg.pdu.set_init_msg();
@@ -385,11 +385,11 @@ void ngap_impl::handle_dl_nas_transport_message(const asn1::ngap::dl_nas_transpo
   }
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   // Add AMF UE ID to ue ngap context if it is not set (this is the first DL NAS Transport message).
   if (ue_ctxt.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
@@ -443,11 +443,11 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
   }
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   // If InitialContextSetupRequest contains PDU Session Setup list, stop pdu session setup timer.
   if (request->pdu_session_res_setup_list_cxt_req_present) {
@@ -522,11 +522,11 @@ void ngap_impl::handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_
   }
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   // Stop PDU session setup timer.
   ue_ctxt.request_pdu_session_timer.stop();
@@ -592,11 +592,11 @@ void ngap_impl::handle_pdu_session_resource_modify_request(const asn1::ngap::pdu
   ue_ctxt.last_pdu_session_resource_modify_request = asn1_request_pdu.copy();
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   if (request->ran_paging_prio_present) {
     ue_ctxt.logger.log_debug("Not handling RAN paging prio");
@@ -643,11 +643,11 @@ void ngap_impl::handle_pdu_session_resource_release_command(const asn1::ngap::pd
   }
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   // Convert to common type.
   cu_cp_pdu_session_resource_release_command msg;
@@ -728,11 +728,11 @@ void ngap_impl::handle_ue_context_release_command(const asn1::ngap::ue_context_r
   }
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   // Convert to common type.
   cu_cp_ue_context_release_command msg;
@@ -896,7 +896,7 @@ async_task<expected<ngap_dl_ran_status_transfer>> ngap_impl::handle_dl_ran_statu
       ue_index, ue_ctxt.ev_mng, timer_factory{timers, ctrl_exec}, ue_ctxt.logger);
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 void ngap_impl::handle_dl_ue_associated_nrppa_transport(const asn1::ngap::dl_ue_associated_nrppa_transport_s& msg)
 {
@@ -909,7 +909,7 @@ void ngap_impl::handle_dl_non_ue_associated_nrppa_transport(
   logger.info("DL non UE associated NRPPa messages are not supported");
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 void ngap_impl::handle_error_indication(const asn1::ngap::error_ind_s& msg)
 {
@@ -947,11 +947,11 @@ void ngap_impl::handle_error_indication(const asn1::ngap::error_ind_s& msg)
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   ue_ctxt.logger.log_info("Received ErrorIndication{}", msg_cause.empty() ? "" : ". Cause: " + msg_cause);
 
@@ -1145,11 +1145,11 @@ ngap_impl::handle_handover_preparation_request(const ngap_handover_preparation_r
   ngap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
 
   auto* ue = ue_ctxt.get_cu_cp_ue();
-  srsran_assert(ue != nullptr,
-                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
   ue_ctxt.logger.log_info("Starting HO preparation");
 
@@ -1192,7 +1192,7 @@ void ngap_impl::handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t          
   }
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 void ngap_impl::handle_ul_ue_associated_nrppa_transport(ue_index_t ue_index, const byte_buffer& nrppa_pdu)
 {
@@ -1208,7 +1208,7 @@ async_task<void> ngap_impl::handle_ul_non_ue_associated_nrppa_transport(const by
   });
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 async_task<bool>
 ngap_impl::handle_rrc_inactive_transition_report_required(const ngap_rrc_inactive_transition_report& report)
@@ -1313,10 +1313,10 @@ void ngap_impl::schedule_error_indication(ue_index_t ue_index, ngap_cause_t caus
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
   auto*            ue      = ue_ctxt.get_cu_cp_ue();
 
-  srsran_assert(ue != nullptr,
-                "ue={} amf_ue={}: UE for UE context doesn't exist",
-                ue_index,
-                amf_ue_id.has_value() ? "" : fmt::format("amf_ue={} ", fmt::underlying(amf_ue_id.value())));
+  ocudu_assert(ue != nullptr,
+               "ue={} amf_ue={}: UE for UE context doesn't exist",
+               ue_index,
+               amf_ue_id.has_value() ? "" : fmt::format("amf_ue={} ", fmt::underlying(amf_ue_id.value())));
 
   ue->schedule_async_task(launch_async([this, ue_index, cause, amf_ue_id](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
@@ -1331,11 +1331,11 @@ void ngap_impl::on_request_pdu_session_timer_expired(ue_index_t ue_index)
     ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
 
     auto* ue = ue_ctxt.get_cu_cp_ue();
-    srsran_assert(ue != nullptr,
-                  "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                  fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                  fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                  fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+    ocudu_assert(ue != nullptr,
+                 "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+                 fmt::underlying(ue_ctxt.ue_ids.ue_index),
+                 fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+                 fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
     if (ue_ctxt.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
       // AMF never responded to InitialUEMessage, so we only remove the UE from the DU.
@@ -1390,11 +1390,11 @@ void ngap_impl::handle_inconsistent_ue_id_pair(ran_ue_id_t ran_ue_ngap_id, amf_u
 
     // Release old UE context if AMF UE ID is already associated with another RAN UE ID.
     auto* ue = ue_ctxt.get_cu_cp_ue();
-    srsran_assert(ue != nullptr,
-                  "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
-                  fmt::underlying(ue_ctxt.ue_ids.ue_index),
-                  fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
-                  fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+    ocudu_assert(ue != nullptr,
+                 "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+                 fmt::underlying(ue_ctxt.ue_ids.ue_index),
+                 fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+                 fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
 
     ue_ctxt.release_scheduled = true;
 
@@ -1415,7 +1415,7 @@ void ngap_impl::handle_inconsistent_ue_id_pair(ran_ue_id_t ran_ue_ngap_id, amf_u
   }
 }
 
-static auto log_pdu_helper(srslog::basic_logger&         logger,
+static auto log_pdu_helper(ocudulog::basic_logger&       logger,
                            bool                          json_log,
                            bool                          is_rx,
                            const ngap_ue_context_list&   ue_ctxt_list,

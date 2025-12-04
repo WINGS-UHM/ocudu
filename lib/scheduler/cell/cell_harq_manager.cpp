@@ -9,11 +9,11 @@
  */
 
 #include "cell_harq_manager.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/resource_grid_util.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace harq_utils;
 
 namespace {
@@ -35,7 +35,7 @@ public:
   base_ntn_harq_history(cell_harq_repository<IsDl>& parent_, unsigned ntn_cs_koffset_) :
     harq_pool(parent_), ntn_cs_koffset(ntn_cs_koffset_)
   {
-    srsran_assert(ntn_cs_koffset > 0 and ntn_cs_koffset <= NTN_CELL_SPECIFIC_KOFFSET_MAX, "Invalid NTN koffset");
+    ocudu_assert(ntn_cs_koffset > 0 and ntn_cs_koffset <= NTN_CELL_SPECIFIC_KOFFSET_MAX, "Invalid NTN koffset");
     unsigned ring_size = get_allocator_ring_size_gt_min(ntn_cs_koffset * 2 + SCHEDULER_MAX_K1);
     history.resize(ring_size);
   }
@@ -68,8 +68,8 @@ public:
     auto& hist_entry = history[get_current_index(h.slot_ack)];
     if (&h < hist_entry.data() or &h >= hist_entry.data() + hist_entry.size()) {
       // Check if the HARQ Process being ACKed is the same as the one managed by the NTN history.
-      srsran_assertion_failure("ACK Info handled for a non-NTN HARQ process");
-      srslog::fetch_basic_logger("SCHED").error("ACK Info handled for a non-NTN HARQ process");
+      ocudu_assertion_failure("ACK Info handled for a non-NTN HARQ process");
+      ocudulog::fetch_basic_logger("SCHED").error("ACK Info handled for a non-NTN HARQ process");
       return;
     }
     h.status = harq_state_t::empty;
@@ -89,7 +89,7 @@ protected:
 
 } // namespace
 
-namespace srsran::harq_utils {
+namespace ocudu::harq_utils {
 
 /// Handles the DL HARQ information in the case NTN mode.
 class ntn_dl_harq_alloc_history : public base_ntn_harq_history<true>
@@ -146,20 +146,20 @@ public:
   }
 };
 
-} // namespace srsran::harq_utils
+} // namespace ocudu::harq_utils
 
 // In NTN case, we timeout the HARQ since we need to reuse the process before the PUSCH arrives.
 static const unsigned NTN_ACK_WAIT_TIMEOUT = 1;
 
 template <bool IsDl>
-cell_harq_repository<IsDl>::cell_harq_repository(unsigned               max_ues,
-                                                 unsigned               max_ack_wait_timeout,
-                                                 unsigned               harq_retx_timeout_,
-                                                 unsigned               max_harqs_per_ue_,
-                                                 unsigned               ntn_cs_koffset_,
-                                                 bool                   harq_mode_b,
-                                                 harq_timeout_notifier& timeout_notifier_,
-                                                 srslog::basic_logger&  logger_) :
+cell_harq_repository<IsDl>::cell_harq_repository(unsigned                max_ues,
+                                                 unsigned                max_ack_wait_timeout,
+                                                 unsigned                harq_retx_timeout_,
+                                                 unsigned                max_harqs_per_ue_,
+                                                 unsigned                ntn_cs_koffset_,
+                                                 bool                    harq_mode_b,
+                                                 harq_timeout_notifier&  timeout_notifier_,
+                                                 ocudulog::basic_logger& logger_) :
   max_ack_wait_in_slots(ntn_cs_koffset_ > 0 and harq_mode_b ? NTN_ACK_WAIT_TIMEOUT
                                                             : (max_ack_wait_timeout + ntn_cs_koffset_)),
   harq_retx_timeout(harq_retx_timeout_),
@@ -206,7 +206,7 @@ void cell_harq_repository<IsDl>::slot_indication(slot_point sl_tx)
   // Note: we assume that the list is ordered based on when they were last ACKed.
   while (not harq_pending_retx_list.empty()) {
     auto& h = harq_pending_retx_list.front();
-    srsran_sanity_check(h.status == harq_state_t::pending_retx, "HARQ process in wrong state");
+    ocudu_sanity_check(h.status == harq_state_t::pending_retx, "HARQ process in wrong state");
     // [Implementation-defined] Maximum time we give to the scheduler policy to retransmit a HARQ process.
     const unsigned max_nof_slots_for_retx = last_sl_ind.nof_slots_per_hyper_system_frame() / 4;
     if (last_sl_ind < (h.slot_ack + max_nof_slots_for_retx)) {
@@ -248,8 +248,8 @@ void cell_harq_repository<IsDl>::stop()
 template <bool IsDl>
 void cell_harq_repository<IsDl>::handle_harq_ack_timeout(harq_type& h, slot_point sl_tx)
 {
-  srsran_sanity_check(h.status == harq_state_t::waiting_ack or h.status == harq_state_t::pending_retx,
-                      "HARQ process in wrong state");
+  ocudu_sanity_check(h.status == harq_state_t::waiting_ack or h.status == harq_state_t::pending_retx,
+                     "HARQ process in wrong state");
 
   if (is_ntn_harq_mode_b_enabled()) {
     // Deallocate HARQ.
@@ -309,7 +309,7 @@ typename cell_harq_repository<IsDl>::harq_type* cell_harq_repository<IsDl>::allo
   const harq_id_t h_id = ue_harq_entity.free_harq_ids.back();
   ue_harq_entity.free_harq_ids.pop_back();
   harq_type& h = ue_harq_entity.harqs[h_id];
-  srsran_sanity_check(h.ue_idx == ue_idx and h.h_id == h_id, "Invalid state of HARQ");
+  ocudu_sanity_check(h.ue_idx == ue_idx and h.h_id == h_id, "Invalid state of HARQ");
 
   // Set allocated HARQ common params.
   h.status             = harq_state_t::waiting_ack;
@@ -408,7 +408,7 @@ void cell_harq_repository<IsDl>::handle_ack(harq_type& h, bool ack)
 template <bool IsDl>
 void cell_harq_repository<IsDl>::set_pending_retx(harq_type& h)
 {
-  srsran_sanity_check(h.status != harq_state_t::empty, "HARQ process in wrong state");
+  ocudu_sanity_check(h.status != harq_state_t::empty, "HARQ process in wrong state");
   if (h.status == harq_state_t::pending_retx) {
     // No-op
     return;
@@ -568,7 +568,7 @@ cell_harq_manager::cell_harq_manager(unsigned                               max_
   dl_timeout_notifier(dl_notifier != nullptr and not dl_harq_mode_b ? std::move(dl_notifier)
                                                                     : std::make_unique<noop_harq_timeout_notifier>()),
   ul_timeout_notifier(not ul_harq_mode_b ? std::move(ul_notifier) : std::make_unique<noop_harq_timeout_notifier>()),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   dl(max_ues,
      max_ack_wait_timeout,
      dl_harq_retx_timeout,
@@ -618,10 +618,10 @@ ul_harq_pending_retx_list cell_harq_manager::pending_ul_retxs()
 unique_ue_harq_entity
 cell_harq_manager::add_ue(du_ue_index_t ue_idx, rnti_t crnti, unsigned nof_dl_harq_procs, unsigned nof_ul_harq_procs)
 {
-  srsran_assert(nof_dl_harq_procs <= max_harqs_per_ue and nof_dl_harq_procs > 0, "Invalid number of DL HARQs");
-  srsran_assert(nof_ul_harq_procs <= max_harqs_per_ue and nof_ul_harq_procs > 0, "Invalid number of DL HARQs");
-  srsran_assert(ue_idx < dl.ues.size(), "Invalid ue_index");
-  srsran_assert(not contains(ue_idx), "Creating UE with duplicate ue_index");
+  ocudu_assert(nof_dl_harq_procs <= max_harqs_per_ue and nof_dl_harq_procs > 0, "Invalid number of DL HARQs");
+  ocudu_assert(nof_ul_harq_procs <= max_harqs_per_ue and nof_ul_harq_procs > 0, "Invalid number of DL HARQs");
+  ocudu_assert(ue_idx < dl.ues.size(), "Invalid ue_index");
+  ocudu_assert(not contains(ue_idx), "Creating UE with duplicate ue_index");
   dl.reserve_ue_harqs(ue_idx, crnti, nof_dl_harq_procs);
   ul.reserve_ue_harqs(ue_idx, crnti, nof_ul_harq_procs);
   return {this, ue_idx, crnti};
@@ -739,12 +739,12 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
   static constexpr size_t CW_INDEX = 0;
 
   const pdsch_information& pdsch = ue_pdsch.pdsch_cfg;
-  srsran_assert(pdsch.codewords.size() == 1, "Only one codeword supported");
-  srsran_sanity_check(pdsch.rnti == impl->rnti, "RNTI mismatch");
-  srsran_sanity_check(pdsch.harq_id == impl->h_id, "HARQ-id mismatch");
-  srsran_assert(impl->status == harq_utils::harq_state_t::waiting_ack,
-                "Setting allocation parameters for DL HARQ process id={} in invalid state",
-                fmt::underlying(id()));
+  ocudu_assert(pdsch.codewords.size() == 1, "Only one codeword supported");
+  ocudu_sanity_check(pdsch.rnti == impl->rnti, "RNTI mismatch");
+  ocudu_sanity_check(pdsch.harq_id == impl->h_id, "HARQ-id mismatch");
+  ocudu_assert(impl->status == harq_utils::harq_state_t::waiting_ack,
+               "Setting allocation parameters for DL HARQ process id={} in invalid state",
+               fmt::underlying(id()));
 
   const pdsch_codeword&               cw          = pdsch.codewords[CW_INDEX];
   dl_harq_process_impl::alloc_params& prev_params = impl->prev_tx_params;
@@ -762,18 +762,18 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
       prev_params.lc_sched_info.push_back({lc.lcid, units::bytes{lc.sched_bytes}});
     }
   } else {
-    srsran_assert(ctx.dci_cfg_type == prev_params.dci_cfg_type,
-                  "DCI format and RNTI type cannot change during DL HARQ retxs");
-    srsran_assert(prev_params.tbs_bytes == cw.tb_size_bytes,
-                  "TBS cannot change during DL HARQ retxs ({}!={}). Previous MCS={}, RBs={}. New MCS={}, RBs={}",
-                  prev_params.tbs_bytes,
-                  cw.tb_size_bytes,
-                  prev_params.mcs,
-                  prev_params.rbs,
-                  cw.mcs_index,
-                  pdsch.rbs);
-    srsran_assert(prev_params.nof_layers == pdsch.nof_layers, "Number of layers cannot change during HARQ retxs");
-    srsran_assert(prev_params.is_fallback == ctx.is_fallback, "Fallback state cannot change across DL HARQ retxs");
+    ocudu_assert(ctx.dci_cfg_type == prev_params.dci_cfg_type,
+                 "DCI format and RNTI type cannot change during DL HARQ retxs");
+    ocudu_assert(prev_params.tbs_bytes == cw.tb_size_bytes,
+                 "TBS cannot change during DL HARQ retxs ({}!={}). Previous MCS={}, RBs={}. New MCS={}, RBs={}",
+                 prev_params.tbs_bytes,
+                 cw.tb_size_bytes,
+                 prev_params.mcs,
+                 prev_params.rbs,
+                 cw.mcs_index,
+                 pdsch.rbs);
+    ocudu_assert(prev_params.nof_layers == pdsch.nof_layers, "Number of layers cannot change during HARQ retxs");
+    ocudu_assert(prev_params.is_fallback == ctx.is_fallback, "Fallback state cannot change across DL HARQ retxs");
   }
   prev_params.mcs_table   = cw.mcs_table;
   prev_params.mcs         = cw.mcs_index;
@@ -808,11 +808,11 @@ int ul_harq_process_handle::ul_crc_info(bool ack)
 
 void ul_harq_process_handle::save_grant_params(const ul_harq_alloc_context& ctx, const pusch_information& pusch)
 {
-  srsran_sanity_check(pusch.rnti == impl->rnti, "RNTI mismatch");
-  srsran_sanity_check(pusch.harq_id == impl->h_id, "HARQ-id mismatch");
-  srsran_assert(impl->status == harq_utils::harq_state_t::waiting_ack,
-                "Setting allocation parameters for DL HARQ process id={} in invalid state",
-                fmt::underlying(id()));
+  ocudu_sanity_check(pusch.rnti == impl->rnti, "RNTI mismatch");
+  ocudu_sanity_check(pusch.harq_id == impl->h_id, "HARQ-id mismatch");
+  ocudu_assert(impl->status == harq_utils::harq_state_t::waiting_ack,
+               "Setting allocation parameters for DL HARQ process id={} in invalid state",
+               fmt::underlying(id()));
 
   ul_harq_process_impl::alloc_params& prev_tx_params = impl->prev_tx_params;
 
@@ -822,9 +822,9 @@ void ul_harq_process_handle::save_grant_params(const ul_harq_alloc_context& ctx,
     prev_tx_params.tbs_bytes    = pusch.tb_size_bytes;
     prev_tx_params.slice_id     = ctx.slice_id;
   } else {
-    srsran_assert(ctx.dci_cfg_type == prev_tx_params.dci_cfg_type,
-                  "DCI format and RNTI type cannot change during HARQ retxs");
-    srsran_assert(prev_tx_params.tbs_bytes == pusch.tb_size_bytes, "TBS cannot change during HARQ retxs");
+    ocudu_assert(ctx.dci_cfg_type == prev_tx_params.dci_cfg_type,
+                 "DCI format and RNTI type cannot change during HARQ retxs");
+    ocudu_assert(prev_tx_params.tbs_bytes == pusch.tb_size_bytes, "TBS cannot change during HARQ retxs");
   }
   prev_tx_params.mcs_table   = pusch.mcs_table;
   prev_tx_params.mcs         = pusch.mcs_index;

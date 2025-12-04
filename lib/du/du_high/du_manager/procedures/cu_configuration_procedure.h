@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_cell_manager;
 class du_ue_manager;
@@ -48,5 +48,5 @@ private:
   gnbcu_config_update_response resp;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

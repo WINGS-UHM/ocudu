@@ -8,23 +8,23 @@
  *
  */
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/detail/byte_buffer_segment_pool.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/linear_memory_allocator.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/detail/byte_buffer_segment_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/memory_pool/linear_memory_allocator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr size_t default_pool_nof_segments = 16384;
 static constexpr size_t default_segment_size      = 2048;
 
-size_t srsran::byte_buffer_segment_pool_default_segment_size()
+size_t ocudu::byte_buffer_segment_pool_default_segment_size()
 {
   return default_segment_size;
 }
 
 /// Get default byte buffer segment pool. Initialize pool if not initialized before.
-detail::byte_buffer_segment_pool& srsran::detail::get_default_byte_buffer_segment_pool()
+detail::byte_buffer_segment_pool& ocudu::detail::get_default_byte_buffer_segment_pool()
 {
   // Initialize byte buffer segment pool, if not yet initialized.
   // Note: In case of unit tests, this function will be called rather than init_byte_buffer_segment_pool(...).
@@ -32,7 +32,7 @@ detail::byte_buffer_segment_pool& srsran::detail::get_default_byte_buffer_segmen
   return pool;
 }
 
-void srsran::init_byte_buffer_segment_pool(std::size_t nof_segments, std::size_t memory_block_size)
+void ocudu::init_byte_buffer_segment_pool(std::size_t nof_segments, std::size_t memory_block_size)
 {
   auto& pool = detail::byte_buffer_segment_pool::get_instance(nof_segments, memory_block_size);
   report_fatal_error_if_not(pool.nof_memory_blocks() >= nof_segments,
@@ -46,19 +46,19 @@ void srsran::init_byte_buffer_segment_pool(std::size_t nof_segments, std::size_t
   report_fatal_error_if_not(memory_block_size > 64U, "memory blocks must be larger than the segment control header");
 }
 
-size_t srsran::get_byte_buffer_segment_pool_capacity()
+size_t ocudu::get_byte_buffer_segment_pool_capacity()
 {
   auto& pool = detail::get_default_byte_buffer_segment_pool();
   return pool.nof_memory_blocks();
 }
 
-size_t srsran::get_byte_buffer_segment_pool_current_size_approx()
+size_t ocudu::get_byte_buffer_segment_pool_current_size_approx()
 {
   auto& pool = detail::get_default_byte_buffer_segment_pool();
   return pool.get_central_cache_approx_size() + pool.get_local_cache_size();
 }
 
-void srsran::init_byte_buffer_segment_pool_tls()
+void ocudu::init_byte_buffer_segment_pool_tls()
 {
   detail::get_default_byte_buffer_segment_pool().init_worker_cache();
 }
@@ -68,7 +68,7 @@ void srsran::init_byte_buffer_segment_pool_tls()
 /// Warn when the default segment pool is depleted.
 static void byte_buffer_warn_alloc_failure()
 {
-  static srslog::basic_logger& logger = srslog::fetch_basic_logger("ALL");
+  static ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("ALL");
   logger.warning("POOL: Failure to allocate byte buffer segment");
 }
 
@@ -93,7 +93,7 @@ private:
 
     // Allocate new block.
     void* mem_block = default_pool.allocate_node(block_size);
-    if (SRSRAN_LIKELY(mem_block != nullptr)) {
+    if (OCUDU_LIKELY(mem_block != nullptr)) {
       // Allocation from pool was successful.
       return {static_cast<uint8_t*>(mem_block), block_size};
     }
@@ -158,13 +158,13 @@ private:
 
 } // namespace
 
-byte_buffer_memory_resource& srsran::get_default_byte_buffer_segment_pool()
+byte_buffer_memory_resource& ocudu::get_default_byte_buffer_segment_pool()
 {
   static default_segment_pool_memory_resource default_mem_resource{true};
   return default_mem_resource;
 }
 
-byte_buffer_memory_resource& srsran::get_default_fallback_byte_buffer_segment_pool()
+byte_buffer_memory_resource& ocudu::get_default_fallback_byte_buffer_segment_pool()
 {
   static default_fallback_segment_pool_memory_resource default_fallback_mem_resource;
   return default_fallback_mem_resource;
@@ -229,7 +229,7 @@ byte_buffer::byte_buffer(fallback_allocation_tag /* unused */, span<const uint8_
   // Create new byte buffer with default_fallback_pool.
   // Note: We can retrieve the value() directly as the default fallback pool is supposed to never fail.
   bool ret = append(other, get_default_fallback_byte_buffer_segment_pool());
-  srsran_sanity_check(ret, "Should never fail to append segment if fallback is enabled");
+  ocudu_sanity_check(ret, "Should never fail to append segment if fallback is enabled");
 }
 
 byte_buffer::byte_buffer(fallback_allocation_tag tag, const std::initializer_list<uint8_t>& other) noexcept :
@@ -243,11 +243,11 @@ byte_buffer::byte_buffer(fallback_allocation_tag /* unused */, const byte_buffer
   node_t* n = add_head_segment(DEFAULT_FIRST_SEGMENT_HEADROOM,
                                get_default_fallback_byte_buffer_segment_pool(),
                                other.length() + DEFAULT_FIRST_SEGMENT_HEADROOM);
-  srsran_sanity_check(n != nullptr, "Should never fail to append segment if fallback is enabled");
+  ocudu_sanity_check(n != nullptr, "Should never fail to append segment if fallback is enabled");
 
   for (span<const uint8_t> seg : other.segments()) {
     bool var = this->append(seg);
-    srsran_sanity_check(var, "Should never fail to append segment if fallback is enabled");
+    ocudu_sanity_check(var, "Should never fail to append segment if fallback is enabled");
     (void)var;
   }
 }
@@ -284,7 +284,7 @@ bool byte_buffer::append(const std::initializer_list<uint8_t>& bytes)
 
 bool byte_buffer::append(const byte_buffer& other)
 {
-  srsran_assert(&other != this, "Self-append not supported");
+  ocudu_assert(&other != this, "Self-append not supported");
   if (other.empty()) {
     return true;
   }
@@ -310,7 +310,7 @@ bool byte_buffer::append(const byte_buffer& other)
 
 bool byte_buffer::append(byte_buffer&& other)
 {
-  srsran_assert(&other != this, "Self-append not supported");
+  ocudu_assert(&other != this, "Self-append not supported");
   if (other.empty()) {
     return true;
   }
@@ -426,7 +426,7 @@ byte_buffer::add_head_segment(size_t headroom, byte_buffer_memory_resource& segm
   // Create control block using allocator.
   void* cb_region = arena.allocate(sizeof(control_block), alignof(control_block));
   ctrl_blk_ptr    = new (cb_region) control_block{};
-  srsran_sanity_check(ctrl_blk_ptr != nullptr, "Something went wrong with the creation of the control block");
+  ocudu_sanity_check(ctrl_blk_ptr != nullptr, "Something went wrong with the creation of the control block");
   ctrl_blk_ptr->segment_pool = &segment_pool;
 
   // For first segment of byte_buffer, add a headroom.
@@ -435,7 +435,7 @@ byte_buffer::add_head_segment(size_t headroom, byte_buffer_memory_resource& segm
   void*   payload_start         = arena.allocate(segment_size, 1);
   node_t* node                  = new (segment_header_region)
       node_t(span<uint8_t>{static_cast<uint8_t*>(payload_start), segment_size}, std::min(headroom, segment_size));
-  srsran_sanity_check(node != nullptr, "Something went wrong with the creation of the segment");
+  ocudu_sanity_check(node != nullptr, "Something went wrong with the creation of the segment");
 
   // Register segment as sharing the same memory block with control block.
   ctrl_blk_ptr->segment_in_cb_memory_block = node;
@@ -532,7 +532,7 @@ bool byte_buffer::prepend(span<const uint8_t> bytes)
 
 bool byte_buffer::prepend(const byte_buffer& other)
 {
-  srsran_assert(&other != this, "Self-append not supported");
+  ocudu_assert(&other != this, "Self-append not supported");
   if (other.empty()) {
     return true;
   }
@@ -555,7 +555,7 @@ bool byte_buffer::prepend(const byte_buffer& other)
 
 bool byte_buffer::prepend(byte_buffer&& other)
 {
-  srsran_assert(&other != this, "Self-append not supported");
+  ocudu_assert(&other != this, "Self-append not supported");
   if (other.empty()) {
     return true;
   }
@@ -618,7 +618,7 @@ byte_buffer_view byte_buffer::reserve_prepend(size_t nof_bytes)
 
 void byte_buffer::trim_head(size_t nof_bytes)
 {
-  srsran_assert(length() >= nof_bytes, "Trying to trim more bytes than those available");
+  ocudu_assert(length() >= nof_bytes, "Trying to trim more bytes than those available");
   for (size_t trimmed = 0; trimmed != nof_bytes;) {
     size_t to_trim = std::min(nof_bytes - trimmed, ctrl_blk_ptr->segments.head->length());
     ctrl_blk_ptr->segments.head->trim_head(to_trim);
@@ -636,7 +636,7 @@ void byte_buffer::trim_head(size_t nof_bytes)
 
 void byte_buffer::trim_tail(size_t nof_bytes)
 {
-  srsran_assert(length() >= nof_bytes, "Trimming too many bytes from byte_buffer");
+  ocudu_assert(length() >= nof_bytes, "Trimming too many bytes from byte_buffer");
   if (nof_bytes == 0) {
     return;
   }
@@ -727,7 +727,7 @@ bool byte_buffer::resize(size_t new_sz)
   return true;
 }
 
-expected<byte_buffer> srsran::make_byte_buffer(const std::string& hex_str)
+expected<byte_buffer> ocudu::make_byte_buffer(const std::string& hex_str)
 {
   if (hex_str.size() % 2 != 0) {
     // Failed to parse hex string.
@@ -750,7 +750,7 @@ expected<byte_buffer> srsran::make_byte_buffer(const std::string& hex_str)
   return ret;
 }
 
-span<const uint8_t> srsran::to_span(const byte_buffer& src, span<uint8_t> tmp_mem)
+span<const uint8_t> ocudu::to_span(const byte_buffer& src, span<uint8_t> tmp_mem)
 {
   // Empty buffer.
   if (src.empty()) {
@@ -763,10 +763,10 @@ span<const uint8_t> srsran::to_span(const byte_buffer& src, span<uint8_t> tmp_me
   }
 
   // Non-contiguous: copy required.
-  srsran_assert(src.length() <= tmp_mem.size(),
-                "Insufficient temporary memory to fit the byte_buffer. buffer_size={}, tmp_size={}",
-                src.length(),
-                tmp_mem.size());
+  ocudu_assert(src.length() <= tmp_mem.size(),
+               "Insufficient temporary memory to fit the byte_buffer. buffer_size={}, tmp_size={}",
+               src.length(),
+               tmp_mem.size());
   span<uint8_t> result = {tmp_mem.data(), src.length()};
   copy_segments(src, result);
   return result;

@@ -10,10 +10,10 @@
 
 #include "rrc_reconfiguration_procedure.h"
 #include "../rrc_asn1_helpers.h"
-#include "srsran/ran/cause/ngap_cause.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 rrc_reconfiguration_procedure::rrc_reconfiguration_procedure(rrc_ue_context_t&                            context_,

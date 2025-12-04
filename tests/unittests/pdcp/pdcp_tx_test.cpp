@@ -10,12 +10,12 @@
 
 #include "pdcp_tx_test.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Test correct creation of PDCP TX  entity
 TEST_P(pdcp_tx_test, create_new_entity)
@@ -64,7 +64,7 @@ TEST_P(pdcp_tx_test, pdu_gen)
   init(GetParam());
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
-    srsran::test_delimit_logger delimiter("TX PDU generation. SN_SIZE={} COUNT={}", sn_size, tx_next);
+    ocudu::test_delimit_logger delimiter("TX PDU generation. SN_SIZE={} COUNT={}", sn_size, tx_next);
     // Set state of PDCP entiy
     pdcp_tx_state st = {tx_next, tx_next, 0, tx_next, tx_next};
     pdcp_tx->set_state(st);
@@ -112,7 +112,7 @@ TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_notif)
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::infinity);
 
   auto test_pdu_gen = [this](uint32_t tx_next, uint32_t qsize = 16) {
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "TX PDU stall; then continue via RETX notif. SN_SIZE={} COUNT={}", sn_size, tx_next);
     // Set state of PDCP entiy
     pdcp_tx_state st = {tx_next, tx_next, 0, tx_next, tx_next};
@@ -209,7 +209,7 @@ TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_retx_notif)
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::infinity);
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "TX PDU stall; then continue via RETX notif. SN_SIZE={} COUNT={}", sn_size, tx_next);
     // Set state of PDCP entiy
     pdcp_tx_state st = {tx_next, tx_next, 0, tx_next, tx_next};
@@ -474,7 +474,7 @@ TEST_P(pdcp_tx_test, pdu_stall_with_discard)
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am);
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
-    srsran::test_delimit_logger delimiter("TX PDU stall with discard. SN_SIZE={} COUNT={}", sn_size, tx_next);
+    ocudu::test_delimit_logger delimiter("TX PDU stall with discard. SN_SIZE={} COUNT={}", sn_size, tx_next);
     // Set state of PDCP entiy
     pdcp_tx_state st = {tx_next, tx_next, 0, tx_next, tx_next};
     pdcp_tx->set_state(st);

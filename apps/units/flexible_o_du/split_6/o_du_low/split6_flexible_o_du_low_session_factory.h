@@ -15,7 +15,7 @@
 #include "split6_flexible_o_du_low_session.h"
 #include "split6_o_du_low_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace fapi {
 class slot_message_gateway;
@@ -38,10 +38,10 @@ class split6_flexible_o_du_low_session_factory
     const std::chrono::milliseconds jitter;
     const std::chrono::milliseconds window_size;
     const std::chrono::milliseconds jitter_upper_border;
-    srslog::basic_logger&           logger;
+    ocudulog::basic_logger&         logger;
 
   public:
-    start_time_calculator(std::chrono::milliseconds jitter_, srslog::basic_logger& logger_) :
+    start_time_calculator(std::chrono::milliseconds jitter_, ocudulog::basic_logger& logger_) :
       jitter(jitter_),
       window_size{std::max((jitter * 100U), MINIMUM_WINDOW_SIZE_MS)},
       jitter_upper_border(window_size - jitter),
@@ -88,7 +88,7 @@ public:
     timers(timers_),
     notifier(notifier_),
     slot_messages_adaptor_factory(std::move(slot_messages_adaptor_factory_)),
-    start_time_calc(std::chrono::milliseconds{unit_config.start_time_jitter_ms}, srslog::fetch_basic_logger("APP"))
+    start_time_calc(std::chrono::milliseconds{unit_config.start_time_jitter_ms}, ocudulog::fetch_basic_logger("APP"))
   {
     report_error_if_not(slot_messages_adaptor_factory, "Invalid FAPI slot messages adaptor factory");
 
@@ -110,4 +110,4 @@ private:
                                 const o_du_low_unit_dependencies& odu_low_dependencies);
 };
 
-} // namespace srsran
+} // namespace ocudu

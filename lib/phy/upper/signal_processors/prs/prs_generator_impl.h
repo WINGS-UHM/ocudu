@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/generic_functions/precoding/channel_precoder.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator.h"
-#include "srsran/ran/prs/prs.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/generic_functions/precoding/channel_precoder.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator.h"
+#include "ocudu/ran/prs/prs.h"
+#include "ocudu/ran/resource_block.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic PRS generator implementation.
 class prs_generator_impl : public prs_generator
@@ -31,8 +31,8 @@ public:
   prs_generator_impl(std::unique_ptr<pseudo_random_generator> prg_, std::unique_ptr<channel_precoder> precoder_) :
     prg(std::move(prg_)), precoder(std::move(precoder_))
   {
-    srsran_assert(prg, "Invalid pseudo-random sequence generator.");
-    srsran_assert(precoder, "Invalid channel precoder.");
+    ocudu_assert(prg, "Invalid pseudo-random sequence generator.");
+    ocudu_assert(precoder, "Invalid channel precoder.");
   }
 
   // See interface for documentation.
@@ -70,4 +70,4 @@ private:
   static_re_buffer<MAX_PORTS, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB, cbf16_t> symbols;
 };
 
-} // namespace srsran
+} // namespace ocudu

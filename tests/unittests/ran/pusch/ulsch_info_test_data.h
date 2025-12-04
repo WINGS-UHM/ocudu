@@ -13,9 +13,9 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsULSCHInfoUnittest.m"
 
-#include "srsran/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   ulsch_configuration config;
@@ -459,4 +459,4 @@ static const std::vector<test_case_t> ulsch_info_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

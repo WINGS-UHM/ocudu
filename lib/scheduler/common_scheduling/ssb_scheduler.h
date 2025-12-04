@@ -12,11 +12,11 @@
 
 #include "../cell/resource_grid.h"
 #include "../config/cell_configuration.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 enum class ssb_pattern_case;
 struct cell_slot_resource_allocator;
@@ -77,7 +77,7 @@ private:
   uint8_t ssb_period;
 
   const cell_configuration& cell_cfg;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

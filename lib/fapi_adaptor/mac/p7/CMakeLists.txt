@@ -8,10 +8,10 @@
 
 add_subdirectory(messages)
 
-add_library(srsran_mac_to_fapi_p7_fastpath_translator STATIC mac_to_fapi_fastpath_translator.cpp)
-target_link_libraries(srsran_mac_to_fapi_p7_fastpath_translator PRIVATE srsran_mac_fapi_adaptors
-                                                                        srsran_fapi_precoding_matrix_tools
-                                                                        srsran_fapi)
+add_library(ocudu_mac_to_fapi_p7_fastpath_translator STATIC mac_to_fapi_fastpath_translator.cpp)
+target_link_libraries(ocudu_mac_to_fapi_p7_fastpath_translator PRIVATE ocudu_mac_fapi_adaptors
+                                                                        ocudu_fapi_precoding_matrix_tools
+                                                                        ocudu_fapi)
 
 
 set(SOURCES
@@ -19,10 +19,10 @@ set(SOURCES
         fapi_to_mac_error_msg_fastpath_translator.cpp
         fapi_to_mac_time_msg_fastpath_translator.cpp)
 
-add_library(srsran_fapi_to_mac_p7_fastpath_translator STATIC ${SOURCES})
-target_link_libraries(srsran_fapi_to_mac_p7_fastpath_translator PRIVATE srsvec srsran_support)
+add_library(ocudu_fapi_to_mac_p7_fastpath_translator STATIC ${SOURCES})
+target_link_libraries(ocudu_fapi_to_mac_p7_fastpath_translator PRIVATE ocuduvec ocudu_support)
 
-add_library(srsran_mac_to_fapi_p7_sector_fastpath_adaptor STATIC mac_fapi_p7_sector_fastpath_adaptor_impl.cpp
+add_library(ocudu_mac_to_fapi_p7_sector_fastpath_adaptor STATIC mac_fapi_p7_sector_fastpath_adaptor_impl.cpp
                                                                  mac_fapi_p7_sector_fastpath_adaptor_factory_impl.cpp)
-target_link_libraries(srsran_mac_to_fapi_p7_sector_fastpath_adaptor PRIVATE srsran_mac_to_fapi_p7_fastpath_translator
-                                                                            srsran_fapi_to_mac_p7_fastpath_translator)
+target_link_libraries(ocudu_mac_to_fapi_p7_sector_fastpath_adaptor PRIVATE ocudu_mac_to_fapi_p7_fastpath_translator
+                                                                            ocudu_fapi_to_mac_p7_fastpath_translator)

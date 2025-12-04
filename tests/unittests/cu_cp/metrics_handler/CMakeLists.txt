@@ -8,4 +8,4 @@
 
 add_executable(cu_cp_metrics_handler_test metrics_handler_test.cpp)
 target_include_directories(cu_cp_metrics_handler_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(cu_cp_metrics_handler_test srsran_support srsran_cu_cp srslog gtest gtest_main)
+target_link_libraries(cu_cp_metrics_handler_test ocudu_support ocudu_cu_cp ocudulog gtest gtest_main)

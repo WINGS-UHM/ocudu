@@ -8,22 +8,22 @@
  *
  */
 
-#include "srsran/support/io/sctp_socket.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/io/sockets.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/io/sctp_socket.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/io/sockets.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <netinet/sctp.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Subscribes to various SCTP events to handle association and shutdown gracefully.
 static bool sctp_subscribe_to_events(const unique_fd& fd)
 {
-  srsran_sanity_check(fd.is_open(), "Invalid FD");
+  ocudu_sanity_check(fd.is_open(), "Invalid FD");
   struct sctp_event_subscribe events = {};
   events.sctp_data_io_event          = 1;
   events.sctp_shutdown_event         = 1;
@@ -39,9 +39,9 @@ static bool sctp_set_rto_opts(const unique_fd&                         fd,
                               std::optional<std::chrono::milliseconds> rto_min,
                               std::optional<std::chrono::milliseconds> rto_max,
                               const std::string&                       if_name,
-                              srslog::basic_logger&                    logger)
+                              ocudulog::basic_logger&                  logger)
 {
-  srsran_sanity_check(fd.is_open(), "Invalid FD");
+  ocudu_sanity_check(fd.is_open(), "Invalid FD");
 
   if (not rto_initial.has_value() && not rto_min.has_value() && not rto_max.has_value()) {
     // no need to set RTO
@@ -88,9 +88,9 @@ static bool sctp_set_init_msg_opts(const unique_fd&                         fd,
                                    std::optional<int>                       init_max_attempts,
                                    std::optional<std::chrono::milliseconds> max_init_timeo,
                                    const std::string&                       if_name,
-                                   srslog::basic_logger&                    logger)
+                                   ocudulog::basic_logger&                  logger)
 {
-  srsran_sanity_check(fd.is_open(), "Invalid FD");
+  ocudu_sanity_check(fd.is_open(), "Invalid FD");
 
   if (not init_max_attempts.has_value() && not max_init_timeo.has_value()) {
     // No value set for init max attempts or max init_timeo,
@@ -129,9 +129,9 @@ static bool sctp_set_init_msg_opts(const unique_fd&                         fd,
 static bool sctp_set_paddr_opts(const unique_fd&                         fd,
                                 std::optional<std::chrono::milliseconds> hb_interval,
                                 const std::string&                       if_name,
-                                srslog::basic_logger&                    logger)
+                                ocudulog::basic_logger&                  logger)
 {
-  srsran_sanity_check(fd.is_open(), "Invalid FD");
+  ocudu_sanity_check(fd.is_open(), "Invalid FD");
 
   if (not hb_interval.has_value()) {
     // no need to set heartbeat interval
@@ -164,12 +164,12 @@ static bool sctp_set_paddr_opts(const unique_fd&                         fd,
 
 /// \brief Modify SCTP default Assocination parameters for quicker detection of broken links.
 /// Changes to the maximum number of re-transmission sent before a address is considered unreachable.
-static bool sctp_set_assoc_opts(const unique_fd&      fd,
-                                std::optional<int>    assoc_max_rxt,
-                                const std::string&    if_name,
-                                srslog::basic_logger& logger)
+static bool sctp_set_assoc_opts(const unique_fd&        fd,
+                                std::optional<int>      assoc_max_rxt,
+                                const std::string&      if_name,
+                                ocudulog::basic_logger& logger)
 {
-  srsran_sanity_check(fd.is_open(), "Invalid FD");
+  ocudu_sanity_check(fd.is_open(), "Invalid FD");
 
   if (not assoc_max_rxt.has_value()) {
     // no need to set assoc max rxt
@@ -219,7 +219,7 @@ static bool sctp_set_nodelay(const unique_fd& fd, std::optional<bool> nodelay)
 
 // sctp_socket class.
 
-sctp_socket::sctp_socket() : logger(srslog::fetch_basic_logger("SCTP-GW")) {}
+sctp_socket::sctp_socket() : logger(ocudulog::fetch_basic_logger("SCTP-GW")) {}
 
 expected<sctp_socket> sctp_socket::create(const sctp_socket_params& params)
 {

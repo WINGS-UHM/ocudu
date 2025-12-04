@@ -17,7 +17,7 @@
 #include "apps/services/metrics/metrics_config_yaml_writer.h"
 #include "gnb_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_gnb_appconfig_hal_section(YAML::Node node, const std::optional<hal_appconfig>& config)
 {
@@ -60,7 +60,7 @@ static void fill_gnb_appconfig_remote_control_section(YAML::Node node, const rem
   node["port"]         = config.port;
 }
 
-void srsran::fill_gnb_appconfig_in_yaml_schema(YAML::Node& node, const gnb_appconfig& config)
+void ocudu::fill_gnb_appconfig_in_yaml_schema(YAML::Node& node, const gnb_appconfig& config)
 {
   node["gnb_id"]            = config.gnb_id.id;
   node["gnb_id_bit_length"] = static_cast<unsigned>(config.gnb_id.bit_length);

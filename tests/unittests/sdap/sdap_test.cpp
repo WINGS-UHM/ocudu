@@ -10,8 +10,8 @@
 
 #include "sdap_test.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 /// \brief Test correct creation of SDAP entity
 TEST_F(sdap_test, create_new_entity)

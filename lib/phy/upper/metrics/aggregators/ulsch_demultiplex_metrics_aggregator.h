@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// UL-SCH demultiplexer metrics aggregator.
 class ulsch_demultiplex_metrics_aggregator : public ulsch_demultiplex_metric_notifier
@@ -89,4 +89,4 @@ private:
   std::atomic<uint64_t> sum_used_cpu_time_ns           = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

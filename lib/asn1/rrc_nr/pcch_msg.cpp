@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/pcch_msg.h"
+#include "ocudu/asn1/rrc_nr/pcch_msg.h"
 using namespace asn1;
 using namespace asn1::rrc_nr;
 
@@ -45,7 +45,7 @@ void pcch_msg_type_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE pcch_msg_type_c::pack(bit_ref& bref) const
+OCUDUASN_CODE pcch_msg_type_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -56,11 +56,11 @@ SRSASN_CODE pcch_msg_type_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "pcch_msg_type_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE pcch_msg_type_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE pcch_msg_type_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -73,9 +73,9 @@ SRSASN_CODE pcch_msg_type_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "pcch_msg_type_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 void pcch_msg_type_c::c1_c_::set(types::options e)
@@ -106,7 +106,7 @@ void pcch_msg_type_c::c1_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE pcch_msg_type_c::c1_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE pcch_msg_type_c::c1_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -117,11 +117,11 @@ SRSASN_CODE pcch_msg_type_c::c1_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "pcch_msg_type_c::c1_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE pcch_msg_type_c::c1_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE pcch_msg_type_c::c1_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -134,9 +134,9 @@ SRSASN_CODE pcch_msg_type_c::c1_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "pcch_msg_type_c::c1_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* pcch_msg_type_c::c1_c_::types_opts::to_string() const
@@ -157,21 +157,21 @@ uint8_t pcch_msg_type_c::types_opts::to_number() const
 }
 
 // PCCH-Message ::= SEQUENCE
-SRSASN_CODE pcch_msg_s::pack(bit_ref& bref) const
+OCUDUASN_CODE pcch_msg_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(msg.pack(bref));
 
   bref.align_bytes_zero();
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE pcch_msg_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE pcch_msg_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(msg.unpack(bref));
 
   bref.align_bytes();
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void pcch_msg_s::to_json(json_writer& j) const
 {

@@ -12,12 +12,12 @@
 #include "du_processor_test_helpers.h"
 #include "lib/cu_cp/du_processor/du_processor.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::f1ap;
 
 //////////////////////////////////////////////////////////////////////////////////////

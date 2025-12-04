@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-prach_frequency_mapping_information srsran::prach_frequency_mapping_get(prach_subcarrier_spacing prach_scs,
-                                                                        subcarrier_spacing       pusch_scs)
+prach_frequency_mapping_information ocudu::prach_frequency_mapping_get(prach_subcarrier_spacing prach_scs,
+                                                                       subcarrier_spacing       pusch_scs)
 {
   prach_frequency_mapping_information result = PRACH_FREQUENCY_MAPPING_INFORMATION_RESERVED;
   switch (prach_scs) {

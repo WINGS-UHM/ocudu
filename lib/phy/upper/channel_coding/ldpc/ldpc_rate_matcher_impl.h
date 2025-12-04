@@ -14,10 +14,10 @@
 #pragma once
 
 #include "ldpc_graph_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// LDPC rate matching implementation, as per TS38.212 Section 5.4.2.
 class ldpc_rate_matcher_impl : public ldpc_rate_matcher
@@ -62,4 +62,4 @@ private:
   unsigned shift_k0 = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

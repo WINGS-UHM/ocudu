@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/slot_point.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void test_slot_type()
 {
@@ -58,7 +58,7 @@ void test_slot_type()
 
 int main()
 {
-  srslog::init();
+  ocudulog::init();
 
   test_slot_type();
 

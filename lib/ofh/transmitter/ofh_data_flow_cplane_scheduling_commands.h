@@ -11,13 +11,13 @@
 #pragma once
 
 #include "ofh_data_flow_cuplane_encoding_metrics_collector.h"
-#include "srsran/ofh/serdes/ofh_message_properties.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_data_flow_metrics.h"
-#include "srsran/ran/prach/prach_subcarrier_spacing.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ofh/serdes/ofh_message_properties.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_data_flow_metrics.h"
+#include "ocudu/ran/prach/prach_subcarrier_spacing.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class operation_controller;
@@ -81,4 +81,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

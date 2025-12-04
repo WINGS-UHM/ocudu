@@ -15,9 +15,9 @@
 
 #include "ldpc_graph_impl.h"
 #include "ldpc_segmenter_helpers.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_rx.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_rx.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Generic implementation of Rx-chain LDPC segmentation.
 class ldpc_segmenter_rx_impl : public ldpc_segmenter_rx
@@ -37,4 +37,4 @@ private:
   segment_parameters params;
 };
 
-} // namespace srsran
+} // namespace ocudu

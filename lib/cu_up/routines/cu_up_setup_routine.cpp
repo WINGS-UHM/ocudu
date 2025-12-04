@@ -9,12 +9,12 @@
  */
 
 #include "cu_up_setup_routine.h"
-#include "srsran/e1ap/common/e1_setup_messages.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/e1ap/common/e1_setup_messages.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <utility>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 cu_up_setup_routine::cu_up_setup_routine(gnb_cu_up_id_t           cu_up_id_,
                                          std::string              cu_up_name_,
@@ -24,7 +24,7 @@ cu_up_setup_routine::cu_up_setup_routine(gnb_cu_up_id_t           cu_up_id_,
   cu_up_name(std::move(cu_up_name_)),
   plmn(std::move(plmn_)),
   e1ap_conn_mng(e1ap_conn_mng_),
-  logger(srslog::fetch_basic_logger("CU-UP"))
+  logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
 }
 

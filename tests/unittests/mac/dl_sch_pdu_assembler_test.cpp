@@ -11,21 +11,21 @@
 #include "lib/mac/mac_dl/cell_dl_harq_buffer_pool.h"
 #include "lib/mac/mac_dl/dl_sch_pdu_assembler.h"
 #include "mac_test_helpers.h"
-#include "srsran/mac/mac_pdu_format.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/mac/mac_pdu_format.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <deque>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-auto& test_logger = []() -> srslog::basic_logger& {
-  srslog::fetch_basic_logger("MAC").set_level(srslog::basic_levels::info);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::info);
-  srslog::init();
-  return srslog::fetch_basic_logger("TEST");
+auto& test_logger = []() -> ocudulog::basic_logger& {
+  ocudulog::fetch_basic_logger("MAC").set_level(ocudulog::basic_levels::info);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::info);
+  ocudulog::init();
+  return ocudulog::fetch_basic_logger("TEST");
 }();
 
 TEST(mac_dl_sch_pdu, mac_ce_con_res_id_pack)
@@ -149,8 +149,8 @@ public:
     harqs(MAX_NOF_PRBS, pdsch_constants::CODEWORD_MAX_NOF_LAYERS, task_worker),
     dl_sch_enc(ue_mng, harqs)
   {
-    srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     for (unsigned i = 0; i != UE_CON_RES_ID_LEN; ++i) {
       report_fatal_error_if_not(msg3_pdu.append(test_rgen::uniform_int<uint8_t>()), "failed to allocate bytes");
@@ -172,7 +172,7 @@ public:
     ue_mng.add_ue(std::move(u));
   }
 
-  ~mac_dl_sch_assembler_tester() { srslog::flush(); }
+  ~mac_dl_sch_assembler_tester() { ocudulog::flush(); }
 
 protected:
   std::string fmt_range_difference(const byte_buffer& expected, const byte_buffer& actual)

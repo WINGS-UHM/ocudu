@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
+#include "ocudu/support/math/math_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Defines a DMRS for PDSCH generic implementation.
 class dmrs_pdsch_processor_impl : public dmrs_pdsch_processor
@@ -73,12 +73,12 @@ public:
                             std::unique_ptr<resource_grid_mapper>    mapper_) :
     prg(std::move(pseudo_random_generator_)), mapper(std::move(mapper_))
   {
-    srsran_assert(prg, "Invalid PRG.");
-    srsran_assert(mapper, "Invalid mapper.");
+    ocudu_assert(prg, "Invalid PRG.");
+    ocudu_assert(mapper, "Invalid mapper.");
   }
 
   // See interface for documentation.
   void map(resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

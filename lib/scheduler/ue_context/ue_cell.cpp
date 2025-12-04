@@ -14,11 +14,11 @@
 #include "../support/pdcch_aggregation_level_calculator.h"
 #include "../support/sch_pdu_builder.h"
 #include "ue_drx_controller.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// The default number of HARQ processes to be used on the PDSCH of a serving cell. See TS 38.331, \c
 /// nrofHARQ-ProcessesForPDSCH.
@@ -49,7 +49,7 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
   ue_cfg(&ue_cell_cfg_),
   expert_cfg(cell_cfg.expert_cfg.ue),
   shared_ctx(shared_ctx_),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   channel_state(cell_cfg.expert_cfg.ue, ue_cfg->get_nof_dl_ports()),
   ue_mcs_calculator(ue_cell_cfg_.cell_cfg_common, channel_state),
   pusch_pwr_controller(ue_cell_cfg_, channel_state),
@@ -108,10 +108,10 @@ void ue_cell::handle_reconfiguration_request(const ue_cell_configuration& ue_cel
 
 void ue_cell::set_fallback_state(bool set_fallback, bool is_reconfig, bool reestablished)
 {
-  srsran_assert(pcell_state.has_value(),
-                "ue={} rnti={}: Cannot set fallback state on non-Pcell",
-                fmt::underlying(ue_index),
-                rnti());
+  ocudu_assert(pcell_state.has_value(),
+               "ue={} rnti={}: Cannot set fallback state on non-Pcell",
+               fmt::underlying(ue_index),
+               rnti());
 
   // In case of Pcell, update reconf_ongoing state.
   pcell_state->reconf_ongoing = is_reconfig;
@@ -253,9 +253,9 @@ ue_cell::get_active_dl_search_spaces(slot_point                             pdcc
 
   // In fallback mode state, only use search spaces configured in CellConfigCommon.
   if (is_in_fallback_mode()) {
-    srsran_assert(not required_dci_rnti_type.has_value() or
-                      required_dci_rnti_type == dci_dl_rnti_config_type::c_rnti_f1_0,
-                  "Invalid required dci-rnti parameter");
+    ocudu_assert(not required_dci_rnti_type.has_value() or
+                     required_dci_rnti_type == dci_dl_rnti_config_type::c_rnti_f1_0,
+                 "Invalid required dci-rnti parameter");
     for (const search_space_configuration& ss :
          ue_cfg->cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
       if (pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss)) {
@@ -325,9 +325,9 @@ ue_cell::get_active_ul_search_spaces(slot_point                             pdcc
   // In fallback mode state, only use search spaces configured in CellConfigCommon.
   if (is_in_fallback_mode()) {
     static_vector<const search_space_info*, MAX_NOF_SEARCH_SPACE_PER_BWP> active_search_spaces;
-    srsran_assert(not required_dci_rnti_type.has_value() or
-                      required_dci_rnti_type == dci_ul_rnti_config_type::c_rnti_f0_0,
-                  "Invalid required dci-rnti parameter");
+    ocudu_assert(not required_dci_rnti_type.has_value() or
+                     required_dci_rnti_type == dci_ul_rnti_config_type::c_rnti_f0_0,
+                 "Invalid required dci-rnti parameter");
     for (const search_space_configuration& ss :
          ue_cfg->cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
       if (pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss)) {

@@ -9,29 +9,29 @@
  */
 
 #include "lib/mac/mac_dl/mac_dl_processor.h"
-#include "lib/mac/mac_sched/srsran_scheduler_adapter.h"
+#include "lib/mac/mac_sched/ocudu_scheduler_adapter.h"
 #include "lib/mac/rnti_manager.h"
 #include "mac_ctrl_test_dummies.h"
 #include "mac_test_helpers.h"
 #include "tests/test_doubles/mac/dummy_mac_metrics_notifier.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/executors/blocking_task_worker.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/executors/blocking_task_worker.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Enum used to track the progress of the test task
 enum class test_task_event { ue_created, ue_reconfigured, ue_deleted };
 
 /// Test coroutine that calls UE create, reconfiguration, delete in sequence.
 struct add_reconf_delete_ue_test_task {
-  srslog::basic_logger&                  logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                logger = ocudulog::fetch_basic_logger("TEST");
   std::thread::id                        tid;
   mac_dl_processor&                      mac_dl;
   unique_function<void(test_task_event)> event_test;
@@ -88,7 +88,7 @@ struct add_reconf_delete_ue_test_task {
 class mac_dl_cfg_test : public ::testing::Test
 {
 protected:
-  srslog::basic_logger&                 logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&               logger = ocudulog::fetch_basic_logger("TEST");
   dummy_mac_event_indicator             du_mng_notifier;
   dummy_mac_result_notifier             phy_notifier;
   dummy_scheduler_cell_metrics_notifier scheduler_cell_metrics_notif{};
@@ -110,8 +110,8 @@ TEST_F(mac_dl_cfg_test, test_dl_ue_procedure_execution_contexts)
   dummy_dl_executor_mapper    dl_exec_mapper{dl_execs[0]};
   mac_dl_config               mac_dl_cfg{ul_exec_mapper, dl_exec_mapper, ctrl_worker, phy_notifier, pcap, timers};
 
-  srsran_scheduler_adapter sched_cfg_adapter{srsran_mac_sched_config{macfg, ctrl_worker, timers, schedcfg}, rnti_mng};
-  mac_dl_processor         mac_dl(mac_dl_cfg, sched_cfg_adapter, rnti_mng);
+  ocudu_scheduler_adapter sched_cfg_adapter{ocudu_mac_sched_config{macfg, ctrl_worker, timers, schedcfg}, rnti_mng};
+  mac_dl_processor        mac_dl(mac_dl_cfg, sched_cfg_adapter, rnti_mng);
 
   auto mac_cell_req      = test_helpers::make_default_mac_cell_config();
   mac_cell_req.sched_req = sched_config_helper::make_default_sched_cell_configuration_request();
@@ -155,8 +155,8 @@ TEST_F(mac_dl_cfg_test, test_dl_ue_procedure_tsan)
   dummy_scheduler_cell_metrics_notifier sched_cell_metrics_notif;
   mac_dl_config mac_dl_cfg{ul_exec_mapper, dl_exec_mapper, ctrl_worker, phy_notifier, pcap, timers};
 
-  srsran_scheduler_adapter sched_cfg_adapter{srsran_mac_sched_config{macfg, ctrl_worker, timers, schedcfg}, rnti_mng};
-  mac_dl_processor         mac_dl(mac_dl_cfg, sched_cfg_adapter, rnti_mng);
+  ocudu_scheduler_adapter sched_cfg_adapter{ocudu_mac_sched_config{macfg, ctrl_worker, timers, schedcfg}, rnti_mng};
+  mac_dl_processor        mac_dl(mac_dl_cfg, sched_cfg_adapter, rnti_mng);
 
   // Action: Add Cells.
   mac_cell_creation_request cell_cfg1 = test_helpers::make_default_mac_cell_config();

@@ -22,9 +22,9 @@
 #include "apps/services/worker_manager/worker_manager_appconfig.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_du_low {
+namespace odu_low {
 /// Metrics report configuration.
 struct metrics_appconfig {
   app_services::app_resource_usage_config rusage_config;
@@ -32,7 +32,7 @@ struct metrics_appconfig {
   app_services::executor_metrics_config   executors_metrics_cfg;
 };
 
-} // namespace srs_du_low
+} // namespace odu_low
 
 /// DU low application configuration.
 struct du_low_appconfig {
@@ -43,7 +43,7 @@ struct du_low_appconfig {
   /// Tracers configuration.
   tracer_appconfig trace_cfg;
   /// Metrics configuration.
-  srs_du_low::metrics_appconfig metrics_cfg;
+  odu_low::metrics_appconfig metrics_cfg;
   /// Expert configuration.
   expert_execution_appconfig expert_execution_cfg;
   /// Remote control configuration.
@@ -54,4 +54,4 @@ struct du_low_appconfig {
   bool enable_dryrun = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

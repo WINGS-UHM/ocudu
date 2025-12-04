@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include "srsran/e1ap/cu_up/e1ap_cu_up_metrics.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_metrics.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// Container to hold TX/RX metrics
 class e1ap_cu_up_metrics_collector
@@ -31,7 +31,7 @@ public:
 
   e1ap_cu_up_metrics_container get_metrics() const
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -40,7 +40,7 @@ public:
 
   e1ap_cu_up_metrics_container get_metrics_and_reset()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -82,4 +82,4 @@ public:
     metrics.max_release_latency = std::max(proc_dur, metrics.max_release_latency);
   }
 };
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

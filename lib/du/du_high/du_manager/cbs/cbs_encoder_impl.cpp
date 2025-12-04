@@ -9,13 +9,13 @@
  */
 
 #include "cbs_encoder_impl.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/math/math_utils.h"
 #include <algorithm>
 #include <locale>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -112,9 +112,9 @@ std::vector<uint8_t> cbs_encoder_impl::fill_cb_data_gsm7(const std::string& mess
   unsigned encoded_message_len = get_nof_gsm7_chars(message);
 
   // Determine the number of information pages.
-  unsigned nof_pages = srsran::divide_ceil(encoded_message_len, max_nof_gsm7_chars_page);
+  unsigned nof_pages = ocudu::divide_ceil(encoded_message_len, max_nof_gsm7_chars_page);
 
-  srsran_assert(nof_pages > 0, "No warning message is provided");
+  ocudu_assert(nof_pages > 0, "No warning message is provided");
 
   report_error_if_not(
       nof_pages <= max_nof_cb_data_pages,
@@ -162,11 +162,11 @@ std::vector<uint8_t> cbs_encoder_impl::fill_cb_data_gsm7(const std::string& mess
           "using UCS-2.");
     }
 
-    srsran_assert(encoded_message.size() <= info_page_nof_bytes,
-                  "The encoded warning message size (i.e., {} bytes) exceeds the size of the CB-Data information page "
-                  "(i.e. {} bytes).",
-                  encoded_message.size(),
-                  info_page_nof_bytes);
+    ocudu_assert(encoded_message.size() <= info_page_nof_bytes,
+                 "The encoded warning message size (i.e., {} bytes) exceeds the size of the CB-Data information page "
+                 "(i.e. {} bytes).",
+                 encoded_message.size(),
+                 info_page_nof_bytes);
 
     // Copy the encoded message bytes into the information page.
     std::memcpy(&cb_data[i_page_offset], encoded_message.data(), encoded_message.size());
@@ -197,9 +197,9 @@ std::vector<uint8_t> cbs_encoder_impl::fill_cb_data_ucs2(const std::string& mess
   }
 
   // Determine the number of information pages.
-  unsigned nof_pages = srsran::divide_ceil(encoded_message.size(), info_page_nof_bytes);
+  unsigned nof_pages = ocudu::divide_ceil(encoded_message.size(), info_page_nof_bytes);
 
-  srsran_assert(nof_pages > 0, "No warning message is provided");
+  ocudu_assert(nof_pages > 0, "No warning message is provided");
 
   report_error_if_not(nof_pages <= max_nof_cb_data_pages,
                       "UCS-2 message length (i.e. {} characters) is too long. Maximum length is {} characters.",

@@ -4,7 +4,7 @@
 #include "../cell/resource_grid.h"
 #include "../config/ue_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PDCCH resource allocation algorithm for a single cell and for both common and UE-dedicated CORESETs.
 class pdcch_resource_allocator
@@ -63,4 +63,4 @@ public:
   virtual bool cancel_last_pdcch(cell_slot_resource_allocator& slot_alloc) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -12,25 +12,25 @@
 
 #include "e2sm_kpm_metric_defs.h"
 #include "e2sm_kpm_utils.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e2sm/e2sm_kpm_ies.h"
-#include "srsran/e2/e2_du.h"
-#include "srsran/e2/e2sm/e2sm.h"
-#include "srsran/e2/e2sm/e2sm_kpm.h"
-#include "srsran/f1ap/du/f1ap_du.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e2sm/e2sm_kpm_ies.h"
+#include "ocudu/e2/e2_du.h"
+#include "ocudu/e2/e2sm/e2sm.h"
+#include "ocudu/e2/e2sm/e2sm_kpm.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
 #include <deque>
 #include <map>
 #include <numeric>
 
-namespace srsran {
+namespace ocudu {
 
 class e2sm_kpm_du_meas_provider_impl : public e2sm_kpm_meas_provider, public e2_du_metrics_notifier
 {
 public:
   // constructor takes logger as argument
-  e2sm_kpm_du_meas_provider_impl(srs_du::f1ap_ue_id_translator& f1ap_ue_id_translator);
+  e2sm_kpm_du_meas_provider_impl(odu::f1ap_ue_id_translator& f1ap_ue_id_translator);
 
-  e2sm_kpm_du_meas_provider_impl(srs_du::f1ap_ue_id_translator& f1ap_ue_id_translator, int max_rlc_metrics_);
+  e2sm_kpm_du_meas_provider_impl(odu::f1ap_ue_id_translator& f1ap_ue_id_translator, int max_rlc_metrics_);
 
   ~e2sm_kpm_du_meas_provider_impl() = default;
 
@@ -73,7 +73,7 @@ private:
                                           const std::optional<asn1::e2sm::cgi_c>       cell_global_id,
                                           std::vector<asn1::e2sm::meas_record_item_c>& items);
 
-  typedef metric_meas_getter_func_t(e2sm_kpm_du_meas_provider_impl::*metric_meas_getter_func_ptr);
+  typedef metric_meas_getter_func_t(e2sm_kpm_du_meas_provider_impl::* metric_meas_getter_func_ptr);
 
   struct e2sm_kpm_supported_metric_t {
     uint32_t                    supported_labels;
@@ -110,8 +110,8 @@ private:
   metric_meas_getter_func_t get_drb_ul_rlc_sdu_latency;
   metric_meas_getter_func_t get_prach_cell_count;
 
-  srslog::basic_logger&                              logger;
-  srs_du::f1ap_ue_id_translator&                     f1ap_ue_id_provider;
+  ocudulog::basic_logger&                            logger;
+  odu::f1ap_ue_id_translator&                        f1ap_ue_id_provider;
   unsigned                                           nof_cell_prbs;
   unsigned                                           nof_dl_slots;
   unsigned                                           nof_ul_slots;
@@ -123,4 +123,4 @@ private:
   std::map<std::string, e2sm_kpm_supported_metric_t> supported_metrics;
 };
 
-} // namespace srsran
+} // namespace ocudu

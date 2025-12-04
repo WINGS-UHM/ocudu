@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_control_information_handler.h"
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/mac/mac_positioning_measurement_handler.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/timers.h"
+#include "ocudu/mac/mac_cell_control_information_handler.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/mac/mac_positioning_measurement_handler.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 
 class scheduler_positioning_handler;
 class task_executor;
@@ -42,6 +42,6 @@ public:
 std::unique_ptr<positioning_handler> create_positioning_handler(scheduler_positioning_handler& sched,
                                                                 task_executor&                 ctrl_exec,
                                                                 timer_manager&                 timers,
-                                                                srslog::basic_logger&          logger);
+                                                                ocudulog::basic_logger&        logger);
 
-} // namespace srsran
+} // namespace ocudu

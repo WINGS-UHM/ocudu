@@ -12,9 +12,9 @@
 
 #include "../ue_context/ue_repository.h"
 #include "srs_scheduler.h"
-#include "srsran/ran/srs/srs_configuration.h"
+#include "ocudu/ran/srs/srs_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_resource_allocator;
 struct cell_slot_resource_allocator;
@@ -75,7 +75,7 @@ private:
   const cell_configuration& cell_cfg;
   ue_repository&            ues;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // Storage of the periodic SRSs to be scheduled in the resource grid. Each position of the vector represents a slot
   // in a ring-like structure (ie slot % WHEEL_SIZE). Each of these vector indexes/slots contains a list of periodic
@@ -89,4 +89,4 @@ private:
   std::vector<positioning_measurement_request::cell_info> pending_pos_requests;
 };
 
-} // namespace srsran
+} // namespace ocudu

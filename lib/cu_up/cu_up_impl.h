@@ -15,16 +15,16 @@
 #include "adapters/gw_adapters.h"
 #include "ngu_session_manager.h"
 #include "ue_manager.h"
-#include "srsran/cu_up/cu_up.h"
-#include "srsran/cu_up/cu_up_config.h"
-#include "srsran/cu_up/cu_up_manager.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/gtpu/gtpu_echo.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/cu_up/cu_up.h"
+#include "ocudu/cu_up/cu_up_config.h"
+#include "ocudu/cu_up/cu_up_manager.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/gtpu/gtpu_echo.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <memory>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class cu_up final : public cu_up_interface
 {
@@ -57,7 +57,7 @@ private:
   timer_manager& timers;
 
   // logger
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("CU-UP", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-UP", false);
 
   // Holds DL executor for the control TEID.
   std::unique_ptr<ue_executor_mapper>        echo_exec_mapper;
@@ -89,4 +89,4 @@ private:
   unique_timer statistics_report_timer;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

@@ -15,12 +15,12 @@
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config_formatters.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
 #include <gtest/gtest.h>
 #include <ostream>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct tdd_test_params {
   bool                    csi_rs_enabled;
@@ -49,15 +49,15 @@ protected:
     ue_cfg.ue_index = ue_idx;
     ue_cfg.crnti    = ue_rnti;
     // Increase PUCCH Format 2 code rate to support TDD configuration of DDDDDDDDSU.
-    srsran_assert((*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value(),
-                  "The PUCCH config is not set");
+    ocudu_assert((*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value(),
+                 "The PUCCH config is not set");
     auto& pucch_cfg = (*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
     pucch_cfg.format_2_common_param->max_c_rate = max_pucch_code_rate::dot_35;
     pucch_res_id_t any_res_f2_id                = pucch_cfg.pucch_res_set[1].pucch_res_id_list.front();
     auto*          res_f2                       = std::find_if(pucch_cfg.pucch_res_list.begin(),
                                 pucch_cfg.pucch_res_list.end(),
                                 [any_res_f2_id](const auto& res) { return res.res_id == any_res_f2_id; });
-    srsran_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH resource F2 not found");
+    ocudu_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH resource F2 not found");
     pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
         get_pucch_format2_max_payload(std::get<pucch_format_2_3_cfg>(res_f2->format_params).nof_prbs,
                                       res_f2->nof_symbols,

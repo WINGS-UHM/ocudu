@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/noop_functor.h"
+#include "ocudu/adt/noop_functor.h"
 #include <atomic>
 #include <chrono>
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 template <typename T>
@@ -61,4 +61,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

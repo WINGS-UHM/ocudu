@@ -9,17 +9,17 @@
  */
 
 #include "ue_task_scheduler_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Maximum number of pending procedures per UE.
 static const size_t number_of_pending_ue_procedures = 64;
 
 unique_timer ue_task_scheduler_impl::create_timer()
 {
-  srsran_assert(parent != nullptr, "UE task scheduler not set");
+  ocudu_assert(parent != nullptr, "UE task scheduler not set");
   return parent->make_unique_timer();
 }
 
@@ -41,9 +41,9 @@ void ue_task_scheduler_impl::stop()
   }
 }
 
-ue_task_scheduler_manager::ue_task_scheduler_manager(timer_manager&        timers_,
-                                                     task_executor&        exec_,
-                                                     srslog::basic_logger& logger_) :
+ue_task_scheduler_manager::ue_task_scheduler_manager(timer_manager&          timers_,
+                                                     task_executor&          exec_,
+                                                     ocudulog::basic_logger& logger_) :
   timers(timers_), exec(exec_), logger(logger_), ues_to_rem(1024)
 {
 }
@@ -119,7 +119,7 @@ void ue_task_scheduler_manager::rem_ue_task_loop(ue_index_t ue_idx)
 
         CORO_RETURN();
       }));
-  srsran_assert(ret, "Failed to schedule UE task loop removal");
+  ocudu_assert(ret, "Failed to schedule UE task loop removal");
 
   // Remove UE and free its index.
   ue_ctrl_loop.erase(it);

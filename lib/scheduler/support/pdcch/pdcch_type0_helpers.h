@@ -13,12 +13,12 @@
 #pragma once
 
 #include "../../config/cell_configuration.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Computes the Type0-PDCCH CSS n0 slot for each beam [TS 38.213, Section 13].
 ///
@@ -48,4 +48,4 @@ slot_point precompute_type0_pdcch_css_n0_plus_1(uint8_t                   search
                                                 subcarrier_spacing        scs_common,
                                                 unsigned                  ssb_index);
 
-} // namespace srsran
+} // namespace ocudu

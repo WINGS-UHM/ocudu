@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/signal_processors/ssb/factories.h"
+#include "ocudu/phy/upper/signal_processors/ssb/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dmrs_pbch_processor_spy : public dmrs_pbch_processor
 {
@@ -39,4 +39,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(dmrs_pbch_processor);
 
-} // namespace srsran
+} // namespace ocudu

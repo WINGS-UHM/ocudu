@@ -11,22 +11,22 @@
 #pragma once
 
 #include "lib/du/du_high/du_manager/converters/f1ap_configuration_helpers.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/f1ap/du/f1ap_du_factory.h"
-#include "srsran/f1ap/du/f1ap_du_positioning_handler.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/gateways/f1c_connection_client.h"
-#include "srsran/f1u/du/f1u_rx_sdu_notifier.h"
-#include "srsran/mac/mac_paging_information_handler.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/f1ap/du/f1ap_du_factory.h"
+#include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/gateways/f1c_connection_client.h"
+#include "ocudu/f1u/du/f1u_rx_sdu_notifier.h"
+#include "ocudu/mac/mac_paging_information_handler.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 /// \brief Generate a random gnb_du_ue_f1ap_id
 gnb_du_ue_f1ap_id_t generate_random_gnb_du_ue_f1ap_id();
@@ -193,7 +193,7 @@ f1ap_message generate_dl_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
                                               srb_id_t            srb_id,
                                               byte_buffer         rrc_container);
 
-class dummy_f1c_connection_client : public srs_du::f1c_connection_client
+class dummy_f1c_connection_client : public odu::f1c_connection_client
 {
 public:
   bool                        tx_pdus_sent() const { return not tx_f1ap_pdus.empty(); }
@@ -320,7 +320,7 @@ protected:
   /// Storage of UE context related to the current unit test.
   slotted_array<ue_test_context, MAX_NOF_DU_UES> test_ues;
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

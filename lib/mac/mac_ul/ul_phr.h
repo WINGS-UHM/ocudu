@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/ran/logical_channel/phr_report.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ran/logical_channel/phr_report.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Converts PH value reported by UE to dB interval based on mapping defined in Table 10.1.17.1-1 of TS 38.133.
 /// \param[in] ph PH value reported by UE. This field maps to PH in table 6.1.3.8-1 of TS 38.321.
@@ -61,8 +61,8 @@ inline p_cmax_dbm_range p_cmax_to_dbm_range(unsigned p_cmax)
 /// \remark See TS 38.321, 6.1.3.8.
 inline phr_report decode_se_phr(byte_buffer_view payload)
 {
-  srsran_sanity_check(not payload.empty(), "Trying to decode SE-PHR but payload is empty.");
-  srsran_sanity_check(payload.length() == 2, "Invalid payload length={} while decoding SE-PHR.", payload.length());
+  ocudu_sanity_check(not payload.empty(), "Trying to decode SE-PHR but payload is empty.");
+  ocudu_sanity_check(payload.length() == 2, "Invalid payload length={} while decoding SE-PHR.", payload.length());
   phr_report se_phr = {};
   se_phr.set_se_phr(cell_ph_report{.serv_cell_id = to_ue_cell_index(0),
                                    .ph_type      = ph_field_type_t::type1,
@@ -71,4 +71,4 @@ inline phr_report decode_se_phr(byte_buffer_view payload)
   return se_phr;
 }
 
-} // namespace srsran
+} // namespace ocudu

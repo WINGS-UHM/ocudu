@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 namespace app_helpers {
 
 /// Metrics configuration structure.
@@ -30,4 +30,4 @@ struct metrics_config {
 };
 
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

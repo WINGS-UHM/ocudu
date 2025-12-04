@@ -10,25 +10,25 @@
 
 #pragma once
 
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_handler.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/prach/prach_constants.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_handler.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/prach/prach_constants.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <fstream>
 
-namespace srsran {
+namespace ocudu {
 
 class upper_phy_rx_symbol_handler_printer_decorator : public upper_phy_rx_symbol_handler
 {
 public:
   upper_phy_rx_symbol_handler_printer_decorator(std::unique_ptr<upper_phy_rx_symbol_handler> handler_,
-                                                srslog::basic_logger&                        logger_,
+                                                ocudulog::basic_logger&                      logger_,
                                                 const std::string&                           filename,
                                                 unsigned                                     nof_rb,
                                                 interval<unsigned>                           ul_print_ports,
@@ -124,7 +124,7 @@ public:
 
               // Convert samples to complex float.
               span<cf_t> samples_cf = span<cf_t>(temp_prach_buffer).first(samples.size());
-              srsvec::convert(samples_cf, samples);
+              ocuduvec::convert(samples_cf, samples);
 
               // Write file.
               file.write(reinterpret_cast<const char*>(samples_cf.data()), samples.size() * sizeof(cf_t));
@@ -152,7 +152,7 @@ public:
 private:
   size_t                                       file_offset = 0;
   std::unique_ptr<upper_phy_rx_symbol_handler> handler;
-  srslog::basic_logger&                        logger;
+  ocudulog::basic_logger&                      logger;
   std::ofstream                                file;
   task_worker                                  worker;
   std::vector<cf_t>                            temp_buffer;
@@ -163,4 +163,4 @@ private:
   bool                                         print_prach;
 };
 
-} // namespace srsran
+} // namespace ocudu

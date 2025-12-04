@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/memory_pool/memory_block_list.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/memory_pool/memory_block_list.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class memory_block_list_tester : public ::testing::Test
 {

@@ -9,10 +9,10 @@
  */
 
 #include "mac_dl_ue_repository.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/timers.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/timers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_dl_ue_context::mac_dl_ue_context(const mac_ue_create_request& req) : ue_index(req.ue_index)
 {
@@ -22,9 +22,9 @@ mac_dl_ue_context::mac_dl_ue_context(const mac_ue_create_request& req) : ue_inde
   // Store UL-CCCH
   if (req.ul_ccch_msg != nullptr) {
     // If the Msg3 contained an UL-CCCH message, store it for Contention Resolution.
-    srsran_assert(req.ul_ccch_msg->length() >= UE_CON_RES_ID_LEN,
-                  "Invalid UL-CCCH message length ({} < 6)",
-                  req.ul_ccch_msg->length());
+    ocudu_assert(req.ul_ccch_msg->length() >= UE_CON_RES_ID_LEN,
+                 "Invalid UL-CCCH message length ({} < 6)",
+                 req.ul_ccch_msg->length());
     std::copy(req.ul_ccch_msg->begin(), req.ul_ccch_msg->begin() + UE_CON_RES_ID_LEN, msg3_subpdu.begin());
   }
 }

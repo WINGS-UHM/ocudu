@@ -9,13 +9,13 @@
  */
 
 #include "pdcch_encoder_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/srsvec/binary.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocuduvec/binary.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace pdcch_constants;
 
 void pdcch_encoder_impl::crc_attach(span<uint8_t>& c, span<const uint8_t> a, unsigned rnti)
@@ -23,24 +23,24 @@ void pdcch_encoder_impl::crc_attach(span<uint8_t>& c, span<const uint8_t> a, uns
   std::array<uint8_t, RNTI_LEN> unpacked_rnti;
 
   // Unpack RNTI bits
-  srsvec::bit_unpack(unpacked_rnti, rnti, RNTI_LEN);
+  ocuduvec::bit_unpack(unpacked_rnti, rnti, RNTI_LEN);
 
   // Set first L bits to 1s
   std::fill(c.begin(), c.begin() + CRC_LEN, 1U);
 
   // Copy original payload to an offset of 24 bits
-  srsvec::copy(c.subspan(CRC_LEN, a.size()), a);
+  ocuduvec::copy(c.subspan(CRC_LEN, a.size()), a);
 
   // Calculate checksum
   span<uint8_t> a_prime  = c.first(CRC_LEN + a.size());
   unsigned      checksum = crc24c->calculate_bit(a_prime);
 
   // Unpack and attach checksum
-  srsvec::bit_unpack(c.last(CRC_LEN), checksum, CRC_LEN);
+  ocuduvec::bit_unpack(c.last(CRC_LEN), checksum, CRC_LEN);
 
   // Scramble CRC parity bits with RNTI
   span<uint8_t> p = c.last(RNTI_LEN);
-  srsvec::binary_xor(p, unpacked_rnti, p);
+  ocuduvec::binary_xor(p, unpacked_rnti, p);
 
   // Skip first L 1s added for CRC calculation
   c = c.last(c.size() - CRC_LEN);
@@ -67,7 +67,7 @@ void pdcch_encoder_impl::rate_matching(span<uint8_t> f, span<const uint8_t> d)
 
 void pdcch_encoder_impl::encode(span<uint8_t> encoded, span<const uint8_t> data, const config_t& config)
 {
-  srsran_assert(encoded.size() >= config.E, "Output data vector is too small to store encoded bits");
+  ocudu_assert(encoded.size() >= config.E, "Output data vector is too small to store encoded bits");
 
   // Configure Polar encoder
   uint16_t K = data.size() + CRC_LEN;

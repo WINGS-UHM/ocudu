@@ -6,7 +6,7 @@
 # the distribution.
 #
 
-add_library(srsran_pusch_processor STATIC
+add_library(ocudu_pusch_processor STATIC
         factories.cpp
         pusch_codeblock_decoder.cpp
         pusch_decoder_empty_impl.cpp
@@ -17,6 +17,6 @@ add_library(srsran_pusch_processor STATIC
         pusch_processor_phy_capabilities.cpp
         pusch_processor_validator_impl.cpp
         ulsch_demultiplex_impl.cpp)
-set(SRSRAN_PUSCH_LIBS srsran_upper_phy_support srsran_ran)
+set(OCUDU_PUSCH_LIBS ocudu_upper_phy_support ocudu_ran)
 
-target_link_libraries(srsran_pusch_processor ${SRSRAN_PUSCH_LIBS})
+target_link_libraries(ocudu_pusch_processor ${OCUDU_PUSCH_LIBS})

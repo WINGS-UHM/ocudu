@@ -18,7 +18,7 @@
 #include "e2/o_cu_cp_e2_config_translators.h"
 #include "e2/o_cu_cp_e2_config_yaml_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 o_cu_cp_application_unit_impl::o_cu_cp_application_unit_impl(std::string_view app_name)
 {
@@ -72,7 +72,7 @@ void o_cu_cp_application_unit_impl::fill_worker_manager_config(worker_manager_co
   fill_o_cu_cp_e2_worker_manager_config(config, unit_cfg.e2_cfg);
 }
 
-std::unique_ptr<o_cu_cp_application_unit> srsran::create_o_cu_cp_application_unit(std::string_view app_name)
+std::unique_ptr<o_cu_cp_application_unit> ocudu::create_o_cu_cp_application_unit(std::string_view app_name)
 {
   return std::make_unique<o_cu_cp_application_unit_impl>(app_name);
 }

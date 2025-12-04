@@ -9,9 +9,9 @@
  */
 
 #include "pbch_modulator_test_data.h"
-#include "srsran/phy/upper/channel_processors/ssb/factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

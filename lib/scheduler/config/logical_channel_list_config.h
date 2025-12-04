@@ -11,9 +11,9 @@
 #pragma once
 
 #include "config_ptr.h"
-#include "srsran/scheduler/config/logical_channel_config.h"
+#include "ocudu/scheduler/config/logical_channel_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Pointer to managed logical channel configuration.
 using logical_channel_config_ptr = config_ptr<logical_channel_config>;
@@ -33,10 +33,10 @@ public:
     if (lc_list.empty()) {
       return;
     }
-    srsran_sanity_check(std::is_sorted(lc_list.begin(),
-                                       lc_list.end(),
-                                       [](const auto& lhs, const auto& rhs) { return lhs->lcid < rhs->lcid; }),
-                        "Configured logical channels must be sorted by LCID.");
+    ocudu_sanity_check(std::is_sorted(lc_list.begin(),
+                                      lc_list.end(),
+                                      [](const auto& lhs, const auto& rhs) { return lhs->lcid < rhs->lcid; }),
+                       "Configured logical channels must be sorted by LCID.");
 
     // Build lookup LCID -> LC configuration.
     lcid_t max_lcid = lc_list.back()->lcid;
@@ -96,4 +96,4 @@ private:
 /// Pointer to managed list of logical channel configurations.
 using logical_channel_config_list_ptr = config_ptr<logical_channel_config_list>;
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,17 +10,17 @@
 
 #include "cu_cp_e1_reset_procedure.h"
 #include "common/e1ap_asn1_converters.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 cu_cp_e1_reset_procedure::cu_cp_e1_reset_procedure(const e1ap_configuration& e1ap_cfg_,
                                                    const cu_cp_reset&        reset_,
                                                    e1ap_message_notifier&    pdu_notifier_,
                                                    e1ap_transaction_manager& ev_mng_,
                                                    e1ap_ue_context_list&     ue_ctxt_list_,
-                                                   srslog::basic_logger&     logger_) :
+                                                   ocudulog::basic_logger&   logger_) :
   e1ap_cfg(e1ap_cfg_),
   reset(reset_),
   pdu_notifier(pdu_notifier_),

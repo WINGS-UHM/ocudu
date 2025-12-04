@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/resource_grid_dimensions.h"
-#include "srsran/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/resource_grid_dimensions.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements the resource grid writer interface.
 class resource_grid_writer_impl : public resource_grid_writer
@@ -64,4 +64,4 @@ private:
   std::atomic<unsigned>& empty;
 };
 
-} // namespace srsran
+} // namespace ocudu

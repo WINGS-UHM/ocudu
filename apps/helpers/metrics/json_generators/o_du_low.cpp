@@ -11,9 +11,9 @@
 #include "o_du_low.h"
 #include "apps/helpers/metrics/helpers.h"
 #include "generator_helpers.h"
-#include "srsran/du/du_low/o_du_low_metrics.h"
+#include "ocudu/du/du_low/o_du_low_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
@@ -301,7 +301,7 @@ static nlohmann::json generate_upper_phy(const upper_phy_metrics& upper_phy)
   return json;
 }
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const srs_du::o_du_low_metrics& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const odu::o_du_low_metrics& metrics)
 {
   nlohmann::json json;
 
@@ -311,7 +311,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const srs_du::o_du
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const srs_du::o_du_low_metrics& metrics, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const odu::o_du_low_metrics& metrics, int indent)
 {
   nlohmann::json json = generate(metrics);
 

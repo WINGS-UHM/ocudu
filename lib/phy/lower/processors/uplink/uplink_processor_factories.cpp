@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/lower/processors/uplink/uplink_processor_factories.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_factories.h"
 #include "uplink_processor_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -22,8 +22,8 @@ public:
                                         std::shared_ptr<puxch_processor_factory> puxch_proc_factory_) :
     prach_proc_factory(std::move(prach_proc_factory_)), puxch_proc_factory(std::move(puxch_proc_factory_))
   {
-    srsran_assert(prach_proc_factory, "Invalid PRACH processor factory.");
-    srsran_assert(puxch_proc_factory, "Invalid PUxCH processor factory.");
+    ocudu_assert(prach_proc_factory, "Invalid PRACH processor factory.");
+    ocudu_assert(puxch_proc_factory, "Invalid PUxCH processor factory.");
   }
 
   std::unique_ptr<lower_phy_uplink_processor> create(const uplink_processor_configuration& config) override
@@ -57,8 +57,8 @@ private:
 } // namespace
 
 std::shared_ptr<lower_phy_uplink_processor_factory>
-srsran::create_uplink_processor_factory_sw(std::shared_ptr<prach_processor_factory> prach_proc_factory,
-                                           std::shared_ptr<puxch_processor_factory> puxch_proc_factory)
+ocudu::create_uplink_processor_factory_sw(std::shared_ptr<prach_processor_factory> prach_proc_factory,
+                                          std::shared_ptr<puxch_processor_factory> puxch_proc_factory)
 {
   return std::make_shared<lower_phy_uplink_processor_factory_sw>(std::move(prach_proc_factory),
                                                                  std::move(puxch_proc_factory));

@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../config/ue_configuration.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
-#include "srsran/scheduler/result/dci_info.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/result/dci_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dl_harq_process_handle;
 class ul_harq_process_handle;
@@ -120,4 +120,4 @@ void build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
                            unsigned                      tpmi,
                            uint8_t                       tpc_command);
 
-} // namespace srsran
+} // namespace ocudu

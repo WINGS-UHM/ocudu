@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/dft_processor_ci16.h"
+#include "ocudu/phy/generic_functions/dft_processor_ci16.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Creates a DFT processor for 16-bit complex integer samples.
 ///
@@ -25,4 +25,4 @@ namespace srsran {
 std::unique_ptr<dft_processor_ci16> create_dft_processor_ci16_avx2(unsigned                      dft_size,
                                                                    dft_processor_ci16::direction direction);
 
-} // namespace srsran
+} // namespace ocudu

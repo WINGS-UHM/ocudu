@@ -13,16 +13,16 @@
 ///
 /// Ensures short block messages encoded can be detected.
 
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_coding/short/short_block_encoder.h"
-#include "srsran/ran/uci/uci_info.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/short/short_block_encoder.h"
+#include "ocudu/ran/uci/uci_info.h"
 #include "fmt/ostream.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 
 /// \cond
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -82,7 +82,7 @@ TEST_P(ShortBlockChainFixture, MinEncBits)
   for (unsigned message = 0, message_end = 1U << nof_payload_bits; message != message_end; ++message) {
     // Unpack message.
     static_vector<uint8_t, 32> unpacked_message(nof_payload_bits);
-    srsvec::bit_unpack(unpacked_message, message, nof_payload_bits);
+    ocuduvec::bit_unpack(unpacked_message, message, nof_payload_bits);
 
     // Encode message.
     static_vector<uint8_t, 32> codeword(min_nof_encoded_bits);

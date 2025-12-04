@@ -21,9 +21,9 @@
 #include "aggregators/time_alignment_estimator_metrics_aggregator.h"
 #include "aggregators/transform_precoder_metrics_aggregators.h"
 #include "aggregators/ulsch_demultiplex_metrics_aggregator.h"
-#include "srsran/phy/upper/upper_phy_metrics.h"
+#include "ocudu/phy/upper/upper_phy_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH processing metrics collector.
 class upper_phy_pusch_metrics_collector
@@ -113,4 +113,4 @@ private:
   pusch_processor_metrics_aggregator pusch_processor_aggregator;
 };
 
-} // namespace srsran
+} // namespace ocudu

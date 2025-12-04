@@ -9,32 +9,32 @@
  */
 
 #include "test_helpers.h"
-#include "srsran/gateways/sctp_network_gateway_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
+#include "ocudu/gateways/sctp_network_gateway_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
 #include <chrono>
 #include <linux/sctp.h>
 #include <netinet/sctp.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 class sctp_network_gateway_tester : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // Init GW logger.
-    srslog::fetch_basic_logger("SCTP-GW", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("SCTP-GW", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("SCTP-GW", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("SCTP-GW", false).set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // Flush logger after each test.
-    srslog::flush();
+    ocudulog::flush();
 
     stop_token.store(true, std::memory_order_relaxed);
     if (rx_thread.joinable()) {

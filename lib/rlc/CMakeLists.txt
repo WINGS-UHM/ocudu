@@ -18,5 +18,5 @@ set(SOURCES
   rlc_rx_um_entity.cpp
 )
 
-add_library(srsran_rlc STATIC ${SOURCES})
-target_link_libraries(srsran_rlc srsran_instrumentation srsran_support srsran_pcap)
+add_library(ocudu_rlc STATIC ${SOURCES})
+target_link_libraries(ocudu_rlc ocudu_instrumentation ocudu_support ocudu_pcap)

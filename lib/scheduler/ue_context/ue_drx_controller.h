@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/drx_config.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/drx_config.h"
+#include "ocudu/ran/slot_point.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 class ue_cell_configuration;
@@ -30,7 +30,7 @@ public:
                     const std::optional<drx_config>&     drx_cfg,
                     const ue_logical_channel_repository& ul_lc_mng,
                     std::optional<slot_point>            ul_ccch_slot_rx,
-                    srslog::basic_logger&                logger);
+                    ocudulog::basic_logger&              logger);
 
   /// Update UE DRX configuration.
   void reconfigure(const std::optional<drx_config>& new_drx_cfg);
@@ -62,7 +62,7 @@ private:
   std::chrono::milliseconds            conres_timer;
   const ue_logical_channel_repository& ul_lc_mng;
   std::optional<slot_point>            ul_ccch_slot_rx;
-  srslog::basic_logger&                logger;
+  ocudulog::basic_logger&              logger;
 
   // Current UE DRX config.
   std::optional<drx_config> drx_cfg;
@@ -76,4 +76,4 @@ private:
   slot_point active_time_end;
 };
 
-} // namespace srsran
+} // namespace ocudu

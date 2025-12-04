@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/upper/phy_tap/phy_tap.h"
-#include "srsran/phy/upper/uplink_slot_processor.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/upper/phy_tap/phy_tap.h"
+#include "ocudu/phy/upper/uplink_slot_processor.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Alternative uplink slot processor implementation.
 ///
@@ -72,4 +72,4 @@ private:
   std::optional<slot_point> slot;
 };
 
-} // namespace srsran
+} // namespace ocudu

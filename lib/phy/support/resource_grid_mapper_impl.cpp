@@ -9,11 +9,11 @@
  */
 
 #include "resource_grid_mapper_impl.h"
-#include "srsran/phy/support/precoding_configuration.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/precoding_configuration.h"
+#include "ocudu/phy/support/re_pattern.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 using precoding_buffer_type = static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB, cbf16_t>;
 
@@ -21,7 +21,7 @@ using precoding_buffer_type = static_re_buffer<precoding_constants::MAX_NOF_PORT
 static const re_prb_mask& get_re_mask_type_1(unsigned cdm_group_id)
 {
   static constexpr unsigned MAX_CDM_GROUPS_TYPE1 = 2;
-  srsran_assert(cdm_group_id < MAX_CDM_GROUPS_TYPE1, "Invalid CDM group ID.");
+  ocudu_assert(cdm_group_id < MAX_CDM_GROUPS_TYPE1, "Invalid CDM group ID.");
 
   static const std::array<re_prb_mask, MAX_CDM_GROUPS_TYPE1> re_mask_type1 = {
       {{true, false, true, false, true, false, true, false, true, false, true, false},
@@ -53,8 +53,8 @@ static void map_dmrs_type1_contiguous(resource_grid_writer&          writer,
 
   int first_symbol = pattern.symbols.find_lowest(true);
   int end_symbol   = pattern.symbols.find_highest(true) + 1;
-  srsran_assert((first_symbol >= 0) && (end_symbol >= 0),
-                "At least one OFDM symbol must be used by the allocation pattern.");
+  ocudu_assert((first_symbol >= 0) && (end_symbol >= 0),
+               "At least one OFDM symbol must be used by the allocation pattern.");
 
   unsigned nof_re_symbol = nof_dmrs_re_prb * pattern.crb_mask.count();
 
@@ -107,10 +107,10 @@ static void map_dmrs_type1_contiguous(resource_grid_writer&          writer,
     }
 
     // Assert that the precoding buffer has been filled.
-    srsran_assert((i_precoding_buffer == precoding_buffer.get_nof_re()),
-                  "The number of precoded RE (i.e., {}) does not match the precoding buffer size (i.e., {}).",
-                  i_precoding_buffer,
-                  precoding_buffer.get_nof_re());
+    ocudu_assert((i_precoding_buffer == precoding_buffer.get_nof_re()),
+                 "The number of precoded RE (i.e., {}) does not match the precoding buffer size (i.e., {}).",
+                 i_precoding_buffer,
+                 precoding_buffer.get_nof_re());
 
     for (unsigned i_tx_port = 0; i_tx_port != nof_precoding_ports; ++i_tx_port) {
       // Map the precoded REs to each port for the current symbol.
@@ -137,7 +137,7 @@ void resource_grid_mapper_impl::map_re_block(resource_grid_writer&              
   // Prepare buffers.
   bool                                              is_contiguous    = block_mask.is_contiguous();
   std::reference_wrapper<re_buffer_writer<cbf16_t>> precoding_buffer = precoding_buffer_view;
-  if (SRSRAN_LIKELY(is_contiguous)) {
+  if (OCUDU_LIKELY(is_contiguous)) {
     precoding_buffer_view.resize(nof_antennas, nof_re_block);
     int i_subc_begin = block_mask.find_lowest();
     for (unsigned i_port = 0; i_port != nof_antennas; ++i_port) {
@@ -172,16 +172,16 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
 {
   unsigned nof_layers = precoding.get_nof_layers();
 
-  srsran_assert(input.get_nof_slices() == precoding.get_nof_layers(),
-                "The input number of layers (i.e., {}) and the precoding number of layers (i.e., {}) are different.",
-                input.get_nof_slices(),
-                nof_layers);
+  ocudu_assert(input.get_nof_slices() == precoding.get_nof_layers(),
+               "The input number of layers (i.e., {}) and the precoding number of layers (i.e., {}) are different.",
+               input.get_nof_slices(),
+               nof_layers);
 
   unsigned nof_precoding_ports = precoding.get_nof_ports();
-  srsran_assert(nof_precoding_ports <= writer.get_nof_ports(),
-                "The precoding number of ports (i.e., {}) exceeds the grid number of ports (i.e., {}).",
-                precoding.get_nof_ports(),
-                writer.get_nof_ports());
+  ocudu_assert(nof_precoding_ports <= writer.get_nof_ports(),
+               "The precoding number of ports (i.e., {}) exceeds the grid number of ports (i.e., {}).",
+               precoding.get_nof_ports(),
+               writer.get_nof_ports());
 
   // Temporary intermediate buffer for storing precoded symbols.
   precoding_buffer_type precoding_buffer;
@@ -200,8 +200,8 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
 
   int first_symbol = pattern.symbols.find_lowest(true);
   int end_symbol   = pattern.symbols.find_highest(true) + 1;
-  srsran_assert((first_symbol >= 0) && (end_symbol >= 0),
-                "At least one OFDM symbol must be used by the allocation pattern.");
+  ocudu_assert((first_symbol >= 0) && (end_symbol >= 0),
+               "At least one OFDM symbol must be used by the allocation pattern.");
 
   // Get the symbol RE mask. It is the same for all allocated OFDM symbols.
   bounded_bitset<max_nof_subcarriers> symbol_re_mask(writer.get_nof_subc());
@@ -209,7 +209,7 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
 
   // Find the highest used subcarrier. Skip symbol if no active subcarrier.
   int i_highest_subc = symbol_re_mask.find_highest();
-  srsran_assert(i_highest_subc >= 0, "At least one subcarrier must be used by the allocation pattern.");
+  ocudu_assert(i_highest_subc >= 0, "At least one subcarrier must be used by the allocation pattern.");
 
   // Resize the mask to the highest subcarrier, ceiling to PRB.
   symbol_re_mask.resize(divide_ceil(i_highest_subc + 1, NRE) * NRE);
@@ -238,7 +238,7 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
 
       // Map directly to the grid.
       span<const cf_t> unmapped = writer.put(0, i_symbol, 0, symbol_re_mask, input_re_symbol.get_slice(0));
-      srsran_assert(unmapped.empty(), "Not all REs have been mapped to the grid.");
+      ocudu_assert(unmapped.empty(), "Not all REs have been mapped to the grid.");
       i_re_buffer += nof_re_symbol;
       continue;
     }
@@ -274,24 +274,24 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
     }
 
     // Assert that the precoding buffer has been filled.
-    srsran_assert((i_precoding_buffer == precoding_buffer.get_nof_re()),
-                  "The number of precoded RE (i.e., {}) does not match the precoding buffer size (i.e., {}).",
-                  i_precoding_buffer,
-                  precoding_buffer.get_nof_re());
+    ocudu_assert((i_precoding_buffer == precoding_buffer.get_nof_re()),
+                 "The number of precoded RE (i.e., {}) does not match the precoding buffer size (i.e., {}).",
+                 i_precoding_buffer,
+                 precoding_buffer.get_nof_re());
 
     for (unsigned i_tx_port = 0; i_tx_port != nof_precoding_ports; ++i_tx_port) {
       // Map the precoded REs to each port for the current symbol.
       span<const cbf16_t> port_data = precoding_buffer.get_slice(i_tx_port);
       span<const cbf16_t> unmapped  = writer.put(i_tx_port, i_symbol, 0, symbol_re_mask, port_data);
-      srsran_assert(unmapped.empty(), "Not all REs have been mapped to the grid.");
+      ocudu_assert(unmapped.empty(), "Not all REs have been mapped to the grid.");
     }
   }
 
   // Assert that all input REs have been processed.
-  srsran_assert((i_re_buffer == input.get_nof_re()),
-                "The number of total precoded RE (i.e., {}) does not match the number of total input RE (i.e., {}).",
-                i_re_buffer,
-                input.get_nof_re());
+  ocudu_assert((i_re_buffer == input.get_nof_re()),
+               "The number of total precoded RE (i.e., {}) does not match the number of total input RE (i.e., {}).",
+               i_re_buffer,
+               input.get_nof_re());
 }
 
 void resource_grid_mapper_impl::map(resource_grid_writer&           writer,
@@ -312,15 +312,15 @@ void resource_grid_mapper_impl::map(resource_grid_writer&           writer,
 
   // Verify that the number of layers is consistent with the number of ports.
   interval<unsigned, true> nof_antennas_range(1, writer.get_nof_ports());
-  srsran_assert(nof_antennas_range.contains(nof_antennas),
-                "The number of antennas (i.e., {}) must be in range {}",
-                nof_antennas,
-                nof_antennas_range);
+  ocudu_assert(nof_antennas_range.contains(nof_antennas),
+               "The number of antennas (i.e., {}) must be in range {}",
+               nof_antennas,
+               nof_antennas_range);
   interval<unsigned, true> nof_layers_range(1, nof_antennas);
-  srsran_assert(nof_layers_range.contains(nof_layers),
-                "The number of layers (i.e., {}) must be in range {}",
-                nof_layers,
-                nof_layers_range);
+  ocudu_assert(nof_layers_range.contains(nof_layers),
+               "The number of layers (i.e., {}) must be in range {}",
+               nof_layers,
+               nof_layers_range);
 
   // Obtain CRB indices.
   auto crb_indices = allocation.freq_alloc.get_crb_indices(allocation.bwp.start(), allocation.bwp.length());
@@ -387,7 +387,7 @@ void resource_grid_mapper_impl::map(resource_grid_writer&           writer,
       // Discard subcarriers until the RE counter reaches the RE skip.
       while (re_count < re_skip) {
         // The CRC subcarrier interval for mapping must not be empty to avoid an infinite loop.
-        srsran_assert(!map_subc_interval.empty(), "The subcarriers interval must not be zero.");
+        ocudu_assert(!map_subc_interval.empty(), "The subcarriers interval must not be zero.");
 
         // Calculate the maximum number of subcarriers that can be processed in one block.
         unsigned max_nof_subc_block = re_skip - re_count;
@@ -416,7 +416,7 @@ void resource_grid_mapper_impl::map(resource_grid_writer&           writer,
 
         // Select the number of subcarriers to process in a block.
         unsigned nof_subc_block = std::min(nof_subc_pending, max_nof_subc_block);
-        srsran_assert(nof_subc_block != 0, "The number of pending subcarriers cannot be zero.");
+        ocudu_assert(nof_subc_block != 0, "The number of pending subcarriers cannot be zero.");
 
         // Get the allocation mask for the block.
         bounded_bitset<max_nof_subcarriers> block_mask =

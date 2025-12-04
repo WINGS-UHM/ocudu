@@ -9,15 +9,15 @@
  */
 
 #include "e2_subscription_manager_impl.h"
-#include "srsran/asn1/e2ap/e2ap.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
 
 using namespace asn1::e2ap;
-using namespace srsran;
+using namespace ocudu;
 
 #define E2SM_IFACE(ran_function_id_value) e2sm_iface_list[supported_ran_functions[ran_function_id_value]]
 
 e2_subscription_manager_impl::e2_subscription_manager_impl(e2sm_manager& e2sm_mngr_) :
-  e2sm_mngr(e2sm_mngr_), logger(srslog::fetch_basic_logger("E2-SUBSCRIBER"))
+  e2sm_mngr(e2sm_mngr_), logger(ocudulog::fetch_basic_logger("E2-SUBSCRIBER"))
 {
 }
 

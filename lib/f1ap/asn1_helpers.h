@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/asn1/f1ap/f1ap_pdu_items.h"
-#include "srsran/f1ap/ue_context_management_configs.h"
-#include "srsran/pdcp/pdcp_sn_size.h"
-#include "srsran/ran/nr_cgi.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_items.h"
+#include "ocudu/f1ap/ue_context_management_configs.h"
+#include "ocudu/pdcp/pdcp_sn_size.h"
+#include "ocudu/ran/nr_cgi.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Convert F1AP ASN.1 Cause to \c f1ap_cause_t type.
 /// \param asn1_cause The F1AP Cause.
@@ -91,4 +91,4 @@ f1ap_drb_failed_to_setupmod
 make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_setup_mod_item_s& asn1_type);
 f1ap_drb_failed_to_setupmod make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_modified_item_s& asn1_type);
 
-} // namespace srsran
+} // namespace ocudu

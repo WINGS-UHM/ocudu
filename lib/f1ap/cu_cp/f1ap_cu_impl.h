@@ -12,18 +12,18 @@
 
 #include "procedures/f1ap_cu_event_manager.h"
 #include "ue_context/f1ap_cu_ue_context.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/cu_cp/f1ap_configuration.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
-#include "srsran/f1ap/cu_cp/f1ap_nrppa_msg_handling.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/ran/positioning/trp_information_exchange.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/cu_cp/f1ap_configuration.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/f1ap/cu_cp/f1ap_nrppa_msg_handling.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/ran/positioning/trp_information_exchange.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class f1ap_cu_impl final : public f1ap_cu
 {
@@ -144,7 +144,7 @@ private:
   void log_pdu(bool is_rx, const f1ap_message& pdu);
 
   const f1ap_configuration cfg;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   // DU context.
   f1ap_du_context du_ctxt;
@@ -163,5 +163,5 @@ private:
   unsigned current_transaction_id = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

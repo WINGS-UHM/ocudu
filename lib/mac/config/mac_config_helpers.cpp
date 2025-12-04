@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/du/du_cell_config_helpers.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/du/du_cell_config_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Derives MAC Cell Configuration from DU Cell Configuration.
-mac_cell_creation_request srsran::make_mac_cell_config(du_cell_index_t                                 cell_index,
-                                                       const srs_du::du_cell_config&                   du_cfg,
-                                                       const byte_buffer&                              sib1,
-                                                       span<const bcch_dl_sch_payload_type>            si_messages,
-                                                       const sched_cell_configuration_request_message& sched_cell_cfg)
+mac_cell_creation_request ocudu::make_mac_cell_config(du_cell_index_t                                 cell_index,
+                                                      const odu::du_cell_config&                      du_cfg,
+                                                      const byte_buffer&                              sib1,
+                                                      span<const bcch_dl_sch_payload_type>            si_messages,
+                                                      const sched_cell_configuration_request_message& sched_cell_cfg)
 {
   mac_cell_creation_request mac_cfg{};
   mac_cfg.cell_index       = cell_index;
@@ -38,7 +38,7 @@ mac_cell_creation_request srsran::make_mac_cell_config(du_cell_index_t          
   return mac_cfg;
 }
 
-mac_lc_config srsran::make_default_srb_mac_lc_config(lcid_t lcid)
+mac_lc_config ocudu::make_default_srb_mac_lc_config(lcid_t lcid)
 {
   mac_lc_config mac_cfg{};
   // See TS 38.331, 9.2.1 Default SRB configurations.
@@ -52,7 +52,7 @@ mac_lc_config srsran::make_default_srb_mac_lc_config(lcid_t lcid)
   return mac_cfg;
 }
 
-mac_lc_config srsran::make_default_drb_mac_lc_config()
+mac_lc_config ocudu::make_default_drb_mac_lc_config()
 {
   mac_lc_config mac_cfg{};
   // [Implementation-Defined] Setting priority higher than the least priority among SRBs.
@@ -68,7 +68,7 @@ mac_lc_config srsran::make_default_drb_mac_lc_config()
   return mac_cfg;
 }
 
-prioritized_bit_rate srsran::get_pbr_ceil(uint64_t bitrate_bps)
+prioritized_bit_rate ocudu::get_pbr_ceil(uint64_t bitrate_bps)
 {
   // Convert given bitrate (bps) to kilo Bytes per second.
   const float given_bitrate_kBps = bitrate_bps / (1000 * 8);
@@ -84,7 +84,7 @@ prioritized_bit_rate srsran::get_pbr_ceil(uint64_t bitrate_bps)
   return prioritized_bit_rate::infinity;
 }
 
-mac_lc_config srsran::make_gbr_drb_mac_lc_config(const gbr_qos_flow_information& gbr_qos_flow_info)
+mac_lc_config ocudu::make_gbr_drb_mac_lc_config(const gbr_qos_flow_information& gbr_qos_flow_info)
 {
   mac_lc_config mac_cfg{make_default_drb_mac_lc_config()};
   // [Implementation-Defined] Setting priority higher than the non-GBR DRBs.
@@ -96,7 +96,7 @@ mac_lc_config srsran::make_gbr_drb_mac_lc_config(const gbr_qos_flow_information&
   return mac_cfg;
 }
 
-mac_lc_config srsran::make_non_gbr_drb_mac_lc_config()
+mac_lc_config ocudu::make_non_gbr_drb_mac_lc_config()
 {
   mac_lc_config mac_cfg{make_default_drb_mac_lc_config()};
   // [Implementation-Defined] Value of PBR is set such that the final value of B_j (computed before applying

@@ -9,11 +9,11 @@
  */
 
 #include "cu_up_processor_test_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/support/async/async_test_utils.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class dummy_task_sched final : public common_task_scheduler
 {
@@ -34,12 +34,12 @@ cu_up_processor_test::cu_up_processor_test() :
   }()),
   common_task_sched(std::make_unique<dummy_task_sched>())
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  cu_cp_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  cu_cp_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   // create and start CU-UP processor
-  cu_up_processor_config_t cu_up_cfg = {"srs_cu_cp", cu_up_index_t::min, cu_cp_cfg, cu_cp_logger};
+  cu_up_processor_config_t cu_up_cfg = {"ocucp", cu_up_index_t::min, cu_cp_cfg, cu_cp_logger};
 
   cu_up_processor_obj = create_cu_up_processor(std::move(cu_up_cfg), e1ap_notifier, cu_cp_notifier, *common_task_sched);
 }
@@ -47,5 +47,5 @@ cu_up_processor_test::cu_up_processor_test() :
 cu_up_processor_test::~cu_up_processor_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }

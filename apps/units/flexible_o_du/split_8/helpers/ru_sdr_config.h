@@ -14,7 +14,7 @@
 #include "apps/services/worker_manager/os_sched_affinity_manager.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Expert SDR Radio Unit configuration.
 struct ru_sdr_unit_expert_config {
@@ -60,8 +60,8 @@ struct amplitude_control_unit_config {
 
 /// Configuration of logging functionalities.
 struct ru_sdr_unit_logger_config {
-  srslog::basic_levels radio_level = srslog::basic_levels::info;
-  srslog::basic_levels phy_level   = srslog::basic_levels::warning;
+  ocudulog::basic_levels radio_level = ocudulog::basic_levels::info;
+  ocudulog::basic_levels phy_level   = ocudulog::basic_levels::warning;
 };
 
 /// CPU affinities configuration for the cell.
@@ -169,4 +169,4 @@ struct ru_sdr_unit_config {
   ru_sdr_unit_metrics_config metrics_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

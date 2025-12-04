@@ -12,11 +12,11 @@
 
 #include "du_proc_context_view.h"
 #include "procedure_logger.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct du_manager_params;
 class du_cell_manager;
@@ -37,5 +37,5 @@ private:
   unsigned i = 0;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -14,10 +14,10 @@ set(SOURCES
         dynamic_o_du_unit_config_validator.cpp
         dynamic_o_du_unit_config_yaml_writer.cpp)
 
-add_library(srsran_flexible_o_du_split_dynamic STATIC ${SOURCES})
-target_include_directories(srsran_flexible_o_du_split_dynamic PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_flexible_o_du_split_dynamic
-        srsran_ru_dummy
-        srsran_split_8_app_unit_helpers
-        srsran_split_7_2_app_unit_helpers
-        srsran_flexible_o_du_helpers)
+add_library(ocudu_flexible_o_du_split_dynamic STATIC ${SOURCES})
+target_include_directories(ocudu_flexible_o_du_split_dynamic PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_flexible_o_du_split_dynamic
+        ocudu_ru_dummy
+        ocudu_split_8_app_unit_helpers
+        ocudu_split_7_2_app_unit_helpers
+        ocudu_flexible_o_du_helpers)

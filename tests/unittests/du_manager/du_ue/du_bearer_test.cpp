@@ -11,13 +11,13 @@
 #include "lib/du/du_high/du_manager/du_ue/du_bearer.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_bearer_manager.h"
 #include "tests/unittests/du_manager/du_manager_test_helpers.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -44,13 +44,13 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
+    ocudulog::init();
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<du_manager_test_bench> du_mng = std::make_unique<du_manager_test_bench>(

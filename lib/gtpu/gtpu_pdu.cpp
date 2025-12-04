@@ -10,9 +10,9 @@
 
 #include "gtpu_pdu.h"
 #include "gtpu_tunnel_logger.h"
-#include "srsran/support/bit_encoding.h"
+#include "ocudu/support/bit_encoding.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool gtpu_read_ext_header(bit_decoder&                decoder,
                                  gtpu_extension_header&      ext,
@@ -32,7 +32,7 @@ static uint16_t gtpu_get_length(const gtpu_header& header, const byte_buffer& sd
  * Header pack/unpack helper functions
  * Ref: 3GPP TS 29.281 v10.1.0 Section 5
  ***************************************************************************/
-bool srsran::gtpu_write_header(byte_buffer& pdu, const gtpu_header& header, gtpu_tunnel_logger& logger)
+bool ocudu::gtpu_write_header(byte_buffer& pdu, const gtpu_header& header, gtpu_tunnel_logger& logger)
 {
   // flags
   if (!gtpu_supported_flags_check(header, logger)) {
@@ -115,7 +115,7 @@ bool srsran::gtpu_write_header(byte_buffer& pdu, const gtpu_header& header, gtpu
   return true;
 }
 
-bool srsran::gtpu_write_ie_recovery(byte_buffer& pdu, gtpu_ie_recovery& ie_recovery, gtpu_tunnel_logger& logger)
+bool ocudu::gtpu_write_ie_recovery(byte_buffer& pdu, gtpu_ie_recovery& ie_recovery, gtpu_tunnel_logger& logger)
 {
   logger.log_debug("Writing IE recovery. restart_counter={}", ie_recovery.restart_counter);
   bit_encoder enc{pdu};
@@ -125,9 +125,9 @@ bool srsran::gtpu_write_ie_recovery(byte_buffer& pdu, gtpu_ie_recovery& ie_recov
   return pack_ok;
 }
 
-bool srsran::gtpu_write_ie_private_extension(byte_buffer&               pdu,
-                                             gtpu_ie_private_extension& ie_priv_ext,
-                                             gtpu_tunnel_logger&        logger)
+bool ocudu::gtpu_write_ie_private_extension(byte_buffer&               pdu,
+                                            gtpu_ie_private_extension& ie_priv_ext,
+                                            gtpu_tunnel_logger&        logger)
 {
   logger.log_debug("Writing IE private extension.");
   bit_encoder enc{pdu};
@@ -141,14 +141,14 @@ bool srsran::gtpu_write_ie_private_extension(byte_buffer&               pdu,
   return pack_ok;
 }
 
-static bool gtpu_read_ie_type(gtpu_information_element_type& ie_type, bit_decoder& dec, srslog::basic_logger& logger)
+static bool gtpu_read_ie_type(gtpu_information_element_type& ie_type, bit_decoder& dec, ocudulog::basic_logger& logger)
 {
   bool read_ok = true;
   read_ok &= dec.unpack(reinterpret_cast<std::underlying_type_t<gtpu_information_element_type>&>(ie_type), 8);
   return read_ok;
 }
 
-static bool gtpu_read_ie_teid_i(gtpu_ie_teid_i& ie, bit_decoder& dec, srslog::basic_logger& logger)
+static bool gtpu_read_ie_teid_i(gtpu_ie_teid_i& ie, bit_decoder& dec, ocudulog::basic_logger& logger)
 {
   bool read_ok = true;
   read_ok &= dec.unpack(ie.teid_i, 32);
@@ -156,7 +156,7 @@ static bool gtpu_read_ie_teid_i(gtpu_ie_teid_i& ie, bit_decoder& dec, srslog::ba
 }
 
 static bool
-gtpu_read_ie_gtpu_peer_address(gtpu_ie_gtpu_peer_address& ie, bit_decoder& dec, srslog::basic_logger& logger)
+gtpu_read_ie_gtpu_peer_address(gtpu_ie_gtpu_peer_address& ie, bit_decoder& dec, ocudulog::basic_logger& logger)
 {
   bool     read_ok = true;
   uint16_t length  = 0;
@@ -182,7 +182,7 @@ gtpu_read_ie_gtpu_peer_address(gtpu_ie_gtpu_peer_address& ie, bit_decoder& dec, 
   return read_ok;
 }
 
-bool srsran::gtpu_read_teid(uint32_t& teid, const byte_buffer& pdu, srslog::basic_logger& logger)
+bool ocudu::gtpu_read_teid(uint32_t& teid, const byte_buffer& pdu, ocudulog::basic_logger& logger)
 {
   if (pdu.length() < GTPU_BASE_HEADER_LEN) {
     logger.error(pdu.begin(), pdu.end(), "GTP-U PDU is too small. pdu_len={}", pdu.length());
@@ -198,7 +198,7 @@ bool srsran::gtpu_read_teid(uint32_t& teid, const byte_buffer& pdu, srslog::basi
   return true;
 }
 
-bool srsran::gtpu_dissect_pdu(gtpu_dissected_pdu& dissected_pdu, byte_buffer raw_pdu, gtpu_tunnel_logger& logger)
+bool ocudu::gtpu_dissect_pdu(gtpu_dissected_pdu& dissected_pdu, byte_buffer raw_pdu, gtpu_tunnel_logger& logger)
 {
   if (raw_pdu.length() < GTPU_BASE_HEADER_LEN) {
     logger.log_error(raw_pdu.begin(), raw_pdu.end(), "GTP-U PDU is too small. pdu_len={}", raw_pdu.length());
@@ -338,7 +338,7 @@ static bool gtpu_write_ext_header(bit_encoder&                 encoder,
   // TODO check valid write extension types
 
   uint8_t payload = 1 + ext.container.length() + 1;
-  srsran_assert(payload % 4 == 0, "Invalid GTP-U extension size. payload={}", payload);
+  ocudu_assert(payload % 4 == 0, "Invalid GTP-U extension size. payload={}", payload);
 
   uint8_t length  = payload / 4;
   bool    pack_ok = true;
@@ -361,7 +361,7 @@ static void gtpu_unpack_ext_header_type(bit_decoder& decoder, gtpu_extension_hea
 }
 
 /// Supported feature helpers
-bool srsran::gtpu_supported_flags_check(const gtpu_header& header, gtpu_tunnel_logger& logger)
+bool ocudu::gtpu_supported_flags_check(const gtpu_header& header, gtpu_tunnel_logger& logger)
 {
   // flags
   if (header.flags.version != GTPU_FLAGS_VERSION_V1) {
@@ -379,7 +379,7 @@ bool srsran::gtpu_supported_flags_check(const gtpu_header& header, gtpu_tunnel_l
   return true;
 }
 
-bool srsran::gtpu_supported_msg_type_check(const gtpu_header& header, gtpu_tunnel_logger& logger)
+bool ocudu::gtpu_supported_msg_type_check(const gtpu_header& header, gtpu_tunnel_logger& logger)
 {
   // msg_tpye
   if (header.message_type != GTPU_MSG_DATA_PDU && header.message_type != GTPU_MSG_ECHO_REQUEST &&
@@ -391,8 +391,8 @@ bool srsran::gtpu_supported_msg_type_check(const gtpu_header& header, gtpu_tunne
   return true;
 }
 
-bool srsran::gtpu_extension_header_comprehension_check(const gtpu_extension_header_type& type,
-                                                       gtpu_tunnel_logger&               logger)
+bool ocudu::gtpu_extension_header_comprehension_check(const gtpu_extension_header_type& type,
+                                                      gtpu_tunnel_logger&               logger)
 {
   switch (type) {
     case gtpu_extension_header_type::no_more_extension_headers:
@@ -431,15 +431,15 @@ bool srsran::gtpu_extension_header_comprehension_check(const gtpu_extension_head
   return comp_not_needed;
 }
 
-byte_buffer srsran::gtpu_extract_msg(gtpu_dissected_pdu&& dissected_pdu)
+byte_buffer ocudu::gtpu_extract_msg(gtpu_dissected_pdu&& dissected_pdu)
 {
   dissected_pdu.buf.trim_head(dissected_pdu.hdr_len);
   return std::move(dissected_pdu.buf);
 }
 
-bool srsran::gtpu_read_msg_error_indication(gtpu_msg_error_indication& error_indication,
-                                            const byte_buffer&         pdu,
-                                            srslog::basic_logger&      logger)
+bool ocudu::gtpu_read_msg_error_indication(gtpu_msg_error_indication& error_indication,
+                                           const byte_buffer&         pdu,
+                                           ocudulog::basic_logger&    logger)
 {
   bool                          read_ok = true;
   bit_decoder                   decoder = bit_decoder{pdu};

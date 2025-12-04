@@ -1,0 +1,73 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+/// \file
+/// \brief Circular shifts.
+
+#pragma once
+
+#include "ocudu/adt/span.h"
+#include "ocudu/ocuduvec/copy.h"
+
+namespace ocudu {
+namespace ocuduvec {
+
+/// \brief Circularly shifts a sequence in the forward direction.
+///
+/// The element at position \c i is moved to position <tt>i + shift</tt>. Elements that fall beyond the end of the
+/// sequence are reintroduced at its start.
+/// \tparam     T         Type of the output sequence (must be compatible with a span).
+/// \tparam     U         Type of the input sequence (must be compatible with a span).
+/// \param[out] out       Shifted output sequence.
+/// \param[in]  in        Original input sequence.
+/// \param[in]  shift     The number of positions the sequence is shifted by.
+/// \remark Cannot be used to override memory.
+/// \warning An assertion is triggered if input and output vectors have different sizes.
+template <typename T, typename U>
+void circ_shift_forward(T&& out, const U& in, unsigned shift)
+{
+  static_assert(is_span_compatible<T>::value, "Template type is not compatible with a span");
+  static_assert(is_span_compatible<U>::value, "Template type is not compatible with a span");
+  ocudu_ocuduvec_assert_size(out, in);
+
+  unsigned length = out.size();
+  ocudu_assert(std::abs(in.data() - out.data()) >= length, "Input and output memory overlap.");
+
+  copy(out.first(shift), in.last(shift));
+  copy(out.subspan(shift, length - shift), in.first(length - shift));
+}
+
+/// \brief Circularly shifts a sequence in the backward direction.
+///
+/// The element at position \c i is moved to position <tt>i - shift</tt>. Elements that fall beyond the beginning of the
+/// sequence are reintroduced at its end.
+/// \tparam     T         Type of the output sequence (must be compatible with a span).
+/// \tparam     U         Type of the input sequence (must be compatible with a span).
+/// \param[out] out       Shifted output sequence.
+/// \param[in]  in        Original input sequence.
+/// \param[in]  shift     The number of positions the sequence is shifted by.
+/// \remark Cannot be used to override memory.
+/// \warning An assertion is triggered if input and output vectors have different sizes.
+template <typename T, typename U>
+void circ_shift_backward(T&& out, const U& in, unsigned shift)
+{
+  static_assert(is_span_compatible<T>::value, "Template type is not compatible with a span");
+  static_assert(is_span_compatible<U>::value, "Template type is not compatible with a span");
+  ocudu_ocuduvec_assert_size(out, in);
+
+  unsigned length = out.size();
+  ocudu_assert(std::abs(in.data() - out.data()) >= length, "Input and output memory overlap.");
+
+  copy(out.first(length - shift), in.last(length - shift));
+  copy(out.subspan(length - shift, shift), in.first(shift));
+}
+
+} // namespace ocuduvec
+} // namespace ocudu

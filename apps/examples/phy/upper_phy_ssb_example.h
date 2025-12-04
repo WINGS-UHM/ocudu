@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/phy/upper/upper_phy_rg_gateway.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_request_notifier.h"
-#include "srsran/phy/upper/upper_phy_timing_handler.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/phy/upper/upper_phy_rg_gateway.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_request_notifier.h"
+#include "ocudu/phy/upper/upper_phy_timing_handler.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 #include <memory>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Upper PHY processor application example interface.
 ///
@@ -63,7 +63,7 @@ public:
   /// Collects upper PHY sample configuration parameters.
   struct configuration {
     /// General upper PHY logging level.
-    srslog::basic_levels log_level;
+    ocudulog::basic_levels log_level;
     /// Specifies the maximum number of PRBs.
     unsigned max_nof_prb;
     /// Specifies the maximum number of antenna ports.
@@ -92,4 +92,4 @@ public:
   static std::unique_ptr<upper_phy_ssb_example> create(const configuration& config);
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,12 +11,12 @@
 #pragma once
 
 #include "logical_channel_system.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/time_alignment_config.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/time_alignment_config.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Timing Advance manager for an UE.
 class ta_manager
@@ -72,7 +72,7 @@ private:
   ue_logical_channel_repository* dl_lc_ch_mgr = nullptr;
   /// TA control config parameters.
   const scheduler_ta_control_config& ta_cfg;
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
 
   /// Starting point of the measurement interval.
   slot_point meas_start_time;
@@ -86,4 +86,4 @@ private:
   state_t state;
 };
 
-} // namespace srsran
+} // namespace ocudu

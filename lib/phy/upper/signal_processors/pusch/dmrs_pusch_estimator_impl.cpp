@@ -10,10 +10,10 @@
 
 #include "dmrs_pusch_estimator_impl.h"
 #include "../dmrs_helper.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/sc_prod.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void dmrs_pusch_estimator_impl::estimate(channel_estimate&              estimate,
                                          dmrs_pusch_estimator_notifier& notifier,
@@ -24,10 +24,10 @@ void dmrs_pusch_estimator_impl::estimate(channel_estimate&              estimate
   unsigned  nof_tx_layers = config.get_nof_tx_layers();
   unsigned  nof_rx_ports  = config.rx_ports.size();
 
-  srsran_assert(nof_rx_ports <= ch_estimator.size(),
-                "Trying to estimate the channel for {} antenna ports, configured {}.",
-                nof_rx_ports,
-                ch_estimator.size());
+  ocudu_assert(nof_rx_ports <= ch_estimator.size(),
+               "Trying to estimate the channel for {} antenna ports, configured {}.",
+               nof_rx_ports,
+               ch_estimator.size());
 
   // Select the DM-RS pattern for this PUSCH transmission.
   span<layer_dmrs_pattern> coordinates = span<layer_dmrs_pattern>(temp_pattern).first(nof_tx_layers);
@@ -171,10 +171,10 @@ void dmrs_pusch_estimator_impl::generate(dmrs_symbol_list&        symbols,
         // If a time weight is required...
         if ((params.w_t[0] != params.w_t[1]) && (i_symbol % 2 == 1)) {
           // apply the weight...
-          srsvec::sc_prod(dmrs, dmrs_layer0, params.w_t[1]);
+          ocuduvec::sc_prod(dmrs, dmrs_layer0, params.w_t[1]);
         } else {
           // otherwise, copy symbols from layer 0 to the current layer.
-          srsvec::copy(dmrs, dmrs_layer0);
+          ocuduvec::copy(dmrs, dmrs_layer0);
         }
 
         // If a frequency weight is required...

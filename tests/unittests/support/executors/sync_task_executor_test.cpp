@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/support/executors/sync_task_executor.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/support/executors/sync_task_executor.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(sync_task_worker, task_is_synced)
 {

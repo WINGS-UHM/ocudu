@@ -12,13 +12,13 @@
 #include "../support/network_order_binary_serializer.h"
 #include "ethernet_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
-vlan_frame_builder_impl::vlan_frame_builder_impl(const srsran::ether::vlan_frame_params& eth_params_) :
+vlan_frame_builder_impl::vlan_frame_builder_impl(const ocudu::ether::vlan_frame_params& eth_params_) :
   eth_params(eth_params_)
 {
-  srsran_assert(eth_params.tci.has_value(), "Expected TCI field");
+  ocudu_assert(eth_params.tci.has_value(), "Expected TCI field");
 }
 
 units::bytes vlan_frame_builder_impl::get_header_size() const

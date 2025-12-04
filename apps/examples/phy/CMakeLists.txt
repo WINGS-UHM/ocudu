@@ -12,15 +12,15 @@ if (ZEROMQ_FOUND OR UHD_FOUND)
 
     add_executable(radio_ssb radio_ssb.cpp lower_phy_example_factory.cpp upper_phy_ssb_example.cpp)
     target_link_libraries(radio_ssb
-            srsran_radio
-            srslog
-            srsran_support
-            srsran_phy_support
-            srsran_upper_phy_support
-            srsran_lower_phy
-            srsran_signal_processors
-            srsran_channel_processors
-            srsran_channel_precoder
+            ocudu_radio
+            ocudulog
+            ocudu_support
+            ocudu_phy_support
+            ocudu_upper_phy_support
+            ocudu_lower_phy
+            ocudu_signal_processors
+            ocudu_channel_processors
+            ocudu_channel_precoder
             )
     # Add lower PHY sample loopback test with ZeroMQ only if ZeroMQ is available.
     if (ZEROMQ_FOUND AND BUILD_TESTING)

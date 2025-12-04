@@ -11,19 +11,19 @@
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "lib/ngap/ngap_error_indication_helper.h"
 #include "tests/unittests/ngap/test_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/gateways/sctp_network_gateway_factory.h"
-#include "srsran/ngap/ngap_configuration_helpers.h"
-#include "srsran/ngap/ngap_factory.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/timers.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/gateways/sctp_network_gateway_factory.h"
+#include "ocudu/ngap/ngap_configuration_helpers.h"
+#include "ocudu/ngap/ngap_factory.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// This test is an integration test between:
 /// * NGAP (including ASN1 packer and NG setup procedure)
@@ -43,7 +43,7 @@ class ngap_network_adapter : public n2_connection_client,
       byte_buffer pdu;
       {
         asn1::bit_ref bref{pdu};
-        if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+        if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
           parent.test_logger.error("Failed to pack PDU");
           return false;
         }
@@ -82,7 +82,7 @@ private:
     ngap_message msg;
     {
       asn1::cbit_ref bref{pdu};
-      if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+      if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
         test_logger.error("Sending Error Indication. Cause: Could not unpack Rx PDU");
         send_error_indication(*std::make_unique<dummy_ngap_pdu_notifier>(*this), test_logger);
       }
@@ -100,7 +100,7 @@ private:
   std::unique_ptr<io_broker>            epoll_broker;
   std::unique_ptr<sctp_network_gateway> gw;
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   std::unique_ptr<ngap_rx_message_notifier> rx_pdu_notifier;
 };
@@ -136,8 +136,8 @@ protected:
 
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     ngap = create_ngap(cfg, cu_cp_notifier, *cu_cp_cfg.ngap.ngaps.front().n2_gw, timers, ctrl_worker);
   }
@@ -152,7 +152,7 @@ protected:
   std::unique_ptr<ngap_network_adapter> adapter;
   std::unique_ptr<ngap_interface>       ngap;
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful NG Setup procedure.

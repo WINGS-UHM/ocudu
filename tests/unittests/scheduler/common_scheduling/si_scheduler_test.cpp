@@ -14,16 +14,16 @@
 #include "lib/scheduler/support/paging_helpers.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/asn1/rrc_nr/ue_cap.h"
-#include "srsran/ran/pdcch/dci_packing.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/result/dci_info.h"
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/asn1/rrc_nr/ue_cap.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/result/dci_info.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static sched_cell_configuration_request_message
 make_sched_configuration_request(units::bytes                               sib1_payload_size,
@@ -45,10 +45,10 @@ public:
     pdcch_sch(cell_cfg),
     res_grid(cell_cfg),
     si_sched(cell_cfg, pdcch_sch, msg),
-    logger(srslog::fetch_basic_logger("SCHED"))
+    logger(ocudulog::fetch_basic_logger("SCHED"))
   {
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // Sets the first slot.
     run_slot();
@@ -71,7 +71,7 @@ public:
   pdcch_resource_allocator_impl pdcch_sch;
   cell_resource_allocator       res_grid;
   si_scheduler                  si_sched;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 
   slot_point next_slot{to_numerology_value(cell_cfg.scs_common),
                        test_rgen::uniform_int<unsigned>(0, 1024 * get_nof_slots_per_subframe(cell_cfg.scs_common))};
@@ -224,12 +224,12 @@ TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_ex
     }
 
     for (const auto& pdcch : res_grid[0].result.dl.dl_pdcchs) {
-      if (pdcch.dci.type != srsran::dci_dl_rnti_config_type::p_rnti_f1_0) {
+      if (pdcch.dci.type != ocudu::dci_dl_rnti_config_type::p_rnti_f1_0) {
         continue;
       }
 
       const auto& dci = pdcch.dci.p_rnti_f1_0;
-      if (dci.short_messages_indicator != srsran::dci_1_0_p_rnti_configuration::payload_info::short_messages) {
+      if (dci.short_messages_indicator != ocudu::dci_1_0_p_rnti_configuration::payload_info::short_messages) {
         continue;
       }
       ASSERT_EQ(dci.short_messages, 0x80);

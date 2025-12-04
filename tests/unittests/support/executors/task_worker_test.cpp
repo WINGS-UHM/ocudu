@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/support/executors/detail/task_executor_utils.h"
-#include "srsran/support/executors/priority_task_worker.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/support/executors/detail/task_executor_utils.h"
+#include "ocudu/support/executors/priority_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <future>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
 #ifdef __clang__

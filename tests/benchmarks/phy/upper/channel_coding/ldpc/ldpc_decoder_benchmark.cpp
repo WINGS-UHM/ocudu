@@ -11,10 +11,10 @@
 /// \file
 /// \brief LDPC decoder benchmark.
 
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
@@ -69,8 +69,8 @@ static void parse_args(int argc, char** argv)
   }
 }
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 int main(int argc, char** argv)
 {
@@ -115,7 +115,7 @@ int main(int argc, char** argv)
       unsigned min_cb_length_bg = 24;
       unsigned max_cb_length_bg = 66;
       unsigned msg_length_bg    = 22;
-      if (bg == srsran::ldpc_base_graph_type::BG2) {
+      if (bg == ocudu::ldpc_base_graph_type::BG2) {
         min_cb_length_bg = 12;
         max_cb_length_bg = 50;
         msg_length_bg    = 10;
@@ -165,11 +165,11 @@ int main(int argc, char** argv)
         // Prepare message storage.
         dynamic_bit_buffer message(msg_length);
 
-        srsran::ldpc_decoder::configuration cfg_dec = {.base_graph      = bg,
-                                                       .lifting_size    = ls,
-                                                       .nof_filler_bits = 0,
-                                                       .nof_crc_bits    = 16,
-                                                       .max_iterations  = nof_iterations};
+        ocudu::ldpc_decoder::configuration cfg_dec = {.base_graph      = bg,
+                                                      .lifting_size    = ls,
+                                                      .nof_filler_bits = 0,
+                                                      .nof_crc_bits    = 16,
+                                                      .max_iterations  = nof_iterations};
 
         fmt::memory_buffer descr_buffer;
         fmt::format_to(std::back_inserter(descr_buffer),

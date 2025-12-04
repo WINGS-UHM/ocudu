@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/pdcch/aggregation_level.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdcch/aggregation_level.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 search_space_configuration::search_space_configuration(nr_band            band,
                                                        subcarrier_spacing common_scs,
@@ -25,7 +25,7 @@ search_space_configuration::search_space_configuration(nr_band            band,
 {
   const pdcch_type0_css_coreset_description cset0_desc =
       pdcch_type0_css_coreset_get(band, ssb_scs, common_scs, coreset0_index, 0);
-  srsran_assert(cset0_desc.pattern != PDCCH_TYPE0_CSS_CORESET_RESERVED.pattern, "Invalid CORESET#0 index value");
+  ocudu_assert(cset0_desc.pattern != PDCCH_TYPE0_CSS_CORESET_RESERVED.pattern, "Invalid CORESET#0 index value");
   const pdcch_type0_css_occasion_pattern1_description ss0_occasion = pdcch_type0_css_occasions_get_pattern1(
       pdcch_type0_css_occasion_pattern1_configuration{.is_fr2           = false,
                                                       .ss_zero_index    = static_cast<uint8_t>(search_space0_index),
@@ -51,8 +51,8 @@ search_space_configuration::search_space_configuration(nr_band            band,
   duration = 2;
 
   for (unsigned ssb_idx = 0; ssb_idx < MAX_NUM_BEAMS; ++ssb_idx) {
-    monitoring_slot_offset.push_back(srsran::get_type0_pdcch_css_n0(
-        static_cast<unsigned>(ss0_occasion.offset), ss0_occasion.M, common_scs, ssb_idx));
+    monitoring_slot_offset.push_back(
+        ocudu::get_type0_pdcch_css_n0(static_cast<unsigned>(ss0_occasion.offset), ss0_occasion.M, common_scs, ssb_idx));
   }
 
   for (unsigned ssb_idx = 0; ssb_idx < MAX_NUM_BEAMS; ++ssb_idx) {
@@ -79,7 +79,7 @@ search_space_configuration::search_space_configuration(
   monitoring_slot_periodicity(monitoring_slot_periodicity_),
   duration(duration_)
 {
-  srsran_assert(not is_search_space0(), "Constructor cannot be used for SearchSpace#0");
+  ocudu_assert(not is_search_space0(), "Constructor cannot be used for SearchSpace#0");
 
   set_non_ss0_monitoring_slot_offset(monitoring_slot_offset_, scs_common);
   set_non_ss0_monitoring_symbols_within_slot(monitoring_symbols_within_slot_);
@@ -87,7 +87,7 @@ search_space_configuration::search_space_configuration(
 
 void search_space_configuration::set_non_ss0_monitoring_slot_offset(unsigned slot_offset, subcarrier_spacing scs_common)
 {
-  srsran_assert(not is_search_space0(), "Invalid access to monitoring slot offset of SearchSpace#0");
+  ocudu_assert(not is_search_space0(), "Invalid access to monitoring slot offset of SearchSpace#0");
   const uint8_t numerology_mu = to_numerology_value(scs_common);
   monitoring_slot_offset.clear();
   monitoring_slot_offset.push_back({numerology_mu, slot_offset});
@@ -96,10 +96,10 @@ void search_space_configuration::set_non_ss0_monitoring_slot_offset(unsigned slo
 void search_space_configuration::set_non_ss0_monitoring_symbols_within_slot(
     monitoring_symbols_within_slot_t symbols_within_slot)
 {
-  srsran_assert(not is_search_space0(), "Invalid access to monitoring symbols within slot of SearchSpace#0");
-  srsran_assert(not symbols_within_slot.none(),
-                "None of the symbols are set in monitoring symbols within a slot when configuring SearchSpace#{}",
-                fmt::underlying(id));
+  ocudu_assert(not is_search_space0(), "Invalid access to monitoring symbols within slot of SearchSpace#0");
+  ocudu_assert(not symbols_within_slot.none(),
+               "None of the symbols are set in monitoring symbols within a slot when configuring SearchSpace#{}",
+               fmt::underlying(id));
   monitoring_symbols_within_slot.clear();
   monitoring_symbols_within_slot.push_back(symbols_within_slot);
 }

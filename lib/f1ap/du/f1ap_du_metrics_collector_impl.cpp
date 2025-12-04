@@ -10,8 +10,8 @@
 
 #include "f1ap_du_metrics_collector_impl.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 f1ap_metrics_collector_impl::f1ap_metrics_collector_impl(bool enabled) : enabled_flag(enabled) {}
 

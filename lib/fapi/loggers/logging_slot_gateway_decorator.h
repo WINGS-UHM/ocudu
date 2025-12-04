@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_message_gateway.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Adds logging information over the implemented interface.
 class logging_slot_gateway_decorator : public slot_message_gateway
 {
 public:
-  logging_slot_gateway_decorator(unsigned sector_id_, srslog::basic_logger& logger_, slot_message_gateway& gateway_) :
+  logging_slot_gateway_decorator(unsigned sector_id_, ocudulog::basic_logger& logger_, slot_message_gateway& gateway_) :
     sector_id(sector_id_), logger(logger_), gateway(gateway_)
   {
   }
@@ -38,10 +38,10 @@ public:
   void tx_data_request(const tx_data_request_message& msg) override;
 
 private:
-  const unsigned        sector_id;
-  srslog::basic_logger& logger;
-  slot_message_gateway& gateway;
+  const unsigned          sector_id;
+  ocudulog::basic_logger& logger;
+  slot_message_gateway&   gateway;
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

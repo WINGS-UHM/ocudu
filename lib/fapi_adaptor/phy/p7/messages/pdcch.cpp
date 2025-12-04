@@ -9,10 +9,10 @@
  */
 
 #include "pdcch.h"
-#include "srsran/fapi_adaptor/precoding_matrix_repository.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
+#include "ocudu/ocuduvec/bit.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// Fills the DL DCI parameters of the PDCCH processor PDU.
@@ -47,9 +47,9 @@ static void fill_dci(pdcch_processor::pdu_t&            proc_pdu,
   dci.payload.resize(fapi_dci.payload.size());
   fapi_dci.payload.to_unpacked_bits(span<uint8_t>{dci.payload.data(), dci.payload.size()});
 
-  srsran_assert(fapi_dci.precoding_and_beamforming.prgs.size() == 1U,
-                "Unsupported number of PRGs={}",
-                fapi_dci.precoding_and_beamforming.prgs.size());
+  ocudu_assert(fapi_dci.precoding_and_beamforming.prgs.size() == 1U,
+               "Unsupported number of PRGs={}",
+               fapi_dci.precoding_and_beamforming.prgs.size());
   dci.precoding = precoding_configuration::make_wideband(
       pm_repo.get_precoding_matrix(fapi_dci.precoding_and_beamforming.prgs.front().pm_index));
 
@@ -99,12 +99,12 @@ static void fill_coreset(pdcch_processor::coreset_description& coreset, const fa
   coreset.shift_index      = fapi_pdu.shift_index;
 }
 
-void srsran::fapi_adaptor::convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&            proc_pdu,
-                                                     const fapi::dl_pdcch_pdu&          fapi_pdu,
-                                                     uint16_t                           sfn,
-                                                     uint16_t                           slot,
-                                                     uint16_t                           i_dci,
-                                                     const precoding_matrix_repository& pm_repo)
+void ocudu::fapi_adaptor::convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&            proc_pdu,
+                                                    const fapi::dl_pdcch_pdu&          fapi_pdu,
+                                                    uint16_t                           sfn,
+                                                    uint16_t                           slot,
+                                                    uint16_t                           i_dci,
+                                                    const precoding_matrix_repository& pm_repo)
 {
   proc_pdu.slot = slot_point(fapi_pdu.scs, sfn, slot);
   proc_pdu.cp   = fapi_pdu.cp;

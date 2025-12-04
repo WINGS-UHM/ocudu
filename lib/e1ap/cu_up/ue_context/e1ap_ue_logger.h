@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/format/prefixed_logger.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
 #include <string.h>
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 class e1ap_ue_log_prefix
 {
@@ -38,7 +38,7 @@ public:
                    cu_cp_ue_e1ap_id != gnb_cu_cp_ue_e1ap_id_t::invalid
                        ? fmt::format(" cu_cp_ue_e1ap_id={}", fmt::underlying(cu_cp_ue_e1ap_id))
                        : "");
-    prefix = srsran::to_c_str(buffer);
+    prefix = ocudu::to_c_str(buffer);
   }
   const char* to_c_str() const { return prefix.c_str(); }
 
@@ -48,14 +48,14 @@ private:
 
 using e1ap_ue_logger = prefixed_logger<e1ap_ue_log_prefix>;
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu
 
 namespace fmt {
 
 // associated formatter
 template <>
-struct formatter<srsran::srs_cu_up::e1ap_ue_log_prefix> {
+struct formatter<ocudu::ocuup::e1ap_ue_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -63,7 +63,7 @@ struct formatter<srsran::srs_cu_up::e1ap_ue_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::srs_cu_up::e1ap_ue_log_prefix o, FormatContext& ctx) const
+  auto format(ocudu::ocuup::e1ap_ue_log_prefix o, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", o.to_c_str());
   }

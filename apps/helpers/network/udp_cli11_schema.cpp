@@ -10,9 +10,9 @@
 
 #include "udp_cli11_schema.h"
 #include "udp_appconfig.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_udp_args(CLI::App& app, udp_appconfig& udp_params)
 {
@@ -33,7 +33,7 @@ static void configure_cli11_udp_args(CLI::App& app, udp_appconfig& udp_params)
       ->check(CLI::Range(0, 63));
 }
 
-void srsran::configure_cli11_with_udp_config_schema(CLI::App& app, udp_appconfig& config)
+void ocudu::configure_cli11_with_udp_config_schema(CLI::App& app, udp_appconfig& config)
 {
   add_option(app, "--ext_addr", config.ext_addr, "External IP address that is advertised for receiving UDP packets.")
       ->check(CLI::ValidIPV4 | CLI::IsMember({"auto"}));

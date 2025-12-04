@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/scheduler/harq_id.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/shared_transport_block.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/shared_transport_block.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Handle to a DL HARQ buffer managed inside the pool that allows moving the ownership of the buffer to a shared
 /// transport block.
@@ -30,7 +30,7 @@ class dl_harq_buffer_handle
 public:
   dl_harq_buffer_handle(span<uint8_t> buffer_, std::atomic<unsigned>* ref_cnt_) : buffer(buffer_), ref_cnt(ref_cnt_)
   {
-    srsran_assert(ref_cnt, "Invalid reference counter");
+    ocudu_assert(ref_cnt, "Invalid reference counter");
     ref_cnt->fetch_add(1, std::memory_order::memory_order_relaxed);
   }
 
@@ -58,7 +58,7 @@ public:
   /// \note This method can be only called once. An assertion is triggered is the buffer is already transferred.
   shared_transport_block transfer_to_buffer_view(size_t nof_bytes)
   {
-    srsran_assert(ref_cnt, "Cannot transfer an empty buffer");
+    ocudu_assert(ref_cnt, "Cannot transfer an empty buffer");
 
     auto out_buffer = buffer.first(nof_bytes);
     buffer          = {};
@@ -106,8 +106,8 @@ public:
   /// Allocates a DL HARQ buffer for a given UE.
   expected<dl_harq_buffer_handle> allocate_dl_harq_buffer(du_ue_index_t ue_index, harq_id_t h_id)
   {
-    srsran_sanity_check(is_du_ue_index_valid(ue_index), "Invalid UE index");
-    srsran_assert(cell_buffers[ue_index].size() > h_id, "Invalid HARQ ID={}", fmt::underlying(h_id));
+    ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid UE index");
+    ocudu_assert(cell_buffers[ue_index].size() > h_id, "Invalid HARQ ID={}", fmt::underlying(h_id));
 
     auto* harq_buffer = cell_buffers[ue_index][h_id];
     if (harq_buffer->ref_cnt.load(std::memory_order_acquire) != 0) {
@@ -137,7 +137,7 @@ private:
   /// Executor to which DL HARQ buffer allocation tasks is dispatched in the background.
   task_executor& ctrl_exec;
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// List of DL HARQ buffers currently allocated to UEs in the cell.
   std::vector<ue_dl_harq_buffer_list> cell_buffers;
   /// DL HARQ buffers that are not associated with any UE and can be allocated to newly created UEs.
@@ -150,4 +150,4 @@ private:
   std::shared_ptr<bool> pool_growth_cancelled = std::make_shared<bool>(false);
 };
 
-} // namespace srsran
+} // namespace ocudu

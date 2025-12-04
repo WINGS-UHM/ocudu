@@ -10,19 +10,19 @@
 
 #include "f1_removal_procedure.h"
 #include "../ue_context/f1ap_cu_ue_context.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 f1_removal_procedure::f1_removal_procedure(const asn1::f1ap::f1_removal_request_s& request_,
                                            f1ap_message_notifier&                  pdu_notifier_,
                                            f1ap_du_processor_notifier&             cu_cp_notifier_,
                                            f1ap_ue_context_list&                   ue_list_,
-                                           srslog::basic_logger&                   logger_) :
+                                           ocudulog::basic_logger&                 logger_) :
   request(request_), pdu_notifier(pdu_notifier_), cu_cp_notifier(cu_cp_notifier_), ue_list(ue_list_), logger(logger_)
 {
 }

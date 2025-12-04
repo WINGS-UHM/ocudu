@@ -9,13 +9,13 @@
  */
 
 #include "lib/f1ap/asn1_helpers.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/up_transport_layer_info.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/up_transport_layer_info.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test PLMN decoding
 TEST(f1ap_asn1_helpers_test, test_ngi_converter_for_valid_plmn)

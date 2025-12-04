@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// PDSCH processor metric decorator.
 class phy_metrics_pdsch_processor_decorator : public pdsch_processor, private pdsch_processor_notifier
@@ -27,7 +27,7 @@ public:
                                         pdsch_processor_metric_notifier& notifier_) :
     base(std::move(base_)), notifier(notifier_)
   {
-    srsran_assert(base, "Invalid encoder.");
+    ocudu_assert(base, "Invalid encoder.");
   }
 
   // See pdsch_processor interface for documentation.
@@ -39,7 +39,7 @@ public:
     // Save reference to the notifier for this transmission. It must be nullptr to ensure that the processor was
     // released from previous processing.
     [[maybe_unused]] pdsch_processor_notifier* prev_proc_notifier = std::exchange(processor_notifier, &notifier_);
-    srsran_assert(prev_proc_notifier == nullptr, "The PDSCH processor is in use.");
+    ocudu_assert(prev_proc_notifier == nullptr, "The PDSCH processor is in use.");
 
     // Prepare transmission.
     start_time                       = std::chrono::high_resolution_clock::now();
@@ -97,7 +97,7 @@ private:
 
     // Notify the completion of the PDSCH processing. From now on, the processor might become available.
     pdsch_processor_notifier* current_proc_notifier = std::exchange(processor_notifier, nullptr);
-    srsran_assert(current_proc_notifier != nullptr, "PDSCH processor is still busy.");
+    ocudu_assert(current_proc_notifier != nullptr, "PDSCH processor is still busy.");
     current_proc_notifier->on_finish_processing();
   }
 
@@ -115,4 +115,4 @@ private:
   static_assert(std::atomic<decltype(self_cpu_usage_ns)>::is_always_lock_free);
 };
 
-} // namespace srsran
+} // namespace ocudu

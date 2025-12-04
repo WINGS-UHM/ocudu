@@ -9,16 +9,16 @@
  */
 
 #include "e2_setup_procedure.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 
 e2_setup_procedure::e2_setup_procedure(const e2_setup_request_message& request_,
                                        e2_message_notifier&            notif_,
                                        e2_event_manager&               ev_mng_,
                                        timer_factory                   timers,
-                                       srslog::basic_logger&           logger_) :
+                                       ocudulog::basic_logger&         logger_) :
   request(request_), notifier(notif_), ev_mng(ev_mng_), logger(logger_), e2_setup_wait_timer(timers.create_timer())
 {
 }

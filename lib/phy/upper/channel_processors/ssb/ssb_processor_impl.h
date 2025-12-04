@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/ssb/pbch_encoder.h"
-#include "srsran/phy/upper/channel_processors/ssb/pbch_modulator.h"
-#include "srsran/phy/upper/channel_processors/ssb/ssb_processor.h"
-#include "srsran/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
-#include "srsran/phy/upper/signal_processors/ssb/pss_processor.h"
-#include "srsran/phy/upper/signal_processors/ssb/sss_processor.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_encoder.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_modulator.h"
+#include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
+#include "ocudu/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
+#include "ocudu/phy/upper/signal_processors/ssb/pss_processor.h"
+#include "ocudu/phy/upper/signal_processors/ssb/sss_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ssb_processor_config {
   std::unique_ptr<pbch_encoder>        encoder;
@@ -58,4 +58,4 @@ public:
   void process(resource_grid_writer& grid, const pdu_t& pdu) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

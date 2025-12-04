@@ -13,7 +13,7 @@
 #include "config_ptr.h"
 #include <deque>
 
-namespace srsran {
+namespace ocudu {
 
 /// Pool of configuration objects that ensures uniqueness of the stored objects.
 template <typename T>
@@ -44,4 +44,4 @@ private:
   std::deque<T> objs;
 };
 
-} // namespace srsran
+} // namespace ocudu

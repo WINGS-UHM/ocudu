@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/f1ap/gateways/f1c_local_connector_factory.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/gateways/f1c_network_client_factory.h"
-#include "srsran/f1ap/gateways/f1c_network_server_factory.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/f1ap/gateways/f1c_local_connector_factory.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/gateways/f1c_network_client_factory.h"
+#include "ocudu/f1ap/gateways/f1c_network_server_factory.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -26,17 +26,17 @@ class f1ap_pdu_pcap_notifier final : public f1ap_message_notifier
 public:
   f1ap_pdu_pcap_notifier(std::unique_ptr<f1ap_message_notifier> decorated_,
                          dlt_pcap&                              pcap_writer_,
-                         srslog::basic_logger&                  logger_) :
+                         ocudulog::basic_logger&                logger_) :
     logger(logger_), pcap_writer(pcap_writer_), decorated(std::move(decorated_))
   {
-    srsran_sanity_check(pcap_writer.is_write_enabled(), "Pcap writing must be enabled.");
+    ocudu_sanity_check(pcap_writer.is_write_enabled(), "Pcap writing must be enabled.");
   }
 
   void on_new_message(const f1ap_message& msg) override
   {
     byte_buffer   buf;
     asn1::bit_ref bref(buf);
-    if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to write Rx PDU to PCAP. Cause: Failed to pack Rx PDU");
     } else {
       pcap_writer.push_pdu(std::move(buf));
@@ -47,7 +47,7 @@ public:
   }
 
 private:
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
   dlt_pcap&                              pcap_writer;
   std::unique_ptr<f1ap_message_notifier> decorated;
 };
@@ -58,7 +58,7 @@ class f1c_local_connector_impl final : public f1c_local_connector
 public:
   f1c_local_connector_impl(const f1c_local_connector_config& cfg) : pcap_writer(cfg.pcap) {}
 
-  void attach_cu_cp(srs_cu_cp::cu_cp_f1c_handler& cu_cp_du_mng_) override { cu_cp_du_mng = &cu_cp_du_mng_; }
+  void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_cp_du_mng_) override { cu_cp_du_mng = &cu_cp_du_mng_; }
 
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
@@ -70,7 +70,7 @@ public:
     // Decorate DU RX notifier with pcap writing.
     if (pcap_writer.is_write_enabled()) {
       du_notifier = std::make_unique<f1ap_pdu_pcap_notifier>(
-          std::move(du_notifier), pcap_writer, srslog::fetch_basic_logger("DU-F1"));
+          std::move(du_notifier), pcap_writer, ocudulog::fetch_basic_logger("DU-F1"));
     }
 
     // Create direct connection between CU-CP and DU notifier.
@@ -82,15 +82,15 @@ public:
     // Decorate CU-CP RX notifier with pcap writing.
     if (pcap_writer.is_write_enabled()) {
       cu_notifier = std::make_unique<f1ap_pdu_pcap_notifier>(
-          std::move(cu_notifier), pcap_writer, srslog::fetch_basic_logger("CU-CP-F1"));
+          std::move(cu_notifier), pcap_writer, ocudulog::fetch_basic_logger("CU-CP-F1"));
     }
 
     return cu_notifier;
   }
 
 private:
-  dlt_pcap&                     pcap_writer;
-  srs_cu_cp::cu_cp_f1c_handler* cu_cp_du_mng = nullptr;
+  dlt_pcap&                 pcap_writer;
+  ocucp::cu_cp_f1c_handler* cu_cp_du_mng = nullptr;
 };
 
 /// Implementation of a DU and CU-CP F1-C SCTP-based gateway for the case that the DU and CU-CP are co-located.
@@ -112,7 +112,7 @@ public:
     server = create_f1c_gateway_server(f1c_cu_sctp_gateway_config{sctp, broker, cfg.io_rx_executor, pcap_writer});
   }
 
-  void attach_cu_cp(srs_cu_cp::cu_cp_f1c_handler& cu_f1c_handler_) override
+  void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_f1c_handler_) override
   {
     server->attach_cu_cp(cu_f1c_handler_);
 
@@ -138,22 +138,22 @@ public:
   }
 
 private:
-  io_broker&                                        broker;
-  task_executor&                                    io_rx_executor;
-  dlt_pcap&                                         pcap_writer;
-  std::unique_ptr<dlt_pcap>                         null_pcap_writer = create_null_dlt_pcap();
-  std::unique_ptr<srs_cu_cp::f1c_connection_server> server;
-  std::unique_ptr<srs_du::f1c_connection_client>    client;
+  io_broker&                                    broker;
+  task_executor&                                io_rx_executor;
+  dlt_pcap&                                     pcap_writer;
+  std::unique_ptr<dlt_pcap>                     null_pcap_writer = create_null_dlt_pcap();
+  std::unique_ptr<ocucp::f1c_connection_server> server;
+  std::unique_ptr<odu::f1c_connection_client>   client;
 };
 
 } // namespace
 
-std::unique_ptr<f1c_local_connector> srsran::create_f1c_local_connector(const f1c_local_connector_config& cfg)
+std::unique_ptr<f1c_local_connector> ocudu::create_f1c_local_connector(const f1c_local_connector_config& cfg)
 {
   return std::make_unique<f1c_local_connector_impl>(cfg);
 }
 
-std::unique_ptr<f1c_local_connector> srsran::create_f1c_local_connector(const f1c_local_sctp_connector_config& cfg)
+std::unique_ptr<f1c_local_connector> ocudu::create_f1c_local_connector(const f1c_local_sctp_connector_config& cfg)
 {
   return std::make_unique<f1c_sctp_connector_impl>(cfg);
 }

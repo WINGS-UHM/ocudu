@@ -9,10 +9,10 @@
  */
 
 #include "lib/mac/mac_dl/mac_cell_time_mapper_impl.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class slot_time_point_mapper_test : public ::testing::TestWithParam<unsigned>
 {
@@ -156,10 +156,10 @@ TEST_P(slot_time_point_mapper_test, get_last_mapping_only_sub_frame_stored)
 
 TEST_P(slot_time_point_mapper_test, get_slot_time_point_from_slot_point)
 {
-  srslog::basic_logger& logger            = srslog::fetch_basic_logger("TEST");
-  const slot_point      report_slot       = {numerology, 0, 0};
-  const slot_time_point report_time_point = std::chrono::system_clock::now();
-  const auto            slot_dur          = std::chrono::microseconds{1000U >> numerology};
+  ocudulog::basic_logger& logger            = ocudulog::fetch_basic_logger("TEST");
+  const slot_point        report_slot       = {numerology, 0, 0};
+  const slot_time_point   report_time_point = std::chrono::system_clock::now();
+  const auto              slot_dur          = std::chrono::microseconds{1000U >> numerology};
 
   ASSERT_FALSE(manager.get_last_mapping().has_value());
   logger.info(
@@ -189,10 +189,10 @@ TEST_P(slot_time_point_mapper_test, get_slot_time_point_from_slot_point)
 
 TEST_P(slot_time_point_mapper_test, get_slot_point_from_time_point)
 {
-  srslog::basic_logger& logger            = srslog::fetch_basic_logger("TEST");
-  const slot_point      report_slot       = {numerology, 0, 0};
-  const slot_time_point report_time_point = std::chrono::system_clock::now();
-  const auto            slot_dur          = std::chrono::microseconds{1000U >> numerology};
+  ocudulog::basic_logger& logger            = ocudulog::fetch_basic_logger("TEST");
+  const slot_point        report_slot       = {numerology, 0, 0};
+  const slot_time_point   report_time_point = std::chrono::system_clock::now();
+  const auto              slot_dur          = std::chrono::microseconds{1000U >> numerology};
 
   ASSERT_FALSE(manager.get_last_mapping().has_value());
   logger.info(
@@ -247,8 +247,8 @@ TEST_P(atomic_sfn_time_mapper_test, store_and_load)
 
 TEST_P(atomic_sfn_time_mapper_test, when_truncated_timestamp_wraps_around_load_computes_correct_report_time_point)
 {
-  srslog::basic_logger& logger      = srslog::fetch_basic_logger("TEST");
-  const slot_point      report_slot = {numerology, 11, 0};
+  ocudulog::basic_logger& logger      = ocudulog::fetch_basic_logger("TEST");
+  const slot_point        report_slot = {numerology, 11, 0};
 
   uint64_t period                 = 1ULL << 50;
   uint64_t before_period_start_ns = period - (1ULL << 20);     // roughly 1ms before wrap-around

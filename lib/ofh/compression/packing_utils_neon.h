@@ -11,10 +11,10 @@
 #pragma once
 
 #include "neon_helpers.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace neon {
 
@@ -69,8 +69,8 @@ inline void pack_prb_9b_big_endian(span<uint8_t> comp_prb_buffer, int16x8x3_t re
 
   static constexpr unsigned bytes_per_half_reg = 8;
 
-  srsran_assert(comp_prb_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
-                "Output buffer has incorrect size for packing compressed samples");
+  ocudu_assert(comp_prb_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
+               "Output buffer has incorrect size for packing compressed samples");
 
   // Pack input registers.
   uint8x16_t res_packed_bytes_0_u8 = pack_neon_register_9b_big_endian(regs.val[0]);
@@ -156,8 +156,8 @@ inline void pack_prb_14b_big_endian(span<uint8_t> comp_prb_buffer, int16x8x3_t r
   /// Number of bytes used by 1 packed PRB with IQ samples compressed to 14 bits.
   static constexpr unsigned BYTES_PER_PRB_14BIT_COMPRESSION = 42;
 
-  srsran_assert(comp_prb_buffer.size() == BYTES_PER_PRB_14BIT_COMPRESSION,
-                "Output buffer has incorrect size for packing compressed samples");
+  ocudu_assert(comp_prb_buffer.size() == BYTES_PER_PRB_14BIT_COMPRESSION,
+               "Output buffer has incorrect size for packing compressed samples");
 
   // Pack input registers.
   uint8x16_t res_packed_bytes_0_u8 = pack_neon_register_14b_big_endian(regs.val[0]);
@@ -187,8 +187,8 @@ inline void pack_prb_16b_big_endian(span<uint8_t> comp_prb_buffer, int16x8x3_t r
   static constexpr unsigned BYTES_PER_PRB_16BIT_COMPRESSION = 48;
   static constexpr unsigned NEON_REG_SIZE_BYTES             = 16;
 
-  srsran_assert(comp_prb_buffer.size() == BYTES_PER_PRB_16BIT_COMPRESSION,
-                "Output buffer has incorrect size for packing compressed samples");
+  ocudu_assert(comp_prb_buffer.size() == BYTES_PER_PRB_16BIT_COMPRESSION,
+               "Output buffer has incorrect size for packing compressed samples");
 
   static const uint8x16_t shuffle_mask_u8 = vcombine_u8(vcreate_u8(0x0607040502030001), vcreate_u8(0x0e0f0c0d0a0b0809));
 
@@ -391,4 +391,4 @@ inline bool iq_width_packing_supported(unsigned iq_width)
 
 } // namespace neon
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

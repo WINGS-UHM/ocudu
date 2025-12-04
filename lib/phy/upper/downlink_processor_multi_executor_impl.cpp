@@ -9,19 +9,19 @@
  */
 
 #include "downlink_processor_multi_executor_impl.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/upper/channel_processors/pdcch/formatters.h"
-#include "srsran/phy/upper/channel_processors/pdsch/formatters.h"
-#include "srsran/phy/upper/channel_processors/ssb/formatters.h"
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_formatter.h"
-#include "srsran/phy/upper/signal_processors/prs/formatters.h"
-#include "srsran/phy/upper/upper_phy_rg_gateway.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/formatters.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/formatters.h"
+#include "ocudu/phy/upper/channel_processors/ssb/formatters.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_formatter.h"
+#include "ocudu/phy/upper/signal_processors/prs/formatters.h"
+#include "ocudu/phy/upper/upper_phy_rg_gateway.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/rtsan.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 downlink_processor_multi_executor_impl::downlink_processor_multi_executor_impl(
     upper_phy_rg_gateway&                 gateway_,
@@ -35,7 +35,7 @@ downlink_processor_multi_executor_impl::downlink_processor_multi_executor_impl(
     task_executor&                        ssb_executor_,
     task_executor&                        csi_rs_executor_,
     task_executor&                        prs_executor_,
-    srslog::basic_logger&                 logger_) :
+    ocudulog::basic_logger&               logger_) :
   gateway(gateway_),
   pdcch_proc(std::move(pdcch_proc_)),
   pdsch_proc(std::move(pdsch_proc_)),
@@ -50,11 +50,11 @@ downlink_processor_multi_executor_impl::downlink_processor_multi_executor_impl(
   logger(logger_),
   pdsch_notifier(*this)
 {
-  srsran_assert(pdcch_proc, "Invalid PDCCH processor received.");
-  srsran_assert(pdsch_proc, "Invalid PDSCH processor received.");
-  srsran_assert(ssb_proc, "Invalid SSB processor received.");
-  srsran_assert(csi_rs_proc, "Invalid CSI-RS processor received.");
-  srsran_assert(prs_gen, "Invalid PRS generator received.");
+  ocudu_assert(pdcch_proc, "Invalid PDCCH processor received.");
+  ocudu_assert(pdsch_proc, "Invalid PDSCH processor received.");
+  ocudu_assert(ssb_proc, "Invalid SSB processor received.");
+  ocudu_assert(csi_rs_proc, "Invalid CSI-RS processor received.");
+  ocudu_assert(prs_gen, "Invalid PRS generator received.");
 }
 
 void downlink_processor_multi_executor_impl::process_pdcch(const pdcch_processor::pdu_t& pdu)
@@ -66,7 +66,7 @@ void downlink_processor_multi_executor_impl::process_pdcch(const pdcch_processor
   pdcch_processor::pdu_t& pdu_ref = pdcch_list.emplace_back(pdu);
 
   // Try to enqueue the PDU processing task.
-  bool enqueued = pdcch_executor.defer([this, &pdu_ref]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+  bool enqueued = pdcch_executor.defer([this, &pdu_ref]() noexcept OCUDU_RTSAN_NONBLOCKING {
     trace_point process_pdcch_tp = l1_dl_tracer.now();
 
     // Do not execute if the grid is not available.
@@ -100,7 +100,7 @@ void downlink_processor_multi_executor_impl::process_pdsch(
   pdsch_proc_args& pdsch_args = pdsch_list.emplace_back(pdu, std::move(data_));
 
   // Try to enqueue the PDU processing task.
-  bool enqueued = pdsch_executor.defer([this, &pdsch_args]() mutable noexcept SRSRAN_RTSAN_NONBLOCKING {
+  bool enqueued = pdsch_executor.defer([this, &pdsch_args]() mutable noexcept OCUDU_RTSAN_NONBLOCKING {
     trace_point process_pdsch_tp = l1_dl_tracer.now();
 
     // Do not execute if the grid is not available.
@@ -138,7 +138,7 @@ void downlink_processor_multi_executor_impl::process_ssb(const ssb_processor::pd
   ssb_processor::pdu_t& pdu_ref = ssb_list.emplace_back(pdu);
 
   // Try to enqueue the PDU processing task.
-  bool enqueued = ssb_executor.defer([this, &pdu_ref]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+  bool enqueued = ssb_executor.defer([this, &pdu_ref]() noexcept OCUDU_RTSAN_NONBLOCKING {
     trace_point process_ssb_tp = l1_dl_tracer.now();
 
     // Do not execute if the grid is not available.
@@ -170,7 +170,7 @@ void downlink_processor_multi_executor_impl::process_nzp_csi_rs(const nzp_csi_rs
   nzp_csi_rs_generator::config_t& config_ref = nzp_csi_rs_list.emplace_back(config);
 
   // Try to enqueue the PDU processing task.
-  bool enqueued = csi_rs_executor.defer([this, &config_ref]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+  bool enqueued = csi_rs_executor.defer([this, &config_ref]() noexcept OCUDU_RTSAN_NONBLOCKING {
     trace_point process_nzp_csi_rs_tp = l1_dl_tracer.now();
 
     // Do not execute if the grid is not available.
@@ -202,7 +202,7 @@ void downlink_processor_multi_executor_impl::process_prs(const prs_generator_con
   prs_generator_configuration& config_ref = prs_list.emplace_back(config);
 
   // Try to enqueue the PDU processing task.
-  bool enqueued = prs_executor.defer([this, &config_ref]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+  bool enqueued = prs_executor.defer([this, &config_ref]() noexcept OCUDU_RTSAN_NONBLOCKING {
     trace_point process_prs_tp = l1_dl_tracer.now();
 
     // Do not execute if the grid is not available.

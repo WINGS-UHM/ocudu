@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/phy/upper/channel_processors/pdsch/formatters.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/formatters.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// PDSCH processor wrapper. It appends its identifier into the free list when the processing is finished.
 class pdsch_processor_wrapper : public pdsch_processor, private pdsch_processor_notifier
@@ -31,7 +31,7 @@ public:
   /// Creates a PDSCH processor wrapper from another PDSCH processor.
   explicit pdsch_processor_wrapper(std::unique_ptr<pdsch_processor> processor_) : processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid PDSCH processor.");
+    ocudu_assert(processor, "Invalid PDSCH processor.");
   }
 
   /// Creates a PDSCH processor wrapper from another PDSCH processor wrapper.
@@ -61,7 +61,7 @@ private:
   // See pdsch_processor_notifier for documentation.
   void on_finish_processing() override
   {
-    srsran_assert(notifier != nullptr, "Invalid notifier.");
+    ocudu_assert(notifier != nullptr, "Invalid notifier.");
 
     // Notify the completion of the processing.
     notifier->on_finish_processing();
@@ -86,7 +86,7 @@ class pdsch_processor_pool : public pdsch_processor
 {
 public:
   explicit pdsch_processor_pool(span<std::unique_ptr<pdsch_processor_wrapper>> processors_) :
-    logger(srslog::fetch_basic_logger("PHY")), pool(processors_)
+    logger(ocudulog::fetch_basic_logger("PHY")), pool(processors_)
   {
   }
 
@@ -117,8 +117,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
   pdsch_processor_wrapper::pool pool;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// Helper function that converts an SRS FAPI PDU into an SRS uplink slot PDU using the system frame number and slot.
@@ -25,4 +25,4 @@ void convert_srs_fapi_to_phy(uplink_pdu_slot_repository::srs_pdu& pdu,
                              uint16_t                             slot);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

@@ -10,18 +10,18 @@
 
 #include "e1ap_cu_up_release_procedure.h"
 #include "common/e1ap_common_messages.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_ies.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_ies.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 using namespace asn1::e1ap;
 
 e1ap_cu_up_release_procedure::e1ap_cu_up_release_procedure(e1ap_cu_up_connection_handler& cu_up_conn_handler_,
                                                            e1ap_message_notifier&         tx_pdu_notifier_,
                                                            e1ap_event_manager&            ev_mng_,
-                                                           srslog::basic_logger&          logger_) :
+                                                           ocudulog::basic_logger&        logger_) :
   cu_up_conn_handler(cu_up_conn_handler_), cu_notifier(tx_pdu_notifier_), ev_mng(ev_mng_), logger(logger_)
 {
 }

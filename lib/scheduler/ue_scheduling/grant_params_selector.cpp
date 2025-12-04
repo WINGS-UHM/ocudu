@@ -15,9 +15,9 @@
 #include "../support/prbs_calculator.h"
 #include "../support/rb_helper.h"
 #include "../ue_context/ue_cell.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace sched_helper;
 
 namespace {
@@ -48,7 +48,7 @@ static std::optional<mcs_prbs_selection> compute_newtx_required_mcs_and_prbs(con
                                                                   mcs_config,
                                                                   pdsch_cfg.nof_layers},
                                        nof_rb_lims.stop());
-  srsran_sanity_check(prbs_tbs.nof_prbs <= nof_rb_lims.stop(), "Error in RB computation");
+  ocudu_sanity_check(prbs_tbs.nof_prbs <= nof_rb_lims.stop(), "Error in RB computation");
   if (prbs_tbs.nof_prbs == 0) {
     return std::nullopt;
   }
@@ -212,8 +212,8 @@ static std::optional<dl_sched_context> get_dl_sched_context(const slice_ue&     
       // Early exit if there are not enough symbols in the slot for the retransmission.
       return std::nullopt;
     }
-    srsran_assert(ss.get_dl_dci_format() == get_dci_format(h_dl->get_grant_params().dci_cfg_type),
-                  "DCI type cannot change across reTxs");
+    ocudu_assert(ss.get_dl_dci_format() == get_dci_format(h_dl->get_grant_params().dci_cfg_type),
+                 "DCI type cannot change across reTxs");
   }
 
   // Determine RB allocation limits.
@@ -363,8 +363,8 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
       // Early exit if there are not enough symbols in the slot for the retransmission.
       return std::nullopt;
     }
-    srsran_assert(ss.get_ul_dci_format() == get_dci_format(h_ul->get_grant_params().dci_cfg_type),
-                  "DCI type cannot change across reTxs");
+    ocudu_assert(ss.get_ul_dci_format() == get_dci_format(h_ul->get_grant_params().dci_cfg_type),
+                 "DCI type cannot change across reTxs");
   }
 
   // Determine RB allocation limits.

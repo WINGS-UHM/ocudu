@@ -8,22 +8,22 @@
  *
  */
 
-#include "srsran/support/versioning/build_info.h"
+#include "ocudu/support/versioning/build_info.h"
 #include "hashes.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-const char* srsran::get_build_hash()
+const char* ocudu::get_build_hash()
 {
   return build_hash;
 }
 
-const char* srsran::get_build_info()
+const char* ocudu::get_build_info()
 {
   return build_info;
 }
 
-const char* srsran::get_build_mode()
+const char* ocudu::get_build_mode()
 {
   return build_mode;
 }

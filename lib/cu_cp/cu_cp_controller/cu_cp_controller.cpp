@@ -11,10 +11,10 @@
 #include "cu_cp_controller.h"
 #include "../cu_up_processor/cu_up_processor_repository.h"
 #include "../du_processor/du_processor_repository.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/ran/plmn_identity.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 cu_cp_controller::cu_cp_controller(const cu_cp_configuration&      config_,
                                    cu_cp_amf_reconnection_handler& cu_cp_notifier,
@@ -25,7 +25,7 @@ cu_cp_controller::cu_cp_controller(const cu_cp_configuration&      config_,
                                    task_executor&                  ctrl_exec_) :
   cfg(config_),
   ctrl_exec(ctrl_exec_),
-  logger(srslog::fetch_basic_logger("CU-CP")),
+  logger(ocudulog::fetch_basic_logger("CU-CP")),
   amf_mng(ngaps_, cu_cp_notifier, *cfg.services.timers, ctrl_exec_, common_task_sched_),
   du_mng(cfg.admission.max_nof_dus, dus_, ctrl_exec, common_task_sched_),
   cu_up_mng(cfg.admission.max_nof_cu_ups, cu_ups_, ctrl_exec, common_task_sched_)

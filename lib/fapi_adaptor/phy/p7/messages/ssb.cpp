@@ -9,17 +9,17 @@
  */
 
 #include "ssb.h"
-#include "srsran/ran/ssb/pbch_mib_pack.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ran/ssb/pbch_mib_pack.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// Unpacks the contents of the BCH payload.
 static void unpack_bch_payload(span<uint8_t> dest, const fapi::dl_ssb_pdu& fapi_pdu)
 {
   report_error_if_not(fapi_pdu.bch_payload_flag == fapi::bch_payload_type::phy_timing_info, "Invalid BCH payload flag");
-  srsvec::bit_unpack(dest, fapi_pdu.bch_payload.bch_payload, dest.size());
+  ocuduvec::bit_unpack(dest, fapi_pdu.bch_payload.bch_payload, dest.size());
 }
 
 /// Returns the coefficient \f$\beta_{PSS}\f$ from the given SSB PDU (see TS38.213, Section 4.1).
@@ -32,20 +32,20 @@ static float convert_to_beta_pss(const fapi::dl_ssb_pdu& fapi_pdu)
       return 3.F;
     default:
       // NOTE: Unreachable code as the FAPI message should have been validated.
-      srsran_assert(0, "Invalid beta PSS profile");
+      ocudu_assert(0, "Invalid beta PSS profile");
       return 0;
   }
 }
 
-void srsran::fapi_adaptor::convert_ssb_fapi_to_phy(ssb_processor::pdu_t&   proc_pdu,
-                                                   const fapi::dl_ssb_pdu& fapi_pdu,
-                                                   uint16_t                sfn,
-                                                   uint16_t                slot,
-                                                   subcarrier_spacing      scs_common)
+void ocudu::fapi_adaptor::convert_ssb_fapi_to_phy(ssb_processor::pdu_t&   proc_pdu,
+                                                  const fapi::dl_ssb_pdu& fapi_pdu,
+                                                  uint16_t                sfn,
+                                                  uint16_t                slot,
+                                                  subcarrier_spacing      scs_common)
 {
-  srsran_assert(scs_common != subcarrier_spacing::kHz240, "Invalid value for common subcarrier spacing");
-  srsran_assert(fapi_pdu.ssb_maintenance_v3.scs != subcarrier_spacing::kHz60,
-                "Invalid value for SSB subcarrier spacing");
+  ocudu_assert(scs_common != subcarrier_spacing::kHz240, "Invalid value for common subcarrier spacing");
+  ocudu_assert(fapi_pdu.ssb_maintenance_v3.scs != subcarrier_spacing::kHz60,
+               "Invalid value for SSB subcarrier spacing");
 
   proc_pdu.slot              = slot_point(fapi_pdu.ssb_maintenance_v3.scs, sfn, slot);
   proc_pdu.phys_cell_id      = fapi_pdu.phys_cell_id;

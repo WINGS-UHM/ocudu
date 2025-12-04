@@ -9,13 +9,13 @@
  */
 
 #include "pucch.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/scheduler/result/pucch_info.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/scheduler/result/pucch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu& fapi_pdu, const pucch_info& mac_pdu)
+void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu& fapi_pdu, const pucch_info& mac_pdu)
 {
   fapi::ul_pucch_pdu_builder builder(fapi_pdu);
 
@@ -219,11 +219,11 @@ static void fill_custom_parameters(fapi::ul_pucch_pdu_builder& builder, const pu
       fill_format4_parameters(builder, mac_pdu);
       break;
     default:
-      srsran_assert(0, "Invalid PUCCH format={}", fmt::underlying(mac_pdu.format()));
+      ocudu_assert(0, "Invalid PUCCH format={}", fmt::underlying(mac_pdu.format()));
   }
 }
 
-void srsran::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
 {
   // Handle is not supported.
   static const unsigned handle = 0;

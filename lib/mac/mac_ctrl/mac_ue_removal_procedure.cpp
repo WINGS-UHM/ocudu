@@ -11,7 +11,7 @@
 #include "mac_ue_removal_procedure.h"
 #include "proc_logger.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void mac_ue_removal_procedure::operator()(coro_context<async_task<mac_ue_delete_response>>& ctx)
 {

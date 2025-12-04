@@ -14,11 +14,11 @@
 #include "../du_ue/du_ue_manager.h"
 #include "du_cell_stop_procedure.h"
 #include "du_ue_reset_procedure.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 cu_configuration_procedure::cu_configuration_procedure(const gnbcu_config_update_request&  request_,
                                                        du_cell_manager&                    cell_mng_,

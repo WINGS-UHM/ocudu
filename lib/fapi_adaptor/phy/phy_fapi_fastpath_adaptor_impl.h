@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// PHY-FAPI bidirectional fastpath adaptor implementation.
@@ -33,4 +33,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

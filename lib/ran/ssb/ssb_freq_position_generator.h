@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/ssb/ssb_properties.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/ssb/ssb_properties.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Number of subcarriers within a SSB block, as per TS 38.211, Section 7.4.3.1.
 const unsigned NOF_SSB_SUBCARRIERS = NOF_SSB_PRBS * NOF_SUBCARRIERS_PER_RB;
@@ -90,4 +90,4 @@ private:
   size_t gscn_raster_idx;
 };
 
-} // namespace srsran
+} // namespace ocudu

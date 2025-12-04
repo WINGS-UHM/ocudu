@@ -34,5 +34,5 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     list(APPEND SOURCES iq_compression_none_neon.cpp)
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 
-add_library(srsran_ofh_compression STATIC ${SOURCES})
-target_link_libraries(srsran_ofh_compression srsvec)
+add_library(ocudu_ofh_compression STATIC ${SOURCES})
+target_link_libraries(ocudu_ofh_compression ocuduvec)

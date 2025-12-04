@@ -9,12 +9,12 @@
  */
 
 #include "rapl_msr_energy_reader_impl.h"
-#include "srsran/adt/expected.h"
-#include "srsran/support/io/unique_fd.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/support/io/unique_fd.h"
 #include <fcntl.h>
 #include <fstream>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace resource_usage_utils;
 
 /// Address of the MSR interface in /dev.
@@ -55,10 +55,10 @@ static int open_msr_interface()
 {
   int fd = ::open(msr_path, O_RDONLY);
   if (fd < 0) {
-    srslog::fetch_basic_logger("APP").warning("Failed to open MSR register space, errno=\"{}\"", errno);
+    ocudulog::fetch_basic_logger("APP").warning("Failed to open MSR register space, errno=\"{}\"", errno);
 
     if (errno == EIO) {
-      srslog::fetch_basic_logger("APP").warning("CPU0 doesn't support MSRs");
+      ocudulog::fetch_basic_logger("APP").warning("CPU0 doesn't support MSRs");
     }
   }
   return fd;
@@ -74,7 +74,7 @@ static expected<uint64_t> read_msr_register(uint64_t reg_address)
 
   uint64_t data;
   if (::pread(fd.value(), &data, sizeof(data), reg_address) != sizeof(data)) {
-    srslog::fetch_basic_logger("APP").warning("Failed to read an MSR at the address {:x}", reg_address);
+    ocudulog::fetch_basic_logger("APP").warning("Failed to read an MSR at the address {:x}", reg_address);
     return make_unexpected(default_error_t{});
   }
 
@@ -144,7 +144,7 @@ resource_usage_utils::rapl_msr_reader::cpu_vendor resource_usage_utils::rapl_msr
   return vendor_id;
 }
 
-std::unique_ptr<energy_consumption_reader> resource_usage_utils::build_rapl_msr_reader(srslog::basic_logger& logger)
+std::unique_ptr<energy_consumption_reader> resource_usage_utils::build_rapl_msr_reader(ocudulog::basic_logger& logger)
 {
   std::ifstream rapl_msr(msr_path);
   if (!rapl_msr.is_open()) {

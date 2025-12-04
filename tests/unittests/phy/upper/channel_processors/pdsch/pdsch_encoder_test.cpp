@@ -9,29 +9,29 @@
  */
 
 #include "pdsch_encoder_test_data.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/support/ocudu_test.h"
 #ifdef HWACC_PDSCH_ENABLED
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #endif // HWACC_PDSCH_ENABLED
 #include <getopt.h>
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 static std::string encoder_type = "generic";
 
 #ifdef HWACC_PDSCH_ENABLED
-static bool                 dedicated_queue = true;
-static bool                 cb_mode         = false;
-static srslog::basic_levels hal_log_level   = srslog::basic_levels::error;
-static bool                 std_out_sink    = true;
-static std::string          eal_arguments   = "";
+static bool                   dedicated_queue = true;
+static bool                   cb_mode         = false;
+static ocudulog::basic_levels hal_log_level   = ocudulog::basic_levels::error;
+static bool                   std_out_sink    = true;
+static std::string            eal_arguments   = "";
 #endif // HWACC_PDSCH_ENABLED
 
 static void usage(const char* prog)
@@ -101,8 +101,8 @@ static void parse_args(int argc, char** argv)
         std_out_sink = false;
         break;
       case 'z': {
-        auto level    = srslog::str_to_basic_level(std::string(optarg));
-        hal_log_level = level.has_value() ? level.value() : srslog::basic_levels::error;
+        auto level    = ocudulog::str_to_basic_level(std::string(optarg));
+        hal_log_level = level.has_value() ? level.value() : ocudulog::basic_levels::error;
       } break;
 #endif // HWACC_PDSCH_ENABLED
       case 'h':
@@ -137,11 +137,11 @@ static std::shared_ptr<pdsch_encoder_factory> create_generic_pdsch_encoder_facto
 static std::shared_ptr<hal::hw_accelerator_pdsch_enc_factory> create_hw_accelerator_pdsch_enc_factory()
 {
 #ifdef HWACC_PDSCH_ENABLED
-  srslog::sink* log_sink =
-      std_out_sink ? srslog::create_stdout_sink() : srslog::create_file_sink("pdsch_encoder_vectortest.log");
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("HAL", false);
+  ocudulog::sink* log_sink =
+      std_out_sink ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink("pdsch_encoder_vectortest.log");
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HAL", false);
   logger.set_level(hal_log_level);
 
   // Pointer to a dpdk-based hardware-accelerator interface.
@@ -170,7 +170,7 @@ static std::shared_ptr<hal::hw_accelerator_pdsch_enc_factory> create_hw_accelera
   hw_encoder_config.dedicated_queue   = dedicated_queue;
 
   // ACC100 hardware-accelerator implementation.
-  return srsran::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
+  return ocudu::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
 #else  // HWACC_PDSCH_ENABLED
   return nullptr;
 #endif // HWACC_PDSCH_ENABLED

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <set>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Class responsible for notifying the CU-CP about DU node connections.
 class du_connection_notifier
@@ -27,5 +27,5 @@ public:
   virtual bool on_du_setup_request(du_index_t du_index, const std::set<plmn_identity>& plmn_ids) = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

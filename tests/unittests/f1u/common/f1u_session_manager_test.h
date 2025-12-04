@@ -12,18 +12,18 @@
 
 #include "lib/f1u/split_connector/f1u_session_manager_impl.h"
 #include "tests/unittests/cu_up/cu_up_test_helpers.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// Fixture base class for PDU session manager tests
 class f1u_session_manager_test : public ::testing::Test
 {
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // Setup default GWs.
     {
@@ -63,7 +63,7 @@ class f1u_session_manager_test : public ::testing::Test
     f1u_session_mngr.reset();
 
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 protected:
@@ -72,4 +72,4 @@ protected:
   dummy_inner_f1u_bearer               f1u_bearer;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

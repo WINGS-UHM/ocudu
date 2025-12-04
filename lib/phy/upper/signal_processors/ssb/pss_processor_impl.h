@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/upper/sequence_generators/pss_sequence_generator.h"
-#include "srsran/phy/upper/signal_processors/ssb/pss_processor.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/upper/sequence_generators/pss_sequence_generator.h"
+#include "ocudu/phy/upper/signal_processors/ssb/pss_processor.h"
 
-namespace srsran {
+namespace ocudu {
 class pss_processor_impl : public pss_processor
 {
 private:
@@ -40,4 +40,4 @@ public:
   void map(resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

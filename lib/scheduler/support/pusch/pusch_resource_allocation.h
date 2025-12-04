@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
-#include "srsran/scheduler/result/dci_info.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/result/dci_info.h"
 
-namespace srsran {
+namespace ocudu {
 namespace pusch_helper {
 
 /// \brief Determine CRB limits for PUSCH grant, based on BWP configs, SearchSpace type and DCI format as per
@@ -38,4 +38,4 @@ inline crb_interval get_ra_crb_limits(dci_ul_rnti_config_type  dci_type,
 }
 
 } // namespace pusch_helper
-} // namespace srsran
+} // namespace ocudu

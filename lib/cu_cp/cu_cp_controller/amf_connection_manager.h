@@ -12,13 +12,13 @@
 
 #include "../ngap_repository.h"
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <future>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_cp_routine_manager;
 struct cu_cp_configuration;
@@ -68,12 +68,12 @@ private:
   timer_manager&                  timers;
   task_executor&                  cu_cp_exec;
   common_task_scheduler&          common_task_sched;
-  srslog::basic_logger&           logger;
+  ocudulog::basic_logger&         logger;
 
   std::unordered_map<amf_index_t, std::atomic<bool>> amfs_connected;
 
   std::atomic<bool> stopped{false};
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

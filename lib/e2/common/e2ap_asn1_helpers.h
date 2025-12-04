@@ -13,20 +13,20 @@
 #include "e2sm/e2sm_ccc/e2sm_ccc_asn1_packer.h"
 #include "e2sm/e2sm_kpm/e2sm_kpm_asn1_packer.h"
 #include "e2sm/e2sm_rc/e2sm_rc_asn1_packer.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2ap_configuration.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/ran/gnb_du_id.h"
-#include "srsran/security/security.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2ap_configuration.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/ran/gnb_du_id.h"
+#include "ocudu/security/security.h"
 #include <string>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
-inline void fill_ran_function_item(srslog::basic_logger&          logger,
+inline void fill_ran_function_item(ocudulog::basic_logger&        logger,
                                    asn1::e2ap::e2setup_request_s& setup,
                                    const std::string&             ran_oid,
                                    const std::uint32_t&           ran_func_id,
@@ -49,7 +49,7 @@ inline void fill_ran_function_item(srslog::basic_logger&          logger,
   }
 }
 
-inline void fill_asn1_e2ap_setup_request(srslog::basic_logger&          logger,
+inline void fill_asn1_e2ap_setup_request(ocudulog::basic_logger&        logger,
                                          asn1::e2ap::e2setup_request_s& setup,
                                          const e2ap_configuration&      e2ap_config,
                                          e2sm_manager&                  e2sm_mngr)
@@ -179,4 +179,4 @@ inline void fill_asn1_e2ap_setup_request(srslog::basic_logger&          logger,
   }
 }
 
-} // namespace srsran
+} // namespace ocudu

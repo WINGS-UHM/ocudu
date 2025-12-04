@@ -10,13 +10,13 @@
 
 #include "lib/rlc/rlc_tx_am_entity.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/rtsan.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/rtsan.h"
 #include <gtest/gtest.h>
 #include <list>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Mocking class of the surrounding layers invoked by the RLC AM Tx entity.
 class rlc_tx_am_test_frame : public rlc_tx_upper_layer_data_notifier,
@@ -44,7 +44,7 @@ public:
   // rlc_tx_upper_layer_data_notifier interface
   void on_transmitted_sdu(uint32_t max_tx_pdcp_sn, uint32_t desired_buf_size) override
   {
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     // store in list
     highest_transmitted_pdcp_sn_list.push_back(max_tx_pdcp_sn);
     desired_buf_size_list.push_back(desired_buf_size);
@@ -52,21 +52,21 @@ public:
 
   void on_delivered_sdu(uint32_t max_deliv_pdcp_sn) override
   {
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     // store in list
     highest_delivered_pdcp_sn_list.push_back(max_deliv_pdcp_sn);
   }
 
   void on_retransmitted_sdu(uint32_t max_retx_pdcp_sn) override
   {
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     // store in list
     highest_retransmitted_pdcp_sn_list.push_back(max_retx_pdcp_sn);
   }
 
   void on_delivered_retransmitted_sdu(uint32_t max_deliv_retx_pdcp_sn) override
   {
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     // store in list
     highest_delivered_retransmitted_pdcp_sn_list.push_back(max_deliv_retx_pdcp_sn);
   }
@@ -99,12 +99,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init RLC logger
-    srslog::fetch_basic_logger("RLC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("RLC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(100);
 
     logger.info("Creating RLC Tx AM entity ({} bit)", to_number(sn_size));
 
@@ -146,7 +146,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   /// \brief Obtains full RLC AMD PDUs from generated SDUs that are passed through an RLC AM entity
@@ -354,7 +354,7 @@ protected:
     pcell_worker.run_pending_tasks();
   }
 
-  srslog::basic_logger&                         logger  = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&                       logger  = ocudulog::fetch_basic_logger("TEST", false);
   rlc_am_sn_size                                sn_size = GetParam();
   rlc_tx_am_config                              config;
   timer_manager                                 timers;

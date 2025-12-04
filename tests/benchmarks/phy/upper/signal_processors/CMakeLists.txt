@@ -8,22 +8,22 @@
 
 add_executable(dmrs_pdsch_processor_benchmark dmrs_pdsch_processor_benchmark.cpp)
 target_link_libraries(dmrs_pdsch_processor_benchmark
-        srsvec
-        srslog
-        srsran_dmrs_pdsch
-        srsran_phy_support
-        srsran_sequence_generators
-        srsran_channel_precoder)
+        ocuduvec
+        ocudulog
+        ocudu_dmrs_pdsch
+        ocudu_phy_support
+        ocudu_sequence_generators
+        ocudu_channel_precoder)
 add_test(dmrs_pdsch_processor_benchmark dmrs_pdsch_processor_benchmark -D -s -R 1)
 
 
 add_executable(srs_estimator_benchmark srs_estimator_benchmark.cpp)
 target_link_libraries(srs_estimator_benchmark
-        srsvec
-        srslog
-        srsran_channel_precoder
-        srsran_srs_estimator
-        srsran_phy_support
-        srsran_dft
-        srsran_sequence_generators)
+        ocuduvec
+        ocudulog
+        ocudu_channel_precoder
+        ocudu_srs_estimator
+        ocudu_phy_support
+        ocudu_dft
+        ocudu_sequence_generators)
 add_test(srs_estimator_benchmark srs_estimator_benchmark -D -s -R 1)

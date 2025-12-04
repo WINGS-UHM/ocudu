@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/ran/uci/uci_mapping.h"
+#include "ocudu/ran/uci/uci_mapping.h"
 #include <array>
 #include <cmath>
 #include <cstdint>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Implements Table 9.3-1, TS 38.213.
 static const std::array<float, 16> beta_offset_harq_ack_values = {
@@ -62,13 +62,13 @@ static const std::array<float, 19> beta_offset_csi_values = {
     // clang-format on
 };
 
-float srsran::beta_harq_ack_to_float(unsigned beta_uint_val)
+float ocudu::beta_harq_ack_to_float(unsigned beta_uint_val)
 {
   // NOTE: ensure \c beta_uint_val < beta_offset_harq_ack_values.size() before calling this method.
   return beta_offset_harq_ack_values[static_cast<size_t>(beta_uint_val)];
 }
 
-float srsran::beta_csi_to_float(unsigned beta_uint_val)
+float ocudu::beta_csi_to_float(unsigned beta_uint_val)
 {
   // NOTE: ensure \c beta_uint_val < beta_offset_csi_values.size() before calling this method.
   return beta_offset_csi_values[static_cast<size_t>(beta_uint_val)];

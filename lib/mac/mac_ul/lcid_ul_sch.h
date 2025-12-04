@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/logical_channel/lcid.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/logical_channel/lcid.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 class lcid_ul_sch_t
 {
@@ -49,10 +49,10 @@ public:
     PADDING         = 0b111111
   };
 
-  lcid_ul_sch_t(underlying_type lcid_ = PADDING) : lcid_val(lcid_) { srsran_assert(lcid_ <= PADDING, "Invalid LCID"); }
+  lcid_ul_sch_t(underlying_type lcid_ = PADDING) : lcid_val(lcid_) { ocudu_assert(lcid_ <= PADDING, "Invalid LCID"); }
   lcid_ul_sch_t& operator=(underlying_type lcid)
   {
-    srsran_assert(lcid <= PADDING, "Invalid LCID");
+    ocudu_assert(lcid <= PADDING, "Invalid LCID");
     lcid_val = lcid;
     return *this;
   }
@@ -128,15 +128,15 @@ private:
   underlying_type lcid_val;
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 /// FMT formatter of slot_point type.
 template <>
-struct formatter<srsran::lcid_ul_sch_t> : public formatter<uint32_t> {
+struct formatter<ocudu::lcid_ul_sch_t> : public formatter<uint32_t> {
   template <typename FormatContext>
-  auto format(srsran::lcid_ul_sch_t lcid, FormatContext& ctx) const
+  auto format(ocudu::lcid_ul_sch_t lcid, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", (uint16_t)lcid);
   }

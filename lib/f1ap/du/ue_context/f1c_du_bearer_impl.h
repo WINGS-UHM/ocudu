@@ -11,17 +11,17 @@
 #pragma once
 
 #include "f1ap_ue_context.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/f1ap/du/f1c_bearer.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/support/async/protocol_transaction_manager.h"
-#include "srsran/support/memory_pool/unsync_fixed_size_memory_block_pool.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/f1ap/du/f1c_bearer.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
+#include "ocudu/support/memory_pool/unsync_fixed_size_memory_block_pool.h"
 #include <deque>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class f1ap_event_manager;
 
@@ -64,7 +64,7 @@ private:
   f1ap_du_configurator&     du_configurator;
   task_executor&            ctrl_exec;
   task_executor&            ue_exec;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 };
 
 class f1c_other_srb_du_bearer final : public f1c_bearer
@@ -123,16 +123,16 @@ private:
   /// Handle RRC Delivery Report as per TS 38.473, Section 8.4.4.
   void handle_rrc_delivery_report(uint32_t trigger_pdcp_sn, uint32_t highest_in_order_pdcp_sn);
 
-  f1ap_ue_context&       ue_ctxt;
-  srb_id_t               srb_id;
-  f1ap_message_notifier& f1ap_notifier;
-  f1c_rx_sdu_notifier&   sdu_notifier;
-  f1ap_du_configurator&  du_configurator;
-  task_executor&         ctrl_exec;
-  task_executor&         ue_exec;
-  timer_manager&         timers;
-  srslog::basic_logger&  logger;
-  event_observer_type    always_set_event;
+  f1ap_ue_context&        ue_ctxt;
+  srb_id_t                srb_id;
+  f1ap_message_notifier&  f1ap_notifier;
+  f1c_rx_sdu_notifier&    sdu_notifier;
+  f1ap_du_configurator&   du_configurator;
+  task_executor&          ctrl_exec;
+  task_executor&          ue_exec;
+  timer_manager&          timers;
+  ocudulog::basic_logger& logger;
+  event_observer_type     always_set_event;
 
   std::optional<uint32_t> last_pdcp_sn_transmitted;
   std::optional<uint32_t> last_pdcp_sn_delivered;
@@ -147,5 +147,5 @@ private:
   std::vector<event_ptr>                       pending_transmissions;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

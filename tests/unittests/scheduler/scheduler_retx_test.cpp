@@ -19,7 +19,7 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class base_scheduler_retx_tester
 {
@@ -168,14 +168,14 @@ TEST_F(scheduler_missing_ack_tester, when_no_harq_ack_arrives_then_harq_eventual
   }
 
   // Set buffer state to zero, so that no newtxs get allocated once the current latest_harq_states become empty.
-  srslog::fetch_basic_logger("TEST").info("-- Setting DL BS=0, which will stop new DL grants --");
+  ocudulog::fetch_basic_logger("TEST").info("-- Setting DL BS=0, which will stop new DL grants --");
   bench.push_dl_buffer_state(dl_buffer_state_indication_message{ue_create_req.ue_index, LCID_SRB1, 0});
   bench.run_slot(to_du_cell_index(0));
   ASSERT_EQ(bench.find_ue_dl_pdcch(rnti), nullptr) << "No HARQs should be available at this point";
 
   // After several slots without HARQ-ACK, the HARQ should auto reset.
   {
-    srslog::fetch_basic_logger("TEST").info("-- DL HARQs should be auto-reset --");
+    ocudulog::fetch_basic_logger("TEST").info("-- DL HARQs should be auto-reset --");
     const pdcch_dl_information* pdcch = this->run_until_next_dl_pdcch_alloc(MAX_HARQ_TIMEOUT);
     ASSERT_EQ(pdcch, nullptr) << "Retransmission took place without an HARQ-ACK";
   }
@@ -212,21 +212,21 @@ TEST_F(scheduler_missing_ack_tester, when_no_crc_arrives_then_ul_harq_eventually
   }
 
   // Set buffer state to zero, so that no newtxs get allocated once the current latest_harq_states become empty.
-  srslog::fetch_basic_logger("TEST").info("-- Setting BSR=0, which will stop new UL grants --");
+  ocudulog::fetch_basic_logger("TEST").info("-- Setting BSR=0, which will stop new UL grants --");
   bsr.reported_lcgs[0].nof_bytes = 0;
   bench.push_bsr(bsr);
   bench.run_slot(to_du_cell_index(0));
   ASSERT_EQ(bench.find_ue_ul_pdcch(rnti), nullptr) << "No HARQs should be available at this point";
 
   // After several slots without HARQ-ACK, the HARQ should auto reset.
-  srslog::fetch_basic_logger("TEST").info("-- UL HARQs should be auto-reset --");
+  ocudulog::fetch_basic_logger("TEST").info("-- UL HARQs should be auto-reset --");
   {
     const pdcch_ul_information* pdcch = this->run_until_next_ul_pdcch_alloc(MAX_HARQ_TIMEOUT);
     ASSERT_EQ(pdcch, nullptr) << "No retx should have taken place without CRC";
   }
 
   // At this point, all HARQs should be free once again. Push enough bytes and verify that all HARQs get re-allocated.
-  srslog::fetch_basic_logger("TEST").info("-- Pushing BSR > 0 and ensuring HARQs get reallocated. --");
+  ocudulog::fetch_basic_logger("TEST").info("-- Pushing BSR > 0 and ensuring HARQs get reallocated. --");
   bsr.reported_lcgs[0].nof_bytes = 100000000;
   bench.push_bsr(bsr);
   for (unsigned i = 0; i != nof_harqs; ++i) {

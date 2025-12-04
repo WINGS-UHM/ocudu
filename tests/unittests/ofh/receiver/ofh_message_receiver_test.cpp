@@ -15,16 +15,16 @@
 #include "../../../../lib/ofh/receiver/ofh_sequence_id_checker_dummy_impl.h"
 #include "../../support/task_executor_test_doubles.h"
 #include "../compression/ofh_iq_decompressor_test_doubles.h"
-#include "srsran/ofh/ethernet/ethernet_controller.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_metrics_collector.h"
-#include "srsran/ofh/ethernet/ethernet_unique_buffer.h"
-#include "srsran/ofh/ofh_factories.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/ofh/ethernet/ethernet_controller.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_metrics_collector.h"
+#include "ocudu/ofh/ethernet/ethernet_unique_buffer.h"
+#include "ocudu/ofh/ofh_factories.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
-using namespace srsran::ofh::testing;
+using namespace ocudu::ofh::testing;
 
 namespace {
 
@@ -171,7 +171,7 @@ public:
   ofh_message_receiver_fixture() :
     executor(20),
     closed_window_handler({},
-                          {&srslog::fetch_basic_logger("TEST"),
+                          {&ocudulog::fetch_basic_logger("TEST"),
                            &executor,
                            std::make_shared<prach_context_repository>(20),
                            std::make_shared<uplink_context_repository>(20),
@@ -198,7 +198,7 @@ public:
   message_receiver_dependencies generate_dependencies()
   {
     message_receiver_dependencies dependencies;
-    dependencies.logger         = &srslog::fetch_basic_logger("TEST");
+    dependencies.logger         = &ocudulog::fetch_basic_logger("TEST");
     dependencies.window_checker = &window_checker;
     dependencies.window_handler = &closed_window_handler;
 
@@ -288,7 +288,7 @@ TEST_F(ofh_message_receiver_fixture, discard_ecpri_control_frames)
   ether::unique_rx_buffer buffer(dummy_eth_rx_buffer(std::vector<uint8_t>{1}));
 
   ecpri::packet_parameters params;
-  params.header.msg_type = srsran::ecpri::message_type::rt_control_data;
+  params.header.msg_type = ocudu::ecpri::message_type::rt_control_data;
   params.type_params.emplace<ecpri::realtime_control_parameters>(ecpri::realtime_control_parameters{1, 2});
   ecpri_decoder->set_ecpri_params(params);
 

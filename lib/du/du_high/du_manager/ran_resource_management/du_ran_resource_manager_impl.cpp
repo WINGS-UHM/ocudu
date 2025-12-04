@@ -9,12 +9,12 @@
  */
 
 #include "du_ran_resource_manager_impl.h"
-#include "srsran/mac/config/mac_cell_group_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/mac/config/mac_cell_group_config_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_ue_ran_resource_updater_impl::du_ue_ran_resource_updater_impl(du_ue_resource_config* cell_grp_cfg_,
                                                                  const std::optional<ue_capability_summary>& ue_caps_,
@@ -48,10 +48,10 @@ void du_ue_ran_resource_updater_impl::config_applied()
 // Helper that resets the PUCCH and SRS configurations in the serving cell configuration.
 static void reset_serv_cell_cfg(serving_cell_config& serv_cell_cfg)
 {
-  srsran_assert(serv_cell_cfg.ul_config.has_value() and
-                    serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value() and
-                    serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
-                "UL configuration in Serving cell config not configured");
+  ocudu_assert(serv_cell_cfg.ul_config.has_value() and
+                   serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value() and
+                   serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
+               "UL configuration in Serving cell config not configured");
 
   serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.reset();
   if (serv_cell_cfg.csi_meas_cfg.has_value()) {
@@ -67,7 +67,7 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
                                                            const std::map<five_qi_t, du_qos_config>& qos_config,
                                                            const du_test_mode_config&                test_cfg_) :
   cell_cfg_list(cell_cfg_list_),
-  logger(srslog::fetch_basic_logger("DU-MNG")),
+  logger(ocudulog::fetch_basic_logger("DU-MNG")),
   test_cfg(test_cfg_),
   pucch_res_mng(cell_cfg_list, scheduler_cfg.ue.max_pucchs_per_slot),
   bearer_res_mng(srb_config, qos_config, logger),
@@ -143,7 +143,7 @@ du_ran_resource_manager_impl::update_context(du_ue_index_t                      
                                              const du_ue_resource_config*          reestablished_context,
                                              const ue_capability_summary*          reestablished_ue_caps)
 {
-  srsran_assert(ue_res_pool.contains(ue_index), "This function should only be called for an already allocated UE");
+  ocudu_assert(ue_res_pool.contains(ue_index), "This function should only be called for an already allocated UE");
   ue_resource_context&           u      = ue_res_pool[ue_index];
   du_ue_resource_config&         ue_mcg = u.cg_cfg;
   du_ue_resource_update_response resp;
@@ -207,7 +207,7 @@ du_ran_resource_manager_impl::update_context(du_ue_index_t                      
 
 void du_ran_resource_manager_impl::deallocate_context(du_ue_index_t ue_index)
 {
-  srsran_assert(ue_res_pool.contains(ue_index), "This function should only be called for an already allocated UE");
+  ocudu_assert(ue_res_pool.contains(ue_index), "This function should only be called for an already allocated UE");
   ue_resource_context&   ue_res = ue_res_pool[ue_index];
   du_ue_resource_config& ue_mcg = ue_res.cg_cfg;
 
@@ -224,7 +224,7 @@ void du_ran_resource_manager_impl::deallocate_context(du_ue_index_t ue_index)
 
 void du_ran_resource_manager_impl::ue_config_applied(du_ue_index_t ue_index)
 {
-  srsran_assert(ue_res_pool.contains(ue_index), "This function should only be called for an already allocated UE");
+  ocudu_assert(ue_res_pool.contains(ue_index), "This function should only be called for an already allocated UE");
   ue_resource_context&   ue_res = ue_res_pool[ue_index];
   du_ue_resource_config& ue_mcg = ue_res.cg_cfg;
 
@@ -242,7 +242,7 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
 
   if (serv_cell_index == SERVING_CELL_PCELL_IDX) {
     // It is a PCell.
-    srsran_assert(not ue_res.cell_group.cells.contains(SERVING_CELL_PCELL_IDX), "Reallocation of PCell detected");
+    ocudu_assert(not ue_res.cell_group.cells.contains(SERVING_CELL_PCELL_IDX), "Reallocation of PCell detected");
     ue_res.cell_group.cells.emplace(SERVING_CELL_PCELL_IDX);
     ue_res.cell_group.cells[0].serv_cell_idx            = SERVING_CELL_PCELL_IDX;
     ue_res.cell_group.cells[0].serv_cell_cfg            = cell_cfg_cmn.ue_ded_serv_cell_cfg;
@@ -273,7 +273,7 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
     }
 
   } else {
-    srsran_assert(not ue_res.cell_group.cells.contains(serv_cell_index), "Reallocation of SCell detected");
+    ocudu_assert(not ue_res.cell_group.cells.contains(serv_cell_index), "Reallocation of SCell detected");
     ue_res.cell_group.cells.emplace(serv_cell_index);
     ue_res.cell_group.cells[serv_cell_index].serv_cell_idx            = serv_cell_index;
     ue_res.cell_group.cells[serv_cell_index].serv_cell_cfg            = cell_cfg_cmn.ue_ded_serv_cell_cfg;
@@ -290,9 +290,9 @@ void du_ran_resource_manager_impl::deallocate_cell_resources(du_ue_index_t ue_in
 
   // Return resources back to free lists.
   if (serv_cell_index == SERVING_CELL_PCELL_IDX) {
-    srsran_assert(not ue_res.cell_group.cells.empty() and
-                      ue_res.cell_group.cells[0].serv_cell_cfg.cell_index != INVALID_DU_CELL_INDEX,
-                  "Double deallocation of same UE cell resources detected");
+    ocudu_assert(not ue_res.cell_group.cells.empty() and
+                     ue_res.cell_group.cells[0].serv_cell_cfg.cell_index != INVALID_DU_CELL_INDEX,
+                 "Double deallocation of same UE cell resources detected");
     pucch_res_mng.dealloc_resources(ue_res.cell_group);
     srs_res_mng->dealloc_resources(ue_res.cell_group);
     ue_res.cell_group.cells[0].serv_cell_cfg.cell_index = INVALID_DU_CELL_INDEX;

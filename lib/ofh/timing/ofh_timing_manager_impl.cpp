@@ -10,7 +10,7 @@
 
 #include "ofh_timing_manager_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 ota_symbol_boundary_notifier_manager& timing_manager_impl::get_ota_symbol_boundary_notifier_manager()

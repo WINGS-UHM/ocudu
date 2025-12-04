@@ -12,14 +12,14 @@
 #include "neon_support.h"
 #include <arm_neon.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 void ldpc_rate_dematcher_neon_impl::combine_softbits(span<log_likelihood_ratio>       out,
                                                      span<const log_likelihood_ratio> in0,
                                                      span<const log_likelihood_ratio> in1) const
 {
-  srsran_assert(out.size() == in0.size(), "All sizes must be equal.");
-  srsran_assert(out.size() == in1.size(), "All sizes must be equal.");
+  ocudu_assert(out.size() == in0.size(), "All sizes must be equal.");
+  ocudu_assert(out.size() == in1.size(), "All sizes must be equal.");
 
   unsigned index               = 0;
   unsigned out_size            = out.size();

@@ -12,7 +12,7 @@
 #include "logging/scheduler_metrics_handler.h"
 #include "ue_scheduling/ue_scheduler_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 cell_scheduler::cell_scheduler(const scheduler_expert_config&                  sched_cfg,
                                const sched_cell_configuration_request_message& msg,
@@ -24,7 +24,7 @@ cell_scheduler::cell_scheduler(const scheduler_expert_config&                  s
   event_logger(cell_cfg.cell_index, cell_cfg.pci),
   metrics(metrics_handler),
   result_logger(sched_cfg.log_broadcast_messages, cell_cfg.pci),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   ssb_sch(cell_cfg),
   pdcch_sch(cell_cfg),
   si_sch(cell_cfg, pdcch_sch, msg),
@@ -83,14 +83,14 @@ void cell_scheduler::run_slot(slot_point sl_tx)
   auto slot_start_tp = std::chrono::high_resolution_clock::now();
 
   // If there are skipped slots, handle them. Otherwise, the cell grid and cached results are not correctly cleared.
-  if (SRSRAN_LIKELY(res_grid.slot_tx().valid())) {
-    while (SRSRAN_UNLIKELY(res_grid.slot_tx() + 1 != sl_tx)) {
+  if (OCUDU_LIKELY(res_grid.slot_tx().valid())) {
+    while (OCUDU_UNLIKELY(res_grid.slot_tx() + 1 != sl_tx)) {
       slot_point skipped_slot = res_grid.slot_tx() + 1;
       logger.info("cell={}: Detected skipped slot={}.", fmt::underlying(cell_cfg.cell_index), skipped_slot);
       reset_resource_grid(skipped_slot);
     }
   } else {
-    if (SRSRAN_UNLIKELY(not active)) {
+    if (OCUDU_UNLIKELY(not active)) {
       // Implicitly activate cell on slot_indication.
       start();
     }

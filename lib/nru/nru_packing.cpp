@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/nru/nru_packing.h"
-#include "srsran/support/bit_encoding.h"
+#include "ocudu/nru/nru_packing.h"
+#include "ocudu/support/bit_encoding.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Macro used to check a read/unpack operation and log an error message if the validation fails.
 #define VERIFY_READ(cond)                                                                                              \
@@ -29,7 +29,7 @@ using namespace srsran;
 
 nru_pdu_type nru_packing::get_pdu_type(byte_buffer_view container)
 {
-  srsran_assert(!container.empty(), "Cannot get PDU type of empty PDU");
+  ocudu_assert(!container.empty(), "Cannot get PDU type of empty PDU");
   uint8_t field_value = container[0] >> 4;
   return uint_to_nru_pdu_type(field_value);
 }

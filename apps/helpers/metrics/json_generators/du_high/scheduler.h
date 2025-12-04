@@ -13,7 +13,7 @@
 #include "external/nlohmann/json.hpp"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 struct scheduler_metrics_report;
 
@@ -28,4 +28,4 @@ std::string generate_string(const scheduler_metrics_report& metrics, int indent 
 
 } // namespace json_generators
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

@@ -14,16 +14,16 @@
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_message_validators.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_inter_du_handover_test : public cu_cp_test_environment, public ::testing::Test
 {

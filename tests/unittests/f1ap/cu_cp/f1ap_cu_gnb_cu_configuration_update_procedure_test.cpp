@@ -10,14 +10,14 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/ran/cause/f1ap_cause.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/ran/cause/f1ap_cause.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::f1ap;
 
 const std::chrono::milliseconds procedure_timeout{100};

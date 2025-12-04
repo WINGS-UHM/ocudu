@@ -9,11 +9,11 @@
  */
 
 #include "lib/scheduler/support/dmrs_helpers.h"
-#include "srsran/ran/pci.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Test bench to hold DMRS symbol masks, based on Table 7.4.1.1.2-3, TS 38.211.
 struct test_bench {

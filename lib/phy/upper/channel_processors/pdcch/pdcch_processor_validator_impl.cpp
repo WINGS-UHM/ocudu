@@ -10,7 +10,7 @@
 
 #include "pdcch_processor_validator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string> pdcch_processor_validator_impl::is_valid(const pdcch_processor::pdu_t& pdu) const
 

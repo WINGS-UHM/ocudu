@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_time_message_notifier.h"
-#include "srsran/phy/upper/upper_phy_timing_handler.h"
-#include "srsran/phy/upper/upper_phy_timing_notifier.h"
+#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/phy/upper/upper_phy_timing_handler.h"
+#include "ocudu/phy/upper/upper_phy_timing_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 class fapi_to_phy_fastpath_translator;
@@ -48,4 +48,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

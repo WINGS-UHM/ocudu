@@ -11,7 +11,7 @@
 #include "channel_precoder_neon.h"
 #include <arm_neon.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Size of a NEON register in complex numbers with 32-bit floating point precision.
 static constexpr unsigned NEON_CF_SIZE = 4;
@@ -420,7 +420,7 @@ void template_apply_layer_map_and_precoding<1>(re_buffer_writer<cbf16_t>&     ou
   unsigned nof_ports  = precoding.get_nof_ports();
 
   // Make sure the number of ports is valid.
-  srsran_assert(nof_ports == 1, "Invalid number of ports (i.e., {}).", nof_ports);
+  ocudu_assert(nof_ports == 1, "Invalid number of ports (i.e., {}).", nof_ports);
 
   simd_cf_t weight_neon;
   cf_t      weight_cft = precoding.get_coefficient(0, 0);

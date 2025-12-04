@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../../../../lib/ofh/transmitter/ofh_data_flow_cplane_scheduling_commands.h"
-#include "srsran/ofh/ofh_controller.h"
+#include "ocudu/ofh/ofh_controller.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace testing {
 
@@ -76,4 +76,4 @@ private:
 
 } // namespace testing
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #include "ecpri_packet_decoder_impl.h"
 #include "../support/network_order_binary_deserializer.h"
-#include "srsran/ofh/ecpri/ecpri_constants.h"
-#include "srsran/ofh/ecpri/ecpri_packet_properties.h"
+#include "ocudu/ofh/ecpri/ecpri_constants.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_properties.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ecpri;
 
 /// Extracts an eCPRI common header from the deserializer.
@@ -28,9 +28,9 @@ static void deserialize_header(ofh::network_order_binary_deserializer& deseriali
 }
 
 /// Checks if the given eCPRI common header is valid.
-static bool is_header_valid(const common_header& header, unsigned sector, srslog::basic_logger& logger)
+static bool is_header_valid(const common_header& header, unsigned sector, ocudulog::basic_logger& logger)
 {
-  if (SRSRAN_UNLIKELY(header.revision != ECPRI_PROTOCOL_REVISION)) {
+  if (OCUDU_UNLIKELY(header.revision != ECPRI_PROTOCOL_REVISION)) {
     logger.info(
         "Sector #{}: dropped received eCPRI packet as the detected eCPRI protocol revision '{}' is not supported",
         sector,
@@ -39,7 +39,7 @@ static bool is_header_valid(const common_header& header, unsigned sector, srslog
     return false;
   }
 
-  if (SRSRAN_UNLIKELY(!header.is_last_packet)) {
+  if (OCUDU_UNLIKELY(!header.is_last_packet)) {
     logger.info("Sector #{}: dropped received eCPRI packet as concatenation is not supported", sector);
 
     return false;
@@ -79,11 +79,11 @@ span<const uint8_t> packet_decoder_impl::decode(span<const uint8_t> packet, pack
   return decode_payload(payload, params);
 }
 
-span<const uint8_t> packet_decoder_impl::decode_header(span<const uint8_t>               packet,
-                                                       srsran::ecpri::packet_parameters& params)
+span<const uint8_t> packet_decoder_impl::decode_header(span<const uint8_t>              packet,
+                                                       ocudu::ecpri::packet_parameters& params)
 {
   // Sanity size check.
-  if (SRSRAN_UNLIKELY(units::bytes(packet.size()) < ECPRI_COMMON_HEADER_SIZE)) {
+  if (OCUDU_UNLIKELY(units::bytes(packet.size()) < ECPRI_COMMON_HEADER_SIZE)) {
     logger.info("Sector #{}: dropped received eCPRI packet as its size is '{}' bytes which is smaller than the eCPRI "
                 "common header size which is '{}' bytes",
                 sector,
@@ -96,7 +96,7 @@ span<const uint8_t> packet_decoder_impl::decode_header(span<const uint8_t>      
   ofh::network_order_binary_deserializer deserializer(packet);
 
   deserialize_header(deserializer, params.header);
-  if (SRSRAN_UNLIKELY(!is_header_valid(params.header, sector, logger))) {
+  if (OCUDU_UNLIKELY(!is_header_valid(params.header, sector, logger))) {
     return {};
   }
 
@@ -106,7 +106,7 @@ span<const uint8_t> packet_decoder_impl::decode_header(span<const uint8_t>      
 span<const uint8_t> packet_decoder_use_header_payload_size::decode_payload(span<const uint8_t> packet,
                                                                            packet_parameters&  params)
 {
-  if (SRSRAN_UNLIKELY(params.header.payload_size > units::bytes(packet.size()))) {
+  if (OCUDU_UNLIKELY(params.header.payload_size > units::bytes(packet.size()))) {
     logger.info("Sector #{}: dropped received eCPRI packet as its size is '{}' bytes and the payload size field in the "
                 "header is set to '{}' bytes",
                 sector,

@@ -11,19 +11,19 @@
 #pragma once
 
 #include "../../../../../gateways/baseband/baseband_gateway_buffer_test_doubles.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 #include <random>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class pdxch_processor_baseband_spy : public pdxch_processor_baseband
 {
@@ -62,7 +62,7 @@ public:
   {
     // Obtain buffer from the pool.
     baseband_gateway_buffer_ptr buffer = buffer_pool.get();
-    srsran_assert(buffer, "Buffer pool is exhausted.");
+    ocudu_assert(buffer, "Buffer pool is exhausted.");
 
     // Calculate the OFDM symbol indexes within the subframe.
     unsigned i_symbol_sf_begin = context.slot.subframe_slot_index() * nof_symbols_per_slot;
@@ -184,7 +184,7 @@ public:
 
   pdxch_processor_spy& get_spy()
   {
-    srsran_assert(instance != nullptr, "Instance not available.");
+    ocudu_assert(instance != nullptr, "Instance not available.");
     return *instance;
   }
 
@@ -192,4 +192,4 @@ private:
   pdxch_processor_spy* instance = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

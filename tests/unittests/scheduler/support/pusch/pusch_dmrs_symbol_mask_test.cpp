@@ -9,14 +9,14 @@
  */
 
 #include "lib/scheduler/support/pusch/pusch_dmrs_symbol_mask.h"
-#include "srsran/adt/static_vector.h"
+#include "ocudu/adt/static_vector.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <map>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, dmrs_typeA_position dmrs_pos)
 {
@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& os, dmrs_symbol_mask mask)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 #define L0 (UINT8_MAX)

@@ -9,11 +9,11 @@
  */
 
 #include "ssb_processor_test_data.h"
-#include "srsran/phy/upper/channel_processors/ssb/factories.h"
-#include "srsran/phy/upper/channel_processors/ssb/formatters.h"
-#include "srsran/phy/upper/signal_processors/ssb/factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/formatters.h"
+#include "ocudu/phy/upper/signal_processors/ssb/factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

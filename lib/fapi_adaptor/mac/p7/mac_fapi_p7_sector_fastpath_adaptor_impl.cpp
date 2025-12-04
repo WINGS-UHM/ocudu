@@ -9,9 +9,9 @@
  */
 
 #include "mac_fapi_p7_sector_fastpath_adaptor_impl.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 static mac_to_fapi_fastpath_translator_config
@@ -27,7 +27,7 @@ generate_translator_config(const mac_fapi_p7_sector_fastpath_adaptor_config& con
 static mac_to_fapi_fastpath_translator_dependencies
 generate_translator_dependencies(mac_fapi_p7_sector_fastpath_adaptor_dependencies dependencies)
 {
-  return {srslog::fetch_basic_logger("FAPI"),
+  return {ocudulog::fetch_basic_logger("FAPI"),
           dependencies.gateway,
           dependencies.last_msg_notifier,
           std::move(dependencies.pm_mapper),

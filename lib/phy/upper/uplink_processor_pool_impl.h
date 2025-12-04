@@ -11,12 +11,12 @@
 #pragma once
 
 #include "processor_pool_helpers.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
-#include "srsran/phy/upper/uplink_processor.h"
-#include "srsran/phy/upper/uplink_slot_processor.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/phy/upper/uplink_processor.h"
+#include "ocudu/phy/upper/uplink_slot_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Defines the structure to configure the uplink processor pool.
 struct uplink_processor_pool_impl_config {
@@ -70,4 +70,4 @@ private:
   circular_array<std::atomic<uplink_processor*>, nof_assigned_processors> assigned_processors = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

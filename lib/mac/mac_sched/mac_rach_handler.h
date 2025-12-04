@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/mac/mac_cell_rach_handler.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/mac/mac_cell_rach_handler.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
+namespace ocudu {
 
 class scheduler_configurator;
 class rnti_manager;
@@ -56,7 +56,7 @@ private:
 class mac_rach_handler
 {
 public:
-  mac_rach_handler(scheduler_configurator& sched_, rnti_manager& rnti_mng_, srslog::basic_logger& logger_);
+  mac_rach_handler(scheduler_configurator& sched_, rnti_manager& rnti_mng_, ocudulog::basic_logger& logger_);
 
   /// Create new handler of RACH indications for a cell.
   mac_cell_rach_handler_impl& add_cell(const sched_cell_configuration_request_message& sched_cfg);
@@ -73,10 +73,10 @@ private:
 
   scheduler_configurator& sched;
   rnti_manager&           rnti_mng;
-  srslog::basic_logger&   logger;
+  ocudulog::basic_logger& logger;
 
   slotted_id_vector<du_cell_index_t, std::unique_ptr<mac_cell_rach_handler_impl>> cell_map;
   std::vector<cfra_ue_context>                                                    ue_map;
 };
 
-} // namespace srsran
+} // namespace ocudu

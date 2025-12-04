@@ -11,5 +11,5 @@ set(SOURCES
         ecpri_packet_builder_impl.cpp
         ecpri_packet_decoder_impl.cpp)
 
-add_library(srsran_ofh_ecpri STATIC ${SOURCES})
-target_link_libraries(srsran_ofh_ecpri srslog)
+add_library(ocudu_ofh_ecpri STATIC ${SOURCES})
+target_link_libraries(ocudu_ofh_ecpri ocudulog)

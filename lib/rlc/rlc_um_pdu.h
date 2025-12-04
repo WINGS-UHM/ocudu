@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/rlc/rlc_config.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/rlc/rlc_config.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 constexpr size_t rlc_um_pdu_header_size_complete_sdu = 1;
 
@@ -29,8 +29,8 @@ constexpr size_t rlc_um_pdu_header_size_no_so(rlc_um_sn_size sn_size)
     case rlc_um_sn_size::size12bits:
       return rlc_um_pdu_header_size_12bit_sn_no_so;
   }
-  srsran_assertion_failure("Cannot determine RLC UM PDU header size without SO: unsupported sn_size={}.",
-                           to_number(sn_size));
+  ocudu_assertion_failure("Cannot determine RLC UM PDU header size without SO: unsupported sn_size={}.",
+                          to_number(sn_size));
   return rlc_um_pdu_header_size_6bit_sn_no_so;
 }
 
@@ -44,8 +44,8 @@ constexpr size_t rlc_um_pdu_header_size_with_so(rlc_um_sn_size sn_size)
     case rlc_um_sn_size::size12bits:
       return rlc_um_pdu_header_size_12bit_sn_with_so;
   }
-  srsran_assertion_failure("Cannot determine RLC UM PDU header size with SO: unsupported sn_size={}.",
-                           to_number(sn_size));
+  ocudu_assertion_failure("Cannot determine RLC UM PDU header size with SO: unsupported sn_size={}.",
+                          to_number(sn_size));
   return rlc_um_pdu_header_size_6bit_sn_no_so;
 }
 
@@ -65,7 +65,7 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
 {
   byte_buffer_reader pdu_reader = pdu;
   if (pdu_reader.empty()) {
-    srslog::fetch_basic_logger("RLC").warning(
+    ocudulog::fetch_basic_logger("RLC").warning(
         "UMD PDU too small. pdu_len={} hdr_len={}", pdu.length(), rlc_um_pdu_header_size_no_so(sn_size));
     return false;
   }
@@ -78,7 +78,7 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
     header->sn = *pdu_reader & 0x3fU;                         // 6 bits SN
     // sanity check
     if (header->si == rlc_si_field::full_sdu and header->sn != 0) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
       return false;
     }
     ++pdu_reader;
@@ -86,7 +86,7 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
     header->si = (rlc_si_field)((*pdu_reader >> 6U) & 0x03U); // 2 bits SI
     header->sn = (*pdu_reader & 0x0fU) << 8U;                 // 4 bits SN
     if (header->si == rlc_si_field::full_sdu and header->sn != 0) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
       return false;
     }
 
@@ -94,7 +94,7 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
     if (header->si == rlc_si_field::first_segment) {
       // make sure two reserved bits are not set
       if (((*pdu_reader >> 4U) & 0x03U) != 0) {
-        srslog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
+        ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
         return false;
       }
     }
@@ -103,7 +103,7 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
       // continue unpacking remaining SN
       ++pdu_reader;
       if (pdu_reader.empty()) {
-        srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SN.");
+        ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SN.");
         return false;
       }
       header->sn |= (*pdu_reader & 0xffU); // 8 bits SN
@@ -111,7 +111,7 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
 
     ++pdu_reader;
   } else {
-    srslog::fetch_basic_logger("RLC").error("Unsupported sn_size={}.", to_number(sn_size));
+    ocudulog::fetch_basic_logger("RLC").error("Unsupported sn_size={}.", to_number(sn_size));
     return false;
   }
 
@@ -119,13 +119,13 @@ rlc_um_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_um_sn_size sn
   if (header->si == rlc_si_field::last_segment || header->si == rlc_si_field::middle_segment) {
     // read SO
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing upper byte of SO.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing upper byte of SO.");
       return false;
     }
     header->so = (*pdu_reader & 0xffU) << 8U;
     ++pdu_reader;
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SO.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SO.");
       return false;
     }
     header->so |= (*pdu_reader & 0xffU);
@@ -188,11 +188,11 @@ inline size_t rlc_um_write_data_pdu_header(span<uint8_t> buf, const rlc_um_pdu_h
   return std::distance(buf.begin(), buf_it);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::rlc_um_pdu_header> {
+struct formatter<ocudu::rlc_um_pdu_header> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -200,9 +200,9 @@ struct formatter<srsran::rlc_um_pdu_header> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_um_pdu_header& hdr, FormatContext& ctx) const
+  auto format(const ocudu::rlc_um_pdu_header& hdr, FormatContext& ctx) const
   {
-    if (hdr.si == srsran::rlc_si_field::full_sdu) {
+    if (hdr.si == ocudu::rlc_si_field::full_sdu) {
       // Header of full SDU only has SI; no SN and no SO.
       return format_to(ctx.out(), "si={}", hdr.si, hdr.sn, hdr.so);
     }

@@ -13,9 +13,9 @@
 #include "apps/helpers/metrics/metrics_config.h"
 #include "apps/services/cmdline/stdout_metrics_command.h"
 #include "apps/services/metrics/metrics_config.h"
-#include "srsran/ran/pci.h"
+#include "ocudu/ran/pci.h"
 
-namespace srsran {
+namespace ocudu {
 
 class flexible_o_du_metrics_notifier;
 
@@ -37,4 +37,4 @@ flexible_o_du_metrics_notifier* build_flexible_o_du_metrics_config(
     const std::vector<pci_t>&          pci_cell_map,
     std::chrono::nanoseconds           symbol_duration);
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,17 +9,17 @@
  */
 
 #include "tests/unittests/gateways/test_helpers.h"
-#include "srsran/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
-#include "srsran/gateways/udp_network_gateway_factory.h"
-#include "srsran/gtpu/gtpu_demux_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
+#include "ocudu/gateways/udp_network_gateway_factory.h"
+#include "ocudu/gtpu/gtpu_demux_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 namespace {
 
@@ -98,15 +98,15 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init logger
-    f1u_logger_cu.set_level(srslog::basic_levels::debug);
+    f1u_logger_cu.set_level(ocudulog::basic_levels::debug);
     f1u_logger_cu.set_hex_dump_max_size(100);
-    gtpu_logger_cu.set_level(srslog::basic_levels::debug);
+    gtpu_logger_cu.set_level(ocudulog::basic_levels::debug);
     gtpu_logger_cu.set_hex_dump_max_size(100);
-    udp_logger_cu.set_level(srslog::basic_levels::debug);
+    udp_logger_cu.set_level(ocudulog::basic_levels::debug);
     udp_logger_cu.set_hex_dump_max_size(100);
 
     logger.info("Creating F1-U connector");
@@ -147,7 +147,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
 
     stop_token.store(true, std::memory_order_relaxed);
     if (rx_thread.joinable()) {
@@ -211,15 +211,15 @@ protected:
   std::atomic<bool>                                 stop_token = {false};
   dummy_network_gateway_data_notifier_with_src_addr server_data_notifier;
 
-  srs_cu_up::f1u_config                  f1u_cu_up_cfg;
+  ocuup::f1u_config                      f1u_cu_up_cfg;
   std::unique_ptr<f1u_cu_up_udp_gateway> cu_gw;
   std::optional<uint16_t>                cu_gw_bind_port    = 0;
   std::string                            cu_gw_bind_address = "127.0.0.1";
 
-  srslog::basic_logger& logger         = srslog::fetch_basic_logger("TEST", false);
-  srslog::basic_logger& f1u_logger_cu  = srslog::fetch_basic_logger("CU-F1-U", false);
-  srslog::basic_logger& gtpu_logger_cu = srslog::fetch_basic_logger("GTPU", false);
-  srslog::basic_logger& udp_logger_cu  = srslog::fetch_basic_logger("UDP-GW", false);
+  ocudulog::basic_logger& logger         = ocudulog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& f1u_logger_cu  = ocudulog::fetch_basic_logger("CU-F1-U", false);
+  ocudulog::basic_logger& gtpu_logger_cu = ocudulog::fetch_basic_logger("GTPU", false);
+  ocudulog::basic_logger& udp_logger_cu  = ocudulog::fetch_basic_logger("UDP-GW", false);
 };
 
 } // namespace
@@ -238,7 +238,7 @@ TEST_F(f1u_cu_split_connector_test, send_sdu_with_dl_teid_attached)
 
   dummy_f1u_cu_up_rx_notifier cu_rx;
 
-  std::unique_ptr<srs_cu_up::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
+  std::unique_ptr<ocuup::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
       0, s_nssai_t{}, drb_id_t::drb1, five_qi_t{9}, f1u_cu_up_cfg, ul_tnl.gtp_teid, cu_rx, ue_worker);
   cu_gw->attach_dl_teid(ul_tnl, dl_tnl);
 
@@ -271,7 +271,7 @@ TEST_F(f1u_cu_split_connector_test, send_sdu_without_dl_teid_attached)
 
   dummy_f1u_cu_up_rx_notifier cu_rx;
 
-  std::unique_ptr<srs_cu_up::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
+  std::unique_ptr<ocuup::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
       0, s_nssai_t{}, drb_id_t::drb1, five_qi_t{9}, f1u_cu_up_cfg, ul_tnl.gtp_teid, cu_rx, ue_worker);
   // Not attaching DL TEID
 
@@ -302,7 +302,7 @@ TEST_F(f1u_cu_split_connector_test, recv_sdu_with_dl_teid_attached)
   up_transport_layer_info     dl_tnl{transport_layer_address::create_from_string("127.0.0.2"), gtpu_teid_t{2}};
   dummy_f1u_cu_up_rx_notifier cu_rx;
 
-  std::unique_ptr<srs_cu_up::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
+  std::unique_ptr<ocuup::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
       0, s_nssai_t{}, drb_id_t::drb1, five_qi_t{9}, f1u_cu_up_cfg, ul_tnl.gtp_teid, cu_rx, ue_worker);
   cu_gw->attach_dl_teid(ul_tnl, dl_tnl);
 
@@ -332,7 +332,7 @@ TEST_F(f1u_cu_split_connector_test, recv_sdu_without_dl_teid_attached)
   up_transport_layer_info     dl_tnl{transport_layer_address::create_from_string("127.0.0.2"), gtpu_teid_t{2}};
   dummy_f1u_cu_up_rx_notifier cu_rx;
 
-  std::unique_ptr<srs_cu_up::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
+  std::unique_ptr<ocuup::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
       0, s_nssai_t{}, drb_id_t::drb1, five_qi_t{9}, f1u_cu_up_cfg, ul_tnl.gtp_teid, cu_rx, ue_worker);
   // Not attaching DL TEID
 
@@ -360,7 +360,7 @@ TEST_F(f1u_cu_split_connector_test, disconnect_stops_tx)
 
   dummy_f1u_cu_up_rx_notifier cu_rx;
 
-  std::unique_ptr<srs_cu_up::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
+  std::unique_ptr<ocuup::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
       0, s_nssai_t{}, drb_id_t::drb1, five_qi_t{9}, f1u_cu_up_cfg, ul_tnl.gtp_teid, cu_rx, ue_worker);
   cu_gw->attach_dl_teid(ul_tnl, dl_tnl);
 
@@ -418,7 +418,7 @@ TEST_F(f1u_cu_split_connector_test, destroy_bearer_disconnects_and_stops_rx)
   up_transport_layer_info     dl_tnl{transport_layer_address::create_from_string("127.0.0.2"), gtpu_teid_t{2}};
   dummy_f1u_cu_up_rx_notifier cu_rx;
 
-  std::unique_ptr<srs_cu_up::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
+  std::unique_ptr<ocuup::f1u_tx_pdu_notifier> cu_bearer = cu_gw->create_cu_bearer(
       0, s_nssai_t{}, drb_id_t::drb1, five_qi_t{9}, f1u_cu_up_cfg, ul_tnl.gtp_teid, cu_rx, ue_worker);
   cu_gw->attach_dl_teid(ul_tnl, dl_tnl);
 

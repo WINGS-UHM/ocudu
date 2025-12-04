@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/pdcp/pdcp_sn_size.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/pdcp/pdcp_sn_size.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 namespace test_helpers {
 
@@ -37,4 +37,4 @@ byte_buffer
 create_pdcp_pdu(pdcp_sn_size pdcp_sn_len, bool is_srb, uint32_t pdcp_sn, uint32_t sdu_size, uint8_t first_byte);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

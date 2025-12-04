@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ran/duplex_mode.h"
+#include "ocudu/ran/duplex_mode.h"
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct du_low_unit_config;
 
@@ -23,4 +23,4 @@ void configure_cli11_with_du_low_config_schema(CLI::App& app, du_low_unit_config
 /// Auto derive DU low parameters after the parsing.
 void autoderive_du_low_parameters_after_parsing(CLI::App& app, du_low_unit_config& parsed_cfg, duplex_mode mode);
 
-} // namespace srsran
+} // namespace ocudu

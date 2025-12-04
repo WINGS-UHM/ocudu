@@ -13,11 +13,11 @@
 #include "../config/ue_configuration.h"
 #include "pucch_allocator.h"
 #include "pucch_resource_manager.h"
-#include "srsran/ran/pucch/pucch_uci_bits.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/pucch/pucch_uci_bits.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implementation of the PUCCH allocator interface.
 class pucch_allocator_impl final : public pucch_allocator
@@ -294,7 +294,7 @@ private:
   slot_point                last_sl_ind;
   pucch_resource_manager    resource_manager;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

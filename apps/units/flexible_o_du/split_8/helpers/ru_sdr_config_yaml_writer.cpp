@@ -12,12 +12,12 @@
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "ru_sdr_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_ru_sdr_log_section(YAML::Node node, const ru_sdr_unit_logger_config& config)
 {
-  node["radio_level"] = srslog::basic_level_to_string(config.radio_level);
-  node["phy_level"]   = srslog::basic_level_to_string(config.phy_level);
+  node["radio_level"] = ocudulog::basic_level_to_string(config.radio_level);
+  node["phy_level"]   = ocudulog::basic_level_to_string(config.phy_level);
 }
 
 static std::string to_string(lower_phy_thread_profile profile)
@@ -33,7 +33,7 @@ static std::string to_string(lower_phy_thread_profile profile)
     case lower_phy_thread_profile::triple:
       return "triple";
     default:
-      srsran_assert(0, "Invalid lower PHY profile");
+      ocudu_assert(0, "Invalid lower PHY profile");
       break;
   }
   return {};
@@ -120,7 +120,7 @@ static void fill_ru_sdr_metrics_section(YAML::Node node, const ru_sdr_unit_metri
   layers_node["enable_ru"] = config.enable_ru_metrics;
 }
 
-void srsran::fill_ru_sdr_config_in_yaml_schema(YAML::Node& node, const ru_sdr_unit_config& config)
+void ocudu::fill_ru_sdr_config_in_yaml_schema(YAML::Node& node, const ru_sdr_unit_config& config)
 {
   fill_ru_sdr_metrics_section(node, config.metrics_cfg);
   fill_ru_sdr_log_section(node["log"], config.loggers);

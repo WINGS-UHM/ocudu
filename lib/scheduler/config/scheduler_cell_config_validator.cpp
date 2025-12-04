@@ -8,20 +8,20 @@
  *
  */
 
-#include "srsran/scheduler/config/scheduler_cell_config_validator.h"
+#include "ocudu/scheduler/config/scheduler_cell_config_validator.h"
 #include "../support/dmrs_helpers.h"
 #include "../support/pdsch/pdsch_default_time_allocation.h"
 #include "../support/prbs_calculator.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_helper.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/scheduler/config/serving_cell_config_validator.h"
-#include "srsran/scheduler/sched_consts.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/scheduler/config/serving_cell_config_validator.h"
+#include "ocudu/scheduler/sched_consts.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace config_validators;
 
 #define VERIFY(cond, ...)                                                                                              \
@@ -61,7 +61,7 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
          "Cells without RACH-ConfigCommon are not supported");
   const rach_config_common& rach_cfg_cmn = msg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
-  static const pdsch_mcs_table mcs_table = srsran::pdsch_mcs_table::qam64;
+  static const pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
   const sch_mcs_description    mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.ra.rar_mcs_index);
   // See TS 38.214, 5.1.3.1, Modulation order and target code rate determination.
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
@@ -171,7 +171,7 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
 {
   static const unsigned        nof_layers = 1;
   static const unsigned        nof_oh_prb = 0;
-  static const pdsch_mcs_table mcs_table  = srsran::pdsch_mcs_table::qam64;
+  static const pdsch_mcs_table mcs_table  = ocudu::pdsch_mcs_table::qam64;
 
   // TODO: Revise the value set for time_resource in case of partial slots where nof. OFDM symbols maybe be less.
   static const unsigned time_resource = 0;
@@ -204,7 +204,7 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
 
 static error_type<std::string> validate_paging_cfg(const scheduler_expert_config& expert_cfg)
 {
-  static const pdsch_mcs_table mcs_table = srsran::pdsch_mcs_table::qam64;
+  static const pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
   const sch_mcs_description    mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.pg.paging_mcs_index);
   // See TS 38.214, 5.1.3.1, Modulation order and target code rate determination.
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
@@ -216,7 +216,7 @@ static error_type<std::string> validate_paging_cfg(const scheduler_expert_config
 /// \brief Validates \c sched_cell_configuration_request_message used to add a cell.
 /// \param[in] msg scheduler cell configuration message to be validated.
 /// \return In case an invalid parameter is detected, returns a string containing an error message.
-error_type<std::string> srsran::config_validators::validate_sched_cell_configuration_request_message(
+error_type<std::string> ocudu::config_validators::validate_sched_cell_configuration_request_message(
     const sched_cell_configuration_request_message& msg,
     const scheduler_expert_config&                  expert_cfg)
 {

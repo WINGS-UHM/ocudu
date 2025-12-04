@@ -11,10 +11,10 @@
 #pragma once
 
 #include "pdcp_sn.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/ran/rb_id.h"
 
-namespace srsran {
+namespace ocudu {
 
 // Header length
 constexpr size_t pdcp_data_pdu_header_size_12bit = 2;
@@ -27,11 +27,11 @@ constexpr size_t pdcp_data_pdu_header_size(pdcp_sn_size sn_size)
       return pdcp_data_pdu_header_size_12bit;
     case pdcp_sn_size::size18bits:
       return pdcp_data_pdu_header_size_18bit;
-    case srsran::pdcp_sn_size::invalid:
+    case ocudu::pdcp_sn_size::invalid:
       break;
   }
-  srsran_assertion_failure("Cannot determine PDCP data PDU header size: unsupported sn_size={}",
-                           pdcp_sn_size_to_uint(sn_size));
+  ocudu_assertion_failure("Cannot determine PDCP data PDU header size: unsupported sn_size={}",
+                          pdcp_sn_size_to_uint(sn_size));
   return pdcp_data_pdu_header_size_12bit;
 }
 
@@ -48,7 +48,7 @@ constexpr uint32_t pdcp_window_size(pdcp_sn_size sn_size)
     case pdcp_sn_size::invalid:
       break;
   }
-  srsran_assertion_failure("Cannot determine PDCP window size: unsupported sn_size={}", pdcp_sn_size_to_uint(sn_size));
+  ocudu_assertion_failure("Cannot determine PDCP window size: unsupported sn_size={}", pdcp_sn_size_to_uint(sn_size));
   return pdcp_window_size_12bit;
 }
 
@@ -110,4 +110,4 @@ protected:
   uint32_t           COUNT(uint32_t hfn, uint32_t sn) const { return pdcp_compute_count(hfn, sn, sn_size); }
 };
 
-} // namespace srsran
+} // namespace ocudu

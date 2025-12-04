@@ -11,14 +11,14 @@
 #include "common/e2ap_asn1_packer.h"
 #include "lib/e2/common/e2ap_asn1_utils.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/e2/e2_event_manager.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/async/coroutine.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/e2/e2_event_manager.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/async/coroutine.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 /// Test successful cu-cp initiated e2 setup procedure
 TEST_F(e2_test_subscriber, when_e2_subscription_request_correct_sent_subscription_response)
 {
@@ -86,7 +86,7 @@ TEST_F(e2_test_subscriber, start_indication_procedure_check_contents)
 
   asn1::cbit_ref                 bref1(msg_notifier->last_e2_msg.pdu.init_msg().value.ric_ind()->ric_ind_msg);
   asn1::e2sm::e2sm_kpm_ind_msg_s ind_msg1 = {};
-  if (ind_msg1.unpack(bref1) != asn1::SRSASN_SUCCESS) {
+  if (ind_msg1.unpack(bref1) != asn1::OCUDUASN_SUCCESS) {
     printf("Couldn't unpack E2 PDU");
   }
   ASSERT_EQ(ind_msg1.ind_msg_formats.type(),

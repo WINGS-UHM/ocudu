@@ -10,11 +10,10 @@
 
 #include "rrc_asn1_converters.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-asn1::rrc_nr::pdcp_cfg_s::drb_s_::discard_timer_e_
-srsran::srs_cu_cp::discard_timer_to_asn1(pdcp_discard_timer discard_timer)
+asn1::rrc_nr::pdcp_cfg_s::drb_s_::discard_timer_e_ ocudu::ocucp::discard_timer_to_asn1(pdcp_discard_timer discard_timer)
 {
   asn1::rrc_nr::pdcp_cfg_s::drb_s_::discard_timer_e_ asn1_discard_timer;
 
@@ -23,7 +22,7 @@ srsran::srs_cu_cp::discard_timer_to_asn1(pdcp_discard_timer discard_timer)
   return asn1_discard_timer;
 }
 
-asn1::rrc_nr::pdcp_cfg_s::t_reordering_e_ srsran::srs_cu_cp::t_reordering_to_asn1(pdcp_t_reordering t_reordering)
+asn1::rrc_nr::pdcp_cfg_s::t_reordering_e_ ocudu::ocucp::t_reordering_to_asn1(pdcp_t_reordering t_reordering)
 {
   asn1::rrc_nr::pdcp_cfg_s::t_reordering_e_ asn1_t_reordering;
 
@@ -32,7 +31,7 @@ asn1::rrc_nr::pdcp_cfg_s::t_reordering_e_ srsran::srs_cu_cp::t_reordering_to_asn
   return asn1_t_reordering;
 }
 
-asn1::rrc_nr::pdcp_cfg_s srsran::srs_cu_cp::pdcp_config_to_rrc_nr_asn1(const pdcp_config& pdcp_cfg)
+asn1::rrc_nr::pdcp_cfg_s ocudu::ocucp::pdcp_config_to_rrc_nr_asn1(const pdcp_config& pdcp_cfg)
 {
   asn1::rrc_nr::pdcp_cfg_s rrc_pdcp_cfg;
 
@@ -131,8 +130,7 @@ asn1::rrc_nr::pdcp_cfg_s srsran::srs_cu_cp::pdcp_config_to_rrc_nr_asn1(const pdc
   return rrc_pdcp_cfg;
 }
 
-asn1::rrc_nr::sdap_cfg_s::sdap_hdr_ul_opts::options
-srsran::srs_cu_cp::sdap_hdr_ul_cfg_to_rrc_asn1(sdap_hdr_ul_cfg hdr_cfg)
+asn1::rrc_nr::sdap_cfg_s::sdap_hdr_ul_opts::options ocudu::ocucp::sdap_hdr_ul_cfg_to_rrc_asn1(sdap_hdr_ul_cfg hdr_cfg)
 {
   asn1::rrc_nr::sdap_cfg_s::sdap_hdr_ul_opts::options asn1_hdr_ul_opts;
 
@@ -145,8 +143,7 @@ srsran::srs_cu_cp::sdap_hdr_ul_cfg_to_rrc_asn1(sdap_hdr_ul_cfg hdr_cfg)
   return asn1_hdr_ul_opts;
 }
 
-asn1::rrc_nr::sdap_cfg_s::sdap_hdr_dl_opts::options
-srsran::srs_cu_cp::sdap_hdr_dl_cfg_to_rrc_asn1(sdap_hdr_dl_cfg hdr_cfg)
+asn1::rrc_nr::sdap_cfg_s::sdap_hdr_dl_opts::options ocudu::ocucp::sdap_hdr_dl_cfg_to_rrc_asn1(sdap_hdr_dl_cfg hdr_cfg)
 {
   asn1::rrc_nr::sdap_cfg_s::sdap_hdr_dl_opts::options asn1_hdr_dl_opts;
 
@@ -159,7 +156,7 @@ srsran::srs_cu_cp::sdap_hdr_dl_cfg_to_rrc_asn1(sdap_hdr_dl_cfg hdr_cfg)
   return asn1_hdr_dl_opts;
 }
 
-asn1::rrc_nr::sdap_cfg_s srsran::srs_cu_cp::sdap_config_to_rrc_asn1(const sdap_config_t& sdap_cfg)
+asn1::rrc_nr::sdap_cfg_s ocudu::ocucp::sdap_config_to_rrc_asn1(const sdap_config_t& sdap_cfg)
 {
   asn1::rrc_nr::sdap_cfg_s asn1_sdap_cfg;
 
@@ -189,21 +186,21 @@ asn1::rrc_nr::sdap_cfg_s srsran::srs_cu_cp::sdap_config_to_rrc_asn1(const sdap_c
 }
 
 asn1::rrc_nr::ciphering_algorithm_e
-srsran::srs_cu_cp::ciphering_algorithm_to_rrc_asn1(const security::ciphering_algorithm& ciphering_algo)
+ocudu::ocucp::ciphering_algorithm_to_rrc_asn1(const security::ciphering_algorithm& ciphering_algo)
 {
   asn1::rrc_nr::ciphering_algorithm_e asn1_ciphering_algo;
 
   switch (ciphering_algo) {
-    case srsran::security::ciphering_algorithm::nea0:
+    case ocudu::security::ciphering_algorithm::nea0:
       asn1_ciphering_algo = asn1::rrc_nr::ciphering_algorithm_opts::options::nea0;
       break;
-    case srsran::security::ciphering_algorithm::nea1:
+    case ocudu::security::ciphering_algorithm::nea1:
       asn1_ciphering_algo = asn1::rrc_nr::ciphering_algorithm_opts::options::nea1;
       break;
-    case srsran::security::ciphering_algorithm::nea2:
+    case ocudu::security::ciphering_algorithm::nea2:
       asn1_ciphering_algo = asn1::rrc_nr::ciphering_algorithm_opts::options::nea2;
       break;
-    case srsran::security::ciphering_algorithm::nea3:
+    case ocudu::security::ciphering_algorithm::nea3:
       asn1_ciphering_algo = asn1::rrc_nr::ciphering_algorithm_opts::options::nea3;
       break;
     default:
@@ -215,21 +212,21 @@ srsran::srs_cu_cp::ciphering_algorithm_to_rrc_asn1(const security::ciphering_alg
 }
 
 asn1::rrc_nr::integrity_prot_algorithm_e
-srsran::srs_cu_cp::integrity_prot_algorithm_to_rrc_asn1(const security::integrity_algorithm& integrity_prot_algo)
+ocudu::ocucp::integrity_prot_algorithm_to_rrc_asn1(const security::integrity_algorithm& integrity_prot_algo)
 {
   asn1::rrc_nr::integrity_prot_algorithm_e asn1_integrity_prot_algo;
 
   switch (integrity_prot_algo) {
-    case srsran::security::integrity_algorithm::nia0:
+    case ocudu::security::integrity_algorithm::nia0:
       asn1_integrity_prot_algo = asn1::rrc_nr::integrity_prot_algorithm_opts::options::nia0;
       break;
-    case srsran::security::integrity_algorithm::nia1:
+    case ocudu::security::integrity_algorithm::nia1:
       asn1_integrity_prot_algo = asn1::rrc_nr::integrity_prot_algorithm_opts::options::nia1;
       break;
-    case srsran::security::integrity_algorithm::nia2:
+    case ocudu::security::integrity_algorithm::nia2:
       asn1_integrity_prot_algo = asn1::rrc_nr::integrity_prot_algorithm_opts::options::nia2;
       break;
-    case srsran::security::integrity_algorithm::nia3:
+    case ocudu::security::integrity_algorithm::nia3:
       asn1_integrity_prot_algo = asn1::rrc_nr::integrity_prot_algorithm_opts::options::nia3;
       break;
     default:
@@ -240,7 +237,7 @@ srsran::srs_cu_cp::integrity_prot_algorithm_to_rrc_asn1(const security::integrit
   return asn1_integrity_prot_algo;
 }
 
-cu_cp_five_g_s_tmsi srsran::srs_cu_cp::asn1_to_five_g_s_tmsi(const asn1::fixed_bitstring<48>& asn1_five_g_s_tmsi)
+cu_cp_five_g_s_tmsi ocudu::ocucp::asn1_to_five_g_s_tmsi(const asn1::fixed_bitstring<48>& asn1_five_g_s_tmsi)
 {
   bounded_bitset<48> five_g_s_tmsi(48);
   five_g_s_tmsi.from_uint64(asn1_five_g_s_tmsi.to_number());
@@ -248,8 +245,8 @@ cu_cp_five_g_s_tmsi srsran::srs_cu_cp::asn1_to_five_g_s_tmsi(const asn1::fixed_b
   return cu_cp_five_g_s_tmsi{five_g_s_tmsi};
 }
 
-cu_cp_five_g_s_tmsi srsran::srs_cu_cp::asn1_to_five_g_s_tmsi(const asn1::fixed_bitstring<39>& asn1_five_g_s_tmsi_part1,
-                                                             const asn1::fixed_bitstring<9>&  asn1_five_g_s_tmsi_part2)
+cu_cp_five_g_s_tmsi ocudu::ocucp::asn1_to_five_g_s_tmsi(const asn1::fixed_bitstring<39>& asn1_five_g_s_tmsi_part1,
+                                                        const asn1::fixed_bitstring<9>&  asn1_five_g_s_tmsi_part2)
 {
   bounded_bitset<48> five_g_s_tmsi(48);
   five_g_s_tmsi.from_uint64((asn1_five_g_s_tmsi_part2.to_number() << 39) + asn1_five_g_s_tmsi_part1.to_number());
@@ -257,7 +254,7 @@ cu_cp_five_g_s_tmsi srsran::srs_cu_cp::asn1_to_five_g_s_tmsi(const asn1::fixed_b
   return cu_cp_five_g_s_tmsi{five_g_s_tmsi};
 }
 
-cu_cp_amf_identifier_t srsran::srs_cu_cp::asn1_to_amf_identifier(const asn1::fixed_bitstring<24>& asn1_amf_id)
+cu_cp_amf_identifier_t ocudu::ocucp::asn1_to_amf_identifier(const asn1::fixed_bitstring<24>& asn1_amf_id)
 {
   cu_cp_amf_identifier_t amf_id;
 
@@ -272,7 +269,7 @@ cu_cp_amf_identifier_t srsran::srs_cu_cp::asn1_to_amf_identifier(const asn1::fix
 }
 
 establishment_cause_t
-srsran::srs_cu_cp::asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause)
+ocudu::ocucp::asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause)
 {
   establishment_cause_t cause;
   switch (asn1_cause) {

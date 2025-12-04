@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e2sm/e2sm_kpm_ies.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2sm/e2sm.h"
-#include "srsran/e2/e2sm/e2sm_kpm.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e2sm/e2sm_kpm_ies.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2sm/e2sm.h"
+#include "ocudu/e2/e2sm/e2sm_kpm.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 class e2sm_kpm_report_service_base : public e2sm_report_service
 {
@@ -28,10 +28,10 @@ public:
   virtual ~e2sm_kpm_report_service_base() = default;
 
   /// e2sm_report_service functions.
-  virtual bool                collect_measurements() override = 0;
-  virtual bool                is_ind_msg_ready() override;
-  virtual srsran::byte_buffer get_indication_message() override;
-  srsran::byte_buffer         get_indication_header() override;
+  virtual bool               collect_measurements() override = 0;
+  virtual bool               is_ind_msg_ready() override;
+  virtual ocudu::byte_buffer get_indication_message() override;
+  ocudu::byte_buffer         get_indication_header() override;
 
 protected:
   /// Helper functions.
@@ -39,7 +39,7 @@ protected:
                                                asn1::e2sm::e2sm_kpm_ind_msg_format1_s& ric_ind_msg);
   virtual void clear_collect_measurements() = 0;
 
-  srslog::basic_logger&                    logger;
+  ocudulog::basic_logger&                  logger;
   asn1::e2sm::e2sm_kpm_action_definition_s action_def_generic;
   uint32_t                                 granul_period  = 0;
   std::optional<asn1::e2sm::cgi_c>         cell_global_id = {};
@@ -127,8 +127,8 @@ public:
                                  e2sm_kpm_meas_provider&                  meas_provider_);
   virtual ~e2sm_kpm_report_service_style5() = default;
 
-  bool                collect_measurements() override;
-  srsran::byte_buffer get_indication_message() override;
+  bool               collect_measurements() override;
+  ocudu::byte_buffer get_indication_message() override;
 
 private:
   void clear_collect_measurements() override;
@@ -140,4 +140,4 @@ private:
   uint32_t                                          nof_collected_meas_data;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include "fmt/format.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
@@ -20,17 +20,17 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 TEST_F(format_optional_test, opt_uint32_t)

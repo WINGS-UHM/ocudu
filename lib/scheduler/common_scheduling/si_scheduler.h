@@ -13,10 +13,10 @@
 #include "../support/paging_helpers.h"
 #include "si_message_scheduler.h"
 #include "sib1_scheduler.h"
-#include "srsran/adt/lockfree_triple_buffer.h"
-#include "srsran/scheduler/scheduler_sys_info_handler.h"
+#include "ocudu/adt/lockfree_triple_buffer.h"
+#include "ocudu/scheduler/scheduler_sys_info_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct si_scheduling_update_request;
 
@@ -46,7 +46,7 @@ private:
   const unsigned            default_paging_cycle;
   const unsigned            si_change_mod_period;
   pdcch_resource_allocator& pdcch_sch;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 
   sib1_scheduler       sib1_sched;
   si_message_scheduler si_msg_sched;
@@ -62,4 +62,4 @@ private:
   slot_point last_sl_tx;
 };
 
-} // namespace srsran
+} // namespace ocudu

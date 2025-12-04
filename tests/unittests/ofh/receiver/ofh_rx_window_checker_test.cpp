@@ -9,10 +9,10 @@
  */
 
 #include "../../../../lib/ofh/receiver/ofh_rx_window_checker.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace std::chrono_literals;
 

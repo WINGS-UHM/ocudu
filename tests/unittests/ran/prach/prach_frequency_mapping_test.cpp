@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const prach_subcarrier_spacing& ra_scs)
 {
@@ -26,9 +26,9 @@ std::ostream& operator<<(std::ostream& os, const subcarrier_spacing& scs)
 
   return os;
 }
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 // Combined parameters.
 using prach_frequency_mapping_param = std::tuple<prach_subcarrier_spacing, subcarrier_spacing>;

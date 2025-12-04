@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct fapi_unit_config;
 
 /// Fills the given node with the FAPI configuration values.
 void fill_fapi_config_in_yaml_schema(YAML::Node& node, const fapi_unit_config& config);
 
-} // namespace srsran
+} // namespace ocudu

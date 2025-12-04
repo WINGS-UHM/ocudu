@@ -27,29 +27,29 @@
 #include "routines/ue_context_release_routine.h"
 #include "routines/ue_removal_routine.h"
 #include "routines/ue_transaction_info_release_routine.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/nrppa/nrppa.h"
-#include "srsran/nrppa/nrppa_factory.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/support/async/coroutine.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/nrppa/nrppa.h"
+#include "ocudu/nrppa/nrppa_factory.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/support/async/coroutine.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <chrono>
 #include <dlfcn.h>
 #include <future>
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static void assert_cu_cp_configuration_valid(const cu_cp_configuration& cfg)
 {
-  srsran_assert(cfg.services.cu_cp_executor != nullptr, "Invalid CU-CP executor");
-  srsran_assert(!cfg.ngap.ngaps.empty(), "No NGAPs configured");
+  ocudu_assert(cfg.services.cu_cp_executor != nullptr, "Invalid CU-CP executor");
+  ocudu_assert(!cfg.ngap.ngaps.empty(), "No NGAPs configured");
   for (const auto& ngap : cfg.ngap.ngaps) {
-    srsran_assert(ngap.n2_gw != nullptr, "Invalid N2 GW client handler");
+    ocudu_assert(ngap.n2_gw != nullptr, "Invalid N2 GW client handler");
   }
-  srsran_assert(cfg.services.timers != nullptr, "Invalid timers");
+  ocudu_assert(cfg.services.timers != nullptr, "Invalid timers");
 
   report_error_if_not(cfg.admission.max_nof_dus <= MAX_NOF_DUS, "Invalid max number of DUs");
   report_error_if_not(cfg.admission.max_nof_cu_ups <= MAX_NOF_CU_UPS, "Invalid max number of CU-UPs");
@@ -67,10 +67,10 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
                              common_task_sched,
                              ue_mng,
                              conn_notifier,
-                             srslog::fetch_basic_logger("CU-CP")}),
-  cu_up_db(cu_up_repository_config{cfg, e1ap_ev_notifier, common_task_sched, srslog::fetch_basic_logger("CU-CP")}),
+                             ocudulog::fetch_basic_logger("CU-CP")}),
+  cu_up_db(cu_up_repository_config{cfg, e1ap_ev_notifier, common_task_sched, ocudulog::fetch_basic_logger("CU-CP")}),
   paging_handler(du_db),
-  ngap_db(ngap_repository_config{cfg, get_cu_cp_ngap_handler(), paging_handler, srslog::fetch_basic_logger("CU-CP")}),
+  ngap_db(ngap_repository_config{cfg, get_cu_cp_ngap_handler(), paging_handler, ocudulog::fetch_basic_logger("CU-CP")}),
   mobility_mng(cfg.mobility.mobility_manager_config, mobility_manager_ev_notifier, ngap_db, du_db, ue_mng),
   controller(cfg,
              get_cu_cp_amf_reconnection_handler(),
@@ -177,9 +177,9 @@ bool cu_cp_impl::amfs_are_connected()
   return true;
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-std::unique_ptr<srsran::srs_cu_cp::nrppa_interface>
+std::unique_ptr<ocudu::ocucp::nrppa_interface>
 cu_cp_impl::create_nrppa_entity(const cu_cp_configuration& cu_cp_cfg,
                                 nrppa_cu_cp_notifier&      cu_cp_notif,
                                 common_task_scheduler&     common_task_sched_)
@@ -187,12 +187,12 @@ cu_cp_impl::create_nrppa_entity(const cu_cp_configuration& cu_cp_cfg,
   return create_nrppa(cu_cp_cfg, cu_cp_notif, common_task_sched_);
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 void cu_cp_impl::handle_bearer_context_release_request(const cu_cp_bearer_context_release_request& msg)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(msg.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", msg.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", msg.ue_index);
 
   if (ue->get_handover_ue_release_timer().is_running()) {
     logger.debug("ue={}: Ignoring Bearer Context Release Request. Cause: Ongoing handover for this UE", msg.ue_index);
@@ -222,7 +222,7 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
 {
   if (msg.ue_inactive) {
     cu_cp_ue* ue = ue_mng.find_du_ue(msg.ue_index);
-    srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", msg.ue_index);
+    ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", msg.ue_index);
 
     if (ue->get_handover_ue_release_timer().is_running()) {
       logger.debug("ue={}: Ignoring UE inactivity. Cause: Ongoing handover for this UE", msg.ue_index);
@@ -342,8 +342,8 @@ cu_cp_impl::handle_rrc_reestablishment_request(pci_t old_pci, rnti_t old_c_rnti,
 async_task<bool> cu_cp_impl::handle_rrc_reestablishment_context_modification_required(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
-  srsran_assert(ue->get_cu_up_index() != cu_up_index_t::invalid, "ue={}: could not find CU-UP of the UE", ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid, "ue={}: could not find CU-UP of the UE", ue_index);
 
   return launch_async<reestablishment_context_modification_routine>(
       ue_index,
@@ -376,7 +376,7 @@ void cu_cp_impl::handle_rrc_reestablishment_complete(ue_index_t old_ue_index)
 void cu_cp_impl::handle_rrc_reconf_complete_indicator(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
 
   if (ue != nullptr) {
     ue->get_task_sched().schedule_async_task(
@@ -540,8 +540,8 @@ void cu_cp_impl::handle_handover_reconfiguration_sent(const cu_cp_intra_cu_hando
 void cu_cp_impl::handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index)
 {
   auto* ue = ue_mng.find_ue(target_ue_index);
-  srsran_assert(ue != nullptr, "ue={} not found", target_ue_index);
-  srsran_assert(
+  ocudu_assert(ue != nullptr, "ue={} not found", target_ue_index);
+  ocudu_assert(
       ue->get_cu_up_index() != cu_up_index_t::invalid, "ue={}: could not find CU-UP of the target UE", target_ue_index);
 
   auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
@@ -603,9 +603,9 @@ async_task<expected<ngap_init_context_setup_response, ngap_init_context_setup_fa
 cu_cp_impl::handle_new_initial_context_setup_request(const ngap_init_context_setup_request& request)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find UE", request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find UE", request.ue_index);
   rrc_ue_interface* rrc_ue = ue->get_rrc_ue();
-  srsran_assert(rrc_ue != nullptr, "ue={}: Could not find RRC UE", request.ue_index);
+  ocudu_assert(rrc_ue != nullptr, "ue={}: Could not find RRC UE", request.ue_index);
 
   auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
   if (ngap == nullptr) {
@@ -632,15 +632,15 @@ async_task<cu_cp_pdu_session_resource_setup_response>
 cu_cp_impl::handle_new_pdu_session_resource_setup_request(cu_cp_pdu_session_resource_setup_request& request)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
 
   // Select a CU-UP to serve the UE if it is not already assigned.
   if (ue->get_cu_up_index() == cu_up_index_t::invalid) {
     ue->set_cu_up_index(cu_up_db.select_cu_up());
   }
-  srsran_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
-                "ue={}: could not find a CU-UP to serve the UE",
-                request.ue_index);
+  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
+               "ue={}: could not find a CU-UP to serve the UE",
+               request.ue_index);
 
   return launch_async<pdu_session_resource_setup_routine>(
       request,
@@ -660,8 +660,8 @@ async_task<cu_cp_pdu_session_resource_modify_response>
 cu_cp_impl::handle_new_pdu_session_resource_modify_request(const cu_cp_pdu_session_resource_modify_request& request)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
-  srsran_assert(
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+  ocudu_assert(
       ue->get_cu_up_index() != cu_up_index_t::invalid, "ue={}: could not find CU-UP of the UE", request.ue_index);
 
   return launch_async<pdu_session_resource_modification_routine>(
@@ -679,8 +679,8 @@ async_task<cu_cp_pdu_session_resource_release_response>
 cu_cp_impl::handle_new_pdu_session_resource_release_command(const cu_cp_pdu_session_resource_release_command& command)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(command.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", command.ue_index);
-  srsran_assert(
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", command.ue_index);
+  ocudu_assert(
       ue->get_cu_up_index() != cu_up_index_t::invalid, "ue={}: could not find CU-UP of the UE", command.ue_index);
 
   return launch_async<pdu_session_resource_release_routine>(
@@ -698,7 +698,7 @@ async_task<cu_cp_ue_context_release_complete>
 cu_cp_impl::handle_ue_context_release_command(const cu_cp_ue_context_release_command& command)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(command.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", command.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", command.ue_index);
 
   e1ap_bearer_context_manager* e1ap_bearer_ctxt_mng = nullptr;
   if (ue->get_cu_up_index() != cu_up_index_t::invalid) {
@@ -717,13 +717,13 @@ async_task<ngap_handover_resource_allocation_response>
 cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
 
   // Select a CU-UP to serve the UE.
   ue->set_cu_up_index(cu_up_db.select_cu_up());
-  srsran_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
-                "ue={}: could not find a CU-UP to serve the UE",
-                request.ue_index);
+  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
+               "ue={}: could not find a CU-UP to serve the UE",
+               request.ue_index);
 
   return start_inter_cu_handover_target_routine(
       request,
@@ -739,10 +739,10 @@ cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
 void cu_cp_impl::handle_n2_handover_execution(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
-  srsran_assert(cu_up_db.find_cu_up_processor(uint_to_cu_up_index(0)) != nullptr,
-                "cu_up_index={}: could not find CU-UP",
-                uint_to_cu_up_index(0));
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+  ocudu_assert(cu_up_db.find_cu_up_processor(uint_to_cu_up_index(0)) != nullptr,
+               "cu_up_index={}: could not find CU-UP",
+               uint_to_cu_up_index(0));
 
   ngap_interface* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
   if (ngap == nullptr) {
@@ -815,7 +815,7 @@ ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_i
   return ue_index;
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 void cu_cp_impl::handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu)
 {
@@ -848,7 +848,7 @@ cu_cp_impl::handle_trp_information_request(const trp_information_request_t& requ
   });
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 void cu_cp_impl::handle_n2_disconnection(amf_index_t amf_index)
 {
@@ -884,7 +884,7 @@ cu_cp_impl::handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_reque
                                              du_index_t&                            target_du_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.source_ue_index);
-  srsran_assert(ue != nullptr, "ue={}: Could not find DU UE", request.source_ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.source_ue_index);
 
   byte_buffer sib1 = du_db.get_du_processor(target_du_index).get_mobility_handler().get_packed_sib1(request.cgi);
 
@@ -938,7 +938,7 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
 
 void cu_cp_impl::handle_pending_ue_task_cancellation(ue_index_t ue_index)
 {
-  srsran_assert(ue_mng.find_du_ue(ue_index) != nullptr, "ue={}: Could not find DU UE", ue_index);
+  ocudu_assert(ue_mng.find_du_ue(ue_index) != nullptr, "ue={}: Could not find DU UE", ue_index);
 
   // Clear all enqueued tasks for this UE.
   ue_mng.get_task_sched().clear_pending_tasks(ue_index);

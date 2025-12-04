@@ -11,10 +11,10 @@
 #pragma once
 
 #include "pusch_codeword_buffer_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
-#include "srsran/ran/pusch/ulsch_info.h"
+#include "ocudu/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ulsch_demultiplex_spy : public ulsch_demultiplex
 {
@@ -50,10 +50,10 @@ public:
   void
   set_csi_part2(pusch_decoder_buffer& csi_part2, unsigned nof_csi_part2_bits, unsigned nof_csi_part2_enc_bits_) override
   {
-    srsran_assert(nof_csi_part2_enc_bits == nof_csi_part2_enc_bits_,
-                  "Number of CSI Part 2 encoded bits do not match (i.e., {} != {}).",
-                  nof_csi_part2_enc_bits_,
-                  nof_csi_part2_enc_bits);
+    ocudu_assert(nof_csi_part2_enc_bits == nof_csi_part2_enc_bits_,
+                 "Number of CSI Part 2 encoded bits do not match (i.e., {} != {}).",
+                 nof_csi_part2_enc_bits_,
+                 nof_csi_part2_enc_bits);
 
     demultiplex_entry& entry = demultiplex_entries.back();
     entry.nof_csi_part2_bits = nof_csi_part2_bits;
@@ -120,4 +120,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(ulsch_demultiplex);
 
-} // namespace srsran
+} // namespace ocudu

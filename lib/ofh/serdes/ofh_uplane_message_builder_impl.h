@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/serdes/ofh_uplane_message_builder.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_builder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class iq_compressor;
@@ -23,7 +23,7 @@ class network_order_binary_serializer;
 class uplane_message_builder_impl : public uplane_message_builder
 {
 public:
-  uplane_message_builder_impl(srslog::basic_logger& logger_, iq_compressor& compressor_) :
+  uplane_message_builder_impl(ocudulog::basic_logger& logger_, iq_compressor& compressor_) :
     logger(logger_), compressor(compressor_)
   {
   }
@@ -44,10 +44,10 @@ private:
                                             const ru_compression_params&     params) = 0;
 
 protected:
-  const bool            ud_comp_length_support = false;
-  srslog::basic_logger& logger;
-  iq_compressor&        compressor;
+  const bool              ud_comp_length_support = false;
+  ocudulog::basic_logger& logger;
+  iq_compressor&          compressor;
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

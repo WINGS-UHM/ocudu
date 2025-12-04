@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 bool operator==(span<const bool> left, span<const bool> right)
 {
@@ -64,7 +64,7 @@ inline unique_rx_buffer reserve_buffer_trial(rx_buffer_pool&       pool,
   return unique_rx_buffer();
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 // Tests that the pool returns nullptr when the limit of buffers is reached.
 TEST(rx_buffer_pool, buffer_limit)
@@ -609,14 +609,14 @@ int main(int argc, char** argv)
   testing::InitGoogleTest(&argc, argv);
 
   // Make sure logger is enabled and use /dev/null as sink.
-  srslog::set_default_sink(*srslog::create_file_sink("/dev/null"));
-  srslog::init();
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY", true);
-  logger.set_level(srslog::basic_levels::debug);
+  ocudulog::set_default_sink(*ocudulog::create_file_sink("/dev/null"));
+  ocudulog::init();
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY", true);
+  logger.set_level(ocudulog::basic_levels::debug);
 
   int ret = RUN_ALL_TESTS();
 
-  srslog::flush();
+  ocudulog::flush();
 
   return ret;
 }

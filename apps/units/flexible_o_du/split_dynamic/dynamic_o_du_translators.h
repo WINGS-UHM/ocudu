@@ -11,12 +11,12 @@
 #pragma once
 
 #include "apps/units/flexible_o_du/split_helpers/flexible_o_du_configs.h"
-#include "srsran/adt/span.h"
-#include "srsran/ru/dummy/ru_dummy_configuration.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ru/dummy/ru_dummy_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_du {
+namespace odu {
 struct du_cell_config;
 }
 
@@ -32,4 +32,4 @@ ru_dummy_configuration generate_ru_dummy_config(const ru_dummy_unit_config&     
 /// Fills the dynamic_du worker manager parameters of the given worker manager configuration.
 void fill_dynamic_du_worker_manager_config(worker_manager_config& config, const dynamic_o_du_unit_config& unit_cfg);
 
-} // namespace srsran
+} // namespace ocudu

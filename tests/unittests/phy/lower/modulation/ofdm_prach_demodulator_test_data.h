@@ -13,11 +13,11 @@
 // This file was generated using the following MATLAB class on 09-10-2025 (seed 0):
 //   + "srsPRACHDemodulatorUnittest.m"
 
-#include "srsran/phy/lower/modulation/ofdm_prach_demodulator.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/lower/modulation/ofdm_prach_demodulator.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct prach_context {
   sampling_rate                         srate;
@@ -83,4 +83,4 @@ static const std::vector<test_case_t> ofdm_prach_demodulator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -20,6 +20,6 @@ set(SOURCES
         cu_configuration_procedure.cpp
         f1c_disconnection_handling_procedure.cpp
 )
-add_library(srsran_du_manager_procedures STATIC ${SOURCES})
-target_link_libraries(srsran_du_manager_procedures sched_config srsran_ran mac_configuration_helpers du_ue srsran_du_manager)
+add_library(ocudu_du_manager_procedures STATIC ${SOURCES})
+target_link_libraries(ocudu_du_manager_procedures sched_config ocudu_ran mac_configuration_helpers du_ue ocudu_du_manager)
 

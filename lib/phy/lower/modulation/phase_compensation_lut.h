@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Phase compensation as per TS38.211 Section 5.4.
 ///
@@ -40,10 +40,10 @@ public:
                          bool               is_tx)
   {
     double sampling_rate_Hz = to_sampling_rate_Hz(scs, dft_size);
-    srsran_assert(std::isnormal(sampling_rate_Hz),
-                  "Invalid sampling rate from SCS {} kHz and DFT size {}.",
-                  scs_to_khz(scs),
-                  dft_size);
+    ocudu_assert(std::isnormal(sampling_rate_Hz),
+                 "Invalid sampling rate from SCS {} kHz and DFT size {}.",
+                 scs_to_khz(scs),
+                 dft_size);
 
     unsigned nslot_per_subframe = get_nof_slots_per_subframe(scs);
     unsigned nsymb_per_slot     = get_nsymb_per_slot(cp);
@@ -77,12 +77,12 @@ public:
   /// \remark An assertion is triggered if the symbol index exceeds the number of symbols in a subframe.
   cf_t get_coefficient(unsigned symbol_index) const
   {
-    srsran_assert(symbol_index < coefficients.size(),
-                  "The symbol index within a subframe {} exceeds the number of symbols in the subframe {}.",
-                  symbol_index,
-                  coefficients.size());
+    ocudu_assert(symbol_index < coefficients.size(),
+                 "The symbol index within a subframe {} exceeds the number of symbols in the subframe {}.",
+                 symbol_index,
+                 coefficients.size());
     return coefficients[symbol_index];
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

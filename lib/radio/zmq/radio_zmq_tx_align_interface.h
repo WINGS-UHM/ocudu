@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/gateways/baseband/baseband_gateway_timestamp.h"
+#include "ocudu/gateways/baseband/baseband_gateway_timestamp.h"
 #include <chrono>
 
-namespace srsran {
+namespace ocudu {
 
 /// Interface for transmitter alignment from the receiver.
 class radio_zmq_tx_align_interface
@@ -26,4 +26,4 @@ public:
   virtual bool align(baseband_gateway_timestamp timestamp, std::chrono::milliseconds timeout) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,18 +10,20 @@
 
 #pragma once
 
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_procedure_logger
 {
 public:
-  du_procedure_logger(srslog::basic_logger& logger_, const char* proc_name_) : logger(logger_), proc_name(proc_name_) {}
+  du_procedure_logger(ocudulog::basic_logger& logger_, const char* proc_name_) : logger(logger_), proc_name(proc_name_)
+  {
+  }
 
   void log_proc_started() { log_impl(logger.debug, "Procedure started"); }
 
@@ -48,22 +50,22 @@ public:
   }
 
 private:
-  void log_impl(srslog::log_channel& log_ch, const char* result_str)
+  void log_impl(ocudulog::log_channel& log_ch, const char* result_str)
   {
     log_ch("proc=\"{}\": {}.", proc_name, result_str);
   }
 
-  srslog::basic_logger& logger;
-  const char*           proc_name;
+  ocudulog::basic_logger& logger;
+  const char*             proc_name;
 };
 
 class ue_procedure_logger
 {
 public:
-  ue_procedure_logger(srslog::basic_logger& logger_,
-                      const char*           proc_name_,
-                      du_ue_index_t         ue_index_,
-                      rnti_t                rnti_ = rnti_t::INVALID_RNTI) :
+  ue_procedure_logger(ocudulog::basic_logger& logger_,
+                      const char*             proc_name_,
+                      du_ue_index_t           ue_index_,
+                      rnti_t                  rnti_ = rnti_t::INVALID_RNTI) :
     logger(logger_), proc_name(proc_name_), ue_index(ue_index_), rnti(rnti_)
   {
   }
@@ -90,7 +92,7 @@ public:
   }
 
 private:
-  void log_impl(srslog::log_channel& log_ch, const char* result_str) const
+  void log_impl(ocudulog::log_channel& log_ch, const char* result_str) const
   {
     if (rnti == rnti_t::INVALID_RNTI) {
       log_ch("ue={} proc=\"{}\": {}.", fmt::underlying(ue_index), proc_name, result_str);
@@ -99,11 +101,11 @@ private:
     }
   }
 
-  srslog::basic_logger& logger;
-  const char*           proc_name;
-  du_ue_index_t         ue_index;
-  rnti_t                rnti;
+  ocudulog::basic_logger& logger;
+  const char*             proc_name;
+  du_ue_index_t           ue_index;
+  rnti_t                  rnti;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -8,8 +8,8 @@
  *
  */
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
@@ -19,7 +19,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(std::is_same_v<static_vector<int, 5>::value_type, int>, "Invalid traits");
 static_assert(std::is_trivially_destructible_v<static_vector<int, 5>>, "Invalid traits");
@@ -282,8 +282,8 @@ int main(int argc, char** argv)
   ::testing::InitGoogleTest(&argc, argv);
 
   int ret = RUN_ALL_TESTS();
-  srsran_assert(moveonly_test_object::object_count() == 0,
-                "number of ctor calls matches number of dtor calls for test object");
+  ocudu_assert(moveonly_test_object::object_count() == 0,
+               "number of ctor calls matches number of dtor calls for test object");
 
   return ret;
 }

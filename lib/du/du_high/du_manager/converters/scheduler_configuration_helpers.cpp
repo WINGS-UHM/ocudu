@@ -10,18 +10,18 @@
 
 #include "scheduler_configuration_helpers.h"
 #include "../du_ue/du_ue.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-std::optional<si_scheduling_config>
-srsran::srs_du::make_si_scheduling_info_config(const du_cell_config& du_cfg, span<const units::bytes> si_message_lens)
+std::optional<si_scheduling_config> ocudu::odu::make_si_scheduling_info_config(const du_cell_config&    du_cfg,
+                                                                               span<const units::bytes> si_message_lens)
 {
-  srsran_assert(si_message_lens.size() == (du_cfg.si_config.has_value() ? du_cfg.si_config->si_sched_info.size() : 0),
-                "Number of SI messages does not match the number of SI payload sizes");
+  ocudu_assert(si_message_lens.size() == (du_cfg.si_config.has_value() ? du_cfg.si_config->si_sched_info.size() : 0),
+               "Number of SI messages does not match the number of SI payload sizes");
 
   std::optional<si_scheduling_config> sched_req;
 
@@ -41,16 +41,16 @@ srsran::srs_du::make_si_scheduling_info_config(const du_cell_config& du_cfg, spa
 
 /// Derives Scheduler Cell Configuration from DU Cell Configuration.
 sched_cell_configuration_request_message
-srsran::srs_du::make_sched_cell_config_req(du_cell_index_t                            cell_index,
-                                           const srs_du::du_cell_config&              du_cfg,
-                                           units::bytes                               sib1_len,
-                                           const std::optional<si_scheduling_config>& si_sched_cfg)
+ocudu::odu::make_sched_cell_config_req(du_cell_index_t                            cell_index,
+                                       const odu::du_cell_config&                 du_cfg,
+                                       units::bytes                               sib1_len,
+                                       const std::optional<si_scheduling_config>& si_sched_cfg)
 {
-  srsran_assert(sib1_len.value() > 0, "SIB1 payload size needs to be set");
-  srsran_assert(si_sched_cfg.has_value()
-                    ? si_sched_cfg->si_messages.size()
-                    : 0 == (du_cfg.si_config.has_value() ? du_cfg.si_config->si_sched_info.size() : 0),
-                "Number of SI messages does not match the number of SI payload sizes");
+  ocudu_assert(sib1_len.value() > 0, "SIB1 payload size needs to be set");
+  ocudu_assert(si_sched_cfg.has_value()
+                   ? si_sched_cfg->si_messages.size()
+                   : 0 == (du_cfg.si_config.has_value() ? du_cfg.si_config->si_sched_info.size() : 0),
+               "Number of SI messages does not match the number of SI payload sizes");
 
   sched_cell_configuration_request_message sched_req{};
   sched_req.cell_index           = cell_index;
@@ -98,8 +98,8 @@ srsran::srs_du::make_sched_cell_config_req(du_cell_index_t                      
   return sched_req;
 }
 
-sched_ue_config_request srsran::srs_du::create_scheduler_ue_config_request(const du_ue_context&         ue_ctx,
-                                                                           const du_ue_resource_config& ue_res_cfg)
+sched_ue_config_request ocudu::odu::create_scheduler_ue_config_request(const du_ue_context&         ue_ctx,
+                                                                       const du_ue_resource_config& ue_res_cfg)
 {
   sched_ue_config_request sched_cfg;
 

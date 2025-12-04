@@ -18,7 +18,7 @@
 #include "split_7_2_o_du_unit_config_yaml_writer.h"
 #include "split_7_2_o_du_unit_logger_registrator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void split_7_2_o_du_application_unit_impl::on_loggers_registration()
 {
@@ -60,7 +60,7 @@ o_du_unit split_7_2_o_du_application_unit_impl::create_flexible_o_du_unit(const 
   return split_7_2_o_du_factory(unit_cfg).create_flexible_o_du(dependencies);
 }
 
-std::unique_ptr<flexible_o_du_application_unit> srsran::create_flexible_o_du_application_unit(std::string_view app_name)
+std::unique_ptr<flexible_o_du_application_unit> ocudu::create_flexible_o_du_application_unit(std::string_view app_name)
 {
   return std::make_unique<split_7_2_o_du_application_unit_impl>(app_name);
 }

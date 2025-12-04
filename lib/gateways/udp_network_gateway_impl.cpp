@@ -9,10 +9,10 @@
  */
 
 #include "udp_network_gateway_impl.h"
-#include "srsran/adt/span.h"
-#include "srsran/gateways/addr_info.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/io/sockets.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/gateways/addr_info.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/sockets.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 udp_network_gateway_impl::udp_network_gateway_impl(udp_network_gateway_config                   config_,
                                                    network_gateway_data_notifier_with_src_addr& data_notifier_,
@@ -28,7 +28,7 @@ udp_network_gateway_impl::udp_network_gateway_impl(udp_network_gateway_config   
                                                    task_executor&                               io_rx_executor_) :
   config(std::move(config_)),
   data_notifier(data_notifier_),
-  logger(srslog::fetch_basic_logger("UDP-GW")),
+  logger(ocudulog::fetch_basic_logger("UDP-GW")),
   io_tx_executor(io_tx_executor_),
   io_rx_executor(io_rx_executor_),
   tx_ctx(config.tx_max_mmsg, config.tx_max_segments),
@@ -283,7 +283,7 @@ void udp_network_gateway_impl::receive()
   thread_local receive_context rx_context(config.rx_max_mmsg);
 
   int rx_msgs = recvmmsg(sock_fd.value(), rx_context.rx_msghdr.data(), config.rx_max_mmsg, MSG_WAITFORONE, nullptr);
-  srslog::fetch_basic_logger("IO-EPOLL").info("UDP rx {} packets, max is {}", rx_msgs, config.rx_max_mmsg);
+  ocudulog::fetch_basic_logger("IO-EPOLL").info("UDP rx {} packets, max is {}", rx_msgs, config.rx_max_mmsg);
   if (rx_msgs == -1 && errno != EAGAIN) {
     logger.error("Error reading from UDP socket: {}", ::strerror(errno));
     return;

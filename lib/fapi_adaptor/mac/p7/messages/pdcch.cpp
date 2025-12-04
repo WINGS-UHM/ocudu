@@ -9,15 +9,15 @@
  */
 
 #include "pdcch.h"
-#include "srsran/fapi_adaptor/precoding_matrix_mapper.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu&            fapi_pdu,
-                                                     const mac_pdcch_pdu&           mac_pdu,
-                                                     const precoding_matrix_mapper& pm_mapper,
-                                                     unsigned                       cell_nof_prbs)
+void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu&            fapi_pdu,
+                                                    const mac_pdcch_pdu&           mac_pdu,
+                                                    const precoding_matrix_mapper& pm_mapper,
+                                                    unsigned                       cell_nof_prbs)
 {
   fapi::dl_pdcch_pdu_builder builder(fapi_pdu);
   convert_pdcch_mac_to_fapi(builder, mac_pdu, pm_mapper, cell_nof_prbs);
@@ -74,13 +74,13 @@ static void fill_precoding_and_beamforming(fapi::dl_dci_pdu_builder&      builde
   pm_bf_builder.add_prg(pm_mapper.map(info), {});
 }
 
-void srsran::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder&    builder,
-                                                     const mac_pdcch_pdu&           mac_pdu,
-                                                     const precoding_matrix_mapper& pm_mapper,
-                                                     unsigned                       cell_nof_prbs)
+void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder&    builder,
+                                                    const mac_pdcch_pdu&           mac_pdu,
+                                                    const precoding_matrix_mapper& pm_mapper,
+                                                    unsigned                       cell_nof_prbs)
 {
   const static_vector<mac_pdcch_pdu::dci_info, fapi::MAX_NUM_DCIS_PER_PDCCH_PDU>& dcis = mac_pdu.dcis;
-  srsran_assert(!dcis.empty(), "No DCIs to add into the PDCCH PDU");
+  ocudu_assert(!dcis.empty(), "No DCIs to add into the PDCCH PDU");
 
   const coreset_configuration& coreset_cfg = *mac_pdu.coreset_cfg;
 

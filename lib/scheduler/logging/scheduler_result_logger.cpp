@@ -9,13 +9,13 @@
  */
 
 #include "scheduler_result_logger.h"
-#include "srsran/ran/csi_report/csi_report_formatters.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/format/custom_formattable.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/csi_report/csi_report_formatters.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/format/custom_formattable.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static auto make_dl_dci_log_entry(const dci_dl_info& dci)
 {
@@ -638,7 +638,7 @@ static auto make_pucch_debug_log_entry(const pucch_info& pucch)
                   pucch.uci_bits.csi_part1_nof_bits);
       } break;
       default:
-        srsran_assertion_failure("Invalid PUCCH format");
+        ocudu_assertion_failure("Invalid PUCCH format");
     }
     return ctx.out();
   });
@@ -709,7 +709,10 @@ static auto make_debug_log_entry(const sched_result& result, bool log_broadcast)
 }
 
 scheduler_result_logger::scheduler_result_logger(bool log_broadcast_, pci_t pci_) :
-  logger(srslog::fetch_basic_logger("SCHED")), log_broadcast(log_broadcast_), enabled(logger.info.enabled()), pci(pci_)
+  logger(ocudulog::fetch_basic_logger("SCHED")),
+  log_broadcast(log_broadcast_),
+  enabled(logger.info.enabled()),
+  pci(pci_)
 {
 }
 

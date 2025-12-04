@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/lower_phy_baseband_metrics.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Physical downlink modulator notifier interface.
 class pdxch_processor_modulator_notifier
@@ -32,4 +32,4 @@ public:
                                         resource_grid_context                 context) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ru/ru_downlink_plane.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ru/ru_downlink_plane.h"
 
-namespace srsran {
+namespace ocudu {
 
 class lower_phy_downlink_handler;
 
@@ -33,4 +33,4 @@ private:
   std::vector<lower_phy_downlink_handler*> handlers;
 };
 
-} // namespace srsran
+} // namespace ocudu

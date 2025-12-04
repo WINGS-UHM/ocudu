@@ -13,9 +13,9 @@
 #include "ofh_data_flow_cplane_scheduling_commands.h"
 #include "ofh_data_flow_uplane_downlink_data.h"
 #include "ofh_tx_window_checker.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_metrics.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul downlink handler metrics collector.
@@ -62,4 +62,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

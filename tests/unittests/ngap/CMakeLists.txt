@@ -8,7 +8,7 @@
 
 add_library(ngap_test_helpers ngap_test_helpers.cpp ngap_test_messages.cpp)
 target_include_directories(ngap_test_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(ngap_test_helpers srsran_support ngap_asn1 srslog)
+target_link_libraries(ngap_test_helpers ocudu_support ngap_asn1 ocudulog)
 
 set(SOURCES
         ngap_asn1_packer_test.cpp
@@ -28,5 +28,5 @@ set(SOURCES
 add_executable(ngap_test ${SOURCES})
 target_include_directories(ngap_test PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(ngap_test PROPERTIES UNITY_BUILD ON)
-target_link_libraries(ngap_test ngap_test_helpers srsran_ngap srsran_support ngap_asn1 srsran_ran srslog gtest gtest_main)
+target_link_libraries(ngap_test ngap_test_helpers ocudu_ngap ocudu_support ngap_asn1 ocudu_ran ocudulog gtest gtest_main)
 gtest_discover_tests(ngap_test PROPERTIES "LABELS;ngap")

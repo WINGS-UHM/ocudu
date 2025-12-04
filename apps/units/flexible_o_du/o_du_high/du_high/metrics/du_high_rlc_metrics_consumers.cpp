@@ -12,7 +12,7 @@
 #include "apps/helpers/metrics/json_generators/du_high/rlc.h"
 #include "du_high_rlc_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void rlc_metrics_consumer_json::handle_metric(const app_services::metrics_set& metric)
 {

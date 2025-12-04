@@ -9,12 +9,12 @@
  */
 
 #include "configuration_procedure.h"
-#include "srsran/fapi/config_message_notifier.h"
-#include "srsran/fapi/error_message_notifier.h"
-#include "srsran/fapi/messages/config_messages.h"
-#include "srsran/fapi/messages/error_indication.h"
+#include "ocudu/fapi/config_message_notifier.h"
+#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/fapi/messages/config_messages.h"
+#include "ocudu/fapi/messages/error_indication.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 namespace {
@@ -61,7 +61,7 @@ static config_message_notifier_dummy         dummy_msg_notifier;
 static error_message_notifier_dummy          dummy_error_msg_notifier;
 static cell_operation_request_notifier_dummy dummy_cell_operation_notifier;
 
-configuration_procedure::configuration_procedure(srslog::basic_logger& logger_) :
+configuration_procedure::configuration_procedure(ocudulog::basic_logger& logger_) :
   logger(logger_),
   notifier(&dummy_msg_notifier),
   error_notifier(&dummy_error_msg_notifier),

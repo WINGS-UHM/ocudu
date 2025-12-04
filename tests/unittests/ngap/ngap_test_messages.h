@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/asn1/ngap/ngap.h"
-#include "srsran/asn1/ngap/ngap_ies.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_cp/up_context.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_handover.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/ran/cause/ngap_cause.h"
+#include "ocudu/asn1/ngap/ngap.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/up_context.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Check that two NGAP PDUs have the same type.
 bool is_same_pdu_type(const ngap_message& lhs, const ngap_message& rhs);
@@ -246,5 +246,5 @@ ngap_message generate_handover_cancel_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran
 
 ngap_message generate_ng_reset_ack(const asn1::ngap::ue_associated_lc_ng_conn_list_l& ng_reset_ues = {});
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

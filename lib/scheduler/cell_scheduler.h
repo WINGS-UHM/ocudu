@@ -25,7 +25,7 @@
 #include "uci_scheduling/uci_allocator_impl.h"
 #include "ue_scheduling/ue_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_metrics_handler;
 
@@ -84,7 +84,7 @@ private:
   scheduler_event_logger  event_logger;
   cell_metrics_handler&   metrics;
   scheduler_result_logger result_logger;
-  srslog::basic_logger&   logger;
+  ocudulog::basic_logger& logger;
 
   ssb_scheduler                 ssb_sch;
   pdcch_resource_allocator_impl pdcch_sch;
@@ -103,4 +103,4 @@ private:
   bool active = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,9 +11,9 @@
 #pragma once
 
 #include "avx512_helpers.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace mm512 {
 
@@ -27,8 +27,8 @@ inline void avx512_pack_prb_9b_big_endian(span<uint8_t> comp_prb_buffer, __m512i
   static constexpr unsigned bytes_per_lane                 = BYTES_PER_PRB_9BIT_COMPRESSION / 3;
   static constexpr unsigned lane_write_mask                = 0x01ff;
 
-  srsran_assert(comp_prb_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
-                "Output buffer has incorrect size for packing compressed samples");
+  ocudu_assert(comp_prb_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
+               "Output buffer has incorrect size for packing compressed samples");
 
   // Input IQ samples need to be shifted in order to align bits before final packing.
   // 0:  i0 0  0  0  0  0  0  0   i8 i7 i6 i5 i4 i3 i2 i1   <- rotate right by 1 (shift left by 7, swap bytes later)
@@ -99,8 +99,8 @@ inline void avx512_pack_prb_14b_big_endian(span<uint8_t> comp_prb_buffer, __m512
   static constexpr unsigned bytes_per_lane                  = BYTES_PER_PRB_14BIT_COMPRESSION / 3;
   static constexpr unsigned lane_write_mask                 = 0x3fff;
 
-  srsran_assert(comp_prb_buffer.size() == BYTES_PER_PRB_14BIT_COMPRESSION,
-                "Output buffer has incorrect size for packing compressed samples");
+  ocudu_assert(comp_prb_buffer.size() == BYTES_PER_PRB_14BIT_COMPRESSION,
+               "Output buffer has incorrect size for packing compressed samples");
 
   // We will use logical operations for 32bit words. I and Q components represented as 32bit words:
   // |            byte3          |            byte2        |               byte1        |           byte0          |
@@ -199,8 +199,8 @@ inline void avx512_pack_prb_16b_big_endian(span<uint8_t> comp_prb_buffer, __m512
 
   static constexpr unsigned write_mask = 0xffffff;
 
-  srsran_assert(comp_prb_buffer.size() == BYTES_PER_PRB_16BIT_COMPRESSION,
-                "Output buffer has incorrect size for packing compressed samples");
+  ocudu_assert(comp_prb_buffer.size() == BYTES_PER_PRB_16BIT_COMPRESSION,
+               "Output buffer has incorrect size for packing compressed samples");
 
   // Input contains 24 16 bit Iand Q samples.
   uint8_t* data = comp_prb_buffer.data();
@@ -402,4 +402,4 @@ inline bool iq_width_packing_supported(unsigned iq_width)
 
 } // namespace mm512
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

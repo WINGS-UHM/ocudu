@@ -13,7 +13,7 @@
 #include "apps/units/flexible_o_du/flexible_o_du_application_unit.h"
 #include "dynamic_o_du_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Dynamic O-RAN DU application unit implementation.
 ///
@@ -55,4 +55,4 @@ private:
   dynamic_o_du_unit_config unit_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

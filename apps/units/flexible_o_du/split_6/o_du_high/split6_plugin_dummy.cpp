@@ -9,20 +9,20 @@
  */
 
 #include "split6_plugin_dummy.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/fapi/slot_last_message_notifier.h"
-#include "srsran/fapi/slot_message_gateway.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_adaptor.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran::fapi {
+namespace ocudu::fapi {
 struct dl_tti_request_message;
 struct ul_tti_request_message;
 struct ul_dci_request_message;
 struct tx_data_request_message;
-} // namespace srsran::fapi
+} // namespace ocudu::fapi
 
 namespace {
 
@@ -88,14 +88,14 @@ public:
 } // namespace
 
 std::unique_ptr<fapi_adaptor::phy_fapi_adaptor>
-split6_plugin_dummy::create_fapi_adaptor(const srs_du::du_high_configuration& du_high_cfg,
-                                         const o_du_unit_dependencies&        dependencies)
+split6_plugin_dummy::create_fapi_adaptor(const odu::du_high_configuration& du_high_cfg,
+                                         const o_du_unit_dependencies&     dependencies)
 {
   return std::make_unique<fapi_adaptor_dummy>();
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
-std::unique_ptr<split6_plugin> srsran::create_split6_plugin(std::string_view app_name)
+#ifndef OCUDU_HAS_ENTERPRISE
+std::unique_ptr<split6_plugin> ocudu::create_split6_plugin(std::string_view app_name)
 {
   return std::make_unique<split6_plugin_dummy>();
 }

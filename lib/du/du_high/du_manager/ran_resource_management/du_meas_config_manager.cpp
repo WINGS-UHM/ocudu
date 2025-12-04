@@ -10,17 +10,17 @@
 
 #include "du_meas_config_manager.h"
 #include "du_ue_resource_config.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg_ies.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg_ies.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::rrc_nr;
 
 static bool unpack_meas_cfg(meas_cfg_s& meas_cfg, const byte_buffer& container)
 {
   asn1::cbit_ref bref{container};
-  return meas_cfg.unpack(bref) == asn1::SRSASN_SUCCESS;
+  return meas_cfg.unpack(bref) == asn1::OCUDUASN_SUCCESS;
 }
 
 // Creates a measurement gap based on a SSB MTC config.
@@ -80,7 +80,7 @@ static meas_gap_config create_meas_gap(subcarrier_spacing scs, const ssb_mtc_s& 
 }
 
 du_meas_config_manager::du_meas_config_manager(span<const du_cell_config> cell_cfg_list_) :
-  cell_cfg_list(cell_cfg_list_), logger(srslog::fetch_basic_logger("DU-MNG"))
+  cell_cfg_list(cell_cfg_list_), logger(ocudulog::fetch_basic_logger("DU-MNG"))
 {
 }
 

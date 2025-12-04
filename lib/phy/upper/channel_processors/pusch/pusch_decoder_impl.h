@@ -11,17 +11,17 @@
 #pragma once
 
 #include "pusch_codeblock_decoder.h"
-#include "srsran/adt/mutexed_mpsc_queue.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/pusch/pusch_constants.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/mutexed_mpsc_queue.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Number of bits in one byte.
 constexpr unsigned BITS_PER_BYTE = 8;
@@ -65,21 +65,21 @@ public:
                      task_executor*                          executor_,
                      unsigned                                nof_prb,
                      unsigned                                nof_layers) :
-    logger(srslog::fetch_basic_logger("PHY")),
+    logger(ocudulog::fetch_basic_logger("PHY")),
     segmenter(std::move(segmenter_)),
     decoder_pool(std::move(decoder_pool_)),
     crc_set(std::move(crc_set_)),
     executor(executor_),
     softbits_buffer(pusch_constants::get_max_codeword_size(nof_prb, nof_layers).value())
   {
-    srsran_assert(segmenter, "Invalid segmenter.");
-    srsran_assert(decoder_pool, "Invalid codeblock decoder pool.");
-    srsran_assert(crc_set.crc16, "Invalid CRC16 calculator.");
-    srsran_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
-    srsran_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
-    srsran_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16, "Wrong TB CRC calculator.");
-    srsran_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A, "Wrong TB CRC calculator.");
-    srsran_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B, "Wrong TB CRC calculator.");
+    ocudu_assert(segmenter, "Invalid segmenter.");
+    ocudu_assert(decoder_pool, "Invalid codeblock decoder pool.");
+    ocudu_assert(crc_set.crc16, "Invalid CRC16 calculator.");
+    ocudu_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
+    ocudu_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
+    ocudu_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16, "Wrong TB CRC calculator.");
+    ocudu_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A, "Wrong TB CRC calculator.");
+    ocudu_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B, "Wrong TB CRC calculator.");
   }
 
   // See interface for the documentation.
@@ -135,7 +135,7 @@ private:
     }
   }
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Current internal state.
   std::atomic<internal_states> current_state = {internal_states::idle};
   /// Pointer to an LDPC segmenter.
@@ -203,4 +203,4 @@ private:
   unsigned concatenate_codeblocks();
 };
 
-} // namespace srsran
+} // namespace ocudu

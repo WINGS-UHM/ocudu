@@ -11,13 +11,13 @@
 #pragma once
 
 #include "gtpu_tunnel_logger.h"
-#include "srsran/gtpu/gtpu_tunnel_common_tx.h"
-#include "srsran/pcap/dlt_pcap.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
+#include "ocudu/pcap/dlt_pcap.h"
 #include <arpa/inet.h>
 #include <cstdint>
 #include <netinet/in.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used for transmitting GTP-U bearers.
 class gtpu_tunnel_base_tx
@@ -67,4 +67,4 @@ private:
   dlt_pcap&                                   gtpu_pcap;
   gtpu_tunnel_common_tx_upper_layer_notifier& upper_dn;
 };
-} // namespace srsran
+} // namespace ocudu

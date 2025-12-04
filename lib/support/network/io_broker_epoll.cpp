@@ -9,12 +9,12 @@
  */
 
 #include "io_broker_epoll.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // TODO: parameterize
 static constexpr unsigned event_queue_size = 32;
@@ -26,7 +26,7 @@ thread_local int fd_read_in_callback = -1;
 static constexpr int AVOID_FD_REARMING = -2;
 
 io_broker_epoll::io_broker_epoll(const io_broker_config& config) :
-  logger(srslog::fetch_basic_logger("IO-EPOLL")), event_queue(event_queue_size)
+  logger(ocudulog::fetch_basic_logger("IO-EPOLL")), event_queue(event_queue_size)
 {
   pending_fds_to_remove.reserve(16);
 

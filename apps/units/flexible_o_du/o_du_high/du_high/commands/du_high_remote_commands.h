@@ -11,17 +11,17 @@
 #pragma once
 
 #include "apps/services/remote_control/remote_command.h"
-#include "srsran/du/du_high/du_manager/du_configurator.h"
+#include "ocudu/du/du_high/du_manager/du_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Remote command that modifies the SSB parameters.
 class ssb_modify_remote_command : public app_services::remote_command
 {
-  srs_du::du_configurator& configurator;
+  odu::du_configurator& configurator;
 
 public:
-  explicit ssb_modify_remote_command(srs_du::du_configurator& configurator_) : configurator(configurator_) {}
+  explicit ssb_modify_remote_command(odu::du_configurator& configurator_) : configurator(configurator_) {}
 
   // See interface for documentation.
   std::string_view get_name() const override { return "ssb_set"; }
@@ -36,10 +36,10 @@ public:
 /// Remote command that modifies the RRM policy ratio.
 class rrm_policy_ratio_remote_command : public app_services::remote_command
 {
-  srs_du::du_configurator& configurator;
+  odu::du_configurator& configurator;
 
 public:
-  explicit rrm_policy_ratio_remote_command(srs_du::du_configurator& configurator_) : configurator(configurator_) {}
+  explicit rrm_policy_ratio_remote_command(odu::du_configurator& configurator_) : configurator(configurator_) {}
 
   // See interface for documentation.
   std::string_view get_name() const override { return "rrm_policy_ratio_set"; }
@@ -51,4 +51,4 @@ public:
   error_type<std::string> execute(const nlohmann::json& json) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

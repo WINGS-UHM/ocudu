@@ -11,11 +11,11 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include <set>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief This class manages the allocation of RAN PUCCH Resources to DU UEs. For instance, this class ensures that
 /// UEs do not collide in the usage of the PUCCH for SRs and CSI. For HARQ-ACKs, we rely on the MAC scheduler to ensure
@@ -56,7 +56,7 @@ private:
   /// Each cell has nof_cell_pucch_f1_res_sr PUCCH Format 1 resources that can be used for SR. Within the DU, these
   /// resources are indexed with the values: {0, ..., nof_cell_pucch_f1_res_sr-1}. However, in the UE's PUCCH-Config,
   /// the PUCCH F1 resources use different indices (see \ref res_id in \ref pucch_resource). The mapping between the DU
-  /// index and the UE's PUCCH-Config for SR PUCCH resources is defined in \ref srs_du::ue_pucch_config_builder.
+  /// index and the UE's PUCCH-Config for SR PUCCH resources is defined in \ref odu::ue_pucch_config_builder.
   unsigned pucch_res_idx_to_sr_du_res_idx(unsigned pucch_res_idx) const;
 
   unsigned csi_du_res_idx_to_pucch_res_idx(unsigned csi_du_res_idx) const;
@@ -66,7 +66,7 @@ private:
   /// Each cell has nof_cell_pucch_f2_res_csi PUCCH Format 2 resources that can be used for CSI. Within the DU, these
   /// resources are indexed with the values: {0, ..., nof_cell_pucch_f2_res_csi-1}. However, in the UE's PUCCH-Config,
   /// the PUCCH F2 resources use different indices (see \ref res_id in \ref pucch_resource). The mapping between the DU
-  /// index and the UE's PUCCH-Config for CSI PUCCH resources is defined in \ref srs_du::ue_pucch_config_builder.
+  /// index and the UE's PUCCH-Config for CSI PUCCH resources is defined in \ref odu::ue_pucch_config_builder.
   unsigned pucch_res_idx_to_csi_du_res_idx(unsigned pucch_res_idx) const;
 
   std::vector<std::pair<unsigned, unsigned>>::const_iterator
@@ -120,5 +120,5 @@ private:
   static_vector<cell_resource_context, MAX_NOF_DU_CELLS> cells;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

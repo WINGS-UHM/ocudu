@@ -8,6 +8,6 @@
  *
  */
 
-#include "srsran/instrumentation/traces/ofh_traces.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
 
-srsran::file_event_tracer<srsran::OFH_TRACE_ENABLED> srsran::ofh_tracer;
+ocudu::file_event_tracer<ocudu::OFH_TRACE_ENABLED> ocudu::ofh_tracer;

@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/phy/upper/channel_processors/prach_detector.h"
-#include "srsran/phy/upper/channel_processors/prach_generator.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a parameter validator for the PRACH detector.
 class prach_detector_validator_impl : public prach_detector_validator
@@ -102,4 +102,4 @@ private:
   bool combine_symbols;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -28,9 +28,9 @@ add_library(cu_cp_test_helpers
         test_helpers.cpp)
 target_include_directories(cu_cp_test_helpers PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(cu_cp_test_helpers
-        srsran_cu_cp
-        srsran_support
-        srslog
+        ocudu_cu_cp
+        ocudu_support
+        ocudulog
         f1ap_test_helpers
         f1ap_test_doubles
         e1ap_test_helpers
@@ -40,7 +40,7 @@ target_link_libraries(cu_cp_test_helpers
         ngap_test_doubles
         f1ap_asn1
         ngap_asn1
-        e1ap_asn1 srsran_e2)
+        e1ap_asn1 ocudu_e2)
 
 
 add_executable(cu_cp_test
@@ -63,9 +63,9 @@ target_link_libraries(cu_cp_test
         f1ap_cu_test_helpers
         ngap_test_helpers
         rrc_ue_test_helpers
-        srsran_cu_cp
-        srsran_support
-        srslog
+        ocudu_cu_cp
+        ocudu_support
+        ocudulog
         f1ap_asn1
         ngap_asn1
         rrc_test_doubles
@@ -79,6 +79,6 @@ add_test(cu_cp_test cu_cp_test)
 gtest_discover_tests(cu_cp_test)
 
 add_executable(cu_cp_config_test cu_cp_config_test.cpp)
-target_link_libraries(cu_cp_config_test cu_cp_test_helpers srsran_cu_cp gtest gtest_main)
+target_link_libraries(cu_cp_config_test cu_cp_test_helpers ocudu_cu_cp gtest gtest_main)
 target_include_directories(cu_cp_config_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(cu_cp_config_test)

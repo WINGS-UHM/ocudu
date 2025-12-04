@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <numeric>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct polar_interleaver_gold_t {
   int                         K;

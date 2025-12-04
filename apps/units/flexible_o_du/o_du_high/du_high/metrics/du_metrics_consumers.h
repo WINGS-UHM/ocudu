@@ -13,9 +13,9 @@
 #include "apps/services/metrics/metrics_consumer.h"
 #include "consumers/mac_metrics_consumers.h"
 #include "consumers/scheduler_metrics_consumers.h"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/ocudulog/log_channel.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Consumer for the STDOUT DU metrics.
 class du_metrics_consumer_stdout : public app_services::metrics_consumer
@@ -41,20 +41,22 @@ private:
 class du_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit du_metrics_consumer_json(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit du_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// Consumer for the logger DU metrics.
 class du_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit du_metrics_consumer_log(srslog::log_channel& log_chan) : mac_consumer(log_chan), sched_consumer(log_chan) {}
+  explicit du_metrics_consumer_log(ocudulog::log_channel& log_chan) : mac_consumer(log_chan), sched_consumer(log_chan)
+  {
+  }
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
@@ -77,4 +79,4 @@ private:
   scheduler_cell_metrics_consumer_e2 sched_consumer;
 };
 
-} // namespace srsran
+} // namespace ocudu

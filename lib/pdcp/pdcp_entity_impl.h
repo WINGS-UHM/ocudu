@@ -13,12 +13,12 @@
 #include "pdcp_entity_rx.h"
 #include "pdcp_entity_tx.h"
 #include "pdcp_metrics_aggregator.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_entity.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_entity.h"
 #include <cstdio>
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class pdcp_entity_impl : public pdcp_entity
 {
@@ -98,4 +98,4 @@ private:
   pdcp_metrics_aggregator metrics_agg;
   bool                    stopped = false;
 };
-} // namespace srsran
+} // namespace ocudu

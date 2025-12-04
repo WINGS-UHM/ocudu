@@ -10,13 +10,13 @@
 
 #include "ntn_config_update_remote_command_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-#ifndef SRSRAN_HAS_ENTERPRISE_NTN
+#ifndef OCUDU_HAS_ENTERPRISE_NTN
 
-void srsran::add_ntn_config_update_remote_command(application_unit_commands&          commands,
-                                                  srs_ntn::ntn_configuration_manager& ntn_manager)
+void ocudu::add_ntn_config_update_remote_command(application_unit_commands&          commands,
+                                                 srs_ntn::ntn_configuration_manager& ntn_manager)
 {
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE_NTN
+#endif // OCUDU_HAS_ENTERPRISE_NTN

@@ -6,6 +6,6 @@
 # the distribution.
 #
 
-add_library(srsran_lower_phy_adaptors STATIC
+add_library(ocudu_lower_phy_adaptors STATIC
         processor_handler_adaptor.cpp
         processor_notifier_adaptor.cpp)

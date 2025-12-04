@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/pdcch/dmrs_pdcch_processor.h"
-#include "srsran/ran/pdcch/pdcch_constants.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/pdcch/dmrs_pdcch_processor.h"
+#include "ocudu/ran/pdcch/pdcch_constants.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes a generic implementation of a DMRS for PDCCH processor.
 class dmrs_pdcch_processor_impl : public dmrs_pdcch_processor
@@ -73,12 +73,12 @@ public:
                                      std::unique_ptr<resource_grid_mapper>    mapper_) :
     prg(std::move(prg_)), mapper(std::move(mapper_))
   {
-    srsran_assert(prg, "Invalid PRG.");
-    srsran_assert(mapper, "Invalid resource grid mapper.");
+    ocudu_assert(prg, "Invalid PRG.");
+    ocudu_assert(mapper, "Invalid resource grid mapper.");
   }
 
   // See interface for documentation.
   void map(resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/pusch/pusch_constants.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/ran/slot_point.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 struct search_space_info;
@@ -70,4 +70,4 @@ std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS
 get_fairly_distributed_pusch_td_resource_indices(const cell_configuration& cell_cfg,
                                                  const search_space_info*  ss_info = nullptr);
 
-} // namespace srsran
+} // namespace ocudu

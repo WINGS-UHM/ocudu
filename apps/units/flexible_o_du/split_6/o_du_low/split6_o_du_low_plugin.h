@@ -12,14 +12,14 @@
 
 #include "fapi_adaptor/mac_fapi_p7_sector_adaptor_factory.h"
 #include "split6_flexible_o_du_low_session_factory.h"
-#include "srsran/fapi_adaptor/mac/p5/mac_fapi_p5_sector_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p5/mac_fapi_p5_sector_adaptor.h"
 #include <memory>
 
 namespace CLI {
 class App;
 } // namespace CLI
 
-namespace srsran {
+namespace ocudu {
 
 struct worker_manager_config;
 
@@ -57,4 +57,4 @@ public:
 /// Creates the split 6 O-DU low plugin.
 std::unique_ptr<split6_o_du_low_plugin> create_split6_o_du_low_plugin(std::string_view app_name);
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/ssb/ssb_gscn.h"
-#include "srsran/ran/band_helper_constants.h"
+#include "ocudu/ran/ssb/ssb_gscn.h"
+#include "ocudu/ran/band_helper_constants.h"
 #include <math.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace band_helper;
 
 // GSCN set for band n34, SSB case A, as per TS 38.104, Table 5.4.3.3-1, Note 3.
@@ -118,8 +118,7 @@ static constexpr std::array<ssb_gscn_raster, nof_gscn_raster_fr1> ssb_gscn_raste
     {nr_band::n100,subcarrier_spacing::kHz15, 2303, 1, 2307},
     {nr_band::n101,subcarrier_spacing::kHz15, 4754, 1, 4768},
     {nr_band::n101,subcarrier_spacing::kHz30, 4760, 1, 4764},
-    {nr_band::n104,subcarrier_spacing::kHz30, 9882, 7, 10358}
-    // clang-format on
+    {nr_band::n104,subcarrier_spacing::kHz30, 9882, 7, 10358} // clang-format on
 }};
 
 // Helper that validates the GSCN of bands with irregular or special rasters.
@@ -175,10 +174,10 @@ validate_irregular_gscn_rasters(unsigned gscn, nr_band band, subcarrier_spacing 
                                                      fmt::underlying(ssb_scs)));
 }
 
-error_type<std::string> srsran::band_helper::is_gscn_valid_given_band(unsigned             gscn,
-                                                                      nr_band              band,
-                                                                      subcarrier_spacing   ssb_scs,
-                                                                      bs_channel_bandwidth bw)
+error_type<std::string> ocudu::band_helper::is_gscn_valid_given_band(unsigned             gscn,
+                                                                     nr_band              band,
+                                                                     subcarrier_spacing   ssb_scs,
+                                                                     bs_channel_bandwidth bw)
 {
   // Search for the GSCN in the table of regular rasters, first.
   for (const ssb_gscn_raster& raster : ssb_gscn_raster_table_fr1) {
@@ -199,16 +198,16 @@ error_type<std::string> srsran::band_helper::is_gscn_valid_given_band(unsigned  
   return validate_irregular_gscn_rasters(gscn, band, ssb_scs, bw);
 }
 
-span<const unsigned> srsran::band_helper::get_gscn_special_raster_iterator(nr_band band, subcarrier_spacing ssb_scs)
+span<const unsigned> ocudu::band_helper::get_gscn_special_raster_iterator(nr_band band, subcarrier_spacing ssb_scs)
 {
   bool are_input_args_valid = ((band == nr_band::n34 or band == nr_band::n38 or band == nr_band::n39) and
                                ssb_scs == subcarrier_spacing::kHz15) or
                               band == nr_band::n46 or band == nr_band::n96 or band == nr_band::n102;
 
-  srsran_assert(are_input_args_valid,
-                "This function cannot be used for band {} with SCS {}",
-                fmt::underlying(band),
-                scs_to_khz(ssb_scs));
+  ocudu_assert(are_input_args_valid,
+               "This function cannot be used for band {} with SCS {}",
+               fmt::underlying(band),
+               scs_to_khz(ssb_scs));
 
   switch (band) {
     case nr_band::n34:
@@ -230,10 +229,10 @@ span<const unsigned> srsran::band_helper::get_gscn_special_raster_iterator(nr_ba
 
 double band_helper::get_ss_ref_from_gscn(unsigned gscn)
 {
-  srsran_assert(gscn >= MIN_GSCN_FREQ_0_3GHZ and gscn <= band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ,
-                "GSCN must be within the [{},{}] interval",
-                MIN_GSCN_FREQ_0_3GHZ,
-                MAX_GSCN_FREQ_24_5_GHZ_100_GHZ);
+  ocudu_assert(gscn >= MIN_GSCN_FREQ_0_3GHZ and gscn <= band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ,
+               "GSCN must be within the [{},{}] interval",
+               MIN_GSCN_FREQ_0_3GHZ,
+               MAX_GSCN_FREQ_24_5_GHZ_100_GHZ);
 
   double ss_ref = 0;
 
@@ -247,7 +246,7 @@ double band_helper::get_ss_ref_from_gscn(unsigned gscn)
     // GSCN - (M-3)/2 is divisible by 3; then, we use this value for M to compute N = ( GSCN - (M-3)/2 ) / 3.
     while ((gscn_int - (M - 3) / 2) % 3 != 0) {
       if (M > max_M) {
-        srsran_terminate("The parameter M to compute GSCN must be one following vales {1, 3, 5}");
+        ocudu_terminate("The parameter M to compute GSCN must be one following vales {1, 3, 5}");
         return 0.0;
       }
       M += 2;
@@ -270,7 +269,7 @@ double band_helper::get_ss_ref_from_gscn(unsigned gscn)
   return ss_ref;
 }
 
-std::optional<unsigned> srsran::band_helper::get_gscn_from_ss_ref(double ss_ref_hz)
+std::optional<unsigned> ocudu::band_helper::get_gscn_from_ss_ref(double ss_ref_hz)
 {
   // The following is based on Table 5.4.3.1-1, TS 38.104.
   if (ss_ref_hz < N_REF_OFFSET_3_GHZ_24_5_GHZ) {

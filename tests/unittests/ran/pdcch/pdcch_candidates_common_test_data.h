@@ -13,9 +13,9 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsPDCCHCandidatesCommonUnittest.m"
 
-#include "srsran/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   pdcch_candidates_common_ss_configuration config;
@@ -245,4 +245,4 @@ static const std::vector<test_case_t> pdcch_candidates_common_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

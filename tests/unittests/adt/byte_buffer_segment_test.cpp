@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/detail/byte_buffer_segment.h"
-#include "srsran/adt/detail/byte_buffer_segment_list.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/detail/byte_buffer_segment.h"
+#include "ocudu/adt/detail/byte_buffer_segment_list.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace detail;
 
 ///////////////////////// byte_buffer_segment //////////////////////////////

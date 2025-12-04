@@ -12,12 +12,12 @@
 
 #include "lib/rlc/rlc_bearer_logger.h"
 #include "rlc_stress_test_args.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class stress_traffic_sink : public pdcp_rx_upper_data_notifier
 {
@@ -56,4 +56,4 @@ public:
 
   void send_pdu();
 };
-} // namespace srsran
+} // namespace ocudu

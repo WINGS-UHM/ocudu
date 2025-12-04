@@ -11,15 +11,15 @@
 #pragma once
 
 #include "../common/e2ap_asn1_utils.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2_event_manager.h"
-#include "srsran/e2/subscription/e2_subscription.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/timers.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2_event_manager.h"
+#include "ocudu/e2/subscription/e2_subscription.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/timers.h"
 
 class e2_subsciption_notifier;
-namespace srsran {
+namespace ocudu {
 
 class e2_subscription_setup_procedure
 {
@@ -29,7 +29,7 @@ public:
                                   e2_message_notifier&                 ric_notif_,
                                   e2_subscription_proc&                subscription_mngr_,
                                   timer_factory                        timers_,
-                                  srslog::basic_logger&                logger_);
+                                  ocudulog::basic_logger&              logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -42,10 +42,10 @@ private:
 
   const asn1::e2ap::ric_sub_request_s request;
   e2_event_manager&                   event_manager;
-  srslog::basic_logger&               logger;
+  ocudulog::basic_logger&             logger;
   e2_message_notifier&                ric_notif;
   e2_subscription_proc&               subscription_mngr;
   timer_factory                       timers;
 };
 
-} // namespace srsran
+} // namespace ocudu

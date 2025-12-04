@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/radio/radio_configuration.h"
+#include "ocudu/radio/radio_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Radio configuration validator for ZMQ based radios.
 class radio_config_zmq_config_validator : public radio_configuration::validator
@@ -22,4 +22,4 @@ public:
   bool is_configuration_valid(const radio_configuration::radio& config) const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

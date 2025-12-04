@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/ofh/ecpri/ecpri_packet_decoder.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ecpri {
 
 /// eCPRI packet decoder implementation.
 class packet_decoder_impl : public packet_decoder
 {
 public:
-  packet_decoder_impl(srslog::basic_logger& logger_, unsigned sector_) : logger(logger_), sector(sector_) {}
+  packet_decoder_impl(ocudulog::basic_logger& logger_, unsigned sector_) : logger(logger_), sector(sector_) {}
 
   // See interface for documentation.
   span<const uint8_t> decode(span<const uint8_t> packet, packet_parameters& params) override;
@@ -40,15 +40,15 @@ private:
   virtual span<const uint8_t> decode_payload(span<const uint8_t> packet, packet_parameters& params) = 0;
 
 protected:
-  srslog::basic_logger& logger;
-  const unsigned        sector;
+  ocudulog::basic_logger& logger;
+  const unsigned          sector;
 };
 
 /// \brief eCPRI packet decoder implementation utilizing payload size encoded in a eCPRI header.
 class packet_decoder_use_header_payload_size : public packet_decoder_impl
 {
 public:
-  packet_decoder_use_header_payload_size(srslog::basic_logger& logger_, unsigned sector_) :
+  packet_decoder_use_header_payload_size(ocudulog::basic_logger& logger_, unsigned sector_) :
     packet_decoder_impl(logger_, sector_)
   {
   }
@@ -63,7 +63,7 @@ private:
 class packet_decoder_ignore_header_payload_size : public packet_decoder_impl
 {
 public:
-  packet_decoder_ignore_header_payload_size(srslog::basic_logger& logger_, unsigned sector_) :
+  packet_decoder_ignore_header_payload_size(ocudulog::basic_logger& logger_, unsigned sector_) :
     packet_decoder_impl(logger_, sector_)
   {
   }
@@ -74,4 +74,4 @@ private:
 };
 
 } // namespace ecpri
-} // namespace srsran
+} // namespace ocudu

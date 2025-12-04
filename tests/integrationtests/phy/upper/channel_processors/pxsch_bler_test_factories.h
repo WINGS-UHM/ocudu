@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Creates a PDSCH processor factory.
 /// \param[in] executor        Asynchronous executor.
@@ -43,4 +43,4 @@ create_sw_pusch_processor_factory(task_executor&                                
                                   port_channel_estimator_td_interpolation_strategy td_interpolation_strategy,
                                   channel_equalizer_algorithm_type                 equalizer_algorithm_type);
 
-} // namespace srsran
+} // namespace ocudu

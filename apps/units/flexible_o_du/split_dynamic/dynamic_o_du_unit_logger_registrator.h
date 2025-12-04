@@ -16,7 +16,7 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_logger_registrator.h"
 #include "dynamic_o_du_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers all the loggers for the O-RAN DU split dynamic.
 inline void register_dynamic_o_du_loggers(const dynamic_o_du_unit_config& config)
@@ -31,4 +31,4 @@ inline void register_dynamic_o_du_loggers(const dynamic_o_du_unit_config& config
   }
 }
 
-} // namespace srsran
+} // namespace ocudu

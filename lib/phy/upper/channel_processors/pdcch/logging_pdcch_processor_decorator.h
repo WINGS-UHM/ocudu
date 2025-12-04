@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/channel_processors/pdcch/formatters.h"
-#include "srsran/ran/precoding/precoding_weight_matrix_formatters.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/support/format/delimited_formatter.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/formatters.h"
+#include "ocudu/ran/precoding/precoding_weight_matrix_formatters.h"
+#include "ocudu/support/format/delimited_formatter.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline bool is_broadcast_rnti(uint16_t rnti)
 {
@@ -36,12 +36,12 @@ inline std::chrono::nanoseconds time_execution(Func&& func)
 class logging_pdcch_processor_decorator : public pdcch_processor
 {
 public:
-  logging_pdcch_processor_decorator(srslog::basic_logger&            logger_,
+  logging_pdcch_processor_decorator(ocudulog::basic_logger&          logger_,
                                     bool                             enable_logging_broadcast_,
                                     std::unique_ptr<pdcch_processor> processor_) :
     logger(logger_), enable_logging_broadcast(enable_logging_broadcast_), processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid processor.");
+    ocudu_assert(processor, "Invalid processor.");
   }
 
   void process(resource_grid_writer& grid, const pdu_t& pdu) override
@@ -56,8 +56,8 @@ public:
     std::chrono::nanoseconds time_ns = time_execution(func);
 
     static_bit_buffer<pdcch_constants::MAX_DCI_PAYLOAD_SIZE> data(pdu.dci.payload.size());
-    srsvec::zero(data.get_buffer());
-    srsvec::bit_pack(data, pdu.dci.payload);
+    ocuduvec::zero(data.get_buffer());
+    ocuduvec::bit_pack(data, pdu.dci.payload);
 
     if (logger.debug.enabled()) {
       // Detailed log information, including a list of all PDU fields.
@@ -83,9 +83,9 @@ public:
   }
 
 private:
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
   bool                             enable_logging_broadcast;
   std::unique_ptr<pdcch_processor> processor;
 };
 
-} // namespace srsran
+} // namespace ocudu

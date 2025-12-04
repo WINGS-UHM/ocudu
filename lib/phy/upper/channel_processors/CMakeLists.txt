@@ -13,38 +13,38 @@ add_subdirectory(pusch)
 add_subdirectory(ssb)
 add_subdirectory(uci)
 
-add_library(srsran_prach_detector STATIC
+add_library(ocudu_prach_detector STATIC
         prach_detector_generic_impl.cpp
         prach_detector_generic_thresholds.cpp
         prach_generator_impl.cpp
         prach_detector_phy_validator_impl.cpp)
-target_link_libraries(srsran_prach_detector srsran_ran srsvec)
+target_link_libraries(ocudu_prach_detector ocudu_ran ocuduvec)
 
-add_library(srsran_channel_processors STATIC channel_processor_factories.cpp)
-target_link_libraries(srsran_channel_processors
-        srsran_channel_coding
-        srsran_channel_modulation
-        srsran_channel_precoder
-        srsran_pdcch_processor
-        srsran_pdsch_processor
-        srsran_phy_support
-        srsran_prach_detector
-        srsran_pucch_demodulator
-        srsran_pucch_detector
-        srsran_pucch_processor
-        srsran_pusch_processor
-        srsran_sequence_generators
-        srsran_signal_processors
-        srsran_ssb_tx_processor
-        srsran_uci_decoder)
+add_library(ocudu_channel_processors STATIC channel_processor_factories.cpp)
+target_link_libraries(ocudu_channel_processors
+        ocudu_channel_coding
+        ocudu_channel_modulation
+        ocudu_channel_precoder
+        ocudu_pdcch_processor
+        ocudu_pdsch_processor
+        ocudu_phy_support
+        ocudu_prach_detector
+        ocudu_pucch_demodulator
+        ocudu_pucch_detector
+        ocudu_pucch_processor
+        ocudu_pusch_processor
+        ocudu_sequence_generators
+        ocudu_signal_processors
+        ocudu_ssb_tx_processor
+        ocudu_uci_decoder)
 
-add_to_exported_libs(srsran_channel_processors
-        srsran_pdcch_processor
-        srsran_pdsch_processor
-        srsran_prach_detector
-        srsran_pucch_demodulator
-        srsran_pucch_detector
-        srsran_pucch_processor
-        srsran_pusch_processor
-        srsran_ssb_tx_processor
-        srsran_uci_decoder)
+add_to_exported_libs(ocudu_channel_processors
+        ocudu_pdcch_processor
+        ocudu_pdsch_processor
+        ocudu_prach_detector
+        ocudu_pucch_demodulator
+        ocudu_pucch_detector
+        ocudu_pucch_processor
+        ocudu_pusch_processor
+        ocudu_ssb_tx_processor
+        ocudu_uci_decoder)

@@ -10,12 +10,12 @@
 
 #include "du_connection_manager.h"
 #include "../du_processor/du_processor_repository.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/support/executors/sync_task_executor.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/executors/sync_task_executor.h"
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Context of a DU connection which is shared between the du_connection_manager and the f1ap_message_notifier.
 class du_connection_manager::shared_du_connection_context
@@ -118,7 +118,7 @@ du_connection_manager::du_connection_manager(unsigned                 max_nof_du
   dus(dus_),
   cu_cp_exec(cu_cp_exec_),
   common_task_sched(common_task_sched_),
-  logger(srslog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

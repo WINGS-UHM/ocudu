@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/adt/span.h"
-#include "srsran/phy/support/interpolator.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_estimator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/phy/support/interpolator.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Extracts channel observations corresponding to DM-RS pilots from the resource grid for one layer, one hop
 /// and for the selected port.
@@ -78,4 +78,4 @@ void extract_dmrs_grid(span<cf_t>                    dmrs_symbols,
                        const bounded_bitset<MAX_RB>& hop_rb_mask,
                        const bounded_bitset<NRE>&    re_pattern);
 
-} // namespace srsran
+} // namespace ocudu

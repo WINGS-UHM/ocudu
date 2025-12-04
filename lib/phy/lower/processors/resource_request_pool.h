@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/circular_array.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/ran/slot_point.h"
 #include <mutex>
 #include <utility>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Thread-safe resource request pool.
 ///
@@ -72,4 +72,4 @@ private:
   circular_array<request_wrapper, request_array_size> requests;
 };
 
-} // namespace srsran
+} // namespace ocudu

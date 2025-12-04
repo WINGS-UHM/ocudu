@@ -10,10 +10,10 @@
 
 #include "e1ap_stop_procedure.h"
 #include "../ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 e1ap_stop_procedure::e1ap_stop_procedure(e1ap_cu_cp_notifier& cu_cp_notifier_, e1ap_ue_context_list& ue_ctxt_list_) :
   cu_cp_notifier(cu_cp_notifier_), ue_ctxt_list(ue_ctxt_list_)

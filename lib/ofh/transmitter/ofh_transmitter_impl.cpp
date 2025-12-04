@@ -11,7 +11,7 @@
 #include "ofh_transmitter_impl.h"
 #include "ofh_uplane_fragment_size_calculator.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 static uplink_request_handler_impl_config generate_uplink_request_handler_config(const transmitter_config& tx_config)
@@ -34,8 +34,8 @@ static uplink_request_handler_impl_config generate_uplink_request_handler_config
 static uplink_request_handler_impl_dependencies
 resolve_uplink_request_handler_dependencies(transmitter_impl_dependencies& tx_dependencies)
 {
-  srsran_assert(tx_dependencies.err_notifier, "Invalid error notifier");
-  srsran_assert(tx_dependencies.logger, "Invalid logger");
+  ocudu_assert(tx_dependencies.err_notifier, "Invalid error notifier");
+  ocudu_assert(tx_dependencies.logger, "Invalid logger");
 
   return {*tx_dependencies.logger,
           *tx_dependencies.err_notifier,
@@ -64,8 +64,8 @@ static downlink_handler_impl_config generate_downlink_handler_config(const trans
 static downlink_handler_impl_dependencies
 resolve_downlink_handler_impl_dependencies(transmitter_impl_dependencies& tx_dependencies)
 {
-  srsran_assert(tx_dependencies.err_notifier, "Invalid error notifier");
-  srsran_assert(tx_dependencies.logger, "Invalid logger");
+  ocudu_assert(tx_dependencies.err_notifier, "Invalid error notifier");
+  ocudu_assert(tx_dependencies.logger, "Invalid logger");
 
   return {*tx_dependencies.logger,
           *tx_dependencies.err_notifier,

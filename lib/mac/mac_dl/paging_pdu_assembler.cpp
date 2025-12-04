@@ -9,10 +9,10 @@
  */
 
 #include "paging_pdu_assembler.h"
-#include "srsran/asn1/rrc_nr/pcch_msg.h"
-#include "srsran/scheduler/result/pdsch_info.h"
+#include "ocudu/asn1/rrc_nr/pcch_msg.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Build RRC-NR Paging message from the Paging grant.
 /// \param[in] pg Paging grant information.
@@ -73,11 +73,11 @@ span<const uint8_t> paging_pdu_assembler::encode_paging_pdu(const dl_paging_allo
   {
     asn1::bit_ref                   bref{payload};
     const asn1::rrc_nr::pcch_msg_s& pcch_msg = buffer->to_asn1(pg);
-    const asn1::SRSASN_CODE         ret      = pcch_msg.pack(bref);
-    srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack PCCH-PCH Paging message");
+    const asn1::OCUDUASN_CODE       ret      = pcch_msg.pack(bref);
+    ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack PCCH-PCH Paging message");
   }
-  srsran_assert(pg.pdsch_cfg.codewords[0].tb_size_bytes >= payload.length(),
-                "The TBS for Paging cannot be smaller than the Paging payload");
+  ocudu_assert(pg.pdsch_cfg.codewords[0].tb_size_bytes >= payload.length(),
+               "The TBS for Paging cannot be smaller than the Paging payload");
 
   span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(pg.pdsch_cfg.codewords[0].tb_size_bytes);
 

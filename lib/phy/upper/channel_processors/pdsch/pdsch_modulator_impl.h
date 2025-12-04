@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_modulator.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_modulator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes a generic implementation of a PDSCH modulator, defined by TS38.211 Section 7.3.1
 class pdsch_modulator_impl : public pdsch_modulator
@@ -65,13 +65,13 @@ public:
                        std::unique_ptr<resource_grid_mapper>    mapper_) :
     modulator(std::move(modulator_)), scrambler(std::move(scrambler_)), mapper(std::move(mapper_))
   {
-    srsran_assert(modulator, "Invalid modulator");
-    srsran_assert(scrambler, "Invalid scrambler");
-    srsran_assert(mapper, "Invalid mapper");
+    ocudu_assert(modulator, "Invalid modulator");
+    ocudu_assert(scrambler, "Invalid scrambler");
+    ocudu_assert(mapper, "Invalid mapper");
   }
 
   // See interface for the documentation.
-  void modulate(resource_grid_writer& grid, srsran::span<const bit_buffer> codewords, const config_t& config) override;
+  void modulate(resource_grid_writer& grid, ocudu::span<const bit_buffer> codewords, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

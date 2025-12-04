@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_timing_context.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_context.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_notifier.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class downlink_processor_notifier_spy : public downlink_processor_notifier
 {
@@ -33,4 +33,4 @@ private:
   std::vector<lower_phy_timing_context> tti_boundaries;
 };
 
-} // namespace srsran
+} // namespace ocudu

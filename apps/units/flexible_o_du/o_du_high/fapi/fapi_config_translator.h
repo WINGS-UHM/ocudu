@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct fapi_unit_config;
 struct worker_manager_config;
@@ -20,4 +20,4 @@ void fill_fapi_worker_manager_config(worker_manager_config&  config,
                                      const fapi_unit_config& unit_cfg,
                                      unsigned                nof_cells);
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,11 +11,11 @@
 #pragma once
 
 #include "adapters/pdcp_adapters.h"
-#include "srsran/pdcp/pdcp_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
+#include "ocudu/pdcp/pdcp_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct pdcp_tx_result {
   std::variant<byte_buffer, ngap_cause_t> result;
@@ -157,5 +157,5 @@ private:
   srb_pdcp_context pdcp_context;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -15,17 +15,17 @@
 #include "ngap_error_indication_helper.h"
 #include "procedures/ngap_transaction_manager.h"
 #include "ue_context/ngap_ue_context.h"
-#include "srsran/asn1/ngap/ngap.h"
-#include "srsran/ngap/gateways/n2_connection_client.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_configuration.h"
-#include "srsran/ngap/ngap_ue_radio_capability_management.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/asn1/ngap/ngap.h"
+#include "ocudu/ngap/gateways/n2_connection_client.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_configuration.h"
+#include "ocudu/ngap/ngap_ue_radio_capability_management.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 class ngap_impl final : public ngap_interface
 {
@@ -219,7 +219,7 @@ private:
 
   ngap_context_t context;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   /// Repository of UE Contexts.
   ngap_ue_context_list ue_ctxt_list;
@@ -240,6 +240,6 @@ private:
   tx_pdu_notifier_with_logging tx_pdu_notifier;
 };
 
-} // namespace srs_cu_cp
+} // namespace ocucp
 
-} // namespace srsran
+} // namespace ocudu

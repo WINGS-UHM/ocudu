@@ -9,14 +9,14 @@
  */
 
 #include "lib/scheduler/support/pdsch/pdsch_dmrs_symbol_mask.h"
-#include "srsran/adt/static_vector.h"
+#include "ocudu/adt/static_vector.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <map>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, dmrs_typeA_position dmrs_pos)
 {
@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& os, dmrs_symbol_mask mask)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 #define L0 (UINT8_MAX)
@@ -113,7 +113,7 @@ TEST_P(PdschDmrsSymbolMaskFixture, ANormal)
   dmrs_typeA_position l0 = typeA_pos;
   unsigned            l1 =
       (config.lte_crs_match_around && config.ue_capable_additional_dmrs_dl_alt &&
-       config.additional_position == srsran::dmrs_additional_positions::pos1 && l0 == srsran::dmrs_typeA_position::pos3)
+       config.additional_position == ocudu::dmrs_additional_positions::pos1 && l0 == ocudu::dmrs_typeA_position::pos3)
                      ? 12
                      : 11;
 

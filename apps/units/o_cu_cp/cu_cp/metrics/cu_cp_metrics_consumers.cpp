@@ -12,7 +12,7 @@
 #include "apps/helpers/metrics/json_generators/cu_cp/cu_cp_json_helper.h"
 #include "cu_cp_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void cu_cp_metrics_consumer_json::handle_metric(const app_services::metrics_set& metric)
 {

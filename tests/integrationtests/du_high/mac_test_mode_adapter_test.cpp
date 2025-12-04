@@ -10,16 +10,16 @@
 
 #include "lib/du/du_high/test_mode/mac_test_mode_adapter.h"
 #include "tests/unittests/mac/mac_test_helpers.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
-#include <srsran/mac/mac_positioning_measurement_handler.h>
+#include <ocudu/mac/mac_positioning_measurement_handler.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 struct mac_event_interceptor {
   std::optional<mac_ul_sched_result> next_ul_sched_res;
@@ -131,8 +131,8 @@ public:
 };
 
 struct test_params {
-  unsigned                                         nof_ports;
-  srs_du::du_test_mode_config::test_mode_ue_config test_ue_cfg;
+  unsigned                                      nof_ports;
+  odu::du_test_mode_config::test_mode_ue_config test_ue_cfg;
 };
 
 /// Formatter for test params.
@@ -180,7 +180,7 @@ protected:
     mac_ue_create_request req      = test_helpers::make_default_ue_creation_request(builder);
     req.sched_cfg.cells.value()[0] = config_helpers::create_default_initial_ue_spcell_cell_config(builder);
     adapter.get_ue_configurator().handle_ue_create_request(req);
-    srsran_assert(mac_events.last_ue_created.has_value(), "UE creation request was not forwarded to MAC");
+    ocudu_assert(mac_events.last_ue_created.has_value(), "UE creation request was not forwarded to MAC");
 
     csi_cfg = create_csi_report_configuration(
         *mac_events.last_ue_created->sched_cfg.cells.value()[0].serv_cell_cfg.csi_meas_cfg);

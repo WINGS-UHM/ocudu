@@ -15,14 +15,14 @@
 /// messages (for comparison purposes) are provided as test vectors.
 
 #include "uci_decoder_test_data.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_processors/uci/factories.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_processors/uci/factories.h"
 #include <gtest/gtest.h>
 
 /// \cond
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 std::ostream& operator<<(std::ostream& os, const test_case_t& tc)
 {
   return os << fmt::format("A: {} bits, E: {}, {}", tc.message_length, tc.llr_length, to_string(tc.config.modulation));
@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, span<const uint8_t> data)
   return os << fmt::format("{}", data);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

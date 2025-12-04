@@ -8,29 +8,29 @@
  *
  */
 
-#include "srsran/asn1/e2sm/e2sm_rc_ies.h"
+#include "ocudu/asn1/e2sm/e2sm_rc_ies.h"
 #include <gtest/gtest.h>
 
 using namespace asn1;
-using namespace srsran;
+using namespace ocudu;
 
 class asn1_e2sm_test : public ::testing::Test
 {
 public:
   asn1_e2sm_test()
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
-  ~asn1_e2sm_test() { srslog::flush(); }
+  ~asn1_e2sm_test() { ocudulog::flush(); }
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(asn1_e2sm_test, unpack_ric_control_header)
@@ -42,9 +42,9 @@ TEST_F(asn1_e2sm_test, unpack_ric_control_header)
 
   asn1::cbit_ref                 bref{buffer};
   asn1::e2sm::e2sm_rc_ctrl_hdr_s pdu;
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 }
 
 TEST_F(asn1_e2sm_test, unpack_ric_control_message)
@@ -59,7 +59,7 @@ TEST_F(asn1_e2sm_test, unpack_ric_control_message)
 
   asn1::cbit_ref                 bref{buffer};
   asn1::e2sm::e2sm_rc_ctrl_msg_s pdu;
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
 
   ASSERT_EQ(pdu.ric_ctrl_msg_formats.type().value,
             asn1::e2sm::e2sm_rc_ctrl_msg_s::ric_ctrl_msg_formats_c_::types_opts::ctrl_msg_format1);
@@ -111,5 +111,5 @@ TEST_F(asn1_e2sm_test, unpack_ric_control_message)
   ASSERT_EQ(seq_params[3].ran_param_value_type.type().value,
             asn1::e2sm::ran_param_value_type_c::types_opts::ran_p_choice_elem_false);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 }

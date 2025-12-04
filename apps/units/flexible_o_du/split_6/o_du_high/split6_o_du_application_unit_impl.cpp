@@ -17,15 +17,15 @@
 #include "split6_o_du_unit_cli11_schema.h"
 #include "split6_o_du_unit_config_validator.h"
 #include "split6_o_du_unit_logger_registrator.h"
-#include "srsran/du/du_high/du_high_configuration.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 split6_o_du_application_unit_impl::split6_o_du_application_unit_impl(std::string_view               app_name,
                                                                      std::unique_ptr<split6_plugin> plugin_) :
   plugin(std::move(plugin_))
 {
-  srsran_assert(plugin, "Invalid split 6 plugin");
+  ocudu_assert(plugin, "Invalid split 6 plugin");
 
   unit_cfg.odu_high_cfg.du_high_cfg.config.pcaps.f1ap.filename = fmt::format("/tmp/{}_f1ap.pcap", app_name);
   unit_cfg.odu_high_cfg.du_high_cfg.config.pcaps.f1u.filename  = fmt::format("/tmp/{}_f1u.pcap", app_name);
@@ -68,7 +68,7 @@ void split6_o_du_application_unit_impl::on_parsing_configuration_registration(CL
 o_du_unit split6_o_du_application_unit_impl::create_flexible_o_du_unit(const o_du_unit_dependencies& dependencies)
 {
   // Get the du_high configuration.
-  srs_du::du_high_configuration du_hi_cfg;
+  odu::du_high_configuration du_hi_cfg;
   generate_du_high_config(du_hi_cfg, unit_cfg.odu_high_cfg.du_high_cfg.config);
 
   // Create the adaptors.
@@ -93,7 +93,7 @@ void split6_o_du_application_unit_impl::fill_worker_manager_config(worker_manage
   plugin->fill_worker_manager_config(config);
 }
 
-std::unique_ptr<flexible_o_du_application_unit> srsran::create_flexible_o_du_application_unit(std::string_view app_name)
+std::unique_ptr<flexible_o_du_application_unit> ocudu::create_flexible_o_du_application_unit(std::string_view app_name)
 {
   return std::make_unique<split6_o_du_application_unit_impl>(app_name, create_split6_plugin(app_name));
 }

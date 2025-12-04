@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../common/e1ap_asn1_converters.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e1ap/e1ap_ies.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
-#include "srsran/ran/qos/qos_prio_level.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e1ap/e1ap_ies.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
+#include "ocudu/ran/qos/qos_prio_level.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 inline void fill_asn1_qos_flow_info_item(asn1::e1ap::qos_flow_qos_param_item_s& asn1_qos_flow_info_item,
                                          const e1ap_qos_flow_qos_param_item&    qos_flow_info_item)
@@ -1019,5 +1019,5 @@ inline void fill_asn1_bearer_context_release_command(asn1::e1ap::bearer_context_
   asn1_command->cause = cause_to_asn1(command.cause);
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

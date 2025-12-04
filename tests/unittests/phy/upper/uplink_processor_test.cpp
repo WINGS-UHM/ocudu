@@ -19,10 +19,10 @@
 #include "rx_buffer_pool_test_doubles.h"
 #include "signal_processors/srs/srs_estimator_test_doubles.h"
 #include "upper_phy_rx_results_notifier_test_doubles.h"
-#include "srsran/phy/upper/upper_phy_factories.h"
+#include "ocudu/phy/upper/upper_phy_factories.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

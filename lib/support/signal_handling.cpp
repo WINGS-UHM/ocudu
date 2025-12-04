@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/support/signal_handling.h"
+#include "ocudu/support/signal_handling.h"
 #include "fmt/core.h"
 #include <atomic>
 #include <csignal>
 #include <cstdio>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Termination timeout value measured in seconds.
 static constexpr unsigned TERMINATION_TIMEOUT_S =
@@ -26,9 +26,9 @@ static constexpr unsigned TERMINATION_TIMEOUT_S =
 #endif
 
 /// Handler called after the user interrupts the program.
-static std::atomic<srsran_signal_handler> interrupt_handler = nullptr;
+static std::atomic<ocudu_signal_handler> interrupt_handler = nullptr;
 /// Handler called just before forcing application exit.
-static std::atomic<srsran_signal_handler> cleanup_handler = nullptr;
+static std::atomic<ocudu_signal_handler> cleanup_handler = nullptr;
 
 static void signal_handler(int signal)
 {
@@ -53,7 +53,7 @@ static void signal_handler(int signal)
   }
 }
 
-void srsran::register_interrupt_signal_handler(srsran_signal_handler handler)
+void ocudu::register_interrupt_signal_handler(ocudu_signal_handler handler)
 {
   interrupt_handler.store(handler);
 
@@ -63,7 +63,7 @@ void srsran::register_interrupt_signal_handler(srsran_signal_handler handler)
   std::signal(SIGALRM, signal_handler);
 }
 
-void srsran::register_cleanup_signal_handler(srsran_signal_handler handler)
+void ocudu::register_cleanup_signal_handler(ocudu_signal_handler handler)
 {
   cleanup_handler.store(handler);
 }

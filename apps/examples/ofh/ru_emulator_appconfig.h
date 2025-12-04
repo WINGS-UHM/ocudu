@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
 #include <string>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// PRACH formats supported by the RU emulator are: long format 0 and short format B4.
 enum class ru_emulator_prach_format : uint8_t { LONG_F0, SHORT_B4, NONE };
@@ -51,7 +51,7 @@ struct ru_emulator_ofh_appconfig {
   /// RU PRACH ports.
   std::vector<unsigned> ru_prach_port_id = {4, 5};
   /// RU emulator operating bandwidth.
-  bs_channel_bandwidth bandwidth = srsran::bs_channel_bandwidth::MHz100;
+  bs_channel_bandwidth bandwidth = ocudu::bs_channel_bandwidth::MHz100;
   /// Uplink compression method.
   std::string ul_compr_method = "bfp";
   /// Uplink compression bitwidth.
@@ -63,7 +63,7 @@ struct ru_emulator_ofh_appconfig {
 /// RU emulator logging parameters.
 struct ru_emulator_log_appconfig {
   /// Log level
-  srslog::basic_levels level = srslog::basic_levels::info;
+  ocudulog::basic_levels level = ocudulog::basic_levels::info;
   /// Path to log file or "stdout" to print to console.
   std::string filename = "stdout";
 };
@@ -84,4 +84,4 @@ struct ru_emulator_appconfig {
   std::optional<ru_emulator_dpdk_appconfig> dpdk_config;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -12,7 +12,7 @@
 
 using namespace asn1::rrc_nr;
 
-sib19_r17_s srsran::srs_du::make_asn1_rrc_cell_sib19(const sib19_info& sib19_params)
+sib19_r17_s ocudu::odu::make_asn1_rrc_cell_sib19(const sib19_info& sib19_params)
 {
   sib19_r17_s sib19;
 
@@ -146,11 +146,11 @@ sib19_r17_s srsran::srs_du::make_asn1_rrc_cell_sib19(const sib19_info& sib19_par
   return sib19;
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE_NTN
+#ifndef OCUDU_HAS_ENTERPRISE_NTN
 
-void srsran::srs_du::make_asn1_rrc_advanced_cell_sib19(const sib19_info& sib19_params, sib19_r17_s& out)
+void ocudu::odu::make_asn1_rrc_advanced_cell_sib19(const sib19_info& sib19_params, sib19_r17_s& out)
 {
   // Encoding of the advanced NTN config parameters are not implemented.
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE_NTN
+#endif // OCUDU_HAS_ENTERPRISE_NTN

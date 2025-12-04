@@ -12,7 +12,7 @@
 
 #include "apps/services/metrics/metrics_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace app_helpers {
 struct metrics_config;
@@ -32,4 +32,4 @@ class metrics_notifier;
 metrics_config build_buffer_pool_metrics_config(metrics_notifier&                  notifier,
                                                 const app_helpers::metrics_config& metrics_cfg);
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

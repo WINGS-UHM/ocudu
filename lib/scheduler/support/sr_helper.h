@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-namespace srsran {
+namespace ocudu {
 namespace sr_helper {
 
 /// \brief Helpers that checks if the slot is a candidate for SR reporting for a given user.
 bool is_sr_opportunity_slot(const pucch_config& pucch_cfg, slot_point sl_tx);
 
 } // namespace sr_helper
-} // namespace srsran
+} // namespace ocudu

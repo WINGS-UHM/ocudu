@@ -10,10 +10,10 @@
 
 #include "../../../../lib/ofh/receiver/ofh_uplane_rx_symbol_data_flow_writer.h"
 #include "helpers.h"
-#include "srsran/ofh/serdes/ofh_message_decoder_properties.h"
+#include "ocudu/ofh/serdes/ofh_message_decoder_properties.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace ofh::testing;
 
@@ -41,7 +41,7 @@ public:
     rg_reader(nof_ports, symbol_range.stop(), nof_prb),
     grid(rg_reader, rg_writer),
     shared_grid(grid),
-    writer(eaxc, 0, srslog::fetch_basic_logger("TEST"), repo)
+    writer(eaxc, 0, ocudulog::fetch_basic_logger("TEST"), repo)
   {
     results.params.slot      = slot;
     results.params.symbol_id = symbol_id;
@@ -62,7 +62,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, death_test_no_eaxc_found)
 {
   unsigned invalid_eaxc = 4;
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   ASSERT_FALSE(repo->get(results.params.slot, results.params.symbol_id).empty());
 
@@ -77,7 +77,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, decoded_prbs_outside_grid_
   section.start_prb = nof_prb;
   section.iq_samples.resize(section.nof_prbs * NOF_SUBCARRIERS_PER_RB);
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   writer.write_to_resource_grid(eaxc[0], results);
 
@@ -96,7 +96,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, decoded_prbs_match_grid_pr
   section.start_prb = 0;
   section.iq_samples.resize(section.nof_prbs * NOF_SUBCARRIERS_PER_RB);
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   writer.write_to_resource_grid(eaxc[0], results);
 
@@ -116,7 +116,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, decoded_prbs_bigger_than_g
   section.start_prb = 0;
   section.iq_samples.resize(section.nof_prbs * NOF_SUBCARRIERS_PER_RB);
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   writer.write_to_resource_grid(eaxc[0], results);
 
@@ -136,7 +136,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, segmented_prbs_inside_the_
   section.start_prb = 0;
   section.iq_samples.resize(section.nof_prbs * NOF_SUBCARRIERS_PER_RB);
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   writer.write_to_resource_grid(eaxc[0], results);
 
@@ -158,7 +158,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, segmented_prbs_write_the_p
   section.start_prb = 40;
   section.iq_samples.resize(section.nof_prbs * NOF_SUBCARRIERS_PER_RB);
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   writer.write_to_resource_grid(eaxc[0], results);
 
@@ -180,7 +180,7 @@ TEST_F(ofh_uplane_rx_symbol_data_flow_writer_fixture, segmented_prbs_fill_the_gr
   section.start_prb = 0;
   section.iq_samples.resize(section.nof_prbs * NOF_SUBCARRIERS_PER_RB);
 
-  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({results.params.slot, sector}, shared_grid.get_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   writer.write_to_resource_grid(eaxc[0], results);
   ASSERT_EQ(section.nof_prbs, rg_writer.get_nof_prbs_written());

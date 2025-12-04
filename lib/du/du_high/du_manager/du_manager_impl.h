@@ -16,12 +16,12 @@
 #include "du_ue/du_ue_manager.h"
 #include "procedures/du_proc_context_view.h"
 #include "ran_resource_management/du_ran_resource_manager_impl.h"
-#include "srsran/du/du_high/du_manager/du_manager.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/du/du_high/du_manager/du_manager.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include <condition_variable>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_manager_impl final : public du_manager_interface
 {
@@ -84,8 +84,8 @@ private:
   void handle_du_stop_request();
 
   // DU manager configuration that will be visible to all running procedures
-  du_manager_params     params;
-  srslog::basic_logger& logger;
+  du_manager_params       params;
+  ocudulog::basic_logger& logger;
 
   // Components
   du_manager_context                           ctxt;
@@ -103,5 +103,5 @@ private:
   fifo_async_task_scheduler main_ctrl_loop;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -12,9 +12,9 @@
 /// \brief PUSCH demodulator implementation definition.
 
 #include "pusch_demodulator_impl.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
-#include "srsran/srsvec/simd.h"
+#include "ocudu/ocuduvec/simd.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
 
 #if defined(__SSE3__)
 #include <immintrin.h>
@@ -22,15 +22,15 @@
 #include <arm_neon.h>
 #endif
 
-using namespace srsran;
+using namespace ocudu;
 
 static void
 revert_scrambling(span<log_likelihood_ratio> out, span<const log_likelihood_ratio> in, const bit_buffer& sequence)
 {
-  srsran_assert(in.size() == out.size(),
-                "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
-                in.size(),
-                out.size());
+  ocudu_assert(in.size() == out.size(),
+               "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
+               in.size(),
+               out.size());
 
   unsigned i      = 0;
   unsigned length = in.size();
@@ -215,33 +215,32 @@ static float filter_infinite_and_accumulate(unsigned& count, span<const float> i
   float    sum = 0;
   unsigned i   = 0;
 
-#if SRSRAN_SIMD_F_SIZE
-  const simd_f_t simd_infinity     = srsran_simd_f_set1(std::numeric_limits<float>::infinity());
-  const simd_f_t simd_neg_infinity = srsran_simd_f_set1(-std::numeric_limits<float>::infinity());
-  const simd_i_t simd_one          = srsran_simd_i_set1(1);
+#if OCUDU_SIMD_F_SIZE
+  const simd_f_t simd_infinity     = ocudu_simd_f_set1(std::numeric_limits<float>::infinity());
+  const simd_f_t simd_neg_infinity = ocudu_simd_f_set1(-std::numeric_limits<float>::infinity());
+  const simd_i_t simd_one          = ocudu_simd_i_set1(1);
 
-  if (input.size() > 2 * SRSRAN_SIMD_F_SIZE) {
-    simd_i_t simd_count = srsran_simd_i_set1(0);
-    simd_f_t simd_sum   = srsran_simd_f_set1(0.0);
-    for (unsigned i_end = (input.size() / SRSRAN_SIMD_F_SIZE) * SRSRAN_SIMD_F_SIZE; i != i_end;
-         i += SRSRAN_SIMD_F_SIZE) {
-      simd_f_t in = srsran_simd_f_loadu(&input[i]);
+  if (input.size() > 2 * OCUDU_SIMD_F_SIZE) {
+    simd_i_t simd_count = ocudu_simd_i_set1(0);
+    simd_f_t simd_sum   = ocudu_simd_f_set1(0.0);
+    for (unsigned i_end = (input.size() / OCUDU_SIMD_F_SIZE) * OCUDU_SIMD_F_SIZE; i != i_end; i += OCUDU_SIMD_F_SIZE) {
+      simd_f_t in = ocudu_simd_f_loadu(&input[i]);
 
       simd_sel_t isnormal_mask =
-          srsran_simd_sel_and(srsran_simd_f_max(simd_infinity, in), srsran_simd_f_min(simd_neg_infinity, in));
+          ocudu_simd_sel_and(ocudu_simd_f_max(simd_infinity, in), ocudu_simd_f_min(simd_neg_infinity, in));
 
-      simd_sum   = srsran_simd_f_select(simd_sum, srsran_simd_f_add(simd_sum, in), isnormal_mask);
-      simd_count = srsran_simd_i_select(simd_count, srsran_simd_i_add(simd_count, simd_one), isnormal_mask);
+      simd_sum   = ocudu_simd_f_select(simd_sum, ocudu_simd_f_add(simd_sum, in), isnormal_mask);
+      simd_count = ocudu_simd_i_select(simd_count, ocudu_simd_i_add(simd_count, simd_one), isnormal_mask);
     }
 
-    std::array<float, SRSRAN_SIMD_F_SIZE> temp_sum;
-    srsran_simd_f_storeu(temp_sum.data(), simd_sum);
+    std::array<float, OCUDU_SIMD_F_SIZE> temp_sum;
+    ocudu_simd_f_storeu(temp_sum.data(), simd_sum);
     sum = std::accumulate(temp_sum.begin(), temp_sum.end(), 0.0F);
-    std::array<int, SRSRAN_SIMD_I_SIZE> temp_count;
-    srsran_simd_i_storeu(temp_count.data(), simd_count);
+    std::array<int, OCUDU_SIMD_I_SIZE> temp_count;
+    ocudu_simd_i_storeu(temp_count.data(), simd_count);
     count += std::accumulate(temp_count.begin(), temp_count.end(), 0);
   }
-#endif // SRSRAN_SIMD_F_SIZE
+#endif // OCUDU_SIMD_F_SIZE
 
   for (unsigned i_end = input.size(); i != i_end; ++i) {
     // Exclude outliers with infinite variance. This makes sure that handling of the DC carrier does not skew
@@ -280,10 +279,10 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&      codeword_buf
 
   // Calculate the number of bits per RE and port.
   unsigned nof_bits_per_re = config.nof_tx_layers * get_bits_per_symbol(config.modulation);
-  srsran_assert(nof_bits_per_re > 0,
-                "Invalid combination of transmit layers (i.e., {}) and modulation (i.e., {}).",
-                config.nof_tx_layers,
-                to_string(config.modulation));
+  ocudu_assert(nof_bits_per_re > 0,
+               "Invalid combination of transmit layers (i.e., {}) and modulation (i.e., {}).",
+               config.nof_tx_layers,
+               to_string(config.modulation));
 
   // Stats accumulators.
   unsigned total_evm_symbol_count     = 0;
@@ -332,9 +331,9 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&      codeword_buf
 
     // Revert transform precoding for the entire OFDM symbol.
     if (config.enable_transform_precoding) {
-      srsran_assert(config.nof_tx_layers == 1,
-                    "Transform precoding is only possible with one layer (i.e. {}).",
-                    config.nof_tx_layers);
+      ocudu_assert(config.nof_tx_layers == 1,
+                   "Transform precoding is only possible with one layer (i.e. {}).",
+                   config.nof_tx_layers);
       precoder->deprecode_ofdm_symbol(eq_re, eq_re);
       precoder->deprecode_ofdm_symbol_noise(eq_noise_vars, eq_noise_vars);
     }
@@ -356,10 +355,10 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&      codeword_buf
       span<log_likelihood_ratio> codeword = codeword_buffer.get_next_block_view(remain_nof_subc * nof_bits_per_re);
 
       // Limit block size if the codeword block is smaller.
-      srsran_assert(codeword.size() % nof_bits_per_re == 0,
-                    "The codeword block size (i.e., {}) must be multiple of the number of bits per RE (i.e., {}).",
-                    codeword.size(),
-                    nof_bits_per_re);
+      ocudu_assert(codeword.size() % nof_bits_per_re == 0,
+                   "The codeword block size (i.e., {}) must be multiple of the number of bits per RE (i.e., {}).",
+                   codeword.size(),
+                   nof_bits_per_re);
 
       // Select equalizer output.
       unsigned          nof_block_softbits    = codeword.size();

@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct udp_appconfig;
 
 /// Fills the UDP configuration in the given YAML node.
 void fill_udp_config_in_yaml_schema(YAML::Node node, const udp_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

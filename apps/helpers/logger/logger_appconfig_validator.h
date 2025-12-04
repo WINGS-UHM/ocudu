@@ -10,11 +10,11 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct logger_appconfig;
 
 /// Validates the given logger application configuration. Returns true on success, false otherwise.
 bool validate_logger_appconfig(const logger_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

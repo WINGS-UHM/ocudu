@@ -12,7 +12,7 @@
 #include "split6_flexible_o_du_low_app_service_metrics.h"
 #include "split6_flexible_o_du_low_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void split6_flexible_o_du_low_metrics_consumer_json::handle_metric(const app_services::metrics_set& metric)
 {

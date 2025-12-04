@@ -12,9 +12,9 @@
 
 #include "ofh_closed_rx_window_handler.h"
 #include "ofh_message_receiver_impl.h"
-#include "srsran/ofh/ofh_controller.h"
+#include "ocudu/ofh/ofh_controller.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul receiver controller.
@@ -37,4 +37,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

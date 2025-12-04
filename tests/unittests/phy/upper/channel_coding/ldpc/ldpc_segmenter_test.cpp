@@ -15,15 +15,15 @@
 /// graphs. Test vectors provide the transport blocks and the resulting segmented blocks for comparison.
 
 #include "ldpc_segmenter_test_data.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t tct)
 {
@@ -46,7 +46,7 @@ std::ostream& operator<<(std::ostream& os, span<uint8_t> data)
   return os << fmt::format("{}", data);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -122,7 +122,7 @@ TEST_P(LDPCSegmenterFixture, LDPCSegmenterTest)
     // Copy codeblock data, including TB and/or CB CRC if applicable, as well as filler and zero padding bits.
     segment_buffer.read_codeblock(cb_data, trans_block, i_cb);
 
-    srsvec::bit_unpack(segment_data, cb_data);
+    ocuduvec::bit_unpack(segment_data, cb_data);
     span<uint8_t> filler_bits =
         span<uint8_t>(segment_data).last(segment_buffer.get_cb_metadata(i_cb).cb_specific.nof_filler_bits);
     std::fill(filler_bits.begin(), filler_bits.end(), FILLER_BIT);

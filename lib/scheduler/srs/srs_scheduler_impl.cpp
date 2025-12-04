@@ -10,9 +10,9 @@
 
 #include "srs_scheduler_impl.h"
 #include "../cell/resource_grid.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Helper to generate an SRS info PDU for a given SRS resource.
 static srs_info create_srs_pdu(rnti_t                          rnti,
@@ -54,7 +54,7 @@ static srs_info create_srs_pdu(rnti_t                          rnti,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 srs_scheduler_impl::srs_scheduler_impl(const cell_configuration& cell_cfg_, ue_repository& ues_) :
-  cell_cfg(cell_cfg_), ues(ues_), logger(srslog::fetch_basic_logger("SCHED"))
+  cell_cfg(cell_cfg_), ues(ues_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   // Max size of the SRS resource slot wheel, dimensioned based on the maximum SRS periods.
   periodic_srs_slot_wheel.resize(static_cast<unsigned>(srs_periodicity::sl2560));
@@ -123,10 +123,10 @@ void srs_scheduler_impl::add_ue_to_grid(const ue_cell_configuration& ue_cfg, boo
       }
       // We assume that a periodic SRS resource set only contains periodic SRS resources. This has been checked in the
       // scheduler configuration validator.
-      srsran_sanity_check(srs_res->periodicity_and_offset.has_value(),
-                          "rnti={}: Periodicity and offset not set for SRS resource ID={}",
-                          ue_cfg.crnti,
-                          fmt::underlying(srs_res->id.ue_res_id));
+      ocudu_sanity_check(srs_res->periodicity_and_offset.has_value(),
+                         "rnti={}: Periodicity and offset not set for SRS resource ID={}",
+                         ue_cfg.crnti,
+                         fmt::underlying(srs_res->id.ue_res_id));
       add_resource(ue_cfg.crnti,
                    srs_res->periodicity_and_offset.value().period,
                    srs_res->periodicity_and_offset.value().offset,
@@ -174,10 +174,10 @@ void srs_scheduler_impl::rem_ue(const ue_cell_configuration& ue_cfg)
       }
       // We assume that a periodic SRS resource set only contains periodic SRS resources. This has been checked in the
       // scheduler configuration validator.
-      srsran_sanity_check(srs_res->periodicity_and_offset.has_value(),
-                          "rnti={}: Periodicity and offset not set for SRS resource ID={}",
-                          ue_cfg.crnti,
-                          fmt::underlying(srs_res->id.ue_res_id));
+      ocudu_sanity_check(srs_res->periodicity_and_offset.has_value(),
+                         "rnti={}: Periodicity and offset not set for SRS resource ID={}",
+                         ue_cfg.crnti,
+                         fmt::underlying(srs_res->id.ue_res_id));
       rem_resource(ue_cfg.crnti,
                    srs_res->periodicity_and_offset.value().period,
                    srs_res->periodicity_and_offset.value().offset,
@@ -208,10 +208,10 @@ void srs_scheduler_impl::reconf_ue(const ue_cell_configuration& new_ue_cfg, cons
 void srs_scheduler_impl::handle_positioning_measurement_request(
     const positioning_measurement_request::cell_info& cell_req)
 {
-  srsran_assert(cell_req.cell_index == cell_cfg.cell_index,
-                "Received positioning request for wrong cell: expected {}, got {}",
-                fmt::underlying(cell_cfg.cell_index),
-                fmt::underlying(cell_req.cell_index));
+  ocudu_assert(cell_req.cell_index == cell_cfg.cell_index,
+               "Received positioning request for wrong cell: expected {}, got {}",
+               fmt::underlying(cell_cfg.cell_index),
+               fmt::underlying(cell_req.cell_index));
 
   // Ensure uniqueness of RNTI in the \c pending_pos_requests.
   if (std::any_of(pending_pos_requests.begin(),
@@ -252,8 +252,8 @@ void srs_scheduler_impl::handle_positioning_measurement_request(
     pending_pos_requests.push_back(cell_req);
   } else {
     // It is a positioning measurement for a UE of another cell.
-    srsran_assert(not is_crnti(cell_req.pos_rnti),
-                  "UEs of neighbor cells should be represented by RNTIs in the reserved range");
+    ocudu_assert(not is_crnti(cell_req.pos_rnti),
+                 "UEs of neighbor cells should be represented by RNTIs in the reserved range");
 
     // Add SRS config to slot wheel.
     bool res_added = false;
@@ -269,7 +269,7 @@ void srs_scheduler_impl::handle_positioning_measurement_request(
       res_added = true;
       logger.debug("rnti={}: neighbor cell UE's SRS for positioning added to SRS scheduler", cell_req.pos_rnti);
     }
-    srsran_assert(res_added, "Invalid positioning measurement request for rnti={}", cell_req.pos_rnti);
+    ocudu_assert(res_added, "Invalid positioning measurement request for rnti={}", cell_req.pos_rnti);
 
     // Register positioning request.
     pending_pos_requests.push_back(cell_req);
@@ -311,7 +311,7 @@ void srs_scheduler_impl::handle_positioning_measurement_stop(rnti_t pos_rnti)
 
 /////////////////////          Private functions        ////////////////////////////
 
-void srs_scheduler_impl::schedule_slot_srs(srsran::cell_slot_resource_allocator& slot_alloc)
+void srs_scheduler_impl::schedule_slot_srs(ocudu::cell_slot_resource_allocator& slot_alloc)
 {
   // For the provided slot, check if there are any pending SRS resources to allocate, and allocate them.
   auto& slot_srss = periodic_srs_slot_wheel[slot_alloc.slot.to_uint() % periodic_srs_slot_wheel.size()];
@@ -409,7 +409,7 @@ bool srs_scheduler_impl::allocate_srs_opportunity(cell_slot_resource_allocator& 
 
   } else {
     // SRS for UE of neighbor cell.
-    srsran_assert(pos_req != nullptr, "Positioning SRS requested for invalid C-RNTI");
+    ocudu_assert(pos_req != nullptr, "Positioning SRS requested for invalid C-RNTI");
     srs_res_list = pos_req->srs_to_measure.srs_res_list;
   }
 

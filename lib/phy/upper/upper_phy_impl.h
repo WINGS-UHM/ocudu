@@ -15,18 +15,18 @@
 #include "upper_phy_pdu_validators.h"
 #include "upper_phy_rx_results_notifier_wrapper.h"
 #include "upper_phy_rx_symbol_handler_impl.h"
-#include "srsran/phy/support/resource_grid_pool.h"
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/uplink_processor.h"
-#include "srsran/phy/upper/upper_phy.h"
-#include "srsran/phy/upper/upper_phy_metrics_collector.h"
-#include "srsran/phy/upper/upper_phy_timing_handler.h"
-#include "srsran/phy/upper/upper_phy_timing_notifier.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/support/resource_grid_pool.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/uplink_processor.h"
+#include "ocudu/phy/upper/upper_phy.h"
+#include "ocudu/phy/upper/upper_phy_metrics_collector.h"
+#include "ocudu/phy/upper/upper_phy_timing_handler.h"
+#include "ocudu/phy/upper/upper_phy_timing_notifier.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 /// Upper PHY implementation configuration.
 struct upper_phy_impl_config {
   /// Maximum number of layers for PUSCH transmissions.
@@ -46,7 +46,7 @@ struct upper_phy_impl_config {
   /// Symbol request notifier.
   upper_phy_rx_symbol_request_notifier* rx_symbol_request_notifier;
   /// Log level.
-  srslog::basic_levels log_level;
+  ocudulog::basic_levels log_level;
   /// Number of slots supported by the uplink PDU repository.
   size_t nof_slots_ul_pdu_repository;
   /// Downlink PDU validator.
@@ -135,7 +135,7 @@ public:
 
 private:
   /// Upper PHY logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Metrics collector.
   std::shared_ptr<upper_phy_metrics_collector> metrics_collector;
   /// Receive buffer pool.
@@ -161,4 +161,4 @@ private:
   /// Error events handler.
   upper_phy_error_handler_impl error_handler;
 };
-} // namespace srsran
+} // namespace ocudu

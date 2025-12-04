@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/support/async/async_queue.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_queue.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 template <typename T>
 struct read_queue_coroutine {

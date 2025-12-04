@@ -11,10 +11,10 @@
 #include "f1ap_du_ue.h"
 #include "du/procedures/f1ap_du_ue_context_modification_procedure.h"
 #include "du/procedures/f1ap_du_ue_context_setup_procedure.h"
-#include "srsran/f1ap/du/f1ap_du_ue_config.h"
+#include "ocudu/f1ap/du/f1ap_du_ue_config.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 
 void f1ap_du_ue::handle_ue_context_modification_request(const asn1::f1ap::ue_context_mod_request_s& msg,
                                                         const f1ap_du_context&                      ctxt_)

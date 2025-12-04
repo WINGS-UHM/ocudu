@@ -17,15 +17,15 @@
 /// expected performance is too far from the requested one.
 
 #include "prach_detector_generic_thresholds.h"
-#include "srsran/phy/upper/channel_processors/prach_detector_phy_validator.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector_phy_validator.h"
 #include "fmt/format.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-error_type<std::string> srsran::validate_prach_detector_phy(prach_format_type        format,
-                                                            prach_subcarrier_spacing scs,
-                                                            unsigned                 zero_correlation_zone,
-                                                            unsigned                 nof_rx_ports)
+error_type<std::string> ocudu::validate_prach_detector_phy(prach_format_type        format,
+                                                           prach_subcarrier_spacing scs,
+                                                           unsigned                 zero_correlation_zone,
+                                                           unsigned                 nof_rx_ports)
 {
   detail::threshold_params th_params;
   th_params.nof_rx_ports          = nof_rx_ports;

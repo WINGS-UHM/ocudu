@@ -12,16 +12,16 @@
 
 #include "lib/pdcp/pdcp_entity_tx.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_entity.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_entity.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-namespace srsran {
+namespace ocudu {
 
 /// Helper class to verify the state of the PDCP entity when the order of the PDU's crypto processing
 /// is non-deterministic.
@@ -191,7 +191,7 @@ protected:
     }
   }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 
   pdcp_sn_size       sn_size = {};
   unsigned           algo    = {};
@@ -255,4 +255,4 @@ private:
   manual_task_worker dl_worker{dl_worker_qsize, false, true};
   manual_task_worker crypto_worker{crypto_worker_qsize, false, true};
 };
-} // namespace srsran
+} // namespace ocudu

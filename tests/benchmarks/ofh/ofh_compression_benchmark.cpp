@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/ofh/compression/compression_factory.h"
-#include "srsran/ofh/compression/compression_properties.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/benchmark_utils.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ofh/compression/compression_factory.h"
+#include "ocudu/ofh/compression/compression_properties.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/support/benchmark_utils.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Random generator.
 static std::mt19937 rgen(0);
@@ -29,7 +29,7 @@ static bool                 silent          = false;
 static std::string          method          = "bfp";
 static std::string          impl_type       = "auto";
 static unsigned             nof_ports       = 1;
-static bs_channel_bandwidth bw              = srsran::bs_channel_bandwidth::MHz20;
+static bs_channel_bandwidth bw              = ocudu::bs_channel_bandwidth::MHz20;
 static subcarrier_spacing   scs             = subcarrier_spacing::kHz30;
 
 static void usage(const char* prog)
@@ -152,19 +152,19 @@ int main(int argc, char** argv)
 
   std::uniform_real_distribution<float> dist(-1.0, +1.0);
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
-  logger.set_level(srslog::basic_levels::none);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
+  logger.set_level(ocudulog::basic_levels::none);
 
   std::size_t nof_prbs           = get_max_Nprb(bs_channel_bandwidth_to_MHz(bw), scs, frequency_range::FR1);
   double      symbol_duration_us = 1e3 / (get_nsymb_per_slot(cyclic_prefix::NORMAL) * get_nof_slots_per_subframe(scs));
 
   std::unique_ptr<ofh::iq_compressor> compressor =
       create_iq_compressor(ofh::to_compression_type(method), logger, 0.27, impl_type);
-  srsran_assert(compressor != nullptr, "Failed to create OFH compressor");
+  ocudu_assert(compressor != nullptr, "Failed to create OFH compressor");
 
   std::unique_ptr<ofh::iq_decompressor> decompressor =
       create_iq_decompressor(ofh::to_compression_type(method), logger, impl_type);
-  srsran_assert(decompressor != nullptr, "Failed to create OFH decompressor");
+  ocudu_assert(decompressor != nullptr, "Failed to create OFH decompressor");
 
   fmt::memory_buffer meas_name;
   fmt::format_to(std::back_inserter(meas_name),

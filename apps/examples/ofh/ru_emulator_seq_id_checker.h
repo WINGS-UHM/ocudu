@@ -11,11 +11,11 @@
 #pragma once
 
 #include "helpers.h"
-#include "srsran/adt/circular_map.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/receiver/ofh_sequence_id_checker.h"
+#include "ocudu/adt/circular_map.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/receiver/ofh_sequence_id_checker.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// RU emulator sequence identifier checker.
 class ru_emulator_seq_id_checker
@@ -23,7 +23,7 @@ class ru_emulator_seq_id_checker
   using kpi_counter = ru_emu_stats::kpi_counter;
 
   std::string                                               port_type;
-  srslog::basic_logger&                                     logger;
+  ocudulog::basic_logger&                                   logger;
   std::unique_ptr<ofh::sequence_id_checker>                 seq_id_checker;
   std::array<kpi_counter, ofh::MAX_SUPPORTED_EAXC_ID_VALUE> counters;
   ofh::slot_symbol_point                                    last_valid_symbol_point;
@@ -31,7 +31,7 @@ class ru_emulator_seq_id_checker
 public:
   /// Constructor.
   ru_emulator_seq_id_checker(const std::string&                        port_type_,
-                             srslog::basic_logger&                     logger_,
+                             ocudulog::basic_logger&                   logger_,
                              std::unique_ptr<ofh::sequence_id_checker> seq_id_checker_) :
     port_type(port_type_),
     logger(logger_),
@@ -79,13 +79,13 @@ public:
   /// Calculates number of sequence identifier errors accumulated since last call to this function.
   uint64_t calculate_statistics(unsigned eaxc)
   {
-    srsran_assert(eaxc < ofh::MAX_SUPPORTED_EAXC_ID_VALUE,
-                  "Invalid eAxC value '{}'. Maximum eAxC value is '{}'",
-                  eaxc,
-                  ofh::MAX_SUPPORTED_EAXC_ID_VALUE);
+    ocudu_assert(eaxc < ofh::MAX_SUPPORTED_EAXC_ID_VALUE,
+                 "Invalid eAxC value '{}'. Maximum eAxC value is '{}'",
+                 eaxc,
+                 ofh::MAX_SUPPORTED_EAXC_ID_VALUE);
 
     return counters[eaxc].calculate_acc_value();
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

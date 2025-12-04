@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ue_context/ngap_ue_logger.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct pdu_session_resource_setup_validation_outcome {
   cu_cp_pdu_session_resource_setup_request  request;
@@ -51,5 +51,5 @@ verify_pdu_session_resource_modify_request(const cu_cp_pdu_session_resource_modi
                                            const asn1::ngap::pdu_session_res_modify_request_s& asn1_request,
                                            const ngap_ue_logger&                               ue_logger);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

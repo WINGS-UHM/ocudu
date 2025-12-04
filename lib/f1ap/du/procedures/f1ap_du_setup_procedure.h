@@ -11,12 +11,12 @@
 #pragma once
 
 #include "f1ap_du_event_manager.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct f1ap_du_context;
 
@@ -47,7 +47,7 @@ private:
   const f1_setup_request_message request;
   f1ap_message_notifier&         cu_notifier;
   f1ap_event_manager&            ev_mng;
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
   f1ap_du_context&               du_ctxt;
 
   unique_timer f1_setup_wait_timer;
@@ -55,7 +55,7 @@ private:
   f1ap_transaction     transaction;
   unsigned             f1_setup_retry_no = 0;
   std::chrono::seconds time_to_wait{0};
-}; // namespace srs_du
+}; // namespace odu
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

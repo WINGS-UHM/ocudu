@@ -15,21 +15,21 @@
 #include "lower_phy_test_doubles.h"
 #include "processors/downlink/downlink_processor_test_doubles.h"
 #include "processors/uplink/uplink_processor_notifier_test_doubles.h"
-#include "srsran/phy/lower/lower_phy_controller.h"
-#include "srsran/phy/lower/lower_phy_downlink_handler.h"
-#include "srsran/phy/lower/lower_phy_factory.h"
-#include "srsran/phy/lower/lower_phy_uplink_request_handler.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_notifier.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/phy/lower/lower_phy_controller.h"
+#include "ocudu/phy/lower/lower_phy_downlink_handler.h"
+#include "ocudu/phy/lower/lower_phy_factory.h"
+#include "ocudu/phy/lower/lower_phy_uplink_request_handler.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_notifier.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 auto to_tuple(const downlink_processor_configuration& config)
 {
@@ -231,7 +231,7 @@ static std::ostream& operator<<(std::ostream& os, const lower_phy_rx_symbol_cont
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -291,7 +291,7 @@ protected:
     config.system_time_throttling            = 0.1;
     config.max_nof_prach_concurrent_requests = 1;
 
-    lower_phy_dependencies deps = {.logger               = srslog::fetch_basic_logger("PHY"),
+    lower_phy_dependencies deps = {.logger               = ocudulog::fetch_basic_logger("PHY"),
                                    .bb_gateway           = bb_gateway_spy,
                                    .rx_symbol_notifier   = rx_symbol_notifier_spy,
                                    .timing_notifier      = timing_notifier_spy,

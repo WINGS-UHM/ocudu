@@ -9,13 +9,13 @@
  */
 
 #include "prach_processor_worker.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
-#include "srsran/instrumentation/traces/ru_traces.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
+#include "ocudu/instrumentation/traces/ru_traces.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void prach_processor_worker::run_state_wait(const baseband_gateway_buffer_reader&           samples,
                                             const prach_processor_baseband::symbol_context& context,
@@ -75,17 +75,17 @@ void prach_processor_worker::accumulate_samples(const baseband_gateway_buffer_re
   for (uint8_t i_channel = 0; i_channel != nof_ports; ++i_channel) {
     // Get PRACH port identifier.
     unsigned i_port = prach_context.ports[i_channel];
-    srsran_assert(i_port < samples.get_nof_channels(),
-                  "The port identifier (i.e., {}) exceeds the number of input ports (i.e., {}).",
-                  i_port,
-                  samples.get_nof_channels());
+    ocudu_assert(i_port < samples.get_nof_channels(),
+                 "The port identifier (i.e., {}) exceeds the number of input ports (i.e., {}).",
+                 i_port,
+                 samples.get_nof_channels());
 
     // PRACH buffer destination buffer view.
     span<ci16_t> dst_prach_buffer =
         temp_baseband.get_writer().get_channel_buffer(i_channel).subspan(nof_samples, count);
 
     // Append samples in temporary buffer.
-    srsvec::copy(dst_prach_buffer, samples.get_channel_buffer(i_port).first(count));
+    ocuduvec::copy(dst_prach_buffer, samples.get_channel_buffer(i_port).first(count));
   }
 
   // Increment number of samples.
@@ -119,7 +119,7 @@ void prach_processor_worker::accumulate_samples(const baseband_gateway_buffer_re
           span<cf_t> cf_buf = temp_cf_baseband.get_view({i_port}).subspan(0, nof_samples);
 
           // Convert them into floating-point samples using the temporary buffer.
-          srsvec::convert(cf_buf, buffered_samples.get_channel_buffer(i_port), scaling_factor_ci16_to_cf);
+          ocuduvec::convert(cf_buf, buffered_samples.get_channel_buffer(i_port), scaling_factor_ci16_to_cf);
 
           // Demodulate all candidates.
           demodulator->demodulate(*buffer, cf_buf, config);
@@ -140,11 +140,11 @@ void prach_processor_worker::accumulate_samples(const baseband_gateway_buffer_re
 
 void prach_processor_worker::handle_request(shared_prach_buffer request_buffer, const prach_buffer_context& context)
 {
-  srsran_assert(state == states::idle, "Invalid state.");
+  ocudu_assert(state == states::idle, "Invalid state.");
 
   auto token = stop_manager.get_token();
 
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
@@ -168,7 +168,7 @@ void prach_processor_worker::process_symbol(const baseband_gateway_buffer_reader
 {
   auto token = stop_manager.get_token();
 
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 

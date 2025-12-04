@@ -10,9 +10,9 @@
 
 #include "si_scheduler.h"
 #include "../support/dci_builder.h"
-#include "srsran/ran/pdcch/dci_packing.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 si_scheduler::si_scheduler(const cell_configuration&                       cfg_,
                            pdcch_resource_allocator&                       pdcch_sch_,
@@ -23,7 +23,7 @@ si_scheduler::si_scheduler(const cell_configuration&                       cfg_,
   default_paging_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle)),
   si_change_mod_period(default_paging_cycle * static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff)),
   pdcch_sch(pdcch_sch_),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   sib1_sched(cell_cfg, pdcch_sch, msg.sib1_payload_size),
   si_msg_sched(cell_cfg, pdcch_sch, msg.si_scheduling),
   pending_req(si_scheduling_update_request{INVALID_DU_CELL_INDEX, last_version, units::bytes{0U}, {}})
@@ -32,7 +32,7 @@ si_scheduler::si_scheduler(const cell_configuration&                       cfg_,
 
 void si_scheduler::run_slot(cell_resource_allocator& res_alloc)
 {
-  if (SRSRAN_UNLIKELY(not last_sl_tx.valid())) {
+  if (OCUDU_UNLIKELY(not last_sl_tx.valid())) {
     // First call to run_slot.
     slot_count = 0;
 

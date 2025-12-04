@@ -12,7 +12,7 @@
 #include "radio_config_zmq_validator.h"
 #include "radio_session_zmq_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 std::unique_ptr<radio_session> radio_factory_zmq_impl::create(const radio_configuration::radio& config,
                                                               task_executor&                    async_task_executor,

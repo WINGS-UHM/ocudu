@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/phy/upper/channel_processors/ssb/pbch_modulator.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_modulator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PBCH modulator implementation.
 class pbch_modulator_impl : public pbch_modulator
@@ -43,11 +43,11 @@ public:
   pbch_modulator_impl(std::unique_ptr<modulation_mapper> modulator_, std::unique_ptr<pseudo_random_generator> prg_) :
     modulator(std::move(modulator_)), scrambler(std::move(prg_))
   {
-    srsran_assert(modulator, "Invalid modulator.");
-    srsran_assert(scrambler, "Invalid scrambler.");
+    ocudu_assert(modulator, "Invalid modulator.");
+    ocudu_assert(scrambler, "Invalid scrambler.");
   }
 
   void put(span<const uint8_t> bits, resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

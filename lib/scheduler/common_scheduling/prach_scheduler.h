@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../cell/resource_grid.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/slot_point.h"
 #include <bitset>
 
-namespace srsran {
+namespace ocudu {
 
 class prach_scheduler
 {
@@ -59,7 +59,7 @@ private:
   void allocate_slot_prach_pdus(cell_resource_allocator& res_grid, slot_point sl);
 
   const cell_configuration& cell_cfg;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 
   bool first_slot_ind = true;
   /// Set to true if the selected preamble is long.
@@ -80,4 +80,4 @@ private:
   static_vector<cached_prach_occasion, MAX_PRACH_OCCASIONS_PER_SLOT> cached_prachs;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -12,9 +12,9 @@
 
 #include "apps/units/flexible_o_du/o_du_unit.h"
 #include "apps/units/flexible_o_du/split_helpers/flexible_o_du_configs.h"
-#include "srsran/ru/ru.h"
+#include "ocudu/ru/ru.h"
 
-namespace srsran {
+namespace ocudu {
 
 class flexible_o_du_metrics_notifier;
 
@@ -36,4 +36,4 @@ private:
                                                         const flexible_o_du_ru_dependencies& ru_dependencies) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

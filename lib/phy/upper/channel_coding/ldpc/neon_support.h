@@ -17,21 +17,21 @@
 
 #include "simd_support.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace detail {
 
 template <typename simdWrapper, typename storageType>
 simd128_type simd_span<simdWrapper, storageType>::get_at(help_type<simd128_wrapper> /**/, unsigned pos) const
 {
-  srsran_assert(pos < view_length, "Index {} out of bound.", pos);
+  ocudu_assert(pos < view_length, "Index {} out of bound.", pos);
   return vld1q_s8(array_ptr + pos * NEON_SIZE_BYTE);
 }
 
 template <typename simdWrapper, typename storageType>
 void simd_span<simdWrapper, storageType>::set_at(unsigned pos, simd128_type val)
 {
-  srsran_assert(pos < view_length, "Index {} out of bound.", pos);
+  ocudu_assert(pos < view_length, "Index {} out of bound.", pos);
   vst1q_s8(array_ptr + pos * NEON_SIZE_BYTE, val);
 }
 
@@ -51,8 +51,8 @@ using neon_const_span = detail::simd_span<detail::simd128_wrapper, const int8_t>
 /// \return    Vector of packed 8-bit integers with the scaling result.
 inline int8x16_t scale_s8(int8x16_t a, float sf, uint8_t max)
 {
-  srsran_assert((sf > 0) && (sf <= 1), "Scaling factor out of range.");
-  srsran_assert(max < 127, "Parameter max out of range.");
+  ocudu_assert((sf > 0) && (sf <= 1), "Scaling factor out of range.");
+  ocudu_assert(max < 127, "Parameter max out of range.");
 
   if (sf >= .9999) {
     return a;
@@ -87,4 +87,4 @@ inline int8x16_t scale_s8(int8x16_t a, float sf, uint8_t max)
 }
 
 } // namespace neon
-} // namespace srsran
+} // namespace ocudu

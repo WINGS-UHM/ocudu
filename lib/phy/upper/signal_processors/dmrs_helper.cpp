@@ -10,7 +10,7 @@
 
 #include "dmrs_helper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static const re_prb_mask RE_PATTERN_TYPE1_DELTA0 =
     {true, false, true, false, true, false, true, false, true, false, true, false};
@@ -49,18 +49,18 @@ static const std::array<dmrs_pxsch_parameters, dmrs_type::DMRS_MAX_PORTS_TYPE2> 
     /* Port 1011 */ {RE_PATTERN_TYPE2_DELTA4, {+1.0F, -1.0F}, {+1.0F, -1.0F}},
 }};
 
-void srsran::dmrs_sequence_generate(span<srsran::cf_t>       sequence,
-                                    pseudo_random_generator& prg,
-                                    float                    amplitude,
-                                    unsigned                 reference_point_k_rb,
-                                    unsigned                 nof_dmrs_per_rb,
-                                    const crb_bitmap&        crb_mask)
+void ocudu::dmrs_sequence_generate(span<ocudu::cf_t>        sequence,
+                                   pseudo_random_generator& prg,
+                                   float                    amplitude,
+                                   unsigned                 reference_point_k_rb,
+                                   unsigned                 nof_dmrs_per_rb,
+                                   const crb_bitmap&        crb_mask)
 {
   unsigned nof_dmrs_symbols = nof_dmrs_per_rb * crb_mask.count();
-  srsran_assert(sequence.size() == nof_dmrs_symbols,
-                "DM-RS sequence size, i.e., {} does not match the number of RE allocated for DM-RS, i.e., {}.",
-                sequence.size(),
-                nof_dmrs_symbols);
+  ocudu_assert(sequence.size() == nof_dmrs_symbols,
+               "DM-RS sequence size, i.e., {} does not match the number of RE allocated for DM-RS, i.e., {}.",
+               sequence.size(),
+               nof_dmrs_symbols);
 
   for_each_interval(
       crb_mask, [&sequence, &prg, amplitude, &reference_point_k_rb, nof_dmrs_per_rb](size_t rb_begin, size_t rb_end) {
@@ -82,7 +82,7 @@ void srsran::dmrs_sequence_generate(span<srsran::cf_t>       sequence,
       });
 }
 
-dmrs_pxsch_parameters srsran::get_pxsch_dmrs_params(dmrs_type type, unsigned i_dmrs_port)
+dmrs_pxsch_parameters ocudu::get_pxsch_dmrs_params(dmrs_type type, unsigned i_dmrs_port)
 {
   // Select view of the selected table.
   span<const dmrs_pxsch_parameters> params = (type == dmrs_type::options::TYPE1)
@@ -91,11 +91,11 @@ dmrs_pxsch_parameters srsran::get_pxsch_dmrs_params(dmrs_type type, unsigned i_d
 
   // Verify the layer index is within the range.
   [[maybe_unused]] interval<unsigned> i_dmrs_port_range(0, params.size());
-  srsran_assert(i_dmrs_port_range.contains(i_dmrs_port),
-                "The DM-RS port index (i.e., {}) for DM-RS {} is out of the range {}.",
-                i_dmrs_port,
-                type.to_string(),
-                i_dmrs_port_range);
+  ocudu_assert(i_dmrs_port_range.contains(i_dmrs_port),
+               "The DM-RS port index (i.e., {}) for DM-RS {} is out of the range {}.",
+               i_dmrs_port,
+               type.to_string(),
+               i_dmrs_port_range);
 
   // Return layer parameters.
   return params[i_dmrs_port];

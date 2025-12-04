@@ -11,9 +11,9 @@
 #pragma once
 
 #include "apps/services/cmdline/cmdline_command.h"
-#include "srsran/adt/bounded_bitset.h"
+#include "ocudu/adt/bounded_bitset.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Application command to display/hide the metrics in STDOUT. Available metrics
@@ -85,4 +85,4 @@ std::unique_ptr<cmdline_command> create_stdout_metrics_app_command(
     bool                                                                                      is_auto_start_enabled);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ofh/ethernet/ethernet_mac_address.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ru/ofh/ru_ofh_configuration.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ofh/ethernet/ethernet_mac_address.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ru/ofh/ru_ofh_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Helper function to convert array of port indexes to string.
 inline std::string port_ids_to_str(span<unsigned> ports)
@@ -70,4 +70,4 @@ inline bool is_valid_bandwidth(unsigned bandwidth)
   return false;
 }
 
-} // namespace srsran
+} // namespace ocudu

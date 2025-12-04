@@ -9,25 +9,25 @@
  */
 
 #include "radio_notifier_sample.h"
-#include "srsran/adt/spsc_queue.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/file_vector.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/signal_handling.h"
+#include "ocudu/adt/spsc_queue.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/file_vector.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/signal_handling.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Describes the benchmark configuration.
 static std::string                               rx_filename;
 static double                                    duration_s                    = 0.1;
-static srslog::basic_levels                      log_level                     = srslog::basic_levels::info;
+static ocudulog::basic_levels                    log_level                     = ocudulog::basic_levels::info;
 static std::string                               driver_name                   = "uhd";
 static std::string                               device_arguments              = "type=b200";
 static std::vector<std::string>                  tx_channel_arguments          = {};
@@ -179,7 +179,7 @@ static void interrupt_signal_handler(int signal)
 /// Function to call when the application is going to be forcefully shutdown.
 static void cleanup_signal_handler(int signal)
 {
-  srslog::flush();
+  ocudulog::flush();
 }
 
 static void usage(std::string_view prog)
@@ -193,7 +193,7 @@ static void usage(std::string_view prog)
   fmt::print("\t-d Enable discontinuous transmission mode. [Default {}]\n", enable_discontinuous_tx);
   fmt::print("\t-g Discontinuous transmission gap in number of consecutive empty buffers. [Default {}]\n",
              nof_consecutive_empty_buffers);
-  fmt::print("\t-v Logging level. [Default {}]\n", srslog::basic_level_to_string(log_level));
+  fmt::print("\t-v Logging level. [Default {}]\n", ocudulog::basic_level_to_string(log_level));
   fmt::print("\t-o saves received signal of stream:port 0:0 in a file. Ignored if none. [Default {}]\n",
              rx_filename.empty() ? "none" : rx_filename);
   fmt::print("\t-h print this message.\n");
@@ -228,8 +228,8 @@ static void parse_args(int argc, char** argv)
         }
         break;
       case 'v': {
-        auto level = srslog::str_to_basic_level(std::string(optarg));
-        log_level  = level.has_value() ? level.value() : srslog::basic_levels::info;
+        auto level = ocudulog::str_to_basic_level(std::string(optarg));
+        log_level  = level.has_value() ? level.value() : ocudulog::basic_levels::info;
         break;
       }
       case 'h':

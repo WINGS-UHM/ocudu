@@ -9,11 +9,11 @@
  */
 
 #include "ssb_assembler.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/scheduler/result/pdsch_info.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ssb_assembler::ssb_assembler(const mac_cell_creation_request& cell_cfg) :
   pci(cell_cfg.pci),

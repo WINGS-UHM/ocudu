@@ -9,12 +9,12 @@
  */
 
 #include "resource_grid_test_doubles.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <vector>
 
-using namespace srsran;
+using namespace ocudu;
 
 void test(unsigned nof_slots)
 {

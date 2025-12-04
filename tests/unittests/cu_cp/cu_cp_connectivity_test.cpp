@@ -15,18 +15,18 @@
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_connectivity_test : public cu_cp_test_environment, public ::testing::Test
 {
@@ -129,7 +129,7 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     asn1::rrc_nr::dl_ccch_msg_s ccch;
     {
       asn1::cbit_ref bref{ue_rel->rrc_container};
-      ASSERT_EQ(ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+      ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
     }
     ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 
@@ -170,7 +170,7 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     asn1::rrc_nr::dl_ccch_msg_s ccch;
     {
       asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container};
-      ASSERT_EQ(ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+      ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
     }
     ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 
@@ -629,7 +629,7 @@ TEST_F(cu_cp_connectivity_test, when_e1_is_not_setup_then_new_ues_are_rejected)
   asn1::rrc_nr::dl_ccch_msg_s ccch;
   {
     asn1::cbit_ref bref{ue_rel->rrc_container};
-    ASSERT_EQ(ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+    ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
   }
   ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 

@@ -7,5 +7,5 @@
 #
 
 add_executable(pdxch_processor_test pdxch_processor_test.cpp)
-target_link_libraries(pdxch_processor_test srsran_lower_phy_pdxch_processor srslog gtest gtest_main)
+target_link_libraries(pdxch_processor_test ocudu_lower_phy_pdxch_processor ocudulog gtest gtest_main)
 add_test(pdxch_processor_test pdxch_processor_test)

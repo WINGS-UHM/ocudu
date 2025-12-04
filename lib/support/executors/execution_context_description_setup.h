@@ -10,11 +10,11 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace execution_context {
 
 /// Set number of workers and worker index of the current execution context.
 void set_execution_context_description(unsigned nof_concurrent_workers, unsigned worker_index);
 
 } // namespace execution_context
-} // namespace srsran
+} // namespace ocudu

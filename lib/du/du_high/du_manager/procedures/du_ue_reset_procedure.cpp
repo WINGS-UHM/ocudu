@@ -13,8 +13,8 @@
 #include "await_all_ues.h"
 #include "ue_deletion_procedure.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_ue_reset_procedure::du_ue_reset_procedure(const std::vector<du_ue_index_t>&                  ues_to_reset_,
                                              du_ue_manager&                                     ue_mng_,

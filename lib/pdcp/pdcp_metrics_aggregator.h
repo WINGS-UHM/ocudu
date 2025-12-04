@@ -11,13 +11,13 @@
 #pragma once
 
 #include "pdcp_bearer_logger.h"
-#include "srsran/pdcp/pdcp_metrics.h"
-#include "srsran/pdcp/pdcp_rx_metrics.h"
-#include "srsran/pdcp/pdcp_tx_metrics.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/timers.h"
+#include "ocudu/pdcp/pdcp_metrics.h"
+#include "ocudu/pdcp/pdcp_rx_metrics.h"
+#include "ocudu/pdcp/pdcp_tx_metrics.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 class pdcp_metrics_aggregator
 {
 public:
@@ -50,4 +50,4 @@ private:
   task_executor&            ue_executor;
   pdcp_bearer_logger        logger;
 };
-} // namespace srsran
+} // namespace ocudu

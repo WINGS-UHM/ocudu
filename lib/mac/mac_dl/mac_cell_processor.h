@@ -20,10 +20,10 @@
 #include "rar_pdu_assembler.h"
 #include "sib_pdu_assembler.h"
 #include "ssb_assembler.h"
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/memory_pool/ring_buffer_pool.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/memory_pool/ring_buffer_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 
@@ -90,7 +90,7 @@ private:
   void write_tx_pdu_pcap(slot_point sl_tx, const sched_result& sl_res, const mac_dl_data_result& dl_res);
 
   // Dependencies.
-  srslog::basic_logger&           logger;
+  ocudulog::basic_logger&         logger;
   const mac_cell_creation_request cell_cfg;
   task_executor&                  cell_exec;
   task_executor&                  slot_exec;
@@ -135,4 +135,4 @@ private:
   std::array<unsigned, MAX_SI_MESSAGES> si_pcap_dumped_version;
 };
 
-} // namespace srsran
+} // namespace ocudu

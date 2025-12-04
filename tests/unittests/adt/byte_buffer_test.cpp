@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/detail/byte_buffer_segment_pool.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/detail/byte_buffer_segment_pool.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/test_utils.h"
 #include <condition_variable>
 #include <gtest/gtest.h>
 #include <list>
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(std::is_same<byte_buffer_view::value_type, uint8_t>::value, "Invalid valid_type");
 static_assert(std::is_same<byte_buffer_view::iterator::value_type, uint8_t>::value, "Invalid valid_type");

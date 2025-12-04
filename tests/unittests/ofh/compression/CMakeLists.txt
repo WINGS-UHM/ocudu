@@ -11,7 +11,7 @@ set(TEST_DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/test_data)
 
 if (USE_PHY_TESTVECTORS)
   add_executable(ofh_compression_test ofh_compression_test.cpp)
-  target_link_libraries(ofh_compression_test srsran_ofh_compression srslog gtest gtest_main)
+  target_link_libraries(ofh_compression_test ocudu_ofh_compression ocudulog gtest gtest_main)
   add_test_vector(ofh_compression_test ofh_compression_test_data.tar.gz "")
   gtest_discover_tests(ofh_compression_test)
 endif (USE_PHY_TESTVECTORS)

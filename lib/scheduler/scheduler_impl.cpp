@@ -10,13 +10,13 @@
 
 #include "scheduler_impl.h"
 #include "ue_scheduling/ue_scheduler_impl.h"
-#include "srsran/scheduler/config/scheduler_cell_config_validator.h"
-#include "srsran/support/rtsan.h"
+#include "ocudu/scheduler/config/scheduler_cell_config_validator.h"
+#include "ocudu/support/rtsan.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 scheduler_impl::scheduler_impl(const scheduler_config& sched_cfg_) :
-  expert_params(sched_cfg_.expert_params), logger(srslog::fetch_basic_logger("SCHED")), cfg_mng(sched_cfg_, metrics)
+  expert_params(sched_cfg_.expert_params), logger(ocudulog::fetch_basic_logger("SCHED")), cfg_mng(sched_cfg_, metrics)
 {
 }
 
@@ -43,7 +43,7 @@ bool scheduler_impl::handle_cell_configuration_request(const sched_cell_configur
 
 void scheduler_impl::handle_cell_removal_request(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
 
   // Remove cell.
   cells.erase(cell_index);
@@ -54,19 +54,19 @@ void scheduler_impl::handle_cell_removal_request(du_cell_index_t cell_index)
 
 void scheduler_impl::handle_cell_activation_request(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
   cells[cell_index]->start();
 }
 
 void scheduler_impl::handle_cell_deactivation_request(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
   cells[cell_index]->stop();
 }
 
 void scheduler_impl::handle_slice_reconfiguration_request(const du_cell_slice_reconfig_request& req)
 {
-  srsran_assert(cells.contains(req.cell_index), "cell={} does not exist", fmt::underlying(req.cell_index));
+  ocudu_assert(cells.contains(req.cell_index), "cell={} does not exist", fmt::underlying(req.cell_index));
   sched_cell_reconfiguration_request_message reconf_msg;
   reconf_msg.slice_reconf_req.emplace(req);
   cfg_mng.update_cell(reconf_msg);
@@ -75,7 +75,7 @@ void scheduler_impl::handle_slice_reconfiguration_request(const du_cell_slice_re
 
 void scheduler_impl::handle_si_update_request(const si_scheduling_update_request& req)
 {
-  srsran_assert(cells.contains(req.cell_index), "cell={} does not exist", fmt::underlying(req.cell_index));
+  ocudu_assert(cells.contains(req.cell_index), "cell={} does not exist", fmt::underlying(req.cell_index));
   cells[req.cell_index]->handle_si_update_request(req);
 }
 
@@ -130,19 +130,19 @@ void scheduler_impl::handle_ue_config_applied(du_ue_index_t ue_index)
 
 void scheduler_impl::handle_rach_indication(const rach_indication_message& msg)
 {
-  srsran_assert(cells.contains(msg.cell_index), "cell={} does not exist", fmt::underlying(msg.cell_index));
+  ocudu_assert(cells.contains(msg.cell_index), "cell={} does not exist", fmt::underlying(msg.cell_index));
   cells[msg.cell_index]->handle_rach_indication(msg);
 }
 
 void scheduler_impl::handle_ul_bsr_indication(const ul_bsr_indication_message& bsr)
 {
-  srsran_assert(cells.contains(bsr.cell_index), "cell={} does not exist", fmt::underlying(bsr.cell_index));
+  ocudu_assert(cells.contains(bsr.cell_index), "cell={} does not exist", fmt::underlying(bsr.cell_index));
   cells[bsr.cell_index]->get_feedback_handler().handle_ul_bsr_indication(bsr);
 }
 
 void scheduler_impl::handle_ul_phr_indication(const ul_phr_indication_message& phr_ind)
 {
-  srsran_assert(cells.contains(phr_ind.cell_index), "cell={} does not exist", fmt::underlying(phr_ind.cell_index));
+  ocudu_assert(cells.contains(phr_ind.cell_index), "cell={} does not exist", fmt::underlying(phr_ind.cell_index));
 
   // Early return if UE has not been created in the scheduler.
   if (phr_ind.ue_index == INVALID_DU_UE_INDEX) {
@@ -165,20 +165,20 @@ void scheduler_impl::handle_dl_buffer_state_indication(const dl_buffer_state_ind
 
 void scheduler_impl::handle_crc_indication(const ul_crc_indication& crc_ind)
 {
-  srsran_assert(cells.contains(crc_ind.cell_index), "cell={} does not exist", fmt::underlying(crc_ind.cell_index));
+  ocudu_assert(cells.contains(crc_ind.cell_index), "cell={} does not exist", fmt::underlying(crc_ind.cell_index));
   cells[crc_ind.cell_index]->handle_crc_indication(crc_ind);
 }
 
 void scheduler_impl::handle_uci_indication(const uci_indication& uci)
 {
-  srsran_assert(cells.contains(uci.cell_index), "cell={} does not exist", fmt::underlying(uci.cell_index));
+  ocudu_assert(cells.contains(uci.cell_index), "cell={} does not exist", fmt::underlying(uci.cell_index));
 
   cells[uci.cell_index]->get_feedback_handler().handle_uci_indication(uci);
 }
 
 void scheduler_impl::handle_srs_indication(const srs_indication& srs)
 {
-  srsran_assert(cells.contains(srs.cell_index), "cell={} does not exist", fmt::underlying(srs.cell_index));
+  ocudu_assert(cells.contains(srs.cell_index), "cell={} does not exist", fmt::underlying(srs.cell_index));
 
   cells[srs.cell_index]->get_feedback_handler().handle_srs_indication(srs);
 }
@@ -194,9 +194,9 @@ void scheduler_impl::handle_dl_mac_ce_indication(const dl_mac_ce_indication& mac
 }
 
 const sched_result& scheduler_impl::slot_indication(slot_point      sl_tx,
-                                                    du_cell_index_t cell_index) noexcept SRSRAN_RTSAN_NONBLOCKING
+                                                    du_cell_index_t cell_index) noexcept OCUDU_RTSAN_NONBLOCKING
 {
-  srsran_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
   cell_scheduler& cell = *cells[cell_index];
 
   if (cell_index == to_du_cell_index(0)) {
@@ -213,7 +213,7 @@ const sched_result& scheduler_impl::slot_indication(slot_point      sl_tx,
 
 void scheduler_impl::handle_error_indication(slot_point sl_tx, du_cell_index_t cell_index, error_outcome event)
 {
-  srsran_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
   cells[cell_index]->handle_error_indication(sl_tx, event);
 }
 
@@ -227,7 +227,7 @@ void scheduler_impl::handle_paging_information(const sched_paging_information& p
 void scheduler_impl::handle_positioning_measurement_request(const positioning_measurement_request& req)
 {
   for (const auto& cell_req : req.cells) {
-    srsran_assert(cells.contains(cell_req.cell_index), "cell={} does not exist", fmt::underlying(cell_req.cell_index));
+    ocudu_assert(cells.contains(cell_req.cell_index), "cell={} does not exist", fmt::underlying(cell_req.cell_index));
     cells[cell_req.cell_index]->get_positioning_handler().handle_positioning_measurement_request(cell_req);
   }
 }
@@ -235,7 +235,7 @@ void scheduler_impl::handle_positioning_measurement_request(const positioning_me
 void scheduler_impl::handle_positioning_measurement_stop(const positioning_measurement_stop_request& req)
 {
   for (const auto& [cell_index, pos_rnti] : req.completed_meas) {
-    srsran_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+    ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
     cells[cell_index]->get_positioning_handler().handle_positioning_measurement_stop(pos_rnti);
   }
 }

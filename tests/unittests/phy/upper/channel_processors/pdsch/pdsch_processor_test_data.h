@@ -14,11 +14,11 @@
 //   + "srsPDSCHProcessorUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Resource Grid entry.
 using rg_entry = resource_grid_writer_spy::expected_entry_t;
@@ -64,4 +64,4 @@ static const std::vector<test_case_t> pdsch_processor_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

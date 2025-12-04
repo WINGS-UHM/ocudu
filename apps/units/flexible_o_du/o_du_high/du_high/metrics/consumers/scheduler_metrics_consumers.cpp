@@ -9,11 +9,11 @@
  */
 
 #include "scheduler_metrics_consumers.h"
-#include "srsran/support/engineering_notation.h"
-#include "srsran/support/format/custom_formattable.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/support/engineering_notation.h"
+#include "ocudu/support/format/custom_formattable.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void print_sched_header()
 {

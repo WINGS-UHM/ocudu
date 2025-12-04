@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoder.h"
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoder.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Transform precoder metric decorator.
 class phy_metrics_transform_precoder_decorator : public transform_precoder
@@ -26,7 +26,7 @@ public:
                                            transform_precoder_metric_notifier& notifier_) :
     base(std::move(base_)), notifier(notifier_)
   {
-    srsran_assert(base, "Invalid base instance.");
+    ocudu_assert(base, "Invalid base instance.");
   }
 
   // See interface for documentation.
@@ -53,4 +53,4 @@ private:
   transform_precoder_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

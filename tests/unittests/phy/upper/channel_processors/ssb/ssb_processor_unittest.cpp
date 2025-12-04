@@ -14,12 +14,12 @@
 #include "../../signal_processors/ssb/sss_processor_doubles.h"
 #include "pbch_encoder_doubles.h"
 #include "pbch_modulator_doubles.h"
-#include "srsran/phy/upper/channel_processors/ssb/ssb_processor.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srsvec/compare.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
+#include "ocudu/ran/cyclic_prefix.h"
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::mt19937 rgen(0);
 
@@ -153,7 +153,7 @@ int main()
               TESTASSERT(encoder_entry.msg.ssb_idx == pdu.ssb_idx);
               TESTASSERT(encoder_entry.msg.L_max == L_max);
               TESTASSERT(encoder_entry.msg.hrf == pdu.slot.is_odd_hrf());
-              TESTASSERT(srsvec::equal(encoder_entry.msg.payload, encoder_entry.msg.payload));
+              TESTASSERT(ocuduvec::equal(encoder_entry.msg.payload, encoder_entry.msg.payload));
               TESTASSERT(encoder_entry.msg.sfn == pdu.slot.sfn());
               TESTASSERT(encoder_entry.msg.k_ssb == pdu.subcarrier_offset);
               TESTASSERT(encoder_entry.encoded.size() == pbch_encoder::E);
@@ -165,8 +165,8 @@ int main()
               TESTASSERT_EQ(ssb_first_subcarrier, modulator_entry.config.ssb_first_subcarrier);
               TESTASSERT(modulator_entry.config.ssb_first_symbol == ssb_first_symbol_slot);
               TESTASSERT(modulator_entry.config.amplitude == 1.0F);
-              TESTASSERT(srsvec::equal(modulator_entry.config.ports, pdu.ports));
-              TESTASSERT(srsvec::equal(modulator_entry.bits, encoder_entry.encoded));
+              TESTASSERT(ocuduvec::equal(modulator_entry.config.ports, pdu.ports));
+              TESTASSERT(ocuduvec::equal(modulator_entry.bits, encoder_entry.encoded));
               TESTASSERT(modulator_entry.grid_ptr == &grid);
 
               // Assert DMRS for PBCH.
@@ -178,7 +178,7 @@ int main()
               TESTASSERT(dmrs_entry.config.ssb_first_symbol == ssb_first_symbol_slot);
               TESTASSERT(dmrs_entry.config.hrf == pdu.slot.is_odd_hrf());
               TESTASSERT(dmrs_entry.config.amplitude == 1.0F);
-              TESTASSERT(srsvec::equal(dmrs_entry.config.ports, pdu.ports));
+              TESTASSERT(ocuduvec::equal(dmrs_entry.config.ports, pdu.ports));
 
               // Assert PSS.
               const auto& pss_entry = pss->get_entries()[0];
@@ -186,7 +186,7 @@ int main()
               TESTASSERT(pss_entry.config.ssb_first_subcarrier == ssb_first_subcarrier);
               TESTASSERT(pss_entry.config.ssb_first_symbol == ssb_first_symbol_slot);
               TESTASSERT(pss_entry.config.amplitude == convert_dB_to_amplitude(beta_pss));
-              TESTASSERT(srsvec::equal(pss_entry.config.ports, pdu.ports));
+              TESTASSERT(ocuduvec::equal(pss_entry.config.ports, pdu.ports));
 
               // Assert SSS.
               const auto& sss_entry = sss->get_entries()[0];
@@ -194,7 +194,7 @@ int main()
               TESTASSERT(sss_entry.config.ssb_first_subcarrier == ssb_first_subcarrier);
               TESTASSERT(sss_entry.config.ssb_first_symbol == ssb_first_symbol_slot);
               TESTASSERT(sss_entry.config.amplitude == 1.0F);
-              TESTASSERT(srsvec::equal(sss_entry.config.ports, pdu.ports));
+              TESTASSERT(ocuduvec::equal(sss_entry.config.ports, pdu.ports));
             }
           }
         }

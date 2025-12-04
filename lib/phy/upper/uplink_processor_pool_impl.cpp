@@ -9,16 +9,16 @@
  */
 
 #include "uplink_processor_pool_impl.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/slot_point.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 uplink_processor_pool_impl::uplink_processor_pool_impl(uplink_processor_pool_impl_config ul_processors) :
   default_processor(std::move(ul_processors.default_processor))
 {
-  srsran_assert(default_processor, "Invalid default processor");
+  ocudu_assert(default_processor, "Invalid default processor");
   for (auto& proc : ul_processors.procs) {
-    srsran_assert(!proc.procs.empty(), "Cannot store an empty processor pool");
+    ocudu_assert(!proc.procs.empty(), "Cannot store an empty processor pool");
     processors.insert(proc.scs, std::move(proc.procs));
   }
 }
@@ -30,7 +30,7 @@ void uplink_processor_pool_impl::stop()
 
 uplink_slot_processor& uplink_processor_pool_impl::get_slot_processor(slot_point slot)
 {
-  srsran_assert(slot.valid(), "Invalid slot ({}) when requesting an uplink processor", slot);
+  ocudu_assert(slot.valid(), "Invalid slot ({}) when requesting an uplink processor", slot);
   uplink_processor* processor = assigned_processors[slot.system_slot()].load(std::memory_order_acquire);
   if (processor) {
     return processor->get_slot_processor(slot);
@@ -40,7 +40,7 @@ uplink_slot_processor& uplink_processor_pool_impl::get_slot_processor(slot_point
 
 unique_uplink_pdu_slot_repository uplink_processor_pool_impl::get_pdu_slot_repository(slot_point slot)
 {
-  srsran_assert(slot.valid(), "Invalid slot ({}) when requesting an uplink processor", slot);
+  ocudu_assert(slot.valid(), "Invalid slot ({}) when requesting an uplink processor", slot);
 
   // Get processor.
   uplink_processor& processor = processors.get_processor(slot);

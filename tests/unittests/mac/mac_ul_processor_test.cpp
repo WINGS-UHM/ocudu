@@ -13,13 +13,13 @@
 #include "lib/mac/rnti_manager.h"
 #include "mac_ctrl_test_dummies.h"
 #include "mac_test_helpers.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace test_helpers;
 
 class dummy_sched_ce_info_handler : public mac_scheduler_ce_info_handler
@@ -96,8 +96,8 @@ struct test_bench {
     rx_msg_sbsr.cell_index = cell_idx;
     rx_msg_sbsr.sl_rx      = slot_point(0, 1);
 
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
 
   test_bench(rnti_t rnti, du_ue_index_t du_ue_idx, du_cell_index_t cell_idx_) : test_bench(cell_idx_)
@@ -111,8 +111,8 @@ struct test_bench {
   // Add a UE to the RNTI table and UE context repository.
   void add_ue(rnti_t rnti, du_ue_index_t du_ue_idx)
   {
-    srsran_assert(not rnti_mng.has_rnti(rnti), "rnti={} already exists", rnti);
-    srsran_assert(not test_ues.contains(du_ue_idx), "ueId={} already exists", rnti);
+    ocudu_assert(not rnti_mng.has_rnti(rnti), "rnti={} already exists", rnti);
+    ocudu_assert(not test_ues.contains(du_ue_idx), "ueId={} already exists", rnti);
     rnti_mng.add_ue(rnti, du_ue_idx);
     test_ues.emplace(du_ue_idx);
     test_ues[du_ue_idx].rnti     = rnti;
@@ -120,7 +120,7 @@ struct test_bench {
     test_ues[du_ue_idx].add_bearer(LCID_SRB1);
     async_task<bool>         t = mac_ul.add_ue(test_ues[du_ue_idx].make_ue_create_request());
     lazy_task_launcher<bool> launcher(t);
-    srsran_assert(t.ready(), "UE addition should have completed");
+    ocudu_assert(t.ready(), "UE addition should have completed");
   }
 
   // Add a PDU to the list of PDUs that will be included in the RX indication message.
@@ -177,7 +177,7 @@ struct test_bench {
 
   void run_slot()
   {
-    logger.set_level(srslog::basic_levels::debug);
+    logger.set_level(ocudulog::basic_levels::debug);
     task_exec.run_pending_tasks();
   }
 
@@ -197,7 +197,7 @@ struct test_bench {
   const dummy_sched_ce_info_handler& sched_ce_notifier() { return sched_ce_handler; }
 
 private:
-  srslog::basic_logger&       logger = srslog::fetch_basic_logger("MAC", true);
+  ocudulog::basic_logger&     logger = ocudulog::fetch_basic_logger("MAC", true);
   manual_task_worker          task_exec{128};
   dummy_ue_executor_mapper    ul_exec_mapper{task_exec};
   dummy_mac_event_indicator   du_mng_notifier;
@@ -241,7 +241,7 @@ TEST(mac_ul_processor, decode_ul_ccch_48bit)
   t_bench.send_rx_indication_msg(tc_rnti, payload);
 
   // Create UL CCCH indication msg to verify MAC processing of PDU.
-  struct ul_ccch_indication_message ul_ccch_msg {};
+  struct ul_ccch_indication_message ul_ccch_msg{};
   ul_ccch_msg.cell_index = cell_idx;
   ul_ccch_msg.slot_rx    = slot_point{0, 1};
   ul_ccch_msg.tc_rnti    = tc_rnti;
@@ -269,7 +269,7 @@ TEST(mac_ul_processor, decode_ul_ccch_64bit)
   t_bench.send_rx_indication_msg(tc_rnti, payload);
 
   // Create UL CCCH indication msg to verify MAC processing of PDU.
-  struct ul_ccch_indication_message ul_ccch_msg {};
+  struct ul_ccch_indication_message ul_ccch_msg{};
   ul_ccch_msg.cell_index = cell_idx;
   ul_ccch_msg.slot_rx    = slot_point{0, 1};
   ul_ccch_msg.tc_rnti    = tc_rnti;
@@ -521,7 +521,7 @@ TEST(mac_ul_processor, verify_single_entry_phr)
   phr_ind.ue_index   = ue1_idx;
   phr_ind.rnti       = ue1_rnti;
   phr_ind.phr.set_se_phr({.serv_cell_id = to_ue_cell_index(0),
-                          .ph_type      = srsran::ph_field_type_t::type1,
+                          .ph_type      = ocudu::ph_field_type_t::type1,
                           .ph           = ph_db_range(6, 7),
                           .p_cmax       = p_cmax_dbm_range(17, 18)});
 

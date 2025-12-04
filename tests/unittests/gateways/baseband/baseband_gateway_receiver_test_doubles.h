@@ -11,10 +11,10 @@
 #pragma once
 
 #include "baseband_gateway_buffer_test_doubles.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class baseband_gateway_receiver_spy : public baseband_gateway_receiver
 {
@@ -73,4 +73,4 @@ private:
   std::vector<entry_t>                        entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

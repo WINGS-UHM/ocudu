@@ -10,23 +10,23 @@
 
 #include "../cu_cp_test_messages.h"
 #include "lib/cu_cp/up_resource_manager/up_resource_manager_impl.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class to create UP resource manager object.
 class up_resource_manager_test : public ::testing::Test
 {
 protected:
-  static void SetUpTestSuite() { srslog::init(); }
+  static void SetUpTestSuite() { ocudulog::init(); }
 
   void SetUp() override
   {
-    srslog::basic_logger& rrc_logger = srslog::fetch_basic_logger("RRC", false);
-    rrc_logger.set_level(srslog::basic_levels::debug);
+    ocudulog::basic_logger& rrc_logger = ocudulog::fetch_basic_logger("RRC", false);
+    rrc_logger.set_level(ocudulog::basic_levels::debug);
     rrc_logger.set_hex_dump_max_size(32);
   }
 
@@ -86,7 +86,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 public:

@@ -10,10 +10,10 @@
 
 #include "intra_slice_scheduler.h"
 #include "../logging/scheduler_metrics_handler.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/support/math/mod_math_utils.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/support/math/mod_math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Helper function to determine the expected number of PDSCHs that can be allocated per slot in a manner that
 /// ensures fair distribution of PDSCHs across slots.
@@ -130,7 +130,7 @@ intra_slice_scheduler::intra_slice_scheduler(const scheduler_ue_expert_config& e
                                              cell_resource_allocator&          cell_alloc_,
                                              cell_metrics_handler&             cell_metrics_,
                                              cell_harq_manager&                cell_harqs_,
-                                             srslog::basic_logger&             logger_) :
+                                             ocudulog::basic_logger&           logger_) :
   expert_cfg(expert_cfg_),
   cell_alloc(cell_alloc_),
   cell_metrics(cell_metrics_),
@@ -165,7 +165,7 @@ void intra_slice_scheduler::post_process_results()
 
 void intra_slice_scheduler::dl_sched(dl_ran_slice_candidate slice, scheduler_policy& policy)
 {
-  srsran_sanity_check(slice.remaining_rbs() > 0, "Invalid slice slice");
+  ocudu_sanity_check(slice.remaining_rbs() > 0, "Invalid slice slice");
   if (slice.get_slice_ues().empty()) {
     return;
   }
@@ -194,7 +194,7 @@ void intra_slice_scheduler::dl_sched(dl_ran_slice_candidate slice, scheduler_pol
 
 void intra_slice_scheduler::ul_sched(ul_ran_slice_candidate slice, scheduler_policy& ul_policy)
 {
-  srsran_sanity_check(slice.remaining_rbs() > 0, "Invalid slice slice");
+  ocudu_sanity_check(slice.remaining_rbs() > 0, "Invalid slice slice");
   if (slice.get_slice_ues().empty()) {
     return;
   }
@@ -519,7 +519,7 @@ unsigned intra_slice_scheduler::schedule_dl_newtx_candidates(dl_ran_slice_candid
     } else {
       max_grant_size = max_rbs_per_grant + rbs_missing;
     }
-    srsran_assert(max_grant_size > 0, "Invalid grant size.");
+    ocudu_assert(max_grant_size > 0, "Invalid grant size.");
 
     // Derive recommended parameters for the DL newTx grant.
     vrb_interval alloc_vrbs = grant_builder.recommended_vrbs(used_dl_vrbs, max_grant_size);
@@ -637,7 +637,7 @@ unsigned intra_slice_scheduler::schedule_ul_newtx_candidates(ul_ran_slice_candid
     } else {
       max_grant_size = expected_rbs_per_grant + rbs_missing;
     }
-    srsran_assert(max_grant_size > 0, "Invalid grant size.");
+    ocudu_assert(max_grant_size > 0, "Invalid grant size.");
 
     // Derive recommended parameters for the DL newTx grant.
     vrb_interval alloc_vrbs = grant_builder.recommended_vrbs(used_ul_vrbs, max_grant_size);
@@ -678,7 +678,7 @@ unsigned intra_slice_scheduler::schedule_ul_newtx_candidates(ul_ran_slice_candid
 bool intra_slice_scheduler::can_allocate_pdsch(const slice_ue& u, const ue_cell& ue_cc) const
 {
   // Check if PDCCH/PDSCH is possible for this slot (e.g. not in UL slot or measGap)
-  srsran_assert(not ue_cc.is_in_fallback_mode(), "Slice UE cannot be in fallback mode");
+  ocudu_assert(not ue_cc.is_in_fallback_mode(), "Slice UE cannot be in fallback mode");
   return ue_cc.is_pdsch_enabled(pdcch_slot, pdsch_slot);
 }
 
@@ -690,7 +690,7 @@ bool intra_slice_scheduler::can_allocate_pusch(const slice_ue& u, const ue_cell&
 std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_dl_candidate(const slice_ue& u) const
 {
   const ue_cell& ue_cc = u.get_cc();
-  srsran_assert(ue_cc.is_active() and not ue_cc.is_in_fallback_mode(), "Invalid slice UE state");
+  ocudu_assert(ue_cc.is_active() and not ue_cc.is_in_fallback_mode(), "Invalid slice UE state");
 
   // Check if the UE has pending data to transmit.
   unsigned pending_bytes = u.pending_dl_newtx_bytes();
@@ -723,7 +723,7 @@ std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_dl_candida
 std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_ul_candidate(const slice_ue& u) const
 {
   const ue_cell& ue_cc = u.get_cc();
-  srsran_assert(ue_cc.is_active() and not ue_cc.is_in_fallback_mode(), "Invalid slice UE state");
+  ocudu_assert(ue_cc.is_active() and not ue_cc.is_in_fallback_mode(), "Invalid slice UE state");
 
   // Check if the UE has pending data to transmit.
   unsigned pending_bytes = u.pending_ul_newtx_bytes();
@@ -895,7 +895,7 @@ void intra_slice_scheduler::update_used_ul_vrbs(const ul_ran_slice_candidate& sl
   // (Implementation-defined) We use the common PUSCH TD resources as a reference for the computation of RBs unavailable
   // for PDSCH. This assumes that these resources are not colliding with SRS.
   const auto& init_ul_bwp = cell_alloc.cfg.ul_cfg_common.init_ul_bwp;
-  srsran_assert(slice.get_slot_tx() - cell_alloc[0].slot > 0, "PUSCH slot cannot precede its corresponding PDCCH slot");
+  ocudu_assert(slice.get_slot_tx() - cell_alloc[0].slot > 0, "PUSCH slot cannot precede its corresponding PDCCH slot");
   const unsigned    slice_candidate_k2 = slice.get_slot_tx() - cell_alloc[0].slot;
   ofdm_symbol_range symbols_to_check   = {0, 0};
   // Find the max symbols such that symbols.stop() <= min_srs_symbol;

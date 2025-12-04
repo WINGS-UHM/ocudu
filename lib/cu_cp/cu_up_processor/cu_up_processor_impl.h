@@ -12,13 +12,13 @@
 
 #include "cu_up_processor.h"
 #include "cu_up_processor_config.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_up_processor_impl : public cu_up_processor
 {
@@ -58,7 +58,7 @@ private:
   /// \param[in] cause The cause of the failure.
   void send_cu_up_e1_setup_failure(e1ap_cause_t cause);
 
-  srslog::basic_logger&    logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger&  logger = ocudulog::fetch_basic_logger("CU-CP");
   cu_up_processor_config_t cfg;
 
   e1ap_message_notifier& e1ap_notifier;
@@ -73,5 +73,5 @@ private:
   std::unique_ptr<e1ap_cu_cp> e1ap;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

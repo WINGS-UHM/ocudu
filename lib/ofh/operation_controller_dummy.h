@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/ofh_controller.h"
+#include "ocudu/ofh/ofh_controller.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Operation controller dummy implementation.
@@ -27,4 +27,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

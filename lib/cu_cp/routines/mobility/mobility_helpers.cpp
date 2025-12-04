@@ -11,15 +11,15 @@
 #include "mobility_helpers.h"
 #include "../pdu_session_routine_helpers.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
-bool srsran::srs_cu_cp::handle_context_setup_response(
+bool ocudu::ocucp::handle_context_setup_response(
     cu_cp_intra_cu_handover_response&         response_msg,
     e1ap_bearer_context_modification_request& bearer_context_modification_request,
     const f1ap_ue_context_setup_response&     target_ue_context_setup_response,
     up_config_update&                         next_config,
-    const srslog::basic_logger&               logger,
+    const ocudulog::basic_logger&             logger,
     bool                                      reestablish_pdcp)
 {
   // Sanity checks.
@@ -59,9 +59,9 @@ bool srsran::srs_cu_cp::handle_context_setup_response(
         auto drb_it = std::find_if(target_ue_context_setup_response.drbs_setup_list.begin(),
                                    target_ue_context_setup_response.drbs_setup_list.end(),
                                    [&drb_item](const auto& drb) { return drb.drb_id == drb_item.first; });
-        srsran_assert(drb_it != target_ue_context_setup_response.drbs_setup_list.end(),
-                      "Couldn't find {} in UE context setup response",
-                      drb_item.first);
+        ocudu_assert(drb_it != target_ue_context_setup_response.drbs_setup_list.end(),
+                     "Couldn't find {} in UE context setup response",
+                     drb_item.first);
         const auto& context_setup_drb_item = *drb_it;
 
         e1ap_drb_to_modify_item_ng_ran e1ap_drb_item;
@@ -92,12 +92,12 @@ bool srsran::srs_cu_cp::handle_context_setup_response(
   return target_ue_context_setup_response.success;
 }
 
-bool srsran::srs_cu_cp::handle_bearer_context_modification_response(
+bool ocudu::ocucp::handle_bearer_context_modification_response(
     cu_cp_intra_cu_handover_response&                response_msg,
     f1ap_ue_context_modification_request&            source_ue_context_mod_request,
     const e1ap_bearer_context_modification_response& bearer_context_modification_response,
     up_config_update&                                next_config,
-    const srslog::basic_logger&                      logger)
+    const ocudulog::basic_logger&                    logger)
 
 {
   // TOOD: Add proper handling.

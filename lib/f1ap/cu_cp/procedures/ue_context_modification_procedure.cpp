@@ -11,11 +11,11 @@
 #include "ue_context_modification_procedure.h"
 #include "../f1ap_asn1_converters.h"
 #include "asn1_helpers.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/cause/ngap_cause.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::f1ap;
 
 /// \brief Convert the UE Context Modification Request from common type to ASN.1.
@@ -45,7 +45,7 @@ ue_context_modification_procedure::ue_context_modification_procedure(
   request(request_),
   ue_ctxt(ue_ctxt_),
   f1ap_notifier(f1ap_notif_),
-  logger(srslog::fetch_basic_logger("CU-CP-F1"))
+  logger(ocudulog::fetch_basic_logger("CU-CP-F1"))
 {
 }
 
@@ -77,8 +77,8 @@ void ue_context_modification_procedure::send_ue_context_modification_request()
 
   fill_asn1_ue_context_modification_request(ctx_mod, request);
 
-  srsran_sanity_check(ue_ctxt.ue_ids.du_ue_f1ap_id && ue_ctxt.ue_ids.du_ue_f1ap_id != gnb_du_ue_f1ap_id_t::invalid,
-                      "Invalid gNB-DU-UE-F1AP-Id");
+  ocudu_sanity_check(ue_ctxt.ue_ids.du_ue_f1ap_id && ue_ctxt.ue_ids.du_ue_f1ap_id != gnb_du_ue_f1ap_id_t::invalid,
+                     "Invalid gNB-DU-UE-F1AP-Id");
   ctx_mod->gnb_du_ue_f1ap_id = gnb_du_ue_f1ap_id_to_uint(*ue_ctxt.ue_ids.du_ue_f1ap_id);
   ctx_mod->gnb_cu_ue_f1ap_id = gnb_cu_ue_f1ap_id_to_uint(ue_ctxt.ue_ids.cu_ue_f1ap_id);
 

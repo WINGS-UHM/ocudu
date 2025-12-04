@@ -9,15 +9,15 @@
  */
 
 #include "f1u_split_connector.h"
-#include "srsran/f1u/split_connector/f1u_session_manager.h"
-#include "srsran/f1u/split_connector/f1u_session_manager_factory.h"
-#include "srsran/gtpu/gtpu_tunnel_nru_factory.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/f1u/split_connector/f1u_session_manager.h"
+#include "ocudu/f1u/split_connector/f1u_session_manager_factory.h"
+#include "ocudu/gtpu/gtpu_tunnel_nru_factory.h"
+#include "ocudu/ran/rb_id.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
-class srs_cu_up::gtpu_tx_udp_gw_adapter : public gtpu_tunnel_common_tx_upper_layer_notifier
+class ocuup::gtpu_tx_udp_gw_adapter : public gtpu_tunnel_common_tx_upper_layer_notifier
 {
 public:
   /// \brief Interface for the GTP-U to pass PDUs to the IO gateway
@@ -36,7 +36,7 @@ public:
   gtpu_tnl_pdu_session* handler = nullptr;
 };
 
-class srs_cu_up::gtpu_rx_f1u_adapter : public srsran::gtpu_tunnel_nru_rx_lower_layer_notifier
+class ocuup::gtpu_rx_f1u_adapter : public ocudu::gtpu_tunnel_nru_rx_lower_layer_notifier
 {
 public:
   /// \brief Interface for the GTP-U to pass a SDU (i.e. NR-U DL message) into the lower layer.
@@ -60,7 +60,7 @@ public:
 };
 
 /// Adapter between Network Gateway (Data) and GTP-U demux
-class srs_cu_up::network_gateway_data_gtpu_demux_adapter : public srsran::network_gateway_data_notifier_with_src_addr
+class ocuup::network_gateway_data_gtpu_demux_adapter : public ocudu::network_gateway_data_notifier_with_src_addr
 {
 public:
   network_gateway_data_gtpu_demux_adapter()           = default;
@@ -70,7 +70,7 @@ public:
 
   void on_new_pdu(byte_buffer pdu, const sockaddr_storage& src_addr) override
   {
-    srsran_assert(gtpu_demux != nullptr, "GTP-U handler must not be nullptr");
+    ocudu_assert(gtpu_demux != nullptr, "GTP-U handler must not be nullptr");
     gtpu_demux->handle_pdu(std::move(pdu), src_addr);
   }
 
@@ -84,7 +84,7 @@ f1u_split_gateway_cu_bearer::f1u_split_gateway_cu_bearer(uint32_t               
                                                          f1u_cu_up_gateway_bearer_rx_notifier& cu_rx_,
                                                          gtpu_tnl_pdu_session&                 udp_session_,
                                                          task_executor&                        ul_exec_,
-                                                         srs_cu_up::f1u_bearer_disconnector&   disconnector_) :
+                                                         ocuup::f1u_bearer_disconnector&       disconnector_) :
   ul_exec(ul_exec_),
   ue_index(ue_index_),
   logger("CU-F1-U", {ue_index_, drb_id, ul_tnl_info_}),
@@ -129,14 +129,14 @@ f1u_split_connector::f1u_split_connector(const gtpu_gateway_maps& udp_gw_maps,
                                          dlt_pcap&                gtpu_pcap_,
                                          uint16_t                 peer_port_,
                                          std::string              ext_addr_) :
-  logger_cu(srslog::fetch_basic_logger("CU-F1-U")),
+  logger_cu(ocudulog::fetch_basic_logger("CU-F1-U")),
   peer_port(peer_port_),
   ext_addr(std::move(ext_addr_)),
   demux(demux_),
   gtpu_pcap(gtpu_pcap_)
 {
-  srsran_assert(not udp_gw_maps.default_gws.empty(), "Cannot create CU F1-U split connector, no default GW present");
-  gw_data_gtpu_demux_adapter = std::make_unique<srs_cu_up::network_gateway_data_gtpu_demux_adapter>();
+  ocudu_assert(not udp_gw_maps.default_gws.empty(), "Cannot create CU F1-U split connector, no default GW present");
+  gw_data_gtpu_demux_adapter = std::make_unique<ocuup::network_gateway_data_gtpu_demux_adapter>();
   // Create default session(s)
   for (const std::unique_ptr<gtpu_gateway>& udp_gw : udp_gw_maps.default_gws) {
     f1u_sessions.default_gw_sessions.push_back(udp_gw->create(*gw_data_gtpu_demux_adapter));
@@ -162,7 +162,7 @@ f1u_split_connector::create_cu_bearer(uint32_t                              ue_i
                                       s_nssai_t                             s_nssai,
                                       drb_id_t                              drb_id,
                                       five_qi_t                             five_qi,
-                                      const srs_cu_up::f1u_config&          config,
+                                      const ocuup::f1u_config&              config,
                                       const gtpu_teid_t&                    ul_teid,
                                       f1u_cu_up_gateway_bearer_rx_notifier& rx_notifier,
                                       task_executor&                        ul_exec)
@@ -179,9 +179,9 @@ f1u_split_connector::create_cu_bearer(uint32_t                              ue_i
   auto                    cu_bearer = std::make_unique<f1u_split_gateway_cu_bearer>(
       ue_index, drb_id, ul_up_tnl_info, rx_notifier, udp_session, ul_exec, *this);
   std::unique_lock<std::mutex> lock(map_mutex);
-  srsran_assert(cu_map.find(ul_up_tnl_info.gtp_teid) == cu_map.end(),
-                "Cannot create CU gateway local bearer with already existing UL GTP Tunnel={}",
-                ul_up_tnl_info);
+  ocudu_assert(cu_map.find(ul_up_tnl_info.gtp_teid) == cu_map.end(),
+               "Cannot create CU gateway local bearer with already existing UL GTP Tunnel={}",
+               ul_up_tnl_info);
   cu_map.insert({ul_up_tnl_info.gtp_teid, cu_bearer.get()});
 
   // create GTP-U tunnel rx
@@ -191,7 +191,7 @@ f1u_split_connector::create_cu_bearer(uint32_t                              ue_i
   msg.rx_cfg.local_teid = ul_up_tnl_info.gtp_teid;
   msg.rx_lower          = cu_bearer->gtpu_to_f1u_adapter.get();
 
-  std::unique_ptr<gtpu_tunnel_common_rx_upper_layer_interface> tunnel_rx = srsran::create_gtpu_tunnel_nru_rx(msg);
+  std::unique_ptr<gtpu_tunnel_common_rx_upper_layer_interface> tunnel_rx = ocudu::create_gtpu_tunnel_nru_rx(msg);
 
   // attach it to the F1-U bearer
   cu_bearer->attach_tunnel_rx(std::move(tunnel_rx));
@@ -234,7 +234,7 @@ void f1u_split_connector::attach_dl_teid(const up_transport_layer_info& ul_up_tn
   msg.gtpu_pcap        = &gtpu_pcap;
   msg.tx_upper         = cu_bearer->gtpu_to_network_adapter.get();
 
-  std::unique_ptr<gtpu_tunnel_nru_tx_lower_layer_interface> tunnel_tx = srsran::create_gtpu_tunnel_nru_tx(msg);
+  std::unique_ptr<gtpu_tunnel_nru_tx_lower_layer_interface> tunnel_tx = ocudu::create_gtpu_tunnel_nru_tx(msg);
 
   // attach it to the F1-U bearer
   cu_bearer->attach_tunnel_tx(std::move(tunnel_tx));

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/downlink_processor.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/downlink_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Spy implementation of a downlink processor
 class downlink_processor_spy : public downlink_processor_base,
@@ -66,4 +66,4 @@ private:
   void finish_processing_pdus() override { finish_processing_pdus_method_called = true; }
 };
 
-} // namespace srsran
+} // namespace ocudu

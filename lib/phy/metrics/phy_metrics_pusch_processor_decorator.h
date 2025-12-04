@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH processor metric decorator.
 class phy_metrics_pusch_processor_decorator : public pusch_processor, private pusch_processor_result_notifier
@@ -27,7 +27,7 @@ public:
                                         pusch_processor_metric_notifier& metric_notifier_) :
     processor(std::move(processor_)), metric_notifier(metric_notifier_)
   {
-    srsran_assert(processor, "Invalid processor.");
+    ocudu_assert(processor, "Invalid processor.");
   }
 
   // See pusch_processor interface for documentation.
@@ -40,7 +40,7 @@ public:
     // Save reference to the notifier for this transmission. It must be nullptr to ensure that the processor was
     // released from previous processing.
     [[maybe_unused]] pusch_processor_result_notifier* prev_proc_notifier = std::exchange(notifier, &proc_notifier);
-    srsran_assert(prev_proc_notifier == nullptr, "The PUSCH processor is in use.");
+    ocudu_assert(prev_proc_notifier == nullptr, "The PUSCH processor is in use.");
 
     // Save processing inputs.
     data = data_;
@@ -70,7 +70,7 @@ private:
   // See pusch_processor_result_notifier for documentation.
   void on_uci(const pusch_processor_result_control& uci) override
   {
-    srsran_assert(notifier, "Invalid notifier");
+    ocudu_assert(notifier, "Invalid notifier");
 
     // Save UCI reporting time.
     elapsed_uci_ns.store(std::chrono::nanoseconds(std::chrono::steady_clock::now() - time_start).count(),
@@ -83,7 +83,7 @@ private:
   // See pusch_processor_result_notifier for documentation.
   void on_sch(const pusch_processor_result_data& sch) override
   {
-    srsran_assert(notifier, "Invalid notifier");
+    ocudu_assert(notifier, "Invalid notifier");
 
     // Save SCH results.
     sch_result = sch;
@@ -136,7 +136,7 @@ private:
 
     // Notify the completion of the PUSCH processing. From now on, the processor might become available.
     pusch_processor_result_notifier* current_proc_notifier = std::exchange(notifier, nullptr);
-    srsran_assert(current_proc_notifier != nullptr, "PUSCH processor is still busy.");
+    ocudu_assert(current_proc_notifier != nullptr, "PUSCH processor is still busy.");
     current_proc_notifier->on_sch(sch_result);
   }
 
@@ -157,4 +157,4 @@ private:
   static_assert(std::atomic<decltype(cpu_time_usage_ns)>::is_always_lock_free);
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/ran/srs/srs_information.h"
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
-#include "srsran/ran/srs/srs_resource_configuration.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/srs/srs_information.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/ran/srs/srs_resource_configuration.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <cmath>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr unsigned N_RB_SC = 12;
 
@@ -23,20 +23,20 @@ static constexpr unsigned get_sequence_length(unsigned m_srs_b, srs_resource_con
   return (m_srs_b * N_RB_SC) / static_cast<unsigned>(comb_size);
 }
 
-srs_information srsran::get_srs_information(const srs_resource_configuration& resource, unsigned i_antenna_port)
+srs_information ocudu::get_srs_information(const srs_resource_configuration& resource, unsigned i_antenna_port)
 {
   // Select BW configuration.
   std::optional<srs_configuration> srs_bw_config =
       srs_configuration_get(resource.configuration_index.value(), resource.bandwidth_index.value());
-  srsran_assert(srs_bw_config.has_value(),
-                "Invalid combination of c-SRS (i.e., {}) and b-SRS (i.e., {})",
-                resource.configuration_index,
-                resource.bandwidth_index);
+  ocudu_assert(srs_bw_config.has_value(),
+               "Invalid combination of c-SRS (i.e., {}) and b-SRS (i.e., {})",
+               resource.configuration_index,
+               resource.bandwidth_index);
 
   // Assert configuration parameters.
-  srsran_assert(resource.hopping == srs_resource_configuration::group_or_sequence_hopping_enum::neither,
-                "No sequence nor group hopping supported.");
-  srsran_assert(!resource.has_frequency_hopping(), "Frequency hopping is not supported.");
+  ocudu_assert(resource.hopping == srs_resource_configuration::group_or_sequence_hopping_enum::neither,
+               "No sequence nor group hopping supported.");
+  ocudu_assert(!resource.has_frequency_hopping(), "Frequency hopping is not supported.");
 
   // Calculate sequence length.
   unsigned sequence_length = get_sequence_length(srs_bw_config->m_srs, resource.comb_size);
@@ -70,7 +70,7 @@ srs_information srsran::get_srs_information(const srs_resource_configuration& re
   unsigned sum    = 0;
   for (unsigned b = 0; b <= resource.bandwidth_index; ++b) {
     std::optional<srs_configuration> bw_config = srs_configuration_get(resource.configuration_index.value(), b);
-    srsran_assert(bw_config, "Invalid configuration.");
+    ocudu_assert(bw_config, "Invalid configuration.");
 
     unsigned M_srs = get_sequence_length(bw_config->m_srs, resource.comb_size);
     unsigned n_b   = ((4 * resource.freq_position.value()) / bw_config->m_srs) % bw_config->N;

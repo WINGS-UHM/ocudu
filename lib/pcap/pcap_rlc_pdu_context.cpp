@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/pcap/rlc_pcap.h"
+#include "ocudu/pcap/rlc_pcap.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pcap_rlc_pdu_context::pcap_rlc_pdu_context(du_ue_index_t ue_index, rb_id_t rb_id, const rlc_tx_am_config& cfg)
 {

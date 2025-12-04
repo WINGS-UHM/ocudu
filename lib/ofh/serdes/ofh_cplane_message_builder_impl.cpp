@@ -12,7 +12,7 @@
 #include "../support/network_order_binary_serializer.h"
 #include "ofh_cuplane_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Encodes and returns the frame structure field. It is comprised by 4 LSB bits storing subcarrier spacing and 4 MSB

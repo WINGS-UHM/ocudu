@@ -11,16 +11,16 @@
 #include "mac_test_mode_adapter.h"
 #include "../adapters/du_high_adapter_factories.h"
 #include "mac_test_mode_helpers.h"
-#include "srsran/adt/ring_buffer.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/mac/mac_factory.h"
-#include "srsran/scheduler/harq_id.h"
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/adt/ring_buffer.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/mac/mac_factory.h"
+#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/scheduler/result/sched_result.h"
 #include <functional>
 #include <utility>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 // Buffer state that the fake RLC will report to the MAC. This value should be large enough for the scheduler to fill
 // the largest TB possible.
@@ -61,15 +61,15 @@ private:
 } // namespace
 
 mac_test_mode_cell_adapter::mac_test_mode_cell_adapter(
-    const srs_du::du_test_mode_config::test_mode_ue_config& test_ue_cfg_,
-    const mac_cell_creation_request&                        cell_cfg,
-    mac_cell_control_information_handler&                   adapted_,
-    mac_pdu_handler&                                        pdu_handler_,
-    mac_cell_slot_handler&                                  slot_handler_,
-    mac_cell_result_notifier&                               result_notifier_,
-    std::function<void(rnti_t)>                             dl_bs_notifier_,
-    mac_test_mode_event_handler&                            event_handler_,
-    mac_test_mode_ue_repository&                            ue_info_mgr_) :
+    const odu::du_test_mode_config::test_mode_ue_config& test_ue_cfg_,
+    const mac_cell_creation_request&                     cell_cfg,
+    mac_cell_control_information_handler&                adapted_,
+    mac_pdu_handler&                                     pdu_handler_,
+    mac_cell_slot_handler&                               slot_handler_,
+    mac_cell_result_notifier&                            result_notifier_,
+    std::function<void(rnti_t)>                          dl_bs_notifier_,
+    mac_test_mode_event_handler&                         event_handler_,
+    mac_test_mode_ue_repository&                         ue_info_mgr_) :
   cell_index(cell_cfg.cell_index),
   test_ue_cfg(test_ue_cfg_),
   adapted(adapted_),
@@ -77,7 +77,7 @@ mac_test_mode_cell_adapter::mac_test_mode_cell_adapter(
   slot_handler(slot_handler_),
   result_notifier(result_notifier_),
   dl_bs_notifier(std::move(dl_bs_notifier_)),
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   history(cell_cfg),
   event_handler(event_handler_),
   ue_info_mgr(ue_info_mgr_)
@@ -458,9 +458,9 @@ void phy_test_mode_adapter::phy_cell::on_cell_results_completion(slot_point slot
 
 // ----
 
-mac_test_mode_adapter::mac_test_mode_adapter(const srs_du::du_test_mode_config::test_mode_ue_config& test_ue_cfg_,
-                                             mac_result_notifier&                                    phy_notifier_,
-                                             unsigned                                                nof_cells) :
+mac_test_mode_adapter::mac_test_mode_adapter(const odu::du_test_mode_config::test_mode_ue_config& test_ue_cfg_,
+                                             mac_result_notifier&                                 phy_notifier_,
+                                             unsigned                                             nof_cells) :
   test_ue(test_ue_cfg_),
   event_handler(nof_cells),
   ue_info_mgr(event_handler, test_ue.rnti, test_ue.nof_ues, nof_cells),
@@ -612,9 +612,8 @@ void mac_test_mode_adapter::handle_ue_config_applied(du_ue_index_t ue_idx)
   mac_adapted->get_ue_configurator().handle_ue_config_applied(ue_idx);
 }
 
-std::unique_ptr<mac_interface> srsran::srs_du::create_du_high_mac(const mac_config&                  mac_cfg,
-                                                                  const srs_du::du_test_mode_config& test_cfg,
-                                                                  unsigned                           nof_cells)
+std::unique_ptr<mac_interface>
+ocudu::odu::create_du_high_mac(const mac_config& mac_cfg, const odu::du_test_mode_config& test_cfg, unsigned nof_cells)
 {
   if (not test_cfg.test_ue.has_value()) {
     return create_mac(mac_cfg);

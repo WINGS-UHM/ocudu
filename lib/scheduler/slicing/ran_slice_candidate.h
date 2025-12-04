@@ -11,9 +11,9 @@
 #pragma once
 
 #include "ran_slice_instance.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 namespace detail {
 
 /// \brief RAN slice that is the next candidate for allocation in a given slot and cell.
@@ -78,4 +78,4 @@ using dl_ran_slice_candidate = detail::common_ran_slice_candidate<true>;
 /// On destruction, the slice is marked as completed for the current slot and won't be considered as a candidate again.
 using ul_ran_slice_candidate = detail::common_ran_slice_candidate<false>;
 
-} // namespace srsran
+} // namespace ocudu

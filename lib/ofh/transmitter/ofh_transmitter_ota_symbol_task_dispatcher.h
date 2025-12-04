@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/rtsan.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// OTA symbol task dispatcher for the transmitter.
@@ -24,7 +24,7 @@ class transmitter_ota_symbol_task_dispatcher : public ota_symbol_boundary_notifi
 {
 public:
   transmitter_ota_symbol_task_dispatcher(unsigned                      sector_id_,
-                                         srslog::basic_logger&         logger_,
+                                         ocudulog::basic_logger&       logger_,
                                          task_executor&                executor_,
                                          ota_symbol_boundary_notifier& dl_window_checker_,
                                          ota_symbol_boundary_notifier& ul_window_checker_,
@@ -48,14 +48,14 @@ public:
   void on_new_symbol(const slot_symbol_point_context& symbol_point_context) override
   {
     auto token = stop_manager.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
     dl_window_checker.on_new_symbol(symbol_point_context);
     ul_window_checker.on_new_symbol(symbol_point_context);
 
-    if (!executor.defer([this, symbol_point_context, tk = std::move(token)]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+    if (!executor.defer([this, symbol_point_context, tk = std::move(token)]() noexcept OCUDU_RTSAN_NONBLOCKING {
           msg_symbol_handler.on_new_symbol(symbol_point_context);
         })) {
       logger.warning(
@@ -68,7 +68,7 @@ public:
 
 private:
   const unsigned                sector_id;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
   task_executor&                executor;
   ota_symbol_boundary_notifier& dl_window_checker;
   ota_symbol_boundary_notifier& ul_window_checker;
@@ -77,4 +77,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

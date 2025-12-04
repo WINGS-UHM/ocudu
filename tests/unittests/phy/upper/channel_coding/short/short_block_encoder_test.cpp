@@ -15,13 +15,13 @@
 /// modulation scheme). Messages and expected codeblocks (for comparison) are provided by test vectors.
 
 #include "short_block_encoder_test_data.h"
-#include "srsran/phy/upper/channel_coding/short/short_block_encoder.h"
+#include "ocudu/phy/upper/channel_coding/short/short_block_encoder.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 using ShortBlockEncoderParams = test_case_t;

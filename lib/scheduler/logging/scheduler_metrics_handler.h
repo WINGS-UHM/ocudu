@@ -11,18 +11,18 @@
 #pragma once
 
 #include "scheduler_metrics_ue_configurator.h"
-#include "srsran/adt/flat_map.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/scheduler/scheduler_dl_buffer_state_indication_handler.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
-#include "srsran/scheduler/scheduler_metrics.h"
-#include "srsran/support/math/stats.h"
-#include "srsran/support/units.h"
+#include "ocudu/adt/flat_map.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_dl_buffer_state_indication_handler.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
+#include "ocudu/support/math/stats.h"
+#include "ocudu/support/units.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 struct rach_indication_message;
@@ -273,4 +273,4 @@ private:
   slotted_array<std::unique_ptr<cell_metrics_handler>, MAX_NOF_DU_CELLS> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

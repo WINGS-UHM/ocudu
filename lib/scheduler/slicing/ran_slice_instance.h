@@ -14,9 +14,9 @@
 #include "../ue_context/ue_repository.h"
 #include "ran_slice_id.h"
 #include "slice_ue_repository.h"
-#include "srsran/scheduler/config/slice_rrm_policy_config.h"
+#include "ocudu/scheduler/config/slice_rrm_policy_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// This class stores all the internal information relative to a RAN slice instantiation.
 class ran_slice_instance
@@ -108,4 +108,4 @@ private:
   slice_ue_repository slice_ues;
 };
 
-} // namespace srsran
+} // namespace ocudu

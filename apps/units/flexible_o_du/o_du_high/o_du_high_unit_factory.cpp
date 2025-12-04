@@ -22,20 +22,20 @@
 #include "du_high/metrics/du_metrics_producer.h"
 #include "e2/o_du_high_e2_config_translators.h"
 #include "o_du_high_unit_config.h"
-#include "srsran/du/du_high/du_high.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/du/du_high/o_du_high_config.h"
-#include "srsran/du/du_high/o_du_high_factory.h"
-#include "srsran/du/du_update_config_helpers.h"
-#include "srsran/e2/e2_du_metrics_connector.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/du/du_high/o_du_high_config.h"
+#include "ocudu/du/du_high/o_du_high_factory.h"
+#include "ocudu/du/du_update_config_helpers.h"
+#include "ocudu/e2/e2_du_metrics_connector.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
+void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
 {
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("GNB", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("GNB", false);
 
   // Generate DU cells.
   auto cells = generate_du_cell_config(du_high_unit_cfg);
@@ -47,10 +47,10 @@ void srsran::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
                cell.dl_carrier.nof_ant,
                cell.ul_carrier.nof_ant,
                cell.dl_carrier.arfcn_f_ref,
-               srsran::nr_band_to_uint(cell.dl_carrier.band),
-               srsran::band_helper::nr_arfcn_to_freq(cell.dl_carrier.arfcn_f_ref) / 1e6,
+               ocudu::nr_band_to_uint(cell.dl_carrier.band),
+               ocudu::band_helper::nr_arfcn_to_freq(cell.dl_carrier.arfcn_f_ref) / 1e6,
                cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
-               srsran::band_helper::nr_arfcn_to_freq(cell.ul_carrier.arfcn_f_ref) / 1e6);
+               ocudu::band_helper::nr_arfcn_to_freq(cell.ul_carrier.arfcn_f_ref) / 1e6);
 
     logger.info(
         "SSB derived parameters for cell: {}, band: {}, dl_arfcn:{}, nof_crbs: {} scs:{}, ssb_scs:{}:\n\t - SSB offset "
@@ -71,9 +71,9 @@ void srsran::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
   fmt::print("\n");
 }
 
-static void validates_derived_du_params(span<const srs_du::du_cell_config> cells)
+static void validates_derived_du_params(span<const odu::du_cell_config> cells)
 {
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("DU", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("DU", false);
 
   for (const auto& cell_cfg : cells) {
     const rach_config_common& rach_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
@@ -146,7 +146,7 @@ static rlc_metrics_notifier* build_rlc_du_metrics(std::vector<app_services::metr
   return out;
 }
 
-static srs_du::du_metrics_notifier*
+static odu::du_metrics_notifier*
 build_du_metrics(std::vector<app_services::metrics_config>& metrics,
                  std::vector<std::unique_ptr<app_services::toggle_stdout_metrics_app_command::metrics_subcommand>>&
                                                  metrics_subcommands,
@@ -161,7 +161,7 @@ build_du_metrics(std::vector<app_services::metrics_config>& metrics,
     return nullptr;
   }
 
-  srs_du::du_metrics_notifier* out = nullptr;
+  odu::du_metrics_notifier* out = nullptr;
 
   app_services::metrics_config& du_metrics_cfg = metrics.emplace_back();
   du_metrics_cfg.metric_name                   = du_metrics_properties_impl().name();
@@ -196,12 +196,12 @@ build_du_metrics(std::vector<app_services::metrics_config>& metrics,
   return out;
 }
 
-o_du_high_unit srsran::make_o_du_high_unit(const o_du_high_unit_config&  o_du_high_unit_cfg,
-                                           o_du_high_unit_dependencies&& dependencies)
+o_du_high_unit ocudu::make_o_du_high_unit(const o_du_high_unit_config&  o_du_high_unit_cfg,
+                                          o_du_high_unit_dependencies&& dependencies)
 {
-  srs_du::o_du_high_config       o_du_high_cfg;
-  srs_du::du_high_configuration& du_hi_cfg        = o_du_high_cfg.du_hi;
-  const du_high_unit_config&     du_high_unit_cfg = o_du_high_unit_cfg.du_high_cfg.config;
+  odu::o_du_high_config       o_du_high_cfg;
+  odu::du_high_configuration& du_hi_cfg        = o_du_high_cfg.du_hi;
+  const du_high_unit_config&  du_high_unit_cfg = o_du_high_unit_cfg.du_high_cfg.config;
 
   // Generate DU high config from the unit config.
   generate_du_high_config(du_hi_cfg, du_high_unit_cfg);
@@ -209,14 +209,14 @@ o_du_high_unit srsran::make_o_du_high_unit(const o_du_high_unit_config&  o_du_hi
   // Validates the derived parameters.
   validates_derived_du_params(du_hi_cfg.ran.cells);
 
-  srs_du::du_high_dependencies& du_hi_deps = dependencies.o_du_hi_dependencies.du_hi;
-  du_hi_deps.exec_mapper                   = &dependencies.execution_mapper;
-  du_hi_deps.f1c_client                    = &dependencies.f1c_client_handler;
-  du_hi_deps.f1u_gw                        = &dependencies.f1u_gw;
-  du_hi_deps.phy_adapter                   = nullptr;
-  du_hi_deps.timer_ctrl                    = &dependencies.timer_ctrl;
-  du_hi_deps.mac_p                         = &dependencies.mac_p;
-  du_hi_deps.rlc_p                         = &dependencies.rlc_p;
+  odu::du_high_dependencies& du_hi_deps = dependencies.o_du_hi_dependencies.du_hi;
+  du_hi_deps.exec_mapper                = &dependencies.execution_mapper;
+  du_hi_deps.f1c_client                 = &dependencies.f1c_client_handler;
+  du_hi_deps.f1u_gw                     = &dependencies.f1u_gw;
+  du_hi_deps.phy_adapter                = nullptr;
+  du_hi_deps.timer_ctrl                 = &dependencies.timer_ctrl;
+  du_hi_deps.mac_p                      = &dependencies.mac_p;
+  du_hi_deps.rlc_p                      = &dependencies.rlc_p;
 
   if (o_du_high_unit_cfg.e2_cfg.base_cfg.enable_unit_e2) {
     // Connect E2 agent to RLC metric source.
@@ -245,19 +245,19 @@ o_du_high_unit srsran::make_o_du_high_unit(const o_du_high_unit_config&  o_du_hi
 
   // Configure test mode
   if (du_high_unit_cfg.test_mode_cfg.test_ue.rnti != rnti_t::INVALID_RNTI) {
-    du_hi_cfg.test_cfg.test_ue = srs_du::du_test_mode_config::test_mode_ue_config{
-        du_high_unit_cfg.test_mode_cfg.test_ue.rnti,
-        du_high_unit_cfg.test_mode_cfg.test_ue.nof_ues,
-        du_high_unit_cfg.test_mode_cfg.test_ue.ue_creation_stagger_slots,
-        du_high_unit_cfg.test_mode_cfg.test_ue.auto_ack_indication_delay,
-        du_high_unit_cfg.test_mode_cfg.test_ue.pdsch_active,
-        du_high_unit_cfg.test_mode_cfg.test_ue.pusch_active,
-        du_high_unit_cfg.test_mode_cfg.test_ue.cqi,
-        du_high_unit_cfg.test_mode_cfg.test_ue.ri,
-        du_high_unit_cfg.test_mode_cfg.test_ue.pmi,
-        du_high_unit_cfg.test_mode_cfg.test_ue.i_1_1,
-        du_high_unit_cfg.test_mode_cfg.test_ue.i_1_3,
-        du_high_unit_cfg.test_mode_cfg.test_ue.i_2};
+    du_hi_cfg.test_cfg.test_ue =
+        odu::du_test_mode_config::test_mode_ue_config{du_high_unit_cfg.test_mode_cfg.test_ue.rnti,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.nof_ues,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.ue_creation_stagger_slots,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.auto_ack_indication_delay,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.pdsch_active,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.pusch_active,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.cqi,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.ri,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.pmi,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.i_1_1,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.i_1_3,
+                                                      du_high_unit_cfg.test_mode_cfg.test_ue.i_2};
   }
 
   // FAPI configuration.
@@ -266,7 +266,7 @@ o_du_high_unit srsran::make_o_du_high_unit(const o_du_high_unit_config&  o_du_hi
   o_du_high_cfg.fapi.l2_nof_slots_ahead = fapi_cfg.l2_nof_slots_ahead;
 
   // Create O-DU high.
-  odu_unit.o_du_hi = srs_du::make_o_du_high(o_du_high_cfg, std::move(dependencies.o_du_hi_dependencies));
+  odu_unit.o_du_hi = odu::make_o_du_high(o_du_high_cfg, std::move(dependencies.o_du_hi_dependencies));
   report_error_if_not(odu_unit.o_du_hi, "Invalid O-DU high");
 
   // Create remote commands.

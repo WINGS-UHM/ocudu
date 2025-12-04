@@ -13,10 +13,10 @@
 #include "app_execution_metrics.h"
 #include "apps/services/metrics/metrics_notifier.h"
 #include "apps/services/metrics/metrics_producer.h"
-#include "srsran/support/executors/metrics/executor_metrics_notifier.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/support/executors/metrics/executor_metrics_notifier.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 class app_execution_metrics_producer_impl : public app_services::metrics_producer, public executor_metrics_notifier
 {
@@ -43,7 +43,7 @@ public:
     return [&](const app_services::metrics_set&      report,
                span<app_services::metrics_consumer*> consumers,
                task_executor&                        executor,
-               srslog::basic_logger&                 logger,
+               ocudulog::basic_logger&               logger,
                stop_event_token                      token) {
       const auto& metric = static_cast<const executor_metrics_impl&>(report);
 
@@ -72,4 +72,4 @@ private:
   bounded_object_pool<executor_metrics> metrics_pool;
 };
 
-} // namespace srsran
+} // namespace ocudu

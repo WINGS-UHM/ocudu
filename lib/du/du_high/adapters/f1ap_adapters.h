@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/slotted_array.h"
-#include "srsran/du/du_high/du_manager/du_manager.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/du/du_high/du_manager/du_manager.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 
-namespace srs_du {
+namespace odu {
 
 class f1ap_ue_task_scheduler_adapter final : public f1ap_ue_task_scheduler
 {
@@ -117,5 +117,5 @@ private:
   slotted_array<f1ap_ue_task_scheduler_adapter, MAX_NOF_DU_UES> ues;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

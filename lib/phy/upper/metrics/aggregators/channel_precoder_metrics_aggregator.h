@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/math/math_utils.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Channel precoder metrics aggregator.
 class channel_precoder_metrics_aggregator : public channel_precoder_metric_notifier
@@ -91,4 +91,4 @@ private:
   std::atomic<uint64_t>                                          total_elapsed_ns = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

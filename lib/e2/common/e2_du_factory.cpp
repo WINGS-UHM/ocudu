@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/e2/e2_du_factory.h"
+#include "ocudu/e2/e2_du_factory.h"
 #include "e2_entity.h"
 #include "e2_impl.h"
 #include "e2sm/e2sm_ccc/e2sm_ccc_asn1_packer.h"
@@ -22,20 +22,20 @@
 #include "e2sm/e2sm_rc/e2sm_rc_control_action_du_executor.h"
 #include "e2sm/e2sm_rc/e2sm_rc_control_service_impl.h"
 #include "e2sm/e2sm_rc/e2sm_rc_impl.h"
-#include "srsran/e2/e2_agent_dependencies.h"
+#include "ocudu/e2/e2_agent_dependencies.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<e2_agent> srsran::create_e2_du_agent(const e2ap_configuration&      e2ap_cfg_,
-                                                     e2_connection_client&          e2_client_,
-                                                     e2_du_metrics_interface*       e2_metrics_,
-                                                     srs_du::f1ap_ue_id_translator* f1ap_ue_id_translator_,
-                                                     srs_du::du_configurator*       du_configurator_,
-                                                     timer_factory                  timers_,
-                                                     task_executor&                 e2_exec_)
+std::unique_ptr<e2_agent> ocudu::create_e2_du_agent(const e2ap_configuration&   e2ap_cfg_,
+                                                    e2_connection_client&       e2_client_,
+                                                    e2_du_metrics_interface*    e2_metrics_,
+                                                    odu::f1ap_ue_id_translator* f1ap_ue_id_translator_,
+                                                    odu::du_configurator*       du_configurator_,
+                                                    timer_factory               timers_,
+                                                    task_executor&              e2_exec_)
 {
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("E2-DU");
-  e2_agent_dependencies dependencies;
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("E2-DU");
+  e2_agent_dependencies   dependencies;
   dependencies.logger    = &logger;
   dependencies.cfg       = e2ap_cfg_;
   dependencies.e2_client = &e2_client_;

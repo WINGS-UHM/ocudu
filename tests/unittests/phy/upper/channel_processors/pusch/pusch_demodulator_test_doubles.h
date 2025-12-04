@@ -11,13 +11,13 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
-#include "srsran/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_demodulator_spy : public pusch_demodulator
 {
@@ -73,4 +73,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(pusch_demodulator);
 
-} // namespace srsran
+} // namespace ocudu

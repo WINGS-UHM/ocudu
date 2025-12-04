@@ -13,10 +13,10 @@
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "apps/services/worker_manager/cli11_cpu_affinities_parser_helper.h"
 #include "ru_ofh_config.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_ru_ofh_base_cell_args(CLI::App& app, ru_ofh_unit_base_cell_config& config)
 {
@@ -461,7 +461,7 @@ static void configure_cli11_metrics_args(CLI::App& app, ru_ofh_unit_metrics_conf
       ->capture_default_str();
 }
 
-void srsran::configure_cli11_with_ru_ofh_config_schema(CLI::App& app, ru_ofh_unit_parsed_config& parsed_cfg)
+void ocudu::configure_cli11_with_ru_ofh_config_schema(CLI::App& app, ru_ofh_unit_parsed_config& parsed_cfg)
 {
   // OFH RU section.
   CLI::App* ru_ofh_subcmd = add_subcommand(app, "ru_ofh", "Open Fronthaul Radio Unit configuration")->configurable();
@@ -499,7 +499,7 @@ static void manage_hal_optional(CLI::App& app, std::optional<ru_ofh_unit_hal_con
 }
 #endif
 
-void srsran::autoderive_ru_ofh_parameters_after_parsing(CLI::App& app, ru_ofh_unit_parsed_config& parsed_cfg)
+void ocudu::autoderive_ru_ofh_parameters_after_parsing(CLI::App& app, ru_ofh_unit_parsed_config& parsed_cfg)
 {
 #ifdef DPDK_FOUND
   manage_hal_optional(app, parsed_cfg.config.hal_config);

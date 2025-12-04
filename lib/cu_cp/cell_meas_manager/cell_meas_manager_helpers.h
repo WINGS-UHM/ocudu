@@ -11,18 +11,18 @@
 #pragma once
 
 #include "measurement_context.h"
-#include "srsran/cu_cp/cell_meas_manager_config.h"
-#include "srsran/rrc/meas_types.h"
+#include "ocudu/cu_cp/cell_meas_manager_config.h"
+#include "ocudu/rrc/meas_types.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Log configured cells.
-void log_cells(const srslog::basic_logger& logger, const cell_meas_manager_cfg& cfg);
+void log_cells(const ocudulog::basic_logger& logger, const cell_meas_manager_cfg& cfg);
 
 /// \brief Log measurement objects.
-void log_meas_objects(const srslog::basic_logger&                                 logger,
+void log_meas_objects(const ocudulog::basic_logger&                               logger,
                       const std::unordered_map<ssb_frequency_t, rrc_meas_obj_nr>& meas_objects);
 
 /// \brief Add old measurement configuration to the remove list of the new configuration.
@@ -54,5 +54,5 @@ rrc_meas_obj_nr generate_measurement_object(const serving_cell_meas_config& cfg)
 /// \brief Check whether the given measurement objects are the same.
 bool is_duplicate(const rrc_meas_obj_nr& obj_1, const rrc_meas_obj_nr& obj_2);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/error_message_notifier.h"
+#include "ocudu/fapi/error_message_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Error message notifier dispatcher that forwards error messages to the configured notifier.
@@ -31,4 +31,4 @@ public:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

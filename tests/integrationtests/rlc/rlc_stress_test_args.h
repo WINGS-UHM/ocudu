@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/rlc/rlc_config.h"
-#include "srsran/rlc/rlc_rx.h"
-#include "srsran/rlc/rlc_tx.h"
-#include "srsran/security/security.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/rlc/rlc_config.h"
+#include "ocudu/rlc/rlc_rx.h"
+#include "ocudu/rlc/rlc_tx.h"
+#include "ocudu/security/security.h"
 #include <getopt.h>
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 const std::array<uint8_t, 16> k_128_int =
     {0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30, 0x31};
@@ -27,30 +27,30 @@ const std::array<uint8_t, 16> k_128_enc =
     {0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30, 0x31};
 
 struct stress_test_args {
-  std::string          mode                = "UM12";
-  int32_t              sdu_size            = -1;
-  float                pdu_drop_rate       = 0.1;
-  float                pdu_cut_rate        = 0.0;
-  float                pdu_duplicate_rate  = 0.0;
-  uint32_t             avg_opp_size        = 1505;
-  bool                 const_opp           = false;
-  uint32_t             seed                = 0;
-  uint32_t             nof_pdu_tti         = 10;
-  uint32_t             nof_ttis            = 500;
-  uint32_t             pdcp_sn_size        = 18;
-  uint32_t             pdcp_t_reordering   = 10;
-  uint32_t             pdcp_integrity_algo = 2;
-  uint32_t             pdcp_ciphering_algo = 2;
-  std::string          log_filename        = "stdout";
-  srslog::basic_levels log_level_stack     = srslog::basic_levels::info;
-  srslog::basic_levels log_level_traff     = srslog::basic_levels::error;
-  srslog::basic_levels log_level_rlc       = srslog::basic_levels::error;
-  srslog::basic_levels log_level_f1        = srslog::basic_levels::error;
-  srslog::basic_levels log_level_pdcp      = srslog::basic_levels::error;
-  srslog::basic_levels log_level_mac       = srslog::basic_levels::error;
-  uint32_t             log_hex_limit       = 32;
-  uint32_t             min_sdu_size        = 5;
-  uint32_t             max_sdu_size        = 1500;
+  std::string            mode                = "UM12";
+  int32_t                sdu_size            = -1;
+  float                  pdu_drop_rate       = 0.1;
+  float                  pdu_cut_rate        = 0.0;
+  float                  pdu_duplicate_rate  = 0.0;
+  uint32_t               avg_opp_size        = 1505;
+  bool                   const_opp           = false;
+  uint32_t               seed                = 0;
+  uint32_t               nof_pdu_tti         = 10;
+  uint32_t               nof_ttis            = 500;
+  uint32_t               pdcp_sn_size        = 18;
+  uint32_t               pdcp_t_reordering   = 10;
+  uint32_t               pdcp_integrity_algo = 2;
+  uint32_t               pdcp_ciphering_algo = 2;
+  std::string            log_filename        = "stdout";
+  ocudulog::basic_levels log_level_stack     = ocudulog::basic_levels::info;
+  ocudulog::basic_levels log_level_traff     = ocudulog::basic_levels::error;
+  ocudulog::basic_levels log_level_rlc       = ocudulog::basic_levels::error;
+  ocudulog::basic_levels log_level_f1        = ocudulog::basic_levels::error;
+  ocudulog::basic_levels log_level_pdcp      = ocudulog::basic_levels::error;
+  ocudulog::basic_levels log_level_mac       = ocudulog::basic_levels::error;
+  uint32_t               log_hex_limit       = 32;
+  uint32_t               min_sdu_size        = 5;
+  uint32_t               max_sdu_size        = 1500;
 };
 
 // Long only optgars ints
@@ -205,38 +205,38 @@ inline bool parse_args(stress_test_args& args, int argc, char* argv[])
         std::fprintf(stdout, "PDCP ciphering algorithm %s\n", optarg);
         break;
       case to_number(long_only::log_stack_level): {
-        auto value           = srslog::str_to_basic_level(std::string(optarg));
-        args.log_level_stack = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value           = ocudulog::str_to_basic_level(std::string(optarg));
+        args.log_level_stack = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         std::fprintf(stdout, "STACK log level %s\n", optarg);
         break;
       }
       case to_number(long_only::log_traff_level): {
-        auto value           = srslog::str_to_basic_level(std::string(optarg));
-        args.log_level_traff = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value           = ocudulog::str_to_basic_level(std::string(optarg));
+        args.log_level_traff = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         std::fprintf(stdout, "TRAFF log level %s\n", optarg);
         break;
       }
       case to_number(long_only::log_pdcp_level): {
-        auto value          = srslog::str_to_basic_level(std::string(optarg));
-        args.log_level_pdcp = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value          = ocudulog::str_to_basic_level(std::string(optarg));
+        args.log_level_pdcp = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         std::fprintf(stdout, "PDCP log level %s\n", optarg);
         break;
       }
       case to_number(long_only::log_f1_level): {
-        auto value        = srslog::str_to_basic_level(std::string(optarg));
-        args.log_level_f1 = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value        = ocudulog::str_to_basic_level(std::string(optarg));
+        args.log_level_f1 = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         std::fprintf(stdout, "F1 log level %s\n", optarg);
         break;
       }
       case to_number(long_only::log_rlc_level): {
-        auto value         = srslog::str_to_basic_level(std::string(optarg));
-        args.log_level_rlc = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value         = ocudulog::str_to_basic_level(std::string(optarg));
+        args.log_level_rlc = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         std::fprintf(stdout, "RLC log level %s\n", optarg);
         break;
       }
       case to_number(long_only::log_mac_level): {
-        auto value         = srslog::str_to_basic_level(std::string(optarg));
-        args.log_level_mac = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value         = ocudulog::str_to_basic_level(std::string(optarg));
+        args.log_level_mac = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         std::fprintf(stdout, "MAC log level %s\n", optarg);
         break;
       }
@@ -283,21 +283,21 @@ inline pdcp_config get_pdcp_config_from_args(uint32_t id, const stress_test_args
   pdcp_config cnfg = {};
   cnfg.rb_type     = pdcp_rb_type::drb;
   if (args.pdcp_sn_size == 12) {
-    cnfg.tx.sn_size = srsran::pdcp_sn_size::size12bits;
-    cnfg.rx.sn_size = srsran::pdcp_sn_size::size12bits;
+    cnfg.tx.sn_size = ocudu::pdcp_sn_size::size12bits;
+    cnfg.rx.sn_size = ocudu::pdcp_sn_size::size12bits;
   } else if (args.pdcp_sn_size == 18) {
-    cnfg.tx.sn_size = srsran::pdcp_sn_size::size18bits;
-    cnfg.rx.sn_size = srsran::pdcp_sn_size::size18bits;
+    cnfg.tx.sn_size = ocudu::pdcp_sn_size::size18bits;
+    cnfg.rx.sn_size = ocudu::pdcp_sn_size::size18bits;
   } else {
     std::fprintf(stderr, "Unsupported PDCP SN %d, exiting.\n", args.pdcp_sn_size);
     std::exit(-1);
   }
   if (id == 0) {
-    cnfg.tx.direction = srsran::pdcp_security_direction::downlink;
-    cnfg.rx.direction = srsran::pdcp_security_direction::uplink;
+    cnfg.tx.direction = ocudu::pdcp_security_direction::downlink;
+    cnfg.rx.direction = ocudu::pdcp_security_direction::uplink;
   } else {
-    cnfg.tx.direction = srsran::pdcp_security_direction::uplink;
-    cnfg.rx.direction = srsran::pdcp_security_direction::downlink;
+    cnfg.tx.direction = ocudu::pdcp_security_direction::uplink;
+    cnfg.rx.direction = ocudu::pdcp_security_direction::downlink;
   }
   cnfg.rx.t_reordering = static_cast<pdcp_t_reordering>(args.pdcp_t_reordering);
   return cnfg;
@@ -307,17 +307,17 @@ inline rlc_config get_rlc_config_from_args(const stress_test_args& args)
 {
   rlc_config cnfg = {};
   if (args.mode == "TM") {
-    cnfg.mode = srsran::rlc_mode::tm;
+    cnfg.mode = ocudu::rlc_mode::tm;
   } else if (args.mode == "UM6") {
-    cnfg.mode                  = srsran::rlc_mode::um_bidir;
+    cnfg.mode                  = ocudu::rlc_mode::um_bidir;
     cnfg.um.rx.sn_field_length = rlc_um_sn_size::size6bits;
     cnfg.um.tx.sn_field_length = rlc_um_sn_size::size6bits;
   } else if (args.mode == "UM12") {
-    cnfg.mode                  = srsran::rlc_mode::um_bidir;
+    cnfg.mode                  = ocudu::rlc_mode::um_bidir;
     cnfg.um.rx.sn_field_length = rlc_um_sn_size::size12bits;
     cnfg.um.tx.sn_field_length = rlc_um_sn_size::size12bits;
   } else if (args.mode == "AM12") {
-    cnfg.mode                    = srsran::rlc_mode::am;
+    cnfg.mode                    = ocudu::rlc_mode::am;
     cnfg.am.rx.sn_field_length   = rlc_am_sn_size::size12bits;
     cnfg.am.tx.sn_field_length   = rlc_am_sn_size::size12bits;
     cnfg.am.tx.t_poll_retx       = 50;
@@ -326,7 +326,7 @@ inline rlc_config get_rlc_config_from_args(const stress_test_args& args)
     cnfg.am.rx.t_reassembly      = 40;
     cnfg.am.rx.t_status_prohibit = 8;
   } else if (args.mode == "AM18") {
-    cnfg.mode                    = srsran::rlc_mode::am;
+    cnfg.mode                    = ocudu::rlc_mode::am;
     cnfg.am.rx.sn_field_length   = rlc_am_sn_size::size18bits;
     cnfg.am.tx.sn_field_length   = rlc_am_sn_size::size18bits;
     cnfg.am.tx.t_poll_retx       = 50;
@@ -344,41 +344,41 @@ inline rlc_config get_rlc_config_from_args(const stress_test_args& args)
 
 inline void init_log_from_args(const stress_test_args& args)
 {
-  srslog::init();
+  ocudulog::init();
 
-  srslog::sink* log_sink =
-      (args.log_filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(args.log_filename);
+  ocudulog::sink* log_sink =
+      (args.log_filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(args.log_filename);
   if (log_sink == nullptr) {
     return;
   }
-  srslog::log_channel* chan = srslog::create_log_channel("main_channel", *log_sink);
+  ocudulog::log_channel* chan = ocudulog::create_log_channel("main_channel", *log_sink);
   if (chan == nullptr) {
     return;
   }
-  srslog::set_default_sink(*log_sink);
+  ocudulog::set_default_sink(*log_sink);
 
-  auto& log_stack = srslog::fetch_basic_logger("STACK", false);
+  auto& log_stack = ocudulog::fetch_basic_logger("STACK", false);
   log_stack.set_level(args.log_level_stack);
   log_stack.set_hex_dump_max_size(args.log_hex_limit);
 
-  auto& log_traff = srslog::fetch_basic_logger("TRAFF", false);
+  auto& log_traff = ocudulog::fetch_basic_logger("TRAFF", false);
   log_traff.set_level(args.log_level_traff);
   log_traff.set_hex_dump_max_size(args.log_hex_limit);
 
-  auto& log_pdcp = srslog::fetch_basic_logger("PDCP", false);
+  auto& log_pdcp = ocudulog::fetch_basic_logger("PDCP", false);
   log_pdcp.set_level(args.log_level_pdcp);
   log_pdcp.set_hex_dump_max_size(args.log_hex_limit);
 
-  auto& log_f1 = srslog::fetch_basic_logger("F1AP", false);
+  auto& log_f1 = ocudulog::fetch_basic_logger("F1AP", false);
   log_f1.set_level(args.log_level_pdcp);
   log_f1.set_hex_dump_max_size(args.log_hex_limit);
 
-  auto& log_rlc = srslog::fetch_basic_logger("RLC", false);
+  auto& log_rlc = ocudulog::fetch_basic_logger("RLC", false);
   log_rlc.set_level(args.log_level_rlc);
   log_rlc.set_hex_dump_max_size(args.log_hex_limit);
 
-  auto& log_mac = srslog::fetch_basic_logger("MAC", false);
+  auto& log_mac = ocudulog::fetch_basic_logger("MAC", false);
   log_mac.set_level(args.log_level_mac);
   log_mac.set_hex_dump_max_size(args.log_hex_limit);
 }
-} // namespace srsran
+} // namespace ocudu

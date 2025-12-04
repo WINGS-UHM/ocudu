@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/support/ocudu_test.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using test_params = std::tuple<unsigned, unsigned>;
 

@@ -11,18 +11,18 @@
 #pragma once
 
 #include "du_low_hal_factory.h"
-#include "srsran/du/du_low/du_low_executor_mapper.h"
-#include "srsran/du/du_low/o_du_low_config.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/du/du_low/du_low_executor_mapper.h"
+#include "ocudu/du/du_low/o_du_low_config.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct du_low_unit_config;
 
 /// O-RAN DU low unit configuration.
 struct o_du_low_unit_config {
   struct du_low_config {
-    srs_du::cell_prach_ports_entry         prach_ports;
+    odu::cell_prach_ports_entry            prach_ports;
     unsigned                               max_puschs_per_slot;
     frequency_range                        freq_range;
     duplex_mode                            duplex;
@@ -44,7 +44,7 @@ struct o_du_low_unit_config {
 struct o_du_low_unit_dependencies {
   upper_phy_rg_gateway&                 rg_gateway;
   upper_phy_rx_symbol_request_notifier& rx_symbol_request_notifier;
-  srs_du::du_low_executor_mapper&       workers;
+  odu::du_low_executor_mapper&          workers;
 };
 
-} // namespace srsran
+} // namespace ocudu

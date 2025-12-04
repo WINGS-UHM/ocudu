@@ -12,13 +12,13 @@
 
 #include "metrics/rrc_du_metrics_aggregator.h"
 #include "ue/rrc_ue_impl.h"
-#include "srsran/rrc/rrc_config.h"
-#include "srsran/rrc/rrc_du.h"
+#include "ocudu/rrc/rrc_config.h"
+#include "ocudu/rrc/rrc_du.h"
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 /// Adapter between RRC UE and RRC DU.
 class rrc_ue_rrc_du_adapter : public rrc_ue_event_notifier
@@ -109,7 +109,7 @@ private:
   const rrc_cfg_t cfg;
 
   // Notifier to the CU-CP.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // RRC UE to RRC DU adapters.
   std::unordered_map<ue_index_t, rrc_ue_rrc_du_adapter> rrc_ue_rrc_du_adapters;
@@ -123,6 +123,6 @@ private:
   rrc_du_metrics_aggregator metrics_aggregator;
 };
 
-} // namespace srs_cu_cp
+} // namespace ocucp
 
-} // namespace srsran
+} // namespace ocudu

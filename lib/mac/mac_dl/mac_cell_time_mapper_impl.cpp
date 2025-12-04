@@ -9,9 +9,9 @@
  */
 
 #include "mac_cell_time_mapper_impl.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 atomic_sfn_time_mapper::atomic_sfn_time_mapper(unsigned numerology_) :
   numerology(numerology_), nof_slots_per_sf(get_nof_slots_per_subframe(to_subcarrier_spacing(numerology_)))
@@ -70,7 +70,7 @@ atomic_sfn_time_mapper::time_point atomic_sfn_time_mapper::load_time(uint64_t pa
 }
 
 mac_cell_time_mapper_impl::mac_cell_time_mapper_impl(unsigned numerology_) :
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   cur_slot_time_mapping(atomic_sfn_time_mapper(numerology_)),
   numerology(numerology_),
   slot_dur(usecs{1000U >> numerology_})
@@ -87,7 +87,7 @@ void mac_cell_time_mapper_impl::handle_slot_indication(const mac_cell_timing_con
 std::optional<mac_cell_slot_time_info> mac_cell_time_mapper_impl::get_last_mapping() const
 {
   const auto& last = cur_slot_time_mapping.load();
-  if (SRSRAN_UNLIKELY(not last.sl_tx.valid())) {
+  if (OCUDU_UNLIKELY(not last.sl_tx.valid())) {
     logger.warning("Slot point to time point mapping not available.");
     return std::nullopt;
   }
@@ -98,7 +98,7 @@ std::optional<mac_cell_slot_time_info> mac_cell_time_mapper_impl::get_last_mappi
 std::optional<mac_cell_time_mapper::time_point> mac_cell_time_mapper_impl::get_time_point(slot_point slot) const
 {
   const auto& last = cur_slot_time_mapping.load();
-  if (SRSRAN_UNLIKELY(not last.sl_tx.valid())) {
+  if (OCUDU_UNLIKELY(not last.sl_tx.valid())) {
     logger.warning("Slot point to time point mapping not available");
     return std::nullopt;
   }
@@ -124,7 +124,7 @@ std::optional<mac_cell_time_mapper::time_point> mac_cell_time_mapper_impl::get_t
 std::optional<slot_point> mac_cell_time_mapper_impl::get_slot_point(time_point time) const
 {
   const auto& last = cur_slot_time_mapping.load();
-  if (SRSRAN_UNLIKELY(not last.sl_tx.valid())) {
+  if (OCUDU_UNLIKELY(not last.sl_tx.valid())) {
     logger.warning("Slot point to time point mapping not available.");
     return std::nullopt;
   }

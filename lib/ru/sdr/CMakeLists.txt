@@ -21,5 +21,5 @@ set(SOURCES
         ru_sdr_executor_mapper.cpp
         ru_sdr_impl.cpp)
 
-add_library(srsran_ru_sdr STATIC ${SOURCES})
-target_link_libraries(srsran_ru_sdr srsran_lower_phy srsran_radio srslog)
+add_library(ocudu_ru_sdr STATIC ${SOURCES})
+target_link_libraries(ocudu_ru_sdr ocudu_lower_phy ocudu_radio ocudulog)

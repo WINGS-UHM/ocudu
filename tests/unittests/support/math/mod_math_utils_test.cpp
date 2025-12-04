@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/math/detail/type_utils.h"
-#include "srsran/support/math/mod_math_utils.h"
+#include "ocudu/support/math/detail/type_utils.h"
+#include "ocudu/support/math/mod_math_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(std::is_same_v<smallest_signed_fit_t<(1 << 7) - 1>, int8_t>, "Incorrect smallest_signed_fit_t");
 static_assert(std::is_same_v<smallest_signed_fit_t<128>, int16_t>, "Incorrect smallest_signed_fit_t");

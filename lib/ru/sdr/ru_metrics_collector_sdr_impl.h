@@ -11,10 +11,10 @@
 #pragma once
 
 #include "lower_phy/lower_phy_sector.h"
-#include "srsran/ru/ru_metrics_collector.h"
+#include "ocudu/ru/ru_metrics_collector.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class ru_radio_metrics_collector;
 
@@ -37,4 +37,4 @@ public:
   void collect_metrics(ru_metrics& metrics) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

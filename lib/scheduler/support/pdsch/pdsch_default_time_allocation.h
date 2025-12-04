@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/dmrs.h"
-#include "srsran/scheduler/config/pxsch_time_domain_resource.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/dmrs.h"
+#include "ocudu/scheduler/config/pxsch_time_domain_resource.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct search_space_configuration;
 struct pdsch_config_common;
@@ -88,4 +88,4 @@ get_ra_rnti_pdsch_time_domain_list(const pdsch_config_common& pdsch_common,
                                    cyclic_prefix              cp,
                                    dmrs_typeA_position        dmrs_typeA_pos);
 
-} // namespace srsran
+} // namespace ocudu

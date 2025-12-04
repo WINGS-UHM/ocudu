@@ -18,15 +18,15 @@
 #include "procedures/bearer_context_modification_procedure.h"
 #include "procedures/bearer_context_release_procedure.h"
 #include "procedures/bearer_context_setup_procedure.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/cause/e1ap_cause.h"
-#include "srsran/ran/cause/e1ap_cause_converters.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/cause/e1ap_cause.h"
+#include "ocudu/ran/cause/e1ap_cause_converters.h"
 #include <variant>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e1ap;
-using namespace srs_cu_cp;
+using namespace ocucp;
 
 // ------ e1ap_cu_cp_impl ------
 
@@ -40,7 +40,7 @@ e1ap_cu_cp_impl::e1ap_cu_cp_impl(const e1ap_configuration&      e1ap_cfg_,
                                  unsigned                       max_nof_supported_ues_) :
   e1ap_cfg(e1ap_cfg_),
   cu_up_index(cu_up_index_),
-  logger(srslog::fetch_basic_logger("CU-CP-E1")),
+  logger(ocudulog::fetch_basic_logger("CU-CP-E1")),
   pdu_notifier(e1ap_message_notifier_with_logging(*this, e1ap_pdu_notifier_)),
   cu_up_processor_notifier(e1ap_cu_up_processor_notifier_),
   cu_cp_notifier(cu_cp_notifier_),

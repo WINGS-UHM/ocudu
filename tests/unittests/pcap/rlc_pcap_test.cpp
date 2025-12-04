@@ -9,30 +9,30 @@
  */
 
 #include "lib/rlc/rlc_am_pdu.h"
-#include "srsran/pcap/rlc_pcap.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/pcap/rlc_pcap.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <gtest/gtest.h>
 #include <list>
 
-using namespace srsran;
+using namespace ocudu;
 
-void write_pcap_nr_thread_function_byte_buffer(srsran::rlc_pcap* pcap, uint32_t num_pdus);
-void write_pcap_nr_thread_function_large_byte_buffer(srsran::rlc_pcap* pcap, uint32_t num_pdus);
-void write_pcap_nr_thread_function_spans(srsran::rlc_pcap* pcap, uint32_t num_pdus);
+void write_pcap_nr_thread_function_byte_buffer(ocudu::rlc_pcap* pcap, uint32_t num_pdus);
+void write_pcap_nr_thread_function_large_byte_buffer(ocudu::rlc_pcap* pcap, uint32_t num_pdus);
+void write_pcap_nr_thread_function_spans(ocudu::rlc_pcap* pcap, uint32_t num_pdus);
 
 class pcap_rlc_test : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("PCAP").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("PCAP").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("PCAP").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("PCAP").set_hex_dump_max_size(-1);
 
-    logger.set_level(srslog::basic_levels::debug);
+    logger.set_level(ocudulog::basic_levels::debug);
     logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
 
     config.sn_field_length = rlc_am_sn_size::size18bits;
   }
@@ -40,7 +40,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   size_t copy_bytes(span<uint8_t> dst, byte_buffer_view src) const
@@ -146,10 +146,10 @@ protected:
     } while (rest.length() > 0);
   }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
-  rlc_rx_am_config      config;
-  task_worker           worker{"pcap_worker", 1024};
-  task_worker_executor  pcap_exec{worker};
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
+  rlc_rx_am_config        config;
+  task_worker             worker{"pcap_worker", 1024};
+  task_worker_executor    pcap_exec{worker};
 };
 
 TEST_F(pcap_rlc_test, write_rlc_am_pdu)
@@ -164,8 +164,8 @@ TEST_F(pcap_rlc_test, write_rlc_am_pdu)
   ASSERT_NO_FATAL_FAILURE(create_pdus(pdu_list, sdu, sn_state, sdu_size, sdu_size, sn_state));
 
   rlc_tx_am_config tx_cfg;
-  tx_cfg.sn_field_length               = config.sn_field_length;
-  srsran::pcap_rlc_pdu_context context = {du_ue_index_t::MIN_DU_UE_INDEX, srb_id_t::srb1, tx_cfg};
+  tx_cfg.sn_field_length              = config.sn_field_length;
+  ocudu::pcap_rlc_pdu_context context = {du_ue_index_t::MIN_DU_UE_INDEX, srb_id_t::srb1, tx_cfg};
 
   pcap_writer->push_pdu(context, pdu_list.front());
 

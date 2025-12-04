@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/gtpu/gtpu_gateway.h"
-#include "srsran/gateways/udp_network_gateway_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/io/io_broker.h"
+#include "ocudu/gtpu/gtpu_gateway.h"
+#include "ocudu/gateways/udp_network_gateway_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/io_broker.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -22,7 +22,7 @@ class udp_ngu_tnl_session final : public gtpu_tnl_pdu_session
 {
   // private ctor.
   udp_ngu_tnl_session(network_gateway_data_notifier_with_src_addr& data_notifier_) :
-    data_notifier(data_notifier_), logger(srslog::fetch_basic_logger("GTPU"))
+    data_notifier(data_notifier_), logger(ocudulog::fetch_basic_logger("GTPU"))
   {
   }
 
@@ -76,7 +76,7 @@ public:
 
 private:
   network_gateway_data_notifier_with_src_addr& data_notifier;
-  srslog::basic_logger&                        logger = srslog::fetch_basic_logger("CU-UP");
+  ocudulog::basic_logger&                      logger = ocudulog::fetch_basic_logger("CU-UP");
 
   std::unique_ptr<udp_network_gateway> udp_gw;
 };
@@ -107,10 +107,10 @@ private:
 
 } // namespace
 
-std::unique_ptr<gtpu_gateway> srsran::create_udp_gtpu_gateway(const udp_network_gateway_config& config,
-                                                              io_broker&                        io_brk,
-                                                              task_executor&                    io_tx_executor,
-                                                              task_executor&                    io_rx_executor)
+std::unique_ptr<gtpu_gateway> ocudu::create_udp_gtpu_gateway(const udp_network_gateway_config& config,
+                                                             io_broker&                        io_brk,
+                                                             task_executor&                    io_tx_executor,
+                                                             task_executor&                    io_rx_executor)
 {
   return std::make_unique<udp_ngu_gateway>(config, io_brk, io_tx_executor, io_rx_executor);
 }
@@ -150,7 +150,7 @@ public:
 
 } // namespace
 
-std::unique_ptr<gtpu_gateway> srsran::create_no_core_gtpu_gateway()
+std::unique_ptr<gtpu_gateway> ocudu::create_no_core_gtpu_gateway()
 {
   return std::make_unique<no_core_ngu_gateway>();
 }

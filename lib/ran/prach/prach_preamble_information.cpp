@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/frame_types.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/frame_types.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-prach_preamble_information srsran::get_prach_preamble_long_info(prach_format_type format)
+prach_preamble_information ocudu::get_prach_preamble_long_info(prach_format_type format)
 {
-  srsran_assert(is_long_preamble(format), "Invalid preamble format. It must be a long preamble.");
+  ocudu_assert(is_long_preamble(format), "Invalid preamble format. It must be a long preamble.");
   switch (format) {
     case prach_format_type::zero:
       return {839U, prach_subcarrier_spacing::kHz1_25, 1, phy_time_unit::from_units_of_kappa(3168), true};
@@ -32,13 +32,13 @@ prach_preamble_information srsran::get_prach_preamble_long_info(prach_format_typ
 }
 
 prach_preamble_information
-srsran::get_prach_preamble_short_info(prach_format_type format, prach_subcarrier_spacing ra_scs, bool last_occasion)
+ocudu::get_prach_preamble_short_info(prach_format_type format, prach_subcarrier_spacing ra_scs, bool last_occasion)
 {
-  srsran_assert(is_short_preamble(format) && is_short_preamble(ra_scs),
-                "The preamble format (i.e., {}) is not short or subcarrier spacing (i.e., {}) is not compatible with "
-                "short preambles.",
-                to_string(format),
-                to_string(ra_scs));
+  ocudu_assert(is_short_preamble(format) && is_short_preamble(ra_scs),
+               "The preamble format (i.e., {}) is not short or subcarrier spacing (i.e., {}) is not compatible with "
+               "short preambles.",
+               to_string(format),
+               to_string(ra_scs));
 
   prach_preamble_information info;
   info.sequence_length         = 139U;
@@ -102,10 +102,10 @@ srsran::get_prach_preamble_short_info(prach_format_type format, prach_subcarrier
   return info;
 }
 
-phy_time_unit srsran::get_prach_window_duration(prach_format_type  format,
-                                                subcarrier_spacing pusch_scs,
-                                                unsigned           start_symbol_index,
-                                                unsigned           nof_td_occasions)
+phy_time_unit ocudu::get_prach_window_duration(prach_format_type  format,
+                                               subcarrier_spacing pusch_scs,
+                                               unsigned           start_symbol_index,
+                                               unsigned           nof_td_occasions)
 {
   // Cyclic prefix extension for short preambles at 0 and 0.5 ms from the start of the subframe.
   static constexpr phy_time_unit sixteen_kappa = phy_time_unit::from_units_of_kappa(16);
@@ -156,12 +156,12 @@ phy_time_unit srsran::get_prach_window_duration(prach_format_type  format,
   return t_end;
 }
 
-prach_symbols_slots_duration srsran::get_prach_duration_info(const prach_configuration& prach_cfg,
-                                                             subcarrier_spacing         pusch_scs)
+prach_symbols_slots_duration ocudu::get_prach_duration_info(const prach_configuration& prach_cfg,
+                                                            subcarrier_spacing         pusch_scs)
 {
-  srsran_assert((pusch_scs == subcarrier_spacing::kHz15) || (pusch_scs == subcarrier_spacing::kHz30) ||
-                    (pusch_scs == subcarrier_spacing::kHz120),
-                "Only SCS 15kHz, 30kHz and 120kHz are supported");
+  ocudu_assert((pusch_scs == subcarrier_spacing::kHz15) || (pusch_scs == subcarrier_spacing::kHz30) ||
+                   (pusch_scs == subcarrier_spacing::kHz120),
+               "Only SCS 15kHz, 30kHz and 120kHz are supported");
 
   prach_symbols_slots_duration output{};
 

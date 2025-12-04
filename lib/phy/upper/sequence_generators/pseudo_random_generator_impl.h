@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 #include <cstdint>
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// SSE-optimized implementation of the pseudo-random generator.
 class pseudo_random_generator_impl : public pseudo_random_generator
@@ -59,4 +59,4 @@ public:
   // See interface for the documentation.
   void generate(span<float> buffer, float value) override;
 };
-} // namespace srsran
+} // namespace ocudu

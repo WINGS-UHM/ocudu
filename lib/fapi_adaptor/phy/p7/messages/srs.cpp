@@ -10,15 +10,15 @@
 
 #include "srs.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_srs_fapi_to_phy(uplink_pdu_slot_repository::srs_pdu& pdu,
-                                                   const fapi::ul_srs_pdu&              fapi_pdu,
-                                                   unsigned                             sector_id,
-                                                   unsigned                             nof_rx_antennas,
-                                                   uint16_t                             sfn,
-                                                   uint16_t                             slot)
+void ocudu::fapi_adaptor::convert_srs_fapi_to_phy(uplink_pdu_slot_repository::srs_pdu& pdu,
+                                                  const fapi::ul_srs_pdu&              fapi_pdu,
+                                                  unsigned                             sector_id,
+                                                  unsigned                             nof_rx_antennas,
+                                                  uint16_t                             sfn,
+                                                  uint16_t                             slot)
 {
   // Fill main context fields.
   ul_srs_context& context = pdu.context;

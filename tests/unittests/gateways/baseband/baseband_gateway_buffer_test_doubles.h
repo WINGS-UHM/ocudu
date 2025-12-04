@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Read-only baseband buffer.
 ///
@@ -72,7 +72,7 @@ public:
   {
     for (unsigned channel = 0; channel != nof_channels; ++channel) {
       span<ci16_t> buffer = span<ci16_t>(data).subspan(nof_samples * channel, nof_samples);
-      srsvec::copy(buffer, other[channel]);
+      ocuduvec::copy(buffer, other[channel]);
     }
   }
 
@@ -98,4 +98,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -14,17 +14,17 @@
 #include "apps/units/flexible_o_du/split_7_2/helpers/ru_ofh_config_cli11_schema.h"
 #include "split_7_2_o_du_unit_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::configure_cli11_with_split_7_2_o_du_unit_config_schema(CLI::App&                   app,
-                                                                    split_7_2_o_du_unit_config& parsed_cfg)
+void ocudu::configure_cli11_with_split_7_2_o_du_unit_config_schema(CLI::App&                   app,
+                                                                   split_7_2_o_du_unit_config& parsed_cfg)
 {
   configure_cli11_with_o_du_high_config_schema(app, parsed_cfg.odu_high_cfg);
   configure_cli11_with_du_low_config_schema(app, parsed_cfg.du_low_cfg);
   configure_cli11_with_ru_ofh_config_schema(app, parsed_cfg.ru_cfg);
 }
 
-void srsran::autoderive_split_7_2_o_du_parameters_after_parsing(CLI::App& app, split_7_2_o_du_unit_config& parsed_cfg)
+void ocudu::autoderive_split_7_2_o_du_parameters_after_parsing(CLI::App& app, split_7_2_o_du_unit_config& parsed_cfg)
 {
   autoderive_o_du_high_parameters_after_parsing(app, parsed_cfg.odu_high_cfg);
   // Auto derive OFH parameters.

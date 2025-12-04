@@ -12,10 +12,10 @@
 
 #include "../pucch_scheduling/pucch_allocator.h"
 #include "../uci_scheduling/uci_allocator.h"
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/scheduler/scheduler_positioning_handler.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_positioning_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdcch_resource_allocator;
 struct cell_resource_allocator;
@@ -111,4 +111,4 @@ private:
   virtual void do_rem_cell(du_cell_index_t cell_index) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

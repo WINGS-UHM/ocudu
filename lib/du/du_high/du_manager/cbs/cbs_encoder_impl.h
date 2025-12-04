@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_manager/cbs/cbs_encoder.h"
+#include "ocudu/du/du_high/du_manager/cbs/cbs_encoder.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief GSM-7 and UCS-2 encoder for CBS messages.
 ///
@@ -76,4 +76,4 @@ std::unique_ptr<cbs_encoder> create_cbs_encoder()
   return std::make_unique<cbs_encoder_impl>();
 }
 
-} // namespace srsran
+} // namespace ocudu

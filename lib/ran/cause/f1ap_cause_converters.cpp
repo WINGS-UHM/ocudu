@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/cause/f1ap_cause_converters.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ran/cause/f1ap_cause_converters.h"
+#include "ocudu/support/error_handling.h"
 #include <variant>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr uint8_t f1ap_to_ngap_cause_radio_network[] = {
     (uint8_t)ngap_cause_radio_network_t::unspecified,                 // unspecified
@@ -73,7 +73,7 @@ static constexpr uint8_t f1ap_to_ngap_cause_misc[] = {
     (uint8_t)ngap_cause_misc_t::unspecified                           // unspecified
 };
 
-ngap_cause_t srsran::f1ap_to_ngap_cause(f1ap_cause_t f1ap_cause)
+ngap_cause_t ocudu::f1ap_to_ngap_cause(f1ap_cause_t f1ap_cause)
 {
   ngap_cause_t ngap_cause;
 
@@ -109,7 +109,7 @@ static constexpr uint8_t f1ap_to_nrppa_cause_protocol[] = {
     (uint8_t)nrppa_cause_protocol_t::unspecified,      // unspecified
 };
 
-nrppa_cause_t srsran::f1ap_to_nrppa_cause(f1ap_cause_t f1ap_cause)
+nrppa_cause_t ocudu::f1ap_to_nrppa_cause(f1ap_cause_t f1ap_cause)
 {
   nrppa_cause_t nrppa_cause;
 

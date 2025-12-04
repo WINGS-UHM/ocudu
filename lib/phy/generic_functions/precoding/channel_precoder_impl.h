@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/precoding/channel_precoder.h"
+#include "ocudu/phy/generic_functions/precoding/channel_precoder.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Channel precoder implementation.
 class channel_precoder_impl : public channel_precoder
@@ -40,4 +40,4 @@ protected:
                                     span<const cf_t>          port_weights) const = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

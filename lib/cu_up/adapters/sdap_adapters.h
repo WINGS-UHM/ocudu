@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/gtpu/gtpu_tunnel_ngu_tx.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/sdap/sdap.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_tx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/sdap/sdap.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// Adapter between SDAP and GTP-U
 class sdap_gtpu_adapter : public sdap_rx_sdu_notifier
@@ -28,7 +28,7 @@ public:
 
   void on_new_sdu(byte_buffer sdu, qos_flow_id_t qfi) override
   {
-    srsran_assert(gtpu_handler != nullptr, "GTPU handler must not be nullptr");
+    ocudu_assert(gtpu_handler != nullptr, "GTPU handler must not be nullptr");
     gtpu_handler->handle_sdu(std::move(sdu), qfi);
   }
 
@@ -48,7 +48,7 @@ public:
   void on_new_pdu(byte_buffer pdu) override
   {
     if (pdcp_handler == nullptr) {
-      srslog::fetch_basic_logger("SDAP").warning("Unconnected PDCP handler. Dropping SDAP PDU");
+      ocudulog::fetch_basic_logger("SDAP").warning("Unconnected PDCP handler. Dropping SDAP PDU");
     } else {
       pdcp_handler->handle_sdu(std::move(pdu));
     }
@@ -58,5 +58,5 @@ private:
   pdcp_tx_upper_data_interface* pdcp_handler = nullptr;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

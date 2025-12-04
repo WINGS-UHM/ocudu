@@ -12,8 +12,8 @@
 
 #include "du_bearer.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Bearer container for a UE object in the DU manager.
 class du_ue_bearer_manager
@@ -38,5 +38,5 @@ private:
   std::map<drb_id_t, std::unique_ptr<du_ue_drb>>      drbs_;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/channel_processors/ssb/formatters.h"
-#include "srsran/phy/upper/channel_processors/ssb/ssb_processor.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/channel_processors/ssb/formatters.h"
+#include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class logging_ssb_processor_decorator : public ssb_processor
 {
@@ -32,10 +32,10 @@ class logging_ssb_processor_decorator : public ssb_processor
   }
 
 public:
-  logging_ssb_processor_decorator(srslog::basic_logger& logger_, std::unique_ptr<ssb_processor> processor_) :
+  logging_ssb_processor_decorator(ocudulog::basic_logger& logger_, std::unique_ptr<ssb_processor> processor_) :
     logger(logger_), processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid processor.");
+    ocudu_assert(processor, "Invalid processor.");
   }
 
   void process(resource_grid_writer& grid, const pdu_t& pdu) override
@@ -45,8 +45,8 @@ public:
     std::chrono::nanoseconds time_ns = time_execution(func);
 
     static_bit_buffer<MIB_PAYLOAD_SIZE> data(pdu.mib_payload.size());
-    srsvec::zero(data.get_buffer());
-    srsvec::bit_pack(data, pdu.mib_payload);
+    ocuduvec::zero(data.get_buffer());
+    ocuduvec::bit_pack(data, pdu.mib_payload);
 
     if (logger.debug.enabled()) {
       // Detailed log information, including a list of all SSB PDU fields.
@@ -73,8 +73,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
   std::unique_ptr<ssb_processor> processor;
 };
 
-} // namespace srsran
+} // namespace ocudu

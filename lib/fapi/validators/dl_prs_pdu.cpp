@@ -10,9 +10,9 @@
 
 #include "dl_prs_pdu.h"
 #include "field_checkers.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks a DL_TTI.request message.
@@ -120,7 +120,7 @@ static bool validate_power_offset(float value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, power, "PRS power offset", msg_type, pdu_type, report);
 }
 
-bool srsran::fapi::validate_dl_prs_pdu(const dl_prs_pdu& pdu, validator_report& report)
+bool ocudu::fapi::validate_dl_prs_pdu(const dl_prs_pdu& pdu, validator_report& report)
 {
   bool result = true;
 

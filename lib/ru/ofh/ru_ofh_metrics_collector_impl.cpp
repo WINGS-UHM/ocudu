@@ -9,9 +9,9 @@
  */
 
 #include "ru_ofh_metrics_collector_impl.h"
-#include "srsran/ru/ru_metrics.h"
+#include "ocudu/ru/ru_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_ofh_metrics_collector_impl::collect_metrics(ru_metrics& metrics)
 {

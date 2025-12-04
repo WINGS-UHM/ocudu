@@ -9,14 +9,14 @@
  */
 
 #include "ofdm_modulator_impl.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ofdm_symbol_modulator_impl::ofdm_symbol_modulator_impl(const ofdm_modulator_configuration& ofdm_config,
                                                        ofdm_modulator_dependencies         dependencies) :
@@ -35,12 +35,12 @@ ofdm_symbol_modulator_impl::ofdm_symbol_modulator_impl(const ofdm_modulator_conf
   current_center_freq_Hz(ofdm_config.center_freq_Hz),
   next_center_freq_Hz(ofdm_config.center_freq_Hz)
 {
-  srsran_assert(std::isnormal(scale), "Invalid scaling factor {}", scale);
-  srsran_assert(
+  ocudu_assert(std::isnormal(scale), "Invalid scaling factor {}", scale);
+  ocudu_assert(
       dft_size > rg_size, "The DFT size ({}) must be greater than the resource grid size ({})", dft_size, rg_size);
 
   // Fill DFT input with zeros.
-  srsvec::zero(dft->get_input());
+  ocuduvec::zero(dft->get_input());
 }
 
 void ofdm_symbol_modulator_impl::modulate(span<cf_t>                  output,
@@ -62,18 +62,18 @@ void ofdm_symbol_modulator_impl::modulate(span<cf_t>                  output,
   unsigned cp_len = cp.get_length(symbol_index, scs).to_samples(sampling_rate_Hz);
 
   // Make sure output buffer matches the symbol size.
-  srsran_assert(output.size() == (cp_len + dft_size),
-                "The output buffer size ({}) does not match the symbol index {} size ({}+{}={}). SCS={}kHz.",
-                output.size(),
-                symbol_index,
-                cp_len,
-                dft_size,
-                cp_len + dft_size,
-                scs_to_khz(scs));
+  ocudu_assert(output.size() == (cp_len + dft_size),
+               "The output buffer size ({}) does not match the symbol index {} size ({}+{}={}). SCS={}kHz.",
+               output.size(),
+               symbol_index,
+               cp_len,
+               dft_size,
+               cp_len + dft_size,
+               scs_to_khz(scs));
 
   // Skip modulator if the grid is empty for the given port.
   if (grid.is_empty(port_index)) {
-    srsvec::zero(output);
+    ocuduvec::zero(output);
     return;
   }
 
@@ -90,10 +90,10 @@ void ofdm_symbol_modulator_impl::modulate(span<cf_t>                  output,
   cf_t phase_compensation = phase_compensation_table.get_coefficient(symbol_index);
 
   // Apply scaling and phase compensation.
-  srsvec::sc_prod(output.last(dft_size), dft_output, phase_compensation * scale);
+  ocuduvec::sc_prod(output.last(dft_size), dft_output, phase_compensation * scale);
 
   // Copy cyclic prefix.
-  srsvec::copy(output.first(cp_len), output.last(cp_len));
+  ocuduvec::copy(output.first(cp_len), output.last(cp_len));
 }
 
 unsigned ofdm_slot_modulator_impl::get_slot_size(unsigned slot_index) const
@@ -117,10 +117,10 @@ void ofdm_slot_modulator_impl::modulate(span<cf_t>                  output,
   unsigned nsymb = get_nsymb_per_slot(cp);
 
   unsigned nslots_per_subframe = get_nof_slots_per_subframe(to_subcarrier_spacing(numerology));
-  srsran_assert(slot_index < nslots_per_subframe,
-                "Slot index within the subframe {} exceeds the number of slots per subframe {}.",
-                slot_index,
-                nslots_per_subframe);
+  ocudu_assert(slot_index < nslots_per_subframe,
+               "Slot index within the subframe {} exceeds the number of slots per subframe {}.",
+               slot_index,
+               nslots_per_subframe);
 
   // For each symbol in the slot.
   for (unsigned symbol_idx = 0; symbol_idx != nsymb; ++symbol_idx) {

@@ -11,9 +11,9 @@
 #pragma once
 
 #include "ofh_data_flow_uplane_decoding_metrics_collector.h"
-#include "srsran/ofh/receiver/ofh_receiver_metrics.h"
+#include "ocudu/ofh/receiver/ofh_receiver_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul message receiver metrics collector.
@@ -80,4 +80,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

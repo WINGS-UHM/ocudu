@@ -12,10 +12,10 @@
 
 #include "config_object_pool.h"
 #include "logical_channel_list_config.h"
-#include "srsran/scheduler/config/logical_channel_config.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/logical_channel_config.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 class logical_channel_config_pool
 {
@@ -51,4 +51,4 @@ private:
   config_object_pool<logical_channel_config_list> lc_ch_list_pool;
 };
 
-} // namespace srsran
+} // namespace ocudu

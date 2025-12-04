@@ -6,4 +6,4 @@
 # the distribution.
 #
 
-add_library(srsran_phy_metrics STATIC phy_metrics_factories.cpp)
+add_library(ocudu_phy_metrics STATIC phy_metrics_factories.cpp)

@@ -1,4 +1,4 @@
-# srsRAN Project Multi-Container Solution
+# OCUDU Project Multi-Container Solution
 
 This folder contains multiple docker compose configurations for different deployment scenarios:
 
@@ -52,7 +52,7 @@ docker compose -f docker/docker-compose.ui.yml up
 
 ### Extra Start Options
 
-- To force a new build of the containers (including a new build of srsRAN gNB), please add a `--build` flag at the end of the previous command.
+- To force a new build of the containers (including a new build of OCUDU gNB), please add a `--build` flag at the end of the previous command.
 - To run it in background, please add a `-d` flag at the end of the previous command.
 - For more options, check `docker compose up --help`
 
@@ -110,7 +110,7 @@ export GNB_CONFIG_PATH=configs/gnb_custom.yml
 docker compose -f docker-compose.yml -f docker-compose.ui.yml up
 ```
 
-- Network: If you are using an existing core-network on same machine, then you can comment the `5gc` service section and also link your srsran container to some existing AMF N2/N3 subnet, doing something like this:
+- Network: If you are using an existing core-network on same machine, then you can comment the `5gc` service section and also link your ocudu container to some existing AMF N2/N3 subnet, doing something like this:
 
 ```yml
   gnb: ...

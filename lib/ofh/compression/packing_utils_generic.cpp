@@ -10,10 +10,10 @@
 
 #include "packing_utils_generic.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
-void srsran::ofh::pack_bytes(bit_buffer& buffer, span<const int16_t> compressed_iq, unsigned iq_width)
+void ocudu::ofh::pack_bytes(bit_buffer& buffer, span<const int16_t> compressed_iq, unsigned iq_width)
 {
   static constexpr unsigned NUM_BITS_IN_BYTE = units::bytes(1).to_bits().value();
 
@@ -41,7 +41,7 @@ void srsran::ofh::pack_bytes(bit_buffer& buffer, span<const int16_t> compressed_
   }
 }
 
-int16_t srsran::ofh::unpack_bits(const bit_buffer_reader& buffer, unsigned offset, unsigned length)
+int16_t ocudu::ofh::unpack_bits(const bit_buffer_reader& buffer, unsigned offset, unsigned length)
 {
   static constexpr unsigned NUM_BITS_IN_BYTE = units::bytes(1).to_bits().value();
 

@@ -9,15 +9,15 @@
  */
 
 #include "ciphering_engine_nea3.h"
-#include "srsran/security/ciphering.h"
+#include "ocudu/security/ciphering.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace security;
 
 ciphering_engine_nea3::ciphering_engine_nea3(sec_128_key        k_128_enc_,
                                              uint8_t            bearer_id_,
                                              security_direction direction_) :
-  k_128_enc(k_128_enc_), bearer_id(bearer_id_), direction(direction_), logger(srslog::fetch_basic_logger("SEC"))
+  k_128_enc(k_128_enc_), bearer_id(bearer_id_), direction(direction_), logger(ocudulog::fetch_basic_logger("SEC"))
 {
 }
 

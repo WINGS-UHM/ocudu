@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/logical_channel/lcid.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/support/format/format_utils.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/logical_channel/lcid.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/support/format/format_utils.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 struct ue_event_prefix {
   const char*     direction;
@@ -74,26 +74,26 @@ struct ue_event_prefix {
   }
 };
 
-inline void log_proc_started(srslog::basic_logger& logger, ue_index_t ue_index, rnti_t rnti, const char* proc_name)
+inline void log_proc_started(ocudulog::basic_logger& logger, ue_index_t ue_index, rnti_t rnti, const char* proc_name)
 {
   logger.info("{}: \"{}\" started.", ue_event_prefix{"CTRL", ue_index, rnti}, proc_name);
 }
 
-inline void log_proc_started(srslog::basic_logger& logger, ue_index_t ue_index, const char* proc_name)
+inline void log_proc_started(ocudulog::basic_logger& logger, ue_index_t ue_index, const char* proc_name)
 {
   logger.info("{}: \"{}\" started.", ue_event_prefix{"CTRL", ue_index}, proc_name);
 }
 
-inline void log_proc_completed(srslog::basic_logger& logger, ue_index_t ue_index, rnti_t rnti, const char* proc_name)
+inline void log_proc_completed(ocudulog::basic_logger& logger, ue_index_t ue_index, rnti_t rnti, const char* proc_name)
 {
   logger.info("{}: \"{}\" completed.", ue_event_prefix{"CTRL", ue_index, rnti}, proc_name);
 }
 
 template <typename... Args>
-void log_proc_failure(srslog::basic_logger& logger,
-                      ue_index_t            ue_index,
-                      const char*           proc_name,
-                      const char*           cause_fmt = "",
+void log_proc_failure(ocudulog::basic_logger& logger,
+                      ue_index_t              ue_index,
+                      const char*             proc_name,
+                      const char*             cause_fmt = "",
                       Args&&... args)
 {
   fmt::memory_buffer fmtbuf;
@@ -105,11 +105,11 @@ void log_proc_failure(srslog::basic_logger& logger,
 }
 
 template <typename... Args>
-void log_proc_failure(srslog::basic_logger& logger,
-                      ue_index_t            ue_index,
-                      rnti_t                rnti,
-                      const char*           proc_name,
-                      const char*           cause_fmt = "",
+void log_proc_failure(ocudulog::basic_logger& logger,
+                      ue_index_t              ue_index,
+                      rnti_t                  rnti,
+                      const char*             proc_name,
+                      const char*             cause_fmt = "",
                       Args&&... args)
 {
   fmt::memory_buffer fmtbuf;
@@ -121,10 +121,10 @@ void log_proc_failure(srslog::basic_logger& logger,
 }
 
 template <typename... Args>
-void log_proc_event(srslog::basic_logger& logger,
-                    ue_index_t            ue_index,
-                    const char*           proc_name,
-                    const char*           cause_fmt,
+void log_proc_event(ocudulog::basic_logger& logger,
+                    ue_index_t              ue_index,
+                    const char*             proc_name,
+                    const char*             cause_fmt,
                     Args&&... args)
 {
   fmt::memory_buffer fmtbuf;
@@ -133,7 +133,10 @@ void log_proc_event(srslog::basic_logger& logger,
 }
 
 template <typename... Args>
-void log_ue_event(srslog::basic_logger& logger, const ue_event_prefix& ue_prefix, const char* cause_fmt, Args&&... args)
+void log_ue_event(ocudulog::basic_logger& logger,
+                  const ue_event_prefix&  ue_prefix,
+                  const char*             cause_fmt,
+                  Args&&... args)
 {
   if (not logger.info.enabled()) {
     return;
@@ -144,7 +147,7 @@ void log_ue_event(srslog::basic_logger& logger, const ue_event_prefix& ue_prefix
 }
 
 template <typename... Args>
-void log_ue_proc_event(srslog::log_channel&   log_ch,
+void log_ue_proc_event(ocudulog::log_channel& log_ch,
                        const ue_event_prefix& ue_prefix,
                        const char*            proc_name,
                        const char*            cause_fmt,
@@ -160,32 +163,32 @@ void log_ue_proc_event(srslog::log_channel&   log_ch,
 }
 
 template <typename... Args>
-void log_ul_pdu(srslog::basic_logger& logger,
-                ue_index_t            ue_index,
-                rnti_t                rnti,
-                du_cell_index_t       cell_index,
-                const char*           ch,
-                const char*           cause_fmt,
+void log_ul_pdu(ocudulog::basic_logger& logger,
+                ue_index_t              ue_index,
+                rnti_t                  rnti,
+                du_cell_index_t         cell_index,
+                const char*             ch,
+                const char*             cause_fmt,
                 Args&&... args)
 {
   log_ue_event(logger, ue_event_prefix{"UL", ue_index, rnti, cell_index, ch}, cause_fmt, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-void log_ul_pdu(srslog::basic_logger& logger, rnti_t rnti, du_cell_index_t cc, const char* cause_fmt, Args&&... args)
+void log_ul_pdu(ocudulog::basic_logger& logger, rnti_t rnti, du_cell_index_t cc, const char* cause_fmt, Args&&... args)
 {
   log_ue_event(logger, ue_event_prefix{"UL", ue_index_t::invalid, rnti, cc}, cause_fmt, std::forward<Args>(args)...);
 }
 
-} // namespace srs_cu_cp
+} // namespace ocucp
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 /// FMT formatter of slot_point type.
 template <>
-struct formatter<srsran::srs_cu_cp::ue_event_prefix> {
+struct formatter<ocudu::ocucp::ue_event_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -193,21 +196,21 @@ struct formatter<srsran::srs_cu_cp::ue_event_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::srs_cu_cp::ue_event_prefix& ue_prefix, FormatContext& ctx) const
+  auto format(const ocudu::ocucp::ue_event_prefix& ue_prefix, FormatContext& ctx) const
   {
-    using namespace srsran;
+    using namespace ocudu;
     auto ret = format_to(ctx.out(), "{:<4}", ue_prefix.direction);
-    if (ue_prefix.ue_index != srsran::srs_cu_cp::ue_index_t::invalid) {
+    if (ue_prefix.ue_index != ocudu::ocucp::ue_index_t::invalid) {
       ret = format_to(ctx.out(), " ueId={}", ue_prefix.ue_index);
     } else {
       ret = format_to(ctx.out(), "{: <7}", "");
     }
-    if (ue_prefix.rnti != srsran::rnti_t::INVALID_RNTI) {
+    if (ue_prefix.rnti != ocudu::rnti_t::INVALID_RNTI) {
       ret = format_to(ctx.out(), " {}", ue_prefix.rnti);
     } else {
       ret = format_to(ctx.out(), " {: <6}", "");
     }
-    if (ue_prefix.cell_index != srsran::srs_cu_cp::du_cell_index_t::invalid) {
+    if (ue_prefix.cell_index != ocudu::ocucp::du_cell_index_t::invalid) {
       ret = format_to(ctx.out(), " cell={}", ue_prefix.cell_index);
     }
     if (ue_prefix.channel != nullptr) {

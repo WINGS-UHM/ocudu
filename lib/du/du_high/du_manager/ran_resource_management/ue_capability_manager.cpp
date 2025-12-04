@@ -9,19 +9,18 @@
  */
 
 #include "ue_capability_manager.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-expected<ue_capability_summary, std::string>
-srsran::srs_du::decode_ue_nr_cap_container(const byte_buffer& ue_cap_container)
+expected<ue_capability_summary, std::string> ocudu::odu::decode_ue_nr_cap_container(const byte_buffer& ue_cap_container)
 {
   asn1::rrc_nr::ue_nr_cap_s ue_cap;
   {
     asn1::cbit_ref bref{ue_cap_container};
-    if (ue_cap.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (ue_cap.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       return make_unexpected(std::string("Couldn't unpack UE NR Capability RRC container"));
     }
   }
@@ -62,25 +61,25 @@ srsran::srs_du::decode_ue_nr_cap_container(const byte_buffer& ue_cap_container)
   return ue_caps;
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-void srsran::srs_du::decode_advanced_ue_nr_caps(ue_capability_summary&           ue_capability,
-                                                const asn1::rrc_nr::ue_nr_cap_s& ue_caps)
+void ocudu::odu::decode_advanced_ue_nr_caps(ue_capability_summary&           ue_capability,
+                                            const asn1::rrc_nr::ue_nr_cap_s& ue_caps)
 {
   // Advanced UE capabilities is not implemented.
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
-#ifndef SRSRAN_HAS_ENTERPRISE_NTN
+#ifndef OCUDU_HAS_ENTERPRISE_NTN
 
-void srsran::srs_du::decode_advanced_ue_nr_ntn_caps(ue_capability_summary&           ue_capability,
-                                                    const asn1::rrc_nr::ue_nr_cap_s& ue_cap)
+void ocudu::odu::decode_advanced_ue_nr_ntn_caps(ue_capability_summary&           ue_capability,
+                                                const asn1::rrc_nr::ue_nr_cap_s& ue_cap)
 {
   // Advanced NTN UE capabilities is not implemented.
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE_NTN
+#endif // OCUDU_HAS_ENTERPRISE_NTN
 
 // Configure dedicated UE configuration to set MCS ant CQI tables.
 static void set_pdsch_mcs_table(serving_cell_config& cell_cfg, pdsch_mcs_table mcs_table)
@@ -130,8 +129,8 @@ static void set_ul_mimo(serving_cell_config&      cell_cfg,
                         tx_scheme_codebook_subset codebook_subset)
 {
   // Skip if the UL configuration is not present.
-  if (SRSRAN_UNLIKELY(!cell_cfg.ul_config.has_value() || !cell_cfg.ul_config->init_ul_bwp.pusch_cfg ||
-                      !cell_cfg.ul_config->init_ul_bwp.srs_cfg)) {
+  if (OCUDU_UNLIKELY(!cell_cfg.ul_config.has_value() || !cell_cfg.ul_config->init_ul_bwp.pusch_cfg ||
+                     !cell_cfg.ul_config->init_ul_bwp.srs_cfg)) {
     return;
   }
 
@@ -198,7 +197,7 @@ static void set_ul_harq_mode_b(serving_cell_config& cell_cfg, bool harq_mode_b_s
 
 ue_capability_manager::ue_capability_manager(span<const du_cell_config> cell_cfg_list_,
                                              du_drx_resource_manager&   drx_mng_,
-                                             srslog::basic_logger&      logger_,
+                                             ocudulog::basic_logger&    logger_,
                                              const du_test_mode_config& test_mode_) :
   base_cell_cfg_list(cell_cfg_list_), drx_res_mng(drx_mng_), logger(logger_), test_cfg(test_mode_)
 {
@@ -296,7 +295,7 @@ bool ue_capability_manager::decode_ue_capability_list(const byte_buffer& ue_cap_
   ue_cap_rat_container_list_l asn1_cap_list;
   {
     asn1::cbit_ref bref{ue_cap_rat_list};
-    if (asn1::unpack_dyn_seq_of(asn1_cap_list, bref, 0, 8) != asn1::SRSASN_SUCCESS) {
+    if (asn1::unpack_dyn_seq_of(asn1_cap_list, bref, 0, 8) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Couldn't unpack UE Capability RAT Container List RRC container");
       return false;
     }

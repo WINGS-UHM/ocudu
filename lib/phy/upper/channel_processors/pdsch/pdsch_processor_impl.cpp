@@ -11,9 +11,9 @@
 #include "pdsch_processor_impl.h"
 #include "pdsch_processor_helpers.h"
 #include "pdsch_processor_validator_impl.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills \c msg with the error message.
 ///
@@ -34,7 +34,7 @@ void pdsch_processor_impl::process(resource_grid_writer&                        
 {
   // Assert PDU.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdsch_processor_validator_impl().is_valid(pdu)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdsch_processor_validator_impl().is_valid(pdu)), "{}", msg);
 
   // Number of layers from the precoding configuration.
   unsigned nof_layers = pdu.precoding.get_nof_layers();
@@ -112,7 +112,7 @@ const bit_buffer& pdsch_processor_impl::encode(span<const uint8_t> data,
 
   // Pack encoded bits.
   temp_packed_codewords[codeword_id].resize(codeword.size());
-  srsvec::bit_pack(temp_packed_codewords[codeword_id], codeword);
+  ocuduvec::bit_pack(temp_packed_codewords[codeword_id], codeword);
 
   // Return the view of the codeword.
   return temp_packed_codewords[codeword_id];

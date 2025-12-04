@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/support/precoding_configuration.h"
+#include "ocudu/phy/support/precoding_configuration.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Pseudo-random number generator.
 static std::mt19937 rgen;

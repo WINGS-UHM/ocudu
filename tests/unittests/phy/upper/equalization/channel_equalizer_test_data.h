@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 31-12-2024 (seed 0):
 //   + "srsChEqualizerUnittest.m"
 
-#include "srsran/adt/complex.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct context_t {
   unsigned    nof_re, nof_layers, nof_rx_ports;
@@ -163,4 +163,4 @@ static const std::vector<test_case_t> channel_equalizer_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

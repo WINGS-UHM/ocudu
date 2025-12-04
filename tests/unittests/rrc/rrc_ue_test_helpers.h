@@ -15,24 +15,24 @@
 #include "lib/rrc/ue/rrc_ue_impl.h"
 #include "rrc_ue_test_messages.h"
 #include "test_helpers.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/rrc/rrc_config.h"
-#include "srsran/rrc/rrc_du.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/rrc/rrc_config.h"
+#include "ocudu/rrc/rrc_du.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 // Free-function to generate dummy security context (used by e.g. Mobility tests)
 static security::security_context generate_security_context(ue_security_manager& sec_mng)
 {
   const char* sk_gnb_cstr = "8d2abb1a4349319ea4276295c33d107a6e274495cb9bc2433fb7d7ca4c3f7646";
 
-  // Pack hex strings into srsgnb types.
+  // Pack hex strings into ocudu types.
   security::sec_key sk_gnb = make_sec_key(sk_gnb_cstr);
 
   // Initialize security context and capabilities.
@@ -135,7 +135,7 @@ protected:
         byte_buffer::create(rrc_ue_f1ap_notifier.last_rrc_pdu.begin(), rrc_ue_f1ap_notifier.last_rrc_pdu.end()).value();
     asn1::cbit_ref              bref(rx_pdu);
     asn1::rrc_nr::dl_ccch_msg_s dl_ccch;
-    EXPECT_EQ(dl_ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+    EXPECT_EQ(dl_ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
     return dl_ccch;
   }
 
@@ -182,7 +182,7 @@ protected:
     // Setup security.
     const char* sk_gnb_cstr = "45cbc3f8a81193fd5c5229300d59edf812e998a115ec4e0ce903ba89367e2628";
 
-    // Pack hex strings into srsgnb types.
+    // Pack hex strings into ocudu types.
     security::sec_key sk_gnb = make_sec_key(sk_gnb_cstr);
 
     // Initialize security context and capabilities.
@@ -435,7 +435,7 @@ protected:
   ue_manager ue_mng{cu_cp_cfg};
 
   std::unique_ptr<rrc_ue_interface> rrc_ue;
-  srslog::basic_logger&             logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&           logger = ocudulog::fetch_basic_logger("TEST", false);
   dummy_ue_task_scheduler           task_sched_handle{timers, ctrl_worker};
 
   // UL-CCCH with RRC setup request message.
@@ -541,5 +541,5 @@ protected:
   std::array<uint8_t, 8> rrc_reest_complete_pdu = {0x0, 0x0, 0x18, 0x00, 0xae, 0x09, 0xf9, 0x1a};
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

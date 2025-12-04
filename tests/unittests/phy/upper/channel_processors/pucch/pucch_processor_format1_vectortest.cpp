@@ -10,17 +10,17 @@
 
 #include "pucch_processor_format1_test_data.h"
 #include "pucch_processor_test_fixture.h"
-#include "srsran/phy/upper/channel_processors/pucch/formatters.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor_result.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_status.h"
-#include "srsran/phy/upper/channel_state_information.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/phy/upper/channel_processors/pucch/formatters.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor_result.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_status.h"
+#include "ocudu/phy/upper/channel_state_information.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include "fmt/format.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using PucchProcessorFormat1Param   = test_case_t;
 using PucchProcessorFormat1Fixture = PucchProcessorTestFixture<PucchProcessorFormat1Param>;
@@ -29,7 +29,7 @@ std::unique_ptr<pucch_processor> PucchProcessorFormat1Fixture::processor = nullp
 template <>
 std::unique_ptr<pucch_pdu_validator> PucchProcessorFormat1Fixture::validator = nullptr;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& tc)
 {
@@ -60,7 +60,7 @@ std::ostream& operator<<(std::ostream& os, span<const uint8_t> data)
   return os << fmt::format("{}", data);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
 #include "crc_calculator_generic_impl.h"
 #include "crc_calculator_lut_impl.h"
 #include "ldpc/ldpc_decoder_generic.h"
@@ -26,7 +26,7 @@
 #include "polar/polar_rate_dematcher_impl.h"
 #include "polar/polar_rate_matcher_impl.h"
 #include "short/short_block_detector_impl.h"
-#include "srsran/support/cpu_features.h"
+#include "ocudu/support/cpu_features.h"
 
 #ifdef __x86_64__
 #include "crc_calculator_clmul_impl.h"
@@ -44,7 +44,7 @@
 #include "ldpc/ldpc_rate_dematcher_neon_impl.h"
 #endif // __ARM_NEON
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -211,7 +211,7 @@ public:
   explicit ldpc_segmenter_tx_factory_sw(std::shared_ptr<crc_calculator_factory> crc_factory_) :
     crc_factory(std::move(crc_factory_))
   {
-    srsran_assert(crc_factory, "Invalid CRC calculator factory.");
+    ocudu_assert(crc_factory, "Invalid CRC calculator factory.");
   }
 
   std::unique_ptr<ldpc_segmenter_tx> create() override
@@ -270,50 +270,50 @@ public:
 } // namespace
 
 std::shared_ptr<ldpc_decoder_factory>
-srsran::create_ldpc_decoder_factory_sw(const std::string&                                              dec_type,
-                                       const ldpc_decoder_factory::ldpc_decoder_factory_configuration& cfg)
+ocudu::create_ldpc_decoder_factory_sw(const std::string&                                              dec_type,
+                                      const ldpc_decoder_factory::ldpc_decoder_factory_configuration& cfg)
 {
   return std::make_unique<ldpc_decoder_factory_sw>(dec_type, cfg);
 }
 
-std::shared_ptr<ldpc_encoder_factory> srsran::create_ldpc_encoder_factory_sw(const std::string& enc_type)
+std::shared_ptr<ldpc_encoder_factory> ocudu::create_ldpc_encoder_factory_sw(const std::string& enc_type)
 {
   return std::make_unique<ldpc_encoder_factory_sw>(enc_type);
 }
 
 std::shared_ptr<ldpc_rate_dematcher_factory>
-srsran::create_ldpc_rate_dematcher_factory_sw(const std::string& dematcher_type)
+ocudu::create_ldpc_rate_dematcher_factory_sw(const std::string& dematcher_type)
 {
   return std::make_shared<ldpc_rate_dematcher_factory_sw>(dematcher_type);
 }
 
-std::shared_ptr<ldpc_rate_matcher_factory> srsran::create_ldpc_rate_matcher_factory_sw()
+std::shared_ptr<ldpc_rate_matcher_factory> ocudu::create_ldpc_rate_matcher_factory_sw()
 {
   return std::make_shared<ldpc_rate_matcher_factory_sw>();
 }
 
 std::shared_ptr<ldpc_segmenter_tx_factory>
-srsran::create_ldpc_segmenter_tx_factory_sw(std::shared_ptr<crc_calculator_factory> crc_factory)
+ocudu::create_ldpc_segmenter_tx_factory_sw(std::shared_ptr<crc_calculator_factory> crc_factory)
 {
   return std::make_shared<ldpc_segmenter_tx_factory_sw>(std::move(crc_factory));
 }
 
-std::shared_ptr<ldpc_segmenter_rx_factory> srsran::create_ldpc_segmenter_rx_factory_sw()
+std::shared_ptr<ldpc_segmenter_rx_factory> ocudu::create_ldpc_segmenter_rx_factory_sw()
 {
   return std::make_shared<ldpc_segmenter_rx_factory_sw>();
 }
 
-std::shared_ptr<crc_calculator_factory> srsran::create_crc_calculator_factory_sw(const std::string& type)
+std::shared_ptr<crc_calculator_factory> ocudu::create_crc_calculator_factory_sw(const std::string& type)
 {
   return std::make_shared<crc_calculator_factory_sw_impl>(type);
 }
 
-std::shared_ptr<polar_factory> srsran::create_polar_factory_sw()
+std::shared_ptr<polar_factory> ocudu::create_polar_factory_sw()
 {
   return std::make_shared<polar_factory_sw>();
 }
 
-std::shared_ptr<short_block_detector_factory> srsran::create_short_block_detector_factory_sw()
+std::shared_ptr<short_block_detector_factory> ocudu::create_short_block_detector_factory_sw()
 {
   return std::make_unique<short_block_detector_factory_sw>();
 }

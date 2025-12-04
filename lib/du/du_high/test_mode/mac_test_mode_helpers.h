@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_test_mode_config.h"
-#include "srsran/mac/mac_cell_control_information_handler.h"
-#include "srsran/mac/mac_pdu_handler.h"
-#include "srsran/scheduler/harq_id.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/du/du_high/du_test_mode_config.h"
+#include "ocudu/mac/mac_cell_control_information_handler.h"
+#include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct pucch_info;
 struct ul_sched_info;
 
-namespace srs_du {
+namespace odu {
 
 /// Create dummy PDU with BSR.
 expected<mac_rx_data_indication>
@@ -40,5 +40,5 @@ mac_uci_pdu create_uci_pdu(const ul_sched_info& pusch, const du_test_mode_config
 /// Check whether a PUCCH grant and MAC UCI PDU match in C-RNTI, format and expected info.
 bool pucch_info_and_uci_ind_match(const pucch_info& pucch, const mac_uci_pdu& uci_ind);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

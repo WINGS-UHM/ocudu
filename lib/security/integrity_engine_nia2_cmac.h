@@ -12,10 +12,10 @@
 
 #include "mbedtls/cipher.h"
 #include "mbedtls/cmac.h" // Nested include of MBEDTLS_CMAC_C from either config.h (v2) or mbedtls_config.h (v3)
-#include "srsran/security/integrity_engine.h"
-#include "srsran/security/security.h"
+#include "ocudu/security/integrity_engine.h"
+#include "ocudu/security/security.h"
 
-namespace srsran {
+namespace ocudu {
 namespace security {
 
 #ifdef MBEDTLS_CMAC_C
@@ -36,7 +36,7 @@ private:
   uint8_t            bearer_id;
   security_direction direction;
 
-  srslog::basic_logger&        logger;
+  ocudulog::basic_logger&      logger;
   const mbedtls_cipher_info_t* cipher_info;
   mbedtls_cipher_context_t     ctx;
 };
@@ -44,4 +44,4 @@ private:
 #endif // MBEDTLS_CMAC_C
 
 } // namespace security
-} // namespace srsran
+} // namespace ocudu

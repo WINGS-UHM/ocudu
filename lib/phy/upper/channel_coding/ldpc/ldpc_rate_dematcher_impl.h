@@ -14,9 +14,9 @@
 #pragma once
 
 #include "ldpc_graph_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_rate_dematcher.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_rate_dematcher.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief LDPC rate dematching implementation.
 ///
@@ -92,4 +92,4 @@ private:
   bool is_new_data = true;
 };
 
-} // namespace srsran
+} // namespace ocudu

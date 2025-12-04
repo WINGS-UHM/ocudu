@@ -11,12 +11,12 @@
 #include "gnb_cu_configuration_update_procedure.h"
 #include "asn1_helpers.h"
 #include "f1ap_asn1_utils.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::f1ap;
 
 /// \brief Convert the GNB CU Configuration Update from common type to ASN.1.
@@ -44,7 +44,7 @@ gnb_cu_configuration_update_procedure::gnb_cu_configuration_update_procedure(
     const f1ap_gnb_cu_configuration_update& request_,
     f1ap_message_notifier&                  f1ap_notif_,
     f1ap_event_manager&                     ev_mng_,
-    srslog::basic_logger&                   logger_) :
+    ocudulog::basic_logger&                 logger_) :
   f1ap_cfg(f1ap_cfg_), request(request_), f1ap_notifier(f1ap_notif_), ev_mng(ev_mng_), logger(logger_)
 {
 }

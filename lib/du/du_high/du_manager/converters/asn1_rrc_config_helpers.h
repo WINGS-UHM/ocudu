@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ran_resource_management/du_ue_resource_config.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 inline asn1::rrc_nr::subcarrier_spacing_e get_asn1_scs(subcarrier_spacing scs)
 {
@@ -69,5 +69,5 @@ void calculate_meas_gap_config_diff(asn1::rrc_nr::meas_gap_cfg_s&         out,
                                     const std::optional<meas_gap_config>& src,
                                     const std::optional<meas_gap_config>& dest);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -11,13 +11,13 @@
 #pragma once
 
 #include "sctp_network_gateway_common_impl.h"
-#include "srsran/gateways/sctp_network_server.h"
+#include "ocudu/gateways/sctp_network_server.h"
 #include <unordered_map>
 
 struct sctp_sndrcvinfo;
 struct sctp_assoc_change;
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements an SCTP server, capable of handling multiple SCTP associations.
 ///
@@ -89,4 +89,4 @@ private:
   association_map associations;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/upper/equalization/dynamic_ch_est_list.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Random generator.
 static std::mt19937 rgen(0);

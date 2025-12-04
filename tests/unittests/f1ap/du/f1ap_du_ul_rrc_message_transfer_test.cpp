@@ -11,12 +11,12 @@
 #include "f1ap_du_test_helpers.h"
 #include "lib/f1ap/du/ue_context/f1c_du_bearer_impl.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 TEST_F(f1ap_du_test, when_sdu_is_received_then_sdu_is_forwarded_to_tx_pdu_notifier_as_ul_rrc_message_transfer)

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ngap/ngap_metrics.h"
-#include "srsran/ran/s_nssai.h"
+#include "ocudu/ngap/ngap_metrics.h"
+#include "ocudu/ran/s_nssai.h"
 #include <cmath>
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 class ngap_metrics_aggregator
 {
@@ -33,4 +33,4 @@ private:
   ngap_metrics aggregated_ngap_metrics;
 };
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

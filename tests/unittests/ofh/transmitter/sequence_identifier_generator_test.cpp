@@ -9,10 +9,10 @@
  */
 
 #include "../../../../lib/ofh/transmitter/sequence_identifier_generator.h"
-#include "srsran/adt/bounded_bitset.h"
+#include "ocudu/adt/bounded_bitset.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 TEST(sequence_identifier_generator, generate_consecutive_sequence_number_for_one_exac)

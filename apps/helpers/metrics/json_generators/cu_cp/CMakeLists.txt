@@ -9,5 +9,5 @@
 set(SOURCES
         cu_cp_json_helper.cpp)
 
-add_library(srsran_cu_cp_metrics_json_generators_helpers STATIC ${SOURCES})
-target_include_directories(srsran_cu_cp_metrics_json_generators_helpers PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/apps/helpers/metrics)
+add_library(ocudu_cu_cp_metrics_json_generators_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_cu_cp_metrics_json_generators_helpers PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/apps/helpers/metrics)

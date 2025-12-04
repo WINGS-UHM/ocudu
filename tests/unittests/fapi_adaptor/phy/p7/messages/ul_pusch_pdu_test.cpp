@@ -10,11 +10,11 @@
 
 #include "message_builder_helpers.h"
 #include "pusch.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittest;
 

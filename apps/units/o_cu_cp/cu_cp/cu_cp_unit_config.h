@@ -13,15 +13,15 @@
 #include "apps/helpers/metrics/metrics_config.h"
 #include "apps/units/o_cu_cp/cu_cp/cu_cp_unit_pcap_config.h"
 #include "cu_cp_unit_logger_config.h"
-#include "srsran/ran/gnb_id.h"
-#include "srsran/ran/nr_band.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/qos/five_qi.h"
-#include "srsran/ran/s_nssai.h"
-#include "srsran/ran/tac.h"
+#include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/nr_band.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/qos/five_qi.h"
+#include "ocudu/ran/s_nssai.h"
+#include "ocudu/ran/tac.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_cp_unit_plmn_item {
   struct tai_slice_t {
@@ -279,7 +279,7 @@ struct cu_cp_unit_metrics_config {
 /// CU-CP application unit configuration.
 struct cu_cp_unit_config {
   /// Node name.
-  std::string ran_node_name = "srscucp01";
+  std::string ran_node_name = "ocucp01";
   /// gNB identifier.
   gnb_id_t gnb_id = {411, 22};
   /// Maximum number of DUs.
@@ -320,4 +320,4 @@ struct cu_cp_unit_config {
   std::vector<s_nssai_t> slice_cfg = {s_nssai_t{slice_service_type{1}}};
 };
 
-} // namespace srsran
+} // namespace ocudu

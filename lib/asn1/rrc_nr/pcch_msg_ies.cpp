@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/pcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/pcch_msg_ies.h"
 using namespace asn1;
 using namespace asn1::rrc_nr;
 
@@ -17,17 +17,17 @@ using namespace asn1::rrc_nr;
  ******************************************************************************/
 
 // PagingRecord-v1700 ::= SEQUENCE
-SRSASN_CODE paging_record_v1700_s::pack(bit_ref& bref) const
+OCUDUASN_CODE paging_record_v1700_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(paging_cause_r17_present, 1));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE paging_record_v1700_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE paging_record_v1700_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(paging_cause_r17_present, 1));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void paging_record_v1700_s::to_json(json_writer& j) const
 {
@@ -131,7 +131,7 @@ void paging_ue_id_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE paging_ue_id_c::pack(bit_ref& bref) const
+OCUDUASN_CODE paging_ue_id_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -143,11 +143,11 @@ SRSASN_CODE paging_ue_id_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "paging_ue_id_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE paging_ue_id_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE paging_ue_id_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -161,9 +161,9 @@ SRSASN_CODE paging_ue_id_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "paging_ue_id_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* paging_ue_id_c::types_opts::to_string() const
@@ -178,23 +178,23 @@ int8_t paging_ue_id_c::types_opts::to_number() const
 }
 
 // PagingRecord ::= SEQUENCE
-SRSASN_CODE paging_record_s::pack(bit_ref& bref) const
+OCUDUASN_CODE paging_record_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(access_type_present, 1));
 
   HANDLE_CODE(ue_id.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE paging_record_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE paging_record_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(access_type_present, 1));
 
   HANDLE_CODE(ue_id.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void paging_record_s::to_json(json_writer& j) const
 {
@@ -208,7 +208,7 @@ void paging_record_s::to_json(json_writer& j) const
 }
 
 // Paging-v1700-IEs ::= SEQUENCE
-SRSASN_CODE paging_v1700_ies_s::pack(bit_ref& bref) const
+OCUDUASN_CODE paging_v1700_ies_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(paging_record_list_v1700.size() > 0, 1));
   HANDLE_CODE(bref.pack(paging_group_list_r17.size() > 0, 1));
@@ -221,9 +221,9 @@ SRSASN_CODE paging_v1700_ies_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, paging_group_list_r17, 1, 32));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE paging_v1700_ies_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE paging_v1700_ies_s::unpack(cbit_ref& bref)
 {
   bool paging_record_list_v1700_present;
   HANDLE_CODE(bref.unpack(paging_record_list_v1700_present, 1));
@@ -238,7 +238,7 @@ SRSASN_CODE paging_v1700_ies_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(paging_group_list_r17, bref, 1, 32));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void paging_v1700_ies_s::to_json(json_writer& j) const
 {
@@ -266,7 +266,7 @@ void paging_v1700_ies_s::to_json(json_writer& j) const
 }
 
 // Paging ::= SEQUENCE
-SRSASN_CODE paging_s::pack(bit_ref& bref) const
+OCUDUASN_CODE paging_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(paging_record_list.size() > 0, 1));
   HANDLE_CODE(bref.pack(late_non_crit_ext.size() > 0, 1));
@@ -282,9 +282,9 @@ SRSASN_CODE paging_s::pack(bit_ref& bref) const
     HANDLE_CODE(non_crit_ext.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE paging_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE paging_s::unpack(cbit_ref& bref)
 {
   bool paging_record_list_present;
   HANDLE_CODE(bref.unpack(paging_record_list_present, 1));
@@ -302,7 +302,7 @@ SRSASN_CODE paging_s::unpack(cbit_ref& bref)
     HANDLE_CODE(non_crit_ext.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void paging_s::to_json(json_writer& j) const
 {

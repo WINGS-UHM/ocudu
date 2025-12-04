@@ -10,11 +10,11 @@
 
 #include "helpers.h"
 #include "ssb.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/ran/ssb/pbch_mib_pack.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/ran/ssb/pbch_mib_pack.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittests;
 
@@ -37,7 +37,7 @@ static uint32_t generate_bch_payload(const dl_ssb_pdu& mac_pdu, uint32_t sfn, bo
 
 TEST(mac_fapi_ssb_pdu_conversor_test, valid_pdu_should_pass)
 {
-  srsran::dl_ssb_pdu pdu = build_valid_dl_ssb_pdu();
+  ocudu::dl_ssb_pdu pdu = build_valid_dl_ssb_pdu();
 
   fapi::dl_ssb_pdu fapi_pdu;
   slot_point       slot(1, 0);

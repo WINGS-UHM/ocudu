@@ -10,20 +10,20 @@
 
 #include "inter_cu_handover_target_routine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 async_task<ngap_handover_resource_allocation_response>
-srsran::srs_cu_cp::start_inter_cu_handover_target_routine(const ngap_handover_request& request,
-                                                          e1ap_bearer_context_manager& e1ap_bearer_ctxt_mng,
-                                                          f1ap_ue_context_manager&     f1ap_ue_ctxt_mng,
-                                                          cu_cp_ue_removal_handler&    ue_removal_handler,
-                                                          ue_manager&                  ue_mng,
-                                                          cell_meas_manager&           cell_meas_mng,
-                                                          const security_indication_t& default_security_indication,
-                                                          srslog::basic_logger&        logger)
+ocudu::ocucp::start_inter_cu_handover_target_routine(const ngap_handover_request& request,
+                                                     e1ap_bearer_context_manager& e1ap_bearer_ctxt_mng,
+                                                     f1ap_ue_context_manager&     f1ap_ue_ctxt_mng,
+                                                     cu_cp_ue_removal_handler&    ue_removal_handler,
+                                                     ue_manager&                  ue_mng,
+                                                     cell_meas_manager&           cell_meas_mng,
+                                                     const security_indication_t& default_security_indication,
+                                                     ocudulog::basic_logger&      logger)
 {
   logger.error("Inter-CU handover target routine failed. Cause: Inter-CU handover not supported");
 
@@ -39,4 +39,4 @@ srsran::srs_cu_cp::start_inter_cu_handover_target_routine(const ngap_handover_re
   return launch_async(std::move(err_function));
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

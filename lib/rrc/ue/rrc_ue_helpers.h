@@ -11,13 +11,13 @@
 #pragma once
 
 #include "rrc_ue_logger.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 // Helper to create PDU from RRC message.
 template <class T>
@@ -26,8 +26,8 @@ byte_buffer pack_into_pdu(const T& msg, const char* context_name = nullptr)
   context_name = context_name == nullptr ? __FUNCTION__ : context_name;
   byte_buffer   pdu{};
   asn1::bit_ref bref{pdu};
-  if (msg.pack(bref) == asn1::SRSASN_ERROR_ENCODE_FAIL) {
-    srslog::fetch_basic_logger("RRC").error("Failed to pack message in {}. Discarding it.", context_name);
+  if (msg.pack(bref) == asn1::OCUDUASN_ERROR_ENCODE_FAIL) {
+    ocudulog::fetch_basic_logger("RRC").error("Failed to pack message in {}. Discarding it.", context_name);
   }
   return pdu;
 }
@@ -43,5 +43,5 @@ void log_rrc_message(rrc_ue_logger&    logger,
                      srb_id_t          srb_id,
                      const char*       msg_type);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

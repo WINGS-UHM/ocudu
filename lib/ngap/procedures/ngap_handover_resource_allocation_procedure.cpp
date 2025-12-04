@@ -10,17 +10,17 @@
 
 #include "ngap_handover_resource_allocation_procedure.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-async_task<void> srsran::srs_cu_cp::start_ngap_handover_resource_allocation(const ngap_handover_request& request,
-                                                                            const amf_ue_id_t            amf_ue_id,
-                                                                            ngap_ue_context_list&        ue_ctxt_list,
-                                                                            ngap_cu_cp_notifier&         cu_cp_notifier,
-                                                                            ngap_message_notifier&       amf_notifier,
-                                                                            srslog::basic_logger&        logger)
+async_task<void> ocudu::ocucp::start_ngap_handover_resource_allocation(const ngap_handover_request& request,
+                                                                       const amf_ue_id_t            amf_ue_id,
+                                                                       ngap_ue_context_list&        ue_ctxt_list,
+                                                                       ngap_cu_cp_notifier&         cu_cp_notifier,
+                                                                       ngap_message_notifier&       amf_notifier,
+                                                                       ocudulog::basic_logger&      logger)
 {
   logger.info("NG Handover resource allocation failed. Cause: NG handover not supported");
   auto err_function = [](coro_context<async_task<void>>& ctx) {
@@ -30,4 +30,4 @@ async_task<void> srsran::srs_cu_cp::start_ngap_handover_resource_allocation(cons
   return launch_async(std::move(err_function));
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

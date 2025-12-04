@@ -9,10 +9,10 @@
  */
 
 #include "fapi_to_mac_data_msg_fastpath_translator.h"
-#include "srsran/fapi/messages/rach_indication.h"
+#include "ocudu/fapi/messages/rach_indication.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {

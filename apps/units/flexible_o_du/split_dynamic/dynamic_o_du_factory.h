@@ -13,7 +13,7 @@
 #include "apps/units/flexible_o_du/split_dynamic/dynamic_o_du_unit_config.h"
 #include "apps/units/flexible_o_du/split_helpers/flexible_o_du_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Dynamic O-RAN DU factory.
 class dynamic_o_du_factory : public flexible_o_du_factory
@@ -28,4 +28,4 @@ private:
                                                 const flexible_o_du_ru_dependencies& ru_dependencies) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

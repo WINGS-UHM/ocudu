@@ -9,17 +9,17 @@
  */
 
 #include "pusch.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_mapper.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
-#include "srsran/ran/sch/sch_constants.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_mapper.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/ran/sch/sch_constants.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu&              fapi_pdu,
-                                                     const ul_sched_info&             mac_pdu,
-                                                     uci_part2_correspondence_mapper& part2_mapper)
+void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu&              fapi_pdu,
+                                                    const ul_sched_info&             mac_pdu,
+                                                    uci_part2_correspondence_mapper& part2_mapper)
 {
   fapi::ul_pusch_pdu_builder builder(fapi_pdu);
 
@@ -67,9 +67,9 @@ static void fill_optional_uci_parameters(fapi::ul_pusch_pdu_builder&      builde
   }
 }
 
-void srsran::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder&      builder,
-                                                     const ul_sched_info&             mac_pdu,
-                                                     uci_part2_correspondence_mapper& part2_mapper)
+void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder&      builder,
+                                                    const ul_sched_info&             mac_pdu,
+                                                    uci_part2_correspondence_mapper& part2_mapper)
 {
   const pusch_information& pusch_pdu = mac_pdu.pusch_cfg;
   // :TODO: check this handle. It will be better to pass it from the translator, as the adaptor doesn't know how many
@@ -123,7 +123,7 @@ void srsran::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder&
   builder.set_allocation_in_time_parameters(pusch_pdu.symbols.start(), pusch_pdu.symbols.length());
 
   // Sending data through PUSCH is optional, but for now, the MAC does not signal this, use the TB size to catch it.
-  srsran_assert(pusch_pdu.tb_size_bytes, "Transport block of null size");
+  ocudu_assert(pusch_pdu.tb_size_bytes, "Transport block of null size");
 
   // Add PUSCH Data.
   builder.add_optional_pusch_data(pusch_pdu.rv_index,

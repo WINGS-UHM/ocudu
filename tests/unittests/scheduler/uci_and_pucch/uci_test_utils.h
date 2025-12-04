@@ -18,12 +18,12 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/pucch/pucch_mapping.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 namespace test_helpers {
 
@@ -209,7 +209,7 @@ inline uplink_config make_test_ue_uplink_config(const config_helpers::cell_confi
   const auto& res_basic_f2 = std::find_if(pucch_cfg.pucch_res_list.begin(),
                                           pucch_cfg.pucch_res_list.end(),
                                           [](const auto& pucch) { return pucch.format == pucch_format::FORMAT_2; });
-  srsran_assert(res_basic_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH F2 resource not found");
+  ocudu_assert(res_basic_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH F2 resource not found");
 
   pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = 2U;
   const auto& res_f2 = std::get<pucch_format_2_3_cfg>(res_basic_f2->format_params);
@@ -341,11 +341,11 @@ public:
   uci_scheduler_impl            uci_sched;
   slot_point                    sl_tx;
   pucch_res_builder_test_helper pucch_builder;
-  srslog::basic_logger&         mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger&         test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&       mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger&       test_logger = ocudulog::fetch_basic_logger("TEST");
 
   // Scheduler creation request message used to create the main UE.
   sched_ue_creation_request_message ue_req_main;
 };
 
-} // namespace srsran
+} // namespace ocudu

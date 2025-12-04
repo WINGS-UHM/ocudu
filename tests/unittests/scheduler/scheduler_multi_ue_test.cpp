@@ -12,16 +12,16 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
 // Change if you want to see logs.
-srslog::basic_levels sched_log_level = srslog::basic_levels::warning;
+ocudulog::basic_levels sched_log_level = ocudulog::basic_levels::warning;
 
 struct multi_ue_test_params {
   unsigned nof_ues            = 1;
@@ -99,7 +99,7 @@ public:
     this->request_metrics_on_next_slot();
     run_slot();
 
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void add_ue(rnti_t rnti)
@@ -178,7 +178,7 @@ public:
 };
 
 template <typename T>
-T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
+T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 {
   T sum = 0;
   for (const auto& u : ues) {
@@ -188,7 +188,7 @@ T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
 }
 
 template <typename T>
-double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
+double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 {
   T      sum_val = sum(ues, member);
   double sq      = 0;
@@ -199,7 +199,7 @@ double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::
 }
 
 template <typename T>
-std::vector<T> extract(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
+std::vector<T> extract(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 {
   std::vector<T> res;
   for (const auto& u : ues) {

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/gtpu/gtpu_gateway.h"
+#include "ocudu/gtpu/gtpu_gateway.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class ngu_session_manager
 {
@@ -21,4 +21,4 @@ public:
   virtual gtpu_tnl_pdu_session& get_next_ngu_gateway() = 0;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

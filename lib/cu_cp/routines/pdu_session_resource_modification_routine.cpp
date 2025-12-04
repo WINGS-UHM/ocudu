@@ -10,11 +10,11 @@
 
 #include "pdu_session_resource_modification_routine.h"
 #include "pdu_session_routine_helpers.h"
-#include "srsran/cu_cp/ue_task_scheduler.h"
-#include "srsran/ran/cause/e1ap_cause_converters.h"
+#include "ocudu/cu_cp/ue_task_scheduler.h"
+#include "ocudu/ran/cause/e1ap_cause_converters.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 // Free functions to amend to the final procedure response message. This will take the results from the various
@@ -27,7 +27,7 @@ bool handle_bearer_context_modification_response(
     const cu_cp_pdu_session_resource_modify_request& modify_request,
     const e1ap_bearer_context_modification_response& bearer_context_modification_response,
     up_config_update&                                next_config,
-    srslog::basic_logger&                            logger);
+    ocudulog::basic_logger&                          logger);
 
 /// \brief Handle UE context modification response and prepare second Bearer Context Modification.
 bool handle_ue_context_modification_response(
@@ -36,13 +36,13 @@ bool handle_ue_context_modification_response(
     const cu_cp_pdu_session_resource_modify_request& modify_request,
     const f1ap_ue_context_modification_response&     ue_context_modification_response,
     const up_config_update&                          next_config,
-    const srslog::basic_logger&                      logger);
+    const ocudulog::basic_logger&                    logger);
 
 /// \brief Handle RRC reconfiguration result.
 bool handle_rrc_reconfiguration_response(cu_cp_pdu_session_resource_modify_response&      response_msg,
                                          const cu_cp_pdu_session_resource_modify_request& modify_request,
                                          bool                                             rrc_reconfig_result,
-                                         const srslog::basic_logger&                      logger);
+                                         const ocudulog::basic_logger&                    logger);
 
 pdu_session_resource_modification_routine::pdu_session_resource_modification_routine(
     const cu_cp_pdu_session_resource_modify_request& modify_request_,
@@ -52,7 +52,7 @@ pdu_session_resource_modification_routine::pdu_session_resource_modification_rou
     cu_cp_rrc_ue_interface&                          cu_cp_notifier_,
     ue_task_scheduler&                               ue_task_sched_,
     up_resource_manager&                             up_resource_mng_,
-    srslog::basic_logger&                            logger_) :
+    ocudulog::basic_logger&                          logger_) :
   modify_request(modify_request_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
@@ -194,15 +194,15 @@ void pdu_session_resource_modification_routine::operator()(
 
 static void fill_e1ap_pdu_session_res_to_modify_list(
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_res_to_modify_item>& pdu_session_res_to_modify_list,
-    srslog::basic_logger&                                                     logger,
+    ocudulog::basic_logger&                                                   logger,
     const up_config_update&                                                   next_config,
     const cu_cp_pdu_session_resource_modify_request&                          modify_request)
 {
   for (const auto& modify_item : next_config.pdu_sessions_to_modify_list) {
     const auto& session = modify_item.second;
-    srsran_assert(modify_request.pdu_session_res_modify_items.contains(session.id),
-                  "Modify request doesn't contain config for {}",
-                  session.id);
+    ocudu_assert(modify_request.pdu_session_res_modify_items.contains(session.id),
+                 "Modify request doesn't contain config for {}",
+                 session.id);
 
     // Obtain PDU session config from original resource modify request.
     const auto&                         pdu_session_cfg = modify_request.pdu_session_res_modify_items[session.id];
@@ -262,7 +262,7 @@ static bool update_modify_list_with_bearer_ctxt_mod_response(
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_modify_item_mod_req>& ngap_modify_list,
     const e1ap_bearer_context_modification_response& bearer_context_modification_response,
     up_config_update&                                next_config,
-    const srslog::basic_logger&                      logger)
+    const ocudulog::basic_logger&                    logger)
 {
   for (const auto& e1ap_item : bearer_context_modification_response.pdu_session_resource_modified_list) {
     const auto& psi = e1ap_item.pdu_session_id;
@@ -376,7 +376,7 @@ bool handle_bearer_context_modification_response(
     const cu_cp_pdu_session_resource_modify_request& modify_request,
     const e1ap_bearer_context_modification_response& bearer_context_modification_response,
     up_config_update&                                next_config,
-    srslog::basic_logger&                            logger)
+    ocudulog::basic_logger&                          logger)
 {
   // Traverse modify list.
   if (!update_modify_list_with_bearer_ctxt_mod_response(response_msg.pdu_session_res_modify_list,
@@ -409,7 +409,7 @@ static bool update_modify_list_with_ue_ctxt_mod_response(
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_modify_item_mod_req>& ngap_modify_list,
     const f1ap_ue_context_modification_response& ue_context_modification_response,
     const up_config_update&                      next_config,
-    const srslog::basic_logger&                  logger)
+    const ocudulog::basic_logger&                logger)
 {
   // Fail procedure if (single) DRB couldn't be setup.
   if (!ue_context_modification_response.drbs_failed_to_be_setup_list.empty()) {
@@ -447,7 +447,7 @@ bool handle_ue_context_modification_response(
     const cu_cp_pdu_session_resource_modify_request& modify_request,
     const f1ap_ue_context_modification_response&     ue_context_modification_response,
     const up_config_update&                          next_config,
-    const srslog::basic_logger&                      logger)
+    const ocudulog::basic_logger&                    logger)
 {
   // Traverse modify list.
   if (!update_modify_list_with_ue_ctxt_mod_response(response_msg.pdu_session_res_modify_list,
@@ -478,7 +478,7 @@ static void fill_modify_failed_list(cu_cp_pdu_session_resource_modify_response& 
 bool handle_rrc_reconfiguration_response(cu_cp_pdu_session_resource_modify_response&      response_msg,
                                          const cu_cp_pdu_session_resource_modify_request& modify_request,
                                          bool                                             rrc_reconfig_result,
-                                         const srslog::basic_logger&                      logger)
+                                         const ocudulog::basic_logger&                    logger)
 {
   // Let all PDU sessions fail if response is negative.
   if (!rrc_reconfig_result) {

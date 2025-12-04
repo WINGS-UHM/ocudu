@@ -9,13 +9,13 @@
  */
 
 #include "du_metrics_aggregator_impl.h"
-#include "srsran/mac/mac_metrics.h"
-#include "srsran/mac/mac_metrics_notifier.h"
-#include "srsran/scheduler/scheduler_metrics.h"
-#include "srsran/support/executors/execute_until_success.h"
+#include "ocudu/mac/mac_metrics.h"
+#include "ocudu/mac/mac_metrics_notifier.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
+#include "ocudu/support/executors/execute_until_success.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 // class du_manager_metrics_aggregator_impl
 

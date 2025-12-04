@@ -9,19 +9,19 @@
  */
 
 #include "e2sm_rc_control_action_du_executor.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 #include <future>
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
 e2sm_rc_control_action_du_executor_base::e2sm_rc_control_action_du_executor_base(
-    srs_du::du_configurator&       du_configurator_,
-    srs_du::f1ap_ue_id_translator& f1ap_ue_id_translator_,
-    uint32_t                       action_id_) :
-  logger(srslog::fetch_basic_logger("E2SM-RC")),
+    odu::du_configurator&       du_configurator_,
+    odu::f1ap_ue_id_translator& f1ap_ue_id_translator_,
+    uint32_t                    action_id_) :
+  logger(ocudulog::fetch_basic_logger("E2SM-RC")),
   action_id(action_id_),
   du_param_configurator(du_configurator_),
   f1ap_ue_id_provider(f1ap_ue_id_translator_)
@@ -69,8 +69,8 @@ e2sm_rc_control_action_du_executor_base::return_ctrl_failure(const e2sm_ric_cont
 }
 
 e2sm_rc_control_action_2_6_du_executor::e2sm_rc_control_action_2_6_du_executor(
-    srs_du::du_configurator&       du_configurator_,
-    srs_du::f1ap_ue_id_translator& f1ap_ue_id_translator_) :
+    odu::du_configurator&       du_configurator_,
+    odu::f1ap_ue_id_translator& f1ap_ue_id_translator_) :
   e2sm_rc_control_action_du_executor_base(du_configurator_, f1ap_ue_id_translator_, 6)
 {
   // Control Action description:
@@ -92,10 +92,10 @@ e2sm_rc_control_action_2_6_du_executor::e2sm_rc_control_action_2_6_du_executor(
 }
 
 void e2sm_rc_control_action_2_6_du_executor::parse_action_ran_parameter_value(
-    const ran_param_value_type_c&        ran_param,
-    uint64_t                             ran_param_id,
-    uint64_t                             ue_id,
-    srs_du::du_mac_sched_control_config& ctrl_cfg)
+    const ran_param_value_type_c&     ran_param,
+    uint64_t                          ran_param_id,
+    uint64_t                          ue_id,
+    odu::du_mac_sched_control_config& ctrl_cfg)
 {
   // TODO: validate types.
   if (ran_param_id == 1 or ran_param_id == 3 or ran_param_id == 5 or ran_param_id == 8) {
@@ -161,7 +161,7 @@ bool e2sm_rc_control_action_2_6_du_executor::ric_control_action_supported(const 
 async_task<e2sm_ric_control_response>
 e2sm_rc_control_action_2_6_du_executor::execute_ric_control_action(const e2sm_ric_control_request& req)
 {
-  srs_du::du_mac_sched_control_config ctrl_config = convert_to_du_config_request(req);
+  odu::du_mac_sched_control_config ctrl_config = convert_to_du_config_request(req);
   // If empty request, return failure.
   if (ctrl_config.rrm_policy_ratio_list.empty()) {
     return return_ctrl_failure(req);
@@ -212,18 +212,18 @@ e2sm_rc_control_action_2_6_du_executor::execute_ric_control_action(const e2sm_ri
   return launch_async(
       [this, ctrl_config = std::move(ctrl_config)](coro_context<async_task<e2sm_ric_control_response>>& ctx) {
         CORO_BEGIN(ctx);
-        srs_du::du_mac_sched_control_config_response ctrl_response;
+        odu::du_mac_sched_control_config_response ctrl_response;
         CORO_AWAIT_VALUE(ctrl_response, du_param_configurator.configure_ue_mac_scheduler(ctrl_config));
         e2sm_ric_control_response e2_resp = convert_to_e2sm_response(ctrl_config, ctrl_response);
         CORO_RETURN(e2_resp);
       });
 }
 
-srs_du::du_mac_sched_control_config
+odu::du_mac_sched_control_config
 e2sm_rc_control_action_2_6_du_executor::convert_to_du_config_request(const e2sm_ric_control_request& e2sm_req_)
 {
-  srs_du::du_mac_sched_control_config ctrl_config = {};
-  const e2sm_rc_ctrl_hdr_format1_s&   ctrl_hdr =
+  odu::du_mac_sched_control_config  ctrl_config = {};
+  const e2sm_rc_ctrl_hdr_format1_s& ctrl_hdr =
       std::get<e2sm_rc_ctrl_hdr_s>(e2sm_req_.request_ctrl_hdr).ric_ctrl_hdr_formats.ctrl_hdr_format1();
   const e2sm_rc_ctrl_msg_format1_s& ctrl_msg =
       std::get<e2sm_rc_ctrl_msg_s>(e2sm_req_.request_ctrl_msg).ric_ctrl_msg_formats.ctrl_msg_format1();
@@ -241,10 +241,10 @@ e2sm_rc_control_action_2_6_du_executor::convert_to_du_config_request(const e2sm_
   }
 
   // Use a lambda to define the template function in parse_ran_parameter_value
-  auto parse_action_ran_parameter_value_lambda = [this](const ran_param_value_type_c&        ran_param,
-                                                        uint64_t                             ran_param_id,
-                                                        uint64_t                             ue_id,
-                                                        srs_du::du_mac_sched_control_config& ctrl_cfg) {
+  auto parse_action_ran_parameter_value_lambda = [this](const ran_param_value_type_c&     ran_param,
+                                                        uint64_t                          ran_param_id,
+                                                        uint64_t                          ue_id,
+                                                        odu::du_mac_sched_control_config& ctrl_cfg) {
     this->parse_action_ran_parameter_value(ran_param, ran_param_id, ue_id, ctrl_cfg);
   };
   for (auto& ran_p : ctrl_msg.ran_p_list) {
@@ -263,8 +263,8 @@ e2sm_rc_control_action_2_6_du_executor::convert_to_du_config_request(const e2sm_
 }
 
 e2sm_ric_control_response e2sm_rc_control_action_2_6_du_executor::convert_to_e2sm_response(
-    const srs_du::du_mac_sched_control_config&          du_config_req_,
-    const srs_du::du_mac_sched_control_config_response& du_response_)
+    const odu::du_mac_sched_control_config&          du_config_req_,
+    const odu::du_mac_sched_control_config_response& du_response_)
 {
   e2sm_ric_control_response e2sm_response;
   e2sm_response.success =

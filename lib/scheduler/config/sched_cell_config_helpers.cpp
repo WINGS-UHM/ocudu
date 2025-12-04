@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 #include <map>
 
-using namespace srsran;
+using namespace ocudu;
 
-std::vector<pucch_resource> srsran::config_helpers::build_pucch_resource_list(const pucch_builder_params& user_params,
-                                                                              unsigned                    bwp_size)
+std::vector<pucch_resource> ocudu::config_helpers::build_pucch_resource_list(const pucch_builder_params& user_params,
+                                                                             unsigned                    bwp_size)
 {
   // Compute the cell PUCCH resource list, depending on which parameter that has been passed.
   auto res_list = config_helpers::generate_cell_pucch_res_list(
@@ -28,14 +28,14 @@ std::vector<pucch_resource> srsran::config_helpers::build_pucch_resource_list(co
       bwp_size,
       user_params.max_nof_symbols);
 
-  srsran_assert(not res_list.empty(), "The PUCCH resource list cannot be empty");
+  ocudu_assert(not res_list.empty(), "The PUCCH resource list cannot be empty");
 
   return res_list;
 }
 
 unsigned
-srsran::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const serving_cell_config& ue_cell_cfg,
-                                                                            const dl_config_common&    dl_cfg_common)
+ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const serving_cell_config& ue_cell_cfg,
+                                                                           const dl_config_common&    dl_cfg_common)
 {
   // NOTE: We assume DCI formats other than 1_0, 0_0, 1_1 and 0_1 are not configured in SearchSpaces.
   // NOTE: Total nof. monitored PDCCH candidates are calculated considering a slot at which all SearchSpaces are active

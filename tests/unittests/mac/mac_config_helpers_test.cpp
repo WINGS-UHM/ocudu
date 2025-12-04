@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/mac/config/mac_config_helpers.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using gbr_bps = uint64_t;
 

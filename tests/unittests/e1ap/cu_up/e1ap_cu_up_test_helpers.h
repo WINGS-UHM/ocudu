@@ -12,16 +12,16 @@
 
 #include "../common/e1ap_cu_up_test_messages.h"
 #include "../common/test_helpers.h"
-#include "srsran/e1ap/common/e1ap_common.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_factory.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/e1ap/common/e1ap_common.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_factory.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
-class dummy_e1_connection_client : public srs_cu_up::e1_connection_client
+class dummy_e1_connection_client : public ocuup::e1_connection_client
 {
 public:
   e1ap_message last_tx_e1ap_pdu;
@@ -48,8 +48,8 @@ protected:
 
   timer_manager timers;
 
-  srslog::basic_logger& e1ap_logger = srslog::fetch_basic_logger("E1AP");
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& e1ap_logger = ocudulog::fetch_basic_logger("E1AP");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   dummy_e1ap_cu_up_notifier       cu_up_notifier;
   manual_task_worker              cu_up_worker{128};
@@ -59,5 +59,5 @@ protected:
   dummy_e1_connection_client e1ap_gw;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

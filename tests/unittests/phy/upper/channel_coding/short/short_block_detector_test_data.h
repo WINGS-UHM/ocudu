@@ -13,11 +13,11 @@
 // This file was generated using the following MATLAB class on 07-10-2025 (seed 0):
 //   + "srsShortBlockDetectorUnittest.m"
 
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/ran/sch/modulation_scheme.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/ran/sch/modulation_scheme.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   unsigned                          nof_messages     = 0;
@@ -52,4 +52,4 @@ static const std::vector<test_case_t> short_block_detector_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -22,15 +22,15 @@
 #include "external/fmt/include/fmt/chrono.h"
 #include "split6_constants.h"
 #include "split6_flexible_o_du_low_session.h"
-#include "srsran/du/du_low/o_du_low_config.h"
-#include "srsran/fapi/cell_config.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/du/du_low/o_du_low_config.h"
+#include "ocudu/fapi/cell_config.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 std::optional<std::chrono::system_clock::time_point>
 split6_flexible_o_du_low_session_factory::start_time_calculator::calculate_start_time() const
@@ -112,28 +112,28 @@ static unsigned get_period_in_slots(unsigned period, unsigned nof_slots_per_subf
   switch (period) {
     // 0.5 ms.
     case 0:
-      srsran_assert(nof_slots_per_subframe % 2 == 0, "Invalid number of slots per subframe to get periodicity 0.5ms");
+      ocudu_assert(nof_slots_per_subframe % 2 == 0, "Invalid number of slots per subframe to get periodicity 0.5ms");
       return nof_slots_per_subframe / 2;
       // 0.625 ms.
     case 1:
-      srsran_assert((nof_slots_per_subframe * 5) % 8 == 0,
-                    "Invalid number of slots per subframe to get periodicity 0.625ms");
+      ocudu_assert((nof_slots_per_subframe * 5) % 8 == 0,
+                   "Invalid number of slots per subframe to get periodicity 0.625ms");
       return nof_slots_per_subframe * 5 / 8;
       // 1 ms.
     case 2:
       return nof_slots_per_subframe;
       // 1.25 ms.
     case 3:
-      srsran_assert((nof_slots_per_subframe * 5) % 4 == 0,
-                    "Invalid number of slots per subframe to get 1.25ms periodicity");
+      ocudu_assert((nof_slots_per_subframe * 5) % 4 == 0,
+                   "Invalid number of slots per subframe to get 1.25ms periodicity");
       return nof_slots_per_subframe * 5 / 4;
       // 2 ms.
     case 4:
       return 2 * nof_slots_per_subframe;
       // 2.5 ms.
     case 5:
-      srsran_assert((nof_slots_per_subframe * 5) % 2 == 0,
-                    "Invalid number of slots per subframe to get periodicity 2.5ms");
+      ocudu_assert((nof_slots_per_subframe * 5) % 2 == 0,
+                   "Invalid number of slots per subframe to get periodicity 2.5ms");
       return nof_slots_per_subframe * 5 / 2;
       // 5 ms.
     case 6:
@@ -142,7 +142,7 @@ static unsigned get_period_in_slots(unsigned period, unsigned nof_slots_per_subf
     case 7:
       return nof_slots_per_subframe * 10;
     default:
-      srsran_assert(0, "TDD period '{}' not supported", period);
+      ocudu_assert(0, "TDD period '{}' not supported", period);
   }
 
   return nof_slots_per_subframe;
@@ -227,7 +227,7 @@ o_du_low_unit
 split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::fapi_cell_config&     config,
                                                           const o_du_low_unit_dependencies& odu_low_dependencies)
 {
-  srs_du::cell_prach_ports_entry prach_ports = {split6_du_low::PRACH_PORT};
+  odu::cell_prach_ports_entry prach_ports = {split6_du_low::PRACH_PORT};
 
   auto du_low_dependencies = get_du_low_validation_dependencies(config);
   if (!validate_du_low_config(unit_config.du_low_cfg, du_low_dependencies)) {

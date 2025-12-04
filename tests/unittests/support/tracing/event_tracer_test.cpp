@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/support/executors/executor_tracer.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/tracing/event_tracing.h"
-#include "srsran/support/tracing/rusage_trace_recorder.h"
+#include "ocudu/support/executors/executor_tracer.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/tracing/event_tracing.h"
+#include "ocudu/support/tracing/rusage_trace_recorder.h"
 #include <fstream>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(event_tracing_test, null_tracer)
 {

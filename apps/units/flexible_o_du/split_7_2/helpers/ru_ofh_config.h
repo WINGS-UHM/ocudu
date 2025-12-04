@@ -12,16 +12,16 @@
 
 #include "apps/helpers/metrics/metrics_config.h"
 #include "apps/services/worker_manager/os_sched_affinity_manager.h"
-#include "srsran/ofh/receiver/ofh_receiver_configuration.h"
-#include "srsran/ofh/serdes/ofh_cplane_message_properties.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/support/units.h"
+#include "ocudu/ofh/receiver/ofh_receiver_configuration.h"
+#include "ocudu/ofh/serdes/ofh_cplane_message_properties.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/support/units.h"
 #include <chrono>
 #include <string>
 #include <variant>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Configuration parameters related to the scaling of the IQ symbols in the DL OFH resource grid.
 struct ru_ofh_scaling_config {
@@ -154,7 +154,7 @@ struct ru_ofh_unit_cell_config {
 
 /// RU OFH logging functionalities.
 struct ru_ofh_unit_logger_config {
-  srslog::basic_levels ofh_level = srslog::basic_levels::warning;
+  ocudulog::basic_levels ofh_level = ocudulog::basic_levels::warning;
 };
 
 /// CPU affinities configuration for the cell.
@@ -221,4 +221,4 @@ struct ru_ofh_unit_parsed_config {
   ru_ofh_unit_base_cell_config base_cell_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

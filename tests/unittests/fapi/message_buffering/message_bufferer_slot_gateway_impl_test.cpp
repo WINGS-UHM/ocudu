@@ -12,10 +12,10 @@
 #include "../message_builder_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 // The following comparison operators usually do not check PODs, as the default copy constructor should copy them
@@ -206,7 +206,7 @@ static bool operator==(const tx_data_request_message& lhs, const tx_data_request
 }
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

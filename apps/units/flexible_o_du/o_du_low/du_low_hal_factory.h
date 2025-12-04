@@ -11,10 +11,10 @@
 #pragma once
 
 #include "du_low_config.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU low unit HAL dependencies.
 struct o_du_low_hal_dependencies {
@@ -27,4 +27,4 @@ struct o_du_low_hal_dependencies {
 /// \return  Struct containing the DU low unit dependencies.
 o_du_low_hal_dependencies make_du_low_hal_dependencies(const std::optional<du_low_unit_hal_config>& hal_config);
 
-} // namespace srsran
+} // namespace ocudu

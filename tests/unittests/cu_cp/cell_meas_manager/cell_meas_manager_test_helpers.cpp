@@ -10,10 +10,10 @@
 
 #include "cell_meas_manager_test_helpers.h"
 #include "lib/cu_cp/cell_meas_manager/cell_meas_manager_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 cell_meas_manager_test::cell_meas_manager_test() :
   cu_cp_cfg([this]() {
@@ -23,16 +23,16 @@ cell_meas_manager_test::cell_meas_manager_test() :
     return cucfg;
   }())
 {
-  cu_cp_logger.set_level(srslog::basic_levels::debug);
-  test_logger.set_level(srslog::basic_levels::debug);
+  cu_cp_logger.set_level(ocudulog::basic_levels::debug);
+  test_logger.set_level(ocudulog::basic_levels::debug);
   test_logger.set_hex_dump_max_size(32);
-  srslog::init();
+  ocudulog::init();
 }
 
 cell_meas_manager_test::~cell_meas_manager_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }
 
 void cell_meas_manager_test::create_empty_manager()
@@ -99,7 +99,7 @@ void cell_meas_manager_test::create_default_manager()
   rrc_report_cfg_nr         periodic_report_cfg;
   rrc_periodical_report_cfg periodical_cfg;
 
-  periodical_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  periodical_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   periodical_cfg.report_interv          = 1024;
   periodical_cfg.report_amount          = -1;
   periodical_cfg.report_quant_cell.rsrp = true;
@@ -124,7 +124,7 @@ void cell_meas_manager_test::create_default_manager()
 
   event_trigger_cfg.event_id = event_a3;
 
-  event_trigger_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  event_trigger_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   event_trigger_cfg.report_interv          = 1024;
   event_trigger_cfg.report_amount          = -1;
   event_trigger_cfg.report_quant_cell.rsrp = true;
@@ -180,7 +180,7 @@ void cell_meas_manager_test::create_manager_with_incomplete_cells_and_periodic_r
   rrc_report_cfg_nr         periodic_report_cfg;
   rrc_periodical_report_cfg periodical_cfg;
 
-  periodical_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  periodical_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   periodical_cfg.report_interv          = 1024;
   periodical_cfg.report_amount          = -1;
   periodical_cfg.report_quant_cell.rsrp = true;
@@ -205,7 +205,7 @@ void cell_meas_manager_test::create_manager_with_incomplete_cells_and_periodic_r
 
   event_trigger_cfg.event_id = event_a3;
 
-  event_trigger_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  event_trigger_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   event_trigger_cfg.report_interv          = 1024;
   event_trigger_cfg.report_amount          = -1;
   event_trigger_cfg.report_quant_cell.rsrp = true;
@@ -262,7 +262,7 @@ void cell_meas_manager_test::create_manager_without_ncells_and_periodic_report()
 
   event_trigger_cfg.event_id = event_a3;
 
-  event_trigger_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  event_trigger_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   event_trigger_cfg.report_interv          = 1024;
   event_trigger_cfg.report_amount          = -1;
   event_trigger_cfg.report_quant_cell.rsrp = true;

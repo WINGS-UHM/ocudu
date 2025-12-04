@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct du_cell_config;
 struct du_ue_context;
@@ -26,7 +26,7 @@ std::optional<si_scheduling_config> make_si_scheduling_info_config(const du_cell
 /// Derives Scheduler Cell Configuration from DU Cell Configuration.
 sched_cell_configuration_request_message
 make_sched_cell_config_req(du_cell_index_t                            cell_index,
-                           const srs_du::du_cell_config&              du_cfg,
+                           const odu::du_cell_config&                 du_cfg,
                            units::bytes                               sib1_len,
                            const std::optional<si_scheduling_config>& si_sched_cfg);
 
@@ -34,5 +34,5 @@ make_sched_cell_config_req(du_cell_index_t                            cell_index
 sched_ue_config_request create_scheduler_ue_config_request(const du_ue_context&         ue_ctx,
                                                            const du_ue_resource_config& ue_res_cfg);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

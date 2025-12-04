@@ -11,7 +11,7 @@
 #include "pdsch_config_params.h"
 #include "../dmrs_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace sched_helper;
 
 pdsch_config_params

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/signal_processors/prs/prs_generator.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Spy implementation of a PRS generator.
 class prs_processor_spy : public prs_generator
@@ -29,4 +29,4 @@ public:
   bool is_generate_called() const { return generate_method_called; }
 };
 
-} // namespace srsran
+} // namespace ocudu

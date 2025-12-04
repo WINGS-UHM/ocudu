@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/gateways/udp_network_gateway_factory.h"
+#include "ocudu/gateways/udp_network_gateway_factory.h"
 #include <arpa/inet.h>
 
-namespace srsran {
+namespace ocudu {
 class dummy_network_gateway_data_notifier_with_src_addr : public network_gateway_data_notifier_with_src_addr
 {
 public:
@@ -118,4 +118,4 @@ inline sockaddr_storage to_sockaddr_storage(const std::string& dest_addr, uint16
   return addr_storage;
 }
 
-} // namespace srsran
+} // namespace ocudu

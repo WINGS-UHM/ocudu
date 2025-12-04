@@ -10,8 +10,8 @@
 
 #include "up_resource_manager_helpers.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Verifies if any of the PDU sessions to be setup/modified already contains a DRB with the given ID.
 static bool contains_drb(const up_config_update& config_update, drb_id_t drb_id)
@@ -49,11 +49,11 @@ static bool contains_drb(const up_pdu_session_context_update& new_session_contex
   return (new_session_context.drb_to_add.find(new_drb_id) != new_session_context.drb_to_add.end());
 }
 
-drb_id_t srsran::srs_cu_cp::allocate_drb_id(const up_pdu_session_context_update& new_session_context,
-                                            const up_context&                    context,
-                                            const up_config_update&              config_update,
-                                            uint8_t                              max_nof_drbs_per_ue,
-                                            const srslog::basic_logger&          logger)
+drb_id_t ocudu::ocucp::allocate_drb_id(const up_pdu_session_context_update& new_session_context,
+                                       const up_context&                    context,
+                                       const up_config_update&              config_update,
+                                       uint8_t                              max_nof_drbs_per_ue,
+                                       const ocudulog::basic_logger&        logger)
 {
   if (context.drb_map.size() >= max_nof_drbs_per_ue) {
     logger.warning("DRB creation failed. Cause: Maximum number of DRBs per UE already created ({}). To increase the "
@@ -78,9 +78,7 @@ drb_id_t srsran::srs_cu_cp::allocate_drb_id(const up_pdu_session_context_update&
   return new_drb_id;
 }
 
-bool srsran::srs_cu_cp::is_valid(five_qi_t                      five_qi,
-                                 const up_resource_manager_cfg& cfg,
-                                 const srslog::basic_logger&    logger)
+bool ocudu::ocucp::is_valid(five_qi_t five_qi, const up_resource_manager_cfg& cfg, const ocudulog::basic_logger& logger)
 {
   if (cfg.five_qi_config.find(five_qi) == cfg.five_qi_config.end()) {
     logger.warning("No config for {} present", five_qi);
@@ -93,11 +91,10 @@ bool srsran::srs_cu_cp::is_valid(five_qi_t                      five_qi,
   return true;
 }
 
-bool srsran::srs_cu_cp::is_valid(
-    const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items,
-    const up_context&                                                            context,
-    const up_resource_manager_cfg&                                               cfg,
-    const srslog::basic_logger&                                                  logger)
+bool ocudu::ocucp::is_valid(const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items,
+                            const up_context&                                                            context,
+                            const up_resource_manager_cfg&                                               cfg,
+                            const ocudulog::basic_logger&                                                logger)
 {
   // Reject empty setup requests.
   if (setup_items.empty()) {
@@ -125,10 +122,10 @@ bool srsran::srs_cu_cp::is_valid(
 }
 
 /// \brief Validates an incoming PDU session modify request.
-bool srsran::srs_cu_cp::is_valid(const cu_cp_pdu_session_resource_modify_request& pdu,
-                                 const up_context&                                context,
-                                 const up_resource_manager_cfg&                   cfg,
-                                 const srslog::basic_logger&                      logger)
+bool ocudu::ocucp::is_valid(const cu_cp_pdu_session_resource_modify_request& pdu,
+                            const up_context&                                context,
+                            const up_resource_manager_cfg&                   cfg,
+                            const ocudulog::basic_logger&                    logger)
 {
   // Reject empty modification requests.
   if (pdu.pdu_session_res_modify_items.empty()) {
@@ -172,10 +169,10 @@ bool srsran::srs_cu_cp::is_valid(const cu_cp_pdu_session_resource_modify_request
 }
 
 /// \brief Validates an incoming PDU session release command.
-bool srsran::srs_cu_cp::is_valid(const cu_cp_pdu_session_resource_release_command& pdu,
-                                 const up_context&                                 context,
-                                 const up_resource_manager_cfg&                    cfg,
-                                 const srslog::basic_logger&                       logger)
+bool ocudu::ocucp::is_valid(const cu_cp_pdu_session_resource_release_command& pdu,
+                            const up_context&                                 context,
+                            const up_resource_manager_cfg&                    cfg,
+                            const ocudulog::basic_logger&                     logger)
 {
   // Reject empty release requests.
   if (pdu.pdu_session_res_to_release_list_rel_cmd.empty()) {
@@ -200,10 +197,10 @@ static drb_id_t allocate_qos_flow(up_pdu_session_context_update&     new_session
                                   const up_config_update&            config_update,
                                   const up_context&                  full_context,
                                   const up_resource_manager_cfg&     cfg,
-                                  const srslog::basic_logger&        logger)
+                                  const ocudulog::basic_logger&      logger)
 {
   five_qi_t five_qi = get_five_qi(qos_flow, cfg, logger);
-  srsran_assert(five_qi != five_qi_t::invalid, "5QI cannot be invalid.");
+  ocudu_assert(five_qi != five_qi_t::invalid, "5QI cannot be invalid.");
 
   // Note: We map QoS flows to DRBs in a 1:1 manner meaning that each flow gets it's own DRB.
   // potential optimization to support more QoS flows is to map non-GPB flows onto existing DRBs.
@@ -252,7 +249,7 @@ static drb_id_t modify_qos_flow(up_pdu_session_context_update&     new_session_c
                                 const up_config_update&            config_update,
                                 const up_context&                  full_context,
                                 const up_resource_manager_cfg&     cfg,
-                                const srslog::basic_logger&        logger)
+                                const ocudulog::basic_logger&      logger)
 {
   // Note: We map QoS flows to DRBs in a 1:1 manner meaning that each flow gets it's own DRB.
   // potential optimization to support more QoS flows is to map non-GPB flows onto existing DRBs.
@@ -285,11 +282,11 @@ static drb_id_t modify_qos_flow(up_pdu_session_context_update&     new_session_c
   return drb_id;
 }
 
-up_config_update srsran::srs_cu_cp::calculate_update(
-    const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items,
-    const up_context&                                                            context,
-    const up_resource_manager_cfg&                                               cfg,
-    const srslog::basic_logger&                                                  logger)
+up_config_update
+ocudu::ocucp::calculate_update(const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items,
+                               const up_context&                                                            context,
+                               const up_resource_manager_cfg&                                               cfg,
+                               const ocudulog::basic_logger&                                                logger)
 {
   up_config_update config;
 
@@ -297,8 +294,8 @@ up_config_update srsran::srs_cu_cp::calculate_update(
 
   // Look for existing DRB using the same FiveQI (does it need to be the same PDU session?).
   for (const auto& pdu_session : setup_items) {
-    srsran_assert(context.pdu_sessions.find(pdu_session.pdu_session_id) == context.pdu_sessions.end(),
-                  "PDU session already exists");
+    ocudu_assert(context.pdu_sessions.find(pdu_session.pdu_session_id) == context.pdu_sessions.end(),
+                 "PDU session already exists");
     // Create new PDU session context.
     up_pdu_session_context_update new_ctxt(pdu_session.pdu_session_id);
     for (const auto& flow_item : pdu_session.qos_flow_setup_request_items) {
@@ -323,9 +320,9 @@ up_config_update srsran::srs_cu_cp::calculate_update(
 }
 
 /// \brief Determines the 5QI to use for QoS flow.
-five_qi_t srsran::srs_cu_cp::get_five_qi(const cu_cp_qos_flow_add_or_mod_item& qos_flow,
-                                         const up_resource_manager_cfg&        cfg,
-                                         const srslog::basic_logger&           logger)
+five_qi_t ocudu::ocucp::get_five_qi(const cu_cp_qos_flow_add_or_mod_item& qos_flow,
+                                    const up_resource_manager_cfg&        cfg,
+                                    const ocudulog::basic_logger&         logger)
 {
   five_qi_t   five_qi    = five_qi_t::invalid;
   const auto& qos_params = qos_flow.qos_flow_level_qos_params;
@@ -345,17 +342,17 @@ five_qi_t srsran::srs_cu_cp::get_five_qi(const cu_cp_qos_flow_add_or_mod_item& q
   return five_qi;
 }
 
-up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_resource_modify_request& pdu,
-                                                     const up_context&                                context,
-                                                     const up_resource_manager_cfg&                   cfg,
-                                                     const srslog::basic_logger&                      logger)
+up_config_update ocudu::ocucp::calculate_update(const cu_cp_pdu_session_resource_modify_request& pdu,
+                                                const up_context&                                context,
+                                                const up_resource_manager_cfg&                   cfg,
+                                                const ocudulog::basic_logger&                    logger)
 {
   up_config_update update;
   update.initial_context_creation = false;
 
   for (const auto& modify_item : pdu.pdu_session_res_modify_items) {
-    srsran_assert(context.pdu_sessions.find(modify_item.pdu_session_id) != context.pdu_sessions.end(),
-                  "PDU session does not exist.");
+    ocudu_assert(context.pdu_sessions.find(modify_item.pdu_session_id) != context.pdu_sessions.end(),
+                 "PDU session does not exist.");
 
     up_pdu_session_context_update ctxt_update(modify_item.pdu_session_id);
     for (const auto& flow_item : modify_item.transfer.qos_flow_add_or_modify_request_list) {
@@ -366,10 +363,10 @@ up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_res
           logger.warning("Couldn't modify {}", flow_item.qos_flow_id);
           update.pdu_sessions_failed_to_modify_list.push_back(modify_item.pdu_session_id);
         } else {
-          srsran_assert(context.drb_map.find(drb_id) != context.drb_map.end() ||
-                            ctxt_update.drb_to_modify.find(drb_id) != ctxt_update.drb_to_modify.end(),
-                        "{} has to exist in current PDU session context or in context update",
-                        drb_id);
+          ocudu_assert(context.drb_map.find(drb_id) != context.drb_map.end() ||
+                           ctxt_update.drb_to_modify.find(drb_id) != ctxt_update.drb_to_modify.end(),
+                       "{} has to exist in current PDU session context or in context update",
+                       drb_id);
           logger.debug("Modified {} on {}", flow_item.qos_flow_id, drb_id);
         }
       } else {
@@ -378,10 +375,10 @@ up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_res
           logger.warning("Couldn't allocate {}", flow_item.qos_flow_id);
           update.pdu_sessions_failed_to_modify_list.push_back(modify_item.pdu_session_id);
         } else {
-          srsran_assert(context.drb_map.find(drb_id) != context.drb_map.end() ||
-                            ctxt_update.drb_to_add.find(drb_id) != ctxt_update.drb_to_add.end(),
-                        "{} has to exist in current PDU session context or in context update",
-                        drb_id);
+          ocudu_assert(context.drb_map.find(drb_id) != context.drb_map.end() ||
+                           ctxt_update.drb_to_add.find(drb_id) != ctxt_update.drb_to_add.end(),
+                       "{} has to exist in current PDU session context or in context update",
+                       drb_id);
           logger.debug("Allocated {} to {}", flow_item.qos_flow_id, drb_id);
         }
       }
@@ -393,11 +390,11 @@ up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_res
 
       // Release DRB if this is the only flow mapped to it.
       const auto& pdu_session_ctxt = context.pdu_sessions.at(modify_item.pdu_session_id);
-      srsran_assert(pdu_session_ctxt.drbs.at(drb_id).qos_flows.find(flow_item.qos_flow_id) !=
-                        pdu_session_ctxt.drbs.at(drb_id).qos_flows.end(),
-                    "{} not mapped on {}",
-                    flow_item.qos_flow_id,
-                    drb_id);
+      ocudu_assert(pdu_session_ctxt.drbs.at(drb_id).qos_flows.find(flow_item.qos_flow_id) !=
+                       pdu_session_ctxt.drbs.at(drb_id).qos_flows.end(),
+                   "{} not mapped on {}",
+                   flow_item.qos_flow_id,
+                   drb_id);
       if (pdu_session_ctxt.drbs.at(drb_id).qos_flows.size() == 1) {
         // Flow is the only active flow on this DRB - release it.
         logger.debug("Releasing {}", drb_id);
@@ -411,10 +408,10 @@ up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_res
   return update;
 }
 
-up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_resource_release_command& pdu,
-                                                     const up_context&                                 context,
-                                                     const up_resource_manager_cfg&                    cfg,
-                                                     const srslog::basic_logger&                       logger)
+up_config_update ocudu::ocucp::calculate_update(const cu_cp_pdu_session_resource_release_command& pdu,
+                                                const up_context&                                 context,
+                                                const up_resource_manager_cfg&                    cfg,
+                                                const ocudulog::basic_logger&                     logger)
 {
   up_config_update update;
 
@@ -431,7 +428,7 @@ up_config_update srsran::srs_cu_cp::calculate_update(const cu_cp_pdu_session_res
   return update;
 }
 
-sdap_config_t srsran::srs_cu_cp::set_rrc_sdap_config(const up_drb_context& context)
+sdap_config_t ocudu::ocucp::set_rrc_sdap_config(const up_drb_context& context)
 {
   sdap_config_t sdap_cfg;
   sdap_cfg.pdu_session = context.pdu_session_id;
@@ -444,16 +441,16 @@ sdap_config_t srsran::srs_cu_cp::set_rrc_sdap_config(const up_drb_context& conte
   return sdap_cfg;
 }
 
-pdcp_config srsran::srs_cu_cp::set_rrc_pdcp_config(five_qi_t five_qi, const up_resource_manager_cfg& cfg)
+pdcp_config ocudu::ocucp::set_rrc_pdcp_config(five_qi_t five_qi, const up_resource_manager_cfg& cfg)
 {
-  srsran_assert(cfg.five_qi_config.find(five_qi) != cfg.five_qi_config.end(),
-                "Could not find PDCP configuration. 5QI {}",
-                five_qi);
+  ocudu_assert(cfg.five_qi_config.find(five_qi) != cfg.five_qi_config.end(),
+               "Could not find PDCP configuration. 5QI {}",
+               five_qi);
 
   return cfg.five_qi_config.at(five_qi).pdcp;
 }
 
-up_config_update srsran::srs_cu_cp::to_config_update(const up_context& old_context)
+up_config_update ocudu::ocucp::to_config_update(const up_context& old_context)
 {
   up_config_update config;
 
@@ -470,9 +467,9 @@ up_config_update srsran::srs_cu_cp::to_config_update(const up_context& old_conte
   return config;
 }
 
-unsigned srsran::srs_cu_cp::get_dirty_drb_index(drb_id_t drb_id)
+unsigned ocudu::ocucp::get_dirty_drb_index(drb_id_t drb_id)
 {
   unsigned index = drb_id_to_uint(drb_id) - 1;
-  srsran_assert(index < MAX_NOF_DRBS, "Invalid DRB ID when checking for DRB dirtyness");
+  ocudu_assert(index < MAX_NOF_DRBS, "Invalid DRB ID when checking for DRB dirtyness");
   return index;
 }

@@ -12,20 +12,20 @@
 
 #include "apps/services/cmdline/cmdline_command.h"
 #include "apps/services/cmdline/cmdline_command_dispatcher_utils.h"
-#include "srsran/adt/expected.h"
-#include "srsran/cu_cp/cu_cp_command_handler.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/cu_cp/cu_cp_command_handler.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Application command to trigger a handover.
 class handover_app_command : public app_services::cmdline_command
 {
-  srs_cu_cp::cu_cp_command_handler& cu_cp;
+  ocucp::cu_cp_command_handler& cu_cp;
 
 public:
-  explicit handover_app_command(srs_cu_cp::cu_cp_command_handler& cu_cp_) : cu_cp(cu_cp_) {}
+  explicit handover_app_command(ocucp::cu_cp_command_handler& cu_cp_) : cu_cp(cu_cp_) {}
 
   // See interface for documentation.
   std::string_view get_name() const override { return "ho"; }
@@ -70,4 +70,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

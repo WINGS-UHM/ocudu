@@ -11,12 +11,12 @@
 #include "lib/scheduler/config/cell_configuration.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class test_scheduler_cell_metrics_notifier : public scheduler_cell_metrics_notifier
 {

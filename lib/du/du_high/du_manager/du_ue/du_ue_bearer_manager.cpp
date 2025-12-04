@@ -10,12 +10,12 @@
 
 #include "du_ue_bearer_manager.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_ue_srb& du_ue_bearer_manager::add_srb(srb_id_t srb_id)
 {
-  srsran_assert(not srbs().contains(srb_id), "SRB-Id={} already exists", srb_id);
+  ocudu_assert(not srbs().contains(srb_id), "SRB-Id={} already exists", srb_id);
   srbs_.emplace(srb_id);
   srbs_[srb_id].srb_id = srb_id;
   return srbs_[srb_id];
@@ -23,13 +23,13 @@ du_ue_srb& du_ue_bearer_manager::add_srb(srb_id_t srb_id)
 
 void du_ue_bearer_manager::add_drb(std::unique_ptr<du_ue_drb> drb)
 {
-  srsran_assert(drbs().count(drb->drb_id) == 0, "DRB-Id={} already exists", drb->drb_id);
+  ocudu_assert(drbs().count(drb->drb_id) == 0, "DRB-Id={} already exists", drb->drb_id);
   drbs_.emplace(drb->drb_id, std::move(drb));
 }
 
 std::unique_ptr<du_ue_drb> du_ue_bearer_manager::remove_drb(drb_id_t drb_id)
 {
-  srsran_assert(drbs().count(drb_id) > 0, "DRB-Id={} does not exist", drb_id);
+  ocudu_assert(drbs().count(drb_id) > 0, "DRB-Id={} does not exist", drb_id);
   std::unique_ptr<du_ue_drb> drb = std::move(drbs_.at(drb_id));
   drbs_.erase(drb_id);
   return drb;

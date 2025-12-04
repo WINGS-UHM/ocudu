@@ -15,24 +15,24 @@
 #include "../procedures/e2_subscription_delete_procedure.h"
 #include "../procedures/e2_subscription_setup_procedure.h"
 #include "e2_connection_handler.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2ap_configuration.h"
-#include "srsran/e2/e2sm/e2sm.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2ap_configuration.h"
+#include "ocudu/e2/e2sm/e2sm.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <map>
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class e2_event_manager;
 
 class e2_impl final : public e2_interface
 {
 public:
-  e2_impl(srslog::basic_logger&     logger_,
+  e2_impl(ocudulog::basic_logger&   logger_,
           const e2ap_configuration& cfg_,
           e2ap_e2agent_notifier&    agent_notifier_,
           timer_factory             timers_,
@@ -101,7 +101,7 @@ private:
   /// \param[in] msg The received ran_function_id from the e2 setup response message.
   void set_allowed_ran_functions(const uint16_t ran_function_id);
 
-  srslog::basic_logger&                               logger;
+  ocudulog::basic_logger&                             logger;
   const e2ap_configuration&                           cfg;
   timer_factory                                       timers;
   std::map<uint16_t, asn1::e2ap::ran_function_item_s> candidate_ran_functions;
@@ -115,4 +115,4 @@ private:
   std::unique_ptr<e2_message_notifier> tx_pdu_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

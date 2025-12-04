@@ -12,8 +12,8 @@
 #include "cu_up_test_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 /// PDU session handling tests (creation/deletion)
 TEST_F(pdu_session_manager_test, when_valid_pdu_session_setup_item_session_can_be_added)

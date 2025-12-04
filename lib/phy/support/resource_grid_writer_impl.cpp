@@ -9,12 +9,12 @@
  */
 
 #include "resource_grid_writer_impl.h"
-#include "srsran/adt/interval.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/support/resource_grid.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 unsigned resource_grid_writer_impl::get_nof_ports() const
 {
@@ -40,10 +40,10 @@ span<const cf_t> resource_grid_writer_impl::put(unsigned                        
   interval<unsigned, false> l_range(0, get_nof_symbols());
   interval<unsigned, true>  mask_size_range(1, get_nof_subc());
   interval<unsigned, false> port_range(0, get_nof_ports());
-  srsran_assert(l_range.contains(l), "Symbol index (i.e., {}) is out of the range {}.", l_range, l_range);
-  srsran_assert(
+  ocudu_assert(l_range.contains(l), "Symbol index (i.e., {}) is out of the range {}.", l_range, l_range);
+  ocudu_assert(
       mask_size_range.contains(mask.size()), "Mask size (i.e., {}) is out of range {}.", mask.size(), mask_size_range);
-  srsran_assert(port_range.contains(port), "Port identifier (i.e., {}) is out of range {}.", port, port_range);
+  ocudu_assert(port_range.contains(port), "Port identifier (i.e., {}) is out of range {}.", port, port_range);
 
   // Get view of the OFDM symbol subcarriers.
   span<cbf16_t> symb = data.get_view({l, port}).subspan(k_init, mask.size());
@@ -51,14 +51,14 @@ span<const cf_t> resource_grid_writer_impl::put(unsigned                        
   clear_empty(port);
 
   unsigned mask_count = mask.count();
-  srsran_assert(mask_count <= symbols.size(),
-                "The number of active subcarriers (i.e., {}) exceeds the number of symbols (i.e., {}).",
-                mask_count,
-                symbols.size());
+  ocudu_assert(mask_count <= symbols.size(),
+               "The number of active subcarriers (i.e., {}) exceeds the number of symbols (i.e., {}).",
+               mask_count,
+               symbols.size());
 
   // Do a straight copy if the elements of the mask are all contiguous.
   if (mask_count and mask.is_contiguous()) {
-    srsvec::convert(symb.subspan(mask.find_lowest(), mask_count), symbols.first(mask_count));
+    ocuduvec::convert(symb.subspan(mask.find_lowest(), mask_count), symbols.first(mask_count));
     return symbols.last(symbols.size() - mask_count);
   }
 
@@ -79,10 +79,10 @@ span<const cbf16_t> resource_grid_writer_impl::put(unsigned                     
   interval<unsigned, false> l_range(0, get_nof_symbols());
   interval<unsigned, true>  mask_size_range(1, get_nof_subc());
   interval<unsigned, false> port_range(0, get_nof_ports());
-  srsran_assert(l_range.contains(l), "Symbol index (i.e., {}) is out of the range {}.", l_range, l_range);
-  srsran_assert(
+  ocudu_assert(l_range.contains(l), "Symbol index (i.e., {}) is out of the range {}.", l_range, l_range);
+  ocudu_assert(
       mask_size_range.contains(mask.size()), "Mask size (i.e., {}) is out of range {}.", mask.size(), mask_size_range);
-  srsran_assert(port_range.contains(port), "Port identifier (i.e., {}) is out of range {}.", port, port_range);
+  ocudu_assert(port_range.contains(port), "Port identifier (i.e., {}) is out of range {}.", port, port_range);
 
   // Get view of the OFDM symbol subcarriers.
   span<cbf16_t> symb = data.get_view({l, port}).subspan(k_init, mask.size());
@@ -90,14 +90,14 @@ span<const cbf16_t> resource_grid_writer_impl::put(unsigned                     
   clear_empty(port);
 
   unsigned mask_count = mask.count();
-  srsran_assert(mask_count <= symbols.size(),
-                "The number of active subcarriers (i.e., {}) exceeds the number of symbols (i.e., {}).",
-                mask_count,
-                symbols.size());
+  ocudu_assert(mask_count <= symbols.size(),
+               "The number of active subcarriers (i.e., {}) exceeds the number of symbols (i.e., {}).",
+               mask_count,
+               symbols.size());
 
   // Do a straight copy if the elements of the mask are all contiguous.
   if (mask_count and mask.is_contiguous()) {
-    srsvec::copy(symb.subspan(mask.find_lowest(), mask_count), symbols.first(mask_count));
+    ocuduvec::copy(symb.subspan(mask.find_lowest(), mask_count), symbols.first(mask_count));
     return symbols.last(symbols.size() - mask_count);
   }
 
@@ -111,26 +111,26 @@ span<const cbf16_t> resource_grid_writer_impl::put(unsigned                     
 
 void resource_grid_writer_impl::put(unsigned port, unsigned l, unsigned k_init, span<const cf_t> symbols)
 {
-  srsran_assert(k_init + symbols.size() <= get_nof_subc(),
-                "The initial subcarrier index (i.e., {}) plus the number of symbols (i.e., {}) exceeds the maximum "
-                "number of subcarriers (i.e., {})",
-                k_init,
-                symbols.size(),
-                get_nof_subc());
-  srsran_assert(l < get_nof_symbols(),
-                "Symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {})",
-                l,
-                get_nof_symbols());
-  srsran_assert(port < get_nof_ports(),
-                "Port index (i.e., {}) exceeds the maximum number of ports (i.e., {})",
-                port,
-                get_nof_ports());
+  ocudu_assert(k_init + symbols.size() <= get_nof_subc(),
+               "The initial subcarrier index (i.e., {}) plus the number of symbols (i.e., {}) exceeds the maximum "
+               "number of subcarriers (i.e., {})",
+               k_init,
+               symbols.size(),
+               get_nof_subc());
+  ocudu_assert(l < get_nof_symbols(),
+               "Symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {})",
+               l,
+               get_nof_symbols());
+  ocudu_assert(port < get_nof_ports(),
+               "Port index (i.e., {}) exceeds the maximum number of ports (i.e., {})",
+               port,
+               get_nof_ports());
 
   // Select destination OFDM symbol from the resource grid.
   span<cbf16_t> rg_symbol = data.get_view({l, port});
 
   // Copy resource elements.
-  srsvec::convert(rg_symbol.subspan(k_init, symbols.size()), symbols);
+  ocuduvec::convert(rg_symbol.subspan(k_init, symbols.size()), symbols);
   clear_empty(port);
 }
 
@@ -141,21 +141,20 @@ void resource_grid_writer_impl::put(unsigned            port,
                                     span<const cbf16_t> symbols)
 {
   unsigned nof_symbols = symbols.size();
-  srsran_assert(
-      k_init + ((nof_symbols - 1) * stride) < get_nof_subc(),
-      "The initial subcarrier index (i.e., {}) plus the number of RE (i.e., {}) exceeds the maximum number of "
-      "subcarriers (i.e., {})",
-      k_init,
-      (((nof_symbols - 1) * stride) + 1),
-      get_nof_subc());
-  srsran_assert(l < get_nof_symbols(),
-                "Symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {})",
-                l,
-                get_nof_symbols());
-  srsran_assert(port < get_nof_ports(),
-                "Port index (i.e., {}) exceeds the maximum number of ports (i.e., {})",
-                port,
-                get_nof_ports());
+  ocudu_assert(k_init + ((nof_symbols - 1) * stride) < get_nof_subc(),
+               "The initial subcarrier index (i.e., {}) plus the number of RE (i.e., {}) exceeds the maximum number of "
+               "subcarriers (i.e., {})",
+               k_init,
+               (((nof_symbols - 1) * stride) + 1),
+               get_nof_subc());
+  ocudu_assert(l < get_nof_symbols(),
+               "Symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {})",
+               l,
+               get_nof_symbols());
+  ocudu_assert(port < get_nof_ports(),
+               "Port index (i.e., {}) exceeds the maximum number of ports (i.e., {})",
+               port,
+               get_nof_ports());
 
   // Insert symbols.
   span<cbf16_t> rg_symbol = data.get_view({l, port});
@@ -169,14 +168,14 @@ void resource_grid_writer_impl::put(unsigned            port,
 
 span<cbf16_t> resource_grid_writer_impl::get_view(unsigned port, unsigned l)
 {
-  srsran_assert(l < get_nof_symbols(),
-                "Symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {})",
-                l,
-                get_nof_symbols());
-  srsran_assert(port < get_nof_ports(),
-                "Port index (i.e., {}) exceeds the maximum number of ports (i.e., {})",
-                port,
-                get_nof_ports());
+  ocudu_assert(l < get_nof_symbols(),
+               "Symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {})",
+               l,
+               get_nof_symbols());
+  ocudu_assert(port < get_nof_ports(),
+               "Port index (i.e., {}) exceeds the maximum number of ports (i.e., {})",
+               port,
+               get_nof_ports());
   clear_empty(port);
   return data.get_view({l, port});
 }

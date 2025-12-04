@@ -17,7 +17,7 @@ endif (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 # Project setup
 ########################################################################
 cmake_minimum_required(VERSION 3.14)
-project(srsran)
+project(ocudu)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -78,7 +78,7 @@ option(ENABLE_PLUGINS        "Compile plugins in the plugin folder"         ON)
 option(BUILD_TESTING         "Compile tests"                                ON)
 option(ENABLE_GPROF          "Enable gprof"                                 OFF)
 option(FORCE_DEBUG_INFO      "Add debug information to Release build"       OFF)
-option(ENABLE_SRSRAN_TRACY   "Enable using the tracy profiler if available" OFF)
+option(ENABLE_OCUDU_TRACY   "Enable using the tracy profiler if available" OFF)
 if (BUILD_TESTING)
 option(USE_PHY_TESTVECTORS   "Enable testvector PHY tests"                OFF)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -138,7 +138,7 @@ endif (ENABLE_DPDK)
 # libraries to simplify their compilation.
 if (ENABLE_EXPORT)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-  add_custom_target(srsran_exported_libs)
+  add_custom_target(ocudu_exported_libs)
 endif (ENABLE_EXPORT)
 
 # Simple macro that tags libraries to be exported and adds them to the
@@ -146,11 +146,11 @@ endif (ENABLE_EXPORT)
 macro(ADD_TO_EXPORTED_LIBS)
   if(ENABLE_EXPORT)
     # Tag libraries.
-    install(TARGETS ${ARGV} EXPORT srsran_export)
-    # Make libraries dependencies of the srsran_exported_libs dummy
+    install(TARGETS ${ARGV} EXPORT ocudu_export)
+    # Make libraries dependencies of the ocudu_exported_libs dummy
     # target, which can be called to compile all exported libraries
     # at once.
-    add_dependencies(srsran_exported_libs ${ARGV})
+    add_dependencies(ocudu_exported_libs ${ARGV})
   endif(ENABLE_EXPORT)
 endmacro(ADD_TO_EXPORTED_LIBS)
 
@@ -247,7 +247,7 @@ if (ENABLE_GCOV)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif (ENABLE_GCOV)
 
-if(ENABLE_SRSRAN_TRACY)
+if(ENABLE_OCUDU_TRACY)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
 endif()
 
@@ -292,12 +292,12 @@ include(copyright)
 include(GNUInstallDirs)
 
 sbom_generate(
-    OUTPUT       "${CMAKE_INSTALL_PREFIX}/share/srsran.spdx"
-    PROJECT      "srsRAN 5G CU DU"
+    OUTPUT       "${CMAKE_INSTALL_PREFIX}/share/ocudu.spdx"
+    PROJECT      "OCUDU 5G CU DU"
     SUPPLIER     "Software Radio Systems Ltd"
     SUPPLIER_URL "https://srs.io"
-    DOWNLOAD_URL "https://github.com/srsran/srsRAN_Project.git"
-    LICENSE      "LicenseRef-srsRAN"
+    DOWNLOAD_URL "https://github.com/ocudu/OCUDU_Project.git"
+    LICENSE      "LicenseRef-OCUDU"
 )
 
 ########################################################################
@@ -609,7 +609,7 @@ foreach(TMP_DIR ${ALL_HEADER_DIRS})
   file(GLOB_RECURSE TMP_HEADERS "${TMP_DIR}/*.h" "${TMP_DIR}/*.hpp")
   list(APPEND ALL_HEADER_FILES ${TMP_HEADERS})
 endforeach()
-add_custom_target(all_srsran_headers SOURCES ${ALL_HEADER_FILES})
+add_custom_target(all_ocudu_headers SOURCES ${ALL_HEADER_FILES})
 
 ########################################################################
 # Simple function to notify binary targets + Add target to SBOM
@@ -619,7 +619,7 @@ function(notify_binary_target)
     message(STATUS "Adding binary target: ${ARGV}")
     sbom_add(
         TARGET       ${ARGV}
-        LICENSE      "LicenseRef-srsRAN"
+        LICENSE      "LicenseRef-OCUDU"
     )
 endfunction()
 
@@ -662,20 +662,20 @@ endif ()
 # Export (selected) libraries
 ########################################################################
 if(ENABLE_EXPORT)
-  export(EXPORT srsran_export NAMESPACE srsran:: FILE "${CMAKE_BINARY_DIR}/srsran.cmake")
+  export(EXPORT ocudu_export NAMESPACE ocudu:: FILE "${CMAKE_BINARY_DIR}/ocudu.cmake")
 else(ENABLE_EXPORT)
   # Remove any previous export file (if it   exists), since it will become outdated.
-  file(REMOVE "${CMAKE_BINARY_DIR}/srsran.cmake")
+  file(REMOVE "${CMAKE_BINARY_DIR}/ocudu.cmake")
 endif(ENABLE_EXPORT)
 
-message(STATUS "Building srsRAN version ${SRSRAN_VERSION_STRING}")
+message(STATUS "Building OCUDU version ${OCUDU_VERSION_STRING}")
 
 ########################################################################
 # Generate SBOM
 ########################################################################
 parse_copyright_file("${CMAKE_SOURCE_DIR}/COPYRIGHT")
 sbom_add(
-    LICENSE "LicenseRef-srsRAN"
+    LICENSE "LicenseRef-OCUDU"
     NAME    "AGPL-3.0-only"
     FILE    "${CMAKE_SOURCE_DIR}/LICENSE"
 )

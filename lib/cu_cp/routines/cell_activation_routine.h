@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
 #include <unordered_set>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the activation of the cell.
 class cell_activation_routine
@@ -24,7 +24,7 @@ public:
   cell_activation_routine(const cu_cp_configuration&        cu_cp_cfg_,
                           const std::vector<plmn_identity>& plmns_,
                           du_processor_repository&          du_db_,
-                          srslog::basic_logger&             logger_);
+                          ocudulog::basic_logger&           logger_);
   ~cell_activation_routine() = default;
 
   void operator()(coro_context<async_task<void>>& ctx);
@@ -39,7 +39,7 @@ private:
   const cu_cp_configuration&       cu_cp_cfg;
   const std::vector<plmn_identity> plmns;
   du_processor_repository&         du_db;
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
 
   // (Sub-)Routine requests.
   f1ap_gnb_cu_configuration_update f1ap_cu_cfg_update;
@@ -54,5 +54,5 @@ private:
   du_processor*                     du_proc = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

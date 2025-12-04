@@ -12,7 +12,7 @@
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, subcarrier_spacing scs)
 {
@@ -42,9 +42,9 @@ std::ostream& operator<<(std::ostream& os, sch_mapping_type mapping)
   }
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 static ofdm_symbol_range s_and_len(unsigned start, unsigned dur)
 {

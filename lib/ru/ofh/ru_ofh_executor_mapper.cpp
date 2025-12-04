@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/ru/ofh/ru_ofh_executor_mapper.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/ru/ofh/ru_ofh_executor_mapper_factory.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/executors/strand_executor.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ru/ofh/ru_ofh_executor_mapper.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/ru/ofh/ru_ofh_executor_mapper_factory.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/executors/strand_executor.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
 #include <cmath>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -31,7 +31,7 @@ public:
                                      std::unique_ptr<task_executor> uplink_exec_) :
     txrx_exec(txrx_exec_), downlink_exec(downlink_exec_), uplink_exec(std::move(uplink_exec_))
   {
-    srsran_assert(uplink_exec, "Invalid OFH uplink executor");
+    ocudu_assert(uplink_exec, "Invalid OFH uplink executor");
   }
 
   // See interface for documentation.
@@ -87,10 +87,10 @@ public:
   // See interface for documentation.
   ru_ofh_sector_executor_mapper& get_sector_mapper(unsigned cell_index) override
   {
-    srsran_assert(cell_index < sector_mappers.size(),
-                  "The cell index {} exceeds the number of cells {}",
-                  cell_index,
-                  sector_mappers.size());
+    ocudu_assert(cell_index < sector_mappers.size(),
+                 "The cell index {} exceeds the number of cells {}",
+                 cell_index,
+                 sector_mappers.size());
     return sector_mappers[cell_index];
   }
 
@@ -105,7 +105,7 @@ private:
 } // namespace
 
 std::unique_ptr<ru_ofh_executor_mapper>
-srsran::create_ofh_ru_executor_mapper(const ru_ofh_executor_mapper_config& config)
+ocudu::create_ofh_ru_executor_mapper(const ru_ofh_executor_mapper_config& config)
 {
   return std::make_unique<ru_ofh_executor_mapper_impl>(config);
 }

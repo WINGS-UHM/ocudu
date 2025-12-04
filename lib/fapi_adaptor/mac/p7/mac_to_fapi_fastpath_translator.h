@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/precoding_matrix_mapper.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_mapper.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/mac/mac_cell_slot_handler.h"
-#include "srsran/scheduler/result/pdcch_info.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_mapper.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/mac/mac_cell_slot_handler.h"
+#include "ocudu/scheduler/result/pdcch_info.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace fapi {
 class slot_last_message_notifier;
@@ -37,7 +37,7 @@ struct mac_to_fapi_fastpath_translator_config {
 /// MAC-to-FAPI fastpath translator dependencies.
 struct mac_to_fapi_fastpath_translator_dependencies {
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// FAPI slot message gateway.
   fapi::slot_message_gateway& msg_gw;
   /// FAPI slot last message gateway.
@@ -87,7 +87,7 @@ private:
   /// Cell number of resource blocks.
   const unsigned cell_nof_prbs;
   /// FAPI logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// FAPI message gateway to the outside world.
   fapi::slot_message_gateway& msg_gw;
   /// Slot-specific last message notifier.
@@ -106,4 +106,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

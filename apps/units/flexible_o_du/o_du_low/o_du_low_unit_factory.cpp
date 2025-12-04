@@ -13,22 +13,22 @@
 #include "du_low_config.h"
 #include "du_low_config_translator.h"
 #include "du_low_hal_factory.h"
-#include "srsran/du/du_low/o_du_low_factory.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/du/du_low/o_du_low_factory.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 o_du_low_unit_factory::o_du_low_unit_factory(const std::optional<du_low_unit_hal_config>& hal_config) :
   hal_dependencies(make_du_low_hal_dependencies(hal_config))
 {
 }
 
-static srs_du::du_low_dependencies generate_du_low_dependencies(const o_du_low_unit_dependencies& dependencies,
-                                                                const o_du_low_hal_dependencies&  hal_dependencies,
-                                                                unsigned                          nof_cells)
+static odu::du_low_dependencies generate_du_low_dependencies(const o_du_low_unit_dependencies& dependencies,
+                                                             const o_du_low_hal_dependencies&  hal_dependencies,
+                                                             unsigned                          nof_cells)
 {
-  srs_du::du_low_dependencies out_deps;
-  out_deps.logger = &srslog::fetch_basic_logger("DU");
+  odu::du_low_dependencies out_deps;
+  out_deps.logger = &ocudulog::fetch_basic_logger("DU");
   out_deps.cells.reserve(nof_cells);
 
   upper_phy_factory_dependencies& upper_phy_common_deps = out_deps.upper_phy_common_deps;
@@ -53,7 +53,7 @@ static srs_du::du_low_dependencies generate_du_low_dependencies(const o_du_low_u
 
 o_du_low_unit o_du_low_unit_factory::create(const o_du_low_unit_config& params, const o_du_low_unit_dependencies& deps)
 {
-  srs_du::o_du_low_config o_du_low_cfg;
+  odu::o_du_low_config o_du_low_cfg;
 
   // Copy FAPI configuration.
   o_du_low_cfg.fapi_cfg = params.fapi_cfg;
@@ -65,11 +65,11 @@ o_du_low_unit o_du_low_unit_factory::create(const o_du_low_unit_config& params, 
   generate_o_du_low_config(o_du_low_cfg, params.du_low_unit_cfg, params.cells);
 
   // Generate O-DU low dependencies.
-  srs_du::o_du_low_dependencies o_du_low_deps;
+  odu::o_du_low_dependencies o_du_low_deps;
   o_du_low_deps.du_low_deps = generate_du_low_dependencies(deps, hal_dependencies, params.cells.size());
 
   o_du_low_unit unit;
-  unit.o_du_lo = srs_du::make_o_du_low(o_du_low_cfg, o_du_low_deps);
+  unit.o_du_lo = odu::make_o_du_low(o_du_low_cfg, o_du_low_deps);
   report_error_if_not(unit.o_du_lo, "Invalid O-DU low");
 
   return unit;

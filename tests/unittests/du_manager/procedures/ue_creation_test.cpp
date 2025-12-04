@@ -10,13 +10,13 @@
 
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_creation_procedure.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::rrc_nr;
 
 cell_group_cfg_s unpack_cell_group_config(const byte_buffer& container)
@@ -24,7 +24,7 @@ cell_group_cfg_s unpack_cell_group_config(const byte_buffer& container)
   cell_group_cfg_s cell_group;
   asn1::cbit_ref   bref(container);
   auto             err = cell_group.unpack(bref);
-  srsran_assert(err == asn1::SRSASN_SUCCESS, "Failed to unpack container");
+  ocudu_assert(err == asn1::OCUDUASN_SUCCESS, "Failed to unpack container");
   return cell_group;
 }
 

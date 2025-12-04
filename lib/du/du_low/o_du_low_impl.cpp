@@ -9,13 +9,13 @@
  */
 
 #include "o_du_low_impl.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
-#include "srsran/phy/upper/upper_phy.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/phy/upper/upper_phy.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 o_du_low_impl::o_du_low_impl(std::unique_ptr<du_low>                                  du_lo_,
                              std::unique_ptr<fapi_adaptor::phy_fapi_fastpath_adaptor> fapi_adaptor_,
@@ -24,8 +24,8 @@ o_du_low_impl::o_du_low_impl(std::unique_ptr<du_low>                            
   fapi_fastpath_adaptor(std::move(fapi_adaptor_)),
   metrics_collector(du_lo->get_metrics_collector())
 {
-  srsran_assert(du_lo, "Invalid DU low");
-  srsran_assert(fapi_fastpath_adaptor, "Invalid PHY-FAPI adapter");
+  ocudu_assert(du_lo, "Invalid DU low");
+  ocudu_assert(fapi_fastpath_adaptor, "Invalid PHY-FAPI adapter");
 
   for (unsigned i = 0; i != nof_cells; ++i) {
     upper_phy&                                      upper          = du_lo->get_upper_phy(i);
@@ -59,6 +59,6 @@ void o_du_low_impl::start()
 
 void o_du_low_impl::stop()
 {
-  srsran_assert(du_lo, "Invalid DU low object");
+  ocudu_assert(du_lo, "Invalid DU low object");
   du_lo->get_operation_controller().stop();
 }

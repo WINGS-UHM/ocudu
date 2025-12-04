@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Concurrent Sounding Reference Signal propagation channel estimator pool.
 class srs_estimator_pool : public srs_estimator
@@ -24,7 +24,7 @@ public:
 
   /// Creates a pool from a list of estimators. Ownership is transferred to the pool.
   explicit srs_estimator_pool(std::shared_ptr<estimator_pool> estimators_) :
-    logger(srslog::fetch_basic_logger("PHY")), estimators(std::move(estimators_))
+    logger(ocudulog::fetch_basic_logger("PHY")), estimators(std::move(estimators_))
   {
   }
 
@@ -40,8 +40,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&           logger;
+  ocudulog::basic_logger&         logger;
   std::shared_ptr<estimator_pool> estimators;
 };
 
-} // namespace srsran
+} // namespace ocudu

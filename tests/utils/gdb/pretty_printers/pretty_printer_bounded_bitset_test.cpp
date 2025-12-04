@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/bounded_bitset.h"
+#include "ocudu/adt/bounded_bitset.h"
 
 int main()
 {
-  srsran::bounded_bitset<5> a(4);
+  ocudu::bounded_bitset<5> a(4);
 
   a.flip(2);
 

@@ -11,12 +11,12 @@
 #pragma once
 
 #include "f1ap_du_event_manager.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class f1ap_du_ue_manager;
 
@@ -37,14 +37,14 @@ private:
   void                     send_f1_reset();
   f1_reset_acknowledgement handle_f1_reset_completion() const;
 
-  const f1_reset_request req;
-  f1ap_message_notifier& msg_notifier;
-  f1ap_event_manager&    ev_mng;
-  f1ap_du_ue_manager&    ues;
-  srslog::basic_logger&  logger;
+  const f1_reset_request  req;
+  f1ap_message_notifier&  msg_notifier;
+  f1ap_event_manager&     ev_mng;
+  f1ap_du_ue_manager&     ues;
+  ocudulog::basic_logger& logger;
 
   f1ap_transaction transaction;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

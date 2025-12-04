@@ -10,15 +10,15 @@
 
 #include "mock_amf.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/adt/mutexed_mpmc_queue.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/mutexed_mpmc_queue.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <atomic>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// \brief Mock class for the interface between CU-CP and AMF that accounts for the fact that the CU-CP may push PDUs
 /// from different threads.
@@ -68,7 +68,7 @@ public:
     };
 
     if (connection_dropped) {
-      srslog::fetch_basic_logger("TEST").warning("AMF connection already dropped");
+      ocudulog::fetch_basic_logger("TEST").warning("AMF connection already dropped");
       return nullptr;
     }
 
@@ -110,7 +110,7 @@ private:
   ngap_pdu_queue pending_tx_pdus;
 };
 
-std::unique_ptr<mock_amf> srsran::srs_cu_cp::create_mock_amf()
+std::unique_ptr<mock_amf> ocudu::ocucp::create_mock_amf()
 {
   return std::make_unique<synchronized_mock_amf>();
 }

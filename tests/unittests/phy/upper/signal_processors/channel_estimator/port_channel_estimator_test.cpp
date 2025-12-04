@@ -15,16 +15,16 @@
 /// vectors.
 
 #include "port_channel_estimator_test_data.h"
-#include "srsran/phy/upper/channel_estimation.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/factories.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
+#include "ocudu/phy/upper/channel_estimation.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/factories.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \cond
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& tc)
 {
@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& tc)
                            tc.cfg.scaling);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 class ChannelEstFixture : public ::testing::TestWithParam<test_case_t>

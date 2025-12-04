@@ -1,0 +1,37 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/adt/span.h"
+#include "ocudu/e2/e2_cu.h"
+#include "ocudu/pdcp/pdcp_metrics.h"
+#include <deque>
+
+namespace ocudu {
+
+constexpr unsigned MAX_UE_METRICS = 10;
+
+/// \brief Class used to receive metrics reports from scheduler and sends them to the e2 interface.
+class e2_cu_metrics_connector : public e2_cu_metrics_notifier, public e2_cu_metrics_interface
+{
+public:
+  e2_cu_metrics_connector();
+
+  ~e2_cu_metrics_connector() = default;
+
+  void report_metrics(const pdcp_metrics_container& metrics) override;
+
+  void connect_e2_cu_meas_provider(std::unique_ptr<e2_cu_metrics_notifier> meas_provider) override;
+
+private:
+  std::unique_ptr<e2_cu_metrics_notifier> e2_meas_provider;
+};
+} // namespace ocudu

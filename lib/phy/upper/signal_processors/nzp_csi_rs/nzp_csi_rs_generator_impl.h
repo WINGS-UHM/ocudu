@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_generator.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a parameter validator for \ref nzp_csi_rs_generator_impl.
 class nzp_csi_rs_configuration_validator_impl : public nzp_csi_rs_configuration_validator
@@ -96,12 +96,12 @@ public:
                             std::unique_ptr<resource_grid_mapper>    mapper_) :
     prg(std::move(prg_)), mapper(std::move(mapper_))
   {
-    srsran_assert(prg, "Invalid pseudo random generator.");
-    srsran_assert(mapper, "Invalid resource grid mapper.");
+    ocudu_assert(prg, "Invalid pseudo random generator.");
+    ocudu_assert(mapper, "Invalid resource grid mapper.");
   }
 
   // See interface for documentation.
   void map(resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

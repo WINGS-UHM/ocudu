@@ -13,7 +13,7 @@
 #include "pdcp_rx_test_helpers.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Fixture class for PDCP tests
 /// It requires TEST_P() and INSTANTIATE_TEST_SUITE_P() to create/spawn tests for each supported SN size
@@ -25,18 +25,18 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init RLC logger
-    srslog::fetch_basic_logger("PDCP", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("PDCP", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("PDCP", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("PDCP", false).set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
-} // namespace srsran
+} // namespace ocudu

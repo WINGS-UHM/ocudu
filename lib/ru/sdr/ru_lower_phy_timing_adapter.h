@@ -11,10 +11,10 @@
 #pragma once
 
 #include "ru_radio_event_handler.h"
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
-#include "srsran/ru/ru_timing_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/ru/ru_timing_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a lower physical layer to Radio Unit timing adapter.
 class ru_lower_phy_timing_adapter : public lower_phy_timing_notifier
@@ -44,4 +44,4 @@ private:
   ru_timing_notifier& timing_handler;
 };
 
-} // namespace srsran
+} // namespace ocudu

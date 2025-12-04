@@ -10,11 +10,11 @@
 
 #include "phy_to_fapi_time_event_fastpath_translator.h"
 #include "fapi_to_phy_fastpath_translator.h"
-#include "srsran/fapi/message_builders.h"
-#include "srsran/fapi/message_validators.h"
-#include "srsran/phy/upper/upper_phy_timing_context.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/fapi/message_validators.h"
+#include "ocudu/phy/upper/upper_phy_timing_context.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {

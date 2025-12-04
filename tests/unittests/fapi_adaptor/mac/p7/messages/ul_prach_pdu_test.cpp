@@ -12,7 +12,7 @@
 #include "prach.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittests;
 

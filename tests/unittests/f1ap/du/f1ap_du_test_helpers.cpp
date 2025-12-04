@@ -12,27 +12,27 @@
 #include "lib/f1ap/f1ap_asn1_utils.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
 #include "unittests/f1ap/common/f1ap_du_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/pdcp/pdcp_sn_util.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-gnb_du_ue_f1ap_id_t srsran::srs_du::generate_random_gnb_du_ue_f1ap_id()
+gnb_du_ue_f1ap_id_t ocudu::odu::generate_random_gnb_du_ue_f1ap_id()
 {
   return int_to_gnb_du_ue_f1ap_id(test_rgen::uniform_int<uint64_t>(
       gnb_du_ue_f1ap_id_to_uint(gnb_du_ue_f1ap_id_t::min), gnb_du_ue_f1ap_id_to_uint(gnb_du_ue_f1ap_id_t::max) - 1));
 }
 
-f1_setup_request_message srsran::srs_du::generate_f1_setup_request_message()
+f1_setup_request_message ocudu::odu::generate_f1_setup_request_message()
 {
   f1_setup_request_message      request_msg = {};
   du_manager_params::ran_params ran_params;
-  ran_params.gnb_du_name = "srsgnb";
+  ran_params.gnb_du_name = "ocudu";
   ran_params.gnb_du_id   = (gnb_du_id_t)1;
   ran_params.rrc_version = 1;
   du_cell_config cell    = config_helpers::make_default_du_cell_config();
@@ -42,7 +42,7 @@ f1_setup_request_message srsran::srs_du::generate_f1_setup_request_message()
   return request_msg;
 }
 
-asn1::f1ap::drbs_to_be_setup_item_s srsran::srs_du::generate_drb_am_setup_item(drb_id_t drbid)
+asn1::f1ap::drbs_to_be_setup_item_s ocudu::odu::generate_drb_am_setup_item(drb_id_t drbid)
 {
   using namespace asn1::f1ap;
 
@@ -73,7 +73,7 @@ asn1::f1ap::drbs_to_be_setup_item_s srsran::srs_du::generate_drb_am_setup_item(d
   return drb;
 }
 
-asn1::f1ap::drbs_to_be_setup_mod_item_s srsran::srs_du::generate_drb_am_mod_item(drb_id_t drbid)
+asn1::f1ap::drbs_to_be_setup_mod_item_s ocudu::odu::generate_drb_am_mod_item(drb_id_t drbid)
 {
   using namespace asn1::f1ap;
   drbs_to_be_setup_mod_item_s drb;
@@ -103,7 +103,7 @@ asn1::f1ap::drbs_to_be_setup_mod_item_s srsran::srs_du::generate_drb_am_mod_item
   return drb;
 }
 
-f1ap_message srsran::srs_du::generate_ue_context_release_command()
+f1ap_message ocudu::odu::generate_ue_context_release_command()
 {
   using namespace asn1::f1ap;
   f1ap_message msg;
@@ -122,10 +122,10 @@ f1ap_message srsran::srs_du::generate_ue_context_release_command()
   return msg;
 }
 
-f1ap_message srsran::srs_du::generate_dl_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                              gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                              srb_id_t            srb_id,
-                                                              byte_buffer         rrc_container)
+f1ap_message ocudu::odu::generate_dl_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                          gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                          srb_id_t            srb_id,
+                                                          byte_buffer         rrc_container)
 {
   using namespace asn1::f1ap;
   f1ap_message msg;
@@ -170,8 +170,8 @@ dummy_f1c_connection_client::handle_du_connection_request(std::unique_ptr<f1ap_m
 
 f1ap_du_test::f1ap_du_test()
 {
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-  srslog::init();
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   f1ap = create_f1ap(f1c_gw, f1ap_du_cfg_handler, ctrl_worker, ue_exec_mapper, paging_handler, timer_service);
   f1ap_du_cfg_handler.connect(*f1ap);
@@ -182,14 +182,14 @@ f1ap_du_test::~f1ap_du_test()
   run_f1_removal_procedure();
 
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }
 
 void f1ap_du_test::run_f1_setup_procedure()
 {
   // > Establish connection to CU-CP.
   bool ret = f1ap->connect_to_cu_cp();
-  srsran_assert(ret, "Failed to connect to CU-CP");
+  ocudu_assert(ret, "Failed to connect to CU-CP");
 
   // > Launch F1 setup procedure
   f1_setup_request_message request_msg = generate_f1_setup_request_message();

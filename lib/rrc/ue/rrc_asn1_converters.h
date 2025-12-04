@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/security/security.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/security/security.h"
 #include <string>
 #include <vector>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Converts type \c pdcp_discard_timer to an RRC NR ASN.1 type.
 /// \param[in] discard_timer discard timer object.
@@ -106,5 +106,5 @@ cu_cp_amf_identifier_t asn1_to_amf_identifier(const asn1::fixed_bitstring<24>& a
 /// \return The common establishment cause object where the result of the conversion is stored.
 establishment_cause_t asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

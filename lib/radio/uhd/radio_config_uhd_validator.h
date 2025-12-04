@@ -12,9 +12,9 @@
 
 #include "radio_uhd_device.h"
 #include "radio_uhd_multi_usrp.h"
-#include "srsran/radio/radio_configuration.h"
+#include "ocudu/radio/radio_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Radio configuration validator for uhd based radios.
 ///
@@ -31,4 +31,4 @@ public:
   bool is_configuration_valid(const radio_configuration::radio& config) const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

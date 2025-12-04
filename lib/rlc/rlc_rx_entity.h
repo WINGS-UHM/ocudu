@@ -13,10 +13,10 @@
 #include "rlc_bearer_logger.h"
 #include "rlc_bearer_metrics_collector.h"
 #include "rlc_rx_metrics_container.h"
-#include "srsran/pcap/rlc_pcap.h"
-#include "srsran/rlc/rlc_rx.h"
+#include "ocudu/pcap/rlc_pcap.h"
+#include "ocudu/rlc/rlc_rx.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Base class used for receiving RLC bearers.
 /// It provides interfaces for the RLC bearers, for the lower layers
@@ -74,4 +74,4 @@ public:
   rlc_rx_metrics get_metrics() { return metrics.get_metrics(); }
 };
 
-} // namespace srsran
+} // namespace ocudu

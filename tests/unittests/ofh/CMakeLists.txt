@@ -17,5 +17,5 @@ add_subdirectory(support)
 add_subdirectory(transmitter)
 
 add_executable(slot_symbol_point_test slot_symbol_point_test.cpp)
-target_link_libraries(slot_symbol_point_test srslog gtest gtest_main)
+target_link_libraries(slot_symbol_point_test ocudulog gtest gtest_main)
 gtest_discover_tests(slot_symbol_point_test)

@@ -11,13 +11,13 @@
 #include "e1_release_procedure.h"
 #include "../ue_context/e1ap_cu_cp_ue_context.h"
 #include "cu_cp/ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 e1_release_procedure::e1_release_procedure(const asn1::e1ap::e1_release_request_s& request_,
                                            cu_up_index_t                           cu_up_index_,
@@ -25,7 +25,7 @@ e1_release_procedure::e1_release_procedure(const asn1::e1ap::e1_release_request_
                                            e1ap_cu_cp_notifier&                    cu_cp_notifier_,
                                            e1ap_ue_context_list&                   ue_list_,
                                            timer_factory                           timers_,
-                                           srslog::basic_logger&                   logger_) :
+                                           ocudulog::basic_logger&                 logger_) :
   request(request_),
   cu_up_index(cu_up_index_),
   pdu_notifier(pdu_notifier_),

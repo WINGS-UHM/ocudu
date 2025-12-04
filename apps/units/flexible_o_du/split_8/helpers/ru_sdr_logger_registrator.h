@@ -12,19 +12,19 @@
 
 #include "ru_sdr_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers the SDR Radio Unit loggers in the logger service.
 inline void register_ru_sdr_logs(const ru_sdr_unit_logger_config& log_cfg)
 {
-  srslog::basic_logger& phy_logger = srslog::fetch_basic_logger("PHY", true);
+  ocudulog::basic_logger& phy_logger = ocudulog::fetch_basic_logger("PHY", true);
   phy_logger.set_level(log_cfg.phy_level);
 
-  srslog::basic_logger& rf_logger = srslog::fetch_basic_logger("RF", false);
+  ocudulog::basic_logger& rf_logger = ocudulog::fetch_basic_logger("RF", false);
   rf_logger.set_level(log_cfg.radio_level);
 
-  srslog::basic_logger& ru_logger = srslog::fetch_basic_logger("RU", true);
+  ocudulog::basic_logger& ru_logger = ocudulog::fetch_basic_logger("RU", true);
   ru_logger.set_level(log_cfg.radio_level);
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -15,21 +15,21 @@
 #include "lib/scheduler/ue_scheduling/ue_fallback_scheduler.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pcch/pcch_configuration.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pcch/pcch_configuration.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 std::random_device rd;
 std::mt19937       g(rd());
 
 uint64_t get_random_uint(uint64_t min, uint64_t max)
 {
-  srsran_assert(min <= max, "Minimum value is greater than maximum value");
+  ocudu_assert(min <= max, "Minimum value is greater than maximum value");
   return std::uniform_int_distribution<uint64_t>{min, max}(g);
 }
 
@@ -62,8 +62,8 @@ public:
   using five_g_s_tmsi = uint64_t;
 
   slot_point                             current_slot{0, 0};
-  srslog::basic_logger&                  mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger&                  test_logger = srslog::fetch_basic_logger("TEST", true);
+  ocudulog::basic_logger&                mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger&                test_logger = ocudulog::fetch_basic_logger("TEST", true);
   std::optional<paging_sched_test_bench> bench;
   // We use this value to account for the case when the PDSCH or PUSCH is allocated several slots in advance.
   unsigned                max_k_value = 0;
@@ -77,7 +77,7 @@ public:
     for (unsigned i = 0; i != max_k_value; ++i) {
       run_slot();
     }
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void setup_sched(const scheduler_expert_config&                  expert_cfg,
@@ -136,8 +136,8 @@ public:
 
   sched_cell_configuration_request_message
   create_custom_cell_config_request(duplex_mode          duplx_mode,
-                                    subcarrier_spacing   scs        = srsran::subcarrier_spacing::kHz30,
-                                    bs_channel_bandwidth carrier_bw = srsran::bs_channel_bandwidth::MHz20) const
+                                    subcarrier_spacing   scs        = ocudu::subcarrier_spacing::kHz30,
+                                    bs_channel_bandwidth carrier_bw = ocudu::bs_channel_bandwidth::MHz20) const
   {
     cell_config_builder_params cell_cfg{};
     if (duplx_mode == duplex_mode::TDD) {
@@ -203,15 +203,15 @@ protected:
 
 TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_gt_0)
 {
-  const std::vector<srsran::pcch_config::nof_po_per_pf> possible_ns_values = {srsran::pcch_config::nof_po_per_pf::one,
-                                                                              srsran::pcch_config::nof_po_per_pf::two,
-                                                                              srsran::pcch_config::nof_po_per_pf::four};
-  const std::vector<srsran::pcch_config::nof_pf_per_drx_cycle> possible_nof_pf_per_drx_values = {
-      srsran::pcch_config::nof_pf_per_drx_cycle::oneT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::halfT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::quarterT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::oneEighthT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
+  const std::vector<ocudu::pcch_config::nof_po_per_pf> possible_ns_values = {ocudu::pcch_config::nof_po_per_pf::one,
+                                                                             ocudu::pcch_config::nof_po_per_pf::two,
+                                                                             ocudu::pcch_config::nof_po_per_pf::four};
+  const std::vector<ocudu::pcch_config::nof_pf_per_drx_cycle> possible_nof_pf_per_drx_values = {
+      ocudu::pcch_config::nof_pf_per_drx_cycle::oneT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::halfT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::quarterT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::oneEighthT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
 
   auto cell_cfg_request = create_custom_cell_config_request(params.duplx_mode);
   // Modify to have more than one Paging occasion per PF.
@@ -239,11 +239,11 @@ TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_gt_0)
 
 TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_eq_0)
 {
-  const std::vector<srsran::pcch_config::nof_pf_per_drx_cycle> possible_nof_pf_per_drx_values = {
-      srsran::pcch_config::nof_pf_per_drx_cycle::halfT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::quarterT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::oneEighthT,
-      srsran::pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
+  const std::vector<ocudu::pcch_config::nof_pf_per_drx_cycle> possible_nof_pf_per_drx_values = {
+      ocudu::pcch_config::nof_pf_per_drx_cycle::halfT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::quarterT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::oneEighthT,
+      ocudu::pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
   auto sched_cell_cfg = create_custom_cell_config_request(params.duplx_mode);
   // In default config Paging Search Space is set to 1. Therefore, modify it to be equal to 0 for this test case.
   sched_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(0);
@@ -312,8 +312,8 @@ TEST_F(paging_sched_special_case_tester, successfully_allocated_paging_grant_5mh
   const unsigned max_paging_retries  = 3;
   const uint16_t drx_cycle_in_nof_rf = 128;
 
-  auto sched_cell_cfg = create_custom_cell_config_request(
-      srsran::duplex_mode::FDD, subcarrier_spacing::kHz15, bs_channel_bandwidth::MHz5);
+  auto sched_cell_cfg =
+      create_custom_cell_config_request(ocudu::duplex_mode::FDD, subcarrier_spacing::kHz15, bs_channel_bandwidth::MHz5);
 
   // Shuffle between SearchSpace#0 and SearchSpace#1.
   const auto ss_id = to_search_space_id(get_random_uint(0, 1));
@@ -322,7 +322,7 @@ TEST_F(paging_sched_special_case_tester, successfully_allocated_paging_grant_5mh
     sched_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(0);
     // Since we support CORESET multiplexing pattern 1. The value of N (Number of Paging Frames per DRX Cycle) can be 2,
     // 4, 8, 16).
-    sched_cell_cfg.dl_cfg_common.pcch_cfg.nof_pf = srsran::pcch_config::nof_pf_per_drx_cycle::halfT;
+    sched_cell_cfg.dl_cfg_common.pcch_cfg.nof_pf = ocudu::pcch_config::nof_pf_per_drx_cycle::halfT;
   }
 
   setup_sched(create_expert_config(max_paging_mcs, max_paging_retries), sched_cell_cfg);
@@ -372,8 +372,8 @@ TEST_F(paging_sched_partial_slot_tester, successfully_allocated_paging_grant_ss_
   // of UE fall in partial slot of above set TDD configuration. i.e. we would like to force Paging Occasion index of UE
   // to be 3rd PDCCH Monitoring Occasion which corresponds to 3rd in SearchSpace#1 used for Paging (SS#1 is monitored in
   // every DL slot).
-  cell_cfg_request.dl_cfg_common.pcch_cfg.ns     = srsran::pcch_config::nof_po_per_pf::four;
-  cell_cfg_request.dl_cfg_common.pcch_cfg.nof_pf = srsran::pcch_config::nof_pf_per_drx_cycle::oneT;
+  cell_cfg_request.dl_cfg_common.pcch_cfg.ns     = ocudu::pcch_config::nof_po_per_pf::four;
+  cell_cfg_request.dl_cfg_common.pcch_cfg.nof_pf = ocudu::pcch_config::nof_pf_per_drx_cycle::oneT;
   setup_sched(create_expert_config(max_paging_mcs, max_paging_retries), cell_cfg_request);
 
   // N value used in equation found at TS 38.304, clause 7.1.

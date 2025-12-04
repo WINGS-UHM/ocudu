@@ -10,9 +10,9 @@
 
 #include "upper_phy_impl.h"
 #include "upper_phy_rx_symbol_handler_printer_decorator.h"
-#include "srsran/phy/upper/upper_phy_timing_notifier.h"
+#include "ocudu/phy/upper/upper_phy_timing_notifier.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -28,7 +28,7 @@ public:
 static upper_phy_timing_notifier_dummy notifier_dummy;
 
 upper_phy_impl::upper_phy_impl(upper_phy_impl_config&& config) :
-  logger(srslog::fetch_basic_logger("PHY", true)),
+  logger(ocudulog::fetch_basic_logger("PHY", true)),
   metrics_collector(std::move(config.metrics_collector)),
   rx_buf_pool(std::move(config.rx_buf_pool)),
   dl_rg_pool(std::move(config.dl_rg_pool)),
@@ -38,20 +38,20 @@ upper_phy_impl::upper_phy_impl(upper_phy_impl_config&& config) :
   ul_pdu_validator(std::move(config.ul_pdu_validator)),
   ul_request_processor(*config.rx_symbol_request_notifier,
                        config.prach_buffers,
-                       srslog::fetch_basic_logger("PHY", true)),
+                       ocudulog::fetch_basic_logger("PHY", true)),
   rx_results_notifier(std::move(config.rx_results_notifier)),
   rx_symbol_handler(std::move(config.rx_symbol_handler)),
   timing_handler(notifier_dummy),
   error_handler(ul_processor_pool->get_slot_processor_pool())
 {
-  srsran_assert(dl_processor_pool, "Invalid downlink processor pool");
-  srsran_assert(dl_rg_pool, "Invalid downlink resource grid pool");
-  srsran_assert(ul_processor_pool, "Invalid uplink processor pool");
-  srsran_assert(rx_buf_pool, "Invalid receive buffer pool");
-  srsran_assert(dl_pdu_validator, "Invalid downlink PDU validator");
-  srsran_assert(ul_pdu_validator, "Invalid uplink PDU validator");
-  srsran_assert(rx_results_notifier, "Invalid receive results notifier");
-  srsran_assert(rx_symbol_handler, "Invalid Rx symbol handler");
+  ocudu_assert(dl_processor_pool, "Invalid downlink processor pool");
+  ocudu_assert(dl_rg_pool, "Invalid downlink resource grid pool");
+  ocudu_assert(ul_processor_pool, "Invalid uplink processor pool");
+  ocudu_assert(rx_buf_pool, "Invalid receive buffer pool");
+  ocudu_assert(dl_pdu_validator, "Invalid downlink PDU validator");
+  ocudu_assert(ul_pdu_validator, "Invalid uplink PDU validator");
+  ocudu_assert(rx_results_notifier, "Invalid receive results notifier");
+  ocudu_assert(rx_symbol_handler, "Invalid Rx symbol handler");
 
   logger.set_level(config.log_level);
 }
@@ -101,7 +101,7 @@ void upper_phy_impl::set_error_notifier(upper_phy_error_notifier& notifier)
   error_handler.set_error_notifier(notifier);
 }
 
-void upper_phy_impl::set_timing_notifier(srsran::upper_phy_timing_notifier& notifier)
+void upper_phy_impl::set_timing_notifier(ocudu::upper_phy_timing_notifier& notifier)
 {
   timing_handler.set_upper_phy_notifier(notifier);
 }

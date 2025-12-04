@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/support/timers.h"
+#include "ocudu/support/timers.h"
 #include "cameron314/concurrentqueue.h"
-#include "srsran/adt/intrusive_list.h"
-#include "srsran/adt/span.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/intrusive_list.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <deque>
 #include <utility>
 #include <variant>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace timer_detail;
 
 /// Timer Wheel configuration parameters.
@@ -63,7 +63,7 @@ class timer_update_signaller
   static constexpr size_t default_queue_capacity        = 16384;
 
 public:
-  explicit timer_update_signaller(srslog::basic_logger& logger_, size_t initial_capacity = default_queue_capacity) :
+  explicit timer_update_signaller(ocudulog::basic_logger& logger_, size_t initial_capacity = default_queue_capacity) :
     logger(logger_), commands(initial_capacity), cmd_dequeuer(commands), temp_cmd_buffer(initial_batch_size)
   {
   }
@@ -107,7 +107,7 @@ private:
     return nread;
   }
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // Queue of timers with pending events.
   moodycamel::ConcurrentQueue<timer_id_t>                   commands;
@@ -138,7 +138,7 @@ public:
   /// Push a new action from the frontend to the backend.
   void push(timer_id_t tid, const std::variant<cmd_t::start, cmd_t::stop, cmd_t::create, cmd_t::destroy>& action)
   {
-    srsran_sanity_check(tid != timer_id_t::invalid, "Invalid timer id");
+    ocudu_sanity_check(tid != timer_id_t::invalid, "Invalid timer id");
     // increase the "epoch", which will invalidate other events for this timer.
     cmd_id_t new_cmd_id = cmd_id.fetch_add(1, std::memory_order::memory_order_relaxed) + 1;
     // prepare new action.
@@ -157,9 +157,9 @@ public:
       // events to process for this timer. We avoid notifying the backend again in this case.
       backend_signaller.notify_timer_update(tid);
     }
-    srsran_sanity_check(new_cmd_id == cmd_id.load(std::memory_order_relaxed),
-                        "Detected race condition for timer {}",
-                        fmt::underlying(tid));
+    ocudu_sanity_check(new_cmd_id == cmd_id.load(std::memory_order_relaxed),
+                       "Detected race condition for timer {}",
+                       fmt::underlying(tid));
   }
 
   /// Called by the backend to pop the pending action for this timer. Returns false if no action is pending.
@@ -221,7 +221,7 @@ public:
   /// Set timer duration. If it is running, restart timer.
   void set(timer_duration dur)
   {
-    srsran_assert(dur <= MAX_TIMER_DURATION, "Invalid timer duration ({}>{})", dur.count(), MAX_TIMER_DURATION.count());
+    ocudu_assert(dur <= MAX_TIMER_DURATION, "Invalid timer duration ({}>{})", dur.count(), MAX_TIMER_DURATION.count());
     duration = dur;
     if (state == state_t::running) {
       // If we are setting the timer when it is already running, force run restart.
@@ -239,7 +239,7 @@ public:
 
   void run()
   {
-    srsran_assert(duration != INVALID_DURATION, "Calling timer::run with invalid duration");
+    ocudu_assert(duration != INVALID_DURATION, "Calling timer::run with invalid duration");
     state = state_t::running;
     backend_ch.push(id, cmd_t::start{duration});
   }
@@ -281,7 +281,7 @@ public:
   };
 
   manager_impl(size_t capacity) :
-    logger(srslog::fetch_basic_logger("ALL")),
+    logger(ocudulog::fetch_basic_logger("ALL")),
     timer_free_list(capacity),
     time_wheel(WHEEL_SIZE),
     pending_timers_to_create(capacity),
@@ -307,8 +307,7 @@ public:
     std::unique_ptr<frontend_handle> new_frontend;
     while (pending_timers_to_create.try_dequeue(new_frontend)) {
       auto timer_idx = static_cast<unsigned>(new_frontend->id);
-      srsran_assert(timer_idx >= timers.size() or timers[timer_idx].frontend == nullptr,
-                    "Duplicate timer id detection");
+      ocudu_assert(timer_idx >= timers.size() or timers[timer_idx].frontend == nullptr, "Duplicate timer id detection");
 
       if (timer_idx >= timers.size()) {
         // Resize timers list if needed.
@@ -331,7 +330,7 @@ public:
   bool try_stop_timer_backend(timer_handle& timer, bool expiry_reason);
   void stop_timer_backend(timer_handle& timer, bool expiry_reason)
   {
-    srsran_assert(timer.backend.state == state_t::running, "Stopping timer that was not running");
+    ocudu_assert(timer.backend.state == state_t::running, "Stopping timer that was not running");
     try_stop_timer_backend(timer, expiry_reason);
   }
 
@@ -344,8 +343,8 @@ public:
   /// Start the ticking of a timer with a given duration.
   void start_timer_backend(timer_handle& timer, timer_duration duration)
   {
-    srsran_assert(timer.backend.state != state_t::running, "Invalid timer state");
-    srsran_assert(timer.frontend != nullptr, "Invalid timer state");
+    ocudu_assert(timer.backend.state != state_t::running, "Invalid timer state");
+    ocudu_assert(timer.frontend != nullptr, "Invalid timer state");
 
     timer.backend.timeout = cur_time.load(std::memory_order_relaxed) + std::max((unsigned)duration.count(), 1U);
     timer.backend.state   = state_t::running;
@@ -356,7 +355,7 @@ public:
   /// Called to destroy a timer context and return it back to the free timer pool.
   void destroy_timer_backend(timer_handle& timer)
   {
-    srsran_assert(timer.backend.state != state_t::running, "Destroying timer that is running not allowed");
+    ocudu_assert(timer.backend.state != state_t::running, "Destroying timer that is running not allowed");
 
     // Clear frontend (it is already released by unique_timer).
     timer.frontend->state            = state_t::stopped;
@@ -373,7 +372,7 @@ public:
   /// \brief Create a new front-end context to be used by a newly created unique_timer.
   frontend_handle& create_frontend_timer(task_executor& exec);
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   /// Counter of the number of ticks elapsed. This counter gets incremented on every \c tick call.
   std::atomic<tick_point_t> cur_time = 0;
@@ -432,7 +431,7 @@ void timer_manager::manager_impl::handle_timer_commands()
       }
     }
     timer_handle& timer = timers[t_idx];
-    srsran_assert(timer.frontend != nullptr, "Invalid timer frontend");
+    ocudu_assert(timer.frontend != nullptr, "Invalid timer frontend");
 
     handle_timer_updates(timer);
   }
@@ -440,7 +439,7 @@ void timer_manager::manager_impl::handle_timer_commands()
 
 void timer_manager::manager_impl::handle_timer_updates(timer_handle& timer)
 {
-  srsran_assert(timer.frontend != nullptr, "Invalid timer frontend");
+  ocudu_assert(timer.frontend != nullptr, "Invalid timer frontend");
 
   cmd_t cmd;
   if (not timer.frontend->backend_ch.pop(cmd)) {
@@ -508,7 +507,7 @@ bool timer_manager::manager_impl::trigger_timeout_handling(timer_handle& timer)
     // In case, the timer state has not been updated since the task was dispatched (epoches match).
     // Note: Now that we are in the same execution context as the timer frontend, the frontend cmd_id is precise.
     if (frontend->backend_ch.current_cmd_id() == expiry_epoch) {
-      srsran_assert(frontend->state == state_t::running, "The timer can only expire if it was already running");
+      ocudu_assert(frontend->state == state_t::running, "The timer can only expire if it was already running");
       // Update timer frontend state to expired.
       frontend->state = state_t::expired;
 
@@ -542,8 +541,8 @@ frontend_handle& timer_manager::manager_impl::create_frontend_timer(task_executo
   // Pop cached timer from pool of unused timers.
   frontend_handle* cached_timer;
   if (timer_free_list.try_dequeue(cached_timer)) {
-    srsran_assert(cached_timer != nullptr, "Invalid timer cached");
-    srsran_assert(cached_timer->exec == nullptr, "Reassignment of timer detected");
+    ocudu_assert(cached_timer != nullptr, "Invalid timer cached");
+    ocudu_assert(cached_timer->exec == nullptr, "Reassignment of timer detected");
     // Assign new executor to created timer.
     cached_timer->exec = &exec;
     return *cached_timer;
@@ -584,7 +583,7 @@ void timer_manager::tick()
 
   // Iterate intrusive linked list of running timers with same wheel index.
   for (auto it = wheel_list.begin(); it != wheel_list.end();) {
-    srsran_assert(it->frontend != nullptr, "invalid state of timer in timer wheel");
+    ocudu_assert(it->frontend != nullptr, "invalid state of timer in timer wheel");
     manager_impl::timer_handle& timer = impl->timers[static_cast<size_t>(it->frontend->id)];
     // We move iterator already, in case, the current timer gets removed from the linked list.
     ++it;
@@ -643,19 +642,19 @@ void unique_timer::reset()
 
 void unique_timer::set(timer_duration duration, unique_function<void(timer_id_t)> callback)
 {
-  srsran_assert(is_valid(), "Trying to setup empty timer pimpl");
+  ocudu_assert(is_valid(), "Trying to setup empty timer pimpl");
   static_cast<frontend_handle*>(handle)->set(duration, std::move(callback));
 }
 
 void unique_timer::set(timer_duration duration)
 {
-  srsran_assert(is_valid(), "Trying to setup empty timer pimpl");
+  ocudu_assert(is_valid(), "Trying to setup empty timer pimpl");
   static_cast<frontend_handle*>(handle)->set(duration);
 }
 
 void unique_timer::run()
 {
-  srsran_assert(is_valid(), "Starting invalid timer");
+  ocudu_assert(is_valid(), "Starting invalid timer");
   static_cast<frontend_handle*>(handle)->run();
 }
 
@@ -668,6 +667,6 @@ void unique_timer::stop()
 
 tick_point_t unique_timer::now() const
 {
-  srsran_assert(is_valid(), "Getting tick from invalid timer");
+  ocudu_assert(is_valid(), "Getting tick from invalid timer");
   return static_cast<frontend_handle*>(handle)->now();
 }

@@ -11,7 +11,7 @@
 #include "ue_link_adaptation_controller.h"
 #include "../support/mcs_calculator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ue_link_adaptation_controller::ue_link_adaptation_controller(const cell_configuration&       cell_cfg_,
                                                              const ue_channel_state_manager& ue_channel_state) :

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/message_builders.h"
-#include "srsran/mac/mac_cell_result.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/mac/mac_cell_result.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// \brief Helper function that converts from a SSB MAC PDU to a SSB FAPI PDU.
@@ -21,14 +21,14 @@ namespace fapi_adaptor {
 /// \param[out] fapi_pdu  SSB FAPI PDU that will store the converted data.
 /// \param[in] mac_pdu    SSB MAC PDU to convert to SSB FAPI PDU.
 /// \param[in] slot       Slot point associated to this PDU.
-void convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu& fapi_pdu, const srsran::dl_ssb_pdu& mac_pdu, slot_point slot);
+void convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu& fapi_pdu, const ocudu::dl_ssb_pdu& mac_pdu, slot_point slot);
 
 /// \brief Helper function that converts from a SSB MAC PDU to a SSB FAPI PDU.
 ///
 /// \param[out] builder   SSB FAPI builder that helps to fill the PDU.
 /// \param[in] mac_pdu    SSB MAC PDU to convert to SSB FAPI PDU.
 /// \param[in] slot       Slot point associated to this PDU.
-void convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& builder, const srsran::dl_ssb_pdu& mac_pdu, slot_point slot);
+void convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& builder, const ocudu::dl_ssb_pdu& mac_pdu, slot_point slot);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

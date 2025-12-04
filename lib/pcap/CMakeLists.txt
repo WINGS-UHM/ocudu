@@ -15,4 +15,4 @@ set(SOURCES
         pcap_rlc_pdu_context.cpp
 )
 
-add_library(srsran_pcap STATIC ${SOURCES})
+add_library(ocudu_pcap STATIC ${SOURCES})

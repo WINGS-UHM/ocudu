@@ -14,7 +14,7 @@
 #include "fapi/fapi_logger_registrator.h"
 #include "o_du_high_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers the O-RAN DU high loggers in the logger service.
 inline void register_o_du_high_loggers(const o_du_high_unit_config& unit_config)
@@ -23,4 +23,4 @@ inline void register_o_du_high_loggers(const o_du_high_unit_config& unit_config)
   register_fapi_loggers(unit_config.fapi_cfg);
 }
 
-} // namespace srsran
+} // namespace ocudu

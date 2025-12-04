@@ -15,7 +15,7 @@
 #include "flexible_o_du_app_service_metrics.h"
 #include "flexible_o_du_metrics_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU metrics producer implementation.
 class o_du_metrics_producer_impl : public flexible_o_du_metrics_notifier, public app_services::metrics_producer
@@ -33,4 +33,4 @@ private:
   app_services::metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

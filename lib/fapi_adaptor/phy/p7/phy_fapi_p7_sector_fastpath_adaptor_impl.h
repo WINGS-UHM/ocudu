@@ -14,10 +14,10 @@
 #include "phy_to_fapi_error_event_fastpath_translator.h"
 #include "phy_to_fapi_results_event_fastpath_translator.h"
 #include "phy_to_fapi_time_event_fastpath_translator.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor_config.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor_config.h"
 
-namespace srsran {
+namespace ocudu {
 class uplink_request_processor;
 
 namespace fapi_adaptor {
@@ -65,4 +65,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

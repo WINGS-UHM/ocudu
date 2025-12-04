@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/ofh_error_notifier.h"
-#include "srsran/ru/ru_error_notifier.h"
+#include "ocudu/ofh/ofh_error_notifier.h"
+#include "ocudu/ru/ru_error_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Radio Unit error handler for the Open Fronthaul interface.
 class ru_ofh_error_handler_impl : public ofh::error_notifier
@@ -34,4 +34,4 @@ private:
   ru_error_notifier& error_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

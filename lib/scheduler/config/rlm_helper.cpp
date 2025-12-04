@@ -8,22 +8,22 @@
  *
  */
 
-#include "srsran/scheduler/config/rlm_helper.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/scheduler/config/rlm_helper.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace rlm_helper;
 
 radio_link_monitoring_config
-srsran::rlm_helper::make_radio_link_monitoring_config(const rlm_builder_params&       params,
-                                                      span<const nzp_csi_rs_resource> csi_rs_resources)
+ocudu::rlm_helper::make_radio_link_monitoring_config(const rlm_builder_params&       params,
+                                                     span<const nzp_csi_rs_resource> csi_rs_resources)
 {
-  srsran_assert(params.L_max == 4U or params.L_max == 8U or params.L_max == 64U, "Invalid SSB L max");
+  ocudu_assert(params.L_max == 4U or params.L_max == 8U or params.L_max == 64U, "Invalid SSB L max");
   // Ensure the SSB parameters are provided when the RLM resources use SSB.
-  srsran_assert(params.resource_type != rlm_resource_type::ssb or
-                    params.resource_type != rlm_resource_type::ssb_and_csi_rs or params.ssb_params.has_value(),
-                "Missing SSB parameters needed to create RLM resources using SSB");
+  ocudu_assert(params.resource_type != rlm_resource_type::ssb or
+                   params.resource_type != rlm_resource_type::ssb_and_csi_rs or params.ssb_params.has_value(),
+               "Missing SSB parameters needed to create RLM resources using SSB");
 
   radio_link_monitoring_config rlm_cfg;
 
@@ -37,7 +37,7 @@ srsran::rlm_helper::make_radio_link_monitoring_config(const rlm_builder_params& 
       case 64:
         return 8;
       default:
-        srsran_assertion_failure("Invalid L_max value");
+        ocudu_assertion_failure("Invalid L_max value");
         return 2;
     }
   };
@@ -52,7 +52,7 @@ srsran::rlm_helper::make_radio_link_monitoring_config(const rlm_builder_params& 
   // beam currently supported.
   unsigned rlm_rs_idx = 0U;
   if (params.resource_type == rlm_resource_type::ssb or params.resource_type == rlm_resource_type::ssb_and_csi_rs) {
-    srsran_assert(params.ssb_params.value().ssb_bitmap == static_cast<uint64_t>(0b1) << 63U, "Invalid SSB bitmap");
+    ocudu_assert(params.ssb_params.value().ssb_bitmap == static_cast<uint64_t>(0b1) << 63U, "Invalid SSB bitmap");
     auto& rlm_rs  = rlm_cfg.rlm_resources.emplace_back();
     rlm_rs.res_id = to_rlm_res_id(rlm_rs_idx++);
     // [Implementation-defined] This is the only supported option at the moment.

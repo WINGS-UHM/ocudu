@@ -10,11 +10,11 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct expert_execution_appconfig;
 
 /// Validates the given expert configuration of the application. Returns true on success, false otherwise.
 bool validate_expert_execution_appconfig(const expert_execution_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

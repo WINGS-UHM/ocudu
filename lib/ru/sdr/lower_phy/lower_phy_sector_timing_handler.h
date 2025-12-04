@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class lower_phy_sector_timing_handler : public lower_phy_timing_notifier
 {
@@ -31,4 +31,4 @@ public:
   void on_ul_full_slot_boundary(const lower_phy_timing_context& context) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

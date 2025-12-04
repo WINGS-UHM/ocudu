@@ -9,9 +9,9 @@
  */
 
 #include "ofh_uplane_prach_symbol_data_flow_writer.h"
-#include "srsran/ofh/serdes/ofh_uplane_message_decoder_properties.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_decoder_properties.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 bool uplane_prach_symbol_data_flow_writer::write_to_prach_buffer(unsigned                              eaxc,
@@ -20,7 +20,7 @@ bool uplane_prach_symbol_data_flow_writer::write_to_prach_buffer(unsigned       
   slot_point slot = results.params.slot;
 
   prach_context prach_context = prach_context_repo->get(slot);
-  if (SRSRAN_UNLIKELY(prach_context.empty())) {
+  if (OCUDU_UNLIKELY(prach_context.empty())) {
     logger.info("Sector#{}: dropped received Open Fronthaul message as no uplink PRACH context was found for slot '{}' "
                 "and eAxC '{}'",
                 sector_id,
@@ -31,7 +31,7 @@ bool uplane_prach_symbol_data_flow_writer::write_to_prach_buffer(unsigned       
 
   // Find resource grid port with eAxC.
   unsigned port = std::distance(prach_eaxc.begin(), std::find(prach_eaxc.begin(), prach_eaxc.end(), eaxc));
-  if (SRSRAN_UNLIKELY(port >= prach_context.get_max_nof_ports())) {
+  if (OCUDU_UNLIKELY(port >= prach_context.get_max_nof_ports())) {
     logger.info("Sector#{}: skipping eAxC value '{}' as the stored PRACH buffer only supports up to '{}' ports",
                 sector_id,
                 eaxc,
@@ -99,7 +99,7 @@ bool uplane_prach_symbol_data_flow_writer::write_to_prach_buffer(unsigned       
     // Copy the data in the buffer.
     prach_context_repo->write_iq(slot, port, results.params.symbol_id, start_re, prach_in_data);
 
-    if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+    if (OCUDU_UNLIKELY(logger.debug.enabled())) {
       logger.debug("Sector#{}: handling PRACH in slot '{}', symbol '{}' and port '{}'",
                    sector_id,
                    slot,

@@ -11,15 +11,15 @@
 #pragma once
 
 #include "rrc_ue_srb_context.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/rrc/rrc_cell_context.h"
-#include "srsran/rrc/rrc_ue.h"
-#include "srsran/rrc/rrc_ue_config.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/rrc/rrc_cell_context.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/rrc/rrc_ue_config.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Holds the RRC UE context used by the UE object and all its procedures.
 class rrc_ue_context_t
@@ -47,8 +47,8 @@ public:
   std::optional<asn1::rrc_nr::ue_cap_rat_container_list_l> capabilities_list;
   std::optional<rrc_ue_transfer_context> transfer_context; // Context of old UE when created through mobility.
   bool                                   reestablishment_ongoing = false;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

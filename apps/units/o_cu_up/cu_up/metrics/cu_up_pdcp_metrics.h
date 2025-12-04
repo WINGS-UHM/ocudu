@@ -13,11 +13,11 @@
 #include "apps/services/metrics/metrics_consumer.h"
 #include "apps/services/metrics/metrics_properties.h"
 #include "apps/services/metrics/metrics_set.h"
-#include "srsran/adt/span.h"
-#include "srsran/pdcp/pdcp_entity.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/pdcp/pdcp_entity.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// CU-UP PDCP metrics properties implementation.
 class cu_up_pdcp_metrics_properties_impl : public app_services::metrics_properties
@@ -45,7 +45,7 @@ public:
 inline auto cu_up_pdcp_metrics_callback = [](const app_services::metrics_set&      report,
                                              span<app_services::metrics_consumer*> consumers,
                                              task_executor&                        executor,
-                                             srslog::basic_logger&                 logger,
+                                             ocudulog::basic_logger&               logger,
                                              stop_event_token                      token) {
   const auto& metric = static_cast<const cu_up_pdcp_metrics_impl&>(report);
 
@@ -58,4 +58,4 @@ inline auto cu_up_pdcp_metrics_callback = [](const app_services::metrics_set&   
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

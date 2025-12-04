@@ -9,11 +9,11 @@
  */
 
 #include "e2sm_ccc_asn1_packer.h"
-#include "srsran/asn1/e2sm/e2sm_ccc.h"
+#include "ocudu/asn1/e2sm/e2sm_ccc.h"
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm_ccc;
-using namespace srsran;
+using namespace ocudu;
 
 const std::string e2sm_ccc_asn1_packer::short_name       = "ORAN-E2SM-CCC";
 const std::string e2sm_ccc_asn1_packer::oid              = "1.3.6.1.4.1.53148.1.6.2.4";
@@ -56,7 +56,7 @@ bool e2sm_ccc_asn1_packer::add_e2sm_control_service(e2sm_control_service* contro
 }
 
 e2sm_event_trigger_definition
-e2sm_ccc_asn1_packer::handle_packed_event_trigger_definition(const srsran::byte_buffer& event_trigger_definition)
+e2sm_ccc_asn1_packer::handle_packed_event_trigger_definition(const ocudu::byte_buffer& event_trigger_definition)
 {
   // TODO: add support for RIC subscriptions.
   printf("Failure - Trigger definition handling not supported in E2SM-CCC.\n");
@@ -64,7 +64,7 @@ e2sm_ccc_asn1_packer::handle_packed_event_trigger_definition(const srsran::byte_
 }
 
 e2sm_action_definition
-e2sm_ccc_asn1_packer::handle_packed_e2sm_action_definition(const srsran::byte_buffer& action_definition)
+e2sm_ccc_asn1_packer::handle_packed_e2sm_action_definition(const ocudu::byte_buffer& action_definition)
 {
   // TODO: add support for RIC subscriptions.
   printf("Failure - Action definition handling not supported in E2SM-CCC.\n");

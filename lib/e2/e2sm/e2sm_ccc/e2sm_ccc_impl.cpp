@@ -9,15 +9,15 @@
  */
 
 #include "e2sm_ccc_impl.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e2sm/e2sm_ccc.h"
-#include "srsran/e2/e2sm/e2sm.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e2sm/e2sm_ccc.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm_ccc;
-using namespace srsran;
+using namespace ocudu;
 
-e2sm_ccc_impl::e2sm_ccc_impl(srslog::basic_logger& logger_, e2sm_handler& e2sm_packer_) :
+e2sm_ccc_impl::e2sm_ccc_impl(ocudulog::basic_logger& logger_, e2sm_handler& e2sm_packer_) :
   logger(logger_), e2sm_packer(e2sm_packer_)
 {
 }
@@ -33,8 +33,7 @@ e2sm_handler& e2sm_ccc_impl::get_e2sm_packer()
   return e2sm_packer;
 }
 
-std::unique_ptr<e2sm_report_service>
-e2sm_ccc_impl::get_e2sm_report_service(const srsran::byte_buffer& action_definition)
+std::unique_ptr<e2sm_report_service> e2sm_ccc_impl::get_e2sm_report_service(const ocudu::byte_buffer& action_definition)
 {
   logger.debug("Report service not supported.");
   return nullptr;

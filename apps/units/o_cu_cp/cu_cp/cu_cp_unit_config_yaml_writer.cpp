@@ -11,9 +11,9 @@
 #include "cu_cp_unit_config_yaml_writer.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "cu_cp_unit_config.h"
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static YAML::Node build_cu_cp_tai_slice_section(const cu_cp_unit_plmn_item::tai_slice_t& config)
 {
@@ -266,14 +266,14 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
 
 static void fill_cu_cp_log_section(YAML::Node node, const cu_cp_unit_logger_config& config)
 {
-  node["pdcp_level"]        = srslog::basic_level_to_string(config.pdcp_level);
-  node["rrc_level"]         = srslog::basic_level_to_string(config.rrc_level);
-  node["ngap_level"]        = srslog::basic_level_to_string(config.ngap_level);
-  node["nrppa_level"]       = srslog::basic_level_to_string(config.nrppa_level);
-  node["e1ap_level"]        = srslog::basic_level_to_string(config.e1ap_level);
-  node["f1ap_level"]        = srslog::basic_level_to_string(config.f1ap_level);
-  node["cu_level"]          = srslog::basic_level_to_string(config.cu_level);
-  node["sec_level"]         = srslog::basic_level_to_string(config.sec_level);
+  node["pdcp_level"]        = ocudulog::basic_level_to_string(config.pdcp_level);
+  node["rrc_level"]         = ocudulog::basic_level_to_string(config.rrc_level);
+  node["ngap_level"]        = ocudulog::basic_level_to_string(config.ngap_level);
+  node["nrppa_level"]       = ocudulog::basic_level_to_string(config.nrppa_level);
+  node["e1ap_level"]        = ocudulog::basic_level_to_string(config.e1ap_level);
+  node["f1ap_level"]        = ocudulog::basic_level_to_string(config.f1ap_level);
+  node["cu_level"]          = ocudulog::basic_level_to_string(config.cu_level);
+  node["sec_level"]         = ocudulog::basic_level_to_string(config.sec_level);
   node["hex_max_size"]      = config.hex_max_size;
   node["e1ap_json_enabled"] = config.e1ap_json_enabled;
   node["f1ap_json_enabled"] = config.f1ap_json_enabled;
@@ -376,7 +376,7 @@ static void fill_cu_cp_qos_entry(YAML::Node node, const cu_cp_unit_qos_config& c
 
 static YAML::Node get_last_entry(YAML::Node node)
 {
-  srsran_assert(node.size() > 0, "Node is empty");
+  ocudu_assert(node.size() > 0, "Node is empty");
 
   auto it = node.begin();
   for (unsigned i = 1; i != node.size(); ++i) {
@@ -414,7 +414,7 @@ static void build_cu_cp_slicing_section(YAML::Node node, span<const s_nssai_t> s
   }
 }
 
-void srsran::fill_cu_cp_config_in_yaml_schema(YAML::Node& node, const cu_cp_unit_config& config)
+void ocudu::fill_cu_cp_config_in_yaml_schema(YAML::Node& node, const cu_cp_unit_config& config)
 {
   node["gnb_id"]            = config.gnb_id.id;
   node["gnb_id_bit_length"] = static_cast<unsigned>(config.gnb_id.bit_length);

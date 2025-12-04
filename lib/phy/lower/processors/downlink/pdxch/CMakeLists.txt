@@ -6,9 +6,9 @@
 # the distribution.
 #
 
-add_library(srsran_lower_phy_pdxch_processor STATIC
+add_library(ocudu_lower_phy_pdxch_processor STATIC
         pdxch_processor_factories.cpp
         pdxch_processor_impl.cpp)
-target_link_libraries(srsran_lower_phy_pdxch_processor
-        srsran_instrumentation
-        srsran_lower_phy_modulation)
+target_link_libraries(ocudu_lower_phy_pdxch_processor
+        ocudu_instrumentation
+        ocudu_lower_phy_modulation)

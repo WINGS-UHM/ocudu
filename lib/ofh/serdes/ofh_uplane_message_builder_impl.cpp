@@ -11,11 +11,11 @@
 #include "ofh_uplane_message_builder_impl.h"
 #include "../serdes/ofh_cuplane_constants.h"
 #include "../support/network_order_binary_serializer.h"
-#include "srsran/ofh/compression/compression_properties.h"
-#include "srsran/ofh/compression/iq_compressor.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/ofh/compression/compression_properties.h"
+#include "ocudu/ofh/compression/iq_compressor.h"
+#include "ocudu/ran/resource_block.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Encodes data direction, payload version and filter index.
@@ -101,7 +101,7 @@ void uplane_message_builder_impl::serialize_iq_data(network_order_binary_seriali
                                                     unsigned                         nof_prbs,
                                                     const ru_compression_params&     compr_params)
 {
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Packing '{}' PRBs inside a User-Plane message using compression type '{}' and bitwidth '{}'",
                  nof_prbs,
                  to_string(compr_params.type),
@@ -133,11 +133,11 @@ unsigned uplane_message_builder_impl::build_message(span<uint8_t>               
                                                     span<const cbf16_t>          iq_data,
                                                     const uplane_message_params& params)
 {
-  srsran_assert(params.sect_type == section_type::type_1, "Unsupported section type");
-  srsran_assert(iq_data.size() == params.nof_prb * NOF_SUBCARRIERS_PER_RB,
-                "The number of PRBs derived from the IQ samples is '{}' and requested number of PRBs to pack is '{}'",
-                iq_data.size() / NOF_SUBCARRIERS_PER_RB,
-                params.nof_prb);
+  ocudu_assert(params.sect_type == section_type::type_1, "Unsupported section type");
+  ocudu_assert(iq_data.size() == params.nof_prb * NOF_SUBCARRIERS_PER_RB,
+               "The number of PRBs derived from the IQ samples is '{}' and requested number of PRBs to pack is '{}'",
+               iq_data.size() / NOF_SUBCARRIERS_PER_RB,
+               params.nof_prb);
 
   network_order_binary_serializer serializer(buffer.data());
 

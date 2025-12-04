@@ -11,12 +11,12 @@
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static gnbdu_config_update_request create_du_config_update(const f1_setup_request_message& f1setup)
 {

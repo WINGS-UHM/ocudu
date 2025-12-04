@@ -12,8 +12,8 @@
 #include "../procedures/f1ap_du_event_manager.h"
 #include "f1c_du_bearer_impl.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 void ue_bearer_manager::add_srb0_f1c_bearer(f1c_rx_sdu_notifier&       f1c_rx_sdu_notif,
                                             const nr_cell_global_id_t& pcell_cgi,
@@ -34,7 +34,7 @@ void ue_bearer_manager::add_srb0_f1c_bearer(f1c_rx_sdu_notifier&       f1c_rx_sd
 
 void ue_bearer_manager::add_f1c_bearer(srb_id_t srb_id, f1c_rx_sdu_notifier& rx_sdu_notif)
 {
-  srsran_assert(srb_id != srb_id_t::srb0, "This function is only for SRB1, SRB2 or SRB3");
+  ocudu_assert(srb_id != srb_id_t::srb0, "This function is only for SRB1, SRB2 or SRB3");
 
   f1c_bearers.emplace(srb_id_to_uint(srb_id),
                       std::make_unique<f1c_other_srb_du_bearer>(

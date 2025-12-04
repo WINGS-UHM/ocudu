@@ -11,9 +11,9 @@
 #pragma once
 
 #include "cu_up_pdcp_metrics.h"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/ocudulog/log_channel.h"
 
-namespace srsran {
+namespace ocudu {
 class pdcp_metrics_notifier;
 
 /// Consumer for the E2 CU-UP PDCP metrics.
@@ -51,11 +51,11 @@ class cu_up_pdcp_metrics_consumer_json : public app_services::metrics_consumer
   };
 
 public:
-  cu_up_pdcp_metrics_consumer_json(srslog::basic_logger& logger_,
-                                   srslog::log_channel&  log_chan_,
-                                   task_executor&        executor_,
-                                   unique_timer          timer_,
-                                   unsigned              report_period_ms_);
+  cu_up_pdcp_metrics_consumer_json(ocudulog::basic_logger& logger_,
+                                   ocudulog::log_channel&  log_chan_,
+                                   task_executor&          executor_,
+                                   unique_timer            timer_,
+                                   unsigned                report_period_ms_);
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
@@ -70,28 +70,28 @@ private:
   // Initialize timer.
   void initialize_timer();
 
-  const unsigned        report_period_ms;
-  srslog::basic_logger& logger;
-  srslog::log_channel&  log_chan;
-  task_executor&        executor;
-  unique_timer          timer;
-  aggregated_metrics    aggr_metrics;
+  const unsigned          report_period_ms;
+  ocudulog::basic_logger& logger;
+  ocudulog::log_channel&  log_chan;
+  task_executor&          executor;
+  unique_timer            timer;
+  aggregated_metrics      aggr_metrics;
 };
 
 /// Consumer for the log PDCP metrics.
 class cu_up_pdcp_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit cu_up_pdcp_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_)
+  explicit cu_up_pdcp_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
   {
-    srsran_assert(log_chan.enabled(), "Logger log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "Logger log channel is not enabled");
   }
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
-} // namespace srsran
+} // namespace ocudu

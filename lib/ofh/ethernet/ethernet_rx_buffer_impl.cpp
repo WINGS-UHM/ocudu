@@ -11,7 +11,7 @@
 #include "ethernet_rx_buffer_impl.h"
 #include "ethernet_rx_buffer_pool.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 ethernet_rx_buffer_impl::ethernet_rx_buffer_impl(ethernet_rx_buffer_pool& pool_, unsigned id_) : pool(pool_), id(id_)
@@ -36,22 +36,22 @@ ethernet_rx_buffer_impl& ethernet_rx_buffer_impl::operator=(ethernet_rx_buffer_i
 
 span<const uint8_t> ethernet_rx_buffer_impl::data() const
 {
-  srsran_assert(id >= 0, "Invalid Ethernet rx buffer accessed");
+  ocudu_assert(id >= 0, "Invalid Ethernet rx buffer accessed");
   return pool.get_data(id).first(size);
 }
 
 span<uint8_t> ethernet_rx_buffer_impl::storage()
 {
-  srsran_assert(id >= 0, "Invalid Ethernet rx buffer accessed");
+  ocudu_assert(id >= 0, "Invalid Ethernet rx buffer accessed");
   return pool.get_data(id);
 }
 
 void ethernet_rx_buffer_impl::resize(unsigned used_size)
 {
-  srsran_assert(id >= 0, "Invalid Ethernet rx buffer accessed");
-  srsran_assert(used_size <= pool.get_data(id).size(),
-                "The size of buffer can not be bigger than the allocated size of {} bytes",
-                pool.get_data(id).size());
+  ocudu_assert(id >= 0, "Invalid Ethernet rx buffer accessed");
+  ocudu_assert(used_size <= pool.get_data(id).size(),
+               "The size of buffer can not be bigger than the allocated size of {} bytes",
+               pool.get_data(id).size());
   size = used_size;
 }
 

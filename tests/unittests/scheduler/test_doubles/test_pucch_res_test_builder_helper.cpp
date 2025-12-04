@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 class sched_pucch_res_builder_tester : public ::testing::TestWithParam<bool>
 {

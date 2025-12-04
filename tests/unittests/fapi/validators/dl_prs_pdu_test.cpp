@@ -11,9 +11,9 @@
 #include "dl_prs_pdu.h"
 #include "helpers.h"
 #include "message_builder_helpers.h"
-#include "srsran/fapi/message_validators.h"
+#include "ocudu/fapi/message_validators.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 using namespace unittest;
 
@@ -29,7 +29,7 @@ TEST_P(validate_prs_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_dl_prs_pdu,
                validate_dl_prs_pdu,
-               srsran::fapi::message_type_id::dl_tti_request,
+               ocudu::fapi::message_type_id::dl_tti_request,
                dl_pdu_type::PRS);
 }
 

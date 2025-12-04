@@ -10,16 +10,16 @@
 
 #include "rx_buffer_pool_impl.h"
 #include "rx_buffer_impl.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/trx_buffer_identifier.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/trx_buffer_identifier.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/slot_point.h"
 #include <algorithm>
 #include <chrono>
 #include <memory>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 unique_rx_buffer
 rx_buffer_pool_impl::reserve(slot_point slot, trx_buffer_identifier id, unsigned nof_codeblocks, bool new_data)
@@ -148,7 +148,7 @@ void rx_buffer_pool_impl::stop()
   }
 }
 
-std::unique_ptr<rx_buffer_pool_controller> srsran::create_rx_buffer_pool(const rx_buffer_pool_config& config)
+std::unique_ptr<rx_buffer_pool_controller> ocudu::create_rx_buffer_pool(const rx_buffer_pool_config& config)
 {
   return std::make_unique<rx_buffer_pool_impl>(config);
 }

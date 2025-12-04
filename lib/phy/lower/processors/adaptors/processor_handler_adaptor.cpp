@@ -9,9 +9,9 @@
  */
 
 #include "processor_handler_adaptor.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void processor_handler_adaptor::downlink_handler_adaptor ::handle_resource_grid(const resource_grid_context& context,
                                                                                 const shared_resource_grid&  grid)

@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include "srsran/ran/pci.h"
-#include "srsran/ran/pdcch/coreset.h"
-#include "srsran/ran/pdcch/search_space.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/pdcch/coreset.h"
+#include "ocudu/ran/pdcch/search_space.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Calculates \f$n_ID\f$ as per TS38.211 7.3.2.3.
 /// \return integer within values: {0,1,...,65535}.
@@ -54,4 +54,4 @@ inline unsigned get_N_ID_dmrs(pci_t pci, const coreset_configuration& cs_cfg)
   return pci;
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "lower_phy_sector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 lower_phy_uplink_request_handler& lower_phy_sector::get_uplink_request_handler()
 {

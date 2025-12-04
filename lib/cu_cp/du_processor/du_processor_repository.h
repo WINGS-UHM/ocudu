@@ -17,13 +17,13 @@
 #include "../ue_manager/ue_manager_impl.h"
 #include "du_configuration_manager.h"
 #include "du_metrics_handler.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/async/async_task.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct cu_cp_configuration;
 
@@ -36,7 +36,7 @@ struct du_repository_config {
   common_task_scheduler&                 common_task_sched;
   ue_manager&                            ue_mng;
   du_connection_notifier&                du_conn_notif;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 };
 
 class du_processor_repository : public du_repository_metrics_handler
@@ -99,13 +99,13 @@ private:
   /// \return The DU index.
   du_index_t get_next_du_index();
 
-  du_repository_config  cfg;
-  srslog::basic_logger& logger;
+  du_repository_config    cfg;
+  ocudulog::basic_logger& logger;
 
   std::map<du_index_t, du_context> du_db;
 
   du_configuration_manager du_cfg_mng;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

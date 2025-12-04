@@ -11,15 +11,15 @@
 #include "asn1_sys_info_packer.h"
 #include "asn1_ntn_config_helpers.h"
 #include "asn1_rrc_config_helpers.h"
-#include "srsran/asn1/rrc_nr/bcch_bch_msg.h"
-#include "srsran/asn1/rrc_nr/bcch_dl_sch_msg.h"
-#include "srsran/asn1/rrc_nr/sys_info.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/du/du_high/du_manager/cbs/cbs_encoder.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/asn1/rrc_nr/bcch_bch_msg.h"
+#include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
+#include "ocudu/asn1/rrc_nr/sys_info.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/du/du_high/du_manager/cbs/cbs_encoder.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
 {
@@ -27,16 +27,16 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
 
   mib_s mib;
   switch (du_cfg.scs_common) {
-    case srsran::subcarrier_spacing::kHz15:
-    case srsran::subcarrier_spacing::kHz60:
+    case ocudu::subcarrier_spacing::kHz15:
+    case ocudu::subcarrier_spacing::kHz60:
       mib.sub_carrier_spacing_common.value = mib_s::sub_carrier_spacing_common_opts::scs15or60;
       break;
-    case srsran::subcarrier_spacing::kHz30:
-    case srsran::subcarrier_spacing::kHz120:
+    case ocudu::subcarrier_spacing::kHz30:
+    case ocudu::subcarrier_spacing::kHz120:
       mib.sub_carrier_spacing_common.value = mib_s::sub_carrier_spacing_common_opts::scs30or120;
       break;
     default:
-      srsran_assertion_failure("Invalid SCS common");
+      ocudu_assertion_failure("Invalid SCS common");
       mib.sub_carrier_spacing_common.value = asn1::rrc_nr::mib_s::sub_carrier_spacing_common_opts::scs15or60;
   }
 
@@ -51,10 +51,10 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   mib.intra_freq_resel.value =
       du_cfg.intra_freq_resel ? mib_s::intra_freq_resel_opts::allowed : mib_s::intra_freq_resel_opts::not_allowed;
 
-  byte_buffer       buf;
-  asn1::bit_ref     bref{buf};
-  asn1::SRSASN_CODE ret = mib.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack MIB");
+  byte_buffer         buf;
+  asn1::bit_ref       bref{buf};
+  asn1::OCUDUASN_CODE ret = mib.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack MIB");
 
   return buf;
 }
@@ -73,10 +73,10 @@ static asn1::rrc_nr::dl_cfg_common_sib_s make_asn1_rrc_dl_cfg_common_sib(const d
   }
   out.freq_info_dl.offset_to_point_a = cfg.freq_info_dl.offset_to_point_a;
   out.freq_info_dl.scs_specific_carrier_list =
-      srs_du::make_asn1_rrc_scs_specific_carrier_list(cfg.freq_info_dl.scs_carrier_list);
+      odu::make_asn1_rrc_scs_specific_carrier_list(cfg.freq_info_dl.scs_carrier_list);
 
   // > initialDownlinkBWP BWP-DownlinkCommon.
-  out.init_dl_bwp = srs_du::make_asn1_init_dl_bwp(cfg);
+  out.init_dl_bwp = odu::make_asn1_init_dl_bwp(cfg);
 
   // BCCH-Config.
   out.bcch_cfg.mod_period_coeff.value = bcch_cfg_s::mod_period_coeff_opts::n4;
@@ -225,10 +225,10 @@ static asn1::rrc_nr::ul_cfg_common_sib_s make_asn1_rrc_ul_config_common(const ul
     out.freq_info_ul.p_max         = cfg.freq_info_ul.p_max->value();
   }
   out.freq_info_ul.scs_specific_carrier_list =
-      srs_du::make_asn1_rrc_scs_specific_carrier_list(cfg.freq_info_ul.scs_carrier_list);
+      odu::make_asn1_rrc_scs_specific_carrier_list(cfg.freq_info_ul.scs_carrier_list);
 
   // > initialUplinkBWP BWP-UplinkCommon.
-  out.init_ul_bwp = srs_du::make_asn1_rrc_initial_up_bwp(cfg);
+  out.init_ul_bwp = odu::make_asn1_rrc_initial_up_bwp(cfg);
 
   // > timeAlignmentTimerCommon TimeAlignmentTimer.
   out.time_align_timer_common.value = time_align_timer_opts::infinity;
@@ -302,7 +302,7 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
   // TDD config.
   if (du_cfg.tdd_ul_dl_cfg_common.has_value()) {
     cell.tdd_ul_dl_cfg_common_present = true;
-    cell.tdd_ul_dl_cfg_common         = srs_du::make_asn1_rrc_tdd_ul_dl_cfg_common(du_cfg.tdd_ul_dl_cfg_common.value());
+    cell.tdd_ul_dl_cfg_common         = odu::make_asn1_rrc_tdd_ul_dl_cfg_common(du_cfg.tdd_ul_dl_cfg_common.value());
   }
   // TODO: Fill remaining fields.
 
@@ -366,7 +366,7 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
     // Populate the SI Scheduling info list.
     if (!du_cfg.si_config->si_sched_info.empty()) {
       bool ret = asn1::number_to_enum(sib1.si_sched_info.si_win_len, du_cfg.si_config.value().si_window_len_slots);
-      srsran_assert(ret, "Invalid SI window length");
+      ocudu_assert(ret, "Invalid SI window length");
 
       // For each SI message in the configuration...
       for (const auto& cfg_si : du_cfg.si_config->si_sched_info) {
@@ -374,13 +374,13 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
         sched_info_s asn1_si;
         asn1_si.si_broadcast_status.value = sched_info_s::si_broadcast_status_opts::broadcasting;
         ret                               = asn1::number_to_enum(asn1_si.si_periodicity, cfg_si.si_period_radio_frames);
-        srsran_assert(ret, "Invalid SI period");
+        ocudu_assert(ret, "Invalid SI period");
 
         // Prepare a SchedulingInfo2-r17 element. This is used for SIB-19.
         sched_info2_r17_s asn1_si_r17;
         asn1_si_r17.si_broadcast_status_r17.value = sched_info2_r17_s::si_broadcast_status_r17_opts::broadcasting;
         ret = asn1::number_to_enum(asn1_si_r17.si_periodicity_r17, cfg_si.si_period_radio_frames);
-        srsran_assert(ret, "Invalid SI period");
+        ocudu_assert(ret, "Invalid SI period");
         if (cfg_si.si_window_position.has_value()) {
           asn1_si_r17.si_win_position_r17 = cfg_si.si_window_position.value();
         }
@@ -418,15 +418,15 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
                 case sib_type::sib1:
                 case sib_type::sib_invalid:
                 default:
-                  srsran_assertion_failure("Invalid SIB type (i.e., {}) for an SI message", fmt::underlying(type));
+                  ocudu_assertion_failure("Invalid SIB type (i.e., {}) for an SI message", fmt::underlying(type));
               }
               break;
             }
           }
         }
 
-        srsran_assert((asn1_si.sib_map_info.size() == 0) || (asn1_si_r17.sib_map_info_r17.size() == 0),
-                      "An SI message containing release 17 SIBs cannot hold other SIB types");
+        ocudu_assert((asn1_si.sib_map_info.size() == 0) || (asn1_si_r17.sib_map_info_r17.size() == 0),
+                     "An SI message containing release 17 SIBs cannot hold other SIB types");
 
         // Append the SchedulingInfo element to the SchedulingInfo list.
         if (asn1_si.sib_map_info.size() > 0) {
@@ -456,25 +456,25 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
   sib1.ue_timers_and_consts_present = true;
 
   bool ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t300, du_cfg.ue_timers_and_constants.t300.count());
-  srsran_assert(ret, "Invalid value for T300: {}", du_cfg.ue_timers_and_constants.t300.count());
+  ocudu_assert(ret, "Invalid value for T300: {}", du_cfg.ue_timers_and_constants.t300.count());
 
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t301, du_cfg.ue_timers_and_constants.t301.count());
-  srsran_assert(ret, "Invalid value for T301: {}", du_cfg.ue_timers_and_constants.t301.count());
+  ocudu_assert(ret, "Invalid value for T301: {}", du_cfg.ue_timers_and_constants.t301.count());
 
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t310, du_cfg.ue_timers_and_constants.t310.count());
-  srsran_assert(ret, "Invalid value for T310: {}", du_cfg.ue_timers_and_constants.t310.count());
+  ocudu_assert(ret, "Invalid value for T310: {}", du_cfg.ue_timers_and_constants.t310.count());
 
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.n310, du_cfg.ue_timers_and_constants.n310);
-  srsran_assert(ret, "Invalid value for N310: {}", du_cfg.ue_timers_and_constants.n310);
+  ocudu_assert(ret, "Invalid value for N310: {}", du_cfg.ue_timers_and_constants.n310);
 
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t311, du_cfg.ue_timers_and_constants.t311.count());
-  srsran_assert(ret, "Invalid value for T311: {}", du_cfg.ue_timers_and_constants.t311.count());
+  ocudu_assert(ret, "Invalid value for T311: {}", du_cfg.ue_timers_and_constants.t311.count());
 
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.n311, du_cfg.ue_timers_and_constants.n311);
-  srsran_assert(ret, "Invalid value for N311: {}", du_cfg.ue_timers_and_constants.n311);
+  ocudu_assert(ret, "Invalid value for N311: {}", du_cfg.ue_timers_and_constants.n311);
 
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t319, du_cfg.ue_timers_and_constants.t319.count());
-  srsran_assert(ret, "Invalid value for T319: {}", du_cfg.ue_timers_and_constants.t319.count());
+  ocudu_assert(ret, "Invalid value for T319: {}", du_cfg.ue_timers_and_constants.t319.count());
 
   return sib1;
 }
@@ -484,8 +484,8 @@ byte_buffer asn1_packer::pack_sib1(const du_cell_config& du_cfg, std::string* js
   byte_buffer          buf;
   asn1::bit_ref        bref{buf};
   asn1::rrc_nr::sib1_s sib1 = make_asn1_rrc_cell_sib1(du_cfg);
-  asn1::SRSASN_CODE    ret  = sib1.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack SIB1");
+  asn1::OCUDUASN_CODE  ret  = sib1.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack SIB1");
 
   if (js_str != nullptr) {
     asn1::json_writer js;
@@ -699,8 +699,8 @@ byte_buffer asn1_packer::pack_sib19(const sib19_info& sib19_params, std::string*
   byte_buffer               buf;
   asn1::bit_ref             bref{buf};
   asn1::rrc_nr::sib19_r17_s sib19 = make_asn1_rrc_cell_sib19(sib19_params);
-  asn1::SRSASN_CODE         ret   = sib19.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack SIB19");
+  asn1::OCUDUASN_CODE       ret   = sib19.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack SIB19");
 
   if (js_str != nullptr) {
     asn1::json_writer js;
@@ -739,7 +739,7 @@ static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make
       auto        sib_msgs     = make_asn1_rrc_cell_sib7(cfg);
       unsigned    nof_segments = sib_msgs.size();
 
-      srsran_assert(nof_segments != 0, "At least one SIB message must be generated.");
+      ocudu_assert(nof_segments != 0, "At least one SIB message must be generated.");
 
       if (nof_segments == 1) {
         sib7_s& out_sib = ret.front().set_sib7();
@@ -760,7 +760,7 @@ static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make
       auto        sib_msgs     = make_asn1_rrc_cell_sib8(cfg);
       unsigned    nof_segments = sib_msgs.size();
 
-      srsran_assert(nof_segments != 0, "At least one SIB message must be generated.");
+      ocudu_assert(nof_segments != 0, "At least one SIB message must be generated.");
 
       if (nof_segments == 1) {
         sib8_s& out_sib = ret.front().set_sib8();
@@ -783,7 +783,7 @@ static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make
       break;
     }
     default:
-      srsran_assertion_failure("Invalid SIB type");
+      ocudu_assertion_failure("Invalid SIB type");
   }
 
   return ret;
@@ -793,10 +793,10 @@ static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make
 static void pack_si_message(byte_buffer& buffer, const asn1::rrc_nr::bcch_dl_sch_msg_s& msg)
 {
   // Pack into the buffer.
-  asn1::bit_ref     bref{buffer};
-  asn1::SRSASN_CODE ret = msg.pack(bref);
+  asn1::bit_ref       bref{buffer};
+  asn1::OCUDUASN_CODE ret = msg.pack(bref);
 
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack SI message");
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack SI message");
 }
 
 /// Packs an SI message from the contents of a single SIB.
@@ -845,11 +845,11 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
                               "segmented message.");
           auto it = std::find_if(
               sibs.begin(), sibs.end(), [sib_id](const sib_info& sib) { return get_sib_info_type(sib) == sib_id; });
-          srsran_assert(it != sibs.end(), "SIB{} in SIB mapping info has no defined config", (unsigned)sib_id);
+          ocudu_assert(it != sibs.end(), "SIB{} in SIB mapping info has no defined config", (unsigned)sib_id);
 
           // Obtain the SIB and make sure it does not hold a segmented message.
           auto sib = make_asn1_rrc_sib_item(*it);
-          srsran_assert(sib.size() == 1, "SI messages holding multiple SIBs cannot contain segmented messages.");
+          ocudu_assert(sib.size() == 1, "SI messages holding multiple SIBs cannot contain segmented messages.");
 
           si_ies.sib_type_and_info.push_back(sib.front());
         }
@@ -863,7 +863,7 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
         sib_type sib_id = si_sched.sib_mapping_info.front();
         auto     it     = std::find_if(
             sibs.begin(), sibs.end(), [sib_id](const sib_info& sib) { return get_sib_info_type(sib) == sib_id; });
-        srsran_assert(it != sibs.end(), "SIB{} in SIB mapping info has no defined config", (unsigned)sib_id);
+        ocudu_assert(it != sibs.end(), "SIB{} in SIB mapping info has no defined config", (unsigned)sib_id);
 
         // Buffer to hold the packed message. It may be necessary to store multiple SI messages (one for each segment).
         bcch_dl_sch_payload_type packed_sib;

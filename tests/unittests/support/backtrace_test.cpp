@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/support/backtrace.h"
+#include "ocudu/support/backtrace.h"
 #include <string>
 
 /// \file
@@ -34,7 +34,7 @@ int function1(std::string param)
 int main(int argc, char** argv)
 {
   // Enable backtrace.
-  srsran::enable_backtrace();
+  ocudu::enable_backtrace();
 
   return function1("segfault");
 }

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/mac/mac_clock_controller.h"
-#include "srsran/mac/mac_metrics.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/mac/mac_clock_controller.h"
+#include "ocudu/mac/mac_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Notifier used by MAC DL to forward cell metric reports.
 class mac_cell_metric_notifier
@@ -62,4 +62,4 @@ public:
   virtual mac_cell_controller& get_cell_controller(du_cell_index_t cell_index) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

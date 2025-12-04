@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "../../../include/srsran/ran/pucch/pucch_uci_bits.h"
+#include "../../../include/ocudu/ran/pucch/pucch_uci_bits.h"
 #include "../cell/resource_grid.h"
 #include "../config/ue_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUCCH scheduling interface.
 class pucch_allocator
@@ -111,4 +111,4 @@ public:
   [[nodiscard]] virtual bool has_common_pucch_grant(rnti_t rnti, slot_point sl_tx) const = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

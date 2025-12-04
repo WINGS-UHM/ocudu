@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct hal_appconfig;
 
@@ -22,4 +22,4 @@ void configure_cli11_with_hal_appconfig_schema(CLI::App& app, hal_appconfig& con
 /// Returns true if the HAL section is present in the given CLI11 application, otherwise false.
 bool is_hal_section_present(CLI::App& app);
 
-} // namespace srsran
+} // namespace ocudu

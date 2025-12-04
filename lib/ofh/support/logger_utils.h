@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Logs the given message as a warning if \c enable_warnings is true, otherwise logs it in info.
 template <typename... Args>
-void log_conditional_warning(srslog::basic_logger& logger, bool enable_warnings, const char* fmt, Args&&... args)
+void log_conditional_warning(ocudulog::basic_logger& logger, bool enable_warnings, const char* fmt, Args&&... args)
 {
   if (enable_warnings) {
     logger.warning(fmt, std::forward<Args>(args)...);
@@ -27,4 +27,4 @@ void log_conditional_warning(srslog::basic_logger& logger, bool enable_warnings,
 }
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

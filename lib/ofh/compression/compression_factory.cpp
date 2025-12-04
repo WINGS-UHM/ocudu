@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/ofh/compression/compression_factory.h"
+#include "ocudu/ofh/compression/compression_factory.h"
 #include "iq_compression_bfp_impl.h"
 #include "iq_compression_death_impl.h"
 #include "iq_compression_none_impl.h"
 #include "iq_compressor_selector.h"
 #include "iq_decompressor_selector.h"
-#include "srsran/support/cpu_features.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/cpu_features.h"
+#include "ocudu/support/error_handling.h"
 
 #ifdef __x86_64__
 #include "iq_compression_bfp_avx2.h"
@@ -29,13 +29,13 @@
 #include "iq_compression_none_neon.h"
 #endif // __ARM_NEON
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
-std::unique_ptr<iq_compressor> srsran::ofh::create_iq_compressor(compression_type      type,
-                                                                 srslog::basic_logger& logger,
-                                                                 float                 iq_scaling,
-                                                                 const std::string&    impl_type)
+std::unique_ptr<iq_compressor> ocudu::ofh::create_iq_compressor(compression_type        type,
+                                                                ocudulog::basic_logger& logger,
+                                                                float                   iq_scaling,
+                                                                const std::string&      impl_type)
 {
   switch (type) {
     case compression_type::none:
@@ -96,7 +96,7 @@ std::unique_ptr<iq_compressor> srsran::ofh::create_iq_compressor(compression_typ
 }
 
 std::unique_ptr<iq_decompressor>
-srsran::ofh::create_iq_decompressor(compression_type type, srslog::basic_logger& logger, const std::string& impl_type)
+ocudu::ofh::create_iq_decompressor(compression_type type, ocudulog::basic_logger& logger, const std::string& impl_type)
 {
   switch (type) {
     case compression_type::none:
@@ -156,13 +156,13 @@ srsran::ofh::create_iq_decompressor(compression_type type, srslog::basic_logger&
   }
 }
 
-std::unique_ptr<iq_decompressor> srsran::ofh::create_iq_decompressor_selector(
+std::unique_ptr<iq_decompressor> ocudu::ofh::create_iq_decompressor_selector(
     std::array<std::unique_ptr<iq_decompressor>, NOF_COMPRESSION_TYPES_SUPPORTED> decompressors)
 {
   return std::make_unique<iq_decompressor_selector>(std::move(decompressors));
 }
 
-std::unique_ptr<iq_compressor> srsran::ofh::create_iq_compressor_selector(
+std::unique_ptr<iq_compressor> ocudu::ofh::create_iq_compressor_selector(
     std::array<std::unique_ptr<iq_compressor>, NOF_COMPRESSION_TYPES_SUPPORTED> compressors)
 {
   return std::make_unique<iq_compressor_selector>(std::move(compressors));

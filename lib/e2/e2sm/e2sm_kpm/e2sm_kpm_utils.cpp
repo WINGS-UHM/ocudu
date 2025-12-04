@@ -10,9 +10,9 @@
 
 #include "e2sm_kpm_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::string srsran::e2sm_kpm_label_2_str(e2sm_kpm_label_enum label)
+std::string ocudu::e2sm_kpm_label_2_str(e2sm_kpm_label_enum label)
 {
   switch (label) {
     case NO_LABEL:
@@ -74,7 +74,7 @@ std::string srsran::e2sm_kpm_label_2_str(e2sm_kpm_label_enum label)
   }
 }
 
-std::string srsran::e2sm_kpm_scope_2_str(e2sm_kpm_metric_level_enum level)
+std::string ocudu::e2sm_kpm_scope_2_str(e2sm_kpm_metric_level_enum level)
 {
   switch (level) {
     case E2_NODE_LEVEL:
@@ -90,7 +90,7 @@ std::string srsran::e2sm_kpm_scope_2_str(e2sm_kpm_metric_level_enum level)
   }
 }
 
-e2sm_kpm_label_enum srsran::asn1_label_2_enum(const asn1::e2sm::meas_label_s& meas_label)
+e2sm_kpm_label_enum ocudu::asn1_label_2_enum(const asn1::e2sm::meas_label_s& meas_label)
 {
   if (meas_label.no_label_present) {
     return NO_LABEL;
@@ -167,7 +167,7 @@ e2sm_kpm_label_enum srsran::asn1_label_2_enum(const asn1::e2sm::meas_label_s& me
   return UNKNOWN_LABEL;
 }
 
-bool srsran::operator==(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const& rhs)
+bool ocudu::operator==(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const& rhs)
 {
   if (lhs.type() != rhs.type()) {
     return false;
@@ -184,14 +184,14 @@ bool srsran::operator==(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c cons
   }
 }
 
-bool srsran::operator!=(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const& rhs)
+bool ocudu::operator!=(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const& rhs)
 {
   return !(lhs == rhs);
 }
 
-bool srsran::operator<(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const& rhs)
+bool ocudu::operator<(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const& rhs)
 {
-  srsran_assert(lhs.type() != rhs.type(), "Cannot compare UEIDs of different types.");
+  ocudu_assert(lhs.type() != rhs.type(), "Cannot compare UEIDs of different types.");
   switch (lhs.type()) {
     case asn1::e2sm::ue_id_c::types_opts::gnb_du_ue_id:
       if (lhs.gnb_du_ue_id() < rhs.gnb_du_ue_id()) {
@@ -202,12 +202,12 @@ bool srsran::operator<(const asn1::e2sm::ue_id_c& lhs, asn1::e2sm::ue_id_c const
   }
 }
 
-bool srsran::operator==(const asn1::e2sm::ue_id_gnb_du_s& lhs, asn1::e2sm::ue_id_gnb_du_s const& rhs)
+bool ocudu::operator==(const asn1::e2sm::ue_id_gnb_du_s& lhs, asn1::e2sm::ue_id_gnb_du_s const& rhs)
 {
   return lhs.gnb_cu_ue_f1ap_id == rhs.gnb_cu_ue_f1ap_id;
 }
 
-bool srsran::operator<(const asn1::e2sm::ue_id_gnb_du_s& lhs, asn1::e2sm::ue_id_gnb_du_s const& rhs)
+bool ocudu::operator<(const asn1::e2sm::ue_id_gnb_du_s& lhs, asn1::e2sm::ue_id_gnb_du_s const& rhs)
 {
   return lhs.gnb_cu_ue_f1ap_id < rhs.gnb_cu_ue_f1ap_id;
 }

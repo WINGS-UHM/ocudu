@@ -13,14 +13,14 @@
 /// iperf -c 127.0.0.1 -u -b 5G -p 56701  -P 2 -t 3600 --no-udp-fin
 
 #include "udp_network_gateway_benchmark_helpers.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <arpa/inet.h>
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct bench_params {
   uint64_t    nof_pdus         = 100000;
@@ -67,16 +67,16 @@ static void parse_args(int argc, char** argv, bench_params& params)
 
 int main(int argc, char** argv)
 {
-  srslog::init();
+  ocudulog::init();
 
   fmt::print("To run this benchmark, you will need a separate traffic source.\n"
              "As an example, Iperf2 can be used, like so:\n"
              "iperf -c 127.0.0.1 -u -b 5G -p 56701  -P 2 -t 3600 --no-udp-fin\n");
 
   // init GW logger
-  srslog::fetch_basic_logger("IO-EPOLL", true).set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("UDP-GW", true).set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("UDP-GW", true).set_hex_dump_max_size(100);
+  ocudulog::fetch_basic_logger("IO-EPOLL", true).set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("UDP-GW", true).set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("UDP-GW", true).set_hex_dump_max_size(100);
 
   bench_params params{};
   parse_args(argc, argv, params);

@@ -8,22 +8,22 @@
  *
  */
 
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_factory.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_result.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/srs/srs_resource_formatter.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/math/complex_normal_random.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_factory.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/srs/srs_resource_formatter.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/math/complex_normal_random.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned nof_repetitions = 1000;
 static unsigned nof_rb          = MAX_NOF_PRBS;

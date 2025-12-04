@@ -11,7 +11,7 @@
 #include "modulation_mapper_neon_impl.h"
 #include <arm_neon.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Implements a generic QAM modulator using neon instruction sets.
 ///

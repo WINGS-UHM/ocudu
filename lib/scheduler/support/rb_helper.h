@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/ran/pdcch/dci_format.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/ran/pdcch/dci_format.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/resource_block.h"
 
-namespace srsran::rb_helper {
+namespace ocudu::rb_helper {
 
 /// \brief Conversion of CRBs to VRBs as per TS38.211, clause 7.3.1.6.
 /// \param crbs CRB interval to be converted to VRB interval.
@@ -42,7 +42,7 @@ inline vrb_interval crb_to_vrb_dl_non_interleaved(crb_interval  crbs,
 /// \return VRB interval.
 inline vrb_interval crb_to_vrb_ul_non_interleaved(crb_interval crbs, unsigned bwp_crb_start)
 {
-  srsran_sanity_check(crbs.start() >= bwp_crb_start, "Invalid CRB start");
+  ocudu_sanity_check(crbs.start() >= bwp_crb_start, "Invalid CRB start");
   return vrb_interval{crbs.start() - bwp_crb_start, crbs.stop() - bwp_crb_start};
 }
 
@@ -115,4 +115,4 @@ find_empty_interval_of_length(const bounded_bitset<MAX_NOF_PRBS, false, Tag>& us
   return max_interv;
 }
 
-} // namespace srsran::rb_helper
+} // namespace ocudu::rb_helper

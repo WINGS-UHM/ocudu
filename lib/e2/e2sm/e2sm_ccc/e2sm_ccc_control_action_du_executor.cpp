@@ -9,17 +9,17 @@
  */
 
 #include "e2sm_ccc_control_action_du_executor.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
 using namespace asn1::e2sm_ccc;
-using namespace srsran;
+using namespace ocudu;
 
 e2sm_ccc_control_action_du_executor_base::e2sm_ccc_control_action_du_executor_base(
-    srs_du::du_configurator& du_configurator_,
-    uint32_t                 action_id_) :
-  logger(srslog::fetch_basic_logger("E2SM-CCC")), action_id(action_id_), du_param_configurator(du_configurator_)
+    odu::du_configurator& du_configurator_,
+    uint32_t              action_id_) :
+  logger(ocudulog::fetch_basic_logger("E2SM-CCC")), action_id(action_id_), du_param_configurator(du_configurator_)
 {
 }
 
@@ -50,11 +50,11 @@ static async_task<e2sm_ric_control_response> return_ctrl_failure(const e2sm_ric_
   });
 }
 
-static srs_du::du_param_config_request convert_to_du_config_request(const e2sm_ric_control_request& e2sm_ccc_req)
+static odu::du_param_config_request convert_to_du_config_request(const e2sm_ric_control_request& e2sm_ccc_req)
 {
-  srs_du::du_param_config_request du_request;
-  const auto&                     e2_ctrl_msg       = std::get<ric_ctrl_msg_s>(e2sm_ccc_req.request_ctrl_msg);
-  const auto&                     e2_cell_ctrl_list = e2_ctrl_msg.ctrl_msg_format.ctrl_msg_format2().list_of_cells_ctrl;
+  odu::du_param_config_request du_request;
+  const auto&                  e2_ctrl_msg       = std::get<ric_ctrl_msg_s>(e2sm_ccc_req.request_ctrl_msg);
+  const auto&                  e2_cell_ctrl_list = e2_ctrl_msg.ctrl_msg_format.ctrl_msg_format2().list_of_cells_ctrl;
   for (auto const& e2_cell_ctrl : e2_cell_ctrl_list) {
     auto&       cell_cfg    = du_request.cells.emplace_back();
     const auto& e2_plmn_id  = e2_cell_ctrl.cell_global_id.nr_cgi().plmn_id;
@@ -139,7 +139,7 @@ static const char* resource_type_to_string(rrm_policy_ratio_group::resource_type
   }
 }
 
-static void log_du_config_request(const srslog::basic_logger& logger, const srs_du::du_param_config_request& req)
+static void log_du_config_request(const ocudulog::basic_logger& logger, const odu::du_param_config_request& req)
 {
   fmt::memory_buffer log_buffer;
   for (const auto& cell_cfg : req.cells) {
@@ -172,9 +172,9 @@ static void log_du_config_request(const srslog::basic_logger& logger, const srs_
   log_buffer.clear();
 }
 
-static e2sm_ric_control_response convert_to_e2sm_response(const e2sm_ric_control_request&         e2sm_ccc_req,
-                                                          const srs_du::du_param_config_request&  du_config_req_,
-                                                          const srs_du::du_param_config_response& du_response_)
+static e2sm_ric_control_response convert_to_e2sm_response(const e2sm_ric_control_request&      e2sm_ccc_req,
+                                                          const odu::du_param_config_request&  du_config_req_,
+                                                          const odu::du_param_config_response& du_response_)
 {
   const auto& e2_ctrl_req       = std::get<ric_ctrl_msg_s>(e2sm_ccc_req.request_ctrl_msg);
   const auto& e2_cell_ctrl_list = e2_ctrl_req.ctrl_msg_format.ctrl_msg_format2().list_of_cells_ctrl;
@@ -224,7 +224,7 @@ static e2sm_ric_control_response convert_to_e2sm_response(const e2sm_ric_control
 }
 
 e2sm_ccc_control_o_rrm_policy_ratio_executor::e2sm_ccc_control_o_rrm_policy_ratio_executor(
-    srs_du::du_configurator& du_configurator_) :
+    odu::du_configurator& du_configurator_) :
   e2sm_ccc_control_action_du_executor_base(du_configurator_, 6)
 {
   // RAN Configuration Structure description:
@@ -263,7 +263,7 @@ bool e2sm_ccc_control_o_rrm_policy_ratio_executor::ric_control_action_supported(
 async_task<e2sm_ric_control_response>
 e2sm_ccc_control_o_rrm_policy_ratio_executor::execute_ric_control_action(const e2sm_ric_control_request& req)
 {
-  srs_du::du_param_config_request du_ctrl_config_req = convert_to_du_config_request(req);
+  odu::du_param_config_request du_ctrl_config_req = convert_to_du_config_request(req);
 
   for (const auto& cell_cfg : du_ctrl_config_req.cells) {
     // If empty request, return failure.
@@ -295,8 +295,8 @@ e2sm_ccc_control_o_rrm_policy_ratio_executor::execute_ric_control_action(const e
   return launch_async([this, &req, ctrl_config = std::move(du_ctrl_config_req)](
                           coro_context<async_task<e2sm_ric_control_response>>& ctx) {
     CORO_BEGIN(ctx);
-    srs_du::du_param_config_response ctrl_response = du_param_configurator.handle_operator_config_request(ctrl_config);
-    e2sm_ric_control_response        e2_resp       = convert_to_e2sm_response(req, ctrl_config, ctrl_response);
+    odu::du_param_config_response ctrl_response = du_param_configurator.handle_operator_config_request(ctrl_config);
+    e2sm_ric_control_response     e2_resp       = convert_to_e2sm_response(req, ctrl_config, ctrl_response);
     CORO_RETURN(e2_resp);
   });
 }

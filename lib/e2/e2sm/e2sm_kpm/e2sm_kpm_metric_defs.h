@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/e2/e2sm/e2sm_kpm.h"
+#include "ocudu/e2/e2sm/e2sm_kpm.h"
 
 /*
  * In this file, we structure the metrics described in the 3GPP/ORAN technical specifications.
  */
 
-namespace srsran {
+namespace ocudu {
 
 enum e2sm_kpm_collection_method_t {
   CC    = 1, // Cumulative Counter
@@ -1754,4 +1754,4 @@ inline span<const e2sm_kpm_metric_t> get_e2sm_kpm_oran_metrics()
   return metrics;
 }
 
-} // namespace srsran
+} // namespace ocudu

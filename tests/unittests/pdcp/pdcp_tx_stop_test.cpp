@@ -10,18 +10,18 @@
 
 #include "pdcp_tx_stop_test.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Test correct creation of PDCP TX  entity
 TEST_P(pdcp_tx_stop_test, stop_when_there_are_no_pending_pdus)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
 
   pdcp_tx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -40,7 +40,7 @@ TEST_P(pdcp_tx_stop_test, stop_when_there_are_no_pending_pdus)
 TEST_P(pdcp_tx_stop_test, stop_when_there_are_pending_pdus)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
 
   pdcp_tx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -92,7 +92,7 @@ TEST_P(pdcp_tx_stop_test, stop_when_there_are_pending_pdus)
 TEST_P(pdcp_tx_stop_test, full_crypto_engine_does_not_stall)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::infinity);
-  srsran::test_delimit_logger delimiter("Full crypto engine does not stall. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Full crypto engine does not stall. SN_SIZE={} ", sn_size);
 
   pdcp_tx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -159,7 +159,7 @@ TEST_P(pdcp_tx_stop_test, full_crypto_engine_does_not_stall)
 TEST_P(pdcp_tx_stop_test, full_dl_worker_does_not_stall)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Full DL worker does not stall. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Full DL worker does not stall. SN_SIZE={} ", sn_size);
 
   pdcp_tx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ru/sdr/ru_sdr_executor_mapper.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ru/sdr/ru_sdr_executor_mapper.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -48,8 +48,8 @@ class ru_sdr_executor_mapper_impl : public ru_sdr_executor_mapper
 public:
   explicit ru_sdr_executor_mapper_impl(const ru_sdr_executor_mapper_sequential_configuration& config)
   {
-    srsran_assert(config.asynchronous_exec != nullptr, "Invalid asynchronous executor.");
-    srsran_assert(config.common_exec != nullptr, "Invalid common executor.");
+    ocudu_assert(config.asynchronous_exec != nullptr, "Invalid asynchronous executor.");
+    ocudu_assert(config.common_exec != nullptr, "Invalid common executor.");
 
     async_exec = config.asynchronous_exec;
 
@@ -65,13 +65,13 @@ public:
 
   explicit ru_sdr_executor_mapper_impl(const ru_sdr_executor_mapper_single_configuration& config)
   {
-    srsran_assert(config.radio_exec != nullptr, "Invalid radio executor.");
-    srsran_assert(config.high_prio_executor != nullptr, "Invalid high priority executor.");
+    ocudu_assert(config.radio_exec != nullptr, "Invalid radio executor.");
+    ocudu_assert(config.high_prio_executor != nullptr, "Invalid high priority executor.");
 
     async_exec = config.radio_exec;
 
     for (const auto& baseband_exec : config.baseband_exec) {
-      srsran_assert(baseband_exec != nullptr, "Invalid baseband cell executor.");
+      ocudu_assert(baseband_exec != nullptr, "Invalid baseband cell executor.");
 
       task_executor& dl_exec    = *config.high_prio_executor;
       task_executor& ul_exec    = inline_executor;
@@ -85,14 +85,14 @@ public:
 
   explicit ru_sdr_executor_mapper_impl(const ru_sdr_executor_mapper_dual_configuration& config)
   {
-    srsran_assert(config.radio_exec != nullptr, "Invalid radio executor.");
-    srsran_assert(config.high_prio_executor != nullptr, "Invalid high priority executor.");
+    ocudu_assert(config.radio_exec != nullptr, "Invalid radio executor.");
+    ocudu_assert(config.high_prio_executor != nullptr, "Invalid high priority executor.");
 
     async_exec = config.radio_exec;
 
     for (const auto& baseband_exec : config.baseband_exec) {
-      srsran_assert(baseband_exec.rx_exec != nullptr, "Invalid receive baseband cell executor.");
-      srsran_assert(baseband_exec.tx_exec != nullptr, "Invalid transmit baseband cell executor.");
+      ocudu_assert(baseband_exec.rx_exec != nullptr, "Invalid receive baseband cell executor.");
+      ocudu_assert(baseband_exec.tx_exec != nullptr, "Invalid transmit baseband cell executor.");
 
       task_executor& dl_exec    = *config.high_prio_executor;
       task_executor& ul_exec    = inline_executor;
@@ -106,15 +106,15 @@ public:
 
   explicit ru_sdr_executor_mapper_impl(const ru_sdr_executor_mapper_triple_configuration& config)
   {
-    srsran_assert(config.radio_exec != nullptr, "Invalid radio executor.");
-    srsran_assert(config.high_prio_executor != nullptr, "Invalid high priority executor.");
+    ocudu_assert(config.radio_exec != nullptr, "Invalid radio executor.");
+    ocudu_assert(config.high_prio_executor != nullptr, "Invalid high priority executor.");
 
     async_exec = config.radio_exec;
 
     for (const auto& baseband_exec : config.baseband_exec) {
-      srsran_assert(baseband_exec.rx_exec != nullptr, "Invalid receive baseband cell executor.");
-      srsran_assert(baseband_exec.tx_exec != nullptr, "Invalid transmit baseband cell executor.");
-      srsran_assert(baseband_exec.ul_exec != nullptr, "Invalid baseband demodulator cell executor.");
+      ocudu_assert(baseband_exec.rx_exec != nullptr, "Invalid receive baseband cell executor.");
+      ocudu_assert(baseband_exec.tx_exec != nullptr, "Invalid transmit baseband cell executor.");
+      ocudu_assert(baseband_exec.ul_exec != nullptr, "Invalid baseband demodulator cell executor.");
 
       task_executor& dl_exec    = *config.high_prio_executor;
       task_executor& ul_exec    = *baseband_exec.ul_exec;
@@ -139,25 +139,25 @@ private:
 } // namespace
 
 std::unique_ptr<ru_sdr_executor_mapper>
-srsran::create_ru_sdr_executor_mapper(const ru_sdr_executor_mapper_sequential_configuration& config)
+ocudu::create_ru_sdr_executor_mapper(const ru_sdr_executor_mapper_sequential_configuration& config)
 {
   return std::make_unique<ru_sdr_executor_mapper_impl>(config);
 }
 
 std::unique_ptr<ru_sdr_executor_mapper>
-srsran::create_ru_sdr_executor_mapper(const srsran::ru_sdr_executor_mapper_single_configuration& config)
+ocudu::create_ru_sdr_executor_mapper(const ocudu::ru_sdr_executor_mapper_single_configuration& config)
 {
   return std::make_unique<ru_sdr_executor_mapper_impl>(config);
 }
 
 std::unique_ptr<ru_sdr_executor_mapper>
-srsran::create_ru_sdr_executor_mapper(const srsran::ru_sdr_executor_mapper_dual_configuration& config)
+ocudu::create_ru_sdr_executor_mapper(const ocudu::ru_sdr_executor_mapper_dual_configuration& config)
 {
   return std::make_unique<ru_sdr_executor_mapper_impl>(config);
 }
 
 std::unique_ptr<ru_sdr_executor_mapper>
-srsran::create_ru_sdr_executor_mapper(const srsran::ru_sdr_executor_mapper_triple_configuration& config)
+ocudu::create_ru_sdr_executor_mapper(const ocudu::ru_sdr_executor_mapper_triple_configuration& config)
 {
   return std::make_unique<ru_sdr_executor_mapper_impl>(config);
 }

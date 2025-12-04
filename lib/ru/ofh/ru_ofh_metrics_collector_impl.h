@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ofh/ofh_sector_metrics_collector.h"
-#include "srsran/ofh/timing/ofh_timing_metrics_collector.h"
-#include "srsran/ru/ru_metrics_collector.h"
+#include "ocudu/ofh/ofh_sector_metrics_collector.h"
+#include "ocudu/ofh/timing/ofh_timing_metrics_collector.h"
+#include "ocudu/ru/ru_metrics_collector.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Open Fronthaul Radio Unit metrics collector implementation.
 class ru_ofh_metrics_collector_impl : public ru_metrics_collector
@@ -42,4 +42,4 @@ public:
   bool disabled() const { return sector_metrics_collectors.empty(); }
 };
 
-} // namespace srsran
+} // namespace ocudu

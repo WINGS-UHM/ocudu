@@ -13,14 +13,14 @@
 #include "../config/cell_configuration.h"
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
 #include "../support/paging_helpers.h"
-#include "srsran/adt/flat_map.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/scheduler/scheduler_paging_handler.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/flat_map.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/scheduler/scheduler_paging_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct sched_paging_information;
 
@@ -161,7 +161,7 @@ private:
   static_vector<std::vector<const sched_paging_information*>, MAX_NOF_PDSCH_TD_RESOURCE_ALLOCATIONS>
       pdsch_time_res_idx_to_scheduled_ues_lookup;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

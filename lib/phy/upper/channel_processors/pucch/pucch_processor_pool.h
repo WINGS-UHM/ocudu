@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Concurrent PUCCH processor pool.
 class pucch_processor_pool : public pucch_processor
@@ -24,9 +24,9 @@ public:
 
   /// Creates a PUCCH processor pool from a shared pool of processors.
   explicit pucch_processor_pool(std::shared_ptr<processor_pool> processors_) :
-    logger(srslog::fetch_basic_logger("PHY")), processors(std::move(processors_))
+    logger(ocudulog::fetch_basic_logger("PHY")), processors(std::move(processors_))
   {
-    srsran_assert(processors, "Invalid PUCCH processor pool.");
+    ocudu_assert(processors, "Invalid PUCCH processor pool.");
   }
 
   // See interface for documentation.
@@ -88,8 +88,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&           logger;
+  ocudulog::basic_logger&         logger;
   std::shared_ptr<processor_pool> processors;
 };
 
-} // namespace srsran
+} // namespace ocudu

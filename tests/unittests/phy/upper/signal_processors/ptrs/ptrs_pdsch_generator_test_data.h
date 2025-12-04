@@ -14,11 +14,11 @@
 //   + "srsPDSCHPTRSGeneratorUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   ptrs_pdsch_generator::configuration                     config;
@@ -414,4 +414,4 @@ static const std::vector<test_case_t> ptrs_pdsch_generator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

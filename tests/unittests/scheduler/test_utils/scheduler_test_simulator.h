@@ -15,10 +15,10 @@
 #include "lib/scheduler/config/cell_configuration.h"
 #include "result_test_helpers.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/scheduler/scheduler_factory.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/scheduler/scheduler_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 scheduler_expert_config make_custom_scheduler_expert_config(bool enable_csi_rs_pdsch_multiplexing);
 
@@ -77,12 +77,12 @@ public:
 
   const pdcch_dl_information* find_ue_dl_pdcch(rnti_t rnti, du_cell_index_t cell_idx = to_du_cell_index(0)) const
   {
-    return srsran::find_ue_dl_pdcch(rnti, *last_sched_result(cell_idx));
+    return ocudu::find_ue_dl_pdcch(rnti, *last_sched_result(cell_idx));
   }
 
   const pdcch_ul_information* find_ue_ul_pdcch(rnti_t rnti, du_cell_index_t cell_idx = to_du_cell_index(0)) const
   {
-    return srsran::find_ue_ul_pdcch(rnti, *last_sched_result(cell_idx));
+    return ocudu::find_ue_ul_pdcch(rnti, *last_sched_result(cell_idx));
   }
 
   const std::unordered_map<rnti_t, du_ue_index_t>& rnti_to_ue_index_mapping() const { return rnti_to_ue_index; }
@@ -91,8 +91,8 @@ public:
   bool                                auto_uci       = false;
   bool                                auto_crc       = false;
   unsigned                            ntn_cs_koffset = 0;
-  srslog::basic_logger&               logger;
-  srslog::basic_logger&               test_logger;
+  ocudulog::basic_logger&             logger;
+  ocudulog::basic_logger&             test_logger;
   const scheduler_expert_config       sched_cfg;
   sched_cfg_dummy_notifier            notif;
   scheduler_ue_metrics_dummy_notifier metric_notif;
@@ -148,4 +148,4 @@ private:
   std::function<void(uci_indication&)> on_uci_indication = [](uci_indication&) {};
 };
 
-} // namespace srsran
+} // namespace ocudu

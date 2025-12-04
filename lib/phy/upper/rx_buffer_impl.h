@@ -11,18 +11,18 @@
 #pragma once
 
 #include "rx_buffer_codeblock_pool.h"
-#include "srsran/adt/bit_buffer.h"
-#include "srsran/adt/span.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/sch/sch_constants.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/bit_buffer.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/sch/sch_constants.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <atomic>
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 enum class rx_buffer_status : uint8_t { successful = 0, already_in_use, insufficient_cb };
 
@@ -157,23 +157,23 @@ public:
   // See interface for documentation.
   unsigned get_absolute_codeblock_id(unsigned codeblock_id) const override
   {
-    srsran_assert(codeblock_id < codeblock_ids.size(),
-                  "Codeblock index ({}) is out of range ({}).",
-                  codeblock_id,
-                  codeblock_ids.size());
+    ocudu_assert(codeblock_id < codeblock_ids.size(),
+                 "Codeblock index ({}) is out of range ({}).",
+                 codeblock_id,
+                 codeblock_ids.size());
     return codeblock_ids[codeblock_id];
   }
 
   // See interface for documentation.
   span<log_likelihood_ratio> get_codeblock_soft_bits(unsigned codeblock_id, unsigned codeblock_size) override
   {
-    srsran_assert(codeblock_id < codeblock_ids.size(),
-                  "Codeblock index ({}) is out of range ({}).",
-                  codeblock_id,
-                  codeblock_ids.size());
+    ocudu_assert(codeblock_id < codeblock_ids.size(),
+                 "Codeblock index ({}) is out of range ({}).",
+                 codeblock_id,
+                 codeblock_ids.size());
     unsigned cb_id       = codeblock_ids[codeblock_id];
     unsigned cb_max_size = codeblock_pool.get_soft_bits(cb_id).size();
-    srsran_assert(
+    ocudu_assert(
         codeblock_size <= cb_max_size, "Codeblock size {} exceeds maximum size {}.", codeblock_size, cb_max_size);
     return codeblock_pool.get_soft_bits(cb_id).first(codeblock_size);
   }
@@ -181,13 +181,13 @@ public:
   // See interface for documentation.
   bit_buffer get_codeblock_data_bits(unsigned codeblock_id, unsigned data_size) override
   {
-    srsran_assert(codeblock_id < codeblock_ids.size(),
-                  "Codeblock index ({}) is out of range ({}).",
-                  codeblock_id,
-                  codeblock_ids.size());
+    ocudu_assert(codeblock_id < codeblock_ids.size(),
+                 "Codeblock index ({}) is out of range ({}).",
+                 codeblock_id,
+                 codeblock_ids.size());
     unsigned cb_id         = codeblock_ids[codeblock_id];
     unsigned data_max_size = codeblock_pool.get_data_bits(cb_id).size();
-    srsran_assert(
+    ocudu_assert(
         data_size <= data_max_size, "Codeblock data size {} exceeds maximum size {}.", data_size, data_max_size);
     return codeblock_pool.get_data_bits(cb_id).first(data_size);
   }
@@ -203,7 +203,7 @@ public:
   void unlock() override
   {
     state previous_state = current_state.exchange(state::reserved);
-    srsran_assert(previous_state == state::locked, "Failed to unlock. Invalid state.");
+    ocudu_assert(previous_state == state::locked, "Failed to unlock. Invalid state.");
   }
 
   // See interface for documentation.
@@ -214,7 +214,7 @@ public:
 
     // The buffer can now be reused again.
     state previous_state = current_state.exchange(state::available);
-    srsran_assert(previous_state == state::locked, "Failed to release. Invalid state.");
+    ocudu_assert(previous_state == state::locked, "Failed to release. Invalid state.");
   }
 
   /// Returns true if the buffer is free.
@@ -246,4 +246,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

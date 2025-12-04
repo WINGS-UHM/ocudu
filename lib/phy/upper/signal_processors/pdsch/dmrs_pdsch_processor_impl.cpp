@@ -10,11 +10,11 @@
 
 #include "dmrs_pdsch_processor_impl.h"
 #include "../dmrs_helper.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
 static const re_prb_mask& get_re_mask_type_1(unsigned cdm_group_id)
@@ -41,9 +41,9 @@ static const re_prb_mask& get_re_mask_type_2(unsigned cdm_group_id)
   return re_mask_type2[cdm_group_id];
 }
 
-void srsran::dmrs_pdsch_processor_impl::sequence_generation(span<cf_t>      sequence,
-                                                            unsigned        symbol,
-                                                            const config_t& config) const
+void ocudu::dmrs_pdsch_processor_impl::sequence_generation(span<cf_t>      sequence,
+                                                           unsigned        symbol,
+                                                           const config_t& config) const
 {
   // Get signal amplitude.
   float amplitude = M_SQRT1_2 * config.amplitude;
@@ -82,15 +82,15 @@ void dmrs_pdsch_processor_impl::apply_cdm(span<cf_t>       sequence,
 
   // If no weights are applied, copy the original sequence.
   if ((params.w_t[l_prime] == +1.0F) && (params.w_f[0] == params.w_f[1])) {
-    srsvec::copy(sequence, base_sequence);
+    ocuduvec::copy(sequence, base_sequence);
     return;
   }
 
   // Apply w_t weight can be +1 or -1 depending on l_prime and port.
   if (params.w_t[l_prime] != +1.0F) {
-    srsvec::sc_prod(sequence, base_sequence, -1);
+    ocuduvec::sc_prod(sequence, base_sequence, -1);
   } else {
-    srsvec::copy(sequence, base_sequence);
+    ocuduvec::copy(sequence, base_sequence);
   }
 
   // Apply w_f weight. It can be {+1, +1} or {+1, -1} depending on l_prime and port. On the first case, no operation
@@ -102,7 +102,7 @@ void dmrs_pdsch_processor_impl::apply_cdm(span<cf_t>       sequence,
   }
 }
 
-void srsran::dmrs_pdsch_processor_impl::map(resource_grid_writer& grid, const config_t& config)
+void ocudu::dmrs_pdsch_processor_impl::map(resource_grid_writer& grid, const config_t& config)
 {
   // Number of DM-RS RE in an OFDM symbol.
   unsigned nof_dmrs_re_symbol = config.type.nof_dmrs_per_rb() * config.rb_mask.count();
@@ -154,10 +154,10 @@ void srsran::dmrs_pdsch_processor_impl::map(resource_grid_writer& grid, const co
       i_gen_dmrs_symbols += nof_dmrs_re_symbol;
     }
 
-    srsran_assert((i_gen_dmrs_symbols == nof_dmrs_re_slot),
-                  "The number of generated DM-RS seymbols (i.e., {}) does not match the expected (i.e., {})",
-                  i_gen_dmrs_symbols,
-                  nof_dmrs_re_slot);
+    ocudu_assert((i_gen_dmrs_symbols == nof_dmrs_re_slot),
+                 "The number of generated DM-RS seymbols (i.e., {}) does not match the expected (i.e., {})",
+                 i_gen_dmrs_symbols,
+                 nof_dmrs_re_slot);
 
     // Set DM-RS allocation pattern of the CDM group.
     re_pattern dmrs_pattern_cdm;
@@ -208,12 +208,12 @@ void srsran::dmrs_pdsch_processor_impl::map(resource_grid_writer& grid, const co
         nof_proc_re_cdm += nof_dmrs_re_symbol;
       }
 
-      srsran_assert((nof_proc_re_cdm == i_gen_dmrs_symbols),
-                    "The length of the CDM-coded DM-RS (i.e., {}) for DM-RS port {} does not match the DM-RS sequence "
-                    "length (i.e., {})",
-                    nof_proc_re_cdm,
-                    i_dmrs_port,
-                    i_gen_dmrs_symbols);
+      ocudu_assert((nof_proc_re_cdm == i_gen_dmrs_symbols),
+                   "The length of the CDM-coded DM-RS (i.e., {}) for DM-RS port {} does not match the DM-RS sequence "
+                   "length (i.e., {})",
+                   nof_proc_re_cdm,
+                   i_dmrs_port,
+                   i_gen_dmrs_symbols);
     }
 
     // Map the CDM group symbols into the resource grid.

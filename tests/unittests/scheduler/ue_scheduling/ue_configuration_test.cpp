@@ -12,11 +12,11 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/support/ocudu_test.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class ue_configuration_test : public ::testing::Test
 {

@@ -9,15 +9,15 @@
  */
 
 #include "test_du_high_worker_manager.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/priority_task_worker.h"
-#include "srsran/support/executors/strand_executor.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/priority_task_worker.h"
+#include "ocudu/support/executors/strand_executor.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/timers.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -78,12 +78,12 @@ public:
     }
 
     // Instantiate du-high executor mapper.
-    srs_du::du_high_executor_config exec_cfg;
-    auto& cells = exec_cfg.cell_executors.emplace<srs_du::du_high_executor_config::dedicated_cell_worker_list>();
+    odu::du_high_executor_config exec_cfg;
+    auto& cells = exec_cfg.cell_executors.emplace<odu::du_high_executor_config::dedicated_cell_worker_list>();
     for (unsigned i = 0; i != slot_execs.size(); ++i) {
-      cells.push_back(srs_du::du_high_executor_config::dedicated_cell_worker{&slot_execs[i], &cell_execs[i]});
+      cells.push_back(odu::du_high_executor_config::dedicated_cell_worker{&slot_execs[i], &cell_execs[i]});
     }
-    exec_cfg.ue_executors   = {srs_du::du_high_executor_config::ue_executor_config::map_policy::per_cell,
+    exec_cfg.ue_executors   = {odu::du_high_executor_config::ue_executor_config::map_policy::per_cell,
                                cfg.nof_cell_workers,
                                task_worker_queue_size,
                                task_worker_queue_size,
@@ -91,7 +91,7 @@ public:
                                &low_prio_exec};
     exec_cfg.ctrl_executors = {task_worker_queue_size, &high_prio_exec};
 
-    exec_mapper = srs_du::create_du_high_executor_mapper(exec_cfg);
+    exec_mapper = odu::create_du_high_executor_mapper(exec_cfg);
 
     timer_strand = make_task_strand_ptr<concurrent_queue_policy::lockfree_mpmc>(high_prio_exec, task_worker_queue_size);
   }
@@ -147,7 +147,7 @@ private:
 } // namespace
 
 std::unique_ptr<test_helpers::du_high_worker_manager>
-srsran::test_helpers::create_multi_threaded_du_high_executor_mapper(const du_high_worker_config& cfg)
+ocudu::test_helpers::create_multi_threaded_du_high_executor_mapper(const du_high_worker_config& cfg)
 {
   unique_thread::add_observer(std::make_unique<preinitialize_tls_resources>(cfg.timers));
 

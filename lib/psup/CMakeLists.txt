@@ -8,5 +8,5 @@
 
 set(SOURCES psup_packing.cpp)
 
-add_library(srsran_psup STATIC ${SOURCES})
-target_link_libraries(srsran_psup srsran_support)
+add_library(ocudu_psup STATIC ${SOURCES})
+target_link_libraries(ocudu_psup ocudu_support)

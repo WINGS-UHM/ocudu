@@ -13,21 +13,21 @@
 
 #pragma once
 
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_detector.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_format1_map.h"
-#include "srsran/phy/upper/equalization/channel_equalizer.h"
-#include "srsran/phy/upper/equalization/dynamic_ch_est_list.h"
-#include "srsran/phy/upper/pucch_helper.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_collection.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/ran/cyclic_prefix.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_detector.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_format1_map.h"
+#include "ocudu/phy/upper/equalization/channel_equalizer.h"
+#include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
+#include "ocudu/phy/upper/pucch_helper.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/ran/cyclic_prefix.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// PUCCH Format 1 detector.
 class pucch_detector_format1
@@ -60,14 +60,14 @@ public:
     idft(std::move(idft_)),
     dmrs_mask(MAX_NSYMB_PER_SLOT)
   {
-    srsran_assert(low_papr, "Invalid Low PAPR sequence generator.");
-    srsran_assert(dft, "Invalid DFT processor");
-    srsran_assert(dft->get_direction() == dft_processor::direction::DIRECT, "DFT processor direction set to INVERSE");
-    srsran_assert(dft->get_size() == NRE, "DFT processor size is {}, should be {}.", dft->get_size(), NRE);
-    srsran_assert(idft, "Invalid inverse DFT processor");
-    srsran_assert(idft->get_direction() == dft_processor::direction::INVERSE,
-                  "Inverse DFT processor direction set to DIRECT");
-    srsran_assert(idft->get_size() == NRE, "Inverse DFT processor size is {}, should be {}.", dft->get_size(), NRE);
+    ocudu_assert(low_papr, "Invalid Low PAPR sequence generator.");
+    ocudu_assert(dft, "Invalid DFT processor");
+    ocudu_assert(dft->get_direction() == dft_processor::direction::DIRECT, "DFT processor direction set to INVERSE");
+    ocudu_assert(dft->get_size() == NRE, "DFT processor size is {}, should be {}.", dft->get_size(), NRE);
+    ocudu_assert(idft, "Invalid inverse DFT processor");
+    ocudu_assert(idft->get_direction() == dft_processor::direction::INVERSE,
+                 "Inverse DFT processor direction set to DIRECT");
+    ocudu_assert(idft->get_size() == NRE, "Inverse DFT processor size is {}, should be {}.", dft->get_size(), NRE);
   }
 
   /// Detects multiplexed PUCCH Format 1 transmissions. See \ref pucch_detector for more details.
@@ -153,4 +153,4 @@ private:
   pucch_format1_map<pucch_detector::pucch_detection_result_csi> mux_results;
 };
 
-} // namespace srsran
+} // namespace ocudu

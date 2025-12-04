@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_message_handler.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/gateways/network_gateway.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message_handler.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/gateways/network_gateway.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline bool is_f1ap_pdu_packable(const asn1::f1ap::f1ap_pdu_c& pdu)
 {
   byte_buffer   buffer;
   asn1::bit_ref bref(buffer);
-  return pdu.pack(bref) == asn1::SRSASN_SUCCESS;
+  return pdu.pack(bref) == asn1::OCUDUASN_SUCCESS;
 }
 
 /// Reusable notifier class that a) stores the received PDU for test inspection and b)
@@ -47,8 +47,8 @@ public:
   f1ap_message last_f1ap_msg;
 
 private:
-  srslog::basic_logger& logger  = srslog::fetch_basic_logger("TEST");
-  f1ap_message_handler* handler = nullptr;
+  ocudulog::basic_logger& logger  = ocudulog::fetch_basic_logger("TEST");
+  f1ap_message_handler*   handler = nullptr;
 };
 
 /// Reusable class implementing the notifier interface.
@@ -59,7 +59,7 @@ public:
 
   void on_new_message(const f1ap_message& msg) override
   {
-    srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+    ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
     test_logger.info("Received PDU");
     last_f1ap_msg = msg;
     if (not is_f1ap_pdu_packable(msg.pdu)) {
@@ -84,7 +84,7 @@ public:
   f1ap_message last_msg;
 
 private:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
-} // namespace srsran
+} // namespace ocudu

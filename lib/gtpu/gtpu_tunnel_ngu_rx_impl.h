@@ -11,14 +11,14 @@
 #pragma once
 
 #include "gtpu_tunnel_base_rx.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu_rx.h"
-#include "srsran/psup/psup_packing.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/support/sdu_window.h"
-#include "srsran/support/timers.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_rx.h"
+#include "ocudu/psup/psup_packing.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/support/sdu_window.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 
 constexpr unsigned gtpu_sn_mod         = 65536;
 constexpr unsigned gtpu_rx_window_size = 32768;
@@ -45,7 +45,7 @@ struct gtpu_rx_sdu_info {
 class gtpu_tunnel_ngu_rx_impl : public gtpu_tunnel_base_rx
 {
 public:
-  gtpu_tunnel_ngu_rx_impl(srs_cu_up::ue_index_t                             ue_index,
+  gtpu_tunnel_ngu_rx_impl(ocuup::ue_index_t                                 ue_index,
                           gtpu_tunnel_ngu_config::gtpu_tunnel_ngu_rx_config cfg,
                           gtpu_tunnel_ngu_rx_lower_layer_notifier&          rx_lower_,
                           timer_factory                                     ue_ctrl_timer_factory_) :
@@ -56,7 +56,7 @@ public:
     rx_window(logger, gtpu_rx_window_size),
     ue_ctrl_timer_factory(ue_ctrl_timer_factory_)
   {
-    srsran_assert(cfg.ue_ambr_limiter != nullptr, "No UE-AMBR limiter provided");
+    ocudu_assert(cfg.ue_ambr_limiter != nullptr, "No UE-AMBR limiter provided");
     if (config.t_reordering.count() != 0) {
       reordering_timer = ue_ctrl_timer_factory.create_timer();
       reordering_timer.set(config.t_reordering, reordering_callback{this});
@@ -340,11 +340,11 @@ private:
   unsigned                  nof_log_sn_out_of_window     = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::gtpu_rx_state> {
+struct formatter<ocudu::gtpu_rx_state> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -352,7 +352,7 @@ struct formatter<srsran::gtpu_rx_state> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_rx_state& st, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_rx_state& st, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "rx_deliv={} rx_reord={} rx_next={} ", st.rx_deliv, st.rx_reord, st.rx_next);
   }

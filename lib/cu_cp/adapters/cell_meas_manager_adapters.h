@@ -13,8 +13,8 @@
 #include "../cell_meas_manager/cell_meas_manager_impl.h"
 #include "../mobility_manager/mobility_manager_impl.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Adapter between cell measurement and mobility manager to trigger handover.
 class cell_meas_mobility_manager_adapter : public cell_meas_mobility_manager_notifier
@@ -29,7 +29,7 @@ public:
                                       nr_cell_identity neighbor_nci,
                                       pci_t            neighbor_pci) override
   {
-    srsran_assert(handler != nullptr, "Mobility manager handler must not be nullptr");
+    ocudu_assert(handler != nullptr, "Mobility manager handler must not be nullptr");
     handler->handle_neighbor_better_than_spcell(ue_index, neighbor_gnb_id, neighbor_nci, neighbor_pci);
   }
 
@@ -37,5 +37,5 @@ private:
   mobility_manager_measurement_handler* handler = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

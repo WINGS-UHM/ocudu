@@ -9,12 +9,12 @@
  */
 
 #include "prach_generator_impl.h"
-#include "srsran/phy/support/complex_exponential_table.h"
-#include "srsran/ran/prach/prach_cyclic_shifts.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/complex_exponential_table.h"
+#include "ocudu/ran/prach/prach_cyclic_shifts.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Complex exponential look-up table for short preambles.
 static const complex_exponential_table
@@ -245,7 +245,7 @@ span<const cf_t> prach_generator_impl::generate_y_u_v_short(unsigned sequence_nu
 
 span<const cf_t> prach_generator_impl::generate(const prach_generator::configuration& config)
 {
-  srsran_assert(config.restricted_set == restricted_set_config::UNRESTRICTED, "Unrestricted sets are not implemented.");
+  ocudu_assert(config.restricted_set == restricted_set_config::UNRESTRICTED, "Unrestricted sets are not implemented.");
 
   unsigned                 sequence_length = SHORT;
   prach_subcarrier_spacing ra_scs          = prach_subcarrier_spacing::kHz15;
@@ -256,7 +256,7 @@ span<const cf_t> prach_generator_impl::generate(const prach_generator::configura
   }
 
   unsigned N_cs = prach_cyclic_shifts_get(ra_scs, config.restricted_set, config.zero_correlation_zone);
-  srsran_assert(N_cs != PRACH_CYCLIC_SHIFTS_RESERVED, "Configuration leads to a reserved number of cyclic shifts.");
+  ocudu_assert(N_cs != PRACH_CYCLIC_SHIFTS_RESERVED, "Configuration leads to a reserved number of cyclic shifts.");
 
   unsigned root_sequence_index = config.root_sequence_index + config.preamble_index;
   unsigned cyclic_shift        = 0;

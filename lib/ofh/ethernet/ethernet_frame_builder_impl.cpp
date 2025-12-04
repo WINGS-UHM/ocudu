@@ -12,10 +12,10 @@
 #include "../support/network_order_binary_serializer.h"
 #include "ethernet_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
-frame_builder_impl::frame_builder_impl(const srsran::ether::vlan_frame_params& eth_params_) : eth_params(eth_params_) {}
+frame_builder_impl::frame_builder_impl(const ocudu::ether::vlan_frame_params& eth_params_) : eth_params(eth_params_) {}
 
 units::bytes frame_builder_impl::get_header_size() const
 {

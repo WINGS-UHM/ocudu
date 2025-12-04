@@ -9,9 +9,9 @@
  */
 
 #include "mac_dl_metric_handler.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_dl_cell_metric_report::latency_report
 mac_dl_cell_metric_handler::non_persistent_data::latency_data::get_report() const

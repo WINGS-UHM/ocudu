@@ -16,7 +16,7 @@
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test suit to hold context which are required to test a UE cell implementation.
 class ue_cell_tester : public ::testing::Test
@@ -94,7 +94,7 @@ protected:
   cell_harq_manager                        cell_harqs{1, MAX_NOF_HARQS};
   logical_channel_system                   lc_ch_sys;
   ue_logical_channel_repository            lc_ch_mng;
-  srslog::basic_logger&                    logger = srslog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger&                  logger = ocudulog::fetch_basic_logger("SCHED");
   ue_drx_controller                        drx_controller{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
                                    cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
                                    std::nullopt,

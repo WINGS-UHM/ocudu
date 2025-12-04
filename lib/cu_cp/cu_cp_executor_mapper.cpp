@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/cu_cp/cu_cp_executor_mapper.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/support/executors/strand_executor.h"
+#include "ocudu/cu_cp/cu_cp_executor_mapper.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/support/executors/strand_executor.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -60,7 +60,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<cu_cp_executor_mapper> srs_cu_cp::make_cu_cp_executor_mapper(const strand_based_executor_config& config)
+std::unique_ptr<cu_cp_executor_mapper> ocucp::make_cu_cp_executor_mapper(const strand_based_executor_config& config)
 {
   return std::make_unique<cu_cp_executor_mapper_impl>(config);
 }

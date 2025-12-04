@@ -12,11 +12,11 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_up_unit_config;
 
 /// Configures the given CLI11 application with the CU-UP application unit configuration schema.
 void configure_cli11_with_cu_up_unit_config_schema(CLI::App& app, cu_up_unit_config& unit_cfg);
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_execution_manager.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/task_execution_manager.h"
 #include <future>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class task_execution_manager_test : public ::testing::Test
 {
 public:
-  task_execution_manager_test() { srslog::init(); }
+  task_execution_manager_test() { ocudulog::init(); }
 };
 
 TEST_F(task_execution_manager_test, creation_of_single_task_worker)

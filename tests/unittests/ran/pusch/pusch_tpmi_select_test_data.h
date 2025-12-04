@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 15-10-2024 (seed 0):
 //   + "srsTPMISelectUnittest.m"
 
-#include "srsran/ran/pusch/pusch_tpmi_select.h"
-#include "srsran/ran/srs/srs_channel_matrix.h"
+#include "ocudu/ran/pusch/pusch_tpmi_select.h"
+#include "ocudu/ran/srs/srs_channel_matrix.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   srs_channel_matrix        channel_matrix;
@@ -318,4 +318,4 @@ static const std::vector<test_case_t> pusch_tpmi_select_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

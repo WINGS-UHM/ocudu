@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/asn1/e1ap/common.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_e1_handler.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/gateways/e1_local_connector_factory.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/asn1/e1ap/common.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_e1_handler.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/gateways/e1_local_connector_factory.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <future>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class dummy_dlt_pcap final : public dlt_pcap
 {
@@ -36,7 +36,7 @@ public:
   virtual void push_pdu(byte_buffer pdu) override { last_sdus.push_blocking(std::move(pdu)); }
 };
 
-class e1_link : public srs_cu_cp::cu_cp_e1_handler
+class e1_link : public ocucp::cu_cp_e1_handler
 {
 public:
   class rx_pdu_notifier : public e1ap_message_notifier
@@ -59,7 +59,7 @@ public:
     const std::string             name;
     blocking_queue<e1ap_message>& rx_pdus;
     std::promise<void>            eof_received;
-    srslog::basic_logger&         logger = srslog::fetch_basic_logger("TEST");
+    ocudulog::basic_logger&       logger = ocudulog::fetch_basic_logger("TEST");
   };
 
   e1_link(bool use_sctp, bool pcap_enabled)
@@ -97,7 +97,7 @@ public:
   std::unique_ptr<io_broker>          broker;
   dummy_dlt_pcap                      pcap;
   std::unique_ptr<e1_local_connector> connector;
-  srslog::basic_logger&               logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&             logger = ocudulog::fetch_basic_logger("TEST");
 
   blocking_queue<e1ap_message> cu_rx_pdus{128};
   blocking_queue<e1ap_message> cu_up_rx_pdus{128};
@@ -130,13 +130,13 @@ class e1_gateway_link_test : public ::testing::TestWithParam<bool>
 protected:
   e1_gateway_link_test()
   {
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("SCTP-GW").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("CU-CP-E1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("CU-UP-E1").set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("SCTP-GW").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("CU-CP-E1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("CU-UP-E1").set_level(ocudulog::basic_levels::debug);
   }
-  ~e1_gateway_link_test() override { srslog::flush(); }
+  ~e1_gateway_link_test() override { ocudulog::flush(); }
 
   void create_link(bool pcap_enabled = false)
   {
@@ -162,7 +162,7 @@ protected:
     return res;
   }
 
-  srslog::basic_logger&    logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&  logger = ocudulog::fetch_basic_logger("TEST");
   std::unique_ptr<e1_link> link;
 };
 
@@ -181,7 +181,7 @@ static byte_buffer pack(const e1ap_message& msg)
   byte_buffer pdu;
   {
     asn1::bit_ref bref{pdu};
-    report_fatal_error_if_not(msg.pdu.pack(bref) == asn1::SRSASN_SUCCESS, "Failed to pack E1AP PDU");
+    report_fatal_error_if_not(msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to pack E1AP PDU");
   }
   return pdu;
 }

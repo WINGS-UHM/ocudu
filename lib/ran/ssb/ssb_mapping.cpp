@@ -8,21 +8,21 @@
  *
  */
 
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/scheduler/sched_consts.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-uint8_t srsran::ssb_get_L_max(subcarrier_spacing ssb_scs, unsigned dl_arfcn, std::optional<nr_band> band)
+uint8_t ocudu::ssb_get_L_max(subcarrier_spacing ssb_scs, unsigned dl_arfcn, std::optional<nr_band> band)
 {
   uint8_t L_max = 0;
 
   // Derive the SSB-specific parameters (SSB pattern case, SSB L_max and SSB paired_spectrum flag) from those in the
   // MAC Cell config.
   const nr_band gnb_band = band.value_or(band_helper::get_band_from_dl_arfcn(dl_arfcn));
-  srsran_assert(gnb_band != nr_band::invalid, "Invalid NR band index");
+  ocudu_assert(gnb_band != nr_band::invalid, "Invalid NR band index");
   ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(gnb_band, ssb_scs);
 
   // Flag indicating whether cell is on paired spectrum (FDD) or unpaired (TDD, SDL, SUL).
@@ -50,10 +50,10 @@ uint8_t srsran::ssb_get_L_max(subcarrier_spacing ssb_scs, unsigned dl_arfcn, std
   return L_max;
 }
 
-crb_interval srsran::get_ssb_crbs(subcarrier_spacing    ssb_scs,
-                                  subcarrier_spacing    scs_common,
-                                  ssb_offset_to_pointA  offset_to_pA,
-                                  ssb_subcarrier_offset k_ssb)
+crb_interval ocudu::get_ssb_crbs(subcarrier_spacing    ssb_scs,
+                                 subcarrier_spacing    scs_common,
+                                 ssb_offset_to_pointA  offset_to_pA,
+                                 ssb_subcarrier_offset k_ssb)
 {
   report_fatal_error_if_not(ssb_scs == scs_common, "Mixed numerology not supported");
   report_fatal_error_if_not((scs_common <= subcarrier_spacing::kHz30) || (scs_common == subcarrier_spacing::kHz120),
@@ -63,9 +63,9 @@ crb_interval srsran::get_ssb_crbs(subcarrier_spacing    ssb_scs,
   // With SCScommon kHz30, offset_to_pointA must be a multiple of 2. This is because it is measured in 15kHz RB, while
   // it points at a CRB which is based on 30kHz.
   if ((scs_common == subcarrier_spacing::kHz30) || ((scs_common == subcarrier_spacing::kHz120))) {
-    srsran_sanity_check(offset_to_pA.to_uint() % 2 == 0,
-                        "With SCScommon with {} OffsetToPointA must be an even number",
-                        to_string(scs_common));
+    ocudu_sanity_check(offset_to_pA.to_uint() % 2 == 0,
+                       "With SCScommon with {} OffsetToPointA must be an even number",
+                       to_string(scs_common));
   }
   unsigned ssb_crbs_start =
       scs_common == subcarrier_spacing::kHz15 ? offset_to_pA.to_uint() : offset_to_pA.to_uint() / 2;

@@ -12,12 +12,12 @@
 #include "lib/scheduler/pucch_scheduling/pucch_resource_manager.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "uci_test_utils.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 
 ////////////    Test the PUCCH resource manager: all UEs sharing the same config     ////////////
 
@@ -536,8 +536,8 @@ protected:
     default_pucch_cfg.pucch_res_set[1].pucch_res_id_list.clear();
 
     // Ensure the PUCCH resource sets ID are 0 and 1.
-    default_pucch_cfg.pucch_res_set[0].pucch_res_set_id = srsran::pucch_res_set_idx::set_0;
-    default_pucch_cfg.pucch_res_set[1].pucch_res_set_id = srsran::pucch_res_set_idx::set_1;
+    default_pucch_cfg.pucch_res_set[0].pucch_res_set_id = ocudu::pucch_res_set_idx::set_0;
+    default_pucch_cfg.pucch_res_set[1].pucch_res_set_id = ocudu::pucch_res_set_idx::set_1;
 
     const unsigned tot_ue_f1_res = nof_ue_pucch_f1_res_harq + nof_ue_pucch_f1_res_sr;
     const unsigned tot_ue_f2_res = nof_ue_pucch_f2_res_harq + nof_ue_pucch_f2_res_csi;

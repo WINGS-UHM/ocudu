@@ -11,18 +11,18 @@
 #include "../../../../lib/ofh/compression/packing_utils_generic.h"
 #include "../../../../lib/ofh/compression/quantizer.h"
 #include "ofh_compression_test_data.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/ofh/compression/compression_factory.h"
-#include "srsran/ofh/compression/compression_properties.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/units.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ofh/compression/compression_factory.h"
+#include "ocudu/ofh/compression/compression_properties.h"
+#include "ocudu/support/units.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 // Output stream formatting to make GTest results human-readable.
-namespace srsran {
+namespace ocudu {
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
   return os << fmt::format("prbs={}, compression={}, iq_width={}, scaling={}",
@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& os, span<const uint8_t> data)
   return os << fmt::format("{:02x}", data);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 static const auto implementation_types = to_array<std::string>({"generic"
 #ifdef __AVX2__
@@ -76,7 +76,7 @@ protected:
   ru_compression_params            params       = {};
   std::unique_ptr<iq_compressor>   compressor   = nullptr;
   std::unique_ptr<iq_decompressor> decompressor = nullptr;
-  srslog::basic_logger&            logger       = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&          logger       = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 class OFHCompressionBfp9TestFixture : public ::testing::TestWithParam<std::string>
@@ -93,7 +93,7 @@ protected:
 
   ru_compression_params          params     = {};
   std::unique_ptr<iq_compressor> compressor = nullptr;
-  srslog::basic_logger&          logger     = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&        logger     = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 // Verify data after compression and following decompression.
@@ -111,7 +111,7 @@ TEST_P(OFHCompressionVectorTestFixture, match_test_case_result_and_decompress_to
   std::vector<uint8_t> test_compr_param = test_case.compressed_params.read();
 
   std::vector<cbf16_t> test_data_cbf16(test_data.size());
-  srsvec::convert(test_data_cbf16, test_data);
+  ocuduvec::convert(test_data_cbf16, test_data);
 
   unsigned prb_size = get_compressed_prb_size(params).value();
 
@@ -125,7 +125,7 @@ TEST_P(OFHCompressionVectorTestFixture, match_test_case_result_and_decompress_to
   // Verify compressed IQs.
   for (unsigned j = 0; j != nof_prb; ++j) {
     unsigned prb_iq_data_offset = 0;
-    if (params.type == srsran::ofh::compression_type::BFP) {
+    if (params.type == ocudu::ofh::compression_type::BFP) {
       // Parameter should match, it is serialized in the first byte.
       ASSERT_EQ(compressed_data[j * prb_size], test_compr_param[j]) << fmt::format("wrong PRB={} param", j);
       prb_iq_data_offset = 1;
@@ -153,7 +153,7 @@ TEST_P(OFHCompressionVectorTestFixture, match_test_case_result_and_decompress_to
   float resolution = 2.0F / (1 << (params.data_width - 1)) + 1 / 256.0F;
 
   std::vector<cf_t> decompressed_data_cf(nof_prb * NOF_SUBCARRIERS_PER_RB);
-  srsvec::convert(decompressed_data_cf, decompressed_data);
+  ocuduvec::convert(decompressed_data_cf, decompressed_data);
   for (auto& result : decompressed_data_cf) {
     result = {std::real(result) / iq_scaling, std::imag(result) / iq_scaling};
   }
@@ -178,7 +178,7 @@ TEST_P(OFHCompressionVectorTestFixture, zero_input_compression_is_correct)
   std::fill(test_data.begin(), test_data.end(), 0);
 
   std::vector<cbf16_t> test_data_cbf16(test_data.size());
-  srsvec::convert(test_data_cbf16, test_data);
+  ocuduvec::convert(test_data_cbf16, test_data);
 
   unsigned prb_size = get_compressed_prb_size(params).value();
 
@@ -191,7 +191,7 @@ TEST_P(OFHCompressionVectorTestFixture, zero_input_compression_is_correct)
   decompressor->decompress(decompressed_data, compressed_data, params);
 
   std::vector<cf_t> decompressed_data_cf(nof_prb * NOF_SUBCARRIERS_PER_RB);
-  srsvec::convert(decompressed_data_cf, decompressed_data);
+  ocuduvec::convert(decompressed_data_cf, decompressed_data);
   ASSERT_EQ(test_data, decompressed_data_cf);
 }
 
@@ -216,7 +216,7 @@ TEST_P(OFHCompressionBfp9TestFixture, bpsk_input_compression_is_correct)
 
   // Compress it.
   std::vector<cbf16_t> test_data_cbf16(test_data.size());
-  srsvec::convert(test_data_cbf16, test_data);
+  ocuduvec::convert(test_data_cbf16, test_data);
   compressor->compress(compressed_data, test_data_cbf16, params);
 
   for (unsigned j = 0; j != 4; ++j) {

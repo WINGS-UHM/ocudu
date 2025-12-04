@@ -9,15 +9,15 @@
  */
 
 #include "pusch_decoder_impl.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
-#include "srsran/phy/upper/rx_buffer.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/rx_buffer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Select the CRC for the decoder based on the TBS and the number of codeblocks.
 static crc_calculator* select_crc(pusch_decoder_impl::sch_crc& crcs, unsigned tbs, unsigned nof_blocks)
@@ -80,10 +80,10 @@ pusch_decoder_buffer& pusch_decoder_impl::new_data(span<uint8_t>                
                                                    const pusch_decoder::configuration& cfg)
 {
   internal_states previous_state = current_state.exchange(internal_states::collecting);
-  srsran_assert(previous_state == internal_states::idle,
-                "Invalid state. It was expected to be {} but it was {}.",
-                to_string(internal_states::idle),
-                to_string(previous_state));
+  ocudu_assert(previous_state == internal_states::idle,
+               "Invalid state. It was expected to be {} but it was {}.",
+               to_string(internal_states::idle),
+               to_string(previous_state));
 
   transport_block  = transport_block_;
   unique_rm_buffer = std::move(unique_rm_buffer_);
@@ -108,10 +108,10 @@ pusch_decoder_buffer& pusch_decoder_impl::new_data(span<uint8_t>                
   cb_task_counter      = nof_codeblocks;
   available_cb_counter = 0;
 
-  srsran_assert(nof_codeblocks == unique_rm_buffer->get_nof_codeblocks(),
-                "Wrong number of codeblocks {} (expected {}).",
-                unique_rm_buffer->get_nof_codeblocks(),
-                nof_codeblocks);
+  ocudu_assert(nof_codeblocks == unique_rm_buffer->get_nof_codeblocks(),
+               "Wrong number of codeblocks {} (expected {}).",
+               unique_rm_buffer->get_nof_codeblocks(),
+               nof_codeblocks);
 
   // Select CRC calculator for inner codeblock checks.
   block_crc = select_crc(crc_set, tb_size, nof_codeblocks);
@@ -119,7 +119,7 @@ pusch_decoder_buffer& pusch_decoder_impl::new_data(span<uint8_t>                
   // Reset CRCs if new data is flagged.
   span<bool> cb_crcs = unique_rm_buffer->get_codeblocks_crc();
   if (current_config.new_data) {
-    srsvec::zero(cb_crcs);
+    ocuduvec::zero(cb_crcs);
   }
 
   return *this;
@@ -128,18 +128,18 @@ pusch_decoder_buffer& pusch_decoder_impl::new_data(span<uint8_t>                
 span<log_likelihood_ratio> pusch_decoder_impl::get_next_block_view(unsigned block_size)
 {
   internal_states state = current_state.load();
-  srsran_assert(state == internal_states::collecting,
-                "Invalid state. It was expected to be {} but it was {}.",
-                to_string(internal_states::collecting),
-                to_string(state));
+  ocudu_assert(state == internal_states::collecting,
+               "Invalid state. It was expected to be {} but it was {}.",
+               to_string(internal_states::collecting),
+               to_string(state));
 
   // Makes sure the block size does not overflow the buffer.
-  srsran_assert(softbits_count + block_size <= softbits_buffer.size(),
-                "The sum of current buffer number of elements (i.e., {}) and the block size (i.e., {}), exceeds the "
-                "total number of elements of the buffer (i.e., {}).",
-                softbits_count,
-                block_size,
-                softbits_buffer.size());
+  ocudu_assert(softbits_count + block_size <= softbits_buffer.size(),
+               "The sum of current buffer number of elements (i.e., {}) and the block size (i.e., {}), exceeds the "
+               "total number of elements of the buffer (i.e., {}).",
+               softbits_count,
+               block_size,
+               softbits_buffer.size());
 
   return span<log_likelihood_ratio>(softbits_buffer).subspan(softbits_count, block_size);
 }
@@ -147,18 +147,18 @@ span<log_likelihood_ratio> pusch_decoder_impl::get_next_block_view(unsigned bloc
 void pusch_decoder_impl::set_nof_softbits(units::bits nof_softbits)
 {
   internal_states state = current_state.load();
-  srsran_assert(state == internal_states::collecting,
-                "Invalid state. It was expected to be {} but it was {}.",
-                to_string(internal_states::collecting),
-                to_string(state));
+  ocudu_assert(state == internal_states::collecting,
+               "Invalid state. It was expected to be {} but it was {}.",
+               to_string(internal_states::collecting),
+               to_string(state));
 
   nof_ulsch_softbits.emplace(nof_softbits);
 
   unsigned modulation_order = get_bits_per_symbol(current_config.mod);
-  srsran_assert(nof_ulsch_softbits->value() % modulation_order == 0,
-                "The number of soft bits (i.e., {}) must be multiple of the modulation order (i.e., {}).",
-                nof_ulsch_softbits->value(),
-                modulation_order);
+  ocudu_assert(nof_ulsch_softbits->value() % modulation_order == 0,
+               "The number of soft bits (i.e., {}) must be multiple of the modulation order (i.e., {}).",
+               nof_ulsch_softbits->value(),
+               modulation_order);
 
   // Set derived parameters.
   segmentation_config.nof_ch_symbols = nof_ulsch_softbits->value() / modulation_order;
@@ -174,7 +174,7 @@ void pusch_decoder_impl::set_nof_softbits(units::bits nof_softbits)
   segmenter->segment(codeblock_llrs, llrs, tb_size, segmentation_config);
 
   // All information about the CW segments should be available.
-  srsran_assert(
+  ocudu_assert(
       nof_codeblocks == codeblock_llrs.size(),
       "The number of described CW segments, i.e., {}, does not match the expected number of codeblocks, i.e., {}.",
       codeblock_llrs.size(),
@@ -195,16 +195,16 @@ void pusch_decoder_impl::set_nof_softbits(units::bits nof_softbits)
 void pusch_decoder_impl::on_new_softbits(span<const log_likelihood_ratio> softbits)
 {
   internal_states state = current_state.load();
-  srsran_assert(state == internal_states::collecting,
-                "Invalid state. It was expected to be {} but it was {}.",
-                to_string(internal_states::collecting),
-                to_string(state));
+  ocudu_assert(state == internal_states::collecting,
+               "Invalid state. It was expected to be {} but it was {}.",
+               to_string(internal_states::collecting),
+               to_string(state));
 
   span<log_likelihood_ratio> block = get_next_block_view(softbits.size());
 
   // Copy only if the soft bits do not match.
   if (block.data() != softbits.data()) {
-    srsvec::copy(block, softbits);
+    ocuduvec::copy(block, softbits);
   }
 
   softbits_count += softbits.size();
@@ -226,34 +226,34 @@ void pusch_decoder_impl::on_new_softbits(span<const log_likelihood_ratio> softbi
 void pusch_decoder_impl::on_end_softbits()
 {
   // Verify the number of bits match with the configured one.
-  srsran_assert(!nof_ulsch_softbits.has_value() || (*nof_ulsch_softbits == units::bits(softbits_count)),
-                "The number of UL-SCH softbits, i.e., {}, does not match the expected value, i.e., {}.",
-                units::bits(softbits_count),
-                *nof_ulsch_softbits);
+  ocudu_assert(!nof_ulsch_softbits.has_value() || (*nof_ulsch_softbits == units::bits(softbits_count)),
+               "The number of UL-SCH softbits, i.e., {}, does not match the expected value, i.e., {}.",
+               units::bits(softbits_count),
+               *nof_ulsch_softbits);
 
   unsigned modulation_order = get_bits_per_symbol(current_config.mod);
-  srsran_assert(softbits_count % modulation_order == 0,
-                "The number of soft bits (i.e., {}) must be multiple of the modulation order (i.e., {}).",
-                units::bits(softbits_count),
-                modulation_order);
+  ocudu_assert(softbits_count % modulation_order == 0,
+               "The number of soft bits (i.e., {}) must be multiple of the modulation order (i.e., {}).",
+               units::bits(softbits_count),
+               modulation_order);
 
   // Skip processing if all codeblock decoding tasks have already been dispatched. This should be the case if the
   // number of CW softbits has been provided by calling set_nof_sofbits.
   if (available_cb_counter == nof_codeblocks) {
-    srsran_assert(nof_ulsch_softbits->value() == softbits_count,
-                  "The number of provided softbits (i.e., {}), does not match the expected number (i.e. {}).",
-                  units::bits(softbits_count),
-                  *nof_ulsch_softbits);
+    ocudu_assert(nof_ulsch_softbits->value() == softbits_count,
+                 "The number of provided softbits (i.e., {}), does not match the expected number (i.e. {}).",
+                 units::bits(softbits_count),
+                 *nof_ulsch_softbits);
 
     // Try to transition from collecting to decoding.
     internal_states expected_state = internal_states::collecting;
     if (!current_state.compare_exchange_strong(expected_state, internal_states::decoding)) {
       // If the previous state was not collecting, the only valid state is decoded.
       internal_states state = current_state.load();
-      srsran_assert(state == internal_states::decoded,
-                    "Invalid state. It was expected to be {} but it was {}.",
-                    to_string(internal_states::decoded),
-                    to_string(state));
+      ocudu_assert(state == internal_states::decoded,
+                   "Invalid state. It was expected to be {} but it was {}.",
+                   to_string(internal_states::decoded),
+                   to_string(state));
 
       // In this case, all the codeblocks have already been decoded. Notify the completion.
       join_and_notify();
@@ -265,13 +265,13 @@ void pusch_decoder_impl::on_end_softbits()
 
   // Transition to decoding.
   internal_states previous_state = current_state.exchange(internal_states::decoding);
-  srsran_assert(previous_state == internal_states::collecting,
-                "Invalid state. It was expected to be {} but it was {}.",
-                to_string(internal_states::collecting),
-                to_string(previous_state));
+  ocudu_assert(previous_state == internal_states::collecting,
+               "Invalid state. It was expected to be {} but it was {}.",
+               to_string(internal_states::collecting),
+               to_string(previous_state));
 
-  srsran_assert(!nof_ulsch_softbits.has_value(),
-                "The number of CW softbits has been provided and not all CB decoding tasks have been dispatched.");
+  ocudu_assert(!nof_ulsch_softbits.has_value(),
+               "The number of CW softbits has been provided and not all CB decoding tasks have been dispatched.");
 
   // Compute segmentation.
   span<const log_likelihood_ratio> llrs = span<const log_likelihood_ratio>(softbits_buffer).first(softbits_count);
@@ -282,7 +282,7 @@ void pusch_decoder_impl::on_end_softbits()
   segmenter->segment(codeblock_llrs, llrs, tb_size, segmentation_config);
 
   // All information about the CW segments should be available.
-  srsran_assert(
+  ocudu_assert(
       nof_codeblocks == codeblock_llrs.size(),
       "The number of described CW segments, i.e., {}, does not match the expected number of codeblocks, i.e., {}.",
       codeblock_llrs.size(),
@@ -299,7 +299,7 @@ void pusch_decoder_impl::fork_codeblock_task(unsigned cb_id)
   auto cb_process_task = [this, cb_id]() {
     span<const log_likelihood_ratio> cb_llrs = codeblock_llrs[cb_id].first;
     const codeblock_metadata&        cb_meta = codeblock_llrs[cb_id].second;
-    srsran_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
+    ocudu_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
 
     // Get codeblock length, without rate matching, the message length and the number of data bits (no CRC, no filler
     // bits - may contain zero-padding).
@@ -408,7 +408,7 @@ void pusch_decoder_impl::join_and_notify()
     // Copy the code block only nif the CRC is OK.
     if (stats.tb_crc_ok) {
       const bit_buffer cb_data = unique_rm_buffer->get_codeblock_data_bits(0, transport_block.size() * BITS_PER_BYTE);
-      srsvec::copy(transport_block, cb_data.get_buffer());
+      ocuduvec::copy(transport_block, cb_data.get_buffer());
     }
   } else if (std::all_of(cb_crcs.begin(), cb_crcs.end(), [](bool a) { return a; })) {
     // When more than one codeblock, we need to check the global transport block CRC. Note that there is no need to
@@ -435,11 +435,11 @@ void pusch_decoder_impl::join_and_notify()
 
   // Transition back to idle.
   internal_states previous_state = current_state.exchange(internal_states::idle);
-  srsran_assert((previous_state == internal_states::decoding) || (previous_state == internal_states::decoded),
-                "Invalid state. It expected to be {} or {} but it was {}.",
-                to_string(internal_states::decoding),
-                to_string(internal_states::decoded),
-                to_string(previous_state));
+  ocudu_assert((previous_state == internal_states::decoding) || (previous_state == internal_states::decoded),
+               "Invalid state. It expected to be {} or {} but it was {}.",
+               to_string(internal_states::decoding),
+               to_string(internal_states::decoded),
+               to_string(previous_state));
 
   // Finally report decoding result.
   result_notifier->on_sch_data(stats);
@@ -458,7 +458,7 @@ unsigned pusch_decoder_impl::concatenate_codeblocks()
   for (unsigned cb_id = 0; cb_id != nof_cbs; ++cb_id) {
     const span<const log_likelihood_ratio>& cb_llrs = codeblock_llrs[cb_id].first;
     const codeblock_metadata&               cb_meta = codeblock_llrs[cb_id].second;
-    srsran_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
+    ocudu_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
 
     // Get codeblock length, without rate matching, the message length and the number of data bits (no CRC, no filler
     // bits - may contain zero-padding).
@@ -474,7 +474,7 @@ unsigned pusch_decoder_impl::concatenate_codeblocks()
     bit_buffer cb_data = unique_rm_buffer->get_codeblock_data_bits(cb_id, nof_data_bits);
 
     // Copy the decoded code block into the transport block buffer.
-    srsvec::copy_offset(tb_data, tb_offset, cb_data, 0, nof_new_bits);
+    ocuduvec::copy_offset(tb_data, tb_offset, cb_data, 0, nof_new_bits);
 
     // Pack checksum if it is the last code block.
     if (cb_id == nof_cbs - 1) {
@@ -487,7 +487,7 @@ unsigned pusch_decoder_impl::concatenate_codeblocks()
     tb_offset += nof_new_bits;
   }
 
-  srsran_assert(tb_offset == tb_data.size(), "All TB bits should be filled at this point.");
+  ocudu_assert(tb_offset == tb_data.size(), "All TB bits should be filled at this point.");
 
   return tb_checksum;
 }

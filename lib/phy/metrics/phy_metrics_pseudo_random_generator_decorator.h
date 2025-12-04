@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Pseudo-random sequence generator metric decorator.
 class phy_metrics_pseudo_random_generator_decorator : public pseudo_random_generator
@@ -24,7 +24,7 @@ public:
                                                 pseudo_random_sequence_generator_metric_notifier& notifier_) :
     base_generator(std::move(base_generator_)), notifier(notifier_)
   {
-    srsran_assert(base_generator, "Invaluid base generator.");
+    ocudu_assert(base_generator, "Invaluid base generator.");
   }
 
   // See interface for documentation.
@@ -143,4 +143,4 @@ private:
   pseudo_random_sequence_generator_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

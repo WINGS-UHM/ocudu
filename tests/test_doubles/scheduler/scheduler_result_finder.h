@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline const pdcch_dl_information* find_ue_dl_pdcch(rnti_t rnti, const dl_sched_result& res)
 {
@@ -88,4 +88,4 @@ inline const pucch_info* find_ue_pucch_with_csi(rnti_t rnti, span<const pucch_in
 /// Find UCI (both PUCCH and PUSCH) containing CSI for the given RNTI.
 const csi_report_configuration* find_ue_uci_with_csi(rnti_t rnti, const ul_sched_result& ul_res);
 
-} // namespace srsran
+} // namespace ocudu

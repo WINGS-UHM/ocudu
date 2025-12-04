@@ -10,10 +10,10 @@
 
 #include "log_helpers.h"
 #include "f1ap_asn1_utils.h"
-#include "srsran/support/format/custom_formattable.h"
-#include "srsran/support/format/fmt_basic_parser.h"
+#include "ocudu/support/format/custom_formattable.h"
+#include "ocudu/support/format/fmt_basic_parser.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace fmt {
 
@@ -31,12 +31,12 @@ struct formatter<asn1::f1ap::f1ap_pdu_c> : public basic_parser {
 } // namespace fmt
 
 template <typename UeIndex>
-void srsran::log_f1ap_pdu(srslog::basic_logger&         logger,
-                          bool                          is_rx,
-                          gnb_du_id_t                   du_id,
-                          const std::optional<UeIndex>& ue_id,
-                          const f1ap_message&           msg,
-                          bool                          json_enabled)
+void ocudu::log_f1ap_pdu(ocudulog::basic_logger&       logger,
+                         bool                          is_rx,
+                         gnb_du_id_t                   du_id,
+                         const std::optional<UeIndex>& ue_id,
+                         const f1ap_message&           msg,
+                         bool                          json_enabled)
 {
   if (not logger.info.enabled()) {
     return;
@@ -70,15 +70,15 @@ void srsran::log_f1ap_pdu(srslog::basic_logger&         logger,
   }
 }
 
-template void srsran::log_f1ap_pdu<srs_cu_cp::ue_index_t>(srslog::basic_logger&                       logger,
-                                                          bool                                        is_rx,
-                                                          gnb_du_id_t                                 du_id,
-                                                          const std::optional<srs_cu_cp::ue_index_t>& ue_id,
-                                                          const f1ap_message&                         msg,
-                                                          bool                                        json_enabled);
-template void srsran::log_f1ap_pdu<du_ue_index_t>(srslog::basic_logger&               logger,
-                                                  bool                                is_rx,
-                                                  gnb_du_id_t                         du_id,
-                                                  const std::optional<du_ue_index_t>& ue_id,
-                                                  const f1ap_message&                 msg,
-                                                  bool                                json_enabled);
+template void ocudu::log_f1ap_pdu<ocucp::ue_index_t>(ocudulog::basic_logger&                 logger,
+                                                     bool                                    is_rx,
+                                                     gnb_du_id_t                             du_id,
+                                                     const std::optional<ocucp::ue_index_t>& ue_id,
+                                                     const f1ap_message&                     msg,
+                                                     bool                                    json_enabled);
+template void ocudu::log_f1ap_pdu<du_ue_index_t>(ocudulog::basic_logger&             logger,
+                                                 bool                                is_rx,
+                                                 gnb_du_id_t                         du_id,
+                                                 const std::optional<du_ue_index_t>& ue_id,
+                                                 const f1ap_message&                 msg,
+                                                 bool                                json_enabled);

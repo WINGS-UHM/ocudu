@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/expected.h"
-#include "srsran/security/security.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/security/security.h"
 #include <cstdlib>
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct k_star_gen_helper_args {
   std::string k;
@@ -91,9 +91,9 @@ int main(int argc, char** argv)
   k_star_gen_helper_args args;
   parse_args(args, argc, argv);
 
-  srslog::init();
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("SEC", false);
-  logger.set_level(srslog::basic_levels::debug);
+  ocudulog::init();
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("SEC", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(1500);
 
   // Validate args

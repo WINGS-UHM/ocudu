@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/signal_processors/pucch/factories.h"
+#include "ocudu/phy/upper/signal_processors/pucch/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dmrs_pucch_estimator_spy : public dmrs_pucch_estimator
 {
@@ -87,4 +87,4 @@ private:
   std::vector<dmrs_pucch_estimator_spy*> entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

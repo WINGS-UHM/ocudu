@@ -10,34 +10,34 @@ set_directory_properties(PROPERTIES LABELS "phy;tsan;NO_MEMCHECK")
 
 add_executable(pxsch_bler_test pxsch_bler_test.cpp)
 
-set(PXSCH_BLER_TEST_LIBRARIES srsran_ran
-        srsran_upper_phy
-        srsran_upper_phy_support
-        srsran_channel_precoder
-        srslog
-        srsvec)
+set(PXSCH_BLER_TEST_LIBRARIES ocudu_ran
+        ocudu_upper_phy
+        ocudu_upper_phy_support
+        ocudu_channel_precoder
+        ocudulog
+        ocuduvec)
 
 if (ENABLE_PDSCH_HWACC AND ENABLE_PUSCH_HWACC)
     set_source_files_properties(pxsch_bler_test.cpp pxsch_bler_test_factories.cpp PROPERTIES COMPILE_DEFINITIONS "HWACC_PDSCH_ENABLED; HWACC_PUSCH_ENABLED")
-    list(APPEND PXSCH_BLER_TEST_LIBRARIES srsran_hal_pusch
-            srsran_hal_pdsch
-            srsran_hal_bbdev)
+    list(APPEND PXSCH_BLER_TEST_LIBRARIES ocudu_hal_pusch
+            ocudu_hal_pdsch
+            ocudu_hal_bbdev)
 endif (ENABLE_PDSCH_HWACC AND ENABLE_PUSCH_HWACC)
 
-add_library(srsran_pxsch_bler_test_helpers STATIC
+add_library(ocudu_pxsch_bler_test_helpers STATIC
         pxsch_bler_test_channel_emulator.cpp
         pxsch_bler_test_factories.cpp)
-target_link_libraries(srsran_pxsch_bler_test_helpers ${PXSCH_BLER_TEST_LIBRARIES})
+target_link_libraries(ocudu_pxsch_bler_test_helpers ${PXSCH_BLER_TEST_LIBRARIES})
 
-target_link_libraries(pxsch_bler_test srsran_pxsch_bler_test_helpers)
+target_link_libraries(pxsch_bler_test ocudu_pxsch_bler_test_helpers)
 add_test(pxsch_bler_test pxsch_bler_test -R 10)
 
 add_executable(pxsch_chain_test pxsch_chain_test.cpp)
 target_link_libraries(pxsch_chain_test
-        srsran_ran
-        srsran_channel_processors
-        srslog
-        srsvec
+        ocudu_ran
+        ocudu_channel_processors
+        ocudulog
+        ocuduvec
         gtest
         gtest_main
 )

@@ -11,6 +11,6 @@ set(SOURCES
         executor_metrics_config_yaml_writer.cpp
         metrics/app_execution_metrics_builder.cpp)
 
-add_library(srsran_exec_metrics_app_service STATIC ${SOURCES})
-target_include_directories(srsran_exec_metrics_app_service PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_exec_metrics_app_service PRIVATE srsran_metrics_app_helpers srsran_metrics_json_generators)
+add_library(ocudu_exec_metrics_app_service STATIC ${SOURCES})
+target_include_directories(ocudu_exec_metrics_app_service PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_exec_metrics_app_service PRIVATE ocudu_metrics_app_helpers ocudu_metrics_json_generators)

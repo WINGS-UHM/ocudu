@@ -14,9 +14,9 @@
 #pragma once
 
 #include "ldpc_graph_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_decoder.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ldpc {
 /// Maximum number of information bits in a codeblock (before shortening).
 constexpr unsigned MAX_BG_K = 22;
@@ -35,8 +35,7 @@ public:
   /// Constructor: configures the force_decoding flag.
   explicit ldpc_decoder_impl(bool cfg_force_decoding) : force_decoding(cfg_force_decoding)
   {
-    srsran_assert((scaling_factor > 0) && (scaling_factor < 1),
-                  "Scaling factor must be between 0 and 1, not included.");
+    ocudu_assert((scaling_factor > 0) && (scaling_factor < 1), "Scaling factor must be between 0 and 1, not included.");
   }
 
   // See interface for the documentation.
@@ -178,7 +177,7 @@ private:
 protected:
   /// Number of base graph variable nodes corresponding to information bits.
   uint16_t bg_K = 22;
-  /// Lifting size as a natural number (as opposed to an element from srsran::ldpc::lifting_size_t).
+  /// Lifting size as a natural number (as opposed to an element from ocudu::ldpc::lifting_size_t).
   uint16_t lifting_size = 2;
   /// Number of bytes used to store a lifted node.
   unsigned node_size_byte = 2;
@@ -235,4 +234,4 @@ private:
   std::array<bool, ldpc::MAX_BG_M> is_check_to_var_initialized;
 };
 
-} // namespace srsran
+} // namespace ocudu

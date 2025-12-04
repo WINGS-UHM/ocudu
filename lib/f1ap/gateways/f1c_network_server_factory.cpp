@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/f1ap/gateways/f1c_network_server_factory.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/gateways/sctp_network_server_factory.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/f1ap/gateways/f1c_network_server_factory.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/error_handling.h"
 #include <cstdint>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -26,7 +26,7 @@ class f1c_to_gw_pdu_notifier final : public f1ap_message_notifier
 public:
   f1c_to_gw_pdu_notifier(std::unique_ptr<sctp_association_sdu_notifier> sctp_sender_,
                          dlt_pcap&                                      pcap_writer_,
-                         srslog::basic_logger&                          logger_) :
+                         ocudulog::basic_logger&                        logger_) :
     sctp_sender(std::move(sctp_sender_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -37,7 +37,7 @@ public:
     // pack F1AP PDU into SCTP SDU.
     byte_buffer   tx_sdu{byte_buffer::fallback_allocation_tag{}};
     asn1::bit_ref bref(tx_sdu);
-    if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to pack F1AP PDU");
       return;
     }
@@ -54,7 +54,7 @@ public:
 private:
   std::unique_ptr<sctp_association_sdu_notifier> sctp_sender;
   dlt_pcap&                                      pcap_writer;
-  srslog::basic_logger&                          logger;
+  ocudulog::basic_logger&                        logger;
 };
 
 /// Notifier passed to the SCTP GW, which the GW will use to forward F1AP Rx PDUs to the CU-CP.
@@ -63,7 +63,7 @@ class gw_to_f1c_pdu_notifier final : public sctp_association_sdu_notifier
 public:
   gw_to_f1c_pdu_notifier(std::unique_ptr<f1ap_message_notifier> f1ap_notifier_,
                          dlt_pcap&                              pcap_writer_,
-                         srslog::basic_logger&                  logger_) :
+                         ocudulog::basic_logger&                logger_) :
     f1ap_notifier(std::move(f1ap_notifier_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -73,7 +73,7 @@ public:
     // Unpack SCTP SDU into F1AP PDU.
     asn1::cbit_ref bref(sdu);
     f1ap_message   msg;
-    if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Couldn't unpack F1AP PDU");
       return false;
     }
@@ -92,11 +92,11 @@ public:
 private:
   std::unique_ptr<f1ap_message_notifier> f1ap_notifier;
   dlt_pcap&                              pcap_writer;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 };
 
 /// Adapter of the SCTP server to the F1-C interface of the CU-CP.
-class f1c_sctp_server final : public srs_cu_cp::f1c_connection_server, public sctp_network_association_factory
+class f1c_sctp_server final : public ocucp::f1c_connection_server, public sctp_network_association_factory
 {
 public:
   f1c_sctp_server(const f1c_cu_sctp_gateway_config& params_) : params(params_)
@@ -107,7 +107,7 @@ public:
     report_error_if_not(sctp_server != nullptr, "Failed to create SCTP server");
   }
 
-  void attach_cu_cp(srs_cu_cp::cu_cp_f1c_handler& cu_f1c_handler_) override
+  void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_f1c_handler_) override
   {
     cu_f1c_handler = &cu_f1c_handler_;
 
@@ -141,16 +141,15 @@ public:
 
 private:
   const f1c_cu_sctp_gateway_config params;
-  srslog::basic_logger&            logger         = srslog::fetch_basic_logger("CU-CP-F1");
-  srs_cu_cp::cu_cp_f1c_handler*    cu_f1c_handler = nullptr;
+  ocudulog::basic_logger&          logger         = ocudulog::fetch_basic_logger("CU-CP-F1");
+  ocucp::cu_cp_f1c_handler*        cu_f1c_handler = nullptr;
 
   std::unique_ptr<sctp_network_server> sctp_server;
 };
 
 } // namespace
 
-std::unique_ptr<srs_cu_cp::f1c_connection_server>
-srsran::create_f1c_gateway_server(const f1c_cu_sctp_gateway_config& cfg)
+std::unique_ptr<ocucp::f1c_connection_server> ocudu::create_f1c_gateway_server(const f1c_cu_sctp_gateway_config& cfg)
 {
   return std::make_unique<f1c_sctp_server>(cfg);
 }

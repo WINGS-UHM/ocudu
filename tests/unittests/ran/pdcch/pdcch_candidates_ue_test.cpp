@@ -9,11 +9,11 @@
  */
 
 #include "pdcch_candidates_ue_test_data.h"
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const pdcch_candidates_ue_ss_configuration& config)
 {
@@ -40,9 +40,9 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 class PdcchCandidatesFixture : public ::testing::TestWithParam<test_case_t>
 {};

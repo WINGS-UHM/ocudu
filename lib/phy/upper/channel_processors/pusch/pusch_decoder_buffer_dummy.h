@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a dummy PUSCH decoder buffer.
 class pusch_decoder_buffer_dummy : public pusch_decoder_buffer
@@ -37,4 +37,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

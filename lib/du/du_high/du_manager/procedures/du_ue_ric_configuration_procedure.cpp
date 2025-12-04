@@ -9,12 +9,12 @@
  */
 
 #include "du_ue_ric_configuration_procedure.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/support/async/execute_on_blocking.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/support/async/execute_on_blocking.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_ue_ric_configuration_procedure::du_ue_ric_configuration_procedure(const du_mac_sched_control_config& request_,
                                                                      du_ue_manager_repository&          ue_mng_,

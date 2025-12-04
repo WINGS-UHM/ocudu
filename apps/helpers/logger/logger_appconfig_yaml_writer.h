@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct logger_appconfig;
 
 /// Fills the given node with the logger application configuration values.
 void fill_logger_appconfig_in_yaml_schema(YAML::Node& node, const logger_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

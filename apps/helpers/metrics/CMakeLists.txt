@@ -13,5 +13,5 @@ set(SOURCES
         metrics_config_yaml_writer.cpp
         metrics_helpers.cpp)
 
-add_library(srsran_metrics_app_helpers STATIC ${SOURCES})
-target_include_directories(srsran_metrics_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_metrics_app_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_metrics_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})

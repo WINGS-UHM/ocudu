@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/test_utils.h"
-#include "srsran/support/timers.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/test_utils.h"
+#include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class du_high_time_source_test : public ::testing::Test
 {

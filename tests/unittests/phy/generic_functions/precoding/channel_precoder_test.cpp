@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/generic_functions/precoding/precoding_factories.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
+#include "ocudu/ran/cyclic_prefix.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Pseudo-random number generator.
 static std::mt19937 rgen;
@@ -30,7 +30,7 @@ using MultiplePRGParams = std::tuple<
     // Number of antenna ports.
     unsigned>;
 
-namespace srsran {
+namespace ocudu {
 
 static std::ostream& operator<<(std::ostream& os, span<const cf_t> data)
 {
@@ -48,7 +48,7 @@ static bool operator==(span<const cf_t> lhs, span<const cbf16_t> rhs)
   });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 class PrecodingFixture : public ::testing::TestWithParam<MultiplePRGParams>
@@ -125,7 +125,7 @@ protected:
       span<cf_t> golden_re_port = golden_data.get_slice(i_port);
 
       // Set the output REs to zero.
-      srsvec::zero(golden_re_port);
+      ocuduvec::zero(golden_re_port);
 
       for (unsigned i_layer = 0; i_layer != nof_layers; ++i_layer) {
         // View over the input data for a single layer.

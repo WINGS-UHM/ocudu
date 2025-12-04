@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/pdcp/pdcp_factory.h"
+#include "ocudu/pdcp/pdcp_factory.h"
 #include "pdcp_entity_impl.h"
 
 /// Notice this would be the only place were we include concrete class implementation files.
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<pdcp_entity> srsran::create_pdcp_entity(pdcp_entity_creation_message& msg)
+std::unique_ptr<pdcp_entity> ocudu::create_pdcp_entity(pdcp_entity_creation_message& msg)
 {
   return std::make_unique<pdcp_entity_impl>(msg.ue_index,
                                             msg.rb_id,

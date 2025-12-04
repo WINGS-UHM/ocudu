@@ -12,10 +12,10 @@
 
 #include "apps/services/worker_manager/pcap_executor_mapper.h"
 #include "apps/units/o_cu_cp/o_cu_cp_unit_config.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/signal_observer.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/signal_observer.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct o_cu_cp_dlt_pcaps {
   std::unique_ptr<dlt_pcap> ngap;
@@ -87,4 +87,4 @@ inline o_cu_cp_dlt_pcaps create_o_cu_cp_dlt_pcap(const o_cu_cp_unit_config&  con
   return pcaps;
 }
 
-} // namespace srsran
+} // namespace ocudu

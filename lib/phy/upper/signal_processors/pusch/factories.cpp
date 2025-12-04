@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/upper/signal_processors/pusch/factories.h"
+#include "ocudu/phy/upper/signal_processors/pusch/factories.h"
 #include "dmrs_pusch_estimator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -35,9 +35,9 @@ public:
     td_interpolation_strategy(td_interpolation_strategy_),
     compensate_cfo(compensate_cfo_)
   {
-    srsran_assert(prg_factory, "Invalid PRG factory.");
-    srsran_assert(low_papr_gen_factory, "Invalid low-PAPR generator factory.");
-    srsran_assert(ch_estimator_factory, "Invalid channel estimator factory.");
+    ocudu_assert(prg_factory, "Invalid PRG factory.");
+    ocudu_assert(low_papr_gen_factory, "Invalid low-PAPR generator factory.");
+    ocudu_assert(ch_estimator_factory, "Invalid channel estimator factory.");
   }
 
   std::unique_ptr<dmrs_pusch_estimator> create() override
@@ -64,7 +64,7 @@ private:
 
 } // namespace
 
-std::shared_ptr<dmrs_pusch_estimator_factory> srsran::create_dmrs_pusch_estimator_factory_sw(
+std::shared_ptr<dmrs_pusch_estimator_factory> ocudu::create_dmrs_pusch_estimator_factory_sw(
     std::shared_ptr<pseudo_random_generator_factory>     prg_factory,
     std::shared_ptr<low_papr_sequence_generator_factory> low_papr_sequence_gen_factory,
     std::shared_ptr<port_channel_estimator_factory>      ch_estimator_factory,

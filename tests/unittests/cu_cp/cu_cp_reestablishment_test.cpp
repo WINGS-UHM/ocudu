@@ -16,15 +16,15 @@
 #include "tests/test_doubles/rrc/rrc_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_reestablishment_test : public cu_cp_test_environment, public ::testing::Test
 {
@@ -51,12 +51,12 @@ public:
   finish_ue_attach(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id, rnti_t crnti, ran_ue_id_t ran_ue_id)
   {
     ngap_message ngap_pdu;
-    srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+    ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
     f1ap_message f1ap_pdu;
-    srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+    ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
     e1ap_message e1ap_pdu;
-    srsran_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
-                  "there are still E1AP messages to pop from CU-UP");
+    ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                 "there are still E1AP messages to pop from CU-UP");
 
     // Inject NGAP DL message (authentication request).
     get_amf().push_tx_pdu(generate_downlink_nas_transport_message(amf_ue_id, ran_ue_id));
@@ -289,9 +289,9 @@ public:
   std::optional<f1ap_message> ue_sends_rrc_setup_request_and_waits_rrc_setup(gnb_du_ue_f1ap_id_t du_ue_id, rnti_t crnti)
   {
     ngap_message ngap_pdu;
-    srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+    ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
     f1ap_message f1ap_pdu;
-    srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+    ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
     // Inject Initial UL RRC message.
     f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(du_ue_id, crnti);
@@ -514,7 +514,7 @@ TEST_F(
   asn1::rrc_nr::dl_ccch_msg_s ccch;
   {
     asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
-    ASSERT_EQ(ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+    ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
   }
   ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 

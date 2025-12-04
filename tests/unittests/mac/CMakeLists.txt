@@ -30,11 +30,11 @@ add_executable(mac_test
         slot_point_time_mapper_test.cpp
 )
 target_link_libraries(mac_test
-        srsran_pcap
-        srsran_support
-        srslog
+        ocudu_pcap
+        ocudu_support
+        ocudulog
         rrc_nr_asn1
-        srsran_mac
+        ocudu_mac
         sched_config
         sched_test_doubles
         gtest

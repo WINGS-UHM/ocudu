@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../common/e2ap_asn1_utils.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/asn1/e2sm/e2sm_kpm_ies.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2_event_manager.h"
-#include "srsran/e2/e2sm/e2sm.h"
-#include "srsran/e2/subscription/e2_subscription.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/asn1/e2sm/e2sm_kpm_ies.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2_event_manager.h"
+#include "ocudu/e2/e2sm/e2sm.h"
+#include "ocudu/e2/subscription/e2_subscription.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// E2 INDICATION procedure will be used to send the measurement data to the RIC in response to the E2 SUBSCRIPTION
 /// REQUEST, it will execute periodically until the E2 SUBSCRIPTION DELETE REQUEST is received.
@@ -28,7 +28,7 @@ public:
   e2_indication_procedure(e2_message_notifier&    notif_,
                           e2_event_manager&       ev_mng_,
                           e2_subscription_info_t& subscription_info_,
-                          srslog::basic_logger&   logger_);
+                          ocudulog::basic_logger& logger_);
 
   void operator()(coro_context<eager_async_task<void>>& ctx);
 
@@ -39,7 +39,7 @@ private:
   e2_message_notifier&               notifier;
   e2_event_manager&                  ev_mng;
   e2_subscription_info_t&            subscription;
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   std::vector<e2_indication_message> e2_ind_vec;
   asn1::e2sm::e2sm_kpm_ind_hdr_s     ric_ind_header;
   asn1::e2sm::e2sm_kpm_ind_msg_s     ric_ind_message;
@@ -50,4 +50,4 @@ private:
   bool                 running = true;
 };
 
-} // namespace srsran
+} // namespace ocudu

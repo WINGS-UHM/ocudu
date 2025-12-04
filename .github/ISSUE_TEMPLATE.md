@@ -1,6 +1,6 @@
 <!--
 Before filing an issue, search for solutions here:
-- srsRAN Project discussions page (https://github.com/srsran/srsRAN_Project/discussions)
+- OCUDU Project discussions page (https://github.com/ocudu/OCUDU_Project/discussions)
 -->
 
 ## Issue Description ##

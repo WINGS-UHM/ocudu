@@ -14,6 +14,6 @@ set(SOURCES
         o_cu_up_builder.cpp
         o_cu_up_unit_impl.cpp)
 
-add_library(srsran_o_cu_up_app_unit STATIC ${SOURCES})
-target_include_directories(srsran_o_cu_up_app_unit PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_o_cu_up_app_unit srsran_cu_up_app_unit srsran_o_cu_up_app_unit_e2 srsran_o_cu_up)
+add_library(ocudu_o_cu_up_app_unit STATIC ${SOURCES})
+target_include_directories(ocudu_o_cu_up_app_unit PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_o_cu_up_app_unit ocudu_cu_up_app_unit ocudu_o_cu_up_app_unit_e2 ocudu_o_cu_up)

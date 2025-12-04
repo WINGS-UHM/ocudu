@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Derive packed cell measurementTimingConfiguration from DU cell configuration.
 /// \param[in] du_cfg DU Cell Configuration.
@@ -34,5 +34,5 @@ gnb_du_sys_info make_f1ap_du_sys_info(const du_cell_config& du_cfg, std::string*
 /// \brief Generate request message for F1AP to initiate an F1 Setup Request procedure.
 void fill_f1_setup_request(f1_setup_request_message& req, const du_manager_params::ran_params& ran_params);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

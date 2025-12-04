@@ -9,14 +9,14 @@
  */
 
 #include "ue_repository.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // class ue_cell_repository
 
-ue_cell_repository::ue_cell_repository(du_cell_index_t cell_idx_, srslog::basic_logger& logger_) :
+ue_cell_repository::ue_cell_repository(du_cell_index_t cell_idx_, ocudulog::basic_logger& logger_) :
   cell_idx(cell_idx_), logger(logger_)
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
@@ -28,9 +28,9 @@ void ue_cell_repository::add_ue(ue_cell& u)
   rnti_t        rnti     = u.rnti();
   du_ue_index_t ue_index = u.ue_index;
   bool          ret      = ues.insert(u.ue_index, &u);
-  srsran_assert(ret, "UE with duplicate index being added to the cell UE repository");
+  ocudu_assert(ret, "UE with duplicate index being added to the cell UE repository");
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
-  srsran_assert(res.second, "UE with duplicate RNTI being added to the cell UE repository");
+  ocudu_assert(res.second, "UE with duplicate RNTI being added to the cell UE repository");
 }
 
 void ue_cell_repository::rem_ue(du_ue_index_t ue_index)
@@ -57,7 +57,7 @@ void ue_cell_repository::rem_ue(du_ue_index_t ue_index)
 
 // class ue_repository
 
-ue_repository::ue_repository() : logger(srslog::fetch_basic_logger("SCHED")), ues_to_destroy(MAX_NOF_DU_UES)
+ue_repository::ue_repository() : logger(ocudulog::fetch_basic_logger("SCHED")), ues_to_destroy(MAX_NOF_DU_UES)
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
 }
@@ -144,7 +144,7 @@ void ue_repository::slot_indication(slot_point sl_tx)
 
 ue_cell_repository& ue_repository::add_cell(du_cell_index_t cell_index)
 {
-  srsran_sanity_check(not cell_ues.contains(cell_index), "Cell index {} is duplicate", fmt::underlying(cell_index));
+  ocudu_sanity_check(not cell_ues.contains(cell_index), "Cell index {} is duplicate", fmt::underlying(cell_index));
   cell_ues.emplace(cell_index, cell_index, logger);
   return cell_ues[cell_index];
 }
@@ -162,11 +162,11 @@ void ue_repository::add_ue(std::unique_ptr<ue> u, logical_channel_config_list_pt
   const subcarrier_spacing scs      = u->get_pcell().active_bwp().dl_common->value().generic_params.scs;
   u->setup(lc_ch_sys.create_ue(ue_index, scs, u->get_pcell().is_in_fallback_mode(), lc_cfgs));
   bool ret = ues.insert(ue_index, std::move(u));
-  srsran_assert(ret, "UE with duplicate index being added to the repository");
+  ocudu_assert(ret, "UE with duplicate index being added to the repository");
 
   // Update RNTI -> UE index lookup.
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
-  srsran_assert(res.second, "UE with duplicate RNTI being added to the repository");
+  ocudu_assert(res.second, "UE with duplicate RNTI being added to the repository");
 
   // Add UE in cell-specific repositories.
   auto& ue_added = ues[ue_index];
@@ -178,7 +178,7 @@ void ue_repository::add_ue(std::unique_ptr<ue> u, logical_channel_config_list_pt
 
 void ue_repository::reconfigure_ue(const ue_reconf_command& cmd, bool reestablished_)
 {
-  srsran_sanity_check(
+  ocudu_sanity_check(
       ues.contains(cmd.cfg.ue_index), "ue={} : UE not found in the repository", fmt::underlying(cmd.cfg.ue_index));
 
   for (ue_cell_repository& cell_repo : cell_ues) {

@@ -10,12 +10,12 @@
 
 #include "e1ap_cu_up_setup_procedure.h"
 #include "../e1ap_cu_up_asn1_helpers.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_up;
+using namespace ocudu;
+using namespace ocudu::ocuup;
 using namespace asn1::e1ap;
 
 static constexpr std::chrono::milliseconds e1_setup_response_timeout{3000};
@@ -24,7 +24,7 @@ e1ap_cu_up_setup_procedure::e1ap_cu_up_setup_procedure(const cu_up_e1_setup_requ
                                                        e1ap_message_notifier&        cu_cp_notif_,
                                                        e1ap_event_manager&           ev_mng_,
                                                        timer_factory                 timers_,
-                                                       srslog::basic_logger&         logger_) :
+                                                       ocudulog::basic_logger&       logger_) :
   request(request_),
   cu_cp_notifier(cu_cp_notif_),
   ev_mng(ev_mng_),

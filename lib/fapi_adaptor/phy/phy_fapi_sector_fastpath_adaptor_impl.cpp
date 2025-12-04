@@ -9,16 +9,16 @@
  */
 
 #include "phy_fapi_sector_fastpath_adaptor_impl.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 phy_fapi_sector_fastpath_adaptor_impl::phy_fapi_sector_fastpath_adaptor_impl(
     std::unique_ptr<phy_fapi_p7_sector_fastpath_adaptor> p7_adaptor_) :
   p7_adaptor(std::move(p7_adaptor_))
 {
-  srsran_assert(p7_adaptor, "Invalid PHY-FAPI P7 sector adaptor");
+  ocudu_assert(p7_adaptor, "Invalid PHY-FAPI P7 sector adaptor");
 }
 
 phy_fapi_p7_sector_fastpath_adaptor& phy_fapi_sector_fastpath_adaptor_impl::get_p7_sector_adaptor()

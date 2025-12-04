@@ -11,10 +11,10 @@
 #pragma once
 
 #include "external/nlohmann/json.hpp"
-#include "srsran/support/timers.h"
+#include "ocudu/support/timers.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 struct pdcp_tx_metrics_container;
 struct pdcp_rx_metrics_container;
@@ -39,4 +39,4 @@ std::string generate_string(const pdcp_tx_metrics_container& tx,
 
 } // namespace json_generators
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

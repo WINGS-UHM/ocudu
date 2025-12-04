@@ -11,13 +11,13 @@
 #pragma once
 
 #include "ru_sdr_config.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/prach/prach_format_type.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/prach/prach_format_type.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// SDR cell configuration for validation.
 struct ru_sdr_cell_validation_config {
@@ -36,4 +36,4 @@ struct ru_sdr_cell_validation_config {
 /// Validates the given SDR Radio Unit configuration. Returns true on success, false otherwise.
 bool validate_ru_sdr_config(const ru_sdr_unit_config& config, span<const ru_sdr_cell_validation_config> cell_config);
 
-} // namespace srsran
+} // namespace ocudu

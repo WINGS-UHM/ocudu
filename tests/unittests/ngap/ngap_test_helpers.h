@@ -13,15 +13,15 @@
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "ngap_test_messages.h"
 #include "test_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_configuration.h"
-#include "srsran/ngap/ngap_factory.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_configuration.h"
+#include "ocudu/ngap/ngap_factory.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Fixture class for NGAP
 class ngap_test : public ::testing::Test
@@ -72,8 +72,8 @@ protected:
   /// \brief Manually tick timers.
   void tick();
 
-  srslog::basic_logger& ngap_logger = srslog::fetch_basic_logger("NGAP");
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& ngap_logger = ocudulog::fetch_basic_logger("NGAP");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   std::unordered_map<ue_index_t, test_ue> test_ues;
 
@@ -88,5 +88,5 @@ protected:
   std::unique_ptr<ngap_interface> ngap;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

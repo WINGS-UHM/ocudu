@@ -9,7 +9,7 @@
  */
 
 #include "ethernet_transmitter_impl.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 #include <algorithm>
 #include <arpa/inet.h>
 #include <cstring>
@@ -18,10 +18,10 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
-transmitter_impl::transmitter_impl(const transmitter_config& config, srslog::basic_logger& logger_) :
+transmitter_impl::transmitter_impl(const transmitter_config& config, ocudulog::basic_logger& logger_) :
   logger(logger_), metrics_collector(config.are_metrics_enabled)
 {
   socket_fd = ::socket(AF_PACKET, SOCK_RAW | SOCK_NONBLOCK, IPPROTO_RAW);

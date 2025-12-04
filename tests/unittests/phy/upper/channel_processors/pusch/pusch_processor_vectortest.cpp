@@ -11,23 +11,23 @@
 #include "../../rx_buffer_test_doubles.h"
 #include "pusch_processor_result_test_doubles.h"
 #include "pusch_processor_test_data.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/formatters.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/formatters.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/math/math_utils.h"
 #ifdef HWACC_PUSCH_ENABLED
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
 #endif // HWACC_PUSCH_ENABLED
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::string eal_arguments = "pusch_processor_vectortest";
 #ifdef HWACC_PUSCH_ENABLED
@@ -68,7 +68,7 @@ static std::string capture_eal_args(int* argc, char*** argv)
 }
 #endif // HWACC_PUSCH_ENABLED
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -82,7 +82,7 @@ std::ostream& operator<<(std::ostream& os, const span<const uint8_t>& data)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -129,11 +129,11 @@ private:
   {
 #ifdef HWACC_PUSCH_ENABLED
     //  Hardcoded stdout and error logging.
-    srslog::sink* log_sink = srslog::create_stdout_sink();
-    srslog::set_default_sink(*log_sink);
-    srslog::init();
-    srslog::basic_logger& logger = srslog::fetch_basic_logger("HAL", false);
-    logger.set_level(srslog::basic_levels::error);
+    ocudulog::sink* log_sink = ocudulog::create_stdout_sink();
+    ocudulog::set_default_sink(*log_sink);
+    ocudulog::init();
+    ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HAL", false);
+    logger.set_level(ocudulog::basic_levels::error);
 
     // Pointer to a dpdk-based hardware-accelerator interface.
     if (!dpdk_interface && !skip_hwacc_test) {
@@ -179,7 +179,7 @@ private:
     hw_decoder_config.dedicated_queue     = true;
 
     // ACC100 hardware-accelerator implementation.
-    return srsran::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
+    return ocudu::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
 #else  // HWACC_PUSCH_ENABLED
     return nullptr;
 #endif // HWACC_PUSCH_ENABLED
@@ -389,8 +389,8 @@ protected:
 
     // Create actual PUSCH processor.
 #if 0
-    srslog::init();
-    pusch_proc = pusch_proc_factory->create(srslog::fetch_basic_logger("PUSCH"));
+    ocudulog::init();
+    pusch_proc = pusch_proc_factory->create(ocudulog::fetch_basic_logger("PUSCH"));
 #else
     pusch_proc = pusch_proc_factory->create();
 #endif
@@ -442,7 +442,7 @@ TEST_P(PuschProcessorFixture, PuschProcessorVectortest)
   bool expected_tb_crc_ok = true;
   if (decoder_type == "empty") {
     expected_tb_crc_ok = false;
-    srsvec::zero(expected_data);
+    ocuduvec::zero(expected_data);
   }
 
   // Verify UL-SCH decode results.

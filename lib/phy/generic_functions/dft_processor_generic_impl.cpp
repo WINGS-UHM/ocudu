@@ -9,11 +9,11 @@
  */
 
 #include "dft_processor_generic_impl.h"
-#include "srsran/srsvec/simd.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ocuduvec/simd.h"
+#include "ocudu/support/math/math_utils.h"
 #include <cmath>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -97,16 +97,16 @@ public:
 
     unsigned k = 0;
 
-#if SRSRAN_SIMD_CF_SIZE
-    if (N / 2 >= SRSRAN_SIMD_CF_SIZE) {
-      for (; k != ((N / 2) / SRSRAN_SIMD_CF_SIZE) * SRSRAN_SIMD_CF_SIZE; k += SRSRAN_SIMD_CF_SIZE) {
-        simd_cf_t p = srsran_simd_cfi_loadu(&out[k]);
-        simd_cf_t q = srsran_simd_cf_prod(srsran_simd_cfi_loadu(&table[k]), srsran_simd_cfi_loadu(&out[k + N / 2]));
-        srsran_simd_cfi_storeu(&out[k], srsran_simd_cf_add(p, q));
-        srsran_simd_cfi_storeu(&out[k + N / 2], srsran_simd_cf_sub(p, q));
+#if OCUDU_SIMD_CF_SIZE
+    if (N / 2 >= OCUDU_SIMD_CF_SIZE) {
+      for (; k != ((N / 2) / OCUDU_SIMD_CF_SIZE) * OCUDU_SIMD_CF_SIZE; k += OCUDU_SIMD_CF_SIZE) {
+        simd_cf_t p = ocudu_simd_cfi_loadu(&out[k]);
+        simd_cf_t q = ocudu_simd_cf_prod(ocudu_simd_cfi_loadu(&table[k]), ocudu_simd_cfi_loadu(&out[k + N / 2]));
+        ocudu_simd_cfi_storeu(&out[k], ocudu_simd_cf_add(p, q));
+        ocudu_simd_cfi_storeu(&out[k + N / 2], ocudu_simd_cf_sub(p, q));
       }
     }
-#endif // SRSRAN_SIMD_CF_SIZE
+#endif // OCUDU_SIMD_CF_SIZE
 
     for (; k != N / 2; ++k) {
       cf_t p         = out[k];
@@ -160,20 +160,20 @@ public:
 
     unsigned k = 0;
 
-#if SRSRAN_SIMD_CF_SIZE
-    simd_cf_t w1_simd = srsran_simd_cf_set1(w1);
-    simd_cf_t w2_simd = srsran_simd_cf_set1(w2);
-    for (; k != (N_3 / SRSRAN_SIMD_CF_SIZE) * SRSRAN_SIMD_CF_SIZE; k += SRSRAN_SIMD_CF_SIZE) {
-      simd_cf_t p_simd = srsran_simd_cfi_loadu(&out[k]);
-      simd_cf_t q_simd = srsran_simd_cf_loadu(&table_re[k], &table_im[k]) * srsran_simd_cfi_loadu(&out[k + N_3]);
-      simd_cf_t r_simd = srsran_simd_cf_loadu(&table2_re[k], &table2_im[k]) * srsran_simd_cfi_loadu(&out[k + 2 * N_3]);
+#if OCUDU_SIMD_CF_SIZE
+    simd_cf_t w1_simd = ocudu_simd_cf_set1(w1);
+    simd_cf_t w2_simd = ocudu_simd_cf_set1(w2);
+    for (; k != (N_3 / OCUDU_SIMD_CF_SIZE) * OCUDU_SIMD_CF_SIZE; k += OCUDU_SIMD_CF_SIZE) {
+      simd_cf_t p_simd = ocudu_simd_cfi_loadu(&out[k]);
+      simd_cf_t q_simd = ocudu_simd_cf_loadu(&table_re[k], &table_im[k]) * ocudu_simd_cfi_loadu(&out[k + N_3]);
+      simd_cf_t r_simd = ocudu_simd_cf_loadu(&table2_re[k], &table2_im[k]) * ocudu_simd_cfi_loadu(&out[k + 2 * N_3]);
 
       // Radix-3 butterfly (like a 3-point DFT).
-      srsran_simd_cfi_storeu(&out[k], p_simd + q_simd + r_simd);
-      srsran_simd_cfi_storeu(&out[k + N_3], p_simd + q_simd * w1_simd + r_simd * w2_simd);
-      srsran_simd_cfi_storeu(&out[k + 2 * N_3], p_simd + q_simd * w2_simd + r_simd * w1_simd);
+      ocudu_simd_cfi_storeu(&out[k], p_simd + q_simd + r_simd);
+      ocudu_simd_cfi_storeu(&out[k + N_3], p_simd + q_simd * w1_simd + r_simd * w2_simd);
+      ocudu_simd_cfi_storeu(&out[k + 2 * N_3], p_simd + q_simd * w2_simd + r_simd * w1_simd);
     }
-#endif // SRSRAN_SIMD_CF_SIZE
+#endif // OCUDU_SIMD_CF_SIZE
 
     for (; k != N_3; ++k) {
       cf_t p = out[k];
@@ -309,14 +309,14 @@ public:
   }
 };
 
-#if SRSRAN_SIMD_CF_SIZE > 4
+#if OCUDU_SIMD_CF_SIZE > 4
 
-// Implements a DFT of size SRSRAN_SIMD_CF_SIZE.
+// Implements a DFT of size OCUDU_SIMD_CF_SIZE.
 template <>
-class generic_dft_dit<SRSRAN_SIMD_CF_SIZE> : public generic_dft_N
+class generic_dft_dit<OCUDU_SIMD_CF_SIZE> : public generic_dft_N
 {
 private:
-  static constexpr unsigned N = SRSRAN_SIMD_CF_SIZE;
+  static constexpr unsigned N = OCUDU_SIMD_CF_SIZE;
   unsigned                  stride;
   std::array<float, N * N>  tables_re;
   std::array<float, N * N>  tables_im;
@@ -340,28 +340,28 @@ public:
 
   void run(cf_t* out, const cf_t* in) const override
   {
-    simd_cf_t p_simd = srsran_simd_cf_set1(in[0]);
+    simd_cf_t p_simd = ocudu_simd_cf_set1(in[0]);
     for (unsigned n = 1; n != N; ++n) {
-      simd_cf_t p_in_simd = srsran_simd_cf_set1(in[stride * n]);
-      simd_cf_t w_simd    = srsran_simd_cf_loadu(&tables_re[n * N], &tables_im[n * N]);
+      simd_cf_t p_in_simd = ocudu_simd_cf_set1(in[stride * n]);
+      simd_cf_t w_simd    = ocudu_simd_cf_loadu(&tables_re[n * N], &tables_im[n * N]);
 
-      p_simd = srsran_simd_cf_add(p_simd, srsran_simd_cf_prod(p_in_simd, w_simd));
+      p_simd = ocudu_simd_cf_add(p_simd, ocudu_simd_cf_prod(p_in_simd, w_simd));
     }
 
-    srsran_simd_cfi_storeu(out, p_simd);
+    ocudu_simd_cfi_storeu(out, p_simd);
   }
 };
 
-#endif // SRSRAN_SIMD_CF_SIZE > 4
+#endif // OCUDU_SIMD_CF_SIZE > 4
 
-#if (2 * SRSRAN_SIMD_CF_SIZE) > 4
+#if (2 * OCUDU_SIMD_CF_SIZE) > 4
 
-// Implements a DFT of size 2 * SRSRAN_SIMD_CF_SIZE.
+// Implements a DFT of size 2 * OCUDU_SIMD_CF_SIZE.
 template <>
-class generic_dft_dit<2 * SRSRAN_SIMD_CF_SIZE> : public generic_dft_N
+class generic_dft_dit<2 * OCUDU_SIMD_CF_SIZE> : public generic_dft_N
 {
 private:
-  static constexpr unsigned N = SRSRAN_SIMD_CF_SIZE;
+  static constexpr unsigned N = OCUDU_SIMD_CF_SIZE;
   unsigned                  stride;
   alignas(SIMD_BYTE_ALIGN) std::array<float, N * N> tables_re;
   alignas(SIMD_BYTE_ALIGN) std::array<float, N * N> tables_im;
@@ -391,29 +391,29 @@ public:
 
   void run(cf_t* out, const cf_t* in) const override
   {
-    simd_cf_t p_simd = srsran_simd_cf_set1(*in);
+    simd_cf_t p_simd = ocudu_simd_cf_set1(*in);
     in += stride;
-    simd_cf_t q_simd = srsran_simd_cf_set1(*in);
+    simd_cf_t q_simd = ocudu_simd_cf_set1(*in);
     in += stride;
     for (unsigned n = 1; n != N; ++n) {
-      simd_cf_t p_in_simd = srsran_simd_cf_set1(*in);
+      simd_cf_t p_in_simd = ocudu_simd_cf_set1(*in);
       in += stride;
-      simd_cf_t q_in_simd = srsran_simd_cf_set1(*in);
+      simd_cf_t q_in_simd = ocudu_simd_cf_set1(*in);
       in += stride;
-      simd_cf_t w_simd = srsran_simd_cf_load(&tables_re[N * n], &tables_im[N * n]);
+      simd_cf_t w_simd = ocudu_simd_cf_load(&tables_re[N * n], &tables_im[N * n]);
 
       p_simd += p_in_simd * w_simd;
       q_simd += q_in_simd * w_simd;
     }
 
-    q_simd = q_simd * srsran_simd_cf_load(tables_re.data(), tables_im.data());
+    q_simd = q_simd * ocudu_simd_cf_load(tables_re.data(), tables_im.data());
 
-    srsran_simd_cfi_storeu(out, p_simd + q_simd);
-    srsran_simd_cfi_storeu(out + N, p_simd - q_simd);
+    ocudu_simd_cfi_storeu(out, p_simd + q_simd);
+    ocudu_simd_cfi_storeu(out + N, p_simd - q_simd);
   }
 };
 
-#endif // (2 * SRSRAN_SIMD_CF_SIZE) > 4
+#endif // (2 * OCUDU_SIMD_CF_SIZE) > 4
 
 // Implements a DFT of size 9.
 template <>
@@ -555,7 +555,7 @@ dft_processor_generic_impl::dft_processor_generic_impl(const configuration& dft_
 
 span<const cf_t> dft_processor_generic_impl::run()
 {
-  srsran_assert(generic_dft, "DFT was not created.");
+  ocudu_assert(generic_dft, "DFT was not created.");
 
   generic_dft->run(output.data(), input.data());
 

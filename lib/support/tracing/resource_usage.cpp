@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/tracing/resource_usage.h"
+#include "ocudu/support/tracing/resource_usage.h"
 #include <sys/resource.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace resource_usage;
 
 static snapshot rusage_to_snapshot(const ::rusage& rusg)
@@ -24,7 +24,7 @@ static snapshot rusage_to_snapshot(const ::rusage& rusg)
   return s;
 }
 
-srsran::expected<snapshot, int> srsran::resource_usage::now()
+ocudu::expected<snapshot, int> ocudu::resource_usage::now()
 {
   ::rusage ret;
   if (::getrusage(RUSAGE_THREAD, &ret) == 0) {

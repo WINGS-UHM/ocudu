@@ -11,13 +11,13 @@
 #include "du_processor_test_helpers.h"
 #include "../du_processor_test_messages.h"
 #include "tests/unittests/cu_cp/test_helpers.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <memory>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -117,14 +117,14 @@ du_processor_test::du_processor_test() :
 
   du_cfg_mgr{cu_cp_cfg.node.gnb_id, config_helpers::get_supported_plmns(cu_cp_cfg.ngap.ngaps)}
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  cu_cp_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  cu_cp_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   // create and start DU processor
   du_processor_config_t du_cfg = {uint_to_du_index(0),
                                   cu_cp_cfg,
-                                  srslog::fetch_basic_logger("CU-CP"),
+                                  ocudulog::fetch_basic_logger("CU-CP"),
                                   &du_conn_notifier,
                                   du_cfg_mgr.create_du_handler()};
   du_processor_obj =
@@ -137,5 +137,5 @@ du_processor_test::du_processor_test() :
 du_processor_test::~du_processor_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }

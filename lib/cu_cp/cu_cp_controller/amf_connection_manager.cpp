@@ -13,15 +13,15 @@
 #include "../routines/amf_connection_removal_routine.h"
 #include "../routines/amf_connection_setup_routine.h"
 #include "../routines/amf_reconnection_routine.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/support/synchronization/baton.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/support/synchronization/baton.h"
 #include <chrono>
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 amf_connection_manager::amf_connection_manager(ngap_repository&                ngaps_,
                                                cu_cp_amf_reconnection_handler& cu_cp_notifier_,
@@ -33,7 +33,7 @@ amf_connection_manager::amf_connection_manager(ngap_repository&                n
   timers(timers_),
   cu_cp_exec(cu_cp_exec_),
   common_task_sched(common_task_sched_),
-  logger(srslog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

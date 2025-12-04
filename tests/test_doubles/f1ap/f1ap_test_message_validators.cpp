@@ -11,12 +11,12 @@
 #include "f1ap_test_message_validators.h"
 #include "../lib/f1ap/asn1_helpers.h"
 #include "../tests/test_doubles/rrc/rrc_test_message_validators.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::f1ap;
 
 #define TRUE_OR_RETURN(cond)                                                                                           \
@@ -27,10 +27,10 @@ static bool is_packable(const f1ap_message& msg)
 {
   byte_buffer   temp_pdu;
   asn1::bit_ref bref{temp_pdu};
-  return msg.pdu.pack(bref) == asn1::SRSASN_SUCCESS;
+  return msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS;
 }
 
-bool srsran::test_helpers::is_gnb_du_config_update_valid(const f1ap_message& msg)
+bool ocudu::test_helpers::is_gnb_du_config_update_valid(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_GNB_DU_CFG_UPD);
@@ -39,8 +39,8 @@ bool srsran::test_helpers::is_gnb_du_config_update_valid(const f1ap_message& msg
   return true;
 }
 
-bool srsran::test_helpers::is_gnb_du_config_update_valid(const f1ap_message&                        msg,
-                                                         const srs_du::gnbdu_config_update_request& req)
+bool ocudu::test_helpers::is_gnb_du_config_update_valid(const f1ap_message&                     msg,
+                                                        const odu::gnbdu_config_update_request& req)
 {
   TRUE_OR_RETURN(is_gnb_du_config_update_valid(msg));
   const auto& upd_req = msg.pdu.init_msg().value.gnb_du_cfg_upd();
@@ -58,7 +58,7 @@ bool srsran::test_helpers::is_gnb_du_config_update_valid(const f1ap_message&    
   return true;
 }
 
-bool srsran::test_helpers::is_gnb_cu_config_update_acknowledge_valid(const f1ap_message& msg)
+bool ocudu::test_helpers::is_gnb_cu_config_update_acknowledge_valid(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome);
   TRUE_OR_RETURN(msg.pdu.successful_outcome().proc_code == ASN1_F1AP_ID_GNB_CU_CFG_UPD);
@@ -66,7 +66,7 @@ bool srsran::test_helpers::is_gnb_cu_config_update_acknowledge_valid(const f1ap_
   return true;
 }
 
-bool srsran::test_helpers::is_gnb_cu_config_update_acknowledge_valid(const f1ap_message& msg, const f1ap_message& req)
+bool ocudu::test_helpers::is_gnb_cu_config_update_acknowledge_valid(const f1ap_message& msg, const f1ap_message& req)
 {
   TRUE_OR_RETURN(is_gnb_cu_config_update_acknowledge_valid(msg));
   const auto& upd_req = req.pdu.init_msg().value.gnb_cu_cfg_upd();
@@ -76,7 +76,7 @@ bool srsran::test_helpers::is_gnb_cu_config_update_acknowledge_valid(const f1ap_
   return true;
 }
 
-bool srsran::test_helpers::is_gnb_cu_config_update_failure_valid(const f1ap_message& msg)
+bool ocudu::test_helpers::is_gnb_cu_config_update_failure_valid(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::unsuccessful_outcome);
   TRUE_OR_RETURN(msg.pdu.unsuccessful_outcome().proc_code == ASN1_F1AP_ID_GNB_CU_CFG_UPD);
@@ -84,7 +84,7 @@ bool srsran::test_helpers::is_gnb_cu_config_update_failure_valid(const f1ap_mess
   return true;
 }
 
-bool srsran::test_helpers::is_gnb_cu_config_update_failure_valid(const f1ap_message& msg, const f1ap_message& req)
+bool ocudu::test_helpers::is_gnb_cu_config_update_failure_valid(const f1ap_message& msg, const f1ap_message& req)
 {
   TRUE_OR_RETURN(is_gnb_cu_config_update_failure_valid(msg));
   const auto& upd_req  = req.pdu.init_msg().value.gnb_cu_cfg_upd();
@@ -93,9 +93,9 @@ bool srsran::test_helpers::is_gnb_cu_config_update_failure_valid(const f1ap_mess
   return true;
 }
 
-bool srsran::test_helpers::is_init_ul_rrc_msg_transfer_valid(const f1ap_message&                       msg,
-                                                             rnti_t                                    rnti,
-                                                             const std::optional<nr_cell_global_id_t>& nci)
+bool ocudu::test_helpers::is_init_ul_rrc_msg_transfer_valid(const f1ap_message&                       msg,
+                                                            rnti_t                                    rnti,
+                                                            const std::optional<nr_cell_global_id_t>& nci)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_INIT_UL_RRC_MSG_TRANSFER);
@@ -110,7 +110,7 @@ bool srsran::test_helpers::is_init_ul_rrc_msg_transfer_valid(const f1ap_message&
   return true;
 }
 
-bool srsran::test_helpers::is_valid_dl_rrc_message_transfer(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_dl_rrc_message_transfer(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_DL_RRC_MSG_TRANSFER);
@@ -119,7 +119,7 @@ bool srsran::test_helpers::is_valid_dl_rrc_message_transfer(const f1ap_message& 
   return true;
 }
 
-const byte_buffer& srsran::test_helpers::get_rrc_container(const f1ap_message& msg)
+const byte_buffer& ocudu::test_helpers::get_rrc_container(const f1ap_message& msg)
 {
   if (msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_SETUP) {
     return msg.pdu.init_msg().value.ue_context_setup_request()->rrc_container;
@@ -132,7 +132,7 @@ const byte_buffer& srsran::test_helpers::get_rrc_container(const f1ap_message& m
   return msg.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container;
 }
 
-byte_buffer srsran::test_helpers::get_du_to_cu_container(const f1ap_message& msg)
+byte_buffer ocudu::test_helpers::get_du_to_cu_container(const f1ap_message& msg)
 {
   if (msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_INIT_UL_RRC_MSG_TRANSFER) {
     return msg.pdu.init_msg().value.init_ul_rrc_msg_transfer()->du_to_cu_rrc_container_present
@@ -142,7 +142,7 @@ byte_buffer srsran::test_helpers::get_du_to_cu_container(const f1ap_message& msg
   return byte_buffer{};
 }
 
-bool srsran::test_helpers::is_valid_dl_rrc_message_transfer_with_msg4(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_dl_rrc_message_transfer_with_msg4(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(is_valid_dl_rrc_message_transfer(msg));
 
@@ -168,7 +168,7 @@ bool srsran::test_helpers::is_valid_dl_rrc_message_transfer_with_msg4(const f1ap
   return true;
 }
 
-bool srsran::test_helpers::is_ul_rrc_msg_transfer_valid(const f1ap_message& msg, srb_id_t srb_id)
+bool ocudu::test_helpers::is_ul_rrc_msg_transfer_valid(const f1ap_message& msg, srb_id_t srb_id)
 {
   if (not(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg and
           msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UL_RRC_MSG_TRANSFER)) {
@@ -181,7 +181,7 @@ bool srsran::test_helpers::is_ul_rrc_msg_transfer_valid(const f1ap_message& msg,
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_setup_request(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_setup_request(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_SETUP);
@@ -190,7 +190,7 @@ bool srsran::test_helpers::is_valid_ue_context_setup_request(const f1ap_message&
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_setup_request_with_ue_capabilities(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_setup_request_with_ue_capabilities(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(is_valid_ue_context_setup_request(msg));
   TRUE_OR_RETURN(
@@ -198,7 +198,7 @@ bool srsran::test_helpers::is_valid_ue_context_setup_request_with_ue_capabilitie
   return true;
 }
 
-bool srsran::test_helpers::is_ue_context_setup_response_valid(const f1ap_message& msg)
+bool ocudu::test_helpers::is_ue_context_setup_response_valid(const f1ap_message& msg)
 {
   if (not(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome and
           msg.pdu.successful_outcome().proc_code == ASN1_F1AP_ID_UE_CONTEXT_SETUP)) {
@@ -211,7 +211,7 @@ bool srsran::test_helpers::is_ue_context_setup_response_valid(const f1ap_message
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_modification_request(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_modification_request(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_MOD);
@@ -220,8 +220,8 @@ bool srsran::test_helpers::is_valid_ue_context_modification_request(const f1ap_m
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_modification_response(const f1ap_message&    msg,
-                                                                     ue_context_mod_context context)
+bool ocudu::test_helpers::is_valid_ue_context_modification_response(const f1ap_message&    msg,
+                                                                    ue_context_mod_context context)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome);
   TRUE_OR_RETURN(msg.pdu.successful_outcome().proc_code == ASN1_F1AP_ID_UE_CONTEXT_MOD);
@@ -247,9 +247,9 @@ bool srsran::test_helpers::is_valid_ue_context_modification_response(const f1ap_
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_modification_response(const f1ap_message&    resp_msg,
-                                                                     const f1ap_message&    req_msg,
-                                                                     ue_context_mod_context context)
+bool ocudu::test_helpers::is_valid_ue_context_modification_response(const f1ap_message&    resp_msg,
+                                                                    const f1ap_message&    req_msg,
+                                                                    ue_context_mod_context context)
 {
   TRUE_OR_RETURN(is_valid_ue_context_modification_request(req_msg));
   TRUE_OR_RETURN(is_valid_ue_context_modification_response(resp_msg, context));
@@ -273,7 +273,7 @@ bool srsran::test_helpers::is_valid_ue_context_modification_response(const f1ap_
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_release_request(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_release_request(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_RELEASE_REQUEST);
@@ -281,7 +281,7 @@ bool srsran::test_helpers::is_valid_ue_context_release_request(const f1ap_messag
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_release_request(const f1ap_message& msg, gnb_du_ue_f1ap_id_t du_ue_id)
+bool ocudu::test_helpers::is_valid_ue_context_release_request(const f1ap_message& msg, gnb_du_ue_f1ap_id_t du_ue_id)
 {
   TRUE_OR_RETURN(is_valid_ue_context_release_request(msg));
   TRUE_OR_RETURN(msg.pdu.init_msg().value.ue_context_release_request()->gnb_du_ue_f1ap_id ==
@@ -289,7 +289,7 @@ bool srsran::test_helpers::is_valid_ue_context_release_request(const f1ap_messag
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_release_command(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_release_command(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_RELEASE);
@@ -297,7 +297,7 @@ bool srsran::test_helpers::is_valid_ue_context_release_command(const f1ap_messag
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_release_complete(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_release_complete(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome);
   TRUE_OR_RETURN(msg.pdu.successful_outcome().proc_code == ASN1_F1AP_ID_UE_CONTEXT_RELEASE);
@@ -305,7 +305,7 @@ bool srsran::test_helpers::is_valid_ue_context_release_complete(const f1ap_messa
   return true;
 }
 
-bool srsran::test_helpers::is_valid_ue_context_release_complete(const f1ap_message& msg, const f1ap_message& rel_cmd)
+bool ocudu::test_helpers::is_valid_ue_context_release_complete(const f1ap_message& msg, const f1ap_message& rel_cmd)
 {
   TRUE_OR_RETURN(is_valid_ue_context_release_complete(msg));
   const auto& rel_cmd_msg = rel_cmd.pdu.init_msg().value.ue_context_release_cmd();
@@ -315,7 +315,7 @@ bool srsran::test_helpers::is_valid_ue_context_release_complete(const f1ap_messa
   return true;
 }
 
-bool srsran::test_helpers::is_valid_paging(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_paging(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_PAGING);
@@ -324,7 +324,7 @@ bool srsran::test_helpers::is_valid_paging(const f1ap_message& msg)
   return true;
 }
 
-bool srsran::test_helpers::is_valid_f1_reset_ack(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_f1_reset_ack(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type().value == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome);
   TRUE_OR_RETURN(msg.pdu.successful_outcome().value.type().value ==
@@ -332,7 +332,7 @@ bool srsran::test_helpers::is_valid_f1_reset_ack(const f1ap_message& msg)
   return true;
 }
 
-bool srsran::test_helpers::is_valid_f1_reset_ack(const f1ap_message& req, const f1ap_message& resp)
+bool ocudu::test_helpers::is_valid_f1_reset_ack(const f1ap_message& req, const f1ap_message& resp)
 {
   TRUE_OR_RETURN(is_valid_f1_reset_ack(resp));
 
@@ -349,7 +349,7 @@ bool srsran::test_helpers::is_valid_f1_reset_ack(const f1ap_message& req, const 
   return true;
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 bool test_helpers::is_valid_positioning_information_response(const f1ap_message& msg)
 {
@@ -386,7 +386,7 @@ bool test_helpers::is_valid_f1ap_positioning_measurement_failure(const f1ap_mess
   return true;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 bool test_helpers::is_valid_gnb_cu_configuration_update(const f1ap_message& msg)
 {

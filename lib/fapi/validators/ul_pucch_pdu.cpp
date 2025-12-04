@@ -10,10 +10,10 @@
 
 #include "ul_pucch_pdu.h"
 #include "field_checkers.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/fapi/validator_report.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/validator_report.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks a UL_TTI.request message.
@@ -286,7 +286,7 @@ static bool validate_part2_size_map_scope(unsigned value, validator_report& repo
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Part2 size map scope", msg_type, pdu_type, report);
 }
 
-bool srsran::fapi::validate_ul_pucch_pdu(const ul_pucch_pdu& pdu, validator_report& report)
+bool ocudu::fapi::validate_ul_pucch_pdu(const ul_pucch_pdu& pdu, validator_report& report)
 {
   bool result = true;
 

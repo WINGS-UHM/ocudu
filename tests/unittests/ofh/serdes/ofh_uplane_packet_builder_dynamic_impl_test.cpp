@@ -10,12 +10,12 @@
 
 #include "../../../../lib/ofh/compression/iq_compression_none_impl.h"
 #include "../../../../lib/ofh/serdes/ofh_uplane_message_builder_dynamic_compression_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocuduvec/conversion.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 namespace {
@@ -105,18 +105,18 @@ static const std::vector<test_case_t> ofh_uplane_builder_test_data = {
 
 TEST(ofh_uplane_packet_builder_dynamic_impl_test, non_compressed_packet_should_pass)
 {
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 
   for (const test_case_t& test_case : ofh_uplane_builder_test_data) {
     // Create a compressor.
     iq_compression_none_impl compressor(logger);
 
-    ofh_uplane_message_builder_dynamic_compression_impl builder(srslog::fetch_basic_logger("TEST"), compressor);
+    ofh_uplane_message_builder_dynamic_compression_impl builder(ocudulog::fetch_basic_logger("TEST"), compressor);
 
     // Prepare output buffer and build packet.
     std::vector<uint8_t> result_packet(test_case.packet.size(), 0);
     std::vector<cbf16_t> iq_data_cbf16(test_case.iq_data.size());
-    srsvec::convert(iq_data_cbf16, test_case.iq_data);
+    ocuduvec::convert(iq_data_cbf16, test_case.iq_data);
 
     builder.build_message(result_packet, iq_data_cbf16, test_case.params);
 

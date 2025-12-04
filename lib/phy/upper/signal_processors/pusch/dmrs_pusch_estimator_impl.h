@@ -13,13 +13,13 @@
 
 #pragma once
 
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_generator.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
-#include "srsran/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dmrs_pusch_estimator_impl : public dmrs_pusch_estimator
 {
@@ -36,10 +36,10 @@ public:
     ch_estimator(std::move(ch_est)),
     executor(executor_)
   {
-    srsran_assert(prg, "Invalid PRG.");
-    srsran_assert(low_papr_sequence_gen, "Invalid sequence generator.");
+    ocudu_assert(prg, "Invalid PRG.");
+    ocudu_assert(low_papr_sequence_gen, "Invalid sequence generator.");
     for (const auto& ch : ch_estimator) {
-      srsran_assert(ch, "Invalid port channel estimator.");
+      ocudu_assert(ch, "Invalid port channel estimator.");
     }
   }
 
@@ -90,4 +90,4 @@ private:
   void generate(dmrs_symbol_list& symbols, span<layer_dmrs_pattern> mask, const configuration& cfg);
 };
 
-} // namespace srsran
+} // namespace ocudu

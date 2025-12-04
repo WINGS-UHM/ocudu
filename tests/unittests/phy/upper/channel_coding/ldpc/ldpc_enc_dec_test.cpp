@@ -16,16 +16,16 @@
 /// Similarly, the codeblocks are fed to the decoder and the resulting messages are compared to the example ones.
 
 #include "ldpc_encoder_test_data.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
-namespace srsran {
+namespace ocudu {
 std::ostream& operator<<(std::ostream& os, const test_case_t& tc)
 {
   return os << fmt::format("BG{}, LS{}", tc.bg, tc.ls);
@@ -41,7 +41,7 @@ bool operator==(span<const uint8_t> lhs, span<const uint8_t> rhs)
   return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -109,7 +109,7 @@ protected:
     unsigned min_cb_length_bg = 24;
     unsigned max_cb_length_bg = 66;
     unsigned msg_length_bg    = 22;
-    if (bg == srsran::ldpc_base_graph_type::BG2) {
+    if (bg == ocudu::ldpc_base_graph_type::BG2) {
       min_cb_length_bg = 12;
       max_cb_length_bg = 50;
       msg_length_bg    = 10;
@@ -206,8 +206,8 @@ protected:
   static std::shared_ptr<ldpc_decoder_factory> dec_factory_avx512;
   static std::shared_ptr<ldpc_decoder_factory> dec_factory_neon;
 
-  std::unique_ptr<ldpc_encoder>         encoder_test;
-  std::unique_ptr<srsran::ldpc_decoder> decoder_test;
+  std::unique_ptr<ldpc_encoder>        encoder_test;
+  std::unique_ptr<ocudu::ldpc_decoder> decoder_test;
 
   std::vector<uint8_t> messages;
   unsigned             nof_messages;
@@ -260,7 +260,7 @@ TEST_P(LDPCEncDecFixture, LDPCEncTest)
 
     // Pack input message.
     dynamic_bit_buffer message_packed(msg_length);
-    srsvec::bit_pack(message_packed, msg_i);
+    ocuduvec::bit_pack(message_packed, msg_i);
 
     // check several shortened codeblocks.
     constexpr unsigned          NOF_STEPS    = 3;
@@ -293,7 +293,7 @@ TEST_P(LDPCEncDecFixture, LDPCEncSegmentedReadTest)
 
     // Pack input message.
     dynamic_bit_buffer message_packed(msg_length);
-    srsvec::bit_pack(message_packed, msg_i);
+    ocuduvec::bit_pack(message_packed, msg_i);
 
     // check several shortened codeblocks.
     constexpr unsigned          NOF_STEPS    = 3;
@@ -341,7 +341,7 @@ TEST_P(LDPCEncDecFixture, LDPCDecTest)
       decoder_test->decode(decoded, llrs, nullptr, cfg_dec);
 
       // Unpack the decoded message.
-      srsvec::bit_unpack(decoded_bits, decoded);
+      ocuduvec::bit_unpack(decoded_bits, decoded);
 
       ASSERT_TRUE(std::equal(decoded_bits.begin(), decoded_bits.end(), msg_i.begin(), is_msg_equal))
           << "Wrong recovered message.";
@@ -368,7 +368,7 @@ TEST_P(LDPCEncDecFixture, LDPCDecTestZeroLLR)
 {
   // Check that a codeblock with all zero LLR returns message of all ones and an empty output.
   std::vector<log_likelihood_ratio> llrs(max_cb_length);
-  srsvec::zero(llrs);
+  ocuduvec::zero(llrs);
   dynamic_bit_buffer      decoded(msg_length);
   std::optional<unsigned> n_iters = decoder_test->decode(decoded, llrs, nullptr, cfg_dec);
   ASSERT_FALSE(n_iters.has_value()) << "Without CRC calculator, the decoder should not return a number of iteration.";
@@ -379,7 +379,7 @@ TEST_P(LDPCEncDecFixture, LDPCDecTestAlmostZeroLLR)
 {
   // Check that a codeblock with all zero LLR but a few very small ones returns message of all ones and an empty output.
   std::vector<log_likelihood_ratio> llrs(max_cb_length);
-  srsvec::zero(llrs);
+  ocuduvec::zero(llrs);
 
   for (unsigned i_bit = min_cb_length + 2; i_bit < max_cb_length; i_bit += 3) {
     llrs[i_bit] = (i_bit % 2 == 0) ? 1 : -1;

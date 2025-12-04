@@ -13,11 +13,11 @@
 // This file was generated using the following MATLAB class on 05-08-2024 (seed 0):
 //   + "srsOFHCompressionUnittest.m"
 
-#include "srsran/adt/complex.h"
-#include "srsran/ofh/compression/compression_params.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/ofh/compression/compression_params.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   std::size_t           nof_prb;
@@ -70,4 +70,4 @@ static const std::vector<test_case_t> ofh_compression_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

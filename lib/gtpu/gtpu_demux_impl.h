@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/executors/task_executor.h"
 #include "fmt/format.h"
 #include <mutex>
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
 struct gtpu_demux_tunnel_ctx_t {
   gtpu_demux_dispatch_queue&                   batched_queue;
@@ -61,15 +61,15 @@ private:
   // TEID used for test mode operation.
   gtpu_teid_t test_teid{0x01};
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 // GTP-U demux config formatter
 template <>
-struct formatter<srsran::gtpu_demux_cfg_t> {
+struct formatter<ocudu::gtpu_demux_cfg_t> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -77,7 +77,7 @@ struct formatter<srsran::gtpu_demux_cfg_t> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::gtpu_demux_cfg_t cfg, FormatContext& ctx) const
+  auto format(ocudu::gtpu_demux_cfg_t cfg, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "queue_size={} batch_size={} warn_on_drop={} test_mode={}",

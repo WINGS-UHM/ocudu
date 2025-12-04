@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/cu_up/cu_up_manager.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/cu_up/cu_up_manager.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// Adapter between E1AP and CU-UP manager
 class e1ap_cu_up_manager_adapter : public e1ap_cu_up_manager_notifier
 {
 public:
-  e1ap_cu_up_manager_adapter() : logger(srslog::fetch_basic_logger("CU-UP-E1")) {}
+  e1ap_cu_up_manager_adapter() : logger(ocudulog::fetch_basic_logger("CU-UP-E1")) {}
 
   void connect_cu_up_manager(cu_up_manager_e1ap_interface& cu_up_handler_) { cu_up_handler = &cu_up_handler_; }
 
@@ -80,7 +80,7 @@ public:
     cu_up_handler->schedule_cu_up_async_task(std::move(task));
   }
 
-  void on_schedule_ue_async_task(srs_cu_up::ue_index_t ue_index, async_task<void> task) override
+  void on_schedule_ue_async_task(ocuup::ue_index_t ue_index, async_task<void> task) override
   {
     if (cu_up_handler == nullptr) {
       logger.error("Could not schedule UE task, no CU-UP handler present. ue={}", fmt::underlying(ue_index));
@@ -100,7 +100,7 @@ public:
 
 private:
   cu_up_manager_e1ap_interface* cu_up_handler = nullptr;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

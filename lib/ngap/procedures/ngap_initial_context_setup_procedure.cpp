@@ -10,12 +10,12 @@
 
 #include "ngap_initial_context_setup_procedure.h"
 #include "../ngap_asn1_helpers.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/support/async/coroutine.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
 ngap_initial_context_setup_procedure::ngap_initial_context_setup_procedure(

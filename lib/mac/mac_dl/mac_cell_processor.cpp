@@ -10,19 +10,19 @@
 
 #include "mac_cell_processor.h"
 #include "mac_dl_metric_handler.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/async/execute_on_blocking.h"
-#include "srsran/support/executors/execute_until_success.h"
-#include "srsran/support/rtsan.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/execute_on_blocking.h"
+#include "ocudu/support/executors/execute_until_success.h"
+#include "ocudu/support/rtsan.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Maximum PDSH K0 value as per TS38.331 "PDSCH-TimeDomainResourceAllocation".
 static constexpr size_t MAX_K0_DELAY = 32;
@@ -37,7 +37,7 @@ mac_cell_processor::mac_cell_processor(const mac_cell_creation_request& cell_cfg
                                        mac_pcap&                        pcap_,
                                        timer_manager&                   timers_,
                                        mac_cell_config_dependencies     dependencies) :
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   cell_cfg(cell_cfg_req_),
   cell_exec(cell_exec_),
   slot_exec(slot_exec_),
@@ -80,7 +80,7 @@ async_task<void> mac_cell_processor::start()
       cell_exec,
       ctrl_exec,
       timers,
-      [this]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+      [this]() noexcept OCUDU_RTSAN_NONBLOCKING {
         if (state != cell_state::inactive) {
           // No-op.
           return;
@@ -151,7 +151,7 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
       CORO_AWAIT(defer_on_blocking(cell_exec, timers));
 
       {
-        SRSRAN_RTSAN_SCOPED_ENABLER;
+        OCUDU_RTSAN_SCOPED_ENABLER;
 
         if (request.new_sys_info.has_value()) {
           // Forward new SIB1/SI message PDUs to SIB assembler and update version.
@@ -178,7 +178,7 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
       CORO_AWAIT(execute_on_blocking(cell_exec, timers));
 
       {
-        SRSRAN_RTSAN_SCOPED_ENABLER;
+        OCUDU_RTSAN_SCOPED_ENABLER;
         sched.handle_slice_reconfiguration_request(request.slice_reconf_req.value());
       }
 
@@ -190,8 +190,7 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
   });
 }
 
-void mac_cell_processor::handle_slot_indication(const mac_cell_timing_context& context) noexcept
-    SRSRAN_RTSAN_NONBLOCKING
+void mac_cell_processor::handle_slot_indication(const mac_cell_timing_context& context) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   slot_time_mapper.handle_slot_indication(context);
   trace_point slot_ind_enqueue_tp = metric_clock::now();
@@ -204,7 +203,7 @@ void mac_cell_processor::handle_slot_indication(const mac_cell_timing_context& c
   }
 }
 
-void mac_cell_processor::handle_error_indication(slot_point sl_tx, error_event event) noexcept SRSRAN_RTSAN_NONBLOCKING
+void mac_cell_processor::handle_error_indication(slot_point sl_tx, error_event event) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   // Forward error indication to the scheduler to be processed asynchronously.
   sched.handle_error_indication(sl_tx, cell_cfg.cell_index, event);
@@ -233,7 +232,7 @@ async_task<bool> mac_cell_processor::add_ue(const mac_ue_create_request& request
       cell_exec,
       ctrl_exec,
       timers,
-      [this, ue_inst = std::move(ue_inst)]() mutable noexcept SRSRAN_RTSAN_NONBLOCKING {
+      [this, ue_inst = std::move(ue_inst)]() mutable noexcept OCUDU_RTSAN_NONBLOCKING {
         // > Insert UE and DL bearers.
 
         // Note: Ensure we only do so if the cell is active.
@@ -264,7 +263,7 @@ async_task<void> mac_cell_processor::remove_ue(const mac_ue_delete_request& requ
     CORO_AWAIT(defer_on_blocking(cell_exec, timers, log_dispatch_failure));
 
     {
-      SRSRAN_RTSAN_SCOPED_ENABLER;
+      OCUDU_RTSAN_SCOPED_ENABLER;
 
       // Remove UE associated DL channels
       ue_mng.remove_ue(request.ue_index);
@@ -290,7 +289,7 @@ async_task<bool> mac_cell_processor::addmod_bearers(du_ue_index_t               
       cell_exec,
       ctrl_exec,
       timers,
-      [this, ue_index, logical_channels]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+      [this, ue_index, logical_channels]() noexcept OCUDU_RTSAN_NONBLOCKING {
         // Configure logical channels.
         return state == cell_state::active and ue_mng.addmod_bearers(ue_index, logical_channels);
       },
@@ -309,7 +308,7 @@ async_task<bool> mac_cell_processor::remove_bearers(du_ue_index_t ue_index, span
       cell_exec,
       ctrl_exec,
       timers,
-      [this, ue_index, lcids_to_rem_bset]() noexcept SRSRAN_RTSAN_NONBLOCKING -> bool {
+      [this, ue_index, lcids_to_rem_bset]() noexcept OCUDU_RTSAN_NONBLOCKING -> bool {
         // Remove logical channels.
         return state == cell_state::active and ue_mng.remove_bearers(ue_index, lcids_to_rem_bset);
       },
@@ -320,13 +319,13 @@ async_task<bool> mac_cell_processor::remove_bearers(du_ue_index_t ue_index, span
 
 void mac_cell_processor::handle_slot_indication_impl(slot_point               sl_tx,
                                                      metric_clock::time_point enqueue_slot_tp) noexcept
-    SRSRAN_RTSAN_NONBLOCKING
+    OCUDU_RTSAN_NONBLOCKING
 {
   // * Start of Critical Path * //
 
   logger.set_context(sl_tx.sfn(), sl_tx.slot_index());
 
-  if (SRSRAN_UNLIKELY(state == cell_state::inactive)) {
+  if (OCUDU_UNLIKELY(state == cell_state::inactive)) {
     // Ignore slot indication if cell is inactive.
     phy_cell.on_cell_results_completion(sl_tx);
     return;
@@ -443,7 +442,7 @@ static dci_payload encode_dci(const pdcch_dl_information& pdcch)
     case dci_dl_rnti_config_type::c_rnti_f1_1:
       return dci_1_1_pack(pdcch.dci.c_rnti_f1_1);
     default:
-      srsran_terminate("Invalid DCI format");
+      ocudu_terminate("Invalid DCI format");
   }
 }
 
@@ -458,7 +457,7 @@ static dci_payload encode_dci(const pdcch_ul_information& pdcch)
     case dci_ul_rnti_config_type::c_rnti_f0_1:
       return dci_0_1_pack(pdcch.dci.c_rnti_f0_1);
     default:
-      srsran_terminate("Invalid DCI format");
+      ocudu_terminate("Invalid DCI format");
   }
 }
 
@@ -495,7 +494,7 @@ void mac_cell_processor::assemble_dl_data_request(mac_dl_data_result&    data_re
   data_res.slot = sl_tx;
   // Assemble scheduled BCCH-DL-SCH message containing SIBs' payload.
   for (const sib_information& sib_info : dl_res.bc.sibs) {
-    srsran_assert(not data_res.si_pdus.full(), "No SIB1 added as SIB1 list in MAC DL data results is already full");
+    ocudu_assert(not data_res.si_pdus.full(), "No SIB1 added as SIB1 list in MAC DL data results is already full");
     data_res.si_pdus.emplace_back(0, shared_transport_block(sib_assembler.encode_si_pdu(sl_tx, sib_info)));
   }
 
@@ -545,7 +544,7 @@ void mac_cell_processor::update_logical_channel_dl_buffer_states(const dl_sched_
 
         // Fetch RLC Bearer.
         mac_sdu_tx_builder* bearer = ue_mng.get_lc_sdu_builder(grant.pdsch_cfg.rnti, lc_info.lcid.to_lcid());
-        srsran_sanity_check(bearer != nullptr, "Scheduler is allocating inexistent bearers");
+        ocudu_sanity_check(bearer != nullptr, "Scheduler is allocating inexistent bearers");
 
         // Update DL buffer state for the allocated logical channel.
         rlc_buffer_state                       rlc_bs = bearer->on_buffer_state_update();
@@ -568,8 +567,8 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
   for (unsigned i = 0, e = dl_res.si_pdus.size(); i != e; ++i) {
     const sib_information& dl_alloc = sl_res.dl.bc.sibs[i];
     if (dl_alloc.si_indicator != sib_information::sib1) {
-      srsran_assert(dl_alloc.si_msg_index.has_value() and *dl_alloc.si_msg_index < si_pcap_dumped_version.size(),
-                    "Invalid SI message index");
+      ocudu_assert(dl_alloc.si_msg_index.has_value() and *dl_alloc.si_msg_index < si_pcap_dumped_version.size(),
+                   "Invalid SI message index");
     }
     unsigned& dumped_version = (dl_alloc.si_indicator == sib_information::sib1)
                                    ? sib1_pcap_dumped_version
@@ -606,7 +605,7 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
   for (unsigned i = 0, e = dl_res.paging_pdus.size(); i != e; ++i) {
     const mac_dl_data_result::dl_pdu& pg_pdu   = dl_res.paging_pdus[i];
     const dl_paging_allocation&       dl_alloc = sl_res.dl.paging_grants[i];
-    srsran::mac_nr_context_info       context  = {};
+    ocudu::mac_nr_context_info        context  = {};
     context.radioType           = cell_cfg.sched_req.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
     context.direction           = PCAP_DIRECTION_DOWNLINK;
     context.rntiType            = PCAP_P_RNTI;
@@ -621,7 +620,7 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
     const mac_dl_data_result::dl_pdu& ue_pdu   = dl_res.ue_pdus[i];
     const dl_msg_alloc&               dl_alloc = sl_res.dl.ue_grants[i];
     if (dl_alloc.pdsch_cfg.codewords[0].new_data) {
-      srsran::mac_nr_context_info context = {};
+      ocudu::mac_nr_context_info context = {};
       context.radioType = cell_cfg.sched_req.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
       context.direction = PCAP_DIRECTION_DOWNLINK;
       context.rntiType  = PCAP_C_RNTI;

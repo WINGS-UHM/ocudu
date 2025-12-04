@@ -13,12 +13,12 @@
 #include "../../f1ap_asn1_utils.h"
 #include "../f1ap_asn1_converters.h"
 #include "../f1ap_du_context.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 using namespace asn1::f1ap;
 
 static constexpr std::chrono::milliseconds f1_setup_response_timeout{3000};
@@ -31,7 +31,7 @@ f1ap_du_setup_procedure::f1ap_du_setup_procedure(const f1_setup_request_message&
   request(request_),
   cu_notifier(cu_notif_),
   ev_mng(ev_mng_),
-  logger(srslog::fetch_basic_logger("DU-F1")),
+  logger(ocudulog::fetch_basic_logger("DU-F1")),
   du_ctxt(du_ctxt_),
   f1_setup_wait_timer(timers.create_timer())
 {

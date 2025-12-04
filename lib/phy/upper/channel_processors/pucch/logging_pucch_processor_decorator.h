@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 template <typename Func>
 inline std::chrono::nanoseconds time_execution(Func&& func)
@@ -54,10 +54,10 @@ class logging_pucch_processor_decorator : public pucch_processor
   }
 
 public:
-  logging_pucch_processor_decorator(srslog::basic_logger& logger_, std::unique_ptr<pucch_processor> processor_) :
+  logging_pucch_processor_decorator(ocudulog::basic_logger& logger_, std::unique_ptr<pucch_processor> processor_) :
     logger(logger_), processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid processor.");
+    ocudu_assert(processor, "Invalid processor.");
   }
 
   pucch_processor_result process(const resource_grid_reader& grid, const format0_configuration& config) override
@@ -149,8 +149,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
   std::unique_ptr<pucch_processor> processor;
 };
 
-} // namespace srsran
+} // namespace ocudu

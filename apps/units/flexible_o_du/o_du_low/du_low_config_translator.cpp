@@ -11,17 +11,17 @@
 #include "du_low_config_translator.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "du_low_config.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/phy/upper/upper_phy_factories.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/prach/prach_configuration.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/phy/upper/upper_phy_factories.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/prach/prach_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-static srs_du::du_low_config generate_du_low_config(const du_low_unit_config&                       du_low,
-                                                    span<const o_du_low_unit_config::du_low_config> cells)
+static odu::du_low_config generate_du_low_config(const du_low_unit_config&                       du_low,
+                                                 span<const o_du_low_unit_config::du_low_config> cells)
 {
-  srs_du::du_low_config out_config;
+  odu::du_low_config out_config;
   out_config.cells.reserve(cells.size());
 
   unsigned max_ul_bw_rb         = 0;
@@ -149,12 +149,12 @@ static srs_du::du_low_config generate_du_low_config(const du_low_unit_config&   
 
     const prach_configuration prach_cfg =
         prach_configuration_get(cell.freq_range, cell.duplex, cell.prach_config_index);
-    srsran_assert(prach_cfg.format != prach_format_type::invalid,
-                  "Unsupported PRACH configuration index (i.e., {}) for the given frequency range (i.e., {}) and "
-                  "duplex mode (i.e., {}).",
-                  cell.prach_config_index,
-                  to_string(cell.freq_range),
-                  to_string(cell.duplex));
+    ocudu_assert(prach_cfg.format != prach_format_type::invalid,
+                 "Unsupported PRACH configuration index (i.e., {}) for the given frequency range (i.e., {}) and "
+                 "duplex mode (i.e., {}).",
+                 cell.prach_config_index,
+                 to_string(cell.freq_range),
+                 to_string(cell.duplex));
 
     upper_phy_cell.nof_tx_ports                                     = cell.nof_tx_antennas;
     upper_phy_cell.nof_rx_ports                                     = cell.nof_rx_antennas;
@@ -184,18 +184,18 @@ static srs_du::du_low_config generate_du_low_config(const du_low_unit_config&   
   return out_config;
 }
 
-void srsran::generate_o_du_low_config(srs_du::o_du_low_config&                        out_config,
-                                      const du_low_unit_config&                       du_low_unit_cfg,
-                                      span<const o_du_low_unit_config::du_low_config> cells)
+void ocudu::generate_o_du_low_config(odu::o_du_low_config&                           out_config,
+                                     const du_low_unit_config&                       du_low_unit_cfg,
+                                     span<const o_du_low_unit_config::du_low_config> cells)
 {
   out_config.du_low_cfg = generate_du_low_config(du_low_unit_cfg, cells);
 }
 
-void srsran::fill_du_low_worker_manager_config(worker_manager_config&    config,
-                                               const du_low_unit_config& unit_cfg,
-                                               unsigned                  is_blocking_mode_active,
-                                               span<const unsigned>      nof_dl_antennas,
-                                               span<const unsigned>      nof_ul_antennas)
+void ocudu::fill_du_low_worker_manager_config(worker_manager_config&    config,
+                                              const du_low_unit_config& unit_cfg,
+                                              unsigned                  is_blocking_mode_active,
+                                              span<const unsigned>      nof_dl_antennas,
+                                              span<const unsigned>      nof_ul_antennas)
 {
   report_error_if_not(nof_dl_antennas.size() == nof_ul_antennas.size(),
                       "The length of nof_dl_antennas ({}) must be equal to the length of nof_ul_antennas ({}), which "

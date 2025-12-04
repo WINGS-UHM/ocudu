@@ -13,11 +13,11 @@
 #pragma message "GCC versions greater than 10 give a likely false array-bounds alarm."
 #endif // defined(__GNUC__) && defined(__GNUC_MINOR__)
 
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Tests that two patterns with subcarrier mask in common are merged into one.
 void test_merge_even()

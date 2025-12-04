@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct o_cu_up_e2_config;
 
 /// Fills the given node with the O-RAN CU-UP E2 configuration values.
 void fill_o_cu_up_e2_config_in_yaml_schema(YAML::Node& node, const o_cu_up_e2_config& config);
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/rb_id.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Generate dummy F1AP DL RRC Message Transfer message (CU -> DU).
 f1ap_message generate_f1ap_dl_rrc_message_transfer(srb_id_t srb_id, const byte_buffer& rrc_container);
 
-} // namespace srsran
+} // namespace ocudu

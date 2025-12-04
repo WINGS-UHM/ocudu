@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 class uci_part2_correspondence_repository;
@@ -27,4 +27,4 @@ void convert_pusch_fapi_to_phy(uplink_pdu_slot_repository::pusch_pdu& pdu,
                                uci_part2_correspondence_repository&   part2_repo);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

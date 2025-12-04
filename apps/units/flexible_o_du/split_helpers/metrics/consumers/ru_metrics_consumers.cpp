@@ -11,16 +11,16 @@
 #include "ru_metrics_consumers.h"
 #include "apps/helpers/metrics/helpers.h"
 #include "apps/helpers/metrics/json_generators/ru/ofh.h"
-#include "srsran/ru/ru_metrics.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/ru/ru_metrics.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 
 /// Size in bytes of the buffer used to prepare the metrics before logging.
 static constexpr unsigned str_buffer_size = 2048;
 
-static void log_ru_ofh_metrics_json(srslog::log_channel&     log_chan,
+static void log_ru_ofh_metrics_json(ocudulog::log_channel&   log_chan,
                                     const ofh::metrics&      metrics,
                                     span<const pci_t>        pci_sector_map,
                                     std::chrono::nanoseconds symbol_duration)
@@ -147,7 +147,7 @@ static void log_ru_ofh_performance_metrics_verbose(fmt::basic_memory_buffer<char
                  cell_metrics.tx_metrics.ul_metrics.nof_late_cp_ul);
 }
 
-static void log_ru_ofh_metrics(srslog::log_channel&     log_chan,
+static void log_ru_ofh_metrics(ocudulog::log_channel&   log_chan,
                                const ofh::metrics&      metrics,
                                span<const pci_t>        pci_sector_map,
                                bool                     verbose,
@@ -229,10 +229,10 @@ void ru_metrics_handler_stdout::log_ru_sdr_metrics_in_stdout(const ru_sdr_metric
   }
 
   for (const auto& cell : sdr_metrics.cells) {
-    srsran_assert(cell.sector_id < pci_sector_map.size(),
-                  "Invalid sector index '{}', number of cells '{}'",
-                  cell.sector_id,
-                  pci_sector_map.size());
+    ocudu_assert(cell.sector_id < pci_sector_map.size(),
+                 "Invalid sector index '{}', number of cells '{}'",
+                 cell.sector_id,
+                 pci_sector_map.size());
 
     fmt::println(" {:>3} | {:>10.1f} | {:>10.1f} | {:>4.1f} | {:>8.1e} | {:>10.1f} | {:>10.1f} | {:>4.1f} | {:>8.1e} |",
                  static_cast<unsigned>(pci_sector_map[cell.sector_id]),
@@ -268,10 +268,10 @@ void ru_metrics_handler_stdout::log_ru_dummy_metrics_in_stdout(const ru_dummy_me
   }
 
   for (const auto& cell : dummy_metrics.sectors) {
-    srsran_assert(cell.sector_id < pci_sector_map.size(),
-                  "Invalid sector index '{}', number of cells '{}'",
-                  cell.sector_id,
-                  pci_sector_map.size());
+    ocudu_assert(cell.sector_id < pci_sector_map.size(),
+                 "Invalid sector index '{}', number of cells '{}'",
+                 cell.sector_id,
+                 pci_sector_map.size());
 
     fmt::println(" {:^3} | {:^11} | {:^11} | {:^11} | {:^11} | {:^11} | {:^11} |",
                  static_cast<unsigned>(pci_sector_map[cell.sector_id]),
@@ -306,10 +306,10 @@ void ru_metrics_handler_stdout::log_ru_ofh_metrics_in_stdout(const ofh::metrics&
   }
 
   for (const auto& cell : ofh_metrics.sectors) {
-    srsran_assert(cell.sector_id < pci_sector_map.size(),
-                  "Invalid sector index '{}', number of cells '{}'",
-                  cell.sector_id,
-                  pci_sector_map.size());
+    ocudu_assert(cell.sector_id < pci_sector_map.size(),
+                 "Invalid sector index '{}', number of cells '{}'",
+                 cell.sector_id,
+                 pci_sector_map.size());
 
     const ofh::received_messages_metrics& rx_metrics = cell.rx_metrics.rx_messages_metrics;
 

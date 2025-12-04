@@ -14,9 +14,9 @@
 #include "../ue_context/ue_channel_state_manager.h"
 #include "mcs_tbs_calculator.h"
 #include "pdsch/pdsch_config_params.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Contains some of the PUSCH parameters needed to compute the MCS, the number of PRBs, the TBS and to build the PUSCH
 /// PDU.
@@ -152,4 +152,4 @@ void build_pusch_f0_1_c_rnti(pusch_information&           pusch,
                              const vrb_interval&          vrbs,
                              bool                         is_new_data);
 
-} // namespace srsran
+} // namespace ocudu

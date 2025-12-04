@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/ofh_uplane_rx_symbol_notifier.h"
-#include "srsran/ru/ru_uplink_plane.h"
+#include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
+#include "ocudu/ru/ru_uplink_plane.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// RU received symbol handler for the Open Fronthaul interface.
 class ru_ofh_rx_symbol_handler_impl : public ofh::uplane_rx_symbol_notifier
@@ -32,4 +32,4 @@ private:
   ru_uplink_plane_rx_symbol_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

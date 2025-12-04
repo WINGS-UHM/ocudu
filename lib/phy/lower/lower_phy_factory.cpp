@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/lower/lower_phy_factory.h"
+#include "ocudu/phy/lower/lower_phy_factory.h"
 #include "lower_phy_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Calculates the transmit time offset as a number of samples.
 ///
@@ -62,24 +62,24 @@ public:
                        std::shared_ptr<lower_phy_uplink_processor_factory>   uplink_proc_factory_) :
     downlink_proc_factory(std::move(downlink_proc_factory_)), uplink_proc_factory(std::move(uplink_proc_factory_))
   {
-    srsran_assert(downlink_proc_factory, "Invalid downlink processor factory.");
-    srsran_assert(uplink_proc_factory, "Invalid uplink processor factory.");
+    ocudu_assert(downlink_proc_factory, "Invalid downlink processor factory.");
+    ocudu_assert(uplink_proc_factory, "Invalid uplink processor factory.");
   }
 
-  std::unique_ptr<srsran::lower_phy> create(const lower_phy_configuration& config,
-                                            const lower_phy_dependencies&  dependencies) override
+  std::unique_ptr<ocudu::lower_phy> create(const lower_phy_configuration& config,
+                                           const lower_phy_dependencies&  dependencies) override
   {
-    srsran_assert((config.dft_window_offset >= 0.0) && (config.dft_window_offset < 1.0F),
-                  "DFT window offset if out-of-range");
-    srsran_assert(config.srate.to_Hz() > 0, "Invalid sampling rate.");
+    ocudu_assert((config.dft_window_offset >= 0.0) && (config.dft_window_offset < 1.0F),
+                 "DFT window offset if out-of-range");
+    ocudu_assert(config.srate.to_Hz() > 0, "Invalid sampling rate.");
 
-    srsran_assert((config.scs == subcarrier_spacing::kHz15) || (config.scs == subcarrier_spacing::kHz30) ||
-                      (config.scs == subcarrier_spacing::kHz120),
-                  "Subcarrier spacing of {} is not supported. Only {}, {} and {} are supported.",
-                  to_string(config.scs),
-                  to_string(subcarrier_spacing::kHz15),
-                  to_string(subcarrier_spacing::kHz30),
-                  to_string(subcarrier_spacing::kHz120));
+    ocudu_assert((config.scs == subcarrier_spacing::kHz15) || (config.scs == subcarrier_spacing::kHz30) ||
+                     (config.scs == subcarrier_spacing::kHz120),
+                 "Subcarrier spacing of {} is not supported. Only {}, {} and {} are supported.",
+                 to_string(config.scs),
+                 to_string(subcarrier_spacing::kHz15),
+                 to_string(subcarrier_spacing::kHz30),
+                 to_string(subcarrier_spacing::kHz120));
     unsigned nof_samples_per_slot = config.srate.to_kHz() / pow2(to_numerology_value(config.scs));
 
     unsigned rx_buffer_size = dependencies.bb_gateway.get_receiver_optimal_buffer_size();
@@ -118,7 +118,7 @@ public:
     // Create downlink processor.
     std::unique_ptr<lower_phy_downlink_processor> dl_proc =
         downlink_proc_factory->create(dl_proc_config, dependencies.dl_task_executor);
-    srsran_assert(dl_proc, "Failed to create DL processor.");
+    ocudu_assert(dl_proc, "Failed to create DL processor.");
 
     // Prepare uplink processor configuration.
     uplink_processor_configuration ul_proc_config = {.sector_id           = config.sector_id,
@@ -131,7 +131,7 @@ public:
 
     // Create uplink processor.
     std::unique_ptr<lower_phy_uplink_processor> ul_proc = uplink_proc_factory->create(ul_proc_config);
-    srsran_assert(dl_proc, "Failed to create the UL processor.");
+    ocudu_assert(dl_proc, "Failed to create the UL processor.");
 
     // Prepare processor baseband adaptor configuration.
     lower_phy_baseband_processor_configuration proc_bb_adaptor_config = {
@@ -160,7 +160,7 @@ public:
     // Create lower PHY controller from the processor baseband adaptor.
     std::unique_ptr<lower_phy_controller> controller =
         std::make_unique<lower_phy_baseband_processor>(proc_bb_adaptor_config, proc_bb_adaptor_deps);
-    srsran_assert(controller, "Failed to create the lower PHY controller.");
+    ocudu_assert(controller, "Failed to create the lower PHY controller.");
 
     // Prepare lower PHY dependencies.
     lower_phy_impl::dependencies lower_phy_deps = {.downlink_proc      = std::move(dl_proc),
@@ -182,8 +182,8 @@ private:
 } // namespace
 
 std::shared_ptr<lower_phy_factory>
-srsran::create_lower_phy_factory_sw(std::shared_ptr<lower_phy_downlink_processor_factory> downlink_proc_factory,
-                                    std::shared_ptr<lower_phy_uplink_processor_factory>   uplink_proc_factory)
+ocudu::create_lower_phy_factory_sw(std::shared_ptr<lower_phy_downlink_processor_factory> downlink_proc_factory,
+                                   std::shared_ptr<lower_phy_uplink_processor_factory>   uplink_proc_factory)
 {
   return std::make_shared<lower_phy_factory_sw>(std::move(downlink_proc_factory), std::move(uplink_proc_factory));
 }

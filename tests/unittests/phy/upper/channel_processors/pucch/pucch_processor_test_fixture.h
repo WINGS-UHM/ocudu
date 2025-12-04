@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 template <typename PucchProcessorParam, unsigned MaxNofSymbols = MAX_NSYMB_PER_SLOT, unsigned MaxNofRxPorts = 4>
 class PucchProcessorTestFixture : public ::testing::TestWithParam<PucchProcessorParam>
@@ -124,4 +124,4 @@ protected:
   static std::unique_ptr<pucch_pdu_validator> validator;
 };
 
-} // namespace srsran
+} // namespace ocudu

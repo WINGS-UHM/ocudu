@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static pdcch_candidate_list pdcch_candidates_get_lowest_cce(unsigned Y_p,
                                                             unsigned n_ci,
@@ -19,10 +19,10 @@ static pdcch_candidate_list pdcch_candidates_get_lowest_cce(unsigned Y_p,
                                                             unsigned nof_cce_coreset)
 {
   // Assertions avoid zero division.
-  srsran_assert(nof_cce_coreset > 0, "Number of CORESET CCEs must be greater than zero.");
-  srsran_assert(L > 0, "The aggregation level must be greater than zero.");
-  srsran_assert(L <= nof_cce_coreset or nof_candidates == 0,
-                "The aggregation level must be less than or equal to the number of CORESET CCEs.");
+  ocudu_assert(nof_cce_coreset > 0, "Number of CORESET CCEs must be greater than zero.");
+  ocudu_assert(L > 0, "The aggregation level must be greater than zero.");
+  ocudu_assert(L <= nof_cce_coreset or nof_candidates == 0,
+               "The aggregation level must be less than or equal to the number of CORESET CCEs.");
 
   pdcch_candidate_list candidates;
 
@@ -44,7 +44,7 @@ static unsigned pdcch_candidates_ue_ss_get_Y_p(unsigned A_p, unsigned D, unsigne
 }
 
 pdcch_candidate_list
-srsran::pdcch_candidates_common_ss_get_lowest_cce(const pdcch_candidates_common_ss_configuration& config)
+ocudu::pdcch_candidates_common_ss_get_lowest_cce(const pdcch_candidates_common_ss_configuration& config)
 {
   unsigned Y_p  = 0;
   unsigned n_ci = 0;
@@ -53,7 +53,7 @@ srsran::pdcch_candidates_common_ss_get_lowest_cce(const pdcch_candidates_common_
       Y_p, n_ci, to_nof_cces(config.al), config.nof_candidates, config.nof_cce_coreset);
 }
 
-pdcch_candidate_list srsran::pdcch_candidates_ue_ss_get_lowest_cce(const pdcch_candidates_ue_ss_configuration& config)
+pdcch_candidate_list ocudu::pdcch_candidates_ue_ss_get_lowest_cce(const pdcch_candidates_ue_ss_configuration& config)
 {
   static const std::array<unsigned, 3> A_p_values = {39827, 39829, 39839};
   const unsigned                       n_ci       = 0;

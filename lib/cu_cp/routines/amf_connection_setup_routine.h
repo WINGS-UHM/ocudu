@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../ngap_repository.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 async_task<bool> start_amf_connection_setup(ngap_repository&                                    ngap_db,
                                             std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected);
@@ -32,15 +32,15 @@ public:
 private:
   void handle_connection_setup_result();
 
-  ngap_repository&      ngap_db;
-  std::atomic<bool>&    amf_connected;
-  amf_index_t           amf_index = amf_index_t::invalid;
-  ngap_interface*       ngap      = nullptr;
-  srslog::basic_logger& logger;
+  ngap_repository&        ngap_db;
+  std::atomic<bool>&      amf_connected;
+  amf_index_t             amf_index = amf_index_t::invalid;
+  ngap_interface*         ngap      = nullptr;
+  ocudulog::basic_logger& logger;
 
   ngap_ng_setup_result result_msg = {};
   bool                 success    = false;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

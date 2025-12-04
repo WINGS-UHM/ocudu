@@ -59,24 +59,24 @@ set(SOURCES
         paging/paging_message_handler.cpp
 )
 
-add_library(srsran_cu_cp STATIC ${SOURCES})
+add_library(ocudu_cu_cp STATIC ${SOURCES})
 
-target_link_libraries(srsran_cu_cp
-        srsran_cu_cp_cell_meas_manager
-        srsran_cu_cp_mobility_manager
-        srsran_ue_security_manager
-        srsran_e1ap_cu_cp
-        srsran_f1ap_cu
-        srsran_ngap
-        srsran_nrppa
-        srsran_rrc
-        srsran_ran
-        srslog
-        srsran_support
-        srsran_security
-        srsran_e2
+target_link_libraries(ocudu_cu_cp
+        ocudu_cu_cp_cell_meas_manager
+        ocudu_cu_cp_mobility_manager
+        ocudu_ue_security_manager
+        ocudu_e1ap_cu_cp
+        ocudu_f1ap_cu
+        ocudu_ngap
+        ocudu_nrppa
+        ocudu_rrc
+        ocudu_ran
+        ocudulog
+        ocudu_support
+        ocudu_security
+        ocudu_e2
         ${CMAKE_DL_LIBS}
 )
 
-add_library(srsran_o_cu_cp o_cu_cp_factory.cpp o_cu_cp_impl.cpp)
-target_link_libraries(srsran_o_cu_cp PRIVATE srsran_cu_cp)
+add_library(ocudu_o_cu_cp o_cu_cp_factory.cpp o_cu_cp_impl.cpp)
+target_link_libraries(ocudu_o_cu_cp PRIVATE ocudu_cu_cp)

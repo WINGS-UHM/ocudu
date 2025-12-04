@@ -10,22 +10,22 @@
 
 #pragma once
 
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/fill.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/file_vector.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/fill.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/file_vector.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/ocudu_test.h"
 #include "fmt/std.h"
 #include <complex>
 #include <map>
@@ -33,7 +33,7 @@
 #include <random>
 #include <tuple>
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes a resource grid writer spy for testing classes that write in the resource grid.
 class resource_grid_writer_spy : public resource_grid_writer
@@ -202,7 +202,7 @@ public:
   /// Clears any possible state.
   void reset()
   {
-    srsvec::zero(data.get_data());
+    ocuduvec::zero(data.get_data());
     count = 0;
   }
 
@@ -262,7 +262,7 @@ public:
   {
     // Fill grid with NAN.
     cf_t nan = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
-    srsvec::fill(grid.get_data(), to_cbf16(nan));
+    ocuduvec::fill(grid.get_data(), to_cbf16(nan));
   }
 
   unsigned get_nof_ports() const override { return max_ports; }
@@ -394,11 +394,11 @@ private:
     entry_key_t key{port, symbol, subcarrier};
 
     // Ensure the resource element exist.
-    srsran_assert(entries.count(key) == 1,
-                  "Resource grid for port={}, symbol={} and subcarrier={} does not exist.",
-                  port,
-                  symbol,
-                  subcarrier);
+    ocudu_assert(entries.count(key) == 1,
+                 "Resource grid for port={}, symbol={} and subcarrier={} does not exist.",
+                 port,
+                 symbol,
+                 subcarrier);
 
     return entries.at(key);
   }
@@ -445,11 +445,11 @@ private:
 
   resource_grid& get() override
   {
-    srsran_assert(ref_count > 0, "The grid must be reserved.");
+    ocudu_assert(ref_count > 0, "The grid must be reserved.");
     return grid;
   }
 
-  void notify_release_scope() override { srsran_assert(ref_count == 0, "The grid must be reserved."); }
+  void notify_release_scope() override { ocudu_assert(ref_count == 0, "The grid must be reserved."); }
 
 public:
   explicit shared_resource_grid_spy(resource_grid& grid_) : grid(grid_) {}
@@ -463,7 +463,7 @@ public:
   {
     unsigned expected_available_ref_count = 0;
     bool     available                    = ref_count.compare_exchange_strong(expected_available_ref_count, 1);
-    srsran_assert(available, "The grid must NOT be reserved.");
+    ocudu_assert(available, "The grid must NOT be reserved.");
     return {*this, ref_count};
   }
 };
@@ -499,4 +499,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

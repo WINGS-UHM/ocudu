@@ -11,16 +11,16 @@
 #include "mock_du.h"
 #include "lib/f1ap/f1ap_asn1_utils.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/adt/mutexed_mpmc_queue.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/cu_cp/cu_cp_f1c_handler.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/mutexed_mpmc_queue.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/cu_cp/cu_cp_f1c_handler.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/error_handling.h"
 #include <future>
 #include <unordered_map>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -103,8 +103,8 @@ public:
     }
 
     // Update gNB-CU-UE-F1AP-ID in the UE context.
-    std::optional<gnb_du_ue_f1ap_id_t> gnb_du_ue_f1ap_id = srsran::get_gnb_du_ue_f1ap_id(msg.pdu);
-    std::optional<gnb_cu_ue_f1ap_id_t> gnb_cu_ue_f1ap_id = srsran::get_gnb_cu_ue_f1ap_id(msg.pdu);
+    std::optional<gnb_du_ue_f1ap_id_t> gnb_du_ue_f1ap_id = ocudu::get_gnb_du_ue_f1ap_id(msg.pdu);
+    std::optional<gnb_cu_ue_f1ap_id_t> gnb_cu_ue_f1ap_id = ocudu::get_gnb_cu_ue_f1ap_id(msg.pdu);
     if (gnb_du_ue_f1ap_id.has_value()) {
       auto& ue_ctx = ue_contexts.at(gnb_du_ue_f1ap_id.value());
       if (gnb_cu_ue_f1ap_id.has_value()) {
@@ -154,14 +154,14 @@ private:
   std::unordered_map<gnb_du_ue_f1ap_id_t, ue_context> ue_contexts;
 
   concurrent_queue<f1ap_message,
-                   srsran::concurrent_queue_policy::locking_mpmc,
-                   srsran::concurrent_queue_wait_policy::condition_variable>
+                   ocudu::concurrent_queue_policy::locking_mpmc,
+                   ocudu::concurrent_queue_wait_policy::condition_variable>
       rx_pdus{1024};
 };
 
 } // namespace
 
-std::unique_ptr<mock_du> srsran::srs_cu_cp::create_mock_du(mock_du_params params)
+std::unique_ptr<mock_du> ocudu::ocucp::create_mock_du(mock_du_params params)
 {
   auto du = std::make_unique<synchronized_mock_du>(params);
   if (not du->connected()) {

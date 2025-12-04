@@ -16,7 +16,7 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config.h"
 #include <variant>
 
-namespace srsran {
+namespace ocudu {
 
 /// CPU affinities configuration for the cell.
 struct ru_dummy_cpu_affinities_cell_unit_config {
@@ -67,4 +67,4 @@ struct dynamic_o_du_unit_config {
   std::variant<ru_sdr_unit_config, ru_ofh_unit_parsed_config, ru_dummy_unit_config> ru_cfg = {ru_sdr_unit_config{}};
 };
 
-} // namespace srsran
+} // namespace ocudu

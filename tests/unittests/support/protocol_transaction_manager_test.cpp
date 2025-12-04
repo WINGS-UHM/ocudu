@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/async/protocol_transaction_manager.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class protocol_transaction_test : public ::testing::Test
 {

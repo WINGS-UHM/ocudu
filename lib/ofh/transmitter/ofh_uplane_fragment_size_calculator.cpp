@@ -9,9 +9,9 @@
  */
 
 #include "ofh_uplane_fragment_size_calculator.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/ran/resource_block.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Builds and returns an index of the PRB data size lookup table with the given bitwidth.
@@ -41,7 +41,7 @@ static units::bytes get_prb_data_size(const ru_compression_params& compr_params)
                                                              build_prb_data_size_lut_index(15),
                                                              build_prb_data_size_lut_index(16)};
 
-  srsran_assert(compr_params.data_width < prb_data_size.size(), "Invalid data width");
+  ocudu_assert(compr_params.data_width < prb_data_size.size(), "Invalid data width");
 
   return units::bytes((compr_params.type == compression_type::none || compr_params.type == compression_type::modulation)
                           ? prb_data_size[compr_params.data_width]

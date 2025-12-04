@@ -9,13 +9,13 @@
  */
 
 #include "ofh_message_transmitter_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
-message_transmitter_impl::message_transmitter_impl(srslog::basic_logger&                  logger_,
+message_transmitter_impl::message_transmitter_impl(ocudulog::basic_logger&                logger_,
                                                    const tx_window_timing_parameters&     timing_params_,
                                                    bool                                   are_metrics_enabled,
                                                    std::unique_ptr<ether::transmitter>    transmitter,
@@ -30,10 +30,10 @@ message_transmitter_impl::message_transmitter_impl(srslog::basic_logger&        
   metrics_collector(are_metrics_enabled),
   timing_params(timing_params_)
 {
-  srsran_assert(eth_transmitter, "Invalid Ethernet transmitter");
-  srsran_assert(pool_dl_cp, "Invalid Control-Plane downlink frame pool");
-  srsran_assert(pool_ul_cp, "Invalid Control-Plane uplink frame pool");
-  srsran_assert(pool_dl_up, "Invalid User-Plane downlink frame pool");
+  ocudu_assert(eth_transmitter, "Invalid Ethernet transmitter");
+  ocudu_assert(pool_dl_cp, "Invalid Control-Plane downlink frame pool");
+  ocudu_assert(pool_ul_cp, "Invalid Control-Plane uplink frame pool");
+  ocudu_assert(pool_dl_up, "Invalid User-Plane downlink frame pool");
 }
 
 void message_transmitter_impl::transmit_frame_burst(span<span<const uint8_t>> frame_burst)
@@ -44,7 +44,7 @@ void message_transmitter_impl::transmit_frame_burst(span<span<const uint8_t>> fr
 
   eth_transmitter->send(frame_burst);
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sending an Ethernet frame burst of size '{}'", frame_burst.size());
   }
 }
@@ -67,7 +67,7 @@ void message_transmitter_impl::enqueue_messages_into_burst(
     return;
   }
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Enqueueing '{}' frame(s) of type '{}-{}' in interval '{}_{}':{}_{} for tx burst",
                  read_frames.size() - prev_size,
                  (type == message_type::control_plane) ? "control-plane" : "user-plane",

@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct dynamic_o_du_unit_config;
 
 /// Fills the given node with the dynamic O-RAN DU configuration values.
 void fill_dynamic_o_du_unit_config_in_yaml_schema(YAML::Node& node, const dynamic_o_du_unit_config& config);
 
-} // namespace srsran
+} // namespace ocudu

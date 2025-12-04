@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_error_notifier.h"
-#include "srsran/phy/lower/lower_phy_metrics_notifier.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_notifier.h"
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_notifier.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_notifier.h"
+#include "ocudu/phy/lower/lower_phy_error_notifier.h"
+#include "ocudu/phy/lower/lower_phy_metrics_notifier.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_notifier.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Lower physical layer processor notification adaptor.
 ///
@@ -177,4 +177,4 @@ private:
   puxch_adaptor puxch;
 };
 
-} // namespace srsran
+} // namespace ocudu

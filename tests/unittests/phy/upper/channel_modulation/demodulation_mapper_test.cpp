@@ -16,15 +16,15 @@
 /// also provided by test vectors.
 
 #include "demodulation_mapper_test_data.h"
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& tc)
 {
@@ -41,7 +41,7 @@ bool operator==(span<const log_likelihood_ratio> left, span<const log_likelihood
   return std::equal(left.begin(), left.end(), right.begin(), right.end());
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -310,7 +310,7 @@ TEST_P(DemodulatorFixture, DemodulatorSymbolZero)
     symbols[i_symbol] = cf_t();
 
     // The expected bits must be zero.
-    srsvec::zero(span<log_likelihood_ratio>(soft_bits_expected).subspan(bits_per_symbol * i_symbol, bits_per_symbol));
+    ocuduvec::zero(span<log_likelihood_ratio>(soft_bits_expected).subspan(bits_per_symbol * i_symbol, bits_per_symbol));
   }
 
   std::vector<log_likelihood_ratio> soft_bits(symbols.size() * bits_per_symbol);

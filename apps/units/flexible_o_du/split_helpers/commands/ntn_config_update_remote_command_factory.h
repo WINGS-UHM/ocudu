@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct application_unit_commands;
 
@@ -24,4 +24,4 @@ class ntn_configuration_manager;
 void add_ntn_config_update_remote_command(application_unit_commands&          commands,
                                           srs_ntn::ntn_configuration_manager& ntn_manager);
 
-} // namespace srsran
+} // namespace ocudu

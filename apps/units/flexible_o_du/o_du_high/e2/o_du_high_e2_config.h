@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/e2/e2ap_configuration.h"
+#include "ocudu/e2/e2ap_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU high E2 PCAP configuration.
 struct o_du_high_e2_pcap_config {
@@ -28,4 +28,4 @@ struct o_du_high_e2_config {
   o_du_high_e2_pcap_config pcaps;
 };
 
-} // namespace srsran
+} // namespace ocudu

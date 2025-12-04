@@ -13,11 +13,11 @@
 #include "../metrics/ngap_metrics_aggregator.h"
 #include "ngap_transaction_manager.h"
 #include "ue_context/ngap_ue_context.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_handover.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 async_task<ngap_handover_preparation_response>
 start_ngap_handover_preparation(const ngap_handover_preparation_request& req,
@@ -30,4 +30,4 @@ start_ngap_handover_preparation(const ngap_handover_preparation_request& req,
                                 timer_factory                            timers,
                                 ngap_ue_logger&                          logger);
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

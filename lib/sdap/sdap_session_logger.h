@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/support/format/prefixed_logger.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 class sdap_session_trx_log_prefix
 {
@@ -32,7 +32,7 @@ public:
     } else {
       fmt::format_to(std::back_inserter(buffer), "ue={} {} {} {}: ", ue_index, psi, drb_id, dir);
     }
-    prefix = srsran::to_c_str(buffer);
+    prefix = ocudu::to_c_str(buffer);
   }
   const char* to_c_str() const { return prefix.c_str(); }
 
@@ -49,7 +49,7 @@ public:
   {
     fmt::memory_buffer buffer;
     fmt::format_to(std::back_inserter(buffer), "ue={} {}: ", ue_index, psi);
-    prefix = srsran::to_c_str(buffer);
+    prefix = ocudu::to_c_str(buffer);
   }
   const char* to_c_str() const { return prefix.c_str(); }
 
@@ -59,13 +59,13 @@ private:
 
 using sdap_session_logger = prefixed_logger<sdap_session_log_prefix>;
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 // associated formatters
 template <>
-struct formatter<srsran::sdap_session_trx_log_prefix> {
+struct formatter<ocudu::sdap_session_trx_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -73,7 +73,7 @@ struct formatter<srsran::sdap_session_trx_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::sdap_session_trx_log_prefix o, FormatContext& ctx) const
+  auto format(ocudu::sdap_session_trx_log_prefix o, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", o.to_c_str());
   }
@@ -81,7 +81,7 @@ struct formatter<srsran::sdap_session_trx_log_prefix> {
 
 // associated formatters
 template <>
-struct formatter<srsran::sdap_session_log_prefix> {
+struct formatter<ocudu::sdap_session_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -89,7 +89,7 @@ struct formatter<srsran::sdap_session_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::sdap_session_log_prefix o, FormatContext& ctx) const
+  auto format(ocudu::sdap_session_log_prefix o, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", o.to_c_str());
   }

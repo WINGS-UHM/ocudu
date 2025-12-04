@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/pcap/dlt_pcap.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/pcap/dlt_pcap.h"
 #include <gtest/gtest.h>
 
 using namespace asn1;
-using namespace srsran;
+using namespace ocudu;
 
 #define JSON_OUTPUT 0
 
@@ -22,20 +22,20 @@ class asn1_e2ap_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 #if JSON_OUTPUT
@@ -45,13 +45,13 @@ protected:
 #else
   std::unique_ptr<dlt_pcap> pcap_writer = create_null_dlt_pcap();
 #endif
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(asn1_e2ap_test, when_e2_setup_correct_then_packing_successful)
 {
-  auto& logger = srslog::fetch_basic_logger("ASN1", false);
-  logger.set_level(srslog::basic_levels::debug);
+  auto& logger = ocudulog::fetch_basic_logger("ASN1", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(-1);
 
   asn1::e2ap::e2ap_pdu_c pdu;
@@ -94,9 +94,9 @@ TEST_F(asn1_e2ap_test, when_e2_setup_correct_then_packing_successful)
   e2node_cfg_item.e2node_component_cfg.e2node_component_request_part.from_string("72657170617274");
   e2node_cfg_item.e2node_component_cfg.e2node_component_resp_part.from_string("72657370617274");
 
-  srsran::byte_buffer buffer;
-  asn1::bit_ref       bref(buffer);
-  ASSERT_EQ(pdu.pack(bref), SRSASN_SUCCESS);
+  ocudu::byte_buffer buffer;
+  asn1::bit_ref      bref(buffer);
+  ASSERT_EQ(pdu.pack(bref), OCUDUASN_SUCCESS);
 
   // TODO: Accept byte buffer in pcap and log.
   std::vector<uint8_t> bytes{buffer.begin(), buffer.end()};
@@ -128,13 +128,13 @@ TEST_F(asn1_e2ap_test, ric_control_request)
 
   asn1::cbit_ref         bref{buffer};
   asn1::e2ap::e2ap_pdu_c pdu;
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(pdu.type(), asn1::e2ap::e2ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(pdu.init_msg().value.type().value, asn1::e2ap::e2ap_elem_procs_o::init_msg_c::types_opts::ric_ctrl_request);
   asn1::e2ap::ric_ctrl_request_s& ric_ctrl = pdu.init_msg().value.ric_ctrl_request();
   ASSERT_EQ(ric_ctrl->ran_function_id, 3);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 }
 
 TEST_F(asn1_e2ap_test, ric_control_failure_message)
@@ -146,8 +146,8 @@ TEST_F(asn1_e2ap_test, ric_control_failure_message)
 
   asn1::cbit_ref         bref{buffer};
   asn1::e2ap::e2ap_pdu_c pdu;
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(pdu.type(), asn1::e2ap::e2ap_pdu_c::types_opts::unsuccessful_outcome);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 }

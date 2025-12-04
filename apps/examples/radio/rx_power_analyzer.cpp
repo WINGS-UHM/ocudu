@@ -23,26 +23,26 @@
 /// The RX measurements are displayed upon completion of the sweep, and can optionally be written into a CSV file.
 
 #include "radio_notifier_sample.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/file_vector.h"
-#include "srsran/support/math/complex_normal_random.h"
-#include "srsran/support/signal_handling.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/file_vector.h"
+#include "ocudu/support/math/complex_normal_random.h"
+#include "ocudu/support/signal_handling.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Describes the analysis configuration.
 static std::string              results_filename;
 static double                   step_time_s          = 1;
-static srslog::basic_levels     log_level            = srslog::basic_levels::info;
+static ocudulog::basic_levels   log_level            = ocudulog::basic_levels::info;
 static std::string              driver_name          = "uhd";
 static std::string              device_arguments     = "type=b200";
 static std::vector<std::string> tx_channel_arguments = {};
@@ -81,7 +81,7 @@ static void interrupt_signal_handler(int signal)
 /// Function to call when the application is going to be forcefully shutdown.
 static void cleanup_signal_handler(int signal)
 {
-  srslog::flush();
+  ocudulog::flush();
 }
 
 static void usage(std::string_view prog)
@@ -96,7 +96,7 @@ static void usage(std::string_view prog)
   fmt::print("\t-m Minimum Rx gain. [Default {}]\n", rx_gain_min);
   fmt::print("\t-M Maximum Rx gain. [Default {}]\n", rx_gain_max);
   fmt::print("\t-g Tx gain. [Default {}]\n", tx_gain);
-  fmt::print("\t-v Logging level. [Default {}]\n", srslog::basic_level_to_string(log_level));
+  fmt::print("\t-v Logging level. [Default {}]\n", ocudulog::basic_level_to_string(log_level));
   fmt::print("\t-r Saves measurement results in a file. Ignored if none. [Default {}]\n",
              results_filename.empty() ? "none" : results_filename);
   fmt::print("\t-T Transmit random data while measuring. [Default {}]\n", tx_active);
@@ -155,8 +155,8 @@ static void parse_args(int argc, char** argv)
         }
         break;
       case 'v': {
-        auto level = srslog::str_to_basic_level(std::string(optarg));
-        log_level  = level.has_value() ? level.value() : srslog::basic_levels::info;
+        auto level = ocudulog::str_to_basic_level(std::string(optarg));
+        log_level  = level.has_value() ? level.value() : ocudulog::basic_levels::info;
         break;
       }
       case 'T':
@@ -328,7 +328,7 @@ int main(int argc, char** argv)
     // Start processing.
     {
       bool is_stopped = stop.exchange(false);
-      srsran_assert(is_stopped, "Radio must be stopped before starting to receive samples");
+      ocudu_assert(is_stopped, "Radio must be stopped before starting to receive samples");
     }
     radio->start(start_time);
 
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
       // Copy the received samples into the measurement buffer.
       for (unsigned i_channel = 0; i_channel != nof_channels; ++i_channel) {
         span<ci16_t> dest = rx_measurement_buffer.get_writer()[i_channel].subspan(sample_count, block_size);
-        srsvec::copy(dest, rx_baseband_buffer.get_reader()[i_channel]);
+        ocuduvec::copy(dest, rx_baseband_buffer.get_reader()[i_channel]);
       }
 
       if (tx_active) {
@@ -367,7 +367,7 @@ int main(int argc, char** argv)
       std::thread stop_thread([]() {
         radio->stop();
         bool is_stopped = stop.exchange(true);
-        srsran_assert(!is_stopped, "Radio must be running before attempting to stop.");
+        ocudu_assert(!is_stopped, "Radio must be running before attempting to stop.");
       });
 
       // Keep transmitting and receiving until the radio stops.
@@ -389,10 +389,10 @@ int main(int argc, char** argv)
 
     for (unsigned i_channel = 0; i_channel != nof_channels; ++i_channel) {
       span<const ci16_t> rx_samples = rx_measurement_buffer.get_reader()[i_channel].first(sample_count);
-      srsvec::convert(cf_buffer, rx_samples, INT16_MAX);
+      ocuduvec::convert(cf_buffer, rx_samples, INT16_MAX);
 
       // Compute average power relative to the full scale value.
-      float avg_power_dBFS = convert_power_to_dB(srsvec::average_power(cf_buffer));
+      float avg_power_dBFS = convert_power_to_dB(ocuduvec::average_power(cf_buffer));
 
       // Store the measurement results for the current sweep point.
       measurement_results.emplace_back(rx_gain, i_channel, avg_power_dBFS);

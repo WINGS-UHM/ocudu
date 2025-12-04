@@ -11,7 +11,7 @@
 #include "lib/mac/rnti_manager.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(rnti_manager_test, when_allocate_rnti_called_multiple_times_then_rntis_are_unique)
 {

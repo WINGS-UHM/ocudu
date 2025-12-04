@@ -10,11 +10,11 @@
 
 #include "ngap_pdu_session_resource_modify_procedure.h"
 #include "../ngap_asn1_converters.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/ngap/ngap_message.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/ngap/ngap_message.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
 ngap_pdu_session_resource_modify_procedure::ngap_pdu_session_resource_modify_procedure(

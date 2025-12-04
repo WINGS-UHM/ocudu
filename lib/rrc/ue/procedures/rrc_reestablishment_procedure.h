@@ -13,13 +13,13 @@
 #include "../rrc_ue_context.h"
 #include "../rrc_ue_logger.h"
 #include "rrc_ue_event_manager.h"
-#include "srsran/rrc/rrc_ue.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/eager_async_task.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/eager_async_task.h"
 #include <chrono>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class rrc_reestablishment_procedure
 {
@@ -87,5 +87,5 @@ private:
   cu_cp_ue_context_release_request        ue_context_release_request;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

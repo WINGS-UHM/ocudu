@@ -11,18 +11,18 @@
 #include "uci_allocator_impl.h"
 #include "../support/csi_report_helpers.h"
 #include "../support/sr_helper.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pusch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_size.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_size.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ////////////    C-tors and d-tors    ////////////
 
 uci_allocator_impl::uci_allocator_impl(pucch_allocator& pucch_alloc_) :
-  pucch_alloc{pucch_alloc_}, logger(srslog::fetch_basic_logger("SCHED"))
+  pucch_alloc{pucch_alloc_}, logger(ocudulog::fetch_basic_logger("SCHED"))
 {
 }
 
@@ -70,7 +70,7 @@ static void add_csi_to_uci_on_pusch(uci_info::csi_info& uci_csi, const ue_cell_c
     }
 
     if (csi_size.part2_min_size.value() > 0U) {
-      srsran_assert(csi_size.part2_max_size.value() <= 11U, "CSI Part 2 on UCI-PUSCH is only supported up to 11 bits");
+      ocudu_assert(csi_size.part2_max_size.value() <= 11U, "CSI Part 2 on UCI-PUSCH is only supported up to 11 bits");
       uci_csi.beta_offset_csi_2.emplace(beta_offsets.beta_offset_csi_p2_idx_1.value());
     }
 
@@ -106,7 +106,7 @@ unsigned uci_allocator_impl::get_min_pdsch_to_ack_slot_distance(slot_point pdsch
                                                                 unsigned   min_k1,
                                                                 unsigned   max_k1)
 {
-  srsran_assert(min_k1 <= max_k1, "Minimum k1 value must be greater than maximum k1 value");
+  ocudu_assert(min_k1 <= max_k1, "Minimum k1 value must be greater than maximum k1 value");
   for (int sl_inc = max_k1; sl_inc >= static_cast<int>(min_k1); --sl_inc) {
     const slot_point uci_slot = pdsch_slot + sl_inc;
     if (get_uci_alloc(uci_slot, rnti) != nullptr) {
@@ -273,7 +273,7 @@ void uci_allocator_impl::alloc_csi_opportunity(cell_slot_resource_allocator& slo
   //       start allocating CSI grants before any PUSCH grants (except the PUSCH scheduled in the RAR).
   if (has_pusch_grants) {
     // If there is UCI grant allocated, allocate it.
-    srsran_assert(not existing_pusch->uci.has_value(), "UCI on PUSCH grant for CSI cannot be already allocated");
+    ocudu_assert(not existing_pusch->uci.has_value(), "UCI on PUSCH grant for CSI cannot be already allocated");
     existing_pusch->uci.emplace();
     existing_pusch->uci.value().alpha = ue_cell_cfg.init_bwp().ul_ded->pusch_cfg.value().uci_cfg.value().scaling;
 

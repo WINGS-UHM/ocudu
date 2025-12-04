@@ -11,18 +11,18 @@
 #pragma once
 
 #include "../up_resource_manager/up_resource_manager_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_cp/ue_configuration.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/rrc/rrc_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/ue_configuration.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/rrc/rrc_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
-bool verify_and_log_cell_group_config(const byte_buffer& packed_cell_group_cfg, const srslog::basic_logger& logger);
+bool verify_and_log_cell_group_config(const byte_buffer& packed_cell_group_cfg, const ocudulog::basic_logger& logger);
 
 /// \brief Fill thew DRB setup mod item for the DU.
 /// \param[out] drb_setup_mod_item The DRB setup item to fill.
@@ -40,12 +40,12 @@ bool fill_f1ap_drb_setup_mod_item(f1ap_drb_to_setup& drb_setup_mod_item, // Requ
                                   up_drb_context& next_drb_config,                 // DRB config (info is written back).
                                   const e1ap_drb_setup_item_ng_ran& e1ap_drb_item, // Response from CU-UP.
                                   const slotted_id_vector<qos_flow_id_t, qos_flow_setup_request_item>&
-                                                              ngap_qos_flow_setup_items, // Initial request from AMF.
-                                  const srslog::basic_logger& logger);
+                                                                ngap_qos_flow_setup_items, // Initial request from AMF.
+                                  const ocudulog::basic_logger& logger);
 
 void fill_e1ap_drb_pdcp_config(e1ap_pdcp_config& e1ap_pdcp_cfg, const pdcp_config& cu_cp_pdcp_cfg);
 void fill_e1ap_qos_flow_param_item(e1ap_qos_flow_qos_param_item&      e1ap_qos_item,
-                                   const srslog::basic_logger&        logger,
+                                   const ocudulog::basic_logger&      logger,
                                    const qos_flow_setup_request_item& request_item);
 void fill_e1ap_bearer_context_list(
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_res_to_modify_item>& e1ap_list,
@@ -53,7 +53,7 @@ void fill_e1ap_bearer_context_list(
     const std::map<pdu_session_id_t, up_pdu_session_context_update>&          pdu_sessions_update_list);
 void fill_e1ap_pdu_session_res_to_setup_list(
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_res_to_setup_item>&     pdu_session_res_to_setup_list,
-    const srslog::basic_logger&                                                  logger,
+    const ocudulog::basic_logger&                                                logger,
     const up_config_update&                                                      next_config,
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items,
     const ue_configuration&                                                      ue_cfg,
@@ -61,11 +61,11 @@ void fill_e1ap_pdu_session_res_to_setup_list(
 void fill_drb_to_setup_list(slotted_id_vector<drb_id_t, e1ap_drb_to_setup_item_ng_ran>&          e1ap_drb_to_setup_list,
                             const slotted_id_vector<qos_flow_id_t, qos_flow_setup_request_item>& qos_flow_list,
                             const std::map<drb_id_t, up_drb_context>&                            drb_to_add_list,
-                            const srslog::basic_logger&                                          logger);
+                            const ocudulog::basic_logger&                                        logger);
 void fill_drb_to_modify_list(slotted_id_vector<drb_id_t, e1ap_drb_to_modify_item_ng_ran>& e1ap_drb_to_modify_list,
                              const slotted_id_vector<qos_flow_id_t, cu_cp_qos_flow_add_or_mod_item>& qos_flow_list,
                              const std::map<drb_id_t, up_drb_context>&                               drb_to_modify_list,
-                             const srslog::basic_logger&                                             logger);
+                             const ocudulog::basic_logger&                                           logger);
 void fill_drb_to_remove_list(std::vector<drb_id_t>&       e1ap_drb_to_remove_list,
                              const std::vector<drb_id_t>& drb_to_remove_list);
 
@@ -94,7 +94,7 @@ bool fill_rrc_reconfig_args(rrc_reconfiguration_procedure_request&              
                             std::optional<uint8_t>                                           ncc,
                             byte_buffer                                                      sib1,
                             std::optional<security::sec_selected_algos>                      selected_algos,
-                            const srslog::basic_logger&                                      logger);
+                            const ocudulog::basic_logger&                                    logger);
 
 /// \brief Processes the response of a UE Context Setup Request.
 /// \param[out] bearer_ctxt_mod_request Reference to the resulting Bearer Context Modification Request response.
@@ -105,7 +105,7 @@ bool fill_rrc_reconfig_args(rrc_reconfiguration_procedure_request&              
 bool update_setup_list_with_ue_ctxt_setup_response(e1ap_bearer_context_modification_request& bearer_ctxt_mod_request,
                                                    const std::vector<f1ap_drb_setupmod>&     drb_setup_mod_list,
                                                    const up_config_update&                   next_config,
-                                                   const srslog::basic_logger&               logger);
+                                                   const ocudulog::basic_logger&             logger);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

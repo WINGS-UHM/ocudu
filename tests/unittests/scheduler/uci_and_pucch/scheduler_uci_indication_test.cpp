@@ -17,11 +17,11 @@
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/scheduler/scheduler_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/scheduler_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class uci_sched_tester : public ::testing::Test
 {
@@ -128,7 +128,7 @@ protected:
   static constexpr du_ue_index_t ue_id   = to_du_ue_index(0);
   static constexpr rnti_t        ue_rnti = to_rnti(0x4601);
 
-  srslog::basic_logger&               logger = srslog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger&             logger = ocudulog::fetch_basic_logger("SCHED", true);
   sched_cfg_dummy_notifier            notif;
   scheduler_ue_metrics_dummy_notifier metric_notif;
   const scheduler_expert_config       sched_cfg = config_helpers::make_default_scheduler_expert_config();

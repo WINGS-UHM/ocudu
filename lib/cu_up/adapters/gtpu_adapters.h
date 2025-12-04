@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/gateways/udp_network_gateway.h"
-#include "srsran/gtpu/gtpu_tunnel_common_rx.h"
-#include "srsran/gtpu/gtpu_tunnel_common_tx.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu_rx.h"
-#include "srsran/sdap/sdap.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/gateways/udp_network_gateway.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_rx.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_rx.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/sdap/sdap.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// Adapter between GTP-U and Network Gateway
 class gtpu_network_gateway_adapter : public gtpu_tunnel_common_tx_upper_layer_notifier
@@ -35,7 +35,7 @@ public:
     if (gw_handler != nullptr) {
       gw_handler->handle_pdu(std::move(pdu), addr);
     } else {
-      srslog::fetch_basic_logger("GTPU", false).debug("Dropped UL GTP-U PDU. Adapter is disconnected.");
+      ocudulog::fetch_basic_logger("GTPU", false).debug("Dropped UL GTP-U PDU. Adapter is disconnected.");
     }
   }
 
@@ -54,7 +54,7 @@ public:
 
   void on_new_sdu(byte_buffer sdu, qos_flow_id_t qos_flow_id) override
   {
-    srsran_assert(sdap_handler != nullptr, "SDAP handler must not be nullptr");
+    ocudu_assert(sdap_handler != nullptr, "SDAP handler must not be nullptr");
     sdap_handler->handle_sdu(std::move(sdu), qos_flow_id);
   }
 
@@ -62,4 +62,4 @@ private:
   sdap_tx_sdu_handler* sdap_handler = nullptr;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

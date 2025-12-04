@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/phy/metrics/phy_metrics_factories.h"
+#include "ocudu/phy/metrics/phy_metrics_factories.h"
 #include "phy_metrics_channel_equalizer_decorator.h"
 #include "phy_metrics_channel_precoder_decorator.h"
 #include "phy_metrics_crc_calculator_decorator.h"
@@ -31,7 +31,7 @@
 #include "phy_metrics_transform_precoder_decorator.h"
 #include "phy_metrics_ulsch_demultiplex_decorator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -50,7 +50,7 @@ public:
   metric_decorator_factory(std::shared_ptr<Factory> base_factory_, Notifier& notifier_) :
     base_factory(std::move(base_factory_)), notifier(notifier_)
   {
-    srsran_assert(base_factory, "Invalid factory.");
+    ocudu_assert(base_factory, "Invalid factory.");
   }
 
   // See interface for documentation.
@@ -68,7 +68,7 @@ public:
   metric_decorator_factory_with_validator(std::shared_ptr<Factory> base_factory_, Notifier& notifier_) :
     base_factory(std::move(base_factory_)), notifier(notifier_)
   {
-    srsran_assert(base_factory, "Invalid factory.");
+    ocudu_assert(base_factory, "Invalid factory.");
   }
 
   // See interface for documentation.
@@ -91,7 +91,7 @@ public:
                                           crc_calculator_metric_notifier&         notifier_) :
     base_factory(std::move(base_factory_)), notifier(notifier_)
   {
-    srsran_assert(base_factory, "Invalid base factory.");
+    ocudu_assert(base_factory, "Invalid base factory.");
   }
 
   // See interface for documentation.
@@ -113,7 +113,7 @@ public:
                                         ldpc_decoder_metric_notifier&         notifier_) :
     base_factory(std::move(base_factory_)), notifier(notifier_)
   {
-    srsran_assert(base_factory, "Invalid factory.");
+    ocudu_assert(base_factory, "Invalid factory.");
   }
 
   // See interface for documentation.
@@ -136,7 +136,7 @@ public:
                                                   port_channel_estimator_metric_notifier&         notifier_) :
     base_factory(std::move(base_factory_)), notifier(notifier_)
   {
-    srsran_assert(base_factory, "Invalid base factory.");
+    ocudu_assert(base_factory, "Invalid base factory.");
   }
 
   // See interface for documentation.
@@ -162,7 +162,7 @@ public:
                                               downlink_processor_metric_notifier&         notifier_) :
     base_factory(std::move(base_factory_)), notifier(notifier_)
   {
-    srsran_assert(base_factory, "Invalid base factory.");
+    ocudu_assert(base_factory, "Invalid base factory.");
   }
 
   // See interface for documentation.
@@ -182,7 +182,7 @@ public:
 
   // See interface for documentation.
   std::unique_ptr<downlink_processor_base>
-  create(const downlink_processor_config& config, srslog::basic_logger& logger, bool enable_broadcast) override
+  create(const downlink_processor_config& config, ocudulog::basic_logger& logger, bool enable_broadcast) override
   {
     // Create RG gateway adaptor.
     auto gateway_adaptor =
@@ -208,15 +208,15 @@ private:
 } // namespace
 
 std::shared_ptr<crc_calculator_factory>
-srsran::create_crc_calculator_metric_decorator_factory(std::shared_ptr<crc_calculator_factory> base_factory,
-                                                       srsran::crc_calculator_metric_notifier& notifier)
+ocudu::create_crc_calculator_metric_decorator_factory(std::shared_ptr<crc_calculator_factory> base_factory,
+                                                      ocudu::crc_calculator_metric_notifier&  notifier)
 {
   return std::make_shared<metric_decorator_crc_calculator_factory>(base_factory, notifier);
 }
 
 std::shared_ptr<ldpc_encoder_factory>
-srsran::create_ldpc_encoder_metric_decorator_factory(std::shared_ptr<ldpc_encoder_factory> base_factory,
-                                                     ldpc_encoder_metric_notifier&         notifier)
+ocudu::create_ldpc_encoder_metric_decorator_factory(std::shared_ptr<ldpc_encoder_factory> base_factory,
+                                                    ldpc_encoder_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<ldpc_encoder,
                                                    ldpc_encoder_factory,
@@ -226,15 +226,15 @@ srsran::create_ldpc_encoder_metric_decorator_factory(std::shared_ptr<ldpc_encode
 }
 
 std::shared_ptr<ldpc_decoder_factory>
-srsran::create_ldpc_decoder_metric_decorator_factory(std::shared_ptr<ldpc_decoder_factory> base_factory,
-                                                     ldpc_decoder_metric_notifier&         notifier)
+ocudu::create_ldpc_decoder_metric_decorator_factory(std::shared_ptr<ldpc_decoder_factory> base_factory,
+                                                    ldpc_decoder_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_ldpc_decoder_factory>(std::move(base_factory), notifier);
 }
 
 std::shared_ptr<ldpc_rate_matcher_factory>
-srsran::create_ldpc_rate_matcher_metric_decorator_factory(std::shared_ptr<ldpc_rate_matcher_factory> base_factory,
-                                                          ldpc_rate_matcher_metric_notifier&         notifier)
+ocudu::create_ldpc_rate_matcher_metric_decorator_factory(std::shared_ptr<ldpc_rate_matcher_factory> base_factory,
+                                                         ldpc_rate_matcher_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<ldpc_rate_matcher,
                                                    ldpc_rate_matcher_factory,
@@ -244,8 +244,8 @@ srsran::create_ldpc_rate_matcher_metric_decorator_factory(std::shared_ptr<ldpc_r
 }
 
 std::shared_ptr<ldpc_rate_dematcher_factory>
-srsran::create_ldpc_rate_dematcher_metric_decorator_factory(std::shared_ptr<ldpc_rate_dematcher_factory> base_factory,
-                                                            ldpc_rate_dematcher_metric_notifier&         notifier)
+ocudu::create_ldpc_rate_dematcher_metric_decorator_factory(std::shared_ptr<ldpc_rate_dematcher_factory> base_factory,
+                                                           ldpc_rate_dematcher_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<ldpc_rate_dematcher,
                                                    ldpc_rate_dematcher_factory,
@@ -254,7 +254,7 @@ srsran::create_ldpc_rate_dematcher_metric_decorator_factory(std::shared_ptr<ldpc
                                                                                                notifier);
 }
 
-std::shared_ptr<dmrs_pusch_estimator_factory> srsran::create_pusch_channel_estimator_metric_decorator_factory(
+std::shared_ptr<dmrs_pusch_estimator_factory> ocudu::create_pusch_channel_estimator_metric_decorator_factory(
     std::shared_ptr<dmrs_pusch_estimator_factory> base_factory,
     pusch_channel_estimator_metric_notifier&      notifier)
 {
@@ -266,8 +266,8 @@ std::shared_ptr<dmrs_pusch_estimator_factory> srsran::create_pusch_channel_estim
 }
 
 std::shared_ptr<pusch_processor_factory>
-srsran::create_pusch_processor_metric_decorator_factory(std::shared_ptr<pusch_processor_factory> base_factory,
-                                                        pusch_processor_metric_notifier&         notifier)
+ocudu::create_pusch_processor_metric_decorator_factory(std::shared_ptr<pusch_processor_factory> base_factory,
+                                                       pusch_processor_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory_with_validator<pusch_processor,
                                                                   pusch_pdu_validator,
@@ -277,7 +277,7 @@ srsran::create_pusch_processor_metric_decorator_factory(std::shared_ptr<pusch_pr
       std::move(base_factory), notifier);
 }
 
-std::shared_ptr<pseudo_random_generator_factory> srsran::create_pseudo_random_generator_metric_decorator_factory(
+std::shared_ptr<pseudo_random_generator_factory> ocudu::create_pseudo_random_generator_metric_decorator_factory(
     std::shared_ptr<pseudo_random_generator_factory>  base_factory,
     pseudo_random_sequence_generator_metric_notifier& notifier)
 {
@@ -289,8 +289,8 @@ std::shared_ptr<pseudo_random_generator_factory> srsran::create_pseudo_random_ge
 }
 
 std::shared_ptr<channel_precoder_factory>
-srsran::create_channel_precoder_metric_decorator_factory(std::shared_ptr<channel_precoder_factory> base_factory,
-                                                         channel_precoder_metric_notifier&         notifier)
+ocudu::create_channel_precoder_metric_decorator_factory(std::shared_ptr<channel_precoder_factory> base_factory,
+                                                        channel_precoder_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<channel_precoder,
                                                    channel_precoder_factory,
@@ -300,8 +300,8 @@ srsran::create_channel_precoder_metric_decorator_factory(std::shared_ptr<channel
 }
 
 std::shared_ptr<channel_equalizer_factory>
-srsran::create_channel_equalizer_metric_decorator_factory(std::shared_ptr<channel_equalizer_factory> base_factory,
-                                                          channel_equalizer_metric_notifier&         notifier)
+ocudu::create_channel_equalizer_metric_decorator_factory(std::shared_ptr<channel_equalizer_factory> base_factory,
+                                                         channel_equalizer_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<channel_equalizer,
                                                    channel_equalizer_factory,
@@ -311,8 +311,8 @@ srsran::create_channel_equalizer_metric_decorator_factory(std::shared_ptr<channe
 }
 
 std::shared_ptr<modulation_mapper_factory>
-srsran::create_modulation_mapper_metric_decorator_factory(std::shared_ptr<modulation_mapper_factory> base_factory,
-                                                          common_channel_modulation_metric_notifier& notifier)
+ocudu::create_modulation_mapper_metric_decorator_factory(std::shared_ptr<modulation_mapper_factory> base_factory,
+                                                         common_channel_modulation_metric_notifier& notifier)
 {
   return std::make_shared<metric_decorator_factory<modulation_mapper,
                                                    modulation_mapper_factory,
@@ -322,8 +322,8 @@ srsran::create_modulation_mapper_metric_decorator_factory(std::shared_ptr<modula
 }
 
 std::shared_ptr<demodulation_mapper_factory>
-srsran::create_demodulation_mapper_metric_decorator_factory(std::shared_ptr<demodulation_mapper_factory> base_factory,
-                                                            common_channel_modulation_metric_notifier&   notifier)
+ocudu::create_demodulation_mapper_metric_decorator_factory(std::shared_ptr<demodulation_mapper_factory> base_factory,
+                                                           common_channel_modulation_metric_notifier&   notifier)
 {
   return std::make_shared<metric_decorator_factory<demodulation_mapper,
                                                    demodulation_mapper_factory,
@@ -333,8 +333,8 @@ srsran::create_demodulation_mapper_metric_decorator_factory(std::shared_ptr<demo
 }
 
 std::shared_ptr<evm_calculator_factory>
-srsran::create_evm_calculator_metric_decorator_factory(std::shared_ptr<evm_calculator_factory>    base_factory,
-                                                       common_channel_modulation_metric_notifier& notifier)
+ocudu::create_evm_calculator_metric_decorator_factory(std::shared_ptr<evm_calculator_factory>    base_factory,
+                                                      common_channel_modulation_metric_notifier& notifier)
 {
   return std::make_shared<metric_decorator_factory<evm_calculator,
                                                    evm_calculator_factory,
@@ -344,8 +344,8 @@ srsran::create_evm_calculator_metric_decorator_factory(std::shared_ptr<evm_calcu
 }
 
 std::shared_ptr<ulsch_demultiplex_factory>
-srsran::create_ulsch_demultiplex_metric_decorator_factory(std::shared_ptr<ulsch_demultiplex_factory> base_factory,
-                                                          ulsch_demultiplex_metric_notifier&         notifier)
+ocudu::create_ulsch_demultiplex_metric_decorator_factory(std::shared_ptr<ulsch_demultiplex_factory> base_factory,
+                                                         ulsch_demultiplex_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<ulsch_demultiplex,
                                                    ulsch_demultiplex_factory,
@@ -355,8 +355,8 @@ srsran::create_ulsch_demultiplex_metric_decorator_factory(std::shared_ptr<ulsch_
 }
 
 std::shared_ptr<pusch_demodulator_factory>
-srsran::create_pusch_demodulator_metric_decorator_factory(std::shared_ptr<pusch_demodulator_factory> base_factory,
-                                                          pusch_demodulator_metric_notifier&         notifier)
+ocudu::create_pusch_demodulator_metric_decorator_factory(std::shared_ptr<pusch_demodulator_factory> base_factory,
+                                                         pusch_demodulator_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<pusch_demodulator,
                                                    pusch_demodulator_factory,
@@ -365,7 +365,7 @@ srsran::create_pusch_demodulator_metric_decorator_factory(std::shared_ptr<pusch_
                                                                                              notifier);
 }
 
-std::shared_ptr<time_alignment_estimator_factory> srsran::create_time_alignment_estimator_metric_decorator_factory(
+std::shared_ptr<time_alignment_estimator_factory> ocudu::create_time_alignment_estimator_metric_decorator_factory(
     std::shared_ptr<time_alignment_estimator_factory> base_factory,
     time_alignment_estimator_metric_notifier&         notifier)
 {
@@ -376,7 +376,7 @@ std::shared_ptr<time_alignment_estimator_factory> srsran::create_time_alignment_
       std::move(base_factory), notifier);
 }
 
-std::shared_ptr<port_channel_estimator_factory> srsran::create_port_channel_estimator_metric_decorator_factory(
+std::shared_ptr<port_channel_estimator_factory> ocudu::create_port_channel_estimator_metric_decorator_factory(
     std::shared_ptr<port_channel_estimator_factory> base_factory,
     port_channel_estimator_metric_notifier&         notifier)
 {
@@ -384,8 +384,8 @@ std::shared_ptr<port_channel_estimator_factory> srsran::create_port_channel_esti
 }
 
 std::shared_ptr<transform_precoder_factory>
-srsran::create_transform_precoder_metric_decorator_factory(std::shared_ptr<transform_precoder_factory> base_factory,
-                                                           transform_precoder_metric_notifier&         notifier)
+ocudu::create_transform_precoder_metric_decorator_factory(std::shared_ptr<transform_precoder_factory> base_factory,
+                                                          transform_precoder_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<transform_precoder,
                                                    transform_precoder_factory,
@@ -395,8 +395,8 @@ srsran::create_transform_precoder_metric_decorator_factory(std::shared_ptr<trans
 }
 
 std::shared_ptr<pdsch_processor_factory>
-srsran::create_pdsch_processor_metric_decorator_factory(std::shared_ptr<pdsch_processor_factory> base_factory,
-                                                        pdsch_processor_metric_notifier&         notifier)
+ocudu::create_pdsch_processor_metric_decorator_factory(std::shared_ptr<pdsch_processor_factory> base_factory,
+                                                       pdsch_processor_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory_with_validator<pdsch_processor,
                                                                   pdsch_pdu_validator,
@@ -407,8 +407,8 @@ srsran::create_pdsch_processor_metric_decorator_factory(std::shared_ptr<pdsch_pr
 }
 
 std::shared_ptr<dmrs_pdsch_processor_factory>
-srsran::create_dmrs_pdsch_generator_metric_decorator_factory(std::shared_ptr<dmrs_pdsch_processor_factory> base_factory,
-                                                             pdsch_dmrs_generator_metric_notifier&         notifier)
+ocudu::create_dmrs_pdsch_generator_metric_decorator_factory(std::shared_ptr<dmrs_pdsch_processor_factory> base_factory,
+                                                            pdsch_dmrs_generator_metric_notifier&         notifier)
 {
   return std::make_shared<metric_decorator_factory<dmrs_pdsch_processor,
                                                    dmrs_pdsch_processor_factory,
@@ -417,7 +417,7 @@ srsran::create_dmrs_pdsch_generator_metric_decorator_factory(std::shared_ptr<dmr
                                                                                                 notifier);
 }
 
-std::shared_ptr<downlink_processor_factory> srsran::create_downlink_processor_generator_metric_decorator_factory(
+std::shared_ptr<downlink_processor_factory> ocudu::create_downlink_processor_generator_metric_decorator_factory(
     std::shared_ptr<downlink_processor_factory> base_factory,
     downlink_processor_metric_notifier&         notifier)
 {

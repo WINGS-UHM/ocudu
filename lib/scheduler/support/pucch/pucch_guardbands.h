@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../../config/cell_configuration.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
 
-namespace srsran {
+namespace ocudu {
 
 crb_bitmap compute_pucch_crbs(const cell_configuration& cell_cfg);
 
-} // namespace srsran
+} // namespace ocudu

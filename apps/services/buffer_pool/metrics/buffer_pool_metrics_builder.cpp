@@ -14,7 +14,7 @@
 #include "apps/services/buffer_pool/metrics/buffer_pool_metrics_consumer.h"
 #include "apps/services/buffer_pool/metrics/buffer_pool_metrics_producer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 metrics_config app_services::build_buffer_pool_metrics_config(metrics_notifier&                  notifier,

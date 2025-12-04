@@ -11,19 +11,19 @@
 #pragma once
 
 #include "f1ap_ue_context.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/f1ap/du/f1c_bearer.h"
-#include "srsran/f1ap/du/f1c_rx_sdu_notifier.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/f1ap/du/f1c_bearer.h"
+#include "ocudu/f1ap/du/f1c_rx_sdu_notifier.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 
-namespace srs_du {
+namespace odu {
 
 class f1ap_event_manager;
 class f1ap_du_configurator;
@@ -73,5 +73,5 @@ private:
   slotted_array<std::unique_ptr<f1c_bearer>, MAX_NOF_SRBS> f1c_bearers;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

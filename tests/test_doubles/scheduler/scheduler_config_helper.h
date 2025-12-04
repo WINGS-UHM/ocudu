@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/scheduler/config/cell_config_builder_params.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 namespace sched_config_helper {
 
 /// Create a default cell configuration request.
@@ -36,4 +36,4 @@ sched_ue_creation_request_message
 create_empty_spcell_cfg_sched_ue_creation_request(const cell_config_builder_params& params = {});
 
 } // namespace sched_config_helper
-} // namespace srsran
+} // namespace ocudu

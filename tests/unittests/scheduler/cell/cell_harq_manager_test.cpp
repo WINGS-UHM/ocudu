@@ -9,11 +9,11 @@
  */
 
 #include "lib/scheduler/cell/cell_harq_manager.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -35,7 +35,7 @@ dl_msg_alloc make_dummy_ue_pdsch_info()
   pdsch.rnti               = to_rnti(0x4601);
   pdsch.harq_id            = to_harq_id(0);
   pdsch.codewords.resize(1);
-  pdsch.codewords[0].mcs_table     = srsran::pdsch_mcs_table::qam64;
+  pdsch.codewords[0].mcs_table     = ocudu::pdsch_mcs_table::qam64;
   pdsch.codewords[0].mcs_index     = 10;
   pdsch.codewords[0].tb_size_bytes = 10000;
   pdsch.rbs                        = vrb_interval{5, 10};
@@ -112,17 +112,17 @@ protected:
                dl_harq_mode_b,
                ul_harq_mode_b)
   {
-    logger.set_level(srslog::basic_levels::warning);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::warning);
+    ocudulog::init();
 
-    srslog::fetch_basic_logger("SCHED").set_context(current_slot.sfn(), current_slot.slot_index());
+    ocudulog::fetch_basic_logger("SCHED").set_context(current_slot.sfn(), current_slot.slot_index());
     cell_harqs.slot_indication(current_slot);
   }
 
   void run_slot()
   {
     ++current_slot;
-    srslog::fetch_basic_logger("SCHED").set_context(current_slot.sfn(), current_slot.slot_index());
+    ocudulog::fetch_basic_logger("SCHED").set_context(current_slot.sfn(), current_slot.slot_index());
     cell_harqs.slot_indication(current_slot);
   }
 
@@ -130,7 +130,7 @@ protected:
   const unsigned             max_harqs_per_ue      = 16;
   const unsigned             max_harq_retx_timeout = 100;
   dummy_harq_timeout_handler timeout_handler;
-  srslog::basic_logger&      logger = srslog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("SCHED");
 
   cell_harq_manager cell_harqs;
 
@@ -552,7 +552,7 @@ TEST_F(dl_harq_process_multi_pucch_test,
       ASSERT_TRUE(h_dl.empty());
       ASSERT_EQ(timeout_handler.last_ue_index, to_du_ue_index(0));
       ASSERT_TRUE(timeout_handler.last_dir_is_dl);
-      if (ack_val == srsran::mac_harq_ack_report_status::ack) {
+      if (ack_val == ocudu::mac_harq_ack_report_status::ack) {
         ASSERT_TRUE(timeout_handler.last_was_ack);
       } else {
         // In case of NACK/DTX, the HARQ should report the timeout.

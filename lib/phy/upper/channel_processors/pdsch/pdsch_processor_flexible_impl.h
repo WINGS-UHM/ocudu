@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_block_processor.h"
-#include "srsran/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_block_processor.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements a flexible PDSCH processor with parameterizable concurrent codeblock processing and memory
 /// footprint.
@@ -51,7 +51,7 @@ public:
                                 std::shared_ptr<pdsch_ptrs_generator_pool>  ptrs_generator_pool_,
                                 task_executor&                              executor_,
                                 unsigned                                    max_nof_codeblocks_per_batch_) :
-    logger(srslog::fetch_basic_logger("PHY")),
+    logger(ocudulog::fetch_basic_logger("PHY")),
     segmenter(std::move(segmenter_)),
     mapper(std::move(mapper_)),
     block_processor_pool(std::move(block_processor_pool_)),
@@ -60,11 +60,11 @@ public:
     executor(executor_),
     max_nof_codeblocks_per_batch(max_nof_codeblocks_per_batch_)
   {
-    srsran_assert(segmenter, "Invalid LDPC segmenter pointer.");
-    srsran_assert(mapper, "Invalid resource grid mapper pointer.");
-    srsran_assert(block_processor_pool, "Invalid CB processor pool pointer.");
-    srsran_assert(dmrs_generator_pool, "Invalid DM-RS pointer.");
-    srsran_assert(ptrs_generator_pool, "Invalid PT-RS pointer.");
+    ocudu_assert(segmenter, "Invalid LDPC segmenter pointer.");
+    ocudu_assert(mapper, "Invalid resource grid mapper pointer.");
+    ocudu_assert(block_processor_pool, "Invalid CB processor pool pointer.");
+    ocudu_assert(dmrs_generator_pool, "Invalid DM-RS pointer.");
+    ocudu_assert(ptrs_generator_pool, "Invalid PT-RS pointer.");
   }
 
   // See interface for documentation.
@@ -86,7 +86,7 @@ private:
   /// Creates code block processing batches and starts the asynchronous processing.
   void fork_cb_batches();
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Pointer to an LDPC segmenter.
   std::unique_ptr<ldpc_segmenter_tx> segmenter;
   /// Resource grid mapper.
@@ -127,4 +127,4 @@ private:
   std::atomic<unsigned> async_task_counter;
 };
 
-} // namespace srsran
+} // namespace ocudu

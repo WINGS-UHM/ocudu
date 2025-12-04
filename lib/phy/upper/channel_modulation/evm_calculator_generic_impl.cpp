@@ -9,11 +9,11 @@
  */
 
 #include "evm_calculator_generic_impl.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/subtract.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/subtract.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 float evm_calculator_generic_impl::calculate(span<const log_likelihood_ratio> soft_bits,
                                              span<const cf_t>                 symbols,
@@ -23,12 +23,12 @@ float evm_calculator_generic_impl::calculate(span<const log_likelihood_ratio> so
   unsigned bits_per_symbol = get_bits_per_symbol(modulation);
 
   // Verify that soft bits and symbols dimensions are consistent.
-  srsran_assert(soft_bits.size() == symbols.size() * bits_per_symbol,
-                "The number of soft bits (i.e., {}) is not consistent with the number of symbols (i.e., {}) and "
-                "modulation (i.e., {}).",
-                soft_bits.size(),
-                symbols.size(),
-                to_string(modulation));
+  ocudu_assert(soft_bits.size() == symbols.size() * bits_per_symbol,
+               "The number of soft bits (i.e., {}) is not consistent with the number of symbols (i.e., {}) and "
+               "modulation (i.e., {}).",
+               soft_bits.size(),
+               symbols.size(),
+               to_string(modulation));
 
   unsigned nof_symbols = symbols.size();
   float    avg_power   = 0.0;
@@ -47,10 +47,10 @@ float evm_calculator_generic_impl::calculate(span<const log_likelihood_ratio> so
     modulator->modulate(modulated, hard_bits, modulation);
 
     // Calculate EVM.
-    srsvec::subtract(modulated, symbols.first(block_nof_symbols), modulated);
+    ocuduvec::subtract(modulated, symbols.first(block_nof_symbols), modulated);
 
     // Accumulate power.
-    avg_power += std::real(srsvec::dot_prod(modulated, modulated));
+    avg_power += std::real(ocuduvec::dot_prod(modulated, modulated));
 
     // Pop bits and symbols.
     symbols   = symbols.last(symbols.size() - block_nof_symbols);

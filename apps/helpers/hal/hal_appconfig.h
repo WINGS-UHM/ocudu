@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// HAL configuration of the application.
 struct hal_appconfig {
@@ -20,4 +20,4 @@ struct hal_appconfig {
   std::string eal_args;
 };
 
-} // namespace srsran
+} // namespace ocudu

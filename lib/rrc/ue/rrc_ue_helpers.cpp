@@ -9,23 +9,23 @@
  */
 
 #include "rrc_ue_helpers.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 template <class T>
-void srsran::srs_cu_cp::log_rrc_message(rrc_ue_logger&    logger,
-                                        const direction_t dir,
-                                        byte_buffer_view  pdu,
-                                        const T&          msg,
-                                        srb_id_t          srb_id,
-                                        const char*       msg_type)
+void ocudu::ocucp::log_rrc_message(rrc_ue_logger&    logger,
+                                   const direction_t dir,
+                                   byte_buffer_view  pdu,
+                                   const T&          msg,
+                                   srb_id_t          srb_id,
+                                   const char*       msg_type)
 {
   if (logger.get_basic_logger().debug.enabled()) {
     asn1::json_writer js;
@@ -45,30 +45,30 @@ void srsran::srs_cu_cp::log_rrc_message(rrc_ue_logger&    logger,
   }
 }
 
-template void srsran::srs_cu_cp::log_rrc_message<asn1::rrc_nr::ul_ccch_msg_s>(rrc_ue_logger&                     logger,
-                                                                              const direction_t                  dir,
-                                                                              byte_buffer_view                   pdu,
-                                                                              const asn1::rrc_nr::ul_ccch_msg_s& msg,
-                                                                              srb_id_t                           srb_id,
-                                                                              const char* msg_type);
+template void ocudu::ocucp::log_rrc_message<asn1::rrc_nr::ul_ccch_msg_s>(rrc_ue_logger&                     logger,
+                                                                         const direction_t                  dir,
+                                                                         byte_buffer_view                   pdu,
+                                                                         const asn1::rrc_nr::ul_ccch_msg_s& msg,
+                                                                         srb_id_t                           srb_id,
+                                                                         const char*                        msg_type);
 
-template void srsran::srs_cu_cp::log_rrc_message<asn1::rrc_nr::ul_dcch_msg_s>(rrc_ue_logger&                     logger,
-                                                                              const direction_t                  dir,
-                                                                              byte_buffer_view                   pdu,
-                                                                              const asn1::rrc_nr::ul_dcch_msg_s& msg,
-                                                                              srb_id_t                           srb_id,
-                                                                              const char* msg_type);
+template void ocudu::ocucp::log_rrc_message<asn1::rrc_nr::ul_dcch_msg_s>(rrc_ue_logger&                     logger,
+                                                                         const direction_t                  dir,
+                                                                         byte_buffer_view                   pdu,
+                                                                         const asn1::rrc_nr::ul_dcch_msg_s& msg,
+                                                                         srb_id_t                           srb_id,
+                                                                         const char*                        msg_type);
 
-template void srsran::srs_cu_cp::log_rrc_message<asn1::rrc_nr::dl_ccch_msg_s>(rrc_ue_logger&                     logger,
-                                                                              const direction_t                  dir,
-                                                                              byte_buffer_view                   pdu,
-                                                                              const asn1::rrc_nr::dl_ccch_msg_s& msg,
-                                                                              srb_id_t                           srb_id,
-                                                                              const char* msg_type);
+template void ocudu::ocucp::log_rrc_message<asn1::rrc_nr::dl_ccch_msg_s>(rrc_ue_logger&                     logger,
+                                                                         const direction_t                  dir,
+                                                                         byte_buffer_view                   pdu,
+                                                                         const asn1::rrc_nr::dl_ccch_msg_s& msg,
+                                                                         srb_id_t                           srb_id,
+                                                                         const char*                        msg_type);
 
-template void srsran::srs_cu_cp::log_rrc_message<asn1::rrc_nr::dl_dcch_msg_s>(rrc_ue_logger&                     logger,
-                                                                              const direction_t                  dir,
-                                                                              byte_buffer_view                   pdu,
-                                                                              const asn1::rrc_nr::dl_dcch_msg_s& msg,
-                                                                              srb_id_t                           srb_id,
-                                                                              const char* msg_type);
+template void ocudu::ocucp::log_rrc_message<asn1::rrc_nr::dl_dcch_msg_s>(rrc_ue_logger&                     logger,
+                                                                         const direction_t                  dir,
+                                                                         byte_buffer_view                   pdu,
+                                                                         const asn1::rrc_nr::dl_dcch_msg_s& msg,
+                                                                         srb_id_t                           srb_id,
+                                                                         const char*                        msg_type);

@@ -12,26 +12,26 @@
 #include "cu_up_manager_impl.h"
 #include "ngu_session_manager_impl.h"
 #include "routines/cu_up_setup_routine.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_factory.h"
-#include "srsran/gtpu/gtpu_demux_factory.h"
-#include "srsran/gtpu/gtpu_echo_factory.h"
-#include "srsran/gtpu/gtpu_teid_pool_factory.h"
-#include "srsran/support/executors/execute_until_success.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_factory.h"
+#include "ocudu/gtpu/gtpu_demux_factory.h"
+#include "ocudu/gtpu/gtpu_echo_factory.h"
+#include "ocudu/gtpu/gtpu_teid_pool_factory.h"
+#include "ocudu/support/executors/execute_until_success.h"
 #include <future>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 static void assert_cu_up_dependencies_valid(const cu_up_dependencies& dependencies)
 {
-  srsran_assert(dependencies.exec_mapper != nullptr, "Invalid CU-UP UE executor pool");
-  srsran_assert(dependencies.e1_conn_client != nullptr, "Invalid E1 connection client");
-  srsran_assert(dependencies.f1u_gateway != nullptr, "Invalid F1-U connector");
-  srsran_assert(not dependencies.ngu_gws.empty(), "Invalid N3 gateway list");
+  ocudu_assert(dependencies.exec_mapper != nullptr, "Invalid CU-UP UE executor pool");
+  ocudu_assert(dependencies.e1_conn_client != nullptr, "Invalid E1 connection client");
+  ocudu_assert(dependencies.f1u_gateway != nullptr, "Invalid F1-U connector");
+  ocudu_assert(not dependencies.ngu_gws.empty(), "Invalid N3 gateway list");
   for (auto* gw : dependencies.ngu_gws) {
-    srsran_assert(gw != nullptr, "Invalid N3 gateway");
+    ocudu_assert(gw != nullptr, "Invalid N3 gateway");
   }
-  srsran_assert(dependencies.gtpu_pcap != nullptr, "Invalid GTP-U pcap");
+  ocudu_assert(dependencies.gtpu_pcap != nullptr, "Invalid GTP-U pcap");
 }
 
 static cu_up_manager_impl_config generate_cu_up_manager_impl_config(const cu_up_config& config)

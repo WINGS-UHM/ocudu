@@ -9,9 +9,9 @@
  */
 
 #include "message_bufferer_slot_gateway_impl.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 message_bufferer_slot_gateway_impl::message_bufferer_slot_gateway_impl(unsigned              sector_id_,
@@ -22,16 +22,16 @@ message_bufferer_slot_gateway_impl::message_bufferer_slot_gateway_impl(unsigned 
   l2_nof_slots_ahead(l2_nof_slots_ahead_),
   scs(scs_),
   gateway(gateway_),
-  logger(srslog::fetch_basic_logger("FAPI"))
+  logger(ocudulog::fetch_basic_logger("FAPI"))
 {
   // Pool size is 1 unit bigger than the number of slots the L2 is ahead of the L1, in case that an incoming message
   // arrives before the notification of a new slot.
   unsigned pool_size = l2_nof_slots_ahead + 1;
 
-  srsran_assert(pool_size <= MAX_NUM_BUFFERED_MESSAGES,
-                "The requested pool size '{}' is bigger than the supported '{}'",
-                pool_size,
-                MAX_NUM_BUFFERED_MESSAGES);
+  ocudu_assert(pool_size <= MAX_NUM_BUFFERED_MESSAGES,
+               "The requested pool size '{}' is bigger than the supported '{}'",
+               pool_size,
+               MAX_NUM_BUFFERED_MESSAGES);
 
   dl_tti_pool.resize(pool_size);
   ul_tti_pool.resize(pool_size);
@@ -81,12 +81,12 @@ void message_bufferer_slot_gateway_impl::handle_message(T&& msg, P pool, Functio
 /// Sends the message cached in the given pool for the given slot using the given function and clears the pool
 /// entry.
 template <typename T, typename Function>
-static void send_message(slot_point             slot,
-                         subcarrier_spacing     scs,
-                         unsigned               sector_id,
-                         srslog::basic_logger&  logger,
-                         span<std::optional<T>> pool,
-                         Function               func)
+static void send_message(slot_point              slot,
+                         subcarrier_spacing      scs,
+                         unsigned                sector_id,
+                         ocudulog::basic_logger& logger,
+                         span<std::optional<T>>  pool,
+                         Function                func)
 {
   std::optional<T>& pool_entry = pool[slot.system_slot() % pool.size()];
   if (!pool_entry) {

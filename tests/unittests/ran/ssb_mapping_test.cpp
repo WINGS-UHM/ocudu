@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void get_ssb_crbs()
 {
@@ -70,7 +70,7 @@ void get_ssb_crbs()
 
 int main()
 {
-  srslog::init();
+  ocudulog::init();
 
   get_ssb_crbs();
 

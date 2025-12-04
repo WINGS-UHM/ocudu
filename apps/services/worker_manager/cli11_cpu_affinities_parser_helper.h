@@ -12,10 +12,10 @@
 
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 struct os_sched_affinity_bitmask;
 
 void parse_affinity_mask(os_sched_affinity_bitmask& mask, const std::string& value, const std::string& property_name);
 
-} // namespace srsran
+} // namespace ocudu

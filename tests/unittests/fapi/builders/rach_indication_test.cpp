@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/fapi/message_builders.h"
+#include "ocudu/fapi/message_builders.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 TEST(rach_indication_builder, valid_basic_parameters_passes)

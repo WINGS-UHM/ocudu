@@ -11,11 +11,11 @@
 #pragma once
 
 #include "sctp_network_gateway_common_impl.h"
-#include "srsran/gateways/sctp_network_gateway.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/sctp_socket.h"
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/sctp_socket.h"
 
-namespace srsran {
+namespace ocudu {
 
 class sctp_network_gateway_impl final : public sctp_network_gateway_common_impl, public sctp_network_gateway
 {
@@ -71,4 +71,4 @@ private:
   unsigned stream_no = 0; /// the stream number to use for sending
 };
 
-} // namespace srsran
+} // namespace ocudu

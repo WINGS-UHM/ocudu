@@ -13,16 +13,16 @@
 #include "app_execution_metrics.h"
 #include "apps/helpers/metrics/json_generators/executors.h"
 #include "apps/services/metrics/metrics_consumer.h"
-#include "srsran/srslog/log_channel.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/ocudulog/log_channel.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Log consumer for the application executors metrics.
 class app_execution_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit app_execution_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit app_execution_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override
@@ -50,14 +50,14 @@ public:
   }
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// JSON consumer for the application executors metrics.
 class app_execution_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit app_execution_metrics_consumer_json(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit app_execution_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override
@@ -67,7 +67,7 @@ public:
   }
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,11 +11,11 @@
 #include "lib/gtpu/gtpu_pdu.h"
 #include "lib/gtpu/gtpu_tunnel_nru_rx_impl.h"
 #include "lib/gtpu/gtpu_tunnel_nru_tx_impl.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class gtpu_pdu_generator
 {
@@ -35,8 +35,7 @@ public:
     cfg.peer_teid                                         = teid;
     cfg.peer_addr                                         = "127.0.0.1";
 
-    tx =
-        std::make_unique<gtpu_tunnel_nru_tx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
+    tx = std::make_unique<gtpu_tunnel_nru_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
   }
 
   byte_buffer create_gtpu_pdu(byte_buffer buf, gtpu_teid_t teid, uint32_t nru_sn, std::optional<uint16_t> gtpu_sn)
@@ -54,7 +53,7 @@ public:
     // Put NR-U DL user data into NR RAN container
     nru_dl_user_data dl_user_data;
     dl_user_data.nru_sn = nru_sn;
-    nru_packing packer(srslog::fetch_basic_logger("GTP-U", false));
+    nru_packing packer(ocudulog::fetch_basic_logger("GTP-U", false));
     byte_buffer ext_buf;
     packer.pack(ext_buf, dl_user_data);
 
@@ -85,7 +84,7 @@ private:
   gtpu_tunnel_tx_upper_dummy               tx_upper_dummy;
   std::unique_ptr<gtpu_tunnel_nru_tx_impl> tx;
   byte_buffer                              gen_pdu;
-  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
 
 public:
 };
@@ -129,7 +128,7 @@ class gtpu_tunnel_nru_rx_test : public ::testing::Test
 {
 public:
   gtpu_tunnel_nru_rx_test() :
-    logger(srslog::fetch_basic_logger("TEST", false)), gtpu_logger(srslog::fetch_basic_logger("GTPU", false))
+    logger(ocudulog::fetch_basic_logger("TEST", false)), gtpu_logger(ocudulog::fetch_basic_logger("GTPU", false))
   {
   }
 
@@ -137,11 +136,11 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init GTP-U logger
-    gtpu_logger.set_level(srslog::basic_levels::debug);
+    gtpu_logger.set_level(ocudulog::basic_levels::debug);
     gtpu_logger.set_hex_dump_max_size(100);
   }
 
@@ -149,7 +148,7 @@ protected:
   {
     // flush logger after each test
     rx_lower.clear();
-    srslog::flush();
+    ocudulog::flush();
   }
 
   /// \brief Helper to advance the timers
@@ -165,11 +164,11 @@ protected:
   gtpu_pdu_generator pdu_generator{gtpu_teid_t{0x1}};
 
   // Test logger
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // GTP-U logger
-  srslog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger    gtpu_rx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  ocudulog::basic_logger& gtpu_logger;
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
 
   // Timers
   manual_task_worker worker{64};
@@ -191,7 +190,7 @@ TEST_F(gtpu_tunnel_nru_rx_test, entity_creation)
   rx_cfg.node                                              = nru_node::cu_up;
   rx_cfg.local_teid                                        = gtpu_teid_t{0x1};
 
-  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower);
+  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower);
 
   ASSERT_NE(rx, nullptr);
 }
@@ -204,7 +203,7 @@ TEST_F(gtpu_tunnel_nru_rx_test, rx_no_sn)
   rx_cfg.node                                              = nru_node::du;
   rx_cfg.local_teid                                        = gtpu_teid_t{0x1};
 
-  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower);
+  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;

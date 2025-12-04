@@ -12,10 +12,10 @@
 
 #include "../f1ap_du_context.h"
 #include "f1ap_du_ue_manager.h"
-#include "srsran/f1ap/du/f1ap_du_ue_config.h"
+#include "ocudu/f1ap/du/f1ap_du_ue_config.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class f1ap_metrics_collector_impl;
 
@@ -30,5 +30,5 @@ f1ap_ue_creation_response create_f1ap_ue(const f1ap_ue_creation_request& req,
 /// \brief Update existing UE configuration on request by DU management plane.
 f1ap_ue_configuration_response update_f1ap_ue_config(const f1ap_ue_configuration_request& req, f1ap_du_ue_manager& ues);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -12,13 +12,13 @@
 
 #include "fapi_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers the fapi loggers in the logger service.
 inline void register_fapi_loggers(const fapi_unit_config& log_cfg)
 {
-  auto& fapi_logger = srslog::fetch_basic_logger("FAPI", true);
+  auto& fapi_logger = ocudulog::fetch_basic_logger("FAPI", true);
   fapi_logger.set_level(log_cfg.fapi_level);
 }
 
-} // namespace srsran
+} // namespace ocudu

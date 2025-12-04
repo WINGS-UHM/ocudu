@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/bit_buffer.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/units.h"
+#include "ocudu/adt/bit_buffer.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/units.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Packs the given IQ samples into the given bit buffer object.
@@ -24,4 +24,4 @@ void pack_bytes(bit_buffer& buffer, span<const int16_t> compressed_iq, unsigned 
 int16_t unpack_bits(const bit_buffer_reader& buffer, unsigned offset, unsigned length);
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -10,18 +10,18 @@
 
 #include "radio_session_zmq_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 radio_session_zmq_impl::radio_session_zmq_impl(const radio_configuration::radio& config,
                                                task_executor&                    async_task_executor,
                                                radio_event_notifier&             notifier) :
-  logger(srslog::fetch_basic_logger("RF", false))
+  logger(ocudulog::fetch_basic_logger("RF", false))
 {
   // Make sure the number of streams are equal.
-  srsran_assert(config.tx_streams.size() == config.rx_streams.size(),
-                "The number of transmit streams (i.e., {}) must be equal to the number of receive streams (i.e., {}).",
-                config.tx_streams.size(),
-                config.rx_streams.size());
+  ocudu_assert(config.tx_streams.size() == config.rx_streams.size(),
+               "The number of transmit streams (i.e., {}) must be equal to the number of receive streams (i.e., {}).",
+               config.tx_streams.size(),
+               config.rx_streams.size());
 
   // Make ZMQ context.
   zmq_context = ::zmq_ctx_new();
@@ -36,9 +36,9 @@ radio_session_zmq_impl::radio_session_zmq_impl(const radio_configuration::radio&
   bool allow_log_level_debug = (config.args.find("verbose") != std::string::npos);
 
   // ZMQ logging in debug is extremely verbose. The following lines avoid debug level unless set to paranoid.
-  srslog::basic_levels log_level = config.log_level;
-  if (!allow_log_level_debug && (log_level >= srslog::basic_levels::debug)) {
-    log_level = srslog::basic_levels::info;
+  ocudulog::basic_levels log_level = config.log_level;
+  if (!allow_log_level_debug && (log_level >= ocudulog::basic_levels::debug)) {
+    log_level = ocudulog::basic_levels::info;
   }
 
   // Iterate for each transmission and reception stream.

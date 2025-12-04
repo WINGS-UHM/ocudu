@@ -11,11 +11,11 @@
 #pragma once
 
 #include "rlc_bearer_logger.h"
-#include "srsran/adt/spsc_queue.h"
-#include "srsran/rlc/rlc_tx.h"
+#include "ocudu/adt/spsc_queue.h"
+#include "ocudu/rlc/rlc_tx.h"
 #include "fmt/std.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Lockfree RLC SDU queue
 ///
@@ -375,11 +375,11 @@ private:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::rlc_sdu_queue_lockfree::state_t> {
+struct formatter<ocudu::rlc_sdu_queue_lockfree::state_t> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -387,7 +387,7 @@ struct formatter<srsran::rlc_sdu_queue_lockfree::state_t> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_sdu_queue_lockfree::state_t& state, FormatContext& ctx) const
+  auto format(const ocudu::rlc_sdu_queue_lockfree::state_t& state, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "queued_sdus={} queued_bytes={}", state.n_sdus, state.n_bytes);
   }

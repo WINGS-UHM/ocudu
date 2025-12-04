@@ -10,24 +10,24 @@
 
 #include "srs_estimator_generic_impl.h"
 #include "srs_validator_generic_impl.h"
-#include "srsran/adt/complex.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_result.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/srs/srs_constants.h"
-#include "srsran/ran/srs/srs_information.h"
-#include "srsran/srsvec/add.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/mean.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/subtract.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/ocuduvec/add.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/mean.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/subtract.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/srs/srs_constants.h"
+#include "ocudu/ran/srs/srs_information.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills \c msg with the error message.
 ///
@@ -61,7 +61,7 @@ void srs_estimator_generic_impl::compensate_phase_shift(span<cf_t> mean_lse,
   cexp_table.generate(cexp, phase_indices);
 
   // Compensate phase shift.
-  srsvec::prod(mean_lse, cexp, mean_lse);
+  ocuduvec::prod(mean_lse, cexp, mean_lse);
 }
 
 srs_estimator_result srs_estimator_generic_impl::estimate(const resource_grid_reader&        grid,
@@ -69,18 +69,18 @@ srs_estimator_result srs_estimator_generic_impl::estimate(const resource_grid_re
 {
   // Makes sure the PDU is valid.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, srs_validator_generic_impl(max_nof_prb).is_valid(config)), "{}", msg);
+  ocudu_assert(handle_validation(msg, srs_validator_generic_impl(max_nof_prb).is_valid(config)), "{}", msg);
 
   unsigned nof_rx_ports         = config.ports.size();
   auto     nof_antenna_ports    = static_cast<unsigned>(config.resource.nof_antenna_ports);
   auto     nof_symbols          = static_cast<unsigned>(config.resource.nof_symbols);
   unsigned nof_symbols_per_slot = get_nsymb_per_slot(cyclic_prefix::NORMAL);
-  srsran_assert(config.resource.start_symbol.value() + nof_symbols <= nof_symbols_per_slot,
-                "The start symbol index (i.e., {}) plus the number of symbols (i.e., {}) exceeds the number of symbols "
-                "per slot (i.e., {})",
-                config.resource.start_symbol,
-                nof_symbols,
-                nof_symbols_per_slot);
+  ocudu_assert(config.resource.start_symbol.value() + nof_symbols <= nof_symbols_per_slot,
+               "The start symbol index (i.e., {}) plus the number of symbols (i.e., {}) exceeds the number of symbols "
+               "per slot (i.e., {})",
+               config.resource.start_symbol,
+               nof_symbols,
+               nof_symbols_per_slot);
 
   // Extract subcarrier spacing.
   subcarrier_spacing scs = to_subcarrier_spacing(config.slot.numerology());
@@ -115,7 +115,7 @@ srs_estimator_result srs_estimator_generic_impl::estimate(const resource_grid_re
   // Auxiliary buffer for noise computation.
   static_tensor<3, cf_t, 2 * max_seq_length * srs_constants::max_nof_rx_ports> temp_noise(
       {sequence_length, 2, nof_rx_ports});
-  srsvec::zero(temp_noise.get_data());
+  ocuduvec::zero(temp_noise.get_data());
 
   srs_information info_port0         = get_srs_information(config.resource, /*antenna_port*/ 0);
   bool            interleaved_pilots = (nof_antenna_ports == 4) && (info_port0.n_cs >= info_port0.n_cs_max / 2);
@@ -155,24 +155,24 @@ srs_estimator_result srs_estimator_generic_impl::estimate(const resource_grid_re
         // Since the same SRS sequence is sent over all symbols, it makes sense to average out the noise. When pilots
         // are interleaved, we need to keep track of two different sets of REs.
         if ((i_antenna_port == 0) || (interleaved_pilots && (i_antenna_port == 1))) {
-          srsvec::add(noise_help, rx_sequence, noise_help);
-          epre += srsvec::average_power(rx_sequence);
+          ocuduvec::add(noise_help, rx_sequence, noise_help);
+          epre += ocuduvec::average_power(rx_sequence);
         }
 
         // Avoid accumulation for the first symbol containing SRS.
         if (i_symbol == config.resource.start_symbol.value()) {
-          srsvec::copy(mean_lse, rx_sequence);
+          ocuduvec::copy(mean_lse, rx_sequence);
         } else {
-          srsvec::add(mean_lse, rx_sequence, mean_lse);
+          ocuduvec::add(mean_lse, rx_sequence, mean_lse);
         }
       }
 
       // Calculate LSE.
-      srsvec::prod_conj(mean_lse, mean_lse, sequence);
+      ocuduvec::prod_conj(mean_lse, mean_lse, sequence);
 
       // Scale accumulated LSE.
       if (nof_symbols > 1) {
-        srsvec::sc_prod(mean_lse, mean_lse, 1.0 / static_cast<float>(nof_symbols));
+        ocuduvec::sc_prod(mean_lse, mean_lse, 1.0 / static_cast<float>(nof_symbols));
       }
 
       port_lse.set_slice(i_rx_port_index, mean_lse);
@@ -217,7 +217,7 @@ srs_estimator_result srs_estimator_generic_impl::estimate(const resource_grid_re
       compensate_phase_shift(mean_lse, phase_shift_subcarrier, phase_shift_offset);
 
       // Calculate channel wideband coefficient.
-      cf_t coefficient = srsvec::mean(mean_lse);
+      cf_t coefficient = ocuduvec::mean(mean_lse);
       result.channel_matrix.set_coefficient(coefficient, i_rx_port, i_antenna_port);
       rsrp += std::norm(coefficient);
 
@@ -233,16 +233,16 @@ srs_estimator_result srs_estimator_generic_impl::estimate(const resource_grid_re
       // noise_help. Recall that the latter contains the contribution of all symbols, so the reconstructed symbol must
       // also be counted nof_symbols times.
       static_vector<cf_t, max_seq_length> recovered_signal(noise_help.size());
-      srsvec::sc_prod(
+      ocuduvec::sc_prod(
           recovered_signal, all_sequences.get_view({i_antenna_port}), static_cast<float>(nof_symbols) * coefficient);
-      srsvec::subtract(noise_help, noise_help, recovered_signal);
+      ocuduvec::subtract(noise_help, noise_help, recovered_signal);
     }
     span<cf_t> noise_help = temp_noise.get_view({0U, i_rx_port});
-    noise_var += srsvec::average_power(noise_help) * noise_help.size();
+    noise_var += ocuduvec::average_power(noise_help) * noise_help.size();
 
     if (interleaved_pilots) {
       noise_help = temp_noise.get_view({1U, i_rx_port});
-      noise_var += srsvec::average_power(noise_help) * noise_help.size();
+      noise_var += ocuduvec::average_power(noise_help) * noise_help.size();
     }
   }
   // At this point, noise_var contains the sum of all the squared errors between the received signal and the

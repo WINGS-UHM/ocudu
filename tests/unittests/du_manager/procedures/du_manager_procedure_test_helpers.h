@@ -13,11 +13,11 @@
 #include "../du_manager_test_helpers.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_manager_repository.h"
-#include "srsran/mac/mac_pdu_handler.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_ue_dummy : public du_ue, public mac_ue_radio_link_notifier, public rlc_tx_upper_layer_control_notifier
 {
@@ -118,5 +118,5 @@ public:
   ue_manager_dummy ue_mng;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

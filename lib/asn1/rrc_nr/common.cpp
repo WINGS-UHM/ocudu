@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/common.h"
+#include "ocudu/asn1/rrc_nr/common.h"
 using namespace asn1;
 using namespace asn1::rrc_nr;
 
@@ -30,7 +30,7 @@ uint16_t subcarrier_spacing_opts::to_number() const
 }
 
 // PLMN-Identity ::= SEQUENCE
-SRSASN_CODE plmn_id_s::pack(bit_ref& bref) const
+OCUDUASN_CODE plmn_id_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(mcc_present, 1));
 
@@ -39,9 +39,9 @@ SRSASN_CODE plmn_id_s::pack(bit_ref& bref) const
   }
   HANDLE_CODE(pack_dyn_seq_of(bref, mnc, 2, 3, integer_packer<uint8_t>(0, 9)));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE plmn_id_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE plmn_id_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(mcc_present, 1));
 
@@ -50,7 +50,7 @@ SRSASN_CODE plmn_id_s::unpack(cbit_ref& bref)
   }
   HANDLE_CODE(unpack_dyn_seq_of(mnc, bref, 2, 3, integer_packer<uint8_t>(0, 9)));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void plmn_id_s::to_json(json_writer& j) const
 {
@@ -345,7 +345,7 @@ void srs_periodicity_and_offset_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE srs_periodicity_and_offset_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_periodicity_and_offset_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -401,11 +401,11 @@ SRSASN_CODE srs_periodicity_and_offset_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "srs_periodicity_and_offset_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_periodicity_and_offset_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_periodicity_and_offset_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -463,9 +463,9 @@ SRSASN_CODE srs_periodicity_and_offset_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "srs_periodicity_and_offset_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srs_periodicity_and_offset_c::types_opts::to_string() const
@@ -496,7 +496,7 @@ uint16_t srs_periodicity_and_offset_c::types_opts::to_number() const
 }
 
 // SRS-SpatialRelationInfo ::= SEQUENCE
-SRSASN_CODE srs_spatial_relation_info_s::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_spatial_relation_info_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(serving_cell_id_present, 1));
 
@@ -505,9 +505,9 @@ SRSASN_CODE srs_spatial_relation_info_s::pack(bit_ref& bref) const
   }
   HANDLE_CODE(ref_sig.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_spatial_relation_info_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_spatial_relation_info_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(serving_cell_id_present, 1));
 
@@ -516,7 +516,7 @@ SRSASN_CODE srs_spatial_relation_info_s::unpack(cbit_ref& bref)
   }
   HANDLE_CODE(ref_sig.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void srs_spatial_relation_info_s::to_json(json_writer& j) const
 {
@@ -638,7 +638,7 @@ void srs_spatial_relation_info_s::ref_sig_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE srs_spatial_relation_info_s::ref_sig_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_spatial_relation_info_s::ref_sig_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -654,11 +654,11 @@ SRSASN_CODE srs_spatial_relation_info_s::ref_sig_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "srs_spatial_relation_info_s::ref_sig_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_spatial_relation_info_s::ref_sig_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_spatial_relation_info_s::ref_sig_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -676,9 +676,9 @@ SRSASN_CODE srs_spatial_relation_info_s::ref_sig_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "srs_spatial_relation_info_s::ref_sig_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srs_spatial_relation_info_s::ref_sig_c_::types_opts::to_string() const
@@ -688,19 +688,19 @@ const char* srs_spatial_relation_info_s::ref_sig_c_::types_opts::to_string() con
 }
 
 // ServingCellAndBWP-Id-r17 ::= SEQUENCE
-SRSASN_CODE serving_cell_and_bwp_id_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE serving_cell_and_bwp_id_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, servingcell_r17, (uint8_t)0u, (uint8_t)31u));
   HANDLE_CODE(pack_integer(bref, bwp_r17, (uint8_t)0u, (uint8_t)4u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE serving_cell_and_bwp_id_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE serving_cell_and_bwp_id_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(servingcell_r17, bref, (uint8_t)0u, (uint8_t)31u));
   HANDLE_CODE(unpack_integer(bwp_r17, bref, (uint8_t)0u, (uint8_t)4u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void serving_cell_and_bwp_id_r17_s::to_json(json_writer& j) const
 {
@@ -711,19 +711,19 @@ void serving_cell_and_bwp_id_r17_s::to_json(json_writer& j) const
 }
 
 // SpatialRelationInfo-PDC-r17 ::= SEQUENCE
-SRSASN_CODE spatial_relation_info_pdc_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE spatial_relation_info_pdc_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(ref_sig.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE spatial_relation_info_pdc_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE spatial_relation_info_pdc_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(ref_sig.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void spatial_relation_info_pdc_r17_s::to_json(json_writer& j) const
 {
@@ -858,7 +858,7 @@ void spatial_relation_info_pdc_r17_s::ref_sig_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE spatial_relation_info_pdc_r17_s::ref_sig_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE spatial_relation_info_pdc_r17_s::ref_sig_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -877,11 +877,11 @@ SRSASN_CODE spatial_relation_info_pdc_r17_s::ref_sig_c_::pack(bit_ref& bref) con
       break;
     default:
       log_invalid_choice_id(type_, "spatial_relation_info_pdc_r17_s::ref_sig_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE spatial_relation_info_pdc_r17_s::ref_sig_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE spatial_relation_info_pdc_r17_s::ref_sig_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -902,9 +902,9 @@ SRSASN_CODE spatial_relation_info_pdc_r17_s::ref_sig_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "spatial_relation_info_pdc_r17_s::ref_sig_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* spatial_relation_info_pdc_r17_s::ref_sig_c_::types_opts::to_string() const
@@ -914,7 +914,7 @@ const char* spatial_relation_info_pdc_r17_s::ref_sig_c_::types_opts::to_string()
 }
 
 // SRS-Resource ::= SEQUENCE
-SRSASN_CODE srs_res_s::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_res_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(ptrs_port_idx_present, 1));
@@ -1001,9 +1001,9 @@ SRSASN_CODE srs_res_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_res_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_res_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(ptrs_port_idx_present, 1));
@@ -1079,7 +1079,7 @@ SRSASN_CODE srs_res_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void srs_res_s::to_json(json_writer& j) const
 {
@@ -1291,7 +1291,7 @@ void srs_res_s::tx_comb_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE srs_res_s::tx_comb_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_res_s::tx_comb_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -1305,11 +1305,11 @@ SRSASN_CODE srs_res_s::tx_comb_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::tx_comb_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_res_s::tx_comb_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_res_s::tx_comb_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -1325,9 +1325,9 @@ SRSASN_CODE srs_res_s::tx_comb_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::tx_comb_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srs_res_s::tx_comb_c_::types_opts::to_string() const
@@ -1491,7 +1491,7 @@ void srs_res_s::res_type_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE srs_res_s::res_type_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_res_s::res_type_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -1508,11 +1508,11 @@ SRSASN_CODE srs_res_s::res_type_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::res_type_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_res_s::res_type_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_res_s::res_type_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -1531,9 +1531,9 @@ SRSASN_CODE srs_res_s::res_type_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::res_type_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srs_res_s::res_type_c_::types_opts::to_string() const
@@ -1657,7 +1657,7 @@ void srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::to_json(jso
   }
   j.end_obj();
 }
-SRSASN_CODE srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -1669,11 +1669,11 @@ SRSASN_CODE srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::pack
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -1687,9 +1687,9 @@ SRSASN_CODE srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::unpa
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srs_res_s::partial_freq_sr17_s_::start_rb_idx_f_scaling_r17_c_::types_opts::to_string() const
@@ -1772,7 +1772,7 @@ void srs_res_s::srs_tci_state_r17_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE srs_res_s::srs_tci_state_r17_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_res_s::srs_tci_state_r17_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -1784,11 +1784,11 @@ SRSASN_CODE srs_res_s::srs_tci_state_r17_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::srs_tci_state_r17_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_res_s::srs_tci_state_r17_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_res_s::srs_tci_state_r17_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -1802,9 +1802,9 @@ SRSASN_CODE srs_res_s::srs_tci_state_r17_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "srs_res_s::srs_tci_state_r17_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srs_res_s::srs_tci_state_r17_c_::types_opts::to_string() const
@@ -1814,19 +1814,19 @@ const char* srs_res_s::srs_tci_state_r17_c_::types_opts::to_string() const
 }
 
 // SRS-PosResourceAP-r16 ::= SEQUENCE
-SRSASN_CODE srs_pos_res_ap_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_pos_res_ap_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(max_num_ap_srs_pos_res_per_bwp_r16.pack(bref));
   HANDLE_CODE(max_num_ap_srs_pos_res_per_bwp_per_slot_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_pos_res_ap_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_pos_res_ap_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(max_num_ap_srs_pos_res_per_bwp_r16.unpack(bref));
   HANDLE_CODE(max_num_ap_srs_pos_res_per_bwp_per_slot_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void srs_pos_res_ap_r16_s::to_json(json_writer& j) const
 {
@@ -1860,19 +1860,19 @@ uint8_t srs_pos_res_ap_r16_s::max_num_ap_srs_pos_res_per_bwp_per_slot_r16_opts::
 }
 
 // SRS-PosResourceSP-r16 ::= SEQUENCE
-SRSASN_CODE srs_pos_res_sp_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_pos_res_sp_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(max_num_sp_srs_pos_res_per_bwp_r16.pack(bref));
   HANDLE_CODE(max_num_sp_srs_pos_res_per_bwp_per_slot_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_pos_res_sp_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_pos_res_sp_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(max_num_sp_srs_pos_res_per_bwp_r16.unpack(bref));
   HANDLE_CODE(max_num_sp_srs_pos_res_per_bwp_per_slot_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void srs_pos_res_sp_r16_s::to_json(json_writer& j) const
 {
@@ -1906,7 +1906,7 @@ uint8_t srs_pos_res_sp_r16_s::max_num_sp_srs_pos_res_per_bwp_per_slot_r16_opts::
 }
 
 // SRS-PosResources-r16 ::= SEQUENCE
-SRSASN_CODE srs_pos_resources_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_pos_resources_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(max_num_srs_pos_res_set_per_bwp_r16.pack(bref));
   HANDLE_CODE(max_num_srs_pos_res_per_bwp_r16.pack(bref));
@@ -1914,9 +1914,9 @@ SRSASN_CODE srs_pos_resources_r16_s::pack(bit_ref& bref) const
   HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_r16.pack(bref));
   HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_pos_resources_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_pos_resources_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(max_num_srs_pos_res_set_per_bwp_r16.unpack(bref));
   HANDLE_CODE(max_num_srs_pos_res_per_bwp_r16.unpack(bref));
@@ -1924,7 +1924,7 @@ SRSASN_CODE srs_pos_resources_r16_s::unpack(cbit_ref& bref)
   HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_r16.unpack(bref));
   HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void srs_pos_resources_r16_s::to_json(json_writer& j) const
 {
@@ -1996,7 +1996,7 @@ uint8_t srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r
 }
 
 // SRS-AllPosResources-r16 ::= SEQUENCE
-SRSASN_CODE srs_all_pos_res_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE srs_all_pos_res_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(srs_pos_res_ap_r16_present, 1));
   HANDLE_CODE(bref.pack(srs_pos_res_sp_r16_present, 1));
@@ -2009,9 +2009,9 @@ SRSASN_CODE srs_all_pos_res_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(srs_pos_res_sp_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srs_all_pos_res_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE srs_all_pos_res_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(srs_pos_res_ap_r16_present, 1));
   HANDLE_CODE(bref.unpack(srs_pos_res_sp_r16_present, 1));
@@ -2024,7 +2024,7 @@ SRSASN_CODE srs_all_pos_res_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(srs_pos_res_sp_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void srs_all_pos_res_r16_s::to_json(json_writer& j) const
 {

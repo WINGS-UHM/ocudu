@@ -10,19 +10,19 @@
 
 #include "f1ap_du_gnbdu_config_update_procedure.h"
 #include "../f1ap_asn1_converters.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 f1ap_du_gnbdu_config_update_procedure::f1ap_du_gnbdu_config_update_procedure(
     const gnbdu_config_update_request& request_,
     f1ap_message_notifier&             cu_notif_,
     f1ap_event_manager&                ev_mng_) :
-  request(request_), cu_notif(cu_notif_), ev_mng(ev_mng_), logger(srslog::fetch_basic_logger("DU-F1"))
+  request(request_), cu_notif(cu_notif_), ev_mng(ev_mng_), logger(ocudulog::fetch_basic_logger("DU-F1"))
 {
 }
 

@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/ran/ptrs/ptrs_constants.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/ran/ptrs/ptrs_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic implementation of PT-RS for PDSCH generator.
 class ptrs_pdsch_generator_generic_impl : public ptrs_pdsch_generator
@@ -27,7 +27,7 @@ public:
                                     std::unique_ptr<resource_grid_mapper>    mapper_) :
     pseudo_random_gen(std::move(pseudo_random_gen_)), mapper(std::move(mapper_))
   {
-    srsran_assert(pseudo_random_gen, "Invalid sequence generator.");
+    ocudu_assert(pseudo_random_gen, "Invalid sequence generator.");
   }
 
   // See interface for documentation.
@@ -43,4 +43,4 @@ private:
   static_re_buffer<ptrs_constants::max_nof_ports, MAX_NOF_PRBS> sequence;
 };
 
-} // namespace srsran
+} // namespace ocudu

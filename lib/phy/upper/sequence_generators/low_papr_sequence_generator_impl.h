@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/support/complex_exponential_table.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_generator.h"
+#include "ocudu/phy/support/complex_exponential_table.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
 #include <set>
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Describes a generic low PAPR sequence generation implementation.
 ///
@@ -78,4 +78,4 @@ private:
   complex_exponential_table cs_table;
 };
 
-} // namespace srsran
+} // namespace ocudu

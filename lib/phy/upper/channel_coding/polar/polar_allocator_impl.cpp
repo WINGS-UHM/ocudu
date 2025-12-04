@@ -9,9 +9,9 @@
  */
 
 #include "polar_allocator_impl.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/zero.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void polar_allocator_impl::allocate(span<uint8_t> input_encoder, span<const uint8_t> message, const polar_code& code)
 {
@@ -20,8 +20,8 @@ void polar_allocator_impl::allocate(span<uint8_t> input_encoder, span<const uint
   span<const uint16_t>                    PC_set     = code.get_PC_set();
   const bounded_bitset<polar_code::NMAX>& K_set_mask = code.get_K_set();
 
-  srsran_assert(input_encoder.size() == N, "Invalid input span size");
-  srsvec::zero(input_encoder);
+  ocudu_assert(input_encoder.size() == N, "Invalid input span size");
+  ocuduvec::zero(input_encoder);
 
   if (nPC == 0) {
     K_set_mask.for_each(0, K_set_mask.size(), [&input_encoder, &message, i = 0](size_t i_o) mutable {

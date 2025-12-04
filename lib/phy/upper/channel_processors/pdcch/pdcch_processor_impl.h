@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_encoder.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_modulator.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_processor.h"
-#include "srsran/phy/upper/signal_processors/pdcch/dmrs_pdcch_processor.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_encoder.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_modulator.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_processor.h"
+#include "ocudu/phy/upper/signal_processors/pdcch/dmrs_pdcch_processor.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes the PDCCH processor generic implementation constructor configuration.
 struct pdcch_processor_config_t {
@@ -62,13 +62,13 @@ public:
                        std::unique_ptr<dmrs_pdcch_processor> dmrs_) :
     encoder(std::move(encoder_)), modulator(std::move(modulator_)), dmrs(std::move(dmrs_))
   {
-    srsran_assert(encoder, "Invalid encoder.");
-    srsran_assert(modulator, "Invalid modulator.");
-    srsran_assert(dmrs, "Invalid DMRS generator.");
+    ocudu_assert(encoder, "Invalid encoder.");
+    ocudu_assert(modulator, "Invalid modulator.");
+    ocudu_assert(dmrs, "Invalid DMRS generator.");
   }
 
   // See interface for documentation.
   void process(resource_grid_writer& grid, const pdu_t& pdu) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

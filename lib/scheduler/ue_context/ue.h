@@ -14,10 +14,10 @@
 #include "ta_manager.h"
 #include "ue_cell.h"
 #include "ue_drx_controller.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/scheduler/mac_scheduler.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/mac_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Parameters used to create a UE.
 struct ue_creation_command {
@@ -54,24 +54,24 @@ public:
 
   ue_cell* find_cell(du_cell_index_t cell_index)
   {
-    srsran_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
+    ocudu_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
     return ue_du_cells[cell_index].get();
   }
   const ue_cell* find_cell(du_cell_index_t cell_index) const
   {
-    srsran_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
+    ocudu_assert(cell_index < MAX_NOF_DU_CELLS, "Invalid cell_index={}", fmt::underlying(cell_index));
     return ue_du_cells[cell_index].get();
   }
 
   /// \brief Fetch UE cell based on UE-specific cell identifier. E.g. PCell corresponds to ue_cell_index==0.
   ue_cell& get_cell(ue_cell_index_t ue_cell_index)
   {
-    srsran_assert(ue_cell_index < ue_cells.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
+    ocudu_assert(ue_cell_index < ue_cells.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
     return *ue_cells[ue_cell_index];
   }
   const ue_cell& get_cell(ue_cell_index_t ue_cell_index) const
   {
-    srsran_assert(ue_cell_index < ue_cells.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
+    ocudu_assert(ue_cell_index < ue_cells.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
     return *ue_cells[ue_cell_index];
   }
 
@@ -141,7 +141,7 @@ private:
   // Dedicated configuration for the UE.
   const ue_configuration* ue_ded_cfg = nullptr;
   cell_harq_manager&      pcell_harq_pool;
-  srslog::basic_logger&   logger;
+  ocudulog::basic_logger& logger;
 
   /// List of UE cells indexed by \c du_cell_index_t. If an element is null, it means that the DU cell is not
   /// configured to be used by the UE.
@@ -164,4 +164,4 @@ private:
   ue_drx_controller drx;
 };
 
-} // namespace srsran
+} // namespace ocudu

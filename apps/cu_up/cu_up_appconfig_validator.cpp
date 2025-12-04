@@ -14,9 +14,9 @@
 #include "apps/services/worker_manager/worker_manager_appconfig_validator.h"
 #include "cu_up_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_cu_up_appconfig(const cu_up_appconfig& config)
+bool ocudu::validate_cu_up_appconfig(const cu_up_appconfig& config)
 {
   if (!validate_logger_appconfig(config.log_cfg)) {
     return false;

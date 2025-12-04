@@ -9,17 +9,17 @@
  */
 
 #include "ru_ofh_downlink_plane_handler_proxy.h"
-#include "srsran/ofh/transmitter/ofh_downlink_handler.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/ofh/transmitter/ofh_downlink_handler.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_downlink_plane_handler_proxy::handle_dl_data(const resource_grid_context& context,
                                                      const shared_resource_grid&  grid)
 {
-  srsran_assert(context.sector < sectors.size(), "Invalid sector id '{}'", context.sector);
+  ocudu_assert(context.sector < sectors.size(), "Invalid sector id '{}'", context.sector);
 
   auto& sector = sectors[context.sector];
   sector->handle_dl_data(context, grid);

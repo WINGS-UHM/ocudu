@@ -12,15 +12,15 @@
 #include "pdcch_encoder_test_doubles.h"
 #include "pdcch_modulator_test_doubles.h"
 #include "resource_grid_test_doubles.h"
-#include "srsran/phy/support/precoding_formatters.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_processor.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
+#include "ocudu/phy/support/precoding_formatters.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_processor.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 #include <random>
 
 static std::mt19937 rgen(0);
 
-namespace srsran {
+namespace ocudu {
 struct pdcch_processor_config_t {
   std::unique_ptr<pdcch_encoder>        encoder;
   std::unique_ptr<pdcch_modulator>      modulator;
@@ -35,9 +35,9 @@ public:
                                     const pdcch_processor::dci_description&     dci);
 };
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

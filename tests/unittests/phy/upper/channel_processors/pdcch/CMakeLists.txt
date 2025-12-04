@@ -12,7 +12,7 @@ set(TEST_DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/test_data)
 set_directory_properties(PROPERTIES LABELS "phy")
 
 add_executable(pdcch_processor_unittest pdcch_processor_unittest.cpp)
-target_link_libraries(pdcch_processor_unittest srsran_channel_processors srslog)
+target_link_libraries(pdcch_processor_unittest ocudu_channel_processors ocudulog)
 add_test(pdcch_processor_unittest pdcch_processor_unittest)
 target_include_directories(pdcch_processor_unittest PRIVATE
         ${CMAKE_SOURCE_DIR}/tests/unittests/phy/support
@@ -20,23 +20,23 @@ target_include_directories(pdcch_processor_unittest PRIVATE
 
 if (USE_PHY_TESTVECTORS)
     add_executable(pdcch_encoder_test pdcch_encoder_test.cpp)
-    target_link_libraries(pdcch_encoder_test srsran_channel_processors srslog)
+    target_link_libraries(pdcch_encoder_test ocudu_channel_processors ocudulog)
     add_test_vector(pdcch_encoder_test pdcch_encoder_test_data.tar.gz "")
 
     add_executable(pdcch_modulator_test pdcch_modulator_test.cpp)
     target_link_libraries(pdcch_modulator_test
-            srsran_channel_coding
-            srsran_channel_modulation
-            srsran_channel_precoder
-            srsran_channel_processors
-            srsran_sequence_generators
-            srsran_signal_processors
-            srslog)
+            ocudu_channel_coding
+            ocudu_channel_modulation
+            ocudu_channel_precoder
+            ocudu_channel_processors
+            ocudu_sequence_generators
+            ocudu_signal_processors
+            ocudulog)
     add_test_vector(pdcch_modulator_test pdcch_modulator_test_data.tar.gz "")
     target_include_directories(pdcch_modulator_test PRIVATE ${CMAKE_SOURCE_DIR}/tests/unittests/phy/support)
 
     add_executable(pdcch_processor_vectortest pdcch_processor_vectortest.cpp)
-    target_link_libraries(pdcch_processor_vectortest srsran_channel_processors srsran_channel_precoder srslog gtest gtest_main)
+    target_link_libraries(pdcch_processor_vectortest ocudu_channel_processors ocudu_channel_precoder ocudulog gtest gtest_main)
     add_test_vector(pdcch_processor_vectortest pdcch_processor_test_data.tar.gz "")
     target_include_directories(pdcch_processor_vectortest PRIVATE
             ${CMAKE_SOURCE_DIR}/tests/unittests/phy/

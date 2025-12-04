@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/ran/plmn_identity.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_cp_ue_admission_controller
 {
@@ -24,5 +24,5 @@ public:
   virtual bool request_ue_setup() const = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

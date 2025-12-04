@@ -15,36 +15,36 @@
 #include "ru_emulator_seq_id_checker.h"
 #include "ru_emulator_timing_notifier.h"
 #include "ru_emulator_transceiver.h"
-#include "srsran/adt/circular_map.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/ofh/compression/compression_params.h"
-#include "srsran/ofh/ecpri/ecpri_constants.h"
-#include "srsran/ofh/ecpri/ecpri_packet_properties.h"
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_factories.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/ofh_factories.h"
-#include "srsran/ofh/serdes/ofh_message_properties.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/executors/task_execution_manager.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/signal_handling.h"
+#include "ocudu/adt/circular_map.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/compression/compression_params.h"
+#include "ocudu/ofh/ecpri/ecpri_constants.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_properties.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_factories.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/ofh_factories.h"
+#include "ocudu/ofh/serdes/ofh_message_properties.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/executors/task_execution_manager.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/signal_handling.h"
 #include "fmt/chrono.h"
 #include "fmt/color.h"
 #include <arpa/inet.h>
 #include <random>
 #ifdef DPDK_FOUND
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
 #endif
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace ether;
 
@@ -115,7 +115,7 @@ struct ru_emulator_config {
 /// RU emulator dependencies.
 struct ru_emulator_dependencies {
   /// Logger.
-  srslog::basic_logger* logger = nullptr;
+  ocudulog::basic_logger* logger = nullptr;
   /// RU emulators executor.
   task_executor* executor = nullptr;
   /// Ethernet transmitter.
@@ -160,7 +160,7 @@ using prach_eaxc_buffers = static_vector<std::vector<uint8_t>, MAX_NOF_SYMBOLS>;
 } // namespace
 
 /// Returns structure with RU emulators dependencies.
-static ru_emulator_dependencies resolve_ru_emulator_dependencies(srslog::basic_logger&    logger,
+static ru_emulator_dependencies resolve_ru_emulator_dependencies(ocudulog::basic_logger&  logger,
                                                                  task_executor&           executor,
                                                                  ru_emulator_transceiver& transceiver)
 {
@@ -305,8 +305,8 @@ generate_test_prach(const ru_emulator_config& cfg, span<const unsigned> prach_ea
   // Vector of bytes for each OFDM symbol of each eAxC.
   std::vector<prach_eaxc_buffers> test_data;
   // Number of PRBs used by IQ samples in each U-Plane packet.
-  unsigned nof_prbs = cfg.prach_format == srsran::ru_emulator_prach_format::LONG_F0 ? PRACH_LONG_FORMAT_NOF_PRB
-                                                                                    : PRACH_SHORT_FORMAT_NOF_PRB;
+  unsigned nof_prbs = cfg.prach_format == ocudu::ru_emulator_prach_format::LONG_F0 ? PRACH_LONG_FORMAT_NOF_PRB
+                                                                                   : PRACH_SHORT_FORMAT_NOF_PRB;
 
   const units::bytes ecpri_iq_data_header_size(8);
   const units::bytes ofh_header_size(10);
@@ -333,7 +333,7 @@ generate_test_prach(const ru_emulator_config& cfg, span<const unsigned> prach_ea
       params.payload_size = iq_data_size + ofh_header_size.value() + ecpri::ECPRI_COMMON_HEADER_SIZE.value();
       params.start_prb    = 0;
       params.nof_prbs     = nof_prbs;
-      params.filter_index = to_value(cfg.prach_format == srsran::ru_emulator_prach_format::LONG_F0
+      params.filter_index = to_value(cfg.prach_format == ocudu::ru_emulator_prach_format::LONG_F0
                                          ? filter_index_type::ul_prach_preamble_1p25khz
                                          : filter_index_type::ul_prach_preamble_short);
       set_static_header_params(frame_header, params, cfg);
@@ -375,7 +375,7 @@ static ru_em_rx_window_timing_parameters rx_timing_window_params_us_to_symbols(s
 /// \param logger RU emulator's logger instance.
 ///
 /// \return true if packet should be dropped, false otherwise.
-static bool should_packet_be_dropped(span<const uint8_t> packet, srslog::basic_logger& logger)
+static bool should_packet_be_dropped(span<const uint8_t> packet, ocudulog::basic_logger& logger)
 {
   // Drop non OFH packet.
   if (packet.size() < 26) {
@@ -400,7 +400,7 @@ static bool should_packet_be_dropped(span<const uint8_t> packet, srslog::basic_l
 /// \param logger        RU emulator's logger instance.
 ///
 /// \return true if passed message was decoded successfully, false otherwise.
-static bool decode_rx_message(rx_message_info& message_info, span<const uint8_t> packet, srslog::basic_logger& logger)
+static bool decode_rx_message(rx_message_info& message_info, span<const uint8_t> packet, ocudulog::basic_logger& logger)
 {
   // Decode and check the filter index in the byte 26, bits 0-3.
   auto filter_index = static_cast<filter_index_type>(packet[22] & 0x0f);
@@ -467,7 +467,7 @@ class ru_emulator : public frame_notifier
 {
   using kpi_counter = ru_emu_stats::kpi_counter;
 
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
   task_executor&           executor;
   ru_emulator_transceiver& transceiver;
 
@@ -521,23 +521,23 @@ public:
     prach_seq_id_checker(std::move(dependencies.prach_seq_id_checker))
   {
     for (auto eaxc : cfg.dl_eaxc) {
-      srsran_assert(eaxc <= MAX_SUPPORTED_EAXC_ID_VALUE, "Unsupported DL eAxC value requested");
+      ocudu_assert(eaxc <= MAX_SUPPORTED_EAXC_ID_VALUE, "Unsupported DL eAxC value requested");
       dl_eaxc.push_back(eaxc);
     }
 
     for (auto eaxc : cfg.ul_eaxc) {
-      srsran_assert(eaxc <= MAX_SUPPORTED_EAXC_ID_VALUE, "Unsupported UL eAxC value requested");
+      ocudu_assert(eaxc <= MAX_SUPPORTED_EAXC_ID_VALUE, "Unsupported UL eAxC value requested");
       ul_eaxc.push_back(eaxc);
       seq_counters.insert(eaxc, 0);
     }
 
     for (auto eaxc : cfg.prach_eaxc) {
-      srsran_assert(eaxc <= MAX_SUPPORTED_EAXC_ID_VALUE, "Unsupported DL eAxC value requested");
+      ocudu_assert(eaxc <= MAX_SUPPORTED_EAXC_ID_VALUE, "Unsupported DL eAxC value requested");
       prach_eaxc.push_back(eaxc);
       prach_seq_counters.insert(eaxc, 0);
     }
 
-    if (cfg.prach_format == srsran::ru_emulator_prach_format::LONG_F0) {
+    if (cfg.prach_format == ocudu::ru_emulator_prach_format::LONG_F0) {
       nof_prach_symbols = get_prach_preamble_long_info(prach_format_type::zero).nof_symbols;
     } else {
       nof_prach_symbols =
@@ -786,7 +786,7 @@ private:
     }
 
     if (is_a_prach_message(message_info.filter_index)) {
-      filter_index_type valid_filter_index = (cfg.prach_format == srsran::ru_emulator_prach_format::LONG_F0)
+      filter_index_type valid_filter_index = (cfg.prach_format == ocudu::ru_emulator_prach_format::LONG_F0)
                                                  ? filter_index_type::ul_prach_preamble_1p25khz
                                                  : filter_index_type::ul_prach_preamble_short;
       if (message_info.filter_index != valid_filter_index) {
@@ -918,7 +918,7 @@ static void interrupt_signal_handler(int signal)
 /// Function to call when the application is going to be forcefully shutdown.
 static void cleanup_signal_handler(int signal)
 {
-  srslog::flush();
+  ocudulog::flush();
 }
 
 static void print_header()
@@ -974,16 +974,16 @@ int main(int argc, char** argv)
   }
 
   // Set up logging.
-  srslog::sink* log_sink = (ru_emulator_parsed_cfg.log_cfg.filename == "stdout")
-                               ? srslog::create_stdout_sink()
-                               : srslog::create_file_sink(ru_emulator_parsed_cfg.log_cfg.filename);
+  ocudulog::sink* log_sink = (ru_emulator_parsed_cfg.log_cfg.filename == "stdout")
+                                 ? ocudulog::create_stdout_sink()
+                                 : ocudulog::create_file_sink(ru_emulator_parsed_cfg.log_cfg.filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("RU_EMU", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("RU_EMU", false);
   logger.set_level(ru_emulator_parsed_cfg.log_cfg.level);
 
 #ifdef DPDK_FOUND
@@ -994,7 +994,7 @@ int main(int argc, char** argv)
   if (uses_dpdk) {
     // Prepend the application name in argv[0] as it is expected by EAL.
     eal = dpdk::create_dpdk_eal(std::string(argv[0]) + " " + ru_emulator_parsed_cfg.dpdk_config->eal_args,
-                                srslog::fetch_basic_logger("EAL", false));
+                                ocudulog::fetch_basic_logger("EAL", false));
     if (!eal) {
       report_error("Failed to initialize DPDK EAL\n");
     }
@@ -1092,7 +1092,7 @@ int main(int argc, char** argv)
     txrx->stop();
   }
   workers.stop();
-  srslog::flush();
+  ocudulog::flush();
 
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   fmt::print("\nRU emulator app stopped\n");

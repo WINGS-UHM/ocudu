@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/ran/prach/prach_format_type.h"
-#include "srsran/ran/prach/prach_subcarrier_spacing.h"
+#include "ocudu/ran/prach/prach_format_type.h"
+#include "ocudu/ran/prach/prach_subcarrier_spacing.h"
 
-namespace srsran::detail {
+namespace ocudu::detail {
 
 /// Flag applied to each threshold entry.
 enum class threshold_flag {
@@ -51,4 +51,4 @@ threshold_flag get_threshold_flag(const threshold_params& params);
 /// Retrieves the (threshold, margin) pair corresponding to the given configuration.
 threshold_and_margin_type get_threshold_and_margin(const threshold_params& params);
 
-} // namespace srsran::detail
+} // namespace ocudu::detail

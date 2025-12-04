@@ -12,11 +12,11 @@
 
 #include "../cu_cp_controller/cu_cp_controller.h"
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the reconnection between the CU-CP and AMF.
 class amf_connection_loss_routine
@@ -29,7 +29,7 @@ public:
                               cu_cp_ue_context_release_handler& ue_release_handler_,
                               ue_manager&                       ue_mng_,
                               cu_cp_controller&                 controller_,
-                              srslog::basic_logger&             logger_);
+                              ocudulog::basic_logger&           logger_);
 
   static std::string name() { return "AMF Connection Loss Routine"; }
 
@@ -43,8 +43,8 @@ private:
   cu_cp_ue_context_release_handler& ue_release_handler;
   ue_manager&                       ue_mng;
   cu_cp_controller&                 controller;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

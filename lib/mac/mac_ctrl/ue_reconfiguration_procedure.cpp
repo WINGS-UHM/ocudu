@@ -13,7 +13,7 @@
 #include "mac_scheduler_configurator.h"
 #include "proc_logger.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_ue_reconfiguration_procedure::mac_ue_reconfiguration_procedure(const mac_ue_reconfiguration_request& req_,
                                                                    mac_control_config&                   cfg_,

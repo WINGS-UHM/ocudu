@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Port channel estimator metric decorator.
 class phy_metrics_port_channel_estimator_decorator : public port_channel_estimator
@@ -24,7 +24,7 @@ public:
                                                port_channel_estimator_metric_notifier& notifier_) :
     base(std::move(base_)), notifier(notifier_)
   {
-    srsran_assert(base, "Invalid base instance.");
+    ocudu_assert(base, "Invalid base instance.");
   }
 
   // See interface for documentation.
@@ -46,4 +46,4 @@ private:
   port_channel_estimator_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

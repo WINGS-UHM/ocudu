@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/synchronization/futex_util.h"
+#include "ocudu/support/synchronization/futex_util.h"
 #include <linux/futex.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 long futex_util::wait(std::atomic<uint32_t>& state, uint32_t expected)
 {

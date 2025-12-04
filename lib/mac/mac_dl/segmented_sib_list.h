@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Class that holds multiple SIB messages in packed form.
 ///
@@ -43,7 +43,7 @@ public:
   /// \return A reference to the SIB buffer holding the current segment.
   const T& get_current_segment() const
   {
-    srsran_assert(current_segment < buffers.size(), "SIB segment reading index overflow.");
+    ocudu_assert(current_segment < buffers.size(), "SIB segment reading index overflow.");
     return buffers[current_segment];
   }
 
@@ -53,7 +53,7 @@ public:
   /// \remark An assertion is thrown if the segment index exceeds the available segments.
   const T& get_segment(unsigned i_segment) const
   {
-    srsran_assert(i_segment < buffers.size(), "SIB segment reading index overflow.");
+    ocudu_assert(i_segment < buffers.size(), "SIB segment reading index overflow.");
     return buffers[i_segment];
   }
 
@@ -63,7 +63,7 @@ public:
   /// \remark An assertion is thrown if the segment index exceeds the available segments.
   T& get_segment(unsigned i_segment)
   {
-    srsran_assert(i_segment < buffers.size(), "SIB segment reading index overflow.");
+    ocudu_assert(i_segment < buffers.size(), "SIB segment reading index overflow.");
     return buffers[i_segment];
   }
 
@@ -71,7 +71,7 @@ public:
   /// \remark An assertion is thrown if the list does not hold multiple segments.
   void advance_current_segment()
   {
-    srsran_assert(is_segmented(), "SIB message is not segmented.");
+    ocudu_assert(is_segmented(), "SIB message is not segmented.");
 
     ++current_segment;
     if (current_segment == get_nof_segments()) {
@@ -85,7 +85,7 @@ public:
   /// \remark An assertion is thrown if the segment index exceeds the available segments.
   size_t get_segment_length(unsigned i_segment) const
   {
-    srsran_assert(i_segment < buffers.size(), "SIB segment reading index overflow.");
+    ocudu_assert(i_segment < buffers.size(), "SIB segment reading index overflow.");
     return buffers[i_segment].length();
   }
 
@@ -121,4 +121,4 @@ private:
   unsigned current_segment;
 };
 
-} // namespace srsran
+} // namespace ocudu

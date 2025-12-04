@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(SRSConfiguration, Bsrs_0)
 {

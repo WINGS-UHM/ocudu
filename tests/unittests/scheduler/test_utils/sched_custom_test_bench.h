@@ -15,13 +15,13 @@
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class dummy_harq_timeout_notifier : public harq_timeout_notifier
 {
@@ -45,7 +45,7 @@ public:
     current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     slot_indication(current_sl_tx);
-    mac_logger.set_level(srslog::basic_levels::debug);
+    mac_logger.set_level(ocudulog::basic_levels::debug);
   }
 
   // Class members.
@@ -60,8 +60,8 @@ public:
   cell_resource_allocator        res_grid{cell_cfg};
   slot_point                     current_sl_tx;
 
-  srslog::basic_logger& mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   // Class methods.
   void add_ue(sched_ue_creation_request_message ue_req)
@@ -79,4 +79,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

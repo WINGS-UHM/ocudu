@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/scheduler/result/dci_info.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/scheduler/result/dci_info.h"
 
-namespace srsran {
+namespace ocudu {
 namespace pdcch_helper {
 
 /// Checks whether a DCI DL format is supported by the provided SearchSpace.
@@ -119,4 +119,4 @@ inline bool is_pdcch_monitoring_active(slot_point sl, const search_space_configu
 }
 
 } // namespace pdcch_helper
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "apps/units/flexible_o_du/o_du_high/du_high/metrics/consumers/scheduler_metrics_consumers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Unit test metrics plotter writing to stdout.

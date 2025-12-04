@@ -11,9 +11,9 @@
 #pragma once
 
 #include "processor_pool_helpers.h"
-#include "srsran/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/downlink_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes all downlink processors in a pool.
 struct downlink_processor_pool_impl_config {
@@ -49,4 +49,4 @@ private:
   processor_pool_repository<downlink_processor_base> processors;
 };
 
-} // namespace srsran
+} // namespace ocudu

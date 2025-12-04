@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_estimator.h"
-#include "srsran/ran/phy_time_unit.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator.h"
+#include "ocudu/ran/phy_time_unit.h"
+#include "ocudu/support/math/math_utils.h"
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
 /// DFT-based implementation of the time alignment estimator.
 class time_alignment_estimator_dft_impl : public time_alignment_estimator
@@ -78,6 +78,6 @@ private:
 
   /// Buffer for storing the IDFT magnitude square.
   std::vector<float> idft_abs2;
-}; // namespace srsran
+}; // namespace ocudu
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "rlc_rx_tm_entity.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_rx_tm_entity::rlc_rx_tm_entity(gnb_du_id_t                       gnb_du_id,
                                    du_ue_index_t                     ue_index,

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/e2/e2ap_configuration_helpers.h"
+#include "ocudu/e2/e2ap_configuration_helpers.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct o_cu_cp_e2_config;
 struct worker_manager_config;
@@ -23,4 +23,4 @@ e2ap_configuration generate_e2_config(const o_cu_cp_e2_config& cu_cp, gnb_id_t g
 /// Fills the O-RAN CU CP E2 worker manager parameters of the given worker manager configuration.
 void fill_o_cu_cp_e2_worker_manager_config(worker_manager_config& config, const o_cu_cp_e2_config& unit_cfg);
 
-} // namespace srsran
+} // namespace ocudu

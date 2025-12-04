@@ -10,9 +10,9 @@
 
 #include "cu_up_unit_config_validator.h"
 #include "cu_up_unit_config.h"
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Validates the given QoS configuration. Returns true on success, otherwise false.
 static bool validate_qos_appconfig(span<const cu_up_unit_qos_config> config)
@@ -44,7 +44,7 @@ static bool validate_cu_up_test_mode_appconfig(const cu_up_unit_test_mode_config
   return true;
 }
 
-bool srsran::validate_cu_up_unit_config(const cu_up_unit_config& config, bool tracing_enabled)
+bool ocudu::validate_cu_up_unit_config(const cu_up_unit_config& config, bool tracing_enabled)
 {
   if (!validate_qos_appconfig(config.qos_cfg)) {
     return false;

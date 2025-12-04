@@ -12,7 +12,7 @@
 
 #include "apps/services/metrics/metrics_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 class executor_metrics_notifier;
 
@@ -35,4 +35,4 @@ executor_metrics_notifier& build_app_execution_metrics_config(app_services::metr
                                                               app_services::metrics_notifier&    notifier,
                                                               const app_helpers::metrics_config& metrics_cfg);
 
-} // namespace srsran
+} // namespace ocudu

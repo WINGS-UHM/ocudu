@@ -10,21 +10,21 @@
 
 #include "ldpc_rate_matcher_impl.h"
 #include "ldpc_luts_impl.h"
-#include "srsran/adt/interval.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 static const std::array<double, 4> shift_factor_bg1 = {0, 17, 33, 56};
 static const std::array<double, 4> shift_factor_bg2 = {0, 13, 25, 43};
 
 void ldpc_rate_matcher_impl::init(const codeblock_metadata& cfg, unsigned block_length, unsigned rm_length)
 {
-  srsran_assert((cfg.tb_common.rv >= 0) && (cfg.tb_common.rv <= 3), "RV should an integer between 0 and 3.");
+  ocudu_assert((cfg.tb_common.rv >= 0) && (cfg.tb_common.rv <= 3), "RV should an integer between 0 and 3.");
   rv               = cfg.tb_common.rv;
   modulation_order = get_bits_per_symbol(cfg.tb_common.mod);
   base_graph       = cfg.tb_common.base_graph;
@@ -37,13 +37,13 @@ void ldpc_rate_matcher_impl::init(const codeblock_metadata& cfg, unsigned block_
   }
 
   // The output size cannot be larger than the maximum rate-matched codeblock length.
-  srsran_assert(rm_length <= MAX_CODEBLOCK_RM_SIZE,
-                "The length of the rate-matched codeblock is {} but it shouldn't be more than {}.",
-                rm_length,
-                MAX_CODEBLOCK_RM_SIZE);
+  ocudu_assert(rm_length <= MAX_CODEBLOCK_RM_SIZE,
+               "The length of the rate-matched codeblock is {} but it shouldn't be more than {}.",
+               rm_length,
+               MAX_CODEBLOCK_RM_SIZE);
 
   // The output size must be a multiple of the modulation order.
-  srsran_assert(rm_length % modulation_order == 0, "The output length should be a multiple of the modulation order.");
+  ocudu_assert(rm_length % modulation_order == 0, "The output length should be a multiple of the modulation order.");
 
   // Compute shift_k0 according to TS38.212 Table 5.4.2.1-2.
   span<const double> shift_factor;
@@ -60,20 +60,20 @@ void ldpc_rate_matcher_impl::init(const codeblock_metadata& cfg, unsigned block_
     BG_N_short   = BG2_N_SHORT;
     BG_K         = BG2_N_FULL - BG2_M;
   } else {
-    srsran_assert(false, "LDPC rate matching: invalid input length.");
+    ocudu_assert(false, "LDPC rate matching: invalid input length.");
   }
   uint16_t lifting_size = block_length / BG_N_short;
-  srsran_assert(get_lifting_index(static_cast<lifting_size_t>(lifting_size)) != VOID_LIFTSIZE,
-                "LDPC rate matching: invalid input length.");
+  ocudu_assert(get_lifting_index(static_cast<lifting_size_t>(lifting_size)) != VOID_LIFTSIZE,
+               "LDPC rate matching: invalid input length.");
 
   // Recall that 2 * lifting_size systematic bits are shortened out of the codeblock.
   nof_systematic_bits = (BG_K - 2) * lifting_size;
-  srsran_assert(cfg.cb_specific.nof_filler_bits < nof_systematic_bits,
-                "LDPC rate matching: invalid number of filler bits.");
+  ocudu_assert(cfg.cb_specific.nof_filler_bits < nof_systematic_bits,
+               "LDPC rate matching: invalid number of filler bits.");
   nof_filler_bits = cfg.cb_specific.nof_filler_bits;
 
-  srsran_assert(get_lifting_index(static_cast<lifting_size_t>(lifting_size)) != VOID_LIFTSIZE,
-                "LDPC rate matching: invalid input length.");
+  ocudu_assert(get_lifting_index(static_cast<lifting_size_t>(lifting_size)) != VOID_LIFTSIZE,
+               "LDPC rate matching: invalid input length.");
   double tmp = (shift_factor[rv] * buffer_length) / block_length;
   shift_k0   = static_cast<uint16_t>(std::floor(tmp)) * lifting_size;
 }
@@ -161,7 +161,7 @@ static void interleave_bits_Qm(bit_buffer& out, span<const uint8_t> in)
 template <>
 void interleave_bits_Qm<1>(bit_buffer& out, span<const uint8_t> in)
 {
-  srsvec::bit_pack(out, in);
+  ocuduvec::bit_pack(out, in);
 }
 
 template <>
@@ -244,7 +244,7 @@ void interleave_bits_Qm<8>(bit_buffer& out, span<const uint8_t> in)
   uint8_t* out_ptr = out.get_buffer().begin();
 
   // Copy LSB for each byte.
-  srsvec::copy(out_bytes, in.first(K));
+  ocuduvec::copy(out_bytes, in.first(K));
 
   // Append a bit in the LSB for each byte.
   for (unsigned q = 1; q != 8; ++q) {

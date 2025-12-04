@@ -13,15 +13,15 @@
 
 #pragma once
 
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/ran/dmrs.h"
-#include "srsran/ran/ptrs/ptrs_pattern.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/ptrs/ptrs_pattern.h"
+#include "ocudu/support/tracing/event_tracing.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Generates and maps DM-RS for the PDSCH transmission as per TS38.211 Section 7.4.1.1.
 /// \param[out] grid Resource grid writer interface.
@@ -167,11 +167,11 @@ inline unsigned pdsch_compute_nof_data_re(const pdsch_processor::pdu_t& pdu)
   unsigned nof_reserved_re = reserved.get_inclusion_count(pdu.start_symbol_index, pdu.nof_symbols, crb_mask);
 
   // Subtract the number of reserved RE from the number of allocated RE.
-  srsran_assert(nof_grid_re > nof_reserved_re,
-                "The number of reserved RE ({}) exceeds the number of RE allocated in the transmission ({})",
-                nof_grid_re,
-                nof_reserved_re);
+  ocudu_assert(nof_grid_re > nof_reserved_re,
+               "The number of reserved RE ({}) exceeds the number of RE allocated in the transmission ({})",
+               nof_grid_re,
+               nof_reserved_re);
   return nof_grid_re - nof_reserved_re - nof_grid_dmrs;
 }
 
-} // namespace srsran
+} // namespace ocudu

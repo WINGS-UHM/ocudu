@@ -11,11 +11,11 @@
 #pragma once
 
 #include "ofh_data_flow_cuplane_encoding_metrics_collector.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_data_flow_metrics.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_data_flow_metrics.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 struct resource_grid_context;
 class shared_resource_grid;
 
@@ -56,4 +56,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/fapi/decorator_factory.h"
+#include "ocudu/fapi/decorator_factory.h"
 #include "loggers/logging_decorator_impl.h"
 #include "message_buffering/message_bufferer_decorator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 std::unique_ptr<fapi_decorator> fapi::create_decorators(const decorator_config& config)

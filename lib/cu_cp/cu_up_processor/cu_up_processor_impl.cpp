@@ -9,10 +9,10 @@
  */
 
 #include "cu_up_processor_impl.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp_factory.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_factory.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Adapter between E1AP and CU-UP processor
 class cu_up_processor_impl::e1ap_cu_up_processor_adapter : public e1ap_cu_up_processor_notifier

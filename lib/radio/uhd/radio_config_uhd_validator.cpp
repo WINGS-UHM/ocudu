@@ -14,7 +14,7 @@
 #include <regex>
 #include <set>
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool validate_clock_sources(const radio_configuration::clock_sources& sources)
 {

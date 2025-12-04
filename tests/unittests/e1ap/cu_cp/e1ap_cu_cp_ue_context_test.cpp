@@ -10,14 +10,14 @@
 
 #include "../common/test_helpers.h"
 #include "lib/e1ap/cu_cp/ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class for E1AP UE context
 class e1ap_cu_cp_ue_context_test : public ::testing::Test
@@ -25,14 +25,14 @@ class e1ap_cu_cp_ue_context_test : public ::testing::Test
 protected:
   e1ap_cu_cp_ue_context_test()
   {
-    e1ap_logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    e1ap_logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
 
   ~e1ap_cu_cp_ue_context_test()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   ue_index_t generate_random_ue_index()
@@ -41,12 +41,12 @@ protected:
         test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
   }
 
-  timer_manager         timer_mng;
-  srslog::basic_logger& e1ap_logger = srslog::fetch_basic_logger("CU-CP-E1");
-  manual_task_worker    ctrl_worker{128};
-  timer_factory         timers{timer_mng, ctrl_worker};
-  unsigned              max_nof_supported_ues = 1024 * 4;
-  e1ap_ue_context_list  ue_ctxt_list{timers, max_nof_supported_ues, e1ap_logger};
+  timer_manager           timer_mng;
+  ocudulog::basic_logger& e1ap_logger = ocudulog::fetch_basic_logger("CU-CP-E1");
+  manual_task_worker      ctrl_worker{128};
+  timer_factory           timers{timer_mng, ctrl_worker};
+  unsigned                max_nof_supported_ues = 1024 * 4;
+  e1ap_ue_context_list    ue_ctxt_list{timers, max_nof_supported_ues, e1ap_logger};
 };
 
 TEST_F(e1ap_cu_cp_ue_context_test, when_ue_added_then_ue_exists)
@@ -100,7 +100,7 @@ TEST_F(e1ap_cu_cp_ue_context_test, when_ue_exists_then_ue_not_added)
 TEST_F(e1ap_cu_cp_ue_context_test, when_unsupported_number_of_ues_added_then_ue_not_added)
 {
   // Add maximum number of supported UEs
-  e1ap_logger.set_level(srslog::basic_levels::error);
+  e1ap_logger.set_level(ocudulog::basic_levels::error);
   for (unsigned it = 0; it < max_nof_supported_ues; ++it) {
     gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id = ue_ctxt_list.allocate_gnb_cu_cp_ue_e1ap_id();
     ASSERT_NE(cu_cp_ue_e1ap_id, gnb_cu_cp_ue_e1ap_id_t::invalid);
@@ -110,7 +110,7 @@ TEST_F(e1ap_cu_cp_ue_context_test, when_unsupported_number_of_ues_added_then_ue_
     ASSERT_TRUE(ue_ctxt_list.contains(cu_cp_ue_e1ap_id));
     ASSERT_TRUE(ue_ctxt_list.contains(ue_index));
   }
-  e1ap_logger.set_level(srslog::basic_levels::debug);
+  e1ap_logger.set_level(ocudulog::basic_levels::debug);
 
   // Try to get another cu_cp_ue_e1ap_id (should fail)
   ASSERT_EQ(ue_ctxt_list.allocate_gnb_cu_cp_ue_e1ap_id(), gnb_cu_cp_ue_e1ap_id_t::invalid);

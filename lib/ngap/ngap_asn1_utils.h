@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/ngap/ngap.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/security/security.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/ngap/ngap.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/security/security.h"
+#include "ocudu/support/error_handling.h"
 
 namespace asn1 {
 namespace ngap {
@@ -31,8 +31,8 @@ struct ngap_pdu_c;
 } // namespace ngap
 } // namespace asn1
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 namespace asn1_utils {
 
 /// Get string with NGAP error cause.
@@ -69,5 +69,5 @@ inline void fill_supported_algorithms(security::supported_algorithms&           
 }
 
 } // namespace asn1_utils
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

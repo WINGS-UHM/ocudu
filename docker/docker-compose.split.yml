@@ -10,8 +10,8 @@ services:
   gnb:
     # a gNB service is already defined in the base docker-compose.yml file.
     # This replaces it with a dummy service that does nothing
-    # but builds the srsran/gnb image so that the CU/DU services can reuse it.
-    image: srsran/gnb
+    # but builds the ocudu/gnb image so that the CU/DU services can reuse it.
+    image: ocudu/gnb
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -21,8 +21,8 @@ services:
     entrypoint: [ "true" ]
 
   cu-cp:
-    container_name: srsran_cu_cp
-    image: srsran/gnb
+    container_name: ocudu_cu_cp
+    image: ocudu/gnb
     networks:
       ran:
         ipv4_address: ${CU_CP_IP:-10.53.1.4}
@@ -44,8 +44,8 @@ services:
     command: srscucp -c /cu_cp_config.yml -c /cu_cp_compose_config.yml
 
   cu-up:
-    container_name: srsran_cu_up
-    image: srsran/gnb
+    container_name: ocudu_cu_up
+    image: ocudu/gnb
     networks:
       ran:
         ipv4_address: ${CU_UP_IP:-10.53.1.5}
@@ -64,8 +64,8 @@ services:
     command: srscuup -c /cu_up_config.yml -c /cu_up_compose_config.yml
 
   du:
-    container_name: srsran_du
-    image: srsran/gnb
+    container_name: ocudu_du
+    image: ocudu/gnb
     privileged: true
     cap_add:
       - SYS_NICE
@@ -89,7 +89,7 @@ services:
     configs:
       - du_config.yml
       - du_compose_config.yml
-    command: srsdu -c /du_config.yml -c /du_compose_config.yml
+    command: odu -c /du_config.yml -c /du_compose_config.yml
 
 configs:
   cu_cp_config.yml:

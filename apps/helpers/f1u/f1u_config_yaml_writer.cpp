@@ -13,7 +13,7 @@
 #include "apps/helpers/network/udp_config_yaml_writer.h"
 #include <yaml-cpp/yaml.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_cu_up_f1u_socket_entry(YAML::Node& node, const f1u_socket_appconfig& config)
 {
@@ -43,7 +43,7 @@ static void fill_f1u_socket_section(YAML::Node& node, const std::vector<f1u_sock
   }
 }
 
-void srsran::fill_f1u_config_yaml_schema(YAML::Node& node, const f1u_sockets_appconfig& config)
+void ocudu::fill_f1u_config_yaml_schema(YAML::Node& node, const f1u_sockets_appconfig& config)
 {
   YAML::Node f1u_node = node["f1u"];
   node["bind_port"]   = config.bind_port;

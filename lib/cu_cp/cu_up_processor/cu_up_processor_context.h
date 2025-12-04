@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct cu_up_processor_context {
   cu_up_index_t cu_up_index = cu_up_index_t::invalid; /// Index assisgned by CU-CP
@@ -23,5 +23,5 @@ struct cu_up_processor_context {
   std::string   cu_cp_name = "none";                  /// gNB-CU-CP-Name
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

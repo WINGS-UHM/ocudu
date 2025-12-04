@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcch_type0_css_occasion_pattern1_description
-srsran::pdcch_type0_css_occasions_get_pattern1(const pdcch_type0_css_occasion_pattern1_configuration& config)
+ocudu::pdcch_type0_css_occasions_get_pattern1(const pdcch_type0_css_occasion_pattern1_configuration& config)
 {
   interval<unsigned, true> ss_zero_index_range(0, config.is_fr2 ? 13 : 15);
-  srsran_assert(ss_zero_index_range.contains(config.ss_zero_index),
-                "SearchSpaceZero ({}) must be {} for {}.",
-                config.ss_zero_index,
-                ss_zero_index_range,
-                config.is_fr2 ? "FR2" : "FR1");
+  ocudu_assert(ss_zero_index_range.contains(config.ss_zero_index),
+               "SearchSpaceZero ({}) must be {} for {}.",
+               config.ss_zero_index,
+               ss_zero_index_range,
+               config.is_fr2 ? "FR2" : "FR1");
 
   static const unsigned N_SYMB_CORESET = UINT32_MAX;
 
@@ -77,10 +77,10 @@ srsran::pdcch_type0_css_occasions_get_pattern1(const pdcch_type0_css_occasion_pa
   return occasion;
 }
 
-unsigned srsran::type0_pdcch_css_n0_is_even_frame(double   table_13_11_and_13_12_O,
-                                                  double   table_13_11_and_13_12_M,
-                                                  uint8_t  numerology_mu,
-                                                  unsigned ssb_index)
+unsigned ocudu::type0_pdcch_css_n0_is_even_frame(double   table_13_11_and_13_12_O,
+                                                 double   table_13_11_and_13_12_M,
+                                                 uint8_t  numerology_mu,
+                                                 unsigned ssb_index)
 {
   // This is only used to retrieve the nof_slots_per_frame.
   slot_point sl_point{numerology_mu, 0};
@@ -94,10 +94,10 @@ unsigned srsran::type0_pdcch_css_n0_is_even_frame(double   table_13_11_and_13_12
   return is_even;
 }
 
-slot_point srsran::get_type0_pdcch_css_n0(double             table_13_11_and_13_12_O,
-                                          double             table_13_11_and_13_12_M,
-                                          subcarrier_spacing scs_common,
-                                          unsigned           ssb_index)
+slot_point ocudu::get_type0_pdcch_css_n0(double             table_13_11_and_13_12_O,
+                                         double             table_13_11_and_13_12_M,
+                                         subcarrier_spacing scs_common,
+                                         unsigned           ssb_index)
 {
   // Initialize n0 to a slot_point = 0.
   const uint8_t numerology_mu = to_numerology_value(scs_common);

@@ -13,13 +13,13 @@
 #include "../test_helpers.h"
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "tests/unittests/ngap/test_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Fixture class for UE manager creation
 class ue_manager_test : public ::testing::Test
@@ -28,8 +28,8 @@ protected:
   ue_manager_test();
   ~ue_manager_test() override;
 
-  srslog::basic_logger& test_logger   = srslog::fetch_basic_logger("TEST");
-  srslog::basic_logger& ue_mng_logger = srslog::fetch_basic_logger("CU-UEMNG");
+  ocudulog::basic_logger& test_logger   = ocudulog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& ue_mng_logger = ocudulog::fetch_basic_logger("CU-UEMNG");
 
   unsigned ues_per_du = 1024;
 
@@ -43,5 +43,5 @@ protected:
   dummy_ngap_rrc_ue_notifier rrc_ue_pdu_notifier;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -7,10 +7,10 @@
 #
 
 add_executable(bounded_bitset_count_benchmark bounded_bitset_count_benchmark.cpp)
-target_link_libraries(bounded_bitset_count_benchmark srslog)
+target_link_libraries(bounded_bitset_count_benchmark ocudulog)
 add_test(bounded_bitset_count_benchmark bounded_bitset_count_benchmark -R 100)
 
 add_executable(bounded_bitset_range_benchmark bounded_bitset_range_benchmark.cpp)
-target_link_libraries(bounded_bitset_range_benchmark srslog)
+target_link_libraries(bounded_bitset_range_benchmark ocudulog)
 add_test(bounded_bitset_range_benchmark bounded_bitset_range_benchmark -R 100)
 

@@ -9,11 +9,11 @@
  */
 
 #include "pbch_encoder_impl.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Implements TS38.212 Table 7.1.1-1: Value of PBCH payload interleaver pattern G (j).
 static const std::array<uint32_t, pbch_encoder::A> G = {16, 23, 18, 17, 8,  30, 10, 6,  24, 7,  0,  5,  3,  2,  1,  4,
@@ -24,9 +24,9 @@ static const std::array<uint32_t, pbch_encoder::A> G = {16, 23, 18, 17, 8,  30, 
 #define PBCH_SFN_2ND_LSB_G (G[PBCH_SFN_PAYLOAD_LENGTH + 2])
 #define PBCH_SFN_3RD_LSB_G (G[PBCH_SFN_PAYLOAD_LENGTH + 1])
 
-void pbch_encoder_impl::payload_generate(span<uint8_t> a, const srsran::pbch_encoder::pbch_msg_t& msg)
+void pbch_encoder_impl::payload_generate(span<uint8_t> a, const ocudu::pbch_encoder::pbch_msg_t& msg)
 {
-  srsran_assert(a.size() == A, "Input span size must equal A");
+  ocudu_assert(a.size() == A, "Input span size must equal A");
 
   // Put actual payload.
   unsigned j_sfn   = 0;
@@ -60,9 +60,9 @@ void pbch_encoder_impl::payload_generate(span<uint8_t> a, const srsran::pbch_enc
   }
 }
 
-void pbch_encoder_impl::scramble(span<uint8_t>                           a_prime,
-                                 const srsran::pbch_encoder::pbch_msg_t& msg,
-                                 span<const uint8_t>                     a)
+void pbch_encoder_impl::scramble(span<uint8_t>                          a_prime,
+                                 const ocudu::pbch_encoder::pbch_msg_t& msg,
+                                 span<const uint8_t>                    a)
 {
   // Initialize sequence.
   scrambler->init(msg.N_id);
@@ -103,25 +103,25 @@ void pbch_encoder_impl::scramble(span<uint8_t>                           a_prime
 
 void pbch_encoder_impl::crc_attach(span<uint8_t> b, span<const uint8_t> a_prime)
 {
-  srsran_assert(a_prime.size() == A, "Input span size must equal A");
-  srsran_assert(b.size() == B, "Output span size must equal B");
+  ocudu_assert(a_prime.size() == A, "Input span size must equal A");
+  ocudu_assert(b.size() == B, "Output span size must equal B");
 
   // Copy data if pointers do not match.
   if (b.data() != a_prime.data()) {
-    srsvec::copy(b.first(A), a_prime);
+    ocuduvec::copy(b.first(A), a_prime);
   }
 
   // Calculate checksum.
   unsigned checksum = crc24c->calculate_bit(a_prime);
 
   // Unpack and attach checksum.
-  srsvec::bit_unpack(b.last(CRC_LEN), checksum, CRC_LEN);
+  ocuduvec::bit_unpack(b.last(CRC_LEN), checksum, CRC_LEN);
 }
 
 void pbch_encoder_impl::channel_coding(span<uint8_t> d, span<const uint8_t> c)
 {
-  srsran_assert(c.size() == B, "Input span size must equal B");
-  srsran_assert(d.size() == POLAR_N_MAX, "Output span size must equal POLAR_N_MAX");
+  ocudu_assert(c.size() == B, "Input span size must equal B");
+  ocudu_assert(d.size() == POLAR_N_MAX, "Output span size must equal POLAR_N_MAX");
 
   // 5.3.1.1 Interleaving.
   std::array<uint8_t, B> c_prime;
@@ -137,13 +137,13 @@ void pbch_encoder_impl::channel_coding(span<uint8_t> d, span<const uint8_t> c)
 
 void pbch_encoder_impl::rate_matching(span<uint8_t> f, span<const uint8_t> d)
 {
-  srsran_assert(d.size() == POLAR_N_MAX, "Input span size must equal POLAR_N_MAX");
-  srsran_assert(f.size() == E, "Output span size must equal B");
+  ocudu_assert(d.size() == POLAR_N_MAX, "Input span size must equal POLAR_N_MAX");
+  ocudu_assert(f.size() == E, "Output span size must equal B");
 
   rm->rate_match(f, d, *code);
 }
 
-void pbch_encoder_impl::encode(span<uint8_t> encoded, const srsran::pbch_encoder::pbch_msg_t& pbch_msg)
+void pbch_encoder_impl::encode(span<uint8_t> encoded, const ocudu::pbch_encoder::pbch_msg_t& pbch_msg)
 {
   report_fatal_error_if_not(
       encoded.size() == E, "Invalid encoded size ({}), expected {}.", encoded.size(), static_cast<unsigned>(E));

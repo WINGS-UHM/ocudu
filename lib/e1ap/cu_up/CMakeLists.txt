@@ -7,7 +7,7 @@
 #
 
 
-add_library(srsran_e1ap_cu_up
+add_library(ocudu_e1ap_cu_up
         e1ap_cu_up_factory.cpp
         e1ap_cu_up_impl.cpp
         e1ap_cu_up_connection_handler.cpp
@@ -17,5 +17,5 @@ add_library(srsran_e1ap_cu_up
         procedures/e1ap_cu_up_release_procedure.cpp
         procedures/e1ap_cu_up_reset_procedure.cpp
         )
-target_include_directories(srsran_e1ap_cu_up PRIVATE ..)
-target_link_libraries(srsran_e1ap_cu_up e1ap_asn1 srsran_e1ap_common)
+target_include_directories(ocudu_e1ap_cu_up PRIVATE ..)
+target_link_libraries(ocudu_e1ap_cu_up e1ap_asn1 ocudu_e1ap_common)

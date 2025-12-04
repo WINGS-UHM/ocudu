@@ -12,12 +12,12 @@
 #include "lib/gtpu/gtpu_tunnel_ngu_rx_impl.h"
 #include "lib/gtpu/gtpu_tunnel_ngu_tx_impl.h"
 #include "tests/unittests/gtpu/gtpu_test_shared.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class gtpu_tunnel_tx_upper_dummy : public gtpu_tunnel_common_tx_upper_layer_notifier
 {
@@ -34,7 +34,7 @@ class gtpu_tunnel_ngu_tx_test : public ::testing::Test
 {
 public:
   gtpu_tunnel_ngu_tx_test() :
-    logger(srslog::fetch_basic_logger("TEST", false)), gtpu_logger(srslog::fetch_basic_logger("GTPU", false))
+    logger(ocudulog::fetch_basic_logger("TEST", false)), gtpu_logger(ocudulog::fetch_basic_logger("GTPU", false))
   {
   }
 
@@ -42,11 +42,11 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init GTP-U logger
-    gtpu_logger.set_level(srslog::basic_levels::debug);
+    gtpu_logger.set_level(ocudulog::basic_levels::debug);
     gtpu_logger.set_hex_dump_max_size(100);
   }
 
@@ -54,7 +54,7 @@ protected:
   {
     // flush logger after each test
     tx_upper.clear();
-    srslog::flush();
+    ocudulog::flush();
   }
 
   /// \brief Helper to advance the timers
@@ -68,11 +68,11 @@ protected:
   }
 
   // Test logger
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // GTP-U logger
-  srslog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger    gtpu_rx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  ocudulog::basic_logger& gtpu_logger;
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
 
   // Timers
   manual_task_worker worker{64};
@@ -96,7 +96,7 @@ TEST_F(gtpu_tunnel_ngu_tx_test, entity_creation)
   tx_cfg.peer_addr                                         = "127.0.0.1";
   tx_cfg.peer_teid                                         = gtpu_teid_t{0x1};
 
-  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
+  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
 
   ASSERT_NE(tx, nullptr);
 }
@@ -109,7 +109,7 @@ TEST_F(gtpu_tunnel_ngu_tx_test, tx_sdus)
   tx_cfg.peer_addr                                         = "127.0.0.1";
   tx_cfg.peer_teid                                         = gtpu_teid_t{0x2};
 
-  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
+  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
   ASSERT_NE(tx, nullptr);
 
   for (unsigned i = 0; i < 3; i++) {
@@ -129,7 +129,7 @@ TEST_F(gtpu_tunnel_ngu_tx_test, tx_stop)
   tx_cfg.peer_addr                                         = "127.0.0.1";
   tx_cfg.peer_teid                                         = gtpu_teid_t{0x2};
 
-  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
+  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
   ASSERT_NE(tx, nullptr);
 
   for (unsigned i = 0; i < 3; i++) {

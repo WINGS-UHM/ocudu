@@ -11,20 +11,20 @@
 #pragma once
 
 #include "flexible_o_du_metrics_aggregator.h"
-#include "srsran/du/du.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/du/o_du.h"
-#include "srsran/ru/ru_adapters.h"
+#include "ocudu/du/du.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/du/o_du.h"
+#include "ocudu/ru/ru_adapters.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class radio_unit;
 
 /// \brief Flexible O-RAN DU implementation.
 ///
 /// One O-RAN DU can handle more than one cell.
-class flexible_o_du_impl : public srs_du::du, public du_operation_controller
+class flexible_o_du_impl : public odu::du, public du_operation_controller
 {
 public:
   flexible_o_du_impl(unsigned nof_cells_, flexible_o_du_metrics_notifier* notifier);
@@ -42,10 +42,10 @@ public:
   void add_ru(std::unique_ptr<radio_unit> active_ru);
 
   /// Adds the given DU to this flexible O-RAN DU.
-  void add_du(std::unique_ptr<srs_du::o_du> active_du);
+  void add_du(std::unique_ptr<odu::o_du> active_du);
 
   /// Returns the O-DU metrics notifier of this flexible O-DU implementation.
-  srs_du::o_du_metrics_notifier& get_o_du_metrics_notifier() { return odu_metrics_handler; }
+  odu::o_du_metrics_notifier& get_o_du_metrics_notifier() { return odu_metrics_handler; }
 
   /// Getters to the adaptors.
   upper_phy_ru_ul_adapter&         get_upper_ru_ul_adapter() { return ru_ul_adapt; }
@@ -60,10 +60,10 @@ private:
   upper_phy_ru_timing_adapter      ru_timing_adapt;
   upper_phy_ru_error_adapter       ru_error_adapt;
   flexible_o_du_metrics_aggregator odu_metrics_handler;
-  std::unique_ptr<srs_du::o_du>    du;
+  std::unique_ptr<odu::o_du>       du;
   std::unique_ptr<radio_unit>      ru;
   upper_phy_ru_dl_rg_adapter       ru_dl_rg_adapt;
   upper_phy_ru_ul_request_adapter  ru_ul_request_adapt;
 };
 
-} // namespace srsran
+} // namespace ocudu

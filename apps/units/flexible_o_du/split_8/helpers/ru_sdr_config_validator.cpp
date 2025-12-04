@@ -9,10 +9,10 @@
  */
 
 #include "ru_sdr_config_validator.h"
-#include "srsran/adt/interval.h"
-#include "srsran/ran/phy_time_unit.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ran/phy_time_unit.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Validates the given amplitude control application configuration. Returns true on success, otherwise false.
 static bool validate_amplitude_control_unit_config(const amplitude_control_unit_config& config)
@@ -117,8 +117,8 @@ static bool validate_ru_sdr_appconfig(const ru_sdr_unit_config&                 
   return true;
 }
 
-bool srsran::validate_ru_sdr_config(const ru_sdr_unit_config&                 config,
-                                    span<const ru_sdr_cell_validation_config> cell_config)
+bool ocudu::validate_ru_sdr_config(const ru_sdr_unit_config&                 config,
+                                   span<const ru_sdr_cell_validation_config> cell_config)
 {
   if (!validate_ru_sdr_appconfig(config, cell_config)) {
     return false;

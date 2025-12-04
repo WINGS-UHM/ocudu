@@ -9,17 +9,17 @@
  */
 
 #include "amf_reconnection_routine.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_setup.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/coroutine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-async_task<bool> srsran::srs_cu_cp::start_amf_reconnection(ngap_interface&           ngap,
-                                                           timer_factory             timers,
-                                                           std::chrono::milliseconds reconnection_retry_time)
+async_task<bool> ocudu::ocucp::start_amf_reconnection(ngap_interface&           ngap,
+                                                      timer_factory             timers,
+                                                      std::chrono::milliseconds reconnection_retry_time)
 {
   return launch_async<amf_reconnection_routine>(ngap, timers, reconnection_retry_time);
 }
@@ -28,7 +28,7 @@ amf_reconnection_routine::amf_reconnection_routine(ngap_interface&           nga
                                                    timer_factory             timers,
                                                    std::chrono::milliseconds reconnection_retry_time_) :
   ngap(ngap_),
-  logger(srslog::fetch_basic_logger("CU-CP")),
+  logger(ocudulog::fetch_basic_logger("CU-CP")),
   amf_tnl_connection_retry_timer(timers.create_timer()),
   reconnection_retry_time(reconnection_retry_time_)
 {

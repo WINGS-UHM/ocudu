@@ -22,8 +22,8 @@
 #include "apps/services/worker_manager/worker_manager_appconfig.h"
 #include <optional>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// Configuration of the F1-C interface of the DU.
 struct f1ap_appconfig {
@@ -46,7 +46,7 @@ struct metrics_appconfig {
   bool                                    autostart_stdout_metrics = false;
 };
 
-} // namespace srs_du
+} // namespace odu
 
 /// DU application configuration.
 struct du_appconfig {
@@ -57,11 +57,11 @@ struct du_appconfig {
   /// Tracers configuration.
   tracer_appconfig trace_cfg;
   /// Metrics configuration.
-  srs_du::metrics_appconfig metrics_cfg;
+  odu::metrics_appconfig metrics_cfg;
   /// F1-C configuration.
-  srs_du::f1ap_appconfig f1ap_cfg;
+  odu::f1ap_appconfig f1ap_cfg;
   /// F1-U configuration.
-  srs_du::f1u_appconfig f1u_cfg;
+  odu::f1u_appconfig f1u_cfg;
   /// Buffer pool configuration.
   app_services::buffer_pool_appconfig buffer_pool_config;
   /// Expert configuration.
@@ -74,4 +74,4 @@ struct du_appconfig {
   bool enable_dryrun = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

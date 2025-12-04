@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pucch_processor_dummy : public pucch_processor
 {
@@ -44,4 +44,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

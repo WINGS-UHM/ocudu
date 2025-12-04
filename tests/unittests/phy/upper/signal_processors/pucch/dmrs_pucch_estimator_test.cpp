@@ -10,13 +10,13 @@
 
 #include "../../../support/resource_grid_test_doubles.h"
 #include "dmrs_pucch_estimator_test_data.h"
-#include "srsran/phy/upper/signal_processors/pucch/factories.h"
+#include "ocudu/phy/upper/signal_processors/pucch/factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const dmrs_pucch_estimator::common_configuration& cc)
 {
@@ -64,16 +64,16 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 template <>
-struct fmt::formatter<srsran::dmrs_pucch_estimator::common_configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::dmrs_pucch_estimator::common_configuration> : ostream_formatter {};
 template <>
-struct fmt::formatter<srsran::dmrs_pucch_estimator::format2_configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::dmrs_pucch_estimator::format2_configuration> : ostream_formatter {};
 template <>
-struct fmt::formatter<srsran::dmrs_pucch_estimator::format3_configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::dmrs_pucch_estimator::format3_configuration> : ostream_formatter {};
 template <>
-struct fmt::formatter<srsran::dmrs_pucch_estimator::format4_configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::dmrs_pucch_estimator::format4_configuration> : ostream_formatter {};
 
 namespace {
 

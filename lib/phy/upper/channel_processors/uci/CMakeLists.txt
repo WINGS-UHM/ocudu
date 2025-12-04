@@ -6,7 +6,7 @@
 # the distribution.
 #
 
-add_library(srsran_uci_decoder STATIC
+add_library(ocudu_uci_decoder STATIC
         factories.cpp
         uci_decoder_impl.cpp)
-target_link_libraries(srsran_uci_decoder srsran_channel_coding srsvec)
+target_link_libraries(ocudu_uci_decoder ocudu_channel_coding ocuduvec)

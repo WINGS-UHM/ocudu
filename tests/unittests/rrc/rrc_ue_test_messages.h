@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/asn1/rrc_nr/ul_ccch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/rrc/rrc_types.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/rrc/rrc_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Converts a hex string (e.g. 01FA02) to a sec_as_key.
 security::sec_key make_sec_key(std::string hex_str);
@@ -46,5 +46,5 @@ byte_buffer generate_rrc_reestablishment_complete_pdu();
 /// \brief Generate RRC Container with Measurement Report
 byte_buffer generate_measurement_report_pdu();
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

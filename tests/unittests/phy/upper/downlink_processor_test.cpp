@@ -17,13 +17,13 @@
 #include "signal_processors/nzp_csi_rs/nzp_csi_rs_generator_test_doubles.h"
 #include "signal_processors/prs/prs_generator_test_doubles.h"
 #include "upper_phy_rg_gateway_test_doubles.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include "gtest/gtest.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-static srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY");
+static ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY");
 
 static shared_resource_grid get_dummy_grid()
 {

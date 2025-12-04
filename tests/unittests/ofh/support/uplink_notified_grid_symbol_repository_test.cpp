@@ -11,7 +11,7 @@
 #include "uplink_notified_grid_symbol_repository.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 TEST(uplink_notified_grid_symbol_repository, slot_not_added_to_repo_do_not_return_symbols_to_notify)

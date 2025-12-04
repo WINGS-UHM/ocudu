@@ -11,12 +11,12 @@
 #pragma once
 
 #include "rlc_am_pdu.h"
-#include "srsran/adt/ring_buffer.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/ring_buffer.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/format.h"
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 struct rlc_tx_amd_retx {
   uint32_t sn     = INVALID_RLC_SN; ///< sequence number
@@ -116,8 +116,8 @@ public:
   /// \return First valid element in the queue
   const rlc_tx_amd_retx& front() const
   {
-    srsran_assert(not queue.empty(), "Cannot return front element of empty queue.");
-    srsran_assert(not queue.top().invalid, "Cannot return front element. The front is invalid.");
+    ocudu_assert(not queue.empty(), "Cannot return front element of empty queue.");
+    ocudu_assert(not queue.top().invalid, "Cannot return front element. The front is invalid.");
     return queue.top().retx;
   }
 
@@ -125,8 +125,8 @@ public:
   /// \param retx The ReTx to be written.
   void replace_front(const rlc_tx_amd_retx& retx)
   {
-    srsran_assert(not queue.empty(), "Cannot replace front element of empty queue.");
-    srsran_assert(not queue.top().invalid, "Cannot replace front element. The front is invalid.");
+    ocudu_assert(not queue.empty(), "Cannot replace front element of empty queue.");
+    ocudu_assert(not queue.top().invalid, "Cannot replace front element. The front is invalid.");
     st.subtract(queue.top().retx);
     st.add(retx);
     rlc_retx_queue_item elem = {};
@@ -232,11 +232,11 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::rlc_tx_amd_retx> {
+struct formatter<ocudu::rlc_tx_amd_retx> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -244,7 +244,7 @@ struct formatter<srsran::rlc_tx_amd_retx> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_tx_amd_retx retx, FormatContext& ctx) const
+  auto format(const ocudu::rlc_tx_amd_retx retx, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "sn={} so={} len={}", retx.sn, retx.so, retx.length);
   }

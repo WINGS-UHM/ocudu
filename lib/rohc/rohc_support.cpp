@@ -1,9 +1,9 @@
-#include "srsran/rohc/rohc_support.h"
+#include "ocudu/rohc/rohc_support.h"
 
-using namespace srsran;
-using namespace srsran::rohc;
+using namespace ocudu;
+using namespace ocudu::rohc;
 
-bool srsran::rohc::rohc_supported()
+bool ocudu::rohc::rohc_supported()
 {
 #ifdef ENABLE_ROHC_LIB
   return true;

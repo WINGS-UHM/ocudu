@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/math/complex_normal_random.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/math/complex_normal_random.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <random>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements a frequency domain channel emulator.
 ///
@@ -140,4 +140,4 @@ private:
   task_executor& executor;
 };
 
-} // namespace srsran
+} // namespace ocudu

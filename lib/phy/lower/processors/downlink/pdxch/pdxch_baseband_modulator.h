@@ -11,32 +11,32 @@
 #pragma once
 
 #include "pdxch_processor_modulator_notifier.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_writer_view.h"
-#include "srsran/instrumentation/traces/ru_traces.h"
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller.h"
-#include "srsran/phy/lower/lower_phy_baseband_metrics.h"
-#include "srsran/phy/lower/modulation/ofdm_modulator.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/math/stats.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer_view.h"
+#include "ocudu/instrumentation/traces/ru_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
+#include "ocudu/phy/lower/modulation/ofdm_modulator.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/math/stats.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <thread>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Physical downlink channels modulator.
 ///
@@ -58,7 +58,7 @@ public:
                            ofdm_symbol_modulator&              modulator_,
                            amplitude_controller&               amplitude_control_,
                            pdxch_processor_modulator_notifier& notifier_) :
-    logger(srslog::fetch_basic_logger("PHY")),
+    logger(ocudulog::fetch_basic_logger("PHY")),
     nof_ports(nof_ports_),
     nof_symbols_per_slot(get_nsymb_per_slot(cp)),
     executor(executor_),
@@ -111,7 +111,7 @@ public:
     }
 
     // Verify the number of ports match.
-    srsran_assert(buffer->get_nof_channels() == nof_ports, "The buffer number of ports do not match.");
+    ocudu_assert(buffer->get_nof_channels() == nof_ports, "The buffer number of ports do not match.");
 
     // Try transitioning to modulate plus all modulation tasks.
     uint32_t expected_state = state_idle;
@@ -164,12 +164,13 @@ public:
           amplitude_control.process(cf_buf, cf_buf);
 
           // Perform signal measurements.
-          metrics_collection[i_metric].avg_power  = srsvec::average_power(cf_buf);
-          metrics_collection[i_metric].peak_power = srsvec::max_abs_element(cf_buf).second;
-          metrics_collection[i_metric].clipping = {srsvec::count_if_part_abs_greater_than(cf_buf, 0.95), cf_buf.size()};
+          metrics_collection[i_metric].avg_power  = ocuduvec::average_power(cf_buf);
+          metrics_collection[i_metric].peak_power = ocuduvec::max_abs_element(cf_buf).second;
+          metrics_collection[i_metric].clipping   = {ocuduvec::count_if_part_abs_greater_than(cf_buf, 0.95),
+                                                     cf_buf.size()};
 
           // Convert complex floating-point buffer to complex integer-based.
-          srsvec::convert(ci16_buf, cf_buf, scaling_factor_cf_to_ci16);
+          ocuduvec::convert(ci16_buf, cf_buf, scaling_factor_cf_to_ci16);
 
           ru_tracer << trace_event("PDxCH modulation", tp);
 
@@ -184,7 +185,7 @@ public:
                        i_symbol_sf);
           span<ci16_t> ci16_buf =
               current_result.buffer->get_writer()[i_port].subspan(i_symbol_start, symbol_sizes_sf[i_symbol_sf]);
-          srsvec::zero(ci16_buf);
+          ocuduvec::zero(ci16_buf);
           complete_symbol_task();
         }
       }
@@ -203,7 +204,7 @@ private:
   {
     // Decrement counter.
     uint32_t prev = current_state.fetch_sub(1);
-    srsran_assert((prev & state_modulate_mask) == state_modulate_mask, "Unexpected state 0x{:08x}.", prev);
+    ocudu_assert((prev & state_modulate_mask) == state_modulate_mask, "Unexpected state 0x{:08x}.", prev);
 
     // Skip completion actions if the modulation tasks are not completed.
     if (prev != state_completed) {
@@ -235,7 +236,7 @@ private:
 
     // Transition modulator state to idle which becomes available for the next use.
     [[maybe_unused]] uint32_t expected_mask = current_state.exchange(state_idle);
-    srsran_assert(expected_mask == state_modulate_mask, "Unexpected state 0x{:08x}.", prev);
+    ocudu_assert(expected_mask == state_modulate_mask, "Unexpected state 0x{:08x}.", prev);
   }
 
   /// State value for when the modulator is not processing any transmisson request.
@@ -253,7 +254,7 @@ private:
   static constexpr float scaling_factor_cf_to_ci16 = std::numeric_limits<int16_t>::max();
 
   /// Physical layer logger. Used for logging when the executor cannot defer the modulation task..
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Number of ports.
   unsigned nof_ports;
   /// Number of symbols per slot. Depends on the cyclic prefix.
@@ -283,4 +284,4 @@ private:
   dynamic_tensor<2, cf_t> cf_buffer;
 };
 
-} // namespace srsran
+} // namespace ocudu

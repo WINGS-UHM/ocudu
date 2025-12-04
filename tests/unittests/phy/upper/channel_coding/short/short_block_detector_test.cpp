@@ -15,14 +15,14 @@
 /// messages (for comparison purposes) are provided as test vectors.
 
 #include "short_block_detector_test_data.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
 #include "fmt/ostream.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 
 /// \cond
-using namespace srsran;
-namespace srsran {
+using namespace ocudu;
+namespace ocudu {
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
   fmt::print(os,
@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& os, span<const uint8_t> bits)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 namespace {
 
 using ShortBlockDetectorParams = test_case_t;

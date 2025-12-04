@@ -12,7 +12,7 @@
 #include "pcap_dlts.h"
 #include <netinet/in.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// PCAP tags as defined in Wireshark's "packet-rlc-nr.h".
 static constexpr const char* PCAP_RLC_NR_START_STRING    = "rlc-nr";
@@ -28,7 +28,7 @@ rlc_pcap_impl::rlc_pcap_impl(const std::string& filename_,
                              bool               capture_srb,
                              bool               capture_drb,
                              task_executor&     backend_exec) :
-  logger(srslog::fetch_basic_logger("ALL")),
+  logger(ocudulog::fetch_basic_logger("ALL")),
   srb_enabled(capture_srb),
   drb_enabled(capture_drb),
   writer(PCAP_EXPORT_PDU_DLT, "RLC", filename_, "udp", backend_exec)
@@ -129,7 +129,7 @@ int nr_pcap_pack_rlc_context_to_buffer(const pcap_rlc_pdu_context& context, uint
   uint16_t tmp16  = {};
 
   if (buffer == nullptr || length < PCAP_CONTEXT_HEADER_MAX) {
-    srslog::fetch_basic_logger("ALL").error("Writing buffer null or length to small\n");
+    ocudulog::fetch_basic_logger("ALL").error("Writing buffer null or length to small\n");
     return -1;
   }
 
@@ -161,16 +161,16 @@ int nr_pcap_pack_rlc_context_to_buffer(const pcap_rlc_pdu_context& context, uint
   return offset;
 }
 
-std::unique_ptr<rlc_pcap> srsran::create_rlc_pcap(const std::string& filename,
-                                                  task_executor&     backend_exec,
-                                                  bool               srb_pdus_enabled,
-                                                  bool               drb_pdus_enabled)
+std::unique_ptr<rlc_pcap> ocudu::create_rlc_pcap(const std::string& filename,
+                                                 task_executor&     backend_exec,
+                                                 bool               srb_pdus_enabled,
+                                                 bool               drb_pdus_enabled)
 {
-  srsran_assert(not filename.empty(), "File name is empty");
+  ocudu_assert(not filename.empty(), "File name is empty");
   return std::make_unique<rlc_pcap_impl>(filename, srb_pdus_enabled, drb_pdus_enabled, backend_exec);
 }
 
-std::unique_ptr<rlc_pcap> srsran::create_null_rlc_pcap()
+std::unique_ptr<rlc_pcap> ocudu::create_null_rlc_pcap()
 {
   return std::make_unique<null_rlc_pcap>();
 }

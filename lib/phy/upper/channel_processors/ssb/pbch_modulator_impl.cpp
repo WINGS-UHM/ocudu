@@ -9,11 +9,11 @@
  */
 
 #include "pbch_modulator_impl.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pbch_modulator_impl::scramble(span<const uint8_t> b, span<uint8_t> b_hat, const config_t& config)
 {
@@ -31,7 +31,7 @@ void pbch_modulator_impl::modulate(span<const uint8_t> b_hat, span<cf_t> d_pbch)
 {
   // Adapt the bits for the modulator.
   static_bit_buffer<M_bit> b_hat_packed(b_hat.size());
-  srsvec::bit_pack(b_hat_packed, b_hat);
+  ocuduvec::bit_pack(b_hat_packed, b_hat);
 
   // Modulate as QPSK.
   modulator->modulate(d_pbch, b_hat_packed, modulation_scheme::QPSK);
@@ -74,7 +74,7 @@ void pbch_modulator_impl::map(span<const cf_t> d_pbch, resource_grid_writer& gri
     // Put sequence in symbol 3 (0, 1, ..., 239), skip the subcarriers reserved for PBCH DM-RS.
     symbols = grid.put(port, l0 + 3, k0, full_mask, symbols);
 
-    srsran_assert(symbols.empty(), "Symbols must be empty.");
+    ocudu_assert(symbols.empty(), "Symbols must be empty.");
   }
 }
 
@@ -82,7 +82,7 @@ void pbch_modulator_impl::put(span<const uint8_t>             bits,
                               resource_grid_writer&           grid,
                               const pbch_modulator::config_t& args)
 {
-  srsran_assert(bits.size() == M_bit, "Input span size must equal M_bit");
+  ocudu_assert(bits.size() == M_bit, "Input span size must equal M_bit");
 
   // Scramble.
   std::array<uint8_t, M_bit> b_hat;

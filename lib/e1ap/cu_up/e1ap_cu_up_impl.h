@@ -13,13 +13,13 @@
 #include "cu_up/e1ap_cu_up_metrics_collector.h"
 #include "e1ap_cu_up_connection_handler.h"
 #include "ue_context/e1ap_cu_up_ue_context.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/e1ap/cu_up/e1ap_configuration.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/timers.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/e1ap/cu_up/e1ap_configuration.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class e1_connection_client;
 class e1ap_event_manager;
@@ -104,7 +104,7 @@ private:
   void handle_unsuccessful_outcome(const asn1::e1ap::unsuccessful_outcome_s& outcome);
 
   const e1ap_configuration e1ap_cfg;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   // nofifiers and handles
   e1ap_cu_up_manager_notifier& cu_up_notifier;
@@ -125,4 +125,4 @@ private:
   e1ap_cu_up_metrics_collector metrics;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

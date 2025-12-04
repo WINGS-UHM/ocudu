@@ -9,17 +9,17 @@
  */
 
 #include "prs.h"
-#include "srsran/fapi_adaptor/precoding_matrix_repository.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator_configuration.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_prs_fapi_to_phy(prs_generator_configuration&       generator_config,
-                                                   const fapi::dl_prs_pdu&            fapi_pdu,
-                                                   uint16_t                           sfn,
-                                                   uint16_t                           slot,
-                                                   const precoding_matrix_repository& pm_repo)
+void ocudu::fapi_adaptor::convert_prs_fapi_to_phy(prs_generator_configuration&       generator_config,
+                                                  const fapi::dl_prs_pdu&            fapi_pdu,
+                                                  uint16_t                           sfn,
+                                                  uint16_t                           slot,
+                                                  const precoding_matrix_repository& pm_repo)
 {
   generator_config.slot            = slot_point(fapi_pdu.scs, sfn, slot);
   generator_config.cp              = fapi_pdu.cp;

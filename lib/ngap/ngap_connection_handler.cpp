@@ -9,12 +9,12 @@
  */
 
 #include "ngap_connection_handler.h"
-#include "srsran/ngap/gateways/n2_connection_client.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/ngap/gateways/n2_connection_client.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -47,7 +47,7 @@ private:
 class n2_tx_channel final : public ngap_message_notifier
 {
 public:
-  n2_tx_channel(std::unique_ptr<ngap_message_notifier>& n2_notifier_, srslog::basic_logger& logger_) :
+  n2_tx_channel(std::unique_ptr<ngap_message_notifier>& n2_notifier_, ocudulog::basic_logger& logger_) :
     n2_notifier(n2_notifier_), logger(logger_)
   {
   }
@@ -68,7 +68,7 @@ public:
 
 private:
   std::unique_ptr<ngap_message_notifier>& n2_notifier;
-  srslog::basic_logger&                   logger;
+  ocudulog::basic_logger&                 logger;
 };
 
 } // namespace
@@ -83,7 +83,7 @@ ngap_connection_handler::ngap_connection_handler(amf_index_t           amf_index
   rx_pdu_handler(rx_pdu_handler_),
   cu_cp_notifier(cu_cp_notifier_),
   ctrl_exec(ctrl_exec_),
-  logger(srslog::fetch_basic_logger("NGAP"))
+  logger(ocudulog::fetch_basic_logger("NGAP"))
 {
 }
 

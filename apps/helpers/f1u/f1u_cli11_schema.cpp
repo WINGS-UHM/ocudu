@@ -11,10 +11,10 @@
 #include "f1u_cli11_schema.h"
 #include "apps/helpers/f1u/f1u_appconfig.h"
 #include "apps/helpers/network/udp_cli11_schema.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_f1u_socket_args(CLI::App& app, f1u_socket_appconfig& f1u_cfg)
 {
@@ -31,7 +31,7 @@ static void configure_cli11_f1u_socket_args(CLI::App& app, f1u_socket_appconfig&
   configure_cli11_with_udp_config_schema(app, f1u_cfg.udp_config);
 }
 
-void srsran::configure_cli11_f1u_sockets_args(CLI::App& app, f1u_sockets_appconfig& f1u_params)
+void ocudu::configure_cli11_f1u_sockets_args(CLI::App& app, f1u_sockets_appconfig& f1u_params)
 {
   // Add configurable F1-U bind port. Default port is 2152 as per TS 29.281 Sec. 4.4.2.3.
   add_option(app, "--bind_port", f1u_params.bind_port, "F1-U bind port")->capture_default_str();

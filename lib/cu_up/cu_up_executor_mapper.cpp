@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/cu_up/cu_up_executor_mapper.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/support/async/execute_on_blocking.h"
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/strand_executor.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/cu_up/cu_up_executor_mapper.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/support/async/execute_on_blocking.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/strand_executor.h"
+#include "ocudu/support/tracing/event_tracing.h"
 #include <variant>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 namespace {
 
@@ -84,7 +84,7 @@ private:
   task_executor& crypto_exec;
 
   // logger
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("CU-UP", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-UP", false);
 };
 
 struct base_cu_up_executor_pool_config {
@@ -103,18 +103,18 @@ class round_robin_cu_up_exec_pool
 public:
   round_robin_cu_up_exec_pool(base_cu_up_executor_pool_config config)
   {
-    srsran_assert(config.ctrl_executors.size() > 0, "At least one DL executor must be specified");
+    ocudu_assert(config.ctrl_executors.size() > 0, "At least one DL executor must be specified");
     if (config.dl_executors.empty()) {
       config.dl_executors = config.ctrl_executors;
     } else {
-      srsran_assert(config.dl_executors.size() == config.ctrl_executors.size(),
-                    "If specified, the number of DL executors must be equal to the number of control executors");
+      ocudu_assert(config.dl_executors.size() == config.ctrl_executors.size(),
+                   "If specified, the number of DL executors must be equal to the number of control executors");
     }
     if (config.ul_executors.empty()) {
       config.ul_executors = config.ctrl_executors;
     } else {
-      srsran_assert(config.ul_executors.size() == config.ctrl_executors.size(),
-                    "If specified, the number of UL executors must be equal to the number of control executors");
+      ocudu_assert(config.ul_executors.size() == config.ctrl_executors.size(),
+                   "If specified, the number of UL executors must be equal to the number of control executors");
     }
 
     for (unsigned i = 0; i != config.ctrl_executors.size(); ++i) {
@@ -261,7 +261,7 @@ private:
       ue_strands[i] =
           std::make_unique<ue_strand_type>(cu_up_strand.get_executors()[1], ue_queue_params, config.strand_batch_size);
       span<ue_strand_type::executor_type> execs = ue_strands[i]->get_executors();
-      srsran_assert(execs.size() == 3, "Three executors should have been created for the three priorities");
+      ocudu_assert(execs.size() == 3, "Three executors should have been created for the three priorities");
       ue_ctrl_execs[i] = &execs[0];
       ue_ul_execs[i]   = &execs[1];
       ue_dl_execs[i]   = &execs[2];
@@ -306,7 +306,7 @@ private:
 } // namespace
 
 std::unique_ptr<cu_up_executor_mapper>
-srsran::srs_cu_up::make_cu_up_executor_mapper(const strand_based_executor_config& config)
+ocudu::ocuup::make_cu_up_executor_mapper(const strand_based_executor_config& config)
 {
   return std::make_unique<strand_based_cu_up_executor_mapper>(config);
 }

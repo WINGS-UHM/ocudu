@@ -9,13 +9,13 @@
 add_library(scheduler_test_utils
         config_generators.cpp
         indication_generators.cpp)
-target_link_libraries(scheduler_test_utils srslog mac_configuration_helpers sched_config sched_test_doubles)
+target_link_libraries(scheduler_test_utils ocudulog mac_configuration_helpers sched_config sched_test_doubles)
 
 add_library(scheduler_test_suite
         scheduler_test_suite.cpp
         scheduler_output_test_helpers.cpp
         scheduler_test_simulator.cpp)
-target_link_libraries(scheduler_test_suite srsran_sched scheduler_test_utils gtest)
+target_link_libraries(scheduler_test_suite ocudu_sched scheduler_test_utils gtest)
 
 add_library(uci_test_utils ../uci_and_pucch/uci_test_utils.cpp)
-target_link_libraries(uci_test_utils srslog mac_configuration_helpers sched_config)
+target_link_libraries(uci_test_utils ocudulog mac_configuration_helpers sched_config)

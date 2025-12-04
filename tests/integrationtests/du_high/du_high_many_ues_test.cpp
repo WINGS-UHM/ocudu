@@ -12,12 +12,12 @@
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
-#include "srsran/support/async/async_then.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_then.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static du_high_env_sim_params create_few_ues_config()
 {

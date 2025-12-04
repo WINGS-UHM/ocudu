@@ -11,7 +11,7 @@
 #include "cu_up_pdcp_metrics_producer.h"
 #include "cu_up_pdcp_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void cu_up_pdcp_metrics_producer_impl::report_metrics(const pdcp_metrics_container& report)
 {

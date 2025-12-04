@@ -11,9 +11,9 @@
 #pragma once
 
 #include "apps/units/flexible_o_du/split_helpers/flexible_o_du_configs.h"
-#include "srsran/ru/sdr/ru_sdr_configuration.h"
+#include "ocudu/ru/sdr/ru_sdr_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_sdr_unit_config;
 struct worker_manager_config;
@@ -26,4 +26,4 @@ ru_sdr_configuration generate_ru_sdr_config(const ru_sdr_unit_config&           
 /// Fills the SDR worker manager parameters of the given worker manager configuration.
 void fill_sdr_worker_manager_config(worker_manager_config& config, const ru_sdr_unit_config& ru_cfg);
 
-} // namespace srsran
+} // namespace ocudu

@@ -15,15 +15,15 @@
 #include "lib/du/du_high/du_manager/procedures/ue_configuration_procedure.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
 #include "tests/test_doubles/rrc/rrc_packed_test_messages.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/rlc/rlc_srb_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/rlc/rlc_srb_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class ue_config_tester : public du_manager_proc_tester, public ::testing::Test
 {
@@ -82,7 +82,7 @@ protected:
     asn1::rrc_nr::cell_group_cfg_s cell_group;
     {
       asn1::cbit_ref bref(container);
-      ASSERT_TRUE(cell_group.unpack(bref) == asn1::SRSASN_SUCCESS);
+      ASSERT_TRUE(cell_group.unpack(bref) == asn1::OCUDUASN_SUCCESS);
       if (verbose) {
         asn1::json_writer js;
         cell_group.to_json(js);
@@ -274,7 +274,7 @@ TEST_F(ue_config_tester, when_du_manager_finishes_processing_ue_config_request_t
 
   // Run UE Configuration Procedure to completion.
   configure_ue(create_f1ap_ue_context_update_request(test_ue->ue_index, {}, {drb_id_t::drb1}));
-  srs_du::f1u_gw_bearer_dummy* bearer = f1u_gw.f1u_bearers.begin()->second.begin()->second;
+  odu::f1u_gw_bearer_dummy* bearer = f1u_gw.f1u_bearers.begin()->second.begin()->second;
 
   // Forward MAC Rx SDU through DRB1 (UL).
   // > Add dummy RLC data header.

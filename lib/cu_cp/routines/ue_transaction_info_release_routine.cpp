@@ -10,12 +10,12 @@
 
 #include "ue_transaction_info_release_routine.h"
 #include "../ngap_repository.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/ran/cause/e1ap_cause.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/ran/cause/e1ap_cause.h"
+#include "ocudu/support/async/coroutine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ue_transaction_info_release_routine::ue_transaction_info_release_routine(
     const ue_transaction_info_loss_event& loss_event_,
@@ -23,7 +23,7 @@ ue_transaction_info_release_routine::ue_transaction_info_release_routine(
     ngap_repository&                      ngap_db_,
     cu_up_processor_repository&           cu_up_db_,
     cu_cp_ue_removal_handler&             ue_rem_handler_,
-    srslog::basic_logger&                 logger_) :
+    ocudulog::basic_logger&               logger_) :
   loss_event(loss_event_),
   ue_mng(ue_mng_),
   ngap_db(ngap_db_),

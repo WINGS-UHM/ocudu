@@ -11,12 +11,12 @@
 #pragma once
 
 #include "ue_context.h"
-#include "srsran/cu_up/cu_up_state.h"
+#include "ocudu/cu_up/cu_up_state.h"
 #include <cstddef>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_up {
+namespace ocuup {
 
 class ue_manager_ctrl
 {
@@ -32,6 +32,6 @@ public:
   virtual up_state_t       get_up_state() const                 = 0;
 };
 
-} // namespace srs_cu_up
+} // namespace ocuup
 
-} // namespace srsran
+} // namespace ocudu

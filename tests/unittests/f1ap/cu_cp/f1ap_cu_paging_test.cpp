@@ -9,11 +9,11 @@
  */
 
 #include "f1ap_cu_test_helpers.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class f1ap_paging_test : public f1ap_cu_test
 {

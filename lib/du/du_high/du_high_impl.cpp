@@ -13,15 +13,15 @@
 #include "adapters/du_high_adapter_factories.h"
 #include "adapters/f1ap_adapters.h"
 #include "test_mode/f1ap_test_mode_adapter.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_high/du_manager/du_manager_factory.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/mac/mac_metrics_notifier.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/timers.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_high/du_manager/du_manager_factory.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/mac/mac_metrics_notifier.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/timers.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 /// \brief This class is responsible for providing the necessary adapters to connect layers in the DU-high.
 class du_high_impl::layer_connector
@@ -52,7 +52,7 @@ public:
 
 du_high_impl::du_high_impl(const du_high_configuration& config_, const du_high_dependencies& dependencies) :
   cfg(config_),
-  logger(srslog::fetch_basic_logger("DU")),
+  logger(ocudulog::fetch_basic_logger("DU")),
   timers(dependencies.timer_ctrl->get_timer_manager()),
   adapters(std::make_unique<layer_connector>(timers, dependencies.exec_mapper->du_control_executor()))
 {

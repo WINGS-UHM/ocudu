@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/adt/span.h"
-#include "srsran/du/du_high/du_manager/cbs/cbs_encoder.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/units.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/du/du_high/du_manager/cbs/cbs_encoder.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/units.h"
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
 #include <random>
 
 static std::mt19937 rgen(0);
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -131,9 +131,9 @@ protected:
 
     // Recall that an UCS-2 character occupies 16 bits.
     units::bytes nof_ucs2_bytes(total_message_length * 2);
-    unsigned     nof_cb_data_pages = srsran::divide_ceil(nof_ucs2_bytes.value(), cb_data_info_page_nof_bytes.value());
+    unsigned     nof_cb_data_pages = ocudu::divide_ceil(nof_ucs2_bytes.value(), cb_data_info_page_nof_bytes.value());
 
-    srsran_assert(nof_cb_data_pages <= 15, "Number of CB-Data IE pages exceeds the maximum of 15.");
+    ocudu_assert(nof_cb_data_pages <= 15, "Number of CB-Data IE pages exceeds the maximum of 15.");
 
     // Check that the number of information pages is written at the start of the CB-Data IE.
     ASSERT_EQ(cb_data_ucs2[0], static_cast<uint8_t>(nof_cb_data_pages));
@@ -155,8 +155,8 @@ protected:
       units::bytes i_page_enc_msg_begin =
           units::bytes(1) + (cb_data_info_page_nof_bytes + cb_data_info_len_nof_bytes) * i_page;
 
-      srsran::span<uint8_t> enc_msg_in_page(&cb_data_ucs2[i_page_enc_msg_begin.value()],
-                                            cb_data_info_page_nof_bytes.value());
+      ocudu::span<uint8_t> enc_msg_in_page(&cb_data_ucs2[i_page_enc_msg_begin.value()],
+                                           cb_data_info_page_nof_bytes.value());
 
       // Extract the information page length from the encoded message. It is the last byte after the CB-Data information
       // page. This gives the number of data bytes in the information page (excluding the padding).
@@ -177,7 +177,7 @@ protected:
 
       // Convert the UCS-2 characters in the current information page into UTF-16 format. Recall that UCS-2
       // characters are encoded in big endian order inside the CB-Data IE.
-      srsran::span<char16_t> ucs2_view(reinterpret_cast<char16_t*>(enc_msg_in_page.data()), i_page_nof_ucs2_chars);
+      ocudu::span<char16_t> ucs2_view(reinterpret_cast<char16_t*>(enc_msg_in_page.data()), i_page_nof_ucs2_chars);
 
       // Swap bytes.
       std::for_each(ucs2_view.begin(), ucs2_view.end(), [](auto& ucs2_char) { ucs2_char = ntohs(ucs2_char); });

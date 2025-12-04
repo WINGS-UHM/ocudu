@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/ranges/transform.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/ranges/transform.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // static tests
 

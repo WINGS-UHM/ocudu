@@ -9,11 +9,11 @@
  */
 
 #include "ue_deletion_procedure.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/async/execute_on.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/execute_on.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 ue_deletion_procedure::ue_deletion_procedure(du_ue_index_t             ue_index_,
                                              du_ue_manager_repository& ue_mng_,
@@ -23,7 +23,7 @@ ue_deletion_procedure::ue_deletion_procedure(du_ue_index_t             ue_index_
   ue_mng(ue_mng_),
   du_params(du_params_),
   ran_res_release_timeout(ran_res_release_timeout_),
-  proc_logger(srslog::fetch_basic_logger("DU-MNG"), name(), ue_index)
+  proc_logger(ocudulog::fetch_basic_logger("DU-MNG"), name(), ue_index)
 {
 }
 

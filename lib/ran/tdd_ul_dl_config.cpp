@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned
 nof_active_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index, cyclic_prefix cp, bool is_dl)
@@ -48,48 +48,48 @@ nof_active_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index, cycl
   return 0;
 }
 
-bool srsran::has_active_tdd_dl_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
+bool ocudu::has_active_tdd_dl_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
 {
   return nof_active_symbols(cfg, slot_index, cyclic_prefix::NORMAL, true) > 0;
 }
 
-bool srsran::has_active_tdd_ul_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
+bool ocudu::has_active_tdd_ul_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
 {
   return nof_active_symbols(cfg, slot_index, cyclic_prefix::NORMAL, false) > 0;
 }
 
-bool srsran::is_tdd_full_dl_slot(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
+bool ocudu::is_tdd_full_dl_slot(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
 {
   return nof_active_symbols(cfg, slot_index, cyclic_prefix::NORMAL, true) == NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
 }
 
-bool srsran::is_tdd_full_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
+bool ocudu::is_tdd_full_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
 {
   return nof_active_symbols(cfg, slot_index, cyclic_prefix::NORMAL, false) == NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
 }
 
-bool srsran::is_tdd_partial_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
+bool ocudu::is_tdd_partial_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned slot_index)
 {
   const unsigned nof_symbols = nof_active_symbols(cfg, slot_index, cyclic_prefix::NORMAL, false);
   return nof_symbols != 0U and nof_symbols != NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
 }
 
 ofdm_symbol_range
-srsran::get_active_tdd_dl_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index, cyclic_prefix cp)
+ocudu::get_active_tdd_dl_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index, cyclic_prefix cp)
 {
   const unsigned nof_symbols = nof_active_symbols(cfg, slot_index, cp, true);
   return {0, nof_symbols};
 }
 
 ofdm_symbol_range
-srsran::get_active_tdd_ul_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index, cyclic_prefix cp)
+ocudu::get_active_tdd_ul_symbols(const tdd_ul_dl_config_common& cfg, unsigned slot_index, cyclic_prefix cp)
 {
   const unsigned nof_symbols      = nof_active_symbols(cfg, slot_index, cp, false);
   const unsigned symbols_per_slot = get_nsymb_per_slot(cp);
   return nof_symbols > 0 ? ofdm_symbol_range{symbols_per_slot - nof_symbols, symbols_per_slot} : ofdm_symbol_range{};
 }
 
-std::optional<unsigned> srsran::find_next_tdd_dl_slot(const tdd_ul_dl_config_common& cfg, unsigned start_slot_index)
+std::optional<unsigned> ocudu::find_next_tdd_dl_slot(const tdd_ul_dl_config_common& cfg, unsigned start_slot_index)
 {
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
@@ -103,8 +103,7 @@ std::optional<unsigned> srsran::find_next_tdd_dl_slot(const tdd_ul_dl_config_com
   return ret;
 }
 
-std::optional<unsigned> srsran::find_next_tdd_full_dl_slot(const tdd_ul_dl_config_common& cfg,
-                                                           unsigned                       start_slot_index)
+std::optional<unsigned> ocudu::find_next_tdd_full_dl_slot(const tdd_ul_dl_config_common& cfg, unsigned start_slot_index)
 {
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
@@ -118,7 +117,7 @@ std::optional<unsigned> srsran::find_next_tdd_full_dl_slot(const tdd_ul_dl_confi
   return ret;
 }
 
-std::optional<unsigned> srsran::find_next_tdd_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned start_slot_index)
+std::optional<unsigned> ocudu::find_next_tdd_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned start_slot_index)
 {
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
@@ -132,8 +131,7 @@ std::optional<unsigned> srsran::find_next_tdd_ul_slot(const tdd_ul_dl_config_com
   return ret;
 }
 
-std::optional<unsigned> srsran::find_next_tdd_full_ul_slot(const tdd_ul_dl_config_common& cfg,
-                                                           unsigned                       start_slot_index)
+std::optional<unsigned> ocudu::find_next_tdd_full_ul_slot(const tdd_ul_dl_config_common& cfg, unsigned start_slot_index)
 {
   const unsigned period = nof_slots_per_tdd_period(cfg);
 

@@ -12,12 +12,12 @@
 
 #include "gtpu_pdu.h"
 #include "gtpu_tunnel_base_tx.h"
-#include "srsran/gtpu/gtpu_echo_tx.h"
+#include "ocudu/gtpu/gtpu_echo_tx.h"
 #include <arpa/inet.h>
 #include <cstdint>
 #include <netinet/in.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used for transmission of GTP-U path management messages.
 class gtpu_echo_tx : public gtpu_tunnel_base_tx, public gtpu_echo_tx_interface
@@ -103,4 +103,4 @@ public:
 private:
   uint32_t sn_next = 0;
 };
-} // namespace srsran
+} // namespace ocudu

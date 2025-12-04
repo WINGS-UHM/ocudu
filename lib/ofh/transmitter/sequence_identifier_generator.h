@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <array>
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Sequence identifier generator.
@@ -35,14 +35,14 @@ public:
   /// Generates a new sequence identifier and returns it.
   uint8_t generate(unsigned eaxc)
   {
-    srsran_assert(eaxc < MAX_SUPPORTED_EAXC_ID_VALUE,
-                  "Invalid eAxC value '{}'. Maximum eAxC value is '{}'",
-                  eaxc,
-                  MAX_SUPPORTED_EAXC_ID_VALUE);
+    ocudu_assert(eaxc < MAX_SUPPORTED_EAXC_ID_VALUE,
+                 "Invalid eAxC value '{}'. Maximum eAxC value is '{}'",
+                 eaxc,
+                 MAX_SUPPORTED_EAXC_ID_VALUE);
 
     return counters[eaxc].fetch_add(1, std::memory_order_relaxed);
   }
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

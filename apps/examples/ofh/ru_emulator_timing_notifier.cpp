@@ -9,11 +9,11 @@
  */
 
 #include "ru_emulator_timing_notifier.h"
-#include "srsran/ran/cyclic_prefix.h"
+#include "ocudu/ran/cyclic_prefix.h"
 #include <future>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Difference between Unix seconds to GPS seconds.
@@ -81,8 +81,8 @@ static unsigned circular_distance(unsigned cur, unsigned prev, unsigned size)
   return (cur >= prev) ? (cur - prev) : (size + cur - prev);
 }
 
-ru_emulator_timing_notifier::ru_emulator_timing_notifier(srslog::basic_logger&  logger_,
-                                                         srsran::task_executor& executor_) :
+ru_emulator_timing_notifier::ru_emulator_timing_notifier(ocudulog::basic_logger& logger_,
+                                                         ocudu::task_executor&   executor_) :
   logger(logger_),
   executor(executor_),
   scs(subcarrier_spacing::kHz30),
@@ -149,7 +149,7 @@ void ru_emulator_timing_notifier::stop()
 
 void ru_emulator_timing_notifier::timing_loop()
 {
-  while (SRSRAN_LIKELY(status.load(std::memory_order_relaxed) == worker_status::running)) {
+  while (OCUDU_LIKELY(status.load(std::memory_order_relaxed) == worker_status::running)) {
     poll();
   }
 
@@ -175,10 +175,10 @@ void ru_emulator_timing_notifier::poll()
   }
 
   // Check if we have missed more than one symbol.
-  if (SRSRAN_UNLIKELY(delta > 1)) {
+  if (OCUDU_UNLIKELY(delta > 1)) {
     logger.info("RU emulator timing worker woke up late, skipped '{}' symbols", delta);
   }
-  if (SRSRAN_UNLIKELY(delta >= nof_symbols_per_slot)) {
+  if (OCUDU_UNLIKELY(delta >= nof_symbols_per_slot)) {
     logger.warning("RU emulator timing worker woke up late, sleep time has been '{}us', or equivalently, '{}' symbols",
                    std::chrono::duration_cast<std::chrono::microseconds>(delta * symbol_duration).count(),
                    delta);

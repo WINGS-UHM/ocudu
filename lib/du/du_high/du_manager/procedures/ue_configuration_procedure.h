@@ -12,11 +12,11 @@
 
 #include "../du_ue/du_ue_manager_repository.h"
 #include "procedure_logger.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/mac/mac_ue_configurator.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/mac/mac_ue_configurator.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class ue_configuration_procedure
 {
@@ -52,9 +52,9 @@ private:
   du_ue_manager_repository&            ue_mng;
   const du_manager_params&             du_params;
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("DU-MNG");
-  du_ue*                ue     = nullptr;
-  ue_procedure_logger   proc_logger;
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("DU-MNG");
+  du_ue*                  ue     = nullptr;
+  ue_procedure_logger     proc_logger;
 
   // Snapshot of the UE resources at the start of the UE configuration procedure.
   du_ue_resource_config          prev_ue_res_cfg;
@@ -69,5 +69,5 @@ private:
   std::vector<std::unique_ptr<du_ue_drb>> drbs_to_rem;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

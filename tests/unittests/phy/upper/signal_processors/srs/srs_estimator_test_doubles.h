@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_result.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"
 
-namespace srsran {
+namespace ocudu {
 
 class srs_estimator_dummy : public srs_estimator
 {
@@ -24,4 +24,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

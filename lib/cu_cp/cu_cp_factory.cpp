@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/cu_cp/cu_cp_factory.h"
+#include "ocudu/cu_cp/cu_cp_factory.h"
 #include "cu_cp_impl.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<srs_cu_cp::cu_cp> srsran::create_cu_cp(const srs_cu_cp::cu_cp_configuration& cfg_)
+std::unique_ptr<ocucp::cu_cp> ocudu::create_cu_cp(const ocucp::cu_cp_configuration& cfg_)
 {
-  return std::make_unique<srs_cu_cp::cu_cp_impl>(cfg_);
+  return std::make_unique<ocucp::cu_cp_impl>(cfg_);
 }

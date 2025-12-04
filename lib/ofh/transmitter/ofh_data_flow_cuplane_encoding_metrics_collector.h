@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 struct tx_data_flow_perf_metrics;
@@ -26,4 +26,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

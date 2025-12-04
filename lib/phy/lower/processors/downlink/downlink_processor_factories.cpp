@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/lower/processors/downlink/downlink_processor_factories.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_factories.h"
 #include "downlink_processor_impl.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -22,7 +22,7 @@ public:
   lower_phy_downlink_processor_factory_sw(std::shared_ptr<pdxch_processor_factory> pdxch_proc_factory_) :
     pdxch_proc_factory(std::move(pdxch_proc_factory_))
   {
-    srsran_assert(pdxch_proc_factory, "Invalid PDxCH processor factory.");
+    ocudu_assert(pdxch_proc_factory, "Invalid PDxCH processor factory.");
   }
 
   std::unique_ptr<lower_phy_downlink_processor> create(const downlink_processor_configuration& config,
@@ -54,7 +54,7 @@ private:
 } // namespace
 
 std::shared_ptr<lower_phy_downlink_processor_factory>
-srsran::create_downlink_processor_factory_sw(std::shared_ptr<pdxch_processor_factory> pdxch_proc_factory)
+ocudu::create_downlink_processor_factory_sw(std::shared_ptr<pdxch_processor_factory> pdxch_proc_factory)
 {
   return std::make_shared<lower_phy_downlink_processor_factory_sw>(std::move(pdxch_proc_factory));
 }

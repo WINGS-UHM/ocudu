@@ -9,19 +9,19 @@
  */
 
 #include "pxsch_bler_test_channel_emulator.h"
-#include "srsran/adt/span.h"
-#include "srsran/srsvec/add.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocuduvec/add.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/zero.h"
 #include <algorithm>
 #include <cmath>
 #include <set>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 unsigned channel_emulator::concurrent_channel_emulator::seed = 0;
 
@@ -203,11 +203,11 @@ void channel_emulator::run(resource_grid_writer& rx_grid, const resource_grid_re
         }
 
         // Multiply tap frequency response by a fading distribution tap.
-        srsvec::sc_prod(tap_channel, taps_channel_response.get_view({i_tap}), tap);
+        ocuduvec::sc_prod(tap_channel, taps_channel_response.get_view({i_tap}), tap);
 
         // Accumulate tap frequency response. Bypass accumulation for the first tap.
         if (i_tap != 0) {
-          srsvec::add(chan_freq_respone, tap_channel, chan_freq_respone);
+          ocuduvec::add(chan_freq_respone, tap_channel, chan_freq_respone);
         }
       }
     }
@@ -253,20 +253,20 @@ void channel_emulator::concurrent_channel_emulator::run(resource_grid_writer&   
     tx_grid.get(single_ofdm_symbol, i_tx_port, i_symbol, 0);
 
     // Apply frequency domain fading channel.
-    srsvec::prod(single_ofdm_symbol, freq_response.get_view({i_rx_port, i_tx_port}), single_ofdm_symbol);
+    ocuduvec::prod(single_ofdm_symbol, freq_response.get_view({i_rx_port, i_tx_port}), single_ofdm_symbol);
 
     // Skip accumulating for the first transmit port.
     if (i_tx_port != 0) {
-      srsvec::add(temp_ofdm_symbol, single_ofdm_symbol, temp_ofdm_symbol);
+      ocuduvec::add(temp_ofdm_symbol, single_ofdm_symbol, temp_ofdm_symbol);
     }
   }
 
   // Apply time-domain coefficient.
-  srsvec::sc_prod(temp_ofdm_symbol, temp_ofdm_symbol, time_coeff);
+  ocuduvec::sc_prod(temp_ofdm_symbol, temp_ofdm_symbol, time_coeff);
 
   // Apply AWGN.
   std::generate(temp_single_ofdm_symbol.begin(), temp_single_ofdm_symbol.end(), [this]() { return dist_awgn(rgen); });
-  srsvec::add(temp_ofdm_symbol, temp_single_ofdm_symbol, temp_ofdm_symbol);
+  ocuduvec::add(temp_ofdm_symbol, temp_single_ofdm_symbol, temp_ofdm_symbol);
 
   // Corrupt REs.
   std::set<unsigned> corrupted_i_subc;

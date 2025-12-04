@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/generic_functions/precoding/precoding_factories.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct channel_topology {
   unsigned nof_ports;

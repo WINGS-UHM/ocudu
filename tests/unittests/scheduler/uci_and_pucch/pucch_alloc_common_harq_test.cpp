@@ -12,7 +12,7 @@
 #include "uci_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 ////////////    Structs with expected parameters and PUCCH sched INPUT     ////////////
 

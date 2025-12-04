@@ -11,16 +11,16 @@
 #include "e2_impl.h"
 #include "e2ap_asn1_helpers.h"
 #include "procedures/e2_connection_update_procedure.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/e2/e2.h"
-#include "srsran/ran/nr_cgi.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/ran/nr_cgi.h"
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 using namespace asn1;
 
-e2_impl::e2_impl(srslog::basic_logger&     logger_,
+e2_impl::e2_impl(ocudulog::basic_logger&   logger_,
                  const e2ap_configuration& cfg_,
                  e2ap_e2agent_notifier&    agent_notifier_,
                  timer_factory             timers_,

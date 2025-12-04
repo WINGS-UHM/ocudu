@@ -11,10 +11,10 @@
 #pragma once
 
 #include "gtpu_tunnel_base_rx.h"
-#include "srsran/gtpu/gtpu_echo_tx.h"
-#include "srsran/psup/psup_packing.h"
+#include "ocudu/gtpu/gtpu_echo_tx.h"
+#include "ocudu/psup/psup_packing.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used for reception of GTP-U path management messages.
 class gtpu_echo_rx : public gtpu_tunnel_base_rx
@@ -98,4 +98,4 @@ private:
   gtpu_echo_tx_interface& tx;
   psup_packing            psup_packer;
 };
-} // namespace srsran
+} // namespace ocudu

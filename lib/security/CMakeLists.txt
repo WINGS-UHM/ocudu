@@ -20,6 +20,6 @@ set(SOURCES
   zuc.cpp
 )
 
-add_library(srsran_security STATIC ${SOURCES})
-target_include_directories(srsran_security PUBLIC ${SEC_INCLUDE_DIRS})
-target_link_libraries(srsran_security ${SEC_LIBRARIES})
+add_library(ocudu_security STATIC ${SOURCES})
+target_include_directories(ocudu_security PUBLIC ${SEC_INCLUDE_DIRS})
+target_link_libraries(ocudu_security ${SEC_LIBRARIES})

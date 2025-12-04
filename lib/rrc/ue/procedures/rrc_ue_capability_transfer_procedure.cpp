@@ -11,8 +11,8 @@
 #include "rrc_ue_capability_transfer_procedure.h"
 #include "../rrc_asn1_helpers.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 rrc_ue_capability_transfer_procedure::rrc_ue_capability_transfer_procedure(
@@ -53,7 +53,7 @@ void rrc_ue_capability_transfer_procedure::operator()(coro_context<async_task<bo
         if (ue_cap_rat_container.rat_type.value == asn1::rrc_nr::rat_type_e::nr) {
           asn1::cbit_ref            bref{ue_cap_rat_container.ue_cap_rat_container.copy()};
           asn1::rrc_nr::ue_nr_cap_s ue_nr_cap;
-          if (ue_nr_cap.unpack(bref) != asn1::SRSASN_SUCCESS) {
+          if (ue_nr_cap.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
             logger.log_error("Error unpacking UE Capabilities");
             continue;
           }

@@ -13,13 +13,13 @@
 #include "adapters/gtpu_adapters.h"
 #include "ngu_session_manager.h"
 #include "ue_manager.h"
-#include "srsran/cu_up/cu_up_config.h"
-#include "srsran/cu_up/cu_up_manager.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
+#include "ocudu/cu_up/cu_up_config.h"
+#include "ocudu/cu_up/cu_up_manager.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
 #include <memory>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// CU-UP manager implementation configuration.
 struct cu_up_manager_impl_config {
@@ -66,7 +66,7 @@ public:
 
   void schedule_cu_up_async_task(async_task<void> task) override;
 
-  void schedule_ue_async_task(srs_cu_up::ue_index_t ue_index, async_task<void> task) override;
+  void schedule_ue_async_task(ocuup::ue_index_t ue_index, async_task<void> task) override;
 
   // cu_up_e1ap_connection_notifier
   void on_e1ap_connection_establish() override { e1ap_connected = true; }
@@ -106,7 +106,7 @@ private:
   timer_manager&                        timers;
 
   // Logger
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("CU-UP", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-UP", false);
 
   // Components
   std::atomic<bool>           e1ap_connected = {false};
@@ -120,4 +120,4 @@ private:
   fifo_async_task_scheduler& cu_up_task_scheduler;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/slot_point.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Atomically compares and updates the values of the passed atomics if the respective condition is true.
 inline void update_minmax(uint64_t new_value, std::atomic<uint64_t>& max, std::atomic<uint64_t>& min)
@@ -78,4 +78,4 @@ inline void update_slotmin(slot_point slot, uint64_t duration_ns, std::atomic<ui
   }
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/ran/rnti.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <atomic>
 #include <limits>
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Table used by the MAC layer to convert from RNTI to a value in a thread-safe manner.
 template <typename T, T SentinelValue>
@@ -48,8 +48,8 @@ public:
   /// \return Returns true if the RNTI does not yet exist, otherwise false.
   bool add_ue(rnti_t crnti, T value)
   {
-    srsran_assert(is_crnti(crnti), "Invalid c-rnti={}", crnti);
-    srsran_assert(value != SentinelValue, "Invalid rnti_value_table value={}", fmt::underlying(value));
+    ocudu_assert(is_crnti(crnti), "Invalid c-rnti={}", crnti);
+    ocudu_assert(value != SentinelValue, "Invalid rnti_value_table value={}", fmt::underlying(value));
 
     std::atomic<T>& ue_pos      = get(crnti);
     T               prev_ue_idx = ue_pos.exchange(value, std::memory_order_relaxed);
@@ -64,13 +64,13 @@ public:
   /// Removes the given RNTI from the table.
   void rem_ue(rnti_t crnti)
   {
-    srsran_assert(is_crnti(crnti), "Invalid c-rnti={}", crnti);
+    ocudu_assert(is_crnti(crnti), "Invalid c-rnti={}", crnti);
 
     std::atomic<T>& ue_pos      = get(crnti);
     T               prev_ue_idx = ue_pos.exchange(SentinelValue, std::memory_order_relaxed);
     if (prev_ue_idx != SentinelValue) {
       nof_ues_.fetch_sub(1, std::memory_order_relaxed);
-      srsran_assert(nof_ues_.load(std::memory_order_relaxed) <= RNTI_RANGE, "Invalid rnti_table state");
+      ocudu_assert(nof_ues_.load(std::memory_order_relaxed) <= RNTI_RANGE, "Invalid rnti_table state");
     }
   }
 
@@ -82,7 +82,7 @@ public:
 
   T operator[](rnti_t crnti) const
   {
-    srsran_sanity_check(is_crnti(crnti), "Invalid c-rnti={}", crnti);
+    ocudu_sanity_check(is_crnti(crnti), "Invalid c-rnti={}", crnti);
 
     const std::atomic<T>& ue_pos = get(crnti);
     return ue_pos.load(std::memory_order_relaxed);
@@ -101,4 +101,4 @@ private:
   std::atomic<size_t> nof_ues_{0};
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,11 +11,11 @@
 #pragma once
 
 #include "scheduler_policy.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/support/math/exponential_averager.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/support/math/exponential_averager.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Time-domain QoS-aware scheduler policy.
 class scheduler_time_qos final : public scheduler_policy
@@ -95,4 +95,4 @@ private:
   slot_point last_pusch_slot;
 };
 
-} // namespace srsran
+} // namespace ocudu

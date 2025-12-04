@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Identifiers that associate a UE in the F1AP-CU.
 struct f1ap_ue_ids {
@@ -23,5 +23,5 @@ struct f1ap_ue_ids {
   std::optional<gnb_du_ue_f1ap_id_t> du_ue_f1ap_id;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

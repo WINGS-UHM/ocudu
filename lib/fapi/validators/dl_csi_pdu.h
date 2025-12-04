@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 struct dl_csi_rs_pdu;
@@ -20,4 +20,4 @@ struct validator_report;
 bool validate_dl_csi_pdu(const dl_csi_rs_pdu& pdu, validator_report& report);
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

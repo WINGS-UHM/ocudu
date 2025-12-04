@@ -11,20 +11,20 @@
 #include "../../../../support/resource_grid_test_doubles.h"
 #include "../../../modulation/ofdm_demodulator_test_doubles.h"
 #include "puxch_processor_notifier_test_doubles.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_factories.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, subcarrier_spacing scs)
 {
@@ -105,7 +105,7 @@ bool operator==(const baseband_gateway_buffer_reader& left, const baseband_gatew
   return true;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using LowerPhyUplinkProcessorParams = std::tuple<unsigned, sampling_rate, subcarrier_spacing, cyclic_prefix>;
 
@@ -328,7 +328,7 @@ TEST_P(LowerPhyUplinkProcessorFixture, FlowFloodRequest)
           ASSERT_EQ(ofdm_demod_entries.size(), nof_rx_ports);
           for (unsigned i_port = 0; i_port != nof_rx_ports; ++i_port) {
             const auto& ofdm_demod_entry = ofdm_demod_entries[i_port];
-            srsvec::convert(cf_buffer, buffer[i_port], INT16_MAX);
+            ocuduvec::convert(cf_buffer, buffer[i_port], INT16_MAX);
 
             ASSERT_EQ(ofdm_demod_entry.input, cf_buffer);
             ASSERT_EQ(static_cast<const void*>(ofdm_demod_entry.grid), static_cast<const void*>(&rg_writer_spy));
@@ -426,7 +426,7 @@ TEST_P(LowerPhyUplinkProcessorFixture, LateRequest)
           ASSERT_EQ(ofdm_demod_entries.size(), nof_rx_ports);
           for (unsigned i_port = 0; i_port != nof_rx_ports; ++i_port) {
             const auto& ofdm_demod_entry = ofdm_demod_entries[i_port];
-            srsvec::convert(cf_buffer, buffer[i_port], INT16_MAX);
+            ocuduvec::convert(cf_buffer, buffer[i_port], INT16_MAX);
 
             ASSERT_EQ(ofdm_demod_entry.input, cf_buffer);
             ASSERT_EQ(static_cast<const void*>(ofdm_demod_entry.grid), static_cast<const void*>(rg_spy_ptr));

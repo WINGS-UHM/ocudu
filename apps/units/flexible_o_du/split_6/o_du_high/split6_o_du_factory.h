@@ -11,10 +11,10 @@
 #pragma once
 
 #include "apps/units/flexible_o_du/o_du_unit.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 struct split6_o_du_unit_config;
 
@@ -23,4 +23,4 @@ o_du_unit create_o_du_split6(const split6_o_du_unit_config&                  du_
                              const o_du_unit_dependencies&                   du_dependencies,
                              std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> fapi_adaptor);
 
-} // namespace srsran
+} // namespace ocudu

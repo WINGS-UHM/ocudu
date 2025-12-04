@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/pdcch/dci_packing.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Pseudo-random generator.
 static std::mt19937 rgen(1234);

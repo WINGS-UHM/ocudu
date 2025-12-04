@@ -13,11 +13,11 @@
 // This file was generated using the following MATLAB class on 02-10-2025 (seed 0):
 //   + "srsSRSEstimatorUnittest.m"
 
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_result.h"
-#include "srsran/ran/phy_time_unit.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"
+#include "ocudu/ran/phy_time_unit.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_context {
   srs_estimator_configuration config;
@@ -106,4 +106,4 @@ static const std::vector<test_case_t> srs_estimator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

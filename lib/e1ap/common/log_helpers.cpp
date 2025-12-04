@@ -10,10 +10,10 @@
 
 #include "log_helpers.h"
 #include "../common/e1ap_asn1_utils.h"
-#include "srsran/support/format/custom_formattable.h"
-#include "srsran/support/format/fmt_basic_parser.h"
+#include "ocudu/support/format/custom_formattable.h"
+#include "ocudu/support/format/fmt_basic_parser.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace fmt {
 
@@ -30,11 +30,11 @@ struct formatter<asn1::e1ap::e1ap_pdu_c> : public basic_parser {
 
 } // namespace fmt
 
-static void log_common_message(srslog::basic_logger& logger,
-                               bool                  is_rx,
-                               uint8_t               transaction_id,
-                               const e1ap_message&   e1ap_msg,
-                               bool                  json_enabled)
+static void log_common_message(ocudulog::basic_logger& logger,
+                               bool                    is_rx,
+                               uint8_t                 transaction_id,
+                               const e1ap_message&     e1ap_msg,
+                               bool                    json_enabled)
 {
   const char* msg_name = get_message_type_str(e1ap_msg.pdu);
   const char* rx_str   = is_rx ? "Rx" : "Tx";
@@ -47,11 +47,11 @@ static void log_common_message(srslog::basic_logger& logger,
 }
 
 template <typename UeIndex>
-void srsran::log_e1ap_pdu(srslog::basic_logger&         logger,
-                          bool                          is_rx,
-                          const std::optional<UeIndex>& ue_id,
-                          const e1ap_message&           e1ap_msg,
-                          bool                          json_enabled)
+void ocudu::log_e1ap_pdu(ocudulog::basic_logger&       logger,
+                         bool                          is_rx,
+                         const std::optional<UeIndex>& ue_id,
+                         const e1ap_message&           e1ap_msg,
+                         bool                          json_enabled)
 {
   if (not logger.info.enabled()) {
     return;
@@ -87,13 +87,13 @@ void srsran::log_e1ap_pdu(srslog::basic_logger&         logger,
   }
 }
 
-template void srsran::log_e1ap_pdu<srs_cu_cp::ue_index_t>(srslog::basic_logger&                       logger,
-                                                          bool                                        is_rx,
-                                                          const std::optional<srs_cu_cp::ue_index_t>& ue_id,
-                                                          const e1ap_message&                         e1ap_msg,
-                                                          bool                                        json_enabled);
-template void srsran::log_e1ap_pdu<srs_cu_up::ue_index_t>(srslog::basic_logger&                       logger,
-                                                          bool                                        is_rx,
-                                                          const std::optional<srs_cu_up::ue_index_t>& ue_id,
-                                                          const e1ap_message&                         e1ap_msg,
-                                                          bool                                        json_enabled);
+template void ocudu::log_e1ap_pdu<ocucp::ue_index_t>(ocudulog::basic_logger&                 logger,
+                                                     bool                                    is_rx,
+                                                     const std::optional<ocucp::ue_index_t>& ue_id,
+                                                     const e1ap_message&                     e1ap_msg,
+                                                     bool                                    json_enabled);
+template void ocudu::log_e1ap_pdu<ocuup::ue_index_t>(ocudulog::basic_logger&                 logger,
+                                                     bool                                    is_rx,
+                                                     const std::optional<ocuup::ue_index_t>& ue_id,
+                                                     const e1ap_message&                     e1ap_msg,
+                                                     bool                                    json_enabled);

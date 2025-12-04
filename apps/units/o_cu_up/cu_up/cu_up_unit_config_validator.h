@@ -12,9 +12,9 @@
 
 #include "cu_up_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Validates the given CU-UP unit configuration. Returns true on success, false otherwise.
 bool validate_cu_up_unit_config(const cu_up_unit_config& config, bool tracing_enabled);
 
-} // namespace srsran
+} // namespace ocudu

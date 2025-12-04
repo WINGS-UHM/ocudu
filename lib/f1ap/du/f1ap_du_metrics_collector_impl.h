@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/f1ap/du/f1ap_du_metrics_collector.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/f1ap/du/f1ap_du_metrics_collector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct f1ap_message;
 
-namespace srs_du {
+namespace odu {
 
 /// Collector of F1AP metrics.
 class f1ap_metrics_collector_impl final : public f1ap_metrics_collector
@@ -47,5 +47,5 @@ private:
   slotted_id_vector<du_ue_index_t, f1ap_metrics_report::ue_metrics> ues;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

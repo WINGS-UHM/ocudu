@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/rrc/rrc_types.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/rrc/rrc_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Fills ASN.1 RRC Setup struct.
 /// \param[out] rrc_setup The RRC Setup ASN.1 struct to fill.
@@ -50,5 +50,5 @@ void fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s&               
                                        uint8_t                                      rrc_transaction_id,
                                        const rrc_reconfiguration_procedure_request& rrc_reconf);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

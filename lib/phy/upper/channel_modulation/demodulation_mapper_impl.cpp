@@ -13,10 +13,10 @@
 #include "demodulation_mapper_qam256.h"
 #include "demodulation_mapper_qam64.h"
 #include "demodulation_mapper_qpsk.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static log_likelihood_ratio demod_BPSK_symbol(cf_t z, float noise_var, float range_limit)
 {
@@ -66,8 +66,8 @@ void demodulation_mapper_impl::demodulate_soft(span<log_likelihood_ratio> llrs,
                                                span<const float>          noise_vars,
                                                modulation_scheme          mod)
 {
-  srsran_assert(symbols.size() == noise_vars.size(), "Inputs symbols and noise_vars must have the same length.");
-  srsran_assert(symbols.size() * get_bits_per_symbol(mod) == llrs.size(), "Input and output lengths are incompatible.");
+  ocudu_assert(symbols.size() == noise_vars.size(), "Inputs symbols and noise_vars must have the same length.");
+  ocudu_assert(symbols.size() * get_bits_per_symbol(mod) == llrs.size(), "Input and output lengths are incompatible.");
 
   switch (mod) {
     case modulation_scheme::BPSK:
@@ -89,6 +89,6 @@ void demodulation_mapper_impl::demodulate_soft(span<log_likelihood_ratio> llrs,
       demodulate_soft_QAM256(llrs, symbols, noise_vars);
       break;
     default:
-      srsran_assertion_failure("Invalid modulation scheme.");
+      ocudu_assertion_failure("Invalid modulation scheme.");
   }
 }

@@ -1,0 +1,40 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/ran/pdsch/pdsch_context.h"
+#include "ocudu/support/format/delimited_formatter.h"
+
+namespace fmt {
+
+/// \brief Custom formatter for \c pdsch_context.
+template <>
+struct formatter<ocudu::pdsch_context> {
+public:
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return helper.parse(ctx);
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::pdsch_context& context, FormatContext& ctx) const
+  {
+    helper.format_always(ctx, "h_id={}", fmt::underlying(context.h_id));
+    helper.format_always(ctx, "k1={}", context.k1);
+    return ctx.out();
+  }
+
+private:
+  ocudu::delimited_formatter helper;
+};
+
+} // namespace fmt

@@ -10,42 +10,42 @@
 
 #pragma once
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e1ap/e1ap_ies.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/ran/cause/e1ap_cause.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/qos/qos_prio_level.h"
-#include "srsran/ran/s_nssai.h"
-#include "srsran/sdap/sdap_config.h"
-#include "srsran/security/security.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e1ap/e1ap_ies.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/ran/cause/e1ap_cause.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/qos/qos_prio_level.h"
+#include "ocudu/ran/s_nssai.h"
+#include "ocudu/sdap/sdap_config.h"
+#include "ocudu/security/security.h"
+#include "ocudu/support/error_handling.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Converts type \c ciphering_algorithm to an E1AP ASN.1 type.
 /// \param[in] ciph_algo Cyphering Algorithm object.
 /// \return The E1AP ASN.1 object where the result of the conversion is stored.
 inline asn1::e1ap::ciphering_algorithm_e
-ciphering_algorithm_to_e1ap_asn1(const srsran::security::ciphering_algorithm& ciph_algo)
+ciphering_algorithm_to_e1ap_asn1(const ocudu::security::ciphering_algorithm& ciph_algo)
 {
   asn1::e1ap::ciphering_algorithm_e asn1_ciph_algo;
 
   switch (ciph_algo) {
-    case srsran::security::ciphering_algorithm::nea0:
+    case ocudu::security::ciphering_algorithm::nea0:
       asn1_ciph_algo = asn1::e1ap::ciphering_algorithm_opts::nea0;
       break;
-    case srsran::security::ciphering_algorithm::nea1:
+    case ocudu::security::ciphering_algorithm::nea1:
       asn1_ciph_algo = asn1::e1ap::ciphering_algorithm_opts::c_neg128_nea1;
       break;
-    case srsran::security::ciphering_algorithm::nea2:
+    case ocudu::security::ciphering_algorithm::nea2:
       asn1_ciph_algo = asn1::e1ap::ciphering_algorithm_opts::c_neg128_nea2;
       break;
-    case srsran::security::ciphering_algorithm::nea3:
+    case ocudu::security::ciphering_algorithm::nea3:
       asn1_ciph_algo = asn1::e1ap::ciphering_algorithm_opts::c_neg128_nea3;
       break;
     default:
@@ -59,23 +59,23 @@ ciphering_algorithm_to_e1ap_asn1(const srsran::security::ciphering_algorithm& ci
 /// \brief Converts E1AP ASN.1 type to type and \c ciphering_algorithm type.
 /// \param[in] asn1_ciph_algo ASN.1 Cyphering Algorithm object.
 /// \return The \c ciphering_algorithm object where the result of the conversion is stored.
-inline srsran::security::ciphering_algorithm
+inline ocudu::security::ciphering_algorithm
 e1ap_asn1_to_ciphering_algorithm(const asn1::e1ap::ciphering_algorithm_e& asn1_ciph_algo)
 {
-  srsran::security::ciphering_algorithm ciph_algo;
+  ocudu::security::ciphering_algorithm ciph_algo;
 
   switch (asn1_ciph_algo) {
     case asn1::e1ap::ciphering_algorithm_opts::nea0:
-      ciph_algo = srsran::security::ciphering_algorithm::nea0;
+      ciph_algo = ocudu::security::ciphering_algorithm::nea0;
       break;
     case asn1::e1ap::ciphering_algorithm_opts::c_neg128_nea1:
-      ciph_algo = srsran::security::ciphering_algorithm::nea1;
+      ciph_algo = ocudu::security::ciphering_algorithm::nea1;
       break;
     case asn1::e1ap::ciphering_algorithm_opts::c_neg128_nea2:
-      ciph_algo = srsran::security::ciphering_algorithm::nea2;
+      ciph_algo = ocudu::security::ciphering_algorithm::nea2;
       break;
     case asn1::e1ap::ciphering_algorithm_opts::c_neg128_nea3:
-      ciph_algo = srsran::security::ciphering_algorithm::nea3;
+      ciph_algo = ocudu::security::ciphering_algorithm::nea3;
       break;
     default:
       report_fatal_error("Invalid ciphering algorithm ({})", fmt::underlying(asn1_ciph_algo.value));
@@ -88,21 +88,21 @@ e1ap_asn1_to_ciphering_algorithm(const asn1::e1ap::ciphering_algorithm_e& asn1_c
 /// \param int_algo Integrity Protection Algorithm object.
 /// \return The E1AP ASN.1 object where the result of the conversion is stored.
 inline asn1::e1ap::integrity_protection_algorithm_e
-integrity_algorithm_to_e1ap_asn1(const srsran::security::integrity_algorithm& int_algo)
+integrity_algorithm_to_e1ap_asn1(const ocudu::security::integrity_algorithm& int_algo)
 {
   asn1::e1ap::integrity_protection_algorithm_e asn1_int_algo = {};
 
   switch (int_algo) {
-    case srsran::security::integrity_algorithm::nia0:
+    case ocudu::security::integrity_algorithm::nia0:
       asn1_int_algo = asn1::e1ap::integrity_protection_algorithm_opts::nia0;
       break;
-    case srsran::security::integrity_algorithm::nia1:
+    case ocudu::security::integrity_algorithm::nia1:
       asn1_int_algo = asn1::e1ap::integrity_protection_algorithm_opts::i_neg128_nia1;
       break;
-    case srsran::security::integrity_algorithm::nia2:
+    case ocudu::security::integrity_algorithm::nia2:
       asn1_int_algo = asn1::e1ap::integrity_protection_algorithm_opts::i_neg128_nia2;
       break;
-    case srsran::security::integrity_algorithm::nia3:
+    case ocudu::security::integrity_algorithm::nia3:
       asn1_int_algo = asn1::e1ap::integrity_protection_algorithm_opts::i_neg128_nia3;
       break;
     default:
@@ -115,23 +115,23 @@ integrity_algorithm_to_e1ap_asn1(const srsran::security::integrity_algorithm& in
 /// \brief Converts E1AP ASN.1 type to type and \c integrity_algorithm type.
 /// \param[in] asn1_int_algo ASN.1 Integrity Protection Algorithm object.
 /// \return The \c integrity_algorithm object where the result of the conversion is stored.
-inline srsran::security::integrity_algorithm
+inline ocudu::security::integrity_algorithm
 e1ap_asn1_to_integrity_algorithm(const asn1::e1ap::integrity_protection_algorithm_e& asn1_int_algo)
 {
-  srsran::security::integrity_algorithm int_algo;
+  ocudu::security::integrity_algorithm int_algo;
 
   switch (asn1_int_algo) {
     case asn1::e1ap::integrity_protection_algorithm_opts::nia0:
-      int_algo = srsran::security::integrity_algorithm::nia0;
+      int_algo = ocudu::security::integrity_algorithm::nia0;
       break;
     case asn1::e1ap::integrity_protection_algorithm_opts::i_neg128_nia1:
-      int_algo = srsran::security::integrity_algorithm::nia1;
+      int_algo = ocudu::security::integrity_algorithm::nia1;
       break;
     case asn1::e1ap::integrity_protection_algorithm_opts::i_neg128_nia2:
-      int_algo = srsran::security::integrity_algorithm::nia2;
+      int_algo = ocudu::security::integrity_algorithm::nia2;
       break;
     case asn1::e1ap::integrity_protection_algorithm_opts::i_neg128_nia3:
-      int_algo = srsran::security::integrity_algorithm::nia3;
+      int_algo = ocudu::security::integrity_algorithm::nia3;
       break;
     default:
       report_fatal_error("Invalid integrity protection algorithm ({})", fmt::underlying(asn1_int_algo.value));
@@ -143,7 +143,7 @@ e1ap_asn1_to_integrity_algorithm(const asn1::e1ap::integrity_protection_algorith
 /// \brief Convert \c s_nssai_t type to E1AP ASN1 s-NSSAI.
 /// \param snssai The s-NSSAI type.
 /// \return The E1AP ASN.1 object where the result of the conversion is stored.
-inline asn1::e1ap::snssai_s snssai_to_e1ap_asn1(srsran::s_nssai_t snssai)
+inline asn1::e1ap::snssai_s snssai_to_e1ap_asn1(ocudu::s_nssai_t snssai)
 {
   asn1::e1ap::snssai_s asn1_snssai;
   asn1_snssai.sst.from_number(snssai.sst.value());
@@ -158,9 +158,9 @@ inline asn1::e1ap::snssai_s snssai_to_e1ap_asn1(srsran::s_nssai_t snssai)
 /// \brief Convert E1AP ASN1 s-NSSAI to \c s_nssai_t type.
 /// \param asn1_snssai The E1AP ASN1 s-NSSAI.
 /// \return The \c s_nssai_t type object where the result of the conversion is stored.
-inline srsran::s_nssai_t e1ap_asn1_to_snssai(asn1::e1ap::snssai_s asn1_snssai)
+inline ocudu::s_nssai_t e1ap_asn1_to_snssai(asn1::e1ap::snssai_s asn1_snssai)
 {
-  srsran::s_nssai_t snssai;
+  ocudu::s_nssai_t snssai;
   snssai.sst = slice_service_type{(uint8_t)asn1_snssai.sst.to_number()};
 
   if (asn1_snssai.sd_present) {
@@ -240,7 +240,7 @@ inline sdap_hdr_ul_cfg e1ap_asn1_to_sdap_hdr_ul_cfg(asn1::e1ap::sdap_hdr_ul_opts
       hdr_cfg = sdap_hdr_ul_cfg::present;
       break;
     default:
-      srsran_assertion_failure("Invalid SDAP-Header-UL option ({})", fmt::underlying(asn1_hdr_ul_opts));
+      ocudu_assertion_failure("Invalid SDAP-Header-UL option ({})", fmt::underlying(asn1_hdr_ul_opts));
       hdr_cfg = {};
   }
 
@@ -259,7 +259,7 @@ inline sdap_hdr_dl_cfg e1ap_asn1_to_sdap_hdr_dl_cfg(asn1::e1ap::sdap_hdr_dl_opts
       hdr_cfg = sdap_hdr_dl_cfg::present;
       break;
     default:
-      srsran_assertion_failure("Invalid SDAP-Header-DL option ({})", fmt::underlying(asn1_hdr_dl_opts));
+      ocudu_assertion_failure("Invalid SDAP-Header-DL option ({})", fmt::underlying(asn1_hdr_dl_opts));
       hdr_cfg = {};
   }
 
@@ -283,15 +283,15 @@ inline sdap_config_t e1ap_asn1_to_sdap_config(asn1::e1ap::sdap_cfg_s asn1_sdap_c
 /// \brief Converts \c rlc_mode type to an E1AP ASN.1 type.
 /// \param rlc_mod rlc_mode type.
 /// \return The E1AP ASN.1 object where the result of the conversion is stored.
-inline asn1::e1ap::rlc_mode_e rlc_mode_to_asn1(srsran::pdcp_rlc_mode rlc_mod)
+inline asn1::e1ap::rlc_mode_e rlc_mode_to_asn1(ocudu::pdcp_rlc_mode rlc_mod)
 {
   asn1::e1ap::rlc_mode_e asn1_rlc_mode = {};
 
   switch (rlc_mod) {
-    case srsran::pdcp_rlc_mode::um:
+    case ocudu::pdcp_rlc_mode::um:
       asn1_rlc_mode = asn1::e1ap::rlc_mode_opts::rlc_um_bidirectional;
       break;
-    case srsran::pdcp_rlc_mode::am:
+    case ocudu::pdcp_rlc_mode::am:
       asn1_rlc_mode = asn1::e1ap::rlc_mode_opts::rlc_am;
       break;
     default:
@@ -304,18 +304,18 @@ inline asn1::e1ap::rlc_mode_e rlc_mode_to_asn1(srsran::pdcp_rlc_mode rlc_mod)
 /// \brief Converts E1AP ASN.1 type to an \c rlc_mode type.
 /// \param asn1_rlc_mod E1AP ASN.1 type.
 /// \return The rlc_mode object where the result of the conversion is stored.
-inline srsran::pdcp_rlc_mode asn1_to_rlc_mode(asn1::e1ap::rlc_mode_e asn1_rlc_mod)
+inline ocudu::pdcp_rlc_mode asn1_to_rlc_mode(asn1::e1ap::rlc_mode_e asn1_rlc_mod)
 {
-  srsran::pdcp_rlc_mode rlc_mode;
+  ocudu::pdcp_rlc_mode rlc_mode;
 
   switch (asn1_rlc_mod) {
     case asn1::e1ap::rlc_mode_opts::rlc_um_bidirectional:
     case asn1::e1ap::rlc_mode_opts::rlc_um_unidirectional_ul:
     case asn1::e1ap::rlc_mode_opts::rlc_um_unidirectional_dl:
-      rlc_mode = srsran::pdcp_rlc_mode::um;
+      rlc_mode = ocudu::pdcp_rlc_mode::um;
       break;
     case asn1::e1ap::rlc_mode_opts::rlc_am:
-      rlc_mode = srsran::pdcp_rlc_mode::am;
+      rlc_mode = ocudu::pdcp_rlc_mode::am;
       break;
     default:
       report_fatal_error("Invalid RLC mode: {}", asn1_rlc_mod.to_string());
@@ -1371,7 +1371,7 @@ inline void asn1_to_security_result(security_result_t& security_result, const as
           static_cast<integrity_protection_result_t>(asn1obj.integrity_protection_result.value);
       break;
     default:
-      srslog::fetch_basic_logger("E1AP").error("Cannot convert security result to E1AP type");
+      ocudulog::fetch_basic_logger("E1AP").error("Cannot convert security result to E1AP type");
   }
 
   switch (asn1obj.confidentiality_protection_result) {
@@ -1381,7 +1381,7 @@ inline void asn1_to_security_result(security_result_t& security_result, const as
           static_cast<confidentiality_protection_result_t>(asn1obj.confidentiality_protection_result.value);
       break;
     default:
-      srslog::fetch_basic_logger("E1AP").error("Cannot convert security result to E1AP type");
+      ocudulog::fetch_basic_logger("E1AP").error("Cannot convert security result to E1AP type");
   }
 }
 
@@ -1427,7 +1427,7 @@ inline void asn1_to_security_indication(security_indication_t& security_ind, con
           static_cast<integrity_protection_indication_t>(asn1obj.integrity_protection_ind.value);
       break;
     default:
-      srslog::fetch_basic_logger("E1AP").error("Cannot convert security indication to E1AP type");
+      ocudulog::fetch_basic_logger("E1AP").error("Cannot convert security indication to E1AP type");
   }
 
   switch (asn1obj.confidentiality_protection_ind) {
@@ -1438,7 +1438,7 @@ inline void asn1_to_security_indication(security_indication_t& security_ind, con
           static_cast<confidentiality_protection_indication_t>(asn1obj.confidentiality_protection_ind.value);
       break;
     default:
-      srslog::fetch_basic_logger("E1AP").error("Cannot convert security indication to E1AP type");
+      ocudulog::fetch_basic_logger("E1AP").error("Cannot convert security indication to E1AP type");
   }
 }
 
@@ -1463,10 +1463,10 @@ inline bool asn1_to_pdu_session_type(pdu_session_type_t&                   pdu_s
       pdu_session_type = pdu_session_type_t::ethernet;
       break;
     default:
-      srslog::fetch_basic_logger("E1AP").warning("Cannot convert ASN.1 PDU session type to common type");
+      ocudulog::fetch_basic_logger("E1AP").warning("Cannot convert ASN.1 PDU session type to common type");
       return false;
   }
   return true;
 }
 
-} // namespace srsran
+} // namespace ocudu

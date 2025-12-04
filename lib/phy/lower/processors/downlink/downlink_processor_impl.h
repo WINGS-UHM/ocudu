@@ -11,11 +11,11 @@
 #pragma once
 
 #include "downlink_processor_baseband_impl.h"
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a software generic lower PHY downlink processor.
 class downlink_processor_impl : public lower_phy_downlink_processor
@@ -55,4 +55,4 @@ private:
   downlink_processor_baseband_impl downlink_proc_baseband;
 };
 
-} // namespace srsran
+} // namespace ocudu

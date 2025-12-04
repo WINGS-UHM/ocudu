@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
 #include <cstring>
 #include <fftw3.h>
 #include <memory>
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief FFTW optimization flags.
 ///
@@ -118,4 +118,4 @@ public:
   span<const cf_t> run() override;
 };
 
-} // namespace srsran
+} // namespace ocudu

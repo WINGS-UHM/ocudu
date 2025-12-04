@@ -14,9 +14,9 @@
 #include "sched_random_utils.h"
 #include "scheduler_test_suite.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-scheduler_expert_config srsran::make_custom_scheduler_expert_config(bool enable_csi_rs_pdsch_multiplexing)
+scheduler_expert_config ocudu::make_custom_scheduler_expert_config(bool enable_csi_rs_pdsch_multiplexing)
 {
   scheduler_expert_config exp_cfg             = config_helpers::make_default_scheduler_expert_config();
   exp_cfg.ue.enable_csi_rs_pdsch_multiplexing = enable_csi_rs_pdsch_multiplexing;
@@ -27,21 +27,21 @@ scheduler_test_simulator::scheduler_test_simulator(const scheduler_expert_config
                                                    unsigned                       tx_rx_delay_,
                                                    subcarrier_spacing             max_scs) :
   tx_rx_delay(tx_rx_delay_),
-  logger([]() -> srslog::basic_logger& {
-    srslog::init();
-    auto& l = srslog::fetch_basic_logger("SCHED", true);
-    l.set_level(srslog::basic_levels::debug);
+  logger([]() -> ocudulog::basic_logger& {
+    ocudulog::init();
+    auto& l = ocudulog::fetch_basic_logger("SCHED", true);
+    l.set_level(ocudulog::basic_levels::debug);
     return l;
   }()),
-  test_logger(srslog::fetch_basic_logger("TEST", true)),
+  test_logger(ocudulog::fetch_basic_logger("TEST", true)),
   sched_cfg(sched_cfg_),
   sched(create_scheduler(scheduler_config{sched_cfg, notif})),
   next_slot(test_helper::generate_random_slot_point(max_scs))
 {
-  test_logger.set_level(srslog::basic_levels::debug);
+  test_logger.set_level(ocudulog::basic_levels::debug);
   logger.set_context(next_slot.sfn(), next_slot.slot_index());
   test_logger.set_context(next_slot.sfn(), next_slot.slot_index());
-  srslog::flush();
+  ocudulog::flush();
 }
 
 scheduler_test_simulator::scheduler_test_simulator(unsigned           tx_rx_delay_,
@@ -68,7 +68,7 @@ scheduler_test_simulator::~scheduler_test_simulator()
   }
 
   // Flush logs before exiting.
-  srslog::flush();
+  ocudulog::flush();
 }
 
 void scheduler_test_simulator::add_cell(const sched_cell_configuration_request_message& cell_cfg_req)
@@ -125,7 +125,7 @@ void scheduler_test_simulator::push_uci_indication(du_cell_index_t cell_idx, slo
 
 void scheduler_test_simulator::run_slot(std::optional<du_cell_index_t> cell_idx)
 {
-  srsran_assert(not cell_idx.has_value() or contains(*cell_idx), "Invalid cellId={}", fmt::underlying(*cell_idx));
+  ocudu_assert(not cell_idx.has_value() or contains(*cell_idx), "Invalid cellId={}", fmt::underlying(*cell_idx));
   logger.set_context(next_slot.sfn(), next_slot.slot_index());
   test_logger.set_context(next_slot.sfn(), next_slot.slot_index());
 

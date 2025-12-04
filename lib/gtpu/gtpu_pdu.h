@@ -11,12 +11,12 @@
 #pragma once
 
 #include "gtpu_tunnel_logger.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/static_vector.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/static_vector.h"
 #include "fmt/format.h"
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 /****************************************************************************
  * GTPU Header
@@ -237,7 +237,7 @@ struct gtpu_dissected_pdu {
   bool test_mode = false;
 };
 
-bool gtpu_read_teid(uint32_t& teid, const byte_buffer& pdu, srslog::basic_logger& logger);
+bool gtpu_read_teid(uint32_t& teid, const byte_buffer& pdu, ocudulog::basic_logger& logger);
 
 /// Creates a dissected representation of a raw GTP-U PDU with access to the unpacked header and to the raw content of
 /// the extension headers for further processing of the extensions.
@@ -296,16 +296,16 @@ struct gtpu_msg_error_indication {
 /// Reads and unpacks a GTP-U error indication message.
 bool gtpu_read_msg_error_indication(gtpu_msg_error_indication& error_indication,
                                     const byte_buffer&         pdu,
-                                    srslog::basic_logger&      logger);
+                                    ocudulog::basic_logger&    logger);
 
-} // namespace srsran
+} // namespace ocudu
 
 // Formatters
 namespace fmt {
 
 // GTP-U flags
 template <>
-struct formatter<srsran::gtpu_header::gtpu_flags> {
+struct formatter<ocudu::gtpu_header::gtpu_flags> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -313,7 +313,7 @@ struct formatter<srsran::gtpu_header::gtpu_flags> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_header::gtpu_flags& flags, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_header::gtpu_flags& flags, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "v={} pt={} e={} s={} pn={}",
@@ -326,7 +326,7 @@ struct formatter<srsran::gtpu_header::gtpu_flags> {
 };
 
 template <>
-struct formatter<srsran::gtpu_header> {
+struct formatter<ocudu::gtpu_header> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -334,14 +334,14 @@ struct formatter<srsran::gtpu_header> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_header& hdr, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_header& hdr, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{} len={} teid={:#x}", hdr.flags, hdr.length, hdr.teid);
   }
 };
 
 template <>
-struct formatter<srsran::gtpu_extension_header_type> {
+struct formatter<ocudu::gtpu_extension_header_type> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -349,14 +349,14 @@ struct formatter<srsran::gtpu_extension_header_type> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_extension_header_type& ext_type, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_extension_header_type& ext_type, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", to_string(ext_type));
   }
 };
 
 template <>
-struct formatter<srsran::gtpu_ie_teid_i> {
+struct formatter<ocudu::gtpu_ie_teid_i> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -364,14 +364,14 @@ struct formatter<srsran::gtpu_ie_teid_i> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_ie_teid_i& ie, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_ie_teid_i& ie, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "teid_i={:#x}", ie.teid_i);
   }
 };
 
 template <>
-struct formatter<srsran::gtpu_ie_gtpu_peer_address> {
+struct formatter<ocudu::gtpu_ie_gtpu_peer_address> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -379,14 +379,14 @@ struct formatter<srsran::gtpu_ie_gtpu_peer_address> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_ie_gtpu_peer_address& ie, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_ie_gtpu_peer_address& ie, FormatContext& ctx) const
   {
-    if (std::holds_alternative<srsran::gtpu_ie_gtpu_peer_address::ipv4_addr_t>(ie.gtpu_peer_address)) {
-      auto& addr = std::get<srsran::gtpu_ie_gtpu_peer_address::ipv4_addr_t>(ie.gtpu_peer_address);
+    if (std::holds_alternative<ocudu::gtpu_ie_gtpu_peer_address::ipv4_addr_t>(ie.gtpu_peer_address)) {
+      auto& addr = std::get<ocudu::gtpu_ie_gtpu_peer_address::ipv4_addr_t>(ie.gtpu_peer_address);
       return format_to(ctx.out(), "peer_addr={}.{}.{}.{}", addr[0], addr[1], addr[2], addr[3]);
     }
-    if (std::holds_alternative<srsran::gtpu_ie_gtpu_peer_address::ipv6_addr_t>(ie.gtpu_peer_address)) {
-      auto& addr = std::get<srsran::gtpu_ie_gtpu_peer_address::ipv6_addr_t>(ie.gtpu_peer_address);
+    if (std::holds_alternative<ocudu::gtpu_ie_gtpu_peer_address::ipv6_addr_t>(ie.gtpu_peer_address)) {
+      auto& addr = std::get<ocudu::gtpu_ie_gtpu_peer_address::ipv6_addr_t>(ie.gtpu_peer_address);
       return format_to(ctx.out(),
                        "peer_addr={:x}{:x}:{:x}{:x}:{:x}{:x}:{:x}{:x}:{:x}{:x}:{:x}{:x}:{:x}{:x}:{:x}{:x}",
                        addr[0],
@@ -411,7 +411,7 @@ struct formatter<srsran::gtpu_ie_gtpu_peer_address> {
 };
 
 template <>
-struct formatter<srsran::gtpu_msg_error_indication> {
+struct formatter<ocudu::gtpu_msg_error_indication> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -419,7 +419,7 @@ struct formatter<srsran::gtpu_msg_error_indication> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::gtpu_msg_error_indication& err_ind, FormatContext& ctx) const
+  auto format(const ocudu::gtpu_msg_error_indication& err_ind, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{} {}", err_ind.teid_i, err_ind.gtpu_peer_address);
   }

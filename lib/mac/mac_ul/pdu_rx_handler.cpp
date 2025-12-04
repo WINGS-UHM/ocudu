@@ -9,13 +9,13 @@
  */
 
 #include "pdu_rx_handler.h"
-#include "srsran/instrumentation/traces/up_traces.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/format/fmt_basic_parser.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/format/fmt_basic_parser.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 #include "fmt/std.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -47,7 +47,7 @@ struct formatter<pdu_log_prefix> : public basic_parser {
   auto format(const pdu_log_prefix& p, FormatContext& ctx) const
   {
     fmt::format_to(ctx.out(), "{} rnti={}", p.type, p.rnti);
-    if (p.ue_index != srsran::INVALID_DU_UE_INDEX) {
+    if (p.ue_index != ocudu::INVALID_DU_UE_INDEX) {
       fmt::format_to(ctx.out(), " ue={}", fmt::underlying(p.ue_index));
     }
     if (p.lcid.has_value()) {
@@ -60,15 +60,15 @@ struct formatter<pdu_log_prefix> : public basic_parser {
 
 } // namespace fmt
 
-pdu_rx_handler::pdu_rx_handler(mac_ul_ccch_notifier&               ccch_notifier_,
-                               srs_du::du_high_ue_executor_mapper& ue_exec_mapper_,
-                               mac_scheduler_ce_info_handler&      sched_,
-                               mac_ul_ue_manager&                  ue_manager_,
-                               du_rnti_table&                      rnti_table_,
-                               mac_pcap&                           pcap_) :
+pdu_rx_handler::pdu_rx_handler(mac_ul_ccch_notifier&            ccch_notifier_,
+                               odu::du_high_ue_executor_mapper& ue_exec_mapper_,
+                               mac_scheduler_ce_info_handler&   sched_,
+                               mac_ul_ue_manager&               ue_manager_,
+                               du_rnti_table&                   rnti_table_,
+                               mac_pcap&                        pcap_) :
   ccch_notifier(ccch_notifier_),
   ue_exec_mapper(ue_exec_mapper_),
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   sched(sched_),
   ue_manager(ue_manager_),
   rnti_table(rnti_table_),
@@ -171,14 +171,14 @@ bool pdu_rx_handler::handle_sdu(const decoded_mac_rx_pdu& ctx, const mac_ul_sch_
   if (ue == nullptr) {
     // MAC PDUs can be processed after the UE has been removed, due to processing delays.
     // TODO: Handle Msg3 SDUs that doesn't have UL-CCCH or C-RNTI CE.
-    srslog::log_channel& log_ch = ctx.ue_index == INVALID_DU_UE_INDEX ? logger.info : logger.warning;
+    ocudulog::log_channel& log_ch = ctx.ue_index == INVALID_DU_UE_INDEX ? logger.info : logger.warning;
     log_ch("{}: Discarding SDU. Cause: Non-existent C-RNTI", create_prefix(ctx, sdu));
     return false;
   }
 
   lcid_t lcid = (lcid_t)sdu.lcid().value();
   if (not ue->ul_bearers.contains(lcid)) {
-    srslog::log_channel& log_ch = ue->rrc_config_pending ? logger.info : logger.warning;
+    ocudulog::log_channel& log_ch = ue->rrc_config_pending ? logger.info : logger.warning;
     log_ch("{}: Discarding SDU. Cause: Non-existent LCID", create_prefix(ctx, sdu));
     return false;
   }
@@ -287,8 +287,8 @@ bool pdu_rx_handler::handle_mac_ce(const decoded_mac_rx_pdu& ctx, const mac_ul_s
 
 bool pdu_rx_handler::handle_ccch_msg(const decoded_mac_rx_pdu& ctx, const mac_ul_sch_subpdu& sdu)
 {
-  srsran_assert(ctx.ue_index == INVALID_DU_UE_INDEX,
-                "This function should only be called for Msg3, when UE context has not been created yet");
+  ocudu_assert(ctx.ue_index == INVALID_DU_UE_INDEX,
+               "This function should only be called for Msg3, when UE context has not been created yet");
 
   // Notify DU manager of received CCCH message.
   ul_ccch_indication_message msg{};
@@ -396,11 +396,11 @@ void pdu_rx_handler::write_pcap_rx_pdu(slot_point sl_rx, const mac_rx_pdu& pdu)
     return;
   }
 
-  srsran::mac_nr_context_info context = {};
-  context.radioType                   = PCAP_FDD_RADIO;
-  context.direction                   = PCAP_DIRECTION_UPLINK;
-  context.rntiType                    = PCAP_C_RNTI;
-  context.rnti                        = to_value(pdu.rnti);
+  ocudu::mac_nr_context_info context = {};
+  context.radioType                  = PCAP_FDD_RADIO;
+  context.direction                  = PCAP_DIRECTION_UPLINK;
+  context.rntiType                   = PCAP_C_RNTI;
+  context.rnti                       = to_value(pdu.rnti);
   context.ueid   = rnti_table[pdu.rnti] == du_ue_index_t::INVALID_DU_UE_INDEX ? du_ue_index_t::INVALID_DU_UE_INDEX
                                                                               : rnti_table[pdu.rnti] + 1;
   context.harqid = pdu.harq_id;

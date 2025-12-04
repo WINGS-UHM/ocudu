@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_processor.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_processor.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 class precoding_matrix_repository;
@@ -34,4 +34,4 @@ void convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&            proc_pdu,
                                const precoding_matrix_repository& pm_repo);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

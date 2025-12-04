@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/phy/upper/equalization/channel_equalizer.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/upper/equalization/channel_equalizer.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Channel precoder metric decorator.
 class phy_metrics_channel_equalizer_decorator : public channel_equalizer
@@ -27,7 +27,7 @@ public:
                                           channel_equalizer_metric_notifier& notifier_) :
     base_equalizer(std::move(base_equalizer_)), notifier(notifier_)
   {
-    srsran_assert(base_equalizer, "Invalid channel equalizer.");
+    ocudu_assert(base_equalizer, "Invalid channel equalizer.");
   }
 
   // See interface for documentation.
@@ -61,4 +61,4 @@ private:
   channel_equalizer_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

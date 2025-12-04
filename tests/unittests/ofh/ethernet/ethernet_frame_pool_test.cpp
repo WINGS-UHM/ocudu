@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 // Output stream formatting to make GTest results human-readable.
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const subcarrier_spacing& scs)
 {
@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream& os, const data_direction& dir)
 
 } // namespace ofh
 
-} // namespace srsran
+} // namespace ocudu
 
 static constexpr size_t TEST_NUM_SLOTS       = 50;
 static constexpr float  TEST_MAX_SYMBOL_SIZE = 7648;
@@ -69,15 +69,15 @@ using test_params_t = std::tuple<mtu, subcarrier_spacing, cyclic_prefix, ofh::me
 class EthFramePoolFixture : public ::testing::TestWithParam<test_params_t>
 {
 protected:
-  unsigned              mtu_size      = std::get<0>(GetParam());
-  subcarrier_spacing    scs           = std::get<1>(GetParam());
-  cyclic_prefix         cp            = std::get<2>(GetParam());
-  ofh::message_type     ofh_type      = std::get<3>(GetParam());
-  ofh::data_direction   ofh_direction = std::get<4>(GetParam());
-  unsigned              nof_symbols   = get_nsymb_per_slot(cp);
-  unsigned              nof_frames    = std::ceil(TEST_MAX_SYMBOL_SIZE / mtu_size);
-  srslog::basic_logger& logger        = srslog::fetch_basic_logger("TEST");
-  eth_frame_pool        pool          = {logger, units::bytes(mtu_size), nof_frames, ofh_type, ofh_direction};
+  unsigned                mtu_size      = std::get<0>(GetParam());
+  subcarrier_spacing      scs           = std::get<1>(GetParam());
+  cyclic_prefix           cp            = std::get<2>(GetParam());
+  ofh::message_type       ofh_type      = std::get<3>(GetParam());
+  ofh::data_direction     ofh_direction = std::get<4>(GetParam());
+  unsigned                nof_symbols   = get_nsymb_per_slot(cp);
+  unsigned                nof_frames    = std::ceil(TEST_MAX_SYMBOL_SIZE / mtu_size);
+  ocudulog::basic_logger& logger        = ocudulog::fetch_basic_logger("TEST");
+  eth_frame_pool          pool          = {logger, units::bytes(mtu_size), nof_frames, ofh_type, ofh_direction};
 
   void SetUp() override { test_mtu_size = mtu_size; }
 };
@@ -398,7 +398,7 @@ TEST_P(EthFramePoolFixture, read_interval_should_return_correct_data)
 
 TEST_P(EthFramePoolFixture, clearing_full_pool_should_allow_adding_more_data)
 {
-  logger.set_level(srslog::basic_levels::debug);
+  logger.set_level(ocudulog::basic_levels::debug);
 
   size_t pool_size_slots = pool.pool_size_in_slots();
 
@@ -457,7 +457,7 @@ TEST_P(EthFramePoolFixture, clearing_full_pool_should_allow_adding_more_data)
 
 TEST_P(EthFramePoolFixture, clearing_pool_should_clear_only_late_buffers)
 {
-  logger.set_level(srslog::basic_levels::debug);
+  logger.set_level(ocudulog::basic_levels::debug);
 
   size_t pool_size_slots = pool.pool_size_in_slots();
 

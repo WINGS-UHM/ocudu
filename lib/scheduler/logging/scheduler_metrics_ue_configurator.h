@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Adds/Removes UEs from the metrics.
 class sched_metrics_ue_configurator
@@ -32,4 +32,4 @@ public:
   virtual void handle_ue_deletion(du_ue_index_t ue_index) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

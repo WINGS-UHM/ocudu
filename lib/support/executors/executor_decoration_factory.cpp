@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/executor_throttler.h"
-#include "srsran/support/executors/executor_tracer.h"
-#include "srsran/support/executors/metrics/executor_metrics_channel_registry.h"
-#include "srsran/support/executors/metrics/executor_metrics_decorator.h"
-#include "srsran/support/executors/sync_task_executor.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/executor_throttler.h"
+#include "ocudu/support/executors/executor_tracer.h"
+#include "ocudu/support/executors/metrics/executor_metrics_channel_registry.h"
+#include "ocudu/support/executors/metrics/executor_metrics_decorator.h"
+#include "ocudu/support/executors/sync_task_executor.h"
+#include "ocudu/support/tracing/event_tracing.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static file_event_tracer<true> tracer;
 
@@ -109,8 +109,8 @@ static void validate_config(const execution_decoration_config& config)
   }
 }
 
-std::unique_ptr<task_executor> srsran::decorate_executor(std::unique_ptr<task_executor>     exec,
-                                                         const execution_decoration_config& config)
+std::unique_ptr<task_executor> ocudu::decorate_executor(std::unique_ptr<task_executor>     exec,
+                                                        const execution_decoration_config& config)
 {
   validate_config(config);
   std::unique_ptr<task_executor> result;
@@ -118,7 +118,7 @@ std::unique_ptr<task_executor> srsran::decorate_executor(std::unique_ptr<task_ex
   return result;
 }
 
-std::unique_ptr<task_executor> srsran::decorate_executor(task_executor& exec, const execution_decoration_config& config)
+std::unique_ptr<task_executor> ocudu::decorate_executor(task_executor& exec, const execution_decoration_config& config)
 {
   validate_config(config);
   std::unique_ptr<task_executor> result;

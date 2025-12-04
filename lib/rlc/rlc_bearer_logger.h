@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/ran/gnb_du_id.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/format/prefixed_logger.h"
+#include "ocudu/ran/gnb_du_id.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rlc_bearer_log_prefix
 {
@@ -25,7 +25,7 @@ public:
   {
     fmt::memory_buffer buffer;
     fmt::format_to(std::back_inserter(buffer), "du={} ue={} {} {}: ", fmt::underlying(gnb_du_id), ue_index, rb_id, dir);
-    prefix = srsran::to_c_str(buffer);
+    prefix = ocudu::to_c_str(buffer);
   }
   const char* to_c_str() const { return prefix.c_str(); }
 
@@ -35,13 +35,13 @@ private:
 
 using rlc_bearer_logger = prefixed_logger<rlc_bearer_log_prefix>;
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 // associated formatter
 template <>
-struct formatter<srsran::rlc_bearer_log_prefix> {
+struct formatter<ocudu::rlc_bearer_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -49,7 +49,7 @@ struct formatter<srsran::rlc_bearer_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_bearer_log_prefix& o, FormatContext& ctx) const
+  auto format(const ocudu::rlc_bearer_log_prefix& o, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", o.to_c_str());
   }

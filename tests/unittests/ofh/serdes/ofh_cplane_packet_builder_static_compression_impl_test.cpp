@@ -11,7 +11,7 @@
 #include "../../../../lib/ofh/serdes/ofh_cplane_message_builder_static_compression_impl.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 static constexpr unsigned UD_COMP_HEADER_BYTE = 6U;

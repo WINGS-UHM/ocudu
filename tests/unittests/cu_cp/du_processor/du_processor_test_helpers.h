@@ -19,13 +19,13 @@
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "tests/unittests/f1ap/common/test_helpers.h"
 #include "tests/unittests/rrc/test_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Fixture class for DU processor creation
 class du_processor_test : public ::testing::Test
@@ -34,8 +34,8 @@ protected:
   du_processor_test();
   ~du_processor_test() override;
 
-  srslog::basic_logger& test_logger  = srslog::fetch_basic_logger("TEST");
-  srslog::basic_logger& cu_cp_logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger& test_logger  = ocudulog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP");
 
   timer_manager       timers;
   manual_task_worker  ctrl_worker{128};
@@ -55,5 +55,5 @@ protected:
   std::optional<lazy_task_launcher<ue_index_t>> t_launcher;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

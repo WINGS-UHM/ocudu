@@ -10,21 +10,21 @@
 
 #include "ngap_test_messages.h"
 #include "lib/ngap/ngap_asn1_converters.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/asn1/ngap/ngap_ies.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/ngap/ngap_handover.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <vector>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::ngap;
 
-bool srsran::srs_cu_cp::is_same_pdu_type(const ngap_message& lhs, const ngap_message& rhs)
+bool ocudu::ocucp::is_same_pdu_type(const ngap_message& lhs, const ngap_message& rhs)
 {
   if (lhs.pdu.type().value != rhs.pdu.type().value) {
     return false;
@@ -42,8 +42,7 @@ bool srsran::srs_cu_cp::is_same_pdu_type(const ngap_message& lhs, const ngap_mes
   return false;
 }
 
-bool srsran::srs_cu_cp::is_pdu_type(const ngap_message&                                    pdu,
-                                    const asn1::ngap::ngap_elem_procs_o::init_msg_c::types type)
+bool ocudu::ocucp::is_pdu_type(const ngap_message& pdu, const asn1::ngap::ngap_elem_procs_o::init_msg_c::types type)
 {
   if (pdu.pdu.type().value != ngap_pdu_c::types_opts::init_msg) {
     return false;
@@ -51,8 +50,8 @@ bool srsran::srs_cu_cp::is_pdu_type(const ngap_message&                         
   return pdu.pdu.init_msg().value.type().value == type;
 }
 
-bool srsran::srs_cu_cp::is_pdu_type(const ngap_message&                                              pdu,
-                                    const asn1::ngap::ngap_elem_procs_o::successful_outcome_c::types type)
+bool ocudu::ocucp::is_pdu_type(const ngap_message&                                              pdu,
+                               const asn1::ngap::ngap_elem_procs_o::successful_outcome_c::types type)
 {
   if (pdu.pdu.type().value != ngap_pdu_c::types_opts::successful_outcome) {
     return false;
@@ -60,7 +59,7 @@ bool srsran::srs_cu_cp::is_pdu_type(const ngap_message&                         
   return pdu.pdu.successful_outcome().value.type().value == type;
 }
 
-ngap_message srsran::srs_cu_cp::generate_ng_setup_response(plmn_identity plmn)
+ngap_message ocudu::ocucp::generate_ng_setup_response(plmn_identity plmn)
 {
   ngap_message ng_setup_response = {};
 
@@ -91,7 +90,7 @@ ngap_message srsran::srs_cu_cp::generate_ng_setup_response(plmn_identity plmn)
   return ng_setup_response;
 }
 
-ngap_message srsran::srs_cu_cp::generate_ng_setup_failure()
+ngap_message ocudu::ocucp::generate_ng_setup_failure()
 {
   ngap_message ng_setup_failure = {};
 
@@ -108,7 +107,7 @@ ngap_message srsran::srs_cu_cp::generate_ng_setup_failure()
   return ng_setup_failure;
 }
 
-ngap_message srsran::srs_cu_cp::generate_ng_setup_failure_with_bad_plmn(time_to_wait_e time_to_wait)
+ngap_message ocudu::ocucp::generate_ng_setup_failure_with_bad_plmn(time_to_wait_e time_to_wait)
 {
   ngap_message ng_setup_failure = {};
 
@@ -126,7 +125,7 @@ ngap_message srsran::srs_cu_cp::generate_ng_setup_failure_with_bad_plmn(time_to_
   return ng_setup_failure;
 }
 
-ngap_message srsran::srs_cu_cp::generate_ng_setup_failure_with_time_to_wait(time_to_wait_e time_to_wait)
+ngap_message ocudu::ocucp::generate_ng_setup_failure_with_time_to_wait(time_to_wait_e time_to_wait)
 {
   ngap_message ng_setup_failure = generate_ng_setup_failure();
 
@@ -137,7 +136,7 @@ ngap_message srsran::srs_cu_cp::generate_ng_setup_failure_with_time_to_wait(time
   return ng_setup_failure;
 }
 
-cu_cp_initial_ue_message srsran::srs_cu_cp::generate_initial_ue_message(ue_index_t ue_index)
+cu_cp_initial_ue_message ocudu::ocucp::generate_initial_ue_message(ue_index_t ue_index)
 {
   cu_cp_initial_ue_message msg = {};
   msg.ue_index                 = ue_index;
@@ -150,9 +149,8 @@ cu_cp_initial_ue_message srsran::srs_cu_cp::generate_initial_ue_message(ue_index
   return msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_downlink_nas_transport_message(amf_ue_id_t amf_ue_id,
-                                                                        ran_ue_id_t ran_ue_id,
-                                                                        byte_buffer nas_pdu)
+ngap_message
+ocudu::ocucp::generate_downlink_nas_transport_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id, byte_buffer nas_pdu)
 {
   ngap_message dl_nas_transport = {};
 
@@ -171,9 +169,9 @@ ngap_message srsran::srs_cu_cp::generate_downlink_nas_transport_message(amf_ue_i
   return dl_nas_transport;
 }
 
-ngap_message srsran::srs_cu_cp::generate_downlink_nas_transport_message_with_ue_cap_info_request(amf_ue_id_t amf_ue_id,
-                                                                                                 ran_ue_id_t ran_ue_id,
-                                                                                                 byte_buffer nas_pdu)
+ngap_message ocudu::ocucp::generate_downlink_nas_transport_message_with_ue_cap_info_request(amf_ue_id_t amf_ue_id,
+                                                                                            ran_ue_id_t ran_ue_id,
+                                                                                            byte_buffer nas_pdu)
 {
   ngap_message dl_nas_transport = generate_downlink_nas_transport_message(amf_ue_id, ran_ue_id, std::move(nas_pdu));
 
@@ -184,7 +182,7 @@ ngap_message srsran::srs_cu_cp::generate_downlink_nas_transport_message_with_ue_
   return dl_nas_transport;
 }
 
-cu_cp_ul_nas_transport srsran::srs_cu_cp::generate_ul_nas_transport_message(ue_index_t ue_index)
+cu_cp_ul_nas_transport ocudu::ocucp::generate_ul_nas_transport_message(ue_index_t ue_index)
 {
   cu_cp_ul_nas_transport ul_nas_transport = {};
   ul_nas_transport.ue_index               = ue_index;
@@ -197,7 +195,7 @@ cu_cp_ul_nas_transport srsran::srs_cu_cp::generate_ul_nas_transport_message(ue_i
   return ul_nas_transport;
 }
 
-ngap_message srsran::srs_cu_cp::generate_uplink_nas_transport_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_uplink_nas_transport_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
 {
   ngap_message ul_nas_transport = {};
 
@@ -218,8 +216,7 @@ ngap_message srsran::srs_cu_cp::generate_uplink_nas_transport_message(amf_ue_id_
   return ul_nas_transport;
 }
 
-ngap_message srsran::srs_cu_cp::generate_initial_context_setup_request_base(amf_ue_id_t amf_ue_id,
-                                                                            ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_initial_context_setup_request_base(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = {};
 
@@ -253,8 +250,8 @@ ngap_message srsran::srs_cu_cp::generate_initial_context_setup_request_base(amf_
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id,
-                                                                                     ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id,
+                                                                                ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_initial_context_setup_request_base(amf_ue_id, ran_ue_id);
 
@@ -272,9 +269,8 @@ ngap_message srsran::srs_cu_cp::generate_valid_initial_context_setup_request_mes
   return ngap_msg;
 }
 
-ngap_message
-srsran::srs_cu_cp::generate_valid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,
-                                                                                         ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,
+                                                                                                 ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_valid_initial_context_setup_request_message(amf_ue_id, ran_ue_id);
 
@@ -293,7 +289,7 @@ srsran::srs_cu_cp::generate_valid_initial_context_setup_request_message_with_pdu
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_ue_context_release_command_with_amf_ue_ngap_id(amf_ue_id_t amf_ue_id)
+ngap_message ocudu::ocucp::generate_valid_ue_context_release_command_with_amf_ue_ngap_id(amf_ue_id_t amf_ue_id)
 {
   ngap_message ngap_msg = {};
 
@@ -308,8 +304,8 @@ ngap_message srsran::srs_cu_cp::generate_valid_ue_context_release_command_with_a
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_ue_context_release_command_with_ue_ngap_id_pair(amf_ue_id_t amf_ue_id,
-                                                                                               ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_valid_ue_context_release_command_with_ue_ngap_id_pair(amf_ue_id_t amf_ue_id,
+                                                                                          ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = {};
 
@@ -326,8 +322,8 @@ ngap_message srsran::srs_cu_cp::generate_valid_ue_context_release_command_with_u
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_invalid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id,
-                                                                                       ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_invalid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id,
+                                                                                  ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_initial_context_setup_request_base(amf_ue_id, ran_ue_id);
 
@@ -342,8 +338,8 @@ ngap_message srsran::srs_cu_cp::generate_invalid_initial_context_setup_request_m
 }
 
 ngap_message
-srsran::srs_cu_cp::generate_invalid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,
-                                                                                           ran_ue_id_t ran_ue_id)
+ocudu::ocucp::generate_invalid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,
+                                                                                      ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_invalid_initial_context_setup_request_message(amf_ue_id, ran_ue_id);
 
@@ -362,8 +358,8 @@ srsran::srs_cu_cp::generate_invalid_initial_context_setup_request_message_with_p
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_pdu_session_resource_setup_request_base(amf_ue_id_t amf_ue_id,
-                                                                                 ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_pdu_session_resource_setup_request_base(amf_ue_id_t amf_ue_id,
+                                                                            ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -381,7 +377,7 @@ ngap_message srsran::srs_cu_cp::generate_pdu_session_resource_setup_request_base
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_pdu_session_resource_setup_request_message(
+ngap_message ocudu::ocucp::generate_valid_pdu_session_resource_setup_request_message(
     amf_ue_id_t                                                amf_ue_id,
     ran_ue_id_t                                                ran_ue_id,
     const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions)
@@ -459,8 +455,8 @@ ngap_message srsran::srs_cu_cp::generate_valid_pdu_session_resource_setup_reques
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_invalid_pdu_session_resource_setup_request_message(amf_ue_id_t amf_ue_id,
-                                                                                            ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_invalid_pdu_session_resource_setup_request_message(amf_ue_id_t amf_ue_id,
+                                                                                       ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_pdu_session_resource_setup_request_base(amf_ue_id, ran_ue_id);
 
@@ -494,10 +490,10 @@ ngap_message srsran::srs_cu_cp::generate_invalid_pdu_session_resource_setup_requ
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::
-    generate_pdu_session_resource_setup_request_with_pdu_session_type_ipv4_and_ipv4v6_transport_layer_address(
-        amf_ue_id_t amf_ue_id,
-        ran_ue_id_t ran_ue_id)
+ngap_message
+ocudu::ocucp::generate_pdu_session_resource_setup_request_with_pdu_session_type_ipv4_and_ipv4v6_transport_layer_address(
+    amf_ue_id_t amf_ue_id,
+    ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_valid_pdu_session_resource_setup_request_message(
       amf_ue_id, ran_ue_id, {{uint_to_pdu_session_id(1), {pdu_session_type_t::ipv4, {{uint_to_qos_flow_id(1), 9}}}}});
@@ -513,7 +509,7 @@ ngap_message srsran::srs_cu_cp::
 }
 
 cu_cp_pdu_session_resource_setup_response
-srsran::srs_cu_cp::generate_cu_cp_pdu_session_resource_setup_response(cu_cp_pdu_session_resource_setup_request& request)
+ocudu::ocucp::generate_cu_cp_pdu_session_resource_setup_response(cu_cp_pdu_session_resource_setup_request& request)
 {
   cu_cp_pdu_session_resource_setup_response pdu_session_res_setup_resp;
 
@@ -536,8 +532,8 @@ srsran::srs_cu_cp::generate_cu_cp_pdu_session_resource_setup_response(cu_cp_pdu_
   return pdu_session_res_setup_resp;
 }
 
-ngap_message srsran::srs_cu_cp::generate_pdu_session_resource_release_command_base(amf_ue_id_t amf_ue_id,
-                                                                                   ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_pdu_session_resource_release_command_base(amf_ue_id_t amf_ue_id,
+                                                                              ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -551,9 +547,9 @@ ngap_message srsran::srs_cu_cp::generate_pdu_session_resource_release_command_ba
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_pdu_session_resource_release_command(amf_ue_id_t      amf_ue_id,
-                                                                                    ran_ue_id_t      ran_ue_id,
-                                                                                    pdu_session_id_t pdu_session_id)
+ngap_message ocudu::ocucp::generate_valid_pdu_session_resource_release_command(amf_ue_id_t      amf_ue_id,
+                                                                               ran_ue_id_t      ran_ue_id,
+                                                                               pdu_session_id_t pdu_session_id)
 {
   ngap_message ngap_msg = generate_pdu_session_resource_release_command_base(amf_ue_id, ran_ue_id);
 
@@ -573,8 +569,8 @@ ngap_message srsran::srs_cu_cp::generate_valid_pdu_session_resource_release_comm
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_invalid_pdu_session_resource_release_command(amf_ue_id_t amf_ue_id,
-                                                                                      ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_invalid_pdu_session_resource_release_command(amf_ue_id_t amf_ue_id,
+                                                                                 ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg = generate_pdu_session_resource_release_command_base(amf_ue_id, ran_ue_id);
 
@@ -582,7 +578,7 @@ ngap_message srsran::srs_cu_cp::generate_invalid_pdu_session_resource_release_co
 }
 
 cu_cp_pdu_session_resource_release_response
-srsran::srs_cu_cp::generate_cu_cp_pdu_session_resource_release_response(pdu_session_id_t pdu_session_id)
+ocudu::ocucp::generate_cu_cp_pdu_session_resource_release_response(pdu_session_id_t pdu_session_id)
 {
   cu_cp_pdu_session_resource_release_response pdu_session_res_release_resp;
 
@@ -595,8 +591,8 @@ srsran::srs_cu_cp::generate_cu_cp_pdu_session_resource_release_response(pdu_sess
   return pdu_session_res_release_resp;
 }
 
-ngap_message srsran::srs_cu_cp::generate_pdu_session_resource_modify_request_base(amf_ue_id_t amf_ue_id,
-                                                                                  ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_pdu_session_resource_modify_request_base(amf_ue_id_t amf_ue_id,
+                                                                             ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -610,7 +606,7 @@ ngap_message srsran::srs_cu_cp::generate_pdu_session_resource_modify_request_bas
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_pdu_session_resource_modify_request_message(
+ngap_message ocudu::ocucp::generate_valid_pdu_session_resource_modify_request_message(
     amf_ue_id_t                       amf_ue_id,
     ran_ue_id_t                       ran_ue_id,
     pdu_session_id_t                  pdu_session_id,
@@ -677,10 +673,9 @@ ngap_message srsran::srs_cu_cp::generate_valid_pdu_session_resource_modify_reque
   return ngap_msg;
 }
 
-ngap_message
-srsran::srs_cu_cp::generate_invalid_pdu_session_resource_modify_request_message(amf_ue_id_t      amf_ue_id,
-                                                                                ran_ue_id_t      ran_ue_id,
-                                                                                pdu_session_id_t pdu_session_id)
+ngap_message ocudu::ocucp::generate_invalid_pdu_session_resource_modify_request_message(amf_ue_id_t      amf_ue_id,
+                                                                                        ran_ue_id_t      ran_ue_id,
+                                                                                        pdu_session_id_t pdu_session_id)
 {
   ngap_message ngap_msg = generate_pdu_session_resource_modify_request_base(amf_ue_id, ran_ue_id);
 
@@ -714,8 +709,8 @@ srsran::srs_cu_cp::generate_invalid_pdu_session_resource_modify_request_message(
 }
 
 cu_cp_pdu_session_resource_modify_response
-srsran::srs_cu_cp::generate_cu_cp_pdu_session_resource_modify_response(pdu_session_id_t pdu_session_id,
-                                                                       qos_flow_id_t    qos_flow_id)
+ocudu::ocucp::generate_cu_cp_pdu_session_resource_modify_response(pdu_session_id_t pdu_session_id,
+                                                                  qos_flow_id_t    qos_flow_id)
 {
   cu_cp_pdu_session_resource_modify_response pdu_session_res_modify_resp;
 
@@ -738,7 +733,7 @@ srsran::srs_cu_cp::generate_cu_cp_pdu_session_resource_modify_response(pdu_sessi
   return pdu_session_res_modify_resp;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_minimal_paging_message()
+ngap_message ocudu::ocucp::generate_valid_minimal_paging_message()
 {
   ngap_message ngap_msg;
 
@@ -761,7 +756,7 @@ ngap_message srsran::srs_cu_cp::generate_valid_minimal_paging_message()
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_paging_message()
+ngap_message ocudu::ocucp::generate_valid_paging_message()
 {
   ngap_message ngap_msg;
 
@@ -822,7 +817,7 @@ ngap_message srsran::srs_cu_cp::generate_valid_paging_message()
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_invalid_paging_message()
+ngap_message ocudu::ocucp::generate_invalid_paging_message()
 {
   ngap_message ngap_msg = {};
 
@@ -836,7 +831,7 @@ ngap_message srsran::srs_cu_cp::generate_invalid_paging_message()
 }
 
 ngap_message
-srsran::srs_cu_cp::generate_error_indication_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id, ngap_cause_t cause)
+ocudu::ocucp::generate_error_indication_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id, ngap_cause_t cause)
 {
   ngap_message ngap_msg;
 
@@ -857,7 +852,7 @@ srsran::srs_cu_cp::generate_error_indication_message(amf_ue_id_t amf_ue_id, ran_
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_handover_request(amf_ue_id_t amf_ue_id)
+ngap_message ocudu::ocucp::generate_valid_handover_request(amf_ue_id_t amf_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -933,8 +928,8 @@ ngap_message srsran::srs_cu_cp::generate_valid_handover_request(amf_ue_id_t amf_
 
   byte_buffer   pdu{};
   asn1::bit_ref bref{pdu};
-  if (transparent_container.pack(bref) == asn1::SRSASN_ERROR_ENCODE_FAIL) {
-    srslog::fetch_basic_logger("NGAP").error("Failed to pack source to target container.");
+  if (transparent_container.pack(bref) == asn1::OCUDUASN_ERROR_ENCODE_FAIL) {
+    ocudulog::fetch_basic_logger("NGAP").error("Failed to pack source to target container.");
   }
   ho_request->source_to_target_transparent_container = pdu.copy();
 
@@ -947,7 +942,7 @@ ngap_message srsran::srs_cu_cp::generate_valid_handover_request(amf_ue_id_t amf_
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_handover_preparation_failure(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_handover_preparation_failure(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -965,7 +960,7 @@ ngap_message srsran::srs_cu_cp::generate_handover_preparation_failure(amf_ue_id_
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_handover_command(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_valid_handover_command(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -1005,7 +1000,7 @@ ngap_message srsran::srs_cu_cp::generate_valid_handover_command(amf_ue_id_t amf_
   return ngap_msg;
 }
 
-ngap_handover_preparation_request srsran::srs_cu_cp::generate_handover_preparation_request(
+ngap_handover_preparation_request ocudu::ocucp::generate_handover_preparation_request(
     ue_index_t                                                ue_index,
     const std::map<pdu_session_id_t, up_pdu_session_context>& pdu_sessions,
     nr_cell_identity                                          nci,
@@ -1029,7 +1024,7 @@ ngap_handover_preparation_request srsran::srs_cu_cp::generate_handover_preparati
   return request;
 }
 
-ngap_message srsran::srs_cu_cp::generate_valid_dl_ran_status_transfer(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_valid_dl_ran_status_transfer(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -1043,7 +1038,7 @@ ngap_message srsran::srs_cu_cp::generate_valid_dl_ran_status_transfer(amf_ue_id_
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_handover_cancel_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_handover_cancel_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
 {
   ngap_message ngap_msg;
 
@@ -1058,7 +1053,7 @@ ngap_message srsran::srs_cu_cp::generate_handover_cancel_ack(amf_ue_id_t amf_ue_
   return ngap_msg;
 }
 
-ngap_message srsran::srs_cu_cp::generate_ng_reset_ack(const asn1::ngap::ue_associated_lc_ng_conn_list_l& ng_reset_ues)
+ngap_message ocudu::ocucp::generate_ng_reset_ack(const asn1::ngap::ue_associated_lc_ng_conn_list_l& ng_reset_ues)
 {
   ngap_message ngap_msg;
 

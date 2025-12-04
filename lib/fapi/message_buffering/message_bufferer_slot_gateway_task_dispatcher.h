@@ -11,9 +11,9 @@
 #pragma once
 
 #include "message_bufferer_slot_gateway_impl.h"
-#include "srsran/fapi/slot_time_message_notifier.h"
+#include "ocudu/fapi/slot_time_message_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -50,10 +50,10 @@ public:
 private:
   const unsigned                     sector_id;
   const subcarrier_spacing           scs;
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   task_executor&                     executor;
   message_bufferer_slot_gateway_impl message_bufferer_gateway;
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

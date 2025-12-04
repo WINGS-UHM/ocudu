@@ -9,11 +9,11 @@
  */
 
 #include "pucch_processor_impl.h"
-#include "srsran/phy/upper/pucch_formats3_4_helpers.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/support/transform_optional.h"
+#include "ocudu/phy/upper/pucch_formats3_4_helpers.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/support/transform_optional.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills \c msg with the error message.
 ///
@@ -31,7 +31,7 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
                                                      const pucch_processor::format0_configuration& config)
 {
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
 
   // Calculate actual PRB.
   std::optional<unsigned> second_hop_prb;
@@ -91,7 +91,7 @@ pucch_format1_map<pucch_processor_result> pucch_processor_impl::process(const re
     proc_config.nof_harq_ack         = nof_harq_ack;
 
     [[maybe_unused]] std::string msg;
-    srsran_assert(handle_validation(msg, pdu_validator->is_valid(proc_config)), "{}", msg);
+    ocudu_assert(handle_validation(msg, pdu_validator->is_valid(proc_config)), "{}", msg);
 
     mux_harq_size.insert(initial_cyclic_shift, time_domain_occ, nof_harq_ack);
   }
@@ -130,7 +130,7 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
 {
   // Check that the PUCCH Format 2 configuration is valid.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
 
   pucch_processor_result result;
 
@@ -199,10 +199,10 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
   unsigned expected_nof_uci_bits = config.nof_harq_ack + config.nof_sr + config.nof_csi_part1 + config.nof_csi_part2;
 
   // Assert that the decoded UCI payload has the expected number of bits.
-  srsran_assert(result.message.get_full_payload().size() == expected_nof_uci_bits,
-                "Decoded UCI payload length, i.e., {}, does not match expected number of UCI bits, i.e., {}.",
-                result.message.get_full_payload().size(),
-                expected_nof_uci_bits);
+  ocudu_assert(result.message.get_full_payload().size() == expected_nof_uci_bits,
+               "Decoded UCI payload length, i.e., {}, does not match expected number of UCI bits, i.e., {}.",
+               result.message.get_full_payload().size(),
+               expected_nof_uci_bits);
 
   return result;
 }
@@ -212,7 +212,7 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
 {
   // Check that the PUCCH Format 3 configuration is valid.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
 
   pucch_processor_result result;
 
@@ -287,10 +287,10 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
   unsigned expected_nof_uci_bits = config.nof_harq_ack + config.nof_sr + config.nof_csi_part1 + config.nof_csi_part2;
 
   // Assert that the decoded UCI payload has the expected number of bits.
-  srsran_assert(result.message.get_full_payload().size() == expected_nof_uci_bits,
-                "Decoded UCI payload length, i.e., {}, does not match expected number of UCI bits, i.e., {}.",
-                result.message.get_full_payload().size(),
-                expected_nof_uci_bits);
+  ocudu_assert(result.message.get_full_payload().size() == expected_nof_uci_bits,
+               "Decoded UCI payload length, i.e., {}, does not match expected number of UCI bits, i.e., {}.",
+               result.message.get_full_payload().size(),
+               expected_nof_uci_bits);
 
   return result;
 }
@@ -300,7 +300,7 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
 {
   // Check that the PUCCH Format 4 configuration is valid.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdu_validator->is_valid(config)), "{}", msg);
 
   pucch_processor_result result;
 
@@ -376,10 +376,10 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
   unsigned expected_nof_uci_bits = config.nof_harq_ack + config.nof_sr + config.nof_csi_part1 + config.nof_csi_part2;
 
   // Assert that the decoded UCI payload has the expected number of bits.
-  srsran_assert(result.message.get_full_payload().size() == expected_nof_uci_bits,
-                "Decoded UCI payload length, i.e., {}, does not match expected number of UCI bits, i.e., {}.",
-                result.message.get_full_payload().size(),
-                expected_nof_uci_bits);
+  ocudu_assert(result.message.get_full_payload().size() == expected_nof_uci_bits,
+               "Decoded UCI payload length, i.e., {}, does not match expected number of UCI bits, i.e., {}.",
+               result.message.get_full_payload().size(),
+               expected_nof_uci_bits);
 
   return result;
 }

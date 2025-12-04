@@ -14,13 +14,13 @@
 #include "nea1_test_set.h"
 #include "nea2_test_set.h"
 #include "nea3_test_set.h"
-#include "srsran/security/ciphering_engine.h"
-#include "srsran/security/security.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/security/ciphering_engine.h"
+#include "ocudu/security/security.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::security;
+using namespace ocudu;
+using namespace ocudu::security;
 
 /// Fixture class for ciphering engine tests
 class fxt_nea_base : public testing::TestWithParam<nea_test_set>
@@ -29,12 +29,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init SEC logger
-    srslog::fetch_basic_logger("SEC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("SEC", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("SEC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("SEC", false).set_hex_dump_max_size(-1);
 
     logger.info("Created fixture for ciphering engine test");
   }
@@ -42,10 +42,10 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 /// Fixture class for ciphering engine tests with NEA1
@@ -108,7 +108,7 @@ TEST_P(fxt_nea1, ciphering_engine_nea1)
 {
   nea_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key        = make_sec_128_key(param.key_cstr);
   auto        dir        = static_cast<security_direction>(param.direction);
   byte_buffer plaintext  = make_byte_buffer(param.plaintext_cstr).value();
@@ -128,7 +128,7 @@ TEST_P(fxt_nea2, ciphering_engine_nea2)
 {
   nea_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key        = make_sec_128_key(param.key_cstr);
   auto        dir        = static_cast<security_direction>(param.direction);
   byte_buffer plaintext  = make_byte_buffer(param.plaintext_cstr).value();
@@ -148,7 +148,7 @@ TEST_P(fxt_nea3, ciphering_engine_nea3)
 {
   nea_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key        = make_sec_128_key(param.key_cstr);
   auto        dir        = static_cast<security_direction>(param.direction);
   byte_buffer plaintext  = make_byte_buffer(param.plaintext_cstr).value();
@@ -206,7 +206,7 @@ INSTANTIATE_TEST_SUITE_P(nea3_extra,
 
 int main(int argc, char** argv)
 {
-  srslog::init();
+  ocudulog::init();
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

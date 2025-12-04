@@ -11,7 +11,7 @@
 #include "lib/gtpu/gtpu_teid_pool_impl.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 constexpr uint16_t MAX_TEIDS = 16;
 

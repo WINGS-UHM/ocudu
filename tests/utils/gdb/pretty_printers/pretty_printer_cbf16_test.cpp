@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/complex.h"
+#include "ocudu/adt/complex.h"
 
 int main()
 {
-  srsran::cbf16_t a;
+  ocudu::cbf16_t a;
 
-  a = srsran::to_cbf16({1.23, 4.56});
+  a = ocudu::to_cbf16({1.23, 4.56});
   abort();
 }

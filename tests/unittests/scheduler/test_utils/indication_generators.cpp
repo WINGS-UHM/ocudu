@@ -9,11 +9,11 @@
  */
 
 #include "indication_generators.h"
-#include "srsran/scheduler/result/pucch_info.h"
+#include "ocudu/scheduler/result/pucch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-rach_indication_message::preamble srsran::test_helper::create_preamble(unsigned preamble_id, rnti_t tc_rnti)
+rach_indication_message::preamble ocudu::test_helper::create_preamble(unsigned preamble_id, rnti_t tc_rnti)
 {
   rach_indication_message::preamble preamble{};
   preamble.preamble_id  = preamble_id;
@@ -23,8 +23,8 @@ rach_indication_message::preamble srsran::test_helper::create_preamble(unsigned 
 }
 
 rach_indication_message
-srsran::test_helper::create_rach_indication(slot_point                                            slot_rx,
-                                            const std::vector<rach_indication_message::preamble>& preambles)
+ocudu::test_helper::create_rach_indication(slot_point                                            slot_rx,
+                                           const std::vector<rach_indication_message::preamble>& preambles)
 {
   rach_indication_message rach_ind{};
   rach_ind.cell_index = to_du_cell_index(0);
@@ -79,7 +79,7 @@ uci_indication::uci_pdu test_helper::create_uci_indication_pdu(du_ue_index_t    
 }
 
 uci_indication
-srsran::test_helper::create_uci_indication(slot_point uci_sl, du_ue_index_t ue_idx, const pucch_info& pucch_pdu)
+ocudu::test_helper::create_uci_indication(slot_point uci_sl, du_ue_index_t ue_idx, const pucch_info& pucch_pdu)
 {
   uci_indication uci_ind{};
   uci_ind.cell_index = to_du_cell_index(0);
@@ -89,7 +89,7 @@ srsran::test_helper::create_uci_indication(slot_point uci_sl, du_ue_index_t ue_i
 }
 
 uci_indication::uci_pdu
-srsran::test_helper::create_uci_indication_pdu(rnti_t rnti, du_ue_index_t ue_idx, const uci_info& uci)
+ocudu::test_helper::create_uci_indication_pdu(rnti_t rnti, du_ue_index_t ue_idx, const uci_info& uci)
 {
   uci_indication::uci_pdu pdu;
   pdu.crnti      = rnti;
@@ -107,7 +107,7 @@ srsran::test_helper::create_uci_indication_pdu(rnti_t rnti, du_ue_index_t ue_idx
   return pdu;
 }
 
-ul_crc_pdu_indication srsran::test_helper::create_crc_pdu_indication(const ul_sched_info& ul_grant)
+ul_crc_pdu_indication ocudu::test_helper::create_crc_pdu_indication(const ul_sched_info& ul_grant)
 {
   ul_crc_pdu_indication pdu{};
 

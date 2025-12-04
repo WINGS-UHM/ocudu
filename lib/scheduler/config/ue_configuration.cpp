@@ -16,12 +16,12 @@
 #include "../support/pusch/pusch_resource_allocation.h"
 #include "sched_config_manager.h"
 #include "sched_config_params.h"
-#include "srsran/ran/pdcch/dci_format.h"
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/pdcch/dci_format.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/support/math/math_utils.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 span<const uint8_t> search_space_info::get_k1_candidates() const
 {
@@ -30,7 +30,7 @@ span<const uint8_t> search_space_info::get_k1_candidates() const
   // values for a set of number of slots provided by dl-DataToUL-ACK as defined in Table 9.2.3-1.
   // Note: Tested UEs do not support k1 < 4.
   static const std::array<uint8_t, 5> f1_0_list = {4, 5, 6, 7, 8};
-  if (get_dl_dci_format() == srsran::dci_dl_format::f1_0) {
+  if (get_dl_dci_format() == ocudu::dci_dl_format::f1_0) {
     return f1_0_list;
   }
   return bwp->ul_ded->pucch_cfg->dl_data_to_ul_ack;
@@ -40,7 +40,7 @@ void search_space_info::update_pdcch_candidates(
     const std::vector<std::array<pdcch_candidate_list, NOF_AGGREGATION_LEVELS>>& candidates,
     pci_t                                                                        pci)
 {
-  srsran_assert(candidates.size() > 0, "The SearchSpace doesn't have any candidates");
+  ocudu_assert(candidates.size() > 0, "The SearchSpace doesn't have any candidates");
   ss_pdcch_candidates = candidates;
 
   crbs_of_candidates.resize(ss_pdcch_candidates.size());
@@ -263,8 +263,8 @@ static dci_size_config get_dci_size_config(const ue_cell_configuration& ue_cell_
           opt_srs_cfg.value().srs_res_set_list.begin(),
           opt_srs_cfg.value().srs_res_set_list.end(),
           [usage](const srs_config::srs_resource_set& res_set) { return res_set.srs_res_set_usage == usage; });
-      srsran_assert(srs_res_set != opt_srs_cfg.value().srs_res_set_list.end(), "No valid SRS resource set found");
-      srsran_assert(not srs_res_set->srs_res_id_list.empty(), "No SRS resource configured in SRS resource set");
+      ocudu_assert(srs_res_set != opt_srs_cfg.value().srs_res_set_list.end(), "No valid SRS resource set found");
+      ocudu_assert(not srs_res_set->srs_res_id_list.empty(), "No SRS resource configured in SRS resource set");
       // As per TS 38.214, clause 6.1.1.1, When multiple SRS resources are configured by SRS-ResourceSet with usage set
       // to 'codebook', the UE shall expect that higher layer parameters nrofSRS-Ports in SRS-Resource in
       // SRS-ResourceSet shall be configured with the same value for all these SRS resources.
@@ -273,7 +273,7 @@ static dci_size_config get_dci_size_config(const ue_cell_configuration& ue_cell_
           opt_srs_cfg.value().srs_res_list.begin(),
           opt_srs_cfg.value().srs_res_list.end(),
           [srs_resource_id](const srs_config::srs_resource& res) { return res.id.ue_res_id == srs_resource_id; });
-      srsran_assert(srs_res != opt_srs_cfg.value().srs_res_list.end(), "No valid SRS resource found");
+      ocudu_assert(srs_res != opt_srs_cfg.value().srs_res_list.end(), "No valid SRS resource found");
       if (usage == srs_usage::codebook) {
         dci_sz_cfg.nof_srs_ports = static_cast<unsigned>(srs_res->nof_ports);
       }
@@ -631,10 +631,10 @@ static void assert_dci_size_config(search_space_id ss_id, const dci_size_config&
     }
     return is_success;
   };
-  srsran_assert(validate_dci_sz_cfg(),
-                "Invalid DCI size configuration for SearchSpace={}: {}",
-                fmt::underlying(ss_id),
-                error_msg);
+  ocudu_assert(validate_dci_sz_cfg(),
+               "Invalid DCI size configuration for SearchSpace={}: {}",
+               fmt::underlying(ss_id),
+               error_msg);
 }
 
 ue_cell_configuration::ue_cell_configuration(rnti_t                                crnti_,

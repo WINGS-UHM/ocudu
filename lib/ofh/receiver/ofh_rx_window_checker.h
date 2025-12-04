@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/ofh/receiver/ofh_receiver_metrics.h"
-#include "srsran/ofh/receiver/ofh_receiver_timing_parameters.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/receiver/ofh_receiver_metrics.h"
+#include "ocudu/ofh/receiver/ofh_receiver_timing_parameters.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// \brief Open Fronthaul reception window checker.
@@ -89,4 +89,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

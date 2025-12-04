@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/prach/prach_cyclic_shifts.h"
+#include "ocudu/ran/prach/prach_cyclic_shifts.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const prach_subcarrier_spacing& ra_scs)
 {
@@ -36,9 +36,9 @@ std::ostream& operator<<(std::ostream& os, const restricted_set_config& restrict
   }
   return os;
 }
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 // Combined parameters.
 using prach_cyclic_shift_param = std::tuple<prach_subcarrier_spacing, restricted_set_config, unsigned>;

@@ -12,13 +12,13 @@
 
 #include "../config/cell_configuration.h"
 #include "pdsch/pdsch_dmrs_symbol_mask.h"
-#include "srsran/ran/dmrs.h"
-#include "srsran/ran/pdsch/pdsch_antenna_ports_mapping.h"
-#include "srsran/scheduler/config/dmrs.h"
-#include "srsran/scheduler/result/dmrs_info.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/pdsch/pdsch_antenna_ports_mapping.h"
+#include "ocudu/scheduler/config/dmrs.h"
+#include "ocudu/scheduler/result/dmrs_info.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Calculates the number of RE used for DMRS per RB in PDSCH and PUSCH transmissions.
 inline unsigned calculate_nof_dmrs_per_rb(const dmrs_information& dmrs)
@@ -28,10 +28,9 @@ inline unsigned calculate_nof_dmrs_per_rb(const dmrs_information& dmrs)
 
   // Calculate the maximum number of CDM groups without data and make sure the number does not exceed the maximum.
   unsigned max_nof_cdm_groups_without_data = get_max_nof_cdm_groups_without_data(dmrs.config_type);
-  srsran_assert(dmrs.num_dmrs_cdm_grps_no_data >= 1 &&
-                    dmrs.num_dmrs_cdm_grps_no_data <= max_nof_cdm_groups_without_data,
-                "Invalid number of CDM groups without data {}.",
-                dmrs.num_dmrs_cdm_grps_no_data);
+  ocudu_assert(dmrs.num_dmrs_cdm_grps_no_data >= 1 && dmrs.num_dmrs_cdm_grps_no_data <= max_nof_cdm_groups_without_data,
+               "Invalid number of CDM groups without data {}.",
+               dmrs.num_dmrs_cdm_grps_no_data);
 
   // Determines the number of RE for DMRS per RB.
   return nof_dmrs_re * dmrs.num_dmrs_cdm_grps_no_data * dmrs.dmrs_symb_pos.count();
@@ -58,7 +57,7 @@ inline dmrs_information make_dmrs_info_common(const pdsch_time_domain_resource_a
     dmrs.dmrs_symb_pos                        = pdsch_dmrs_symbol_mask_mapping_type_A_single_get(dmrscfg);
 
   } else {
-    srsran_terminate("Mapping type B not supported");
+    ocudu_terminate("Mapping type B not supported");
   }
 
   dmrs.config_type = dmrs_config_type::type1;
@@ -92,8 +91,8 @@ inline dmrs_information make_dmrs_info_dedicated(const pdsch_time_domain_resourc
   // See TS 38.211, 7.4.1.1.2.
   if (dmrs_dl_cfg_ded.additional_positions == dmrs_additional_positions::pos3 and
       dmrs_typeA_pos != dmrs_typeA_position::pos2) {
-    srsran_assertion_failure("Invalid PDSCH DMRS configuration. Cause: DMRS Additional Position of pos3 is only "
-                             "supported when DMRS TypeA position is equal to pos2.");
+    ocudu_assertion_failure("Invalid PDSCH DMRS configuration. Cause: DMRS Additional Position of pos3 is only "
+                            "supported when DMRS TypeA position is equal to pos2.");
   }
 
   if (pdsch_td_cfg.map_type == sch_mapping_type::typeA) {
@@ -107,7 +106,7 @@ inline dmrs_information make_dmrs_info_dedicated(const pdsch_time_domain_resourc
     dmrs.dmrs_symb_pos                        = pdsch_dmrs_symbol_mask_mapping_type_A_single_get(dmrscfg);
 
   } else {
-    srsran_terminate("Mapping type B not supported");
+    ocudu_terminate("Mapping type B not supported");
   }
 
   dmrs.config_type = dmrs_dl_cfg_ded.is_dmrs_type2 ? dmrs_config_type::type2 : dmrs_config_type::type1;
@@ -143,7 +142,7 @@ inline dmrs_information make_dmrs_info_common(span<const pdsch_time_domain_resou
                                               pci_t                                             pci,
                                               dmrs_typeA_position                               dmrs_typeA_pos)
 {
-  srsran_assert(pdsch_td_list.size() > time_resource, "Invalid time resource");
+  ocudu_assert(pdsch_td_list.size() > time_resource, "Invalid time resource");
   const pdsch_time_domain_resource_allocation& pdsch_time_res = pdsch_td_list[time_resource];
 
   return make_dmrs_info_common(pdsch_time_res, pci, dmrs_typeA_pos);
@@ -170,7 +169,7 @@ inline dmrs_information make_dmrs_info_common(const pusch_time_domain_resource_a
     dmrs.dmrs_symb_pos                        = pdsch_dmrs_symbol_mask_mapping_type_A_single_get(dmrscfg);
 
   } else {
-    srsran_terminate("Mapping type B not supported");
+    ocudu_terminate("Mapping type B not supported");
   }
 
   dmrs.config_type = dmrs_config_type::type1;
@@ -207,8 +206,8 @@ inline dmrs_information make_dmrs_info_dedicated(const pusch_time_domain_resourc
   // See TS 38.211, 6.4.1.1.3.
   if (dmrs_ul_cfg.additional_positions == dmrs_additional_positions::pos3 and
       dmrs_typeA_pos != dmrs_typeA_position::pos2) {
-    srsran_assertion_failure("Invalid PUSCH DMRS configuration. Cause: DMRS Additional Position of pos3 is only "
-                             "supported when DMRS TypeA position is equal to pos2.");
+    ocudu_assertion_failure("Invalid PUSCH DMRS configuration. Cause: DMRS Additional Position of pos3 is only "
+                            "supported when DMRS TypeA position is equal to pos2.");
   }
 
   if (pusch_td_cfg.map_type == sch_mapping_type::typeA) {
@@ -222,7 +221,7 @@ inline dmrs_information make_dmrs_info_dedicated(const pusch_time_domain_resourc
     dmrs.dmrs_symb_pos                        = pdsch_dmrs_symbol_mask_mapping_type_A_single_get(dmrscfg);
 
   } else {
-    srsran_terminate("Mapping type B not supported");
+    ocudu_terminate("Mapping type B not supported");
   }
 
   dmrs.config_type = dmrs_ul_cfg.is_dmrs_type2 ? dmrs_config_type::type2 : dmrs_config_type::type1;
@@ -255,10 +254,10 @@ inline dmrs_information make_dmrs_info_common(const pusch_config_common& pusch_c
                                               pci_t                      pci,
                                               dmrs_typeA_position        dmrs_typeA_pos)
 {
-  srsran_assert(pusch_cfg.pusch_td_alloc_list.size() > time_resource, "Invalid time resource");
+  ocudu_assert(pusch_cfg.pusch_td_alloc_list.size() > time_resource, "Invalid time resource");
   const pusch_time_domain_resource_allocation& pusch_time_res = pusch_cfg.pusch_td_alloc_list[time_resource];
 
   return make_dmrs_info_common(pusch_time_res, pci, dmrs_typeA_pos);
 }
 
-} // namespace srsran
+} // namespace ocudu

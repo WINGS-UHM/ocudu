@@ -9,9 +9,9 @@
 add_executable(srs_sched_test
         srs_scheduler_test.cpp)
 target_link_libraries(srs_sched_test
-        srsran_sched
+        ocudu_sched
         scheduler_test_suite
-        srslog
+        ocudulog
         sched_config
         sched_test_doubles
         gtest

@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct split_8_o_du_unit_config;
 
@@ -22,4 +22,4 @@ void configure_cli11_with_split_8_o_du_unit_config_schema(CLI::App& app, split_8
 /// Auto derive split 8 O-RAN DU parameters after the parsing.
 void autoderive_split_8_o_du_parameters_after_parsing(CLI::App& app, split_8_o_du_unit_config& parsed_cfg);
 
-} // namespace srsran
+} // namespace ocudu

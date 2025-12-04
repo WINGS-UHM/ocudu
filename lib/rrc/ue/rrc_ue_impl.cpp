@@ -10,12 +10,12 @@
 
 #include "rrc_ue_impl.h"
 #include "rrc_ue_helpers.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
-#include "srsran/support/cpu_architecture_info.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/support/cpu_architecture_info.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::rrc_nr;
 
 rrc_ue_impl::rrc_ue_impl(rrc_pdu_f1ap_notifier&                 f1ap_pdu_notifier_,
@@ -41,7 +41,7 @@ rrc_ue_impl::rrc_ue_impl(rrc_pdu_f1ap_notifier&                 f1ap_pdu_notifie
   logger("RRC", {ue_index_, c_rnti_}),
   event_mng(std::make_unique<rrc_ue_event_manager>(cu_cp_ue_notifier.get_timer_factory()))
 {
-  srsran_assert(context.cell.bands.empty() == false, "Band must be present in RRC cell configuration.");
+  ocudu_assert(context.cell.bands.empty() == false, "Band must be present in RRC cell configuration.");
 
   // Update security context and keys
   if (rrc_context.has_value()) {
@@ -139,8 +139,8 @@ void rrc_ue_impl::on_new_dl_dcch(srb_id_t srb_id, const asn1::rrc_nr::dl_dcch_ms
 
 void rrc_ue_impl::on_new_as_security_context()
 {
-  srsran_sanity_check(context.srbs.find(srb_id_t::srb1) != context.srbs.end(),
-                      "Attempted to configure security, but there is no interface to PDCP");
+  ocudu_sanity_check(context.srbs.find(srb_id_t::srb1) != context.srbs.end(),
+                     "Attempted to configure security, but there is no interface to PDCP");
 
   context.srbs.at(srb_id_t::srb1)
       .enable_rx_security(

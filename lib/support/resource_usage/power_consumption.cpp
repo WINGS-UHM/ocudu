@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/resource_usage/power_consumption.h"
+#include "ocudu/support/resource_usage/power_consumption.h"
 #include "powercap_energy_reader_impl.h"
 #include "rapl_msr_energy_reader_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace resource_usage_utils;
 
 namespace {
@@ -26,7 +26,7 @@ class dummy_energy_consumption_reader : public energy_consumption_reader
 } // namespace
 
 std::unique_ptr<energy_consumption_reader>
-resource_usage_utils::build_energy_consumption_reader(srslog::basic_logger& logger)
+resource_usage_utils::build_energy_consumption_reader(ocudulog::basic_logger& logger)
 {
   // First try to build Powercap energy consumption reader.
   if (auto reader = build_sysfs_powercap_reader(logger)) {

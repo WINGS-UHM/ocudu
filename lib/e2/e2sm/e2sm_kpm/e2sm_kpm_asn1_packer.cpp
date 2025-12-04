@@ -12,7 +12,7 @@
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
 const std::string e2sm_kpm_asn1_packer::short_name       = "ORAN-E2SM-KPM";
 const std::string e2sm_kpm_asn1_packer::oid              = "1.3.6.1.4.1.53148.1.2.2.2";
@@ -23,12 +23,12 @@ const uint32_t    e2sm_kpm_asn1_packer::revision         = 0;
 e2sm_kpm_asn1_packer::e2sm_kpm_asn1_packer(e2sm_kpm_meas_provider& meas_provider_) : meas_provider(meas_provider_) {}
 
 e2sm_action_definition
-e2sm_kpm_asn1_packer::handle_packed_e2sm_action_definition(const srsran::byte_buffer& action_definition)
+e2sm_kpm_asn1_packer::handle_packed_e2sm_action_definition(const ocudu::byte_buffer& action_definition)
 {
   e2sm_action_definition action_def;
   asn1::cbit_ref         bref(action_definition);
   action_def.service_model = e2sm_service_model_t::KPM;
-  if (std::get<e2sm_kpm_action_definition_s>(action_def.action_definition).unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (std::get<e2sm_kpm_action_definition_s>(action_def.action_definition).unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     fmt::println("Failed to unpack E2SM KPM Action Definition");
     action_def.service_model = e2sm_service_model_t::UNKNOWN_SM;
   }
@@ -51,12 +51,12 @@ e2_ric_control_response e2sm_kpm_asn1_packer::pack_ric_control_response(const e2
 }
 
 e2sm_event_trigger_definition
-e2sm_kpm_asn1_packer::handle_packed_event_trigger_definition(const srsran::byte_buffer& event_trigger_definition)
+e2sm_kpm_asn1_packer::handle_packed_event_trigger_definition(const ocudu::byte_buffer& event_trigger_definition)
 {
   e2sm_event_trigger_definition       e2sm_event_trigger_def;
   e2sm_kpm_event_trigger_definition_s e2sm_kpm_event_trigger_def;
   asn1::cbit_ref                      bref(event_trigger_definition);
-  if (e2sm_kpm_event_trigger_def.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (e2sm_kpm_event_trigger_def.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     fmt::println("Failed to unpack E2SM KPM Event Trigger Definition");
   }
 
@@ -171,9 +171,9 @@ asn1::unbounded_octstring<true> e2sm_kpm_asn1_packer::pack_ran_function_descript
     ran_function_desc.ric_report_style_list.push_back(ric_report_style_item);
   }
 
-  srsran::byte_buffer buf;
-  asn1::bit_ref       bref(buf);
-  if (ran_function_desc.pack(bref) != asn1::SRSASN_SUCCESS) {
+  ocudu::byte_buffer buf;
+  asn1::bit_ref      bref(buf);
+  if (ran_function_desc.pack(bref) != asn1::OCUDUASN_SUCCESS) {
     fmt::println("Failed to pack E2SM KPM RAN Function Description");
     asn1::unbounded_octstring<true> err_buf;
     return err_buf;

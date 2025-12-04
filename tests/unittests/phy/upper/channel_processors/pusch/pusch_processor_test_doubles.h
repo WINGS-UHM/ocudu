@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_processor_spy : public pusch_processor
 {
@@ -41,4 +41,4 @@ private:
   bool processed_method_been_called = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_generator.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_generator.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Concurrent NZP-CSI-RS generator pool.
 ///
@@ -26,9 +26,9 @@ public:
 
   /// Creates a NZP-CSI-RS generator pool from a list of processors. Ownership is transferred to the pool.
   explicit nzp_csi_rs_generator_pool(std::shared_ptr<generator_pool_type> generators_) :
-    logger(srslog::fetch_basic_logger("PHY")), generators(std::move(generators_))
+    logger(ocudulog::fetch_basic_logger("PHY")), generators(std::move(generators_))
   {
-    srsran_assert(generators, "Invalid generator pool.");
+    ocudu_assert(generators, "Invalid generator pool.");
   }
 
   // See interface for documentation.
@@ -43,8 +43,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&                logger;
+  ocudulog::basic_logger&              logger;
   std::shared_ptr<generator_pool_type> generators;
 };
 
-} // namespace srsran
+} // namespace ocudu

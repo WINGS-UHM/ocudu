@@ -12,10 +12,10 @@
 #include "lib/scheduler/ue_context/ue_link_adaptation_controller.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class base_ue_link_adaptation_controller_test
 {

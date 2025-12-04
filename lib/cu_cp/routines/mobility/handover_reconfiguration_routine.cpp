@@ -11,10 +11,10 @@
 #include "handover_reconfiguration_routine.h"
 #include "../../du_processor/du_processor.h"
 #include "../../up_resource_manager/up_resource_manager_impl.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 handover_reconfiguration_routine::handover_reconfiguration_routine(
@@ -24,7 +24,7 @@ handover_reconfiguration_routine::handover_reconfiguration_routine(
     cu_cp_ue&                                       source_ue_,
     f1ap_ue_context_manager&                        source_f1ap_ue_ctxt_mng_,
     cu_cp_ue_context_manipulation_handler&          cu_cp_handler_,
-    srslog::basic_logger&                           logger_) :
+    ocudulog::basic_logger&                         logger_) :
   request(request_),
   target_bearer_context_modification_request(target_bearer_context_modification_request_),
   target_ue_index(target_ue_index_),
@@ -33,13 +33,12 @@ handover_reconfiguration_routine::handover_reconfiguration_routine(
   cu_cp_handler(cu_cp_handler_),
   logger(logger_)
 {
-  srsran_assert(
-      source_ue.get_ue_index() != ue_index_t::invalid, "Invalid source UE index {}", source_ue.get_ue_index());
+  ocudu_assert(source_ue.get_ue_index() != ue_index_t::invalid, "Invalid source UE index {}", source_ue.get_ue_index());
 
   // Unpack MasterCellGroup to extract T304.
   asn1::rrc_nr::cell_group_cfg_s cell_group_cfg;
   asn1::cbit_ref                 bref(request.non_crit_ext->master_cell_group);
-  if (cell_group_cfg.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (cell_group_cfg.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     report_fatal_error("Failed to unpack MasterCellGroupCfg");
   }
   unsigned t304_ms = cell_group_cfg.sp_cell_cfg.recfg_with_sync.t304.to_number();
@@ -49,7 +48,7 @@ handover_reconfiguration_routine::handover_reconfiguration_routine(
   // Unpack SIB1 to extract T311.
   asn1::rrc_nr::sib1_s sib1_msg;
   asn1::cbit_ref       bref2(request.non_crit_ext->ded_sib1_delivery);
-  if (sib1_msg.unpack(bref2) != asn1::SRSASN_SUCCESS) {
+  if (sib1_msg.unpack(bref2) != asn1::OCUDUASN_SUCCESS) {
     report_fatal_error("Failed to unpack SIB1");
   }
   unsigned t301_ms = sib1_msg.ue_timers_and_consts.t301.to_number();

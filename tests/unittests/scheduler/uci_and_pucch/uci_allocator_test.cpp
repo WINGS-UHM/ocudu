@@ -12,7 +12,7 @@
 #include "uci_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 ////////////    Structs with expected parameters and PUCCH sched INPUT     ////////////
 
@@ -69,9 +69,9 @@ protected:
     }
   }
 
-  void add_format2_grant_on_pucch(unsigned nof_harq_ack_bits = 3, sr_nof_bits sr_bits = srsran::sr_nof_bits::no_sr)
+  void add_format2_grant_on_pucch(unsigned nof_harq_ack_bits = 3, sr_nof_bits sr_bits = ocudu::sr_nof_bits::no_sr)
   {
-    srsran_assert(nof_harq_ack_bits > 2, "At least 3 HARQ bits are required to trigger a Format 2 PUCCH grant.");
+    ocudu_assert(nof_harq_ack_bits > 2, "At least 3 HARQ bits are required to trigger a Format 2 PUCCH grant.");
     t_bench.pucch_alloc.alloc_ded_harq_ack(
         t_bench.res_grid, t_bench.get_main_ue().crnti, t_bench.get_main_ue().get_pcell().cfg(), t_bench.k0, t_bench.k1);
     t_bench.pucch_alloc.alloc_ded_harq_ack(
@@ -416,7 +416,7 @@ TEST_F(test_uci_allocator, uci_mplexing_harq_sr_on_pusch)
 TEST_F(test_uci_allocator, uci_multiplexing_3_bit_harq_sr_on_pusch)
 {
   add_pusch_alloc(t_bench.k0 + k2);
-  add_format2_grant_on_pucch(3, srsran::sr_nof_bits::one);
+  add_format2_grant_on_pucch(3, ocudu::sr_nof_bits::one);
   auto& slot_grid = t_bench.res_grid[k2];
 
   // 1 PUSCH grant (without UCI) and 2 PUCCH grants expected before multiplexing.
@@ -444,7 +444,7 @@ TEST_F(test_uci_allocator, uci_multiplexing_3_bit_harq_sr_csi_on_pusch)
 {
   add_pusch_alloc(t_bench.k0 + k2);
   add_csi_grant();
-  add_format2_grant_on_pucch(3, srsran::sr_nof_bits::one);
+  add_format2_grant_on_pucch(3, ocudu::sr_nof_bits::one);
   auto& slot_grid = t_bench.res_grid[k2];
 
   // 1 PUSCH grant (without UCI) and 2 PUCCH grants expected before multiplexing.

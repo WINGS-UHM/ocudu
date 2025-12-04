@@ -11,12 +11,12 @@
 #include "lib/rlc/rlc_rx_am_entity.h"
 #include "lib/rlc/rlc_tx_am_entity.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Initialize timer backend queue. The unique_timer will push into this queue
 // upon destruction.
@@ -153,8 +153,8 @@ static std::vector<byte_buffer> generate_pdus(bench_params params, rx_order orde
   std::unique_ptr<rlc_tx_am_entity>             rlc_tx       = nullptr;
   std::unique_ptr<rlc_bearer_metrics_collector> metrics_coll = nullptr;
 
-  auto& logger = srslog::fetch_basic_logger("RLC");
-  logger.set_level(srslog::basic_levels::warning);
+  auto& logger = ocudulog::fetch_basic_logger("RLC");
+  logger.set_level(ocudulog::basic_levels::warning);
 
   null_rlc_pcap pcap;
 
@@ -285,9 +285,9 @@ static void benchmark_rx_pdu(const bench_params& params, rx_order order, timer_m
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("RLC").set_level(srslog::basic_levels::error);
+  ocudulog::fetch_basic_logger("RLC").set_level(ocudulog::basic_levels::error);
 
-  srslog::init();
+  ocudulog::init();
 
   bench_params params{};
   parse_args(argc, argv, params);
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
   {
     benchmark_rx_pdu(params, rx_order::even_odd, timers);
   }
-  srslog::flush();
+  ocudulog::flush();
 }
 
 //

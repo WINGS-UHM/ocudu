@@ -10,21 +10,21 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_handler.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_handler.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 class rx_symbol_handler_example : public upper_phy_rx_symbol_handler
 {
 private:
-  srslog::basic_logger& logger;
-  std::mutex            mutex;
+  ocudulog::basic_logger& logger;
+  std::mutex              mutex;
 
 public:
-  rx_symbol_handler_example(srslog::basic_levels log_level) : logger(srslog::fetch_basic_logger("RxSyHan"))
+  rx_symbol_handler_example(ocudulog::basic_levels log_level) : logger(ocudulog::fetch_basic_logger("RxSyHan"))
   {
     logger.set_level(log_level);
   }
@@ -51,4 +51,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

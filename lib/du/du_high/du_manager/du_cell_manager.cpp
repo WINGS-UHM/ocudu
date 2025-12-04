@@ -11,17 +11,17 @@
 #include "du_cell_manager.h"
 #include "converters/asn1_sys_info_packer.h"
 #include "converters/scheduler_configuration_helpers.h"
-#include "srsran/du/du_cell_config_validation.h"
-#include "srsran/du/du_high/du_manager/du_configurator.h"
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/du/du_cell_config_validation.h"
+#include "ocudu/du/du_high/du_manager/du_configurator.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_cell_manager::du_cell_manager(const du_manager_params& cfg_) :
-  cfg(cfg_), logger(srslog::fetch_basic_logger("DU-MNG"))
+  cfg(cfg_), logger(ocudulog::fetch_basic_logger("DU-MNG"))
 {
 }
 
@@ -58,7 +58,7 @@ void du_cell_manager::add_cell(const du_cell_config& cell_cfg)
   // Generate system information.
   std::vector<bcch_dl_sch_payload_type> bcch_msgs = asn1_packer::pack_all_bcch_dl_sch_msgs(cell_cfg);
 
-  srsran_assert(bcch_msgs[0].size() == 1, "SIB-1 cannot be segmented");
+  ocudu_assert(bcch_msgs[0].size() == 1, "SIB-1 cannot be segmented");
   const byte_buffer& sib1 = bcch_msgs[0].front();
 
   span<const bcch_dl_sch_payload_type> si_messages =
@@ -246,8 +246,8 @@ async_task<void> du_cell_manager::stop_all() const
 void du_cell_manager::remove_all_cells()
 {
   for (unsigned i = 0; i != cells.size(); ++i) {
-    srsran_assert(cells[i] != nullptr, "Cell {} is null", i);
-    srsran_assert(cells[i]->state != du_cell_context::state_t::active, "Cell {} is still active", i);
+    ocudu_assert(cells[i] != nullptr, "Cell {} is null", i);
+    ocudu_assert(cells[i]->state != du_cell_context::state_t::active, "Cell {} is still active", i);
     cfg.mac.mgr.get_cell_manager().remove_cell(to_du_cell_index(i));
   }
   cells.clear();

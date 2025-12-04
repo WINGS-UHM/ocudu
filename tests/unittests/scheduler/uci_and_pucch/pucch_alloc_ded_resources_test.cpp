@@ -11,11 +11,11 @@
 #include "../test_utils/scheduler_test_suite.h"
 #include "pucch_alloc_base_tester.h"
 #include "uci_test_utils.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 ///////   Test allocation of dedicated PUCCH resources    ///////
 
@@ -801,7 +801,7 @@ TEST_F(test_pucch_allocator_ded_resources, test_common_plus_ded_resource_with_ex
 TEST_F(test_pucch_allocator_ded_resources, test_common_plus_ded_resource_with_existing_f2_csi)
 {
   pucch_expected_f2.uci_bits.harq_ack_nof_bits  = 1U;
-  pucch_expected_f2.uci_bits.sr_bits            = srsran::sr_nof_bits::no_sr;
+  pucch_expected_f2.uci_bits.sr_bits            = ocudu::sr_nof_bits::no_sr;
   pucch_expected_f2.uci_bits.csi_part1_nof_bits = 4U;
 
   add_csi_grant();
@@ -1411,8 +1411,8 @@ public:
   test_pucch_allocator_16_bit_payload() :
     pucch_allocator_base_tester(test_bench_params{.pucch_f2_f3_more_prbs = true, .cfg_for_mimo_4x4 = true})
   {
-    srsran_assert(t_bench.get_main_ue().get_pcell().cfg().csi_meas_cfg() != nullptr,
-                  "CSI configuration needed for this test");
+    ocudu_assert(t_bench.get_main_ue().get_pcell().cfg().csi_meas_cfg() != nullptr,
+                 "CSI configuration needed for this test");
     auto csi_report_cfg = create_csi_report_configuration(*t_bench.get_main_ue().get_pcell().cfg().csi_meas_cfg());
     csi_report_size     = get_csi_report_pucch_size(csi_report_cfg).part1_size.value();
   }

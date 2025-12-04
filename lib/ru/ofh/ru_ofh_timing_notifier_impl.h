@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/ru/ru_timing_notifier.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/ru/ru_timing_notifier.h"
 #include <chrono>
 
-namespace srsran {
+namespace ocudu {
 
 class ru_timing_notifier;
 
@@ -37,4 +37,4 @@ private:
   ru_timing_notifier&            timing_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/precoding_matrix_repository.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// Precoding matrix repository builder.
@@ -43,4 +43,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

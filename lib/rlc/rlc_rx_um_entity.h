@@ -12,14 +12,14 @@
 
 #include "rlc_rx_entity.h"
 #include "rlc_um_pdu.h"
-#include "srsran/adt/expected.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/sdu_window.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/sdu_window.h"
+#include "ocudu/support/timers.h"
 #include "fmt/format.h"
 #include <set>
 
-namespace srsran {
+namespace ocudu {
 
 /// UM SDU segment container
 struct rlc_rx_um_sdu_segment {
@@ -148,19 +148,19 @@ private:
 
   constexpr uint32_t rx_mod_base(uint32_t x) { return (x - st.rx_next_highest - um_window_size) % mod; }
 
-  void log_state(srslog::basic_levels level)
+  void log_state(ocudulog::basic_levels level)
   {
     logger.log(
         level, "RX entity state. {} t_reassembly={}", st, reassembly_timer.is_running() ? "running" : "notify_stop");
   }
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::rlc_rx_um_sdu_info> {
+struct formatter<ocudu::rlc_rx_um_sdu_info> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -168,7 +168,7 @@ struct formatter<srsran::rlc_rx_um_sdu_info> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_rx_um_sdu_info& info, FormatContext& ctx) const
+  auto format(const ocudu::rlc_rx_um_sdu_info& info, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "has_gap={} fully_received={} nof_segments={}",
@@ -179,7 +179,7 @@ struct formatter<srsran::rlc_rx_um_sdu_info> {
 };
 
 template <>
-struct formatter<srsran::rlc_rx_um_state> {
+struct formatter<ocudu::rlc_rx_um_state> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -187,7 +187,7 @@ struct formatter<srsran::rlc_rx_um_state> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_rx_um_state& st, FormatContext& ctx) const
+  auto format(const ocudu::rlc_rx_um_state& st, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "rx_next_reassembly={} rx_timer_trigger={} rx_next_highest={}",

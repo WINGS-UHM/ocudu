@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/support/executors/detail/priority_task_queue.h"
-#include "srsran/adt/moodycamel_bounded_mpmc_queue.h"
-#include "srsran/adt/moodycamel_mpmc_queue.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/mutexed_mpmc_queue.h"
-#include "srsran/adt/mutexed_mpsc_queue.h"
-#include "srsran/adt/spsc_queue.h"
+#include "ocudu/support/executors/detail/priority_task_queue.h"
+#include "ocudu/adt/moodycamel_bounded_mpmc_queue.h"
+#include "ocudu/adt/moodycamel_mpmc_queue.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/mutexed_mpmc_queue.h"
+#include "ocudu/adt/mutexed_mpsc_queue.h"
+#include "ocudu/adt/spsc_queue.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 class detail::any_task_consumer
 {

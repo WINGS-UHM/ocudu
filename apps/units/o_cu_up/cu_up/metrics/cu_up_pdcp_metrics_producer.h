@@ -12,9 +12,9 @@
 
 #include "apps/services/metrics/metrics_notifier.h"
 #include "apps/services/metrics/metrics_producer.h"
-#include "srsran/pdcp/pdcp_metrics.h"
+#include "ocudu/pdcp/pdcp_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// CU-UP PDCP metrics producer implementation.
 class cu_up_pdcp_metrics_producer_impl : public pdcp_metrics_notifier, public app_services::metrics_producer
@@ -32,4 +32,4 @@ private:
   app_services::metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

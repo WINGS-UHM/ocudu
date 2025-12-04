@@ -10,13 +10,13 @@
 
 #include "dpdk.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace dpdk;
 
 /// \file
 /// \brief EAL functions.
 
-bool dpdk::eal_init(int argc, char** argv, srslog::basic_logger& logger)
+bool dpdk::eal_init(int argc, char** argv, ocudulog::basic_logger& logger)
 {
   if (::rte_eal_init(argc, argv) < 0) {
     logger.error("dpdk: rte_eal_init failed");
@@ -29,12 +29,12 @@ bool dpdk::eal_init(int argc, char** argv, srslog::basic_logger& logger)
 /// \file
 /// \brief Common memory pool functions.
 
-::rte_mempool* dpdk::create_mem_pool(const char*           pool_name,
-                                     int                   socket,
-                                     unsigned              n_mbuf,
-                                     unsigned              mempool_cache_size,
-                                     unsigned              mbuf_data_size,
-                                     srslog::basic_logger& logger)
+::rte_mempool* dpdk::create_mem_pool(const char*             pool_name,
+                                     int                     socket,
+                                     unsigned                n_mbuf,
+                                     unsigned                mempool_cache_size,
+                                     unsigned                mbuf_data_size,
+                                     ocudulog::basic_logger& logger)
 {
   // Create a new mbuf pool for the hardware-accelerated functions.
   ::rte_mempool* mbuf_pool =

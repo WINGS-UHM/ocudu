@@ -9,21 +9,21 @@
  */
 
 #include "split6_o_du_impl.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 split6_o_du_impl::split6_o_du_impl(unsigned                                        nof_cells_,
                                    std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> adaptor_,
-                                   std::unique_ptr<srs_du::o_du_high>              odu_hi_) :
+                                   std::unique_ptr<odu::o_du_high>                 odu_hi_) :
   nof_cells(nof_cells_), odu_hi(std::move(odu_hi_)), adaptor(std::move(adaptor_))
 {
-  srsran_assert(odu_hi, "Invalid O-DU high");
-  srsran_assert(adaptor, "Invalid PHY-FAPI adaptor");
+  ocudu_assert(odu_hi, "Invalid O-DU high");
+  ocudu_assert(adaptor, "Invalid PHY-FAPI adaptor");
 
   for (unsigned i = 0; i != nof_cells; ++i) {
     auto& p7_mac_sector_adaptor = odu_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();

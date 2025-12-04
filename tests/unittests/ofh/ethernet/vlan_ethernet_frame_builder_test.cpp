@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ofh/ethernet/ethernet_factories.h"
+#include "ocudu/ofh/ethernet/ethernet_factories.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 TEST(vlan_ethernet_frame_builder_impl_test, build_valid_vlan_ethernet_frame_should_pass)

@@ -10,18 +10,18 @@
 
 #include "gtpu_test_shared.h"
 #include "lib/gtpu/gtpu_pdu.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fixture class for GTP-U PDU tests
 class gtpu_test : public ::testing::Test
 {
 public:
   gtpu_test() :
-    logger(srslog::fetch_basic_logger("TEST", false)), gtpu_logger(srslog::fetch_basic_logger("GTPU", false))
+    logger(ocudulog::fetch_basic_logger("TEST", false)), gtpu_logger(ocudulog::fetch_basic_logger("GTPU", false))
   {
   }
 
@@ -29,36 +29,36 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init GTPU logger
-    gtpu_logger.set_level(srslog::basic_levels::debug);
+    gtpu_logger.set_level(ocudulog::basic_levels::debug);
     gtpu_logger.set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   // Test logger
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // GTP-U logger
-  srslog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger    gtpu_rx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
-  gtpu_tunnel_logger    gtpu_tx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "UL"}};
+  ocudulog::basic_logger& gtpu_logger;
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger      gtpu_tx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "UL"}};
 };
 
 /// \brief Test correct read TEID helper function
 TEST_F(gtpu_test, read_teid)
 {
-  srsran::test_delimit_logger delimiter("GTP-U read TEID test");
-  byte_buffer                 orig_vec = byte_buffer::create(gtpu_ping_vec_teid_1).value();
-  byte_buffer                 test_vec = byte_buffer::create(gtpu_ping_vec_teid_1).value();
-  uint32_t                    teid     = {};
+  ocudu::test_delimit_logger delimiter("GTP-U read TEID test");
+  byte_buffer                orig_vec = byte_buffer::create(gtpu_ping_vec_teid_1).value();
+  byte_buffer                test_vec = byte_buffer::create(gtpu_ping_vec_teid_1).value();
+  uint32_t                   teid     = {};
 
   // Unpack SDU
   logger.info(orig_vec.begin(), orig_vec.end(), "Original SDU");
@@ -73,11 +73,11 @@ TEST_F(gtpu_test, read_teid)
 /// \brief Test correct packing/unpacking of GTPU PDU
 TEST_F(gtpu_test, pack_unpack)
 {
-  srsran::test_delimit_logger delimiter("GTP-U unpack/pack test");
-  byte_buffer                 orig_vec          = byte_buffer::create(gtpu_ping_vec_teid_1).value();
-  byte_buffer                 tst_vec           = byte_buffer::create(gtpu_ping_vec_teid_1).value();
-  byte_buffer                 tst_vec_no_header = byte_buffer::create(tst_vec.begin() + 8, tst_vec.end()).value();
-  gtpu_dissected_pdu          dissected_pdu;
+  ocudu::test_delimit_logger delimiter("GTP-U unpack/pack test");
+  byte_buffer                orig_vec          = byte_buffer::create(gtpu_ping_vec_teid_1).value();
+  byte_buffer                tst_vec           = byte_buffer::create(gtpu_ping_vec_teid_1).value();
+  byte_buffer                tst_vec_no_header = byte_buffer::create(tst_vec.begin() + 8, tst_vec.end()).value();
+  gtpu_dissected_pdu         dissected_pdu;
 
   // Unpack SDU
   logger.info(orig_vec.begin(), orig_vec.end(), "Original SDU");
@@ -120,11 +120,11 @@ TEST_F(gtpu_test, pack_unpack)
 /// with header extension.
 TEST_F(gtpu_test, pack_unpack_ext_hdr)
 {
-  srsran::test_delimit_logger delimiter("GTP-U header extension unpack/pack test");
-  byte_buffer                 orig_vec = byte_buffer::create(gtpu_ping_two_ext_vec).value();
-  byte_buffer                 tst_vec  = byte_buffer::create(gtpu_ping_two_ext_vec).value();
-  uint16_t                    ext_size = 4;
-  byte_buffer                 tst_vec_no_header =
+  ocudu::test_delimit_logger delimiter("GTP-U header extension unpack/pack test");
+  byte_buffer                orig_vec = byte_buffer::create(gtpu_ping_two_ext_vec).value();
+  byte_buffer                tst_vec  = byte_buffer::create(gtpu_ping_two_ext_vec).value();
+  uint16_t                   ext_size = 4;
+  byte_buffer                tst_vec_no_header =
       byte_buffer::create(tst_vec.begin() + GTPU_EXTENDED_HEADER_LEN + 2 * ext_size, tst_vec.end()).value();
   gtpu_dissected_pdu dissected_pdu;
 

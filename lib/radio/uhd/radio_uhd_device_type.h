@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 class radio_uhd_device_type
 {
@@ -87,4 +87,4 @@ private:
   types type = types::UNKNOWN;
 };
 
-} // namespace srsran
+} // namespace ocudu

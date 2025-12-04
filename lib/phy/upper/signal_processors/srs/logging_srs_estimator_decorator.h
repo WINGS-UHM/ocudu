@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/signal_processors/srs/formatters.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_result.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/signal_processors/srs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Logging Sounding Reference Signal channel estimator decorator.
 class logging_srs_estimator_decorator : public srs_estimator
@@ -33,10 +33,10 @@ class logging_srs_estimator_decorator : public srs_estimator
 
 public:
   /// Creates a logging decorator for SRS channel estimator.
-  logging_srs_estimator_decorator(srslog::basic_logger& logger_, std::unique_ptr<srs_estimator> srs_) :
+  logging_srs_estimator_decorator(ocudulog::basic_logger& logger_, std::unique_ptr<srs_estimator> srs_) :
     logger(logger_), srs(std::move(srs_))
   {
-    srsran_assert(srs, "Invalid SRS estimator instance.");
+    ocudu_assert(srs, "Invalid SRS estimator instance.");
   }
 
   srs_estimator_result estimate(const resource_grid_reader& grid, const srs_estimator_configuration& config) override
@@ -71,8 +71,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
   std::unique_ptr<srs_estimator> srs;
 };
 
-} // namespace srsran
+} // namespace ocudu

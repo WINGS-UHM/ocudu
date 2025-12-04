@@ -14,7 +14,7 @@
 #include "../support/outer_loop_link_adaptation.h"
 #include "ue_channel_state_manager.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Component that handles the derivation of the MCS for a UE, given its CSI, PHY estimates, and experienced
 /// channel BLER.
@@ -83,4 +83,4 @@ private:
   std::optional<olla_algorithm> ul_olla;
 };
 
-} // namespace srsran
+} // namespace ocudu

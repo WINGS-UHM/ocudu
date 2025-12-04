@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/phy_tap/phy_tap.h"
+#include "ocudu/phy/upper/phy_tap/phy_tap.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a PHY tap interface for testing purposes.
 class phy_tap_spy : public phy_tap
@@ -50,4 +50,4 @@ private:
   unsigned handle_quiet_grid_count = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

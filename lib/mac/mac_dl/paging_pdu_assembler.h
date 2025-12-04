@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/support/memory_pool/ring_buffer_pool.h"
+#include "ocudu/support/memory_pool/ring_buffer_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct dl_paging_allocation;
 
@@ -38,4 +38,4 @@ private:
   std::unique_ptr<paging_message_buffer> buffer;
 };
 
-} // namespace srsran
+} // namespace ocudu

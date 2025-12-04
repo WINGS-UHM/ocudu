@@ -10,16 +10,16 @@
 
 #include "gtpu_test_shared.h"
 #include "lib/gtpu/gtpu_pdu.h"
-#include "srsran/gtpu/gtpu_tunnel_common_rx.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu_factory.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu_tx.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/rate_limiting/token_bucket.h"
-#include "srsran/support/rate_limiting/token_bucket_config.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_rx.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_factory.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_tx.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/rate_limiting/token_bucket.h"
+#include "ocudu/support/rate_limiting/token_bucket_config.h"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class gtpu_tunnel_rx_lower_dummy : public gtpu_tunnel_ngu_rx_lower_layer_notifier
 {
@@ -64,7 +64,7 @@ class gtpu_tunnel_ngu_test : public ::testing::Test
 {
 public:
   gtpu_tunnel_ngu_test() :
-    logger(srslog::fetch_basic_logger("TEST", false)), gtpu_logger(srslog::fetch_basic_logger("GTPU", false))
+    logger(ocudulog::fetch_basic_logger("TEST", false)), gtpu_logger(ocudulog::fetch_basic_logger("GTPU", false))
   {
   }
 
@@ -72,27 +72,27 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init GTP-U logger
-    gtpu_logger.set_level(srslog::basic_levels::debug);
+    gtpu_logger.set_level(ocudulog::basic_levels::debug);
     gtpu_logger.set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   // Test logger
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // GTP-U logger
-  srslog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger    gtpu_rx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
-  gtpu_tunnel_logger    gtpu_tx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "UL"}};
+  ocudulog::basic_logger& gtpu_logger;
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger      gtpu_tx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "UL"}};
 
   // Timers
   manual_task_worker worker{64};

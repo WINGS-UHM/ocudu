@@ -10,20 +10,20 @@
 
 #include "pucch_processor_format3_test_data.h"
 #include "pucch_processor_test_fixture.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/formatters.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/formatters.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using PucchProcessorF3Params = test_case_t;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, span<const uint8_t> data)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using PucchProcessorFormat3Param = test_case_t;
 using PucchProcessorF3Fixture    = PucchProcessorTestFixture<PucchProcessorFormat3Param>;

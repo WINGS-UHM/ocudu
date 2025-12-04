@@ -13,7 +13,7 @@
 #include "du_high/du_high_config_validator.h"
 #include "o_du_high_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Validates the given O-DU high configuration. Returns true on success, false otherwise.
 inline bool validate_o_du_high_config(const o_du_high_unit_config& config)
@@ -21,4 +21,4 @@ inline bool validate_o_du_high_config(const o_du_high_unit_config& config)
   return validate_du_high_config(config.du_high_cfg.config);
 }
 
-} // namespace srsran
+} // namespace ocudu

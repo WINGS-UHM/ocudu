@@ -8,31 +8,31 @@
  *
  */
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/pdsch/dlsch_info.h"
-#include "srsran/ran/pdsch/pdsch_mcs.h"
-#include "srsran/ran/pusch/pusch_constants.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
-#include "srsran/ran/sch/sch_mcs.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/support/math/complex_normal_random.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/pdsch/dlsch_info.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/support/math/complex_normal_random.h"
+#include "ocudu/support/ocudu_test.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 #include <thread>
 #include <tuple>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr pdsch_mcs_table mcs_table           = pdsch_mcs_table::qam64;
 static constexpr unsigned        nof_layers          = 1;
@@ -46,7 +46,7 @@ static constexpr uint64_t        seed_end            = 128;
 using ldpc_decoder_early_stop = bool;
 using pxsch_chain_params      = std::tuple<sch_mcs_index, prb_interval, ldpc_decoder_early_stop>;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const sch_mcs_index& index)
 {
@@ -60,7 +60,7 @@ std::ostream& operator<<(std::ostream& os, const prb_interval& prb_mapping)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -270,7 +270,7 @@ TEST_P(PxschChainFixture, Ideal)
 
     // Encode data.
     encoder->encode(tx_encoded_bits, tx_data.get_buffer(), encoder_config);
-    srsvec::bit_pack(tx_encoded_packed, tx_encoded_bits);
+    ocuduvec::bit_pack(tx_encoded_packed, tx_encoded_bits);
 
     // Modulate.
     modulator->modulate(modulated_symbols, tx_encoded_packed, mcs_descr.modulation);

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_data_message_notifier.h"
+#include "ocudu/fapi/slot_data_message_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Slot data message notifier dispatcher that forwards data messages to the configured notifier.
@@ -43,4 +43,4 @@ public:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #include "initial_context_setup_routine.h"
 #include "pdu_session_routine_helpers.h"
-#include "srsran/ran/cause/common.h"
-#include "srsran/ran/cause/f1ap_cause_converters.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/rrc/rrc_ue.h"
+#include "ocudu/ran/cause/common.h"
+#include "ocudu/ran/cause/f1ap_cause_converters.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/rrc/rrc_ue.h"
 #include <optional>
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 initial_context_setup_routine::initial_context_setup_routine(
@@ -27,7 +27,7 @@ initial_context_setup_routine::initial_context_setup_routine(
     ue_security_manager&                         security_mng_,
     f1ap_ue_context_manager&                     f1ap_ue_ctxt_mng_,
     cu_cp_ngap_handler&                          pdu_session_setup_handler_,
-    srslog::basic_logger&                        logger_) :
+    ocudulog::basic_logger&                      logger_) :
   request(request_),
   rrc_ue(rrc_ue_),
   ngap_ue_radio_cap_handler(ngap_ue_radio_cap_handler_),

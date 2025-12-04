@@ -8,25 +8,25 @@
  *
  */
 
-#include "srsran/du/du_cell_config_validation.h"
-#include "srsran/asn1/rrc_nr/serving_cell.h"
-#include "srsran/du/du_update_config_helpers.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/serving_cell_config_validator.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/support/config/validator_helpers.h"
+#include "ocudu/du/du_cell_config_validation.h"
+#include "ocudu/asn1/rrc_nr/serving_cell.h"
+#include "ocudu/du/du_update_config_helpers.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_validator.h"
+#include "ocudu/scheduler/sched_consts.h"
+#include "ocudu/support/config/validator_helpers.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 #define CHECK_TRUE(cond, ...)                                                                                          \
   if (not(cond)) {                                                                                                     \
@@ -142,11 +142,11 @@ static check_outcome is_coreset0_params_valid(const du_cell_config& cell_cfg)
 static check_outcome is_search_space_valid(const search_space_configuration& ss_cfg)
 {
   CHECK_EQ_OR_BELOW(fmt::underlying(ss_cfg.get_id()),
-                    fmt::underlying(srsran::MAX_SEARCH_SPACE_ID),
+                    fmt::underlying(ocudu::MAX_SEARCH_SPACE_ID),
                     "SearchSpace Id={}",
                     fmt::underlying(ss_cfg.get_id()));
   CHECK_EQ_OR_BELOW(fmt::underlying(ss_cfg.get_coreset_id()),
-                    fmt::underlying(srsran::MAX_CORESET_ID),
+                    fmt::underlying(ocudu::MAX_CORESET_ID),
                     "SearchSpace#{} CORESET Id={}",
                     fmt::underlying(ss_cfg.get_id()),
                     fmt::underlying(ss_cfg.get_coreset_id()));
@@ -176,7 +176,7 @@ static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
   if (bwp.pdcch_common.coreset0.has_value()) {
     HANDLE_ERROR(is_coreset0_params_valid(cell_cfg));
   }
-  if (bwp.pdcch_common.sib1_search_space_id != srsran::MAX_NOF_SEARCH_SPACES) {
+  if (bwp.pdcch_common.sib1_search_space_id != ocudu::MAX_NOF_SEARCH_SPACES) {
     CHECK_EQ(fmt::underlying(bwp.pdcch_common.sib1_search_space_id),
              0,
              "SearchSpaceSIB1 must be equal to 0 for initial DL BWP");
@@ -714,7 +714,7 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
                                                  band_helper::get_duplex_mode(cell_cfg.dl_carrier.band),
                                                  rach_cfg.rach_cfg_generic.prach_config_index);
   CHECK_NEQ(fmt::underlying(prach_cfg.format),
-            fmt::underlying(srsran::prach_format_type::invalid),
+            fmt::underlying(ocudu::prach_format_type::invalid),
             "The PRACH format is invalid");
 
   // Derive PRACH duration information.
@@ -751,7 +751,7 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
   return {};
 }
 
-check_outcome srs_du::is_du_cell_config_valid(const du_cell_config& cell_cfg)
+check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
 {
   CHECK_EQ_OR_BELOW(cell_cfg.pci, MAX_PCI, "cell PCI");
   CHECK_EQ_OR_BELOW(fmt::underlying(cell_cfg.scs_common), fmt::underlying(subcarrier_spacing::kHz120), "SCS common");

@@ -9,13 +9,13 @@
  */
 
 #include "sctp_test_helpers.h"
-#include "srsran/gateways/sctp_network_server_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/io/sctp_socket.h"
+#include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/io/sctp_socket.h"
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -72,10 +72,10 @@ class base_sctp_network_test
 protected:
   base_sctp_network_test()
   {
-    srslog::fetch_basic_logger("SCTP-GW").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("SCTP-GW").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
-  ~base_sctp_network_test() { srslog::flush(); }
+  ~base_sctp_network_test() { ocudulog::flush(); }
 
   dummy_io_broker     broker;
   association_factory assoc_factory;

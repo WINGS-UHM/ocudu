@@ -9,16 +9,16 @@
  */
 
 #include "amplitude_controller_scaling_impl.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 amplitude_controller_metrics amplitude_controller_scaling_impl::process(span<cf_t> output, span<const cf_t> input)
 {
-  srsran_srsvec_assert_size(output, input);
+  ocudu_ocuduvec_assert_size(output, input);
 
   // Apply scaling factor.
-  srsvec::sc_prod(output, input, amplitude_gain);
+  ocuduvec::sc_prod(output, input, amplitude_gain);
 
   // Return empty metrics.
   return {0.0F, 0.0F, 0.0F, 0.0F, 0UL, 0UL, 0.0, false};

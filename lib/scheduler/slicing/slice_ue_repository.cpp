@@ -10,7 +10,7 @@
 
 #include "slice_ue_repository.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 slice_ue::slice_ue(ue& u_, ue_cell& ue_cc_, ran_slice_id_t slice_id_) : u(u_), ue_cc(ue_cc_), slice_id(slice_id_) {}
 
@@ -25,7 +25,7 @@ bool slice_ue_repository::add_ue(ue& u)
 {
   if (not ue_map.contains(u.ue_index)) {
     ue_cell* ue_cc = u.find_cell(cell_index);
-    srsran_sanity_check(ue_cc != nullptr, "Invalid UE added to RAN slice");
+    ocudu_sanity_check(ue_cc != nullptr, "Invalid UE added to RAN slice");
     ue_map.emplace(u.ue_index, u, *ue_cc, slice_id);
     return true;
   }
@@ -57,7 +57,7 @@ void slice_ue_repository::rem_logical_channel(du_ue_index_t ue_idx, lcid_t lcid)
   auto& slice_u = ue_map[ue_idx];
 
   ue_logical_channel_repository& lc_mng = slice_u.u.logical_channels();
-  srsran_sanity_check(lc_mng.has_slice(slice_id), "slice_ue should not be created without slice");
+  ocudu_sanity_check(lc_mng.has_slice(slice_id), "slice_ue should not be created without slice");
   if (lc_mng.get_slice_id(lcid) != slice_id) {
     // LCID is not associated with this slice.
     return;

@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../ue_manager.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class cu_up_e1_connection_loss_routine
 {
@@ -41,9 +41,9 @@ private:
   unique_timer             retry_timer;
   e1ap_connection_manager& e1ap_conn_mng;
   ue_manager&              ue_mng;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   bool reconnected;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

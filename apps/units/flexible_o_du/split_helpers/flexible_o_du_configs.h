@@ -12,17 +12,17 @@
 
 #include "apps/units/flexible_o_du/o_du_high/o_du_high_unit_config.h"
 #include "apps/units/flexible_o_du/o_du_low/du_low_config.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ru_error_notifier;
 class ru_timing_notifier;
 class ru_uplink_plane_rx_symbol_notifier;
 struct worker_manager;
 
-namespace srs_du {
+namespace odu {
 struct du_cell_config;
 }
 
@@ -69,4 +69,4 @@ struct flexible_o_du_ru_dependencies {
   ru_error_notifier&                  error_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

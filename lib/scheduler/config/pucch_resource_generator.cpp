@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/pucch/pucch_mapping.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace config_helpers;
 
 namespace {
@@ -722,7 +722,7 @@ merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_
           f0_f1_rbs_occupancy_low_freq = std::max(f0_f1_rbs_occupancy_low_freq, res_f0.freq_hop_grant.value().start());
         }
       } else {
-        srsran_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
         return {};
       }
 
@@ -760,14 +760,14 @@ merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_
           f0_f1_rbs_occupancy_low_freq = std::max(f0_f1_rbs_occupancy_low_freq, res_f1.freq_hop_grant.value().start());
         }
       } else {
-        srsran_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
         return {};
       }
 
       res.nof_symbols      = res_f1.symbols.length();
       res.starting_sym_idx = res_f1.symbols.start();
-      srsran_assert(res_f1.occ_cs_idx.has_value(),
-                    "The index needed to compute OCC code and cyclic shift have not been found");
+      ocudu_assert(res_f1.occ_cs_idx.has_value(),
+                   "The index needed to compute OCC code and cyclic shift have not been found");
       format1.initial_cyclic_shift = occ_cs_index_to_cyclic_shift(res_f1.occ_cs_idx.value(), nof_cs.value());
       format1.time_domain_occ      = occ_cs_index_to_occ(res_f1.occ_cs_idx.value(), nof_cs.value());
       res.format_params.emplace<pucch_format_1_cfg>(format1);
@@ -798,7 +798,7 @@ merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_
             res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
           }
         } else {
-          srsran_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+          ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
           return {};
         }
 
@@ -829,7 +829,7 @@ merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_
             res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
           }
         } else {
-          srsran_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+          ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
           return {};
         }
 
@@ -860,7 +860,7 @@ merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_
             res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
           }
         } else {
-          srsran_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+          ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
           return {};
         }
 
@@ -892,7 +892,7 @@ std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(
   auto outcome = pucch_parameters_validator(
       nof_res_f0_f1, nof_res_f2_f3_f4, f0_f1_params, f2_f3_f4_params, bwp_size_rbs, max_nof_symbols);
   if (not outcome.has_value()) {
-    srsran_assertion_failure("The cell list could not be generated due to: {}", outcome.error());
+    ocudu_assertion_failure("The cell list could not be generated due to: {}", outcome.error());
     return {};
   }
 
@@ -934,9 +934,9 @@ std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(
                                                       f4_occ_len);
 
   if (res_list.size() > pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES) {
-    srsran_assertion_failure("With the given parameters, the number of PUCCH resources generated for the "
-                             "cell exceeds maximum supported limit of {}",
-                             pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES);
+    ocudu_assertion_failure("With the given parameters, the number of PUCCH resources generated for the "
+                            "cell exceeds maximum supported limit of {}",
+                            pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES);
     return {};
   }
 
@@ -972,12 +972,12 @@ static unsigned cell_res_list_and_params_validator(
 
   if (contain_format_0 and contain_format_2) {
     if (nof_ue_pucch_f0_f1_res_harq.to_uint() > 6U) {
-      srsran_assertion_failure("With Format 0 and Format 2, nof_ue_pucch_f0_f1_res_harq cannot be greater than 6, as 2 "
-                               "resources in set 0 are reserved.");
+      ocudu_assertion_failure("With Format 0 and Format 2, nof_ue_pucch_f0_f1_res_harq cannot be greater than 6, as 2 "
+                              "resources in set 0 are reserved.");
       return FAILURE_CASE;
     }
     if (nof_ue_pucch_f2_f3_f4_res_harq.to_uint() > 6U) {
-      srsran_assertion_failure(
+      ocudu_assertion_failure(
           "With Format 0 and Format 2, nof_ue_pucch_f2_f3_f4_res_harq cannot be greater than 6, as 2 "
           "resources in set 1 are reserved.");
       return FAILURE_CASE;
@@ -991,20 +991,20 @@ static unsigned cell_res_list_and_params_validator(
   const unsigned tot_nof_f4_res = count_resources(pucch_format::FORMAT_4);
 
   if (tot_nof_f0_res != 0 and tot_nof_f1_res != 0) {
-    srsran_assertion_failure("The cell PUCCH resource list can contain either F0 or F1 PUCCH resources, but not both.");
+    ocudu_assertion_failure("The cell PUCCH resource list can contain either F0 or F1 PUCCH resources, but not both.");
     return FAILURE_CASE;
   }
 
   if (static_cast<unsigned>(tot_nof_f2_res != 0) + static_cast<unsigned>(tot_nof_f3_res != 0) +
           static_cast<unsigned>(tot_nof_f4_res != 0) >
       1) {
-    srsran_assertion_failure(
+    ocudu_assertion_failure(
         "The cell PUCCH resource list can contain either F2, F3 or F4 PUCCH resources, but not a mix of those types.");
     return FAILURE_CASE;
   }
 
   if (tot_nof_f0_res != 0 and (tot_nof_f3_res != 0 or tot_nof_f4_res != 0)) {
-    srsran_assertion_failure("The implementation is not prepared to handle PUCCH F3 or F4 when Format 0 is used.");
+    ocudu_assertion_failure("The implementation is not prepared to handle PUCCH F3 or F4 when Format 0 is used.");
     return FAILURE_CASE;
   }
 
@@ -1012,20 +1012,20 @@ static unsigned cell_res_list_and_params_validator(
   const unsigned tot_nof_f2_f3_f4_res = tot_nof_f2_res + tot_nof_f3_res + tot_nof_f4_res;
 
   if (tot_nof_f0_f1_res + tot_nof_f2_f3_f4_res != res_list.size()) {
-    srsran_assertion_failure(
+    ocudu_assertion_failure(
         "The sum of F0/F1 and F2/F3/F4 PUCCH resources must be equal to the cell PUCCH resource list size.");
     return FAILURE_CASE;
   }
 
   if (tot_nof_f0_f1_res < 2 or tot_nof_f2_f3_f4_res < 2) {
-    srsran_assertion_failure(
+    ocudu_assertion_failure(
         "The cell PUCCH resource list must contain at least 2 F0/F1 and 2 F2/F3/F4 PUCCH resources.");
     return FAILURE_CASE;
   }
 
   if (nof_ue_pucch_f0_f1_res_harq.to_uint() > tot_nof_f0_f1_res - nof_cell_pucch_f0_f1_res_sr or
       nof_ue_pucch_f2_f3_f4_res_harq.to_uint() > tot_nof_f2_f3_f4_res - nof_cell_pucch_f2_f3_f4_res_csi) {
-    srsran_assertion_failure(
+    ocudu_assertion_failure(
         "The nof requested UE PUCCH resources is greater than the nof of resources available in the cell.");
     return FAILURE_CASE;
   }
@@ -1033,7 +1033,7 @@ static unsigned cell_res_list_and_params_validator(
   if ((nof_ue_pucch_f0_f1_res_harq.to_uint() * nof_harq_pucch_cfgs > tot_nof_f0_f1_res - nof_cell_pucch_f0_f1_res_sr) or
       (nof_ue_pucch_f2_f3_f4_res_harq.to_uint() * nof_harq_pucch_cfgs >
        tot_nof_f2_f3_f4_res - nof_cell_pucch_f2_f3_f4_res_csi)) {
-    srsran_assertion_failure(
+    ocudu_assertion_failure(
         "The cell PUCCH resource list doesn't contain enough resources to allocate all requested UEs.");
     return FAILURE_CASE;
   }
@@ -1041,7 +1041,7 @@ static unsigned cell_res_list_and_params_validator(
   for (unsigned res_idx = 0; res_idx != tot_nof_f0_f1_res; ++res_idx) {
     if (res_list[res_idx].format == pucch_format::FORMAT_2 || res_list[res_idx].format == pucch_format::FORMAT_3 ||
         res_list[res_idx].format == pucch_format::FORMAT_4) {
-      srsran_assertion_failure(
+      ocudu_assertion_failure(
           "The F0/F1 resources in the cell PUCCH resource list must precede all F2/F3/F4 resources.");
       return FAILURE_CASE;
     }

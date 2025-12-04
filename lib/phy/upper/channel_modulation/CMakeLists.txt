@@ -25,7 +25,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     list(APPEND SOURCES modulation_mapper_neon_impl.cpp)
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 
-add_library(srsran_channel_modulation STATIC ${SOURCES})
-target_link_libraries(srsran_channel_modulation srsran_support log_likelihood_ratio)
+add_library(ocudu_channel_modulation STATIC ${SOURCES})
+target_link_libraries(ocudu_channel_modulation ocudu_support log_likelihood_ratio)
 
-add_to_exported_libs(srsran_channel_modulation)
+add_to_exported_libs(ocudu_channel_modulation)

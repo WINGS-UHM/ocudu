@@ -11,12 +11,12 @@
 #pragma once
 
 #include "aggregator_helpers.h"
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 #include <utility>
 
-namespace srsran {
+namespace ocudu {
 
 /// PDSCH processor metrics aggregator.
 class pdsch_processor_metrics_aggregator : public pdsch_processor_metric_notifier
@@ -122,4 +122,4 @@ private:
   std::atomic<uint64_t> packed_max_latency_ns     = default_packed_max_latency_ns;
 };
 
-} // namespace srsran
+} // namespace ocudu

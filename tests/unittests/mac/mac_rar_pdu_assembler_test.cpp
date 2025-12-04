@@ -10,13 +10,13 @@
 
 #include "lib/mac/mac_dl/rar_pdu_assembler.h"
 #include "mac_test_helpers.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 std::random_device                      rd;
 std::mt19937                            gen(rd());

@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/support/async/event_signal.h"
-#include "srsran/support/async/protocol_transaction_manager.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/support/async/event_signal.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 using rrc_outcome     = asn1::rrc_nr::ul_dcch_msg_s;
 using rrc_transaction = protocol_transaction<rrc_outcome>;
@@ -39,5 +39,5 @@ public:
   ~rrc_ue_event_manager() { cancel_all(); }
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

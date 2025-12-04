@@ -9,13 +9,13 @@
  */
 
 #include "lib/du/du_high/du_manager/ran_resource_management/du_srs_resource_manager.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -87,7 +87,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   }
 
   // The TX comb cyclic shift value depends on the TX comb size.
-  if (srs_cfg.tx_comb == srsran::tx_comb_size::n2) {
+  if (srs_cfg.tx_comb == ocudu::tx_comb_size::n2) {
     std::array<nof_cyclic_shifts, 3> srs_cyclic_shift_values = {
         nof_cyclic_shifts::no_cyclic_shift, nof_cyclic_shifts::two, nof_cyclic_shifts::four};
     srs_cfg.cyclic_shift_reuse_factor =
@@ -134,7 +134,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   return du_cfg;
 }
 
-static du_cell_config make_srs_du_cell_config(const cell_config_builder_params& params, bool limit_srs_res)
+static du_cell_config make_odu_cell_config(const cell_config_builder_params& params, bool limit_srs_res)
 {
   auto du_cfg = make_srs_base_du_cell_config(params);
 
@@ -195,7 +195,7 @@ class du_srs_resource_manager_tester : public ::testing::TestWithParam<srs_param
 protected:
   explicit du_srs_resource_manager_tester(cell_config_builder_params params_ = make_cell_cfg_params(GetParam())) :
     params(params_),
-    cell_cfg_list({make_srs_du_cell_config(params_, GetParam().test_optimality)}),
+    cell_cfg_list({make_odu_cell_config(params_, GetParam().test_optimality)}),
     srs_params(cell_cfg_list[0].srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
@@ -276,7 +276,7 @@ protected:
     // constraint of m_SRS <= nof_BW_RBs.
     for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
       std::optional<srs_configuration> srs_cfg = srs_configuration_get(c_srs_it, b_srs);
-      srsran_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
+      ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
       if (srs_cfg.value().m_srs <= cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length() and
           srs_cfg.value().m_srs > candidate_m_srs) {
         candidate_m_srs = srs_cfg->m_srs;
@@ -293,7 +293,7 @@ protected:
     unsigned   c_srs         = compute_c_srs();
     unsigned   ul_bw_nof_rbs = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     const auto srs_cfg       = srs_configuration_get(c_srs, 0U);
-    srsran_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
+    ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
     return (ul_bw_nof_rbs - srs_cfg.value().m_srs) / 2U;
   }
 
@@ -442,7 +442,7 @@ protected:
         } else if (is_partially_ul_slot(offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
           const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
           const unsigned nof_ul_symbols =
-              srsran::get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length();
+              ocudu::get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length();
           // The number of symbols intervals is limited by the number of symbols where the SRS can be placed.
           const unsigned nof_intervals = std::min(nof_ul_symbols / static_cast<unsigned>(srs_params.nof_symbols),
                                                   srs_params.max_nof_symbols.max());
@@ -486,11 +486,11 @@ protected:
   // Save the SRS resource allocation in the tracker.
   void track_srs_res_alloc(const srs_config::srs_resource& srs_res)
   {
-    srsran_assert(srs_res.periodicity_and_offset.has_value(), "SRS resource must have a periodicity and offset");
+    ocudu_assert(srs_res.periodicity_and_offset.has_value(), "SRS resource must have a periodicity and offset");
     const unsigned srs_offset   = srs_res.periodicity_and_offset->offset;
     const unsigned interval_idx = srs_res.res_mapping.start_pos / static_cast<uint8_t>(srs_res.res_mapping.nof_symb);
-    srsran_assert(interval_idx < srs_res_tracker[srs_offset].res_per_symb_interval.size(),
-                  "SRS resource must have a periodicity and offset");
+    ocudu_assert(interval_idx < srs_res_tracker[srs_offset].res_per_symb_interval.size(),
+                 "SRS resource must have a periodicity and offset");
     ++srs_res_tracker[srs_offset].res_per_symb_interval[interval_idx];
   }
 
@@ -547,8 +547,8 @@ protected:
                                                        is_partially_ul_slot(n, params.tdd_ul_dl_cfg_common.value()))) {
         continue;
       }
-      srsran_assert(interval_idx < srs_res_tracker[n].res_per_symb_interval.size(),
-                    "Interval index exceeds the size of the vector");
+      ocudu_assert(interval_idx < srs_res_tracker[n].res_per_symb_interval.size(),
+                   "Interval index exceeds the size of the vector");
       if (srs_res_tracker[n].res_per_symb_interval[interval_idx] > 0U and
           srs_res_tracker[n].res_per_symb_interval[interval_idx] < nof_srs_res_per_symb_interval) {
         return true;

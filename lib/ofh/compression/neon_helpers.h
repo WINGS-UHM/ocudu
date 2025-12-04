@@ -17,7 +17,7 @@
 #include <arm_neon.h>
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace neon {
 
@@ -63,4 +63,4 @@ inline uint8_t determine_bfp_exponent(int16x8x3_t vec_s16x3, unsigned data_width
 
 } // namespace neon
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

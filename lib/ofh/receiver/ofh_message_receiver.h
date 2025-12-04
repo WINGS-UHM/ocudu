@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/ethernet/ethernet_frame_notifier.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class operation_controller;
@@ -37,4 +37,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

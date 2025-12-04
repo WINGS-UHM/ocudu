@@ -13,7 +13,7 @@
 #include "apps/units/o_cu_up/o_cu_up_application_unit.h"
 #include "apps/units/o_cu_up/o_cu_up_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN CU-UP application unit implementation.
 class o_cu_up_application_unit_impl : public o_cu_up_application_unit
@@ -53,4 +53,4 @@ private:
   o_cu_up_unit_config unit_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -12,12 +12,12 @@
 
 #include "du_cell_group_config_pool.h"
 #include "ue_configuration.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/noop_functor.h"
-#include "srsran/scheduler/config/scheduler_config.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/noop_functor.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/scheduler/config/scheduler_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 class sched_config_manager;
 class scheduler_metrics_handler;
@@ -134,13 +134,13 @@ public:
 
   du_cell_index_t get_pcell_index(du_ue_index_t ue_index) const
   {
-    srsran_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
     return ue_to_pcell_index[ue_index].load(std::memory_order_relaxed);
   }
 
   du_cell_group_index_t get_cell_group_index(du_ue_index_t ue_index) const
   {
-    srsran_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
     return get_cell_group_index(get_pcell_index(ue_index));
   }
 
@@ -165,7 +165,7 @@ private:
   const scheduler_expert_config expert_params;
   scheduler_metrics_handler&    metrics_handler;
   sched_configuration_notifier& config_notifier;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 
   // List of common configs for the scheduler cells.
   cell_common_configuration_list added_cells;
@@ -185,4 +185,4 @@ private:
       ues_to_rem;
 };
 
-} // namespace srsran
+} // namespace ocudu

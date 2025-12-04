@@ -10,6 +10,6 @@ set(SOURCES
   rohc_lib_engine.cpp
 )
 
-add_library(srsran_rohc_lib STATIC ${SOURCES})
-target_include_directories(srsran_rohc_lib PUBLIC ${ROHC_INCLUDE_DIRS})
-target_link_libraries(srsran_rohc_lib ${ROHC_LIBRARIES})
+add_library(ocudu_rohc_lib STATIC ${SOURCES})
+target_include_directories(ocudu_rohc_lib PUBLIC ${ROHC_INCLUDE_DIRS})
+target_link_libraries(ocudu_rohc_lib ${ROHC_LIBRARIES})

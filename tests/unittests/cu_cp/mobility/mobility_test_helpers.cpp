@@ -9,10 +9,10 @@
  */
 
 #include "mobility_test_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 mobility_test::mobility_test() :
   cu_cp_cfg([this]() {
@@ -22,13 +22,13 @@ mobility_test::mobility_test() :
     return cucfg;
   }())
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  cu_cp_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  cu_cp_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 }
 
 mobility_test::~mobility_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }

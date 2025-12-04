@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/support/format/fmt_basic_parser.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/support/format/fmt_basic_parser.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// IDs that identify an E1AP UE context.
 struct e1ap_ue_ids {
@@ -27,18 +27,18 @@ struct e1ap_ue_ids {
   gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_t::invalid;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::srs_cu_cp::e1ap_ue_ids> : public basic_parser {
+struct formatter<ocudu::ocucp::e1ap_ue_ids> : public basic_parser {
   template <typename FormatContext>
-  auto format(const srsran::srs_cu_cp::e1ap_ue_ids& p, FormatContext& ctx) const
+  auto format(const ocudu::ocucp::e1ap_ue_ids& p, FormatContext& ctx) const
   {
-    using namespace srsran;
-    using namespace srsran::srs_cu_cp;
+    using namespace ocudu;
+    using namespace ocudu::ocucp;
     const char* sep = "";
 
     if (p.ue_index != ue_index_t::invalid) {

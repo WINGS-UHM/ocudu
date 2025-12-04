@@ -9,11 +9,11 @@
  */
 
 #include "ofh_uplink_request_handler_task_dispatcher.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/support/rtsan.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/support/rtsan.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void uplink_request_handler_task_dispatcher::start()
@@ -31,14 +31,14 @@ void uplink_request_handler_task_dispatcher::handle_prach_occasion(const prach_b
 {
   // Do not process if stop was requested.
   auto token = stop_manager.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
   if (!executor.defer([context,
                        prach_buff = std::move(buffer),
                        this,
-                       tk = std::move(token)]() mutable noexcept SRSRAN_RTSAN_NONBLOCKING {
+                       tk = std::move(token)]() mutable noexcept OCUDU_RTSAN_NONBLOCKING {
         uplink_handler.handle_prach_occasion(context, std::move(prach_buff));
       })) {
     logger.warning(
@@ -51,11 +51,11 @@ void uplink_request_handler_task_dispatcher::handle_new_uplink_slot(const resour
 {
   // Do not process if stop was requested.
   auto token = stop_manager.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
-  if (!executor.defer([context, rg = grid.copy(), this, tk = std::move(token)]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+  if (!executor.defer([context, rg = grid.copy(), this, tk = std::move(token)]() noexcept OCUDU_RTSAN_NONBLOCKING {
         uplink_handler.handle_new_uplink_slot(context, rg);
       })) {
     logger.warning(

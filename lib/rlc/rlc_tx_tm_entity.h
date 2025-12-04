@@ -12,9 +12,9 @@
 
 #include "rlc_sdu_queue_lockfree.h"
 #include "rlc_tx_entity.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rlc_tx_tm_entity : public rlc_tx_entity
 {
@@ -89,4 +89,4 @@ private:
   bool stopped = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

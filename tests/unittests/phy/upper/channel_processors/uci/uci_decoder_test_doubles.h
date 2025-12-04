@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class uci_decoder_spy : public uci_decoder
 {
@@ -40,12 +40,12 @@ public:
 
     // Copy input soft bits.
     entry.llr.resize(llr.size());
-    srsvec::copy(entry.llr, llr);
+    ocuduvec::copy(entry.llr, llr);
 
     // Generate random decoded message.
     std::generate(message.begin(), message.end(), [this]() { return rgen() & 1; });
     entry.message.resize(message.size());
-    srsvec::copy(entry.message, message);
+    ocuduvec::copy(entry.message, message);
 
     // Generate random status.
     entry.status = (bin_dist(rgen) == 1) ? uci_status::valid : uci_status::invalid;
@@ -65,4 +65,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(uci_decoder);
 
-} // namespace srsran
+} // namespace ocudu

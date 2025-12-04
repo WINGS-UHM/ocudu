@@ -11,13 +11,13 @@
 #pragma once
 
 #include "cu_up/ue_context/e1ap_cu_up_ue_context.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// This coroutines handles the E1AP CU UP release procedure as per TS 38.483, 8.2.7.2.2.
 class e1ap_cu_up_reset_procedure
@@ -27,7 +27,7 @@ public:
                              e1ap_ue_context_list&        ue_ctxt_list_,
                              e1ap_cu_up_manager_notifier& cu_up_notifier_,
                              e1ap_message_notifier&       tx_pdu_notifier_,
-                             srslog::basic_logger&        logger_);
+                             ocudulog::basic_logger&      logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -42,8 +42,8 @@ private:
   e1ap_ue_context_list&        ue_ctxt_list;
   e1ap_cu_up_manager_notifier& cu_up_notifier;
   e1ap_message_notifier&       tx_pdu_notifier;
-  srslog::basic_logger&        logger;
+  ocudulog::basic_logger&      logger;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

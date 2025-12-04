@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/e2/e2_du_metrics_connector.h"
+#include "ocudu/e2/e2_du_metrics_connector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 e2_du_metrics_connector::e2_du_metrics_connector() {}
 

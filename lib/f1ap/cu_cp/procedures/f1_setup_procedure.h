@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/cu_cp/du_setup_notifier.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/cu_cp/du_setup_notifier.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct f1ap_du_context;
 
@@ -37,7 +37,7 @@ void handle_f1_setup_procedure(const asn1::f1ap::f1_setup_request_s& request,
                                f1ap_du_context&                      du_ctxt,
                                f1ap_message_notifier&                pdu_notifier,
                                du_setup_notifier&                    du_setup_notif,
-                               srslog::basic_logger&                 logger);
+                               ocudulog::basic_logger&               logger);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

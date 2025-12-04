@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <arpa/inet.h>
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// This class deserializes data from the configured memory buffer in network order and returns it in host endianness.
@@ -24,7 +24,7 @@ class network_order_binary_deserializer
 public:
   explicit network_order_binary_deserializer(span<const uint8_t> buffer) : ptr(buffer.data()), size(buffer.size())
   {
-    srsran_assert(ptr, "Invalid pointer to buffer");
+    ocudu_assert(ptr, "Invalid pointer to buffer");
   }
 
   /// \brief Deserializes a T from the buffer and advances the position by sizeof(T) bytes.
@@ -43,7 +43,7 @@ public:
       case 4:
         return read_four_bytes();
       default:
-        srsran_assert(0, "Deserializer does not support this data");
+        ocudu_assert(0, "Deserializer does not support this data");
     }
     return T();
   }
@@ -125,4 +125,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

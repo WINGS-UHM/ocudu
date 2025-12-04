@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_uplink_request_handler.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_request_notifier.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/phy/lower/lower_phy_uplink_request_handler.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_request_notifier.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic physical layer adapter for symbol capture event requests.
 class phy_rx_symbol_request_adapter : public upper_phy_rx_symbol_request_notifier
@@ -41,4 +41,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

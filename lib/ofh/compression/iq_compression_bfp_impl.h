@@ -11,12 +11,12 @@
 #pragma once
 
 #include "quantizer.h"
-#include "srsran/ofh/compression/iq_compressor.h"
-#include "srsran/ofh/compression/iq_decompressor.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/compression/iq_compressor.h"
+#include "ocudu/ofh/compression/iq_decompressor.h"
+#include "ocudu/ran/resource_block.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Implementation of the Block Floating Point IQ data compression.
@@ -24,7 +24,7 @@ class iq_compression_bfp_impl : public iq_compressor, public iq_decompressor
 {
 public:
   // Constructor.
-  explicit iq_compression_bfp_impl(srslog::basic_logger& logger_, float iq_scaling_ = 1.0) :
+  explicit iq_compression_bfp_impl(ocudulog::basic_logger& logger_, float iq_scaling_ = 1.0) :
     logger(logger_), iq_scaling(iq_scaling_)
   {
   }
@@ -51,8 +51,8 @@ protected:
   /// \return An exponent to be applied to the input sample to compress it to \c data_width bits.
   static unsigned determine_exponent(uint16_t x, unsigned data_width)
   {
-    srsran_assert(data_width != 0, "Invalid data width");
-    srsran_assert(data_width <= MAX_IQ_WIDTH, "Passed IQ data width exceeds 16 bits");
+    ocudu_assert(data_width != 0, "Invalid data width");
+    ocudu_assert(data_width <= MAX_IQ_WIDTH, "Passed IQ data width exceeds 16 bits");
 
     unsigned max_shift       = MAX_IQ_WIDTH - data_width;
     unsigned lz_without_sign = max_shift;
@@ -91,10 +91,10 @@ protected:
   void quantize_input(span<int16_t> out, span<const bf16_t> in);
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Scaling factor applied to IQ data prior to quantization.
   const float iq_scaling;
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

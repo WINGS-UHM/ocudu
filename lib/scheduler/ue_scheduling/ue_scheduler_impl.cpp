@@ -11,10 +11,10 @@
 #include "ue_scheduler_impl.h"
 #include "../logging/scheduler_metrics_handler.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ue_scheduler_impl::ue_scheduler_impl(const scheduler_ue_expert_config& expert_cfg_) :
-  expert_cfg(expert_cfg_), logger(srslog::fetch_basic_logger("SCHED")), event_mng(ue_db)
+  expert_cfg(expert_cfg_), logger(ocudulog::fetch_basic_logger("SCHED")), event_mng(ue_db)
 {
 }
 
@@ -39,7 +39,7 @@ ue_cell_scheduler* ue_scheduler_impl::do_add_cell(const ue_cell_scheduler_creati
 
 void ue_scheduler_impl::do_start_cell(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "Cell reference not found in the scheduler");
+  ocudu_assert(cells.contains(cell_index), "Cell reference not found in the scheduler");
 
   // Signal event manager that new events can be processed for this cell.
   cells[cell_index].ev_mng->start();
@@ -47,7 +47,7 @@ void ue_scheduler_impl::do_start_cell(du_cell_index_t cell_index)
 
 void ue_scheduler_impl::do_stop_cell(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "Cell reference not found in the scheduler");
+  ocudu_assert(cells.contains(cell_index), "Cell reference not found in the scheduler");
   auto& c = cells[cell_index];
 
   // Halt any pending events associated with this cell.
@@ -65,7 +65,7 @@ void ue_scheduler_impl::do_stop_cell(du_cell_index_t cell_index)
 
 void ue_scheduler_impl::do_rem_cell(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "Cell reference not found in the scheduler");
+  ocudu_assert(cells.contains(cell_index), "Cell reference not found in the scheduler");
 
   do_stop_cell(cell_index);
 
@@ -133,7 +133,7 @@ void ue_scheduler_impl::update_harq_pucch_counter(cell_resource_allocator& cell_
   }
 }
 
-[[maybe_unused]] static bool puxch_grant_sanitizer(cell_resource_allocator& cell_alloc, srslog::basic_logger& logger)
+[[maybe_unused]] static bool puxch_grant_sanitizer(cell_resource_allocator& cell_alloc, ocudulog::basic_logger& logger)
 {
   const unsigned HARQ_SLOT_DELAY = 0;
   const auto&    slot_alloc      = cell_alloc[HARQ_SLOT_DELAY];
@@ -210,8 +210,8 @@ void ue_scheduler_impl::run_slot_impl(slot_point slot_tx)
     // Update the PUCCH counter after the UE DL and UL scheduler.
     update_harq_pucch_counter(*group_cell.cell_res_alloc);
 
-    srsran_sanity_check(puxch_grant_sanitizer(*group_cell.cell_res_alloc, logger),
-                        "PUCCH and PUSCH found for the same UE in the same slot");
+    ocudu_sanity_check(puxch_grant_sanitizer(*group_cell.cell_res_alloc, logger),
+                       "PUCCH and PUSCH found for the same UE in the same slot");
   }
 }
 
@@ -264,7 +264,7 @@ ue_scheduler_impl::cell_context::cell_context(ue_scheduler_impl&                
                     *params.cell_res_alloc,
                     *params.cell_metrics,
                     cell_harqs,
-                    srslog::fetch_basic_logger("SCHED")),
+                    ocudulog::fetch_basic_logger("SCHED")),
   srs_sched(params.cell_res_alloc->cfg, parent.ue_db)
 {
 }

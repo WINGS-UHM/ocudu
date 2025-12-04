@@ -11,5 +11,5 @@ set(SOURCES
         rrc_metrics_consumers.cpp
 )
 
-add_library(srsran_cu_cp_unit_metrics_consumers STATIC ${SOURCES})
-target_include_directories(srsran_cu_cp_unit_metrics_consumers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_cu_cp_unit_metrics_consumers STATIC ${SOURCES})
+target_include_directories(ocudu_cu_cp_unit_metrics_consumers PRIVATE ${CMAKE_SOURCE_DIR})

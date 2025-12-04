@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/memory_pool/ring_buffer_pool.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/memory_pool/ring_buffer_pool.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(ring_buffer_pool,
      when_pool_is_called_multiple_consecutive_times_then_the_allocated_byte_spans_are_contiguous_in_memory)

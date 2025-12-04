@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/signal_processors/pusch/factories.h"
+#include "ocudu/phy/upper/signal_processors/pusch/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dmrs_pusch_estimator_spy : public dmrs_pusch_estimator
 {
@@ -48,4 +48,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(dmrs_pusch_estimator);
 
-} // namespace srsran
+} // namespace ocudu

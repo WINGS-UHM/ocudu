@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ru/dummy/ru_dummy_executor_mapper.h"
+#include "ocudu/ru/dummy/ru_dummy_executor_mapper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -31,7 +31,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<ru_dummy_executor_mapper> srsran::create_ru_dummy_executor_mapper(srsran::task_executor& executor)
+std::unique_ptr<ru_dummy_executor_mapper> ocudu::create_ru_dummy_executor_mapper(ocudu::task_executor& executor)
 {
   return std::make_unique<ru_dummy_executor_mapper_impl>(executor);
 }

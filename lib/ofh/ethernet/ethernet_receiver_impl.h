@@ -12,13 +12,13 @@
 
 #include "ethernet_rx_buffer_pool.h"
 #include "ethernet_rx_metrics_collector_impl.h"
-#include "srsran/ofh/ethernet/ethernet_controller.h"
-#include "srsran/ofh/ethernet/ethernet_receiver.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_config.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ethernet/ethernet_controller.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_config.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -30,7 +30,7 @@ class receiver_impl : public receiver, private receiver_operation_controller
   static constexpr unsigned BUFFER_SIZE = 9600;
 
 public:
-  receiver_impl(const receiver_config& config, task_executor& executor_, srslog::basic_logger& logger_);
+  receiver_impl(const receiver_config& config, task_executor& executor_, ocudulog::basic_logger& logger_);
 
   ~receiver_impl() override;
 
@@ -56,7 +56,7 @@ private:
   void receive();
 
 private:
-  srslog::basic_logger&           logger;
+  ocudulog::basic_logger&         logger;
   task_executor&                  executor;
   frame_notifier*                 notifier;
   int                             socket_fd = -1;
@@ -66,4 +66,4 @@ private:
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

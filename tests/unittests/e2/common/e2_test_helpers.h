@@ -20,23 +20,23 @@
 #include "lib/e2/e2sm/e2sm_rc/e2sm_rc_control_action_du_executor.h"
 #include "lib/e2/e2sm/e2sm_rc/e2sm_rc_control_service_impl.h"
 #include "lib/e2/e2sm/e2sm_rc/e2sm_rc_impl.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/asn1/e2sm/e2sm_rc_ies.h"
-#include "srsran/cu_cp/cu_configurator.h"
-#include "srsran/cu_cp/mobility_manager_config.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2_cu.h"
-#include "srsran/e2/e2_du_factory.h"
-#include "srsran/e2/e2ap_configuration_helpers.h"
-#include "srsran/e2/e2sm/e2sm.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/e2/gateways/e2_connection_client.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/timers.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/asn1/e2sm/e2sm_rc_ies.h"
+#include "ocudu/cu_cp/cu_configurator.h"
+#include "ocudu/cu_cp/mobility_manager_config.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2_cu.h"
+#include "ocudu/e2/e2_du_factory.h"
+#include "ocudu/e2/e2ap_configuration_helpers.h"
+#include "ocudu/e2/e2sm/e2sm.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/e2/gateways/e2_connection_client.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Reusable notifier class that a) stores the received PDU for test inspection and b)
 /// calls the registered PDU handler (if any). The handler can be added upon construction
@@ -60,7 +60,9 @@ public:
 class dummy_e2_pdu_notifier : public e2_message_notifier
 {
 public:
-  dummy_e2_pdu_notifier(e2_message_handler* handler_) : logger(srslog::fetch_basic_logger("TEST")), handler(handler_) {}
+  dummy_e2_pdu_notifier(e2_message_handler* handler_) : logger(ocudulog::fetch_basic_logger("TEST")), handler(handler_)
+  {
+  }
 
   void attach_handler(e2_message_handler* handler_) { handler = handler_; }
   void on_new_message(const e2_message& msg) override
@@ -96,8 +98,8 @@ public:
   e2_message last_e2_msg;
 
 private:
-  srslog::basic_logger& logger;
-  e2_message_handler*   handler = nullptr;
+  ocudulog::basic_logger& logger;
+  e2_message_handler*     handler = nullptr;
 };
 
 class dummy_e2ap_pcap : public dlt_pcap
@@ -158,7 +160,7 @@ inline e2_message generate_e2_setup_request(std::string oid)
 }
 
 inline e2_message
-generate_ric_control_request_style2_action6(srslog::basic_logger&                      logger,
+generate_ric_control_request_style2_action6(ocudulog::basic_logger&                    logger,
                                             const std::vector<rrm_policy_ratio_group>& rrm_policy_ratio_list_def)
 {
   using namespace asn1::e2ap;
@@ -184,9 +186,9 @@ generate_ric_control_request_style2_action6(srslog::basic_logger&               
   ctrl_hdr.ric_ctrl_hdr_formats.ctrl_hdr_format1().ue_id.set_gnb_du_ue_id();
   ctrl_hdr.ric_ctrl_hdr_formats.ctrl_hdr_format1().ue_id.gnb_du_ue_id().gnb_cu_ue_f1ap_id = 4;
 
-  srsran::byte_buffer ctrl_hdr_buff;
-  asn1::bit_ref       bref_msg(ctrl_hdr_buff);
-  if (ctrl_hdr.pack(bref_msg) != asn1::SRSASN_SUCCESS) {
+  ocudu::byte_buffer ctrl_hdr_buff;
+  asn1::bit_ref      bref_msg(ctrl_hdr_buff);
+  if (ctrl_hdr.pack(bref_msg) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack E2SM RC control header\n");
   }
 
@@ -298,9 +300,9 @@ generate_ric_control_request_style2_action6(srslog::basic_logger&               
         *rrm_policy_ratio_grp.dedicated_ratio;
   }
 
-  srsran::byte_buffer ctrl_msg_buff;
-  asn1::bit_ref       bref_msg1(ctrl_msg_buff);
-  if (ctrl_msg.pack(bref_msg1) != asn1::SRSASN_SUCCESS) {
+  ocudu::byte_buffer ctrl_msg_buff;
+  asn1::bit_ref      bref_msg1(ctrl_msg_buff);
+  if (ctrl_msg.pack(bref_msg1) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack E2SM RC control message\n");
   }
 
@@ -309,11 +311,11 @@ generate_ric_control_request_style2_action6(srslog::basic_logger&               
   return e2_msg;
 }
 
-inline e2_message generate_ric_control_request(srslog::basic_logger& logger,
-                                               int64_t               style_type,
-                                               uint64_t              action_id,
-                                               uint64_t              param_id,
-                                               uint64_t              param_value)
+inline e2_message generate_ric_control_request(ocudulog::basic_logger& logger,
+                                               int64_t                 style_type,
+                                               uint64_t                action_id,
+                                               uint64_t                param_id,
+                                               uint64_t                param_value)
 {
   using namespace asn1::e2ap;
   e2_message  e2_msg;
@@ -337,9 +339,9 @@ inline e2_message generate_ric_control_request(srslog::basic_logger& logger,
   ctrl_hdr.ric_ctrl_hdr_formats.ctrl_hdr_format1().ue_id.set_gnb_ue_id();
   ctrl_hdr.ric_ctrl_hdr_formats.ctrl_hdr_format1().ue_id.gnb_du_ue_id().gnb_cu_ue_f1ap_id = 4;
 
-  srsran::byte_buffer ctrl_hdr_buff;
-  asn1::bit_ref       bref_msg(ctrl_hdr_buff);
-  if (ctrl_hdr.pack(bref_msg) != asn1::SRSASN_SUCCESS) {
+  ocudu::byte_buffer ctrl_hdr_buff;
+  asn1::bit_ref      bref_msg(ctrl_hdr_buff);
+  if (ctrl_hdr.pack(bref_msg) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack E2SM RC control header\n");
   }
 
@@ -361,9 +363,9 @@ inline e2_message generate_ric_control_request(srslog::basic_logger& logger,
       .ran_param_value_type.ran_p_choice_elem_false()
       .ran_param_value.set_value_int() = param_value;
 
-  srsran::byte_buffer ctrl_msg_buff;
-  asn1::bit_ref       bref_msg1(ctrl_msg_buff);
-  if (ctrl_msg.pack(bref_msg1) != asn1::SRSASN_SUCCESS) {
+  ocudu::byte_buffer ctrl_msg_buff;
+  asn1::bit_ref      bref_msg1(ctrl_msg_buff);
+  if (ctrl_msg.pack(bref_msg1) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack E2SM RC control message\n");
   }
 
@@ -384,7 +386,7 @@ private:
   std::unique_ptr<scheduler_metrics_notifier> e2_meas_provider;
 };
 
-class dummy_f1ap_ue_id_translator : public srs_du::f1ap_ue_id_translator
+class dummy_f1ap_ue_id_translator : public odu::f1ap_ue_id_translator
 {
 public:
   // F1AP UE ID translator functions.
@@ -579,7 +581,7 @@ private:
 class dummy_e2_subscription_mngr : public e2_subscription_manager
 {
 public:
-  dummy_e2_subscription_mngr() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e2_subscription_mngr() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   e2_subscribe_reponse_message handle_subscription_setup(const asn1::e2ap::ric_sub_request_s& request) override
   {
     last_subscription = request;
@@ -636,7 +638,7 @@ private:
 
 private:
   asn1::e2ap::ric_sub_request_s last_subscription;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 };
 
 inline e2_message generate_e2_setup_request_message(std::string oid)
@@ -709,7 +711,7 @@ generate_e2sm_kpm_ric_action(asn1::e2sm::e2sm_kpm_action_definition_s& action_de
 
   byte_buffer   buf;
   asn1::bit_ref bref(buf);
-  if (action_def.pack(bref) != asn1::SRSASN_SUCCESS) {
+  if (action_def.pack(bref) != asn1::OCUDUASN_SUCCESS) {
     return {};
   }
 
@@ -731,7 +733,7 @@ inline e2_message generate_e2sm_kpm_subscription_request(asn1::e2ap::ric_action_
 
   byte_buffer   buf;
   asn1::bit_ref bref(buf);
-  if (e2sm_kpm_event_trigger_def.pack(bref) != asn1::SRSASN_SUCCESS) {
+  if (e2sm_kpm_event_trigger_def.pack(bref) != asn1::OCUDUASN_SUCCESS) {
     return {};
   }
 
@@ -776,7 +778,7 @@ inline e2_message generate_e2_ind_msg(byte_buffer& ind_hdr_bytes, byte_buffer& i
 class dummy_e2_message_handler : public e2_message_handler
 {
 public:
-  dummy_e2_message_handler() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e2_message_handler() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   void handle_message(const e2_message& msg) override
   {
     last_msg = msg;
@@ -786,18 +788,18 @@ public:
   e2_message last_msg;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy handler just printing the received PDU.
 class dummy_e2_agent_mng : public e2ap_e2agent_notifier
 {
 public:
-  dummy_e2_agent_mng() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e2_agent_mng() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   void on_e2_disconnection() override { logger.info("E2 connection closed."); }
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy PDU handler
@@ -816,20 +818,20 @@ public:
 class dummy_e2_adapter : public e2_message_handler, public e2_event_handler
 {
 public:
-  dummy_e2_adapter() : logger(srslog::fetch_basic_logger("E2")) {}
+  dummy_e2_adapter() : logger(ocudulog::fetch_basic_logger("E2")) {}
 
   void connect_e2ap(e2_interface* e2ap_) { e2ap = e2ap_; }
   void handle_message(const e2_message& msg) override { e2ap->handle_message(msg); }
   void handle_connection_loss() override { e2ap->handle_connection_loss(); }
 
 private:
-  srslog::basic_logger& logger;
-  e2_interface*         e2ap = nullptr;
+  ocudulog::basic_logger& logger;
+  e2_interface*           e2ap = nullptr;
 };
 
 class dummy_e2sm_handler : public e2sm_handler
 {
-  e2sm_action_definition handle_packed_e2sm_action_definition(const srsran::byte_buffer& buf) override
+  e2sm_action_definition handle_packed_e2sm_action_definition(const ocudu::byte_buffer& buf) override
   {
     e2sm_action_definition action_def;
     action_def.service_model = e2sm_service_model_t::KPM;
@@ -855,7 +857,7 @@ class dummy_e2sm_handler : public e2sm_handler
     e2_ric_control_response ric_control_response = {};
     return ric_control_response;
   }
-  e2sm_event_trigger_definition handle_packed_event_trigger_definition(const srsran::byte_buffer& buf) override
+  e2sm_event_trigger_definition handle_packed_event_trigger_definition(const ocudu::byte_buffer& buf) override
   {
     e2sm_event_trigger_definition e2sm_event_trigger_def;
     e2sm_event_trigger_def.report_period = 10;
@@ -880,41 +882,41 @@ private:
   std::unique_ptr<e2_message_notifier> e2_rx_pdu_notifier;
 };
 
-class dummy_e2_mobility_notifier : public srs_cu_cp::mobility_manager_cu_cp_notifier
+class dummy_e2_mobility_notifier : public ocucp::mobility_manager_cu_cp_notifier
 {
 public:
-  virtual async_task<srs_cu_cp::cu_cp_intra_cu_handover_response>
-  on_intra_cu_handover_required(const srs_cu_cp::cu_cp_intra_cu_handover_request& request,
-                                srs_cu_cp::du_index_t                             source_du_index,
-                                srs_cu_cp::du_index_t                             target_du_index) override
+  virtual async_task<ocucp::cu_cp_intra_cu_handover_response>
+  on_intra_cu_handover_required(const ocucp::cu_cp_intra_cu_handover_request& request,
+                                ocucp::du_index_t                             source_du_index,
+                                ocucp::du_index_t                             target_du_index) override
   {
-    return launch_async([](coro_context<async_task<srs_cu_cp::cu_cp_intra_cu_handover_response>>& ctx) {
+    return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_handover_response>>& ctx) {
       CORO_BEGIN(ctx);
-      CORO_RETURN(srs_cu_cp::cu_cp_intra_cu_handover_response{true});
+      CORO_RETURN(ocucp::cu_cp_intra_cu_handover_response{true});
     });
   }
 };
 
-class dummy_du_configurator : public srs_du::du_configurator
+class dummy_du_configurator : public odu::du_configurator
 {
 public:
   dummy_du_configurator() {}
-  async_task<srs_du::du_mac_sched_control_config_response>
-  configure_ue_mac_scheduler(srs_du::du_mac_sched_control_config reconf) override
+  async_task<odu::du_mac_sched_control_config_response>
+  configure_ue_mac_scheduler(odu::du_mac_sched_control_config reconf) override
   {
     config = reconf;
-    return launch_async([](coro_context<async_task<srs_du::du_mac_sched_control_config_response>>& ctx) {
+    return launch_async([](coro_context<async_task<odu::du_mac_sched_control_config_response>>& ctx) {
       CORO_BEGIN(ctx);
-      CORO_RETURN(srs_du::du_mac_sched_control_config_response{true, true, true});
+      CORO_RETURN(odu::du_mac_sched_control_config_response{true, true, true});
     });
   }
-  srs_du::du_param_config_response handle_operator_config_request(const srs_du::du_param_config_request& req) override
+  odu::du_param_config_response handle_operator_config_request(const odu::du_param_config_request& req) override
   {
-    return srs_du::du_param_config_response{};
+    return odu::du_param_config_response{};
   }
-  void handle_si_pdu_update(const srs_du::du_si_pdu_update_request& req) override {}
+  void handle_si_pdu_update(const odu::du_si_pdu_update_request& req) override {}
 
-  srs_du::du_mac_sched_control_config config;
+  odu::du_mac_sched_control_config config;
 };
 
 /// Dummy implementation of the CU configurator interface.
@@ -923,32 +925,32 @@ class dummy_cu_configurator : public cu_configurator
 public:
   dummy_cu_configurator() {}
 
-  srs_cu_cp::ue_index_t get_ue_index(const srs_cu_cp::amf_ue_id_t& amf_ue_id,
-                                     const srs_cu_cp::guami_t&     guami,
-                                     const gnb_cu_ue_f1ap_id_t&    gnb_cu_ue_f1ap_id) const override
+  ocucp::ue_index_t get_ue_index(const ocucp::amf_ue_id_t&  amf_ue_id,
+                                 const ocucp::guami_t&      guami,
+                                 const gnb_cu_ue_f1ap_id_t& gnb_cu_ue_f1ap_id) const override
   {
-    return srs_cu_cp::uint_to_ue_index(1);
+    return ocucp::uint_to_ue_index(1);
   }
 
-  srs_cu_cp::du_index_t get_du_index(const srs_cu_cp::ue_index_t& ue_index) const override
+  ocucp::du_index_t get_du_index(const ocucp::ue_index_t& ue_index) const override
   {
-    return srs_cu_cp::uint_to_du_index(1);
+    return ocucp::uint_to_du_index(1);
   }
 
-  srs_cu_cp::du_index_t get_du_index(const nr_cell_global_id_t& nr_cgi) const override
+  ocucp::du_index_t get_du_index(const nr_cell_global_id_t& nr_cgi) const override
   {
-    return srs_cu_cp::uint_to_du_index(1);
+    return ocucp::uint_to_du_index(1);
   }
 
   pci_t get_pci(const nr_cell_global_id_t& nr_cgi) const override { return pci_t(1); }
 
-  async_task<srs_cu_cp::cu_cp_intra_cu_handover_response>
-  trigger_handover(const srs_cu_cp::du_index_t&                      source_du_index,
-                   const srs_cu_cp::cu_cp_intra_cu_handover_request& handover_req) override
+  async_task<ocucp::cu_cp_intra_cu_handover_response>
+  trigger_handover(const ocucp::du_index_t&                      source_du_index,
+                   const ocucp::cu_cp_intra_cu_handover_request& handover_req) override
   {
-    return launch_async([](coro_context<async_task<srs_cu_cp::cu_cp_intra_cu_handover_response>>& ctx) {
+    return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_handover_response>>& ctx) {
       CORO_BEGIN(ctx);
-      CORO_RETURN(srs_cu_cp::cu_cp_intra_cu_handover_response{true});
+      CORO_RETURN(ocucp::cu_cp_intra_cu_handover_response{true});
     });
   }
 };
@@ -962,35 +964,35 @@ protected:
     timers.tick();
     task_worker.run_pending_tasks();
   }
-  e2ap_configuration                                          cfg = {};
-  timer_factory                                               factory;
-  timer_manager                                               timers;
-  std::unique_ptr<e2ap_e2agent_notifier>                      agent_notifier;
-  std::unique_ptr<dummy_sctp_association_sdu_notifier>        gw;
-  std::unique_ptr<dummy_e2ap_pcap>                            pcap;
-  std::unique_ptr<e2ap_asn1_packer>                           packer;
-  std::unique_ptr<e2sm_interface>                             e2sm_kpm_iface;
-  std::unique_ptr<e2sm_interface>                             e2sm_rc_iface;
-  std::unique_ptr<e2sm_control_service>                       e2sm_rc_control_service_style2;
-  std::unique_ptr<e2sm_control_service>                       e2sm_rc_control_service_style3;
-  std::unique_ptr<e2sm_control_action_executor>               rc_control_action_2_6_executor;
-  std::unique_ptr<e2sm_control_action_executor>               rc_control_action_3_1_executor;
-  std::unique_ptr<srs_cu_cp::mobility_manager_cu_cp_notifier> mobility_notifier;
-  std::unique_ptr<e2sm_handler>                               e2sm_kpm_packer;
-  std::unique_ptr<e2sm_rc_asn1_packer>                        e2sm_rc_packer;
-  std::unique_ptr<dummy_du_configurator>                      du_rc_param_configurator;
-  std::unique_ptr<cu_configurator>                            cu_rc_param_configurator;
-  std::unique_ptr<e2_subscription_manager>                    e2_subscription_mngr;
-  std::unique_ptr<e2_du_metrics_interface>                    du_metrics;
-  std::unique_ptr<srs_du::f1ap_ue_id_translator>              f1ap_ue_id_mapper;
-  std::unique_ptr<dummy_e2sm_kpm_du_meas_provider>            du_meas_provider;
-  manual_task_worker                                          task_worker{64};
-  std::unique_ptr<dummy_e2_pdu_notifier>                      msg_notifier;
-  std::unique_ptr<dummy_e2_connection_client>                 e2_client;
-  std::unique_ptr<e2sm_manager>                               e2sm_mngr;
-  std::unique_ptr<e2_interface>                               e2;
-  std::unique_ptr<e2_agent>                                   e2agent;
-  srslog::basic_logger&                                       test_logger = srslog::fetch_basic_logger("TEST");
+  e2ap_configuration                                      cfg = {};
+  timer_factory                                           factory;
+  timer_manager                                           timers;
+  std::unique_ptr<e2ap_e2agent_notifier>                  agent_notifier;
+  std::unique_ptr<dummy_sctp_association_sdu_notifier>    gw;
+  std::unique_ptr<dummy_e2ap_pcap>                        pcap;
+  std::unique_ptr<e2ap_asn1_packer>                       packer;
+  std::unique_ptr<e2sm_interface>                         e2sm_kpm_iface;
+  std::unique_ptr<e2sm_interface>                         e2sm_rc_iface;
+  std::unique_ptr<e2sm_control_service>                   e2sm_rc_control_service_style2;
+  std::unique_ptr<e2sm_control_service>                   e2sm_rc_control_service_style3;
+  std::unique_ptr<e2sm_control_action_executor>           rc_control_action_2_6_executor;
+  std::unique_ptr<e2sm_control_action_executor>           rc_control_action_3_1_executor;
+  std::unique_ptr<ocucp::mobility_manager_cu_cp_notifier> mobility_notifier;
+  std::unique_ptr<e2sm_handler>                           e2sm_kpm_packer;
+  std::unique_ptr<e2sm_rc_asn1_packer>                    e2sm_rc_packer;
+  std::unique_ptr<dummy_du_configurator>                  du_rc_param_configurator;
+  std::unique_ptr<cu_configurator>                        cu_rc_param_configurator;
+  std::unique_ptr<e2_subscription_manager>                e2_subscription_mngr;
+  std::unique_ptr<e2_du_metrics_interface>                du_metrics;
+  std::unique_ptr<odu::f1ap_ue_id_translator>             f1ap_ue_id_mapper;
+  std::unique_ptr<dummy_e2sm_kpm_du_meas_provider>        du_meas_provider;
+  manual_task_worker                                      task_worker{64};
+  std::unique_ptr<dummy_e2_pdu_notifier>                  msg_notifier;
+  std::unique_ptr<dummy_e2_connection_client>             e2_client;
+  std::unique_ptr<e2sm_manager>                           e2sm_mngr;
+  std::unique_ptr<e2_interface>                           e2;
+  std::unique_ptr<e2_agent>                               e2agent;
+  ocudulog::basic_logger&                                 test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 class e2_test_base : public e2_base, public ::testing::Test
@@ -1003,8 +1005,8 @@ class e2_test : public e2_test_base
 {
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     e2_client            = std::make_unique<dummy_e2_connection_client>();
     e2_subscription_mngr = std::make_unique<dummy_e2_subscription_mngr>();
@@ -1023,7 +1025,7 @@ class e2_test : public e2_test_base
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 
@@ -1031,8 +1033,8 @@ class e2_entity_test : public e2_test_base
 {
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
@@ -1053,7 +1055,7 @@ class e2_entity_test : public e2_test_base
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 
@@ -1061,8 +1063,8 @@ class e2_test_subscriber : public e2_test_base
 {
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
 
@@ -1092,7 +1094,7 @@ class e2_test_subscriber : public e2_test_base
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 
@@ -1143,14 +1145,14 @@ class e2_test_setup : public e2_test_base
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 
 class dummy_e2_interface : public e2_interface
 {
 public:
-  dummy_e2_interface() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e2_interface() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   // e2_message_handler interface
   void handle_message(const e2_message& msg) override
@@ -1208,7 +1210,7 @@ public:
   e2_message last_msg;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

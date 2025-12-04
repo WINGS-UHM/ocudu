@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/error_handling.h"
 #include <yaml-cpp/yaml.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -190,7 +190,7 @@ std::vector<CLI::ConfigItem> yaml_config_parser::from_config_impl(const YAML::No
   return results;
 }
 
-std::unique_ptr<CLI::Config> srsran::create_yaml_config_parser()
+std::unique_ptr<CLI::Config> ocudu::create_yaml_config_parser()
 {
   return std::make_unique<yaml_config_parser>();
 }

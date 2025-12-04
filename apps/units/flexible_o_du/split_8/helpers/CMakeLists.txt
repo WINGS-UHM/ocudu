@@ -13,6 +13,6 @@ set(SOURCES
         ru_sdr_config_yaml_writer.cpp
         ru_sdr_factories.cpp)
 
-add_library(srsran_split_8_app_unit_helpers STATIC ${SOURCES})
-target_link_libraries(srsran_split_8_app_unit_helpers srsran_ru_sdr srsran_lower_phy srsran_app_helpers)
-target_include_directories(srsran_split_8_app_unit_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_split_8_app_unit_helpers STATIC ${SOURCES})
+target_link_libraries(ocudu_split_8_app_unit_helpers ocudu_ru_sdr ocudu_lower_phy ocudu_app_helpers)
+target_include_directories(ocudu_split_8_app_unit_helpers PRIVATE ${CMAKE_SOURCE_DIR})

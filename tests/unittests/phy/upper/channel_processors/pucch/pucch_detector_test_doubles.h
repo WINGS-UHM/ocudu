@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_detector.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_detector.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class pucch_detector_spy : public pucch_detector
 {
@@ -79,4 +79,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(pucch_detector);
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../support/rb_helper.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/interval.h"
-#include "srsran/scheduler/result/vrb_alloc.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/scheduler/result/vrb_alloc.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct bwp_rb_bitmap {
 public:
@@ -114,4 +114,4 @@ bwp_rb_bitmap operator|(const bwp_rb_bitmap& lhs, const Other& rhs)
   return bwp_rb_bitmap(lhs) |= rhs;
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -21,7 +21,7 @@ set(SOURCES
         ofh_uplane_prach_data_flow_notifier.cpp
         ofh_uplane_prach_symbol_data_flow_writer.cpp)
 
-add_library(srsran_ofh_receiver STATIC ${SOURCES})
-target_include_directories(srsran_ofh_receiver PRIVATE ${CMAKE_SOURCE_DIR}/lib/ofh)
-target_link_libraries(srsran_ofh_receiver PRIVATE srsran_ran srsran_ofh_message_serdes srsran_ofh_compression
-        srsran_ofh_ethernet srsran_ofh_ecpri srslog srsran_instrumentation)
+add_library(ocudu_ofh_receiver STATIC ${SOURCES})
+target_include_directories(ocudu_ofh_receiver PRIVATE ${CMAKE_SOURCE_DIR}/lib/ofh)
+target_link_libraries(ocudu_ofh_receiver PRIVATE ocudu_ran ocudu_ofh_message_serdes ocudu_ofh_compression
+        ocudu_ofh_ethernet ocudu_ofh_ecpri ocudulog ocudu_instrumentation)

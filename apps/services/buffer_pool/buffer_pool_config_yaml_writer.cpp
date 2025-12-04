@@ -12,7 +12,7 @@
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "buffer_pool_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 static void fill_buffer_pool_section(YAML::Node node, const buffer_pool_appconfig& config)
@@ -22,7 +22,7 @@ static void fill_buffer_pool_section(YAML::Node node, const buffer_pool_appconfi
   buffer_pool_node["segment_size"] = config.segment_size;
 }
 
-void srsran::app_services::fill_buffer_pool_config_in_yaml_schema(YAML::Node& node, const buffer_pool_appconfig& config)
+void ocudu::app_services::fill_buffer_pool_config_in_yaml_schema(YAML::Node& node, const buffer_pool_appconfig& config)
 {
   app_helpers::fill_metrics_appconfig_in_yaml_schema(node, config.metrics_config.common_metrics_cfg);
   fill_buffer_pool_section(node, config);

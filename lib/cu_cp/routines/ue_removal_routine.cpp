@@ -10,8 +10,8 @@
 
 #include "ue_removal_routine.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
 ue_removal_routine::ue_removal_routine(ue_index_t                           ue_index_,
                                        rrc_ue_handler&                      rrc_du_notifier_,
@@ -20,7 +20,7 @@ ue_removal_routine::ue_removal_routine(ue_index_t                           ue_i
                                        ngap_ue_context_removal_handler*     ngap_removal_handler_,
                                        nrppa_ue_context_removal_handler*    nrppa_removal_handler_,
                                        ue_manager&                          ue_mng_,
-                                       srslog::basic_logger&                logger_) :
+                                       ocudulog::basic_logger&              logger_) :
   ue_index(ue_index_),
   rrc_du_notifier(rrc_du_notifier_),
   e1ap_removal_handler(e1ap_removal_handler_),

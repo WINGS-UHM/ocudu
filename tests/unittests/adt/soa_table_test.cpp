@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/adt/soa_table.h"
+#include "ocudu/adt/soa_table.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 enum class ColId { COL0, COL1 };
 

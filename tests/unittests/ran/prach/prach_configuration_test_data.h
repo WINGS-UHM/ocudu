@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 22-09-2025 (seed 0):
 //   + "srsPRACHConfigurationUnittest.m"
 
-#include "srsran/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_configuration.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   frequency_range     fr;
@@ -798,4 +798,4 @@ static const std::vector<test_case_t> prach_configuration_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

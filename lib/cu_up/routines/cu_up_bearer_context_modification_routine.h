@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ue_context.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 class cu_up_bearer_context_modification_routine
 {
@@ -29,12 +29,12 @@ public:
 private:
   ue_context&                                     ue_ctxt;
   const e1ap_bearer_context_modification_request& msg;
-  srslog::basic_logger&                           logger;
+  ocudulog::basic_logger&                         logger;
 
   // Helper variables
   e1ap_bearer_context_modification_response response = {};
   security::sec_as_config                   security_info;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

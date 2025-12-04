@@ -9,9 +9,9 @@
  */
 
 #include "pdsch_default_time_allocation.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Helper to construct ofdm symbol range
 static constexpr ofdm_symbol_range s_and_len(unsigned s, unsigned l)
@@ -23,7 +23,7 @@ static constexpr ofdm_symbol_range s_and_len(unsigned s, unsigned l)
 static constexpr pdsch_time_domain_resource_allocation PDSCH_DEFAULT_TIME_ALLOCATION_RESERVED = {};
 
 span<const pdsch_time_domain_resource_allocation>
-srsran::pdsch_default_time_allocations_default_A_table(cyclic_prefix cp, dmrs_typeA_position dmrs_pos)
+ocudu::pdsch_default_time_allocations_default_A_table(cyclic_prefix cp, dmrs_typeA_position dmrs_pos)
 {
   // TS38.214 Table 5.1.2.1.1-2. Default PDSCH time domain resource allocation A for normal CP and DMRS pos2.
   static constexpr std::array<pdsch_time_domain_resource_allocation, 16> table_normal_cp_dmrs2 = {
@@ -102,7 +102,7 @@ srsran::pdsch_default_time_allocations_default_A_table(cyclic_prefix cp, dmrs_ty
 }
 
 pdsch_time_domain_resource_allocation
-srsran::pdsch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned row_index, dmrs_typeA_position dmrs_pos)
+ocudu::pdsch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned row_index, dmrs_typeA_position dmrs_pos)
 {
   span<const pdsch_time_domain_resource_allocation> table =
       pdsch_default_time_allocations_default_A_table(cp, dmrs_pos);
@@ -110,13 +110,13 @@ srsran::pdsch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned r
 }
 
 span<const pdsch_time_domain_resource_allocation>
-srsran::get_c_rnti_pdsch_time_domain_list(const search_space_configuration& ss_cfg,
-                                          const bwp_downlink_common&        active_bwp_dl_common,
-                                          const bwp_downlink_dedicated*     active_bwp_dl_ded,
-                                          dmrs_typeA_position               dmrs_typeA_pos)
+ocudu::get_c_rnti_pdsch_time_domain_list(const search_space_configuration& ss_cfg,
+                                         const bwp_downlink_common&        active_bwp_dl_common,
+                                         const bwp_downlink_dedicated*     active_bwp_dl_ded,
+                                         dmrs_typeA_position               dmrs_typeA_pos)
 {
   const bool is_fallback_ss = ss_cfg.is_common_search_space() and ss_cfg.get_coreset_id() == to_coreset_id(0);
-  srsran_assert(is_fallback_ss or active_bwp_dl_ded != nullptr, "Invalid BWP DL dedicated configuration");
+  ocudu_assert(is_fallback_ss or active_bwp_dl_ded != nullptr, "Invalid BWP DL dedicated configuration");
 
   // See TS 38.214, Table 5.1.2.1.1-1: Applicable PDSCH time domain resource allocation for DCI formats 1_0 and 1_1.
   if (not is_fallback_ss) {
@@ -136,7 +136,7 @@ srsran::get_c_rnti_pdsch_time_domain_list(const search_space_configuration& ss_c
 }
 
 span<const pdsch_time_domain_resource_allocation>
-srsran::get_si_rnti_pdsch_time_domain_list(cyclic_prefix cp, dmrs_typeA_position dmrs_typeA_pos)
+ocudu::get_si_rnti_pdsch_time_domain_list(cyclic_prefix cp, dmrs_typeA_position dmrs_typeA_pos)
 {
   // TODO: Check for multiplexing pattern and SearchSpace type (Type0 common).
   // NOTE: Type0 common PDCCH and multiplexing pattern 1 is assumed to fetch applicable PDSCH time domain resource
@@ -145,9 +145,9 @@ srsran::get_si_rnti_pdsch_time_domain_list(cyclic_prefix cp, dmrs_typeA_position
 }
 
 span<const pdsch_time_domain_resource_allocation>
-srsran::get_si_rnti_type0A_common_pdsch_time_domain_list(const pdsch_config_common& pdsch_common,
-                                                         cyclic_prefix              cp,
-                                                         dmrs_typeA_position        dmrs_typeA_pos)
+ocudu::get_si_rnti_type0A_common_pdsch_time_domain_list(const pdsch_config_common& pdsch_common,
+                                                        cyclic_prefix              cp,
+                                                        dmrs_typeA_position        dmrs_typeA_pos)
 {
   // See TS 38.214, Table 5.1.2.1.1-1: Applicable PDSCH time domain resource allocation for SI-RNTI Type0A common.
   if (not pdsch_common.pdsch_td_alloc_list.empty()) {
@@ -160,9 +160,9 @@ srsran::get_si_rnti_type0A_common_pdsch_time_domain_list(const pdsch_config_comm
 }
 
 span<const pdsch_time_domain_resource_allocation>
-srsran::get_ra_rnti_pdsch_time_domain_list(const pdsch_config_common& pdsch_common,
-                                           cyclic_prefix              cp,
-                                           dmrs_typeA_position        dmrs_typeA_pos)
+ocudu::get_ra_rnti_pdsch_time_domain_list(const pdsch_config_common& pdsch_common,
+                                          cyclic_prefix              cp,
+                                          dmrs_typeA_position        dmrs_typeA_pos)
 {
   // See TS 38.214, Table 5.1.2.1.1-1: Applicable PDSCH time domain resource allocation for RA-RNTI.
   if (not pdsch_common.pdsch_td_alloc_list.empty()) {

@@ -14,10 +14,10 @@
 #include "../support/pdsch/pdsch_default_time_allocation.h"
 #include "../support/prbs_calculator.h"
 #include "../support/sch_pdu_builder.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/cyclic_prefix.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // (Implementation-defined) limit for maximum number of pending paging indications.
 static constexpr size_t PAGING_INFO_QUEUE_SIZE = 128;
@@ -35,7 +35,7 @@ paging_scheduler::paging_scheduler(const scheduler_expert_config&               
   nof_po_per_pf(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.ns)),
   slot_helper(cell_cfg_, msg),
   new_paging_notifications(PAGING_INFO_QUEUE_SIZE),
-  logger(srslog::fetch_basic_logger("SCHED"))
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   paging_pending_ues.reserve(MAX_NOF_PENDING_PAGINGS);
   if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value()) {
@@ -48,7 +48,7 @@ paging_scheduler::paging_scheduler(const scheduler_expert_config&               
     }
 
     if (ss_cfg == nullptr) {
-      srsran_assertion_failure("Paging Search Space not configured in DL BWP.");
+      ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
     }
 
     // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
@@ -75,7 +75,7 @@ paging_scheduler::paging_scheduler(const scheduler_expert_config&               
     }
 
   } else {
-    srsran_assertion_failure("Paging Search Space not configured in DL BWP.");
+    ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
   }
 }
 

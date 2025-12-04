@@ -8,7 +8,7 @@
 
 set(SOURCES config/mac_cell_group_config_factory.cpp config/mac_config_helpers.cpp)
 add_library(mac_configuration_helpers STATIC ${SOURCES})
-target_link_libraries(mac_configuration_helpers srsran_support srsran_ran)
+target_link_libraries(mac_configuration_helpers ocudu_support ocudu_ran)
 set(SOURCES mac_factory.cpp
         mac_impl.cpp
         mac_ctrl/mac_controller.cpp
@@ -32,18 +32,18 @@ set(SOURCES mac_factory.cpp
         mac_ul/pdu_rx_handler.cpp
         mac_ul/mac_ul_processor.cpp
         mac_ul/mac_ul_ue_manager.cpp
-        mac_sched/srsran_scheduler_adapter.cpp
+        mac_sched/ocudu_scheduler_adapter.cpp
         mac_sched/mac_rach_handler.cpp
         mac_sched/uci_cell_decoder.cpp
         mac_sched/positioning_handler.cpp
 )
 
-add_library(srsran_mac STATIC ${SOURCES})
-target_link_libraries(srsran_mac
+add_library(ocudu_mac STATIC ${SOURCES})
+target_link_libraries(ocudu_mac
         atomic
-        srsran_sched
+        ocudu_sched
         mac_configuration_helpers
-        srsran_ran
-        srsran_pcap
+        ocudu_ran
+        ocudu_pcap
         rrc_nr_asn1
-        srsran_instrumentation)
+        ocudu_instrumentation)

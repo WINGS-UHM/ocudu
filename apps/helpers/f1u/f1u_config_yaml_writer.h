@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct f1u_sockets_appconfig;
 
 /// Fills the F1-U configuration in the given YAML node.
 void fill_f1u_config_yaml_schema(YAML::Node& node, const f1u_sockets_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

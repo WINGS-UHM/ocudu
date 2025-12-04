@@ -11,10 +11,10 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 /// Class that handles the measConfig of the UE.
 ///
@@ -30,7 +30,7 @@ public:
 
 private:
   span<const du_cell_config> cell_cfg_list;
-  srslog::basic_logger&      logger;
+  ocudulog::basic_logger&    logger;
 };
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

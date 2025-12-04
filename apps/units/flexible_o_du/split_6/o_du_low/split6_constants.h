@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ran/frequency_range.h"
+#include "ocudu/ran/frequency_range.h"
 
-namespace srsran {
+namespace ocudu {
 namespace split6_du_low {
 
 /// [Implementation defined] PRACH is always in port 0.
@@ -37,4 +37,4 @@ constexpr unsigned NOF_TX_ANTENNA_SUPPORTED = 4U;
 constexpr frequency_range freq_range = frequency_range::FR1;
 
 } // namespace split6_du_low
-} // namespace srsran
+} // namespace ocudu

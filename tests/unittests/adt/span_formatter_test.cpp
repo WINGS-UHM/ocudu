@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/complex.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/ocudu_test.h"
 #include <array>
 
-using namespace srsran;
+using namespace ocudu;
 
 static void test_int_comma()
 {

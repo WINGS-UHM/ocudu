@@ -13,16 +13,16 @@
 #include "mac_test_helpers.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class mac_rach_handler_test : public ::testing::Test
 {
 protected:
   mac_rach_handler_test() :
-    logger(srslog::fetch_basic_logger("MAC")),
+    logger(ocudulog::fetch_basic_logger("MAC")),
     params(cell_config_builder_profiles::tdd(subcarrier_spacing::kHz30)),
     sched_cfg([this]() {
       auto cfg = sched_config_helper::make_default_sched_cell_configuration_request(params);
@@ -61,7 +61,7 @@ protected:
         sched_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->total_nof_ra_preambles - 1U);
   }
 
-  srslog::basic_logger&                    logger;
+  ocudulog::basic_logger&                  logger;
   test_helpers::dummy_mac_scheduler        sched;
   rnti_manager                             rnti_mng;
   cell_config_builder_params               params;

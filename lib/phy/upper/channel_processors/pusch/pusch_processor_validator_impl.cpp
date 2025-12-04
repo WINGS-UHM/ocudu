@@ -10,10 +10,10 @@
 
 #include "pusch_processor_validator_impl.h"
 #include "pusch_processor_impl.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
-#include "srsran/ran/uci/uci_formatters.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/ran/uci/uci_formatters.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pusch_processor_validator_impl::pusch_processor_validator_impl(
     const channel_estimate::channel_estimate_dimensions& ce_dims_) :
@@ -21,15 +21,15 @@ pusch_processor_validator_impl::pusch_processor_validator_impl(
 {
   static constexpr interval<unsigned, true> nof_tx_layers_range(1, pusch_processor_impl::max_nof_layers);
 
-  srsran_assert(
+  ocudu_assert(
       (ce_dims.nof_prb > 0) && (ce_dims.nof_prb <= MAX_RB), "Invalid number of PRB (i.e. {}).", ce_dims.nof_prb);
-  srsran_assert((ce_dims.nof_symbols > 0) && (ce_dims.nof_symbols <= MAX_NSYMB_PER_SLOT),
-                "Invalid number of OFDM symbols.");
-  srsran_assert(ce_dims.nof_rx_ports > 0, "The number of receive ports cannot be zero.");
-  srsran_assert(nof_tx_layers_range.contains(ce_dims.nof_tx_layers),
-                "Number of transmit layers (i.e. {}) is out of the range {}.",
-                ce_dims.nof_tx_layers,
-                nof_tx_layers_range);
+  ocudu_assert((ce_dims.nof_symbols > 0) && (ce_dims.nof_symbols <= MAX_NSYMB_PER_SLOT),
+               "Invalid number of OFDM symbols.");
+  ocudu_assert(ce_dims.nof_rx_ports > 0, "The number of receive ports cannot be zero.");
+  ocudu_assert(nof_tx_layers_range.contains(ce_dims.nof_tx_layers),
+               "Number of transmit layers (i.e. {}) is out of the range {}.",
+               ce_dims.nof_tx_layers,
+               nof_tx_layers_range);
 }
 
 error_type<std::string> pusch_processor_validator_impl::is_valid(const pusch_processor::pdu_t& pdu) const

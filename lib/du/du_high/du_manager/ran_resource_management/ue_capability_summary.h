@@ -10,8 +10,8 @@
 
 #pragma once
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// Flat structure summarizing the decoded ASN.1 UE capabilities.
 struct ue_capability_summary {
@@ -107,5 +107,5 @@ struct ue_capability_summary {
   }
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

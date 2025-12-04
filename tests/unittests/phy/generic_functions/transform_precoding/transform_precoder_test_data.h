@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 08-11-2024 (seed 0):
 //   + "srsTransformPrecoderUnittest.m"
 
-#include "srsran/adt/complex.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   unsigned           M_rb;
@@ -84,4 +84,4 @@ static const std::vector<test_case_t> transform_precoder_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

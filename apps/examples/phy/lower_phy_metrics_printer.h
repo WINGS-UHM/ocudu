@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_baseband_metrics.h"
-#include "srsran/phy/lower/lower_phy_metrics_notifier.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/math/stats.h"
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
+#include "ocudu/phy/lower/lower_phy_metrics_notifier.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/math/stats.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic lower physical layer metrics printer.
 class lower_phy_metrics_printer : public lower_phy_metrics_notifier
@@ -120,4 +120,4 @@ private:
   std::optional<std::pair<uint64_t, uint64_t>> rx_clipping;
 };
 
-} // namespace srsran
+} // namespace ocudu

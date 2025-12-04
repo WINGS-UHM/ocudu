@@ -11,12 +11,12 @@
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -38,7 +38,7 @@ static unsigned compute_c_srs(unsigned nof_ul_crbs)
   // constraint of m_SRS <= nof_BW_RBs.
   for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
     std::optional<srs_configuration> srs_cfg = srs_configuration_get(c_srs_it, b_srs);
-    srsran_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
+    ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
     if (srs_cfg.value().m_srs <= nof_ul_crbs and srs_cfg.value().m_srs > candidate_m_srs) {
       candidate_m_srs = srs_cfg->m_srs;
       candidate_c_srs = c_srs_it;
@@ -59,7 +59,7 @@ static sched_cell_configuration_request_message make_custom_sched_cell_configura
 static bool is_ul_slot(unsigned offset, const tdd_ul_dl_config_common& tdd_cfg)
 {
   const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
-  return srsran::get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() != 0;
+  return ocudu::get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() != 0;
 }
 
 static sched_ue_creation_request_message
@@ -79,8 +79,8 @@ create_sched_ue_creation_request_for_srs_cfg(srs_periodicity                    
   uint16_t srs_offset               = 0U;
   // The offset needs to be an UL slot.
   if (tdd_cfg.has_value()) {
-    srsran_assert(static_cast<unsigned>(srs_period) >= tdd_cfg.value().pattern1.dl_ul_tx_period_nof_slots,
-                  "SRS period cannot be smaller than the TDD period");
+    ocudu_assert(static_cast<unsigned>(srs_period) >= tdd_cfg.value().pattern1.dl_ul_tx_period_nof_slots,
+                 "SRS period cannot be smaller than the TDD period");
 
     srs_offset = test_rgen::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
     while (not is_ul_slot(srs_offset, tdd_cfg.value())) {
@@ -92,7 +92,7 @@ create_sched_ue_creation_request_for_srs_cfg(srs_periodicity                    
   srs_res.periodicity_and_offset.emplace(srs_config::srs_periodicity_and_offset{srs_period, srs_offset});
 
   // This is for 1 UE only. If more UEs are added, this should be updated.
-  srs_res.tx_comb.size                 = srsran::tx_comb_size::n4;
+  srs_res.tx_comb.size                 = ocudu::tx_comb_size::n4;
   srs_res.tx_comb.tx_comb_offset       = 0U;
   srs_res.tx_comb.tx_comb_cyclic_shift = 0U;
 
@@ -109,7 +109,7 @@ create_sched_ue_creation_request_for_srs_cfg(srs_periodicity                    
 
   // SRS placed in the middle of the BW.
   std::optional<srs_configuration> srs_bw_cfg = srs_configuration_get(srs_res.freq_hop.c_srs, srs_res.freq_hop.b_srs);
-  srsran_assert(srs_bw_cfg.has_value(), "C_SRS is required for this unittest");
+  ocudu_assert(srs_bw_cfg.has_value(), "C_SRS is required for this unittest");
   srs_res.freq_domain_shift = (nof_ul_crbs - srs_bw_cfg->m_srs) / 2U;
 
   // Select a non-zero sequence identifier that requires more than 8 bits.
@@ -167,7 +167,7 @@ public:
     current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     slot_indication(current_sl_tx);
-    mac_logger.set_level(srslog::basic_levels::debug);
+    mac_logger.set_level(ocudulog::basic_levels::debug);
   }
 
   // Class members.
@@ -183,8 +183,8 @@ public:
   srs_scheduler_impl             srs_sched;
   slot_point                     current_sl_tx;
 
-  srslog::basic_logger& mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   // Class methods.
   void add_ue(srs_periodicity srs_period)
@@ -261,8 +261,8 @@ public:
     if (srs_pdu.resource_type != srs_res_cfg.res_type) {
       return make_unexpected(std::string("group_or_seq_hopping mismatch"));
     }
-    if (srs_res_cfg.res_type != srsran::srs_resource_type::aperiodic) {
-      srsran_assert(srs_res_cfg.periodicity_and_offset.has_value(), "Periodicity and offset is required for this test");
+    if (srs_res_cfg.res_type != ocudu::srs_resource_type::aperiodic) {
+      ocudu_assert(srs_res_cfg.periodicity_and_offset.has_value(), "Periodicity and offset is required for this test");
       if (srs_pdu.t_srs_period != srs_res_cfg.periodicity_and_offset.value().period) {
         return make_unexpected(std::string("Periodicity mismatch"));
       }

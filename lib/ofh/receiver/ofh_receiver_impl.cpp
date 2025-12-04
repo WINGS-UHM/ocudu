@@ -10,9 +10,9 @@
 
 #include "ofh_receiver_impl.h"
 #include "ofh_message_receiver_task_dispatcher.h"
-#include "srsran/ofh/ethernet/ethernet_properties.h"
+#include "ocudu/ofh/ethernet/ethernet_properties.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 static message_receiver_config get_message_receiver_configuration(const receiver_config& rx_config)
@@ -46,15 +46,15 @@ get_message_receiver_dependencies(receiver_impl_dependencies::message_rx_depende
   dependencies.window_checker = &window_checker;
   dependencies.window_handler = &window_handler;
   dependencies.ecpri_decoder  = std::move(rx_dependencies.ecpri_decoder);
-  srsran_assert(dependencies.ecpri_decoder, "Invalid eCPRI decoder");
+  ocudu_assert(dependencies.ecpri_decoder, "Invalid eCPRI decoder");
   dependencies.eth_frame_decoder = std::move(rx_dependencies.eth_frame_decoder);
-  srsran_assert(dependencies.eth_frame_decoder, "Invalid Ethernet frame decoder");
+  ocudu_assert(dependencies.eth_frame_decoder, "Invalid Ethernet frame decoder");
   dependencies.data_flow_uplink = std::move(rx_dependencies.data_flow_uplink);
-  srsran_assert(dependencies.data_flow_uplink, "Invalid uplink data flow decoder");
+  ocudu_assert(dependencies.data_flow_uplink, "Invalid uplink data flow decoder");
   dependencies.data_flow_prach = std::move(rx_dependencies.data_flow_prach);
-  srsran_assert(dependencies.data_flow_prach, "Invalid PRACH data flow decoder");
+  ocudu_assert(dependencies.data_flow_prach, "Invalid PRACH data flow decoder");
   dependencies.seq_id_checker = std::move(rx_dependencies.seq_id_checker);
-  srsran_assert(dependencies.seq_id_checker, "Invalid sequence id checker");
+  ocudu_assert(dependencies.seq_id_checker, "Invalid sequence id checker");
 
   return dependencies;
 }
@@ -73,7 +73,7 @@ static closed_rx_window_handler_config get_closed_rx_window_handler_config(const
 
 static closed_rx_window_handler_dependencies
 generate_closed_rx_window_dependencies(receiver_impl_dependencies::close_rx_window_dependencies&& dependencies,
-                                       srslog::basic_logger&                                      logger,
+                                       ocudulog::basic_logger&                                    logger,
                                        task_executor&                                             executor)
 {
   closed_rx_window_handler_dependencies out_dependencies;

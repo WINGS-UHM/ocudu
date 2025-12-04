@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/du/du_low/du_low_executor_mapper.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/phy/upper/upper_phy_execution_configuration.h"
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/strand_executor.h"
-#include "srsran/support/executors/task_fork_limiter.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/du/du_low/du_low_executor_mapper.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/phy/upper/upper_phy_execution_configuration.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/strand_executor.h"
+#include "ocudu/support/executors/task_fork_limiter.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -71,8 +71,8 @@ public:
     if (std::holds_alternative<du_low_executor_mapper_single_exec_config>(config.executors)) {
       const auto& single = std::get<du_low_executor_mapper_single_exec_config>(config.executors);
 
-      srsran_assert(single.common_executor.executor != nullptr, "Invalid common executor.");
-      srsran_assert(single.common_executor.max_concurrency != 0, "Invalid common executor maximum concurrency.");
+      ocudu_assert(single.common_executor.executor != nullptr, "Invalid common executor.");
+      ocudu_assert(single.common_executor.max_concurrency != 0, "Invalid common executor maximum concurrency.");
 
       phy_config.pdcch_executor   = single.common_executor;
       phy_config.pdsch_executor   = single.common_executor;
@@ -126,17 +126,17 @@ public:
       phy_config.srs_executor                = pusch_srs_execs[2];
     }
 
-    srsran_assert(phy_config.pdcch_executor.is_valid(), "Invalid PDCCH executor.");
-    srsran_assert(phy_config.pdsch_executor.is_valid(), "Invalid PDSCH executor.");
-    srsran_assert(phy_config.ssb_executor.is_valid(), "Invalid SSB executor.");
-    srsran_assert(phy_config.csi_rs_executor.is_valid(), "Invalid NZP-CSI-RS executor.");
-    srsran_assert(phy_config.prs_executor.is_valid(), "Invalid PRS executor.");
-    srsran_assert(phy_config.dl_grid_executor.is_valid(), "Invalid DL grid pool executor.");
-    srsran_assert(phy_config.pucch_executor.is_valid(), "Invalid PUCCH executor.");
-    srsran_assert(phy_config.pusch_executor.is_valid(), "Invalid PUSCH executor.");
-    srsran_assert(phy_config.pusch_ch_estimator_executor.is_valid(), "Invalid PUSCH channel estimator executor.");
-    srsran_assert(phy_config.prach_executor.is_valid(), "Invalid PRACH executor.");
-    srsran_assert(phy_config.srs_executor.is_valid(), "Invalid SRS executor.");
+    ocudu_assert(phy_config.pdcch_executor.is_valid(), "Invalid PDCCH executor.");
+    ocudu_assert(phy_config.pdsch_executor.is_valid(), "Invalid PDSCH executor.");
+    ocudu_assert(phy_config.ssb_executor.is_valid(), "Invalid SSB executor.");
+    ocudu_assert(phy_config.csi_rs_executor.is_valid(), "Invalid NZP-CSI-RS executor.");
+    ocudu_assert(phy_config.prs_executor.is_valid(), "Invalid PRS executor.");
+    ocudu_assert(phy_config.dl_grid_executor.is_valid(), "Invalid DL grid pool executor.");
+    ocudu_assert(phy_config.pucch_executor.is_valid(), "Invalid PUCCH executor.");
+    ocudu_assert(phy_config.pusch_executor.is_valid(), "Invalid PUSCH executor.");
+    ocudu_assert(phy_config.pusch_ch_estimator_executor.is_valid(), "Invalid PUSCH channel estimator executor.");
+    ocudu_assert(phy_config.prach_executor.is_valid(), "Invalid PRACH executor.");
+    ocudu_assert(phy_config.srs_executor.is_valid(), "Invalid SRS executor.");
 
     if (config.exec_metrics_channel_registry || config.executor_tracing_enable) {
       bool                               executor_tracing_enable  = config.executor_tracing_enable;
@@ -190,8 +190,8 @@ private:
   std::vector<upper_phy_executor>
   create_strand(upper_phy_executor base_executor, span<const unsigned> queue_sizes, unsigned max_batch)
   {
-    srsran_assert(base_executor.is_valid(), "Invalid executor.");
-    srsran_assert(!queue_sizes.empty(), "Queue sizes must not be empty.");
+    ocudu_assert(base_executor.is_valid(), "Invalid executor.");
+    ocudu_assert(!queue_sizes.empty(), "Queue sizes must not be empty.");
 
     // Only one priority level is requested.
     if ((queue_sizes.size() == 1)) {
@@ -231,8 +231,8 @@ private:
                                                            span<const unsigned> queue_sizes,
                                                            unsigned             max_batch)
   {
-    srsran_assert(base_executor.is_valid(), "Invalid executor.");
-    srsran_assert(!queue_sizes.empty(), "Queue sizes must not be empty.");
+    ocudu_assert(base_executor.is_valid(), "Invalid executor.");
+    ocudu_assert(!queue_sizes.empty(), "Queue sizes must not be empty.");
 
     // Limit maximum number of threads to the base executor maximum concurrency.
     if ((max_nof_threads == 0) || (max_nof_threads > base_executor.max_concurrency)) {
@@ -276,7 +276,7 @@ private:
                                                        bool                               tracing_enabled,
                                                        executor_metrics_channel_registry* metrics_channel_registry)
   {
-    srsran_assert(base_executor.is_valid(), "Invalid executor.");
+    ocudu_assert(base_executor.is_valid(), "Invalid executor.");
     auto* decorated_executor = &decorator.decorate(
         *base_executor.executor, false, tracing_enabled, std::nullopt, metrics_channel_registry, exec_name);
     return {decorated_executor, base_executor.max_concurrency};
@@ -296,7 +296,7 @@ private:
 } // namespace
 
 std::unique_ptr<du_low_executor_mapper>
-srsran::srs_du::create_du_low_executor_mapper(const du_low_executor_mapper_config& config)
+ocudu::odu::create_du_low_executor_mapper(const du_low_executor_mapper_config& config)
 {
   return std::make_unique<du_low_executor_mapper_impl>(config);
 }

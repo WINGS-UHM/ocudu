@@ -11,8 +11,8 @@
 #include "ngu_session_manager_test.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 TEST_F(ngu_session_manager_test, mngr_creation)
 {

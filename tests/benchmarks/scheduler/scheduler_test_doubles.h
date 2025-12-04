@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/scheduler/scheduler_metrics.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 class sched_cfg_dummy_notifier : public sched_configuration_notifier
 {
@@ -28,4 +28,4 @@ public:
   void report_metrics(const scheduler_cell_metrics& metrics) override {}
 };
 
-} // namespace srsran
+} // namespace ocudu

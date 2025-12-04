@@ -13,8 +13,8 @@
 #include "tests/unittests/e1ap/cu_up/e1ap_cu_up_test_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::e1ap;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ using namespace asn1::e1ap;
 TEST_F(cu_up_processor_test, when_valid_e1_setup_received_then_e1_setup_response_sent)
 {
   // Generate valid CuUpE1SetupRequest
-  cu_up_e1_setup_request e1_setup_request = srsran::srs_cu_up::generate_cu_up_e1_setup_request();
+  cu_up_e1_setup_request e1_setup_request = ocudu::ocuup::generate_cu_up_e1_setup_request();
 
   // Pass message to CU-UP processor
   cu_up_processor_obj->handle_cu_up_e1_setup_request(e1_setup_request);

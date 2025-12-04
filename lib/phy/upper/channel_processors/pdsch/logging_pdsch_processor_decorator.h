@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/support/precoding_formatters.h"
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/channel_processors/pdsch/formatters.h"
+#include "ocudu/phy/support/precoding_formatters.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/formatters.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline bool is_broadcast_rnti(uint16_t rnti)
 {
@@ -24,12 +24,12 @@ inline bool is_broadcast_rnti(uint16_t rnti)
 class logging_pdsch_processor_decorator : public pdsch_processor, private pdsch_processor_notifier
 {
 public:
-  logging_pdsch_processor_decorator(srslog::basic_logger&            logger_,
+  logging_pdsch_processor_decorator(ocudulog::basic_logger&          logger_,
                                     bool                             enable_logging_broadcast_,
                                     std::unique_ptr<pdsch_processor> processor_) :
     logger(logger_), enable_logging_broadcast(enable_logging_broadcast_), processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid processor.");
+    ocudu_assert(processor, "Invalid processor.");
   }
 
   void process(resource_grid_writer&                                           grid,
@@ -81,7 +81,7 @@ private:
     }
 
     // Verify the notifier is valid.
-    srsran_assert(notifier != nullptr, "Detected PDSCH processor notified twice.");
+    ocudu_assert(notifier != nullptr, "Detected PDSCH processor notified twice.");
 
     // Set notifier to invalid pointer before notification.
     pdsch_processor_notifier* notifier_ = notifier;
@@ -94,7 +94,7 @@ private:
     notifier_->on_finish_processing();
   }
 
-  srslog::basic_logger&                              logger;
+  ocudulog::basic_logger&                            logger;
   bool                                               enable_logging_broadcast;
   std::unique_ptr<pdsch_processor>                   processor;
   pdsch_processor_notifier*                          notifier;
@@ -103,4 +103,4 @@ private:
   std::chrono::time_point<std::chrono::steady_clock> start;
 };
 
-} // namespace srsran
+} // namespace ocudu

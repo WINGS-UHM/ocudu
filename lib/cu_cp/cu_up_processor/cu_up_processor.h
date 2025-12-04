@@ -11,12 +11,12 @@
 #pragma once
 
 #include "cu_up_processor_context.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Interface for an E1AP notifier to communicate with the CU-UP processor.
 class cu_up_processor_e1ap_interface
@@ -94,5 +94,5 @@ public:
   virtual e1ap_cu_cp& get_e1ap_handler() = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

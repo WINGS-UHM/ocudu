@@ -11,12 +11,12 @@
 #include "../../../../lib/ofh/receiver/ofh_data_flow_uplane_uplink_prach_impl.h"
 #include "../ofh_uplane_rx_symbol_notifier_test_doubles.h"
 #include "helpers.h"
-#include "srsran/ofh/serdes/ofh_message_decoder_properties.h"
-#include "srsran/ofh/serdes/ofh_uplane_message_decoder.h"
+#include "ocudu/ofh/serdes/ofh_message_decoder_properties.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_decoder.h"
 #include <gtest/gtest.h>
 #include <tuple>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace ofh::testing;
 
@@ -79,12 +79,12 @@ public:
     buffer_context.ports            = {0};
     buffer_context.nof_td_occasions = 1;
     buffer_context.nof_fd_occasions = 1;
-    buffer_context.pusch_scs        = srsran::subcarrier_spacing::kHz30;
+    buffer_context.pusch_scs        = ocudu::subcarrier_spacing::kHz30;
     buffer_context.start_symbol     = 0;
 
     buffer = prach_pool->get();
 
-    repo->add(buffer_context, buffer.clone(), srslog::fetch_basic_logger("TEST"), std::nullopt);
+    repo->add(buffer_context, buffer.clone(), ocudulog::fetch_basic_logger("TEST"), std::nullopt);
     repo->process_pending_contexts();
 
     results.uplane_results.params.slot      = slot;
@@ -94,7 +94,7 @@ public:
     section.iq_samples.resize(MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB);
 
     ul_cplane_context context;
-    context.filter_index = srsran::ofh::filter_index_type::ul_prach_preamble_1p25khz;
+    context.filter_index = ocudu::ofh::filter_index_type::ul_prach_preamble_1p25khz;
     context.start_symbol = 0;
     context.prb_start    = 0;
     context.nof_prb      = 273;
@@ -102,7 +102,7 @@ public:
 
     // Fill the contexts
     ul_cplane_context_repo_ptr->add(slot, eaxc, context);
-    prach_context_repo->add(buffer_context, buffer.clone(), srslog::fetch_basic_logger("TEST"), std::nullopt);
+    prach_context_repo->add(buffer_context, buffer.clone(), ocudulog::fetch_basic_logger("TEST"), std::nullopt);
     prach_context_repo->process_pending_contexts();
   }
 
@@ -120,7 +120,7 @@ public:
   {
     data_flow_uplane_uplink_prach_impl_dependencies dependencies;
 
-    dependencies.logger                    = &srslog::fetch_basic_logger("TEST");
+    dependencies.logger                    = &ocudulog::fetch_basic_logger("TEST");
     dependencies.prach_cplane_context_repo = ul_cplane_context_repo_ptr;
     dependencies.prach_context_repo        = prach_context_repo;
 
@@ -179,7 +179,7 @@ TEST_P(data_flow_uplane_uplink_prach_impl_fixture, valid_message_containing_all_
 TEST_P(data_flow_uplane_uplink_prach_impl_fixture, invalid_filter_index_does_not_write_buffer)
 {
   uplane_message_decoder_results deco_results = build_valid_decoder_results();
-  deco_results.params.filter_index            = srsran::ofh::filter_index_type::standard_channel_filter;
+  deco_results.params.filter_index            = ocudu::ofh::filter_index_type::standard_channel_filter;
   uplane_decoder->set_results(deco_results);
   data_flow.decode_type1_message(eaxc, {});
 

@@ -12,7 +12,7 @@
 
 #include "rlc_rx_entity.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rlc_rx_tm_entity : public rlc_rx_entity
 {
@@ -43,4 +43,4 @@ private:
   pcap_rlc_pdu_context pcap_context;
 };
 
-} // namespace srsran
+} // namespace ocudu

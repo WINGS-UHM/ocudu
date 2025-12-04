@@ -11,13 +11,13 @@
 #pragma once
 
 #include "../../ue_manager/ue_manager_impl.h"
-#include "srsran/ngap/ngap_handover.h"
+#include "ocudu/ngap/ngap_handover.h"
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 async_task<void> start_inter_cu_handover_execution_target_routine(cu_cp_ue*                    ue,
                                                                   e1ap_bearer_context_manager& e1ap,
                                                                   ngap_interface&              ngap,
-                                                                  srslog::basic_logger&        logger);
+                                                                  ocudulog::basic_logger&      logger);
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

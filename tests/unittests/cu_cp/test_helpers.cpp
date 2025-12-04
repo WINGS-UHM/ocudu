@@ -11,14 +11,14 @@
 #include "test_helpers.h"
 #include "../rrc/rrc_ue_test_helpers.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/security/integrity.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/security/integrity.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-byte_buffer srsran::srs_cu_cp::generate_container_with_cell_group_config()
+byte_buffer ocudu::ocucp::generate_container_with_cell_group_config()
 {
   asn1::unbounded_octstring<true> octet_str;
   octet_str.from_string(
@@ -28,7 +28,7 @@ byte_buffer srsran::srs_cu_cp::generate_container_with_cell_group_config()
   return octet_str.to_byte_buffer();
 }
 
-byte_buffer srsran::srs_cu_cp::generate_rrc_setup_complete()
+byte_buffer ocudu::ocucp::generate_rrc_setup_complete()
 {
   asn1::unbounded_octstring<true> octet_str;
   octet_str.from_string(
@@ -38,7 +38,7 @@ byte_buffer srsran::srs_cu_cp::generate_rrc_setup_complete()
   return octet_str.to_byte_buffer();
 }
 
-byte_buffer srsran::srs_cu_cp::generate_rrc_reconfiguration_complete_pdu(unsigned transaction_id, uint8_t count)
+byte_buffer ocudu::ocucp::generate_rrc_reconfiguration_complete_pdu(unsigned transaction_id, uint8_t count)
 {
   byte_buffer pdu_with_count = byte_buffer::create({0x00, count}).value();
   if (!pdu_with_count.append(
@@ -61,7 +61,7 @@ byte_buffer srsran::srs_cu_cp::generate_rrc_reconfiguration_complete_pdu(unsigne
   return pdu_with_count;
 }
 
-rrc_timers_t srsran::srs_cu_cp::get_timers(const asn1::f1ap::f1_setup_request_s& f1_setup_req)
+rrc_timers_t ocudu::ocucp::get_timers(const asn1::f1ap::f1_setup_request_s& f1_setup_req)
 {
   rrc_timers_t timers;
 
@@ -70,7 +70,7 @@ rrc_timers_t srsran::srs_cu_cp::get_timers(const asn1::f1ap::f1_setup_request_s&
   // Unpack SIB1 to store timers.
   asn1::rrc_nr::sib1_s sib1_msg;
   asn1::cbit_ref       bref2(sib1_container);
-  if (sib1_msg.unpack(bref2) != asn1::SRSASN_SUCCESS) {
+  if (sib1_msg.unpack(bref2) != asn1::OCUDUASN_SUCCESS) {
     report_fatal_error("Failed to unpack SIB1");
   }
   timers.t300 = std::chrono::milliseconds{sib1_msg.ue_timers_and_consts.t300.to_number()};

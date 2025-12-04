@@ -11,12 +11,12 @@
 #include "ue_configuration_procedure.h"
 #include "../converters/asn1_rrc_config_helpers.h"
 #include "../converters/scheduler_configuration_helpers.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/rlc/rlc_factory.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/rlc/rlc_factory.h"
 #include <algorithm>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 ue_configuration_procedure::ue_configuration_procedure(const f1ap_ue_context_update_request& request_,
                                                        du_ue_manager_repository&             ue_mng_,
@@ -27,7 +27,7 @@ ue_configuration_procedure::ue_configuration_procedure(const f1ap_ue_context_upd
   ue(ue_mng.find_ue(request.ue_index)),
   proc_logger(logger, name(), request.ue_index, ue != nullptr ? ue->rnti : rnti_t::INVALID_RNTI)
 {
-  srsran_assert(ue != nullptr, "ueId={} not found", fmt::underlying(request.ue_index));
+  ocudu_assert(ue != nullptr, "ueId={} not found", fmt::underlying(request.ue_index));
 }
 
 void ue_configuration_procedure::operator()(coro_context<async_task<f1ap_ue_context_update_response>>& ctx)
@@ -370,9 +370,9 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
     // Parse HandoverPreparationInformation.
     asn1::rrc_nr::ho_prep_info_s ho_prep_info;
     {
-      asn1::cbit_ref    bref{request.ho_prep_info};
-      asn1::SRSASN_CODE code = ho_prep_info.unpack(bref);
-      if (code != asn1::SRSASN_SUCCESS) {
+      asn1::cbit_ref      bref{request.ho_prep_info};
+      asn1::OCUDUASN_CODE code = ho_prep_info.unpack(bref);
+      if (code != asn1::OCUDUASN_SUCCESS) {
         proc_logger.log_proc_failure("Failed to unpack HandoverPreparation IE");
         return make_ue_config_failure();
       }
@@ -428,9 +428,9 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
 
   // Pack cellGroupConfig.
   {
-    asn1::bit_ref     bref{resp.cell_group_cfg};
-    asn1::SRSASN_CODE code = asn1_cell_group.pack(bref);
-    srsran_assert(code == asn1::SRSASN_SUCCESS, "Invalid cellGroupConfig");
+    asn1::bit_ref       bref{resp.cell_group_cfg};
+    asn1::OCUDUASN_CODE code = asn1_cell_group.pack(bref);
+    ocudu_assert(code == asn1::OCUDUASN_SUCCESS, "Invalid cellGroupConfig");
   }
 
   // Calculate ASN.1 measGapConfig to be sent in DU-to-CU RRC container.
@@ -440,9 +440,9 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
 
     // Pack measGapConfig.
     {
-      asn1::bit_ref     bref{resp.meas_gap_cfg};
-      asn1::SRSASN_CODE code = meas_gap.pack(bref);
-      srsran_assert(code == asn1::SRSASN_SUCCESS, "Invalid measGapConfig");
+      asn1::bit_ref       bref{resp.meas_gap_cfg};
+      asn1::OCUDUASN_CODE code = meas_gap.pack(bref);
+      ocudu_assert(code == asn1::OCUDUASN_SUCCESS, "Invalid measGapConfig");
     }
   }
 

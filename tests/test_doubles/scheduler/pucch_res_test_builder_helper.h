@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../lib/du/du_high/du_manager/ran_resource_management/du_pucch_resource_manager.h"
-#include "srsran/du/du_cell_config.h"
+#include "ocudu/du/du_cell_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 
@@ -55,9 +55,9 @@ private:
     pucch_builder_params                   pucch_cfg;
   };
 
-  std::optional<pucch_res_builder_info>            required_info;
-  std::optional<srs_du::du_pucch_resource_manager> pucch_res_mgr;
-  static constexpr unsigned                        max_pucch_grants_per_slot = 64;
+  std::optional<pucch_res_builder_info>         required_info;
+  std::optional<odu::du_pucch_resource_manager> pucch_res_mgr;
+  static constexpr unsigned                     max_pucch_grants_per_slot = 64;
 };
 
-} // namespace srsran
+} // namespace ocudu

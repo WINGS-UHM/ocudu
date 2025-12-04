@@ -12,7 +12,7 @@
 
 #include <immintrin.h>
 
-namespace srsran {
+namespace ocudu {
 
 namespace mm256 {
 
@@ -259,4 +259,4 @@ inline __m256 safe_div(__m256 dividend, __m256 divisor)
 }
 
 } // namespace mm256
-} // namespace srsran
+} // namespace ocudu

@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
 #include <numeric>
 
-using namespace srsran;
-using namespace srsran::vrb_to_prb;
+using namespace ocudu;
+using namespace ocudu::vrb_to_prb;
 
 unsigned non_interleaved_mapping::vrb_to_prb(unsigned vrb) const
 {
@@ -23,7 +23,7 @@ unsigned non_interleaved_mapping::vrb_to_prb(unsigned vrb) const
 
 unsigned non_interleaved_mapping::prb_to_vrb(unsigned prb) const
 {
-  srsran_assert(prb >= config.coreset_start, "PRB {} can not be lower than CORESET start {}.");
+  ocudu_assert(prb >= config.coreset_start, "PRB {} can not be lower than CORESET start {}.");
   return prb - config.coreset_start;
 }
 
@@ -39,11 +39,11 @@ vrb_interval non_interleaved_mapping::prb_to_vrb(const prb_interval& prbs) const
 
 prb_bitmap non_interleaved_mapping::vrb_to_prb(unsigned bwp_size, const vrb_bitmap& vrbs) const
 {
-  srsran_assert(config.coreset_start + vrbs.size() <= bwp_size,
-                "This non-interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
-                vrbs.size(),
-                config.coreset_start,
-                bwp_size);
+  ocudu_assert(config.coreset_start + vrbs.size() <= bwp_size,
+               "This non-interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
+               vrbs.size(),
+               config.coreset_start,
+               bwp_size);
 
   prb_bitmap prbs(bwp_size);
   vrbs.for_each(0, vrbs.size(), [&](unsigned vrb) { prbs.set(config.coreset_start + vrb, true); });
@@ -52,14 +52,14 @@ prb_bitmap non_interleaved_mapping::vrb_to_prb(unsigned bwp_size, const vrb_bitm
 
 vrb_bitmap non_interleaved_mapping::prb_to_vrb(const prb_bitmap& prbs) const
 {
-  srsran_assert(prbs.size() > config.coreset_start,
-                "A BWP of {} PRBs is not suitable for a non-interleaved mapping with a CORESET start at {}.",
-                prbs.size(),
-                config.coreset_start);
-  srsran_assert(prbs.none(0, config.coreset_start),
-                "The first {} PRBs can not be set for a non-interleaved mapping with a CORESET start at {}.",
-                config.coreset_start,
-                config.coreset_start);
+  ocudu_assert(prbs.size() > config.coreset_start,
+               "A BWP of {} PRBs is not suitable for a non-interleaved mapping with a CORESET start at {}.",
+               prbs.size(),
+               config.coreset_start);
+  ocudu_assert(prbs.none(0, config.coreset_start),
+               "The first {} PRBs can not be set for a non-interleaved mapping with a CORESET start at {}.",
+               config.coreset_start,
+               config.coreset_start);
 
   vrb_bitmap vrbs(prbs.size() - config.coreset_start);
   prbs.for_each(config.coreset_start, prbs.size(), [&](unsigned prb) { vrbs.set(prb - config.coreset_start); });
@@ -68,11 +68,11 @@ vrb_bitmap non_interleaved_mapping::prb_to_vrb(const prb_bitmap& prbs) const
 
 crb_bitmap non_interleaved_mapping::vrb_to_crb(unsigned bwp_start, unsigned bwp_size, const vrb_bitmap& vrbs) const
 {
-  srsran_assert(config.coreset_start + vrbs.size() <= bwp_size,
-                "This non-interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
-                vrbs.size(),
-                config.coreset_start,
-                bwp_size);
+  ocudu_assert(config.coreset_start + vrbs.size() <= bwp_size,
+               "This non-interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
+               vrbs.size(),
+               config.coreset_start,
+               bwp_size);
 
   crb_bitmap crbs(bwp_start + bwp_size);
   for_each_interval(vrbs, 0, vrbs.size(), [&](size_t vrb_begin, size_t vrb_end) {
@@ -82,13 +82,13 @@ crb_bitmap non_interleaved_mapping::vrb_to_crb(unsigned bwp_start, unsigned bwp_
 }
 
 static_vector<uint16_t, MAX_NOF_PRBS>
-non_interleaved_mapping::vrb_to_crb_indices(unsigned bwp_start, unsigned bwp_size, const srsran::vrb_bitmap& vrbs) const
+non_interleaved_mapping::vrb_to_crb_indices(unsigned bwp_start, unsigned bwp_size, const ocudu::vrb_bitmap& vrbs) const
 {
-  srsran_assert(config.coreset_start + vrbs.size() <= bwp_size,
-                "This non-interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
-                vrbs.size(),
-                config.coreset_start,
-                bwp_size);
+  ocudu_assert(config.coreset_start + vrbs.size() <= bwp_size,
+               "This non-interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
+               vrbs.size(),
+               config.coreset_start,
+               bwp_size);
 
   static_vector<uint16_t, MAX_NOF_PRBS> result;
   crb_bitmap                            crbs(bwp_start + bwp_size);
@@ -142,7 +142,7 @@ static void vrb_to_prb_mapper_get_interleaved_prb(span<uint16_t> prb_indices,
 interleaved_mapping::interleaved_mapping(const configuration& config_) :
   config(config_), vrb_to_prb_indices(config.nof_rbs), prb_to_vrb_indices(config.coreset_start + config.nof_rbs)
 {
-  srsran_assert(config.is_interleaved(), "Invalid configuration for interleaved mapping.");
+  ocudu_assert(config.is_interleaved(), "Invalid configuration for interleaved mapping.");
 
   vrb_to_prb_mapper_get_interleaved_prb(vrb_to_prb_indices,
                                         config.coreset_start,
@@ -158,18 +158,18 @@ interleaved_mapping::interleaved_mapping(const configuration& config_) :
 
 unsigned interleaved_mapping::vrb_to_prb(unsigned vrb) const
 {
-  srsran_assert(vrb <= config.nof_rbs, "VRB {} can not be higher than {}.");
+  ocudu_assert(vrb <= config.nof_rbs, "VRB {} can not be higher than {}.");
   return vrb_to_prb_indices[vrb];
 }
 
 unsigned interleaved_mapping::prb_to_vrb(unsigned prb) const
 {
-  srsran_assert(
+  ocudu_assert(
       prb >= config.coreset_start, "PRB {} can not be lower than CORESET start {}.", prb, config.coreset_start);
-  srsran_assert(prb <= config.coreset_start + config.nof_rbs,
-                "PRB {} can not be higher than {}.",
-                prb,
-                config.coreset_start + config.nof_rbs);
+  ocudu_assert(prb <= config.coreset_start + config.nof_rbs,
+               "PRB {} can not be higher than {}.",
+               prb,
+               config.coreset_start + config.nof_rbs);
   return prb_to_vrb_indices[prb];
 }
 
@@ -214,15 +214,15 @@ std::pair<prb_interval, prb_interval> interleaved_mapping::vrb_to_prb(const vrb_
 
 prb_bitmap interleaved_mapping::vrb_to_prb(unsigned bwp_size, const vrb_bitmap& vrbs) const
 {
-  srsran_assert(vrbs.size() <= config.nof_rbs,
-                "The VRB bitmap size (i.e., {}) is greater than the size of the interleaving (i.e., {}).",
-                vrbs.size(),
-                config.nof_rbs);
-  srsran_assert(config.coreset_start + config.nof_rbs <= bwp_size,
-                "This interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
-                config.nof_rbs,
-                config.coreset_start,
-                bwp_size);
+  ocudu_assert(vrbs.size() <= config.nof_rbs,
+               "The VRB bitmap size (i.e., {}) is greater than the size of the interleaving (i.e., {}).",
+               vrbs.size(),
+               config.nof_rbs);
+  ocudu_assert(config.coreset_start + config.nof_rbs <= bwp_size,
+               "This interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
+               config.nof_rbs,
+               config.coreset_start,
+               bwp_size);
 
   prb_bitmap prbs(bwp_size);
   vrbs.for_each(0, vrbs.size(), [&](unsigned vrb) { prbs.set(vrb_to_prb(vrb)); });
@@ -231,14 +231,14 @@ prb_bitmap interleaved_mapping::vrb_to_prb(unsigned bwp_size, const vrb_bitmap& 
 
 vrb_bitmap interleaved_mapping::prb_to_vrb(const prb_bitmap& prbs) const
 {
-  srsran_assert(prbs.size() == (config.coreset_start + config.nof_rbs),
-                "The PRB bitmap size (i.e., {}) doesn't match the size of the interleaving (i.e., {}).",
-                prbs.size(),
-                config.coreset_start + config.nof_rbs);
-  srsran_assert(prbs.none(0, config.coreset_start),
-                "The first {} PRBs can not be set for a interleaved mapping with a CORESET start at {}.",
-                config.coreset_start,
-                config.coreset_start);
+  ocudu_assert(prbs.size() == (config.coreset_start + config.nof_rbs),
+               "The PRB bitmap size (i.e., {}) doesn't match the size of the interleaving (i.e., {}).",
+               prbs.size(),
+               config.coreset_start + config.nof_rbs);
+  ocudu_assert(prbs.none(0, config.coreset_start),
+               "The first {} PRBs can not be set for a interleaved mapping with a CORESET start at {}.",
+               config.coreset_start,
+               config.coreset_start);
 
   vrb_bitmap vrbs(config.nof_rbs);
   prbs.for_each(0, prbs.size(), [&](unsigned prb) { vrbs.set(prb_to_vrb(prb)); });
@@ -247,15 +247,15 @@ vrb_bitmap interleaved_mapping::prb_to_vrb(const prb_bitmap& prbs) const
 
 crb_bitmap interleaved_mapping::vrb_to_crb(unsigned bwp_start, unsigned bwp_size, const vrb_bitmap& vrbs) const
 {
-  srsran_assert(vrbs.size() <= config.nof_rbs,
-                "The VRB bitmap size (i.e., {}) is greater than the size of the interleaving (i.e., {}).",
-                vrbs.size(),
-                config.nof_rbs);
-  srsran_assert(config.coreset_start + config.nof_rbs <= bwp_size,
-                "This interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
-                config.nof_rbs,
-                config.coreset_start,
-                bwp_size);
+  ocudu_assert(vrbs.size() <= config.nof_rbs,
+               "The VRB bitmap size (i.e., {}) is greater than the size of the interleaving (i.e., {}).",
+               vrbs.size(),
+               config.nof_rbs);
+  ocudu_assert(config.coreset_start + config.nof_rbs <= bwp_size,
+               "This interleaved mapping ({} VRBs with CORESET start at {}) is not suitable for a BWP of size {}.",
+               config.nof_rbs,
+               config.coreset_start,
+               bwp_size);
 
   crb_bitmap crbs(bwp_start + bwp_size);
   vrbs.for_each(0, vrbs.size(), [&](unsigned vrb) { crbs.set(bwp_start + vrb_to_prb(vrb)); });
@@ -263,7 +263,7 @@ crb_bitmap interleaved_mapping::vrb_to_crb(unsigned bwp_start, unsigned bwp_size
 }
 
 static_vector<uint16_t, MAX_NOF_PRBS>
-interleaved_mapping::vrb_to_crb_indices(unsigned bwp_start, unsigned bwp_size, const srsran::vrb_bitmap& vrbs) const
+interleaved_mapping::vrb_to_crb_indices(unsigned bwp_start, unsigned bwp_size, const ocudu::vrb_bitmap& vrbs) const
 {
   static_vector<uint16_t, MAX_NOF_PRBS> result;
   crb_bitmap                            crbs(bwp_start + bwp_size);

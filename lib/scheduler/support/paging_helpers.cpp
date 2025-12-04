@@ -2,7 +2,7 @@
 #include "pdcch/pdcch_type0_helpers.h"
 #include "ssb_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 paging_slot_helper::paging_slot_helper(const cell_configuration&                       cell_cfg_,
                                        const sched_cell_configuration_request_message& msg) :
@@ -18,20 +18,20 @@ paging_slot_helper::paging_slot_helper(const cell_configuration&                
     }
 
     if (ss_cfg == nullptr) {
-      srsran_assertion_failure("Paging Search Space not configured in DL BWP.");
+      ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
     }
 
     if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value() == 0) {
       // PDCCH monitoring occasions for paging are same as for RMSI. See TS 38.304, clause 7.1.
       // NOTE: We currently support only SS/PBCH and CORESET multiplexing patter 1.
       if (cell_cfg.dl_cfg_common.pcch_cfg.nof_pf == pcch_config::nof_pf_per_drx_cycle::oneT) {
-        srsran_assertion_failure(
+        ocudu_assertion_failure(
             "Invalid nof. Paging frames per DRX Cycle for SS/PBCH and CORESET multiplexing patter 1.");
       }
       // As per TS 38.304, clause 7.1, For Ns = 2, PO is either in the first half frame (i_s = 0) or the second half
       // frame (i_s = 1) of the PF.  This is possible only when using ssb periodicity of 5ms which is in turn possible
       // only when using SS/PBCH and CORESET multiplexing patter 2 or 3.
-      srsran_assert(
+      ocudu_assert(
           cell_cfg.dl_cfg_common.pcch_cfg.ns == pcch_config::nof_po_per_pf::one,
           "Number of Paging Occasions per Paging Frame must be 1 for SS/PBCH and CORESET multiplexing patter 1.");
       for (size_t i_ssb = 0; i_ssb < MAX_NUM_BEAMS; i_ssb++) {
@@ -47,16 +47,16 @@ paging_slot_helper::paging_slot_helper(const cell_configuration&                
       if (ss_cfg->get_coreset_id() != to_coreset_id(0) and
           ((not cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()) or
            (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().id != ss_cfg->get_coreset_id()))) {
-        srsran_assertion_failure("CORESET configuration for Paging Search Space not configured in DL BWP.");
+        ocudu_assertion_failure("CORESET configuration for Paging Search Space not configured in DL BWP.");
       }
       if (ss_cfg->get_coreset_id() == to_coreset_id(0) and
           (not cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value())) {
-        srsran_assertion_failure("CORESET0 configuration for Paging Search Space not configured in DL BWP.");
+        ocudu_assertion_failure("CORESET0 configuration for Paging Search Space not configured in DL BWP.");
       }
       precompute_type2_pdcch_slots(msg.scs_common);
     }
   } else {
-    srsran_assertion_failure("Paging Search Space not configured in DL BWP.");
+    ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
   }
 }
 
@@ -195,8 +195,8 @@ void paging_slot_helper::precompute_type2_pdcch_slots(subcarrier_spacing scs_com
           first_pmo_of_po.empty()
               ? (po_idx * nof_ssb_transmitted * pcch_config::NR_OF_PDCCH_MONITORING_OCCASION_PER_SSB_IN_PO)
               : first_pmo_of_po[po_idx];
-      srsran_assert(pmo_idx < pdcch_monitoring_occasions.size(),
-                    "Not enough PDCCH Monitoring Occasions for Paging Occasion");
+      ocudu_assert(pmo_idx < pdcch_monitoring_occasions.size(),
+                   "Not enough PDCCH Monitoring Occasions for Paging Occasion");
       type2_pdcch_css_slots[i_ssb].push_back(pdcch_monitoring_occasions[pmo_idx]);
     }
   }

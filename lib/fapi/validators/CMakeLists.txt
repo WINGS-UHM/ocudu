@@ -20,5 +20,5 @@ set(SOURCES
         ul_pusch_pdu.cpp
         ul_srs_pdu.cpp)
 
-add_library(srsran_fapi_validators STATIC ${SOURCES})
-target_link_libraries(srsran_fapi_validators srslog)
+add_library(ocudu_fapi_validators STATIC ${SOURCES})
+target_link_libraries(ocudu_fapi_validators ocudulog)

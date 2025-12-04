@@ -11,6 +11,6 @@ set(SOURCES
         o_du_high_e2_config_translators.cpp
         o_du_high_e2_config_yaml_writer.cpp)
 
-add_library(srsran_o_du_high_app_unit_e2 STATIC ${SOURCES})
-target_include_directories(srsran_o_du_high_app_unit_e2 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_o_du_high_app_unit_e2 srsran_e2_app_helpers)
+add_library(ocudu_o_du_high_app_unit_e2 STATIC ${SOURCES})
+target_include_directories(ocudu_o_du_high_app_unit_e2 PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_o_du_high_app_unit_e2 ocudu_e2_app_helpers)

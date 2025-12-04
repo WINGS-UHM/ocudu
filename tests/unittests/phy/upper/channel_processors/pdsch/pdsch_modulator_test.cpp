@@ -9,17 +9,17 @@
  */
 
 #include "pdsch_modulator_test_data.h"
-#include "srsran/phy/support/precoding_formatters.h"
-#include "srsran/phy/support/re_pattern_formatters.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/support/precoding_formatters.h"
+#include "ocudu/phy/support/re_pattern_formatters.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -92,7 +92,7 @@ TEST_P(PdschModulatorFixture, VectorTest)
 
   // Pack data.
   dynamic_bit_buffer packed_data(data.size());
-  srsvec::bit_pack(packed_data, data);
+  ocuduvec::bit_pack(packed_data, data);
 
   // Prepare codewords.
   static_vector<bit_buffer, pdsch_constants::MAX_NOF_CODEWORDS> codewords;

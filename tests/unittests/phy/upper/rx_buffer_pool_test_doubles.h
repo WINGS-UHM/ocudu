@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rx_buffer_pool_spy : public rx_buffer_pool, private unique_rx_buffer::callback
 {
@@ -66,4 +66,4 @@ private:
   bool       is_buffer_locked = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

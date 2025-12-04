@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Random generator.
 static std::mt19937 rgen(0);

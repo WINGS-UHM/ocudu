@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
-#include "srsran/ran/pusch/pusch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/ulsch_demultiplex.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Uplink Shared Channel demultiplexer implementation.
 class ulsch_demultiplex_impl : public ulsch_demultiplex, private pusch_codeword_buffer
@@ -107,4 +107,4 @@ private:
   static_bit_buffer<pusch_constants::MAX_NOF_BITS_PER_OFDM_SYMBOL> temp_scrambling_seq_ofdm_symbol;
 };
 
-} // namespace srsran
+} // namespace ocudu

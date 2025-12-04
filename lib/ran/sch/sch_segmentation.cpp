@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/ran/sch/sch_segmentation.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 constexpr units::bits sch_information::CB_CRC_SIZE;
 
-sch_information srsran::get_sch_segmentation_info(units::bits tbs, float target_code_rate)
+sch_information ocudu::get_sch_segmentation_info(units::bits tbs, float target_code_rate)
 {
-  srsran_assert(target_code_rate > 0.F && target_code_rate < 1.F,
-                "Invalid target code rate {}, expected a value between 0 and 1",
-                target_code_rate);
+  ocudu_assert(target_code_rate > 0.F && target_code_rate < 1.F,
+               "Invalid target code rate {}, expected a value between 0 and 1",
+               target_code_rate);
 
   sch_information result;
 

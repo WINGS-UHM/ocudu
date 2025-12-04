@@ -11,7 +11,7 @@
 #include "ofh_cplane_message_builder_static_compression_impl.h"
 #include "../support/network_order_binary_serializer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void cplane_message_builder_static_compression_impl::serialize_compression_header(

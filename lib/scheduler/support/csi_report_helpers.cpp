@@ -10,7 +10,7 @@
 
 #include "csi_report_helpers.h"
 
-bool srsran::csi_helper::is_csi_reporting_slot(const csi_meas_config& csi_meas, slot_point sl_tx)
+bool ocudu::csi_helper::is_csi_reporting_slot(const csi_meas_config& csi_meas, slot_point sl_tx)
 {
   // We assume we only use the first CSI report configuration.
   const unsigned csi_report_cfg_idx = 0;

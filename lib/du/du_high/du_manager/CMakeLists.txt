@@ -20,13 +20,13 @@ set(SOURCES
         du_metrics_aggregator_impl.cpp
 )
 
-add_library(srsran_du_manager STATIC ${SOURCES})
-target_link_libraries(srsran_du_manager
+add_library(ocudu_du_manager STATIC ${SOURCES})
+target_link_libraries(ocudu_du_manager
         du_ue
         du_resource_manager
         du_manager_converters
-        srsran_du_config_validators
+        ocudu_du_config_validators
         mac_configuration_helpers
-        srsran_rlc
-        srsran_f1u_du
-        srsran_gtpu)
+        ocudu_rlc
+        ocudu_f1u_du
+        ocudu_gtpu)

@@ -12,12 +12,12 @@
 
 #include "logical_channel_config_pool.h"
 #include "sched_config_params.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 struct sched_cell_configuration_request_message;
 struct sched_ue_creation_request_message;
@@ -79,4 +79,4 @@ private:
   std::map<du_cell_index_t, du_cell_config_pool> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

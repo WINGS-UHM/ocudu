@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/byte_buffer_chain.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/byte_buffer_chain.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Status report interface of the PDCP RX entity
 /// The PDCP TX entity uses this class to obtain a status report according to received and missing SDUs
@@ -42,4 +42,4 @@ public:
   virtual void on_status_report(byte_buffer_chain status) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

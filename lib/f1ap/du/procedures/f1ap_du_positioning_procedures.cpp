@@ -8,48 +8,48 @@
  *
  */
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 #include "f1ap_du_positioning_procedures.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-async_task<void> srs_du::start_positioning_measurement_procedure(const asn1::f1ap::positioning_meas_request_s& msg,
-                                                                 f1ap_du_configurator&                         du_mng,
-                                                                 f1ap_message_notifier& cu_notifier)
+async_task<void> odu::start_positioning_measurement_procedure(const asn1::f1ap::positioning_meas_request_s& msg,
+                                                              f1ap_du_configurator&                         du_mng,
+                                                              f1ap_message_notifier&                        cu_notifier)
 {
   return launch_async([](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
-    srslog::fetch_basic_logger("DU-F1").error(
+    ocudulog::fetch_basic_logger("DU-F1").error(
         "Positioning Measurement Procedure Failed. Cause: Feature only supported in Enterprise version.");
     CORO_RETURN();
   });
 }
 
-async_task<void> srs_du::start_trp_information_exchange_procedure(const asn1::f1ap::trp_info_request_s& msg,
-                                                                  f1ap_du_configurator&                 du_mng,
-                                                                  f1ap_message_notifier&                cu_notifier)
+async_task<void> odu::start_trp_information_exchange_procedure(const asn1::f1ap::trp_info_request_s& msg,
+                                                               f1ap_du_configurator&                 du_mng,
+                                                               f1ap_message_notifier&                cu_notifier)
 {
   return launch_async([](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
-    srslog::fetch_basic_logger("DU-F1").error(
+    ocudulog::fetch_basic_logger("DU-F1").error(
         "TRP Information Exchange Procedure Failed. Cause: Feature only supported in Enterprise version.");
     CORO_RETURN();
   });
 }
 
-async_task<void> srs_du::start_positioning_exchange_procedure(const asn1::f1ap::positioning_info_request_s& msg,
-                                                              f1ap_du_configurator&                         du_mng,
-                                                              f1ap_du_ue&                                   ue)
+async_task<void> odu::start_positioning_exchange_procedure(const asn1::f1ap::positioning_info_request_s& msg,
+                                                           f1ap_du_configurator&                         du_mng,
+                                                           f1ap_du_ue&                                   ue)
 {
   return launch_async([](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
-    srslog::fetch_basic_logger("DU-F1").error(
+    ocudulog::fetch_basic_logger("DU-F1").error(
         "Positioning Exchange Procedure Failed. Cause: Feature only supported in Enterprise version.");
     CORO_RETURN();
   });
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

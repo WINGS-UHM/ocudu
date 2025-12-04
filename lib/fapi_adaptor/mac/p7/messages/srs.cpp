@@ -9,9 +9,9 @@
  */
 
 #include "srs.h"
-#include "srsran/scheduler/result/srs_info.h"
+#include "ocudu/scheduler/result/srs_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 void fapi_adaptor::convert_srs_mac_to_fapi(fapi::ul_srs_pdu& fapi_pdu, const srs_info& mac_pdu)

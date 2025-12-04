@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/security/ciphering_engine.h"
-#include "srsran/security/security.h"
-#include "srsran/security/ssl.h"
+#include "ocudu/security/ciphering_engine.h"
+#include "ocudu/security/security.h"
+#include "ocudu/security/ssl.h"
 
-namespace srsran::security {
+namespace ocudu::security {
 
 class ciphering_engine_nea2 final : public ciphering_engine
 {
@@ -31,7 +31,7 @@ private:
 
   aes_context ctx;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran::security
+} // namespace ocudu::security

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/slotted_array.h"
+#include "ocudu/adt/slotted_array.h"
 
 int main()
 {
-  srsran::slotted_array<int, 5> a;
+  ocudu::slotted_array<int, 5> a;
 
   a.insert(1, 3);
   a.insert(3, -5);

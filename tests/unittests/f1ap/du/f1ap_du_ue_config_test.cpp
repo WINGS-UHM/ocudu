@@ -9,10 +9,10 @@
  */
 
 #include "f1ap_du_test_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class f1ap_du_ue_management_tester : public f1ap_du_test
 {

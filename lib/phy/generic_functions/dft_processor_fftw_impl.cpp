@@ -9,11 +9,11 @@
  */
 
 #include "dft_processor_fftw_impl.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <pwd.h>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 std::mutex dft_processor_fftw_impl::mutex_init = {};
 
@@ -77,7 +77,7 @@ dft_processor_fftw_impl::fftw_wisdom_filename::fftw_wisdom_filename()
   clear();
 
   // Default FFT wisdom file inside home directory.
-  static const char* FFTW_WISDOM_FILE = "%s/.srsran_fftwisdom";
+  static const char* FFTW_WISDOM_FILE = "%s/.ocudu_fftwisdom";
 
   // Get the user home directory from environment.
   const char* homedir = getenv("HOME");
@@ -148,10 +148,10 @@ dft_processor_fftw_impl::dft_processor_fftw_impl(const dft_processor_fftw_config
   plan = fftwf_plan_dft_1d(fftw_size, fftw_input, fftw_output, fftw_sign, fftw_flags);
 
   // Make sure plan is valid.
-  srsran_assert(plan != nullptr,
-                "FFTW Plan creation for size={} dir={} failed.",
-                fftw_size,
-                dft_processor::direction_to_string(dir).c_str());
+  ocudu_assert(plan != nullptr,
+               "FFTW Plan creation for size={} dir={} failed.",
+               fftw_size,
+               dft_processor::direction_to_string(dir).c_str());
 
   // Count as another successful instance.
   ++fftw_count;

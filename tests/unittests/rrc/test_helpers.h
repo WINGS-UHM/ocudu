@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/rrc/rrc_ue.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/rrc/rrc_ue.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class dummy_rrc_f1ap_pdu_notifier : public rrc_pdu_f1ap_notifier
 {
@@ -50,8 +50,8 @@ public:
   bool initial_ue_msg_received = false;
 
 private:
-  bool                  ue_context_release_outcome = false;
-  srslog::basic_logger& logger                     = srslog::fetch_basic_logger("TEST");
+  bool                    ue_context_release_outcome = false;
+  ocudulog::basic_logger& logger                     = ocudulog::fetch_basic_logger("TEST");
 };
 
 class dummy_rrc_ue_cu_cp_adapter : public rrc_ue_context_update_notifier, public rrc_ue_measurement_notifier
@@ -146,7 +146,7 @@ public:
 
 private:
   rrc_ue_reestablishment_context_response reest_context = {};
-  srslog::basic_logger&                   logger        = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                 logger        = ocudulog::fetch_basic_logger("TEST");
 };
 
 class dummy_rrc_ue_rrc_du_adapter : public rrc_ue_event_notifier
@@ -167,5 +167,5 @@ public:
   void on_successful_rrc_connection_reestablishment_fallback() override {}
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

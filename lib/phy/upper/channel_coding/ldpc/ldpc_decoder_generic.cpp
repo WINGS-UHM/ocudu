@@ -9,18 +9,18 @@
  */
 
 #include "ldpc_decoder_generic.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 void ldpc_decoder_generic::compute_var_to_check_msgs(span<log_likelihood_ratio>       this_var_to_check,
                                                      span<const log_likelihood_ratio> this_soft_bits,
                                                      span<const log_likelihood_ratio> this_check_to_var)
 {
-  srsran_srsvec_assert_size(this_var_to_check, this_soft_bits);
-  srsran_srsvec_assert_size(this_var_to_check, this_check_to_var);
+  ocudu_ocuduvec_assert_size(this_var_to_check, this_soft_bits);
+  ocudu_ocuduvec_assert_size(this_var_to_check, this_check_to_var);
 
   // By definition, the difference between two LLRs saturates at +/- LLR_MAX. Moreover, if either term is infinite, so
   // is the result, with proper sign.
@@ -57,7 +57,7 @@ void ldpc_decoder_generic::analyze_var_to_check_msgs(span<log_likelihood_ratio> 
 
 static log_likelihood_ratio scale_llr(log_likelihood_ratio llr, float scaling_factor)
 {
-  srsran_assert((scaling_factor > 0) && (scaling_factor < 1), "Scaling factor should be in the interval (0, 1).");
+  ocudu_assert((scaling_factor > 0) && (scaling_factor < 1), "Scaling factor should be in the interval (0, 1).");
   if (log_likelihood_ratio::isinf(llr)) {
     return llr;
   }
@@ -99,8 +99,8 @@ void ldpc_decoder_generic::compute_soft_bits(span<log_likelihood_ratio>       th
                                              span<const log_likelihood_ratio> this_var_to_check,
                                              span<const log_likelihood_ratio> this_check_to_var)
 {
-  srsran_srsvec_assert_size(this_soft_bits, this_var_to_check);
-  srsran_srsvec_assert_size(this_soft_bits, this_check_to_var);
+  ocudu_ocuduvec_assert_size(this_soft_bits, this_var_to_check);
+  ocudu_ocuduvec_assert_size(this_soft_bits, this_check_to_var);
 
   for (int j = 0; j != lifting_size; ++j) {
     // Soft bits absolutely larger than LOCAL_MAX_RANGE are set to infinity (LOCAL_INF). As a result, they become

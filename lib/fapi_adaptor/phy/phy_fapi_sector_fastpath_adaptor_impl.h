@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 class uplink_request_processor;
 
 namespace fapi_adaptor {
@@ -33,4 +33,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

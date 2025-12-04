@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <cassert>
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Manages the E2 metric connectors of the app.
 template <typename ConnectorType, typename NotifierType, typename InterfaceType>
@@ -38,12 +38,12 @@ public:
 
   NotifierType& get_e2_metric_notifier(unsigned index)
   {
-    srsran_assert(index < e2_metric_connectors.size(), "Invalid index");
+    ocudu_assert(index < e2_metric_connectors.size(), "Invalid index");
     return *(e2_metric_connectors[index]);
   }
   InterfaceType& get_e2_metrics_interface(unsigned index)
   {
-    srsran_assert(index < e2_metric_connectors.size(), "Invalid index");
+    ocudu_assert(index < e2_metric_connectors.size(), "Invalid index");
     return *(e2_metric_connectors[index]);
   }
 
@@ -51,4 +51,4 @@ private:
   std::vector<std::shared_ptr<ConnectorType>> e2_metric_connectors;
 };
 
-} // namespace srsran
+} // namespace ocudu

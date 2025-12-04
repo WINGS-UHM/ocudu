@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/ran/prach/prach_cyclic_shifts.h"
-#include "srsran/adt/span.h"
+#include "ocudu/ran/prach/prach_cyclic_shifts.h"
+#include "ocudu/adt/span.h"
 #include <array>
 
-using namespace srsran;
+using namespace ocudu;
 
-uint16_t srsran::prach_cyclic_shifts_get(prach_subcarrier_spacing prach_scs,
-                                         restricted_set_config    restricted_set,
-                                         unsigned                 zero_correlation_zone)
+uint16_t ocudu::prach_cyclic_shifts_get(prach_subcarrier_spacing prach_scs,
+                                        restricted_set_config    restricted_set,
+                                        unsigned                 zero_correlation_zone)
 {
   // TS38.211 Table 6.3.3.1-5 First column.
   static const std::array<uint16_t, 16> NOF_CYCLIC_SHIFTS_1_25_UNRESTRICTED = {

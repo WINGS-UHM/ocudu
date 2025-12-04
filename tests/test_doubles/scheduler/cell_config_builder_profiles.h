@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
 
-namespace srsran {
+namespace ocudu {
 namespace cell_config_builder_profiles {
 
 /// Create cell build parameters for a TDD band.
@@ -23,4 +23,4 @@ cell_config_builder_params tdd(subcarrier_spacing   scs = subcarrier_spacing::kH
 cell_config_builder_params fdd();
 
 } // namespace cell_config_builder_profiles
-} // namespace srsran
+} // namespace ocudu

@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/ran/resource_block.h"
 #include <gtest/gtest.h>
 #include <utility>
 
-using namespace srsran;
-using namespace srsran::vrb_to_prb;
+using namespace ocudu;
+using namespace ocudu::vrb_to_prb;
 
 class non_interleaved_test : public ::testing::TestWithParam<configuration>
 {

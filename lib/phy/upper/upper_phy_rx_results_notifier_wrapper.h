@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/upper_phy_rx_results_notifier.h"
+#include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rx_buffer_pool;
 
@@ -48,4 +48,4 @@ private:
   upper_phy_rx_results_notifier* rx_results_notifier = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

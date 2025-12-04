@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/radio/radio_factory.h"
+#include "ocudu/radio/radio_factory.h"
 
 #ifdef ENABLE_UHD
 #include "uhd/radio_uhd_impl.h"
@@ -20,7 +20,7 @@
 
 #include "plugin_radio_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -40,7 +40,7 @@ static const std::vector<radio_factory_entry> radio_factory_available_factories 
 
 } // namespace
 
-void srsran::print_available_radio_factories()
+void ocudu::print_available_radio_factories()
 {
   if (radio_factory_available_factories.empty()) {
     return;
@@ -61,7 +61,7 @@ void srsran::print_available_radio_factories()
   fmt::print(".\n");
 }
 
-std::unique_ptr<radio_factory> srsran::create_radio_factory(std::string driver_name)
+std::unique_ptr<radio_factory> ocudu::create_radio_factory(std::string driver_name)
 {
   // Convert driver name to lower case.
   for (char& c : driver_name) {

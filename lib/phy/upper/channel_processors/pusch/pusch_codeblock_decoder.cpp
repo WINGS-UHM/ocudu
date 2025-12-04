@@ -10,7 +10,7 @@
 
 #include "pusch_codeblock_decoder.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pusch_codeblock_decoder::rate_match(span<log_likelihood_ratio>       rm_buffer,
                                          span<const log_likelihood_ratio> cb_llrs,
@@ -24,7 +24,7 @@ std::optional<unsigned> pusch_codeblock_decoder::decode(bit_buffer              
                                                         span<log_likelihood_ratio>       rm_buffer,
                                                         span<const log_likelihood_ratio> cb_llrs,
                                                         bool                             new_data,
-                                                        srsran::crc_generator_poly       crc_poly,
+                                                        ocudu::crc_generator_poly        crc_poly,
                                                         bool                             use_early_stop,
                                                         unsigned                         nof_ldpc_iterations,
                                                         bool                             force_decoding,
@@ -42,7 +42,7 @@ std::optional<unsigned> pusch_codeblock_decoder::decode(bit_buffer              
 
   // Select CRC calculator.
   crc_calculator* crc = select_crc(crc_poly);
-  srsran_assert(crc != nullptr, "Invalid CRC calculator.");
+  ocudu_assert(crc != nullptr, "Invalid CRC calculator.");
 
   // Decode with early stop.
   if (use_early_stop) {

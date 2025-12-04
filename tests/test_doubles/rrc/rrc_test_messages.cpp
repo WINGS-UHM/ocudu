@@ -9,15 +9,15 @@
  */
 
 #include "rrc_test_messages.h"
-#include "srsran/asn1/rrc_nr/common.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/asn1/rrc_nr/common.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/plmn_identity.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::rrc_nr;
 
-ul_ccch_msg_s srsran::test_helpers::create_rrc_setup_request()
+ul_ccch_msg_s ocudu::test_helpers::create_rrc_setup_request()
 {
   ul_ccch_msg_s msg;
 
@@ -29,9 +29,8 @@ ul_ccch_msg_s srsran::test_helpers::create_rrc_setup_request()
   return msg;
 }
 
-ul_ccch_msg_s srsran::test_helpers::create_rrc_reestablishment_request(rnti_t             old_crnti,
-                                                                       pci_t              old_pci,
-                                                                       const std::string& short_mac_i)
+ul_ccch_msg_s
+ocudu::test_helpers::create_rrc_reestablishment_request(rnti_t old_crnti, pci_t old_pci, const std::string& short_mac_i)
 {
   ul_ccch_msg_s msg;
 
@@ -45,7 +44,7 @@ ul_ccch_msg_s srsran::test_helpers::create_rrc_reestablishment_request(rnti_t   
   return msg;
 }
 
-ul_dcch_msg_s srsran::test_helpers::create_rrc_setup_complete(uint8_t sel_plmn_id)
+ul_dcch_msg_s ocudu::test_helpers::create_rrc_setup_complete(uint8_t sel_plmn_id)
 {
   ul_dcch_msg_s msg;
 
@@ -60,7 +59,7 @@ ul_dcch_msg_s srsran::test_helpers::create_rrc_setup_complete(uint8_t sel_plmn_i
   return msg;
 }
 
-asn1::rrc_nr::ul_dcch_msg_s srsran::test_helpers::create_rrc_reestablishment_complete()
+asn1::rrc_nr::ul_dcch_msg_s ocudu::test_helpers::create_rrc_reestablishment_complete()
 {
   ul_dcch_msg_s msg;
 
@@ -71,7 +70,7 @@ asn1::rrc_nr::ul_dcch_msg_s srsran::test_helpers::create_rrc_reestablishment_com
   return msg;
 }
 
-asn1::rrc_nr::ul_dcch_msg_s srsran::test_helpers::create_rrc_reconfiguration_complete(uint8_t transaction_id)
+asn1::rrc_nr::ul_dcch_msg_s ocudu::test_helpers::create_rrc_reconfiguration_complete(uint8_t transaction_id)
 {
   ul_dcch_msg_s msg;
 
@@ -82,21 +81,21 @@ asn1::rrc_nr::ul_dcch_msg_s srsran::test_helpers::create_rrc_reconfiguration_com
   return msg;
 }
 
-byte_buffer srsran::test_helpers::pack_ul_ccch_msg(const ul_ccch_msg_s& msg)
+byte_buffer ocudu::test_helpers::pack_ul_ccch_msg(const ul_ccch_msg_s& msg)
 {
   byte_buffer   pdu;
   asn1::bit_ref bref{pdu};
-  if (msg.pack(bref) == asn1::SRSASN_SUCCESS) {
+  if (msg.pack(bref) == asn1::OCUDUASN_SUCCESS) {
     return pdu;
   }
   return byte_buffer{};
 }
 
-byte_buffer srsran::test_helpers::pack_ul_dcch_msg(const ul_dcch_msg_s& msg)
+byte_buffer ocudu::test_helpers::pack_ul_dcch_msg(const ul_dcch_msg_s& msg)
 {
   byte_buffer   pdu;
   asn1::bit_ref bref{pdu};
-  if (msg.pack(bref) == asn1::SRSASN_SUCCESS) {
+  if (msg.pack(bref) == asn1::OCUDUASN_SUCCESS) {
     return pdu;
   }
   return byte_buffer{};
@@ -115,7 +114,7 @@ asn1::rrc_nr::plmn_id_s plmn_to_asn1(const plmn_identity& plmn)
   return asn1_plmn;
 }
 
-asn1::rrc_nr::sib1_s srsran::test_helpers::create_sib1(const plmn_identity& plmn)
+asn1::rrc_nr::sib1_s ocudu::test_helpers::create_sib1(const plmn_identity& plmn)
 {
   asn1::rrc_nr::sib1_s sib1;
 

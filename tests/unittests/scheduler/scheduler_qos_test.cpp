@@ -14,10 +14,10 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static logical_channel_config::qos_info make_qos(qos_prio_level_t          qos_prio = qos_prio_level_t::max(),
                                                  arp_prio_level_t          arp_prio = arp_prio_level_t::max(),

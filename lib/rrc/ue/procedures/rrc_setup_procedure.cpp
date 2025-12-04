@@ -11,11 +11,11 @@
 #include "rrc_setup_procedure.h"
 #include "../rrc_asn1_helpers.h"
 #include "ue/rrc_asn1_converters.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
 #include <variant>
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 rrc_setup_procedure::rrc_setup_procedure(rrc_ue_context_t&               context_,

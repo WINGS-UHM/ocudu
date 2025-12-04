@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
-namespace srsran {
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
+namespace ocudu {
 
 struct cell_resource_allocator;
 class ue_cell_configuration;
@@ -52,4 +52,4 @@ public:
   virtual void handle_positioning_measurement_stop(rnti_t pos_rnti) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

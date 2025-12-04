@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// LDPC encoder metric decorator.
 class phy_metrics_ldpc_encoder_decorator : public ldpc_encoder
@@ -37,7 +37,7 @@ public:
                                      ldpc_encoder_metric_notifier& notifier_) :
     base_encoder(std::move(base_encoder_)), notifier(notifier_)
   {
-    srsran_assert(base_encoder, "Invalid encoder.");
+    ocudu_assert(base_encoder, "Invalid encoder.");
   }
 
   // See interface for documentation.
@@ -63,4 +63,4 @@ private:
   ldpc_encoder_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

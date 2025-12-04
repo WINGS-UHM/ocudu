@@ -11,5 +11,5 @@ set(SOURCES
         ofh_timing_metrics_collector_impl.cpp
         realtime_timing_worker.cpp)
 
-add_library(srsran_ofh_timing STATIC ${SOURCES})
-target_link_libraries(srsran_ofh_timing srslog srsran_instrumentation)
+add_library(ocudu_ofh_timing STATIC ${SOURCES})
+target_link_libraries(ocudu_ofh_timing ocudulog ocudu_instrumentation)

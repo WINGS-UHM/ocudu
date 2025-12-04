@@ -11,17 +11,17 @@
 #include "downlink_processor_notifier_test_doubles.h"
 #include "pdxch/pdxch_processor_notifier_test_doubles.h"
 #include "pdxch/pdxch_processor_test_doubles.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_factories.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_factories.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, span<const cf_t> data)
 {
@@ -128,7 +128,7 @@ bool operator==(const pdxch_processor_configuration& left, const pdxch_processor
          (left.nof_tx_ports == right.nof_tx_ports);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using LowerPhyDownlinkProcessorParams =
     std::tuple<unsigned, sampling_rate, std::tuple<subcarrier_spacing, cyclic_prefix>>;

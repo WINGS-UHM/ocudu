@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
 #include "ofdm_demodulator_impl.h"
 #include "ofdm_demodulator_pool.h"
 #include "ofdm_modulator_impl.h"
 #include "ofdm_modulator_pool.h"
 #include "ofdm_prach_demodulator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -27,7 +27,7 @@ public:
   explicit ofdm_modulator_factory_generic(ofdm_factory_generic_configuration config) :
     dft_factory(std::move(config.dft_factory))
   {
-    srsran_assert(dft_factory, "Invalid DFT factory.");
+    ocudu_assert(dft_factory, "Invalid DFT factory.");
   }
 
   std::unique_ptr<ofdm_symbol_modulator>
@@ -50,7 +50,7 @@ public:
   explicit ofdm_modulator_pool_factory(std::shared_ptr<ofdm_modulator_factory> base_, unsigned max_nof_threads_) :
     base(std::move(base_)), max_nof_threads(max_nof_threads_)
   {
-    srsran_assert(base, "Invalid base factory.");
+    ocudu_assert(base, "Invalid base factory.");
   }
 
   std::unique_ptr<ofdm_symbol_modulator>
@@ -85,7 +85,7 @@ public:
   explicit ofdm_demodulator_pool_factory(std::shared_ptr<ofdm_demodulator_factory> base_, unsigned max_nof_threads_) :
     base(std::move(base_)), max_nof_threads(max_nof_threads_)
   {
-    srsran_assert(base, "Invalid base factory.");
+    ocudu_assert(base, "Invalid base factory.");
   }
 
   std::unique_ptr<ofdm_symbol_demodulator>
@@ -123,7 +123,7 @@ public:
   explicit ofdm_demodulator_factory_generic(ofdm_factory_generic_configuration config) :
     dft_factory(std::move(config.dft_factory))
   {
-    srsran_assert(dft_factory, "Invalid DFT factory.");
+    ocudu_assert(dft_factory, "Invalid DFT factory.");
   }
 
   std::unique_ptr<ofdm_symbol_demodulator>
@@ -161,7 +161,7 @@ public:
                                     frequency_range                        fr_) :
     dft_factory(std::move(dft_factory_)), srate(srate_), fr(fr_)
   {
-    srsran_assert(dft_factory, "Invalid DFT factory.");
+    ocudu_assert(dft_factory, "Invalid DFT factory.");
   }
 
   std::unique_ptr<ofdm_prach_demodulator> create() override
@@ -179,11 +179,11 @@ public:
       dft_processor::configuration   dft_config = {.size = srate.get_dft_size(ra_scs_to_Hz(ra_scs)),
                                                    .dir  = dft_processor::direction::DIRECT};
       std::unique_ptr<dft_processor> dft_proc   = dft_factory->create(dft_config);
-      srsran_assert(dft_proc,
-                    "Invalid DFT processor of size {}, for subcarrier spacing of {} and sampling rate {}.",
-                    dft_config.size,
-                    to_string(ra_scs),
-                    srate);
+      ocudu_assert(dft_proc,
+                   "Invalid DFT processor of size {}, for subcarrier spacing of {} and sampling rate {}.",
+                   dft_config.size,
+                   to_string(ra_scs),
+                   srate);
 
       // Emplace the DFT into the dictionary.
       dft_processors.emplace(ra_scs, std::move(dft_proc));
@@ -196,33 +196,33 @@ public:
 } // namespace
 
 std::shared_ptr<ofdm_modulator_factory>
-srsran::create_ofdm_modulator_factory_generic(ofdm_factory_generic_configuration& config)
+ocudu::create_ofdm_modulator_factory_generic(ofdm_factory_generic_configuration& config)
 {
   return std::make_shared<ofdm_modulator_factory_generic>(config);
 }
 
 std::shared_ptr<ofdm_modulator_factory>
-srsran::create_ofdm_modulator_pool_factory(std::shared_ptr<ofdm_modulator_factory> base, unsigned max_nof_threads)
+ocudu::create_ofdm_modulator_pool_factory(std::shared_ptr<ofdm_modulator_factory> base, unsigned max_nof_threads)
 {
   return std::make_shared<ofdm_modulator_pool_factory>(std::move(base), max_nof_threads);
 }
 
 std::shared_ptr<ofdm_demodulator_factory>
-srsran::create_ofdm_demodulator_factory_generic(ofdm_factory_generic_configuration& config)
+ocudu::create_ofdm_demodulator_factory_generic(ofdm_factory_generic_configuration& config)
 {
   return std::make_shared<ofdm_demodulator_factory_generic>(config);
 }
 
 std::shared_ptr<ofdm_demodulator_factory>
-srsran::create_ofdm_demodulator_pool_factory(std::shared_ptr<ofdm_demodulator_factory> base, unsigned max_nof_threads)
+ocudu::create_ofdm_demodulator_pool_factory(std::shared_ptr<ofdm_demodulator_factory> base, unsigned max_nof_threads)
 {
   return std::make_shared<ofdm_demodulator_pool_factory>(std::move(base), max_nof_threads);
 }
 
 std::shared_ptr<ofdm_prach_demodulator_factory>
-srsran::create_ofdm_prach_demodulator_factory_sw(std::shared_ptr<dft_processor_factory> dft_factory,
-                                                 sampling_rate                          srate,
-                                                 frequency_range                        fr)
+ocudu::create_ofdm_prach_demodulator_factory_sw(std::shared_ptr<dft_processor_factory> dft_factory,
+                                                sampling_rate                          srate,
+                                                frequency_range                        fr)
 {
   return std::make_shared<ofdm_prach_demodulator_factory_sw>(std::move(dft_factory), srate, fr);
 }

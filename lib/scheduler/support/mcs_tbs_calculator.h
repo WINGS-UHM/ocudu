@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/ran/sch/sch_mcs.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/ran/sch/sch_mcs.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 struct pusch_config_params;
 struct pdsch_config_params;
@@ -122,4 +122,4 @@ bool is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
                                    unsigned                   nof_prbs,
                                    bool                       contains_dc);
 
-} // namespace srsran
+} // namespace ocudu

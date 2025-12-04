@@ -11,11 +11,11 @@
 #include "../../../../lib/ofh/transmitter/ofh_data_flow_cplane_scheduling_commands_impl.h"
 #include "../ecpri/ecpri_packet_builder_test_doubles.h"
 #include "../ethernet/vlan_ethernet_frame_builder_test_doubles.h"
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/ran/resource_block.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 namespace {
@@ -88,7 +88,7 @@ protected:
   std::shared_ptr<uplink_cplane_context_repository> prach_cplane_context_repo =
       std::make_shared<uplink_cplane_context_repository>(58);
   std::shared_ptr<ether::eth_frame_pool> frame_pool =
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               units::bytes(9000),
                                               2,
                                               ofh::message_type::control_plane,
@@ -125,7 +125,7 @@ private:
     dependencies.ul_cplane_context_repo    = ul_cplane_context_repo;
     dependencies.prach_cplane_context_repo = prach_cplane_context_repo;
     dependencies.frame_pool                = frame_pool;
-    dependencies.logger                    = &srslog::fetch_basic_logger("TEST");
+    dependencies.logger                    = &ocudulog::fetch_basic_logger("TEST");
     {
       auto temp               = std::make_unique<cplane_message_builder_spy>();
       cplane_builder          = temp.get();
@@ -153,7 +153,7 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture,
   context.slot         = slot_point(0, 0, 1);
   context.eaxc         = 2;
   context.direction    = data_direction::downlink;
-  context.filter_type  = srsran::ofh::filter_index_type::standard_channel_filter;
+  context.filter_type  = ocudu::ofh::filter_index_type::standard_channel_filter;
   context.symbol_range = {0, 14};
 
   data_flow.enqueue_section_type_1_message(context);
@@ -186,7 +186,7 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture, calling_enqueue_sectio
   context.slot         = slot_point(0, 0, 1);
   context.eaxc         = 2;
   context.direction    = data_direction::downlink;
-  context.filter_type  = srsran::ofh::filter_index_type::standard_channel_filter;
+  context.filter_type  = ocudu::ofh::filter_index_type::standard_channel_filter;
   context.symbol_range = {3, 6};
 
   data_flow.enqueue_section_type_1_message(context);
@@ -225,7 +225,7 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture, calling_enqueue_sectio
   context.slot         = slot_point(0, 0, 1);
   context.eaxc         = 2;
   context.direction    = data_direction::uplink;
-  context.filter_type  = srsran::ofh::filter_index_type::standard_channel_filter;
+  context.filter_type  = ocudu::ofh::filter_index_type::standard_channel_filter;
   context.symbol_range = {5, 8};
 
   data_flow.enqueue_section_type_1_message(context);
@@ -266,7 +266,7 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture,
   context.slot         = slot_point(0, 0, 1);
   context.eaxc         = 2;
   context.direction    = data_direction::uplink;
-  context.filter_type  = srsran::ofh::filter_index_type::standard_channel_filter;
+  context.filter_type  = ocudu::ofh::filter_index_type::standard_channel_filter;
   context.symbol_range = {0, 14};
 
   data_flow.enqueue_section_type_1_message(context);
@@ -298,8 +298,8 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture,
                                                        filter_index_type::ul_prach_preamble_1p25khz,
                                                        0,
                                                        1,
-                                                       srsran::subcarrier_spacing::kHz30,
-                                                       srsran::prach_subcarrier_spacing::kHz1_25,
+                                                       ocudu::subcarrier_spacing::kHz30,
+                                                       ocudu::prach_subcarrier_spacing::kHz1_25,
                                                        0,
                                                        72,
                                                        3};
@@ -335,8 +335,8 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture, calling_enqueue_sectio
                                                        filter_index_type::ul_prach_preamble_1p25khz,
                                                        0,
                                                        1,
-                                                       srsran::subcarrier_spacing::kHz30,
-                                                       srsran::prach_subcarrier_spacing::kHz1_25,
+                                                       ocudu::subcarrier_spacing::kHz30,
+                                                       ocudu::prach_subcarrier_spacing::kHz1_25,
                                                        0,
                                                        72,
                                                        3};
@@ -390,8 +390,8 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture,
                                                        filter_index_type::ul_prach_preamble_1p25khz,
                                                        0,
                                                        1,
-                                                       srsran::subcarrier_spacing::kHz30,
-                                                       srsran::prach_subcarrier_spacing::kHz1_25,
+                                                       ocudu::subcarrier_spacing::kHz30,
+                                                       ocudu::prach_subcarrier_spacing::kHz1_25,
                                                        0,
                                                        72,
                                                        3};

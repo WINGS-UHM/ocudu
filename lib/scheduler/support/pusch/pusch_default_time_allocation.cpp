@@ -9,9 +9,9 @@
  */
 
 #include "pusch_default_time_allocation.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Reserved default PUSCH time-domain allocation. It indicates the configuration is invalid.
 static constexpr pusch_time_domain_resource_allocation PUSCH_DEFAULT_TIME_ALLOCATION_RESERVED = {};
@@ -28,12 +28,12 @@ static constexpr unsigned pusch_default_time_allocation_default_A_get_j(subcarri
   constexpr std::array<unsigned, 4> values = {1, 1, 2, 3};
 
   unsigned numerology = to_numerology_value(scs);
-  srsran_assert(numerology < values.size(), "Invalid numerology.");
+  ocudu_assert(numerology < values.size(), "Invalid numerology.");
   return values[numerology];
 }
 
 span<const pusch_time_domain_resource_allocation>
-srsran::pusch_default_time_allocations_default_A_table(cyclic_prefix cp, subcarrier_spacing scs)
+ocudu::pusch_default_time_allocations_default_A_table(cyclic_prefix cp, subcarrier_spacing scs)
 {
   // TS38.214 Table 6.1.2.1.1-2. Default PUSCH time domain resource allocation A for normal CP.
   static constexpr std::array<std::array<pusch_time_domain_resource_allocation, 16>, 4> table_normal_cp = []() {
@@ -101,7 +101,7 @@ srsran::pusch_default_time_allocations_default_A_table(cyclic_prefix cp, subcarr
 }
 
 pusch_time_domain_resource_allocation
-srsran::pusch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned row_index, subcarrier_spacing scs)
+ocudu::pusch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned row_index, subcarrier_spacing scs)
 {
   span<const pusch_time_domain_resource_allocation> table = pusch_default_time_allocations_default_A_table(cp, scs);
   if (row_index >= table.size()) {
@@ -111,10 +111,10 @@ srsran::pusch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned r
 }
 
 span<const pusch_time_domain_resource_allocation>
-srsran::get_c_rnti_pusch_time_domain_list(bool                        is_common_ss,
-                                          coreset_id                  cs_id,
-                                          const bwp_uplink_common&    active_bwp_ul_common,
-                                          const bwp_uplink_dedicated* active_bwp_ul_ded)
+ocudu::get_c_rnti_pusch_time_domain_list(bool                        is_common_ss,
+                                         coreset_id                  cs_id,
+                                         const bwp_uplink_common&    active_bwp_ul_common,
+                                         const bwp_uplink_dedicated* active_bwp_ul_ded)
 {
   bool fallback     = is_common_ss and cs_id == to_coreset_id(0);
   active_bwp_ul_ded = fallback ? nullptr : active_bwp_ul_ded;
@@ -140,9 +140,9 @@ srsran::get_c_rnti_pusch_time_domain_list(bool                        is_common_
 }
 
 span<const pusch_time_domain_resource_allocation>
-srsran::get_c_rnti_pusch_time_domain_list(const search_space_configuration& ss_cfg,
-                                          const bwp_uplink_common&          active_bwp_ul_common,
-                                          const bwp_uplink_dedicated*       active_bwp_ul_ded)
+ocudu::get_c_rnti_pusch_time_domain_list(const search_space_configuration& ss_cfg,
+                                         const bwp_uplink_common&          active_bwp_ul_common,
+                                         const bwp_uplink_dedicated*       active_bwp_ul_ded)
 {
   return get_c_rnti_pusch_time_domain_list(
       ss_cfg.is_common_search_space(), ss_cfg.get_coreset_id(), active_bwp_ul_common, active_bwp_ul_ded);

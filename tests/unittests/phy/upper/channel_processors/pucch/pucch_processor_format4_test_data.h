@@ -14,10 +14,10 @@
 //   + "srsPUCCHProcessorFormat4Unittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct context_t {
   unsigned                               grid_nof_prb;
@@ -48,4 +48,4 @@ static const std::vector<test_case_t> pucch_processor_format4_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

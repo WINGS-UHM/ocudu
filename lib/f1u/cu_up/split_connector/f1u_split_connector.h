@@ -10,21 +10,21 @@
 
 #pragma once
 
-#include "srsran/f1u/cu_up/f1u_bearer_logger.h"
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/f1u/split_connector/f1u_five_qi_gw_maps.h"
-#include "srsran/f1u/split_connector/f1u_session_manager.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/gtpu/gtpu_gateway.h"
-#include "srsran/gtpu/gtpu_tunnel_nru_tx.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/ran/qos/five_qi.h"
+#include "ocudu/f1u/cu_up/f1u_bearer_logger.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/f1u/split_connector/f1u_five_qi_gw_maps.h"
+#include "ocudu/f1u/split_connector/f1u_session_manager.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/gtpu/gtpu_gateway.h"
+#include "ocudu/gtpu/gtpu_tunnel_nru_tx.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/ran/qos/five_qi.h"
 #include <cstdint>
 #include <mutex>
 #include <unordered_map>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class gtpu_tx_udp_gw_adapter;
 class gtpu_rx_f1u_adapter;
@@ -44,7 +44,7 @@ public:
                               f1u_cu_up_gateway_bearer_rx_notifier& cu_rx_,
                               gtpu_tnl_pdu_session&                 udp_session,
                               task_executor&                        ul_exec_,
-                              srs_cu_up::f1u_bearer_disconnector&   disconnector_);
+                              ocuup::f1u_bearer_disconnector&       disconnector_);
 
   ~f1u_split_gateway_cu_bearer() override;
 
@@ -84,8 +84,8 @@ public:
 
 private:
   bool                                                         stopped = false;
-  srs_cu_up::f1u_bearer_logger                                 logger;
-  srs_cu_up::f1u_bearer_disconnector&                          disconnector;
+  ocuup::f1u_bearer_logger                                     logger;
+  ocuup::f1u_bearer_disconnector&                              disconnector;
   up_transport_layer_info                                      ul_tnl_info;
   gtpu_tnl_pdu_session&                                        udp_session;
   std::unique_ptr<gtpu_tunnel_common_rx_upper_layer_interface> tunnel_rx;
@@ -126,7 +126,7 @@ public:
                                                              s_nssai_t                             s_nssai,
                                                              drb_id_t                              drb_id,
                                                              five_qi_t                             five_qi,
-                                                             const srs_cu_up::f1u_config&          config,
+                                                             const ocuup::f1u_config&              config,
                                                              const gtpu_teid_t&                    ul_teid,
                                                              f1u_cu_up_gateway_bearer_rx_notifier& rx_notifier,
                                                              task_executor&                        ul_exec) override;
@@ -137,7 +137,7 @@ public:
   void disconnect_cu_bearer(const up_transport_layer_info& ul_up_tnl_info) override;
 
 private:
-  srslog::basic_logger& logger_cu;
+  ocudulog::basic_logger& logger_cu;
   // Key is the UL UP TNL Info (CU-CP address and UL TEID reserved by CU-CP)
   std::unordered_map<gtpu_teid_t, f1u_split_gateway_cu_bearer*, gtpu_teid_hasher_t> cu_map;
   std::mutex map_mutex; // shared mutex for access to cu_map
@@ -151,4 +151,4 @@ private:
   dlt_pcap&                                                gtpu_pcap;
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

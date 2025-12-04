@@ -13,7 +13,7 @@
 #include "../cell/resource_grid.h"
 #include "../config/cell_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 class csi_rs_scheduler
 {
@@ -28,4 +28,4 @@ private:
   std::vector<csi_rs_info> cached_csi_rs;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/rate_limiting/token_bucket.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/rate_limiting/token_bucket.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static void tick_all(timer_manager& timers, manual_task_worker& worker, uint32_t nof_ticks)
 {

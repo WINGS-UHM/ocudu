@@ -13,15 +13,15 @@
 #include "../rrc_ue_context.h"
 #include "../rrc_ue_logger.h"
 #include "rrc_ue_event_manager.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
-#include "srsran/rrc/rrc_du.h"
-#include "srsran/rrc/rrc_ue.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/eager_async_task.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/rrc/rrc_du.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/eager_async_task.h"
 #include <chrono>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the setup of UE capabilities in the RRC UE.
 class rrc_ue_capability_transfer_procedure
@@ -82,5 +82,5 @@ inline void fill_asn1_rrc_ue_capability_enquiry(asn1::rrc_nr::ue_cap_enquiry_s& 
   ue_cap_ies.ue_cap_rat_request_list.push_back(ue_cap_rat_request);
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -9,19 +9,19 @@
  */
 
 #include "e2sm_rc_control_action_cu_executor.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/nr_cgi.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/nr_cgi.h"
 #include <future>
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
 e2sm_rc_control_action_cu_executor_base::e2sm_rc_control_action_cu_executor_base(cu_configurator& cu_configurator_,
                                                                                  uint32_t         action_id_) :
-  logger(srslog::fetch_basic_logger("E2SM-RC")), action_id(action_id_), cu_param_configurator(cu_configurator_)
+  logger(ocudulog::fetch_basic_logger("E2SM-RC")), action_id(action_id_), cu_param_configurator(cu_configurator_)
 {
 }
 
@@ -99,23 +99,23 @@ e2sm_rc_control_action_3_1_cu_executor::execute_ric_control_action(const e2sm_ri
   }
 
   // Translate UE-IDs.
-  srs_cu_cp::amf_ue_id_t amf_ue_id = srs_cu_cp::uint_to_amf_ue_id(gnb_ue_id.amf_ue_ngap_id);
-  srs_cu_cp::guami_t     guami;
+  ocucp::amf_ue_id_t amf_ue_id = ocucp::uint_to_amf_ue_id(gnb_ue_id.amf_ue_ngap_id);
+  ocucp::guami_t     guami;
   guami.plmn.from_bytes(gnb_ue_id.guami.plmn_id.to_bytes());
-  guami.amf_set_id                             = static_cast<uint16_t>(gnb_ue_id.guami.amf_set_id.to_number());
-  guami.amf_pointer                            = static_cast<uint8_t>(gnb_ue_id.guami.amf_pointer.to_number());
-  guami.amf_region_id                          = static_cast<uint8_t>(gnb_ue_id.guami.amf_region_id.to_number());
-  uint64_t              gnb_cu_ue_f1ap_id_uint = gnb_ue_id.gnb_cu_ue_f1ap_id_list[0].gnb_cu_ue_f1ap_id;
-  gnb_cu_ue_f1ap_id_t   gnb_cu_ue_f1ap_id      = int_to_gnb_cu_ue_f1ap_id(gnb_cu_ue_f1ap_id_uint);
-  srs_cu_cp::ue_index_t ue_index = cu_param_configurator.get_ue_index(amf_ue_id, guami, gnb_cu_ue_f1ap_id);
+  guami.amf_set_id                           = static_cast<uint16_t>(gnb_ue_id.guami.amf_set_id.to_number());
+  guami.amf_pointer                          = static_cast<uint8_t>(gnb_ue_id.guami.amf_pointer.to_number());
+  guami.amf_region_id                        = static_cast<uint8_t>(gnb_ue_id.guami.amf_region_id.to_number());
+  uint64_t            gnb_cu_ue_f1ap_id_uint = gnb_ue_id.gnb_cu_ue_f1ap_id_list[0].gnb_cu_ue_f1ap_id;
+  gnb_cu_ue_f1ap_id_t gnb_cu_ue_f1ap_id      = int_to_gnb_cu_ue_f1ap_id(gnb_cu_ue_f1ap_id_uint);
+  ocucp::ue_index_t   ue_index               = cu_param_configurator.get_ue_index(amf_ue_id, guami, gnb_cu_ue_f1ap_id);
 
-  if (ue_index == srs_cu_cp::ue_index_t::invalid) {
+  if (ue_index == ocucp::ue_index_t::invalid) {
     logger.error("Ignoring Handover Request. Cause: Couldn't find UE index for given UE-IDs.");
     return return_ctrl_failure(req);
   }
 
   auto source_du_index = cu_param_configurator.get_du_index(ue_index);
-  if (source_du_index == srs_cu_cp::du_index_t::invalid) {
+  if (source_du_index == ocucp::du_index_t::invalid) {
     logger.error("Ignoring Handover Request. Cause: Couldn't find DU index for given UE-IDs.");
     return return_ctrl_failure(req);
   }
@@ -132,19 +132,19 @@ e2sm_rc_control_action_3_1_cu_executor::execute_ric_control_action(const e2sm_ri
     if (action_params.find(ran_p.ran_param_id) != action_params.end()) {
       parse_ran_parameter_value(ran_p.ran_param_value_type,
                                 ran_p.ran_param_id,
-                                srs_cu_cp::ue_index_to_uint(ue_index),
+                                ocucp::ue_index_to_uint(ue_index),
                                 ho_ctrl_cfg,
                                 parse_action_ran_parameter_value_lambda);
     }
   }
 
-  srs_cu_cp::cu_cp_intra_cu_handover_request handover_req;
+  ocucp::cu_cp_intra_cu_handover_request handover_req;
   handover_req.source_ue_index = ue_index;
   handover_req.target_du_index = cu_param_configurator.get_du_index(ho_ctrl_cfg.target_cell_id);
   handover_req.cgi             = ho_ctrl_cfg.target_cell_id;
   handover_req.target_pci      = cu_param_configurator.get_pci(ho_ctrl_cfg.target_cell_id);
 
-  if (handover_req.target_du_index == srs_cu_cp::du_index_t::invalid) {
+  if (handover_req.target_du_index == ocucp::du_index_t::invalid) {
     logger.error("Ignoring Handover Request. Cause: Couldn't find DU index for CGI=[plmn: {}, nci: {}]",
                  ho_ctrl_cfg.target_cell_id.plmn_id.to_string(),
                  ho_ctrl_cfg.target_cell_id.nci.value());
@@ -170,7 +170,7 @@ e2sm_rc_control_action_3_1_cu_executor::execute_ric_control_action(const e2sm_ri
   }
   return launch_async([this, source_du_index, handover_req = std::move(handover_req)](
                           coro_context<async_task<e2sm_ric_control_response>>& ctx) {
-    srs_cu_cp::cu_cp_intra_cu_handover_response cu_cp_response;
+    ocucp::cu_cp_intra_cu_handover_response cu_cp_response;
     CORO_BEGIN(ctx);
     CORO_AWAIT_VALUE(cu_cp_response, cu_param_configurator.trigger_handover(source_du_index, handover_req));
 
@@ -201,7 +201,7 @@ void e2sm_rc_control_action_3_1_cu_executor::parse_action_ran_parameter_value(
       std::copy(value_oct.begin(), value_oct.end(), cgi_bytes.begin());
       byte_buffer    cgi_buf = byte_buffer::create(cgi_bytes.begin(), cgi_bytes.end()).value();
       asn1::cbit_ref bref(cgi_buf);
-      if (nr_cgi_asn.unpack(bref) != asn1::SRSASN_SUCCESS) {
+      if (nr_cgi_asn.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
         logger.error("Failed to unpack NR CGI");
         return;
       }

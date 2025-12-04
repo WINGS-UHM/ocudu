@@ -9,13 +9,13 @@
  */
 
 #include "ofdm_prach_demodulator_impl.h"
-#include "srsran/phy/constants.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                                buffer,
                                              span<const cf_t>                             input,
@@ -39,29 +39,28 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
     unsigned prach_window_length =
         get_prach_window_duration(config.format, pusch_scs, config.start_symbol, config.nof_td_occasions)
             .to_samples(srate.to_Hz());
-    srsran_assert(
-        input.size() >= prach_window_length,
-        "The number of input samples (i.e., {}) must be equal to or greater than the PRACH window (i.e., {}).",
-        input.size(),
-        prach_window_length);
-    srsran_assert(config.nof_td_occasions > 0, "The number of time-domain occasions must be greater than 0.");
+    ocudu_assert(input.size() >= prach_window_length,
+                 "The number of input samples (i.e., {}) must be equal to or greater than the PRACH window (i.e., {}).",
+                 input.size(),
+                 prach_window_length);
+    ocudu_assert(config.nof_td_occasions > 0, "The number of time-domain occasions must be greater than 0.");
   } else {
-    srsran_assert(config.nof_td_occasions == 1, "Long preambles only support one occasion.");
+    ocudu_assert(config.nof_td_occasions == 1, "Long preambles only support one occasion.");
   }
-  srsran_assert(config.nof_td_occasions <= buffer.get_max_nof_td_occasions(),
-                "The number of time-domain occasions (i.e., {}) exceeds the buffer maximum number of "
-                "time-domain occasions (i.e., {}).",
-                config.nof_td_occasions,
-                buffer.get_max_nof_td_occasions());
-  srsran_assert(config.nof_fd_occasions <= buffer.get_max_nof_fd_occasions(),
-                "The number of frequency-domain occasions (i.e., {}) exceeds the buffer maximum number of "
-                "frequency-domain occasions (i.e., {}).",
-                config.nof_fd_occasions,
-                buffer.get_max_nof_fd_occasions());
-  srsran_assert(config.port < buffer.get_max_nof_ports(),
-                "The port identifier (i.e., {}) exceeds the maximum number of PRACH buffer ports (i.e., {}).",
-                config.port,
-                buffer.get_max_nof_ports());
+  ocudu_assert(config.nof_td_occasions <= buffer.get_max_nof_td_occasions(),
+               "The number of time-domain occasions (i.e., {}) exceeds the buffer maximum number of "
+               "time-domain occasions (i.e., {}).",
+               config.nof_td_occasions,
+               buffer.get_max_nof_td_occasions());
+  ocudu_assert(config.nof_fd_occasions <= buffer.get_max_nof_fd_occasions(),
+               "The number of frequency-domain occasions (i.e., {}) exceeds the buffer maximum number of "
+               "frequency-domain occasions (i.e., {}).",
+               config.nof_fd_occasions,
+               buffer.get_max_nof_fd_occasions());
+  ocudu_assert(config.port < buffer.get_max_nof_ports(),
+               "The port identifier (i.e., {}) exceeds the maximum number of PRACH buffer ports (i.e., {}).",
+               config.port,
+               buffer.get_max_nof_ports());
 
   for (unsigned i_td_occasion = 0; i_td_occasion != config.nof_td_occasions; ++i_td_occasion) {
     bool is_last_occasion = (i_td_occasion == (config.nof_td_occasions - 1));
@@ -127,10 +126,10 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
 
     // Get frequency mapping information, common for all frequency-domain occasions.
     prach_frequency_mapping_information freq_mapping_info = prach_frequency_mapping_get(preamble_info.scs, pusch_scs);
-    srsran_assert(freq_mapping_info.nof_rb_ra != PRACH_FREQUENCY_MAPPING_INFORMATION_RESERVED.nof_rb_ra,
-                  "The PRACH and PUSCH subcarrier spacing combination resulted in a reserved configuration.");
-    srsran_assert(freq_mapping_info.k_bar != PRACH_FREQUENCY_MAPPING_INFORMATION_RESERVED.k_bar,
-                  "The PRACH and PUSCH subcarrier spacing combination resulted in a reserved configuration.");
+    ocudu_assert(freq_mapping_info.nof_rb_ra != PRACH_FREQUENCY_MAPPING_INFORMATION_RESERVED.nof_rb_ra,
+                 "The PRACH and PUSCH subcarrier spacing combination resulted in a reserved configuration.");
+    ocudu_assert(freq_mapping_info.k_bar != PRACH_FREQUENCY_MAPPING_INFORMATION_RESERVED.k_bar,
+                 "The PRACH and PUSCH subcarrier spacing combination resulted in a reserved configuration.");
 
     dft_processor& dft                  = *dft_processors[preamble_info.scs];
     unsigned       prach_scs_Hz         = ra_scs_to_Hz(preamble_info.scs);
@@ -143,16 +142,16 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
     float dft_scaling = 1.0F / std::sqrt(ofdm_symbol_len);
 
     // Make sure the number of occasions and symbols fit in the buffer.
-    srsran_assert(nof_symbols <= buffer.get_max_nof_symbols(),
-                  "The number of symbols (i.e., {}) must be less than or equal to the maximum number of symbols of the "
-                  "buffer (i.e., {}).",
-                  nof_symbols,
-                  buffer.get_max_nof_symbols());
+    ocudu_assert(nof_symbols <= buffer.get_max_nof_symbols(),
+                 "The number of symbols (i.e., {}) must be less than or equal to the maximum number of symbols of the "
+                 "buffer (i.e., {}).",
+                 nof_symbols,
+                 buffer.get_max_nof_symbols());
 
     // Prepare PRACH resource grid.
     unsigned K               = pusch_scs_Hz / prach_scs_Hz;
     unsigned prach_grid_size = config.nof_prb_ul_grid * K * NRE;
-    srsran_assert(
+    ocudu_assert(
         dft.get_size() > prach_grid_size,
         "DFT size {} for PRACH SCS {} is not sufficient for K={}, N_RB={}. The minimum expected DFT size is {}.",
         dft.get_size(),
@@ -164,8 +163,8 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
     // Process each PRACH symbol.
     for (unsigned i_symbol = 0; i_symbol != nof_symbols; ++i_symbol) {
       // Load symbol time-domain in the DFT.
-      srsvec::copy(dft.get_input(),
-                   input_occasion.subspan(cyclic_prefix_length + ofdm_symbol_len * i_symbol, ofdm_symbol_len));
+      ocuduvec::copy(dft.get_input(),
+                     input_occasion.subspan(cyclic_prefix_length + ofdm_symbol_len * i_symbol, ofdm_symbol_len));
 
       // Perform DFT.
       span<const cf_t> dft_output = dft.run();
@@ -175,11 +174,11 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
         // Calculate initial subcarrier.
         unsigned k_start =
             K * NRE * (config.rb_offset + freq_mapping_info.nof_rb_ra * i_fd_occasion) + freq_mapping_info.k_bar;
-        srsran_assert(k_start + preamble_info.sequence_length < prach_grid_size,
-                      "Start subcarrier {} plus sequence length {} exceeds PRACH grid size {}.",
-                      k_start,
-                      preamble_info.sequence_length,
-                      prach_grid_size);
+        ocudu_assert(k_start + preamble_info.sequence_length < prach_grid_size,
+                     "Start subcarrier {} plus sequence length {} exceeds PRACH grid size {}.",
+                     k_start,
+                     preamble_info.sequence_length,
+                     prach_grid_size);
 
         // Select destination PRACH symbol in the buffer.
         span<cbf16_t> prach_symbol = buffer.get_symbol(config.port, i_td_occasion, i_fd_occasion, i_symbol);
@@ -194,16 +193,16 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
           unsigned N = std::min(prach_grid_size / 2 - k_start, preamble_info.sequence_length);
 
           // Copy first N subcarriers of the sequence in the lower half grid.
-          srsvec::sc_prod(prach_symbol.first(N), lower_grid.subspan(k_start, N), dft_scaling);
+          ocuduvec::sc_prod(prach_symbol.first(N), lower_grid.subspan(k_start, N), dft_scaling);
 
           // Copy the remainder of the sequence in the upper half grid.
-          srsvec::sc_prod(prach_symbol.last(preamble_info.sequence_length - N),
-                          upper_grid.first(preamble_info.sequence_length - N),
-                          dft_scaling);
+          ocuduvec::sc_prod(prach_symbol.last(preamble_info.sequence_length - N),
+                            upper_grid.first(preamble_info.sequence_length - N),
+                            dft_scaling);
         } else {
-          srsvec::sc_prod(prach_symbol,
-                          upper_grid.subspan(k_start - prach_grid_size / 2, preamble_info.sequence_length),
-                          dft_scaling);
+          ocuduvec::sc_prod(prach_symbol,
+                            upper_grid.subspan(k_start - prach_grid_size / 2, preamble_info.sequence_length),
+                            dft_scaling);
         }
       }
     }

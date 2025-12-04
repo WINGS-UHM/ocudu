@@ -9,14 +9,14 @@
  */
 
 #include "rrc_measurement_types_asn1_converters.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/error_handling.h"
 #include <type_traits>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-rrc_ssb_mtc srsran::srs_cu_cp::asn1_to_ssb_mtc(const asn1::rrc_nr::ssb_mtc_s& asn1_ssb_mtc)
+rrc_ssb_mtc ocudu::ocucp::asn1_to_ssb_mtc(const asn1::rrc_nr::ssb_mtc_s& asn1_ssb_mtc)
 {
   rrc_ssb_mtc ssb_mtc;
 
@@ -47,7 +47,7 @@ rrc_ssb_mtc srsran::srs_cu_cp::asn1_to_ssb_mtc(const asn1::rrc_nr::ssb_mtc_s& as
       ssb_mtc.periodicity_and_offset.offset      = asn1_ssb_mtc.periodicity_and_offset.sf160();
       break;
     default:
-      srslog::fetch_basic_logger("RRC").error("Invalid SSB MTC configuration.");
+      ocudulog::fetch_basic_logger("RRC").error("Invalid SSB MTC configuration.");
   }
 
   // dur
@@ -57,34 +57,34 @@ rrc_ssb_mtc srsran::srs_cu_cp::asn1_to_ssb_mtc(const asn1::rrc_nr::ssb_mtc_s& as
 }
 
 subcarrier_spacing
-srsran::srs_cu_cp::rrc_asn1_to_subcarrier_spacing(const asn1::rrc_nr::subcarrier_spacing_e asn1_sc_spacing)
+ocudu::ocucp::rrc_asn1_to_subcarrier_spacing(const asn1::rrc_nr::subcarrier_spacing_e asn1_sc_spacing)
 {
   subcarrier_spacing sc_spacing;
 
   switch (asn1_sc_spacing) {
     case asn1::rrc_nr::subcarrier_spacing_opts::options::khz15:
-      sc_spacing = srsran::subcarrier_spacing::kHz15;
+      sc_spacing = ocudu::subcarrier_spacing::kHz15;
       break;
     case asn1::rrc_nr::subcarrier_spacing_opts::options::khz30:
-      sc_spacing = srsran::subcarrier_spacing::kHz30;
+      sc_spacing = ocudu::subcarrier_spacing::kHz30;
       break;
     case asn1::rrc_nr::subcarrier_spacing_opts::options::khz60:
-      sc_spacing = srsran::subcarrier_spacing::kHz60;
+      sc_spacing = ocudu::subcarrier_spacing::kHz60;
       break;
     case asn1::rrc_nr::subcarrier_spacing_opts::options::khz120:
-      sc_spacing = srsran::subcarrier_spacing::kHz120;
+      sc_spacing = ocudu::subcarrier_spacing::kHz120;
       break;
     case asn1::rrc_nr::subcarrier_spacing_opts::options::khz240:
-      sc_spacing = srsran::subcarrier_spacing::kHz240;
+      sc_spacing = ocudu::subcarrier_spacing::kHz240;
       break;
     default:
-      sc_spacing = srsran::subcarrier_spacing::invalid;
+      sc_spacing = ocudu::subcarrier_spacing::invalid;
   }
 
   return sc_spacing;
 }
 
-rrc_meas_timing srsran::srs_cu_cp::asn1_to_meas_timing(const asn1::rrc_nr::meas_timing_s& asn1_meas_timing)
+rrc_meas_timing ocudu::ocucp::asn1_to_meas_timing(const asn1::rrc_nr::meas_timing_s& asn1_meas_timing)
 {
   rrc_meas_timing meas_timing;
 
@@ -120,24 +120,24 @@ rrc_meas_timing srsran::srs_cu_cp::asn1_to_meas_timing(const asn1::rrc_nr::meas_
   return meas_timing;
 }
 
-asn1::rrc_nr::subcarrier_spacing_e srsran::srs_cu_cp::subcarrier_spacing_to_rrc_asn1(subcarrier_spacing sc_spacing)
+asn1::rrc_nr::subcarrier_spacing_e ocudu::ocucp::subcarrier_spacing_to_rrc_asn1(subcarrier_spacing sc_spacing)
 {
   asn1::rrc_nr::subcarrier_spacing_e asn1_sc_spacing;
 
   switch (sc_spacing) {
-    case srsran::subcarrier_spacing::kHz15:
+    case ocudu::subcarrier_spacing::kHz15:
       asn1_sc_spacing = asn1::rrc_nr::subcarrier_spacing_opts::options::khz15;
       break;
-    case srsran::subcarrier_spacing::kHz30:
+    case ocudu::subcarrier_spacing::kHz30:
       asn1_sc_spacing = asn1::rrc_nr::subcarrier_spacing_opts::options::khz30;
       break;
-    case srsran::subcarrier_spacing::kHz60:
+    case ocudu::subcarrier_spacing::kHz60:
       asn1_sc_spacing = asn1::rrc_nr::subcarrier_spacing_opts::options::khz60;
       break;
-    case srsran::subcarrier_spacing::kHz120:
+    case ocudu::subcarrier_spacing::kHz120:
       asn1_sc_spacing = asn1::rrc_nr::subcarrier_spacing_opts::options::khz120;
       break;
-    case srsran::subcarrier_spacing::kHz240:
+    case ocudu::subcarrier_spacing::kHz240:
       asn1_sc_spacing = asn1::rrc_nr::subcarrier_spacing_opts::options::khz240;
       break;
     default:
@@ -147,7 +147,7 @@ asn1::rrc_nr::subcarrier_spacing_e srsran::srs_cu_cp::subcarrier_spacing_to_rrc_
   return asn1_sc_spacing;
 }
 
-asn1::rrc_nr::ssb_mtc_s srsran::srs_cu_cp::ssb_mtc_to_rrc_asn1(rrc_ssb_mtc ssb_mtc)
+asn1::rrc_nr::ssb_mtc_s ocudu::ocucp::ssb_mtc_to_rrc_asn1(rrc_ssb_mtc ssb_mtc)
 {
   asn1::rrc_nr::ssb_mtc_s asn1_ssb_mtc;
 
@@ -179,7 +179,7 @@ asn1::rrc_nr::ssb_mtc_s srsran::srs_cu_cp::ssb_mtc_to_rrc_asn1(rrc_ssb_mtc ssb_m
   return asn1_ssb_mtc;
 }
 
-asn1::rrc_nr::ssb_cfg_mob_s srsran::srs_cu_cp::ssb_cfg_mob_to_rrc_asn1(const rrc_ssb_cfg_mob& ssb_cfg_mob)
+asn1::rrc_nr::ssb_cfg_mob_s ocudu::ocucp::ssb_cfg_mob_to_rrc_asn1(const rrc_ssb_cfg_mob& ssb_cfg_mob)
 {
   asn1::rrc_nr::ssb_cfg_mob_s asn1_ssb_cfg_mob;
 
@@ -228,7 +228,7 @@ asn1::rrc_nr::ssb_cfg_mob_s srsran::srs_cu_cp::ssb_cfg_mob_to_rrc_asn1(const rrc
 }
 
 asn1::setup_release_c<asn1::rrc_nr::csi_rs_res_cfg_mob_s>
-srsran::srs_cu_cp::csi_res_cfg_mob_to_rrc_asn1(const rrc_csi_rs_res_cfg_mob_setup_release& csi_rs_res_cfg_mob)
+ocudu::ocucp::csi_res_cfg_mob_to_rrc_asn1(const rrc_csi_rs_res_cfg_mob_setup_release& csi_rs_res_cfg_mob)
 {
   asn1::setup_release_c<asn1::rrc_nr::csi_rs_res_cfg_mob_s> asn1_csi_rs_res_cfg_mob;
 
@@ -311,7 +311,7 @@ srsran::srs_cu_cp::csi_res_cfg_mob_to_rrc_asn1(const rrc_csi_rs_res_cfg_mob_setu
   return asn1_csi_rs_res_cfg_mob;
 }
 
-asn1::rrc_nr::thres_nr_s srsran::srs_cu_cp::thres_nr_to_rrc_asn1(const rrc_thres_nr& thres_nr)
+asn1::rrc_nr::thres_nr_s ocudu::ocucp::thres_nr_to_rrc_asn1(const rrc_thres_nr& thres_nr)
 {
   asn1::rrc_nr::thres_nr_s asn1_thres_nr;
 
@@ -337,7 +337,7 @@ asn1::rrc_nr::thres_nr_s srsran::srs_cu_cp::thres_nr_to_rrc_asn1(const rrc_thres
 }
 
 asn1::rrc_nr::q_offset_range_list_s
-srsran::srs_cu_cp::q_offset_range_list_to_rrc_asn1(const rrc_q_offset_range_list& q_offset_range_list)
+ocudu::ocucp::q_offset_range_list_to_rrc_asn1(const rrc_q_offset_range_list& q_offset_range_list)
 {
   asn1::rrc_nr::q_offset_range_list_s asn1_q_offset_range_list;
 
@@ -375,7 +375,7 @@ srsran::srs_cu_cp::q_offset_range_list_to_rrc_asn1(const rrc_q_offset_range_list
   return asn1_q_offset_range_list;
 }
 
-asn1::rrc_nr::meas_obj_nr_s srsran::srs_cu_cp::meas_obj_nr_to_rrc_asn1(const rrc_meas_obj_nr& meas_obj_nr)
+asn1::rrc_nr::meas_obj_nr_s ocudu::ocucp::meas_obj_nr_to_rrc_asn1(const rrc_meas_obj_nr& meas_obj_nr)
 {
   asn1::rrc_nr::meas_obj_nr_s asn1_meas_obj_nr;
 
@@ -461,10 +461,10 @@ asn1::rrc_nr::meas_obj_nr_s srsran::srs_cu_cp::meas_obj_nr_to_rrc_asn1(const rrc
   asn1_meas_obj_nr.offset_mo = q_offset_range_list_to_rrc_asn1(meas_obj_nr.offset_mo);
 
   // cells to rem list
-  srsran_assert(meas_obj_nr.cells_to_rem_list.size() <= 32,
-                "Too many cells to remove ({}>{}).",
-                meas_obj_nr.cells_to_rem_list.size(),
-                32);
+  ocudu_assert(meas_obj_nr.cells_to_rem_list.size() <= 32,
+               "Too many cells to remove ({}>{}).",
+               meas_obj_nr.cells_to_rem_list.size(),
+               32);
   for (const auto& cell_to_rem : meas_obj_nr.cells_to_rem_list) {
     asn1_meas_obj_nr.cells_to_rem_list.push_back(cell_to_rem);
   }
@@ -481,10 +481,10 @@ asn1::rrc_nr::meas_obj_nr_s srsran::srs_cu_cp::meas_obj_nr_to_rrc_asn1(const rrc
   }
 
   // excluded cells to rem list
-  srsran_assert(meas_obj_nr.excluded_cells_to_rem_list.size() <= 8,
-                "Too many excluded cells to remove ({}>{}).",
-                meas_obj_nr.excluded_cells_to_rem_list.size(),
-                8);
+  ocudu_assert(meas_obj_nr.excluded_cells_to_rem_list.size() <= 8,
+               "Too many excluded cells to remove ({}>{}).",
+               meas_obj_nr.excluded_cells_to_rem_list.size(),
+               8);
   for (const auto& excluded_cell : meas_obj_nr.excluded_cells_to_rem_list) {
     asn1_meas_obj_nr.excluded_cells_to_rem_list.push_back(excluded_cell);
   }
@@ -503,10 +503,10 @@ asn1::rrc_nr::meas_obj_nr_s srsran::srs_cu_cp::meas_obj_nr_to_rrc_asn1(const rrc
   }
 
   // allowed cells to rem list
-  srsran_assert(meas_obj_nr.allowed_cells_to_rem_list.size() <= 8,
-                "Too many allowed cells to remove ({}>{}).",
-                meas_obj_nr.allowed_cells_to_rem_list.size(),
-                8);
+  ocudu_assert(meas_obj_nr.allowed_cells_to_rem_list.size() <= 8,
+               "Too many allowed cells to remove ({}>{}).",
+               meas_obj_nr.allowed_cells_to_rem_list.size(),
+               8);
   for (const auto& allowed_cell : meas_obj_nr.allowed_cells_to_rem_list) {
     asn1_meas_obj_nr.allowed_cells_to_rem_list.push_back(allowed_cell);
   }
@@ -542,9 +542,8 @@ asn1::rrc_nr::meas_obj_nr_s srsran::srs_cu_cp::meas_obj_nr_to_rrc_asn1(const rrc
 }
 
 template <class asn1_srs_periodicity_and_offset>
-void srsran::srs_cu_cp::srs_periodicity_and_offset_to_rrc_asn1(
-    asn1_srs_periodicity_and_offset&      asn1_srs_period_and_offset,
-    const rrc_srs_periodicity_and_offset& srs_period_and_offset)
+void ocudu::ocucp::srs_periodicity_and_offset_to_rrc_asn1(asn1_srs_periodicity_and_offset& asn1_srs_period_and_offset,
+                                                          const rrc_srs_periodicity_and_offset& srs_period_and_offset)
 {
   if (srs_period_and_offset.period == rrc_srs_periodicity_and_offset::period_t::ms1) {
     asn1_srs_period_and_offset.set_sl1();
@@ -599,7 +598,7 @@ void srsran::srs_cu_cp::srs_periodicity_and_offset_to_rrc_asn1(
   }
 }
 
-asn1::rrc_nr::srs_res_s srsran::srs_cu_cp::srs_res_to_rrc_asn1(const rrc_srs_res& srs_res)
+asn1::rrc_nr::srs_res_s ocudu::ocucp::srs_res_to_rrc_asn1(const rrc_srs_res& srs_res)
 {
   asn1::rrc_nr::srs_res_s asn1_srs_res;
 
@@ -696,7 +695,7 @@ asn1::rrc_nr::srs_res_s srsran::srs_cu_cp::srs_res_to_rrc_asn1(const rrc_srs_res
 }
 
 asn1::rrc_nr::meas_obj_to_add_mod_s
-srsran::srs_cu_cp::meas_obj_to_add_mod_to_rrc_asn1(const rrc_meas_obj_to_add_mod& meas_obj_to_add_mod)
+ocudu::ocucp::meas_obj_to_add_mod_to_rrc_asn1(const rrc_meas_obj_to_add_mod& meas_obj_to_add_mod)
 {
   asn1::rrc_nr::meas_obj_to_add_mod_s asn1_meas_obj_to_add_mod;
 
@@ -714,7 +713,7 @@ srsran::srs_cu_cp::meas_obj_to_add_mod_to_rrc_asn1(const rrc_meas_obj_to_add_mod
 }
 
 asn1::rrc_nr::meas_report_quant_s
-srsran::srs_cu_cp::meas_report_quant_to_rrc_asn1(const rrc_meas_report_quant& meas_report_quant)
+ocudu::ocucp::meas_report_quant_to_rrc_asn1(const rrc_meas_report_quant& meas_report_quant)
 {
   asn1::rrc_nr::meas_report_quant_s asn1_meas_report_quant;
 
@@ -725,7 +724,7 @@ srsran::srs_cu_cp::meas_report_quant_to_rrc_asn1(const rrc_meas_report_quant& me
   return asn1_meas_report_quant;
 }
 
-asn1::rrc_nr::nr_rs_type_e srsran::srs_cu_cp::rrc_nr_rs_type_to_asn1(const rrc_nr_rs_type& rs_type)
+asn1::rrc_nr::nr_rs_type_e ocudu::ocucp::rrc_nr_rs_type_to_asn1(const rrc_nr_rs_type& rs_type)
 {
   asn1::rrc_nr::nr_rs_type_e asn1_rs_type;
 
@@ -741,7 +740,7 @@ asn1::rrc_nr::nr_rs_type_e srsran::srs_cu_cp::rrc_nr_rs_type_to_asn1(const rrc_n
   return asn1_rs_type;
 }
 
-asn1::rrc_nr::report_interv_e srsran::srs_cu_cp::report_interval_to_asn1(uint32_t report_interval)
+asn1::rrc_nr::report_interv_e ocudu::ocucp::report_interval_to_asn1(uint32_t report_interval)
 {
   asn1::rrc_nr::report_interv_e asn1_report_interval;
 
@@ -749,7 +748,7 @@ asn1::rrc_nr::report_interv_e srsran::srs_cu_cp::report_interval_to_asn1(uint32_
 }
 
 asn1::rrc_nr::periodical_report_cfg_s
-srsran::srs_cu_cp::periodical_report_cfg_to_rrc_asn1(const rrc_periodical_report_cfg& periodical_report_cfg)
+ocudu::ocucp::periodical_report_cfg_to_rrc_asn1(const rrc_periodical_report_cfg& periodical_report_cfg)
 {
   asn1::rrc_nr::periodical_report_cfg_s asn1_periodical_report_cfg;
 
@@ -788,9 +787,8 @@ srsran::srs_cu_cp::periodical_report_cfg_to_rrc_asn1(const rrc_periodical_report
 }
 
 template <class asn1_meas_trigger_quant_quant_offset>
-void srsran::srs_cu_cp::meas_trigger_quant_to_rrc_asn1(
-    asn1_meas_trigger_quant_quant_offset& asn1_meas_trigger_quant_offset,
-    const rrc_meas_trigger_quant&         meas_trigger_quant)
+void ocudu::ocucp::meas_trigger_quant_to_rrc_asn1(asn1_meas_trigger_quant_quant_offset& asn1_meas_trigger_quant_offset,
+                                                  const rrc_meas_trigger_quant&         meas_trigger_quant)
 {
   if (meas_trigger_quant.rsrp.has_value()) {
     asn1_meas_trigger_quant_offset.set_rsrp() = meas_trigger_quant.rsrp.value();
@@ -805,7 +803,7 @@ void srsran::srs_cu_cp::meas_trigger_quant_to_rrc_asn1(
 }
 
 asn1::rrc_nr::event_trigger_cfg_s
-srsran::srs_cu_cp::event_triggered_report_cfg_to_rrc_asn1(const rrc_event_trigger_cfg& event_trigger_cfg)
+ocudu::ocucp::event_triggered_report_cfg_to_rrc_asn1(const rrc_event_trigger_cfg& event_trigger_cfg)
 {
   asn1::rrc_nr::event_trigger_cfg_s asn1_event_trigger_cfg = {};
 
@@ -928,7 +926,7 @@ srsran::srs_cu_cp::event_triggered_report_cfg_to_rrc_asn1(const rrc_event_trigge
   return asn1_event_trigger_cfg;
 }
 
-asn1::rrc_nr::report_cfg_nr_s srsran::srs_cu_cp::report_cfg_nr_to_rrc_asn1(const rrc_report_cfg_nr& report_cfg_nr)
+asn1::rrc_nr::report_cfg_nr_s ocudu::ocucp::report_cfg_nr_to_rrc_asn1(const rrc_report_cfg_nr& report_cfg_nr)
 {
   asn1::rrc_nr::report_cfg_nr_s asn1_report_cfg_nr;
 
@@ -959,7 +957,7 @@ asn1::rrc_nr::report_cfg_nr_s srsran::srs_cu_cp::report_cfg_nr_to_rrc_asn1(const
 }
 
 asn1::rrc_nr::report_cfg_to_add_mod_s
-srsran::srs_cu_cp::report_cfg_to_add_mod_to_rrc_asn1(const rrc_report_cfg_to_add_mod& report_cfg_to_add_mod)
+ocudu::ocucp::report_cfg_to_add_mod_to_rrc_asn1(const rrc_report_cfg_to_add_mod& report_cfg_to_add_mod)
 {
   asn1::rrc_nr::report_cfg_to_add_mod_s asn1_report_cfg_to_add_mod;
 
@@ -974,7 +972,7 @@ srsran::srs_cu_cp::report_cfg_to_add_mod_to_rrc_asn1(const rrc_report_cfg_to_add
 }
 
 asn1::rrc_nr::meas_id_to_add_mod_s
-srsran::srs_cu_cp::meas_id_to_add_mod_to_rrc_asn1(const rrc_meas_id_to_add_mod& meas_id_to_add_mod)
+ocudu::ocucp::meas_id_to_add_mod_to_rrc_asn1(const rrc_meas_id_to_add_mod& meas_id_to_add_mod)
 {
   asn1::rrc_nr::meas_id_to_add_mod_s asn1_meas_id_to_add_mod;
 
@@ -988,7 +986,7 @@ srsran::srs_cu_cp::meas_id_to_add_mod_to_rrc_asn1(const rrc_meas_id_to_add_mod& 
   return asn1_meas_id_to_add_mod;
 }
 
-asn1::rrc_nr::filt_cfg_s srsran::srs_cu_cp::filt_cfg_to_rrc_asn1(const rrc_filt_cfg& filt_cfg)
+asn1::rrc_nr::filt_cfg_s ocudu::ocucp::filt_cfg_to_rrc_asn1(const rrc_filt_cfg& filt_cfg)
 {
   asn1::rrc_nr::filt_cfg_s asn1_filt_cfg;
 
@@ -1013,7 +1011,7 @@ asn1::rrc_nr::filt_cfg_s srsran::srs_cu_cp::filt_cfg_to_rrc_asn1(const rrc_filt_
   return asn1_filt_cfg;
 }
 
-asn1::rrc_nr::quant_cfg_rs_s srsran::srs_cu_cp::quant_cfg_rs_to_rrc_asn1(const rrc_quant_cfg_rs& quant_cfg_rs)
+asn1::rrc_nr::quant_cfg_rs_s ocudu::ocucp::quant_cfg_rs_to_rrc_asn1(const rrc_quant_cfg_rs& quant_cfg_rs)
 {
   asn1::rrc_nr::quant_cfg_rs_s asn1_quant_cfg_rs;
 
@@ -1025,7 +1023,7 @@ asn1::rrc_nr::quant_cfg_rs_s srsran::srs_cu_cp::quant_cfg_rs_to_rrc_asn1(const r
   return asn1_quant_cfg_rs;
 }
 
-asn1::rrc_nr::meas_cfg_s srsran::srs_cu_cp::meas_config_to_rrc_asn1(const rrc_meas_cfg& meas_cfg)
+asn1::rrc_nr::meas_cfg_s ocudu::ocucp::meas_config_to_rrc_asn1(const rrc_meas_cfg& meas_cfg)
 {
   asn1::rrc_nr::meas_cfg_s asn1_meas_cfg;
 
@@ -1098,7 +1096,7 @@ asn1::rrc_nr::meas_cfg_s srsran::srs_cu_cp::meas_config_to_rrc_asn1(const rrc_me
 }
 
 rrc_meas_quant_results
-srsran::srs_cu_cp::asn1_to_meas_quant_results(const asn1::rrc_nr::meas_quant_results_s& asn1_meas_quant_results)
+ocudu::ocucp::asn1_to_meas_quant_results(const asn1::rrc_nr::meas_quant_results_s& asn1_meas_quant_results)
 {
   rrc_meas_quant_results meas_quant_results;
 
@@ -1120,7 +1118,7 @@ srsran::srs_cu_cp::asn1_to_meas_quant_results(const asn1::rrc_nr::meas_quant_res
   return meas_quant_results;
 }
 
-rrc_meas_result_nr srsran::srs_cu_cp::asn1_to_meas_result_nr(const asn1::rrc_nr::meas_result_nr_s& asn1_meas_result_nr)
+rrc_meas_result_nr ocudu::ocucp::asn1_to_meas_result_nr(const asn1::rrc_nr::meas_result_nr_s& asn1_meas_result_nr)
 {
   rrc_meas_result_nr meas_result_nr;
 
@@ -1172,8 +1170,8 @@ rrc_meas_result_nr srsran::srs_cu_cp::asn1_to_meas_result_nr(const asn1::rrc_nr:
   return meas_result_nr;
 }
 
-rrc_meas_results srsran::srs_cu_cp::asn1_to_measurement_results(const asn1::rrc_nr::meas_results_s& asn1_meas_results,
-                                                                srslog::basic_logger&               logger)
+rrc_meas_results ocudu::ocucp::asn1_to_measurement_results(const asn1::rrc_nr::meas_results_s& asn1_meas_results,
+                                                           ocudulog::basic_logger&             logger)
 {
   rrc_meas_results meas_results;
 

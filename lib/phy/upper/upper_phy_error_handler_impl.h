@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/uplink_slot_processor.h"
-#include "srsran/phy/upper/upper_phy_error_handler.h"
-#include "srsran/phy/upper/upper_phy_error_notifier.h"
+#include "ocudu/phy/upper/uplink_slot_processor.h"
+#include "ocudu/phy/upper/upper_phy_error_handler.h"
+#include "ocudu/phy/upper/upper_phy_error_notifier.h"
 #include <functional>
 
-namespace srsran {
+namespace ocudu {
 
 /// Upper physical layer error handler implementation.
 class upper_phy_error_handler_impl : public upper_phy_error_handler
@@ -40,4 +40,4 @@ private:
   std::reference_wrapper<upper_phy_error_notifier> error_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

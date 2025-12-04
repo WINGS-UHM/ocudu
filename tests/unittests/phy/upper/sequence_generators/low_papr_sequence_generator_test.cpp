@@ -9,14 +9,14 @@
  */
 
 #include "low_papr_sequence_generator_test_data.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_collection.h"
-#include "srsran/phy/upper/sequence_generators/sequence_generator_factories.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
+#include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t test_case)
 {
@@ -42,7 +42,7 @@ bool operator==(span<const cf_t> left, span<const cf_t> right)
       left.begin(), left.end(), right.begin(), right.end(), [](cf_t a, cf_t b) { return std::abs(a - b) < 1e-5; });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

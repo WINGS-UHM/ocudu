@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/polar/polar_code.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_rate_dematcher.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_code.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_rate_dematcher.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Polar code rate dematching implementation.
 ///
@@ -40,4 +40,4 @@ public:
                     span<const log_likelihood_ratio> input,
                     const polar_code&                code) override;
 };
-} // namespace srsran
+} // namespace ocudu

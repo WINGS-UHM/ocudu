@@ -12,9 +12,9 @@
 
 #include "../config/ue_configuration.h"
 #include "pdcch_resource_allocator.h"
-#include "srsran/scheduler/result/dci_info.h"
+#include "ocudu/scheduler/result/dci_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_slot_resource_allocator;
 class pdcch_slot_allocator;
@@ -97,4 +97,4 @@ private:
   std::array<std::unique_ptr<pdcch_slot_allocator>, SLOT_ALLOCATOR_RING_SIZE> slot_records;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -17,6 +17,6 @@ set(SOURCES
         ru_ofh_config_validator.cpp
         ru_ofh_config_yaml_writer.cpp)
 
-add_library(srsran_split_7_2_app_unit_helpers STATIC ${SOURCES})
-target_link_libraries(srsran_split_7_2_app_unit_helpers PRIVATE srsran_ru_ofh srsran_cpu_affinities_helper srsran_app_helpers)
-target_include_directories(srsran_split_7_2_app_unit_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_split_7_2_app_unit_helpers STATIC ${SOURCES})
+target_link_libraries(ocudu_split_7_2_app_unit_helpers PRIVATE ocudu_ru_ofh ocudu_cpu_affinities_helper ocudu_app_helpers)
+target_include_directories(ocudu_split_7_2_app_unit_helpers PRIVATE ${CMAKE_SOURCE_DIR})

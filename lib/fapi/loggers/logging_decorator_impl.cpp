@@ -10,11 +10,11 @@
 
 #include "logging_decorator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 logging_decorator_impl::logging_decorator_impl(unsigned                    sector_id,
-                                               srslog::basic_logger&       logger,
+                                               ocudulog::basic_logger&     logger,
                                                slot_message_gateway&       gateway_,
                                                slot_last_message_notifier& last_msg_notifier_) :
   fapi_decorator({}),
@@ -27,7 +27,7 @@ logging_decorator_impl::logging_decorator_impl(unsigned                    secto
 }
 
 logging_decorator_impl::logging_decorator_impl(unsigned                        sector_id,
-                                               srslog::basic_logger&           logger,
+                                               ocudulog::basic_logger&         logger,
                                                std::unique_ptr<fapi_decorator> next_decorator_) :
   fapi_decorator({std::move(next_decorator_)}),
   data_notifier(sector_id, logger),

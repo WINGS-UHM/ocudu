@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/short/short_block_detector.h"
+#include "ocudu/phy/upper/channel_coding/short/short_block_detector.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Maximum length of a codeword.
 constexpr unsigned MAX_BLOCK_LENGTH = 32;
@@ -50,4 +50,4 @@ private:
   static const std::array<std::array<int8_t, MAX_BLOCK_LENGTH>, MAX_NOF_CODEWORDS_2> DETECT_TABLE;
 };
 
-} // namespace srsran
+} // namespace ocudu

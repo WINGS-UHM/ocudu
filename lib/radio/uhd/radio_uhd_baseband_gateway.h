@@ -12,10 +12,10 @@
 
 #include "radio_uhd_rx_stream.h"
 #include "radio_uhd_tx_stream.h"
-#include "srsran/gateways/baseband/baseband_gateway.h"
+#include "ocudu/gateways/baseband/baseband_gateway.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implement baseband gateway interface for UHD.
 ///
@@ -68,4 +68,4 @@ private:
   std::unique_ptr<radio_uhd_rx_stream> rx_stream;
 };
 
-} // namespace srsran
+} // namespace ocudu

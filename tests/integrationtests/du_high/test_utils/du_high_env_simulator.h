@@ -14,19 +14,19 @@
 #include "du_high_worker_manager.h"
 #include "tests/test_doubles/f1u/dummy_f1u_du_gateway.h"
 #include "tests/test_doubles/mac/dummy_mac_result_notifier.h"
-#include "srsran/du/du_high/du_high.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/scheduler/config/cell_config_builder_params.h"
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/async/event_signal.h"
+#include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/async/event_signal.h"
 #include <list>
 
-namespace srsran {
+namespace ocudu {
 
 class io_broker;
 
-namespace srs_du {
+namespace odu {
 
 /// Parameters to set the DU-high environment simulator.
 struct du_high_env_sim_params {
@@ -112,7 +112,7 @@ public:
 
   slot_point next_slot;
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
 protected:
   struct ue_sim_context {
@@ -159,5 +159,5 @@ protected:
   event_signal_flag                 next_slot_signal;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

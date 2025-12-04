@@ -10,13 +10,13 @@
 
 #include "mac.h"
 #include "helpers.h"
-#include "srsran/mac/mac_metrics.h"
+#include "ocudu/mac/mac_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
-namespace srsran {
+namespace ocudu {
 
 void to_json(nlohmann::json& json, const mac_dl_cell_metric_report& metrics)
 {
@@ -32,9 +32,9 @@ void to_json(nlohmann::json& json, const mac_dl_cell_metric_report& metrics)
   json["cpu_usage_percent"] = cpu_usage;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const mac_dl_metric_report& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const mac_dl_metric_report& metrics)
 {
   nlohmann::json json;
 

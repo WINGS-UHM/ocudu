@@ -11,7 +11,7 @@
 #include "split6_flexible_o_du_low_session_manager.h"
 #include "split6_flexible_o_du_low_session_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 bool split6_flexible_o_du_low_session_manager::on_start_request(const fapi::fapi_cell_config& config)
 {

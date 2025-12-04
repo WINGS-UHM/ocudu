@@ -16,7 +16,7 @@
 #include "integrity_engine_nia2_cmac.h"
 #include "integrity_engine_nia2_non_cmac.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace security;
 
 security_engine_impl::security_engine_impl(security::sec_128_as_config sec_cfg,
@@ -24,11 +24,11 @@ security_engine_impl::security_engine_impl(security::sec_128_as_config sec_cfg,
                                            security_direction          direction,
                                            security::integrity_enabled integrity_enabled,
                                            security::ciphering_enabled ciphering_enabled) :
-  logger(srslog::fetch_basic_logger("SEC"))
+  logger(ocudulog::fetch_basic_logger("SEC"))
 {
   if (integrity_enabled == security::integrity_enabled::on) {
-    srsran_assert(sec_cfg.integ_algo.has_value(), "Cannot enable integrity protection: No algorithm selected");
-    srsran_assert(sec_cfg.k_128_int.has_value(), "Cannot enable integrity protection: No key");
+    ocudu_assert(sec_cfg.integ_algo.has_value(), "Cannot enable integrity protection: No algorithm selected");
+    ocudu_assert(sec_cfg.k_128_int.has_value(), "Cannot enable integrity protection: No key");
     switch (sec_cfg.integ_algo.value()) {
       case integrity_algorithm::nia2:
 #ifdef MBEDTLS_CMAC_C

@@ -12,11 +12,11 @@
 
 #include "common/e2ap_asn1_packer.h"
 #include "lib/e2/e2sm/e2sm_kpm/e2sm_kpm_asn1_packer.h"
-#include "srsran/gateways/sctp_network_server_factory.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dlt_pcap;
 class io_broker;
@@ -79,8 +79,8 @@ private:
   class e2_gw_to_ric_pdu_adapter;
   unsigned get_next_e2_agent_index();
 
-  srslog::basic_logger& logger;
-  e2_agent_repository&  e2_agents;
+  ocudulog::basic_logger& logger;
+  e2_agent_repository&    e2_agents;
 };
 
 class near_rt_ric
@@ -94,9 +94,9 @@ public:
   void send_msg(unsigned e2_agent_idx, const e2_message& msg);
 
 private:
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
   e2_agent_connection_manager e2_agent_mng;
   e2_agent_repository         e2_agents;
 };
 
-} // namespace srsran
+} // namespace ocudu

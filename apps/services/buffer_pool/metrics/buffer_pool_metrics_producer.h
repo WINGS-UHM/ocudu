@@ -15,7 +15,7 @@
 #include "apps/services/metrics/metrics_notifier.h"
 #include "apps/services/metrics/metrics_producer.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Buffer pool metrics producer implementation.
@@ -35,4 +35,4 @@ private:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

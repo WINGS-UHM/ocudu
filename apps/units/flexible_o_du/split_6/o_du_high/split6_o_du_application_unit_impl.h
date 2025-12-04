@@ -14,7 +14,7 @@
 #include "split6_o_du_unit_config.h"
 #include "split6_plugin.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU Split6 application unit implementation.
 class split6_o_du_application_unit_impl : public flexible_o_du_application_unit
@@ -55,4 +55,4 @@ private:
   std::unique_ptr<split6_plugin> plugin;
 };
 
-} // namespace srsran
+} // namespace ocudu

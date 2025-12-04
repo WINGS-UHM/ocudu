@@ -13,13 +13,13 @@
 #include "../ue_manager/ue_manager_impl.h"
 #include "du_processor.h"
 #include "du_processor_config.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/rrc/rrc_ue.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class common_task_scheduler;
 
@@ -30,5 +30,5 @@ std::unique_ptr<du_processor> create_du_processor(du_processor_config_t        d
                                                   common_task_scheduler&       common_task_sched_,
                                                   ue_manager&                  ue_mng_);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

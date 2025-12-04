@@ -14,45 +14,45 @@ add_subdirectory(metrics)
 add_subdirectory(sequence_generators)
 add_subdirectory(signal_processors)
 
-add_library(srsran_downlink_processor
+add_library(ocudu_downlink_processor
         downlink_processor_multi_executor_impl.cpp
         downlink_processor_pool_impl.cpp)
-target_link_libraries(srsran_downlink_processor
-        srsran_instrumentation
-        srsran_channel_processors)
+target_link_libraries(ocudu_downlink_processor
+        ocudu_instrumentation
+        ocudu_channel_processors)
 
-add_library(srsran_uplink_processor
+add_library(ocudu_uplink_processor
         uplink_processor_impl.cpp
         uplink_processor_pool_impl.cpp
         uplink_request_processor_impl.cpp)
-target_link_libraries(srsran_uplink_processor srsran_channel_processors)
+target_link_libraries(ocudu_uplink_processor ocudu_channel_processors)
 
-add_library(srsran_upper_phy
+add_library(ocudu_upper_phy
         upper_phy_error_handler_impl.cpp
         upper_phy_factories.cpp
         upper_phy_impl.cpp
         upper_phy_rx_results_notifier_wrapper.cpp
         upper_phy_rx_symbol_handler_impl.cpp)
-target_link_libraries(srsran_upper_phy
-        srsran_channel_coding
-        srsran_channel_equalizer
-        srsran_channel_precoder
-        srsran_channel_processors
-        srsran_downlink_processor
-        srsran_signal_processors
-        srsran_dft
-        srsran_instrumentation
-        srsran_phy_metrics
-        srsran_phy_support
-        srsran_transform_precoding
-        srsran_uplink_processor
-        srsran_upper_phy_metrics)
+target_link_libraries(ocudu_upper_phy
+        ocudu_channel_coding
+        ocudu_channel_equalizer
+        ocudu_channel_precoder
+        ocudu_channel_processors
+        ocudu_downlink_processor
+        ocudu_signal_processors
+        ocudu_dft
+        ocudu_instrumentation
+        ocudu_phy_metrics
+        ocudu_phy_support
+        ocudu_transform_precoding
+        ocudu_uplink_processor
+        ocudu_upper_phy_metrics)
 
 add_library(log_likelihood_ratio log_likelihood_ratio.cpp)
-target_link_libraries(log_likelihood_ratio srsvec)
+target_link_libraries(log_likelihood_ratio ocuduvec)
 
-add_library(srsran_upper_phy_support
+add_library(ocudu_upper_phy_support
         rx_buffer_pool_impl.cpp
 )
 
-add_to_exported_libs(log_likelihood_ratio srsran_upper_phy_support)
+add_to_exported_libs(log_likelihood_ratio ocudu_upper_phy_support)

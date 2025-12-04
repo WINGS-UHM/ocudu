@@ -16,10 +16,10 @@
 #include "mac_sched/rlf_detector.h"
 #include "mac_ul/mac_ul_processor.h"
 #include "rnti_manager.h"
-#include "srsran/mac/mac.h"
-#include "srsran/mac/mac_config.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/mac/mac_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_impl : public mac_interface
 {
@@ -73,4 +73,4 @@ private:
   mac_controller ctrl_unit;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/slot_point.h"
 #include <atomic>
 #include <optional>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Uplink notified grid symbol repository. Stores the symbols that have been notified to upper layers for a given slot.
@@ -106,7 +106,7 @@ public:
   /// but can be modified.
   void add(slot_point slot, unsigned start_symbol = 0U, cyclic_prefix cp = cyclic_prefix::NORMAL)
   {
-    srsran_assert(start_symbol < MAX_NSYMB_PER_SLOT, "Invalid start symbol '{}'", start_symbol);
+    ocudu_assert(start_symbol < MAX_NSYMB_PER_SLOT, "Invalid start symbol '{}'", start_symbol);
 
     uint32_t value = USED_SLOT_BITMAP;
     if (cp == cyclic_prefix::EXTENDED) {
@@ -122,7 +122,7 @@ public:
   /// Updates grid received symbol for the given slot and returns a list of symbols to notify.
   std::optional<results> update_rx_symbol_and_compute_symbols_to_notify(slot_point slot, unsigned symbol, bool is_valid)
   {
-    srsran_assert(symbol < MAX_NSYMB_PER_SLOT, "Invalid symbol '{}'", symbol);
+    ocudu_assert(symbol < MAX_NSYMB_PER_SLOT, "Invalid symbol '{}'", symbol);
 
     uint32_t bitmask = 0;
     bitmask |= uint32_t(1u) << symbol;
@@ -158,4 +158,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

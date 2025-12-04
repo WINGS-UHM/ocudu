@@ -13,7 +13,7 @@
 #include <thread>
 #include <uhd/utils/thread_priority.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 bool radio_session_uhd_impl::set_time_to_gps_time()
 {
@@ -198,13 +198,13 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
   // Set the logging level.
 #ifdef UHD_LOG_INFO
   switch (radio_config.log_level) {
-    case srslog::basic_levels::warning:
+    case ocudulog::basic_levels::warning:
       uhd::log::set_console_level(uhd::log::severity_level::warning);
       break;
-    case srslog::basic_levels::debug:
+    case ocudulog::basic_levels::debug:
       uhd::log::set_console_level(uhd::log::severity_level::debug);
       break;
-    case srslog::basic_levels::error:
+    case ocudulog::basic_levels::error:
       uhd::log::set_console_level(uhd::log::severity_level::error);
       break;
     default:
@@ -270,7 +270,7 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
     fmt::print("Error: setting Tx sampling rate. {}\n", device.get_error_message());
     return;
   }
-  srsran_assert(std::isnormal(actual_tx_rate_Hz), "Actual transmit sampling rate is invalid.");
+  ocudu_assert(std::isnormal(actual_tx_rate_Hz), "Actual transmit sampling rate is invalid.");
 
   // Set Rx rate.
   double actual_rx_rate_Hz = 0.0;
@@ -278,7 +278,7 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
     fmt::print("Error: setting Rx sampling rate. {}\n", device.get_error_message());
     return;
   }
-  srsran_assert(std::isnormal(actual_rx_rate_Hz), "Actual receive sampling rate is invalid.");
+  ocudu_assert(std::isnormal(actual_rx_rate_Hz), "Actual receive sampling rate is invalid.");
 
   // Overwrite actual.
   actual_sampling_rate_Hz = actual_rx_rate_Hz;

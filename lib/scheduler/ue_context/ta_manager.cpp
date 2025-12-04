@@ -11,7 +11,7 @@
 #include "ta_manager.h"
 #include <numeric>
 
-using namespace srsran;
+using namespace ocudu;
 
 ta_manager::ta_manager(const scheduler_ta_control_config& ta_cfg_,
                        subcarrier_spacing                 ul_scs_,
@@ -20,7 +20,7 @@ ta_manager::ta_manager(const scheduler_ta_control_config& ta_cfg_,
   ul_scs(ul_scs_),
   dl_lc_ch_mgr(dl_lc_ch_mgr_),
   ta_cfg(ta_cfg_),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   state(state_t::idle)
 {
   if (ta_cfg.ta_cmd_offset_threshold < 0) {

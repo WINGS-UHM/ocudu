@@ -12,13 +12,13 @@
 /// \brief PUCCH Format 4 demodulator definition.
 
 #include "pucch_demodulator_format4.h"
-#include "srsran/phy/support/mask_types.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/upper/pucch_formats3_4_helpers.h"
-#include "srsran/phy/upper/pucch_orthogonal_sequence.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/mask_types.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/upper/pucch_formats3_4_helpers.h"
+#include "ocudu/phy/upper/pucch_orthogonal_sequence.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pucch_demodulator_format4::demodulate(span<log_likelihood_ratio>                      llr,
                                            const resource_grid_reader&                     grid,
@@ -39,31 +39,31 @@ void pucch_demodulator_format4::demodulate(span<log_likelihood_ratio>           
   unsigned nof_re_port = (config.nof_symbols - dmrs_symb_mask.count()) * nof_re_symb;
 
   // Assert that allocations are valid.
-  srsran_assert(config.first_prb * NRE <= grid.get_nof_subc(),
-                "PUCCH Format 4: PRB allocation outside grid (first hop). Requested {}, grid has {} PRBs.",
-                config.first_prb,
-                grid.get_nof_subc() / NRE);
+  ocudu_assert(config.first_prb * NRE <= grid.get_nof_subc(),
+               "PUCCH Format 4: PRB allocation outside grid (first hop). Requested {}, grid has {} PRBs.",
+               config.first_prb,
+               grid.get_nof_subc() / NRE);
 
-  srsran_assert(!config.second_hop_prb.has_value() || (*config.second_hop_prb * NRE <= grid.get_nof_subc()),
-                "PUCCH Format 4: PRB allocation outside grid (second hop). Requested {}, grid has {} PRBs.",
-                *config.second_hop_prb,
-                grid.get_nof_subc() / NRE);
+  ocudu_assert(!config.second_hop_prb.has_value() || (*config.second_hop_prb * NRE <= grid.get_nof_subc()),
+               "PUCCH Format 4: PRB allocation outside grid (second hop). Requested {}, grid has {} PRBs.",
+               *config.second_hop_prb,
+               grid.get_nof_subc() / NRE);
 
   interval<unsigned, true> nof_symbols_range(pucch_constants::FORMAT4_MIN_NSYMB, pucch_constants::FORMAT4_MAX_NSYMB);
-  srsran_assert(nof_symbols_range.contains(config.nof_symbols),
-                "Invalid Number of OFDM symbols allocated to PUCCH Format 4, i.e., {}. Valid range is {}.",
-                config.nof_symbols,
-                nof_symbols_range);
+  ocudu_assert(nof_symbols_range.contains(config.nof_symbols),
+               "Invalid Number of OFDM symbols allocated to PUCCH Format 4, i.e., {}. Valid range is {}.",
+               config.nof_symbols,
+               nof_symbols_range);
 
   // Resize equalized data and post equalization noise variance buffers.
   eq_re.resize(nof_re_port);
   eq_noise_vars.resize(nof_re_port);
 
   // Assert that the number of RE returned by the channel equalizer matches the expected number of LLR.
-  srsran_assert(eq_re.size() / config.occ_length == llr.size() / get_bits_per_symbol(mod_scheme),
-                "Number of equalized REs (i.e. {}) does not match the expected LLR data length (i.e. {})",
-                eq_re.size() / config.occ_length,
-                llr.size() / get_bits_per_symbol(mod_scheme));
+  ocudu_assert(eq_re.size() / config.occ_length == llr.size() / get_bits_per_symbol(mod_scheme),
+               "Number of equalized REs (i.e. {}) does not match the expected LLR data length (i.e. {})",
+               eq_re.size() / config.occ_length,
+               llr.size() / get_bits_per_symbol(mod_scheme));
 
   pucch_3_4_extract_and_equalize(eq_re,
                                  eq_noise_vars,
@@ -114,5 +114,5 @@ void pucch_demodulator_format4::inverse_blockwise_spreading(span<cf_t>        or
   }
 
   // Scale according to the spreading factor.
-  srsvec::sc_prod(original, original, 1.0F / config.occ_length);
+  ocuduvec::sc_prod(original, original, 1.0F / config.occ_length);
 }

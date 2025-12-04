@@ -15,14 +15,14 @@
 #include "split6_flexible_o_du_low_metrics_consumers.h"
 #include "split6_flexible_o_du_low_metrics_producer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 split6_flexible_o_du_low_metrics_notifier*
-srsran::build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::metrics_config>& metrics,
-                                                      app_services::metrics_notifier&            notifier,
-                                                      const app_helpers::metrics_config&         metrics_cfg,
-                                                      const std::vector<pci_t>&                  pci_cell_map,
-                                                      std::chrono::nanoseconds                   symbol_duration)
+ocudu::build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::metrics_config>& metrics,
+                                                     app_services::metrics_notifier&            notifier,
+                                                     const app_helpers::metrics_config&         metrics_cfg,
+                                                     const std::vector<pci_t>&                  pci_cell_map,
+                                                     std::chrono::nanoseconds                   symbol_duration)
 {
   split6_flexible_o_du_low_metrics_notifier* output = nullptr;
   if (!metrics_cfg.enabled()) {

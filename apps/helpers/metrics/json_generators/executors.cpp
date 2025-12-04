@@ -10,13 +10,13 @@
 
 #include "executors.h"
 #include "apps/helpers/metrics/helpers.h"
-#include "srsran/support/executors/metrics/executor_metrics.h"
+#include "ocudu/support/executors/metrics/executor_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
-namespace srsran {
+namespace ocudu {
 
 void to_json(nlohmann::json& json, const executor_metrics& metrics)
 {
@@ -32,9 +32,9 @@ void to_json(nlohmann::json& json, const executor_metrics& metrics)
   json["nof_invol_ctxt_switch"] = metrics.total_rusg.invol_ctxt_switch_count;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const executor_metrics& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const executor_metrics& metrics)
 {
   nlohmann::json json;
 
@@ -44,7 +44,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const executor_met
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const executor_metrics& metrics, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const executor_metrics& metrics, int indent)
 {
   return generate(metrics).dump(indent);
 }

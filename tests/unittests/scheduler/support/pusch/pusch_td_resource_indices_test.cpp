@@ -12,14 +12,14 @@
 #include "lib/scheduler/support/pusch/pusch_td_resource_indices.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config_formatters.h"
-#include "srsran/scheduler/config/cell_config_builder_params.h"
-#include "srsran/support/format/custom_formattable.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/support/format/custom_formattable.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
 #include <ostream>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

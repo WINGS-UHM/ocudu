@@ -12,13 +12,13 @@
 
 #include "../../common/e1ap_asn1_utils.h"
 #include "e1ap_cu_up_event_manager.h"
-#include "srsran/e1ap/common/e1_setup_messages.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/e1ap/common/e1_setup_messages.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// E1 Setup Procedure for the gNB-CU-UP as per TS 38.463, 8.2.3.
 class e1ap_cu_up_setup_procedure
@@ -28,7 +28,7 @@ public:
                              e1ap_message_notifier&        cu_cp_notif_,
                              e1ap_event_manager&           ev_mng_,
                              timer_factory                 timers_,
-                             srslog::basic_logger&         logger_);
+                             ocudulog::basic_logger&       logger_);
 
   void operator()(coro_context<async_task<cu_up_e1_setup_response>>& ctx);
 
@@ -48,7 +48,7 @@ private:
   e1ap_message_notifier&       cu_cp_notifier;
   e1ap_event_manager&          ev_mng;
   timer_factory                timers;
-  srslog::basic_logger&        logger;
+  ocudulog::basic_logger&      logger;
 
   unique_timer e1_setup_wait_timer;
 
@@ -57,5 +57,5 @@ private:
   std::chrono::seconds time_to_wait{0};
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

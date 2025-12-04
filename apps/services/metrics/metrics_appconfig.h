@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Metrics service application configuration.
@@ -20,4 +20,4 @@ struct metrics_appconfig {
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

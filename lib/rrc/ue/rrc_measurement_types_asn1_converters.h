@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/rrc_nr/common.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/rrc/meas_types.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/rrc_nr/common.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/rrc/meas_types.h"
 #include <string>
 #include <vector>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 rrc_ssb_mtc asn1_to_ssb_mtc(const asn1::rrc_nr::ssb_mtc_s& asn1_ssb_mtc);
 
@@ -167,7 +167,7 @@ rrc_meas_result_nr asn1_to_meas_result_nr(const asn1::rrc_nr::meas_result_nr_s& 
 /// \param[in] asn1_meas_results measurement result ASN.1 object.
 /// \return The common type object where the result of the conversion is stored.
 rrc_meas_results asn1_to_measurement_results(const asn1::rrc_nr::meas_results_s& asn1_meas_results,
-                                             srslog::basic_logger&               logger);
+                                             ocudulog::basic_logger&             logger);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

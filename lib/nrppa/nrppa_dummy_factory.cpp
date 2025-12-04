@@ -9,19 +9,19 @@
  */
 
 #include "nrppa_dummy_impl.h"
-#include "srsran/nrppa/nrppa_factory.h"
+#include "ocudu/nrppa/nrppa_factory.h"
 
 /// Notice this would be the only place were we include concrete class implementation files.
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-std::unique_ptr<nrppa_interface> srsran::srs_cu_cp::create_nrppa(const cu_cp_configuration& cfg,
-                                                                 nrppa_cu_cp_notifier&      cu_cp_notifier,
-                                                                 common_task_scheduler&     common_task_sched)
+std::unique_ptr<nrppa_interface> ocudu::ocucp::create_nrppa(const cu_cp_configuration& cfg,
+                                                            nrppa_cu_cp_notifier&      cu_cp_notifier,
+                                                            common_task_scheduler&     common_task_sched)
 {
   (void)&cfg;
   (void)&cu_cp_notifier;

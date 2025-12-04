@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/upper/signal_processors/channel_estimator/factories.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/factories.h"
 #include "port_channel_estimator_average_impl.h"
-#include "srsran/phy/support/support_factories.h"
+#include "ocudu/phy/support/support_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -22,7 +22,7 @@ public:
   explicit port_channel_estimator_factory_sw(std::shared_ptr<time_alignment_estimator_factory> ta_estimator_factory_) :
     ta_estimator_factory(std::move(ta_estimator_factory_))
   {
-    srsran_assert(ta_estimator_factory, "Invalid TA estimator factory.");
+    ocudu_assert(ta_estimator_factory, "Invalid TA estimator factory.");
   }
 
   std::unique_ptr<port_channel_estimator>
@@ -46,7 +46,7 @@ private:
 } // namespace
 
 std::shared_ptr<port_channel_estimator_factory>
-srsran::create_port_channel_estimator_factory_sw(std::shared_ptr<time_alignment_estimator_factory> ta_estimator_factory)
+ocudu::create_port_channel_estimator_factory_sw(std::shared_ptr<time_alignment_estimator_factory> ta_estimator_factory)
 {
   return std::make_shared<port_channel_estimator_factory_sw>(std::move(ta_estimator_factory));
 }

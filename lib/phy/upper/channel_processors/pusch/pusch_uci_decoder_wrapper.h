@@ -11,12 +11,12 @@
 #pragma once
 
 #include "pusch_uci_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
-#include "srsran/ran/uci/uci_constants.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/ran/uci/uci_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Decodes UCI messages multiplexed in PUSCH.
 ///
@@ -72,12 +72,12 @@ private:
   span<log_likelihood_ratio> get_next_block_view(unsigned block_size) override
   {
     // Makes sure the block size does not overflow the buffer.
-    srsran_assert(softbits_count + block_size <= softbits_buffer.size(),
-                  "The sum of current buffer number of elements (i.e., {}) and the block size (i.e., {}), exceeds the "
-                  "total number of elements of the buffer (i.e., {}).",
-                  softbits_count,
-                  block_size,
-                  softbits_buffer.size());
+    ocudu_assert(softbits_count + block_size <= softbits_buffer.size(),
+                 "The sum of current buffer number of elements (i.e., {}) and the block size (i.e., {}), exceeds the "
+                 "total number of elements of the buffer (i.e., {}).",
+                 softbits_count,
+                 block_size,
+                 softbits_buffer.size());
 
     return span<log_likelihood_ratio>(softbits_buffer).subspan(softbits_count, block_size);
   }
@@ -89,7 +89,7 @@ private:
 
     // Copy only if the soft bits do not match.
     if (block.data() != softbits.data()) {
-      srsvec::copy(block, softbits);
+      ocuduvec::copy(block, softbits);
     }
 
     softbits_count += softbits.size();
@@ -105,9 +105,9 @@ private:
     uci_status status = decoder.decode(message, codeword, decoder_config);
 
     // Notify decoded UCI.
-    srsran_assert(notifier != nullptr, "Invalid notifier.");
+    ocudu_assert(notifier != nullptr, "Invalid notifier.");
     notifier->on_uci_decoded(message, status);
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

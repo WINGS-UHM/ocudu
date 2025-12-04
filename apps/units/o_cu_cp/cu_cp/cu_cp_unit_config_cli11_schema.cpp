@@ -12,11 +12,11 @@
 #include "apps/helpers/logger/logger_appconfig_cli11_utils.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "cu_cp_unit_config.h"
-#include "srsran/ran/nr_cell_identity.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/ran/nr_cell_identity.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_log_args(CLI::App& app, cu_cp_unit_logger_config& log_params)
 {
@@ -582,7 +582,7 @@ static void configure_cli11_metrics_args(CLI::App& app, cu_cp_unit_metrics_confi
   configure_cli11_metrics_layers_args(*layers_subcmd, metrics_params.layers_cfg);
 }
 
-void srsran::configure_cli11_with_cu_cp_unit_config_schema(CLI::App& app, cu_cp_unit_config& unit_cfg)
+void ocudu::configure_cli11_with_cu_cp_unit_config_schema(CLI::App& app, cu_cp_unit_config& unit_cfg)
 {
   add_option(app, "--gnb_id", unit_cfg.gnb_id.id, "gNodeB identifier")->capture_default_str();
   add_option(app, "--gnb_id_bit_length", unit_cfg.gnb_id.bit_length, "gNodeB identifier length in bits")
@@ -625,7 +625,7 @@ void srsran::configure_cli11_with_cu_cp_unit_config_schema(CLI::App& app, cu_cp_
   add_option_cell(app, "--qos", qos_lambda, "Configures RLC and PDCP radio bearers on a per 5QI basis.");
 }
 
-void srsran::autoderive_cu_cp_parameters_after_parsing(CLI::App& app, cu_cp_unit_config& unit_cfg)
+void ocudu::autoderive_cu_cp_parameters_after_parsing(CLI::App& app, cu_cp_unit_config& unit_cfg)
 {
   auto cu_cp_app = app.get_subcommand_ptr("cu_cp");
   for (auto& cell : unit_cfg.mobility_config.cells) {

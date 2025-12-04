@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/nru/nru_packing.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/nru/nru_packing.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fixture class for NR-U packing tests
 class nru_packing_test : public ::testing::Test
@@ -21,26 +21,26 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init GTP-U logger
-    srslog::fetch_basic_logger("GTP-U", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("GTP-U", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("GTP-U", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("GTP-U", false).set_hex_dump_max_size(-1);
 
     logger.info("Creating NR-U packing object.");
 
     // Create packer object
-    packer = std::make_unique<nru_packing>(srslog::fetch_basic_logger("GTP-U", false));
+    packer = std::make_unique<nru_packing>(ocudulog::fetch_basic_logger("GTP-U", false));
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger&        logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&      logger = ocudulog::fetch_basic_logger("TEST", false);
   std::unique_ptr<nru_packing> packer;
 };
 

@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/sequential_metrics_executor.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/sequential_metrics_executor.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct test_logger {
   template <typename... Args>

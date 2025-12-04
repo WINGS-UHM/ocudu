@@ -11,11 +11,11 @@
 #include "ue_security_manager_impl.h"
 #include "fmt/ranges.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ue_security_manager::ue_security_manager(const security_manager_config& cfg_) :
-  cfg(cfg_), logger(srslog::fetch_basic_logger("CU-CP"))
+  cfg(cfg_), logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

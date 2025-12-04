@@ -11,13 +11,13 @@
 #pragma once
 
 #include "split6_o_du_low_metrics_collector_impl.h"
-#include "srsran/du/du_low/o_du_low.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_adaptor.h"
-#include "srsran/ru/ru.h"
-#include "srsran/ru/ru_adapters.h"
+#include "ocudu/du/du_low/o_du_low.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_adaptor.h"
+#include "ocudu/ru/ru.h"
+#include "ocudu/ru/ru_adapters.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class split6_flexible_o_du_low_metrics_notifier;
 
@@ -45,7 +45,7 @@ public:
 
   /// Sets the dependencies to the given one
   void set_dependencies(std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> slot_msg_adaptor,
-                        std::unique_ptr<srs_du::o_du_low>                         du,
+                        std::unique_ptr<odu::o_du_low>                            du,
                         std::unique_ptr<radio_unit>                               radio,
                         unique_timer                                              timer);
 
@@ -63,11 +63,11 @@ private:
   upper_phy_ru_timing_adapter                               ru_timing_adapt;
   upper_phy_ru_error_adapter                                ru_error_adapt;
   std::unique_ptr<radio_unit>                               ru;
-  std::unique_ptr<srs_du::o_du_low>                         odu_low;
+  std::unique_ptr<odu::o_du_low>                            odu_low;
   std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> mac_p7_adaptor;
   upper_phy_ru_dl_rg_adapter                                ru_dl_rg_adapt;
   upper_phy_ru_ul_request_adapter                           ru_ul_request_adapt;
   split6_o_du_low_metrics_collector_impl                    metrics_collector;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/paging_information.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/paging_information.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Get string with F1AP error cause.
 inline const char* get_cause_str(const asn1::f1ap::cause_c& cause)
@@ -437,4 +437,4 @@ inline expected<unsigned> get_paging_priority(const asn1::f1ap::paging_s& pdu)
   return make_unexpected(default_error_t{});
 }
 
-} // namespace srsran
+} // namespace ocudu

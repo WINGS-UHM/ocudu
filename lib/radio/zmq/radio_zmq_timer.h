@@ -12,7 +12,7 @@
 
 #include <chrono>
 
-namespace srsran {
+namespace ocudu {
 
 /// Timer for the ZeroMQ-based radio channel.
 class radio_zmq_timer
@@ -62,4 +62,4 @@ private:
   std::chrono::time_point<std::chrono::steady_clock> wait_expire_time = no_time;
 };
 
-} // namespace srsran
+} // namespace ocudu

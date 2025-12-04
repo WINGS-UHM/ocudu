@@ -9,10 +9,10 @@
  */
 
 #include "lib/scheduler/support/pdcch_aggregation_level_calculator.h"
-#include "srsran/ran/csi_rs/csi_report_config.h"
+#include "ocudu/ran/csi_rs/csi_report_config.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class pdcch_aggregation_level_calculation_corner_cases_tester : public ::testing::Test
 {};
@@ -28,7 +28,7 @@ TEST_F(
   const float    cqi              = 6.0F;
 
   const auto aggr_lvl = map_cqi_to_aggregation_level(cqi, cqi_table_t::table1, pdcch_candidates, dci_size_in_bits);
-  ASSERT_TRUE(aggr_lvl == srsran::aggregation_level::n1) << fmt::format("Aggregation level returned must be 1");
+  ASSERT_TRUE(aggr_lvl == ocudu::aggregation_level::n1) << fmt::format("Aggregation level returned must be 1");
 }
 
 TEST_F(pdcch_aggregation_level_calculation_corner_cases_tester,
@@ -42,7 +42,7 @@ TEST_F(pdcch_aggregation_level_calculation_corner_cases_tester,
   const float    cqi              = 4.0F;
 
   const auto aggr_lvl = map_cqi_to_aggregation_level(cqi, cqi_table_t::table1, pdcch_candidates, dci_size_in_bits);
-  ASSERT_TRUE(aggr_lvl == srsran::aggregation_level::n4) << fmt::format("Computed Aggregation level must be 4");
+  ASSERT_TRUE(aggr_lvl == ocudu::aggregation_level::n4) << fmt::format("Computed Aggregation level must be 4");
 }
 
 struct pdcch_aggregation_level_calculation_test_params {

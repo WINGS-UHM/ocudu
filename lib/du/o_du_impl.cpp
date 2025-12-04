@@ -9,15 +9,15 @@
  */
 
 #include "o_du_impl.h"
-#include "srsran/du/du_high/o_du_high.h"
-#include "srsran/du/du_low/o_du_low_metrics_collector.h"
-#include "srsran/du/o_du_metrics.h"
-#include "srsran/du/o_du_metrics_notifier.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/du/du_high/o_du_high.h"
+#include "ocudu/du/du_low/o_du_low_metrics_collector.h"
+#include "ocudu/du/o_du_metrics.h"
+#include "ocudu/du/o_du_metrics_notifier.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -39,8 +39,8 @@ o_du_impl::o_du_impl(o_du_dependencies&& dependencies) :
   odu_hi(std::move(dependencies.odu_hi)),
   odu_lo(std::move(dependencies.odu_lo))
 {
-  srsran_assert(odu_lo, "Invalid DU low");
-  srsran_assert(odu_hi, "Invalid DU high");
+  ocudu_assert(odu_lo, "Invalid DU low");
+  ocudu_assert(odu_hi, "Invalid DU high");
 
   // Register the O-DU in the O-DU high to listen to O-DU high metrics.
   odu_hi->set_o_du_high_metrics_notifier(*this);

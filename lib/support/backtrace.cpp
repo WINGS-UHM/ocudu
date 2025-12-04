@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/support/backtrace.h"
+#include "ocudu/support/backtrace.h"
 
 #ifdef HAVE_BACKWARD
 #include "Backward/backward.hpp"
 
-void srsran::enable_backtrace()
+void ocudu::enable_backtrace()
 {
   static backward::SignalHandling sh;
 }
 
 #else // HAVE_BACKWARD
 
-void srsran::enable_backtrace()
+void ocudu::enable_backtrace()
 {
   // Ignore.
 }

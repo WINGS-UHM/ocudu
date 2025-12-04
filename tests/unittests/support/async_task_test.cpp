@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/support/async/async_procedure.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_procedure.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Tester coroutine that just awaits an event to complete.
 struct wait_event_coroutine {

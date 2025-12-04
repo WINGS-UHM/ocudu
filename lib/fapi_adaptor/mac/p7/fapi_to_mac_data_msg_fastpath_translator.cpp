@@ -9,14 +9,14 @@
  */
 
 #include "fapi_to_mac_data_msg_fastpath_translator.h"
-#include "srsran/fapi/messages/crc_indication.h"
-#include "srsran/fapi/messages/rach_indication.h"
-#include "srsran/fapi/messages/rx_data_indication.h"
-#include "srsran/fapi/messages/srs_indication.h"
-#include "srsran/fapi/messages/uci_indication.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/fapi/messages/crc_indication.h"
+#include "ocudu/fapi/messages/rach_indication.h"
+#include "ocudu/fapi/messages/rx_data_indication.h"
+#include "ocudu/fapi/messages/srs_indication.h"
+#include "ocudu/fapi/messages/uci_indication.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
@@ -116,7 +116,7 @@ void fapi_to_mac_data_msg_fastpath_translator::on_rx_data_indication(const fapi:
 
     auto pdu_buffer = byte_buffer::create(span<const uint8_t>(fapi_pdu.data, fapi_pdu.pdu_length));
     if (not pdu_buffer.has_value()) {
-      srslog::fetch_basic_logger("FAPI").warning("Sector#{}: Unable to allocate memory for MAC RX PDU", sector_id);
+      ocudulog::fetch_basic_logger("FAPI").warning("Sector#{}: Unable to allocate memory for MAC RX PDU", sector_id);
       // Avoid new buffer allocations for the same FAPI PDU.
       break;
     }
@@ -323,7 +323,7 @@ void fapi_to_mac_data_msg_fastpath_translator::on_srs_indication(const fapi::srs
         mac_pdu.report = mac_srs_pdu::positioning_report{pdu.positioning.ul_relative_toa, pdu.positioning.rsrp};
         break;
       default:
-        srsran_assert(0, "Unsupported SRS report type '{}'", fapi::to_value(pdu.report_type));
+        ocudu_assert(0, "Unsupported SRS report type '{}'", fapi::to_value(pdu.report_type));
         break;
     }
   }

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/ethernet/ethernet_frame_builder.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_builder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ether {
 
 /// Implementation for the Ethernet frame builder with no VLAN tag insertion.
@@ -36,4 +36,4 @@ private:
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

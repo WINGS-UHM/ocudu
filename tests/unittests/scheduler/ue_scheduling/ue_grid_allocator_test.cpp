@@ -21,15 +21,15 @@
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class ue_grid_allocator_tester : public ::testing::TestWithParam<duplex_mode>
 {
@@ -45,7 +45,7 @@ protected:
       cfg_builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
       const auto* cfg =
           cfg_mng.add_cell(sched_config_helper::make_default_sched_cell_configuration_request(cfg_builder_params));
-      srsran_assert(cfg != nullptr, "Cell configuration failed");
+      ocudu_assert(cfg != nullptr, "Cell configuration failed");
       return cfg;
     }()),
     cell_ues(ues.add_cell(to_du_cell_index(0))),
@@ -53,8 +53,8 @@ protected:
     alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, res_grid, logger),
     current_slot(cfg_builder_params.scs_common, 0)
   {
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // Initialize resource grid.
     slot_indication();
@@ -233,7 +233,7 @@ protected:
   pucch_allocator_impl pucch_alloc{cell_cfg, expert_cfg.max_pucchs_per_slot, expert_cfg.max_ul_grants_per_slot};
   uci_allocator_impl   uci_alloc{pucch_alloc};
 
-  srslog::basic_logger&   logger{srslog::fetch_basic_logger("SCHED")};
+  ocudulog::basic_logger& logger{ocudulog::fetch_basic_logger("SCHED")};
   scheduler_result_logger res_logger{false, cell_cfg.pci};
 
   ue_repository           ues;
@@ -282,7 +282,7 @@ TEST_P(ue_grid_allocator_tester, when_using_non_fallback_dci_format_use_mcs_tabl
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
   // Change PDSCH MCS table to be used when using non-fallback DCI format.
-  (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = srsran::pdsch_mcs_table::qam256;
+  (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = ocudu::pdsch_mcs_table::qam256;
   ue_creation_req.ue_index                                                       = to_du_ue_index(0);
   ue_creation_req.crnti                                                          = to_rnti(0x4601);
 
@@ -292,7 +292,7 @@ TEST_P(ue_grid_allocator_tester, when_using_non_fallback_dci_format_use_mcs_tabl
   ASSERT_TRUE(run_until([&]() { allocate_dl_newtx_grant(slice_ues[u.ue_index], nof_bytes_to_schedule, false); },
                         [&]() { return find_ue_pdsch(u.crnti, res_grid[0].result.dl.ue_grants) != nullptr; }));
   ASSERT_EQ(res_grid[0].result.dl.ue_grants.back().pdsch_cfg.codewords.back().mcs_table,
-            srsran::pdsch_mcs_table::qam256);
+            ocudu::pdsch_mcs_table::qam256);
 }
 
 TEST_P(ue_grid_allocator_tester, allocates_pdsch_restricted_to_recommended_max_nof_rbs)

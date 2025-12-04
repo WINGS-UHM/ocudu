@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include "io_broker_epoll.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<io_broker> srsran::create_io_broker(io_broker_type type, const io_broker_config& config)
+std::unique_ptr<io_broker> ocudu::create_io_broker(io_broker_type type, const io_broker_config& config)
 {
   switch (type) {
     case io_broker_type::epoll:
       return std::make_unique<io_broker_epoll>(config);
     default:
-      srsran_terminate("IO broker type not supported");
+      ocudu_terminate("IO broker type not supported");
   }
   return nullptr;
 }

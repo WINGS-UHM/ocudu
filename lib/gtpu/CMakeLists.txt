@@ -15,5 +15,5 @@ set(SOURCES gtpu_tunnel_ngu_factory.cpp
             gtpu_demux_impl.cpp
             gtpu_gateway.cpp)
 
-add_library(srsran_gtpu STATIC ${SOURCES})
-target_link_libraries(srsran_gtpu srsran_nru srsran_psup srsran_support srsran_gateway)
+add_library(ocudu_gtpu STATIC ${SOURCES})
+target_link_libraries(ocudu_gtpu ocudu_nru ocudu_psup ocudu_support ocudu_gateway)

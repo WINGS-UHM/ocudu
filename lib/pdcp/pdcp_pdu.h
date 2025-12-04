@@ -15,7 +15,7 @@
 #include <memory>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Maximum supported size of a PDCP SDU
 /// Ref: TS 38.323 Sec. 4.3.1
@@ -76,12 +76,12 @@ struct pdcp_control_pdu_header {
   pdcp_control_pdu_type cpt; ///< Control PDU type (control PDU only, ignored for data PDUs)
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::pdcp_dc_field> {
+struct formatter<ocudu::pdcp_dc_field> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -89,7 +89,7 @@ struct formatter<srsran::pdcp_dc_field> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::pdcp_dc_field dc, FormatContext& ctx) const
+  auto format(ocudu::pdcp_dc_field dc, FormatContext& ctx) const
   {
     static constexpr const char* options[] = {"ctrl", "data"};
     return format_to(ctx.out(), "{}", options[to_number(dc)]);
@@ -97,7 +97,7 @@ struct formatter<srsran::pdcp_dc_field> {
 };
 
 template <>
-struct formatter<srsran::pdcp_control_pdu_type> {
+struct formatter<ocudu::pdcp_control_pdu_type> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -105,7 +105,7 @@ struct formatter<srsran::pdcp_control_pdu_type> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::pdcp_control_pdu_type cpt, FormatContext& ctx) const
+  auto format(ocudu::pdcp_control_pdu_type cpt, FormatContext& ctx) const
   {
     static constexpr const char* options[] = {"status_report", "rohc_feedback", "ehc_feedback"};
     return format_to(ctx.out(), "{}", options[to_number(cpt)]);
@@ -113,7 +113,7 @@ struct formatter<srsran::pdcp_control_pdu_type> {
 };
 
 template <>
-struct formatter<srsran::pdcp_data_pdu_header> {
+struct formatter<ocudu::pdcp_data_pdu_header> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -121,14 +121,14 @@ struct formatter<srsran::pdcp_data_pdu_header> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::pdcp_data_pdu_header& hdr, FormatContext& ctx) const
+  auto format(const ocudu::pdcp_data_pdu_header& hdr, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "sn={}", hdr.sn);
   }
 };
 
 template <>
-struct formatter<srsran::pdcp_control_pdu_header> {
+struct formatter<ocudu::pdcp_control_pdu_header> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -136,7 +136,7 @@ struct formatter<srsran::pdcp_control_pdu_header> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::pdcp_control_pdu_header& hdr, FormatContext& ctx) const
+  auto format(const ocudu::pdcp_control_pdu_header& hdr, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "cpt={}", hdr.cpt);
   }

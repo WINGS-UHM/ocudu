@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/error_handling.h"
 #include <immintrin.h>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace mm256 {
 
@@ -91,10 +91,10 @@ inline void avx2_pack_prbs_9b_big_endian(span<uint8_t> comp_prb0_buffer,
   /// Number of bytes used by 1 packed resource block with IQ samples compressed to 9 bits.
   static constexpr unsigned BYTES_PER_PRB_9BIT_COMPRESSION = 27;
 
-  srsran_assert(comp_prb0_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
-                "Output buffer corresponding to the first PRB has incorrect size");
-  srsran_assert(comp_prb1_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
-                "Output buffer corresponding to the second PRB has incorrect size");
+  ocudu_assert(comp_prb0_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
+               "Output buffer corresponding to the first PRB has incorrect size");
+  ocudu_assert(comp_prb1_buffer.size() == BYTES_PER_PRB_9BIT_COMPRESSION,
+               "Output buffer corresponding to the second PRB has incorrect size");
 
   // Returns first 18 packed bytes out of 27 for the first RB (9 bytes in each 128bit lane - same applies below).
   __m256i reg0_packed_epi8 = pack_avx2_register_9b_be(r0);
@@ -181,10 +181,10 @@ inline void avx2_pack_prbs_16b_big_endian(span<uint8_t> comp_prb0_buffer,
 {
   static constexpr unsigned BYTES_PER_PRB_NO_COMPRESSION = 48;
 
-  srsran_assert(comp_prb0_buffer.size() == BYTES_PER_PRB_NO_COMPRESSION,
-                "Output buffer corresponding to the first PRB has incorrect size");
-  srsran_assert(comp_prb1_buffer.size() == BYTES_PER_PRB_NO_COMPRESSION,
-                "Output buffer corresponding to the second PRB has incorrect size");
+  ocudu_assert(comp_prb0_buffer.size() == BYTES_PER_PRB_NO_COMPRESSION,
+               "Output buffer corresponding to the first PRB has incorrect size");
+  ocudu_assert(comp_prb1_buffer.size() == BYTES_PER_PRB_NO_COMPRESSION,
+               "Output buffer corresponding to the second PRB has incorrect size");
 
   // Swap bytes to convert from big-endian format and write them directly to the output memory.
   const __m256i shuffle_mask_epi8 =
@@ -250,7 +250,7 @@ inline void pack_prbs_big_endian(span<uint8_t> comp_prb0_buffer,
 inline void avx2_unpack_prb_9b_be(span<int16_t> unpacked_iq_data, span<const uint8_t> packed_data)
 {
   constexpr size_t avx2_size_short_words = 16;
-  srsran_assert(unpacked_iq_data.size() >= avx2_size_short_words * 2, "Wrong unpacked data span size");
+  ocudu_assert(unpacked_iq_data.size() >= avx2_size_short_words * 2, "Wrong unpacked data span size");
 
   // Load input, 27 bytes (fits in one AVX2 register).
   // Mask-load for epi8 is not available, so we do in a few steps.
@@ -356,4 +356,4 @@ inline bool iq_width_packing_supported(unsigned iq_width)
 
 } // namespace mm256
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

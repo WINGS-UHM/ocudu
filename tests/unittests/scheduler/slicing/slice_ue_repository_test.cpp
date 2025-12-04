@@ -15,7 +15,7 @@
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -48,7 +48,7 @@ protected:
         }(),
         scheduler_expert_config{})
   {
-    srslog::init();
+    ocudulog::init();
 
     auto req = test_cfg.get_default_cell_config_request();
     test_cfg.add_cell(req);
@@ -94,7 +94,7 @@ protected:
     add_ue(ue_idx, lc_chs);
   }
 
-  srslog::basic_logger&                             logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                           logger = ocudulog::fetch_basic_logger("TEST");
   test_helpers::test_sched_config_manager           test_cfg;
   cell_harq_manager                                 cell_harqs{MAX_NOF_DU_UES,
                                MAX_NOF_HARQS,

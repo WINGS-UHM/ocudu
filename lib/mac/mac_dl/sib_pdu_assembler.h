@@ -11,14 +11,14 @@
 #pragma once
 
 #include "segmented_sib_list.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/lockfree_triple_buffer.h"
-#include "srsran/mac/cell_configuration.h"
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/lockfree_triple_buffer.h"
+#include "ocudu/mac/cell_configuration.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Entity responsible for fetching encoded SIB1 and SI messages based on scheduled SI grants.
 class sib_pdu_assembler
@@ -65,7 +65,7 @@ private:
 
   void save_buffers(si_version_type si_version, const mac_cell_sys_info_config& req);
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // Last SI messages received by the assembler.
   mac_cell_sys_info_config last_si_cfg;
@@ -90,4 +90,4 @@ private:
 std::unique_ptr<sib_pdu_assembler::message_handler>
 create_si_message_extension_handler(const mac_cell_sys_info_config& req);
 
-} // namespace srsran
+} // namespace ocudu

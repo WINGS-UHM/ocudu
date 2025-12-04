@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cell_meas_manager_config.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/nrppa/nrppa.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/rrc/rrc_du.h"
-#include "srsran/rrc/rrc_ue.h"
+#include "ocudu/cu_cp/cell_meas_manager_config.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/nrppa/nrppa.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/rrc/rrc_du.h"
+#include "ocudu/rrc/rrc_ue.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_cp_ue_context_release_handler
 {
@@ -391,5 +391,5 @@ public:
   virtual cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler()   = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

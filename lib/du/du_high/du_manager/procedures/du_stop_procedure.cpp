@@ -10,11 +10,11 @@
 
 #include "du_stop_procedure.h"
 #include "await_all_ues.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/async/execute_on.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/execute_on.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_stop_procedure::du_stop_procedure(du_ue_manager&           ue_mng_,
                                      du_cell_manager&         cell_mng_,
@@ -22,7 +22,7 @@ du_stop_procedure::du_stop_procedure(du_ue_manager&           ue_mng_,
   ue_mng(ue_mng_),
   cell_mng(cell_mng_),
   f1ap_conn_mng(f1ap_conn_mng_),
-  proc_logger(srslog::fetch_basic_logger("DU-MNG"), "DU Stop")
+  proc_logger(ocudulog::fetch_basic_logger("DU-MNG"), "DU Stop")
 {
 }
 

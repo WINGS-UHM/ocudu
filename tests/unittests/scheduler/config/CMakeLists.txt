@@ -7,5 +7,5 @@
 #
 
 add_executable(sched_config_test csi_helper_test.cpp pucch_resource_generator_test.cpp)
-target_link_libraries(sched_config_test sched_config sched_test_doubles srslog gtest gtest_main)
+target_link_libraries(sched_config_test sched_config sched_test_doubles ocudulog gtest gtest_main)
 add_test(sched_config_test sched_config_test)

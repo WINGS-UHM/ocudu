@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
 #include "transform_precoder_dft_impl.h"
-#include "srsran/phy/constants.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -24,7 +24,7 @@ public:
   transform_precoder_dft_factory(std::shared_ptr<dft_processor_factory> dft_factory_, unsigned max_nof_prb_) :
     dft_factory(std::move(dft_factory_)), max_nof_prb(max_nof_prb_)
   {
-    srsran_assert(dft_factory, "Invalid DFT factory.");
+    ocudu_assert(dft_factory, "Invalid DFT factory.");
   }
 
   // See interface for documentation.
@@ -56,7 +56,7 @@ private:
 } // namespace
 
 std::shared_ptr<transform_precoder_factory>
-srsran::create_dft_transform_precoder_factory(std::shared_ptr<dft_processor_factory> dft_factory, unsigned max_nof_prb)
+ocudu::create_dft_transform_precoder_factory(std::shared_ptr<dft_processor_factory> dft_factory, unsigned max_nof_prb)
 {
   return std::make_shared<transform_precoder_dft_factory>(std::move(dft_factory), max_nof_prb);
 }

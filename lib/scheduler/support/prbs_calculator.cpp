@@ -9,9 +9,9 @@
  */
 
 #include "prbs_calculator.h"
-#include "srsran/ran/sch/tbs_calculator.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
 
@@ -33,8 +33,7 @@ static float estimate_nof_info_payload_higher_3824_bits(unsigned payload_bits, f
 }
 
 /// \brief Obtain an initial estimate for the minimum number of PRBs needed so that the TBS >= payload size.
-unsigned srsran::estimate_required_nof_prbs(const prbs_calculator_sch_config& sch_config,
-                                            unsigned                          max_nof_available_rbs)
+unsigned ocudu::estimate_required_nof_prbs(const prbs_calculator_sch_config& sch_config, unsigned max_nof_available_rbs)
 {
   // Convert size into bits, as per TS procedures for TBS.
   const unsigned payload_size = sch_config.payload_size_bytes * NOF_BITS_PER_BYTE;
@@ -64,7 +63,7 @@ unsigned srsran::estimate_required_nof_prbs(const prbs_calculator_sch_config& sc
   // N_info_prime as per Section 5.1.3.2, TS 38.214.
   const int nof_re_prime = static_cast<int>(NOF_SUBCARRIERS_PER_RB) * static_cast<int>(sch_config.nof_symb_sh) -
                            static_cast<int>(sch_config.nof_dmrs_prb) - static_cast<int>(sch_config.nof_oh_prb);
-  srsran_assert(nof_re_prime > 0, "nof_re_prime is expected to be positive");
+  ocudu_assert(nof_re_prime > 0, "nof_re_prime is expected to be positive");
 
   // Get the estimated number of PRBs from the N_re and N_info_prime. Cap the returned value to the maximum nof RBs for
   // FR1.
@@ -127,9 +126,9 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
   return {tbs_cfg.n_prb, tbs_bits_ub / NOF_BITS_PER_BYTE};
 }
 
-sch_prbs_tbs srsran::get_nof_prbs(const prbs_calculator_sch_config& sch_config, unsigned max_nof_available_rbs)
+sch_prbs_tbs ocudu::get_nof_prbs(const prbs_calculator_sch_config& sch_config, unsigned max_nof_available_rbs)
 {
-  srsran_assert(max_nof_available_rbs <= MAX_NOF_PRBS, "Invalid number of RBs provided");
+  ocudu_assert(max_nof_available_rbs <= MAX_NOF_PRBS, "Invalid number of RBs provided");
 
   // Get a first estimate for the number of PRBs.
   const unsigned nof_prbs_estimate = estimate_required_nof_prbs(sch_config, max_nof_available_rbs);

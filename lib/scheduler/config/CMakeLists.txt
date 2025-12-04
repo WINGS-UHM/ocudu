@@ -15,7 +15,7 @@ set(SOURCES serving_cell_config_factory.cpp
         pucch_resource_generator.cpp
         rlm_helper.cpp)
 add_library(sched_config STATIC ${SOURCES})
-target_link_libraries(sched_config srsran_ran du_resource_manager)
+target_link_libraries(sched_config ocudu_ran du_resource_manager)
 
 add_library(sched_config_manager OBJECT
         cell_configuration.cpp
@@ -23,4 +23,4 @@ add_library(sched_config_manager OBJECT
         sched_config_manager.cpp
         du_cell_group_config_pool.cpp
 )
-target_link_libraries(sched_config_manager srsran_ran)
+target_link_libraries(sched_config_manager ocudu_ran)

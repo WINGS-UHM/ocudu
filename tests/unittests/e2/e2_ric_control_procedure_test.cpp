@@ -11,16 +11,16 @@
 #include "common/e2ap_asn1_packer.h"
 #include "lib/e2/common/e2ap_asn1_utils.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST_F(e2_test_setup, ric_control_procedure_setup)
 {
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-  srslog::init();
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
   test_logger.info("Launch e2 setup request procedure with task worker...");
   e2->handle_e2_tnl_connection_request();
 
@@ -58,7 +58,7 @@ TEST_F(e2_test_setup, ric_control_procedure_setup)
   ASSERT_EQ(ack->ran_function_id, 3);
   e2->handle_e2_disconnection_request();
 
-  srs_du::du_mac_sched_control_config& ctrl_config = du_rc_param_configurator->config;
+  odu::du_mac_sched_control_config& ctrl_config = du_rc_param_configurator->config;
   ASSERT_EQ(ctrl_config.rrm_policy_ratio_list.size(), rrm_policy_ratio_list_def.size());
   for (unsigned g = 0, k = ctrl_config.rrm_policy_ratio_list.size(); g < k; ++g) {
     const auto& rrm_policy_ratio_def = rrm_policy_ratio_list_def[g];
@@ -109,7 +109,7 @@ TEST_F(e2_test_setup, ric_control_procedure_packed)
   ASSERT_EQ(msg.pdu.type().value, asn1::e2ap::e2ap_pdu_c::types_opts::successful_outcome);
   e2->handle_e2_disconnection_request();
 
-  srs_du::du_mac_sched_control_config& ctrl_config = du_rc_param_configurator->config;
+  odu::du_mac_sched_control_config& ctrl_config = du_rc_param_configurator->config;
 
   ASSERT_EQ(ctrl_config.rrm_policy_ratio_list.size(), 1);
   const auto& rrm_policy_ratio = ctrl_config.rrm_policy_ratio_list[0];

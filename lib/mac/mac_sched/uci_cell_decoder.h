@@ -12,12 +12,12 @@
 
 #include "../rnti_value_table.h"
 #include "rlf_detector.h"
-#include "srsran/mac/mac_cell_control_information_handler.h"
-#include "srsran/ran/csi_report/csi_report_configuration.h"
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/mac/mac_cell_control_information_handler.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ul_sched_info;
 struct pucch_info;
@@ -46,12 +46,12 @@ private:
 
   size_t to_grid_index(slot_point slot) const { return slot.to_uint() % expected_uci_report_grid.size(); }
 
-  const du_rnti_table&  rnti_table;
-  du_cell_index_t       cell_index;
-  rlf_detector&         rlf_handler;
-  srslog::basic_logger& logger;
+  const du_rnti_table&    rnti_table;
+  du_cell_index_t         cell_index;
+  rlf_detector&           rlf_handler;
+  ocudulog::basic_logger& logger;
 
   std::vector<static_vector<uci_context, MAX_PUCCH_PDUS_PER_SLOT + MAX_PUSCH_PDUS_PER_SLOT>> expected_uci_report_grid;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,28 +11,28 @@
 #include "cu_up_pdcp_metrics_consumers.h"
 #include "apps/helpers/metrics/json_generators/cu_up/pdcp.h"
 #include "cu_up_pdcp_metrics.h"
-#include "srsran/pdcp/pdcp_metrics.h"
+#include "ocudu/pdcp/pdcp_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void cu_up_pdcp_metrics_consumer_e2::handle_metric(const app_services::metrics_set& metric)
 {
   notifier.report_metrics(static_cast<const cu_up_pdcp_metrics_impl&>(metric).get_metrics());
 }
 
-cu_up_pdcp_metrics_consumer_json::cu_up_pdcp_metrics_consumer_json(srslog::basic_logger& logger_,
-                                                                   srslog::log_channel&  log_chan_,
-                                                                   task_executor&        executor_,
-                                                                   unique_timer          timer_,
-                                                                   unsigned              report_period_ms_) :
+cu_up_pdcp_metrics_consumer_json::cu_up_pdcp_metrics_consumer_json(ocudulog::basic_logger& logger_,
+                                                                   ocudulog::log_channel&  log_chan_,
+                                                                   task_executor&          executor_,
+                                                                   unique_timer            timer_,
+                                                                   unsigned                report_period_ms_) :
   report_period_ms(report_period_ms_),
   logger(logger_),
   log_chan(log_chan_),
   executor(executor_),
   timer(std::move(timer_))
 {
-  srsran_assert(report_period_ms > 10, "CU-UP report period is too fast to work with current JSON consumer");
-  srsran_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
+  ocudu_assert(report_period_ms > 10, "CU-UP report period is too fast to work with current JSON consumer");
+  ocudu_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
 
   // Shift the timer a little.
   timer.set(std::chrono::milliseconds(report_period_ms / 10), [this](timer_id_t tid) { initialize_timer(); });

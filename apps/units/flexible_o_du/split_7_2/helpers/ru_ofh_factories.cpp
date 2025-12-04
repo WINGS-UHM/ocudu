@@ -12,19 +12,19 @@
 #include "apps/services/worker_manager/worker_manager.h"
 #include "apps/units/flexible_o_du/split_helpers/flexible_o_du_configs.h"
 #include "ru_ofh_config_translator.h"
-#include "srsran/ru/ofh/ru_ofh_factory.h"
+#include "ocudu/ru/ofh/ru_ofh_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<radio_unit> srsran::create_ofh_radio_unit(const ru_ofh_unit_config&            ru_cfg,
-                                                          const flexible_o_du_ru_config&       ru_config,
-                                                          const flexible_o_du_ru_dependencies& ru_dependencies)
+std::unique_ptr<radio_unit> ocudu::create_ofh_radio_unit(const ru_ofh_unit_config&            ru_cfg,
+                                                         const flexible_o_du_ru_config&       ru_config,
+                                                         const flexible_o_du_ru_dependencies& ru_dependencies)
 {
   auto& ofh_exec_map = ru_dependencies.workers.get_ofh_ru_executor_mapper();
 
   ru_ofh_dependencies dependencies;
 
-  dependencies.logger             = &srslog::fetch_basic_logger("OFH");
+  dependencies.logger             = &ocudulog::fetch_basic_logger("OFH");
   dependencies.rt_timing_executor = &ofh_exec_map.timing_executor();
   dependencies.timing_notifier    = &ru_dependencies.timing_notifier;
   dependencies.rx_symbol_notifier = &ru_dependencies.symbol_notifier;

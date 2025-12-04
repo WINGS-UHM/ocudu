@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/async/event_sender_receiver.h"
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/async/event_sender_receiver.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test manual event flag
 TEST(manual_event_flag_test, test_all)

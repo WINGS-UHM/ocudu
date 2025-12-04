@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_cp_unit_config;
 
 /// Fills the given node with the CU-CP configuration values.
 void fill_cu_cp_config_in_yaml_schema(YAML::Node& node, const cu_cp_unit_config& config);
 
-} // namespace srsran
+} // namespace ocudu

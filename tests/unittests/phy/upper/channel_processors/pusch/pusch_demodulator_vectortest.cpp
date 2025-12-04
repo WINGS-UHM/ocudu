@@ -11,14 +11,14 @@
 #include "pusch_codeword_buffer_test_doubles.h"
 #include "pusch_demodulator_notifier_test_doubles.h"
 #include "pusch_demodulator_test_data.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 // Maximum allowed error.
 constexpr log_likelihood_ratio::value_type LLR_MAX_ERROR = 1;
@@ -63,9 +63,9 @@ bool operator==(span<const log_likelihood_ratio> lhs, span<const log_likelihood_
       });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -115,7 +115,7 @@ protected:
 
     // Pack scrambling sequence.
     scrambling_seq.resize(unpacked_scrambling_seq.size());
-    srsvec::bit_pack(scrambling_seq, unpacked_scrambling_seq);
+    ocuduvec::bit_pack(scrambling_seq, unpacked_scrambling_seq);
 
     // Prepare descrambled codeword data.
     codeword = test_case.codeword.read();
@@ -158,8 +158,8 @@ TEST_P(PuschDemodulatorFixture, PuschDemodulatorUnittest)
       chan_estimates.set_noise_variance(test_case.context.noise_var, config.rx_ports[i_rx_port]);
 
       // Copy port channel estimates.
-      srsvec::convert(chan_estimates.get_path_ch_estimate(config.rx_ports[i_rx_port], i_layer),
-                      estimates.get_view<static_cast<unsigned>(ch_dims::rx_port)>({i_rx_port, i_layer}));
+      ocuduvec::convert(chan_estimates.get_path_ch_estimate(config.rx_ports[i_rx_port], i_layer),
+                        estimates.get_view<static_cast<unsigned>(ch_dims::rx_port)>({i_rx_port, i_layer}));
     }
   }
 

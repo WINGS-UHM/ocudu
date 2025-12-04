@@ -11,16 +11,16 @@
 #pragma once
 
 #include "../../../../../gateways/baseband/baseband_gateway_buffer_test_doubles.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_factories.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_request_handler.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_factories.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_request_handler.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class prach_processor_baseband_spy : public prach_processor_baseband
 {
@@ -106,4 +106,4 @@ private:
   prach_processor_spy* instance = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

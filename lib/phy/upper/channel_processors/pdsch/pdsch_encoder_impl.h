@@ -13,15 +13,15 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_encoder.h"
-#include "srsran/phy/upper/codeblock_metadata.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_encoder.h"
+#include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic implementation of the PDSCH encoder.
 class pdsch_encoder_impl : public pdsch_encoder
@@ -36,9 +36,9 @@ public:
                      std::unique_ptr<ldpc_rate_matcher> rm) :
     segmenter(std::move(seg)), encoder(std::move(enc)), rate_matcher(std::move(rm))
   {
-    srsran_assert(segmenter, "Invalid LDPC segmenter.");
-    srsran_assert(encoder, "Invalid LDPC encoder.");
-    srsran_assert(rate_matcher, "Invalid LDPC rate matcher.");
+    ocudu_assert(segmenter, "Invalid LDPC segmenter.");
+    ocudu_assert(encoder, "Invalid LDPC encoder.");
+    ocudu_assert(rate_matcher, "Invalid LDPC rate matcher.");
   }
 
   // See interface for the documentation.
@@ -64,4 +64,4 @@ private:
   static_bit_buffer<pdsch_constants::CODEWORD_MAX_SIZE.value()> codeblock_packed;
 };
 
-} // namespace srsran
+} // namespace ocudu

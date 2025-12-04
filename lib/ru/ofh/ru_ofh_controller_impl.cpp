@@ -9,9 +9,9 @@
  */
 
 #include "ru_ofh_controller_impl.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_ofh_controller_impl::start()
 {
@@ -33,12 +33,12 @@ void ru_ofh_controller_impl::stop()
 
 void ru_ofh_controller_impl::set_sector_controllers(std::vector<ofh::operation_controller*> controllers)
 {
-  srsran_assert(!controllers.empty(), "Invalid sector controllers");
+  ocudu_assert(!controllers.empty(), "Invalid sector controllers");
 
   sector_controllers = std::move(controllers);
 
-  srsran_assert(std::all_of(sector_controllers.begin(),
-                            sector_controllers.end(),
-                            [](const auto& elem) { return elem != nullptr; }),
-                "Invalid sector controller");
+  ocudu_assert(std::all_of(sector_controllers.begin(),
+                           sector_controllers.end(),
+                           [](const auto& elem) { return elem != nullptr; }),
+               "Invalid sector controller");
 }

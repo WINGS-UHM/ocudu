@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/du/o_du_factory.h"
+#include "ocudu/du/o_du_factory.h"
 #include "o_du_impl.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-std::unique_ptr<o_du> srs_du::make_o_du(o_du_dependencies&& dependencies)
+std::unique_ptr<o_du> odu::make_o_du(o_du_dependencies&& dependencies)
 {
-  srslog::fetch_basic_logger("DU").info("O-DU created successfully");
+  ocudulog::fetch_basic_logger("DU").info("O-DU created successfully");
 
   return std::make_unique<o_du_impl>(std::move(dependencies));
 }

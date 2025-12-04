@@ -9,9 +9,9 @@
  */
 
 #include "ofh_closed_rx_window_handler.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/support/executors/task_executor.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 closed_rx_window_handler::closed_rx_window_handler(const closed_rx_window_handler_config&  config,
@@ -26,15 +26,15 @@ closed_rx_window_handler::closed_rx_window_handler(const closed_rx_window_handle
   uplink_repo(std::move(dependencies.uplink_repo)),
   notifier(std::move(dependencies.notifier))
 {
-  srsran_assert(prach_repo, "Invalid PRACH context repository");
-  srsran_assert(uplink_repo, "Invalid uplink context repository");
-  srsran_assert(notifier, "Invalid U-Plane received symbol notifier");
+  ocudu_assert(prach_repo, "Invalid PRACH context repository");
+  ocudu_assert(uplink_repo, "Invalid uplink context repository");
+  ocudu_assert(notifier, "Invalid U-Plane received symbol notifier");
 }
 
 void closed_rx_window_handler::on_new_symbol(const slot_symbol_point_context& symbol_point_context)
 {
   auto token = stop_manager.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
@@ -89,7 +89,7 @@ void closed_rx_window_handler::handle_uplink_context(slot_symbol_point symbol_po
                    symbol_point.get_symbol_index());
   }
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sector#{}: notifying incomplete UL symbol in slot '{}', symbol '{}'",
                  notification_context.sector,
                  notification_context.slot,
@@ -124,7 +124,7 @@ void closed_rx_window_handler::handle_prach_context(slot_symbol_point symbol_poi
         "Sector#{}: missed incoming User-Plane PRACH messages for slot '{}'", ctx_value.sector, ctx_value.slot);
   }
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sector#{}: notifying incomplete PRACH in slot '{}'", ctx_value.sector, ctx_value.slot);
   }
 }

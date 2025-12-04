@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Remote control application configuration.
 struct remote_control_appconfig {
@@ -23,4 +23,4 @@ struct remote_control_appconfig {
   bool        enable_metrics_subscription = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,16 +10,16 @@
 
 #include "iq_compression_bfp_impl.h"
 #include "packing_utils_generic.h"
-#include "srsran/ofh/compression/compression_properties.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/support/units.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ofh/compression/compression_properties.h"
+#include "ocudu/support/units.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void iq_compression_bfp_impl::quantize_input(span<int16_t> out, span<const bf16_t> in)
 {
-  srsran_assert(in.size() == out.size(), "Input and output spans must have the same size");
+  ocudu_assert(in.size() == out.size(), "Input and output spans must have the same size");
 
   // Quantizer object.
   quantizer q(Q_BIT_WIDTH);
@@ -27,9 +27,9 @@ void iq_compression_bfp_impl::quantize_input(span<int16_t> out, span<const bf16_
   // Convert input to int16_t representation.
   q.to_fixed_point(out, in, iq_scaling);
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled() && !out.empty())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled() && !out.empty())) {
     // Calculate and print RMS of quantized samples.
-    float sum_squares = srsvec::dot_prod(out, out, 0);
+    float sum_squares = ocuduvec::dot_prod(out, out, 0);
     float rms         = std::sqrt(sum_squares / out.size());
     if (std::isnormal(rms)) {
       logger.debug("Quantized IQ samples RMS value of '{}'", rms);
@@ -75,7 +75,7 @@ void iq_compression_bfp_impl::compress(span<uint8_t>                buffer,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
+  ocudu_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
 
   // Auxiliary arrays used for float to fixed point conversion of the input data.
   std::array<int16_t, NOF_SAMPLES_PER_PRB * MAX_NOF_PRBS> input_quantized;
@@ -132,9 +132,9 @@ void iq_compression_bfp_impl::decompress(span<cbf16_t>                iq_data,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(compressed_data.size() >= nof_prbs * prb_size,
-                "Input does not contain enough bytes to decompress {} PRBs",
-                nof_prbs);
+  ocudu_assert(compressed_data.size() >= nof_prbs * prb_size,
+               "Input does not contain enough bytes to decompress {} PRBs",
+               nof_prbs);
 
   unsigned out_idx = 0;
   for (unsigned c_prb_idx = 0; c_prb_idx != nof_prbs; ++c_prb_idx) {

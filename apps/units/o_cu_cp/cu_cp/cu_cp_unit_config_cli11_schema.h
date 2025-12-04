@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_cp_unit_config;
 struct cu_cp_unit_supported_ta_item;
@@ -24,4 +24,4 @@ void configure_cli11_with_cu_cp_unit_config_schema(CLI::App& app, cu_cp_unit_con
 /// Auto derive CU-CP parameters after the parsing.
 void autoderive_cu_cp_parameters_after_parsing(CLI::App& app, cu_cp_unit_config& unit_cfg);
 
-} // namespace srsran
+} // namespace ocudu

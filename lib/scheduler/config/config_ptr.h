@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 template <typename T>
 class config_object_pool;
@@ -49,4 +49,4 @@ private:
   const T* obj = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

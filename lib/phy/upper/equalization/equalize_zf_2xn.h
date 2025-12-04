@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/srsvec/simd.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/simd.h"
+#include "ocudu/ocuduvec/zero.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implementation of a Zero Forcing equalizer algorithm for a MIMO 2 X N channel.
 ///
@@ -45,7 +45,7 @@ void equalize_zf_2xn(span<cf_t>                            eq_symbols,
 
   // Skip processing if the noise variance is NaN, infinity or negative.
   if (!std::isnormal(noise_var_est) || (noise_var_est < 0.0F)) {
-    srsvec::zero(eq_symbols);
+    ocuduvec::zero(eq_symbols);
     std::fill(noise_vars.begin(), noise_vars.end(), std::numeric_limits<float>::infinity());
     return;
   }
@@ -64,105 +64,105 @@ void equalize_zf_2xn(span<cf_t>                            eq_symbols,
     }
   }
 
-#if SRSRAN_SIMD_CF_SIZE
-  simd_f_t tx_scaling_simd    = srsran_simd_f_set1(tx_scaling);
-  simd_f_t noise_var_est_simd = srsran_simd_f_set1(noise_var_est / tx_scaling);
-  simd_f_t zero_simd          = srsran_simd_f_zero();
-  simd_f_t infinity_simd      = srsran_simd_f_set1(std::numeric_limits<float>::infinity());
+#if OCUDU_SIMD_CF_SIZE
+  simd_f_t tx_scaling_simd    = ocudu_simd_f_set1(tx_scaling);
+  simd_f_t noise_var_est_simd = ocudu_simd_f_set1(noise_var_est / tx_scaling);
+  simd_f_t zero_simd          = ocudu_simd_f_zero();
+  simd_f_t infinity_simd      = ocudu_simd_f_set1(std::numeric_limits<float>::infinity());
 
-  for (unsigned nof_re_simd = (nof_re / SRSRAN_SIMD_CF_SIZE) * SRSRAN_SIMD_CF_SIZE; i_re != nof_re_simd;
-       i_re += SRSRAN_SIMD_CF_SIZE) {
+  for (unsigned nof_re_simd = (nof_re / OCUDU_SIMD_CF_SIZE) * OCUDU_SIMD_CF_SIZE; i_re != nof_re_simd;
+       i_re += OCUDU_SIMD_CF_SIZE) {
     // Channel estimates, and their conjugate.
     std::array<std::array<simd_cf_t, nof_layers>, nof_ports> ch;
     for (unsigned i_layer = 0; i_layer != nof_layers; ++i_layer) {
       for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-        ch[i_port][i_layer] = srsran_simd_cbf16_loadu(ch_estimates[i_port][i_layer].data() + i_re);
+        ch[i_port][i_layer] = ocudu_simd_cbf16_loadu(ch_estimates[i_port][i_layer].data() + i_re);
       }
     }
 
     // Input Resource Elements.
     std::array<simd_cf_t, nof_ports> re_in;
     for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-      re_in[i_port] = srsran_simd_cbf16_loadu(symbols_in[i_port].data() + i_re);
+      re_in[i_port] = ocudu_simd_cbf16_loadu(symbols_in[i_port].data() + i_re);
     }
 
     // Calculate the product of the channel matrix (recall, it's an Nx2 matrix) and its hermitian transpose.
     // The diagonal coefficients are the squared norms of the channel matrix column vectors.
     simd_f_t norm_sq_ch[nof_layers];
     for (unsigned i_layer = 0; i_layer != nof_layers; ++i_layer) {
-      simd_f_t sum = srsran_simd_f_zero();
+      simd_f_t sum = ocudu_simd_f_zero();
       for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-        sum = srsran_simd_f_add(sum, srsran_simd_cf_norm_sq(ch[i_port][i_layer]));
+        sum = ocudu_simd_f_add(sum, ocudu_simd_cf_norm_sq(ch[i_port][i_layer]));
       }
       norm_sq_ch[i_layer] = sum;
     }
 
     // Calculate the anti-diagonal coefficients, which are xi and xi_conj.
-    simd_cf_t xi = srsran_simd_cf_zero();
+    simd_cf_t xi = ocudu_simd_cf_zero();
     for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-      xi = srsran_simd_cf_add(xi, srsran_simd_cf_conjprod(ch[i_port][1], ch[i_port][0]));
+      xi = ocudu_simd_cf_add(xi, ocudu_simd_cf_conjprod(ch[i_port][1], ch[i_port][0]));
     }
-    simd_cf_t xi_conj   = srsran_simd_cf_conj(xi);
-    simd_f_t  xi_mod_sq = srsran_simd_cf_norm_sq(xi);
+    simd_cf_t xi_conj   = ocudu_simd_cf_conj(xi);
+    simd_f_t  xi_mod_sq = ocudu_simd_cf_norm_sq(xi);
 
     // Apply a matched filter for each transmit layer to the input signal.
     std::array<simd_cf_t, nof_layers> matched_input;
     for (unsigned i_layer = 0; i_layer != nof_layers; ++i_layer) {
-      simd_cf_t sum = srsran_simd_cf_zero();
+      simd_cf_t sum = ocudu_simd_cf_zero();
       for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-        sum = srsran_simd_cf_add(sum, srsran_simd_cf_conjprod(re_in[i_port], ch[i_port][i_layer]));
+        sum = ocudu_simd_cf_add(sum, ocudu_simd_cf_conjprod(re_in[i_port], ch[i_port][i_layer]));
       }
       matched_input[i_layer] = sum;
     }
 
     // Calculate the denominators.
-    simd_f_t d_pinv = srsran_simd_f_mul(tx_scaling_simd,
-                                        srsran_simd_f_sub(srsran_simd_f_mul(norm_sq_ch[0], norm_sq_ch[1]), xi_mod_sq));
+    simd_f_t d_pinv =
+        ocudu_simd_f_mul(tx_scaling_simd, ocudu_simd_f_sub(ocudu_simd_f_mul(norm_sq_ch[0], norm_sq_ch[1]), xi_mod_sq));
 
     // Calculate the reciprocal of the denominators.
-    simd_f_t d_pinv_rcp = srsran_simd_f_rcp(d_pinv);
+    simd_f_t d_pinv_rcp = ocudu_simd_f_rcp(d_pinv);
 
     // Apply Zero Forcing algorithm. This is equivalent to multiplying the input signal with the pseudo-inverse of the
     // channel matrix.
-    simd_cf_t symbols_out_l0 = srsran_simd_cf_sub(srsran_simd_cf_mul(matched_input[0], norm_sq_ch[1]),
-                                                  srsran_simd_cf_prod(xi, matched_input[1]));
-    symbols_out_l0           = srsran_simd_cf_mul(symbols_out_l0, d_pinv_rcp);
-    simd_cf_t symbols_out_l1 = srsran_simd_cf_sub(srsran_simd_cf_mul(matched_input[1], norm_sq_ch[0]),
-                                                  srsran_simd_cf_prod(xi_conj, matched_input[0]));
-    symbols_out_l1           = srsran_simd_cf_mul(symbols_out_l1, d_pinv_rcp);
+    simd_cf_t symbols_out_l0 =
+        ocudu_simd_cf_sub(ocudu_simd_cf_mul(matched_input[0], norm_sq_ch[1]), ocudu_simd_cf_prod(xi, matched_input[1]));
+    symbols_out_l0           = ocudu_simd_cf_mul(symbols_out_l0, d_pinv_rcp);
+    simd_cf_t symbols_out_l1 = ocudu_simd_cf_sub(ocudu_simd_cf_mul(matched_input[1], norm_sq_ch[0]),
+                                                 ocudu_simd_cf_prod(xi_conj, matched_input[0]));
+    symbols_out_l1           = ocudu_simd_cf_mul(symbols_out_l1, d_pinv_rcp);
 
     // Calculate post-equalization noise variances.
-    simd_f_t eq_noise_vars_l0 = srsran_simd_f_mul(srsran_simd_f_mul(norm_sq_ch[1], noise_var_est_simd), d_pinv_rcp);
-    simd_f_t eq_noise_vars_l1 = srsran_simd_f_mul(srsran_simd_f_mul(norm_sq_ch[0], noise_var_est_simd), d_pinv_rcp);
+    simd_f_t eq_noise_vars_l0 = ocudu_simd_f_mul(ocudu_simd_f_mul(norm_sq_ch[1], noise_var_est_simd), d_pinv_rcp);
+    simd_f_t eq_noise_vars_l1 = ocudu_simd_f_mul(ocudu_simd_f_mul(norm_sq_ch[0], noise_var_est_simd), d_pinv_rcp);
 
     // Return values in case of abnormal computation parameters. These include negative, zero, NAN or INF noise
     // variances and zero, NAN or INF channel estimation coefficients.
     {
       // Detect abnormal computation parameters. This detects whenever the channel estimate is zero or NaN.
-      simd_sel_t isnormal_mask = srsran_simd_f_max(d_pinv, zero_simd);
+      simd_sel_t isnormal_mask = ocudu_simd_f_max(d_pinv, zero_simd);
 
       // Detect abnormal computation parameters. This detects whenever the channel estimate is infinity.
-      isnormal_mask = srsran_simd_sel_and(isnormal_mask, srsran_simd_f_max(infinity_simd, d_pinv));
+      isnormal_mask = ocudu_simd_sel_and(isnormal_mask, ocudu_simd_f_max(infinity_simd, d_pinv));
 
-      symbols_out_l0   = srsran_simd_cf_select(srsran_simd_cf_zero(), symbols_out_l0, isnormal_mask);
-      symbols_out_l1   = srsran_simd_cf_select(srsran_simd_cf_zero(), symbols_out_l1, isnormal_mask);
-      eq_noise_vars_l0 = srsran_simd_f_select(infinity_simd, eq_noise_vars_l0, isnormal_mask);
-      eq_noise_vars_l1 = srsran_simd_f_select(infinity_simd, eq_noise_vars_l1, isnormal_mask);
+      symbols_out_l0   = ocudu_simd_cf_select(ocudu_simd_cf_zero(), symbols_out_l0, isnormal_mask);
+      symbols_out_l1   = ocudu_simd_cf_select(ocudu_simd_cf_zero(), symbols_out_l1, isnormal_mask);
+      eq_noise_vars_l0 = ocudu_simd_f_select(infinity_simd, eq_noise_vars_l0, isnormal_mask);
+      eq_noise_vars_l1 = ocudu_simd_f_select(infinity_simd, eq_noise_vars_l1, isnormal_mask);
     }
 
     // Revert layer mapping for the equalized symbols.
-    simd_cf_t symbols_low  = srsran_simd_cf_interleave_low(symbols_out_l0, symbols_out_l1);
-    simd_cf_t symbols_high = srsran_simd_cf_interleave_high(symbols_out_l0, symbols_out_l1);
-    srsran_simd_cfi_storeu(eq_symbols.data() + nof_layers * i_re, symbols_low);
-    srsran_simd_cfi_storeu(eq_symbols.data() + nof_layers * i_re + SRSRAN_SIMD_CF_SIZE, symbols_high);
+    simd_cf_t symbols_low  = ocudu_simd_cf_interleave_low(symbols_out_l0, symbols_out_l1);
+    simd_cf_t symbols_high = ocudu_simd_cf_interleave_high(symbols_out_l0, symbols_out_l1);
+    ocudu_simd_cfi_storeu(eq_symbols.data() + nof_layers * i_re, symbols_low);
+    ocudu_simd_cfi_storeu(eq_symbols.data() + nof_layers * i_re + OCUDU_SIMD_CF_SIZE, symbols_high);
 
     // Revert layer mapping for the estimated noise variance.
-    simd_f_t eq_noise_vars_low  = srsran_simd_f_interleave_low(eq_noise_vars_l0, eq_noise_vars_l1);
-    simd_f_t eq_noise_vars_high = srsran_simd_f_interleave_high(eq_noise_vars_l0, eq_noise_vars_l1);
-    srsran_simd_f_storeu(noise_vars.data() + nof_layers * i_re, eq_noise_vars_low);
-    srsran_simd_f_storeu(noise_vars.data() + nof_layers * i_re + SRSRAN_SIMD_CF_SIZE, eq_noise_vars_high);
+    simd_f_t eq_noise_vars_low  = ocudu_simd_f_interleave_low(eq_noise_vars_l0, eq_noise_vars_l1);
+    simd_f_t eq_noise_vars_high = ocudu_simd_f_interleave_high(eq_noise_vars_l0, eq_noise_vars_l1);
+    ocudu_simd_f_storeu(noise_vars.data() + nof_layers * i_re, eq_noise_vars_low);
+    ocudu_simd_f_storeu(noise_vars.data() + nof_layers * i_re + OCUDU_SIMD_CF_SIZE, eq_noise_vars_high);
   }
-#endif // SRSRAN_SIMD_CF_SIZE
+#endif // OCUDU_SIMD_CF_SIZE
 
   // Iterate each RE.
   for (; i_re != nof_re; ++i_re) {
@@ -238,4 +238,4 @@ void equalize_zf_2xn(span<cf_t>                            eq_symbols,
   }
 }
 
-} // namespace srsran
+} // namespace ocudu

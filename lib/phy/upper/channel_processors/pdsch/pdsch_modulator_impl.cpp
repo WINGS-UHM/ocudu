@@ -9,11 +9,11 @@
  */
 
 #include "pdsch_modulator_impl.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 const bit_buffer& pdsch_modulator_impl::scramble(const bit_buffer& b, unsigned q, const config_t& config)
 {
@@ -42,9 +42,9 @@ void pdsch_modulator_impl::map(resource_grid_writer& grid,
                                float                 scaling,
                                const config_t&       config)
 {
-  srsran_assert(config.time_alloc.stop() <= MAX_NSYMB_PER_SLOT,
-                "The time allocation of the transmission {} exceeds the slot boundary.",
-                config.time_alloc);
+  ocudu_assert(config.time_alloc.stop() <= MAX_NSYMB_PER_SLOT,
+               "The time allocation of the transmission {} exceeds the slot boundary.",
+               config.time_alloc);
 
   // PDSCH OFDM symbol mask.
   symbol_slot_mask symbols;
@@ -80,7 +80,7 @@ void pdsch_modulator_impl::modulate(resource_grid_writer&            grid,
                                     span<const bit_buffer>           codewords,
                                     const pdsch_modulator::config_t& config)
 {
-  srsran_assert(codewords.size() == 1, "Only one PDSCH codeword is currently supported");
+  ocudu_assert(codewords.size() == 1, "Only one PDSCH codeword is currently supported");
 
   modulation_scheme mod = config.modulation1;
   unsigned          Qm  = get_bits_per_symbol(mod);

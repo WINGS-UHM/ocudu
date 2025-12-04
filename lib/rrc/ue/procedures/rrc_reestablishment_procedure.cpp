@@ -10,13 +10,13 @@
 
 #include "rrc_reestablishment_procedure.h"
 #include "rrc_setup_procedure.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/nr_ue_variables.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/security/integrity.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/nr_ue_variables.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/security/integrity.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
 rrc_reestablishment_procedure::rrc_reestablishment_procedure(
     const asn1::rrc_nr::rrc_reest_request_s& request_,

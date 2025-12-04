@@ -14,6 +14,6 @@ set(SOURCES
         logging_slot_time_notifier_decorator.cpp
         message_loggers.cpp)
 
-add_library(srsran_fapi_loggers STATIC ${SOURCES})
-target_include_directories(srsran_fapi_loggers PRIVATE ${CMAKE_SOURCE_DIR}/lib/fapi)
-target_link_libraries(srsran_fapi_loggers srslog srsran_fapi_decorator_helpers)
+add_library(ocudu_fapi_loggers STATIC ${SOURCES})
+target_include_directories(ocudu_fapi_loggers PRIVATE ${CMAKE_SOURCE_DIR}/lib/fapi)
+target_link_libraries(ocudu_fapi_loggers ocudulog ocudu_fapi_decorator_helpers)

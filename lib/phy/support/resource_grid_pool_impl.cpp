@@ -9,19 +9,19 @@
  */
 
 #include "resource_grid_pool_impl.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/rtsan.h"
 #include <mutex>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
-shared_resource_grid resource_grid_pool_wrapper::try_reserve(srsran::stop_event_token token)
+shared_resource_grid resource_grid_pool_wrapper::try_reserve(ocudu::stop_event_token token)
 {
   // Try to transition from available to one scope.
   unsigned expected = ref_counter_available;
@@ -48,9 +48,9 @@ void resource_grid_pool_wrapper::release()
   [[maybe_unused]] unsigned prev_scope_count = scope_count.exchange(ref_counter_available, std::memory_order_acq_rel);
 
   // Assert that the grid is not present in any scope before becoming available.
-  srsran_assert((prev_scope_count == ref_counter_available) || (prev_scope_count == 0),
-                "The resource grid state cannot transition to available while it is present in {} scopes.",
-                prev_scope_count);
+  ocudu_assert((prev_scope_count == ref_counter_available) || (prev_scope_count == 0),
+               "The resource grid state cannot transition to available while it is present in {} scopes.",
+               prev_scope_count);
 }
 
 void resource_grid_pool_wrapper::notify_release_scope()
@@ -68,7 +68,7 @@ void resource_grid_pool_wrapper::notify_release_scope()
   }
 
   // Create lambda function for setting the grid to zero.
-  auto set_all_zero_func = [this]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+  auto set_all_zero_func = [this]() noexcept OCUDU_RTSAN_NONBLOCKING {
     // Set grid to zero.
     grid->set_all_zero();
 
@@ -100,7 +100,7 @@ shared_resource_grid resource_grid_pool_impl::allocate_resource_grid(slot_point 
 {
   // Get a stop token, return an invalid grid if it is stopping or stopped.
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return {};
   }
 

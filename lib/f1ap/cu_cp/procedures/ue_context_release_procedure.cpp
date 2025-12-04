@@ -10,19 +10,19 @@
 
 #include "ue_context_release_procedure.h"
 #include "../f1ap_asn1_converters.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::f1ap;
 
 ue_context_release_procedure::ue_context_release_procedure(const f1ap_configuration&              f1ap_cfg_,
                                                            const f1ap_ue_context_release_command& cmd_,
                                                            f1ap_ue_context&                       ue_ctxt_,
                                                            f1ap_message_notifier&                 f1ap_notif_) :
-  f1ap_cfg(f1ap_cfg_), ue_ctxt(ue_ctxt_), f1ap_notifier(f1ap_notif_), logger(srslog::fetch_basic_logger("CU-CP-F1"))
+  f1ap_cfg(f1ap_cfg_), ue_ctxt(ue_ctxt_), f1ap_notifier(f1ap_notif_), logger(ocudulog::fetch_basic_logger("CU-CP-F1"))
 {
   command->gnb_cu_ue_f1ap_id = gnb_cu_ue_f1ap_id_to_uint(ue_ctxt.ue_ids.cu_ue_f1ap_id);
   command->gnb_du_ue_f1ap_id = gnb_du_ue_f1ap_id_to_uint(*ue_ctxt.ue_ids.du_ue_f1ap_id);
@@ -31,7 +31,7 @@ ue_context_release_procedure::ue_context_release_procedure(const f1ap_configurat
     command->rrc_container_present = true;
     command->rrc_container         = cmd_.rrc_release_pdu.copy();
 
-    srsran_assert(cmd_.srb_id.has_value(), "SRB-ID for UE Context Release Command with RRC Container must be set");
+    ocudu_assert(cmd_.srb_id.has_value(), "SRB-ID for UE Context Release Command with RRC Container must be set");
 
     command->srb_id_present = true;
     command->srb_id         = srb_id_to_uint(cmd_.srb_id.value());

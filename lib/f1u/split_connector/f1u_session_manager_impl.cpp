@@ -9,18 +9,18 @@
  */
 
 #include "f1u_session_manager_impl.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 f1u_session_manager_impl::f1u_session_manager_impl(const f1u_session_maps& f1u_sessions_) :
-  logger(srslog::fetch_basic_logger("CU-F1-U")), f1u_sessions(f1u_sessions_)
+  logger(ocudulog::fetch_basic_logger("CU-F1-U")), f1u_sessions(f1u_sessions_)
 {
-  srsran_assert(not f1u_sessions.default_gw_sessions.empty(), "F1-U gateways cannot be empty");
+  ocudu_assert(not f1u_sessions.default_gw_sessions.empty(), "F1-U gateways cannot be empty");
   for (const auto& [s_nssai, s_nssai_sessions] : f1u_sessions.session_maps) {
     for (const auto& [five_qi, sessions] : s_nssai_sessions) {
-      srsran_assert(not sessions.empty(), "There are no GWs for configured 5QI. {}", five_qi);
+      ocudu_assert(not sessions.empty(), "There are no GWs for configured 5QI. {}", five_qi);
       next_gw_map[s_nssai]          = {};
       next_gw_map[s_nssai][five_qi] = 0;
     }

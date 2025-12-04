@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_f1c_handler.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/gateways/f1c_connection_client.h"
-#include "srsran/f1u/du/f1u_gateway.h"
+#include "ocudu/cu_cp/cu_cp_f1c_handler.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/gateways/f1c_connection_client.h"
+#include "ocudu/f1u/du/f1u_gateway.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief F1AP message notifier that stores the last received PDU.
 class test_f1ap_message_notifier : public f1ap_message_notifier
@@ -44,7 +44,7 @@ public:
   }
 
 private:
-  srslog::basic_logger&                  logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                logger = ocudulog::fetch_basic_logger("TEST");
   bool                                   cu_to_du_dir;
   std::vector<f1ap_message>*             last_pdus;
   std::unique_ptr<f1ap_message_notifier> notifier;
@@ -52,13 +52,13 @@ private:
 
 /// \brief Test helper class that creates an F1-C gateway for co-located setups (CU-CP and DU in the same process), and
 /// stores the messages received by the CU-CP and DU for testing purposes.
-class f1c_test_local_gateway : public srs_du::f1c_connection_client
+class f1c_test_local_gateway : public odu::f1c_connection_client
 {
 public:
   f1c_test_local_gateway() = default;
-  explicit f1c_test_local_gateway(srs_cu_cp::cu_cp_f1c_handler& cu_cp_du_mng_) : cu_cp_du_mng(&cu_cp_du_mng_) {}
+  explicit f1c_test_local_gateway(ocucp::cu_cp_f1c_handler& cu_cp_du_mng_) : cu_cp_du_mng(&cu_cp_du_mng_) {}
 
-  void attach_cu_cp_du_repo(srs_cu_cp::cu_cp_f1c_handler& cu_cp_du_mng_) { cu_cp_du_mng = &cu_cp_du_mng_; }
+  void attach_cu_cp_du_repo(ocucp::cu_cp_f1c_handler& cu_cp_du_mng_) { cu_cp_du_mng = &cu_cp_du_mng_; }
 
   std::unique_ptr<f1ap_message_notifier>
   handle_du_connection_request(std::unique_ptr<f1ap_message_notifier> du_rx_pdu_notifier) override
@@ -101,23 +101,23 @@ private:
     std::vector<f1ap_message> last_du_rx_pdus;
   };
 
-  srs_cu_cp::cu_cp_f1c_handler* cu_cp_du_mng = nullptr;
+  ocucp::cu_cp_f1c_handler* cu_cp_du_mng = nullptr;
 
   std::vector<std::unique_ptr<du_connection_test_context>> connections;
 };
 
-class f1u_test_local_gateway : public srs_du::f1u_du_gateway
+class f1u_test_local_gateway : public odu::f1u_du_gateway
 {
-  std::unique_ptr<srs_du::f1u_du_gateway_bearer> create_du_bearer(uint32_t                       ue_index,
-                                                                  drb_id_t                       drb_id,
-                                                                  s_nssai_t                      s_nssai,
-                                                                  five_qi_t                      five_qi,
-                                                                  srs_du::f1u_config             config,
-                                                                  const gtpu_teid_t&             dl_teid,
-                                                                  const up_transport_layer_info& ul_up_tnl_info,
-                                                                  srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx,
-                                                                  timer_factory                              timers,
-                                                                  task_executor& ue_executor) override
+  std::unique_ptr<odu::f1u_du_gateway_bearer> create_du_bearer(uint32_t                                ue_index,
+                                                               drb_id_t                                drb_id,
+                                                               s_nssai_t                               s_nssai,
+                                                               five_qi_t                               five_qi,
+                                                               odu::f1u_config                         config,
+                                                               const gtpu_teid_t&                      dl_teid,
+                                                               const up_transport_layer_info&          ul_up_tnl_info,
+                                                               odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
+                                                               timer_factory                           timers,
+                                                               task_executor& ue_executor) override
   {
     return nullptr;
   }
@@ -127,4 +127,4 @@ class f1u_test_local_gateway : public srs_du::f1u_du_gateway
   expected<std::string> get_du_bind_address(gnb_du_id_t du_index) const override { return std::string("127.0.0.1"); }
 };
 
-} // namespace srsran
+} // namespace ocudu

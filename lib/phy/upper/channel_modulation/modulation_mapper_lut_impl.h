@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/support/math/math_utils.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 /// Modulation mapper based on look-up tables.
 class modulation_mapper_lut_impl : public modulation_mapper
@@ -27,4 +27,4 @@ public:
   float modulate(span<ci8_t> symbols, const bit_buffer& input, modulation_scheme scheme) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

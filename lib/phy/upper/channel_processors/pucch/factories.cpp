@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
 #include "logging_pucch_processor_decorator.h"
 #include "pucch_demodulator_impl.h"
 #include "pucch_detector_format0.h"
@@ -16,11 +16,11 @@
 #include "pucch_detector_impl.h"
 #include "pucch_processor_impl.h"
 #include "pucch_processor_pool.h"
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/formatters.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/formatters.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -42,10 +42,10 @@ public:
     eqzr_factory(std::move(eqzrf)),
     dft_factory(std::move(dftf))
   {
-    srsran_assert(low_papr_factory, "Invalid low-PAPR sequence collection factory.");
-    srsran_assert(prg_factory, "Invalid pseudorandom generator factory.");
-    srsran_assert(eqzr_factory, "Invalid channel equalizer factory.");
-    srsran_assert(dft_factory, "Invalid DFT processor factory.");
+    ocudu_assert(low_papr_factory, "Invalid low-PAPR sequence collection factory.");
+    ocudu_assert(prg_factory, "Invalid pseudorandom generator factory.");
+    ocudu_assert(eqzr_factory, "Invalid channel equalizer factory.");
+    ocudu_assert(dft_factory, "Invalid DFT processor factory.");
   }
 
   std::unique_ptr<pucch_detector> create() override
@@ -82,30 +82,30 @@ public:
     decoder_factory(std::move(decoder_factory_)),
     channel_estimate_dimensions(channel_estimate_dimensions_)
   {
-    srsran_assert(dmrs_factory, "Invalid DM-RS estimator factory.");
-    srsran_assert(detector_factory, "Invalid detector factory.");
-    srsran_assert(demodulator_factory, "Invalid PUCCH demodulator factory.");
-    srsran_assert(decoder_factory, "Invalid UCI decoder factory.");
-    srsran_assert((channel_estimate_dimensions.nof_symbols != 0) && (channel_estimate_dimensions.nof_prb != 0) &&
-                      (channel_estimate_dimensions.nof_rx_ports != 0) &&
-                      (channel_estimate_dimensions.nof_tx_layers != 0),
-                  "Channel estimate dimensions cannot be zero.");
-    srsran_assert(channel_estimate_dimensions.nof_prb <= MAX_RB,
-                  "Number of RB, i.e., {}, exceeds maximum bandwidth, i.e., {}.",
-                  channel_estimate_dimensions.nof_prb,
-                  MAX_RB);
-    srsran_assert(channel_estimate_dimensions.nof_symbols <= MAX_NSYMB_PER_SLOT,
-                  "Number of OFDM symbols, i.e., {}, exceeds maximum slot symbols, i.e., {}.",
-                  channel_estimate_dimensions.nof_symbols,
-                  MAX_NSYMB_PER_SLOT);
-    srsran_assert(channel_estimate_dimensions.nof_rx_ports <= static_cast<unsigned>(MAX_PUCCH_RX_PORTS),
-                  "Number of receive ports, i.e., {}, exceeds maximum supported receive ports, i.e., {}.",
-                  channel_estimate_dimensions.nof_rx_ports,
-                  static_cast<unsigned>(MAX_PUCCH_RX_PORTS));
-    srsran_assert(channel_estimate_dimensions.nof_tx_layers <= pucch_constants::MAX_LAYERS,
-                  "Number of transmit layers, i.e., {}, exceeds maximum PUCCH transmit layers, i.e., {}.",
-                  channel_estimate_dimensions.nof_tx_layers,
-                  pucch_constants::MAX_LAYERS);
+    ocudu_assert(dmrs_factory, "Invalid DM-RS estimator factory.");
+    ocudu_assert(detector_factory, "Invalid detector factory.");
+    ocudu_assert(demodulator_factory, "Invalid PUCCH demodulator factory.");
+    ocudu_assert(decoder_factory, "Invalid UCI decoder factory.");
+    ocudu_assert((channel_estimate_dimensions.nof_symbols != 0) && (channel_estimate_dimensions.nof_prb != 0) &&
+                     (channel_estimate_dimensions.nof_rx_ports != 0) &&
+                     (channel_estimate_dimensions.nof_tx_layers != 0),
+                 "Channel estimate dimensions cannot be zero.");
+    ocudu_assert(channel_estimate_dimensions.nof_prb <= MAX_RB,
+                 "Number of RB, i.e., {}, exceeds maximum bandwidth, i.e., {}.",
+                 channel_estimate_dimensions.nof_prb,
+                 MAX_RB);
+    ocudu_assert(channel_estimate_dimensions.nof_symbols <= MAX_NSYMB_PER_SLOT,
+                 "Number of OFDM symbols, i.e., {}, exceeds maximum slot symbols, i.e., {}.",
+                 channel_estimate_dimensions.nof_symbols,
+                 MAX_NSYMB_PER_SLOT);
+    ocudu_assert(channel_estimate_dimensions.nof_rx_ports <= static_cast<unsigned>(MAX_PUCCH_RX_PORTS),
+                 "Number of receive ports, i.e., {}, exceeds maximum supported receive ports, i.e., {}.",
+                 channel_estimate_dimensions.nof_rx_ports,
+                 static_cast<unsigned>(MAX_PUCCH_RX_PORTS));
+    ocudu_assert(channel_estimate_dimensions.nof_tx_layers <= pucch_constants::MAX_LAYERS,
+                 "Number of transmit layers, i.e., {}, exceeds maximum PUCCH transmit layers, i.e., {}.",
+                 channel_estimate_dimensions.nof_tx_layers,
+                 pucch_constants::MAX_LAYERS);
   }
 
   std::unique_ptr<pucch_processor> create() override
@@ -138,8 +138,8 @@ public:
   pucch_processor_pool_factory(std::shared_ptr<pucch_processor_factory> factory_, unsigned nof_concurrent_threads_) :
     factory(std::move(factory_)), nof_concurrent_threads(nof_concurrent_threads_)
   {
-    srsran_assert(factory, "Invalid PUCCH processor factory.");
-    srsran_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
+    ocudu_assert(factory, "Invalid PUCCH processor factory.");
+    ocudu_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
   }
 
   std::unique_ptr<pucch_processor> create() override
@@ -152,7 +152,7 @@ public:
     return std::make_unique<pucch_processor_pool>(processors);
   }
 
-  std::unique_ptr<pucch_processor> create(srslog::basic_logger& logger) override
+  std::unique_ptr<pucch_processor> create(ocudulog::basic_logger& logger) override
   {
     if (!processors) {
       std::vector<std::unique_ptr<pucch_processor>> instances(nof_concurrent_threads);
@@ -197,10 +197,10 @@ public:
     prg_factory(std::move(prg_factory_)),
     precoder_factory(std::move(precoder_factory_))
   {
-    srsran_assert(equalizer_factory, "Invalid equalizer factory.");
-    srsran_assert(demodulation_factory, "Invalid demodulation factory.");
-    srsran_assert(prg_factory, "Invalid PRG factory.");
-    srsran_assert(precoder_factory, "Invalid transform precoder factory.");
+    ocudu_assert(equalizer_factory, "Invalid equalizer factory.");
+    ocudu_assert(demodulation_factory, "Invalid demodulation factory.");
+    ocudu_assert(prg_factory, "Invalid PRG factory.");
+    ocudu_assert(precoder_factory, "Invalid transform precoder factory.");
   }
 
 private:
@@ -212,7 +212,7 @@ private:
 
 } // namespace
 
-std::shared_ptr<pucch_processor_factory> srsran::create_pucch_processor_factory_sw(
+std::shared_ptr<pucch_processor_factory> ocudu::create_pucch_processor_factory_sw(
     std::shared_ptr<dmrs_pucch_estimator_factory>        dmrs_factory,
     std::shared_ptr<pucch_detector_factory>              detector_factory,
     std::shared_ptr<pucch_demodulator_factory>           demodulator_factory,
@@ -224,17 +224,17 @@ std::shared_ptr<pucch_processor_factory> srsran::create_pucch_processor_factory_
 }
 
 std::shared_ptr<pucch_processor_factory>
-srsran::create_pucch_processor_pool_factory(std::shared_ptr<pucch_processor_factory> factory,
-                                            unsigned                                 nof_concurrent_threads)
+ocudu::create_pucch_processor_pool_factory(std::shared_ptr<pucch_processor_factory> factory,
+                                           unsigned                                 nof_concurrent_threads)
 {
   return std::make_shared<pucch_processor_pool_factory>(std::move(factory), nof_concurrent_threads);
 }
 
 std::shared_ptr<pucch_demodulator_factory>
-srsran::create_pucch_demodulator_factory_sw(std::shared_ptr<channel_equalizer_factory>       equalizer_factory,
-                                            std::shared_ptr<demodulation_mapper_factory>     demodulation_factory,
-                                            std::shared_ptr<pseudo_random_generator_factory> prg_factory,
-                                            std::shared_ptr<transform_precoder_factory>      precoder_factory)
+ocudu::create_pucch_demodulator_factory_sw(std::shared_ptr<channel_equalizer_factory>       equalizer_factory,
+                                           std::shared_ptr<demodulation_mapper_factory>     demodulation_factory,
+                                           std::shared_ptr<pseudo_random_generator_factory> prg_factory,
+                                           std::shared_ptr<transform_precoder_factory>      precoder_factory)
 {
   return std::make_shared<pucch_demodulator_factory_sw>(std::move(equalizer_factory),
                                                         std::move(demodulation_factory),
@@ -243,16 +243,16 @@ srsran::create_pucch_demodulator_factory_sw(std::shared_ptr<channel_equalizer_fa
 }
 
 std::shared_ptr<pucch_detector_factory>
-srsran::create_pucch_detector_factory_sw(std::shared_ptr<low_papr_sequence_collection_factory> lpcf,
-                                         std::shared_ptr<pseudo_random_generator_factory>      prgf,
-                                         std::shared_ptr<channel_equalizer_factory>            eqzrf,
-                                         std::shared_ptr<dft_processor_factory>                dftf)
+ocudu::create_pucch_detector_factory_sw(std::shared_ptr<low_papr_sequence_collection_factory> lpcf,
+                                        std::shared_ptr<pseudo_random_generator_factory>      prgf,
+                                        std::shared_ptr<channel_equalizer_factory>            eqzrf,
+                                        std::shared_ptr<dft_processor_factory>                dftf)
 {
   return std::make_shared<pucch_detector_factory_sw>(
       std::move(lpcf), std::move(prgf), std::move(eqzrf), std::move(dftf));
 }
 
-std::unique_ptr<pucch_processor> pucch_processor_factory::create(srslog::basic_logger& logger)
+std::unique_ptr<pucch_processor> pucch_processor_factory::create(ocudulog::basic_logger& logger)
 {
   return std::make_unique<logging_pucch_processor_decorator>(logger, create());
 }

@@ -12,9 +12,9 @@
 
 #include "apps/services/metrics/metrics_notifier.h"
 #include "apps/services/metrics/metrics_producer.h"
-#include "srsran/cu_cp/cu_cp_metrics_notifier.h"
+#include "ocudu/cu_cp/cu_cp_metrics_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// CU-CP metrics producer implementation.
 class cu_cp_metrics_producer_impl : public cu_cp_metrics_report_notifier, public app_services::metrics_producer
@@ -32,4 +32,4 @@ private:
   app_services::metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

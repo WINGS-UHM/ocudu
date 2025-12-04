@@ -11,23 +11,23 @@
 #pragma once
 
 #include "du_ue_adapters.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/f1u/du/f1u_config.h"
-#include "srsran/mac/mac_lc_config.h"
-#include "srsran/ran/logical_channel/lcid.h"
-#include "srsran/ran/qos/five_qi_qos_mapping.h"
-#include "srsran/ran/qos/qos_parameters.h"
-#include "srsran/ran/s_nssai.h"
-#include "srsran/ran/up_transport_layer_info.h"
-#include "srsran/rlc/rlc_config.h"
-#include "srsran/rlc/rlc_entity.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/f1u/du/f1u_config.h"
+#include "ocudu/mac/mac_lc_config.h"
+#include "ocudu/ran/logical_channel/lcid.h"
+#include "ocudu/ran/qos/five_qi_qos_mapping.h"
+#include "ocudu/ran/qos/qos_parameters.h"
+#include "ocudu/ran/s_nssai.h"
+#include "ocudu/ran/up_transport_layer_info.h"
+#include "ocudu/rlc/rlc_config.h"
+#include "ocudu/rlc/rlc_entity.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 class gtpu_teid_pool;
 
-namespace srs_du {
+namespace odu {
 
 struct du_manager_params;
 
@@ -125,5 +125,5 @@ struct drb_creation_info {
 /// \brief Creates a DRB instance for the whole DU.
 std::unique_ptr<du_ue_drb> create_drb(const drb_creation_info& drb_info);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

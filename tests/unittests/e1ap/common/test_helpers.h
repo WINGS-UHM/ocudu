@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_up/cu_up.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/e1ap/common/e1ap_common.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
-#include "srsran/gateways/network_gateway.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_up/cu_up.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/e1ap/common/e1ap_common.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
+#include "ocudu/gateways/network_gateway.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Generate a random gnb_cu_cp_ue_e1ap_id
 gnb_cu_cp_ue_e1ap_id_t generate_random_gnb_cu_cp_ue_e1ap_id();
@@ -30,10 +30,10 @@ gnb_cu_cp_ue_e1ap_id_t generate_random_gnb_cu_cp_ue_e1ap_id();
 /// \brief Generate a random gnb_cu_up_ue_e1ap_id
 gnb_cu_up_ue_e1ap_id_t generate_random_gnb_cu_up_ue_e1ap_id();
 
-class dummy_e1ap_cu_up_processor_notifier : public srs_cu_cp::e1ap_cu_up_processor_notifier
+class dummy_e1ap_cu_up_processor_notifier : public ocucp::e1ap_cu_up_processor_notifier
 {
 public:
-  dummy_e1ap_cu_up_processor_notifier() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e1ap_cu_up_processor_notifier() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   void on_cu_up_e1_setup_request_received(const cu_up_e1_setup_request& msg) override
   {
@@ -48,18 +48,18 @@ public:
   cu_up_e1_setup_request last_cu_up_e1_setup_request;
 
 private:
-  srslog::basic_logger&     logger;
-  uint16_t                  ue_index = srs_cu_cp::ue_index_to_uint(srs_cu_cp::ue_index_t::min);
+  ocudulog::basic_logger&   logger;
+  uint16_t                  ue_index = ocucp::ue_index_to_uint(ocucp::ue_index_t::min);
   fifo_async_task_scheduler task_sched{16};
 };
 
-class dummy_e1ap_cu_up_notifier : public srs_cu_up::e1ap_cu_up_manager_notifier
+class dummy_e1ap_cu_up_notifier : public ocuup::e1ap_cu_up_manager_notifier
 {
 public:
-  dummy_e1ap_cu_up_notifier() : logger(srslog::fetch_basic_logger("TEST")), task_loop(1024) {}
+  dummy_e1ap_cu_up_notifier() : logger(ocudulog::fetch_basic_logger("TEST")), task_loop(1024) {}
 
-  srs_cu_up::e1ap_bearer_context_setup_response
-  on_bearer_context_setup_request_received(const srs_cu_up::e1ap_bearer_context_setup_request& msg) override
+  ocuup::e1ap_bearer_context_setup_response
+  on_bearer_context_setup_request_received(const ocuup::e1ap_bearer_context_setup_request& msg) override
   {
     logger.info("Received BearerContextSetupRequest");
     last_bearer_context_setup_request.security_info.security_algorithm = msg.security_info.security_algorithm;
@@ -72,9 +72,9 @@ public:
     last_bearer_context_setup_request.activity_notif_level             = msg.activity_notif_level;
     last_bearer_context_setup_request.pdu_session_res_to_setup_list    = msg.pdu_session_res_to_setup_list;
 
-    srs_cu_up::e1ap_bearer_context_setup_response response = {};
-    response.ue_index                                      = ue_index;
-    response.success                                       = true;
+    ocuup::e1ap_bearer_context_setup_response response = {};
+    response.ue_index                                  = ue_index;
+    response.success                                   = true;
     for (const auto& request_setup_item : msg.pdu_session_res_to_setup_list) {
       e1ap_pdu_session_resource_setup_modification_item response_setup_item;
       response_setup_item.pdu_session_id               = request_setup_item.pdu_session_id;
@@ -94,8 +94,8 @@ public:
     return response;
   }
 
-  async_task<srs_cu_up::e1ap_bearer_context_modification_response> on_bearer_context_modification_request_received(
-      const srs_cu_up::e1ap_bearer_context_modification_request& msg) override
+  async_task<ocuup::e1ap_bearer_context_modification_response>
+  on_bearer_context_modification_request_received(const ocuup::e1ap_bearer_context_modification_request& msg) override
   {
     logger.info("Received BearerContextModificationRequest");
 
@@ -141,19 +141,18 @@ public:
       last_bearer_context_modification_request.activity_notif_level = msg.activity_notif_level.value();
     }
 
-    srs_cu_up::e1ap_bearer_context_modification_response response = {};
-    response.ue_index                                             = ue_index;
-    response.success                                              = true;
+    ocuup::e1ap_bearer_context_modification_response response = {};
+    response.ue_index                                         = ue_index;
+    response.success                                          = true;
 
-    return launch_async(
-        [response](coro_context<async_task<srs_cu_up::e1ap_bearer_context_modification_response>>& ctx) {
-          CORO_BEGIN(ctx);
-          CORO_RETURN(response);
-        });
+    return launch_async([response](coro_context<async_task<ocuup::e1ap_bearer_context_modification_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(response);
+    });
   }
 
   async_task<void>
-  on_bearer_context_release_command_received(const srs_cu_up::e1ap_bearer_context_release_command& msg) override
+  on_bearer_context_release_command_received(const ocuup::e1ap_bearer_context_release_command& msg) override
   {
     logger.info("Received BearerContextReleaseCommand");
     last_bearer_context_release_command = msg;
@@ -163,7 +162,7 @@ public:
     });
   }
 
-  async_task<void> on_e1_reset_received(const srs_cu_up::e1ap_reset& msg) override
+  async_task<void> on_e1_reset_received(const ocuup::e1ap_reset& msg) override
   {
     logger.info("Received E1Reset");
     return launch_async([](coro_context<async_task<void>>& ctx) {
@@ -172,7 +171,7 @@ public:
     });
   }
 
-  void on_schedule_ue_async_task(srs_cu_up::ue_index_t ue_index_, async_task<void> task) override
+  void on_schedule_ue_async_task(ocuup::ue_index_t ue_index_, async_task<void> task) override
   {
     task_loop.schedule(std::move(task)); // schedule ue task in dummy task loop
   }
@@ -184,15 +183,15 @@ public:
     task_loop.schedule(std::move(task)); // schedule ue task in dummy task loop
   }
 
-  void set_ue_index(uint16_t ue_index_) { ue_index = srs_cu_up::int_to_ue_index(ue_index_); }
+  void set_ue_index(uint16_t ue_index_) { ue_index = ocuup::int_to_ue_index(ue_index_); }
 
-  srs_cu_up::e1ap_bearer_context_release_command      last_bearer_context_release_command;
-  srs_cu_up::e1ap_bearer_context_modification_request last_bearer_context_modification_request;
-  srs_cu_up::e1ap_bearer_context_setup_request        last_bearer_context_setup_request;
+  ocuup::e1ap_bearer_context_release_command      last_bearer_context_release_command;
+  ocuup::e1ap_bearer_context_modification_request last_bearer_context_modification_request;
+  ocuup::e1ap_bearer_context_setup_request        last_bearer_context_setup_request;
 
 private:
-  srslog::basic_logger& logger;
-  srs_cu_up::ue_index_t ue_index = srs_cu_up::MIN_UE_INDEX;
+  ocudulog::basic_logger& logger;
+  ocuup::ue_index_t       ue_index = ocuup::MIN_UE_INDEX;
 
   fifo_async_task_scheduler task_loop;
 };
@@ -205,7 +204,7 @@ public:
 
   void on_new_message(const e1ap_message& msg) override
   {
-    srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+    ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
     test_logger.info("Received PDU");
     last_e1ap_msg = msg;
   }
@@ -217,7 +216,7 @@ public:
 class dummy_e1ap_pdu_notifier : public e1ap_message_notifier
 {
 public:
-  dummy_e1ap_pdu_notifier() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e1ap_pdu_notifier() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   void attach_handler(e1ap_message_handler* handler_) { handler = handler_; }
   void on_new_message(const e1ap_message& msg) override
@@ -233,8 +232,8 @@ public:
   e1ap_message last_e1ap_msg;
 
 private:
-  srslog::basic_logger& logger;
-  e1ap_message_handler* handler = nullptr;
+  ocudulog::basic_logger& logger;
+  e1ap_message_handler*   handler = nullptr;
 };
 
 /// Reusable notifier class that a) stores the received PDU for test inspection and b)
@@ -243,12 +242,12 @@ private:
 class dummy_cu_cp_e1ap_pdu_notifier : public e1ap_message_notifier
 {
 public:
-  dummy_cu_cp_e1ap_pdu_notifier(srs_cu_cp::cu_cp* cu_cp_, e1ap_message_handler* handler_) :
-    logger(srslog::fetch_basic_logger("TEST")), cu_cp(cu_cp_), handler(handler_)
+  dummy_cu_cp_e1ap_pdu_notifier(ocucp::cu_cp* cu_cp_, e1ap_message_handler* handler_) :
+    logger(ocudulog::fetch_basic_logger("TEST")), cu_cp(cu_cp_), handler(handler_)
   {
   }
 
-  void attach_handler(srs_cu_cp::cu_cp* cu_cp_, e1ap_message_handler* handler_)
+  void attach_handler(ocucp::cu_cp* cu_cp_, e1ap_message_handler* handler_)
   {
     cu_cp   = cu_cp_;
     handler = handler_;
@@ -267,16 +266,16 @@ public:
   e1ap_message last_e1ap_msg;
 
 private:
-  srslog::basic_logger& logger;
-  srs_cu_cp::cu_cp*     cu_cp   = nullptr;
-  e1ap_message_handler* handler = nullptr;
+  ocudulog::basic_logger& logger;
+  ocucp::cu_cp*           cu_cp   = nullptr;
+  e1ap_message_handler*   handler = nullptr;
 };
 
 /// Dummy handler just printing the received PDU.
 class dummy_e1ap_message_handler : public e1ap_message_handler
 {
 public:
-  dummy_e1ap_message_handler() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e1ap_message_handler() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   void handle_message(const e1ap_message& msg) override
   {
     last_msg = msg;
@@ -286,14 +285,14 @@ public:
   e1ap_message last_msg;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy notifier just printing the received msg.
 class dummy_e1ap_message_notifier : public e1ap_message_notifier
 {
 public:
-  dummy_e1ap_message_notifier() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_e1ap_message_notifier() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   void on_new_message(const e1ap_message& msg) override
   {
     last_msg = msg;
@@ -303,7 +302,7 @@ public:
   e1ap_message last_msg;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

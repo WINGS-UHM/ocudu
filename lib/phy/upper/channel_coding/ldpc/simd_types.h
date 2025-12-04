@@ -23,7 +23,7 @@
 #include <arm_neon.h>
 #endif // defined(__ARM_NEON)
 
-namespace srsran {
+namespace ocudu {
 namespace detail {
 
 #if defined(__x86_64__)
@@ -56,4 +56,4 @@ struct simd512_wrapper {
   using simdType = simd512_type;
 };
 } // namespace detail
-} // namespace srsran
+} // namespace ocudu

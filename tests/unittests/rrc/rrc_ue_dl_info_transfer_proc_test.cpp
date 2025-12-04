@@ -10,26 +10,26 @@
 
 #include "rrc_ue_test_helpers.h"
 #include "rrc_ue_test_messages.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class RRC DL info transfer tests preparation (to bring UE in RRC connected state)
 class rrc_ue_dl_info_transfer : public rrc_ue_test_helper, public ::testing::Test
 {
 protected:
-  static void SetUpTestSuite() { srslog::init(); }
+  static void SetUpTestSuite() { ocudulog::init(); }
 
   void SetUp() override
   {
     init();
 
-    srslog::basic_logger& rrc_logger = srslog::fetch_basic_logger("RRC", false);
-    rrc_logger.set_level(srslog::basic_levels::debug);
+    ocudulog::basic_logger& rrc_logger = ocudulog::fetch_basic_logger("RRC", false);
+    rrc_logger.set_level(ocudulog::basic_levels::debug);
     rrc_logger.set_hex_dump_max_size(32);
 
     receive_setup_request();
@@ -46,7 +46,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 

@@ -10,11 +10,11 @@
 
 #include "helpers.h"
 #include "pdsch.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/mac/mac_cell_result.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/mac/mac_cell_result.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittests;
 
@@ -40,8 +40,8 @@ static void validate_pdsch_information(const pdsch_information& pdsch_cfg, const
   // DMRS.
   const dmrs_information& dmrs_cfg = pdsch_cfg.dmrs;
   ASSERT_EQ(dmrs_cfg.dmrs_symb_pos.to_uint64(), fapi_pdu.dl_dmrs_symb_pos);
-  ASSERT_EQ((dmrs_cfg.config_type == srsran::dmrs_config_type::type1) ? fapi::dmrs_cfg_type::type_1
-                                                                      : fapi::dmrs_cfg_type::type_2,
+  ASSERT_EQ((dmrs_cfg.config_type == ocudu::dmrs_config_type::type1) ? fapi::dmrs_cfg_type::type_1
+                                                                     : fapi::dmrs_cfg_type::type_2,
             fapi_pdu.dmrs_type);
   ASSERT_EQ(dmrs_cfg.dmrs_scrambling_id, fapi_pdu.pdsch_dmrs_scrambling_id);
   ASSERT_EQ(dmrs_cfg.dmrs_scrambling_id_complement, fapi_pdu.pdsch_dmrs_scrambling_id_compl);

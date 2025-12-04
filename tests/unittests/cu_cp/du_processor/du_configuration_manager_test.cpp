@@ -11,8 +11,8 @@
 #include "lib/cu_cp/du_processor/du_configuration_manager.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static cu_cp_served_cell_info create_basic_served_cell_info(unsigned du_counter)
 {
@@ -29,7 +29,7 @@ static du_setup_request create_basic_du_setup_request(unsigned du_counter = 0)
 {
   du_setup_request req;
   req.gnb_du_id         = int_to_gnb_du_id(du_counter);
-  req.gnb_du_name       = fmt::format("srsdu{}", du_counter);
+  req.gnb_du_name       = fmt::format("odu{}", du_counter);
   auto& cell            = req.gnb_du_served_cells_list.emplace_back();
   cell.served_cell_info = create_basic_served_cell_info(du_counter);
   cell.gnb_du_sys_info.emplace();

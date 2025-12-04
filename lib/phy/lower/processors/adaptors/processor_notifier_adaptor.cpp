@@ -9,10 +9,10 @@
  */
 
 #include "processor_notifier_adaptor.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void processor_notifier_adaptor::downlink_adaptor::on_tti_boundary(const lower_phy_timing_context& context)
 {

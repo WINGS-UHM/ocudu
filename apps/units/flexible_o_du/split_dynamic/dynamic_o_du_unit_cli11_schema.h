@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct dynamic_o_du_unit_config;
 
@@ -22,4 +22,4 @@ void configure_cli11_with_dynamic_o_du_unit_config_schema(CLI::App& app, dynamic
 /// Auto derive dynamic O-RAN DU parameters after the parsing.
 void autoderive_dynamic_o_du_parameters_after_parsing(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg);
 
-} // namespace srsran
+} // namespace ocudu

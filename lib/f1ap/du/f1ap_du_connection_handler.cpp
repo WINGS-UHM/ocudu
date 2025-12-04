@@ -10,12 +10,12 @@
 
 #include "f1ap_du_connection_handler.h"
 #include "f1ap_du_context.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <thread>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -50,7 +50,7 @@ class f1c_tx_channel final : public f1ap_message_notifier
 public:
   f1c_tx_channel(std::unique_ptr<f1ap_message_notifier>& f1c_notifier_,
                  unsigned&                               epoch_,
-                 srslog::basic_logger&                   logger_) :
+                 ocudulog::basic_logger&                 logger_) :
     f1c_notifier(f1c_notifier_), epoch_ref(epoch_), logger(logger_), epoch(epoch_ref)
   {
   }
@@ -74,7 +74,7 @@ public:
 private:
   std::unique_ptr<f1ap_message_notifier>& f1c_notifier;
   unsigned&                               epoch_ref;
-  srslog::basic_logger&                   logger;
+  ocudulog::basic_logger&                 logger;
 
   unsigned epoch;
 };
@@ -91,7 +91,7 @@ f1ap_du_connection_handler::f1ap_du_connection_handler(f1c_connection_client& f1
   du_mng(du_mng_),
   du_ctxt(du_ctxt_),
   ctrl_exec(ctrl_exec_),
-  logger(srslog::fetch_basic_logger("DU-F1"))
+  logger(ocudulog::fetch_basic_logger("DU-F1"))
 {
 }
 

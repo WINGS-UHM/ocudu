@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
 #include <thread>
 
-namespace srsran {
+namespace ocudu {
 
 /// Spy implementation of a PDSCH processor.
 class pdsch_processor_spy : public pdsch_processor
@@ -52,4 +52,4 @@ private:
   std::atomic<bool> finished = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

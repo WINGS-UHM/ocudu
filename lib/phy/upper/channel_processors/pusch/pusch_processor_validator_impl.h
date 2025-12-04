@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/phy/upper/channel_estimation.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/phy/upper/channel_estimation.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a parameter validator for \ref pusch_processor_impl.
 class pusch_processor_validator_impl : public pusch_pdu_validator
@@ -35,4 +35,4 @@ private:
   channel_estimate::channel_estimate_dimensions ce_dims;
 };
 
-} // namespace srsran
+} // namespace ocudu

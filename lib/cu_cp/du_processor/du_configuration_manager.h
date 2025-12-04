@@ -11,13 +11,13 @@
 #pragma once
 
 #include "du_configuration_handler.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/plmn_identity.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Validator and repository of configurations for DUs handled by the CU-CP.
 class du_configuration_manager
@@ -48,10 +48,10 @@ private:
 
   const gnb_id_t                   gnb_id;
   const std::vector<plmn_identity> plmns;
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
 
   std::unordered_map<gnb_du_id_t, du_configuration_context> dus;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

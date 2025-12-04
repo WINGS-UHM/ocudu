@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/support/resource_usage/power_consumption.h"
+#include "ocudu/support/resource_usage/power_consumption.h"
 
-namespace srsran {
+namespace ocudu {
 namespace resource_usage_utils {
 
 /// This class reads energy consumption using Powercap RAPL (Run Time Average Power Limiting) sysfs.
@@ -31,7 +31,7 @@ private:
 };
 
 /// Creates Powercap RAPL sysfs reader if it is supported by the system.
-std::unique_ptr<energy_consumption_reader> build_sysfs_powercap_reader(srslog::basic_logger& logger);
+std::unique_ptr<energy_consumption_reader> build_sysfs_powercap_reader(ocudulog::basic_logger& logger);
 
 } // namespace resource_usage_utils
-} // namespace srsran
+} // namespace ocudu

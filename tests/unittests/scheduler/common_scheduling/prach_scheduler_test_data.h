@@ -13,14 +13,14 @@
 // This file was generated using the following MATLAB class on 25-11-2025 (seed 0):
 //   + "srsPRACHSchedulerUnittest.m"
 
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include <set>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   /// Duplex mode used (e.g., TDD, FDD).
@@ -808,4 +808,4 @@ static const std::vector<test_case_t> prach_scheduler_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

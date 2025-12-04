@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/radio/radio_factory.h"
+#include "ocudu/radio/radio_factory.h"
 #include <memory>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 std::unique_ptr<radio_factory> create_plugin_radio_factory(std::string driver_name);
 
-} // namespace srsran
+} // namespace ocudu

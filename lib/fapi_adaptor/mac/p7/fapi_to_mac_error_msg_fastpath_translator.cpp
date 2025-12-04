@@ -9,11 +9,11 @@
  */
 
 #include "fapi_to_mac_error_msg_fastpath_translator.h"
-#include "srsran/fapi/messages/error_indication.h"
-#include "srsran/mac/mac_cell_slot_handler.h"
-#include "srsran/mac/mac_cell_timing_context.h"
+#include "ocudu/fapi/messages/error_indication.h"
+#include "ocudu/mac/mac_cell_slot_handler.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {

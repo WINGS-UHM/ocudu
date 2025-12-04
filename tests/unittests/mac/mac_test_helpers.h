@@ -11,22 +11,22 @@
 #pragma once
 
 #include "lib/mac/mac_sched/mac_scheduler_adapter.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/mac/config/mac_cell_group_config_factory.h"
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/mac/mac_clock_controller.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/pcap/rlc_pcap.h"
-#include "srsran/ran/rrm.h"
-#include "srsran/scheduler/mac_scheduler.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/mac/config/mac_cell_group_config_factory.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/mac/mac_clock_controller.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/pcap/rlc_pcap.h"
+#include "ocudu/ran/rrm.h"
+#include "ocudu/scheduler/mac_scheduler.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/test_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace test_helpers {
 
@@ -283,4 +283,4 @@ struct mac_test_ue {
 
 } // namespace test_helpers
 
-} // namespace srsran
+} // namespace ocudu

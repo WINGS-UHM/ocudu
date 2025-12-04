@@ -10,5 +10,5 @@ set(SOURCES
         tracer_appconfig_cli11_schema.cpp
         tracer_appconfig_yaml_writer.cpp)
 
-add_library(srsran_tracing_app_helpers STATIC ${SOURCES})
-target_include_directories(srsran_tracing_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_tracing_app_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_tracing_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})

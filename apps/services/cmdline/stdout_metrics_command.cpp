@@ -10,7 +10,7 @@
 
 #include "stdout_metrics_command.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 static std::string generate_command_description(span<const std::string_view> subcommands)
@@ -40,7 +40,7 @@ toggle_stdout_metrics_app_command::toggle_stdout_metrics_app_command(
   metric_subcommand_names(get_subcommand_names(metric_subcommands)),
   description(generate_command_description(metric_subcommand_names))
 {
-  srsran_assert(!metric_subcommands.empty(), "Metrics subcommand list empty");
+  ocudu_assert(!metric_subcommands.empty(), "Metrics subcommand list empty");
 
   if (is_auto_start_enabled) {
     execute_subcommand(0);
@@ -95,7 +95,7 @@ void toggle_stdout_metrics_app_command::execute_subcommand(unsigned index)
 bool toggle_stdout_metrics_app_command::stop_current_active_subcommand(unsigned index)
 {
   // Sanity check.
-  srsran_assert(subcommand_active_status.count() < 2, "Only one metrics must be active at a given time");
+  ocudu_assert(subcommand_active_status.count() < 2, "Only one metrics must be active at a given time");
 
   int current_active = subcommand_active_status.find_highest();
 
@@ -113,7 +113,7 @@ bool toggle_stdout_metrics_app_command::stop_current_active_subcommand(unsigned 
   subcommand_active_status.flip(current_active);
   metric_subcommands[current_active]->disable();
 
-  srsran_assert(subcommand_active_status.none(), "No subcommand must be active at this point");
+  ocudu_assert(subcommand_active_status.none(), "No subcommand must be active at this point");
   return true;
 }
 
@@ -128,7 +128,7 @@ int toggle_stdout_metrics_app_command::get_subcommand_index(const std::string& a
   return I == metric_subcommands.end() ? -1 : std::distance(metric_subcommands.begin(), I);
 }
 
-std::unique_ptr<cmdline_command> srsran::app_services::create_stdout_metrics_app_command(
+std::unique_ptr<cmdline_command> ocudu::app_services::create_stdout_metrics_app_command(
     std::vector<span<std::unique_ptr<toggle_stdout_metrics_app_command::metrics_subcommand>>> metrics_subcommand,
     bool                                                                                      is_auto_start_enabled)
 {

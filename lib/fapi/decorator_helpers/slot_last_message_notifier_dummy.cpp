@@ -9,9 +9,9 @@
  */
 
 #include "slot_last_message_notifier_dummy.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 void slot_last_message_notifier_dummy::on_last_message(slot_point slot)

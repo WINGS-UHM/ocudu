@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/cpu_architecture_info.h"
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/cpu_architecture_info.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #include <getopt.h>
 #include <variant>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct bench_params {
   std::chrono::milliseconds duration{0};
@@ -257,8 +257,8 @@ void run_benchmarks(const bench_params& params)
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("ALL").set_level(srslog::basic_levels::warning);
-  srslog::init();
+  ocudulog::fetch_basic_logger("ALL").set_level(ocudulog::basic_levels::warning);
+  ocudulog::init();
 
   bench_params params{};
   parse_args(argc, argv, params);

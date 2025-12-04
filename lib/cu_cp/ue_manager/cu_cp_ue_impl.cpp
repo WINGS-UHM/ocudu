@@ -10,8 +10,8 @@
 
 #include "cu_cp_ue_impl.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 cu_cp_ue::cu_cp_ue(ue_index_t                     ue_index_,
                    du_index_t                     du_index_,

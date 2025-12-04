@@ -12,10 +12,10 @@
 
 #include "../pucch_scheduling/pucch_allocator.h"
 #include "uci_allocator.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implementation of \ref uci_allocator interface.
 class uci_allocator_impl final : public uci_allocator
@@ -81,10 +81,10 @@ private:
 
   pucch_allocator& pucch_alloc;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // \brief Ring of UCI allocations indexed by slot.
   circular_array<slot_alloc_list, cell_resource_allocator::RING_ALLOCATOR_SIZE> uci_alloc_grid;
 };
 
-} // namespace srsran
+} // namespace ocudu

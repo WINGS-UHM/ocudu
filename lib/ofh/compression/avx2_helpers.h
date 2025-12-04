@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 #include <immintrin.h>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace mm256 {
 
@@ -115,4 +115,4 @@ inline void calculate_max_abs(span<unsigned> max_abs, __m256i rb0_epi16, __m256i
 
 } // namespace mm256
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

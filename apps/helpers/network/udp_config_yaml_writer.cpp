@@ -11,10 +11,10 @@
 #include "udp_config_yaml_writer.h"
 #include "udp_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fills the UDP configuration in the given YAML node.
-void srsran::fill_udp_config_in_yaml_schema(YAML::Node node, const udp_appconfig& config)
+void ocudu::fill_udp_config_in_yaml_schema(YAML::Node node, const udp_appconfig& config)
 {
   node["max_rx_msgs"]     = config.rx_max_msgs;
   node["tx_qsize"]        = config.tx_qsize;

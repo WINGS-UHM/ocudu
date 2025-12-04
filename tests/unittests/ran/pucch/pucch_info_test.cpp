@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_info.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace pucch_info_test {
 

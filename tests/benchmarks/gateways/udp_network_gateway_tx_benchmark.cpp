@@ -10,14 +10,14 @@
  */
 
 #include "udp_network_gateway_benchmark_helpers.h"
-#include "srsran/gateways/udp_network_gateway_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/gateways/udp_network_gateway_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <arpa/inet.h>
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct bench_params {
   uint64_t pdu_len  = 1400;
@@ -53,12 +53,12 @@ static void parse_args(int argc, char** argv, bench_params& params)
 
 int main(int argc, char** argv)
 {
-  srslog::init();
+  ocudulog::init();
 
   // init GW logger
-  srslog::fetch_basic_logger("IO-EPOLL", true).set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("UDP-GW", true).set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("UDP-GW", true).set_hex_dump_max_size(100);
+  ocudulog::fetch_basic_logger("IO-EPOLL", true).set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("UDP-GW", true).set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("UDP-GW", true).set_hex_dump_max_size(100);
 
   bench_params params{};
   parse_args(argc, argv, params);

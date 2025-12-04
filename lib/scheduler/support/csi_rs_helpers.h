@@ -12,11 +12,11 @@
 
 #include "../config/cell_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 namespace csi_helper {
 
 /// \brief Helpers that checks if the slot is a candidate for CSI RS signalling.
 bool is_csi_rs_slot(const cell_configuration& cell_cfg, slot_point sl_tx);
 
 } // namespace csi_helper
-} // namespace srsran
+} // namespace ocudu

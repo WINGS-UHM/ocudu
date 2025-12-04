@@ -14,14 +14,14 @@
 #include "../converters/scheduler_configuration_helpers.h"
 #include "../du_cell_manager.h"
 #include "../du_manager_context.h"
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/scheduler/config/scheduler_cell_config_validator.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/config/scheduler_cell_config_validator.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_setup_procedure::du_setup_procedure(const du_proc_context_view& ctxt_, const du_start_request& request_) :
   ctxt(ctxt_),

@@ -11,12 +11,12 @@
 #pragma once
 
 #include "rlc_bearer_logger.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/spsc_queue.h"
-#include "srsran/instrumentation/traces/up_traces.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/spsc_queue.h"
+#include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Recycling bin for discarded PDUs that shall be deleted by a different executor off a real-time critical path.
 /// This class is intended to offload the time-consumping deletion of thousands byte_buffer objects of ACK'ed PDUs from
@@ -73,4 +73,4 @@ private:
       recycle_bin;
 };
 
-} // namespace srsran
+} // namespace ocudu

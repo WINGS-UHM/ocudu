@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/cu_cp/security_manager_config.h"
+#include "ocudu/cu_cp/security_manager_config.h"
 #include <map>
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 /// UE security manager implementation
 class ue_security_manager
@@ -46,7 +46,7 @@ private:
   security::security_context sec_context;
   bool                       security_enabled = false;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

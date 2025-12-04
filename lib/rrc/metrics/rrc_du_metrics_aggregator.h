@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/rrc/rrc_du.h"
-#include "srsran/rrc/rrc_metrics.h"
+#include "ocudu/rrc/rrc_du.h"
+#include "ocudu/rrc/rrc_metrics.h"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 inline std::chrono::milliseconds get_current_time()
 {
@@ -152,5 +152,5 @@ private:
   rrc_connection_reestablishment_metrics connection_reestablishment_metrics;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

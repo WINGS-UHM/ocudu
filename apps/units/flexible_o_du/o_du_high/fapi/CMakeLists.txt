@@ -11,5 +11,5 @@ set(SOURCES
         fapi_config_translator.cpp
         fapi_config_yaml_writer.cpp)
 
-add_library(srsran_fapi_app_unit STATIC ${SOURCES})
-target_include_directories(srsran_fapi_app_unit PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_fapi_app_unit STATIC ${SOURCES})
+target_include_directories(ocudu_fapi_app_unit PRIVATE ${CMAKE_SOURCE_DIR})

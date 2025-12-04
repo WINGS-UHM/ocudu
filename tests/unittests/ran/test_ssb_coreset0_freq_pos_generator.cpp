@@ -10,10 +10,10 @@
 
 #include "lib/ran/ssb/ssb_freq_position_generator.h"
 #include "ssb_coreset0_freq_pos_checker.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/ran/band_helper.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Helper that compares the SSB and Coreset0 parameters returned by du_config_generator.
 static bool compare_ssb_freq_location(const ssb_freq_location& lhs, const ssb_freq_location& rhs)

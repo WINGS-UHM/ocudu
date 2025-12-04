@@ -12,15 +12,15 @@
 
 #include "lib/mac/mac_config_interfaces.h"
 #include "lib/mac/mac_ctrl/mac_scheduler_configurator.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/scheduler/scheduler_metrics.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_ctrl_dummy_configurer final : public mac_ctrl_configurator
 {
@@ -102,7 +102,7 @@ public:
   mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
 };
 
-class dummy_ue_executor_mapper : public srs_du::du_high_ue_executor_mapper
+class dummy_ue_executor_mapper : public odu::du_high_ue_executor_mapper
 {
 public:
   dummy_ue_executor_mapper(task_executor& exec_) : exec(exec_) {}
@@ -115,7 +115,7 @@ public:
   task_executor& exec;
 };
 
-class dummy_dl_executor_mapper : public srs_du::du_high_cell_executor_mapper
+class dummy_dl_executor_mapper : public odu::du_high_cell_executor_mapper
 {
 public:
   dummy_dl_executor_mapper(const std::initializer_list<task_executor*>& execs_) : execs(execs_.begin(), execs_.end()) {}
@@ -187,4 +187,4 @@ public:
   } notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

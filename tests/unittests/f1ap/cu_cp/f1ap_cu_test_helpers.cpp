@@ -10,22 +10,22 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg_ies.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_factory.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/ran/qos/five_qi.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_factory.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/qos/five_qi.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-gnb_cu_ue_f1ap_id_t srsran::srs_cu_cp::generate_random_gnb_cu_ue_f1ap_id()
+gnb_cu_ue_f1ap_id_t ocudu::ocucp::generate_random_gnb_cu_ue_f1ap_id()
 {
   return int_to_gnb_cu_ue_f1ap_id(test_rgen::uniform_int<uint64_t>(
       gnb_cu_ue_f1ap_id_to_uint(gnb_cu_ue_f1ap_id_t::min), gnb_cu_ue_f1ap_id_to_uint(gnb_cu_ue_f1ap_id_t::max) - 1));
@@ -33,9 +33,9 @@ gnb_cu_ue_f1ap_id_t srsran::srs_cu_cp::generate_random_gnb_cu_ue_f1ap_id()
 
 f1ap_cu_test::f1ap_cu_test(const f1ap_configuration& f1ap_cfg)
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  f1ap_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  f1ap_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   // We enable Json logging by default for the purpose of testing.
   f1ap_configuration tmp = f1ap_cfg;
@@ -47,7 +47,7 @@ f1ap_cu_test::f1ap_cu_test(const f1ap_configuration& f1ap_cfg)
 f1ap_cu_test::~f1ap_cu_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }
 
 f1ap_cu_test::test_ue& f1ap_cu_test::create_ue(gnb_du_ue_f1ap_id_t du_ue_id)
@@ -81,7 +81,7 @@ f1ap_cu_test::test_ue& f1ap_cu_test::run_ue_context_setup()
   f1ap_message response = test_helpers::generate_ue_context_setup_response(cu_ue_id, du_ue_id);
   f1ap->handle_message(response);
 
-  srsran_assert(t.ready(), "The procedure should have completed by now");
+  ocudu_assert(t.ready(), "The procedure should have completed by now");
 
   // Create test UE using identifiers allocated from precedure.
   ue_index_t ue_index = t.get().ue_index;
@@ -107,7 +107,7 @@ bool f1ap_cu_test::was_rrc_reject_sent()
   asn1::rrc_nr::dl_ccch_msg_s ccch;
   {
     asn1::cbit_ref bref{f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container};
-    if (ccch.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (ccch.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       return false;
     }
   }
@@ -121,7 +121,7 @@ void f1ap_cu_test::tick()
 }
 
 f1ap_ue_context_setup_request
-srsran::srs_cu_cp::create_ue_context_setup_request(const std::initializer_list<drb_id_t>& drbs_to_add)
+ocudu::ocucp::create_ue_context_setup_request(const std::initializer_list<drb_id_t>& drbs_to_add)
 {
   f1ap_ue_context_setup_request req;
 
@@ -159,7 +159,7 @@ srsran::srs_cu_cp::create_ue_context_setup_request(const std::initializer_list<d
   return req;
 }
 
-f1ap_gnb_cu_configuration_update srsran::srs_cu_cp::create_gnb_cu_configuration_update()
+f1ap_gnb_cu_configuration_update ocudu::ocucp::create_gnb_cu_configuration_update()
 {
   f1ap_gnb_cu_configuration_update req;
 
@@ -170,7 +170,7 @@ f1ap_gnb_cu_configuration_update srsran::srs_cu_cp::create_gnb_cu_configuration_
   req.cells_to_be_deactivated_list = {
       {nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create(2).value()}}};
 
-  req.gnb_cu_name = "srs_cu_cp";
+  req.gnb_cu_name = "ocucp";
 
   return req;
 }

@@ -8,4 +8,4 @@
 
 add_library(pdcp_test_doubles pdcp_pdu_generator.cpp)
 set_target_properties(pdcp_test_doubles PROPERTIES UNITY_BUILD ON)
-target_link_libraries(pdcp_test_doubles srsran_support srslog)
+target_link_libraries(pdcp_test_doubles ocudu_support ocudulog)

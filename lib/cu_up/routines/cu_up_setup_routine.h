@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/cu_up/cu_up_config.h"
-#include "srsran/e1ap/common/e1_setup_messages.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_up/cu_up_config.h"
+#include "ocudu/e1ap/common/e1_setup_messages.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 class cu_up_setup_routine
 {
@@ -38,10 +38,10 @@ private:
   std::string              plmn;
   e1ap_connection_manager& e1ap_conn_mng;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   cu_up_e1_setup_response response_msg = {};
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

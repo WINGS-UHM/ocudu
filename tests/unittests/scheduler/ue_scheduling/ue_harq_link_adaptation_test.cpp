@@ -13,19 +13,19 @@
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/ue_context/ue.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class ue_harq_link_adaptation_test : public ::testing::Test
 {
 protected:
-  ue_harq_link_adaptation_test() : logger(srslog::fetch_basic_logger("SCHED", true))
+  ue_harq_link_adaptation_test() : logger(ocudulog::fetch_basic_logger("SCHED", true))
   {
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // Set nof. DL ports to 4.
     cell_config_builder_params params{};
@@ -100,7 +100,7 @@ protected:
   std::optional<ue_configuration> ue_ded_cfg;
   cell_harq_manager cell_harqs{1, MAX_NOF_HARQS, std::make_unique<scheduler_harq_timeout_dummy_notifier>()};
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   std::unique_ptr<ue> ue_ptr;
   ue_cell*            ue_cc = nullptr;

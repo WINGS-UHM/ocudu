@@ -10,7 +10,7 @@
 
 #include "dummy_mac_result_notifier.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 phy_cell_test_dummy::phy_cell_test_dummy(task_executor& exec_) : test_exec(exec_) {}
 

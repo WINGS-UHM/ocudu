@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/ngap/ngap.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/manual_event.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/manual_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 class n2_connection_client;
 
@@ -49,12 +49,12 @@ private:
   // Called from within NGAP execution context to handle a TNL association loss.
   void handle_connection_loss_impl();
 
-  amf_index_t           amf_index;
-  n2_connection_client& client_handler;
-  ngap_message_handler& rx_pdu_handler;
-  ngap_cu_cp_notifier&  cu_cp_notifier;
-  task_executor&        ctrl_exec;
-  srslog::basic_logger& logger;
+  amf_index_t             amf_index;
+  n2_connection_client&   client_handler;
+  ngap_message_handler&   rx_pdu_handler;
+  ngap_cu_cp_notifier&    cu_cp_notifier;
+  task_executor&          ctrl_exec;
+  ocudulog::basic_logger& logger;
 
   bool connected_flag{false};
 
@@ -63,5 +63,5 @@ private:
   manual_event_flag rx_path_disconnected;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

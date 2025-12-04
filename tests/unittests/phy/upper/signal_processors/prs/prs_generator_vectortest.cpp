@@ -10,17 +10,17 @@
 
 #include "../../../support/resource_grid_test_doubles.h"
 #include "prs_generator_test_data.h"
-#include "srsran/phy/support/precoding_formatters.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/signal_processors/prs/factories.h"
-#include "srsran/phy/upper/signal_processors/prs/formatters.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator.h"
+#include "ocudu/phy/support/precoding_formatters.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/signal_processors/prs/factories.h"
+#include "ocudu/phy/upper/signal_processors/prs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

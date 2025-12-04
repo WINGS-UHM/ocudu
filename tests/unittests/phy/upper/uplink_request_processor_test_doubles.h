@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/uplink_request_processor.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/uplink_request_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Dummy implementation of an uplink request processor.
 class uplink_request_processor_dummy : public uplink_request_processor
@@ -23,4 +23,4 @@ public:
   void process_uplink_slot_request(const resource_grid_context& context, const shared_resource_grid& grid) override {}
 };
 
-} // namespace srsran
+} // namespace ocudu

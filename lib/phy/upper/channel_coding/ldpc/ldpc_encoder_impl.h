@@ -13,10 +13,10 @@
 #pragma once
 
 #include "ldpc_graph_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief LDPC encoder implementation outline.
 ///
@@ -50,7 +50,7 @@ protected:
   static constexpr unsigned bg_hr_parity_nodes = 4;
   /// Pointer to the Tanner graph (~ parity check matrix) used by the encoding algorithm.
   const ldpc_graph_impl* current_graph = nullptr;
-  /// Lifting size as a natural number (as opposed to an element from srsran::ldpc::lifting_size_t).
+  /// Lifting size as a natural number (as opposed to an element from ocudu::ldpc::lifting_size_t).
   uint16_t lifting_size = 2;
   /// Total number of base graph variable nodes in the current graph.
   uint16_t bg_N_full = 68;
@@ -67,4 +67,4 @@ protected:
   uint16_t codeblock_length = 52;
 };
 
-} // namespace srsran
+} // namespace ocudu

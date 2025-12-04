@@ -19,24 +19,24 @@
 
 #include "pusch_decoder_notifier_spy.h"
 #include "pusch_decoder_test_data.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/test_utils.h"
 #ifdef HWACC_PUSCH_ENABLED
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
 #endif // HWACC_PUSCH_ENABLED
 #include <getopt.h>
 
 /// \cond
-using namespace srsran;
+using namespace ocudu;
 using namespace units::literals;
 
 static bool     use_early_stop      = false;
@@ -45,13 +45,13 @@ static unsigned nof_ldpc_iterations = 6;
 static std::string decoder_type = "generic";
 
 #ifdef HWACC_PUSCH_ENABLED
-static bool                 dedicated_queue  = true;
-static bool                 test_harq        = true;
-static bool                 force_local_harq = false;
-static bool                 external_harq    = false;
-static bool                 std_out_sink     = true;
-static srslog::basic_levels hal_log_level    = srslog::basic_levels::error;
-static std::string          eal_arguments    = "";
+static bool                   dedicated_queue  = true;
+static bool                   test_harq        = true;
+static bool                   force_local_harq = false;
+static bool                   external_harq    = false;
+static bool                   std_out_sink     = true;
+static ocudulog::basic_levels hal_log_level    = ocudulog::basic_levels::error;
+static std::string            eal_arguments    = "";
 #endif // HWACC_PUSCH_ENABLED
 
 static void usage(const char* prog)
@@ -129,8 +129,8 @@ static void parse_args(int argc, char** argv)
         std_out_sink = false;
         break;
       case 'z': {
-        auto level    = srslog::str_to_basic_level(std::string(optarg));
-        hal_log_level = level.has_value() ? level.value() : srslog::basic_levels::error;
+        auto level    = ocudulog::str_to_basic_level(std::string(optarg));
+        hal_log_level = level.has_value() ? level.value() : ocudulog::basic_levels::error;
       } break;
 #endif // HWACC_PUSCH_ENABLED
       case 'h':
@@ -170,11 +170,11 @@ static std::shared_ptr<pusch_decoder_factory> create_generic_pusch_decoder_facto
 static std::shared_ptr<hal::hw_accelerator_pusch_dec_factory> create_hw_accelerator_pusch_dec_factory()
 {
 #ifdef HWACC_PUSCH_ENABLED
-  srslog::sink* log_sink =
-      std_out_sink ? srslog::create_stdout_sink() : srslog::create_file_sink("pusch_decoder_vectortest.log");
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("HAL", false);
+  ocudulog::sink* log_sink =
+      std_out_sink ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink("pusch_decoder_vectortest.log");
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HAL", false);
   logger.set_level(hal_log_level);
 
   // Pointer to a dpdk-based hardware-accelerator interface.
@@ -213,7 +213,7 @@ static std::shared_ptr<hal::hw_accelerator_pusch_dec_factory> create_hw_accelera
   hw_decoder_config.dedicated_queue     = dedicated_queue;
 
   // ACC100 hardware-accelerator implementation.
-  return srsran::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
+  return ocudu::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
 #else  // HWACC_PUSCH_ENABLED
   return nullptr;
 #endif // HWACC_PUSCH_ENABLED

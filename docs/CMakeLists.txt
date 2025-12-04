@@ -13,9 +13,9 @@ if (DOXYGEN_FOUND)
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeGenerateTeXMacros.txt)
 
   # Configure doxygen
-  set(DOXYGEN_PROJECT_NAME "srsRAN Project")
+  set(DOXYGEN_PROJECT_NAME "OCUDU Project")
   set(DOXYGEN_PROJECT_NUMBER ${VERSION})
-  set(DOXYGEN_PROJECT_LOGO ${CMAKE_CURRENT_SOURCE_DIR}/srsRAN_project_logo.png)
+  set(DOXYGEN_PROJECT_LOGO ${CMAKE_CURRENT_SOURCE_DIR}/OCUDU_project_logo.png)
   set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set(DOXYGEN_WARN_LOGFILE ${CMAKE_CURRENT_BINARY_DIR}/doxygen.log)
   set(DOXYGEN_USE_MATHJAX "YES")
@@ -47,12 +47,12 @@ if (DOXYGEN_FOUND)
 
   # directories and files to process for all the docs
   set(docs_inputs ${CMAKE_CURRENT_SOURCE_DIR}
-                  ${CMAKE_HOME_DIRECTORY}/include/srsran
+                  ${CMAKE_HOME_DIRECTORY}/include/ocudu
                   ${CMAKE_HOME_DIRECTORY}/lib
                   ${CMAKE_HOME_DIRECTORY}/tests
                   ${CMAKE_HOME_DIRECTORY}/apps
   )
-  set(DOXYGEN_EXCLUDE ${CMAKE_HOME_DIRECTORY}/include/srsran/asn1)
+  set(DOXYGEN_EXCLUDE ${CMAKE_HOME_DIRECTORY}/include/ocudu/asn1)
 
   doxygen_add_docs(doxygen
     ${docs_inputs}
@@ -61,8 +61,8 @@ if (DOXYGEN_FOUND)
 
   # directories and files to process for FAPI related docs
   set(docs_inputs_fapi ${CMAKE_CURRENT_SOURCE_DIR}
-                       ${CMAKE_HOME_DIRECTORY}/include/srsran/fapi
-                       ${CMAKE_HOME_DIRECTORY}/include/srsran/fapi_adaptor
+                       ${CMAKE_HOME_DIRECTORY}/include/ocudu/fapi
+                       ${CMAKE_HOME_DIRECTORY}/include/ocudu/fapi_adaptor
                        ${CMAKE_HOME_DIRECTORY}/lib/fapi
                        ${CMAKE_HOME_DIRECTORY}/lib/fapi_adaptor
   )
@@ -74,12 +74,12 @@ if (DOXYGEN_FOUND)
 
   # directories and files to process for MAC+RLC docs
   set(docs_inputs_du_high ${CMAKE_CURRENT_SOURCE_DIR}
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/mac
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/scheduler
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/rlc
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/f1ap/common
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/f1ap/du
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/du/du_manager
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/mac
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/scheduler
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/rlc
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/f1ap/common
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/f1ap/du
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/du/du_manager
                           ${CMAKE_HOME_DIRECTORY}/lib/mac
                           ${CMAKE_HOME_DIRECTORY}/lib/scheduler
                           ${CMAKE_HOME_DIRECTORY}/lib/rlc
@@ -101,9 +101,9 @@ if (DOXYGEN_FOUND)
 
   # directories and files to process for PHY+RAN docs
   set(docs_inputs_phy ${CMAKE_CURRENT_SOURCE_DIR}
-                      ${CMAKE_HOME_DIRECTORY}/include/srsran/phy
-                      ${CMAKE_HOME_DIRECTORY}/include/srsran/ran
-                      ${CMAKE_HOME_DIRECTORY}/include/srsran/radio
+                      ${CMAKE_HOME_DIRECTORY}/include/ocudu/phy
+                      ${CMAKE_HOME_DIRECTORY}/include/ocudu/ran
+                      ${CMAKE_HOME_DIRECTORY}/include/ocudu/radio
                       ${CMAKE_HOME_DIRECTORY}/lib/phy
                       ${CMAKE_HOME_DIRECTORY}/lib/ran
                       ${CMAKE_HOME_DIRECTORY}/lib/radio
@@ -120,12 +120,12 @@ if (DOXYGEN_FOUND)
 
   # directories and files to process for support-related docs
   set(docs_inputs_support ${CMAKE_CURRENT_SOURCE_DIR}
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/adt
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/srslog
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/srsvec
-                          ${CMAKE_HOME_DIRECTORY}/include/srsran/support
-                          ${CMAKE_HOME_DIRECTORY}/lib/srslog
-                          ${CMAKE_HOME_DIRECTORY}/lib/srsvec
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/adt
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/ocudulog
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/ocuduvec
+                          ${CMAKE_HOME_DIRECTORY}/include/ocudu/support
+                          ${CMAKE_HOME_DIRECTORY}/lib/ocudulog
+                          ${CMAKE_HOME_DIRECTORY}/lib/ocuduvec
                           ${CMAKE_HOME_DIRECTORY}/lib/support
   )
 

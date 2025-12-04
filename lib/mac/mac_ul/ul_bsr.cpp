@@ -9,9 +9,9 @@
  */
 
 #include "ul_bsr.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// TS 38.321, Table 6.1.3.1-1 Buffer size levels (in bytes) for 5-bit Buffer Size field, all values <= except marked
 static constexpr auto buffer_size_levels_5bit = to_array<uint32_t>(
@@ -73,7 +73,7 @@ static constexpr auto buffer_size_levels_8bit =
                         49179951,   52372284, 55771835, 59392055, 63247269,
                         67352729,   71724679, 76380419, 81338368, /* > */ 81338368});
 
-expected<long_bsr_report> srsran::decode_lbsr(bsr_format format, byte_buffer_view payload)
+expected<long_bsr_report> ocudu::decode_lbsr(bsr_format format, byte_buffer_view payload)
 {
   long_bsr_report lbsr = {};
 
@@ -123,7 +123,7 @@ expected<long_bsr_report> srsran::decode_lbsr(bsr_format format, byte_buffer_vie
         ++reader;
 
         if (bsr.buffer_size == 255) {
-          srslog::fetch_basic_logger("MAC").warning("lcg={}: Discarding BSR. Cause: BSR=255 is invalid.", i);
+          ocudulog::fetch_basic_logger("MAC").warning("lcg={}: Discarding BSR. Cause: BSR=255 is invalid.", i);
           return make_unexpected(default_error_t{});
         }
       } else if (format == bsr_format::LONG_TRUNC_BSR) {
@@ -131,9 +131,10 @@ expected<long_bsr_report> srsran::decode_lbsr(bsr_format format, byte_buffer_vie
         // Assume that the LCG has 64 bytes pending (implementation-defined).
         bsr.buffer_size = 64;
       } else {
-        srslog::fetch_basic_logger("MAC").error("Error parsing LongBSR CE: sdu_length={} but there are {} active bsr\n",
-                                                payload.length(),
-                                                lbsr.list.size());
+        ocudulog::fetch_basic_logger("MAC").error(
+            "Error parsing LongBSR CE: sdu_length={} but there are {} active bsr\n",
+            payload.length(),
+            lbsr.list.size());
         return make_unexpected(default_error_t{});
       }
       lbsr.list.push_back(bsr);
@@ -156,7 +157,7 @@ expected<long_bsr_report> srsran::decode_lbsr(bsr_format format, byte_buffer_vie
 /// \param buff_size_index The buffer size field contained in the MAC PDU.
 /// \param format The BSR format that determines the buffer size field length.
 /// \return The actual buffer size level in Bytes.
-uint32_t srsran::buff_size_field_to_bytes(size_t buff_size_index, bsr_format format)
+uint32_t ocudu::buff_size_field_to_bytes(size_t buff_size_index, bsr_format format)
 {
   // [Implementation-defined] Difference between the 2nd largest and the largest UL buffer size in bytes.
   // The resulting value of largest UL buffer (700kB) is approx. the amount of UL data that can be transmitted during 1

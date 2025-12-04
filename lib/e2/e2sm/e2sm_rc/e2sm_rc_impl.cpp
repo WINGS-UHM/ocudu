@@ -10,15 +10,15 @@
 
 #include "e2sm_rc_impl.h"
 #include "e2sm_rc_control_service_impl.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e2sm/e2sm_rc_ies.h"
-#include "srsran/e2/e2sm/e2sm.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e2sm/e2sm_rc_ies.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
-e2sm_rc_impl::e2sm_rc_impl(srslog::basic_logger& logger_, e2sm_handler& e2sm_packer_) :
+e2sm_rc_impl::e2sm_rc_impl(ocudulog::basic_logger& logger_, e2sm_handler& e2sm_packer_) :
   logger(logger_), e2sm_packer(e2sm_packer_)
 {
 }
@@ -35,7 +35,7 @@ e2sm_handler& e2sm_rc_impl::get_e2sm_packer()
   return e2sm_packer;
 }
 
-std::unique_ptr<e2sm_report_service> e2sm_rc_impl::get_e2sm_report_service(const srsran::byte_buffer& action_definition)
+std::unique_ptr<e2sm_report_service> e2sm_rc_impl::get_e2sm_report_service(const ocudu::byte_buffer& action_definition)
 {
   // TODO implement
   return nullptr;

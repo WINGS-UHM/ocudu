@@ -10,7 +10,7 @@
 
 #include "upper_phy_metrics_collector_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void upper_phy_metrics_collector_impl::collect_metrics(upper_phy_metrics& metrics)
 {

@@ -9,18 +9,18 @@
  */
 
 #include "du_mac_si_pdu_update_procedure.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include <future>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-#ifndef SRSRAN_HAS_ENTERPRISE_NTN
+#ifndef OCUDU_HAS_ENTERPRISE_NTN
 
-async_task<du_si_pdu_update_response> srsran::srs_du::start_du_mac_si_pdu_update(const du_si_pdu_update_request& req,
-                                                                                 const du_manager_params&        params,
-                                                                                 du_cell_manager& cell_mng)
+async_task<du_si_pdu_update_response> ocudu::odu::start_du_mac_si_pdu_update(const du_si_pdu_update_request& req,
+                                                                             const du_manager_params&        params,
+                                                                             du_cell_manager&                cell_mng)
 {
   auto err_function = [](coro_context<async_task<du_si_pdu_update_response>>& ctx) {
     CORO_BEGIN(ctx);
@@ -29,4 +29,4 @@ async_task<du_si_pdu_update_response> srsran::srs_du::start_du_mac_si_pdu_update
   return launch_async(std::move(err_function));
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE_NTN
+#endif // OCUDU_HAS_ENTERPRISE_NTN

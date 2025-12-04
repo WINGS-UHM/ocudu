@@ -16,17 +16,17 @@
 #include "cu_cp_ue_impl.h"
 #include "ue_metrics_handler.h"
 #include "ue_task_scheduler_impl.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/security_manager_config.h"
-#include "srsran/cu_cp/ue_configuration.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/security_manager_config.h"
+#include "ocudu/cu_cp/ue_configuration.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <set>
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 class ue_manager : public ue_metrics_handler
 {
@@ -120,24 +120,24 @@ public:
   /// \brief Get the NGAP to RRC UE adapter of the UE.
   ngap_rrc_ue_adapter& get_ngap_rrc_ue_adapter(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
 
     return ues.at(ue_index).get_ngap_rrc_ue_adapter();
   }
 
   rrc_ue_ngap_adapter& get_rrc_ue_ngap_adapter(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
 
     return ues.at(ue_index).get_rrc_ue_ngap_adapter();
   }
 
   rrc_ue_cu_cp_adapter& get_rrc_ue_cu_cp_adapter(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
 
     return ues.at(ue_index).get_rrc_ue_cu_cp_adapter();
   }
@@ -148,8 +148,8 @@ public:
 
   cell_meas_manager_ue_context& get_measurement_context(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-    srsran_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ues.find(ue_index) != ues.end(), "UE with ue_index={} does not exist", ue_index);
 
     return ues.at(ue_index).get_meas_context();
   }
@@ -173,7 +173,7 @@ private:
     }
   }
 
-  srslog::basic_logger&         logger = srslog::fetch_basic_logger("CU-UEMNG");
+  ocudulog::basic_logger&       logger = ocudulog::fetch_basic_logger("CU-UEMNG");
   const cu_cp_configuration     cu_cp_config;
   const ue_configuration        ue_config;
   const up_resource_manager_cfg up_config;
@@ -192,5 +192,5 @@ private:
   std::set<plmn_identity> blocked_plmns;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

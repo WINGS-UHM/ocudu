@@ -10,10 +10,10 @@
 
 #include "prs_generator_impl.h"
 #include "prs_generator_validator_impl.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator_configuration.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills \c msg with the error message.
 ///
@@ -31,7 +31,7 @@ void prs_generator_impl::generate(resource_grid_writer& grid, const prs_generato
 {
   // Makes sure the configuration is valid.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, prs_generator_validator_impl().is_valid(config)), "{}", msg);
+  ocudu_assert(handle_validation(msg, prs_generator_validator_impl().is_valid(config)), "{}", msg);
 
   for (unsigned i_symbol     = config.start_symbol,
                 i_symbol_end = config.start_symbol + static_cast<unsigned>(config.duration);
@@ -113,7 +113,7 @@ void prs_generator_impl::map(resource_grid_writer& grid, unsigned i_symbol, cons
   }
 }
 
-uint8_t prs_generator_impl::get_freq_offset(srsran::prs_comb_size comb_size, unsigned start_symbol, unsigned i_symbol)
+uint8_t prs_generator_impl::get_freq_offset(ocudu::prs_comb_size comb_size, unsigned start_symbol, unsigned i_symbol)
 {
   static constexpr std::array<uint8_t, NOF_SUBCARRIERS_PER_RB> row_2  = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
   static constexpr std::array<uint8_t, NOF_SUBCARRIERS_PER_RB> row_4  = {0, 2, 1, 3, 0, 2, 1, 3, 0, 2, 1, 3};
@@ -137,6 +137,6 @@ uint8_t prs_generator_impl::get_freq_offset(srsran::prs_comb_size comb_size, uns
       break;
   }
 
-  srsran_assert(i_symbol >= start_symbol, "Invalid symbol index.");
+  ocudu_assert(i_symbol >= start_symbol, "Invalid symbol index.");
   return row[i_symbol - start_symbol];
 }

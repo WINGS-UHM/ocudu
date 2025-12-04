@@ -11,13 +11,13 @@
 #include "lib/e1ap/common/e1ap_asn1_converters.h"
 #include "lib/f1ap/cu_cp/f1ap_asn1_converters.h"
 #include "lib/ngap/ngap_asn1_converters.h"
-#include "srsran/ran/cause/e1ap_cause_converters.h"
-#include "srsran/ran/cause/f1ap_cause_converters.h"
-#include "srsran/ran/cause/ngap_cause_converters.h"
+#include "ocudu/ran/cause/e1ap_cause_converters.h"
+#include "ocudu/ran/cause/f1ap_cause_converters.h"
+#include "ocudu/ran/cause/ngap_cause_converters.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class asn1_cause_conversion_test : public ::testing::Test
 {
@@ -25,23 +25,23 @@ public:
   ~asn1_cause_conversion_test() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 protected:
   asn1_cause_conversion_test()
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 // test conversion from ngap asn1
@@ -124,7 +124,7 @@ TEST_F(asn1_cause_conversion_test, when_common_cause_received_then_conversion_to
   ASSERT_EQ(ngap_cause.radio_network().value,
             asn1::ngap::cause_radio_network_opts::ue_in_rrc_inactive_state_not_reachable);
 
-  cause = srsran::e1ap_to_ngap_cause(e1ap_cause_t{e1ap_cause_radio_network_t::encryption_algorithms_not_supported});
+  cause      = ocudu::e1ap_to_ngap_cause(e1ap_cause_t{e1ap_cause_radio_network_t::encryption_algorithms_not_supported});
   ngap_cause = cause_to_asn1(cause);
   ASSERT_EQ(ngap_cause.type(), asn1::ngap::cause_c::types::radio_network);
   ASSERT_EQ(ngap_cause.radio_network().value,
@@ -269,7 +269,7 @@ TEST_F(asn1_cause_conversion_test, when_common_cause_received_then_conversion_to
   ASSERT_EQ(f1ap_cause.type(), asn1::f1ap::cause_c::types::transport);
   ASSERT_EQ(f1ap_cause.transport().value, asn1::f1ap::cause_transport_opts::unknown_up_tnl_info_for_iab);
 
-  cause      = srsran::ngap_to_f1ap_cause(ngap_cause_t{cause_nas_t::normal_release});
+  cause      = ocudu::ngap_to_f1ap_cause(ngap_cause_t{cause_nas_t::normal_release});
   f1ap_cause = cause_to_asn1(cause);
   ASSERT_EQ(f1ap_cause.type(), asn1::ngap::cause_c::types::radio_network);
   ASSERT_EQ(f1ap_cause.radio_network().value, asn1::f1ap::cause_radio_network_opts::normal_release);
@@ -390,7 +390,7 @@ TEST_F(asn1_cause_conversion_test, when_common_cause_received_then_conversion_to
   ASSERT_EQ(e1ap_cause.type(), asn1::e1ap::cause_c::types::transport);
   ASSERT_EQ(e1ap_cause.transport().value, asn1::e1ap::cause_transport_opts::unknown_tnl_address_for_iab);
 
-  cause      = srsran::ngap_to_e1ap_cause(ngap_cause_t{cause_nas_t::normal_release});
+  cause      = ocudu::ngap_to_e1ap_cause(ngap_cause_t{cause_nas_t::normal_release});
   e1ap_cause = cause_to_asn1(cause);
   ASSERT_EQ(e1ap_cause.type(), asn1::ngap::cause_c::types::radio_network);
   ASSERT_EQ(e1ap_cause.radio_network().value, asn1::e1ap::cause_radio_network_opts::normal_release);

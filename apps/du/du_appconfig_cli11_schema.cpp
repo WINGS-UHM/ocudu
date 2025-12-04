@@ -19,18 +19,18 @@
 #include "apps/services/remote_control/remote_control_appconfig_cli11_schema.h"
 #include "apps/services/worker_manager/worker_manager_cli11_schema.h"
 #include "du_appconfig.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-static void configure_cli11_metrics_args(CLI::App& app, srs_du::metrics_appconfig& metrics_params)
+static void configure_cli11_metrics_args(CLI::App& app, odu::metrics_appconfig& metrics_params)
 {
   add_option(
       app, "--autostart_stdout_metrics", metrics_params.autostart_stdout_metrics, "Autostart stdout metrics reporting")
       ->capture_default_str();
 }
 
-static void configure_cli11_f1ap_args(CLI::App& app, srs_du::f1ap_appconfig& f1c_params)
+static void configure_cli11_f1ap_args(CLI::App& app, odu::f1ap_appconfig& f1c_params)
 {
   app.add_option("--cu_cp_addr", f1c_params.cu_cp_address, "CU-CP F1-C address to connect to")->capture_default_str();
   app.add_option(
@@ -38,13 +38,13 @@ static void configure_cli11_f1ap_args(CLI::App& app, srs_du::f1ap_appconfig& f1c
       ->capture_default_str();
 }
 
-static void configure_cli11_f1u_args(CLI::App& app, srs_du::f1u_appconfig& f1u_params)
+static void configure_cli11_f1u_args(CLI::App& app, odu::f1u_appconfig& f1u_params)
 {
   app.add_option("--queue_size", f1u_params.pdu_queue_size, "F1-U PDU queue size")->capture_default_str();
   configure_cli11_f1u_sockets_args(app, f1u_params.f1u_sockets);
 }
 
-void srsran::configure_cli11_with_du_appconfig_schema(CLI::App& app, du_appconfig& du_cfg)
+void ocudu::configure_cli11_with_du_appconfig_schema(CLI::App& app, du_appconfig& du_cfg)
 {
   app.add_flag("--dryrun", du_cfg.enable_dryrun, "Enable application dry run mode")->capture_default_str();
 
@@ -112,7 +112,7 @@ static void configure_default_f1u(du_appconfig& du_cfg)
   }
 }
 
-void srsran::autoderive_du_parameters_after_parsing(CLI::App& app, du_appconfig& du_cfg)
+void ocudu::autoderive_du_parameters_after_parsing(CLI::App& app, du_appconfig& du_cfg)
 {
 #ifdef DPDK_FOUND
   manage_hal_optional(app, du_cfg);

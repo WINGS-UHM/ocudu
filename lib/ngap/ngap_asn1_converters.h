@@ -11,18 +11,18 @@
 #pragma once
 
 #include "ngap_asn1_utils.h"
-#include "srsran/asn1/ngap/ngap_ies.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_handover.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/ran/up_transport_layer_info.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 #include <variant>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 // Helper to create PDU from NGAP message.
 template <class T>
@@ -31,8 +31,8 @@ byte_buffer pack_into_pdu(const T& msg, const char* context_name = nullptr)
   context_name = context_name == nullptr ? __FUNCTION__ : context_name;
   byte_buffer   pdu{};
   asn1::bit_ref bref{pdu};
-  if (msg.pack(bref) == asn1::SRSASN_ERROR_ENCODE_FAIL) {
-    srslog::fetch_basic_logger("NGAP").error("Failed to pack message in {} - discarding it", context_name);
+  if (msg.pack(bref) == asn1::OCUDUASN_ERROR_ENCODE_FAIL) {
+    ocudulog::fetch_basic_logger("NGAP").error("Failed to pack message in {} - discarding it", context_name);
     pdu.clear();
   }
   return pdu;
@@ -471,7 +471,7 @@ inline void asn1_to_security_indication(security_indication_t& security_ind, con
           static_cast<integrity_protection_indication_t>(asn1obj.integrity_protection_ind.value);
       break;
     default:
-      srslog::fetch_basic_logger("NGAP").error("Cannot convert security indication to NGAP type");
+      ocudulog::fetch_basic_logger("NGAP").error("Cannot convert security indication to NGAP type");
   }
 
   switch (asn1obj.confidentiality_protection_ind) {
@@ -482,7 +482,7 @@ inline void asn1_to_security_indication(security_indication_t& security_ind, con
           static_cast<confidentiality_protection_indication_t>(asn1obj.confidentiality_protection_ind.value);
       break;
     default:
-      srslog::fetch_basic_logger("NGAP").error("Cannot convert security indication to NGAP type");
+      ocudulog::fetch_basic_logger("NGAP").error("Cannot convert security indication to NGAP type");
   }
 }
 
@@ -506,7 +506,7 @@ inline void asn1_to_handov_type(ngap_handov_type& handov_type, const asn1::ngap:
       break;
     default:
       // error
-      srslog::fetch_basic_logger("NGAP").error("Cannot convert handov type to NGAP type");
+      ocudulog::fetch_basic_logger("NGAP").error("Cannot convert handov type to NGAP type");
   }
 }
 
@@ -565,9 +565,9 @@ inline bool asn1_to_security_context(security::security_context&           sec_c
   sec_ctxt.ncc = asn1_sec_ctxt.next_hop_chaining_count;
   asn1_utils::fill_supported_algorithms(sec_ctxt.supported_int_algos, asn1_sec_cap.nr_integrity_protection_algorithms);
   asn1_utils::fill_supported_algorithms(sec_ctxt.supported_enc_algos, asn1_sec_cap.nr_encryption_algorithms);
-  srslog::fetch_basic_logger("NGAP").debug(asn1_sec_ctxt.next_hop_nh.data(), 32, "K_gnb");
-  srslog::fetch_basic_logger("NGAP").debug("Supported integrity algorithms: {}", sec_ctxt.supported_int_algos);
-  srslog::fetch_basic_logger("NGAP").debug("Supported ciphering algorithms: {}", sec_ctxt.supported_enc_algos);
+  ocudulog::fetch_basic_logger("NGAP").debug(asn1_sec_ctxt.next_hop_nh.data(), 32, "K_gnb");
+  ocudulog::fetch_basic_logger("NGAP").debug("Supported integrity algorithms: {}", sec_ctxt.supported_int_algos);
+  ocudulog::fetch_basic_logger("NGAP").debug("Supported ciphering algorithms: {}", sec_ctxt.supported_enc_algos);
 
   return true;
 }
@@ -716,7 +716,7 @@ inline void asn1_to_source_to_target_transport_container(
         break;
       default:
         // error
-        srslog::fetch_basic_logger("NGAP").error("Cannot convert ASN.1 cell size to NGAP type");
+        ocudulog::fetch_basic_logger("NGAP").error("Cannot convert ASN.1 cell size to NGAP type");
     }
 
     // Fill time UE stayed in cell.
@@ -836,7 +836,7 @@ inline bool pdu_session_res_admitted_item_to_asn1(asn1::ngap::pdu_session_res_ad
   // Pack HO request ACK transfer.
   asn1_admitted_item.ho_request_ack_transfer = pack_into_pdu(asn1_req_ack_transfer);
   if (asn1_admitted_item.ho_request_ack_transfer.empty()) {
-    srslog::fetch_basic_logger("NGAP").error("Error packing HO Request ACK transfer");
+    ocudulog::fetch_basic_logger("NGAP").error("Error packing HO Request ACK transfer");
     return false;
   }
 
@@ -865,7 +865,7 @@ inline bool pdu_session_res_failed_to_setup_item_ho_ack_to_asn1(
   // Pack HO res alloc unsuccessful transfer.
   asn1_failed_item.ho_res_alloc_unsuccessful_transfer = pack_into_pdu(asn1_ho_res_alloc_unsuccessful_transfer);
   if (asn1_failed_item.ho_res_alloc_unsuccessful_transfer.empty()) {
-    srslog::fetch_basic_logger("NGAP").error("Error packing Ho Resource Alloc Unsuccessful transfer");
+    ocudulog::fetch_basic_logger("NGAP").error("Error packing Ho Resource Alloc Unsuccessful transfer");
     return false;
   }
 
@@ -885,7 +885,7 @@ inline bool target_to_source_transport_container_to_asn1(
 
   asn1_container = pack_into_pdu(asn1_container_struct);
   if (asn1_container.empty()) {
-    srslog::fetch_basic_logger("NGAP").error("Error packing target to source transparent container");
+    ocudulog::fetch_basic_logger("NGAP").error("Error packing target to source transparent container");
     return false;
   }
 
@@ -897,8 +897,7 @@ inline bool target_to_source_transport_container_to_asn1(
 /// \return The common type cu_cp_five_g_s_tmsi.
 inline cu_cp_five_g_s_tmsi ngap_asn1_to_ue_paging_id(const asn1::ngap::ue_paging_id_c& asn1_ue_id)
 {
-  srsran_assert(asn1_ue_id.type() == asn1::ngap::ue_paging_id_c::types_opts::five_g_s_tmsi,
-                "Invalid UE paging ID type");
+  ocudu_assert(asn1_ue_id.type() == asn1::ngap::ue_paging_id_c::types_opts::five_g_s_tmsi, "Invalid UE paging ID type");
 
   return cu_cp_five_g_s_tmsi{asn1_ue_id.five_g_s_tmsi().amf_set_id.to_number(),
                              asn1_ue_id.five_g_s_tmsi().amf_pointer.to_number(),
@@ -947,7 +946,7 @@ inline bool asn1_to_pdu_session_type(pdu_session_type_t&                   pdu_s
       pdu_session_type = pdu_session_type_t::ethernet;
       break;
     default:
-      srslog::fetch_basic_logger("NGAP").error("Cannot convert ASN.1 PDU session type to common type");
+      ocudulog::fetch_basic_logger("NGAP").error("Cannot convert ASN.1 PDU session type to common type");
       return false;
   }
   return true;
@@ -970,5 +969,5 @@ inline asn1::ngap::pdu_session_type_e pdu_session_type_to_asn1(const pdu_session
   }
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

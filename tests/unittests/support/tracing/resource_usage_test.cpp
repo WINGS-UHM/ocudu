@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/tracing/resource_usage.h"
+#include "ocudu/support/tracing/resource_usage.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(resource_usage_test, calculate_resource_usage_diff)
 {

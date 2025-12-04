@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_codeword_buffer_spy : public pusch_codeword_buffer
 {
@@ -25,42 +25,42 @@ public:
 
   span<log_likelihood_ratio> get_next_block_view(unsigned block_size) override
   {
-    srsran_assert(!completed, "Wrong state.");
+    ocudu_assert(!completed, "Wrong state.");
     block_size = std::min(block_size, static_cast<unsigned>(data.size()) - count);
     return span<log_likelihood_ratio>(data).subspan(count, block_size);
   }
 
   void on_new_block(span<const log_likelihood_ratio> new_data, const bit_buffer& new_sequence) override
   {
-    srsran_assert(!completed, "Wrong state.");
-    srsran_assert(new_sequence.size() == new_data.size(), "Sizes must be equal.");
+    ocudu_assert(!completed, "Wrong state.");
+    ocudu_assert(new_sequence.size() == new_data.size(), "Sizes must be equal.");
     unsigned block_size = new_data.size();
 
     // Append soft bits.
     span<log_likelihood_ratio> dst_data = span<log_likelihood_ratio>(data).subspan(count, block_size);
-    srsvec::copy(dst_data, new_data);
+    ocuduvec::copy(dst_data, new_data);
 
     // Append scrambling sequence.
-    srsvec::copy_offset(scrambling_seq, count, new_sequence, 0, new_sequence.size());
+    ocuduvec::copy_offset(scrambling_seq, count, new_sequence, 0, new_sequence.size());
 
     count += block_size;
   }
 
   void on_end_codeword() override
   {
-    srsran_assert(!completed, "Wrong state.");
+    ocudu_assert(!completed, "Wrong state.");
     completed = true;
   }
 
   span<const log_likelihood_ratio> get_data() const
   {
-    srsran_assert(completed, "Wrong state.");
+    ocudu_assert(completed, "Wrong state.");
     return span<const log_likelihood_ratio>(data).first(count);
   }
 
   const bit_buffer& get_scrambling_seq() const
   {
-    srsran_assert(completed, "Wrong state.");
+    ocudu_assert(completed, "Wrong state.");
     return scrambling_seq;
   }
 
@@ -71,4 +71,4 @@ private:
   dynamic_bit_buffer                scrambling_seq;
 };
 
-} // namespace srsran
+} // namespace ocudu

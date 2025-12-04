@@ -13,13 +13,13 @@
 #include "../f1ap_cu_impl.h"
 #include "cu_cp/ue_context/f1ap_cu_ue_transaction_manager.h"
 #include "f1ap_asn1_utils.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/cu_cp/f1ap_configuration.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/cu_cp/f1ap_configuration.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ue_context_setup_procedure
 {
@@ -29,7 +29,7 @@ public:
                              f1ap_ue_context_list&                  ue_ctxt_list_,
                              f1ap_du_processor_notifier&            du_processor_notifier_,
                              f1ap_message_notifier&                 f1ap_notif_,
-                             srslog::basic_logger&                  logger_,
+                             ocudulog::basic_logger&                logger_,
                              std::optional<rrc_ue_transfer_context> rrc_context);
 
   void operator()(coro_context<async_task<f1ap_ue_context_setup_response>>& ctx);
@@ -52,7 +52,7 @@ private:
   f1ap_ue_context_list&                  ue_ctxt_list;
   f1ap_du_processor_notifier&            du_processor_notifier;
   f1ap_message_notifier&                 f1ap_notifier;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
   std::optional<rrc_ue_transfer_context> rrc_context; // Initialize new RRC with existing context.
 
   // Context of the created UE.
@@ -62,5 +62,5 @@ private:
       transaction_sink;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

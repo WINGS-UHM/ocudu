@@ -9,15 +9,15 @@
  */
 
 #include "transform_precoder_test_data.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoder.h"
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoder.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 bool operator==(span<const cf_t> lhs, span<const cf_t> rhs)
 {
@@ -53,7 +53,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
                            test_case.deprecode_noise_output.get_file_name());
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

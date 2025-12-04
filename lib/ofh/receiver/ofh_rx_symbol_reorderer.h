@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../support/uplink_notified_grid_symbol_repository.h"
-#include "srsran/ofh/ofh_uplane_rx_symbol_notifier.h"
+#include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// \brief Received symbol reorderer.
@@ -31,7 +31,7 @@ public:
                       std::shared_ptr<uplink_notified_grid_symbol_repository> uplink_symbol_repo_) :
     notifier(notifier_), uplink_symbol_repo(uplink_symbol_repo_)
   {
-    srsran_assert(uplink_symbol_repo, "Invalid notified uplink grid symbol repository");
+    ocudu_assert(uplink_symbol_repo, "Invalid notified uplink grid symbol repository");
   }
 
   // See interface for documentation.
@@ -46,4 +46,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

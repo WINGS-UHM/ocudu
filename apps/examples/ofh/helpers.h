@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ofh/ethernet/ethernet_mac_address.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ru/ofh/ru_ofh_configuration.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ofh/ethernet/ethernet_mac_address.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ru/ofh/ru_ofh_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Parses the string containing Ethernet MAC address.
 inline bool parse_mac_address(const std::string& mac_str, ether::mac_address& mac)
@@ -77,4 +77,4 @@ public:
 };
 
 } // namespace ru_emu_stats
-} // namespace srsran
+} // namespace ocudu

@@ -9,12 +9,12 @@
  */
 
 #include "pdcp_rx_status_report_test.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test correct construction of PDCP status report
 /// All PDUs are received before the t-Reordering expires.
@@ -23,7 +23,7 @@ TEST_P(pdcp_rx_status_report_test, build_status_report)
   uint32_t count = 262143;
   init(GetParam());
 
-  srsran::test_delimit_logger delimiter(
+  ocudu::test_delimit_logger delimiter(
       "RX build status report test, no t-Reordering. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
   pdcp_rx_state init_state = {.rx_next = count, .rx_deliv = count, .rx_reord = 0};
@@ -101,7 +101,7 @@ TEST_P(pdcp_rx_status_report_test, build_truncated_status_report)
 
   uint32_t count = 262143;
 
-  srsran::test_delimit_logger delimiter(
+  ocudu::test_delimit_logger delimiter(
       "RX build status report test, no t-Reordering. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
   init(GetParam());
 

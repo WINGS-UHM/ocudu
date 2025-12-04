@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/scheduler/config/bwp_configuration.h"
-#include "srsran/scheduler/result/dci_info.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/result/dci_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Retrieves the time resource allocation table for PUSCH.
 /// \remark See TS 38.214, Section 6.1.2.1.1 - Determination of the resource allocation table to be used for PUSCH.
@@ -61,4 +61,4 @@ inline crb_interval get_coreset0_crbs(const pdcch_config_common& pdcch_cfg)
   return {rb_start, rb_start + get_coreset_nof_prbs(*pdcch_cfg.coreset0)};
 }
 
-} // namespace srsran
+} // namespace ocudu

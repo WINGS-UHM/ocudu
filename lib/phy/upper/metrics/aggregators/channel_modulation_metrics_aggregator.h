@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Modulation mapper metrics aggregator.
 class channel_modulation_metrics_aggregator : public channel_modulation_metrics_notifier
@@ -134,4 +134,4 @@ private:
   metrics_per_modulation other_metrics_collection;
 };
 
-} // namespace srsran
+} // namespace ocudu

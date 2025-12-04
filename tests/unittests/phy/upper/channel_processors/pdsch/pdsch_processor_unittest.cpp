@@ -14,17 +14,17 @@
 #include "pdsch_encoder_test_doubles.h"
 #include "pdsch_modulator_test_doubles.h"
 #include "pdsch_processor_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/srsvec/compare.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 static std::ostream& operator<<(std::ostream& os, cyclic_prefix value)
 {
   fmt::print(os, value.to_string());
@@ -45,10 +45,10 @@ static std::ostream& operator<<(std::ostream& os, span<const uint8_t> value)
 
 static bool operator==(const span<const uint8_t> lhs, const span<const uint8_t> rhs)
 {
-  return srsvec::equal(lhs, rhs);
+  return ocuduvec::equal(lhs, rhs);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

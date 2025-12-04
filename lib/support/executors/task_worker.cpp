@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <future>
 
-using namespace srsran;
+using namespace ocudu;
 
 template <concurrent_queue_policy QueuePolicy, concurrent_queue_wait_policy WaitPolicy>
 general_task_worker<QueuePolicy, WaitPolicy>::~general_task_worker()
@@ -32,7 +32,7 @@ template <concurrent_queue_policy QueuePolicy, concurrent_queue_wait_policy Wait
 unique_function<void()> general_task_worker<QueuePolicy, WaitPolicy>::make_blocking_pop_task()
 {
   return [this]() {
-    auto& logger = srslog::fetch_basic_logger("ALL");
+    auto& logger = ocudulog::fetch_basic_logger("ALL");
     logger.info("Task worker \"{}\" started...", this_thread_name());
 
     auto consumer = pending_tasks.create_consumer();
@@ -59,10 +59,10 @@ void general_task_worker<QueuePolicy, WaitPolicy>::wait_pending_tasks()
   fut.get();
 }
 
-template class srsran::general_task_worker<concurrent_queue_policy::locking_mpsc,
-                                           concurrent_queue_wait_policy::condition_variable>;
-template class srsran::general_task_worker<concurrent_queue_policy::locking_mpsc, concurrent_queue_wait_policy::sleep>;
-template class srsran::general_task_worker<concurrent_queue_policy::locking_mpmc,
-                                           concurrent_queue_wait_policy::condition_variable>;
-template class srsran::general_task_worker<concurrent_queue_policy::lockfree_spsc, concurrent_queue_wait_policy::sleep>;
-template class srsran::general_task_worker<concurrent_queue_policy::lockfree_mpmc, concurrent_queue_wait_policy::sleep>;
+template class ocudu::general_task_worker<concurrent_queue_policy::locking_mpsc,
+                                          concurrent_queue_wait_policy::condition_variable>;
+template class ocudu::general_task_worker<concurrent_queue_policy::locking_mpsc, concurrent_queue_wait_policy::sleep>;
+template class ocudu::general_task_worker<concurrent_queue_policy::locking_mpmc,
+                                          concurrent_queue_wait_policy::condition_variable>;
+template class ocudu::general_task_worker<concurrent_queue_policy::lockfree_spsc, concurrent_queue_wait_policy::sleep>;
+template class ocudu::general_task_worker<concurrent_queue_policy::lockfree_mpmc, concurrent_queue_wait_policy::sleep>;

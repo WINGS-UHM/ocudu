@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/ran/precoding/precoding_weight_matrix_formatters.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/ran/precoding/precoding_weight_matrix_formatters.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const precoding_weight_matrix& matrix)
 {
@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, const precoding_weight_matrix& matrix
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 TEST(precoding_matrix_table_generator, one_port)
 {

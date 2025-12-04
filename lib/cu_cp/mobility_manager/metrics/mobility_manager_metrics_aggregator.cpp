@@ -10,8 +10,8 @@
 
 #include "mobility_manager_metrics_aggregator.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 void mobility_manager_metrics_aggregator::aggregate_requested_handover_preparation()
 {

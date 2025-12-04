@@ -12,13 +12,13 @@
 #include "lib/e2/common/e2ap_asn1_utils.h"
 #include "lib/pcap/dlt_pcap_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest-param-test.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2sm;
 
 // Helper global variables to pass pcap_writer to all tests.
@@ -34,8 +34,8 @@ protected:
   {
     external_pcap_writer = GetParam();
 
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
@@ -59,7 +59,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
     pcap->close();
   }
 };
@@ -73,8 +73,8 @@ protected:
   {
     external_pcap_writer = GetParam();
 
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
@@ -96,7 +96,7 @@ protected:
   void TearDown() override
   {
     // Flush logger after each test.
-    srslog::flush();
+    ocudulog::flush();
     pcap->close();
   }
 };
@@ -242,7 +242,7 @@ TEST_P(e2sm_kpm_indication, e2sm_kpm_generates_ric_indication_style1)
   // Decode RIC Indication and check the content.
   e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref     ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -339,7 +339,7 @@ TEST_P(e2sm_kpm_indication, e2sm_kpm_generates_ric_indication_style2)
   // Decode RIC Indication and check the content.
   e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref     ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -488,7 +488,7 @@ TEST_P(e2sm_kpm_indication, e2sm_kpm_generates_ric_indication_style3)
   // Decode RIC Indication and check the content.
   e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref     ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -634,7 +634,7 @@ TEST_P(e2sm_kpm_indication, e2sm_kpm_generates_ric_indication_style4)
   // Decode RIC Indication and check the content.
   e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref     ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -760,7 +760,7 @@ TEST_P(e2sm_kpm_indication, e2sm_kpm_generates_ric_indication_style5)
   // Decode RIC Indication and check the content.
   e2sm_kpm_ind_msg_s ric_ind_msg;
   asn1::cbit_ref     ric_ind_bref(ind_msg_bytes);
-  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_msg.unpack(ric_ind_bref) != asn1::OCUDUASN_SUCCESS) {
     test_logger.debug("e2sm_kpm: RIC indication msg could not be unpacked");
     return;
   }
@@ -805,7 +805,7 @@ int main(int argc, char** argv)
     }
   }
 
-  srslog::init();
+  ocudulog::init();
 
   std::unique_ptr<task_worker_executor> pcap_exec;
   std::unique_ptr<task_worker>          pcap_worker;

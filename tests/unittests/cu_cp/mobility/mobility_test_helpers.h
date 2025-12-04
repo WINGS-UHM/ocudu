@@ -11,11 +11,11 @@
 #pragma once
 
 #include "tests/unittests/cu_cp/test_helpers.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Fixture class for CU-CP mobility tests
 class mobility_test : public ::testing::Test
@@ -26,8 +26,8 @@ protected:
 
   ue_manager* get_ue_manager() { return &ue_mng; }
 
-  srslog::basic_logger& test_logger  = srslog::fetch_basic_logger("TEST");
-  srslog::basic_logger& cu_cp_logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger& test_logger  = ocudulog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP");
 
   manual_task_worker  ctrl_worker{128};
   timer_manager       timers;
@@ -37,5 +37,5 @@ protected:
   dummy_cu_cp_ue_context_manipulation_handler cu_cp_handler;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

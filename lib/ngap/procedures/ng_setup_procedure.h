@@ -11,13 +11,13 @@
 #pragma once
 
 #include "ngap_transaction_manager.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_context.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_context.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ng_setup_procedure
 {
@@ -28,7 +28,7 @@ public:
                      ngap_message_notifier&    amf_notif_,
                      ngap_transaction_manager& ev_mng_,
                      timer_factory             timers,
-                     srslog::basic_logger&     logger_);
+                     ocudulog::basic_logger&   logger_);
 
   void operator()(coro_context<async_task<ngap_ng_setup_result>>& ctx);
 
@@ -48,7 +48,7 @@ private:
   const unsigned            max_setup_retries;
   ngap_message_notifier&    amf_notifier;
   ngap_transaction_manager& ev_mng;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 
   unique_timer ng_setup_wait_timer;
 
@@ -58,5 +58,5 @@ private:
   protocol_transaction_outcome_observer<asn1::ngap::ng_setup_resp_s, asn1::ngap::ng_setup_fail_s> transaction_sink;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

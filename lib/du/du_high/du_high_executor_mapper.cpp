@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/support/executors/strand_executor.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/support/executors/strand_executor.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -115,7 +115,7 @@ public:
                                      bool                                                     trace_enabled,
                                      executor_metrics_channel_registry*                       metric_channel_registry)
   {
-    srsran_assert(cfg.nof_cells > 0, "Invalid number of cells");
+    ocudu_assert(cfg.nof_cells > 0, "Invalid number of cells");
     concurrent_queue_params slot_qparams{concurrent_queue_policy::lockfree_spsc, 4};
     concurrent_queue_params other_qparams{concurrent_queue_policy::lockfree_mpmc, cfg.default_task_queue_size};
     bool                    is_sync = not rt_mode_enabled;
@@ -201,7 +201,7 @@ protected:
 
   common_ue_executor_mapper(unsigned initial_capacity)
   {
-    srsran_assert(initial_capacity > 0, "Invalid number of max strands");
+    ocudu_assert(initial_capacity > 0, "Invalid number of max strands");
 
     strands.reserve(initial_capacity);
   }
@@ -322,7 +322,7 @@ public:
 
   void rebind_executors(du_ue_index_t ue_index, du_cell_index_t pcell_index) override
   {
-    srsran_sanity_check(is_du_ue_index_valid(ue_index), "Invalid ue id={}", fmt::underlying(ue_index));
+    ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid ue id={}", fmt::underlying(ue_index));
     ue_idx_to_exec_index[ue_index] = pcell_index % max_strands;
     while (strands.size() <= ue_idx_to_exec_index[ue_index]) {
       add_strand(pool_exec, ctrl_queue_size, pdu_queue_size, trace_enabled, metrics_channel_registry);
@@ -457,7 +457,7 @@ private:
 } // namespace
 
 std::unique_ptr<du_high_executor_mapper>
-srsran::srs_du::create_du_high_executor_mapper(const du_high_executor_config& config)
+ocudu::odu::create_du_high_executor_mapper(const du_high_executor_config& config)
 {
   return std::make_unique<du_high_executor_mapper_impl>(config);
 }

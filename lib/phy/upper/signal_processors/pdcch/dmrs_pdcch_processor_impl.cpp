@@ -10,12 +10,12 @@
 
 #include "dmrs_pdcch_processor_impl.h"
 #include "../dmrs_helper.h"
-#include "srsran/phy/support/mask_types.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/support/mask_types.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 unsigned dmrs_pdcch_processor_impl::c_init(unsigned symbol, const dmrs_pdcch_processor::config_t& config)
 {
@@ -56,15 +56,15 @@ void dmrs_pdcch_processor_impl::mapping(resource_grid_writer&     grid,
 
 void dmrs_pdcch_processor_impl::map(resource_grid_writer& grid, const dmrs_pdcch_processor::config_t& config)
 {
-  srsran_assert(config.precoding.get_nof_layers() == 1,
-                "Number of layers (i.e., {}) must be one.",
-                config.precoding.get_nof_layers());
-  srsran_assert(config.precoding.get_nof_ports() >= 1,
-                "Number of ports (i.e., {}) must be equal to or greater than one.",
-                config.precoding.get_nof_ports());
-  srsran_assert(config.precoding.get_nof_prg() >= 1,
-                "Number of PRG (i.e., {}) must be equal to or greater than one.",
-                config.precoding.get_nof_prg());
+  ocudu_assert(config.precoding.get_nof_layers() == 1,
+               "Number of layers (i.e., {}) must be one.",
+               config.precoding.get_nof_layers());
+  ocudu_assert(config.precoding.get_nof_ports() >= 1,
+               "Number of ports (i.e., {}) must be equal to or greater than one.",
+               config.precoding.get_nof_ports());
+  ocudu_assert(config.precoding.get_nof_prg() >= 1,
+               "Number of PRG (i.e., {}) must be equal to or greater than one.",
+               config.precoding.get_nof_prg());
 
   // Number of DM-RS per symbol.
   unsigned nof_dmrs_symbol = config.rb_mask.count() * NOF_DMRS_PER_RB;

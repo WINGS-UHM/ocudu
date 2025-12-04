@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/rohc/rohc_engine.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/rohc/rohc_engine.h"
 
-namespace srsran::rohc {
+namespace ocudu::rohc {
 
 class rohc_lib_engine : public rohc_engine
 {
@@ -22,7 +22,7 @@ public:
   ~rohc_lib_engine() = default;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran::rohc
+} // namespace ocudu::rohc

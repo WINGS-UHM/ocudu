@@ -11,9 +11,9 @@
 #pragma once
 
 #include "apps/helpers/metrics/metrics_config.h"
-#include "srsran/adt/byte_buffer.h"
+#include "ocudu/adt/byte_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Buffer pool metrics configuration.
@@ -33,4 +33,4 @@ struct buffer_pool_appconfig {
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

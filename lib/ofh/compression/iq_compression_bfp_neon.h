@@ -12,7 +12,7 @@
 
 #include "iq_compression_bfp_impl.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Implementation of the Block Floating Point IQ data compression using NEON intrinsics.
@@ -20,7 +20,7 @@ class iq_compression_bfp_neon : public iq_compression_bfp_impl
 {
 public:
   // Constructor.
-  explicit iq_compression_bfp_neon(srslog::basic_logger& logger_, float iq_scaling_ = 1.0) :
+  explicit iq_compression_bfp_neon(ocudulog::basic_logger& logger_, float iq_scaling_ = 1.0) :
     iq_compression_bfp_impl(logger_, iq_scaling_)
   {
   }
@@ -34,4 +34,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

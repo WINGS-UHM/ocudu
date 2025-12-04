@@ -17,15 +17,15 @@
 #include "procedures/e1ap_cu_up_event_manager.h"
 #include "procedures/e1ap_cu_up_release_procedure.h"
 #include "procedures/e1ap_cu_up_setup_procedure.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/timers.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/timers.h"
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e1ap;
-using namespace srs_cu_up;
+using namespace ocuup;
 
 namespace {
 
@@ -49,7 +49,7 @@ e1ap_cu_up_impl::e1ap_cu_up_impl(const e1ap_configuration&    e1ap_cfg_,
                                  timer_manager&               timers_,
                                  task_executor&               cu_up_exec_) :
   e1ap_cfg(e1ap_cfg_),
-  logger(srslog::fetch_basic_logger("CU-UP-E1")),
+  logger(ocudulog::fetch_basic_logger("CU-UP-E1")),
   cu_up_notifier(cu_up_notifier_),
   timers(timers_),
   cu_up_exec(cu_up_exec_),
@@ -63,7 +63,7 @@ e1ap_cu_up_impl::e1ap_cu_up_impl(const e1ap_configuration&    e1ap_cfg_,
     metrics_timer.set(std::chrono::milliseconds(e1ap_cfg.metrics_period), [this](timer_id_t tid) {
       // TODO push metrics to notifier.
       auto  m        = metrics.get_metrics_and_reset();
-      auto& m_logger = srslog::fetch_basic_logger("METRICS");
+      auto& m_logger = ocudulog::fetch_basic_logger("METRICS");
       m_logger.info("CU-UP E1AP metrics: {}", format_e1ap_cu_up_metrics(e1ap_cfg.metrics_period, m));
       metrics_timer.run();
     });

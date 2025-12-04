@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/security/s3g.h"
+#include "ocudu/security/s3g.h"
 #include "s3g.h"
 
-using namespace srsran;
-using namespace srsran::security;
+using namespace ocudu;
+using namespace ocudu::security;
 
 /*********************************************************************
     Name: s3g_mul_x
@@ -110,7 +110,7 @@ uint32_t s3g_clock_fsm(S3G_STATE* state);
     Document Reference: Specification of the 3GPP Confidentiality and
                             Integrity Algorithms UEA2 & UIA2 D2 v1.1
 *********************************************************************/
-void srsran::security::s3g_deinitialize(S3G_STATE* state);
+void ocudu::security::s3g_deinitialize(S3G_STATE* state);
 
 /*********************************************************************
     Name: s3g_generate_keystream
@@ -121,7 +121,7 @@ void srsran::security::s3g_deinitialize(S3G_STATE* state);
                             Integrity Algorithms UEA2 & UIA2 D2 v1.1
                             Section 4.2
 *********************************************************************/
-void srsran::security::s3g_generate_keystream(S3G_STATE* state, uint32_t n, uint32_t* ks);
+void ocudu::security::s3g_generate_keystream(S3G_STATE* state, uint32_t n, uint32_t* ks);
 
 /*********************************************************************
     Name: s3g_mul_x
@@ -267,7 +267,7 @@ uint32_t s3g_clock_fsm(S3G_STATE* state)
                             Integrity Algorithms UEA2 & UIA2 D2 v1.1
                             Section 4.1
 *********************************************************************/
-void srsran::security::s3g_initialize(S3G_STATE* state, uint32_t k[4], uint32_t iv[4])
+void ocudu::security::s3g_initialize(S3G_STATE* state, uint32_t k[4], uint32_t iv[4])
 {
   uint8_t  i = 0;
   uint32_t f = 0x0;
@@ -310,7 +310,7 @@ void srsran::security::s3g_initialize(S3G_STATE* state, uint32_t k[4], uint32_t 
     Document Reference: Specification of the 3GPP Confidentiality and
                             Integrity Algorithms UEA2 & UIA2 D2 v1.1
 *********************************************************************/
-void srsran::security::s3g_deinitialize(S3G_STATE* state)
+void ocudu::security::s3g_deinitialize(S3G_STATE* state)
 {
   free(state->lfsr);
   free(state->fsm);
@@ -325,7 +325,7 @@ void srsran::security::s3g_deinitialize(S3G_STATE* state)
                             Integrity Algorithms UEA2 & UIA2 D2 v1.1
                             Section 4.2
 *********************************************************************/
-void srsran::security::s3g_generate_keystream(S3G_STATE* state, uint32_t n, uint32_t* ks)
+void ocudu::security::s3g_generate_keystream(S3G_STATE* state, uint32_t n, uint32_t* ks)
 {
   uint32_t t = 0;
   uint32_t f = 0x0;
@@ -460,13 +460,13 @@ static uint8_t mask8bit(int n)
  * Output  : 32 bit block used as MAC
  * Generates 32-bit MAC using UIA2 algorithm as defined in Section 4.
  */
-void srsran::security::s3g_f9(srsran::security::sec_mac& mac,
-                              const uint8_t*             key,
-                              uint32_t                   count,
-                              uint32_t                   fresh,
-                              uint32_t                   dir,
-                              uint8_t*                   data,
-                              uint64_t                   length)
+void ocudu::security::s3g_f9(ocudu::security::sec_mac& mac,
+                             const uint8_t*            key,
+                             uint32_t                  count,
+                             uint32_t                  fresh,
+                             uint32_t                  dir,
+                             uint8_t*                  data,
+                             uint64_t                  length)
 {
   uint32_t  K[4], IV[4], z[5];
   uint32_t  i = 0, D;

@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::mt19937 rgen(0);
 

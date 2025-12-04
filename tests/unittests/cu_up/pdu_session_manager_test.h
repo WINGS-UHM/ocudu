@@ -12,11 +12,11 @@
 
 #include "cu_up_test_helpers.h"
 #include "lib/cu_up/pdu_session_manager_impl.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// Fixture base class for PDU session manager tests
 class pdu_session_manager_test_base
@@ -26,8 +26,8 @@ protected:
 
   void init()
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // create required objects
     security_info      = get_dummy_up_security_info();
@@ -43,7 +43,7 @@ protected:
     // create DUT object
     ue_inactivity_timer = timers_factory.create_timer();
     ue_inactivity_timer.set(std::chrono::milliseconds(10000), [](timer_id_t) {});
-    std::map<five_qi_t, srs_cu_up::cu_up_qos_config> qos;
+    std::map<five_qi_t, ocuup::cu_up_qos_config> qos;
     qos[uint_to_five_qi(9)] = {};
 
     manual_task_worker teid_worker{128};
@@ -77,7 +77,7 @@ protected:
   void finish()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   timer_manager                                               timers_manager;
@@ -220,5 +220,5 @@ generate_pdu_session_res_to_modify_item_to_setup_drb(pdu_session_id_t           
   return pdu_session_modify_item;
 }
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

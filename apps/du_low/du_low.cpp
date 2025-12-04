@@ -25,26 +25,26 @@
 #include "du_low_appconfig_translators.h"
 #include "du_low_appconfig_validators.h"
 #include "du_low_appconfig_yaml_writer.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/support/backtrace.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/cpu_features.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/io/io_timer_source.h"
-#include "srsran/support/signal_handling.h"
-#include "srsran/support/signal_observer.h"
-#include "srsran/support/sysinfo.h"
-#include "srsran/support/versioning/build_info.h"
-#include "srsran/support/versioning/version.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/support/backtrace.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/cpu_features.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/io/io_timer_source.h"
+#include "ocudu/support/signal_handling.h"
+#include "ocudu/support/signal_observer.h"
+#include "ocudu/support/sysinfo.h"
+#include "ocudu/support/versioning/build_info.h"
+#include "ocudu/support/versioning/version.h"
 #include <atomic>
 #ifdef DPDK_FOUND
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
 #endif
 // Include ThreadSanitizer (TSAN) options if thread sanitization is enabled.
 // This include is not unused - it helps prevent false alarms from the thread sanitizer.
-#include "srsran/support/tsan_options.h"
+#include "ocudu/support/tsan_options.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Application of a distributed unit (DU) that runs the low part (PHY) of the split 6.
@@ -59,8 +59,8 @@ static constexpr unsigned MAX_CONFIG_FILES = 10;
 static void populate_cli11_generic_args(CLI::App& app)
 {
   fmt::memory_buffer buffer;
-  format_to(std::back_inserter(buffer), "srsRAN 5G DU low version {} ({})", get_version(), get_build_hash());
-  app.set_version_flag("-v,--version", srsran::to_c_str(buffer));
+  format_to(std::back_inserter(buffer), "OCUDU 5G DU low version {} ({})", get_version(), get_build_hash());
+  app.set_version_flag("-v,--version", ocudu::to_c_str(buffer));
   app.set_config("-c,", config_file, "Read config from file", false)->expected(1, MAX_CONFIG_FILES);
 }
 
@@ -76,23 +76,24 @@ static signal_dispatcher cleanup_signal_dispatcher;
 static void cleanup_signal_handler(int signal)
 {
   cleanup_signal_dispatcher.notify_signal(signal);
-  srslog::flush();
+  ocudulog::flush();
 }
 
 /// Function to call when an error is reported by the application.
 static void app_error_report_handler()
 {
-  srslog::flush();
+  ocudulog::flush();
 }
 
 static void initialize_log(const std::string& filename)
 {
-  srslog::sink* log_sink = (filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(filename);
+  ocudulog::sink* log_sink =
+      (filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 }
 
 static void register_app_logs(const du_low_appconfig& du_cfg, application_unit& du_low_app_unit)
@@ -100,17 +101,17 @@ static void register_app_logs(const du_low_appconfig& du_cfg, application_unit& 
   const logger_appconfig& log_cfg = du_cfg.log_cfg;
   // Set log-level of app and all non-layer specific components to app level.
 
-  auto& logger = srslog::fetch_basic_logger("ALL", false);
+  auto& logger = ocudulog::fetch_basic_logger("ALL", false);
   logger.set_level(log_cfg.lib_level);
   logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
-  auto& app_logger = srslog::fetch_basic_logger("APP", false);
-  app_logger.set_level(srslog::basic_levels::info);
+  auto& app_logger = ocudulog::fetch_basic_logger("APP", false);
+  app_logger.set_level(ocudulog::basic_levels::info);
   app_services::application_message_banners::log_build_info(app_logger);
   app_logger.set_level(log_cfg.all_level);
   app_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
-  auto& config_logger = srslog::fetch_basic_logger("CONFIG", false);
+  auto& config_logger = ocudulog::fetch_basic_logger("CONFIG", false);
   config_logger.set_level(log_cfg.config_level);
   config_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
@@ -141,7 +142,7 @@ int main(int argc, char** argv)
   enable_backtrace();
 
   // Setup and configure config parsing.
-  CLI::App app("srsDU low application");
+  CLI::App app("OCUDU DU low application");
   app.config_formatter(create_yaml_config_parser());
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
@@ -180,11 +181,11 @@ int main(int argc, char** argv)
 
   // Set up logging.
   initialize_log(du_low_cfg.log_cfg.filename);
-  auto log_flusher = make_scope_exit([]() { srslog::flush(); });
+  auto log_flusher = make_scope_exit([]() { ocudulog::flush(); });
   register_app_logs(du_low_cfg, *o_du_app_unit);
 
   // Check the metrics and metrics consumers.
-  srslog::basic_logger& app_logger = srslog::fetch_basic_logger("APP");
+  ocudulog::basic_logger& app_logger = ocudulog::fetch_basic_logger("APP");
   bool metrics_enabled = o_du_app_unit->are_metrics_enabled() || du_low_cfg.metrics_cfg.rusage_config.enable_app_usage;
 
   if (!metrics_enabled && du_low_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg.enabled()) {
@@ -193,7 +194,7 @@ int main(int argc, char** argv)
   }
 
   // Log input configuration.
-  srslog::basic_logger& config_logger = srslog::fetch_basic_logger("CONFIG");
+  ocudulog::basic_logger& config_logger = ocudulog::fetch_basic_logger("CONFIG");
   if (config_logger.debug.enabled()) {
     YAML::Node node;
     fill_du_low_appconfig_in_yaml_schema(node, du_low_cfg);
@@ -234,7 +235,7 @@ int main(int argc, char** argv)
   if (du_low_cfg.hal_config) {
     // Prepend the application name in argv[0] as it is expected by EAL.
     eal = dpdk::create_dpdk_eal(std::string(argv[0]) + " " + du_low_cfg.hal_config->eal_args,
-                                srslog::fetch_basic_logger("EAL", false));
+                                ocudulog::fetch_basic_logger("EAL", false));
   }
 #endif
 
@@ -273,14 +274,14 @@ int main(int argc, char** argv)
 
   // Create app-level resource usage service and metrics.
   auto app_resource_usage_service = app_services::build_app_resource_usage_service(
-      metrics_notifier_forwarder, du_low_cfg.metrics_cfg.rusage_config, srslog::fetch_basic_logger("APP"));
+      metrics_notifier_forwarder, du_low_cfg.metrics_cfg.rusage_config, ocudulog::fetch_basic_logger("APP"));
 
   for (auto& metric : app_resource_usage_service.metrics) {
     app_metrics.push_back(std::move(metric));
   }
 
   auto du = o_du_app_unit->create_flexible_o_du_low(
-      workers, metrics_notifier_forwarder, app_timers, srslog::fetch_basic_logger("APP"));
+      workers, metrics_notifier_forwarder, app_timers, ocudulog::fetch_basic_logger("APP"));
 
   for (auto& metric : du.metrics) {
     app_metrics.push_back(std::move(metric));
@@ -288,7 +289,7 @@ int main(int argc, char** argv)
 
   // Only DU has metrics now.
   app_services::metrics_manager metrics_mngr(
-      srslog::fetch_basic_logger("APP"),
+      ocudulog::fetch_basic_logger("APP"),
       workers.get_metrics_executor(),
       app_metrics,
       app_timers,

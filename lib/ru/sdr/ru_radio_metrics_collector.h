@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/radio/radio_event_notifier.h"
-#include "srsran/ru/sdr/ru_sdr_metrics.h"
+#include "ocudu/radio/radio_event_notifier.h"
+#include "ocudu/ru/sdr/ru_sdr_metrics.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Radio Unit radio notification counter.
 class ru_radio_metrics_collector : public radio_event_notifier
@@ -32,4 +32,4 @@ private:
   std::atomic<unsigned> overflow_count  = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

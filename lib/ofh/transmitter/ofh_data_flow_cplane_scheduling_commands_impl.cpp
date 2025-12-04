@@ -9,9 +9,9 @@
  */
 
 #include "ofh_data_flow_cplane_scheduling_commands_impl.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/ran/resource_block.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// \brief Initializes Open Fronthaul Control-Plane radio application header parameters.
@@ -144,12 +144,12 @@ data_flow_cplane_scheduling_commands_impl::data_flow_cplane_scheduling_commands_
   ecpri_builder(std::move(dependencies.ecpri_builder)),
   cp_builder(std::move(dependencies.cp_builder))
 {
-  srsran_assert(eth_builder, "Invalid Ethernet VLAN packet builder");
-  srsran_assert(ecpri_builder, "Invalid eCPRI packet builder");
-  srsran_assert(cp_builder, "Invalid Control-Plane message builder");
-  srsran_assert(frame_pool, "Invalid frame pool");
-  srsran_assert(ul_cplane_context_repo, "Invalid UL Control-Plane context repository");
-  srsran_assert(prach_cplane_context_repo, "Invalid PRACH Control-Plane context repository");
+  ocudu_assert(eth_builder, "Invalid Ethernet VLAN packet builder");
+  ocudu_assert(ecpri_builder, "Invalid eCPRI packet builder");
+  ocudu_assert(cp_builder, "Invalid Control-Plane message builder");
+  ocudu_assert(frame_pool, "Invalid frame pool");
+  ocudu_assert(ul_cplane_context_repo, "Invalid UL Control-Plane context repository");
+  ocudu_assert(prach_cplane_context_repo, "Invalid PRACH Control-Plane context repository");
 }
 
 void data_flow_cplane_scheduling_commands_impl::enqueue_section_type_1_message(
@@ -159,7 +159,7 @@ void data_flow_cplane_scheduling_commands_impl::enqueue_section_type_1_message(
   slot_point        slot      = context.slot;
   slot_symbol_point symbol_point(slot, context.symbol_range.start(), nof_symbols_per_slot);
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sector#{}: packing a {} type 1 Control-Plane message for slot '{}' and eAxC '{}'",
                  sector_id,
                  (direction == data_direction::downlink) ? "downlink" : "uplink",
@@ -169,7 +169,7 @@ void data_flow_cplane_scheduling_commands_impl::enqueue_section_type_1_message(
 
   // Get an ethernet frame buffer.
   auto scoped_buffer = frame_pool->reserve(symbol_point);
-  if (SRSRAN_UNLIKELY(!scoped_buffer)) {
+  if (OCUDU_UNLIKELY(!scoped_buffer)) {
     logger.warning("Sector#{}: not enough space in the buffer pool to create a {} type 1 Control-Plane message for "
                    "slot '{}' and eAxC '{}'",
                    sector_id,
@@ -223,7 +223,7 @@ void data_flow_cplane_scheduling_commands_impl::enqueue_section_type_3_prach_mes
 {
   slot_point        slot = context.slot;
   slot_symbol_point symbol_point(slot, context.start_symbol, nof_symbols_per_slot);
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sector#{}: packing a type 3 PRACH Control-Plane message for slot '{}' and eAxC '{}'",
                  sector_id,
                  slot,
@@ -232,7 +232,7 @@ void data_flow_cplane_scheduling_commands_impl::enqueue_section_type_3_prach_mes
 
   // Get an ethernet frame buffer.
   auto scoped_buffer = frame_pool->reserve(symbol_point);
-  if (SRSRAN_UNLIKELY(!scoped_buffer)) {
+  if (OCUDU_UNLIKELY(!scoped_buffer)) {
     logger.warning("Sector#{}: not enough space in the buffer pool to create a type 3 PRACH Control-Plane message for "
                    "slot '{}' and eAxC '{}'",
                    sector_id,
@@ -250,7 +250,7 @@ void data_flow_cplane_scheduling_commands_impl::enqueue_section_type_3_prach_mes
   cplane_section_type3_parameters ofh_ctrl_params =
       generate_prach_control_parameters(context, prach_compr_params, ru_nof_prbs, c_plane_prach_fft_len);
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug(
         "Sector#{}: generated a PRACH request for eaxc '{}', slot '{}': numSymbols={}, startSym={}, start_re={}, "
         "scs={}, prach_scs={}, nof_rb={}, timeOffset={}, freqOffset={}",

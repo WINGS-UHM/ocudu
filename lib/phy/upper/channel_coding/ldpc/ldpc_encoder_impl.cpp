@@ -11,8 +11,8 @@
 #include "ldpc_encoder_impl.h"
 #include "ldpc_luts_impl.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 void ldpc_encoder_impl::init(const configuration& cfg)
 {
@@ -23,7 +23,7 @@ void ldpc_encoder_impl::init(const configuration& cfg)
   bg_N_short    = current_graph->get_nof_BG_var_nodes_short();
   bg_M          = current_graph->get_nof_BG_check_nodes();
   bg_K          = current_graph->get_nof_BG_info_nodes();
-  srsran_assert(bg_K == bg_N_full - bg_M, "Invalid value for bg_K");
+  ocudu_assert(bg_K == bg_N_full - bg_M, "Invalid value for bg_K");
   lifting_size = static_cast<uint16_t>(cfg.lifting_size);
 
   select_strategy();
@@ -35,10 +35,10 @@ ldpc_encoder_buffer& ldpc_encoder_impl::encode(const bit_buffer& input, const co
 
   uint16_t message_length = bg_K * lifting_size;
   uint16_t cb_length      = bg_N_short * lifting_size;
-  srsran_assert(input.size() == message_length,
-                "Input size ({}) and message length ({}) must be equal",
-                input.size(),
-                message_length);
+  ocudu_assert(input.size() == message_length,
+               "Input size ({}) and message length ({}) must be equal",
+               input.size(),
+               message_length);
 
   // The minimum codeblock length is message_length + four times the lifting size
   // (that is, the length of the high-rate region).

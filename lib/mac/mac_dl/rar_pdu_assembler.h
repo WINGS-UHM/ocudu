@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/mac/cell_configuration.h"
-#include "srsran/support/memory_pool/ring_buffer_pool.h"
+#include "ocudu/mac/cell_configuration.h"
+#include "ocudu/support/memory_pool/ring_buffer_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct rar_information;
 
@@ -29,4 +29,4 @@ private:
   ticking_ring_buffer_pool& pdu_pool;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,11 +9,11 @@
  */
 
 #include "rlc_tx_metrics_test.h"
-#include "srsran/rlc/rlc_tx_metrics.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/rlc/rlc_tx_metrics.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST_F(rlc_tx_metrics_test, poll_latency_empty)
 {

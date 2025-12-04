@@ -13,11 +13,11 @@
 #include "e1ap_bearer_transaction_manager.h"
 #include "e1ap_ue_ids.h"
 #include "e1ap_ue_logger.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief E1AP UE context.
 class e1ap_ue_context
@@ -38,8 +38,7 @@ public:
 
   void update_cu_up_ue_e1ap_id(gnb_cu_up_ue_e1ap_id_t up_ue_id)
   {
-    srsran_assert(
-        up_ue_id != gnb_cu_up_ue_e1ap_id_t::invalid, "Invalid cu_up_ue_e1ap_id={}", fmt::underlying(up_ue_id));
+    ocudu_assert(up_ue_id != gnb_cu_up_ue_e1ap_id_t::invalid, "Invalid cu_up_ue_e1ap_id={}", fmt::underlying(up_ue_id));
     ue_ids.cu_up_ue_e1ap_id = up_ue_id;
 
     // Update prefix logger.
@@ -52,7 +51,7 @@ public:
 class e1ap_ue_context_list
 {
 public:
-  e1ap_ue_context_list(timer_factory timers_, unsigned max_nof_supported_ues_, srslog::basic_logger& logger_) :
+  e1ap_ue_context_list(timer_factory timers_, unsigned max_nof_supported_ues_, ocudulog::basic_logger& logger_) :
     timers(timers_), max_nof_supported_ues(max_nof_supported_ues_), logger(logger_)
   {
   }
@@ -102,19 +101,19 @@ public:
 
   e1ap_ue_context& operator[](gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id)
   {
-    srsran_assert(ues.find(cu_cp_ue_e1ap_id) != ues.end(),
-                  "cu_cp_ue_e1ap_id={}: E1AP UE context not found",
-                  fmt::underlying(cu_cp_ue_e1ap_id));
+    ocudu_assert(ues.find(cu_cp_ue_e1ap_id) != ues.end(),
+                 "cu_cp_ue_e1ap_id={}: E1AP UE context not found",
+                 fmt::underlying(cu_cp_ue_e1ap_id));
     return ues.at(cu_cp_ue_e1ap_id);
   }
   e1ap_ue_context& operator[](ue_index_t ue_index)
   {
-    srsran_assert(ue_index_to_ue_e1ap_id.find(ue_index) != ue_index_to_ue_e1ap_id.end(),
-                  "ue={} gNB-CU-CP-UE-E1AP-ID not found",
-                  fmt::underlying(ue_index));
-    srsran_assert(ues.find(ue_index_to_ue_e1ap_id.at(ue_index)) != ues.end(),
-                  "cu_cp_ue_e1ap_id={}: E1AP UE context not found",
-                  fmt::underlying(ue_index_to_ue_e1ap_id.at(ue_index)));
+    ocudu_assert(ue_index_to_ue_e1ap_id.find(ue_index) != ue_index_to_ue_e1ap_id.end(),
+                 "ue={} gNB-CU-CP-UE-E1AP-ID not found",
+                 fmt::underlying(ue_index));
+    ocudu_assert(ues.find(ue_index_to_ue_e1ap_id.at(ue_index)) != ues.end(),
+                 "cu_cp_ue_e1ap_id={}: E1AP UE context not found",
+                 fmt::underlying(ue_index_to_ue_e1ap_id.at(ue_index)));
     return ues.at(ue_index_to_ue_e1ap_id.at(ue_index));
   }
 
@@ -140,9 +139,9 @@ public:
 private:
   gnb_cu_cp_ue_e1ap_id_t next_cu_cp_ue_e1ap_id = gnb_cu_cp_ue_e1ap_id_t::min;
 
-  timer_factory         timers;
-  unsigned              max_nof_supported_ues = MAX_NOF_CU_UES;
-  srslog::basic_logger& logger;
+  timer_factory           timers;
+  unsigned                max_nof_supported_ues = MAX_NOF_CU_UES;
+  ocudulog::basic_logger& logger;
 
   void increase_next_cu_cp_ue_e1ap_id();
 
@@ -150,5 +149,5 @@ private:
   std::unordered_map<ue_index_t, gnb_cu_cp_ue_e1ap_id_t>      ue_index_to_ue_e1ap_id; // indexed by ue_index
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

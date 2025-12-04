@@ -11,12 +11,12 @@
 #pragma once
 
 #include "ofh_message_transmitter_metrics_collector.h"
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_timing_parameters.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_timing_parameters.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// \brief Transmits enqueued Open Fronthaul messages through an Ethernet transmitter.
@@ -25,7 +25,7 @@ namespace ofh {
 class message_transmitter_impl : public ota_symbol_boundary_notifier
 {
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Downlink Control-Plane ethernet frame pool.
   std::shared_ptr<ether::eth_frame_pool> pool_dl_cp;
   /// Uplink Control-Plane ethernet frame pool.
@@ -40,7 +40,7 @@ class message_transmitter_impl : public ota_symbol_boundary_notifier
   const tx_window_timing_parameters timing_params;
 
 public:
-  message_transmitter_impl(srslog::basic_logger&                  logger_,
+  message_transmitter_impl(ocudulog::basic_logger&                logger_,
                            const tx_window_timing_parameters&     timing_params_,
                            bool                                   are_metrics_enabled,
                            std::unique_ptr<ether::transmitter>    eth_transmitter,
@@ -70,4 +70,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

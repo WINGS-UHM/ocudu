@@ -13,15 +13,15 @@
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_setup_test : public cu_cp_test_environment, public ::testing::Test
 {
@@ -173,7 +173,7 @@ TEST_F(cu_cp_setup_test, when_initial_ul_rrc_message_has_no_rrc_container_then_u
   asn1::rrc_nr::dl_ccch_msg_s ccch;
   {
     asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
-    ASSERT_EQ(ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+    ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
   }
   ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 
@@ -218,7 +218,7 @@ TEST_F(cu_cp_setup_test, when_du_sends_initial_ul_rrc_message_without_du_to_cu_c
   asn1::rrc_nr::dl_ccch_msg_s ccch;
   {
     asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
-    ASSERT_EQ(ccch.unpack(bref), asn1::SRSASN_SUCCESS);
+    ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
   }
   ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 

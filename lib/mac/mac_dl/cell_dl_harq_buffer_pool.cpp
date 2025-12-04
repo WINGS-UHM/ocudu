@@ -9,14 +9,14 @@
  */
 
 #include "cell_dl_harq_buffer_pool.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Derive maximum TB/MAC PDU length given a cell parameters.
 static units::bytes derive_max_pdu_length(unsigned cell_nof_prbs, unsigned nof_ports)
 {
-  srsran_assert(nof_ports >= 1 and nof_ports <= pdsch_constants::CODEWORD_MAX_NOF_LAYERS, "Invalid number of ports");
+  ocudu_assert(nof_ports >= 1 and nof_ports <= pdsch_constants::CODEWORD_MAX_NOF_LAYERS, "Invalid number of ports");
   units::bits cw_max_size{pdsch_constants::MAX_NRE_PER_RB * cell_nof_prbs * nof_ports *
                           pdsch_constants::MAX_MODULATION_ORDER};
   return cw_max_size.round_up_to_bytes();
@@ -34,7 +34,7 @@ cell_dl_harq_buffer_pool::cell_dl_harq_buffer_pool(unsigned       cell_nof_prbs,
                                                    task_executor& ctrl_exec_) :
   max_pdu_len(derive_max_pdu_length(cell_nof_prbs, nof_ports).value()),
   ctrl_exec(ctrl_exec_),
-  logger(srslog::fetch_basic_logger("MAC")),
+  logger(ocudulog::fetch_basic_logger("MAC")),
   cell_buffers(MAX_NOF_DU_UES),
   pool(std::make_unique<std::array<dl_harq_buffer_storage, MAX_NOF_DU_UES * MAX_NOF_HARQS>>()),
   pool_elem_index(pool->size())
@@ -70,8 +70,8 @@ void cell_dl_harq_buffer_pool::clear()
 
 void cell_dl_harq_buffer_pool::allocate_ue_buffers(du_ue_index_t ue_index, unsigned nof_harqs)
 {
-  srsran_sanity_check(is_du_ue_index_valid(ue_index), "Invalid UE index");
-  srsran_assert(nof_harqs <= MAX_NOF_HARQS, "Invalid maximum number of HARQs");
+  ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid UE index");
+  ocudu_assert(nof_harqs <= MAX_NOF_HARQS, "Invalid maximum number of HARQs");
 
   ue_dl_harq_buffer_list& ue_harqs = cell_buffers[ue_index];
 
@@ -110,7 +110,7 @@ void cell_dl_harq_buffer_pool::allocate_ue_buffers(du_ue_index_t ue_index, unsig
 
 void cell_dl_harq_buffer_pool::deallocate_ue_buffers(du_ue_index_t ue_idx)
 {
-  srsran_assert(is_du_ue_index_valid(ue_idx), "Invalid UE index");
+  ocudu_assert(is_du_ue_index_valid(ue_idx), "Invalid UE index");
   ue_dl_harq_buffer_list& ue_harqs = cell_buffers[ue_idx];
 
   // Move allocated HARQs for this UE into the cache.

@@ -12,23 +12,23 @@
 #include "../support/pucch/pucch_default_resource.h"
 #include "pucch_allocator_helpers.h"
 #include "pucch_resource_manager.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/pucch/pucch_configuration.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/pucch/pucch_uci_bits.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/scheduler/result/pucch_format.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/srslog/log_channel.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocudulog/log_channel.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_uci_bits.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/scheduler/result/pucch_format.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
 #include <array>
 #include <fmt/format.h>
 #include <string>
 #include <variant>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct pucch_allocator_impl::alloc_context {
   enum class alloc_type { common_harq_ack, common_and_ded_harq_ack, ded_harq_ack, sr, csi };
@@ -55,13 +55,13 @@ struct pucch_allocator_impl::alloc_context {
   }
 
   /// Helper for logging PUCCH allocation skip events.
-  void log_skipped_alloc(srslog::log_channel& log, const char* cause) const
+  void log_skipped_alloc(ocudulog::log_channel& log, const char* cause) const
   {
     log("PUCCH {} allocation skipped (rnti={} slot={}). Cause: {}", type_str(), rnti, slot, cause);
   }
 
   /// Helper for logging PUCCH PDU allocation events.
-  void log_pdu_alloc(srslog::log_channel& log, const pucch_info& pucch_pdu, const char* res_type, bool updated) const
+  void log_pdu_alloc(ocudulog::log_channel& log, const pucch_info& pucch_pdu, const char* res_type, bool updated) const
   {
     switch (pucch_pdu.format()) {
       case pucch_format::FORMAT_0: {
@@ -128,7 +128,7 @@ struct pucch_allocator_impl::alloc_context {
             pucch_pdu.uci_bits);
       } break;
       default:
-        srsran_assertion_failure("Invalid PUCCH format");
+        ocudu_assertion_failure("Invalid PUCCH format");
     }
   }
 };
@@ -142,7 +142,7 @@ pucch_allocator_impl::pucch_allocator_impl(const cell_configuration& cell_cfg_,
   max_pucch_grants_per_slot(max_pucchs_per_slot),
   max_ul_grants_per_slot(max_ul_grants_per_slot_),
   resource_manager(cell_cfg_),
-  logger(srslog::fetch_basic_logger("SCHED"))
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
 }
 
@@ -151,7 +151,7 @@ pucch_allocator_impl::~pucch_allocator_impl() = default;
 void pucch_allocator_impl::slot_indication(slot_point sl_tx)
 {
   // If last_sl_ind is not valid (not initialized), then the check sl_tx == last_sl_ind + 1 does not matter.
-  srsran_sanity_check(not last_sl_ind.valid() or sl_tx == last_sl_ind + 1, "Detected a skipped slot");
+  ocudu_sanity_check(not last_sl_ind.valid() or sl_tx == last_sl_ind + 1, "Detected a skipped slot");
 
   // Update Slot.
   last_sl_ind = sl_tx;
@@ -366,8 +366,8 @@ void pucch_allocator_impl::alloc_sr_opportunity(cell_slot_resource_allocator& pu
     alloc_ctx.log_skipped_alloc(logger.warning, "SR resource not available");
     return;
   }
-  srsran_assert(sr_res->format == pucch_format::FORMAT_0 or sr_res->format == pucch_format::FORMAT_1,
-                "Invalid PUCCH format for SR resource (should be 0 or 1)");
+  ocudu_assert(sr_res->format == pucch_format::FORMAT_0 or sr_res->format == pucch_format::FORMAT_1,
+               "Invalid PUCCH format for SR resource (should be 0 or 1)");
 
   // Allocate PUCCH SR grant only.
   fill_ded_pdu(pucch_slot_alloc.result.ul.pucchs.emplace_back(),
@@ -418,7 +418,7 @@ void pucch_allocator_impl::alloc_csi_opportunity(cell_slot_resource_allocator& p
 
   // Handle case of existing PUCCHs with possible multiplexing.
   pucch_uci_bits bits_for_uci = existing_ue_grants->pucch_grants.get_uci_bits();
-  srsran_assert(bits_for_uci.csi_part1_nof_bits == 0, "PUCCH grant for CSI has already been allocated");
+  ocudu_assert(bits_for_uci.csi_part1_nof_bits == 0, "PUCCH grant for CSI has already been allocated");
   bits_for_uci.csi_part1_nof_bits = csi_part1_nof_bits;
   multiplex_and_allocate_pucch(
       pucch_slot_alloc, bits_for_uci, *existing_ue_grants, ue_cell_cfg, std::nullopt, alloc_ctx);
@@ -602,7 +602,7 @@ pucch_allocator_impl::alloc_pucch_common_res_harq(const cell_slot_resource_alloc
   for (unsigned d_pri = 0; d_pri != max_d_pri + 1; ++d_pri) {
     // r_PUCCH, as per Section 9.2.1, TS 38.213.
     const unsigned r_pucch = get_pucch_default_resource_index(start_cce_idx, nof_coreset_cces, d_pri);
-    srsran_assert(r_pucch < 16, "r_PUCCH must be less than 16");
+    ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
 
     // Look for an available PUCCH common resource.
     if (not resource_manager.is_harq_common_resource_available(pucch_alloc.slot, r_pucch)) {
@@ -710,7 +710,7 @@ void pucch_allocator_impl::compute_pucch_common_params_and_alloc(cell_slot_resou
   // Update the PUCCH grants with the common resource.
   auto&      slot_ctx           = slots_ctx[pucch_alloc.slot.to_uint()];
   ue_grants* existing_ue_grants = slot_ctx.find_ue_grants(rnti);
-  srsran_assert(existing_ue_grants != nullptr, "UE grants allocation failed at some point");
+  ocudu_assert(existing_ue_grants != nullptr, "UE grants allocation failed at some point");
   existing_ue_grants->has_common_pucch = true;
 
   // TODO: once the code has been properly tested, remove the debug message.
@@ -749,7 +749,7 @@ pucch_allocator_impl::find_common_and_ded_harq_res_available(cell_slot_resource_
 
     // r_PUCCH, as per Section 9.2.1, TS 38.213.
     const unsigned r_pucch = get_pucch_default_resource_index(start_cce_idx, nof_coreset_cces, d_pri);
-    srsran_assert(r_pucch < 16, "r_PUCCH must be less than 16");
+    ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
 
     // Look for an available PUCCH common resource.
     if (not resource_manager.is_harq_common_resource_available(pucch_alloc.slot, r_pucch)) {
@@ -784,7 +784,7 @@ pucch_allocator_impl::find_common_and_ded_harq_res_available(cell_slot_resource_
     if (not d_pri_ded.has_value() or (cell_cfg.is_pucch_f0_and_f2() and *d_pri_ded != d_pri)) {
       continue;
     }
-    srsran_assert(*d_pri_ded == d_pri, "The PUCCH resource indicator must match for common and ded. resources");
+    ocudu_assert(*d_pri_ded == d_pri, "The PUCCH resource indicator must match for common and ded. resources");
     resource_manager.reserve_harq_common_resource(pucch_alloc.slot, r_pucch);
 
     // Finalize the reservation of the resources.
@@ -815,9 +815,9 @@ std::optional<unsigned> pucch_allocator_impl::allocate_harq_grant(cell_slot_reso
     alloc_ctx.log_skipped_alloc(logger.debug, "Resource Set ID 0 resource not available");
     return std::nullopt;
   }
-  srsran_assert(harq_res.resource->format == pucch_format::FORMAT_0 or
-                    harq_res.resource->format == pucch_format::FORMAT_1,
-                "Invalid PUCCH Format for Resource Set ID 0 resource (should be 0 or 1)");
+  ocudu_assert(harq_res.resource->format == pucch_format::FORMAT_0 or
+                   harq_res.resource->format == pucch_format::FORMAT_1,
+               "Invalid PUCCH Format for Resource Set ID 0 resource (should be 0 or 1)");
 
   // Allocate the new grant on PUCCH F1 resources for HARQ-ACK bits (without SR).
   pucch_info&               pucch_pdu         = pucch_slot_alloc.result.ul.pucchs.emplace_back();
@@ -850,7 +850,7 @@ void pucch_allocator_impl::allocate_csi_grant(cell_slot_resource_allocator& pucc
                                               unsigned                      csi_part1_bits,
                                               const alloc_context&          alloc_ctx)
 {
-  srsran_assert(csi_part1_bits != 0, "This function can only be called to allocate a PUCCH F2/F3/F4 resource for CSI");
+  ocudu_assert(csi_part1_bits != 0, "This function can only be called to allocate a PUCCH F2/F3/F4 resource for CSI");
   const slot_point sl_tx = pucch_slot_alloc.slot;
 
   // [Implementation-defined] We only allow a max number of PUCCH + PUSCH grants per slot.
@@ -869,19 +869,19 @@ void pucch_allocator_impl::allocate_csi_grant(cell_slot_resource_allocator& pucc
     alloc_ctx.log_skipped_alloc(logger.warning, "CSI resource not available");
     return;
   }
-  srsran_assert(csi_res->format == pucch_format::FORMAT_2 or csi_res->format == pucch_format::FORMAT_3 or
-                    csi_res->format == pucch_format::FORMAT_4,
-                "Invalid PUCCH Format for CSI resource (should be 2, 3, or 4)");
+  ocudu_assert(csi_res->format == pucch_format::FORMAT_2 or csi_res->format == pucch_format::FORMAT_3 or
+                   csi_res->format == pucch_format::FORMAT_4,
+               "Invalid PUCCH Format for CSI resource (should be 2, 3, or 4)");
 
   // When this function is called, it means that there are no SR grants to be multiplexed with CSI; thus, the CSI bits
   // are the only UCI bits to be considered.
   // It's the validator that should make sure the CSI bits fit into a PUCCH Format 2/3/4 resource.
   const unsigned max_payload = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(csi_res->format);
-  srsran_assert(csi_part1_bits <= max_payload,
-                "rnti={}: PUCCH F2/F3/F4 max payload {} is insufficient for {} candidate UCI bits",
-                alloc_ctx.rnti,
-                max_payload,
-                csi_part1_bits);
+  ocudu_assert(csi_part1_bits <= max_payload,
+               "rnti={}: PUCCH F2/F3/F4 max payload {} is insufficient for {} candidate UCI bits",
+               alloc_ctx.rnti,
+               max_payload,
+               csi_part1_bits);
 
   // Allocate a PUCCH PDU in the list and fill it with the parameters.
   pucch_info& pucch_pdu = pucch_slot_alloc.result.ul.pucchs.emplace_back();
@@ -1038,7 +1038,7 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
     // NOTE: if the SR resource was already assigned to this UE, the resource manager will only return the PUCCH
     // config that was reserved previously.
     const pucch_resource* sr_res = guard.peek_sr_resource();
-    srsran_assert(sr_res != nullptr, "rnti={}: Peeking a PUCCH SR resource returned nullptr", ue_current_grants.rnti);
+    ocudu_assert(sr_res != nullptr, "rnti={}: Peeking a PUCCH SR resource returned nullptr", ue_current_grants.rnti);
     sr_candidate_grant.set_res_config(*sr_res);
     // Only copy the SR bits, as at this stage we only need to consider the UCI bits assuming the resources still
     // need to be multiplexed.
@@ -1055,7 +1055,7 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
     // NOTE: if the CSI resource was already assigned to this UE, the resource manager will only return the PUCCH
     // config that was reserved previously.
     const pucch_resource* csi_res = guard.peek_csi_resource();
-    srsran_assert(csi_res != nullptr, "rnti={}: Peeking a PUCCH CSI resource returned nullptr", ue_current_grants.rnti);
+    ocudu_assert(csi_res != nullptr, "rnti={}: Peeking a PUCCH CSI resource returned nullptr", ue_current_grants.rnti);
     csi_candidate_grant.set_res_config(*csi_res);
     // Only copy the HARQ-ACK bits, as at this stage we only need to consider the UCI bits assuming the resources
     // still need to be multiplexed.
@@ -1100,11 +1100,11 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
                                            : guard.reserve_harq_set_1_resource_by_res_indicator(pucch_res_ind);
       if (harq_res == nullptr) {
         if (ue_with_f0_sr_and_f2_csi_alloc) {
-          srsran_assertion_failure("rnti={}: PUCCH HARQ-ACK that should be reserved for this UE is not available",
-                                   ue_current_grants.rnti);
+          ocudu_assertion_failure("rnti={}: PUCCH HARQ-ACK that should be reserved for this UE is not available",
+                                  ue_current_grants.rnti);
         } else {
-          srsran_assertion_failure("rnti={}: PUCCH HARQ-ACK resource previously reserved not available anymore",
-                                   ue_current_grants.rnti);
+          ocudu_assertion_failure("rnti={}: PUCCH HARQ-ACK resource previously reserved not available anymore",
+                                  ue_current_grants.rnti);
         }
 
         return std::nullopt;
@@ -1152,9 +1152,9 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
   // Retrieve the existing PUCCH PDUs.
   pucch_existing_pdus_handler existing_pdus(current_grants.rnti, pucch_pdus, pucch_cfg);
 
-  srsran_assert(existing_pdus.harq_pdu != nullptr and current_grants.pucch_grants.harq_resource.has_value(),
-                "rnti={}: expected HARQ-ACK PUCCH grant and PDU not found",
-                current_grants.rnti);
+  ocudu_assert(existing_pdus.harq_pdu != nullptr and current_grants.pucch_grants.harq_resource.has_value(),
+               "rnti={}: expected HARQ-ACK PUCCH grant and PDU not found",
+               current_grants.rnti);
 
   pucch_uci_bits current_bits = current_grants.pucch_grants.get_uci_bits();
 
@@ -1169,7 +1169,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
   if (existing_pdus.harq_pdu->format() == pucch_format::FORMAT_0) {
     const pucch_resource* harq_res = guard.reserve_harq_set_0_resource_by_res_indicator(
         current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    srsran_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
+    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
     existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
                                        csi_bits_f0_and_f1,
@@ -1183,7 +1183,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
   else if (existing_pdus.harq_pdu->format() == pucch_format::FORMAT_1) {
     const pucch_resource* harq_res = guard.reserve_harq_set_0_resource_by_res_indicator(
         current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    srsran_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
+    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
     const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_1_common_param;
     existing_pdus.update_harq_pdu_bits(
         new_bits.harq_ack_nof_bits, sr_nof_bits::no_sr, csi_bits_f0_and_f1, *harq_res, common_params);
@@ -1207,7 +1207,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
     }
     const pucch_resource* harq_res = guard.reserve_harq_set_1_resource_by_res_indicator(
         current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    srsran_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
+    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
     const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_2_common_param;
     existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
@@ -1226,7 +1226,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
     }
     const pucch_resource* harq_res = guard.reserve_harq_set_1_resource_by_res_indicator(
         current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    srsran_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
+    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
     const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_3_common_param;
     existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
@@ -1245,7 +1245,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
     }
     const pucch_resource* harq_res = guard.reserve_harq_set_1_resource_by_res_indicator(
         current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    srsran_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
+    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
     const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_4_common_param;
     existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
@@ -1319,7 +1319,7 @@ pucch_allocator_impl::multiplex_resources(pucch_resource_manager::ue_reservation
         resource_set_q.erase(resource_set_q.begin() + j_cnt - o_cnt, resource_set_q.begin() + j_cnt + 1);
 
         // Add the new resource (resulting from the previous merge) to the set.
-        srsran_assert(not resource_set_q.full(), "PUCCH resource_set_q is full before adding a new resource");
+        ocudu_assert(not resource_set_q.full(), "PUCCH resource_set_q is full before adding a new resource");
         resource_set_q.push_back(new_res.value());
 
         // Sort the resources in the set based on the first symbol position and number of symbols.
@@ -1341,7 +1341,7 @@ pucch_allocator_impl::multiplex_resources(pucch_resource_manager::ue_reservation
       resource_set_q.front().bits.harq_ack_nof_bits != 0 and
       resource_set_q.front().bits.sr_bits != sr_nof_bits::no_sr) {
     const pucch_resource* sr_res = guard.reserve_sr_resource();
-    srsran_assert(sr_res != nullptr, "rnti={}: PUCCH SR resource should be available", guard.get_rnti());
+    ocudu_assert(sr_res != nullptr, "rnti={}: PUCCH SR resource should be available", guard.get_rnti());
 
     // For Format 1, the grant with SR bit is the one with the SR-dedicated resource; in the HARQ-ACK grant we only
     // report the HARQ bits.
@@ -1398,7 +1398,7 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       // the positive SR; we'll add the resource for negative SR later on (the algorithm specified in Section 9.2.5
       // would not work with both resources).
       if (r_harq.format == pucch_format::FORMAT_0 or r_harq.format == pucch_format::FORMAT_1) {
-        srsran_assert(r_sr.format == r_harq.format, "The two resources must have the same format");
+        ocudu_assert(r_sr.format == r_harq.format, "The two resources must have the same format");
         // TODO: Multiplexing of SR + HARQ on F0 needs to be checked, as the TS is not clear about it.
         new_resource              = r_harq;
         new_resource.bits.sr_bits = r_sr.bits.sr_bits;
@@ -1408,8 +1408,8 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       // PUCCH res set 1. NOTE: This rule is defined in Section 9.2.5.1 or 9.2.5.2 (if any CSI bits), TS 38.213.
       // NOTE: For the case of HARQ-ACK with Format >= 2, the HARQ-ACK resource has HARQ-ACK bits and optionally CSI
       // bits.
-      srsran_assert(r_sr.format == pucch_format::FORMAT_0 or r_sr.format == pucch_format::FORMAT_1,
-                    "The two resources must have the same format");
+      ocudu_assert(r_sr.format == pucch_format::FORMAT_0 or r_sr.format == pucch_format::FORMAT_1,
+                   "The two resources must have the same format");
       // Apply F2 CSI merging rule: SR and CSI PUCCH resources will be multiplexed in the CSI PUCCH resource.
       // A HARQ resource from PUCCH resource set idx 1 already exits. Use that one.
       if (r_harq.harq_id.pucch_set_idx == pucch_res_set_idx::set_1) {
@@ -1458,7 +1458,7 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       const pucch_grant& r_csi = r_0.type == pucch_grant_type::csi ? r_0 : r_1;
       const pucch_grant& r_sr  = r_0.type == pucch_grant_type::sr ? r_0 : r_1;
       //  We don't support SR with Format 0 on the same slot as CSI.
-      srsran_assert(r_sr.format != pucch_format::FORMAT_0, "SR with Format 0 is not supported on the same slot as CSI");
+      ocudu_assert(r_sr.format != pucch_format::FORMAT_0, "SR with Format 0 is not supported on the same slot as CSI");
       // Copy the SR bits in the CSI resource.
       new_resource              = r_csi;
       new_resource.bits.sr_bits = r_sr.bits.sr_bits;
@@ -1538,9 +1538,9 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       }
     }
 
-    srsran_assert(r_harq != nullptr and r_sr != nullptr and r_csi != nullptr, "The three resources must be present");
+    ocudu_assert(r_harq != nullptr and r_sr != nullptr and r_csi != nullptr, "The three resources must be present");
     if (r_sr->format == pucch_format::FORMAT_0) {
-      srsran_assertion_failure("This case is not yet supported");
+      ocudu_assertion_failure("This case is not yet supported");
       // SR and CSI are not supported on the same slot if SR uses Format 0.
       return std::nullopt;
     }
@@ -1607,9 +1607,9 @@ std::optional<unsigned> pucch_allocator_impl::allocate_grants(pucch_resource_man
       existing_pdus.csi_pdu != nullptr) {
     const auto& csi_pdu = *existing_pdus.csi_pdu;
     const auto& csi_res = grants_to_tx.csi_resource.value();
-    srsran_assert(csi_res.format == pucch_format::FORMAT_2 or csi_res.format == pucch_format::FORMAT_3 or
-                      csi_res.format == pucch_format::FORMAT_4,
-                  "Invalid PUCCH Format for CSI resource (should be 2, 3 or 4)");
+    ocudu_assert(csi_res.format == pucch_format::FORMAT_2 or csi_res.format == pucch_format::FORMAT_3 or
+                     csi_res.format == pucch_format::FORMAT_4,
+                 "Invalid PUCCH Format for CSI resource (should be 2, 3 or 4)");
 
     existing_pdus.update_csi_pdu_bits(csi_res.bits.csi_part1_nof_bits, csi_res.bits.sr_bits);
     alloc_ctx.log_pdu_alloc(logger.debug, csi_pdu, "CSI", true);
@@ -1620,8 +1620,8 @@ std::optional<unsigned> pucch_allocator_impl::allocate_grants(pucch_resource_man
            existing_pdus.sr_pdu != nullptr) {
     const auto& sr_pdu = *existing_pdus.sr_pdu;
     const auto& sr_res = grants_to_tx.sr_resource.value();
-    srsran_assert(sr_res.format == pucch_format::FORMAT_0 or sr_res.format == pucch_format::FORMAT_1,
-                  "Invalid PUCCH Format for SR resource (should be 0 or 1)");
+    ocudu_assert(sr_res.format == pucch_format::FORMAT_0 or sr_res.format == pucch_format::FORMAT_1,
+                 "Invalid PUCCH Format for SR resource (should be 0 or 1)");
 
     existing_pdus.update_sr_pdu_bits(sr_res.bits.sr_bits, sr_res.bits.harq_ack_nof_bits);
     alloc_ctx.log_pdu_alloc(logger.debug, sr_pdu, "SR", true);
@@ -1630,26 +1630,26 @@ std::optional<unsigned> pucch_allocator_impl::allocate_grants(pucch_resource_man
 
   if (grants_to_tx.csi_resource.has_value() and not existing_csi_grant_updated) {
     const auto& csi_res = grants_to_tx.csi_resource.value();
-    srsran_assert(csi_res.format == pucch_format::FORMAT_2 or csi_res.format == pucch_format::FORMAT_3 or
-                      csi_res.format == pucch_format::FORMAT_4,
-                  "Invalid PUCCH Format for CSI resource (should be 2, 3, or 4)");
-    srsran_assert(csi_res.bits.harq_ack_nof_bits == 0, "CSI grant cannot contain HARQ-ACK bits");
+    ocudu_assert(csi_res.format == pucch_format::FORMAT_2 or csi_res.format == pucch_format::FORMAT_3 or
+                     csi_res.format == pucch_format::FORMAT_4,
+                 "Invalid PUCCH Format for CSI resource (should be 2, 3, or 4)");
+    ocudu_assert(csi_res.bits.harq_ack_nof_bits == 0, "CSI grant cannot contain HARQ-ACK bits");
 
     pucch_info* csi_pdu = existing_pdus.get_next_pdu(pucch_pdus);
-    srsran_assert(csi_pdu != nullptr and csi_res.pucch_res_cfg != nullptr,
-                  "Neither the (CSI) return grant nor the PUCCH res configuration can be nullptr");
+    ocudu_assert(csi_pdu != nullptr and csi_res.pucch_res_cfg != nullptr,
+                 "Neither the (CSI) return grant nor the PUCCH res configuration can be nullptr");
     fill_ded_pdu(*csi_pdu, *csi_res.pucch_res_cfg, csi_res.bits, ue_cell_cfg, crnti, false);
     alloc_ctx.log_pdu_alloc(logger.debug, *csi_pdu, "CSI", false);
   }
 
   if (grants_to_tx.sr_resource.has_value() and not existing_sr_grant_updated) {
     const auto& sr_res = grants_to_tx.sr_resource.value();
-    srsran_assert(sr_res.format == pucch_format::FORMAT_0 or sr_res.format == pucch_format::FORMAT_1,
-                  "Invalid PUCCH Format for SR resource (should be 0 or 1)");
+    ocudu_assert(sr_res.format == pucch_format::FORMAT_0 or sr_res.format == pucch_format::FORMAT_1,
+                 "Invalid PUCCH Format for SR resource (should be 0 or 1)");
 
     pucch_info* sr_pdu = existing_pdus.get_next_pdu(pucch_pdus);
-    srsran_assert(sr_pdu != nullptr and sr_res.pucch_res_cfg != nullptr,
-                  "Neither the (SR) return grant nor the PUCCH resource configuration can be nullptr");
+    ocudu_assert(sr_pdu != nullptr and sr_res.pucch_res_cfg != nullptr,
+                 "Neither the (SR) return grant nor the PUCCH resource configuration can be nullptr");
     fill_ded_pdu(*sr_pdu, *sr_res.pucch_res_cfg, sr_res.bits, ue_cell_cfg, crnti, false);
     alloc_ctx.log_pdu_alloc(logger.debug, *sr_pdu, "SR", false);
   }
@@ -1658,8 +1658,8 @@ std::optional<unsigned> pucch_allocator_impl::allocate_grants(pucch_resource_man
     const auto& harq_res = grants_to_tx.harq_resource.value();
 
     pucch_info* harq_pdu = existing_pdus.get_next_pdu(pucch_pdus);
-    srsran_assert(harq_pdu != nullptr and harq_res.pucch_res_cfg != nullptr,
-                  "Neither the (HARQ-ACK) return grant nor the PUCCH resource configuration can be nullptr");
+    ocudu_assert(harq_pdu != nullptr and harq_res.pucch_res_cfg != nullptr,
+                 "Neither the (HARQ-ACK) return grant nor the PUCCH resource configuration can be nullptr");
     fill_ded_pdu(*harq_pdu, *harq_res.pucch_res_cfg, harq_res.bits, ue_cell_cfg, crnti, true);
     alloc_ctx.log_pdu_alloc(logger.debug, *harq_pdu, "HARQ-ACK", false);
   }
@@ -1675,18 +1675,18 @@ std::optional<unsigned> pucch_allocator_impl::allocate_grants(pucch_resource_man
 
   // TODO: unmark on multiplexing.
   if (grants_to_tx.sr_resource.has_value()) {
-    srsran_assert(grants_to_tx.sr_resource.value().pucch_res_cfg != nullptr,
-                  "SR PUCCH resource cannot have null pointer");
+    ocudu_assert(grants_to_tx.sr_resource.value().pucch_res_cfg != nullptr,
+                 "SR PUCCH resource cannot have null pointer");
     mark_pucch_in_resource_grid(pucch_slot_alloc, *grants_to_tx.sr_resource.value().pucch_res_cfg, ue_cell_cfg);
   }
   if (grants_to_tx.csi_resource.has_value()) {
-    srsran_assert(grants_to_tx.csi_resource.value().pucch_res_cfg != nullptr,
-                  "CSI PUCCH resource cannot have null pointer");
+    ocudu_assert(grants_to_tx.csi_resource.value().pucch_res_cfg != nullptr,
+                 "CSI PUCCH resource cannot have null pointer");
     mark_pucch_in_resource_grid(pucch_slot_alloc, *grants_to_tx.csi_resource.value().pucch_res_cfg, ue_cell_cfg);
   }
   if (grants_to_tx.harq_resource.has_value()) {
-    srsran_assert(grants_to_tx.harq_resource.value().pucch_res_cfg != nullptr,
-                  "HARQ-ACK PUCCH resource cannot have null pointer");
+    ocudu_assert(grants_to_tx.harq_resource.value().pucch_res_cfg != nullptr,
+                 "HARQ-ACK PUCCH resource cannot have null pointer");
     mark_pucch_in_resource_grid(pucch_slot_alloc, *grants_to_tx.harq_resource.value().pucch_res_cfg, ue_cell_cfg);
   }
 
@@ -1746,9 +1746,9 @@ bool pucch_allocator_impl::can_allocate_fallback_pucch(const cell_slot_resource_
       return false;
     }
 
-    srsran_assert(not(existing_ue_grants->pucch_grants.sr_resource.has_value() and
-                      existing_ue_grants->pucch_grants.csi_resource.has_value()),
-                  "It is expected that there are either no grants, or at most 1 PUCCH grant (SR grant or CSI grant)");
+    ocudu_assert(not(existing_ue_grants->pucch_grants.sr_resource.has_value() and
+                     existing_ue_grants->pucch_grants.csi_resource.has_value()),
+                 "It is expected that there are either no grants, or at most 1 PUCCH grant (SR grant or CSI grant)");
   }
 
   return true;
@@ -1817,7 +1817,7 @@ void pucch_allocator_impl::fill_common_pdu(pucch_info&                pucch_pdu,
       break;
     }
     default:
-      srsran_assertion_failure("Only PUCCH Format 0 and 1 can be used for PUCCH common resources");
+      ocudu_assertion_failure("Only PUCCH Format 0 and 1 can be used for PUCCH common resources");
   }
 }
 
@@ -1866,10 +1866,10 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
   pucch_pdu.resources.symbols.set(pucch_res.starting_sym_idx, pucch_res.starting_sym_idx + pucch_res.nof_symbols);
 
   if (pucch_res.format == pucch_format::FORMAT_0 or pucch_res.format == pucch_format::FORMAT_1) {
-    srsran_assert(pucch_pdu.uci_bits.harq_ack_nof_bits <= 2, "PUCCH F0/1 can carry 2 HARQ-ACK bits at most");
-    srsran_assert(pucch_pdu.uci_bits.sr_bits == sr_nof_bits::no_sr or pucch_pdu.uci_bits.sr_bits == sr_nof_bits::one,
-                  "PUCCH F0/1 can carry 1 SR bit at most");
-    srsran_assert(pucch_pdu.uci_bits.csi_part1_nof_bits == 0, "PUCCH F0/1 can't carry CSI bits");
+    ocudu_assert(pucch_pdu.uci_bits.harq_ack_nof_bits <= 2, "PUCCH F0/1 can carry 2 HARQ-ACK bits at most");
+    ocudu_assert(pucch_pdu.uci_bits.sr_bits == sr_nof_bits::no_sr or pucch_pdu.uci_bits.sr_bits == sr_nof_bits::one,
+                 "PUCCH F0/1 can carry 1 SR bit at most");
+    ocudu_assert(pucch_pdu.uci_bits.csi_part1_nof_bits == 0, "PUCCH F0/1 can't carry CSI bits");
   }
   pucch_pdu.uci_bits = uci_bits;
   // Generate CSI report configuration if there are CSI bits in UCI.
@@ -1960,7 +1960,7 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
       format_4.n_sf_pucch_f4  = static_cast<pucch_format_4_sf>(res_f4.occ_length);
     } break;
     default:
-      srsran_assertion_failure("Invalid PUCCH format");
+      ocudu_assertion_failure("Invalid PUCCH format");
   }
 }
 

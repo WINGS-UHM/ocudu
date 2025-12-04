@@ -12,10 +12,10 @@
 #include "../du_cell_manager.h"
 #include "du_cell_stop_procedure.h"
 #include "du_setup_procedure.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 
 f1c_disconnection_handling_procedure::f1c_disconnection_handling_procedure(du_proc_context_view ctxt_) :
   ctxt(ctxt_), proc_logger(ctxt.logger, "F1-C Disconnection Handling")

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/batched_dispatch_queue.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/adt/batched_dispatch_queue.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class base_batched_dispatch_queue_test
 {
@@ -20,11 +20,11 @@ protected:
   base_batched_dispatch_queue_test(unsigned qsize, const std::function<void(span<const int>)>& func) :
     worker(qsize), queue(qsize, worker, logger, func)
   {
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
 
-  srslog::basic_logger&       logger = srslog::fetch_basic_logger("ALL");
+  ocudulog::basic_logger&     logger = ocudulog::fetch_basic_logger("ALL");
   manual_task_worker          worker;
   batched_dispatch_queue<int> queue;
 };

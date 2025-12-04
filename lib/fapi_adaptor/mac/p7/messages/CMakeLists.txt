@@ -15,5 +15,5 @@ set(SOURCES
         srs.cpp
         ssb.cpp)
 
-add_library(srsran_mac_fapi_adaptors STATIC ${SOURCES})
-target_link_libraries(srsran_mac_fapi_adaptors srsran_fapi_precoding_matrix_tools srsran_fapi_uci_part2_tools srslog)
+add_library(ocudu_mac_fapi_adaptors STATIC ${SOURCES})
+target_link_libraries(ocudu_mac_fapi_adaptors ocudu_fapi_precoding_matrix_tools ocudu_fapi_uci_part2_tools ocudulog)

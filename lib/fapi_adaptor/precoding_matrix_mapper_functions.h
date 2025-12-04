@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// Returns the precoding matrix index for the SSB codebook.
@@ -60,4 +60,4 @@ inline unsigned get_pdsch_four_port_precoding_matrix_index(unsigned i_1_1, unsig
 }
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

@@ -10,6 +10,6 @@ set(SOURCES
         cu_up_pdcp_metrics_producer.cpp
         cu_up_pdcp_metrics_consumers.cpp)
 
-add_library(srsran_cu_up_unit_metrics_helpers STATIC ${SOURCES})
-target_include_directories(srsran_cu_up_unit_metrics_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_cu_up_unit_metrics_helpers PRIVATE srsran_cu_up_metrics_json_generators_helpers)
+add_library(ocudu_cu_up_unit_metrics_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_cu_up_unit_metrics_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_cu_up_unit_metrics_helpers PRIVATE ocudu_cu_up_metrics_json_generators_helpers)

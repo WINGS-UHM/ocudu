@@ -10,64 +10,64 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/ran/cu_types.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ran/cu_types.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 struct ngap_message;
 
-} // namespace srs_cu_cp
+} // namespace ocucp
 
 namespace test_helpers {
 
-bool is_valid_init_ue_message(const srs_cu_cp::ngap_message& msg);
+bool is_valid_init_ue_message(const ocucp::ngap_message& msg);
 
-bool is_valid_ul_nas_transport_message(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ul_nas_transport_message(const ocucp::ngap_message& msg);
 
-bool is_valid_initial_context_setup_response(const srs_cu_cp::ngap_message& msg);
+bool is_valid_initial_context_setup_response(const ocucp::ngap_message& msg);
 
-bool is_valid_initial_context_setup_failure(const srs_cu_cp::ngap_message& msg);
+bool is_valid_initial_context_setup_failure(const ocucp::ngap_message& msg);
 
-bool is_valid_ue_context_release_request(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ue_context_release_request(const ocucp::ngap_message& msg);
 
-bool is_valid_ue_radio_capability_info_indication(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ue_radio_capability_info_indication(const ocucp::ngap_message& msg);
 
-bool is_valid_ue_context_release_complete(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ue_context_release_complete(const ocucp::ngap_message& msg);
 
-bool is_valid_pdu_session_resource_setup_response(const srs_cu_cp::ngap_message& msg);
+bool is_valid_pdu_session_resource_setup_response(const ocucp::ngap_message& msg);
 
-bool is_valid_pdu_session_resource_release_response(const srs_cu_cp::ngap_message& msg);
+bool is_valid_pdu_session_resource_release_response(const ocucp::ngap_message& msg);
 
-bool is_valid_pdu_session_resource_modify_response(const srs_cu_cp::ngap_message& msg);
+bool is_valid_pdu_session_resource_modify_response(const ocucp::ngap_message& msg);
 
-bool is_valid_error_indication(const srs_cu_cp::ngap_message& msg);
+bool is_valid_error_indication(const ocucp::ngap_message& msg);
 
-bool is_valid_handover_request_ack(const srs_cu_cp::ngap_message& msg);
+bool is_valid_handover_request_ack(const ocucp::ngap_message& msg);
 
-bool is_valid_handover_notify(const srs_cu_cp::ngap_message& msg);
+bool is_valid_handover_notify(const ocucp::ngap_message& msg);
 
-bool is_valid_handover_required(const srs_cu_cp::ngap_message& msg);
+bool is_valid_handover_required(const ocucp::ngap_message& msg);
 
-bool is_valid_handover_cancel(const srs_cu_cp::ngap_message& msg);
+bool is_valid_handover_cancel(const ocucp::ngap_message& msg);
 
-bool is_valid_ul_ran_status_transfer(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ul_ran_status_transfer(const ocucp::ngap_message& msg);
 
-bool is_valid_ng_reset(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ng_reset(const ocucp::ngap_message& msg);
 
-bool is_valid_ul_ue_associated_nrppa_transport(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ul_ue_associated_nrppa_transport(const ocucp::ngap_message& msg);
 
-bool is_valid_ul_non_ue_associated_nrppa_transport(const srs_cu_cp::ngap_message& msg);
+bool is_valid_ul_non_ue_associated_nrppa_transport(const ocucp::ngap_message& msg);
 
 // Check if the NGAP PDU contains the expected PDU session setup response.
 bool is_expected_pdu_session_resource_setup_response(
-    const srs_cu_cp::ngap_message&       ngap_pdu,
+    const ocucp::ngap_message&           ngap_pdu,
     const std::vector<pdu_session_id_t>& expected_pdu_sessions_to_setup,
     const std::vector<pdu_session_id_t>& expected_pdu_sessions_failed_to_setup);
 
-byte_buffer get_rrc_container(const srs_cu_cp::ngap_message& msg);
+byte_buffer get_rrc_container(const ocucp::ngap_message& msg);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

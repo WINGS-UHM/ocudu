@@ -10,7 +10,7 @@
 
 #include "message_bufferer_decorator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 slot_message_gateway& message_bufferer_decorator_impl::get_slot_message_gateway()

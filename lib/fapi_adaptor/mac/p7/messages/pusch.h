@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/message_builders.h"
+#include "ocudu/fapi/message_builders.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ul_sched_info;
 
@@ -39,4 +39,4 @@ void convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder&      builder,
                                uci_part2_correspondence_mapper& part2_mapper);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

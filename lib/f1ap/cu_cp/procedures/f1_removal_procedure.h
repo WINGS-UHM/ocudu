@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class f1ap_du_processor_notifier;
 class f1ap_ue_context_list;
@@ -29,7 +29,7 @@ public:
                        f1ap_message_notifier&                  pdu_notifier,
                        f1ap_du_processor_notifier&             cu_cp_notifier,
                        f1ap_ue_context_list&                   ue_list,
-                       srslog::basic_logger&                   logger);
+                       ocudulog::basic_logger&                 logger);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -42,8 +42,8 @@ private:
   f1ap_message_notifier&                 pdu_notifier;
   f1ap_du_processor_notifier&            cu_cp_notifier;
   f1ap_ue_context_list&                  ue_list;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

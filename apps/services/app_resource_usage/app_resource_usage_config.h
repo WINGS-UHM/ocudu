@@ -12,7 +12,7 @@
 
 #include "apps/helpers/metrics/metrics_config.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Application resource usage configuration.
@@ -22,4 +22,4 @@ struct app_resource_usage_config {
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

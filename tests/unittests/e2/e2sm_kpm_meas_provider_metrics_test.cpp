@@ -10,10 +10,10 @@
 
 #include "lib/e2/e2sm/e2sm_kpm/e2sm_kpm_du_meas_provider_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/ran/du_types.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2sm;
 
 static span<const e2sm_kpm_metric_t> e2sm_kpm_28_552_metrics = get_e2sm_kpm_28_552_metrics();
@@ -127,8 +127,8 @@ class e2sm_kpm_meas_provider_metrics_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
     f1ap_ue_id_mapper = std::make_unique<dummy_f1ap_ue_id_translator>();
     du_meas_provider  = std::make_unique<e2sm_kpm_du_meas_provider_impl>(*f1ap_ue_id_mapper);
     metrics           = std::make_unique<dummy_e2_du_metrics_notifier>();
@@ -138,13 +138,13 @@ protected:
   void TearDown() override
   {
     // Flush logger after each test.
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<dummy_e2_du_metrics_notifier>   metrics;
   std::unique_ptr<dummy_f1ap_ue_id_translator>    f1ap_ue_id_mapper;
   std::unique_ptr<e2sm_kpm_du_meas_provider_impl> du_meas_provider;
-  srslog::basic_logger&                           test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                         test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(e2sm_kpm_meas_provider_metrics_test, e2sm_kpm_supported_metrics_are_supported)

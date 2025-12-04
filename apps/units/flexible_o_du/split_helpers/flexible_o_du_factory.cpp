@@ -19,21 +19,21 @@
 #include "flexible_o_du_impl.h"
 #include "flexible_o_du_ntn_configuration_manager_factory.h"
 #include "metrics/flexible_o_du_metrics_builder.h"
-#include "srsran/du/du_high/du_high.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/o_du_factory.h"
-#include "srsran/e2/e2_du_metrics_connector.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
-#include "srsran/ntn/ntn_configuration_manager_config.h"
+#include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/o_du_factory.h"
+#include "ocudu/e2/e2_du_metrics_connector.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/ntn/ntn_configuration_manager_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-static fapi::prach_config generate_prach_config_tlv(const srs_du::du_cell_config& cell_cfg)
+static fapi::prach_config generate_prach_config_tlv(const odu::du_cell_config& cell_cfg)
 {
   fapi::prach_config config     = {};
   config.prach_res_config_index = 0;
@@ -61,7 +61,7 @@ static fapi::prach_config generate_prach_config_tlv(const srs_du::du_cell_config
   return config;
 }
 
-static fapi::carrier_config generate_carrier_config_tlv(const srs_du::du_cell_config& du_cell)
+static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
   // Deduce common numerology and grid size for DL and UL.
   unsigned numerology = to_numerology_value(du_cell.scs_common);
@@ -87,7 +87,7 @@ static fapi::carrier_config generate_carrier_config_tlv(const srs_du::du_cell_co
 
 static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&            du_low_unit_cfg,
                                                      float                                dBFS_calibration_value,
-                                                     span<const srs_du::du_cell_config>   cells,
+                                                     span<const odu::du_cell_config>      cells,
                                                      span<const du_high_unit_cell_config> du_hi_cells)
 {
   o_du_low_unit_config odu_low_cfg = {du_low_unit_cfg, {}, {}};
@@ -127,9 +127,8 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
   return odu_low_cfg;
 }
 
-static flexible_o_du_ru_config generate_o_du_ru_config(span<const srs_du::du_cell_config> cells,
-                                                       unsigned                           max_processing_delay,
-                                                       unsigned                           prach_nof_ports)
+static flexible_o_du_ru_config
+generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_processing_delay, unsigned prach_nof_ports)
 {
   flexible_o_du_ru_config out_cfg;
   out_cfg.prach_nof_ports      = prach_nof_ports;
@@ -285,7 +284,7 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
   // Manage commands.
   o_du.commands = std::move(odu_hi_unit.commands);
 
-  srs_du::o_du_dependencies odu_dependencies;
+  odu::o_du_dependencies odu_dependencies;
   odu_dependencies.odu_hi           = std::move(odu_hi_unit.o_du_hi);
   odu_dependencies.odu_lo           = std::move(odu_lo_unit.o_du_lo);
   odu_dependencies.metrics_notifier = &du_impl->get_o_du_metrics_notifier();
@@ -302,7 +301,7 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
 
   std::unique_ptr<radio_unit> ru = create_radio_unit(ru_config, ru_dependencies);
 
-  srsran_assert(ru, "Invalid Radio Unit");
+  ocudu_assert(ru, "Invalid Radio Unit");
 
   // Add RU metrics subcommands.
   for (auto& subcmd : ru_metrics_subcommands) {

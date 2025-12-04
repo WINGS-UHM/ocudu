@@ -11,16 +11,16 @@
 #include "o_du_low_metrics_consumers.h"
 #include "apps/helpers/metrics/helpers.h"
 #include "apps/helpers/metrics/json_generators/o_du_low.h"
-#include "srsran/du/du_low/o_du_low_metrics.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/du/du_low/o_du_low_metrics.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 
 /// Size in bytes of the buffer used to prepare the metrics before logging.
 static constexpr unsigned str_buffer_size = 4096;
 
-void o_du_low_metrics_consumer_json::handle_metric(const srs_du::o_du_low_metrics& metric)
+void o_du_low_metrics_consumer_json::handle_metric(const odu::o_du_low_metrics& metric)
 {
   log_chan("{}", app_helpers::json_generators::generate_string(metric, 2));
 }
@@ -322,7 +322,7 @@ static void log_upper_phy_metrics_verbose(fmt::basic_memory_buffer<char, str_buf
                  validate_fp_value(pusch_precode_cpu_usage));
 }
 
-void o_du_low_metrics_consumer_log::handle_metric(const srs_du::o_du_low_metrics& metric)
+void o_du_low_metrics_consumer_log::handle_metric(const odu::o_du_low_metrics& metric)
 {
   const auto&                                     upper_metrics = metric.du_lo_metrics.upper_metrics;
   fmt::basic_memory_buffer<char, str_buffer_size> buffer;

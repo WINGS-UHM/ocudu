@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_allocator.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_code.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_encoder.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_interleaver.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_rate_matcher.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_encoder.h"
-#include "srsran/ran/pdcch/pdcch_constants.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_allocator.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_code.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_encoder.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_interleaver.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_rate_matcher.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_encoder.h"
+#include "ocudu/ran/pdcch/pdcch_constants.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief PDCCH encoder, as per TS38.212 Section 7.3.
 ///
@@ -102,4 +102,4 @@ public:
   void encode(span<uint8_t> encoded, span<const uint8_t> data, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

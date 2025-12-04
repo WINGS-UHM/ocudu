@@ -18,10 +18,10 @@
 #include "du_srs_resource_manager.h"
 #include "ra_resource_manager.h"
 #include "ue_capability_manager.h"
-#include "srsran/ran/qos/five_qi.h"
+#include "ocudu/ran/qos/five_qi.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_ran_resource_manager_impl;
 
@@ -102,7 +102,7 @@ private:
   void deallocate_cell_resources(du_ue_index_t ue_index, serv_cell_index_t serv_cell_index);
 
   span<const du_cell_config> cell_cfg_list;
-  srslog::basic_logger&      logger;
+  ocudulog::basic_logger&    logger;
   const du_test_mode_config& test_cfg;
 
   struct ue_resource_context {
@@ -135,5 +135,5 @@ private:
   ra_resource_manager ra_res_alloc;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

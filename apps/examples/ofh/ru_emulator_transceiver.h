@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
-#include "srsran/ofh/ethernet/ethernet_controller.h"
-#include "srsran/ofh/ethernet/ethernet_frame_notifier.h"
-#include "srsran/ofh/ethernet/ethernet_properties.h"
-#include "srsran/ofh/ethernet/ethernet_receiver.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_metrics_collector.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter_config.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
+#include "ocudu/ofh/ethernet/ethernet_controller.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_notifier.h"
+#include "ocudu/ofh/ethernet/ethernet_properties.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_metrics_collector.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter_config.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Encapsulates Ethernet transmitter and receiver functionalities used by the RU emulator.
 class ru_emulator_transceiver
@@ -32,8 +32,8 @@ public:
                           std::unique_ptr<ether::transmitter> transmitter_) :
     receiver(std::move(receiver_)), transmitter(std::move(transmitter_))
   {
-    srsran_assert(receiver, "Invalid Ethernet receiver passed to RU emulator");
-    srsran_assert(transmitter, "Invalid Ethernet transmitter passed to RU emulator");
+    ocudu_assert(receiver, "Invalid Ethernet receiver passed to RU emulator");
+    ocudu_assert(transmitter, "Invalid Ethernet transmitter passed to RU emulator");
   }
 
   /// Starts the Ethernet receiver operation.
@@ -56,12 +56,12 @@ class ru_emu_dpdk_receiver : public ether::receiver, public ether::receiver_oper
   enum class status { idle, running, stop_requested, stopped };
 
 public:
-  ru_emu_dpdk_receiver(srslog::basic_logger&                     logger_,
+  ru_emu_dpdk_receiver(ocudulog::basic_logger&                   logger_,
                        task_executor&                            executor_,
                        std::shared_ptr<ether::dpdk_port_context> port_ctx_ptr_) :
     logger(logger_), executor(executor_), port_ctx_ptr(port_ctx_ptr_), port_ctx(*port_ctx_ptr)
   {
-    srsran_assert(port_ctx_ptr, "Invalid port context");
+    ocudu_assert(port_ctx_ptr, "Invalid port context");
   }
 
   // See interface for documentation.
@@ -84,7 +84,7 @@ protected:
   void receive();
 
 private:
-  srslog::basic_logger&                     logger;
+  ocudulog::basic_logger&                   logger;
   task_executor&                            executor;
   std::shared_ptr<ether::dpdk_port_context> port_ctx_ptr;
   ether::dpdk_port_context&                 port_ctx;
@@ -96,10 +96,10 @@ private:
 class ru_emu_dpdk_transmitter : public ether::transmitter
 {
 public:
-  ru_emu_dpdk_transmitter(srslog::basic_logger& logger_, std::shared_ptr<ether::dpdk_port_context> port_ctx_ptr_) :
+  ru_emu_dpdk_transmitter(ocudulog::basic_logger& logger_, std::shared_ptr<ether::dpdk_port_context> port_ctx_ptr_) :
     logger(logger_), port_ctx_ptr(port_ctx_ptr_), port_ctx(*port_ctx_ptr)
   {
-    srsran_assert(port_ctx_ptr, "Invalid port context");
+    ocudu_assert(port_ctx_ptr, "Invalid port context");
   }
 
   // See interface for documentation.
@@ -109,7 +109,7 @@ public:
   ether::transmitter_metrics_collector* get_metrics_collector() override { return nullptr; }
 
 private:
-  srslog::basic_logger&                     logger;
+  ocudulog::basic_logger&                   logger;
   std::shared_ptr<ether::dpdk_port_context> port_ctx_ptr;
   ether::dpdk_port_context&                 port_ctx;
 };
@@ -118,7 +118,9 @@ private:
 class ru_emu_socket_receiver : public ether::receiver, public ether::receiver_operation_controller
 {
 public:
-  ru_emu_socket_receiver(srslog::basic_logger& logger_, task_executor& executor_, const ether::transmitter_config& cfg);
+  ru_emu_socket_receiver(ocudulog::basic_logger&          logger_,
+                         task_executor&                   executor_,
+                         const ether::transmitter_config& cfg);
 
   // See interface for documentation.
   ether::receiver_operation_controller& get_operation_controller() override { return *this; }
@@ -140,7 +142,7 @@ private:
 class ru_emu_socket_transmitter : public ether::transmitter
 {
 public:
-  ru_emu_socket_transmitter(srslog::basic_logger& logger_, const ether::transmitter_config& cfg);
+  ru_emu_socket_transmitter(ocudulog::basic_logger& logger_, const ether::transmitter_config& cfg);
 
   // See interface for documentation.
   ether::transmitter_metrics_collector* get_metrics_collector() override { return nullptr; }
@@ -154,13 +156,13 @@ private:
 
 /// Creates RU emulator transceiver based on DPDK library.
 std::unique_ptr<ru_emulator_transceiver>
-ru_emu_create_dpdk_transceiver(srslog::basic_logger&                     logger,
+ru_emu_create_dpdk_transceiver(ocudulog::basic_logger&                   logger,
                                task_executor&                            executor,
                                std::shared_ptr<ether::dpdk_port_context> context);
 
 /// Creates RU emulator transceiver based on regular UNIX sockets.
-std::unique_ptr<ru_emulator_transceiver> ru_emu_create_socket_transceiver(srslog::basic_logger&            logger,
+std::unique_ptr<ru_emulator_transceiver> ru_emu_create_socket_transceiver(ocudulog::basic_logger&          logger,
                                                                           task_executor&                   executor,
                                                                           const ether::transmitter_config& config);
 
-} // namespace srsran
+} // namespace ocudu

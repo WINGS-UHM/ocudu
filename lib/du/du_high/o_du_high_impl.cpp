@@ -9,12 +9,12 @@
  */
 
 #include "o_du_high_impl.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/mac/mac_cell_result.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/mac/mac_cell_result.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 /// Dummy implementation of the mac_result_notifier.
@@ -47,12 +47,12 @@ o_du_high_impl::o_du_high_impl(unsigned nof_cells_, o_du_high_impl_dependencies&
     return std::make_unique<phy_dummy>(std::move(cells));
   }(*fapi_fastpath_adaptor, nof_cells))
 {
-  srsran_assert(fapi_fastpath_adaptor, "Invalid FAPI MAC adaptor");
+  ocudu_assert(fapi_fastpath_adaptor, "Invalid FAPI MAC adaptor");
 }
 
 void o_du_high_impl::start()
 {
-  srsran_assert(du_hi, "Invalid DU high");
+  ocudu_assert(du_hi, "Invalid DU high");
 
   logger.info("Starting DU...");
   du_hi->start();
@@ -76,7 +76,7 @@ void o_du_high_impl::start()
 
 void o_du_high_impl::stop()
 {
-  srsran_assert(du_hi, "Invalid DU high");
+  ocudu_assert(du_hi, "Invalid DU high");
 
   logger.info("Stopping DU...");
   if (e2agent) {
@@ -105,11 +105,11 @@ void o_du_high_impl::set_o_du_high_metrics_notifier(o_du_high_metrics_notifier& 
 void o_du_high_impl::set_du_high(std::unique_ptr<du_high> updated_du_high)
 {
   du_hi = std::move(updated_du_high);
-  srsran_assert(du_hi, "Invalid DU high");
+  ocudu_assert(du_hi, "Invalid DU high");
 }
 
 void o_du_high_impl::set_e2_agent(std::unique_ptr<e2_agent> agent)
 {
   e2agent = std::move(agent);
-  srsran_assert(e2agent, "Invalid E2 agent");
+  ocudu_assert(e2agent, "Invalid E2 agent");
 }

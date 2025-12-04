@@ -15,12 +15,12 @@
 #include "mac_config.h"
 #include "mac_metrics_aggregator.h"
 #include "mac_scheduler_configurator.h"
-#include "srsran/mac/mac_config.h"
-#include "srsran/mac/mac_positioning_measurement_handler.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/du_ue_list.h"
+#include "ocudu/mac/mac_config.h"
+#include "ocudu/mac/mac_positioning_measurement_handler.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/du_ue_list.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct mac_ue_context {
   du_ue_index_t   du_ue_index = MAX_NOF_DU_UES;
@@ -82,7 +82,7 @@ private:
 
   // args
   mac_control_config          cfg;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
   mac_ul_configurator&        ul_unit;
   mac_dl_configurator&        dl_unit;
   rnti_manager&               rnti_table;
@@ -96,4 +96,4 @@ private:
   du_ue_list<mac_ue_context> ue_db;
 };
 
-} // namespace srsran
+} // namespace ocudu

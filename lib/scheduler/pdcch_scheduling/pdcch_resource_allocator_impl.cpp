@@ -12,10 +12,10 @@
 #include "../support/pdcch/pdcch_mapping.h"
 #include "../support/pdcch/pdcch_pdu_parameters.h"
 #include "pdcch_slot_resource_allocator.h"
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcch_resource_allocator_impl::pdcch_resource_allocator_impl(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_)
 {
@@ -58,7 +58,7 @@ pdcch_resource_allocator_impl::~pdcch_resource_allocator_impl() = default;
 
 void pdcch_resource_allocator_impl::slot_indication(slot_point sl_tx)
 {
-  srsran_sanity_check(not last_sl_ind.valid() or sl_tx == last_sl_ind + 1, "Detected skipped slot");
+  ocudu_sanity_check(not last_sl_ind.valid() or sl_tx == last_sl_ind + 1, "Detected skipped slot");
 
   // Update Slot.
   last_sl_ind = sl_tx;
@@ -259,6 +259,6 @@ void pdcch_resource_allocator_impl::stop()
 
 pdcch_slot_allocator& pdcch_resource_allocator_impl::get_pdcch_slot_alloc(slot_point sl)
 {
-  srsran_sanity_check(sl < last_sl_ind + SLOT_ALLOCATOR_RING_SIZE, "PDCCH being allocated to far into the future");
+  ocudu_sanity_check(sl < last_sl_ind + SLOT_ALLOCATOR_RING_SIZE, "PDCCH being allocated to far into the future");
   return *slot_records[sl.to_uint() % slot_records.size()];
 }

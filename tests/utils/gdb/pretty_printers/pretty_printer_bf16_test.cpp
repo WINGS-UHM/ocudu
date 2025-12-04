@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/adt/bf16.h"
+#include "ocudu/adt/bf16.h"
 
 int main()
 {
-  srsran::bf16_t a;
+  ocudu::bf16_t a;
 
-  a = srsran::to_bf16(1.23F);
+  a = ocudu::to_bf16(1.23F);
   abort();
 }

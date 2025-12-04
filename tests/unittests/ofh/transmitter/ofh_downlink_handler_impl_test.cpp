@@ -13,14 +13,14 @@
 #include "../../../../lib/ofh/transmitter/ofh_downlink_handler_impl.h"
 #include "../../phy/support/resource_grid_test_doubles.h"
 #include "ofh_data_flow_cplane_scheduling_commands_test_doubles.h"
-#include "srsran/ofh/ofh_error_notifier.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/ofh/ofh_error_notifier.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
-using namespace srsran::ofh::testing;
+using namespace ocudu::ofh::testing;
 using namespace std::chrono_literals;
 
 namespace {
@@ -117,16 +117,16 @@ TEST(ofh_downlink_handler_impl, handling_downlink_data_use_control_and_user_plan
   std::unique_ptr<data_flow_uplane_downlink_data_spy> uplane = std::make_unique<data_flow_uplane_downlink_data_spy>();
   const auto&                                         uplane_spy   = *uplane;
   downlink_handler_impl_dependencies                  dependencies = {
-      srslog::fetch_basic_logger("TEST"),
+      ocudulog::fetch_basic_logger("TEST"),
       notifier_spy,
       std::move(cplane),
       std::move(uplane),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::control_plane,
                                               ofh::data_direction::downlink),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::user_plane,
@@ -183,16 +183,16 @@ TEST(ofh_downlink_handler_impl, late_rg_is_not_handled)
   std::unique_ptr<data_flow_uplane_downlink_data_spy> uplane = std::make_unique<data_flow_uplane_downlink_data_spy>();
   const auto&                                         uplane_spy   = *uplane;
   downlink_handler_impl_dependencies                  dependencies = {
-      srslog::fetch_basic_logger("TEST"),
+      ocudulog::fetch_basic_logger("TEST"),
       notifier_spy,
       std::move(cplane),
       std::move(uplane),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::control_plane,
                                               ofh::data_direction::downlink),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::user_plane,
@@ -240,16 +240,16 @@ TEST(ofh_downlink_handler_impl, same_slot_fails)
   std::unique_ptr<data_flow_uplane_downlink_data_spy> uplane = std::make_unique<data_flow_uplane_downlink_data_spy>();
   const auto&                                         uplane_spy   = *uplane;
   downlink_handler_impl_dependencies                  dependencies = {
-      srslog::fetch_basic_logger("TEST"),
+      ocudulog::fetch_basic_logger("TEST"),
       notifier_spy,
       std::move(cplane),
       std::move(uplane),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::control_plane,
                                               ofh::data_direction::downlink),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::user_plane,
@@ -293,16 +293,16 @@ TEST(ofh_downlink_handler_impl, rg_in_the_frontier_is_handled)
   std::unique_ptr<data_flow_uplane_downlink_data_spy> uplane = std::make_unique<data_flow_uplane_downlink_data_spy>();
   const auto&                                         uplane_spy   = *uplane;
   downlink_handler_impl_dependencies                  dependencies = {
-      srslog::fetch_basic_logger("TEST"),
+      ocudulog::fetch_basic_logger("TEST"),
       notifier_spy,
       std::move(cplane),
       std::move(uplane),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::control_plane,
                                               ofh::data_direction::downlink),
-      std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+      std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                               mtu_size,
                                               2,
                                               ofh::message_type::user_plane,

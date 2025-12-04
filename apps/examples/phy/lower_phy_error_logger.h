@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_error_notifier.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/lower/lower_phy_error_notifier.h"
+#include "ocudu/phy/support/resource_grid_context.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a lower physical layer error adapter to an RU error adapter.
 class lower_phy_error_logger : public lower_phy_error_notifier
 {
 public:
   /// Creates an adapter with a given logger.
-  explicit lower_phy_error_logger(srslog::basic_logger& logger_) : logger(logger_) {}
+  explicit lower_phy_error_logger(ocudulog::basic_logger& logger_) : logger(logger_) {}
 
   // See interface for documentation.
   void on_late_resource_grid(const resource_grid_context& context) override
@@ -67,7 +67,7 @@ public:
 
 private:
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

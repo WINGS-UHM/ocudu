@@ -24,6 +24,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 
 
-add_library(srsran_channel_precoder STATIC ${channel_precoder_sources})
+add_library(ocudu_channel_precoder STATIC ${channel_precoder_sources})
 
-add_to_exported_libs(srsran_channel_precoder)
+add_to_exported_libs(ocudu_channel_precoder)

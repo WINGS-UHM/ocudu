@@ -9,12 +9,12 @@
  */
 
 #include "lower_phy_example_factory.h"
-#include "srsran/phy/lower/lower_phy_factory.h"
+#include "ocudu/phy/lower/lower_phy_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<lower_phy> srsran::create_lower_phy(const lower_phy_configuration& config,
-                                                    const lower_phy_dependencies&  deps)
+std::unique_ptr<lower_phy> ocudu::create_lower_phy(const lower_phy_configuration& config,
+                                                   const lower_phy_dependencies&  deps)
 {
   // Deduce frequency range from the subcarrier spacing.
   frequency_range fr = frequency_range::FR1;

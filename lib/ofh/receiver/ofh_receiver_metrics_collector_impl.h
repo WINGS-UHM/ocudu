@@ -13,10 +13,10 @@
 #include "ofh_closed_rx_window_handler.h"
 #include "ofh_message_receiver_metrics_collector.h"
 #include "ofh_rx_window_checker.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_metrics_collector.h"
-#include "srsran/ofh/receiver/ofh_receiver_metrics_collector.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_metrics_collector.h"
+#include "ocudu/ofh/receiver/ofh_receiver_metrics_collector.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul receiver metrics collector implementation.
@@ -35,8 +35,8 @@ public:
     eth_rcv_metrics_collector(eth_rcv_metrics_collector_)
   {
     if (!is_disabled) {
-      srsran_assert(msg_rcv_metrics_collector && eth_rcv_metrics_collector,
-                    "Open fronthaul receiver metrics collectors must be initialized when the metrics are enabled");
+      ocudu_assert(msg_rcv_metrics_collector && eth_rcv_metrics_collector,
+                   "Open fronthaul receiver metrics collectors must be initialized when the metrics are enabled");
     }
   }
 
@@ -65,4 +65,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

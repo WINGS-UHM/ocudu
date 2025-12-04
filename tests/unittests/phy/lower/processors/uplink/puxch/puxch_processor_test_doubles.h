@@ -11,18 +11,18 @@
 #pragma once
 
 #include "../../../../../gateways/baseband/baseband_gateway_buffer_test_doubles.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_factories.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_factories.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class puxch_processor_baseband_spy : public puxch_processor_baseband
 {
@@ -123,4 +123,4 @@ private:
   puxch_processor_spy* instance = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

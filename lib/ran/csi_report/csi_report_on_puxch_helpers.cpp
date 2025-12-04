@@ -9,11 +9,11 @@
  */
 
 #include "csi_report_on_puxch_helpers.h"
-#include "srsran/adt/interval.h"
-#include "srsran/ran/csi_report/csi_report_on_puxch_utils.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ran/csi_report/csi_report_on_puxch_utils.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Gets the RI, LI, wideband CQI, and CRI fields bit-width as per TS38.212 Table 6.3.1.1.2-3.
 static ri_li_cqi_cri_sizes get_ri_li_cqi_cri_sizes_typeI_single_panel(unsigned                 nof_csi_antenna_ports,
@@ -30,9 +30,9 @@ static ri_li_cqi_cri_sizes get_ri_li_cqi_cri_sizes_typeI_single_panel(unsigned  
   if (nof_csi_antenna_ports == 1) {
     result.ri = 0;
   } else {
-    srsran_assert(ri_restriction.find_lowest(true) >= 0,
-                  "The RI restriction field (i.e., {}) must have at least one true value.",
-                  ri_restriction);
+    ocudu_assert(ri_restriction.find_lowest(true) >= 0,
+                 "The RI restriction field (i.e., {}) must have at least one true value.",
+                 ri_restriction);
 
     if (nof_csi_antenna_ports == 2) {
       result.ri = std::min(1U, log2_ceil(ri_restriction_count));
@@ -75,19 +75,19 @@ static ri_li_cqi_cri_sizes get_ri_li_cqi_cri_sizes_typeI_single_panel(unsigned  
   // Calculate CRI field size. The number of CSI resources in the corresponding resource set must be at least one and up
   // to 64 (see TS38.331 Section 6.3.2, Information Element \c NZP-CSI-RS-ResourceSet).
   constexpr interval<unsigned, true> nof_csi_res_range(1, 64);
-  srsran_assert(nof_csi_res_range.contains(nof_csi_rs_resources),
-                "The number of CSI-RS resources in the resource set, i.e., {} exceeds the valid range {}.",
-                nof_csi_rs_resources,
-                nof_csi_res_range);
+  ocudu_assert(nof_csi_res_range.contains(nof_csi_rs_resources),
+               "The number of CSI-RS resources in the resource set, i.e., {} exceeds the valid range {}.",
+               nof_csi_rs_resources,
+               nof_csi_res_range);
   result.cri = log2_ceil(nof_csi_rs_resources);
 
   return result;
 }
 
-ri_li_cqi_cri_sizes srsran::get_ri_li_cqi_cri_sizes(pmi_codebook_type        pmi_codebook,
-                                                    ri_restriction_type      ri_restriction,
-                                                    csi_report_data::ri_type ri,
-                                                    unsigned                 nof_csi_rs_resources)
+ri_li_cqi_cri_sizes ocudu::get_ri_li_cqi_cri_sizes(pmi_codebook_type        pmi_codebook,
+                                                   ri_restriction_type      ri_restriction,
+                                                   csi_report_data::ri_type ri,
+                                                   unsigned                 nof_csi_rs_resources)
 {
   unsigned nof_csi_antenna_ports = csi_report_get_nof_csi_rs_antenna_ports(pmi_codebook);
 
@@ -146,7 +146,7 @@ csi_report_get_pmi_sizes_typeI_single_panel_mode1(unsigned                 N1,
 /// Gets PMI field bit-width for TypeI-SinglePanel and two port.
 static unsigned csi_report_get_size_pmi_two_port(csi_report_data::ri_type ri)
 {
-  srsran_assert(ri <= 2, "Invalid rank indicator (i.e., {}).", ri);
+  ocudu_assert(ri <= 2, "Invalid rank indicator (i.e., {}).", ri);
   if (ri == 2) {
     return 1;
   }
@@ -177,7 +177,7 @@ static unsigned csi_report_get_size_pmi_typeI_single_panel_4ports_mode1(unsigned
   return count;
 }
 
-unsigned srsran::csi_report_get_size_pmi(pmi_codebook_type codebook, csi_report_data::ri_type ri)
+unsigned ocudu::csi_report_get_size_pmi(pmi_codebook_type codebook, csi_report_data::ri_type ri)
 {
   unsigned nof_csi_rs_antenna_ports = csi_report_get_nof_csi_rs_antenna_ports(codebook);
   switch (codebook) {
@@ -192,9 +192,9 @@ unsigned srsran::csi_report_get_size_pmi(pmi_codebook_type codebook, csi_report_
   }
 }
 
-csi_report_data::wideband_cqi_type srsran::csi_report_unpack_wideband_cqi(csi_report_packed packed)
+csi_report_data::wideband_cqi_type ocudu::csi_report_unpack_wideband_cqi(csi_report_packed packed)
 {
-  srsran_assert(packed.size() == 4, "Packed size (i.e., {}) must be 4 bits.", packed.size());
+  ocudu_assert(packed.size() == 4, "Packed size (i.e., {}) must be 4 bits.", packed.size());
   return packed.extract(0, 4);
 }
 
@@ -227,7 +227,7 @@ static csi_report_pmi csi_report_unpack_pmi_typeI_single_panel_4ports_mode1(cons
   result.i_1_1 = packed.extract(count, sizes.i_1_1);
   count += sizes.i_1_1;
 
-  srsran_assert(sizes.i_1_2 == 0, "PMI field i_1_2 size must be 0 bits for 4 ports.");
+  ocudu_assert(sizes.i_1_2 == 0, "PMI field i_1_2 size must be 0 bits for 4 ports.");
 
   if (ri > 1) {
     result.i_1_3.emplace(packed.extract(count, sizes.i_1_3));
@@ -237,17 +237,17 @@ static csi_report_pmi csi_report_unpack_pmi_typeI_single_panel_4ports_mode1(cons
   result.i_2 = packed.extract(count, sizes.i_2);
   count += sizes.i_2;
 
-  srsran_assert(packed.size() == count,
-                "Packet input size (i.e., {}) does not match with the fields size (i.e., {})",
-                packed.size(),
-                count);
+  ocudu_assert(packed.size() == count,
+               "Packet input size (i.e., {}) does not match with the fields size (i.e., {})",
+               packed.size(),
+               count);
 
   return csi_report_pmi{result};
 }
 
 /// Unpacks PMI.
 csi_report_pmi
-srsran::csi_report_unpack_pmi(const csi_report_packed& packed, pmi_codebook_type codebook, csi_report_data::ri_type ri)
+ocudu::csi_report_unpack_pmi(const csi_report_packed& packed, pmi_codebook_type codebook, csi_report_data::ri_type ri)
 {
   unsigned nof_csi_rs_antenna_ports = csi_report_get_nof_csi_rs_antenna_ports(codebook);
 
@@ -263,17 +263,17 @@ srsran::csi_report_unpack_pmi(const csi_report_packed& packed, pmi_codebook_type
   }
 }
 
-csi_report_data::ri_type srsran::csi_report_unpack_ri(const csi_report_packed&   ri_packed,
-                                                      const ri_restriction_type& ri_restriction)
+csi_report_data::ri_type ocudu::csi_report_unpack_ri(const csi_report_packed&   ri_packed,
+                                                     const ri_restriction_type& ri_restriction)
 {
   unsigned ri = 1;
   if (!ri_packed.empty()) {
     ri = ri_packed.extract(0, ri_packed.size());
 
-    srsran_assert(ri < ri_restriction.count(),
-                  "Packed RI, i.e., {}, is out of bounds given the number of allowed rank values, i.e., {}.",
-                  ri,
-                  ri_restriction.count());
+    ocudu_assert(ri < ri_restriction.count(),
+                 "Packed RI, i.e., {}, is out of bounds given the number of allowed rank values, i.e., {}.",
+                 ri,
+                 ri_restriction.count());
 
     ri = ri_restriction.get_bit_positions()[ri] + 1;
   }

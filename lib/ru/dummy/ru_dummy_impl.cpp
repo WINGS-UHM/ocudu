@@ -9,16 +9,16 @@
  */
 
 #include "ru_dummy_impl.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/ru/dummy/ru_dummy_configuration.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/ru/dummy/ru_dummy_configuration.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <chrono>
 #include <cstdint>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 static uint64_t get_current_system_slot(std::chrono::microseconds slot_duration,
                                         uint64_t                  nof_slots_per_hyper_system_frame)
@@ -40,7 +40,7 @@ ru_dummy_impl::ru_dummy_impl(const ru_dummy_configuration& config, ru_dummy_depe
   current_slot(config.scs, config.max_processing_delay_slots),
   metrics_collector({})
 {
-  srsran_assert(config.max_processing_delay_slots > 0, "The maximum processing delay must be greater than 0.");
+  ocudu_assert(config.max_processing_delay_slots > 0, "The maximum processing delay must be greater than 0.");
 
   sectors.reserve(config.nof_sectors);
 
@@ -89,14 +89,13 @@ void ru_dummy_impl::stop()
 void ru_dummy_impl::defer_loop()
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
-  report_fatal_error_if_not(
-      executor.defer(unique_function<void(), default_unique_task_buffer_size, true>(
-          [this, defer_token = std::move(token)]() noexcept SRSRAN_RTSAN_NONBLOCKING { loop(); })),
-      "Failed to execute loop method.");
+  report_fatal_error_if_not(executor.defer(unique_function<void(), default_unique_task_buffer_size, true>(
+                                [this, defer_token = std::move(token)]() noexcept OCUDU_RTSAN_NONBLOCKING { loop(); })),
+                            "Failed to execute loop method.");
 }
 
 void ru_dummy_impl::loop()
@@ -106,7 +105,7 @@ void ru_dummy_impl::loop()
 
   // Make sure a minimum time between loop executions without crossing boundaries.
   if (slot_count == current_slot.system_slot()) {
-    SRSRAN_RTSAN_SCOPED_DISABLER(scoped_disabler);
+    OCUDU_RTSAN_SCOPED_DISABLER(scoped_disabler);
     std::this_thread::sleep_for(minimum_loop_time);
   }
 

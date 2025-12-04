@@ -9,20 +9,20 @@
  */
 
 #include "uplink_processor_impl.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
-#include "srsran/phy/lower/lower_phy_baseband_metrics.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/lower_phy_timing_context.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_notifier.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/support/math/stats.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/lower_phy_timing_context.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_notifier.h"
+#include "ocudu/support/math/stats.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 lower_phy_uplink_processor_impl::lower_phy_uplink_processor_impl(std::unique_ptr<prach_processor> prach_proc_,
                                                                  std::unique_ptr<puxch_processor> puxch_proc_,
@@ -42,8 +42,8 @@ lower_phy_uplink_processor_impl::lower_phy_uplink_processor_impl(std::unique_ptr
   cfo_processor(config.rate),
   temp_cf_buffer({2 * config.rate.get_dft_size(config.scs), config.nof_rx_ports})
 {
-  srsran_assert(prach_proc, "Invalid PRACH processor.");
-  srsran_assert(puxch_proc, "Invalid PUxCH processor.");
+  ocudu_assert(prach_proc, "Invalid PRACH processor.");
+  ocudu_assert(puxch_proc, "Invalid PUxCH processor.");
 
   unsigned symbol_size_no_cp = config.rate.get_dft_size(config.scs);
 
@@ -172,8 +172,8 @@ void lower_phy_uplink_processor_impl::process_symbol_boundary(const baseband_gat
 void lower_phy_uplink_processor_impl::process_collecting(const baseband_gateway_buffer_reader& samples,
                                                          baseband_gateway_timestamp            timestamp)
 {
-  srsran_assert(notifier != nullptr, "Notifier has not been connected.");
-  srsran_assert(nof_rx_ports == samples.get_nof_channels(), "Invalid number of channels.");
+  ocudu_assert(notifier != nullptr, "Notifier has not been connected.");
+  ocudu_assert(nof_rx_ports == samples.get_nof_channels(), "Invalid number of channels.");
 
   // Check that the timestamp matches with the current sample timestamp.
   if ((current_symbol_timestamp + temp_buffer_write_index) != timestamp) {
@@ -197,7 +197,7 @@ void lower_phy_uplink_processor_impl::process_collecting(const baseband_gateway_
     span<const ci16_t> temp_buffer_src = samples.get_channel_buffer(i_port).first(nof_samples);
 
     // Append input samples into the temporary buffer.
-    srsvec::copy(temp_buffer_dst, temp_buffer_src);
+    ocuduvec::copy(temp_buffer_dst, temp_buffer_src);
   }
 
   // Increment the count of samples stored in the temporal buffer.
@@ -217,9 +217,9 @@ void lower_phy_uplink_processor_impl::process_collecting(const baseband_gateway_
     // single-precision complex floating-point samples.
     span<ci16_t> channel_buffer = temp_buffer.get_writer().get_channel_buffer(i_channel);
     view                        = temp_cf_buffer.get_view({i_channel}).subspan(0, channel_buffer.size());
-    srsvec::convert(view, channel_buffer, scaling_factor_ci16_to_cf);
+    ocuduvec::convert(view, channel_buffer, scaling_factor_ci16_to_cf);
     cfo_processor.process(view);
-    srsvec::convert(channel_buffer, view, scaling_factor_cf_to_ci16);
+    ocuduvec::convert(channel_buffer, view, scaling_factor_cf_to_ci16);
   }
 
   // Advance CFO processor number of samples.
@@ -246,9 +246,9 @@ void lower_phy_uplink_processor_impl::process_collecting(const baseband_gateway_
     // Process received signal before demodulation.
     for (unsigned i_channel = 0; i_channel != nof_channels; ++i_channel) {
       // Perform signal measurements. Reuse the previous view of the float-based complex samples.
-      avg_power.update(srsvec::average_power(view));
-      peak_power.update(srsvec::max_abs_element(view).second);
-      nof_clipped_samples += srsvec::count_if_part_abs_greater_than(view, 0.95);
+      avg_power.update(ocuduvec::average_power(view));
+      peak_power.update(ocuduvec::max_abs_element(view).second);
+      nof_clipped_samples += ocuduvec::count_if_part_abs_greater_than(view, 0.95);
       total_processed_samples += view.size();
     }
 

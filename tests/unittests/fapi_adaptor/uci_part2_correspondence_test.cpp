@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
-#include "srsran/ran/csi_report/csi_report_on_pusch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_puxch_utils.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_puxch_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 static constexpr unsigned NUM_CSI_RESOURCES = 1;

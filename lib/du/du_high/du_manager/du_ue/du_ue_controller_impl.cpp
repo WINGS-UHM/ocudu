@@ -9,12 +9,12 @@
  */
 
 #include "du_ue_controller_impl.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/execute_on_blocking.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/execute_on_blocking.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static const char* get_rlf_cause_str(rlf_cause cause)
 {
@@ -104,7 +104,7 @@ private:
   du_ue_manager_repository& ue_db;
   task_executor&            ctrl_exec;
   std::atomic<bool>         rlf_triggered{false};
-  srslog::basic_logger&     logger = srslog::fetch_basic_logger("DU-MNG");
+  ocudulog::basic_logger&   logger = ocudulog::fetch_basic_logger("DU-MNG");
 };
 
 } // namespace
@@ -229,7 +229,7 @@ private:
 
   du_ue_controller_impl&   ue_ctx;
   const du_manager_params& cfg;
-  srslog::basic_logger&    logger = srslog::fetch_basic_logger("DU-MNG");
+  ocudulog::basic_logger&  logger = ocudulog::fetch_basic_logger("DU-MNG");
 
   std::optional<rlf_cause> current_cause;
   unique_timer             release_timer;

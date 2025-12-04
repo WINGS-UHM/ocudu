@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/e2/e2sm/e2sm.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 
-namespace srsran {
+namespace ocudu {
 
 class e2sm_ccc_asn1_packer : public e2sm_handler
 {
@@ -44,4 +44,4 @@ private:
   std::map<uint32_t, e2sm_control_service*> control_services;
 };
 
-} // namespace srsran
+} // namespace ocudu

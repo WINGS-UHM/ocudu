@@ -10,6 +10,6 @@ set(SOURCES
   ue_security_manager_impl.cpp
 )
 
-add_library(srsran_ue_security_manager STATIC ${SOURCES})
+add_library(ocudu_ue_security_manager STATIC ${SOURCES})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

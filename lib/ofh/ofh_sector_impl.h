@@ -15,13 +15,13 @@
 #include "support/prach_context_repository.h"
 #include "support/uplink_context_repository.h"
 #include "support/uplink_cplane_context_repository.h"
-#include "srsran/ofh/ethernet/ethernet_receiver.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter.h"
-#include "srsran/ofh/ofh_sector.h"
-#include "srsran/ofh/receiver/ofh_receiver.h"
-#include "srsran/ofh/transmitter/ofh_transmitter.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter.h"
+#include "ocudu/ofh/ofh_sector.h"
+#include "ocudu/ofh/receiver/ofh_receiver.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Sector implementation configuration.
@@ -55,8 +55,8 @@ public:
                           ofh_transmitter->get_metrics_collector(),
                           config.sector_id)
   {
-    srsran_assert(ofh_receiver, "Invalid Open Fronthaul receiver");
-    srsran_assert(ofh_transmitter, "Invalid Open Fronthaul transmitter");
+    ocudu_assert(ofh_receiver, "Invalid Open Fronthaul receiver");
+    ocudu_assert(ofh_transmitter, "Invalid Open Fronthaul transmitter");
   }
 
   // See interface for documentation.
@@ -79,4 +79,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

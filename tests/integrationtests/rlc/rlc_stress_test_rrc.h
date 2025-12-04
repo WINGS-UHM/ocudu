@@ -11,10 +11,10 @@
 #pragma once
 
 #include "lib/rlc/rlc_bearer_logger.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/pdcp/pdcp_tx.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
 
-namespace srsran {
+namespace ocudu {
 class rrc_dummy : public pdcp_rx_upper_control_notifier, public pdcp_tx_upper_control_notifier
 {
   rlc_bearer_logger logger;
@@ -28,4 +28,4 @@ public:
   void on_max_count_reached() final {}
 };
 
-} // namespace srsran
+} // namespace ocudu

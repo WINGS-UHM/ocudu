@@ -11,14 +11,14 @@
 #include "ue_amf_context_release_request_routine.h"
 #include "ue_context_release_routine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ue_amf_context_release_request_routine::ue_amf_context_release_request_routine(
     const cu_cp_ue_context_release_request& request_,
     ngap_control_message_handler*           ng_release_handler_,
     cu_cp_ue_context_release_handler&       cu_cp_ue_ctxt_release_handler_,
-    srslog::basic_logger&                   logger_) :
+    ocudulog::basic_logger&                 logger_) :
   request(request_),
   ng_release_handler(ng_release_handler_),
   cu_cp_ue_ctxt_release_handler(cu_cp_ue_ctxt_release_handler_),

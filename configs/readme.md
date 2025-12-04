@@ -8,7 +8,7 @@ list all available configuration sections, subsection and fields.
 
 ## Usage
 
-The srsRAN Project gNB can be configured via one or multiple configuration files and/or via 
+The OCUDU Project gNB can be configured via one or multiple configuration files and/or via 
 the command line. When multiple configuration files are specified, their content gets combined 
 by the gNB application. In case there are repeated parameters across configuration files, the 
 parameter values of the last file are selected. Similarly, the parameters passed via command 
@@ -25,7 +25,7 @@ across many experiments in different bands as follows:
 
 ## Full list of configuration options
 
-Look [here](https://docs.srsran.com/projects/project/en/latest/user_manuals/source/config_ref.html) for
+Look [here](https://docs.ocudu.com/projects/project/en/latest/user_manuals/source/config_ref.html) for
 the main configuration reference. We update this list regularly and aim to always keep it up-to-date
 with the actual code.
 
@@ -39,7 +39,7 @@ For example, to obtain the list of all main gNB configuration options run:
 
 ```
 $ ./apps/gnb/gnb -h
-srsGNB application
+ocudu application
 Usage: ./apps/gnb/gnb [OPTIONS] [SUBCOMMAND]
 
 Options:

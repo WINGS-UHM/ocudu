@@ -13,10 +13,10 @@
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
-#include "srsran/ran/duplex_mode.h"
+#include "ocudu/ran/duplex_mode.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct multi_cell_scheduler_test_params {
   duplex_mode dplx_mode;
@@ -234,7 +234,7 @@ TEST_P(multi_cell_scheduler_tester, test_rar_scheduling_for_ues_in_different_cel
         is_rar_scheduled[cell_idx] = std::any_of(last_sched_result(to_du_cell_index(cell_idx))->dl.dl_pdcchs.begin(),
                                                  last_sched_result(to_du_cell_index(cell_idx))->dl.dl_pdcchs.end(),
                                                  [](const pdcch_dl_information& dl_pdcch) {
-                                                   return dl_pdcch.dci.type == srsran::dci_dl_rnti_config_type::ra_f1_0;
+                                                   return dl_pdcch.dci.type == ocudu::dci_dl_rnti_config_type::ra_f1_0;
                                                  });
       }
     }
@@ -377,5 +377,5 @@ TEST_P(multi_cell_scheduler_tester, test_ul_scheduling_for_ues_in_different_cell
 
 INSTANTIATE_TEST_SUITE_P(multi_cell_scheduler_test,
                          multi_cell_scheduler_tester,
-                         testing::Values(multi_cell_scheduler_test_params{srsran::duplex_mode::FDD, 3},
-                                         multi_cell_scheduler_test_params{srsran::duplex_mode::TDD, 2}));
+                         testing::Values(multi_cell_scheduler_test_params{ocudu::duplex_mode::FDD, 3},
+                                         multi_cell_scheduler_test_params{ocudu::duplex_mode::TDD, 2}));

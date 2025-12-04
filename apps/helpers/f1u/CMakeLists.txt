@@ -11,5 +11,5 @@ set(SOURCES f1u_cli11_schema.cpp
             f1u_config_yaml_writer.cpp
 )
 
-add_library(srsran_f1u_app_helpers STATIC ${SOURCES})
-target_include_directories(srsran_f1u_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_f1u_app_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_f1u_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})

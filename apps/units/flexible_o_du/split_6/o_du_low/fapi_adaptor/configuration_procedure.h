@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/fapi/cell_config.h"
-#include "srsran/fapi/cell_operation_request_notifier.h"
-#include "srsran/fapi/config_message_gateway.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/fapi/cell_config.h"
+#include "ocudu/fapi/cell_operation_request_notifier.h"
+#include "ocudu/fapi/config_message_gateway.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 class error_message_notifier;
@@ -27,7 +27,7 @@ class configuration_procedure : public config_message_gateway
   enum class cell_status : uint8_t { IDLE, CONFIGURED, RUNNING };
 
 public:
-  explicit configuration_procedure(srslog::basic_logger& logger_);
+  explicit configuration_procedure(ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
   void param_request(const fapi::param_request& msg) override;
@@ -59,7 +59,7 @@ private:
   bool update_cell_config(const fapi::config_request& msg);
 
 private:
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
   fapi_cell_config                 cell_cfg;
   config_message_notifier*         notifier                = nullptr;
   error_message_notifier*          error_notifier          = nullptr;
@@ -68,4 +68,4 @@ private:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/ran/pusch/pusch_mcs.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-sch_mcs_description srsran::pusch_mcs_get_config(pusch_mcs_table table,
-                                                 sch_mcs_index   index,
-                                                 bool            use_transform_precoder,
-                                                 bool            tp_pi2bpsk_present)
+sch_mcs_description ocudu::pusch_mcs_get_config(pusch_mcs_table table,
+                                                sch_mcs_index   index,
+                                                bool            use_transform_precoder,
+                                                bool            tp_pi2bpsk_present)
 {
   // TS38.214 Table 6.1.4.1-1.
   static constexpr std::array<sch_mcs_description, 32> MCS_INDEX_TABLE_1_TP = {

@@ -10,9 +10,9 @@
 
 #include "apps/services/remote_control/remote_control_appconfig_cli11_schema.h"
 #include "apps/services/remote_control/remote_control_appconfig.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_remote_control_args(CLI::App& app, remote_control_appconfig& config)
 {
@@ -23,7 +23,7 @@ static void configure_cli11_remote_control_args(CLI::App& app, remote_control_ap
       ->check(CLI::Range(0, 65535));
 }
 
-void srsran::configure_cli11_with_remote_control_appconfig_schema(CLI::App& app, remote_control_appconfig& config)
+void ocudu::configure_cli11_with_remote_control_appconfig_schema(CLI::App& app, remote_control_appconfig& config)
 {
   // Remote control section.
   CLI::App* remote_control_subcmd =

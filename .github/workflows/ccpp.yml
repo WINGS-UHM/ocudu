@@ -25,7 +25,7 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo docker/scripts/install_dependencies.sh
-    - name: Build srsRAN Project on x86 ${{ matrix.os }} with compiler ${{ matrix.compiler }}
+    - name: Build OCUDU Project on x86 ${{ matrix.os }} with compiler ${{ matrix.compiler }}
       run: |
         docker/scripts/builder.sh -c ${{ matrix.compiler }} -m "-j$(nproc)" -DBUILD_TESTING=On .
     - name: Run unit tests

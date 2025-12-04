@@ -13,11 +13,11 @@
 #include "radio_zmq_baseband_gateway.h"
 #include "radio_zmq_rx_stream.h"
 #include "radio_zmq_tx_stream.h"
-#include "srsran/radio/radio_session.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/radio/radio_session.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <zmq.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes a ZeroMQ radio based session.
 class radio_session_zmq_impl : public radio_session, public radio_management_plane
@@ -30,7 +30,7 @@ class radio_session_zmq_impl : public radio_session, public radio_management_pla
   static constexpr unsigned DEFAULT_STREAM_BUFFER_SIZE = 614400;
 
   /// Radio session logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// ZMQ context.
   void* zmq_context;
   /// Stores transmit streams.
@@ -60,10 +60,10 @@ public:
   // See the radio_session interface for documentation.
   baseband_gateway& get_baseband_gateway(unsigned stream_id) override
   {
-    srsran_assert(stream_id < bb_gateways.size(),
-                  "Stream identifier (i.e., {}) exceeds the number of baseband gateways (i.e., {})",
-                  stream_id,
-                  bb_gateways.size());
+    ocudu_assert(stream_id < bb_gateways.size(),
+                 "Stream identifier (i.e., {}) exceeds the number of baseband gateways (i.e., {})",
+                 stream_id,
+                 bb_gateways.size());
     return *bb_gateways[stream_id];
   }
 
@@ -89,4 +89,4 @@ public:
   bool set_rx_freq(unsigned stream_id, double center_freq_Hz) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,11 +10,11 @@
 
 #include "../common/test_helpers.h"
 #include "e1ap_cu_up_test_helpers.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 using namespace asn1::e1ap;
 
 //////////////////////////////////////////////////////////////////////////////////////

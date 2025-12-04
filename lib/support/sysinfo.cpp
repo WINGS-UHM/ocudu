@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/support/sysinfo.h"
+#include "ocudu/support/sysinfo.h"
 #include <charconv>
 #include <fstream>
 #include <string>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::check_cpu_governor(srslog::basic_logger& logger)
+bool ocudu::check_cpu_governor(ocudulog::basic_logger& logger)
 {
   static const char* filename_base = "/sys/devices/system/cpu/cpu";
 
@@ -42,14 +42,14 @@ bool srsran::check_cpu_governor(srslog::basic_logger& logger)
     }
     logger.warning("CPU{} scaling governor is not set to performance, which may hinder performance. You can set it to "
                    "performance using the "
-                   "\"srsran_performance\" script",
+                   "\"ocudu_performance\" script",
                    i);
   }
 
   return true;
 }
 
-bool srsran::check_drm_kms_polling(srslog::basic_logger& logger)
+bool ocudu::check_drm_kms_polling(ocudulog::basic_logger& logger)
 {
   static const char* filename = "/sys/module/drm_kms_helper/parameters/poll";
 
@@ -70,7 +70,7 @@ bool srsran::check_drm_kms_polling(srslog::basic_logger& logger)
     logger.debug("DRM KMS polling is disabled");
   } else {
     logger.warning("DRM KMS polling is enabled, which may hinder performance. You can disable it using the "
-                   "\"srsran_performance\" script");
+                   "\"ocudu_performance\" script");
   }
 
   return true;

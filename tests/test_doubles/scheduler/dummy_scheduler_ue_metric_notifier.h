@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/scheduler/scheduler_metrics.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Sink for scheduler UE metrics.
 class dummy_scheduler_ue_metrics_notifier : public scheduler_metrics_notifier
@@ -34,7 +34,7 @@ public:
 
   void commit(scheduler_cell_metrics& ptr) override
   {
-    srsran_assert(&ptr == &current_metrics, "Invalid reference passed");
+    ocudu_assert(&ptr == &current_metrics, "Invalid reference passed");
     last_metrics = current_metrics;
     current_metrics.ue_metrics.clear();
     current_metrics.events.clear();
@@ -53,4 +53,4 @@ private:
   mutable bool                          metrics_requested = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/adt/span.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace band_helper;
 
 TEST(test_get_band_from_arfcn, mix_bands)
@@ -139,19 +139,19 @@ TEST(test_band_duplexing, all_bands)
 {
   for (nr_band b : all_nr_bands_fr1) {
     if (b < nr_band::n29 or b == nr_band::n30 or b == nr_band::n65 or b == nr_band::n66 or
-        (b >= srsran::nr_band::n70 and b <= srsran::nr_band::n74) or b == nr_band::n85 or
-        (b >= srsran::nr_band::n91 and b <= srsran::nr_band::n94) or b == srsran::nr_band::n100) {
+        (b >= ocudu::nr_band::n70 and b <= ocudu::nr_band::n74) or b == nr_band::n85 or
+        (b >= ocudu::nr_band::n91 and b <= ocudu::nr_band::n94) or b == ocudu::nr_band::n100) {
       ASSERT_EQ(duplex_mode::FDD, get_duplex_mode(b));
-    } else if ((b >= srsran::nr_band::n34 and b <= srsran::nr_band::n53) or
-               (b >= srsran::nr_band::n77 and b <= srsran::nr_band::n79) or b == srsran::nr_band::n90 or
-               b == srsran::nr_band::n96 or b > srsran::nr_band::n100) {
+    } else if ((b >= ocudu::nr_band::n34 and b <= ocudu::nr_band::n53) or
+               (b >= ocudu::nr_band::n77 and b <= ocudu::nr_band::n79) or b == ocudu::nr_band::n90 or
+               b == ocudu::nr_band::n96 or b > ocudu::nr_band::n100) {
       ASSERT_EQ(duplex_mode::TDD, get_duplex_mode(b));
-    } else if (b == srsran::nr_band::n29 or b == srsran::nr_band::n67 or b == srsran::nr_band::n75 or
-               b == srsran::nr_band::n76) {
+    } else if (b == ocudu::nr_band::n29 or b == ocudu::nr_band::n67 or b == ocudu::nr_band::n75 or
+               b == ocudu::nr_band::n76) {
       ASSERT_EQ(duplex_mode::SDL, get_duplex_mode(b));
-    } else if ((b >= srsran::nr_band::n80 and b <= srsran::nr_band::n84) or b == srsran::nr_band::n86 or
-               b == srsran::nr_band::n89 or b == srsran::nr_band::n95 or
-               (b >= srsran::nr_band::n97 and b <= srsran::nr_band::n99)) {
+    } else if ((b >= ocudu::nr_band::n80 and b <= ocudu::nr_band::n84) or b == ocudu::nr_band::n86 or
+               b == ocudu::nr_band::n89 or b == ocudu::nr_band::n95 or
+               (b >= ocudu::nr_band::n97 and b <= ocudu::nr_band::n99)) {
       ASSERT_EQ(duplex_mode::SUL, get_duplex_mode(b));
     } else {
       ASSERT_FALSE(true);
@@ -218,7 +218,7 @@ TEST(test_ssb_pattern, ssb_pattern_case_A)
     // Skip SSB case-C-only bands and SUL bands.
     if (std::any_of(
             case_c_bands.begin(), case_c_bands.end(), [band](nr_band non_a_band) { return band == non_a_band; }) or
-        get_duplex_mode(band) == srsran::duplex_mode::SUL) {
+        get_duplex_mode(band) == ocudu::duplex_mode::SUL) {
       continue;
     }
     ASSERT_EQ(ssb_pattern_case::A, get_ssb_pattern(band, subcarrier_spacing::kHz15));
@@ -645,10 +645,10 @@ TEST(test_dl_arfcn_validator, test_different_fdd_bands)
           .has_value());
   // Single UL ARFCN for n28, BW 40Mhz.
   ASSERT_TRUE(
-      is_dl_arfcn_valid_given_band(nr_band::n28, 155608, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz40)
+      is_dl_arfcn_valid_given_band(nr_band::n28, 155608, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz40)
           .has_value());
   ASSERT_FALSE(
-      is_dl_arfcn_valid_given_band(nr_band::n28, 155608, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz20)
+      is_dl_arfcn_valid_given_band(nr_band::n28, 155608, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz20)
           .has_value());
 }
 
@@ -721,105 +721,105 @@ TEST(test_dl_arfcn_validator, test_different_tdd_bands_with_regular_raster)
 TEST(test_dl_arfcn_validator, test_tdd_bands_with_sparse_raster)
 {
   // Band n46.
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 788668U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz10)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 769332U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz10)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 774668U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz20)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 782000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz20)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 770000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz40)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 755334U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz40)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 778668U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz60)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 746000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz60)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 746000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz80)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n46, 791000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz80)
+          .has_value());
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n46, 788668U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz10)
+                  nr_band::n46, 791000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz100)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n46, 769332U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz10)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n46, 774668U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz20)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n46, 782000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz20)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n46, 770000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz40)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n46, 755334U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz40)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n46, 778668U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz60)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n46, 746000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz60)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n46, 746000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz80)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n46, 791000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz80)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n46, 791000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz100)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n46, 782000U, subcarrier_spacing::kHz15, srsran::bs_channel_bandwidth::MHz100)
+                   nr_band::n46, 782000U, subcarrier_spacing::kHz15, ocudu::bs_channel_bandwidth::MHz100)
                    .has_value());
 
   // Band n96.
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 838332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz20)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 827000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz20)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 821668U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz40)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 857000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz40)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 873000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz60)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 859000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz60)
+          .has_value());
+  ASSERT_TRUE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 815000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz80)
+          .has_value());
+  ASSERT_FALSE(
+      is_dl_arfcn_valid_given_band(nr_band::n96, 798332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz80)
+          .has_value());
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n96, 838332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz20)
+                  nr_band::n96, 870332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz100)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n96, 827000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz20)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n96, 821668U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz40)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n96, 857000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz40)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n96, 873000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz60)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n96, 859000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz60)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n96, 815000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz80)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n96, 798332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz80)
-                   .has_value());
-  ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n96, 870332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz100)
-                  .has_value());
-  ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n96, 841668U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz100)
+                   nr_band::n96, 841668U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz100)
                    .has_value());
 
   // Band n102.
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n102, 805000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz20)
+                  nr_band::n102, 805000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz20)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n102, 797668U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz20)
+                   nr_band::n102, 797668U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz20)
                    .has_value());
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n102, 808332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz40)
+                  nr_band::n102, 808332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz40)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n102, 805000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz40)
+                   nr_band::n102, 805000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz40)
                    .has_value());
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n102, 803668U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz60)
+                  nr_band::n102, 803668U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz60)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n102, 800332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz60)
+                   nr_band::n102, 800332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz60)
                    .has_value());
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n102, 825668U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz80)
+                  nr_band::n102, 825668U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz80)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n102, 852000U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz80)
+                   nr_band::n102, 852000U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz80)
                    .has_value());
   ASSERT_TRUE(is_dl_arfcn_valid_given_band(
-                  nr_band::n102, 814332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz100)
+                  nr_band::n102, 814332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz100)
                   .has_value());
   ASSERT_FALSE(is_dl_arfcn_valid_given_band(
-                   nr_band::n102, 798332U, subcarrier_spacing::kHz30, srsran::bs_channel_bandwidth::MHz100)
+                   nr_band::n102, 798332U, subcarrier_spacing::kHz30, ocudu::bs_channel_bandwidth::MHz100)
                    .has_value());
 }
 

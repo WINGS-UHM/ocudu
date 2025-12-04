@@ -20,7 +20,7 @@ set(SOURCES
         sequence_generator_factories.cpp
         )
 
-add_library(srsran_sequence_generators STATIC ${SOURCES})
-target_link_libraries(srsran_sequence_generators srsran_support srsvec)
+add_library(ocudu_sequence_generators STATIC ${SOURCES})
+target_link_libraries(ocudu_sequence_generators ocudu_support ocuduvec)
 
-add_to_exported_libs(srsran_sequence_generators)
+add_to_exported_libs(ocudu_sequence_generators)

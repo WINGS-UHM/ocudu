@@ -11,14 +11,14 @@
 #pragma once
 
 #include "ngap_asn1_converters.h"
-#include "srsran/asn1/ngap/common.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ngap/ngap_types.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ngap/ngap_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct error_indication_request_t {
   ngap_cause_t               cause;
@@ -34,7 +34,7 @@ struct error_indication_request_t {
 /// \param[in] cause The cause of the Error Indication (optional).
 
 inline void send_error_indication(ngap_message_notifier&      ngap_notifier,
-                                  srslog::basic_logger&       logger,
+                                  ocudulog::basic_logger&     logger,
                                   std::optional<ran_ue_id_t>  ran_ue_id = {},
                                   std::optional<amf_ue_id_t>  amf_ue_id = {},
                                   std::optional<ngap_cause_t> cause     = {})
@@ -70,5 +70,5 @@ inline void send_error_indication(ngap_message_notifier&      ngap_notifier,
   }
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

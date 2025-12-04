@@ -15,9 +15,9 @@
 #include "apps/services/metrics/metrics_set.h"
 #include "apps/services/metrics/periodic_metrics_report_controller.h"
 #include "metrics_properties.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// \brief Metrics manager application service.
@@ -40,7 +40,7 @@ class metrics_manager : public metrics_notifier
   };
 
 public:
-  metrics_manager(srslog::basic_logger&     logger_,
+  metrics_manager(ocudulog::basic_logger&   logger_,
                   task_executor&            executor_,
                   span<metrics_config>      metrics_info,
                   timer_manager&            timers,
@@ -51,7 +51,7 @@ public:
                           std::vector<metrics_producer*> producers;
                           for (auto& metric : metrics_info_cfg) {
                             for (auto& producer : metric.producers) {
-                              srsran_assert(producer, "Invalid metrics producer");
+                              ocudu_assert(producer, "Invalid metrics producer");
                               producers.push_back(producer.get());
                             }
                           }
@@ -78,7 +78,7 @@ public:
   void on_new_metric(const metrics_set& metric) override
   {
     auto token = stop_manager.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -88,7 +88,7 @@ public:
           return supported_metric.metric_name == metrics_name;
         });
 
-    srsran_assert(iter != supported_metrics.end(), "Received unregistered metrics '{}'", metrics_name);
+    ocudu_assert(iter != supported_metrics.end(), "Received unregistered metrics '{}'", metrics_name);
 
     if (!iter->consumers_helper.empty()) {
       iter->callback(metric, iter->consumers_helper, executor, logger, std::move(token));
@@ -112,7 +112,7 @@ public:
   }
 
 private:
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   task_executor&                     executor;
   stop_event_source                  stop_manager;
   std::vector<metrics_entry>         supported_metrics;
@@ -120,4 +120,4 @@ private:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

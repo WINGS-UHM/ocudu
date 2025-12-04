@@ -28,35 +28,35 @@
 #include "du_appconfig_translators.h"
 #include "du_appconfig_validators.h"
 #include "du_appconfig_yaml_writer.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/e2/e2ap_config_translators.h"
-#include "srsran/e2/gateways/e2_connection_client.h"
-#include "srsran/e2/gateways/e2_network_client_factory.h"
-#include "srsran/f1u/du/split_connector/f1u_split_connector_factory.h"
-#include "srsran/f1u/split_connector/f1u_five_qi_gw_maps.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/gtpu/gtpu_demux_factory.h"
-#include "srsran/support/backtrace.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/cpu_features.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/signal_handling.h"
-#include "srsran/support/signal_observer.h"
-#include "srsran/support/sysinfo.h"
-#include "srsran/support/tracing/event_tracing.h"
-#include "srsran/support/versioning/build_info.h"
-#include "srsran/support/versioning/version.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/e2/e2ap_config_translators.h"
+#include "ocudu/e2/gateways/e2_connection_client.h"
+#include "ocudu/e2/gateways/e2_network_client_factory.h"
+#include "ocudu/f1u/du/split_connector/f1u_split_connector_factory.h"
+#include "ocudu/f1u/split_connector/f1u_five_qi_gw_maps.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/gtpu/gtpu_demux_factory.h"
+#include "ocudu/support/backtrace.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/cpu_features.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/signal_handling.h"
+#include "ocudu/support/signal_observer.h"
+#include "ocudu/support/sysinfo.h"
+#include "ocudu/support/tracing/event_tracing.h"
+#include "ocudu/support/versioning/build_info.h"
+#include "ocudu/support/versioning/version.h"
 #include <atomic>
 #ifdef DPDK_FOUND
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
 #endif
 // Include ThreadSanitizer (TSAN) options if thread sanitization is enabled.
 // This include is not unused - it helps prevent false alarms from the thread sanitizer.
-#include "srsran/support/tsan_options.h"
+#include "ocudu/support/tsan_options.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Application of a distributed unit (DU) that is split from the CU-CP and CU-UP via the F1 interface.
@@ -71,8 +71,8 @@ static constexpr unsigned MAX_CONFIG_FILES = 10;
 static void populate_cli11_generic_args(CLI::App& app)
 {
   fmt::memory_buffer buffer;
-  format_to(std::back_inserter(buffer), "srsRAN 5G DU version {} ({})", get_version(), get_build_hash());
-  app.set_version_flag("-v,--version", srsran::to_c_str(buffer));
+  format_to(std::back_inserter(buffer), "OCUDU 5G DU version {} ({})", get_version(), get_build_hash());
+  app.set_version_flag("-v,--version", ocudu::to_c_str(buffer));
   app.set_config("-c,", config_file, "Read config from file", false)->expected(1, MAX_CONFIG_FILES);
 }
 
@@ -88,25 +88,26 @@ static signal_dispatcher cleanup_signal_dispatcher;
 static void cleanup_signal_handler(int signal)
 {
   cleanup_signal_dispatcher.notify_signal(signal);
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 /// Function to call when an error is reported by the application.
 static void app_error_report_handler()
 {
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 static void initialize_log(const std::string& filename)
 {
-  srslog::sink* log_sink = (filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(filename);
+  ocudulog::sink* log_sink =
+      (filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 }
 
 static void register_app_logs(const du_appconfig& du_cfg, flexible_o_du_application_unit& du_app_unit)
@@ -114,24 +115,24 @@ static void register_app_logs(const du_appconfig& du_cfg, flexible_o_du_applicat
   const logger_appconfig& log_cfg = du_cfg.log_cfg;
   // Set log-level of app and all non-layer specific components to app level.
   for (const auto& id : {"ALL", "SCTP-GW", "IO-EPOLL", "UDP-GW", "PCAP", "ASN1"}) {
-    auto& logger = srslog::fetch_basic_logger(id, false);
+    auto& logger = ocudulog::fetch_basic_logger(id, false);
     logger.set_level(log_cfg.lib_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& app_logger = srslog::fetch_basic_logger("GNB", false);
-  app_logger.set_level(srslog::basic_levels::info);
+  auto& app_logger = ocudulog::fetch_basic_logger("GNB", false);
+  app_logger.set_level(ocudulog::basic_levels::info);
   app_services::application_message_banners::log_build_info(app_logger);
   app_logger.set_level(log_cfg.all_level);
   app_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
   {
-    auto& logger = srslog::fetch_basic_logger("APP", false);
+    auto& logger = ocudulog::fetch_basic_logger("APP", false);
     logger.set_level(log_cfg.all_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& config_logger = srslog::fetch_basic_logger("CONFIG", false);
+  auto& config_logger = ocudulog::fetch_basic_logger("CONFIG", false);
   config_logger.set_level(log_cfg.config_level);
   config_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
@@ -142,7 +143,7 @@ static void register_app_logs(const du_appconfig& du_cfg, flexible_o_du_applicat
     app_services::initialize_json_channel();
   }
 
-  auto& e2ap_logger = srslog::fetch_basic_logger("E2AP", false);
+  auto& e2ap_logger = ocudulog::fetch_basic_logger("E2AP", false);
   e2ap_logger.set_level(log_cfg.e2ap_level);
   e2ap_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
@@ -166,7 +167,7 @@ int main(int argc, char** argv)
   enable_backtrace();
 
   // Setup and configure config parsing.
-  CLI::App app("srsDU application");
+  CLI::App app("OCUDU DU application");
   app.config_formatter(create_yaml_config_parser());
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
@@ -205,11 +206,11 @@ int main(int argc, char** argv)
 
   // Set up logging.
   initialize_log(du_cfg.log_cfg.filename);
-  auto log_flusher = make_scope_exit([]() { srslog::flush(); });
+  auto log_flusher = make_scope_exit([]() { ocudulog::flush(); });
   register_app_logs(du_cfg, *o_du_app_unit);
 
   // Check the metrics and metrics consumers.
-  srslog::basic_logger& gnb_logger = srslog::fetch_basic_logger("GNB");
+  ocudulog::basic_logger& gnb_logger = ocudulog::fetch_basic_logger("GNB");
   bool metrics_enabled = o_du_app_unit->are_metrics_enabled() || du_cfg.metrics_cfg.rusage_config.enable_app_usage;
 
   if (!metrics_enabled && du_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg.enabled()) {
@@ -218,7 +219,7 @@ int main(int argc, char** argv)
   }
 
   // Log input configuration.
-  srslog::basic_logger& config_logger = srslog::fetch_basic_logger("CONFIG");
+  ocudulog::basic_logger& config_logger = ocudulog::fetch_basic_logger("CONFIG");
   if (config_logger.debug.enabled()) {
     YAML::Node node;
     fill_du_appconfig_in_yaml_schema(node, du_cfg);
@@ -228,7 +229,7 @@ int main(int argc, char** argv)
     config_logger.info("Input configuration (only non-default values): \n{}", app.config_to_str(false, false));
   }
 
-  srslog::basic_logger&            du_logger = srslog::fetch_basic_logger("DU");
+  ocudulog::basic_logger&          du_logger = ocudulog::fetch_basic_logger("DU");
   app_services::application_tracer app_tracer;
   if (not du_cfg.trace_cfg.filename.empty()) {
     app_tracer.enable_tracer(du_cfg.trace_cfg.filename,
@@ -242,7 +243,7 @@ int main(int argc, char** argv)
   if (du_cfg.hal_config) {
     // Prepend the application name in argv[0] as it is expected by EAL.
     eal = dpdk::create_dpdk_eal(std::string(argv[0]) + " " + du_cfg.hal_config->eal_args,
-                                srslog::fetch_basic_logger("EAL", false));
+                                ocudulog::fetch_basic_logger("EAL", false));
   }
 #endif
 
@@ -292,8 +293,7 @@ int main(int argc, char** argv)
   std::unique_ptr<io_broker> epoll_broker = create_io_broker(io_broker_type::epoll, io_broker_cfg);
 
   // Create a IO timer source.
-  auto time_ctrl =
-      srs_du::create_du_high_clock_controller(app_timers, *epoll_broker, workers.get_timer_source_executor());
+  auto time_ctrl = odu::create_du_high_clock_controller(app_timers, *epoll_broker, workers.get_timer_source_executor());
 
   auto on_pcap_close = make_scope_exit([&gnb_logger]() { gnb_logger.info("PCAP files successfully closed."); });
   flexible_o_du_pcaps du_pcaps = create_o_du_pcaps(
@@ -301,7 +301,7 @@ int main(int argc, char** argv)
   auto on_pcap_close_init = make_scope_exit([&gnb_logger]() { gnb_logger.info("Closing PCAP files..."); });
 
   // Instantiate F1-C client gateway.
-  std::unique_ptr<srs_du::f1c_connection_client> f1c_gw =
+  std::unique_ptr<odu::f1c_connection_client> f1c_gw =
       create_f1c_client_gateway(du_cfg.f1ap_cfg.cu_cp_address,
                                 du_cfg.f1ap_cfg.bind_address,
                                 *epoll_broker,
@@ -336,7 +336,7 @@ int main(int argc, char** argv)
   }
 
   // > Create F1-U split connector.
-  std::unique_ptr<srs_du::f1u_du_udp_gateway> du_f1u_conn = srs_du::create_split_f1u_gw(
+  std::unique_ptr<odu::f1u_du_udp_gateway> du_f1u_conn = odu::create_split_f1u_gw(
       {f1u_gw_maps, du_f1u_gtpu_demux.get(), *du_pcaps.f1u, du_cfg.f1u_cfg.f1u_sockets.peer_port});
 
   // Instantiate E2AP client gateway.
@@ -349,7 +349,7 @@ int main(int argc, char** argv)
 
   // Create app-level resource usage service and metrics.
   auto app_resource_usage_service = app_services::build_app_resource_usage_service(
-      metrics_notifier_forwarder, du_cfg.metrics_cfg.rusage_config, srslog::fetch_basic_logger("GNB"));
+      metrics_notifier_forwarder, du_cfg.metrics_cfg.rusage_config, ocudulog::fetch_basic_logger("GNB"));
 
   for (auto& metric : app_resource_usage_service.metrics) {
     app_metrics.push_back(std::move(metric));
@@ -375,7 +375,7 @@ int main(int argc, char** argv)
 
   // Only DU has metrics now.
   app_services::metrics_manager metrics_mngr(
-      srslog::fetch_basic_logger("GNB"),
+      ocudulog::fetch_basic_logger("GNB"),
       workers.get_metrics_executor(),
       app_metrics,
       app_timers,
@@ -384,7 +384,7 @@ int main(int argc, char** argv)
   // Connect the forwarder to the metrics manager.
   metrics_notifier_forwarder.connect(metrics_mngr);
 
-  srs_du::du& du_inst = *du_inst_and_cmds.unit;
+  odu::du& du_inst = *du_inst_and_cmds.unit;
 
   // Add the metrics STDOUT command.
   if (std::unique_ptr<app_services::cmdline_command> cmd = app_services::create_stdout_metrics_app_command(

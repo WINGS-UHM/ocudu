@@ -12,7 +12,7 @@
 
 #include "os_sched_affinity_manager.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// CPU affinities configuration for the application.
 struct cpu_affinities_appconfig {
@@ -44,4 +44,4 @@ struct expert_execution_appconfig {
   expert_threads_appconfig threads;
 };
 
-} // namespace srsran
+} // namespace ocudu

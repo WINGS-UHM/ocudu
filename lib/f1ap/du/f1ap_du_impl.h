@@ -14,12 +14,12 @@
 #include "f1ap_du_connection_handler.h"
 #include "f1ap_du_context.h"
 #include "f1ap_du_metrics_collector_impl.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/du/f1ap_du.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class f1c_connection_client;
 class f1ap_event_manager;
@@ -131,7 +131,7 @@ private:
   /// \brief Log F1AP PDU.
   void log_pdu(bool is_rx, const f1ap_message& pdu);
 
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
   task_executor&           ctrl_exec;
   f1ap_du_configurator&    du_mng;
   f1ap_du_paging_notifier& paging_notifier;
@@ -150,5 +150,5 @@ private:
   f1ap_metrics_collector_impl metrics;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

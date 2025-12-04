@@ -10,21 +10,21 @@
 
 #pragma once
 
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul transmission window checker.
 class tx_window_checker : public ota_symbol_boundary_notifier
 {
 public:
-  tx_window_checker(srslog::basic_logger& logger_,
-                    unsigned              sector_id_,
-                    uint32_t              advance_time_in_symbols_,
-                    uint32_t              nof_symbols_) :
+  tx_window_checker(ocudulog::basic_logger& logger_,
+                    unsigned                sector_id_,
+                    uint32_t                advance_time_in_symbols_,
+                    uint32_t                nof_symbols_) :
     logger(logger_), sector_id(sector_id_), advance_time_in_symbols(advance_time_in_symbols_), nof_symbols(nof_symbols_)
   {
   }
@@ -50,7 +50,7 @@ public:
       return false;
     }
 
-    if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+    if (OCUDU_UNLIKELY(logger.debug.enabled())) {
       logger.debug("Sector#{}: a late upper-PHY downlink request arrived to OFH in slot '{}_{}' with current "
                    "ota_slot='{}_{}', OFH processing time requires a minimum of '{}' symbols",
                    sector_id,
@@ -68,13 +68,13 @@ public:
   uint32_t get_nof_lates_and_reset() { return late_counter.exchange(0, std::memory_order_relaxed); }
 
 private:
-  srslog::basic_logger& logger;
-  const unsigned        sector_id;
-  const uint32_t        advance_time_in_symbols;
-  const uint32_t        nof_symbols;
-  std::atomic<uint32_t> count_val;
-  std::atomic<uint32_t> late_counter{0};
+  ocudulog::basic_logger& logger;
+  const unsigned          sector_id;
+  const uint32_t          advance_time_in_symbols;
+  const uint32_t          nof_symbols;
+  std::atomic<uint32_t>   count_val;
+  std::atomic<uint32_t>   late_counter{0};
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

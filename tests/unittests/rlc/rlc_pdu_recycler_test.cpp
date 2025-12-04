@@ -11,10 +11,10 @@
 #include "../support/task_executor_test_doubles.h"
 #include "lib/rlc/rlc_pdu_recycler.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/ran/du_types.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fixture class for RLC PDU recycler tests
 class rlc_pdu_recycler_test : public ::testing::Test
@@ -23,12 +23,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init RLC logger
-    srslog::fetch_basic_logger("RLC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("RLC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(-1);
 
     logger.info("Creating RLC PDU recycler");
 
@@ -39,11 +39,11 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger& logger     = srslog::fetch_basic_logger("TEST", false);
-  rlc_bearer_logger     rlc_logger = rlc_bearer_logger("RLC", {gnb_du_id_t::min, du_ue_index_t{}, rb_id_t{}, "DL"});
+  ocudulog::basic_logger& logger     = ocudulog::fetch_basic_logger("TEST", false);
+  rlc_bearer_logger       rlc_logger = rlc_bearer_logger("RLC", {gnb_du_id_t::min, du_ue_index_t{}, rb_id_t{}, "DL"});
   std::unique_ptr<rlc_pdu_recycler> pdu_recycler;
 
   manual_task_worker_always_enqueue_tasks other_worker{8};

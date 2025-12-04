@@ -8,5 +8,5 @@
 
 set(SOURCES nru_packing.cpp)
 
-add_library(srsran_nru STATIC ${SOURCES})
-target_link_libraries(srsran_nru srsran_support)
+add_library(ocudu_nru STATIC ${SOURCES})
+target_link_libraries(ocudu_nru ocudu_support)

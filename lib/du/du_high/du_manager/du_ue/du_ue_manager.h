@@ -13,14 +13,14 @@
 #include "du_ue.h"
 #include "du_ue_controller_impl.h"
 #include "du_ue_manager_repository.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/du/du_high/du_manager/du_manager.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/du/du_high/du_manager/du_manager.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief This entity orchestrates the addition/reconfiguration/removal of UE contexts in the DU.
 class du_ue_manager final : public du_ue_manager_repository
@@ -81,7 +81,7 @@ private:
 
   du_manager_params&       cfg;
   du_ran_resource_manager& cell_res_alloc;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   // Pool of available TEIDs for F1-U.
   std::unique_ptr<gtpu_teid_pool> f1u_teid_pool;
@@ -97,5 +97,5 @@ private:
   bool stop_accepting_ues = false;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -14,13 +14,13 @@
 #include "adapters/gw_adapters.h"
 #include "adapters/pdcp_adapters.h"
 #include "qos_flow_context.h"
-#include "srsran/f1u/cu_up/f1u_config.h"
-#include "srsran/pdcp/pdcp_entity.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/f1u/cu_up/f1u_config.h"
+#include "ocudu/pdcp/pdcp_entity.h"
+#include "ocudu/ran/rb_id.h"
 #include <map>
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// \brief DRB context with map to all QoS flows.
 struct drb_context {
@@ -60,5 +60,5 @@ struct drb_context {
   std::map<qos_flow_id_t, std::unique_ptr<qos_flow_context>> qos_flows; // key is qos_flow_id
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

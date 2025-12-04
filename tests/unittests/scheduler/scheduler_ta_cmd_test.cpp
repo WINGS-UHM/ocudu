@@ -12,10 +12,10 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
-#include "srsran/ran/duplex_mode.h"
+#include "ocudu/ran/duplex_mode.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class scheduler_ta_cmd_tester : public scheduler_test_simulator, public ::testing::TestWithParam<duplex_mode>
 {

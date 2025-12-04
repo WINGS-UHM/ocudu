@@ -11,11 +11,11 @@
 #pragma once
 
 #include "aggregator_helpers.h"
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// LDPC rate matcher metrics aggregator.
 class ldpc_rate_matcher_metrics_aggregator : public ldpc_rate_matcher_metric_notifier
@@ -91,4 +91,4 @@ private:
   std::atomic<uint64_t> max_cb_latency_ns = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/prach_detector.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Concurrent PRACH detector pool.
 class prach_detector_pool : public prach_detector
@@ -36,4 +36,4 @@ private:
   std::shared_ptr<detector_pool> detectors;
 };
 
-} // namespace srsran
+} // namespace ocudu

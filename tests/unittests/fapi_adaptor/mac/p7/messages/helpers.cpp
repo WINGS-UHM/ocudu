@@ -11,7 +11,7 @@
 #include "helpers.h"
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace unittests;
 
 static std::mt19937 gen(0);
@@ -96,7 +96,7 @@ dl_ssb_pdu unittests::build_valid_dl_ssb_pdu()
   dl_ssb_pdu pdu;
 
   pdu.pci                             = generate_pci();
-  pdu.pss_to_sss_epre                 = static_cast<srsran::ssb_pss_to_sss_epre>(generate_binary());
+  pdu.pss_to_sss_epre                 = static_cast<ocudu::ssb_pss_to_sss_epre>(generate_binary());
   pdu.ssb_index                       = generate_block_index();
   pdu.subcarrier_offset               = generate_subcarrier_offset();
   pdu.offset_to_pointA                = generate_offset_point_A();
@@ -638,13 +638,13 @@ pucch_info_test_helper unittests::build_valid_pucch_format_1_pdu()
   format_1.time_domain_occ         = 3;
   format_1.initial_cyclic_shift    = 9;
   format_1.n_id_hopping            = 2;
-  format_1.group_hopping           = srsran::pucch_group_hopping::NEITHER;
-  format_1.slot_repetition         = srsran::pucch_repetition_tx_slot::no_multi_slot;
+  format_1.group_hopping           = ocudu::pucch_group_hopping::NEITHER;
+  format_1.slot_repetition         = ocudu::pucch_repetition_tx_slot::no_multi_slot;
 
   return helper;
 }
 
-pucch_info_test_helper srsran::unittests::build_valid_pucch_format_2_pdu()
+pucch_info_test_helper ocudu::unittests::build_valid_pucch_format_2_pdu()
 {
   pucch_info_test_helper helper;
   pucch_info&            pucch = helper.info;
@@ -667,7 +667,7 @@ pucch_info_test_helper srsran::unittests::build_valid_pucch_format_2_pdu()
   return helper;
 }
 
-pucch_info_test_helper srsran::unittests::build_valid_pucch_format_3_pdu()
+pucch_info_test_helper ocudu::unittests::build_valid_pucch_format_3_pdu()
 {
   pucch_info_test_helper helper;
   pucch_info&            pucch = helper.info;
@@ -693,7 +693,7 @@ pucch_info_test_helper srsran::unittests::build_valid_pucch_format_3_pdu()
   return helper;
 }
 
-pucch_info_test_helper srsran::unittests::build_valid_pucch_format_4_pdu()
+pucch_info_test_helper ocudu::unittests::build_valid_pucch_format_4_pdu()
 {
   pucch_info_test_helper helper;
   pucch_info&            pucch = helper.info;
@@ -721,7 +721,7 @@ pucch_info_test_helper srsran::unittests::build_valid_pucch_format_4_pdu()
   return helper;
 }
 
-mac_ul_sched_result_test_helper srsran::unittests::build_valid_mac_ul_sched_result()
+mac_ul_sched_result_test_helper ocudu::unittests::build_valid_mac_ul_sched_result()
 {
   mac_ul_sched_result_test_helper helper{{}, {}, {}, build_valid_srs_pdu(), {}, {}};
   mac_ul_sched_result&            result = helper.result;
@@ -781,7 +781,7 @@ mac_ul_sched_result_test_helper unittests::build_valid_mac_ul_sched_result_with_
   return helper;
 }
 
-mac_dl_data_result_test_helper srsran::unittests::build_valid_mac_data_result()
+mac_dl_data_result_test_helper ocudu::unittests::build_valid_mac_data_result()
 {
   mac_dl_data_result_test_helper result;
 

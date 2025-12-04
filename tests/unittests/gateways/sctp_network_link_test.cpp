@@ -8,28 +8,28 @@
  *
  */
 
-#include "srsran/adt/mutexed_mpmc_queue.h"
-#include "srsran/gateways/sctp_network_client_factory.h"
-#include "srsran/gateways/sctp_network_server_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/io/io_broker_factory.h"
+#include "ocudu/adt/mutexed_mpmc_queue.h"
+#include "ocudu/gateways/sctp_network_client_factory.h"
+#include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/io/io_broker_factory.h"
 #include <condition_variable>
 #include <gtest/gtest.h>
 #include <mutex>
 
-using namespace srsran;
+using namespace ocudu;
 
 class base_sctp_network_link_test
 {
 public:
   base_sctp_network_link_test(unsigned nof_clients) :
-    logger([]() -> srslog::basic_logger& {
-      srslog::init();
-      return srslog::fetch_basic_logger("SCTP-GW");
+    logger([]() -> ocudulog::basic_logger& {
+      ocudulog::init();
+      return ocudulog::fetch_basic_logger("SCTP-GW");
     }()),
-    server_broker(create_io_broker(srsran::io_broker_type::epoll)),
-    client_broker(create_io_broker(srsran::io_broker_type::epoll)),
+    server_broker(create_io_broker(ocudu::io_broker_type::epoll)),
+    client_broker(create_io_broker(ocudu::io_broker_type::epoll)),
     assoc_factory(std::make_unique<server_assoc_handler_factory>(*this)),
     server_cfg([this]() {
       sctp_network_server_config cfg{{}, *server_broker, rx_executor, *assoc_factory};
@@ -152,7 +152,7 @@ protected:
     return std::make_unique<client_recv_notifier>(*client_associations.at(key));
   }
 
-  srslog::basic_logger&                             logger;
+  ocudulog::basic_logger&                           logger;
   inline_task_executor                              rx_executor;
   std::unique_ptr<io_broker>                        server_broker;
   std::unique_ptr<io_broker>                        client_broker;
@@ -185,7 +185,7 @@ class sctp_network_link_test : public base_sctp_network_link_test, public ::test
 {
 public:
   sctp_network_link_test() : base_sctp_network_link_test(GetParam().nof_clients) {}
-  ~sctp_network_link_test() override { srslog::flush(); }
+  ~sctp_network_link_test() override { ocudulog::flush(); }
 };
 
 static byte_buffer create_data(unsigned start_val, unsigned nof_vals)

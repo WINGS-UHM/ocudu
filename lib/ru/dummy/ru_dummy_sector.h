@@ -10,23 +10,23 @@
 
 #pragma once
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ru/dummy/ru_dummy_metrics.h"
-#include "srsran/ru/ru_downlink_plane.h"
-#include "srsran/ru/ru_error_notifier.h"
-#include "srsran/ru/ru_uplink_plane.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ru/dummy/ru_dummy_metrics.h"
+#include "ocudu/ru/ru_downlink_plane.h"
+#include "ocudu/ru/ru_error_notifier.h"
+#include "ocudu/ru/ru_uplink_plane.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <thread>
 #include <utility>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a RU dummy sector.
 class ru_dummy_sector : public ru_uplink_plane_handler, public ru_downlink_plane_handler
@@ -52,7 +52,7 @@ public:
   /// \param symbol_notifier_   Receive symbol notifier.
   /// \param error_notifier_    RU error notifier notifier.
   ru_dummy_sector(unsigned                            dl_data_margin_,
-                  srslog::basic_logger&               logger_,
+                  ocudulog::basic_logger&             logger_,
                   ru_uplink_plane_rx_symbol_notifier& symbol_notifier_,
                   ru_error_notifier&                  error_notifier_) :
     logger(logger_),
@@ -69,7 +69,7 @@ public:
   void handle_dl_data(const resource_grid_context& context, const shared_resource_grid& grid) override
   {
     auto token = stop_control.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -94,7 +94,7 @@ public:
   void handle_prach_occasion(const prach_buffer_context& context, shared_prach_buffer buffer) override
   {
     auto token = stop_control.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -118,7 +118,7 @@ public:
   void handle_new_uplink_slot(const resource_grid_context& context, const shared_resource_grid& grid) override
   {
     auto token = stop_control.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -303,7 +303,7 @@ private:
   };
 
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Receive symbol notifier.
   ru_uplink_plane_rx_symbol_notifier& symbol_notifier;
   /// RU error notifier.
@@ -337,4 +337,4 @@ private:
   /// @}
 };
 
-} // namespace srsran
+} // namespace ocudu

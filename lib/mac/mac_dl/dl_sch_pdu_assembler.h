@@ -11,11 +11,11 @@
 #pragma once
 
 #include "mac_dl_ue_repository.h"
-#include "srsran/ran/logical_channel/lcid_dl_sch.h"
-#include "srsran/scheduler/harq_id.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/logical_channel/lcid_dl_sch.h"
+#include "ocudu/scheduler/harq_id.h"
 
-namespace srsran {
+namespace ocudu {
 
 class byte_buffer_chain;
 class cell_dl_harq_buffer_pool;
@@ -133,9 +133,9 @@ private:
 
   mac_dl_ue_repository&     ue_mng;
   cell_dl_harq_buffer_pool& harq_buffers;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
   /// Memory buffer to avoid allocations during formatting of pdus.
   fmt::memory_buffer fmtbuf;
 };
 
-} // namespace srsran
+} // namespace ocudu

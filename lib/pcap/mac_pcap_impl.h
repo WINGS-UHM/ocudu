@@ -11,10 +11,10 @@
 #pragma once
 
 #include "backend_pcap_writer.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/pcap/mac_pcap.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/pcap/mac_pcap.h"
 
-namespace srsran {
+namespace ocudu {
 
 // PCAP tags
 constexpr const char* MAC_NR_START_STRING            = "mac-nr";
@@ -48,9 +48,9 @@ public:
   void push_pdu(const mac_nr_context_info& context, byte_buffer pdu) override;
 
 private:
-  srslog::basic_logger& logger;
-  mac_pcap_type         type;
-  backend_pcap_writer   writer;
+  ocudulog::basic_logger& logger;
+  mac_pcap_type           type;
+  backend_pcap_writer     writer;
 };
 
-} // namespace srsran
+} // namespace ocudu

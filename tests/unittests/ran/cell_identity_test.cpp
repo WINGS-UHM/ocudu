@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/nr_cell_identity.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/ran/nr_cell_identity.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class bcd_helper_test : public ::testing::Test
 {};

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/csi_report/csi_report_configuration.h"
-#include "srsran/ran/csi_report/csi_report_data.h"
-#include "srsran/ran/csi_report/csi_report_packed.h"
-#include "srsran/support/units.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
+#include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/csi_report/csi_report_packed.h"
+#include "ocudu/support/units.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Collects the RI, LI, wideband CQI, and CSI fields bit-width.
 struct ri_li_cqi_cri_sizes {
@@ -48,4 +48,4 @@ csi_report_unpack_pmi(const csi_report_packed& packed, pmi_codebook_type codeboo
 csi_report_data::ri_type csi_report_unpack_ri(const csi_report_packed&   ri_packed,
                                               const ri_restriction_type& ri_restriction);
 
-} // namespace srsran
+} // namespace ocudu

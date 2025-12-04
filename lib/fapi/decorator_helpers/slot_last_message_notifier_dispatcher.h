@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/slot_last_message_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Slot last message notifier dispatcher that forwards last message notifications to the configured notifier.
@@ -31,4 +31,4 @@ public:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

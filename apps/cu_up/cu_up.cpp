@@ -27,34 +27,34 @@
 #include "apps/units/o_cu_up/o_cu_up_unit_config.h"
 #include "apps/units/o_cu_up/pcap_factory.h"
 #include "cu_up_appconfig.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/e1ap/gateways/e1_network_client_factory.h"
-#include "srsran/e2/e2ap_config_translators.h"
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
-#include "srsran/f1u/split_connector/f1u_five_qi_gw_maps.h"
-#include "srsran/gateways/udp_network_gateway.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/gtpu/gtpu_demux_factory.h"
-#include "srsran/gtpu/gtpu_gateway.h"
-#include "srsran/support/backtrace.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/cpu_features.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/io/io_timer_source.h"
-#include "srsran/support/signal_handling.h"
-#include "srsran/support/signal_observer.h"
-#include "srsran/support/sysinfo.h"
-#include "srsran/support/timers.h"
-#include "srsran/support/tracing/event_tracing.h"
-#include "srsran/support/versioning/build_info.h"
-#include "srsran/support/versioning/version.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/e1ap/gateways/e1_network_client_factory.h"
+#include "ocudu/e2/e2ap_config_translators.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
+#include "ocudu/f1u/split_connector/f1u_five_qi_gw_maps.h"
+#include "ocudu/gateways/udp_network_gateway.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/gtpu/gtpu_demux_factory.h"
+#include "ocudu/gtpu/gtpu_gateway.h"
+#include "ocudu/support/backtrace.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/cpu_features.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/io/io_timer_source.h"
+#include "ocudu/support/signal_handling.h"
+#include "ocudu/support/signal_observer.h"
+#include "ocudu/support/sysinfo.h"
+#include "ocudu/support/timers.h"
+#include "ocudu/support/tracing/event_tracing.h"
+#include "ocudu/support/versioning/build_info.h"
+#include "ocudu/support/versioning/version.h"
 #include <atomic>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Application of a Central Unit User-Plane (CU-UP).
@@ -74,8 +74,8 @@ static constexpr unsigned MAX_CONFIG_FILES = 10;
 static void populate_cli11_generic_args(CLI::App& app)
 {
   fmt::memory_buffer buffer;
-  format_to(std::back_inserter(buffer), "srsRAN 5G CU-UP version {} ({})", get_version(), get_build_hash());
-  app.set_version_flag("-v,--version", srsran::to_c_str(buffer));
+  format_to(std::back_inserter(buffer), "OCUDU 5G CU-UP version {} ({})", get_version(), get_build_hash());
+  app.set_version_flag("-v,--version", ocudu::to_c_str(buffer));
   app.set_config("-c,", config_file, "Read config from file", false)->expected(1, MAX_CONFIG_FILES);
 }
 
@@ -91,25 +91,26 @@ static signal_dispatcher cleanup_signal_dispatcher;
 static void cleanup_signal_handler(int signal)
 {
   cleanup_signal_dispatcher.notify_signal(signal);
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 /// Function to call when an error is reported by the application.
 static void app_error_report_handler()
 {
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 static void initialize_log(const std::string& filename)
 {
-  srslog::sink* log_sink = (filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(filename);
+  ocudulog::sink* log_sink =
+      (filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 }
 
 static void register_app_logs(const cu_up_appconfig& cu_up_cfg, o_cu_up_application_unit& cu_up_app_unit)
@@ -117,24 +118,24 @@ static void register_app_logs(const cu_up_appconfig& cu_up_cfg, o_cu_up_applicat
   const logger_appconfig& log_cfg = cu_up_cfg.log_cfg;
   // Set log-level of app and all non-layer specific components to app level.
   for (const auto& id : {"ALL", "SCTP-GW", "IO-EPOLL", "UDP-GW", "PCAP", "ASN1"}) {
-    auto& logger = srslog::fetch_basic_logger(id, false);
+    auto& logger = ocudulog::fetch_basic_logger(id, false);
     logger.set_level(log_cfg.lib_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& app_logger = srslog::fetch_basic_logger("CU-UP", false);
-  app_logger.set_level(srslog::basic_levels::info);
+  auto& app_logger = ocudulog::fetch_basic_logger("CU-UP", false);
+  app_logger.set_level(ocudulog::basic_levels::info);
   app_services::application_message_banners::log_build_info(app_logger);
   app_logger.set_level(log_cfg.all_level);
   app_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
   {
-    auto& logger = srslog::fetch_basic_logger("APP", false);
+    auto& logger = ocudulog::fetch_basic_logger("APP", false);
     logger.set_level(log_cfg.all_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& config_logger = srslog::fetch_basic_logger("CONFIG", false);
+  auto& config_logger = ocudulog::fetch_basic_logger("CONFIG", false);
   config_logger.set_level(log_cfg.config_level);
   config_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
@@ -186,7 +187,7 @@ int main(int argc, char** argv)
   enable_backtrace();
 
   // Setup and configure config parsing.
-  CLI::App app("srsCU-UP application");
+  CLI::App app("OCUDU CU-UP application");
   app.config_formatter(create_yaml_config_parser());
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
@@ -227,12 +228,12 @@ int main(int argc, char** argv)
 
   // Set up logging.
   initialize_log(cu_up_cfg.log_cfg.filename);
-  auto log_flusher = make_scope_exit([]() { srslog::flush(); });
+  auto log_flusher = make_scope_exit([]() { ocudulog::flush(); });
   register_app_logs(cu_up_cfg, *o_cu_up_app_unit);
 
   // Check the metrics and metrics consumers.
-  srslog::basic_logger& cu_up_logger = srslog::fetch_basic_logger("CU-UP");
-  bool                  metrics_enabled =
+  ocudulog::basic_logger& cu_up_logger = ocudulog::fetch_basic_logger("CU-UP");
+  bool                    metrics_enabled =
       o_cu_up_app_unit->are_metrics_enabled() || cu_up_cfg.metrics_cfg.rusage_config.enable_app_usage;
 
   if (!metrics_enabled && cu_up_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg.enabled()) {
@@ -335,8 +336,8 @@ int main(int argc, char** argv)
 
     f1u_gw_maps.add_gtpu_gateway(sock_cfg.sst, sock_cfg.sd, sock_cfg.five_qi, std::move(cu_f1u_gw));
   }
-  std::unique_ptr<f1u_cu_up_udp_gateway> cu_f1u_conn = srs_cu_up::create_split_f1u_gw(
-      {f1u_gw_maps, *cu_f1u_gtpu_demux, *cu_up_dlt_pcaps.f1u, cu_up_cfg.f1u_cfg.peer_port});
+  std::unique_ptr<f1u_cu_up_udp_gateway> cu_f1u_conn =
+      ocuup::create_split_f1u_gw({f1u_gw_maps, *cu_f1u_gtpu_demux, *cu_up_dlt_pcaps.f1u, cu_up_cfg.f1u_cfg.peer_port});
 
   // Instantiate E1 client gateway.
   // > Create E1 config
@@ -348,7 +349,7 @@ int main(int argc, char** argv)
   e1_sctp.ppid            = E1AP_PPID;
   e1_sctp.bind_address    = cu_up_cfg.e1ap_cfg.bind_address;
   // > Create E1 gateway
-  std::unique_ptr<srs_cu_up::e1_connection_client> e1_gw = create_e1_gateway_client(e1_cu_up_sctp_gateway_config{
+  std::unique_ptr<ocuup::e1_connection_client> e1_gw = create_e1_gateway_client(e1_cu_up_sctp_gateway_config{
       e1_sctp, *epoll_broker, workers.get_cu_up_executor_mapper().e1_rx_executor(), *cu_up_dlt_pcaps.e1ap});
 
   // Instantiate E2AP client gateway.
@@ -388,7 +389,7 @@ int main(int argc, char** argv)
     metrics_configs.push_back(std::move(metric));
   }
   app_services::metrics_manager metrics_mngr(
-      srslog::fetch_basic_logger("CU-UP"),
+      ocudulog::fetch_basic_logger("CU-UP"),
       workers.get_metrics_executor(),
       metrics_configs,
       app_timers,

@@ -9,14 +9,14 @@
  */
 
 #include "prach_generator_test_data.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 static std::ostream& operator<<(std::ostream& os, test_case_t test_case)
 {
@@ -43,9 +43,9 @@ static bool operator==(span<const cf_t> in0, span<const cf_t> in1)
   });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 class prach_generator_test : public ::testing::TestWithParam<test_case_t>
 {

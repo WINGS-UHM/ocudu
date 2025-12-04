@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/versioning/version.h"
+#include "ocudu/support/versioning/version.h"
 #include "version_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-const char* srsran::get_version()
+const char* ocudu::get_version()
 {
-  return SRSRAN_VERSION_STRING;
+  return OCUDU_VERSION_STRING;
 }

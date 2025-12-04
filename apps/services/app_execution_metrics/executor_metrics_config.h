@@ -13,7 +13,7 @@
 #include "apps/helpers/metrics/metrics_config.h"
 #include <chrono>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Executor metrics configuration.
@@ -27,4 +27,4 @@ struct executor_metrics_config {
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

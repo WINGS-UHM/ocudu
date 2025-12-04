@@ -12,7 +12,7 @@
 
 #include "ofh_cplane_message_builder_impl.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul Control-Plane message builder for static compression.
@@ -26,4 +26,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

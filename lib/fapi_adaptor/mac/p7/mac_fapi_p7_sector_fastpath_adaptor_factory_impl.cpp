@@ -10,12 +10,12 @@
 
 #include "mac_fapi_p7_sector_fastpath_adaptor_factory_impl.h"
 #include "mac_fapi_p7_sector_fastpath_adaptor_impl.h"
-#include "srsran/fapi/decorator.h"
-#include "srsran/fapi/decorator_factory.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor_config.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/fapi/decorator.h"
+#include "ocudu/fapi/decorator_factory.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor_config.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
@@ -28,7 +28,7 @@ public:
                            std::unique_ptr<fapi::fapi_decorator>                decorator_) :
     decorator(std::move(decorator_)), adaptor(std::move(adaptor_))
   {
-    srsran_assert(adaptor, "Invalid MAC-FAPI sector adaptor");
+    ocudu_assert(adaptor, "Invalid MAC-FAPI sector adaptor");
 
     if (decorator) {
       decorator->set_slot_data_message_notifier(adaptor->get_slot_data_message_notifier());
@@ -88,20 +88,20 @@ private:
 
 } // namespace
 
-std::unique_ptr<mac_fapi_p7_sector_fastpath_adaptor> srsran::fapi_adaptor::create_mac_fapi_p7_sector_fastpath_adaptor(
+std::unique_ptr<mac_fapi_p7_sector_fastpath_adaptor> ocudu::fapi_adaptor::create_mac_fapi_p7_sector_fastpath_adaptor(
     const mac_fapi_p7_sector_fastpath_adaptor_config& config,
     mac_fapi_p7_sector_fastpath_adaptor_dependencies  dependencies)
 {
   // Create FAPI decorators configuration.
   fapi::decorator_config decorator_cfg;
-  if (config.log_level == srslog::basic_levels::debug) {
+  if (config.log_level == ocudulog::basic_levels::debug) {
     decorator_cfg.logging_cfg.emplace(fapi::logging_decorator_config{config.sector_id,
-                                                                     srslog::fetch_basic_logger("FAPI", true),
+                                                                     ocudulog::fetch_basic_logger("FAPI", true),
                                                                      dependencies.gateway,
                                                                      dependencies.last_msg_notifier});
   }
   if (config.l2_nof_slots_ahead != 0) {
-    srsran_assert(dependencies.bufferer_task_executor, "Invalid executor for the FAPI message bufferer decorator");
+    ocudu_assert(dependencies.bufferer_task_executor, "Invalid executor for the FAPI message bufferer decorator");
     decorator_cfg.bufferer_cfg.emplace(fapi::message_bufferer_decorator_config{config.sector_id,
                                                                                config.l2_nof_slots_ahead,
                                                                                config.scs,

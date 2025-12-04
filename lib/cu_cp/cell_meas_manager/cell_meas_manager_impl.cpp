@@ -10,21 +10,24 @@
 
 #include "cell_meas_manager_impl.h"
 #include "cell_meas_manager_helpers.h"
-#include "srsran/cu_cp/cell_meas_manager_config.h"
-#include "srsran/rrc/meas_types.h"
-#include "srsran/support/compiler.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/cu_cp/cell_meas_manager_config.h"
+#include "ocudu/rrc/meas_types.h"
+#include "ocudu/support/compiler.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <utility>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 cell_meas_manager::cell_meas_manager(const cell_meas_manager_cfg&         cfg_,
                                      cell_meas_mobility_manager_notifier& mobility_mng_notifier_,
                                      ue_manager&                          ue_mng_) :
-  cfg(cfg_), mobility_mng_notifier(mobility_mng_notifier_), ue_mng(ue_mng_), logger(srslog::fetch_basic_logger("CU-CP"))
+  cfg(cfg_),
+  mobility_mng_notifier(mobility_mng_notifier_),
+  ue_mng(ue_mng_),
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
-  srsran_assert(is_valid_configuration(cfg, ssb_freq_to_meas_object), "Invalid cell measurement configuration");
+  ocudu_assert(is_valid_configuration(cfg, ssb_freq_to_meas_object), "Invalid cell measurement configuration");
   generate_measurement_objects_for_serving_cells();
   log_cells(logger, cfg);
 }
@@ -187,7 +190,7 @@ static std::optional<uint8_t> get_ssb_rsrp(const rrc_meas_result_nr& meas_result
 
 static std::optional<pci_t> find_strongest_neighbor(ue_index_t              ue_index,
                                                     const rrc_meas_results& meas_results,
-                                                    srslog::basic_logger&   logger,
+                                                    ocudulog::basic_logger& logger,
                                                     std::optional<uint8_t>  periodic_ho_rsrp_offset = std::nullopt)
 {
   std::optional<pci_t> strongest_neighbor;
@@ -321,7 +324,7 @@ void cell_meas_manager::generate_measurement_objects_for_serving_cells()
 void cell_meas_manager::update_measurement_object(nr_cell_identity                nci,
                                                   const serving_cell_meas_config& serving_cell_cfg)
 {
-  srsran_assert(is_complete(serving_cell_cfg), "Incomplete measurement object update for nci={:#x}", nci);
+  ocudu_assert(is_complete(serving_cell_cfg), "Incomplete measurement object update for nci={:#x}", nci);
 
   ssb_frequency_t ssb_freq = serving_cell_cfg.ssb_arfcn.value();
 
@@ -341,8 +344,8 @@ void cell_meas_manager::update_measurement_object(nr_cell_identity              
   ssb_freq_to_meas_object.emplace(ssb_freq, generate_measurement_object(serving_cell_cfg));
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 void cell_meas_manager::store_measurement_results(ue_index_t ue_index, const rrc_meas_results& meas_results) {}
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/ran/ssb/pbch_mib_pack.h"
+#include "ocudu/ran/ssb/pbch_mib_pack.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-uint8_t srsran::pbch_timing_pack(uint32_t                      sfn,
-                                 bool                          hrf,
-                                 uint8_t                       ssb_block_index,
-                                 srsran::ssb_subcarrier_offset subcarrier_offset,
-                                 unsigned                      L_max)
+uint8_t ocudu::pbch_timing_pack(uint32_t                     sfn,
+                                bool                         hrf,
+                                uint8_t                      ssb_block_index,
+                                ocudu::ssb_subcarrier_offset subcarrier_offset,
+                                unsigned                     L_max)
 {
   uint8_t payload = 0;
 
@@ -37,7 +37,7 @@ uint8_t srsran::pbch_timing_pack(uint32_t                      sfn,
   return payload;
 }
 
-uint32_t srsran::pbch_mib_pack(const pbch_mib_message& msg)
+uint32_t ocudu::pbch_mib_pack(const pbch_mib_message& msg)
 {
   uint32_t payload = 0;
 
@@ -74,7 +74,7 @@ uint32_t srsran::pbch_mib_pack(const pbch_mib_message& msg)
   return payload;
 }
 
-uint32_t srsran::pbch_mib_and_timing_pack(const pbch_mib_message& msg, unsigned L_max)
+uint32_t ocudu::pbch_mib_and_timing_pack(const pbch_mib_message& msg, unsigned L_max)
 {
   return (pbch_mib_pack(msg) | pbch_timing_pack(msg.sfn, msg.hrf, msg.ssb_block_index, msg.subcarrier_offset, L_max));
 }

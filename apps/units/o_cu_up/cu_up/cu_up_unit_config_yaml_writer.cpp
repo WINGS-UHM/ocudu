@@ -12,9 +12,9 @@
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "apps/helpers/network/udp_config_yaml_writer.h"
 #include "cu_up_unit_config.h"
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_cu_up_ngu_gtpu_section(YAML::Node& node, const cu_up_unit_ngu_gtpu_config& config)
 {
@@ -82,13 +82,13 @@ static void fill_cu_up_pcap_section(YAML::Node node, const cu_up_unit_pcap_confi
 
 static void fill_cu_up_log_section(YAML::Node node, const cu_up_unit_logger_config& config)
 {
-  node["pdcp_level"]   = srslog::basic_level_to_string(config.pdcp_level);
-  node["sdap_level"]   = srslog::basic_level_to_string(config.sdap_level);
-  node["gtpu_level"]   = srslog::basic_level_to_string(config.gtpu_level);
-  node["f1u_level"]    = srslog::basic_level_to_string(config.f1u_level);
-  node["cu_level"]     = srslog::basic_level_to_string(config.cu_level);
-  node["sec_level"]    = srslog::basic_level_to_string(config.sec_level);
-  node["rohc_level"]   = srslog::basic_level_to_string(config.rohc_level);
+  node["pdcp_level"]   = ocudulog::basic_level_to_string(config.pdcp_level);
+  node["sdap_level"]   = ocudulog::basic_level_to_string(config.sdap_level);
+  node["gtpu_level"]   = ocudulog::basic_level_to_string(config.gtpu_level);
+  node["f1u_level"]    = ocudulog::basic_level_to_string(config.f1u_level);
+  node["cu_level"]     = ocudulog::basic_level_to_string(config.cu_level);
+  node["sec_level"]    = ocudulog::basic_level_to_string(config.sec_level);
+  node["rohc_level"]   = ocudulog::basic_level_to_string(config.rohc_level);
   node["hex_max_size"] = config.hex_max_size;
 }
 
@@ -134,7 +134,7 @@ static void fill_cu_up_qos_section(YAML::Node node, span<const cu_up_unit_qos_co
   }
 }
 
-void srsran::fill_cu_up_config_in_yaml_schema(YAML::Node& node, const cu_up_unit_config& config)
+void ocudu::fill_cu_up_config_in_yaml_schema(YAML::Node& node, const cu_up_unit_config& config)
 {
   node["gnb_id"]            = config.gnb_id.id;
   node["gnb_id_bit_length"] = static_cast<unsigned>(config.gnb_id.bit_length);

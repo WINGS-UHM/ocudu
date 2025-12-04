@@ -10,10 +10,10 @@
 
 #include "e1ap_cu_up_test_helpers.h"
 #include "lib/e1ap/common/e1ap_asn1_utils.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 namespace {
 
@@ -40,9 +40,9 @@ std::unique_ptr<e1ap_message_notifier> dummy_e1_connection_client::handle_cu_up_
 
 e1ap_cu_up_test::e1ap_cu_up_test()
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  e1ap_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  e1ap_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   e1ap_configuration e1ap_cfg;
   e1ap_cfg.json_log_enabled = true;
@@ -54,7 +54,7 @@ void e1ap_cu_up_test::run_e1_setup_procedure()
 {
   // > Establish connection to CU-CP.
   bool ret = e1ap->connect_to_cu_cp();
-  srsran_assert(ret, "Failed to connect to CU-CP");
+  ocudu_assert(ret, "Failed to connect to CU-CP");
 
   // > Launch E1 setup procedure
   cu_up_e1_setup_request request_msg = generate_cu_up_e1_setup_request();
@@ -72,7 +72,7 @@ void e1ap_cu_up_test::run_e1_setup_procedure()
 e1ap_cu_up_test::~e1ap_cu_up_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }
 
 void e1ap_cu_up_test::setup_bearer(unsigned cu_cp_ue_e1ap_id)

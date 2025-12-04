@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
@@ -48,7 +48,7 @@ static void parse_args(int argc, char** argv)
   }
 }
 
-using namespace srsran;
+using namespace ocudu;
 
 int main(int argc, char** argv)
 {
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
       std::vector<log_likelihood_ratio> soft_bits(nof_bits);
 
       dynamic_bit_buffer packed_data(nof_bits);
-      srsvec::bit_pack(packed_data, data);
+      ocuduvec::bit_pack(packed_data, data);
 
       // Measure performance of the modulation mapper for complex float.
       perf_meas.new_measure(to_string(modulation) + " mapper cf_t " + std::to_string(nof_symbols), nof_bits, [&]() {

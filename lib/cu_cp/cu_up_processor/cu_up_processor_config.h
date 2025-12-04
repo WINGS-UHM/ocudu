@@ -10,20 +10,20 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct cu_up_processor_config_t {
-  std::string                name        = "srs_cu_cp";
+  std::string                name        = "ocucp";
   cu_up_index_t              cu_up_index = cu_up_index_t::invalid;
   const cu_cp_configuration& cu_cp_cfg;
-  srslog::basic_logger&      logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("CU-CP");
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

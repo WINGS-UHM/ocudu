@@ -233,7 +233,7 @@ include-guards:
     - include-guards-check
   parallel:
     matrix:
-      - INPUT_PATH: "include/srsran"
+      - INPUT_PATH: "include/ocudu"
         INPUT_IGNORE: "/bundled/"
       - INPUT_PATH: "."
         INPUT_IGNORE: "^\\(include\\|docs\\|external\\)/.*"
@@ -277,7 +277,7 @@ include-guards:
       mkdir -p build
       cd build || exit
       cmake -DASSERT_LEVEL=PARANOID -DMARCH=x86-64-v3 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_TESTING=False ..
-      make srsran_versioning # needed to generate hashes.h
+      make ocudu_versioning # needed to generate hashes.h
     - |
       monitor_child_process() {
           while true; do

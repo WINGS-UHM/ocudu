@@ -7,4 +7,4 @@
 #
 
 add_library(du_test_doubles test_du_high_worker_manager.cpp)
-target_link_libraries(du_test_doubles srsran_support srsran_du_high srslog)
+target_link_libraries(du_test_doubles ocudu_support ocudu_du_high ocudulog)

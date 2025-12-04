@@ -13,10 +13,10 @@
 #include "ofh_downlink_handler_metrics_collector.h"
 #include "ofh_message_transmitter_metrics_collector.h"
 #include "ofh_uplink_request_handler_metrics_collector.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_metrics_collector.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_metrics_collector.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class transmitter_metrics_collector_impl : public transmitter_metrics_collector
@@ -62,4 +62,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

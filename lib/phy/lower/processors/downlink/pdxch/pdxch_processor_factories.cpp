@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_factories.h"
 #include "pdxch_processor_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -22,8 +22,8 @@ public:
                              std::shared_ptr<amplitude_controller_factory> amplitude_control_factory_) :
     ofdm_mod_factory(std::move(ofdm_mod_factory_)), amplitude_control_factory(std::move(amplitude_control_factory_))
   {
-    srsran_assert(ofdm_mod_factory, "Invalid OFDM modulator factory.");
-    srsran_assert(amplitude_control_factory, "Invalid amplitude control factory.");
+    ocudu_assert(ofdm_mod_factory, "Invalid OFDM modulator factory.");
+    ocudu_assert(amplitude_control_factory, "Invalid amplitude control factory.");
   }
 
   std::unique_ptr<pdxch_processor> create(const pdxch_processor_configuration& config,
@@ -54,8 +54,8 @@ private:
 } // namespace
 
 std::shared_ptr<pdxch_processor_factory>
-srsran::create_pdxch_processor_factory_sw(std::shared_ptr<ofdm_modulator_factory>       ofdm_mod_factory,
-                                          std::shared_ptr<amplitude_controller_factory> amplitude_control_factory)
+ocudu::create_pdxch_processor_factory_sw(std::shared_ptr<ofdm_modulator_factory>       ofdm_mod_factory,
+                                         std::shared_ptr<amplitude_controller_factory> amplitude_control_factory)
 {
   return std::make_shared<pdxch_processor_factory_sw>(std::move(ofdm_mod_factory),
                                                       std::move(amplitude_control_factory));

@@ -12,9 +12,9 @@
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
-e2sm_kpm_cu_meas_provider_impl::e2sm_kpm_cu_meas_provider_impl() : logger(srslog::fetch_basic_logger("E2SM-KPM")) {}
+e2sm_kpm_cu_meas_provider_impl::e2sm_kpm_cu_meas_provider_impl() : logger(ocudulog::fetch_basic_logger("E2SM-KPM")) {}
 
 e2sm_kpm_cu_cp_meas_provider_impl::e2sm_kpm_cu_cp_meas_provider_impl() : e2sm_kpm_cu_meas_provider_impl() {}
 
@@ -126,7 +126,7 @@ bool e2sm_kpm_cu_meas_provider_impl::get_meas_data(const asn1::e2sm::meas_type_c
     return false;
   }
   metric_meas_getter_func = it->second.func;
-  srsran_assert(metric_meas_getter_func != nullptr, "Metric getter function cannot be empty.");
+  ocudu_assert(metric_meas_getter_func != nullptr, "Metric getter function cannot be empty.");
   return (this->*metric_meas_getter_func)(label_info_list, ues, cell_global_id, items);
 }
 

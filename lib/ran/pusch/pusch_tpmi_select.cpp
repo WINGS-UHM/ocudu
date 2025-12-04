@@ -8,20 +8,20 @@
  *
  */
 
-#include "srsran/ran/pusch/pusch_tpmi_select.h"
-#include "srsran/adt/complex.h"
-#include "srsran/adt/span.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/precoding/precoding_weight_matrix.h"
-#include "srsran/ran/pusch/pusch_constants.h"
-#include "srsran/ran/srs/srs_channel_matrix.h"
-#include "srsran/srsvec/mean.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/pusch/pusch_tpmi_select.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocuduvec/mean.h"
+#include "ocudu/ran/precoding/precoding_weight_matrix.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/ran/srs/srs_channel_matrix.h"
+#include "ocudu/support/math/math_utils.h"
 #include <array>
 #include <cmath>
 #include <limits>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr cf_t sqrt1_2(M_SQRT1_2, 0.0F);
 static constexpr cf_t sqrt1_2j(0.0F, M_SQRT1_2);
@@ -267,7 +267,7 @@ static const std::array<precoding_weight_matrix, 5> codebook_4layer_4port = {{
 // must be equal.
 static precoding_weight_matrix product_channel_weight(const srs_channel_matrix& H, const precoding_weight_matrix& W)
 {
-  srsran_assert(H.get_nof_tx_ports() == W.get_nof_ports(), "Number of Ports is not equal.");
+  ocudu_assert(H.get_nof_tx_ports() == W.get_nof_ports(), "Number of Ports is not equal.");
   unsigned nof_tx_ports = W.get_nof_ports();
   unsigned nof_layers   = W.get_nof_layers();
   unsigned nof_rx_ports = H.get_nof_rx_ports();
@@ -524,7 +524,7 @@ static pusch_tpmi_select_info::tpmi_info get_tpmi_select_info_2layer(const srs_c
 
     // Calculate the average SINR.
     auto  layer_sinr = calculate_mean_layer_sinr<nof_layers>(channel_weights, noise_variance);
-    float avg_sinr   = srsvec::mean(layer_sinr);
+    float avg_sinr   = ocuduvec::mean(layer_sinr);
     if (avg_sinr > best_sinr) {
       best_sinr_layer = {layer_sinr.begin(), layer_sinr.end()};
       best_sinr       = avg_sinr;
@@ -577,7 +577,7 @@ static pusch_tpmi_select_info::tpmi_info get_tpmi_select_info_3layer(const srs_c
 
     // Calculate the average SINR.
     auto  layer_sinr = calculate_mean_layer_sinr<nof_layers>(channel_weights, noise_variance);
-    float avg_sinr   = srsvec::mean(layer_sinr);
+    float avg_sinr   = ocuduvec::mean(layer_sinr);
     if (avg_sinr > best_sinr) {
       best_sinr_layer = {layer_sinr.begin(), layer_sinr.end()};
       best_sinr       = avg_sinr;
@@ -630,7 +630,7 @@ static pusch_tpmi_select_info::tpmi_info get_tpmi_select_info_4layer(const srs_c
 
     // Calculate the average SINR.
     auto  layer_sinr = calculate_mean_layer_sinr<nof_layers>(channel_weights, noise_variance);
-    float avg_sinr   = srsvec::mean(layer_sinr);
+    float avg_sinr   = ocuduvec::mean(layer_sinr);
     if (avg_sinr > best_sinr) {
       best_sinr_layer = {layer_sinr.begin(), layer_sinr.end()};
       best_sinr       = avg_sinr;
@@ -646,10 +646,10 @@ static pusch_tpmi_select_info::tpmi_info get_tpmi_select_info_4layer(const srs_c
   return {.tpmi = best_tpmi, .avg_sinr_dB = convert_power_to_dB(best_sinr), .sinr_dB_layer = best_sinr_layer};
 }
 
-pusch_tpmi_select_info srsran::get_tpmi_select_info(const srs_channel_matrix& channel,
-                                                    float                     noise_variance,
-                                                    unsigned                  max_rank,
-                                                    tx_scheme_codebook_subset codebook_subset)
+pusch_tpmi_select_info ocudu::get_tpmi_select_info(const srs_channel_matrix& channel,
+                                                   float                     noise_variance,
+                                                   unsigned                  max_rank,
+                                                   tx_scheme_codebook_subset codebook_subset)
 {
   unsigned nof_tx_ports   = channel.get_nof_tx_ports();
   unsigned nof_rx_ports   = channel.get_nof_rx_ports();

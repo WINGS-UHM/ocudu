@@ -11,20 +11,20 @@
 #pragma once
 
 #include "adapters/sdap_adapters.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/ran/cu_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/ran/cu_types.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 struct qos_flow_context {
   qos_flow_context(const e1ap_qos_flow_qos_param_item& flow) : qos_flow_id(flow.qos_flow_id)
   {
     const auto& qos_params = flow.qos_flow_level_qos_params.qos_desc;
     five_qi                = qos_params.get_5qi();
-    srsran_assert(not qos_params.is_dyn_5qi(), "Dynamic 5QI not supported.");
-    srsran_assert(five_qi != five_qi_t::invalid, "FiveQI must be set.");
+    ocudu_assert(not qos_params.is_dyn_5qi(), "Dynamic 5QI not supported.");
+    ocudu_assert(five_qi != five_qi_t::invalid, "FiveQI must be set.");
   }
 
   qos_flow_id_t qos_flow_id = qos_flow_id_t::invalid; // The QoS flow ID.
@@ -40,5 +40,5 @@ struct qos_flow_context {
   std::unique_ptr<pdcp_rx_upper_data_notifier> sdap_rx_notifier;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

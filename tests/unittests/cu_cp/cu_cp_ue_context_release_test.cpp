@@ -15,18 +15,18 @@
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ran/gnb_cu_up_id.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/gnb_cu_up_id.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <chrono>
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static std::vector<std::vector<supported_tracking_area>> make_amf_test_config()
 {
@@ -61,7 +61,7 @@ public:
         this->run_f1_setup(du_idx,
                            int_to_gnb_du_id(0x11),
                            {test_helpers::served_cell_item_info{
-                               .plmn_id = plmn, .sib1_str = srsran::test_helpers::create_sib1_hex_string(plmn)}}));
+                               .plmn_id = plmn, .sib1_str = ocudu::test_helpers::create_sib1_hex_string(plmn)}}));
 
     // Setup CU-UP.
     ret = connect_new_cu_up();
@@ -296,8 +296,8 @@ public:
 TEST_F(cu_cp_ue_context_release_test, when_ue_rrc_setup_fails_then_ue_is_released)
 {
   // Inject Initial UL RRC Message Transfer containing RRC Setup Request.
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
-  srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+  ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
   // Inject Initial UL RRC message
   f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(du_ue_id, crnti, plmn);
@@ -404,8 +404,8 @@ TEST_F(
   // RRC connect UE without sending message to AMF.
   gnb_cu_ue_f1ap_id_t cu_ue_id = gnb_cu_ue_f1ap_id_t::min;
   {
-    srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
-    srsran_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+    ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+    ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
 
     // Inject Initial UL RRC message.
     f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(du_ue_id, crnti, plmn);

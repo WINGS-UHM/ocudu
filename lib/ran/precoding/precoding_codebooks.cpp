@@ -8,24 +8,24 @@
  *
  */
 
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/adt/interval.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-precoding_weight_matrix srsran::make_single_port()
+precoding_weight_matrix ocudu::make_single_port()
 {
   return make_one_layer_one_port(1, 0);
 }
 
-precoding_weight_matrix srsran::make_one_layer_one_port(unsigned nof_ports, unsigned selected_i_port)
+precoding_weight_matrix ocudu::make_one_layer_one_port(unsigned nof_ports, unsigned selected_i_port)
 {
   interval<unsigned, false> selected_i_port_range(0, nof_ports);
-  srsran_assert(selected_i_port_range.contains(selected_i_port),
-                "The given port identifier (i.e., {}) is out of the valid range {}",
-                selected_i_port,
-                selected_i_port_range);
+  ocudu_assert(selected_i_port_range.contains(selected_i_port),
+               "The given port identifier (i.e., {}) is out of the valid range {}",
+               selected_i_port,
+               selected_i_port_range);
 
   precoding_weight_matrix result(1, nof_ports);
 
@@ -38,13 +38,13 @@ precoding_weight_matrix srsran::make_one_layer_one_port(unsigned nof_ports, unsi
   return result;
 }
 
-precoding_weight_matrix srsran::make_one_layer_all_ports(unsigned nof_ports)
+precoding_weight_matrix ocudu::make_one_layer_all_ports(unsigned nof_ports)
 {
   interval<unsigned, true> nof_ports_range(1, precoding_constants::MAX_NOF_PORTS);
-  srsran_assert(nof_ports_range.contains(nof_ports),
-                "The number of ports (i.e., {}) is out of the valid range {}.",
-                nof_ports,
-                nof_ports_range);
+  ocudu_assert(nof_ports_range.contains(nof_ports),
+               "The number of ports (i.e., {}) is out of the valid range {}.",
+               nof_ports,
+               nof_ports_range);
 
   precoding_weight_matrix result(1, nof_ports);
 
@@ -57,14 +57,14 @@ precoding_weight_matrix srsran::make_one_layer_all_ports(unsigned nof_ports)
   return result;
 }
 
-precoding_weight_matrix srsran::make_identity(unsigned nof_streams)
+precoding_weight_matrix ocudu::make_identity(unsigned nof_streams)
 {
   static constexpr interval<unsigned, true> nof_streams_range(1, precoding_constants::MAX_NOF_LAYERS);
 
-  srsran_assert(nof_streams_range.contains(nof_streams),
-                "The number of streams (i.e., {}) is out of the valid range {}.",
-                nof_streams,
-                nof_streams_range);
+  ocudu_assert(nof_streams_range.contains(nof_streams),
+               "The number of streams (i.e., {}) is out of the valid range {}.",
+               nof_streams,
+               nof_streams_range);
 
   precoding_weight_matrix result(nof_streams, nof_streams);
 
@@ -80,7 +80,7 @@ precoding_weight_matrix srsran::make_identity(unsigned nof_streams)
   return result;
 }
 
-precoding_weight_matrix srsran::make_one_layer_two_ports(unsigned i_codebook)
+precoding_weight_matrix ocudu::make_one_layer_two_ports(unsigned i_codebook)
 {
   static constexpr interval<unsigned, true>           i_codebook_range(0, 3);
   static constexpr cf_t                               sqrt_1_2         = {M_SQRT1_2, 0};
@@ -90,10 +90,10 @@ precoding_weight_matrix srsran::make_one_layer_two_ports(unsigned i_codebook)
   static constexpr std::array<std::array<cf_t, 2>, 4> codebooks        = {
       {{sqrt_1_2, sqrt_1_2}, {sqrt_1_2, j_sqrt_1_2}, {sqrt_1_2, minus_sqrt_1_2}, {sqrt_1_2, minus_j_sqrt_1_2}}};
 
-  srsran_assert(i_codebook_range.contains(i_codebook),
-                "The given codebook identifier (i.e., {}) is out of the range {}",
-                i_codebook,
-                i_codebook_range);
+  ocudu_assert(i_codebook_range.contains(i_codebook),
+               "The given codebook identifier (i.e., {}) is out of the range {}",
+               i_codebook,
+               i_codebook_range);
 
   precoding_weight_matrix result(1, 2);
 
@@ -108,7 +108,7 @@ precoding_weight_matrix srsran::make_one_layer_two_ports(unsigned i_codebook)
   return result;
 }
 
-precoding_weight_matrix srsran::make_two_layer_two_ports(unsigned i_codebook)
+precoding_weight_matrix ocudu::make_two_layer_two_ports(unsigned i_codebook)
 {
   static constexpr interval<unsigned, true>           i_codebook_range(0, 1);
   static constexpr cf_t                               dot_five         = {0.5F, 0.0F};
@@ -119,10 +119,10 @@ precoding_weight_matrix srsran::make_two_layer_two_ports(unsigned i_codebook)
   static constexpr std::array<std::array<cf_t, 2>, 2> codebook1 = {
       {{dot_five, dot_five}, {j_dot_five, minus_j_dot_five}}};
 
-  srsran_assert(i_codebook_range.contains(i_codebook),
-                "The given codebook identifier (i.e., {}) is out of the range {}",
-                i_codebook,
-                i_codebook_range);
+  ocudu_assert(i_codebook_range.contains(i_codebook),
+               "The given codebook identifier (i.e., {}) is out of the range {}",
+               i_codebook,
+               i_codebook_range);
 
   precoding_weight_matrix result(2, 2);
 
@@ -161,8 +161,7 @@ static void create_horizontal_beam(span<cf_t> beam, float phase_increment_rad, f
   }
 }
 
-precoding_weight_matrix srsran::make_one_layer_four_ports_type1_sp_mode1(unsigned beam_azimuth_id,
-                                                                         unsigned pol_shift_id)
+precoding_weight_matrix ocudu::make_one_layer_four_ports_type1_sp_mode1(unsigned beam_azimuth_id, unsigned pol_shift_id)
 {
   // Beam oversampling factor in the horizontal plane, from TS38.214 Section 5.2.2.2.1.
   static constexpr unsigned O_1 = 4;
@@ -176,15 +175,15 @@ precoding_weight_matrix srsran::make_one_layer_four_ports_type1_sp_mode1(unsigne
   static constexpr interval<unsigned, false> beam_azimuth_range(0, nof_beams);
   static constexpr interval<unsigned, false> pol_phase_shift_range(0, nof_pol_shifts);
 
-  srsran_assert(beam_azimuth_range.contains(beam_azimuth_id),
-                "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
-                beam_azimuth_id,
-                beam_azimuth_range);
+  ocudu_assert(beam_azimuth_range.contains(beam_azimuth_id),
+               "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
+               beam_azimuth_id,
+               beam_azimuth_range);
 
-  srsran_assert(pol_phase_shift_range.contains(pol_shift_id),
-                "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
-                pol_shift_id,
-                pol_phase_shift_range);
+  ocudu_assert(pol_phase_shift_range.contains(pol_shift_id),
+               "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
+               pol_shift_id,
+               pol_phase_shift_range);
 
   // Precoding weight matrix for one layer mapped into four antenna ports.
   precoding_weight_matrix result(1, 4);
@@ -216,9 +215,9 @@ precoding_weight_matrix srsran::make_one_layer_four_ports_type1_sp_mode1(unsigne
   return result;
 }
 
-precoding_weight_matrix srsran::make_two_layer_four_ports_type1_sp_mode1(unsigned beam_azimuth_id,
-                                                                         unsigned beam_offset_id,
-                                                                         unsigned pol_shift_id)
+precoding_weight_matrix ocudu::make_two_layer_four_ports_type1_sp_mode1(unsigned beam_azimuth_id,
+                                                                        unsigned beam_offset_id,
+                                                                        unsigned pol_shift_id)
 {
   // Beam oversampling factor in the horizontal plane, from TS38.214 Section 5.2.2.2.1.
   static constexpr unsigned O_1 = 4;
@@ -233,20 +232,20 @@ precoding_weight_matrix srsran::make_two_layer_four_ports_type1_sp_mode1(unsigne
   static constexpr interval<unsigned, false> beam_offset_range(0, 2);
   static constexpr interval<unsigned, false> pol_phase_shift_range(0, nof_pol_shifts);
 
-  srsran_assert(beam_azimuth_range.contains(beam_azimuth_id),
-                "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
-                beam_azimuth_id,
-                beam_azimuth_range);
+  ocudu_assert(beam_azimuth_range.contains(beam_azimuth_id),
+               "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
+               beam_azimuth_id,
+               beam_azimuth_range);
 
-  srsran_assert(beam_offset_range.contains(beam_offset_id),
-                "The given beam offset identifier i1_3 (i.e., {}) is out of the range {}",
-                beam_offset_id,
-                beam_offset_range);
+  ocudu_assert(beam_offset_range.contains(beam_offset_id),
+               "The given beam offset identifier i1_3 (i.e., {}) is out of the range {}",
+               beam_offset_id,
+               beam_offset_range);
 
-  srsran_assert(pol_phase_shift_range.contains(pol_shift_id),
-                "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
-                pol_shift_id,
-                pol_phase_shift_range);
+  ocudu_assert(pol_phase_shift_range.contains(pol_shift_id),
+               "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
+               pol_shift_id,
+               pol_phase_shift_range);
 
   // Precoding weight matrix for two layers mapped into four antenna ports.
   precoding_weight_matrix result(2, 4);
@@ -300,7 +299,7 @@ precoding_weight_matrix srsran::make_two_layer_four_ports_type1_sp_mode1(unsigne
   return result;
 }
 
-precoding_weight_matrix srsran::make_three_layer_four_ports_type1_sp(unsigned beam_azimuth_id, unsigned pol_shift_id)
+precoding_weight_matrix ocudu::make_three_layer_four_ports_type1_sp(unsigned beam_azimuth_id, unsigned pol_shift_id)
 {
   // Beam oversampling factor in the horizontal plane, from TS38.214 Section 5.2.2.2.1.
   static constexpr unsigned O_1 = 4;
@@ -314,15 +313,15 @@ precoding_weight_matrix srsran::make_three_layer_four_ports_type1_sp(unsigned be
   static constexpr interval<unsigned, false> beam_azimuth_range(0, nof_beams);
   static constexpr interval<unsigned, false> pol_phase_shift_range(0, nof_pol_shifts);
 
-  srsran_assert(beam_azimuth_range.contains(beam_azimuth_id),
-                "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
-                beam_azimuth_id,
-                beam_azimuth_range);
+  ocudu_assert(beam_azimuth_range.contains(beam_azimuth_id),
+               "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
+               beam_azimuth_id,
+               beam_azimuth_range);
 
-  srsran_assert(pol_phase_shift_range.contains(pol_shift_id),
-                "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
-                pol_shift_id,
-                pol_phase_shift_range);
+  ocudu_assert(pol_phase_shift_range.contains(pol_shift_id),
+               "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
+               pol_shift_id,
+               pol_phase_shift_range);
 
   // Precoding weight matrix for three layers mapped into four antenna ports.
   precoding_weight_matrix result(3, 4);
@@ -392,7 +391,7 @@ precoding_weight_matrix srsran::make_three_layer_four_ports_type1_sp(unsigned be
   return result;
 }
 
-precoding_weight_matrix srsran::make_four_layer_four_ports_type1_sp(unsigned beam_azimuth_id, unsigned pol_shift_id)
+precoding_weight_matrix ocudu::make_four_layer_four_ports_type1_sp(unsigned beam_azimuth_id, unsigned pol_shift_id)
 {
   // Beam oversampling factor in the horizontal plane, from TS38.214 Section 5.2.2.2.1.
   static constexpr unsigned O_1 = 4;
@@ -406,15 +405,15 @@ precoding_weight_matrix srsran::make_four_layer_four_ports_type1_sp(unsigned bea
   static constexpr interval<unsigned, false> beam_azimuth_range(0, nof_beams);
   static constexpr interval<unsigned, false> pol_phase_shift_range(0, nof_pol_shifts);
 
-  srsran_assert(beam_azimuth_range.contains(beam_azimuth_id),
-                "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
-                beam_azimuth_id,
-                beam_azimuth_range);
+  ocudu_assert(beam_azimuth_range.contains(beam_azimuth_id),
+               "The given beam azimuth identifier i1_1 (i.e., {}) is out of the range {}",
+               beam_azimuth_id,
+               beam_azimuth_range);
 
-  srsran_assert(pol_phase_shift_range.contains(pol_shift_id),
-                "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
-                pol_shift_id,
-                pol_phase_shift_range);
+  ocudu_assert(pol_phase_shift_range.contains(pol_shift_id),
+               "The given polarization phase shift i2 (i.e., {}) is out of the range {}",
+               pol_shift_id,
+               pol_phase_shift_range);
 
   // Precoding weight matrix for three layers mapped into four antenna ports.
   precoding_weight_matrix result(4, 4);

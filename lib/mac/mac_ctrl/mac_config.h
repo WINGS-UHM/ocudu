@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/mac/mac.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_metrics_notifier;
 class timer_manager;
@@ -28,11 +28,11 @@ struct mac_control_config {
     unsigned                  max_nof_ue_events;
   };
 
-  mac_ul_ccch_notifier& event_notifier;
-  task_executor&        ctrl_exec;
-  mac_clock_controller& time_source;
-  metrics_config        metrics;
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("MAC", true);
+  mac_ul_ccch_notifier&   event_notifier;
+  task_executor&          ctrl_exec;
+  mac_clock_controller&   time_source;
+  metrics_config          metrics;
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("MAC", true);
 };
 
-} // namespace srsran
+} // namespace ocudu

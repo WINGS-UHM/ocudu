@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/upper/equalization/equalization_factories.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
 #include "channel_equalizer_generic_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -32,7 +32,7 @@ private:
 } // namespace
 
 std::shared_ptr<channel_equalizer_factory>
-srsran::create_channel_equalizer_generic_factory(channel_equalizer_algorithm_type type)
+ocudu::create_channel_equalizer_generic_factory(channel_equalizer_algorithm_type type)
 {
   return std::make_shared<channel_equalizer_generic_factory>(type);
 }

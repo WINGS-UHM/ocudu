@@ -15,7 +15,7 @@
 
 #include "channel_precoder_impl.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Channel precoder implementation.
 class channel_precoder_neon : public channel_precoder_impl
@@ -32,4 +32,4 @@ public:
                                      const precoding_weight_matrix& precoding) const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

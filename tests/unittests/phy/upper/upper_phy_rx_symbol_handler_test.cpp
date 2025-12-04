@@ -13,11 +13,11 @@
 #include "../support/prach_buffer_test_doubles.h"
 #include "../support/resource_grid_test_doubles.h"
 #include "uplink_processor_test_doubles.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/upper/upper_phy_factories.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/upper/upper_phy_factories.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -65,8 +65,8 @@ protected:
     prach_pool(create_spy_prach_buffer_pool()),
     shared_rg(rg)
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::warning);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::warning);
+    ocudulog::init();
   }
 
   std::unique_ptr<uplink_processor_pool> create_ul_processor_pool()

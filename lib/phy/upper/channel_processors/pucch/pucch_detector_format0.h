@@ -13,12 +13,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pucch/pucch_detector.h"
-#include "srsran/phy/upper/pucch_helper.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_collection.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_detector.h"
+#include "ocudu/phy/upper/pucch_helper.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUCCH Format 0 detector.
 class pucch_detector_format0
@@ -29,7 +29,7 @@ public:
                          std::unique_ptr<low_papr_sequence_collection> low_papr_) :
     helper(std::move(pseudo_random_)), low_papr(std::move(low_papr_))
   {
-    srsran_assert(low_papr, "");
+    ocudu_assert(low_papr, "");
   }
 
   /// Detects a PUCCH Format 0 transmission. See \ref pucch_detector for more details.
@@ -52,4 +52,4 @@ private:
   static_tensor<static_cast<unsigned>(dims::nof_dims), cf_t, max_nof_re, dims> temp_re;
 };
 
-} // namespace srsran
+} // namespace ocudu

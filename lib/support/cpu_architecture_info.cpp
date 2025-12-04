@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/cpu_architecture_info.h"
-#include "srsran/adt/interval.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/sysinfo.h"
+#include "ocudu/support/cpu_architecture_info.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/sysinfo.h"
 #include <dirent.h>
 #include <fstream>
 #include <regex>
@@ -23,7 +23,7 @@
 #include <numa.h>
 #endif
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Converts the string containing a CPU index to an unsigned integer number.
 static unsigned parse_one_cpu(const std::string& value)
@@ -203,7 +203,7 @@ static std::string print_cpus_list(const bounded_bitset<1024>& cpus_mask)
   return to_string(fmt_format_buf);
 }
 
-void cpu_architecture_info::print_cpu_info(srslog::basic_logger& logger) const
+void cpu_architecture_info::print_cpu_info(ocudulog::basic_logger& logger) const
 {
   fmt::memory_buffer fmt_buf;
   fmt::format_to(std::back_inserter(fmt_buf),
@@ -238,12 +238,14 @@ void cpu_architecture_info::print_cpu_info(srslog::basic_logger& logger) const
 bounded_bitset<1024> cpu_architecture_info::get_node_cpu_mask(unsigned node_id) const
 {
 #ifndef NUMA_SUPPORT
-  srslog::fetch_basic_logger("GNB").debug("NUMA topology not available, please compile the code with libnuma support");
+  ocudulog::fetch_basic_logger("GNB").debug(
+      "NUMA topology not available, please compile the code with libnuma support");
   return {};
 #else
 
   if (node_id >= cpu_desc.nof_numa_nodes) {
-    srslog::fetch_basic_logger("GNB").debug("Requested node ID exceeds number of NUMA nodes configured in the system");
+    ocudulog::fetch_basic_logger("GNB").debug(
+        "Requested node ID exceeds number of NUMA nodes configured in the system");
     return {};
   }
   return cpu_desc.node_cpus[node_id];
@@ -253,12 +255,14 @@ bounded_bitset<1024> cpu_architecture_info::get_node_cpu_mask(unsigned node_id) 
 bool cpu_architecture_info::run_on_numa_node(unsigned node_id) const
 {
 #ifndef NUMA_SUPPORT
-  srslog::fetch_basic_logger("GNB").debug("NUMA topology not available, please compile the code with libnuma support");
+  ocudulog::fetch_basic_logger("GNB").debug(
+      "NUMA topology not available, please compile the code with libnuma support");
   return false;
 #else
 
   if (node_id >= cpu_desc.nof_numa_nodes) {
-    srslog::fetch_basic_logger("GNB").debug("Requested node ID exceeds number of NUMA nodes configured in the system");
+    ocudulog::fetch_basic_logger("GNB").debug(
+        "Requested node ID exceeds number of NUMA nodes configured in the system");
     return false;
   }
   ::bitmask* mask = ::numa_allocate_nodemask();

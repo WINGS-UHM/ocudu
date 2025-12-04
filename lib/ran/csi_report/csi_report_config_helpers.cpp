@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_puxch_utils.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_puxch_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-csi_report_configuration srsran::create_csi_report_configuration(const csi_meas_config& csi_meas)
+csi_report_configuration ocudu::create_csi_report_configuration(const csi_meas_config& csi_meas)
 {
   csi_report_configuration csi_rep = {};
   csi_rep.pmi_codebook             = pmi_codebook_type::one;
@@ -72,7 +72,7 @@ csi_report_configuration srsran::create_csi_report_configuration(const csi_meas_
   return csi_rep;
 }
 
-bool srsran::is_valid(const csi_report_configuration& config)
+bool ocudu::is_valid(const csi_report_configuration& config)
 {
   // The number of CSI resources in the corresponding resource set must be at least one and up to 64 (see TS38.331
   // Section 6.3.2, Information Element \c NZP-CSI-RS-ResourceSet).
@@ -108,9 +108,9 @@ bool srsran::is_valid(const csi_report_configuration& config)
   return true;
 }
 
-bool srsran::is_pusch_configured(const csi_meas_config& csi_meas)
+bool ocudu::is_pusch_configured(const csi_meas_config& csi_meas)
 {
-  srsran_assert(csi_meas.csi_report_cfg_list.size() == 1, "Only one CSI report configuration is supported");
+  ocudu_assert(csi_meas.csi_report_cfg_list.size() == 1, "Only one CSI report configuration is supported");
   return not std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
       csi_meas.csi_report_cfg_list[0].report_cfg_type);
 }

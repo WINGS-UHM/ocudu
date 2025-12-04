@@ -11,24 +11,24 @@
 #pragma once
 
 #include "context_repository_helpers.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/shared_prach_buffer.h"
-#include "srsran/ran/prach/prach_constants.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/shared_prach_buffer.h"
+#include "ocudu/ran/prach/prach_constants.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include <mutex>
 #include <numeric>
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 ///  PRACH context.
@@ -68,10 +68,10 @@ public:
                 std::optional<unsigned>     start_symbol_) :
     context_info({.context = context, .buffer = std::move(buffer)})
   {
-    srsran_assert(context.nof_fd_occasions == 1, "Only supporting one frequency domain occasion");
-    srsran_assert(is_short_preamble(context.format) ||
-                      (is_long_preamble(context.format) && context.nof_td_occasions == 1),
-                  "Only supporting one time domain occasion for long preamble format");
+    ocudu_assert(context.nof_fd_occasions == 1, "Only supporting one frequency domain occasion");
+    ocudu_assert(is_short_preamble(context.format) ||
+                     (is_long_preamble(context.format) && context.nof_td_occasions == 1),
+                 "Only supporting one time domain occasion for long preamble format");
 
     // Get preamble information.
     preamble_info =
@@ -133,7 +133,7 @@ public:
   /// span corresponds to a port.
   span<const bounded_bitset<prach_constants::LONG_SEQUENCE_LENGTH>> get_symbol_re_written(unsigned symbol) const
   {
-    srsran_assert(symbol < nof_symbols, "Invalid symbol index");
+    ocudu_assert(symbol < nof_symbols, "Invalid symbol index");
     return buffer_stats[symbol].re_written;
   }
 
@@ -149,8 +149,8 @@ public:
       symbol -= start_symbol;
     }
 
-    srsran_assert(context_info.buffer, "No valid PRACH buffer in the context");
-    srsran_assert(symbol < nof_symbols, "Invalid symbol index");
+    ocudu_assert(context_info.buffer, "No valid PRACH buffer in the context");
+    ocudu_assert(symbol < nof_symbols, "Invalid symbol index");
 
     // Skip writing if the given port does not fit in the PRACH buffer.
     if (port >= context_info.buffer->get_max_nof_ports()) {
@@ -161,10 +161,10 @@ public:
     span<cbf16_t> prach_out_buffer = context_info.buffer->get_symbol(
         port, context_info.context.nof_fd_occasions - 1, context_info.context.nof_td_occasions - 1, symbol);
 
-    srsran_assert(prach_out_buffer.last(prach_out_buffer.size() - re_start).size() >= iq_buffer.size(),
-                  "Invalid IQ data buffer size to copy as it does not fit into the PRACH buffer");
+    ocudu_assert(prach_out_buffer.last(prach_out_buffer.size() - re_start).size() >= iq_buffer.size(),
+                 "Invalid IQ data buffer size to copy as it does not fit into the PRACH buffer");
 
-    srsvec::copy(prach_out_buffer.subspan(re_start, iq_buffer.size()), iq_buffer);
+    ocuduvec::copy(prach_out_buffer.subspan(re_start, iq_buffer.size()), iq_buffer);
 
     // Update statistics.
     buffer_stats[symbol].re_written[port].fill(re_start, re_start + iq_buffer.size());
@@ -236,7 +236,7 @@ public:
   /// Adds the given entry to the repository at slot.
   void add(const prach_buffer_context& context,
            shared_prach_buffer         buffer_,
-           srslog::basic_logger&       logger,
+           ocudulog::basic_logger&     logger,
            std::optional<unsigned>     start_symbol)
   {
     if (!pending_context_to_add.try_push([context, prach_buff = std::move(buffer_), start_symbol, this]() mutable {
@@ -320,4 +320,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

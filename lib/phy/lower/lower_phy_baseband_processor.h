@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
-#include "srsran/gateways/baseband/baseband_gateway_timestamp.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/lower_phy_controller.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_baseband.h"
-#include "srsran/phy/lower/sampling_rate.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_timestamp.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/lower_phy_controller.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_baseband.h"
+#include "ocudu/phy/lower/sampling_rate.h"
 #include <future>
 
-namespace srsran {
+namespace ocudu {
 
 /// Collects the parameters necessary to initialize the baseband adaptor.
 struct lower_phy_baseband_processor_configuration {
@@ -209,4 +209,4 @@ private:
   unsigned                                                                   last_tx_buffer_size = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

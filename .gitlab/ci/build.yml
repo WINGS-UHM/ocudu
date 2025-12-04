@@ -41,7 +41,7 @@ include:
     - &script_functions |
       build_ocudu_extended() {
         target="$1"
-        build_srsran
+        build_ocudu
         if [[ -n "$OUTPUT_FINGERPRINT" ]]; then
           echo "Storing fingerprints of all executables to $OUTPUT_FINGERPRINT"
           cd build
@@ -80,19 +80,19 @@ include:
             --exclude=${CI_PROJECT_DIR}/tests/* \
             --exclude=${CI_PROJECT_DIR}/apps/examples/* \
             --exclude=${CI_PROJECT_DIR}/external/* \
-            --exclude=${CI_PROJECT_DIR}/include/srsran/asn1/e1ap/.* \
-            --exclude=${CI_PROJECT_DIR}/include/srsran/asn1/e2ap/.* \
-            --exclude=${CI_PROJECT_DIR}/include/srsran/asn1/f1ap/.* \
-            --exclude=${CI_PROJECT_DIR}/include/srsran/asn1/ngap/.* \
-            --exclude=${CI_PROJECT_DIR}/include/srsran/asn1/nrppa/.* \
-            --exclude=${CI_PROJECT_DIR}/include/srsran/asn1/rrc_nr/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/e1ap/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/e2ap/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/f1ap/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/ngap/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/nrppa/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/rrc_nr/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/e1ap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/e2ap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/f1ap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/ngap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/nrppa/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/rrc_nr/.* \
-            --exclude-lines-by-pattern \".*srsran_assert.*|.*srsran_sanity_check.*\" \
+            --exclude-lines-by-pattern \".*ocudu_assert.*|.*ocudu_sanity_check.*\" \
             --root=${CI_PROJECT_DIR} \
             --gcov-ignore-parse-errors=all \
             --merge-mode-functions=merge-use-line-min"
@@ -342,7 +342,7 @@ smoke dpdk cached:
 .infra_path_changes:
   - changes: &instruction_set_changes
       paths:
-        - include/srsran/phy/**/*
+        - include/ocudu/phy/**/*
         - lib/phy/**/*
         - tests/unittests/phy/**/*
 
@@ -410,7 +410,7 @@ smoke pretty printers cached:
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
       changes: &gdb_printers_changes
         paths:
-          - include/srsran/adt/**/*
+          - include/ocudu/adt/**/*
           - tests/utils/gdb/pretty_printers/*
           - .gdbinit
     - if: $ON_MR
@@ -1395,7 +1395,7 @@ ubuntu-24.04 amd64 avx512 TRACE:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
-    CXXFLAGS: -D SRSRAN_L2_TRACE -D SRSRAN_L1_TRACE -D SRSRAN_L2_LATE_TRACE -D SRSRAN_OFH_TRACE -D SRSRAN_UP_TRACE
+    CXXFLAGS: -D OCUDU_L2_TRACE -D OCUDU_L1_TRACE -D OCUDU_L2_LATE_TRACE -D OCUDU_OFH_TRACE -D OCUDU_UP_TRACE
   parallel:
     matrix:
       - <<: *basic_combinations

@@ -9,20 +9,20 @@
  */
 
 #include "du_low_hal_factory.h"
-#include "srsran/ran/sch/sch_constants.h"
+#include "ocudu/ran/sch/sch_constants.h"
 #ifdef DPDK_FOUND
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #endif // DPDK_FOUND
 
-using namespace srsran;
+using namespace ocudu;
 
 #ifdef DPDK_FOUND
-static std::shared_ptr<dpdk::bbdev_acc> init_bbdev_hwacc(const bbdev_appconfig& bbdev_app_cfg,
-                                                         srslog::basic_logger&  logger)
+static std::shared_ptr<dpdk::bbdev_acc> init_bbdev_hwacc(const bbdev_appconfig&  bbdev_app_cfg,
+                                                         ocudulog::basic_logger& logger)
 {
   // Intefacing to the bbdev-based hardware-accelerator.
   dpdk::bbdev_acc_configuration bbdev_config;
@@ -46,16 +46,16 @@ static std::shared_ptr<dpdk::bbdev_acc> init_bbdev_hwacc(const bbdev_appconfig& 
 }
 #endif // DPDK_FOUND
 
-o_du_low_hal_dependencies srsran::make_du_low_hal_dependencies(const std::optional<du_low_unit_hal_config>& hal_config)
+o_du_low_hal_dependencies ocudu::make_du_low_hal_dependencies(const std::optional<du_low_unit_hal_config>& hal_config)
 {
   o_du_low_hal_dependencies hal_dependencies;
 
   // Initialize hardware-accelerator (only once and if needed).
 #ifdef DPDK_FOUND
   if (hal_config && hal_config->bbdev_hwacc && !hal_config->bbdev_hwacc->hwacc_type.empty()) {
-    const bbdev_appconfig& bbdev_app_cfg = hal_config->bbdev_hwacc.value();
-    srslog::basic_logger&  hwacc_logger  = srslog::fetch_basic_logger("HWACC");
-    auto                   accelerator   = init_bbdev_hwacc(bbdev_app_cfg, hwacc_logger);
+    const bbdev_appconfig&  bbdev_app_cfg = hal_config->bbdev_hwacc.value();
+    ocudulog::basic_logger& hwacc_logger  = ocudulog::fetch_basic_logger("HWACC");
+    auto                    accelerator   = init_bbdev_hwacc(bbdev_app_cfg, hwacc_logger);
 
     // Create a hardware-accelerated PDSCH encoder factory (only if needed).
     if (bbdev_app_cfg.pdsch_enc && bbdev_app_cfg.pdsch_enc->nof_hwacc > 0) {

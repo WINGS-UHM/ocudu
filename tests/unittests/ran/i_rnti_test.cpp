@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/gnb_id.h"
-#include "srsran/ran/i_rnti.h"
+#include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/i_rnti.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 constexpr uint8_t  default_nof_ue_bits = 13;
 constexpr gnb_id_t default_gnb_id{411, 22};

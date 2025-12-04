@@ -10,11 +10,11 @@
 
 #include "lib/mac/mac_ul/mac_ul_sch_pdu.h"
 #include "lib/mac/mac_ul/ul_phr.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Test the unpacking function for MAC subPDU with MAC SDU (UL CCCH 48 bits).
 TEST(mac_ul_subpdu, decode_ul_ccch_48)
@@ -539,7 +539,7 @@ TEST(mac_ul_pdu, handle_the_case_when_a_pdu_has_too_many_subpdus)
   constexpr unsigned nof_subpdus_per_pdu = 1000;
 
   size_t      L       = 1;
-  lcid_t      lcid    = srsran::LCID_SRB1;
+  lcid_t      lcid    = ocudu::LCID_SRB1;
   byte_buffer payload = byte_buffer::create(test_rgen::random_vector<uint8_t>(L)).value();
 
   byte_buffer msg;
@@ -561,7 +561,7 @@ TEST(mac_ul_pdu, handle_the_case_when_a_pdu_has_too_many_subpdus)
 TEST(mac_ul_pdu, handle_the_case_when_pdu_length_is_too_short_to_decode_length_prefix)
 {
   size_t      L       = 1;
-  lcid_t      lcid    = srsran::LCID_SRB1;
+  lcid_t      lcid    = ocudu::LCID_SRB1;
   byte_buffer payload = byte_buffer::create(test_rgen::random_vector<uint8_t>(L)).value();
 
   byte_buffer msg;
@@ -577,9 +577,9 @@ TEST(mac_ul_pdu, handle_the_case_when_pdu_length_is_too_short_to_decode_length_p
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-  srslog::init();
+  ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   ::testing::InitGoogleTest(&argc, argv);
 

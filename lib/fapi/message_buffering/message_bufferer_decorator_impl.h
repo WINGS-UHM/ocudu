@@ -15,9 +15,9 @@
 #include "decorator_helpers/slot_last_message_notifier_dispatcher.h"
 #include "message_bufferer_slot_gateway_task_dispatcher.h"
 #include "message_bufferer_slot_time_notifier_decorator.h"
-#include "srsran/fapi/decorator.h"
+#include "ocudu/fapi/decorator.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// \brief FAPI message bufferer decorator.
@@ -74,4 +74,4 @@ private:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

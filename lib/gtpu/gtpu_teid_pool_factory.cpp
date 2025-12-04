@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/gtpu/gtpu_teid_pool_factory.h"
+#include "ocudu/gtpu/gtpu_teid_pool_factory.h"
 #include "gtpu_teid_pool_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<gtpu_teid_pool> srsran::create_gtpu_allocator(const gtpu_allocator_creation_request& msg)
+std::unique_ptr<gtpu_teid_pool> ocudu::create_gtpu_allocator(const gtpu_allocator_creation_request& msg)
 {
   return std::make_unique<gtpu_teid_pool_impl>(msg.max_nof_teids);
 }

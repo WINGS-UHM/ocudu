@@ -9,10 +9,10 @@
  */
 
 #include "lib/mac/mac_dl/sib_pdu_assembler.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 byte_buffer make_random_pdu(unsigned size = test_rgen::uniform_int<unsigned>(10, 200))
 {

@@ -15,20 +15,20 @@ set(SOURCES
 add_library(gnb_base STATIC ${SOURCES})
 target_include_directories(gnb_base PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(gnb_base PRIVATE
-        srsran_app_services
-        srsran_f1u_connector
-        srsran_ngap
+        ocudu_app_services
+        ocudu_f1u_connector
+        ocudu_ngap
         ngap_asn1
-        srsran_e2
+        ocudu_e2
         e2ap_asn1
-        srsran_gateway
-        srsran_pcap
-        srsran_support
-        srsran_versioning
-        srsran_f1c_gateway
-        srsran_e1_gateway
-        srsran_o_cu_cp_app_unit
-        srsran_o_cu_up_app_unit
+        ocudu_gateway
+        ocudu_pcap
+        ocudu_support
+        ocudu_versioning
+        ocudu_f1c_gateway
+        ocudu_e1_gateway
+        ocudu_o_cu_cp_app_unit
+        ocudu_o_cu_up_app_unit
 )
 
 if (DPDK_FOUND)
@@ -43,12 +43,12 @@ add_executable(gnb gnb.cpp)
 add_backward(gnb)
 target_include_directories(gnb PRIVATE ${CMAKE_SOURCE_DIR})
 install(TARGETS gnb RUNTIME)
-target_link_libraries(gnb PRIVATE gnb_base srsran_flexible_o_du_split_dynamic)
+target_link_libraries(gnb PRIVATE gnb_base ocudu_flexible_o_du_split_dynamic)
 notify_binary_target(gnb)
 
 # Add the targets for the rest of the splits.
 set(EXTENSIONS gnb_split_6 gnb_split_7_2 gnb_split_8)
-set(LIBRARIES srsran_flexible_o_du_split_6 srsran_flexible_o_du_split_7_2 srsran_flexible_o_du_split_8)
+set(LIBRARIES ocudu_flexible_o_du_split_6 ocudu_flexible_o_du_split_7_2 ocudu_flexible_o_du_split_8)
 
 foreach (NAME LIB IN ZIP_LISTS EXTENSIONS LIBRARIES)
     add_executable(${NAME} gnb.cpp)

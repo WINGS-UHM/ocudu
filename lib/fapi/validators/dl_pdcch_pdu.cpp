@@ -10,10 +10,10 @@
 
 #include "dl_pdcch_pdu.h"
 #include "field_checkers.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/fapi/validator_report.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/validator_report.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks the PDCCH PDU.
@@ -207,7 +207,7 @@ static bool validate_collocated_al16_candidate(message_type_id msg_type, unsigne
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Collocated AL16 candidate", msg_type, pdu_type, report);
 }
 
-bool srsran::fapi::validate_dl_pdcch_pdu(message_type_id msg_type, const dl_pdcch_pdu& pdu, validator_report& report)
+bool ocudu::fapi::validate_dl_pdcch_pdu(message_type_id msg_type, const dl_pdcch_pdu& pdu, validator_report& report)
 {
   bool result = true;
 

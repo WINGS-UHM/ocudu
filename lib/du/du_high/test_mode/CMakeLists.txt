@@ -6,9 +6,9 @@
 # the distribution.
 #
 
-add_library(srsran_du_high_adapters
+add_library(ocudu_du_high_adapters
         mac_test_mode_adapter.cpp
         f1ap_test_mode_adapter.cpp
         mac_test_mode_helpers.cpp
         mac_test_mode_ue_repository.cpp)
-target_link_libraries(srsran_du_high_adapters srslog srsran_support srsran_du_manager srsran_mac srsran_f1ap_du)
+target_link_libraries(ocudu_du_high_adapters ocudulog ocudu_support ocudu_du_manager ocudu_mac ocudu_f1ap_du)

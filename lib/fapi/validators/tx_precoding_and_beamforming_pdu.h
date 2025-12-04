@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 struct validator_report;
@@ -23,4 +23,4 @@ bool validate_tx_precoding_and_beamforming_pdu(const tx_precoding_and_beamformin
                                                dl_pdu_type                             pdu_type);
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

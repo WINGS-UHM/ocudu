@@ -12,11 +12,11 @@
 #include "lib/scheduler/ue_context/ta_manager.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class ta_manager_tester : public ::testing::TestWithParam<duplex_mode>
 {

@@ -14,12 +14,12 @@
 //   + "srsChEstimatorUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
+#include "ocudu/support/file_vector.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   port_channel_estimator::configuration                   cfg;
@@ -292,4 +292,4 @@ static const std::vector<test_case_t> port_channel_estimator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

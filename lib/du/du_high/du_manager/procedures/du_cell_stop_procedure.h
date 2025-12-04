@@ -11,11 +11,11 @@
 #pragma once
 
 #include "procedure_logger.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_ue_manager;
 class du_cell_manager;
@@ -63,5 +63,5 @@ private:
   std::vector<du_ue_index_t> ues_to_rem;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

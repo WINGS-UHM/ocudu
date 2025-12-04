@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 struct app_resource_usage_config;
@@ -21,4 +21,4 @@ struct app_resource_usage_config;
 void configure_cli11_with_app_resource_usage_config_schema(CLI::App& app, app_resource_usage_config& config);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

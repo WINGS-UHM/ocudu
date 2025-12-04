@@ -11,13 +11,13 @@
 #pragma once
 
 #include "prach_processor_worker.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_request_handler.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief PRACH processor implementation.
 ///
@@ -38,7 +38,7 @@ class prach_processor_impl : public prach_processor,
       return;
     }
 
-    srsran_assert(notifier, "Notifier has not been connected.");
+    ocudu_assert(notifier, "Notifier has not been connected.");
 
     // Iterate all workers...
     for (std::unique_ptr<prach_processor_worker>& worker : workers) {
@@ -71,9 +71,9 @@ public:
   explicit prach_processor_impl(std::vector<std::unique_ptr<prach_processor_worker>> workers_) :
     workers(std::move(workers_))
   {
-    srsran_assert(!workers.empty(), "No workers are available.");
+    ocudu_assert(!workers.empty(), "No workers are available.");
     for (const std::unique_ptr<prach_processor_worker>& worker : workers) {
-      srsran_assert(worker, "Invalid worker.");
+      ocudu_assert(worker, "Invalid worker.");
     }
   }
 
@@ -103,4 +103,4 @@ public:
   prach_processor_baseband& get_baseband() override { return *this; }
 };
 
-} // namespace srsran
+} // namespace ocudu

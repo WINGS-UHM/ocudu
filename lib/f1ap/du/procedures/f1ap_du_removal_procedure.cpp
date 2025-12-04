@@ -11,12 +11,12 @@
 #include "f1ap_du_removal_procedure.h"
 #include "../../f1ap_common_messages.h"
 #include "../f1ap_du_context.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 f1ap_du_removal_procedure::f1ap_du_removal_procedure(f1ap_du_connection_handler& du_conn_handler_,
@@ -27,7 +27,7 @@ f1ap_du_removal_procedure::f1ap_du_removal_procedure(f1ap_du_connection_handler&
   cu_notifier(tx_pdu_notifier_),
   ev_mng(ev_mng_),
   du_ctxt(du_ctxt_),
-  logger(srslog::fetch_basic_logger("DU-F1"))
+  logger(ocudulog::fetch_basic_logger("DU-F1"))
 {
 }
 

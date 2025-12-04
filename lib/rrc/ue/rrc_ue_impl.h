@@ -13,13 +13,13 @@
 #include "procedures/rrc_ue_event_manager.h"
 #include "rrc_ue_context.h"
 #include "rrc_ue_logger.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/rrc/rrc_cell_context.h"
-#include "srsran/rrc/rrc_ue.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/rrc/rrc_cell_context.h"
+#include "ocudu/rrc/rrc_ue.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Main UE representation in RRC
 class rrc_ue_impl final : public rrc_ue_interface, public rrc_ue_controller
@@ -129,5 +129,5 @@ private:
   const unsigned rrc_reject_max_wait_time_s = 16;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

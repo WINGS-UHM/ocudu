@@ -10,7 +10,7 @@
 
 #include "rlc_tx_tm_entity.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_tx_tm_entity::rlc_tx_tm_entity(gnb_du_id_t                          du_id,
                                    du_ue_index_t                        ue_index,
@@ -52,7 +52,7 @@ void rlc_tx_tm_entity::handle_sdu(byte_buffer sdu_buf, bool is_retx)
   sdu_.buf = std::move(sdu_buf);
 
   // Sanity check for PDCP ReTx in RLC TM
-  if (SRSRAN_UNLIKELY(is_retx)) {
+  if (OCUDU_UNLIKELY(is_retx)) {
     logger.log_error("Ignored unexpected PDCP retransmission flag in RLC TM SDU");
   }
 
@@ -75,7 +75,7 @@ void rlc_tx_tm_entity::discard_sdu(uint32_t pdcp_sn)
 }
 
 // TS 38.322 v16.2.0 Sec. 5.2.1.1
-size_t rlc_tx_tm_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept SRSRAN_RTSAN_NONBLOCKING
+size_t rlc_tx_tm_entity::pull_pdu(span<uint8_t> mac_sdu_buf) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   size_t grant_len = mac_sdu_buf.size();
   logger.log_debug("MAC opportunity. grant_len={}", grant_len);
@@ -149,7 +149,7 @@ void rlc_tx_tm_entity::handle_changed_buffer_state()
   }
 }
 
-void rlc_tx_tm_entity::update_mac_buffer_state() noexcept SRSRAN_RTSAN_NONBLOCKING
+void rlc_tx_tm_entity::update_mac_buffer_state() noexcept OCUDU_RTSAN_NONBLOCKING
 {
   pending_buffer_state.clear(std::memory_order_seq_cst);
   rlc_buffer_state bs = get_buffer_state();

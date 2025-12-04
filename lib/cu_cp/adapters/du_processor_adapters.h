@@ -13,10 +13,10 @@
 #include "../cu_cp_controller/cu_cp_controller.h"
 #include "../cu_cp_impl_interface.h"
 #include "../du_processor/du_processor.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Adapter between DU processor and CU-CP
 class du_processor_cu_cp_adapter : public du_processor_cu_cp_notifier
@@ -35,31 +35,31 @@ public:
 
   bool on_cell_config_update_request(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg) override
   {
-    srsran_assert(meas_config_handler != nullptr, "Measurement config handler must not be nullptr");
+    ocudu_assert(meas_config_handler != nullptr, "Measurement config handler must not be nullptr");
     return meas_config_handler->handle_cell_config_update_request(nci, serv_cell_cfg);
   }
 
   void on_rrc_ue_created(ue_index_t ue_index, rrc_ue_interface& rrc_ue) override
   {
-    srsran_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
     cu_cp_handler->handle_rrc_ue_creation(ue_index, rrc_ue);
   }
 
   byte_buffer on_target_cell_sib1_required(du_index_t du_index, nr_cell_global_id_t cgi) override
   {
-    srsran_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
     return cu_cp_handler->handle_target_cell_sib1_required(du_index, cgi);
   }
 
   async_task<void> on_ue_removal_required(ue_index_t ue_index) override
   {
-    srsran_assert(ue_removal_handler != nullptr, "CU-CP UE Removal handler must not be nullptr");
+    ocudu_assert(ue_removal_handler != nullptr, "CU-CP UE Removal handler must not be nullptr");
     return ue_removal_handler->handle_ue_removal_request(ue_index);
   }
 
   async_task<void> on_ue_release_required(const cu_cp_ue_context_release_request& request) override
   {
-    srsran_assert(ue_context_handler != nullptr, "UE context handler must not be nullptr");
+    ocudu_assert(ue_context_handler != nullptr, "UE context handler must not be nullptr");
     return ue_context_handler->handle_ue_context_release(request);
   }
 
@@ -82,7 +82,7 @@ public:
 
   bool on_du_setup_request(du_index_t du_index, const std::set<plmn_identity>& plmn_ids) override
   {
-    srsran_assert(cu_ctrl != nullptr, "CU-CP controller must not be nullptr");
+    ocudu_assert(cu_ctrl != nullptr, "CU-CP controller must not be nullptr");
     return cu_ctrl->handle_du_setup_request(du_index, plmn_ids);
   }
 
@@ -90,5 +90,5 @@ private:
   cu_cp_controller* cu_ctrl = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

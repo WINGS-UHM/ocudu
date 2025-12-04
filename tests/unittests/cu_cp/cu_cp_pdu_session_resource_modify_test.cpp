@@ -17,18 +17,18 @@
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/rb_id.h"
 #include <gtest/gtest.h>
 #include <optional>
 #include <sys/types.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static constexpr uint8_t MAX_NOF_DRBS_PER_UE = 29;
 

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 class f1ap_message_notifier;
 
-namespace srs_du {
+namespace odu {
 
 class f1ap_du_configurator;
 class f1ap_du_ue;
@@ -36,5 +36,5 @@ async_task<void> start_trp_information_exchange_procedure(const asn1::f1ap::trp_
 async_task<void> start_positioning_exchange_procedure(const asn1::f1ap::positioning_info_request_s& msg,
                                                       f1ap_du_configurator&                         du_mng,
                                                       f1ap_du_ue&                                   ue);
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -14,16 +14,16 @@
 #include "apps/services/buffer_pool/metrics/buffer_pool_metrics.h"
 #include "apps/services/metrics/metrics_consumer.h"
 #include "external/nlohmann/json.hpp"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/ocudulog/log_channel.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Log consumer for the buffer pool metrics.
 class buffer_pool_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit buffer_pool_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit buffer_pool_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override
@@ -34,14 +34,14 @@ public:
   }
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// JSON consumer for the buffer pool metrics.
 class buffer_pool_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit buffer_pool_metrics_consumer_json(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit buffer_pool_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override
@@ -58,8 +58,8 @@ public:
   }
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

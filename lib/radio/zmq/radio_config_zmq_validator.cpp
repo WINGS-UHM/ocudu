@@ -12,7 +12,7 @@
 #include "fmt/format.h"
 #include <regex>
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool validate_clock_sources(const radio_configuration::clock_sources& sources)
 {

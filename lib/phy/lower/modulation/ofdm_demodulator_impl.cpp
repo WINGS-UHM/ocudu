@@ -9,16 +9,16 @@
  */
 
 #include "ofdm_demodulator_impl.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ofdm_symbol_demodulator_impl::ofdm_symbol_demodulator_impl(const ofdm_demodulator_configuration& ofdm_config,
                                                            ofdm_demodulator_dependencies         dependencies) :
@@ -43,17 +43,17 @@ ofdm_symbol_demodulator_impl::ofdm_symbol_demodulator_impl(const ofdm_demodulato
       dft_size > rg_size, "The DFT size ({}) must be greater than the resource grid size ({}).", dft_size, rg_size);
 
   // Fill DFT input with zeros.
-  srsvec::zero(dft->get_input());
+  ocuduvec::zero(dft->get_input());
 
   // Set the right size to the internal phase compensation buffer.
   compensated_output.resize(dft_size);
 
   if (ofdm_config.nof_samples_window_offset != 0) {
     // Verify the window is valid.
-    srsran_assert(ofdm_config.nof_samples_window_offset < (144 * ofdm_config.dft_size) / 2048,
-                  "The DFT window offset (i.e., {}) must be lower than {}.",
-                  ofdm_config.nof_samples_window_offset,
-                  (144 * ofdm_config.dft_size) / 2048);
+    ocudu_assert(ofdm_config.nof_samples_window_offset < (144 * ofdm_config.dft_size) / 2048,
+                 "The DFT window offset (i.e., {}) must be lower than {}.",
+                 ofdm_config.nof_samples_window_offset,
+                 (144 * ofdm_config.dft_size) / 2048);
 
     // Prepare phase compensation vector.
     window_phase_compensation.resize(dft_size);
@@ -100,17 +100,17 @@ void ofdm_symbol_demodulator_impl::demodulate(resource_grid_writer& grid,
   unsigned cp_len = cp.get_length(symbol_index, scs).to_samples(sampling_rate_Hz);
 
   // Make sure output buffer matches the symbol size.
-  srsran_assert(input.size() == (cp_len + dft_size),
-                "The input buffer size ({}) does not match the symbol index {} size ({}+{}={}). SCS={}kHz.",
-                input.size(),
-                symbol_index,
-                cp_len,
-                dft_size,
-                cp_len + dft_size,
-                scs_to_khz(scs));
+  ocudu_assert(input.size() == (cp_len + dft_size),
+               "The input buffer size ({}) does not match the symbol index {} size ({}+{}={}). SCS={}kHz.",
+               input.size(),
+               symbol_index,
+               cp_len,
+               dft_size,
+               cp_len + dft_size,
+               scs_to_khz(scs));
 
   // Prepare the DFT inputs, while skipping the cyclic prefix.
-  srsvec::copy(dft->get_input().first(dft_size), input.subspan(cp_len - nof_samples_window_offset, dft_size));
+  ocuduvec::copy(dft->get_input().first(dft_size), input.subspan(cp_len - nof_samples_window_offset, dft_size));
 
   // Execute DFT.
   span<const cf_t> dft_output = dft->run();
@@ -119,11 +119,11 @@ void ofdm_symbol_demodulator_impl::demodulate(resource_grid_writer& grid,
   cf_t phase_compensation = phase_compensation_table.get_coefficient(symbol_index);
 
   // Apply scaling and phase compensation.
-  srsvec::sc_prod(compensated_output, dft_output, phase_compensation * scale);
+  ocuduvec::sc_prod(compensated_output, dft_output, phase_compensation * scale);
 
   // Compensate DFT window offset phase shift.
   if (!window_phase_compensation.empty()) {
-    srsvec::prod(compensated_output, window_phase_compensation, compensated_output);
+    ocuduvec::prod(compensated_output, window_phase_compensation, compensated_output);
   }
 
   // Map the upper bound frequency domain data.

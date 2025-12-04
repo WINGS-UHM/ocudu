@@ -13,7 +13,7 @@
 #include "helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace ofh::testing;
 
@@ -65,7 +65,7 @@ public:
     data_flow(get_config(), get_dependencies())
   {
     ul_cplane_context context;
-    context.filter_index = srsran::ofh::filter_index_type::standard_channel_filter;
+    context.filter_index = ocudu::ofh::filter_index_type::standard_channel_filter;
     context.start_symbol = 0;
     context.prb_start    = 0;
     context.nof_prb      = nof_prbs;
@@ -76,7 +76,7 @@ public:
     ul_context_repo->add({slot, sector},
                          shared_grid.get_grid(),
                          {context.start_symbol, context.nof_symbols},
-                         srslog::fetch_basic_logger("TEST"));
+                         ocudulog::fetch_basic_logger("TEST"));
     ul_context_repo->process_pending_contexts();
   }
 
@@ -92,7 +92,7 @@ public:
   {
     data_flow_uplane_uplink_data_impl_dependencies dependencies;
 
-    dependencies.logger                 = &srslog::fetch_basic_logger("TEST");
+    dependencies.logger                 = &ocudulog::fetch_basic_logger("TEST");
     dependencies.ul_cplane_context_repo = ul_cplane_context_repo_ptr;
     dependencies.ul_context_repo        = ul_context_repo;
 
@@ -142,7 +142,7 @@ TEST_F(data_flow_uplane_uplink_data_impl_fixture, valid_message_containing_all_s
 TEST_F(data_flow_uplane_uplink_data_impl_fixture, invalid_filter_index_does_not_write_grid)
 {
   uplane_message_decoder_results deco_results = build_valid_decoder_results();
-  deco_results.params.filter_index            = srsran::ofh::filter_index_type::ul_prach_preamble_1p25khz;
+  deco_results.params.filter_index            = ocudu::ofh::filter_index_type::ul_prach_preamble_1p25khz;
   uplane_decoder->set_results(deco_results);
   data_flow.decode_type1_message(eaxc, {});
 

@@ -21,8 +21,8 @@
 #include "apps/services/worker_manager/worker_manager_appconfig.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu {
+namespace ocudu {
+namespace ocu {
 
 /// F1AP configuration.
 struct cu_f1ap_appconfig {
@@ -37,7 +37,7 @@ struct metrics_appconfig {
   app_services::executor_metrics_config   executors_metrics_cfg;
 };
 
-} // namespace srs_cu
+} // namespace ocu
 
 /// CU application configuration.
 struct cu_appconfig {
@@ -52,15 +52,15 @@ struct cu_appconfig {
   /// F1-U configuration.
   f1u_sockets_appconfig f1u_cfg;
   /// F1AP configuration.
-  srs_cu::cu_f1ap_appconfig f1ap_cfg;
+  ocu::cu_f1ap_appconfig f1ap_cfg;
   /// Buffer pool configuration.
   app_services::buffer_pool_appconfig buffer_pool_config;
   /// Remote control configuration.
   remote_control_appconfig remote_control_config;
   /// Metrics configuration.
-  srs_cu::metrics_appconfig metrics_cfg;
+  ocu::metrics_appconfig metrics_cfg;
   /// Dryrun mode enabled flag.
   bool enable_dryrun = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,11 +9,11 @@
  */
 
 #include "phy_to_fapi_results_event_fastpath_translator.h"
-#include "srsran/fapi/message_builders.h"
-#include "srsran/fapi/message_validators.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/fapi/message_validators.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
@@ -35,9 +35,9 @@ public:
 static slot_data_message_notifier_dummy dummy_data_notifier;
 
 phy_to_fapi_results_event_fastpath_translator::phy_to_fapi_results_event_fastpath_translator(
-    unsigned              sector_id_,
-    float                 dBFS_calibration_value_,
-    srslog::basic_logger& logger_) :
+    unsigned                sector_id_,
+    float                   dBFS_calibration_value_,
+    ocudulog::basic_logger& logger_) :
   sector_id(sector_id_),
   dBFS_calibration_value(dBFS_calibration_value_),
   logger(logger_),
@@ -340,7 +340,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
 /// Fills the SR parameters for PUCCH Format 0 or Format 1 using the given builder and result.
 static void fill_format_0_1_sr(fapi::uci_pucch_pdu_format_0_1_builder& builder, const ul_pucch_results& result)
 {
-  srsran_assert(result.context.context_f0_f1.has_value(), "Context for PUCCH Format 0 or Format 1 is empty");
+  ocudu_assert(result.context.context_f0_f1.has_value(), "Context for PUCCH Format 0 or Format 1 is empty");
 
   const ul_pucch_f0_f1_context& context = result.context.context_f0_f1.value();
   // Do nothing when there is no SR opportunity.
@@ -542,7 +542,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_pucch_results(const u
       add_format_2_3_4_pucch_pdu(builder, result);
       break;
     default:
-      srsran_assert(0, "Unexpected PUCCH format {}", fmt::underlying(context.format));
+      ocudu_assert(0, "Unexpected PUCCH format {}", fmt::underlying(context.format));
   }
 
   error_type<fapi::validator_report> validation_result = validate_uci_indication(msg);

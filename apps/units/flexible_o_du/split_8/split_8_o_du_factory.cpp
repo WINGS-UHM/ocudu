@@ -11,7 +11,7 @@
 #include "split_8_o_du_factory.h"
 #include "helpers/ru_sdr_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 split8_du_factory::split8_du_factory(const split_8_o_du_unit_config& config_) :
   flexible_o_du_factory({config_.odu_high_cfg,

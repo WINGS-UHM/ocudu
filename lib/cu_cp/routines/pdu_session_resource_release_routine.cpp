@@ -11,8 +11,8 @@
 #include "pdu_session_resource_release_routine.h"
 #include "pdu_session_routine_helpers.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 pdu_session_resource_release_routine::pdu_session_resource_release_routine(
@@ -23,7 +23,7 @@ pdu_session_resource_release_routine::pdu_session_resource_release_routine(
     cu_cp_rrc_ue_interface&                           cu_cp_notifier_,
     ue_task_scheduler&                                task_sched_,
     up_resource_manager&                              up_resource_mng_,
-    srslog::basic_logger&                             logger_) :
+    ocudulog::basic_logger&                           logger_) :
   release_cmd(release_cmd_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
@@ -39,7 +39,7 @@ pdu_session_resource_release_routine::pdu_session_resource_release_routine(
 static bool handle_rrc_reconfiguration_response(cu_cp_pdu_session_resource_release_response&      response_msg,
                                                 const cu_cp_pdu_session_resource_release_command& release_cmd,
                                                 bool                                              rrc_reconfig_result,
-                                                const srslog::basic_logger&                       logger)
+                                                const ocudulog::basic_logger&                     logger)
 {
   // Let all PDU sessions fail if response is negative.
   if (!rrc_reconfig_result) {

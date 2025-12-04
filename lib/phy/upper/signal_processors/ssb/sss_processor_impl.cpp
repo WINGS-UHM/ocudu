@@ -9,11 +9,11 @@
  */
 
 #include "sss_processor_impl.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 const sss_sequence_generator sss_processor_impl::sequence_generator;
 

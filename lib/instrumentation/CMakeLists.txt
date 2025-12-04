@@ -13,19 +13,19 @@ set(SOURCES
         traces/up_traces.cpp
         traces/ofh_traces.cpp)
 
-set(LIBS srsran_support)
+set(LIBS ocudu_support)
 
-if(ENABLE_SRSRAN_TRACY)
+if(ENABLE_OCUDU_TRACY)
 	list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/external/tracy/public/TracyClient.cpp)
 	list(APPEND LIBS ${TRACY_LIBRARIES})
 endif()
 
-add_library(srsran_instrumentation ${SOURCES})
+add_library(ocudu_instrumentation ${SOURCES})
 
-if(ENABLE_SRSRAN_TRACY)
-  target_include_directories(srsran_instrumentation PUBLIC ${CMAKE_SOURCE_DIR}/external/tracy/public/)
+if(ENABLE_OCUDU_TRACY)
+  target_include_directories(ocudu_instrumentation PUBLIC ${CMAKE_SOURCE_DIR}/external/tracy/public/)
 endif()
 
-target_link_libraries(srsran_instrumentation ${LIBS})
+target_link_libraries(ocudu_instrumentation ${LIBS})
 
-add_to_exported_libs(srsran_instrumentation)
+add_to_exported_libs(ocudu_instrumentation)

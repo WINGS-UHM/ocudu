@@ -8,32 +8,32 @@
  *
  */
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/support/srsran_test.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/support/ocudu_test.h"
+#include "ocudu/support/test_utils.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <numeric>
 #include <random>
 
 using namespace asn1;
-using srsran::byte_buffer;
+using ocudu::byte_buffer;
 
 std::random_device rd;
 std::mt19937       g(rd());
 
-srsran::log_sink_spy* test_spy = nullptr;
+ocudu::log_sink_spy* test_spy = nullptr;
 
 TEST(asn1_bit_ref_test, unpack_empty_buffer)
 {
-  byte_buffer pdu;
-  cbit_ref    bref(pdu);
-  uint8_t     dummy  = 0;
-  SRSASN_CODE result = bref.unpack(dummy, 1);
-  ASSERT_EQ(result, SRSASN_ERROR_DECODE_FAIL);
+  byte_buffer   pdu;
+  cbit_ref      bref(pdu);
+  uint8_t       dummy  = 0;
+  OCUDUASN_CODE result = bref.unpack(dummy, 1);
+  ASSERT_EQ(result, OCUDUASN_ERROR_DECODE_FAIL);
 
   // Make sure the log backend has already processed the generated log entries.
-  srslog::flush();
+  ocudulog::flush();
   TESTASSERT(test_spy->get_error_counter() == 1 and test_spy->get_warning_counter() == 0);
   test_spy->reset_counters();
 }
@@ -103,14 +103,14 @@ TEST(asn1_array_test, pack_unpack_operators)
 TEST(asn1_bit_ref, pack_unpack_operators)
 {
   for (uint32_t n_bit_stride = 1; n_bit_stride < 32; ++n_bit_stride) {
-    srsran::byte_buffer buf;
-    uint32_t            nof_bytes_to_pack = n_bit_stride * 4;
+    ocudu::byte_buffer buf;
+    uint32_t           nof_bytes_to_pack = n_bit_stride * 4;
 
     // Pack in batches of n_bit_stride.
     bit_ref bref(buf);
     for (uint32_t i = 0; i < nof_bytes_to_pack * 8 / n_bit_stride; ++i) {
       ASSERT_EQ(i * n_bit_stride, (unsigned)bref.distance());
-      ASSERT_EQ(SRSASN_SUCCESS, bref.pack(i, n_bit_stride));
+      ASSERT_EQ(OCUDUASN_SUCCESS, bref.pack(i, n_bit_stride));
     }
     ASSERT_EQ(nof_bytes_to_pack, (unsigned)bref.distance_bytes());
     ASSERT_EQ(nof_bytes_to_pack, (unsigned)bref.distance() / 8U);
@@ -125,7 +125,7 @@ TEST(asn1_bit_ref, pack_unpack_operators)
     for (uint32_t i = 0; i < nof_bytes_to_pack * 8 / n_bit_stride; ++i) {
       uint64_t val;
       ASSERT_EQ(i * n_bit_stride, (unsigned)bref2.distance());
-      ASSERT_EQ(SRSASN_SUCCESS, bref2.unpack(val, n_bit_stride));
+      ASSERT_EQ(OCUDUASN_SUCCESS, bref2.unpack(val, n_bit_stride));
       TESTASSERT((i & bitmask) == val);
     }
     ASSERT_EQ(nof_bytes_to_pack, (unsigned)bref2.distance_bytes());
@@ -134,7 +134,7 @@ TEST(asn1_bit_ref, pack_unpack_operators)
 
   // pack bytes aligned
   {
-    srsran::byte_buffer            buf;
+    ocudu::byte_buffer             buf;
     constexpr uint32_t             nof_bytes = 512;
     uint32_t                       start     = 1;
     bit_ref                        bref(buf);
@@ -143,12 +143,12 @@ TEST(asn1_bit_ref, pack_unpack_operators)
       buf2[i] = start + i;
     }
 
-    ASSERT_EQ(SRSASN_SUCCESS, bref.pack_bytes(buf2));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.pack_bytes(buf2));
     ASSERT_EQ((int)nof_bytes, bref.distance_bytes());
     ASSERT_EQ(nof_bytes, buf.length());
     TESTASSERT(buf == buf2);
     cbit_ref bref2(buf);
-    ASSERT_EQ(SRSASN_SUCCESS, bref2.unpack_bytes(buf2));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref2.unpack_bytes(buf2));
     ASSERT_EQ((int)nof_bytes, bref2.distance_bytes());
     TESTASSERT(buf == buf2);
   }
@@ -157,7 +157,7 @@ TEST(asn1_bit_ref, pack_unpack_operators)
   {
     constexpr uint32_t             nof_bytes = 128;
     uint32_t                       start     = 1;
-    srsran::byte_buffer            buf;
+    ocudu::byte_buffer             buf;
     bit_ref                        bref(buf);
     std::array<uint8_t, nof_bytes> buf2, buf3;
     for (uint32_t i = 0; i < nof_bytes; ++i) {
@@ -165,8 +165,8 @@ TEST(asn1_bit_ref, pack_unpack_operators)
     }
 
     // pack.
-    ASSERT_EQ(SRSASN_SUCCESS, bref.pack(0, 1)); // this unaligns.
-    ASSERT_EQ(SRSASN_SUCCESS, bref.pack_bytes(buf2));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.pack(0, 1)); // this unaligns.
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.pack_bytes(buf2));
     ASSERT_EQ(bref.distance_bytes(), (int)nof_bytes + 1);
     ASSERT_EQ(bref.distance(), (int)nof_bytes * 8 + 1);
     ASSERT_EQ(bref.distance_bytes(), (int)buf.length());
@@ -174,9 +174,9 @@ TEST(asn1_bit_ref, pack_unpack_operators)
     // unpack and check original bytes with unpacked ones.
     cbit_ref bref2(buf);
     uint32_t val;
-    ASSERT_EQ(SRSASN_SUCCESS, bref2.unpack(val, 1));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref2.unpack(val, 1));
     TESTASSERT(val == 0);
-    ASSERT_EQ(SRSASN_SUCCESS, bref2.unpack_bytes(buf3));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref2.unpack_bytes(buf3));
     TESTASSERT(bref2.distance_bytes() == (int)nof_bytes + 1);
     TESTASSERT(bref2.distance_bytes() == bref.distance_bytes());
     TESTASSERT(std::equal(buf2.begin(), buf2.end(), buf3.begin(), buf3.end()));
@@ -184,17 +184,17 @@ TEST(asn1_bit_ref, pack_unpack_operators)
 
   // test advance bits
   {
-    srsran::byte_buffer buf = byte_buffer::create(std::vector<uint8_t>(256)).value();
-    cbit_ref            bref(buf);
-    ASSERT_EQ(SRSASN_SUCCESS, bref.advance_bits(4));
+    ocudu::byte_buffer buf = byte_buffer::create(std::vector<uint8_t>(256)).value();
+    cbit_ref           bref(buf);
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.advance_bits(4));
     ASSERT_EQ(4, bref.distance());
-    ASSERT_EQ(SRSASN_SUCCESS, bref.advance_bits(4));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.advance_bits(4));
     ASSERT_EQ(8, bref.distance());
-    ASSERT_EQ(SRSASN_SUCCESS, bref.advance_bits(3));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.advance_bits(3));
     ASSERT_EQ(11, bref.distance());
-    ASSERT_EQ(SRSASN_SUCCESS, bref.advance_bits(200));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.advance_bits(200));
     ASSERT_EQ(211, bref.distance());
-    ASSERT_EQ(SRSASN_SUCCESS, bref.advance_bits(5));
+    ASSERT_EQ(OCUDUASN_SUCCESS, bref.advance_bits(5));
     ASSERT_EQ(216, bref.distance());
   }
 }
@@ -231,14 +231,14 @@ TEST(asn1_octet_string_test, pack_unpack_operators)
   statstr.from_string(hexstr);
   dynstr.from_string(hexstr);
 
-  srsran::byte_buffer buf;
-  bit_ref             b{buf};
+  ocudu::byte_buffer buf;
+  bit_ref            b{buf};
   statstr.pack(b);
   TESTASSERT(std::equal(buf.begin(), buf.end(), statstr.begin(), statstr.end())); // no prefix in static strings.
   TESTASSERT(b.distance() == (int)statstr.size() * 8);
   fixed_octstring<5> statstr2;
   cbit_ref           b2 = cbit_ref(buf);
-  ASSERT_EQ(SRSASN_SUCCESS, statstr2.unpack(b2));
+  ASSERT_EQ(OCUDUASN_SUCCESS, statstr2.unpack(b2));
   TESTASSERT(statstr == statstr2);
 
   buf.clear();
@@ -363,41 +363,41 @@ TEST(asn1_bit_string_test, pack_unpack_operators)
   TESTASSERT(not dyn_bstr1.get(10));
 
   /* Test Packing/Unpacking */
-  srsran::byte_buffer buf;
-  bit_ref             bref(buf);
+  ocudu::byte_buffer buf;
+  bit_ref            bref(buf);
   // fixed
-  ASSERT_EQ(SRSASN_SUCCESS, bstr1.pack(bref));
+  ASSERT_EQ(OCUDUASN_SUCCESS, bstr1.pack(bref));
   fixed_bitstring<10> bstr2;
   TESTASSERT(bstr2.length() == 10);
   cbit_ref bref2(buf);
-  ASSERT_EQ(SRSASN_SUCCESS, bstr2.unpack(bref2));
+  ASSERT_EQ(OCUDUASN_SUCCESS, bstr2.unpack(bref2));
   TESTASSERT(bstr2 == bstr1);
   TESTASSERT(bref.distance() == 10 and bref.distance() == bref2.distance());
   // bounded
   buf.clear();
   bref = bit_ref(buf);
-  TESTASSERT(bound_bstr1.pack(bref) == SRSASN_SUCCESS);
+  TESTASSERT(bound_bstr1.pack(bref) == OCUDUASN_SUCCESS);
   bounded_bitstring<5, 15> bound_bstr2(dyn_bstr1.length());
   TESTASSERT(bound_bstr2.length() == 11);
   bref2 = cbit_ref(buf);
-  TESTASSERT(bound_bstr2.unpack(bref2) == SRSASN_SUCCESS);
+  TESTASSERT(bound_bstr2.unpack(bref2) == OCUDUASN_SUCCESS);
   TESTASSERT(bound_bstr2 == bound_bstr1);
   TESTASSERT(bref.distance() == (11 + 4) and bref.distance() == bref2.distance());
   // dyn
   buf.clear();
   bref = bit_ref(buf);
-  TESTASSERT(dyn_bstr1.pack(bref) == SRSASN_SUCCESS);
+  TESTASSERT(dyn_bstr1.pack(bref) == OCUDUASN_SUCCESS);
   dyn_bitstring dyn_bstr2(dyn_bstr1.length());
   TESTASSERT(dyn_bstr2.length() == 11);
   bref2 = cbit_ref(buf);
-  TESTASSERT(dyn_bstr2.unpack(bref2) == SRSASN_SUCCESS);
+  TESTASSERT(dyn_bstr2.unpack(bref2) == OCUDUASN_SUCCESS);
   TESTASSERT(dyn_bstr2 == dyn_bstr1);
   //  printf("%s==%s\n", dyn_bstr1.to_string().c_str(), dyn_bstr2.to_string().c_str());
 
   // disable temporarily the prints to check failures
-  //  srsran::nullsink_log null_log("NULL");
+  //  ocudu::nullsink_log null_log("NULL");
   //  bit_ref bref3(&buffer[0], sizeof(buffer));
-  //  TESTASSERT(dyn_bstr1.pack(bref3, false, 5, 10)==SRSASN_ERROR_ENCODE_FAIL);
+  //  TESTASSERT(dyn_bstr1.pack(bref3, false, 5, 10)==OCUDUASN_ERROR_ENCODE_FAIL);
 
   /* Test Pack/Unpack 2 */
   buf.clear();
@@ -426,8 +426,8 @@ TEST(asn1_seq_of_test, pack_unpack_and_operators)
   int      lb = 0, ub = 40;
   uint32_t n_bits = std::ceil(std::log2(ub - lb + 1));
 
-  srsran::byte_buffer buffer;
-  bit_ref             b{buffer};
+  ocudu::byte_buffer buffer;
+  bit_ref            b{buffer};
   pack_fixed_seq_of(b, fixed_list, fixed_list.size(), integer_packer<uint32_t>(lb, ub, false));
   TESTASSERT(b.distance() == (int)(fixed_list_size * n_bits));
   cbit_ref                 b2(buffer);
@@ -593,13 +593,13 @@ TEST(asn1_enumerated, pack_unpack)
   TESTASSERT(number_to_enum<EnumTest>(e2, 10));
   TESTASSERT(e2 == e);
 
-  srsran::byte_buffer buffer;
-  bit_ref             bref(buffer);
-  TESTASSERT(pack_enum(bref, e) == SRSASN_SUCCESS);
+  ocudu::byte_buffer buffer;
+  bit_ref            bref(buffer);
+  TESTASSERT(pack_enum(bref, e) == OCUDUASN_SUCCESS);
   TESTASSERT(bref.distance() == (int)(std::floor(std::log2(e.nof_types)) + 1));
 
   cbit_ref bref2(buffer);
-  TESTASSERT(unpack_enum(e2, bref2) == SRSASN_SUCCESS);
+  TESTASSERT(unpack_enum(e2, bref2) == OCUDUASN_SUCCESS);
   TESTASSERT(bref2.distance() == (int)bref.distance());
   TESTASSERT(e == e2);
 
@@ -608,14 +608,14 @@ TEST(asn1_enumerated, pack_unpack)
   TESTASSERT(test_spy->get_error_counter() == 0 and test_spy->get_warning_counter() == 0);
   bref = bit_ref(buffer);
   e    = EnumTest::nulltype;
-  TESTASSERT(pack_enum(bref, e) == SRSASN_ERROR_ENCODE_FAIL);
+  TESTASSERT(pack_enum(bref, e) == OCUDUASN_ERROR_ENCODE_FAIL);
   ASSERT_EQ(0, bref.distance());
   ASSERT_TRUE(buffer.append(255));
   bref2 = cbit_ref(buffer);
-  TESTASSERT(unpack_enum(e, bref2) == SRSASN_ERROR_DECODE_FAIL);
+  TESTASSERT(unpack_enum(e, bref2) == OCUDUASN_ERROR_DECODE_FAIL);
 
   // Make sure the log backend has already processed the generated log entries.
-  srslog::flush();
+  ocudulog::flush();
   TESTASSERT(test_spy->get_error_counter() == 2 and test_spy->get_warning_counter() == 0);
   test_spy->reset_counters();
 }
@@ -687,8 +687,8 @@ TEST(asn1_integer_test, large_integer_pack_unpack)
 {
   integer<uint64_t, 0, 4294967295, false, true> big_integer = 3172073535;
 
-  srsran::byte_buffer buffer;
-  bit_ref             bref(buffer);
+  ocudu::byte_buffer buffer;
+  bit_ref            bref(buffer);
   TESTASSERT(big_integer.pack(bref) == 0);
 
   std::array<uint8_t, 5> bytes{0xc0, 0xbd, 0x12, 0x00, 0x3f};
@@ -710,8 +710,8 @@ TEST(asn1_real_test, real_special_number_pack_unpack)
     real_s               real_number;
     real_number.value = input_numbers[i];
 
-    srsran::byte_buffer buffer;
-    bit_ref             bref(buffer);
+    ocudu::byte_buffer buffer;
+    bit_ref            bref(buffer);
     TESTASSERT(real_number.pack(bref) == 0);
     TESTASSERT(std::equal(buffer.begin(), buffer.end(), out_bytes.begin(), out_bytes.end()));
 
@@ -747,8 +747,8 @@ TEST(asn1_real_test, real_positive_number_pack_unpack)
     real_s               real_number;
     real_number.value = input_numbers[i];
 
-    srsran::byte_buffer buffer;
-    bit_ref             bref(buffer);
+    ocudu::byte_buffer buffer;
+    bit_ref            bref(buffer);
     TESTASSERT(real_number.pack(bref) == 0);
     TESTASSERT(std::equal(buffer.begin(), buffer.end(), out_bytes.begin(), out_bytes.end()));
 
@@ -785,8 +785,8 @@ TEST(asn1_real_test, real_negative_number_pack_unpack)
     real_s               real_number;
     real_number.value = input_numbers[i];
 
-    srsran::byte_buffer buffer;
-    bit_ref             bref(buffer);
+    ocudu::byte_buffer buffer;
+    bit_ref            bref(buffer);
     TESTASSERT(real_number.pack(bref) == 0);
     TESTASSERT(std::equal(buffer.begin(), buffer.end(), out_bytes.begin(), out_bytes.end()));
 
@@ -808,9 +808,9 @@ TEST(asn1_real_test, real_negative_number_pack_unpack)
 
 TEST(asn1_varlength_field_test, pack)
 {
-  srsran::byte_buffer buffer;
-  bit_ref             bref(buffer);
-  ASSERT_EQ(SRSASN_SUCCESS, bref.pack(0, 1));
+  ocudu::byte_buffer buffer;
+  bit_ref            bref(buffer);
+  ASSERT_EQ(OCUDUASN_SUCCESS, bref.pack(0, 1));
   ASSERT_EQ(1, bref.distance());
   {
     varlength_field_pack_guard guard(bref);
@@ -824,22 +824,22 @@ TEST(asn1_varlength_field_test, pack)
 int main(int argc, char** argv)
 {
   // Setup the log spy to intercept error and warning log entries.
-  if (!srslog::install_custom_sink(
-          srsran::log_sink_spy::name(),
-          std::unique_ptr<srsran::log_sink_spy>(new srsran::log_sink_spy(srslog::get_default_log_formatter())))) {
-    return SRSASN_ERROR;
+  if (!ocudulog::install_custom_sink(
+          ocudu::log_sink_spy::name(),
+          std::unique_ptr<ocudu::log_sink_spy>(new ocudu::log_sink_spy(ocudulog::get_default_log_formatter())))) {
+    return OCUDUASN_ERROR;
   }
-  test_spy = static_cast<srsran::log_sink_spy*>(srslog::find_sink(srsran::log_sink_spy::name()));
+  test_spy = static_cast<ocudu::log_sink_spy*>(ocudulog::find_sink(ocudu::log_sink_spy::name()));
   if (!test_spy) {
-    return SRSASN_ERROR;
+    return OCUDUASN_ERROR;
   }
 
-  auto& asn1_logger = srslog::fetch_basic_logger("ASN1", *test_spy, false);
-  asn1_logger.set_level(srslog::basic_levels::debug);
+  auto& asn1_logger = ocudulog::fetch_basic_logger("ASN1", *test_spy, false);
+  asn1_logger.set_level(ocudulog::basic_levels::debug);
   asn1_logger.set_hex_dump_max_size(-1);
 
   // Start the log backend.
-  srslog::init();
+  ocudulog::init();
 
   //  TESTASSERT(test_json_writer()==0);
 

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Transform precoder metrics aggregator.
 class transform_precoder_metrics_aggregator : public transform_precoder_metric_notifier
@@ -74,4 +74,4 @@ private:
   std::atomic<uint64_t> count          = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

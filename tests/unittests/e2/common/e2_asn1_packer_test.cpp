@@ -12,7 +12,7 @@
 #include "e2ap_asn1_packer.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fixture class for E2AP ASN1 packer
 class e2_asn1_packer_test : public ::testing::Test
@@ -20,9 +20,9 @@ class e2_asn1_packer_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("E2-ASN1-PCK").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("E2-ASN1-PCK").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     gw     = std::make_unique<dummy_sctp_association_sdu_notifier>();
     e2     = std::make_unique<dummy_e2_message_handler>();
@@ -33,14 +33,14 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<dummy_sctp_association_sdu_notifier> gw;
   std::unique_ptr<dummy_e2_message_handler>            e2;
   std::unique_ptr<dummy_e2ap_pcap>                     pcap;
   std::unique_ptr<e2ap_asn1_packer>                    packer;
-  srslog::basic_logger&                                test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                              test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful packing and unpacking

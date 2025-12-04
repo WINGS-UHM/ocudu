@@ -9,9 +9,9 @@
  */
 
 #include "slot_time_notifier_dummy.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 void slot_time_message_notifier_dummy::on_slot_indication(const slot_indication_message& msg)

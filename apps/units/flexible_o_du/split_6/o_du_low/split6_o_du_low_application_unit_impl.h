@@ -14,10 +14,10 @@
 #include "apps/units/application_unit.h"
 #include "split6_o_du_low_plugin.h"
 #include "split6_o_du_low_unit_config.h"
-#include "srsran/du/du_operation_controller.h"
+#include "ocudu/du/du_operation_controller.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 struct worker_manager;
@@ -62,7 +62,7 @@ public:
   split6_o_du_low_unit create_flexible_o_du_low(worker_manager&                 workers,
                                                 app_services::metrics_notifier& metrics_notifier,
                                                 timer_manager&                  timers,
-                                                srslog::basic_logger&           logger);
+                                                ocudulog::basic_logger&         logger);
 
 private:
   split6_o_du_low_unit_config             unit_cfg;
@@ -72,4 +72,4 @@ private:
 std::unique_ptr<split6_o_du_low_application_unit_impl>
 create_flexible_o_du_low_application_unit(std::string_view app_name);
 
-} // namespace srsran
+} // namespace ocudu

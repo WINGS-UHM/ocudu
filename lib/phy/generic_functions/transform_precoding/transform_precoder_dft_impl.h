@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoder.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoder.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a transform precoder based on the DFT algorithm.
 class transform_precoder_dft_impl : public transform_precoder
@@ -33,15 +33,15 @@ public:
       unsigned M_rb     = entry.first;
       unsigned M_sc     = M_rb * NRE;
       unsigned dft_size = entry.second->get_size();
-      srsran_assert(
+      ocudu_assert(
           transform_precoding::is_nof_prbs_valid(M_rb), "Invalid number of resource elements (i.e., {}).", M_rb);
-      srsran_assert(M_sc == dft_size,
-                    "The DFT size (i.e., {}) is not consistent with the number of subcarriers (i.e., {}).",
-                    dft_size,
-                    M_sc);
-      srsran_assert(entry.second->get_direction() == dft_processor::direction::INVERSE,
-                    "Invalid DFT direction (i.e., {}).",
-                    dft_processor::direction_to_string(entry.second->get_direction()));
+      ocudu_assert(M_sc == dft_size,
+                   "The DFT size (i.e., {}) is not consistent with the number of subcarriers (i.e., {}).",
+                   dft_size,
+                   M_sc);
+      ocudu_assert(entry.second->get_direction() == dft_processor::direction::INVERSE,
+                   "Invalid DFT direction (i.e., {}).",
+                   dft_processor::direction_to_string(entry.second->get_direction()));
     }
 #endif // ASSERTS_ENABLED
   }
@@ -57,4 +57,4 @@ private:
   collection_dft_processors dft_processors;
 };
 
-} // namespace srsran
+} // namespace ocudu

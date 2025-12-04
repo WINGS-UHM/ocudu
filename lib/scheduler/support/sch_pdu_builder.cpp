@@ -11,13 +11,13 @@
 #include "sch_pdu_builder.h"
 #include "dmrs_helpers.h"
 #include "pdsch/pdsch_default_time_allocation.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pusch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_size.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_size.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // See TS 38.211, 7.3.1.1. - Scrambling.
 static unsigned
@@ -31,8 +31,8 @@ get_pdsch_n_id(pci_t pci, const bwp_downlink_dedicated* bwp_dl_ded, dci_dl_forma
   return pci;
 }
 
-pusch_config_params srsran::get_pusch_config_f0_0_tc_rnti(const cell_configuration&                    cell_cfg,
-                                                          const pusch_time_domain_resource_allocation& pusch_td_cfg)
+pusch_config_params ocudu::get_pusch_config_f0_0_tc_rnti(const cell_configuration&                    cell_cfg,
+                                                         const pusch_time_domain_resource_allocation& pusch_td_cfg)
 {
   constexpr pusch_mcs_table mcs_table  = pusch_mcs_table::qam64;
   constexpr unsigned        nof_layers = 1;
@@ -67,12 +67,12 @@ pusch_config_params srsran::get_pusch_config_f0_0_tc_rnti(const cell_configurati
   return pusch;
 }
 
-pusch_config_params srsran::get_pusch_config_f0_0_c_rnti(const cell_configuration&                    cell_cfg,
-                                                         const ue_cell_configuration*                 ue_cell_cfg,
-                                                         const bwp_uplink_common&                     ul_bwp,
-                                                         const pusch_time_domain_resource_allocation& pusch_td_cfg,
-                                                         const unsigned                               nof_harq_ack_bits,
-                                                         bool is_csi_report_slot)
+pusch_config_params ocudu::get_pusch_config_f0_0_c_rnti(const cell_configuration&                    cell_cfg,
+                                                        const ue_cell_configuration*                 ue_cell_cfg,
+                                                        const bwp_uplink_common&                     ul_bwp,
+                                                        const pusch_time_domain_resource_allocation& pusch_td_cfg,
+                                                        const unsigned                               nof_harq_ack_bits,
+                                                        bool                                         is_csi_report_slot)
 {
   const pusch_mcs_table mcs_table  = pusch_mcs_table::qam64;
   constexpr unsigned    nof_layers = 1;
@@ -119,11 +119,11 @@ pusch_config_params srsran::get_pusch_config_f0_0_c_rnti(const cell_configuratio
   return pusch;
 }
 
-pusch_config_params srsran::get_pusch_config_f0_1_c_rnti(const ue_cell_configuration&                 ue_cell_cfg,
-                                                         const pusch_time_domain_resource_allocation& pusch_td_cfg,
-                                                         unsigned                                     nof_layers,
-                                                         const unsigned                               nof_harq_ack_bits,
-                                                         bool is_csi_report_slot)
+pusch_config_params ocudu::get_pusch_config_f0_1_c_rnti(const ue_cell_configuration&                 ue_cell_cfg,
+                                                        const pusch_time_domain_resource_allocation& pusch_td_cfg,
+                                                        unsigned                                     nof_layers,
+                                                        const unsigned                               nof_harq_ack_bits,
+                                                        bool                                         is_csi_report_slot)
 {
   const pusch_mcs_table mcs_table = ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->mcs_table;
   // As per TS 38.214, Section 5.1.3.2 and 6.1.4.2, and TS 38.212, Section 7.3.1.1 and 7.3.1.2, TB scaling filed is only
@@ -137,8 +137,8 @@ pusch_config_params srsran::get_pusch_config_f0_1_c_rnti(const ue_cell_configura
   pusch_config_params pusch;
 
   // TODO: Consider DMRS configured in PUSCH-Config. Need helpers from Phy.
-  srsran_assert(ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.has_value(),
-                "No DMRS configured in PUSCH configuration");
+  ocudu_assert(ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.has_value(),
+               "No DMRS configured in PUSCH configuration");
   pusch.dmrs = make_dmrs_info_dedicated(pusch_td_cfg,
                                         ue_cell_cfg.cell_cfg_common.pci,
                                         ue_cell_cfg.cell_cfg_common.dmrs_typeA_pos,
@@ -180,13 +180,13 @@ pusch_config_params srsran::get_pusch_config_f0_1_c_rnti(const ue_cell_configura
   return pusch;
 }
 
-void srsran::build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch,
-                                      const cell_configuration&            cell_cfg,
-                                      unsigned                             tbs_bytes,
-                                      const dci_1_0_si_rnti_configuration& dci_cfg,
-                                      const crb_interval&                  crbs,
-                                      const ofdm_symbol_range&             symbols,
-                                      const dmrs_information&              dmrs_info)
+void ocudu::build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch,
+                                     const cell_configuration&            cell_cfg,
+                                     unsigned                             tbs_bytes,
+                                     const dci_1_0_si_rnti_configuration& dci_cfg,
+                                     const crb_interval&                  crbs,
+                                     const ofdm_symbol_range&             symbols,
+                                     const dmrs_information&              dmrs_info)
 {
   const bwp_downlink_common& bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
   const vrb_interval         vrbs =
@@ -224,13 +224,13 @@ void srsran::build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch
   }
 }
 
-void srsran::build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
-                                     const cell_configuration&           cell_cfg,
-                                     unsigned                            tbs_bytes,
-                                     const dci_1_0_p_rnti_configuration& dci_cfg,
-                                     const crb_interval&                 crbs,
-                                     const ofdm_symbol_range&            symbols,
-                                     const dmrs_information&             dmrs_info)
+void ocudu::build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
+                                    const cell_configuration&           cell_cfg,
+                                    unsigned                            tbs_bytes,
+                                    const dci_1_0_p_rnti_configuration& dci_cfg,
+                                    const crb_interval&                 crbs,
+                                    const ofdm_symbol_range&            symbols,
+                                    const dmrs_information&             dmrs_info)
 {
   const bwp_downlink_common&        bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
   const search_space_configuration& ss_cfg =
@@ -270,13 +270,13 @@ void srsran::build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
   }
 }
 
-void srsran::build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch,
-                                      unsigned                             tbs_bytes,
-                                      rnti_t                               rnti,
-                                      const cell_configuration&            cell_cfg,
-                                      const dci_1_0_ra_rnti_configuration& dci_cfg,
-                                      const crb_interval&                  crbs,
-                                      const dmrs_information&              dmrs_info)
+void ocudu::build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch,
+                                     unsigned                             tbs_bytes,
+                                     rnti_t                               rnti,
+                                     const cell_configuration&            cell_cfg,
+                                     const dci_1_0_ra_rnti_configuration& dci_cfg,
+                                     const crb_interval&                  crbs,
+                                     const dmrs_information&              dmrs_info)
 {
   const bwp_downlink_common&        bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
   const search_space_configuration& ss_cfg = bwp_dl.pdcch_common.search_spaces[bwp_dl.pdcch_common.ra_search_space_id];
@@ -321,14 +321,14 @@ void srsran::build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch
   }
 }
 
-void srsran::build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch,
-                                      const pdsch_config_params&           pdsch_cfg,
-                                      unsigned                             tbs_bytes,
-                                      rnti_t                               rnti,
-                                      const cell_configuration&            cell_cfg,
-                                      const dci_1_0_tc_rnti_configuration& dci_cfg,
-                                      const vrb_interval&                  vrbs,
-                                      bool                                 is_new_data)
+void ocudu::build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch,
+                                     const pdsch_config_params&           pdsch_cfg,
+                                     unsigned                             tbs_bytes,
+                                     rnti_t                               rnti,
+                                     const cell_configuration&            cell_cfg,
+                                     const dci_1_0_tc_rnti_configuration& dci_cfg,
+                                     const vrb_interval&                  vrbs,
+                                     bool                                 is_new_data)
 {
   const bwp_downlink_common& bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
 
@@ -376,15 +376,15 @@ void srsran::build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch
   cw.tb_size_bytes   = tbs_bytes;
 }
 
-void srsran::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
-                                     const pdsch_config_params&          pdsch_cfg,
-                                     unsigned                            tbs_bytes,
-                                     rnti_t                              rnti,
-                                     const cell_configuration&           cell_cfg,
-                                     const search_space_info&            ss_info,
-                                     const dci_1_0_c_rnti_configuration& dci_cfg,
-                                     const vrb_interval&                 vrbs,
-                                     bool                                is_new_data)
+void ocudu::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
+                                    const pdsch_config_params&          pdsch_cfg,
+                                    unsigned                            tbs_bytes,
+                                    rnti_t                              rnti,
+                                    const cell_configuration&           cell_cfg,
+                                    const search_space_info&            ss_info,
+                                    const dci_1_0_c_rnti_configuration& dci_cfg,
+                                    const vrb_interval&                 vrbs,
+                                    bool                                is_new_data)
 {
   const coreset_configuration& cs_cfg     = *ss_info.coreset;
   const bwp_config&            active_bwp = *ss_info.bwp;
@@ -428,16 +428,16 @@ void srsran::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
   cw.tb_size_bytes   = tbs_bytes;
 }
 
-void srsran::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
-                                     const pdsch_config_params&      pdsch_cfg,
-                                     sch_mcs_tbs                     mcs_tbs_info,
-                                     rnti_t                          rnti,
-                                     const ue_cell_configuration&    ue_cell_cfg,
-                                     search_space_id                 ss_id,
-                                     const dci_1_1_configuration&    dci_cfg,
-                                     const vrb_interval&             vrbs,
-                                     bool                            is_new_data,
-                                     const ue_channel_state_manager& cs_mgr)
+void ocudu::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
+                                    const pdsch_config_params&      pdsch_cfg,
+                                    sch_mcs_tbs                     mcs_tbs_info,
+                                    rnti_t                          rnti,
+                                    const ue_cell_configuration&    ue_cell_cfg,
+                                    search_space_id                 ss_id,
+                                    const dci_1_1_configuration&    dci_cfg,
+                                    const vrb_interval&             vrbs,
+                                    bool                            is_new_data,
+                                    const ue_channel_state_manager& cs_mgr)
 {
   const cell_configuration&    cell_cfg       = ue_cell_cfg.cell_cfg_common;
   const search_space_info&     ss_info        = ue_cell_cfg.search_space(ss_id);
@@ -490,14 +490,14 @@ void srsran::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
   }
 }
 
-void srsran::build_pusch_f0_0_tc_rnti(pusch_information&                   pusch,
-                                      const pusch_config_params&           pusch_cfg,
-                                      unsigned                             tbs_bytes,
-                                      rnti_t                               rnti,
-                                      const cell_configuration&            cell_cfg,
-                                      const dci_0_0_tc_rnti_configuration& dci_cfg,
-                                      const vrb_interval&                  vrbs,
-                                      bool                                 is_new_data)
+void ocudu::build_pusch_f0_0_tc_rnti(pusch_information&                   pusch,
+                                     const pusch_config_params&           pusch_cfg,
+                                     unsigned                             tbs_bytes,
+                                     rnti_t                               rnti,
+                                     const cell_configuration&            cell_cfg,
+                                     const dci_0_0_tc_rnti_configuration& dci_cfg,
+                                     const vrb_interval&                  vrbs,
+                                     bool                                 is_new_data)
 {
   // TODO.
   pusch.intra_slot_freq_hopping = false;
@@ -538,15 +538,15 @@ void srsran::build_pusch_f0_0_tc_rnti(pusch_information&                   pusch
   pusch.num_cb = 0;
 }
 
-void srsran::build_pusch_f0_0_c_rnti(pusch_information&                  pusch,
-                                     rnti_t                              rnti,
-                                     const pusch_config_params&          pusch_cfg,
-                                     unsigned                            tbs_bytes,
-                                     const cell_configuration&           cell_cfg,
-                                     const bwp_uplink_common&            ul_bwp,
-                                     const dci_0_0_c_rnti_configuration& dci_cfg,
-                                     const vrb_interval&                 vrbs,
-                                     bool                                is_new_data)
+void ocudu::build_pusch_f0_0_c_rnti(pusch_information&                  pusch,
+                                    rnti_t                              rnti,
+                                    const pusch_config_params&          pusch_cfg,
+                                    unsigned                            tbs_bytes,
+                                    const cell_configuration&           cell_cfg,
+                                    const bwp_uplink_common&            ul_bwp,
+                                    const dci_0_0_c_rnti_configuration& dci_cfg,
+                                    const vrb_interval&                 vrbs,
+                                    bool                                is_new_data)
 {
   // TODO.
   pusch.intra_slot_freq_hopping = false;
@@ -588,15 +588,15 @@ void srsran::build_pusch_f0_0_c_rnti(pusch_information&                  pusch,
   pusch.new_data = is_new_data;
 }
 
-void srsran::build_pusch_f0_1_c_rnti(pusch_information&           pusch,
-                                     rnti_t                       rnti,
-                                     const pusch_config_params&   pusch_cfg,
-                                     sch_mcs_tbs                  mcs_tbs_info,
-                                     const ue_cell_configuration& ue_cell_cfg,
-                                     search_space_id              ss_id,
-                                     const dci_0_1_configuration& dci_cfg,
-                                     const vrb_interval&          vrbs,
-                                     bool                         is_new_data)
+void ocudu::build_pusch_f0_1_c_rnti(pusch_information&           pusch,
+                                    rnti_t                       rnti,
+                                    const pusch_config_params&   pusch_cfg,
+                                    sch_mcs_tbs                  mcs_tbs_info,
+                                    const ue_cell_configuration& ue_cell_cfg,
+                                    search_space_id              ss_id,
+                                    const dci_0_1_configuration& dci_cfg,
+                                    const vrb_interval&          vrbs,
+                                    bool                         is_new_data)
 {
   const cell_configuration&   cell_cfg   = ue_cell_cfg.cell_cfg_common;
   const search_space_info&    ss_info    = ue_cell_cfg.search_space(ss_id);

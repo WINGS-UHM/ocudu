@@ -9,26 +9,26 @@
  */
 
 #include "pdu_session_manager_impl.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/e1ap/cu_up/e1ap_config_converters.h"
-#include "srsran/f1u/cu_up/f1u_bearer_factory.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu_factory.h"
-#include "srsran/pdcp/pdcp_factory.h"
-#include "srsran/sdap/sdap_factory.h"
-#include "srsran/support/rate_limiting/token_bucket_config.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/e1ap/cu_up/e1ap_config_converters.h"
+#include "ocudu/f1u/cu_up/f1u_bearer_factory.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_factory.h"
+#include "ocudu/pdcp/pdcp_factory.h"
+#include "ocudu/sdap/sdap_factory.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/rate_limiting/token_bucket_config.h"
 #include <utility>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
-pdu_session_manager_impl::pdu_session_manager_impl(ue_index_t                                       ue_index_,
-                                                   std::map<five_qi_t, srs_cu_up::cu_up_qos_config> qos_cfg_,
-                                                   const security::sec_as_config&                   security_info_,
-                                                   const n3_interface_config&                       n3_config_,
-                                                   const cu_up_test_mode_config&                    test_mode_config_,
-                                                   uint64_t                                         ue_dl_ambr,
-                                                   const pdu_session_manager_dependencies&          dependencies) :
+pdu_session_manager_impl::pdu_session_manager_impl(ue_index_t                                   ue_index_,
+                                                   std::map<five_qi_t, ocuup::cu_up_qos_config> qos_cfg_,
+                                                   const security::sec_as_config&               security_info_,
+                                                   const n3_interface_config&                   n3_config_,
+                                                   const cu_up_test_mode_config&                test_mode_config_,
+                                                   uint64_t                                     ue_dl_ambr,
+                                                   const pdu_session_manager_dependencies&      dependencies) :
   ue_index(ue_index_),
   qos_cfg(std::move(qos_cfg_)),
   security_info(security_info_),
@@ -255,24 +255,24 @@ drb_setup_result pdu_session_manager_impl::handle_drb_to_setup_item(pdu_session&
   }
 
   // Create PDCP entity
-  srsran::pdcp_entity_creation_message pdcp_msg = {};
-  pdcp_msg.ue_index                             = ue_index;
-  pdcp_msg.rb_id                                = drb_to_setup.drb_id;
-  pdcp_msg.config                               = make_pdcp_drb_config(drb_to_setup.pdcp_cfg, new_session.security_ind);
-  pdcp_msg.config.custom                        = qos_cfg.at(five_qi).pdcp_custom_cfg;
-  pdcp_msg.tx_lower                             = &new_drb->pdcp_to_f1u_adapter;
-  pdcp_msg.tx_upper_cn                          = &new_drb->pdcp_tx_to_cu_up_mngr_adapter;
-  pdcp_msg.rx_upper_dn                          = &new_drb->pdcp_to_sdap_adapter;
-  pdcp_msg.rx_upper_cn                          = &new_drb->pdcp_rx_to_cu_up_mngr_adapter;
-  pdcp_msg.ue_dl_timer_factory                  = ue_dl_timer_factory;
-  pdcp_msg.ue_ul_timer_factory                  = ue_ul_timer_factory;
-  pdcp_msg.ue_ctrl_timer_factory                = ue_ctrl_timer_factory;
-  pdcp_msg.ue_dl_executor                       = &ue_dl_exec;
-  pdcp_msg.ue_ul_executor                       = &ue_ul_exec;
-  pdcp_msg.ue_ctrl_executor                     = &ue_ctrl_exec;
-  pdcp_msg.crypto_executor                      = &crypto_exec;
-  pdcp_msg.max_nof_crypto_workers               = nof_cores;
-  new_drb->pdcp                                 = srsran::create_pdcp_entity(pdcp_msg);
+  ocudu::pdcp_entity_creation_message pdcp_msg = {};
+  pdcp_msg.ue_index                            = ue_index;
+  pdcp_msg.rb_id                               = drb_to_setup.drb_id;
+  pdcp_msg.config                              = make_pdcp_drb_config(drb_to_setup.pdcp_cfg, new_session.security_ind);
+  pdcp_msg.config.custom                       = qos_cfg.at(five_qi).pdcp_custom_cfg;
+  pdcp_msg.tx_lower                            = &new_drb->pdcp_to_f1u_adapter;
+  pdcp_msg.tx_upper_cn                         = &new_drb->pdcp_tx_to_cu_up_mngr_adapter;
+  pdcp_msg.rx_upper_dn                         = &new_drb->pdcp_to_sdap_adapter;
+  pdcp_msg.rx_upper_cn                         = &new_drb->pdcp_rx_to_cu_up_mngr_adapter;
+  pdcp_msg.ue_dl_timer_factory                 = ue_dl_timer_factory;
+  pdcp_msg.ue_ul_timer_factory                 = ue_ul_timer_factory;
+  pdcp_msg.ue_ctrl_timer_factory               = ue_ctrl_timer_factory;
+  pdcp_msg.ue_dl_executor                      = &ue_dl_exec;
+  pdcp_msg.ue_ul_executor                      = &ue_ul_exec;
+  pdcp_msg.ue_ctrl_executor                    = &ue_ctrl_exec;
+  pdcp_msg.crypto_executor                     = &crypto_exec;
+  pdcp_msg.max_nof_crypto_workers              = nof_cores;
+  new_drb->pdcp                                = ocudu::create_pdcp_entity(pdcp_msg);
 
   security::sec_128_as_config sec_128 = security::truncate_config(security_info);
   auto                        integrity_enabled =
@@ -343,17 +343,17 @@ drb_setup_result pdu_session_manager_impl::handle_drb_to_setup_item(pdu_session&
   up_transport_layer_info f1u_ul_tunnel_addr(transport_layer_address::create_from_string(bind_addr.value()),
                                              f1u_ul_teid);
 
-  new_drb->f1u = srs_cu_up::create_f1u_bearer(ue_index,
-                                              new_drb->drb_id,
-                                              f1u_ul_tunnel_addr,
-                                              new_drb->f1u_cfg,
-                                              *new_drb->f1u_gw_bearer,
-                                              new_drb->f1u_to_pdcp_adapter,
-                                              new_drb->f1u_to_pdcp_adapter,
-                                              ue_ctrl_timer_factory,
-                                              ue_inactivity_timer,
-                                              ue_dl_exec,
-                                              ue_ul_exec);
+  new_drb->f1u = ocuup::create_f1u_bearer(ue_index,
+                                          new_drb->drb_id,
+                                          f1u_ul_tunnel_addr,
+                                          new_drb->f1u_cfg,
+                                          *new_drb->f1u_gw_bearer,
+                                          new_drb->f1u_to_pdcp_adapter,
+                                          new_drb->f1u_to_pdcp_adapter,
+                                          ue_ctrl_timer_factory,
+                                          ue_inactivity_timer,
+                                          ue_dl_exec,
+                                          ue_ul_exec);
 
   new_drb->f1u_ul_teid = f1u_ul_teid;
 
@@ -416,11 +416,11 @@ pdu_session_manager_impl::modify_pdu_session(const e1ap_pdu_session_res_to_modif
       pdu_session_result.drb_modification_results.push_back(drb_result);
       continue;
     }
-    srsran_assert(drb_to_mod.drb_id == drb_iter->second->drb_id,
-                  "Query for {} in {} provided {}",
-                  drb_to_mod.drb_id,
-                  session.pdu_session_id,
-                  drb_iter->second->drb_id);
+    ocudu_assert(drb_to_mod.drb_id == drb_iter->second->drb_id,
+                 "Query for {} in {} provided {}",
+                 drb_to_mod.drb_id,
+                 session.pdu_session_id,
+                 drb_iter->second->drb_id);
 
     std::unique_ptr<drb_context>& drb = drb_iter->second;
     if (new_ul_tnl_info_required) {
@@ -459,17 +459,17 @@ pdu_session_manager_impl::modify_pdu_session(const e1ap_pdu_session_res_to_modif
       up_transport_layer_info f1u_ul_tunnel_addr(transport_layer_address::create_from_string(bind_addr.value()),
                                                  drb->f1u_ul_teid);
 
-      drb->f1u = srs_cu_up::create_f1u_bearer(ue_index,
-                                              drb->drb_id,
-                                              f1u_ul_tunnel_addr,
-                                              drb->f1u_cfg,
-                                              *drb->f1u_gw_bearer,
-                                              drb->f1u_to_pdcp_adapter,
-                                              drb->f1u_to_pdcp_adapter,
-                                              ue_ctrl_timer_factory,
-                                              ue_inactivity_timer,
-                                              ue_dl_exec,
-                                              ue_ul_exec);
+      drb->f1u = ocuup::create_f1u_bearer(ue_index,
+                                          drb->drb_id,
+                                          f1u_ul_tunnel_addr,
+                                          drb->f1u_cfg,
+                                          *drb->f1u_gw_bearer,
+                                          drb->f1u_to_pdcp_adapter,
+                                          drb->f1u_to_pdcp_adapter,
+                                          ue_ctrl_timer_factory,
+                                          ue_inactivity_timer,
+                                          ue_dl_exec,
+                                          ue_ul_exec);
 
       drb_iter->second->pdcp_to_f1u_adapter.disconnect_f1u();
 
@@ -570,11 +570,11 @@ pdu_session_manager_impl::modify_pdu_session(const e1ap_pdu_session_res_to_modif
       logger.log_warning("Cannot remove {}. DRB not found in {}", drb_to_rem, session.pdu_session_id);
       continue;
     }
-    srsran_assert(drb_to_rem == drb_iter->second->drb_id,
-                  "Query for {} in {} provided different drb_id={}",
-                  drb_to_rem,
-                  session.pdu_session_id,
-                  drb_iter->second->drb_id);
+    ocudu_assert(drb_to_rem == drb_iter->second->drb_id,
+                 "Query for {} in {} provided different drb_id={}",
+                 drb_to_rem,
+                 session.pdu_session_id,
+                 drb_iter->second->drb_id);
 
     // remove DRB (this will automatically disconnect from F1-U gateway)
     if (not f1u_teid_allocator.release_teid(drb_iter->second->f1u_ul_teid)) {

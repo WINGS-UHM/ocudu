@@ -9,15 +9,15 @@
  */
 
 #include "pdcch_type0_helpers.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-slot_point srsran::precompute_type0_pdcch_css_n0(uint8_t                   searchspace0,
-                                                 uint8_t                   coreset0,
-                                                 const cell_configuration& cell_cfg,
-                                                 subcarrier_spacing        scs_common,
-                                                 unsigned                  ssb_index)
+slot_point ocudu::precompute_type0_pdcch_css_n0(uint8_t                   searchspace0,
+                                                uint8_t                   coreset0,
+                                                const cell_configuration& cell_cfg,
+                                                subcarrier_spacing        scs_common,
+                                                unsigned                  ssb_index)
 {
   bool is_fr2 = band_helper::get_freq_range(cell_cfg.band) == frequency_range::FR2;
 
@@ -28,8 +28,8 @@ slot_point srsran::precompute_type0_pdcch_css_n0(uint8_t                   searc
                                   coreset0,
                                   static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.to_uint()));
 
-  srsran_assert(coreset0_param.pattern == ssb_coreset0_mplex_pattern::mplx_pattern1,
-                "SS/PBCH and CORESET multiplexing pattern not supported.");
+  ocudu_assert(coreset0_param.pattern == ssb_coreset0_mplex_pattern::mplx_pattern1,
+               "SS/PBCH and CORESET multiplexing pattern not supported.");
 
   // Get Coreset0 num of symbols from Coreset0 config.
   const unsigned nof_symb_coreset0 = coreset0_param.nof_rb_coreset;
@@ -46,11 +46,11 @@ slot_point srsran::precompute_type0_pdcch_css_n0(uint8_t                   searc
   return pdcch_slot;
 }
 
-slot_point srsran::precompute_type0_pdcch_css_n0_plus_1(uint8_t                   searchspace0,
-                                                        uint8_t                   coreset0,
-                                                        const cell_configuration& cell_cfg,
-                                                        subcarrier_spacing        scs_common,
-                                                        unsigned                  ssb_index)
+slot_point ocudu::precompute_type0_pdcch_css_n0_plus_1(uint8_t                   searchspace0,
+                                                       uint8_t                   coreset0,
+                                                       const cell_configuration& cell_cfg,
+                                                       subcarrier_spacing        scs_common,
+                                                       unsigned                  ssb_index)
 {
   const auto pdcch_slot = precompute_type0_pdcch_css_n0(searchspace0, coreset0, cell_cfg, scs_common, ssb_index) + 1;
   report_fatal_error_if_not(cell_cfg.is_dl_enabled(pdcch_slot), "PDCCH slot is not DL enabled.");

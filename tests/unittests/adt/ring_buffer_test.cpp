@@ -8,8 +8,8 @@
  *
  */
 
-#include "srsran/adt/ring_buffer.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/ring_buffer.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
@@ -19,7 +19,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(std::is_same<static_ring_buffer<int, 10>::value_type, int>::value, "Invalid value_type");
 static_assert(std::is_same<ring_buffer<int>::value_type, int>::value, "Invalid value_type");

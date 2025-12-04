@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
 #include "fmt/format.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// UE F1 context that is referenced by both the F1 UE object and its bearers.
 struct f1ap_ue_context {
@@ -37,13 +37,13 @@ struct f1ap_ue_context {
   }
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::srs_du::f1ap_ue_context> {
+struct formatter<ocudu::odu::f1ap_ue_context> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -51,9 +51,9 @@ struct formatter<srsran::srs_du::f1ap_ue_context> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::srs_du::f1ap_ue_context& ue, FormatContext& ctx) const
+  auto format(const ocudu::odu::f1ap_ue_context& ue, FormatContext& ctx) const
   {
-    if (ue.gnb_cu_ue_f1ap_id == srsran::gnb_cu_ue_f1ap_id_t::invalid) {
+    if (ue.gnb_cu_ue_f1ap_id == ocudu::gnb_cu_ue_f1ap_id_t::invalid) {
       return format_to(ctx.out(),
                        "ue={} c-rnti={} du_ue={}",
                        fmt::underlying(ue.ue_index),

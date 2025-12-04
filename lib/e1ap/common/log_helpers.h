@@ -10,31 +10,31 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Helper for logging Rx/Tx E1AP PDUs for the CU-CP and CU-UP
 template <typename UeIndex>
-void log_e1ap_pdu(srslog::basic_logger&         logger,
+void log_e1ap_pdu(ocudulog::basic_logger&       logger,
                   bool                          is_rx,
                   const std::optional<UeIndex>& ue_id,
                   const e1ap_message&           e1ap_msg,
                   bool                          json_enabled);
 
-extern template void log_e1ap_pdu<srs_cu_cp::ue_index_t>(srslog::basic_logger&                       logger,
-                                                         bool                                        is_rx,
-                                                         const std::optional<srs_cu_cp::ue_index_t>& ue_id,
-                                                         const e1ap_message&                         e1ap_msg,
-                                                         bool                                        json_enabled);
-extern template void log_e1ap_pdu<srs_cu_up::ue_index_t>(srslog::basic_logger&                       logger,
-                                                         bool                                        is_rx,
-                                                         const std::optional<srs_cu_up::ue_index_t>& ue_id,
-                                                         const e1ap_message&                         e1ap_msg,
-                                                         bool                                        json_enabled);
+extern template void log_e1ap_pdu<ocucp::ue_index_t>(ocudulog::basic_logger&                 logger,
+                                                     bool                                    is_rx,
+                                                     const std::optional<ocucp::ue_index_t>& ue_id,
+                                                     const e1ap_message&                     e1ap_msg,
+                                                     bool                                    json_enabled);
+extern template void log_e1ap_pdu<ocuup::ue_index_t>(ocudulog::basic_logger&                 logger,
+                                                     bool                                    is_rx,
+                                                     const std::optional<ocuup::ue_index_t>& ue_id,
+                                                     const e1ap_message&                     e1ap_msg,
+                                                     bool                                    json_enabled);
 
-} // namespace srsran
+} // namespace ocudu

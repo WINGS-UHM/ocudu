@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/gnb_du_id.h"
+#include "ocudu/ran/gnb_du_id.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Context of the DU that has setup an F1 connection to the CU-CP.
 struct du_context {
@@ -22,5 +22,5 @@ struct du_context {
   std::string du_name;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

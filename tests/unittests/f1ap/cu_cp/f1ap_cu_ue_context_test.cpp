@@ -10,21 +10,21 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "lib/f1ap/cu_cp/ue_context/f1ap_cu_ue_context.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <memory>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 // test class
 class f1ap_ue_context_list_test : public f1ap_ue_context_list
 {
 public:
-  f1ap_ue_context_list_test(timer_factory timers_, srslog::basic_logger& logger_) :
+  f1ap_ue_context_list_test(timer_factory timers_, ocudulog::basic_logger& logger_) :
     f1ap_ue_context_list(timers_, logger_)
   {
   }
@@ -40,13 +40,13 @@ class f1ap_cu_ue_context_test : public ::testing::Test
 protected:
   f1ap_cu_ue_context_test()
   {
-    f1ap_logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    f1ap_logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
   ~f1ap_cu_ue_context_test()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   ue_index_t generate_random_ue_index()
@@ -55,7 +55,7 @@ protected:
         test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
   }
 
-  srslog::basic_logger&     f1ap_logger = srslog::fetch_basic_logger("CU-CP-F1");
+  ocudulog::basic_logger&   f1ap_logger = ocudulog::fetch_basic_logger("CU-CP-F1");
   timer_manager             timer_mng;
   manual_task_worker        ctrl_worker{128};
   timer_factory             timers{timer_mng, ctrl_worker};

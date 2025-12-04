@@ -12,10 +12,10 @@
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "du_low_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace std::chrono_literals;
 
-void srsran::fill_du_low_worker_manager_config(worker_manager_config& config, const du_low_appconfig& app_cfg)
+void ocudu::fill_du_low_worker_manager_config(worker_manager_config& config, const du_low_appconfig& app_cfg)
 {
   // Current DU low application only supports one cell.
   config.config_affinities.resize(1);

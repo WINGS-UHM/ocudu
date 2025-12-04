@@ -11,10 +11,10 @@
 #pragma once
 
 #include "ru_sdr_config.h"
-#include "srsran/ru/ru.h"
+#include "ocudu/ru/ru.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 struct flexible_o_du_ru_dependencies;
 struct flexible_o_du_ru_config;
 
@@ -23,4 +23,4 @@ std::unique_ptr<radio_unit> create_sdr_radio_unit(const ru_sdr_unit_config&     
                                                   const flexible_o_du_ru_config&       du_ru_config,
                                                   const flexible_o_du_ru_dependencies& ru_dependencies);
 
-} // namespace srsran
+} // namespace ocudu

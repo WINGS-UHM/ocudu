@@ -10,5 +10,5 @@ add_subdirectory(cu_cp)
 add_subdirectory(du)
 add_subdirectory(gateways)
 
-add_library(srsran_f1ap_common f1ap_common_messages.cpp asn1_helpers.cpp f1ap_asn1_packer.cpp log_helpers.cpp)
-target_link_libraries(srsran_f1ap_common f1ap_asn1 srsran_ran)
+add_library(ocudu_f1ap_common f1ap_common_messages.cpp asn1_helpers.cpp f1ap_asn1_packer.cpp log_helpers.cpp)
+target_link_libraries(ocudu_f1ap_common f1ap_asn1 ocudu_ran)

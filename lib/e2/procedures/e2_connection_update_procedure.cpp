@@ -9,13 +9,13 @@
  */
 
 #include "e2_connection_update_procedure.h"
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 
-e2_connection_update_procedure::e2_connection_update_procedure(const e2conn_upd_s&   request_,
-                                                               e2_message_notifier&  ric_notif_,
-                                                               timer_factory         timers_,
-                                                               srslog::basic_logger& logger_) :
+e2_connection_update_procedure::e2_connection_update_procedure(const e2conn_upd_s&     request_,
+                                                               e2_message_notifier&    ric_notif_,
+                                                               timer_factory           timers_,
+                                                               ocudulog::basic_logger& logger_) :
   request(request_), logger(logger_), ric_notif(ric_notif_), timers(timers_)
 {
 }

@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_decoder.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_decoder.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// LDPC decoder metric decorator.
 class phy_metrics_ldpc_decoder_decorator : public ldpc_decoder
@@ -27,7 +27,7 @@ public:
                                      ldpc_decoder_metric_notifier& notifier_) :
     base_decoder(std::move(base_decoder_)), notifier(notifier_)
   {
-    srsran_assert(base_decoder, "Invalid decoder.");
+    ocudu_assert(base_decoder, "Invalid decoder.");
   }
 
   // See interface for documentation.
@@ -57,4 +57,4 @@ private:
   ldpc_decoder_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

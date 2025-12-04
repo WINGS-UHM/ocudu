@@ -14,11 +14,11 @@
 //   + "srsPDCCHProcessorUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_processor.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_processor.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 static const precoding_configuration default_precoding = precoding_configuration::make_wideband(make_single_port());
 
@@ -146,4 +146,4 @@ static const std::vector<test_case_t> pdcch_processor_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #include "ofh_data_flow_uplane_uplink_data_impl.h"
 #include "../support/uplane_bound_check_helpers.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
-#include "srsran/ofh/serdes/ofh_message_decoder_properties.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
+#include "ocudu/ofh/serdes/ofh_message_decoder_properties.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 data_flow_uplane_uplink_data_impl::data_flow_uplane_uplink_data_impl(
@@ -27,8 +27,8 @@ data_flow_uplane_uplink_data_impl::data_flow_uplane_uplink_data_impl(
   sector_id(config.sector),
   metrics_collector(config.are_metrics_enabled)
 {
-  srsran_assert(ul_cplane_context_repo, "Invalid control plane repository");
-  srsran_assert(uplane_decoder, "Invalid User-Plane decoder");
+  ocudu_assert(ul_cplane_context_repo, "Invalid control plane repository");
+  ocudu_assert(uplane_decoder, "Invalid User-Plane decoder");
 }
 
 void data_flow_uplane_uplink_data_impl::decode_type1_message(unsigned eaxc, span<const uint8_t> message)
@@ -61,8 +61,8 @@ bool data_flow_uplane_uplink_data_impl::should_uplane_packet_be_filtered(
     unsigned                              eaxc,
     const uplane_message_decoder_results& results) const
 {
-  if (SRSRAN_UNLIKELY(results.params.filter_index == filter_index_type::reserved ||
-                      is_a_prach_message(results.params.filter_index))) {
+  if (OCUDU_UNLIKELY(results.params.filter_index == filter_index_type::reserved ||
+                     is_a_prach_message(results.params.filter_index))) {
     logger.info("Sector#{}: dropped received Open Fronthaul User-Plane packet for slot '{}' and symbol '{}' as decoded "
                 "filter index value '{}' is not valid",
                 sector_id,
@@ -77,7 +77,7 @@ bool data_flow_uplane_uplink_data_impl::should_uplane_packet_be_filtered(
   ul_cplane_context            context = ul_cplane_context_repo->get(params.slot, eaxc);
 
   // Check if the filter index is valid.
-  if (SRSRAN_UNLIKELY(params.filter_index != context.filter_index)) {
+  if (OCUDU_UNLIKELY(params.filter_index != context.filter_index)) {
     logger.info("Sector#{}: dropped received Open Fronthaul User-Plane packet as the expected filter index '{}' does "
                 "not match with value '{}' for slot '{}', symbol '{}' and eAxC '{}'",
                 sector_id,
@@ -90,7 +90,7 @@ bool data_flow_uplane_uplink_data_impl::should_uplane_packet_be_filtered(
   }
 
   // Check if the symbol index is valid.
-  if (SRSRAN_UNLIKELY(!is_symbol_index_in_cplane_valid(context, params.symbol_id))) {
+  if (OCUDU_UNLIKELY(!is_symbol_index_in_cplane_valid(context, params.symbol_id))) {
     logger.info("Sector#{}: dropped received Open Fronthaul User-Plane packet as the symbol index '{}' is invalid for "
                 "slot '{}', and eAxC '{}'",
                 sector_id,

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/phy/upper/channel_state_information.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/phy/upper/channel_state_information.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_processor_result_notifier_spy : public pusch_processor_result_notifier
 {
@@ -37,4 +37,4 @@ private:
   std::vector<pusch_processor_result_data>    sch_entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

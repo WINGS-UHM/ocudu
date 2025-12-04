@@ -9,14 +9,14 @@
  */
 
 #include "e2ap_asn1_packer.h"
-#include "srsran/asn1/e2ap/e2ap.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 e2ap_asn1_packer::e2ap_asn1_packer(sctp_association_sdu_notifier& gw_,
                                    e2_message_handler&            e2_handler,
                                    dlt_pcap&                      pcap_) :
-  logger(srslog::fetch_basic_logger("E2-ASN1-PCK")), gw(gw_), e2(e2_handler), pcap(pcap_)
+  logger(ocudulog::fetch_basic_logger("E2-ASN1-PCK")), gw(gw_), e2(e2_handler), pcap(pcap_)
 {
 }
 
@@ -30,7 +30,7 @@ void e2ap_asn1_packer::handle_packed_pdu(const byte_buffer& bytes)
 
   asn1::cbit_ref bref(bytes);
   e2_message     msg = {};
-  if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Couldn't unpack E2 PDU");
     return;
   }
@@ -44,7 +44,7 @@ void e2ap_asn1_packer::handle_message(const e2_message& msg)
   // pack PDU into temporary buffer
   byte_buffer   tx_pdu;
   asn1::bit_ref bref(tx_pdu);
-  if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+  if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack E2 PDU");
     return;
   }

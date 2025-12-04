@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH demodulator metrics aggregator.
 class pusch_demodulator_metrics_aggregator : public pusch_demodulator_metric_notifier
@@ -64,4 +64,4 @@ private:
   std::atomic<uint64_t> count                 = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

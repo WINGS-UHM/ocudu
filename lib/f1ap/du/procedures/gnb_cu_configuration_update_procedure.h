@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 class f1ap_message_notifier;
 
-namespace srs_du {
+namespace odu {
 
 class f1ap_du_configurator;
 
@@ -43,5 +43,5 @@ private:
   gnbcu_config_update_response du_resp;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

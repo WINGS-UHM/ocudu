@@ -11,11 +11,11 @@
 #pragma once
 
 #include "pcap_file_writer.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/unique_function.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/unique_function.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -56,13 +56,13 @@ private:
 /// file via a single executor.
 class backend_pcap_writer
 {
-  std::string           layer_name;
-  std::string           filename;
-  const std::string     dissector;
-  task_executor&        backend_exec;
-  srslog::basic_logger& logger;
-  pcap_file_writer      writer;
-  std::atomic<bool>     is_open{true};
+  std::string             layer_name;
+  std::string             filename;
+  const std::string       dissector;
+  task_executor&          backend_exec;
+  ocudulog::basic_logger& logger;
+  pcap_file_writer        writer;
+  std::atomic<bool>       is_open{true};
 
 public:
   backend_pcap_writer(unsigned           dlt_,
@@ -96,4 +96,4 @@ private:
   void write_context_pdu_impl(const pcap_pdu_data& pdu);
 };
 
-} // namespace srsran
+} // namespace ocudu

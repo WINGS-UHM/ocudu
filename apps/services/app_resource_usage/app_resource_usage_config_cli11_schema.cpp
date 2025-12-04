@@ -11,9 +11,9 @@
 #include "app_resource_usage_config_cli11_schema.h"
 #include "app_resource_usage_config.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 static void configure_cli11_metrics_args(CLI::App& app, bool& enable_metrics)
@@ -23,8 +23,8 @@ static void configure_cli11_metrics_args(CLI::App& app, bool& enable_metrics)
       ->capture_default_str();
 }
 
-void srsran::app_services::configure_cli11_with_app_resource_usage_config_schema(CLI::App&                  app,
-                                                                                 app_resource_usage_config& config)
+void ocudu::app_services::configure_cli11_with_app_resource_usage_config_schema(CLI::App&                  app,
+                                                                                app_resource_usage_config& config)
 {
   // Metrics section.
   CLI::App* metrics_subcmd = add_subcommand(app, "metrics", "Metrics configuration")->configurable();

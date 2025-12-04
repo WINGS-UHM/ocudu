@@ -6,9 +6,9 @@
 # the distribution.
 #
 
-add_library(srsran_f1c_gateway
+add_library(ocudu_f1c_gateway
         f1c_network_client_factory.cpp
         f1c_network_server_factory.cpp
         f1c_local_connector_factory.cpp)
-target_include_directories(srsran_f1c_gateway PRIVATE ..)
-target_link_libraries(srsran_f1c_gateway f1ap_asn1 srsran_support srsran_pcap)
+target_include_directories(ocudu_f1c_gateway PRIVATE ..)
+target_link_libraries(ocudu_f1c_gateway f1ap_asn1 ocudu_support ocudu_pcap)

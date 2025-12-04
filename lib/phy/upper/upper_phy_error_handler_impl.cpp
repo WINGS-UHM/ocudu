@@ -10,7 +10,7 @@
 
 #include "upper_phy_error_handler_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 /// Dummy implementation of an upper PHY error notifier.

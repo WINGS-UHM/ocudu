@@ -10,13 +10,13 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 /// Unit test for the F1AP UE Context Setup procedure in the DU. Each starts with a F1 connection already established.
@@ -37,7 +37,7 @@ protected:
     const auto& ue_ctx_setup = *msg.pdu.init_msg().value.ue_context_setup_request();
 
     if (not ue_ctx_setup.gnb_du_ue_f1ap_id_present) {
-      srsran_assert(test_ue == nullptr, "UE should be created as part of the procedure");
+      ocudu_assert(test_ue == nullptr, "UE should be created as part of the procedure");
       du_ue_index_t ue_index = (du_ue_index_t)test_ues.find_first_empty();
 
       test_ues.emplace(ue_index);
@@ -301,7 +301,7 @@ TEST_F(f1ap_du_test, f1ap_handles_precanned_ue_context_setup_request_correctly)
 
     byte_buffer    buf = byte_buffer::create(msg).value();
     asn1::cbit_ref bref(buf);
-    ASSERT_EQ(ue_ctxt_setup_req.pdu.unpack(bref), asn1::SRSASN_SUCCESS);
+    ASSERT_EQ(ue_ctxt_setup_req.pdu.unpack(bref), asn1::OCUDUASN_SUCCESS);
   }
 
   // Test Preamble.

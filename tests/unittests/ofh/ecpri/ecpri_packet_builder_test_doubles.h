@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/ofh/ecpri/ecpri_packet_builder.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_builder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ecpri {
 namespace testing {
 
@@ -58,4 +58,4 @@ public:
 
 } // namespace testing
 } // namespace ecpri
-} // namespace srsran
+} // namespace ocudu

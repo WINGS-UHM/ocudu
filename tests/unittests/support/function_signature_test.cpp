@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/support/async/detail/function_signature.h"
+#include "ocudu/support/async/detail/function_signature.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace detail;
 
 // Free Function tests

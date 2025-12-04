@@ -9,14 +9,14 @@
  */
 
 #include "modulation_mapper_test_data.h"
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 static constexpr float assert_max_err = 1e-3;
 
@@ -85,7 +85,7 @@ TEST_P(ModulationMapperFixture, ModulationMapperTest)
     span<const cf_t>        expected_symbols{testvector_symbols};
 
     dynamic_bit_buffer packed_data(testvector_data.size());
-    srsvec::bit_pack(packed_data, testvector_data);
+    ocuduvec::bit_pack(packed_data, testvector_data);
 
     // Modulate in complex float.
     std::vector<cf_t> symbols_cf(test_case.nsymbols);

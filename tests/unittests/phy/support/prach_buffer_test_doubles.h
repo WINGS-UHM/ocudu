@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../../../lib/phy/support/prach_buffer_impl.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/support/shared_prach_buffer.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/support/shared_prach_buffer.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 class prach_buffer_spy : public prach_buffer
 {
@@ -51,7 +51,7 @@ public:
         data                           = data.last(data.size() - sequence_length);
         for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
           for (unsigned i_symbol = 0; i_symbol != nof_symbols; ++i_symbol) {
-            srsvec::copy(buffer.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_symbol), occasion_data);
+            ocuduvec::copy(buffer.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_symbol), occasion_data);
           }
         }
       }
@@ -163,7 +163,7 @@ public:
   explicit prach_buffer_tensor(tensor<static_cast<std::underlying_type_t<dims>>(dims::count), cf_t, dims>& data_cf) :
     data(data_cf.get_dimensions_size())
   {
-    srsvec::copy(data.get_data(), data_cf.get_view<std::underlying_type_t<dims>(dims::count)>({}));
+    ocuduvec::copy(data.get_data(), data_cf.get_view<std::underlying_type_t<dims>(dims::count)>({}));
   }
 
   // See interface for documentation.
@@ -184,23 +184,23 @@ public:
   // See interface for documentation.
   span<cbf16_t> get_symbol(unsigned i_port, unsigned i_td_occasion, unsigned i_fd_occasion, unsigned i_symbol) override
   {
-    srsran_assert(i_port < get_max_nof_ports(),
-                  "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
-                  i_port,
-                  get_max_nof_ports());
-    srsran_assert(i_td_occasion < get_max_nof_td_occasions(),
-                  "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
-                  i_td_occasion,
-                  get_max_nof_td_occasions());
-    srsran_assert(
+    ocudu_assert(i_port < get_max_nof_ports(),
+                 "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
+                 i_port,
+                 get_max_nof_ports());
+    ocudu_assert(i_td_occasion < get_max_nof_td_occasions(),
+                 "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
+                 i_td_occasion,
+                 get_max_nof_td_occasions());
+    ocudu_assert(
         i_fd_occasion < get_max_nof_fd_occasions(),
         "The frequency-domain occasion (i.e., {}) exceeds the maximum number of frequency-domain occasions (i.e., {}).",
         i_fd_occasion,
         get_max_nof_fd_occasions());
-    srsran_assert(i_symbol < get_max_nof_symbols(),
-                  "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
-                  i_symbol,
-                  get_max_nof_symbols());
+    ocudu_assert(i_symbol < get_max_nof_symbols(),
+                 "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
+                 i_symbol,
+                 get_max_nof_symbols());
     return data.get_view({i_symbol, i_fd_occasion, i_td_occasion, i_port});
   }
 
@@ -208,23 +208,23 @@ public:
   span<const cbf16_t>
   get_symbol(unsigned i_port, unsigned i_td_occasion, unsigned i_fd_occasion, unsigned i_symbol) const override
   {
-    srsran_assert(i_port < get_max_nof_ports(),
-                  "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
-                  i_port,
-                  get_max_nof_ports());
-    srsran_assert(i_td_occasion < get_max_nof_td_occasions(),
-                  "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
-                  i_td_occasion,
-                  get_max_nof_td_occasions());
-    srsran_assert(
+    ocudu_assert(i_port < get_max_nof_ports(),
+                 "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
+                 i_port,
+                 get_max_nof_ports());
+    ocudu_assert(i_td_occasion < get_max_nof_td_occasions(),
+                 "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
+                 i_td_occasion,
+                 get_max_nof_td_occasions());
+    ocudu_assert(
         i_fd_occasion < get_max_nof_fd_occasions(),
         "The frequency-domain occasion (i.e., {}) exceeds the maximum number of frequency-domain occasions (i.e., {}).",
         i_fd_occasion,
         get_max_nof_fd_occasions());
-    srsran_assert(i_symbol < get_max_nof_symbols(),
-                  "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
-                  i_symbol,
-                  get_max_nof_symbols());
+    ocudu_assert(i_symbol < get_max_nof_symbols(),
+                 "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
+                 i_symbol,
+                 get_max_nof_symbols());
     return data.get_view({i_symbol, i_fd_occasion, i_td_occasion, i_port});
   }
 
@@ -253,4 +253,4 @@ create_spy_prach_buffer_pool(bool long_preamble, unsigned nof_fd_occasions, unsi
   return std::make_unique<prach_buffer_pool>(prach_buffers);
 }
 
-} // namespace srsran
+} // namespace ocudu

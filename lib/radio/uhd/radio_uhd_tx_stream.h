@@ -13,16 +13,16 @@
 #include "radio_uhd_exception_handler.h"
 #include "radio_uhd_multi_usrp.h"
 #include "radio_uhd_tx_stream_fsm.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
-#include "srsran/radio/radio_configuration.h"
-#include "srsran/radio/radio_event_notifier.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
+#include "ocudu/radio/radio_configuration.h"
+#include "ocudu/radio/radio_event_notifier.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a gateway transmitter based on UHD transmit stream.
 class radio_uhd_tx_stream : public baseband_gateway_transmitter, public uhd_exception_handler
@@ -119,4 +119,4 @@ public:
   void stop();
 };
 
-} // namespace srsran
+} // namespace ocudu

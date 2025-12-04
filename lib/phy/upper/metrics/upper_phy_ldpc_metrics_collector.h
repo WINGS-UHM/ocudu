@@ -14,9 +14,9 @@
 #include "aggregators/ldpc_encoder_metrics_aggregator.h"
 #include "aggregators/ldpc_rate_dematcher_metrics_aggregator.h"
 #include "aggregators/ldpc_rate_matcher_metrics_aggregator.h"
-#include "srsran/phy/upper/upper_phy_metrics.h"
+#include "ocudu/phy/upper/upper_phy_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// LDPC processing metrics collector.
 class upper_phy_ldpc_metrics_collector
@@ -48,4 +48,4 @@ private:
   ldpc_encoder_metrics_aggregator ldpc_encoder_aggregator;
 };
 
-} // namespace srsran
+} // namespace ocudu

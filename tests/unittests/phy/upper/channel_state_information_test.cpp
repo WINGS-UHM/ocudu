@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/upper/channel_state_information_formatters.h"
+#include "ocudu/phy/upper/channel_state_information_formatters.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

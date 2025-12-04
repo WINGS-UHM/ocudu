@@ -11,7 +11,7 @@
 #include "lib/scheduler/support/pdsch/pdsch_default_time_allocation.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, dmrs_typeA_position dmrs_pos)
 {
@@ -35,9 +35,9 @@ std::ostream& operator<<(std::ostream& os, sch_mapping_type mapping)
   }
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 // Combined parameters.
 using pdsch_default_time_allocation_params = std::tuple<unsigned, dmrs_typeA_position>;

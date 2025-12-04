@@ -13,14 +13,14 @@
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_paging_test : public cu_cp_test_environment, public ::testing::Test
 {

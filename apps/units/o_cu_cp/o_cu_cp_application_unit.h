@@ -14,7 +14,7 @@
 #include "apps/units/o_cu_cp/o_cu_cp_builder.h"
 #include <yaml-cpp/node/node.h>
 
-namespace srsran {
+namespace ocudu {
 struct worker_manager_config;
 
 /// O-RAN CU-CP application unit interface.
@@ -37,4 +37,4 @@ public:
 /// Creates an O-RAN CU-CP application unit.
 std::unique_ptr<o_cu_cp_application_unit> create_o_cu_cp_application_unit(std::string_view app_name);
 
-} // namespace srsran
+} // namespace ocudu

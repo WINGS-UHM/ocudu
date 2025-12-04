@@ -8,39 +8,39 @@
  *
  */
 
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-void write_pcap_ngap_thread_function_byte_buffer(srsran::dlt_pcap* pcap, uint32_t num_pdus);
-void write_pcap_ngap_thread_function_spans(srsran::dlt_pcap* pcap, uint32_t num_pdus);
+void write_pcap_ngap_thread_function_byte_buffer(ocudu::dlt_pcap* pcap, uint32_t num_pdus);
+void write_pcap_ngap_thread_function_spans(ocudu::dlt_pcap* pcap, uint32_t num_pdus);
 
 class pcap_ngap_test : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("PCAP").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("PCAP").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("PCAP").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("PCAP").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  task_worker           worker{"pcap", 1024};
-  task_worker_executor  pcap_exec{worker};
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  task_worker             worker{"pcap", 1024};
+  task_worker_executor    pcap_exec{worker};
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(pcap_ngap_test, write_pdu)
@@ -101,7 +101,7 @@ TEST_F(pcap_ngap_test, write_many_byte_buffers)
 }
 
 // Write #num_pdus DL MAC NR PDUs using PCAP handle (spans)
-void write_pcap_ngap_thread_function_spans(srsran::dlt_pcap* pcap, uint32_t num_pdus)
+void write_pcap_ngap_thread_function_spans(ocudu::dlt_pcap* pcap, uint32_t num_pdus)
 {
   std::array<uint8_t, 55> tv = {0x00, 0x15, 0x00, 0x33, 0x00, 0x00, 0x04, 0x00, 0x1b, 0x00, 0x08, 0x00, 0x00, 0xf1,
                                 0x10, 0x00, 0x00, 0x06, 0x6c, 0x00, 0x52, 0x40, 0x0a, 0x03, 0x80, 0x73, 0x72, 0x73,
@@ -115,9 +115,9 @@ void write_pcap_ngap_thread_function_spans(srsran::dlt_pcap* pcap, uint32_t num_
 }
 
 // Write #num_pdus DL MAC NR PDUs using PCAP handle (byte_buffer)
-void write_pcap_ngap_thread_function_byte_buffer(srsran::dlt_pcap* pcap, uint32_t num_pdus)
+void write_pcap_ngap_thread_function_byte_buffer(ocudu::dlt_pcap* pcap, uint32_t num_pdus)
 {
-  srsran::byte_buffer tv =
+  ocudu::byte_buffer tv =
       byte_buffer::create({0x00, 0x15, 0x00, 0x33, 0x00, 0x00, 0x04, 0x00, 0x1b, 0x00, 0x08, 0x00, 0x00, 0xf1,
                            0x10, 0x00, 0x00, 0x06, 0x6c, 0x00, 0x52, 0x40, 0x0a, 0x03, 0x80, 0x73, 0x72, 0x73,
                            0x67, 0x6e, 0x62, 0x30, 0x31, 0x00, 0x66, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x07,

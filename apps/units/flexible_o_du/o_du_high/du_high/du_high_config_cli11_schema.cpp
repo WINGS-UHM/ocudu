@@ -14,18 +14,18 @@
 #include "apps/services/worker_manager/cli11_cpu_affinities_parser_helper.h"
 #include "du_high_config.h"
 #include "du_high_config_cli11_ntn_schema.h"
-#include "srsran/adt/ranges/transform.h"
-#include "srsran/ran/drx_config.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pucch/pucch_mapping.h"
-#include "srsran/ran/slot_point_extended.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/adt/ranges/transform.h"
+#include "ocudu/ran/drx_config.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/slot_point_extended.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 template <typename Integer>
 static expected<Integer, std::string> parse_int(const std::string& value)
@@ -430,9 +430,9 @@ static void configure_cli11_ssb_args(CLI::App& app, du_high_unit_ssb_config& ssb
       [&ssb_params](const std::string& value) {
         unsigned temp_value = CLI::detail::lexical_cast(value, temp_value);
         if (temp_value == 0) {
-          ssb_params.pss_to_sss_epre = srsran::ssb_pss_to_sss_epre::dB_0;
+          ssb_params.pss_to_sss_epre = ocudu::ssb_pss_to_sss_epre::dB_0;
         } else if (temp_value == 3) {
-          ssb_params.pss_to_sss_epre = srsran::ssb_pss_to_sss_epre::dB_3;
+          ssb_params.pss_to_sss_epre = ocudu::ssb_pss_to_sss_epre::dB_3;
         }
       },
       "SSB PSS to SSS EPRE ratio in dB {0, 3}")
@@ -1933,7 +1933,7 @@ static void configure_cli11_qos_args(CLI::App& app, du_high_unit_qos_config& qos
   app.needs(f1u_du_subcmd);
 }
 
-void srsran::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_parsed_config& parsed_cfg)
+void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_parsed_config& parsed_cfg)
 {
   add_option(app, "--gnb_id", parsed_cfg.config.gnb_id.id, "gNodeB identifier")->capture_default_str();
   // Adding a default function to display correctly the uint8_t type.
@@ -2128,7 +2128,7 @@ static void derive_auto_params(du_high_unit_config& config)
   }
 }
 
-void srsran::autoderive_du_high_parameters_after_parsing(CLI::App& app, du_high_unit_config& unit_cfg)
+void ocudu::autoderive_du_high_parameters_after_parsing(CLI::App& app, du_high_unit_config& unit_cfg)
 {
   derive_auto_params(unit_cfg);
 }

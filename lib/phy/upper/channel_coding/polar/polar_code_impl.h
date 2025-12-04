@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/polar/polar_code.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_code.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implementation of the polar code interface based on look-up tables.
 class polar_code_impl : public polar_code
@@ -121,4 +121,4 @@ public:
   void set(unsigned K, unsigned E, uint8_t nMax, polar_code_ibil ibil) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,7 +11,7 @@
 #include "../../../../lib/ofh/receiver/ofh_sequence_id_checker_impl.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 TEST(ofh_sequence_id_checker_impl, first_message_is_always_ok)

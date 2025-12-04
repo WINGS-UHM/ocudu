@@ -9,11 +9,11 @@
  */
 
 #include "dpdk_ethernet_transmitter.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter_config.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter_config.h"
 #include <rte_ethdev.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 void dpdk_transmitter_impl::send(span<span<const uint8_t>> frames)
@@ -60,7 +60,7 @@ void dpdk_transmitter_impl::send(span<span<const uint8_t>> frames)
 
     unsigned nof_sent_packets = ::rte_eth_tx_burst(port_ctx->get_dpdk_port_id(), 0, mbufs.data(), mbufs.size());
 
-    if (SRSRAN_UNLIKELY(nof_sent_packets < mbufs.size())) {
+    if (OCUDU_UNLIKELY(nof_sent_packets < mbufs.size())) {
       logger.warning(
           "DPDK dropped '{}' packets out of a total of '{}' in the tx burst while sending data to the NIC port '{}'",
           mbufs.size() - nof_sent_packets,

@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/ran/csi_report/csi_report_configuration.h"
-#include "srsran/ran/csi_report/csi_report_data.h"
-#include "srsran/ran/csi_report/csi_report_formatters.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pusch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
+#include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/csi_report/csi_report_formatters.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 auto to_tuple(const csi_report_data& data)
 {
@@ -75,7 +75,7 @@ std::ostream& operator<<(std::ostream& os, csi_report_quantities quantities)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

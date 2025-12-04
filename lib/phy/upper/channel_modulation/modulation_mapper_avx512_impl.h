@@ -11,11 +11,11 @@
 #pragma once
 
 #include "modulation_mapper_lut_impl.h"
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/support/math/math_utils.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Modulation mapper based on AVX512 instruction sets.
 ///
@@ -40,4 +40,4 @@ private:
   modulation_mapper_lut_impl lut_modulator;
 };
 
-} // namespace srsran
+} // namespace ocudu

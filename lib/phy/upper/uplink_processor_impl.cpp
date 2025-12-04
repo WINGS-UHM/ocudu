@@ -9,17 +9,17 @@
  */
 
 #include "uplink_processor_impl.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/phy/upper/upper_phy_rx_results_notifier.h"
-#include "srsran/support/rtsan.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
+#include "ocudu/support/rtsan.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Returns a PRACH detector slot configuration using the given PRACH buffer context.
 static prach_detector::configuration get_prach_dectector_config_from_prach_context(const prach_buffer_context& context)
@@ -59,15 +59,15 @@ uplink_processor_impl::uplink_processor_impl(std::unique_ptr<prach_detector>  pr
   task_executors(task_executors_),
   rm_buffer_pool(rm_buffer_pool_),
   rx_payload_pool(max_nof_prb, max_nof_layers),
-  logger(srslog::fetch_basic_logger("PHY", true)),
+  logger(ocudulog::fetch_basic_logger("PHY", true)),
   notifier(notifier_),
   ul_tap(std::move(ul_tap_)),
   alternative_processor(*this, grid->get_reader(), ul_tap.get())
 {
-  srsran_assert(prach, "A valid PRACH detector must be provided");
-  srsran_assert(pusch_proc, "A valid PUSCH processor must be provided");
-  srsran_assert(pucch_proc, "A valid PUCCH processor must be provided");
-  srsran_assert(srs, "A valid SRS channel estimator must be provided");
+  ocudu_assert(prach, "A valid PRACH detector must be provided");
+  ocudu_assert(pusch_proc, "A valid PUSCH processor must be provided");
+  ocudu_assert(pucch_proc, "A valid PUCCH processor must be provided");
+  ocudu_assert(srs, "A valid SRS channel estimator must be provided");
 }
 
 uplink_slot_processor& uplink_processor_impl::get_slot_processor(slot_point slot)
@@ -241,7 +241,7 @@ void uplink_processor_impl::process_prach(shared_prach_buffer buffer, const prac
   }
 
   bool success = task_executors.prach_executor.execute(
-      [this, buffer_ = std::move(buffer), context_]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+      [this, buffer_ = std::move(buffer), context_]() noexcept OCUDU_RTSAN_NONBLOCKING {
         trace_point tp = l1_ul_tracer.now();
 
         ul_prach_results ul_results;
@@ -273,8 +273,7 @@ void uplink_processor_impl::process_pusch(const uplink_pdu_slot_repository::pusc
   const pusch_processor::pdu_t& proc_pdu = pdu.pdu;
 
   // Temporal sanity check as PUSCH is only supported for data. Remove the check when the UCI is supported for PUSCH.
-  srsran_assert(proc_pdu.codeword.has_value(),
-                "PUSCH PDU doesn't contain data. Currently, that mode is not supported.");
+  ocudu_assert(proc_pdu.codeword.has_value(), "PUSCH PDU doesn't contain data. Currently, that mode is not supported.");
 
   // Create buffer identifier.
   trx_buffer_identifier id(proc_pdu.rnti, pdu.harq_id);
@@ -368,7 +367,7 @@ void uplink_processor_impl::process_pucch(const uplink_pdu_slot_repository::pucc
         l1_ul_tracer << trace_event("pucch4", tp);
       } break;
       default:
-        srsran_assert(0, "Invalid PUCCH format={}", fmt::underlying(pdu.context.format));
+        ocudu_assert(0, "Invalid PUCCH format={}", fmt::underlying(pdu.context.format));
     }
 
     // Write the results.

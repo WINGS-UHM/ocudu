@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/asn1/e1ap/common.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/asn1/e1ap/common.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Get string with E1AP error cause.
 inline const char* get_cause_str(const asn1::e1ap::cause_c& cause)
@@ -293,4 +293,4 @@ inline std::optional<gnb_cu_up_ue_e1ap_id_t> get_gnb_cu_up_ue_e1ap_id(const asn1
   return std::nullopt;
 }
 
-} // namespace srsran
+} // namespace ocudu

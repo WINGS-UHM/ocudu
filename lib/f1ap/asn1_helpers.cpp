@@ -10,14 +10,14 @@
 
 #include "asn1_helpers.h"
 #include "cu_cp/f1ap_asn1_converters.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/ran/qos/five_qi_qos_mapping.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/ran/qos/five_qi_qos_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::f1ap;
 
-f1ap_cause_t srsran::asn1_to_cause(asn1::f1ap::cause_c asn1_cause)
+f1ap_cause_t ocudu::asn1_to_cause(asn1::f1ap::cause_c asn1_cause)
 {
   f1ap_cause_t cause;
 
@@ -44,7 +44,7 @@ f1ap_cause_t srsran::asn1_to_cause(asn1::f1ap::cause_c asn1_cause)
 /// \brief Convert \c f1ap_cause_t type to F1AP cause.
 /// \param cause The f1ap_cause_t type.
 /// \return The F1AP cause.
-asn1::f1ap::cause_c srsran::cause_to_asn1(f1ap_cause_t cause)
+asn1::f1ap::cause_c ocudu::cause_to_asn1(f1ap_cause_t cause)
 {
   asn1::f1ap::cause_c asn1_cause;
 
@@ -69,7 +69,7 @@ asn1::f1ap::cause_c srsran::cause_to_asn1(f1ap_cause_t cause)
   return asn1_cause;
 }
 
-expected<nr_cell_global_id_t> srsran::cgi_from_asn1(const asn1::f1ap::nr_cgi_s& asn1_cgi)
+expected<nr_cell_global_id_t> ocudu::cgi_from_asn1(const asn1::f1ap::nr_cgi_s& asn1_cgi)
 {
   auto plmn = plmn_identity::from_bytes(asn1_cgi.plmn_id.to_bytes());
   if (not plmn.has_value()) {
@@ -82,7 +82,7 @@ expected<nr_cell_global_id_t> srsran::cgi_from_asn1(const asn1::f1ap::nr_cgi_s& 
   return nr_cell_global_id_t{plmn.value(), nci.value()};
 }
 
-asn1::f1ap::nr_cgi_s srsran::cgi_to_asn1(const nr_cell_global_id_t& cgi)
+asn1::f1ap::nr_cgi_s ocudu::cgi_to_asn1(const nr_cell_global_id_t& cgi)
 {
   asn1::f1ap::nr_cgi_s asn1_nr_cgi;
   asn1_nr_cgi.nr_cell_id.from_number(cgi.nci.value());
@@ -90,7 +90,7 @@ asn1::f1ap::nr_cgi_s srsran::cgi_to_asn1(const nr_cell_global_id_t& cgi)
   return asn1_nr_cgi;
 }
 
-expected<nr_cell_identity> srsran::nr_cell_id_from_asn1(asn1::f1ap::nr_cgi_s& f1ap_cgi)
+expected<nr_cell_identity> ocudu::nr_cell_id_from_asn1(asn1::f1ap::nr_cgi_s& f1ap_cgi)
 {
   return nr_cell_identity::create(f1ap_cgi.nr_cell_id.to_number());
 }
@@ -385,7 +385,7 @@ static qos_info_c qos_info_to_f1ap_asn1(const f1ap_drb_info& drb_info)
   // Fill notif ctrl.
   if (drb_info.notif_ctrl.has_value()) {
     asn1_drb_info.notif_ctrl_present = true;
-    asn1_drb_info.notif_ctrl         = drb_info.notif_ctrl.value() == srsran::drb_notification_control::active
+    asn1_drb_info.notif_ctrl         = drb_info.notif_ctrl.value() == ocudu::drb_notification_control::active
                                            ? notif_ctrl_opts::options::active
                                            : notif_ctrl_opts::options::not_active;
   }
@@ -402,14 +402,14 @@ static qos_info_c qos_info_to_f1ap_asn1(const f1ap_drb_info& drb_info)
   return asn1type;
 }
 
-f1ap_srb_to_setup srsran::make_srb_to_setup(const asn1::f1ap::srbs_to_be_setup_item_s& asn1_type)
+f1ap_srb_to_setup ocudu::make_srb_to_setup(const asn1::f1ap::srbs_to_be_setup_item_s& asn1_type)
 {
   f1ap_srb_to_setup srb_obj;
   srb_obj.srb_id = int_to_srb_id(asn1_type.srb_id);
   return srb_obj;
 }
 
-srbs_to_be_setup_list_l srsran::make_srb_to_setup_list(span<const f1ap_srb_to_setup> srbs)
+srbs_to_be_setup_list_l ocudu::make_srb_to_setup_list(span<const f1ap_srb_to_setup> srbs)
 {
   srbs_to_be_setup_list_l asn1_type(srbs.size());
   for (unsigned i = 0; i != srbs.size(); ++i) {
@@ -419,7 +419,7 @@ srbs_to_be_setup_list_l srsran::make_srb_to_setup_list(span<const f1ap_srb_to_se
   return asn1_type;
 }
 
-srbs_to_be_setup_mod_list_l srsran::make_srb_to_setupmod_list(span<const f1ap_srb_to_setup> srbs)
+srbs_to_be_setup_mod_list_l ocudu::make_srb_to_setupmod_list(span<const f1ap_srb_to_setup> srbs)
 {
   srbs_to_be_setup_mod_list_l asn1_type(srbs.size());
   for (unsigned i = 0; i != srbs.size(); ++i) {
@@ -429,7 +429,7 @@ srbs_to_be_setup_mod_list_l srsran::make_srb_to_setupmod_list(span<const f1ap_sr
   return asn1_type;
 }
 
-srbs_setup_list_l srsran::make_srb_setup_list(span<const srb_id_t> srbs)
+srbs_setup_list_l ocudu::make_srb_setup_list(span<const srb_id_t> srbs)
 {
   srbs_setup_list_l asn1_list(srbs.size());
   for (unsigned i = 0; i != srbs.size(); ++i) {
@@ -440,7 +440,7 @@ srbs_setup_list_l srsran::make_srb_setup_list(span<const srb_id_t> srbs)
   return asn1_list;
 }
 
-srbs_setup_mod_list_l srsran::make_srb_setupmod_list(span<const srb_id_t> srbs)
+srbs_setup_mod_list_l ocudu::make_srb_setupmod_list(span<const srb_id_t> srbs)
 {
   srbs_setup_mod_list_l asn1_list(srbs.size());
   for (unsigned i = 0; i != srbs.size(); ++i) {
@@ -460,14 +460,14 @@ void fill_common_srb_failed_to_setupmod(T& srb_item, const ASN1Type& asn1_type)
   }
 }
 
-f1ap_srb_failed_to_setup srsran::make_srb_failed_to_setupmod(const srbs_failed_to_be_setup_item_s& asn1_type)
+f1ap_srb_failed_to_setup ocudu::make_srb_failed_to_setupmod(const srbs_failed_to_be_setup_item_s& asn1_type)
 {
   f1ap_srb_failed_to_setup srb_item;
   fill_common_srb_failed_to_setupmod(srb_item, asn1_type);
   return srb_item;
 }
 
-f1ap_srb_failed_to_setup srsran::make_srb_failed_to_setupmod(const srbs_failed_to_be_setup_mod_item_s& asn1_type)
+f1ap_srb_failed_to_setup ocudu::make_srb_failed_to_setupmod(const srbs_failed_to_be_setup_mod_item_s& asn1_type)
 {
   f1ap_srb_failed_to_setup srb_item;
   fill_common_srb_failed_to_setupmod(srb_item, asn1_type);
@@ -484,7 +484,7 @@ static void fill_drb_setup_common_fields(T& drb_obj, const ASN1Type& asn1_type)
   drb_obj.qos_info          = drb_info_from_f1ap_asn1(asn1_type.qos_info);
 }
 
-f1ap_drb_to_setup srsran::make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_item_s& drb_item)
+f1ap_drb_to_setup ocudu::make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_item_s& drb_item)
 {
   f1ap_drb_to_setup drb_obj;
   fill_drb_setup_common_fields(drb_obj, drb_item);
@@ -494,7 +494,7 @@ f1ap_drb_to_setup srsran::make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_i
   return drb_obj;
 }
 
-f1ap_drb_to_setup srsran::make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_mod_item_s& drb_item)
+f1ap_drb_to_setup ocudu::make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_mod_item_s& drb_item)
 {
   f1ap_drb_to_setup drb_obj;
   fill_drb_setup_common_fields(drb_obj, drb_item);
@@ -506,7 +506,7 @@ f1ap_drb_to_setup srsran::make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_m
   return drb_obj;
 }
 
-f1ap_drb_to_modify srsran::make_drb_to_modify(const asn1::f1ap::drbs_to_be_modified_item_s& drb_item)
+f1ap_drb_to_modify ocudu::make_drb_to_modify(const asn1::f1ap::drbs_to_be_modified_item_s& drb_item)
 {
   f1ap_drb_to_modify drb_obj;
   drb_obj.drb_id            = uint_to_drb_id(drb_item.drb_id);
@@ -514,7 +514,7 @@ f1ap_drb_to_modify srsran::make_drb_to_modify(const asn1::f1ap::drbs_to_be_modif
   return drb_obj;
 }
 
-drbs_to_be_setup_item_s srsran::make_drb_to_setup(const f1ap_drb_to_setup& drb_item)
+drbs_to_be_setup_item_s ocudu::make_drb_to_setup(const f1ap_drb_to_setup& drb_item)
 {
   drbs_to_be_setup_item_s asn1type;
   asn1type.drb_id                          = drb_id_to_uint(drb_item.drb_id);
@@ -526,7 +526,7 @@ drbs_to_be_setup_item_s srsran::make_drb_to_setup(const f1ap_drb_to_setup& drb_i
   return asn1type;
 }
 
-drbs_to_be_setup_mod_item_s srsran::make_drb_to_setupmod(const f1ap_drb_to_setup& drb_item)
+drbs_to_be_setup_mod_item_s ocudu::make_drb_to_setupmod(const f1ap_drb_to_setup& drb_item)
 {
   drbs_to_be_setup_mod_item_s asn1type;
   asn1type.drb_id                          = drb_id_to_uint(drb_item.drb_id);
@@ -539,7 +539,7 @@ drbs_to_be_setup_mod_item_s srsran::make_drb_to_setupmod(const f1ap_drb_to_setup
   return asn1type;
 }
 
-drbs_to_be_modified_item_s srsran::make_drb_to_mod(const f1ap_drb_to_modify& drb_item)
+drbs_to_be_modified_item_s ocudu::make_drb_to_mod(const f1ap_drb_to_modify& drb_item)
 {
   drbs_to_be_modified_item_s asn1type;
   asn1type.drb_id                          = drb_id_to_uint(drb_item.drb_id);
@@ -547,7 +547,7 @@ drbs_to_be_modified_item_s srsran::make_drb_to_mod(const f1ap_drb_to_modify& drb
   return asn1type;
 }
 
-drbs_to_be_setup_list_l srsran::make_drb_to_setup_list(span<const f1ap_drb_to_setup> drb_list)
+drbs_to_be_setup_list_l ocudu::make_drb_to_setup_list(span<const f1ap_drb_to_setup> drb_list)
 {
   drbs_to_be_setup_list_l asn1_list(drb_list.size());
   for (unsigned i = 0; i != drb_list.size(); ++i) {
@@ -557,7 +557,7 @@ drbs_to_be_setup_list_l srsran::make_drb_to_setup_list(span<const f1ap_drb_to_se
   return asn1_list;
 }
 
-drbs_to_be_setup_mod_list_l srsran::make_drb_to_setupmod_list(span<const f1ap_drb_to_setup> drb_list)
+drbs_to_be_setup_mod_list_l ocudu::make_drb_to_setupmod_list(span<const f1ap_drb_to_setup> drb_list)
 {
   drbs_to_be_setup_mod_list_l asn1_list(drb_list.size());
   for (unsigned i = 0; i != drb_list.size(); ++i) {
@@ -567,7 +567,7 @@ drbs_to_be_setup_mod_list_l srsran::make_drb_to_setupmod_list(span<const f1ap_dr
   return asn1_list;
 }
 
-drbs_to_be_modified_list_l srsran::make_drb_to_modify_list(span<const f1ap_drb_to_modify> drb_list)
+drbs_to_be_modified_list_l ocudu::make_drb_to_modify_list(span<const f1ap_drb_to_modify> drb_list)
 {
   drbs_to_be_modified_list_l asn1_list(drb_list.size());
   for (unsigned i = 0; i != drb_list.size(); ++i) {
@@ -577,7 +577,7 @@ drbs_to_be_modified_list_l srsran::make_drb_to_modify_list(span<const f1ap_drb_t
   return asn1_list;
 }
 
-asn1::f1ap::drbs_setup_list_l srsran::make_drbs_setup_list(span<const f1ap_drb_setupmod> drbs)
+asn1::f1ap::drbs_setup_list_l ocudu::make_drbs_setup_list(span<const f1ap_drb_setupmod> drbs)
 {
   asn1::f1ap::drbs_setup_list_l list(drbs.size());
   for (unsigned i = 0; i != drbs.size(); ++i) {
@@ -587,7 +587,7 @@ asn1::f1ap::drbs_setup_list_l srsran::make_drbs_setup_list(span<const f1ap_drb_s
   return list;
 }
 
-asn1::f1ap::drbs_setup_mod_list_l srsran::make_drbs_setup_mod_list(span<const f1ap_drb_setupmod> drbs)
+asn1::f1ap::drbs_setup_mod_list_l ocudu::make_drbs_setup_mod_list(span<const f1ap_drb_setupmod> drbs)
 {
   asn1::f1ap::drbs_setup_mod_list_l list(drbs.size());
   for (unsigned i = 0; i != drbs.size(); ++i) {
@@ -597,7 +597,7 @@ asn1::f1ap::drbs_setup_mod_list_l srsran::make_drbs_setup_mod_list(span<const f1
   return list;
 }
 
-asn1::f1ap::drbs_modified_list_l srsran::make_drbs_modified_list(span<const f1ap_drb_setupmod> drbs)
+asn1::f1ap::drbs_modified_list_l ocudu::make_drbs_modified_list(span<const f1ap_drb_setupmod> drbs)
 {
   asn1::f1ap::drbs_modified_list_l list(drbs.size());
   for (unsigned i = 0; i != drbs.size(); ++i) {
@@ -622,21 +622,21 @@ void fill_common_drb_setup(T& out, const ASN1Type& asn1type)
   out.dluptnl_info_list = make_dl_up_tnl_info_list(asn1type.dl_up_tnl_info_to_be_setup_list);
 }
 
-f1ap_drb_setupmod srsran::make_drb_setupmod(const asn1::f1ap::drbs_setup_item_s& drb)
+f1ap_drb_setupmod ocudu::make_drb_setupmod(const asn1::f1ap::drbs_setup_item_s& drb)
 {
   f1ap_drb_setupmod drb_obj;
   fill_common_drb_setup(drb_obj, drb);
   return drb_obj;
 }
 
-f1ap_drb_setupmod srsran::make_drb_setupmod(const asn1::f1ap::drbs_setup_mod_item_s& drb)
+f1ap_drb_setupmod ocudu::make_drb_setupmod(const asn1::f1ap::drbs_setup_mod_item_s& drb)
 {
   f1ap_drb_setupmod drb_obj;
   fill_common_drb_setup(drb_obj, drb);
   return drb_obj;
 }
 
-f1ap_drb_setupmod srsran::make_drb_setupmod(const asn1::f1ap::drbs_modified_item_s& drb)
+f1ap_drb_setupmod ocudu::make_drb_setupmod(const asn1::f1ap::drbs_modified_item_s& drb)
 {
   f1ap_drb_setupmod drb_obj;
   fill_common_drb_setup(drb_obj, drb);
@@ -654,7 +654,7 @@ void fill_drb_failed_item(ASN1Type& asn1obj, const f1ap_drb_failed_to_setupmod& 
 }
 
 asn1::f1ap::drbs_failed_to_be_setup_list_l
-srsran::make_drbs_failed_to_be_setup_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs)
+ocudu::make_drbs_failed_to_be_setup_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs)
 {
   asn1::f1ap::drbs_failed_to_be_setup_list_l list(failed_drbs.size());
   for (unsigned i = 0; i != failed_drbs.size(); ++i) {
@@ -665,7 +665,7 @@ srsran::make_drbs_failed_to_be_setup_list(span<const f1ap_drb_failed_to_setupmod
 }
 
 asn1::f1ap::drbs_failed_to_be_setup_mod_list_l
-srsran::make_drbs_failed_to_be_setup_mod_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs)
+ocudu::make_drbs_failed_to_be_setup_mod_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs)
 {
   asn1::f1ap::drbs_failed_to_be_setup_mod_list_l list(failed_drbs.size());
   for (unsigned i = 0; i != failed_drbs.size(); ++i) {
@@ -676,7 +676,7 @@ srsran::make_drbs_failed_to_be_setup_mod_list(span<const f1ap_drb_failed_to_setu
 }
 
 asn1::f1ap::drbs_failed_to_be_modified_list_l
-srsran::make_drbs_failed_to_be_modified_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs)
+ocudu::make_drbs_failed_to_be_modified_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs)
 {
   asn1::f1ap::drbs_failed_to_be_modified_list_l list(failed_drbs.size());
   for (unsigned i = 0; i != failed_drbs.size(); ++i) {
@@ -687,7 +687,7 @@ srsran::make_drbs_failed_to_be_modified_list(span<const f1ap_drb_failed_to_setup
 }
 
 asn1::f1ap::serving_cell_mo_encoded_in_cgc_list_l
-srsran::make_serving_cell_mo_encoded_in_cgc_list(span<const uint8_t> serving_cell_mos)
+ocudu::make_serving_cell_mo_encoded_in_cgc_list(span<const uint8_t> serving_cell_mos)
 {
   asn1::f1ap::serving_cell_mo_encoded_in_cgc_list_l list(serving_cell_mos.size());
   for (unsigned i = 0; i != serving_cell_mos.size(); ++i) {
@@ -706,21 +706,21 @@ static void fill_failed_drb(T& drb_item, const ASN1Type& asn1_type)
 }
 
 f1ap_drb_failed_to_setupmod
-srsran::make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_setup_item_s& asn1_type)
+ocudu::make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_setup_item_s& asn1_type)
 {
   f1ap_drb_failed_to_setupmod drb_item;
   fill_failed_drb(drb_item, asn1_type);
   return drb_item;
 }
 f1ap_drb_failed_to_setupmod
-srsran::make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_setup_mod_item_s& asn1_type)
+ocudu::make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_setup_mod_item_s& asn1_type)
 {
   f1ap_drb_failed_to_setupmod drb_item;
   fill_failed_drb(drb_item, asn1_type);
   return drb_item;
 }
 f1ap_drb_failed_to_setupmod
-srsran::make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_modified_item_s& asn1_type)
+ocudu::make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_modified_item_s& asn1_type)
 {
   f1ap_drb_failed_to_setupmod drb_item;
   fill_failed_drb(drb_item, asn1_type);

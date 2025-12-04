@@ -9,13 +9,13 @@
  */
 
 #include "dummy_du.h"
-#include "srsran/adt/concurrent_queue.h"
-#include "srsran/cu_cp/cu_cp_f1c_handler.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/concurrent_queue.h"
+#include "ocudu/cu_cp/cu_cp_f1c_handler.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -58,14 +58,14 @@ private:
   std::unique_ptr<f1ap_message_notifier> tx_pdu_notifier;
 
   concurrent_queue<f1ap_message,
-                   srsran::concurrent_queue_policy::locking_mpmc,
-                   srsran::concurrent_queue_wait_policy::condition_variable>
+                   ocudu::concurrent_queue_policy::locking_mpmc,
+                   ocudu::concurrent_queue_wait_policy::condition_variable>
       rx_pdus{1024};
 };
 
 } // namespace
 
-std::unique_ptr<du_test_stub> srsran::srs_cu_cp::create_du_stub(du_stub_params params)
+std::unique_ptr<du_test_stub> ocudu::ocucp::create_du_stub(du_stub_params params)
 {
   auto du = std::make_unique<manual_mock_du>(params);
   if (not du->connected()) {

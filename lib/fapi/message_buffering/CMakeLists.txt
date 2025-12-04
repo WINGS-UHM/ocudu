@@ -12,6 +12,6 @@ set(SOURCES
         message_bufferer_slot_gateway_task_dispatcher.cpp
         message_bufferer_slot_time_notifier_decorator.cpp)
 
-add_library(srsran_fapi_message_buffering STATIC ${SOURCES})
-target_include_directories(srsran_fapi_message_buffering PRIVATE ${CMAKE_SOURCE_DIR}/lib/fapi)
-target_link_libraries(srsran_fapi_message_buffering PRIVATE srsran_fapi_decorator_helpers)
+add_library(ocudu_fapi_message_buffering STATIC ${SOURCES})
+target_include_directories(ocudu_fapi_message_buffering PRIVATE ${CMAKE_SOURCE_DIR}/lib/fapi)
+target_link_libraries(ocudu_fapi_message_buffering PRIVATE ocudu_fapi_decorator_helpers)

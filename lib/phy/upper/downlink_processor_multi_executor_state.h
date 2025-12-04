@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <thread>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Downlink processor state management class.
 ///
@@ -40,9 +40,9 @@ public:
     uint32_t prev = state_pending_pdus.fetch_xor(state_pending_pdus_mask_accepting_pdus, std::memory_order_acq_rel);
 
     // Assert that the accepting PDUs mask was there.
-    srsran_assert((prev & state_pending_pdus_mask_accepting_pdus) != 0,
-                  "The downlink processor is in an unexpected state state 0x{:08x}.",
-                  prev);
+    ocudu_assert((prev & state_pending_pdus_mask_accepting_pdus) != 0,
+                 "The downlink processor is in an unexpected state state 0x{:08x}.",
+                 prev);
 
     // There are no pending PDUs if the previous value is equal to the mask.
     return (prev == state_pending_pdus_mask_accepting_pdus);
@@ -54,7 +54,7 @@ public:
   {
     // Transition to idle regardless of the state and trigger an assertion if the state is not expected.
     [[maybe_unused]] uint32_t prev = state_pending_pdus.exchange(state_pending_pdus_idle, std::memory_order_acq_rel);
-    srsran_assert(
+    ocudu_assert(
         prev == state_pending_pdus_finishing, "The downlink processor is in an unexpected state state 0x{:08x}.", prev);
   }
 
@@ -63,9 +63,9 @@ public:
   void on_task_creation()
   {
     [[maybe_unused]] uint32_t prev = state_pending_pdus.fetch_add(1, std::memory_order_acq_rel);
-    srsran_assert((prev & state_pending_pdus_mask_accepting_pdus) != 0,
-                  "The downlink processor is in an unexpected state state 0x{:08x}.",
-                  prev);
+    ocudu_assert((prev & state_pending_pdus_mask_accepting_pdus) != 0,
+                 "The downlink processor is in an unexpected state state 0x{:08x}.",
+                 prev);
   }
 
   /// \brief Notifies the completion of a PDU processing task.
@@ -74,8 +74,8 @@ public:
   bool on_task_completion()
   {
     uint32_t prev = state_pending_pdus.fetch_sub(1, std::memory_order_acq_rel);
-    srsran_assert((prev & state_pending_pdus_mask_count) != 0,
-                  "The downlink processor number of pending PDUs cannot be zero.");
+    ocudu_assert((prev & state_pending_pdus_mask_count) != 0,
+                 "The downlink processor number of pending PDUs cannot be zero.");
     return prev == 1;
   }
 
@@ -106,4 +106,4 @@ private:
   /// Current state and number of pending PDUs to process.
   std::atomic<uint32_t> state_pending_pdus = state_pending_pdus_idle;
 };
-} // namespace srsran
+} // namespace ocudu

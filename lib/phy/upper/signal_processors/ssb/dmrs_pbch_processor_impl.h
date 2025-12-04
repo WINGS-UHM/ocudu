@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dmrs_pbch_processor_impl : public dmrs_pbch_processor
 {
@@ -53,11 +53,11 @@ public:
   dmrs_pbch_processor_impl(std::unique_ptr<pseudo_random_generator> pseudo_random_generator) :
     prg(std::move(pseudo_random_generator))
   {
-    srsran_assert(prg, "Invalid PRG.");
+    ocudu_assert(prg, "Invalid PRG.");
   }
 
   // See interface for documentation.
   void map(resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

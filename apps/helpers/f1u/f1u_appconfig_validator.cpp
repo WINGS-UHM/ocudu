@@ -11,9 +11,9 @@
 #include "f1u_appconfig_validator.h"
 #include "f1u_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_f1u_sockets_appconfig(const f1u_sockets_appconfig& config)
+bool ocudu::validate_f1u_sockets_appconfig(const f1u_sockets_appconfig& config)
 {
   for (const f1u_socket_appconfig& f1u_socket : config.f1u_socket_cfg) {
     if (f1u_socket.sst.has_value() && not f1u_socket.five_qi.has_value()) {

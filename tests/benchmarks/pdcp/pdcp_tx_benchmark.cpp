@@ -9,12 +9,12 @@
  */
 
 #include "lib/pdcp/pdcp_entity_tx.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 const std::array<uint8_t, 16> k_128_int =
     {0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30, 0x31};
@@ -49,9 +49,9 @@ struct bench_params {
 };
 
 struct app_params {
-  int                  algo         = -1;
-  srslog::basic_levels log_level    = srslog::basic_levels::error;
-  std::string          log_filename = "stdout";
+  int                    algo         = -1;
+  ocudulog::basic_levels log_level    = ocudulog::basic_levels::error;
+  std::string            log_filename = "stdout";
 };
 
 static void usage(const char* prog, const bench_params& params, const app_params& app)
@@ -97,8 +97,8 @@ static void parse_args(int argc, char** argv, bench_params& params, app_params& 
         params.print_timing_info = true;
         break;
       case 'l': {
-        auto value    = srslog::str_to_basic_level(std::string(optarg));
-        app.log_level = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value    = ocudulog::str_to_basic_level(std::string(optarg));
+        app.log_level = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         break;
       }
       case 'f':
@@ -175,13 +175,13 @@ static void benchmark_pdcp_tx(bench_params                  params,
     // Print errors if statistics are different than expected
     if (frame != nullptr) {
       if (frame->num_pdus < (uint32_t)nof_sdus) {
-        srslog::fetch_basic_logger("PDCP").error("Transmitted only {} of {} SDUs", frame->num_pdus, nof_sdus);
+        ocudulog::fetch_basic_logger("PDCP").error("Transmitted only {} of {} SDUs", frame->num_pdus, nof_sdus);
       }
       if (frame->num_protocol_failures > 0) {
-        srslog::fetch_basic_logger("PDCP").error("Unexpected num_protocol_failures={}", frame->num_protocol_failures);
+        ocudulog::fetch_basic_logger("PDCP").error("Unexpected num_protocol_failures={}", frame->num_protocol_failures);
       }
       if (frame->num_max_count_reached > 0) {
-        srslog::fetch_basic_logger("PDCP").error("Unexpected num_max_count_reached={}", frame->num_max_count_reached);
+        ocudulog::fetch_basic_logger("PDCP").error("Unexpected num_max_count_reached={}", frame->num_max_count_reached);
       }
     }
     pdcp_tx.reset();
@@ -217,7 +217,7 @@ static void benchmark_pdcp_tx(bench_params                  params,
   auto measure = [&pdcp_tx, &sdu_list, &dl_worker, &crypto_worker_pool, &dl_exec]() mutable {
     for (auto& sdu : sdu_list) {
       if (!dl_exec.execute([&pdcp_tx, s = std::move(sdu)]() mutable { pdcp_tx->handle_sdu(std::move(s)); })) {
-        srslog::fetch_basic_logger("PDCP").error("Failed execute handle_sdu in DL executor");
+        ocudulog::fetch_basic_logger("PDCP").error("Failed execute handle_sdu in DL executor");
       }
     }
     // Wait for all handle_sdu tasks to be processed
@@ -261,7 +261,7 @@ static int run_benchmark(bench_params params, int algo)
   while (nof_segments_pow_2 < nof_segments_per_run) {
     nof_segments_pow_2 = nof_segments_pow_2 << 1;
   }
-  srslog::fetch_basic_logger("ALL").debug("Init byte_buffer pool with nof_segments_pow_2={}", nof_segments_pow_2);
+  ocudulog::fetch_basic_logger("ALL").debug("Init byte_buffer pool with nof_segments_pow_2={}", nof_segments_pow_2);
   init_byte_buffer_segment_pool(nof_segments_pow_2, byte_buffer_segment_pool_default_segment_size());
 
   if (algo == 0) {
@@ -285,17 +285,18 @@ int main(int argc, char** argv)
   app_params   app_params{};
   parse_args(argc, argv, params, app_params);
 
-  srslog::init();
+  ocudulog::init();
 
-  srslog::sink* log_sink = (app_params.log_filename == "stdout") ? srslog::create_stdout_sink()
-                                                                 : srslog::create_file_sink(app_params.log_filename);
+  ocudulog::sink* log_sink = (app_params.log_filename == "stdout")
+                                 ? ocudulog::create_stdout_sink()
+                                 : ocudulog::create_file_sink(app_params.log_filename);
   if (log_sink == nullptr) {
     return -1;
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::fetch_basic_logger("ALL").set_level(app_params.log_level);
-  srslog::fetch_basic_logger("PDCP").set_level(app_params.log_level);
-  srslog::fetch_basic_logger("SEC").set_level(app_params.log_level);
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::fetch_basic_logger("ALL").set_level(app_params.log_level);
+  ocudulog::fetch_basic_logger("PDCP").set_level(app_params.log_level);
+  ocudulog::fetch_basic_logger("SEC").set_level(app_params.log_level);
 
   if (app_params.algo != -1) {
     run_benchmark(params, app_params.algo);
@@ -304,5 +305,5 @@ int main(int argc, char** argv)
       run_benchmark(params, i);
     }
   }
-  srslog::flush();
+  ocudulog::flush();
 }

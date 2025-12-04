@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
@@ -52,8 +52,8 @@ static void parse_args(int argc, char** argv)
   }
 }
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 int main(int argc, char** argv)
 {
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
       unsigned min_cb_length_bg = 24;
       unsigned max_cb_length_bg = 66;
       unsigned msg_length_bg    = 22;
-      if (bg == srsran::ldpc_base_graph_type::BG2) {
+      if (bg == ocudu::ldpc_base_graph_type::BG2) {
         min_cb_length_bg = 12;
         max_cb_length_bg = 50;
         msg_length_bg    = 10;

@@ -1,0 +1,33 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+namespace ocudu {
+namespace ocucp {
+
+class cu_cp;
+class cu_cp_operation_controller;
+
+/// O-RAN CU-CP interface.
+class o_cu_cp
+{
+public:
+  virtual ~o_cu_cp() = default;
+
+  /// Returns the CU-CP of this O-RAN CU-CP.
+  virtual cu_cp& get_cu_cp() = 0;
+
+  /// Returns the operation controller of this O-RAN CU-CP.
+  virtual cu_cp_operation_controller& get_operation_controller() = 0;
+};
+
+} // namespace ocucp
+} // namespace ocudu

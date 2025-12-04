@@ -11,13 +11,13 @@
 #include "f1ap_cu_test_helpers.h"
 #include "lib/f1ap/asn1_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::f1ap;
 
 static du_setup_result create_du_setup_result_accept(const f1ap_message& f1_msg)
@@ -202,8 +202,8 @@ TEST_F(f1ap_cu_test, when_rnti_invalid_then_ue_not_added)
 TEST_F(f1ap_cu_test, when_max_nof_ues_exceeded_then_ue_not_added)
 {
   // Reduce F1AP and TEST logger loglevel to warning to reduce console output
-  srslog::fetch_basic_logger("CU-CP-F1").set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("CU-CP-F1").set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::warning);
 
   // Add the maximum number of UEs
   for (unsigned du_ue_id = 0; du_ue_id < max_nof_ues; du_ue_id++) {
@@ -216,8 +216,8 @@ TEST_F(f1ap_cu_test, when_max_nof_ues_exceeded_then_ue_not_added)
   }
 
   // Reset F1AP and TEST logger loglevel
-  srslog::fetch_basic_logger("CU-CP-F1").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("CU-CP-F1").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
 
   EXPECT_EQ(f1ap->get_nof_ues(), max_nof_ues);
 

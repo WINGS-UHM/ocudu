@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
-#include "srsran/phy/upper/upper_phy_timing_context.h"
-#include "srsran/phy/upper/upper_phy_timing_handler.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/phy/upper/upper_phy_timing_context.h"
+#include "ocudu/phy/upper/upper_phy_timing_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic physical layer timing adapter.
 class phy_timing_adapter : public lower_phy_timing_notifier
@@ -55,4 +55,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

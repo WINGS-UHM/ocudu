@@ -6,12 +6,12 @@
 # the distribution.
 #
 
-add_library(srsran_f1ap_du_helpers f1ap_asn1_converters.cpp)
-target_include_directories(srsran_f1ap_du_helpers PRIVATE ..)
-target_link_libraries(srsran_f1ap_du_helpers f1ap_asn1)
+add_library(ocudu_f1ap_du_helpers f1ap_asn1_converters.cpp)
+target_include_directories(ocudu_f1ap_du_helpers PRIVATE ..)
+target_link_libraries(ocudu_f1ap_du_helpers f1ap_asn1)
 
 add_subdirectory(procedures)
-add_library(srsran_f1ap_du
+add_library(ocudu_f1ap_du
         f1ap_du_impl.cpp
         f1ap_du_factory.cpp
         f1ap_du_connection_handler.cpp
@@ -20,5 +20,5 @@ add_library(srsran_f1ap_du
         ue_context/ue_bearer_manager.cpp
         ue_context/f1c_du_bearer_impl.cpp
         ue_context/f1ap_du_ue_config_update.cpp)
-target_include_directories(srsran_f1ap_du PRIVATE ..)
-target_link_libraries(srsran_f1ap_du f1ap_asn1 srsran_f1ap_common srsran_f1ap_du_procedures srsran_f1u_du)
+target_include_directories(ocudu_f1ap_du PRIVATE ..)
+target_link_libraries(ocudu_f1ap_du f1ap_asn1 ocudu_f1ap_common ocudu_f1ap_du_procedures ocudu_f1u_du)

@@ -10,10 +10,10 @@
 
 #include "dl_ssb_pdu.h"
 #include "field_checkers.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/fapi/validator_report.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/validator_report.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks a DL_TTI.request message.
@@ -109,7 +109,7 @@ static bool validate_L_max(unsigned value, validator_report& report)
   return false;
 }
 
-bool srsran::fapi::validate_dl_ssb_pdu(const dl_ssb_pdu& pdu, validator_report& report)
+bool ocudu::fapi::validate_dl_ssb_pdu(const dl_ssb_pdu& pdu, validator_report& report)
 {
   bool result = true;
 

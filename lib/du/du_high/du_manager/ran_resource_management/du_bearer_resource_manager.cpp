@@ -9,11 +9,11 @@
  */
 
 #include "du_bearer_resource_manager.h"
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/rlc/rlc_srb_config_factory.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/rlc/rlc_srb_config_factory.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 /// \brief Finds an unused LCID for DRBs given a list of UE configured RLC bearers.
 static lcid_t find_empty_lcid(const slotted_id_vector<drb_id_t, du_ue_drb_config>& drbs)
@@ -103,7 +103,7 @@ static void reestablish_context(du_ue_resource_config& new_ue_cfg, const du_ue_r
 
 du_bearer_resource_manager::du_bearer_resource_manager(const std::map<srb_id_t, du_srb_config>&  srbs_,
                                                        const std::map<five_qi_t, du_qos_config>& qos_,
-                                                       srslog::basic_logger&                     logger_) :
+                                                       ocudulog::basic_logger&                   logger_) :
   srb_config(srbs_), qos_config(qos_), logger(logger_)
 {
 }

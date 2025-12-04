@@ -12,8 +12,8 @@
 #include "../e1ap_cu_cp_asn1_helpers.h"
 #include "cu_cp/ue_context/e1ap_bearer_transaction_manager.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::e1ap;
 
 bearer_context_modification_procedure::bearer_context_modification_procedure(const e1ap_configuration&        e1ap_cfg_,

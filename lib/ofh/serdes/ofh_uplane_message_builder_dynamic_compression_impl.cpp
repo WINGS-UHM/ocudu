@@ -11,7 +11,7 @@
 #include "ofh_uplane_message_builder_dynamic_compression_impl.h"
 #include "../support/network_order_binary_serializer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void ofh_uplane_message_builder_dynamic_compression_impl::serialize_compression_header(

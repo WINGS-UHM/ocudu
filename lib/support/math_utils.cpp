@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Number of prime numbers between 2 and 3299 (both included).
 static constexpr unsigned NOF_PRIME_NUMBERS = 463;
@@ -44,7 +44,7 @@ static constexpr std::array<unsigned, NOF_PRIME_NUMBERS> prime_numbers = {
     3061, 3067, 3079, 3083, 3089, 3109, 3119, 3121, 3137, 3163, 3167, 3169, 3181, 3187, 3191, 3203, 3209, 3217, 3221,
     3229, 3251, 3253, 3257, 3259, 3271, 3299};
 
-unsigned srsran::prime_greater_than(unsigned n)
+unsigned ocudu::prime_greater_than(unsigned n)
 {
   for (unsigned prime : prime_numbers) {
     if (prime > n) {
@@ -52,12 +52,12 @@ unsigned srsran::prime_greater_than(unsigned n)
     }
   }
 
-  srsran_terminate("n={} exceeds the maximum prime.", n);
+  ocudu_terminate("n={} exceeds the maximum prime.", n);
 }
 
-unsigned srsran::prime_lower_than(unsigned n)
+unsigned ocudu::prime_lower_than(unsigned n)
 {
-  srsran_assert(n < prime_numbers[NOF_PRIME_NUMBERS - 1], "n={} exceeds the maximum prime.", n);
+  ocudu_assert(n < prime_numbers[NOF_PRIME_NUMBERS - 1], "n={} exceeds the maximum prime.", n);
 
   for (uint32_t i = NOF_PRIME_NUMBERS - 1; i > 0; i--) {
     if (prime_numbers[i] < n) {

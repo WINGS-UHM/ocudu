@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 bool bit_encoder::pack(uint64_t val, uint32_t n_bits)
 {
-  srsran_assert(n_bits <= 64U, "Invalid number of bits={} passed to pack()", n_bits);
+  ocudu_assert(n_bits <= 64U, "Invalid number of bits={} passed to pack()", n_bits);
 
   while (n_bits > 0U) {
     if (offset == 0U) {
@@ -97,7 +97,7 @@ bool bit_decoder::advance_bits(uint32_t n_bits)
 template <typename T>
 bool bit_decoder::unpack(T& val, uint32_t n_bits)
 {
-  srsran_assert(n_bits <= sizeof(T) * 8U, "unpack_bits() only supports up to {} bits", sizeof(T) * 8U);
+  ocudu_assert(n_bits <= sizeof(T) * 8U, "unpack_bits() only supports up to {} bits", sizeof(T) * 8U);
 
   val = 0;
   while (n_bits > 0U) {
@@ -180,7 +180,7 @@ byte_buffer_view bit_decoder::unpack_aligned_bytes(size_t n_bytes)
 void bit_decoder::align_bytes()
 {
   if (offset != 0) {
-    srsran_sanity_check(it != buffer.end(), "Invalid bit_decoder state");
+    ocudu_sanity_check(it != buffer.end(), "Invalid bit_decoder state");
     ++it;
     offset = 0;
   }

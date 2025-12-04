@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/async/execute_on.h"
-#include "srsran/support/executors/blocking_task_worker.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/async/execute_on.h"
+#include "ocudu/support/executors/blocking_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// In this test, we keep hopping between workers. In each worker we increment an unprotected integer, and print
 /// Given that the access to the integer is sequential, we dont need mutexes.

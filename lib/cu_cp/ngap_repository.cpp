@@ -9,13 +9,13 @@
  */
 
 #include "ngap_repository.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_context.h"
-#include "srsran/ngap/ngap_factory.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_context.h"
+#include "ocudu/ngap/ngap_factory.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ngap_repository::ngap_repository(ngap_repository_config cfg_) :
   cfg(cfg_),
@@ -24,7 +24,7 @@ ngap_repository::ngap_repository(ngap_repository_config cfg_) :
 {
   for (uint16_t amf_idx = 0; amf_idx < cfg.cu_cp.ngap.ngaps.size(); amf_idx++) {
     auto* ngap_entity = add_ngap(uint_to_amf_index(amf_idx), cfg.cu_cp.ngap.ngaps.at(amf_idx));
-    srsran_assert(ngap_entity != nullptr, "Failed to add NGAP for gateway");
+    ocudu_assert(ngap_entity != nullptr, "Failed to add NGAP for gateway");
   }
 }
 
@@ -32,7 +32,7 @@ ngap_interface* ngap_repository::add_ngap(amf_index_t amf_index, const cu_cp_con
 {
   // Create NGAP object
   auto it = ngap_db.insert(std::make_pair(amf_index, ngap_context{}));
-  srsran_assert(it.second, "Unable to insert NGAP in map");
+  ocudu_assert(it.second, "Unable to insert NGAP in map");
   ngap_context& ngap_ctxt = it.first->second;
   ngap_ctxt.ngap_to_cu_cp_notifier.connect_cu_cp(cfg.cu_cp_notifier, cfg.paging_handler);
 

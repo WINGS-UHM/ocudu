@@ -10,11 +10,11 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Test the f1 UE context release procedure (gNB-CU initiated)
 TEST_F(f1ap_cu_test, when_ue_release_command_received_then_procedure_succeeds)

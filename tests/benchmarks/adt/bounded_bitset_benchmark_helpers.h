@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 template <size_t N>
 std::array<bool, N> create_contiguous_array(unsigned number_of_ones)
@@ -32,4 +32,4 @@ std::array<bool, N> shuffle_array(const std::array<bool, N>& ar)
   return ar;
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,26 +9,26 @@
  */
 
 #include "prach.h"
-#include "srsran/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
 #include <numeric>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       context,
-                                                     const fapi::ul_prach_pdu&   fapi_pdu,
-                                                     const fapi::prach_config&   prach_cfg,
-                                                     const fapi::carrier_config& carrier_cfg,
-                                                     span<const uint8_t>         ports,
-                                                     unsigned                    sfn,
-                                                     unsigned                    slot,
-                                                     unsigned                    sector_id)
+void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       context,
+                                                    const fapi::ul_prach_pdu&   fapi_pdu,
+                                                    const fapi::prach_config&   prach_cfg,
+                                                    const fapi::carrier_config& carrier_cfg,
+                                                    span<const uint8_t>         ports,
+                                                    unsigned                    sfn,
+                                                    unsigned                    slot,
+                                                    unsigned                    sector_id)
 {
-  srsran_assert(fapi_pdu.maintenance_v3.prach_config_scope == fapi::prach_config_scope_type::phy_context,
-                "Common context not supported.");
-  srsran_assert(fapi_pdu.maintenance_v3.prach_res_config_index == 0,
-                "Only PRACH resource configuration index 0 supported.");
-  srsran_assert(fapi_pdu.index_fd_ra == 0, "Only one FD occasion supported.");
+  ocudu_assert(fapi_pdu.maintenance_v3.prach_config_scope == fapi::prach_config_scope_type::phy_context,
+               "Common context not supported.");
+  ocudu_assert(fapi_pdu.maintenance_v3.prach_res_config_index == 0,
+               "Only PRACH resource configuration index 0 supported.");
+  ocudu_assert(fapi_pdu.index_fd_ra == 0, "Only one FD occasion supported.");
 
   context.slot                 = slot_point(prach_cfg.prach_ul_bwp_pusch_scs, sfn, slot);
   context.sector               = sector_id;
@@ -43,7 +43,7 @@ void srsran::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&      
   context.restricted_set  = prach_cfg.restricted_set;
   context.nof_prb_ul_grid = carrier_cfg.ul_grid_size[to_numerology_value(context.pusch_scs)];
 
-  srsran_assert(fapi_pdu.index_fd_ra < prach_cfg.fd_occasions.size(), "Index FD RA out of bounds");
+  ocudu_assert(fapi_pdu.index_fd_ra < prach_cfg.fd_occasions.size(), "Index FD RA out of bounds");
   const fapi::prach_fd_occasion_config& fd_occas = prach_cfg.fd_occasions[fapi_pdu.index_fd_ra];
   context.rb_offset                              = fd_occas.prach_freq_offset;
   context.root_sequence_index                    = fd_occas.prach_root_sequence_index;

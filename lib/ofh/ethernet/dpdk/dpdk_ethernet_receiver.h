@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../ethernet_rx_metrics_collector_impl.h"
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
-#include "srsran/ofh/ethernet/ethernet_controller.h"
-#include "srsran/ofh/ethernet/ethernet_receiver.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
+#include "ocudu/ofh/ethernet/ethernet_controller.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -32,7 +32,7 @@ class dpdk_receiver_impl : public receiver, private receiver_operation_controlle
 public:
   dpdk_receiver_impl(task_executor&                     executor_,
                      std::shared_ptr<dpdk_port_context> port_ctx_,
-                     srslog::basic_logger&              logger_,
+                     ocudulog::basic_logger&            logger_,
                      bool                               are_metrics_enabled);
 
   // See interface for documentation.
@@ -54,7 +54,7 @@ private:
   /// Receives new Ethernet frames from the socket.
   void receive();
 
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   task_executor&                     executor;
   frame_notifier*                    notifier;
   std::shared_ptr<dpdk_port_context> port_ctx;
@@ -63,4 +63,4 @@ private:
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

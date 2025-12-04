@@ -8,8 +8,8 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg_ies.h"
 using namespace asn1;
 using namespace asn1::rrc_nr;
 
@@ -46,7 +46,7 @@ void dl_ccch_msg_type_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE dl_ccch_msg_type_c::pack(bit_ref& bref) const
+OCUDUASN_CODE dl_ccch_msg_type_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -57,11 +57,11 @@ SRSASN_CODE dl_ccch_msg_type_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "dl_ccch_msg_type_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE dl_ccch_msg_type_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE dl_ccch_msg_type_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -74,9 +74,9 @@ SRSASN_CODE dl_ccch_msg_type_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "dl_ccch_msg_type_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 void dl_ccch_msg_type_c::c1_c_::set(types::options e)
@@ -138,7 +138,7 @@ void dl_ccch_msg_type_c::c1_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE dl_ccch_msg_type_c::c1_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE dl_ccch_msg_type_c::c1_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -154,11 +154,11 @@ SRSASN_CODE dl_ccch_msg_type_c::c1_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "dl_ccch_msg_type_c::c1_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE dl_ccch_msg_type_c::c1_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE dl_ccch_msg_type_c::c1_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -176,9 +176,9 @@ SRSASN_CODE dl_ccch_msg_type_c::c1_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "dl_ccch_msg_type_c::c1_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* dl_ccch_msg_type_c::c1_c_::types_opts::to_string() const
@@ -199,21 +199,21 @@ uint8_t dl_ccch_msg_type_c::types_opts::to_number() const
 }
 
 // DL-CCCH-Message ::= SEQUENCE
-SRSASN_CODE dl_ccch_msg_s::pack(bit_ref& bref) const
+OCUDUASN_CODE dl_ccch_msg_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(msg.pack(bref));
 
   bref.align_bytes_zero();
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE dl_ccch_msg_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE dl_ccch_msg_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(msg.unpack(bref));
 
   bref.align_bytes();
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void dl_ccch_msg_s::to_json(json_writer& j) const
 {

@@ -14,17 +14,17 @@
 #include "ngu_session_manager.h"
 #include "pdu_session.h"
 #include "pdu_session_manager.h"
-#include "srsran/cu_up/cu_up_config.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/support/rate_limiting/token_bucket.h"
-#include "srsran/support/timers.h"
+#include "ocudu/cu_up/cu_up_config.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/support/rate_limiting/token_bucket.h"
+#include "ocudu/support/timers.h"
 #include <map>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 /// PDU session manager dependencies.
 struct pdu_session_manager_dependencies {
@@ -50,13 +50,13 @@ struct pdu_session_manager_dependencies {
 class pdu_session_manager_impl final : public pdu_session_manager_ctrl
 {
 public:
-  pdu_session_manager_impl(ue_index_t                                       ue_index_,
-                           std::map<five_qi_t, srs_cu_up::cu_up_qos_config> qos_cfg_,
-                           const security::sec_as_config&                   security_info_,
-                           const n3_interface_config&                       n3_config_,
-                           const cu_up_test_mode_config&                    test_mode_config_,
-                           uint64_t                                         ue_dl_ambr,
-                           const pdu_session_manager_dependencies&          dependencies);
+  pdu_session_manager_impl(ue_index_t                                   ue_index_,
+                           std::map<five_qi_t, ocuup::cu_up_qos_config> qos_cfg_,
+                           const security::sec_as_config&               security_info_,
+                           const n3_interface_config&                   n3_config_,
+                           const cu_up_test_mode_config&                test_mode_config_,
+                           uint64_t                                     ue_dl_ambr,
+                           const pdu_session_manager_dependencies&      dependencies);
 
   pdu_session_setup_result        setup_pdu_session(const e1ap_pdu_session_res_to_setup_item& session) override;
   pdu_session_modification_result modify_pdu_session(const e1ap_pdu_session_res_to_modify_item& session,
@@ -93,7 +93,7 @@ private:
                                             const e1ap_drb_to_setup_item_ng_ran& drb_to_setup);
 
   ue_index_t                                               ue_index;
-  const std::map<five_qi_t, srs_cu_up::cu_up_qos_config>   qos_cfg;
+  const std::map<five_qi_t, ocuup::cu_up_qos_config>       qos_cfg;
   security::sec_as_config                                  security_info;
   const n3_interface_config&                               n3_config;
   cu_up_test_mode_config                                   test_mode_config;
@@ -118,4 +118,4 @@ private:
   std::map<pdu_session_id_t, std::unique_ptr<pdu_session>> pdu_sessions; // key is pdu_session_id
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

@@ -11,10 +11,10 @@
 #pragma once
 
 #include "du_ue.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Interface used by DU Manager procedures to add/find/remove UEs from the DU UE Manager.
 class du_ue_manager_repository
@@ -49,5 +49,5 @@ public:
   virtual void schedule_async_task(du_ue_index_t ue_index, async_task<void> task) = 0;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

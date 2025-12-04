@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/support/error_handling.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class dft_processor_spy : public dft_processor
 {
@@ -103,4 +103,4 @@ public:
   const std::vector<entry>& get_entries() const { return entries; }
 };
 
-} // namespace srsran
+} // namespace ocudu

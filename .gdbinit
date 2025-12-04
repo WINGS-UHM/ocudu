@@ -128,7 +128,7 @@ class TinyOptionalPrinter(object):
 
 def make_tiny_optional(val):
     s = str(val.type.strip_typedefs())
-    if s.startswith('srsran::tiny_optional<') and s.endswith('>'):
+    if s.startswith('ocudu::tiny_optional<') and s.endswith('>'):
         return TinyOptionalPrinter(val)
 
 gdb.pretty_printers.append(make_tiny_optional)
@@ -145,7 +145,7 @@ class SlotArrayPrinter(object):
         self.nof_elems = int(self.val['nof_elems'])
 
     def children(self):
-        opt_value = gdb.lookup_type(f'srsran::tiny_optional<{self.value_type}>')
+        opt_value = gdb.lookup_type(f'ocudu::tiny_optional<{self.value_type}>')
         vec_size = self.val['vec']['sz']
         vec = self.val['vec']['array']['_M_elems'].cast(opt_value.pointer())
         count = 0
@@ -164,7 +164,7 @@ class SlotArrayPrinter(object):
 
 def make_slotted_array(val):
     s = str(val.type.strip_typedefs())
-    if s.startswith('srsran::slotted_array<') and s.endswith('>'):
+    if s.startswith('ocudu::slotted_array<') and s.endswith('>'):
         return SlotArrayPrinter(val)
 
 gdb.pretty_printers.append(make_slotted_array)
@@ -202,7 +202,7 @@ class SlotVectorPrinter(object):
 
 def make_slotted_vector(val):
     s = str(val.type.strip_typedefs())
-    if s.startswith('srsran::slotted_vector<') and s.endswith('>'):
+    if s.startswith('ocudu::slotted_vector<') and s.endswith('>'):
         return SlotVectorPrinter(val)
 
 gdb.pretty_printers.append(make_slotted_vector)
@@ -226,7 +226,7 @@ class BFloat16(object):
 
 def make_bf16_t(val):
     s = str(val.type.strip_typedefs())
-    if 'srsran::strong_bf16_tag' in s:
+    if 'ocudu::strong_bf16_tag' in s:
         return BFloat16(val)
 
 gdb.pretty_printers.append(make_bf16_t)
@@ -245,7 +245,7 @@ class BFloat16Complex(object):
 
 def make_cbf16_t(val):
     s = str(val.type.strip_typedefs())
-    if s == 'srsran::cbf16_t':
+    if s == 'ocudu::cbf16_t':
         return BFloat16Complex(val)
 
 gdb.pretty_printers.append(make_cbf16_t)

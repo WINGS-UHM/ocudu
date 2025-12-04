@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/batched_dispatch_queue.h"
-#include "srsran/gateways/udp_network_gateway.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/io/unique_fd.h"
+#include "ocudu/adt/batched_dispatch_queue.h"
+#include "ocudu/gateways/udp_network_gateway.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/io/unique_fd.h"
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
-namespace srsran {
+namespace ocudu {
 
 constexpr uint32_t network_gateway_udp_max_len = 9100;
 
@@ -82,7 +82,7 @@ private:
 
   udp_network_gateway_config                   config; // configuration
   network_gateway_data_notifier_with_src_addr& data_notifier;
-  srslog::basic_logger&                        logger;
+  ocudulog::basic_logger&                      logger;
   task_executor&                               io_tx_executor;
   task_executor&                               io_rx_executor;
 
@@ -102,4 +102,4 @@ private:
   bool warn_low_buffer_pool = true;
 };
 
-} // namespace srsran
+} // namespace ocudu

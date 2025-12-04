@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "fmt/format.h"
 #include <utility>
 
-namespace srsran {
+namespace ocudu {
 
 struct f1ap_common_log_prefix {
   f1ap_common_log_prefix(gnb_du_ue_f1ap_id_t du_ue_id_, const char* proc_name_ = nullptr) :
@@ -37,12 +37,12 @@ struct f1ap_common_log_prefix {
   const char*         proc_name = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::f1ap_common_log_prefix> {
+struct formatter<ocudu::f1ap_common_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -50,14 +50,14 @@ struct formatter<srsran::f1ap_common_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::f1ap_common_log_prefix& prefix, FormatContext& ctx) const
+  auto format(const ocudu::f1ap_common_log_prefix& prefix, FormatContext& ctx) const
   {
     bool first_id = true;
     auto get_sep  = [&first_id]() { return std::exchange(first_id, false) ? "" : " "; };
-    if (prefix.du_ue_id != srsran::gnb_du_ue_f1ap_id_t::invalid) {
+    if (prefix.du_ue_id != ocudu::gnb_du_ue_f1ap_id_t::invalid) {
       format_to(ctx.out(), "{}du_ue={}", get_sep(), fmt::underlying(prefix.du_ue_id));
     }
-    if (prefix.cu_ue_id != srsran::gnb_cu_ue_f1ap_id_t::invalid) {
+    if (prefix.cu_ue_id != ocudu::gnb_cu_ue_f1ap_id_t::invalid) {
       format_to(ctx.out(), "{}cu_ue={}", get_sep(), fmt::underlying(prefix.cu_ue_id));
     }
     if (prefix.proc_name != nullptr) {

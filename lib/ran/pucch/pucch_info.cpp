@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_info.h"
 
-unsigned srsran::get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsigned nof_symbols, float max_code_rate)
+unsigned ocudu::get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsigned nof_symbols, float max_code_rate)
 {
   if (nof_payload_bits == 0 or nof_symbols == 0) {
     return 0;
@@ -36,10 +36,10 @@ unsigned srsran::get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsig
       (static_cast<float>(pucch_constants::FORMAT2_NOF_DATA_SC * nof_symbols * nof_bits_qpsk_symbol) * max_code_rate)));
 }
 
-unsigned srsran::get_pucch_format2_nof_prbs(unsigned nof_payload_bits,
-                                            unsigned max_nof_prbs,
-                                            unsigned nof_symbols,
-                                            float    max_code_rate)
+unsigned ocudu::get_pucch_format2_nof_prbs(unsigned nof_payload_bits,
+                                           unsigned max_nof_prbs,
+                                           unsigned nof_symbols,
+                                           float    max_code_rate)
 {
   if (nof_payload_bits == 0 or nof_symbols == 0) {
     return 0;
@@ -53,7 +53,7 @@ unsigned srsran::get_pucch_format2_nof_prbs(unsigned nof_payload_bits,
   return std::min(estimated_nof_prbs, max_nof_prbs);
 }
 
-unsigned srsran::get_pucch_format2_max_payload(unsigned max_nof_prbs, unsigned nof_symbols, float max_code_rate)
+unsigned ocudu::get_pucch_format2_max_payload(unsigned max_nof_prbs, unsigned nof_symbols, float max_code_rate)
 {
   constexpr unsigned nof_bits_qpsk_symbol = 2;
   // This is derived from the inequality (or constraint) on \f$M^{PUCCH}_{RB,min}\f$, in Section 9.2.5.2, TS 38.213; the
@@ -90,12 +90,12 @@ unsigned srsran::get_pucch_format2_max_payload(unsigned max_nof_prbs, unsigned n
   return estimated_pucch_f2_capacity - long_crc_length;
 }
 
-unsigned srsran::get_pucch_format3_max_nof_prbs(unsigned                         nof_payload_bits,
-                                                bounded_integer<unsigned, 4, 14> nof_symbols,
-                                                float                            max_code_rate,
-                                                bool                             intraslot_freq_hopping,
-                                                bool                             additional_dmrs,
-                                                bool                             pi2_bpsk)
+unsigned ocudu::get_pucch_format3_max_nof_prbs(unsigned                         nof_payload_bits,
+                                               bounded_integer<unsigned, 4, 14> nof_symbols,
+                                               float                            max_code_rate,
+                                               bool                             intraslot_freq_hopping,
+                                               bool                             additional_dmrs,
+                                               bool                             pi2_bpsk)
 {
   static constexpr auto valid_num_prbs          = to_array({1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16});
   const auto            round_to_valid_nof_prbs = [](unsigned& value) {
@@ -158,13 +158,13 @@ unsigned srsran::get_pucch_format3_max_nof_prbs(unsigned                        
   return nof_prbs;
 }
 
-unsigned srsran::get_pucch_format3_nof_prbs(unsigned nof_payload_bits,
-                                            unsigned max_nof_prbs,
-                                            unsigned nof_symbols,
-                                            float    max_code_rate,
-                                            bool     intraslot_freq_hopping,
-                                            bool     additional_dmrs,
-                                            bool     pi2_bpsk)
+unsigned ocudu::get_pucch_format3_nof_prbs(unsigned nof_payload_bits,
+                                           unsigned max_nof_prbs,
+                                           unsigned nof_symbols,
+                                           float    max_code_rate,
+                                           bool     intraslot_freq_hopping,
+                                           bool     additional_dmrs,
+                                           bool     pi2_bpsk)
 {
   if (nof_payload_bits == 0 or nof_symbols == 0) {
     return 0;
@@ -179,12 +179,12 @@ unsigned srsran::get_pucch_format3_nof_prbs(unsigned nof_payload_bits,
   return std::min(estimated_nof_prbs, max_nof_prbs);
 }
 
-unsigned srsran::get_pucch_format3_max_payload(unsigned max_nof_prbs,
-                                               unsigned nof_symbols,
-                                               float    max_code_rate,
-                                               bool     intraslot_freq_hopping,
-                                               bool     additional_dmrs,
-                                               bool     pi2_bpsk)
+unsigned ocudu::get_pucch_format3_max_payload(unsigned max_nof_prbs,
+                                              unsigned nof_symbols,
+                                              float    max_code_rate,
+                                              bool     intraslot_freq_hopping,
+                                              bool     additional_dmrs,
+                                              bool     pi2_bpsk)
 {
   const unsigned nof_dmrs_symbols =
       get_pucch_format3_4_nof_dmrs_symbols(nof_symbols, intraslot_freq_hopping, additional_dmrs);
@@ -222,12 +222,12 @@ unsigned srsran::get_pucch_format3_max_payload(unsigned max_nof_prbs,
   return std::min(estimated_pucch_f3_capacity - long_crc_length, estimated_pucch_f3_capacity - nof_crc_bits);
 }
 
-unsigned srsran::get_pucch_format4_max_payload(unsigned         nof_symbols,
-                                               float            max_code_rate,
-                                               bool             intraslot_freq_hopping,
-                                               bool             additional_dmrs,
-                                               bool             pi2_bpsk,
-                                               pucch_f4_occ_len occ_length)
+unsigned ocudu::get_pucch_format4_max_payload(unsigned         nof_symbols,
+                                              float            max_code_rate,
+                                              bool             intraslot_freq_hopping,
+                                              bool             additional_dmrs,
+                                              bool             pi2_bpsk,
+                                              pucch_f4_occ_len occ_length)
 {
   const unsigned nof_dmrs_symbols =
       get_pucch_format3_4_nof_dmrs_symbols(nof_symbols, intraslot_freq_hopping, additional_dmrs);

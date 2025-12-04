@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
-#include "srsran/gateways/baseband/baseband_gateway_transmitter.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/math/complex_normal_random.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_transmitter.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/math/complex_normal_random.h"
 #include <gtest/gtest.h>
 #include <random>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Parameters:
 // - Number of streams;
@@ -30,7 +30,7 @@ using namespace srsran;
 using radio_zmq_e2e_test_parameters = std::tuple<unsigned, unsigned, unsigned, unsigned, unsigned, bool>;
 
 /// Indicates the test logging level.
-static const srslog::basic_levels log_level = srslog::basic_levels::warning;
+static const ocudulog::basic_levels log_level = ocudulog::basic_levels::warning;
 
 class RadioZmqE2EFixture : public ::testing::TestWithParam<radio_zmq_e2e_test_parameters>
 {
@@ -91,8 +91,8 @@ protected:
     factory = create_radio_factory("zmq");
     ASSERT_NE(factory, nullptr);
 
-    srslog::init();
-    srslog::fetch_basic_logger("POOL").set_level(log_level);
+    ocudulog::init();
+    ocudulog::fetch_basic_logger("POOL").set_level(log_level);
   }
 
   static void TearDownTestSuite() { async_task_worker->stop(); }

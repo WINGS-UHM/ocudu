@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include <array>
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Repository of processor pools.
 ///
@@ -49,10 +49,10 @@ public:
   T& get_processor(slot_point slot)
   {
     unsigned numerology = slot.numerology();
-    srsran_assert(numerology < NOF_NUMEROLOGIES, "Invalid numerology ({}).", numerology);
+    ocudu_assert(numerology < NOF_NUMEROLOGIES, "Invalid numerology ({}).", numerology);
 
     processor_pool& pool = numerologies[numerology];
-    srsran_assert(!pool.empty(), "Numerology ({}) has no processors.", numerology);
+    ocudu_assert(!pool.empty(), "Numerology ({}) has no processors.", numerology);
 
     // Select index for the processor.
     unsigned index       = counters[numerology];
@@ -68,10 +68,10 @@ public:
   void insert(subcarrier_spacing scs, processor_pool&& obj)
   {
     unsigned numerology = to_numerology_value(scs);
-    srsran_assert(numerology < NOF_NUMEROLOGIES, "Invalid numerology ({}).", numerology);
+    ocudu_assert(numerology < NOF_NUMEROLOGIES, "Invalid numerology ({}).", numerology);
 
     processor_pool& pool = numerologies[numerology];
-    srsran_assert(pool.empty(), "Numerology ({}) already has processors.", numerology);
+    ocudu_assert(pool.empty(), "Numerology ({}) already has processors.", numerology);
 
     numerologies[numerology] = std::move(obj);
   }
@@ -87,4 +87,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "csi_report_on_puxch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_configuration.h"
-#include "srsran/ran/csi_report/csi_report_data.h"
-#include "srsran/ran/csi_report/csi_report_on_puxch_utils.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
+#include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/csi_report/csi_report_on_puxch_utils.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static units::bits get_csi_report_pucch_size_cri_ri_li_pmi_cqi(const csi_report_configuration& config,
                                                                csi_report_data::ri_type        ri)
@@ -68,16 +68,16 @@ static csi_report_data csi_report_unpack_pucch_cri_ri_li_pmi_cqi(const csi_repor
 
   // Validate input size.
   csi_report_size csi_report_size = get_csi_report_pucch_size(config);
-  srsran_assert(csi_report_size.part1_size <= csi_report_max_size,
-                "The report size (i.e., {}) exceeds the maximum report size (i.e., {}).",
-                csi_report_size.part1_size,
-                csi_report_max_size);
+  ocudu_assert(csi_report_size.part1_size <= csi_report_max_size,
+               "The report size (i.e., {}) exceeds the maximum report size (i.e., {}).",
+               csi_report_size.part1_size,
+               csi_report_max_size);
 
   // Verify the CSI payload size.
-  srsran_assert(packed.size() == csi_report_size.part1_size.value(),
-                "The number of packed bits (i.e., {}) is not equal to the CSI report size (i.e., {}).",
-                units::bits(packed.size()),
-                csi_report_size.part1_size);
+  ocudu_assert(packed.size() == csi_report_size.part1_size.value(),
+               "The number of packed bits (i.e., {}) is not equal to the CSI report size (i.e., {}).",
+               units::bits(packed.size()),
+               csi_report_size.part1_size);
 
   // Gets RI, LI, CQI and CRI field sizes as the rank was one.
   ri_li_cqi_cri_sizes sizes =
@@ -116,7 +116,7 @@ static csi_report_data csi_report_unpack_pucch_cri_ri_li_pmi_cqi(const csi_repor
 
   // Padding.
   units::bits csi_report_size_ri = get_csi_report_pucch_size_cri_ri_li_pmi_cqi(config, ri);
-  srsran_assert(
+  ocudu_assert(
       csi_report_size.part1_size >= csi_report_size_ri,
       "The report size (i.e., {}) must be equal to or greater than the report size without padding (i.e., {}).",
       csi_report_size.part1_size,
@@ -151,10 +151,10 @@ static csi_report_data csi_report_unpack_pucch_cri_ri_li_pmi_cqi(const csi_repor
     }
   }
 
-  srsran_assert(count == csi_report_size.part1_size.value(),
-                "The number of read bits (i.e., {}) is not equal to the CSI report size (i.e., {})",
-                units::bits(count),
-                csi_report_size.part1_size);
+  ocudu_assert(count == csi_report_size.part1_size.value(),
+               "The number of read bits (i.e., {}) is not equal to the CSI report size (i.e., {})",
+               units::bits(count),
+               csi_report_size.part1_size);
 
   return data;
 }
@@ -173,9 +173,9 @@ static units::bits get_csi_report_size_ri(const csi_report_configuration& config
   }
 }
 
-csi_report_size srsran::get_csi_report_pucch_size(const csi_report_configuration& config)
+csi_report_size ocudu::get_csi_report_pucch_size(const csi_report_configuration& config)
 {
-  srsran_assert(!config.subband.has_value(), "Subbands CSI reports are not supported on PUCCH.");
+  ocudu_assert(!config.subband.has_value(), "Subbands CSI reports are not supported on PUCCH.");
   using namespace units::literals;
 
   unsigned nof_csi_antenna_ports = csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook);
@@ -196,7 +196,7 @@ csi_report_size srsran::get_csi_report_pucch_size(const csi_report_configuration
   return {};
 }
 
-bool srsran::validate_pucch_csi_payload(const csi_report_packed& packed, const csi_report_configuration& config)
+bool ocudu::validate_pucch_csi_payload(const csi_report_packed& packed, const csi_report_configuration& config)
 {
   // CSI report configuration is invalid.
   if (!is_valid(config)) {
@@ -220,23 +220,22 @@ bool srsran::validate_pucch_csi_payload(const csi_report_packed& packed, const c
   return true;
 }
 
-csi_report_data srsran::csi_report_unpack_pucch(const csi_report_packed& packed, const csi_report_configuration& config)
+csi_report_data ocudu::csi_report_unpack_pucch(const csi_report_packed& packed, const csi_report_configuration& config)
 {
-  srsran_assert(config.pmi_codebook != pmi_codebook_type::other, "Unsupported PMI codebook type.");
+  ocudu_assert(config.pmi_codebook != pmi_codebook_type::other, "Unsupported PMI codebook type.");
 
-  srsran_assert((config.pmi_codebook == pmi_codebook_type::one) ||
-                    (config.ri_restriction.size() >= csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook)),
-                "The RI restriction set size, i.e., {}, is smaller than the number of CSI-RS ports, i.e., {}.",
-                config.ri_restriction.size(),
-                csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
+  ocudu_assert((config.pmi_codebook == pmi_codebook_type::one) ||
+                   (config.ri_restriction.size() >= csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook)),
+               "The RI restriction set size, i.e., {}, is smaller than the number of CSI-RS ports, i.e., {}.",
+               config.ri_restriction.size(),
+               csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
 
-  srsran_assert(
-      (config.pmi_codebook == pmi_codebook_type::one) ||
-          (config.ri_restriction.find_highest() <
-           static_cast<int>(csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook))),
-      "The RI restriction set, i.e., {}, allows higher rank values than the number of CSI-RS ports, i.e., {}.",
-      config.ri_restriction,
-      csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
+  ocudu_assert((config.pmi_codebook == pmi_codebook_type::one) ||
+                   (config.ri_restriction.find_highest() <
+                    static_cast<int>(csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook))),
+               "The RI restriction set, i.e., {}, allows higher rank values than the number of CSI-RS ports, i.e., {}.",
+               config.ri_restriction,
+               csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
 
   // Select unpacking depending on the CSI report quantities.
   switch (config.quantities) {

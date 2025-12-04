@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
-#include "srsran/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic implementation of a DM-RS channel estimator for PUCCH Format 2.
 class dmrs_pucch_estimator_format2
@@ -26,8 +26,8 @@ public:
                                std::unique_ptr<port_channel_estimator>  ch_est_) :
     prg(std::move(prg_)), ch_estimator(std::move(ch_est_))
   {
-    srsran_assert(prg, "Invalid pseudo random generator.");
-    srsran_assert(ch_estimator, "Invalid port channel estimator.");
+    ocudu_assert(prg, "Invalid pseudo random generator.");
+    ocudu_assert(ch_estimator, "Invalid port channel estimator.");
   }
 
   /// Estimates the channel of a PUCCH Format 2 transmission. See \ref dmrs_pucch_estimator for more details.
@@ -74,4 +74,4 @@ private:
                                                   unsigned                                           nof_prb_grid);
 };
 
-} // namespace srsran
+} // namespace ocudu

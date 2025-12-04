@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/upper_phy_rx_results_notifier.h"
+#include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class upper_phy_rx_results_notifier_spy : public upper_phy_rx_results_notifier
 {
@@ -56,4 +56,4 @@ private:
   bool srs_results_notified        = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

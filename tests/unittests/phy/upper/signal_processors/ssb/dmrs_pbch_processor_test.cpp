@@ -9,9 +9,9 @@
  */
 
 #include "dmrs_pbch_processor_test_data.h"
-#include "srsran/phy/upper/signal_processors/ssb/factories.h"
+#include "ocudu/phy/upper/signal_processors/ssb/factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

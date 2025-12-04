@@ -18,10 +18,10 @@
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/ran/duplex_mode.h"
+#include "ocudu/ran/duplex_mode.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class base_scheduler_conres_test : public scheduler_test_simulator
 {
@@ -36,10 +36,10 @@ public:
     // Create cell config with space for two PDCCHs in the SearchSpace#1.
     add_cell(sched_config_helper::make_default_sched_cell_configuration_request(builder_params));
 
-    srsran_assert(not this->cell_cfg(to_du_cell_index(0)).nzp_csi_rs_list.empty(),
-                  "This test assumes a setup with NZP CSI-RS enabled");
-    srsran_assert(not this->cell_cfg(to_du_cell_index(0)).zp_csi_rs_list.empty(),
-                  "This test assumes a setup with ZP CSI-RS enabled");
+    ocudu_assert(not this->cell_cfg(to_du_cell_index(0)).nzp_csi_rs_list.empty(),
+                 "This test assumes a setup with NZP CSI-RS enabled");
+    ocudu_assert(not this->cell_cfg(to_du_cell_index(0)).zp_csi_rs_list.empty(),
+                 "This test assumes a setup with ZP CSI-RS enabled");
 
     // Create a UE with a DRB active.
     auto ue_cfg               = sched_config_helper::create_default_sched_ue_creation_request(builder_params, {});
@@ -49,7 +49,7 @@ public:
     scheduler_test_simulator::add_ue(ue_cfg, true);
   }
 
-  ~base_scheduler_conres_test() { srslog::flush(); }
+  ~base_scheduler_conres_test() { ocudulog::flush(); }
 
   cell_config_builder_params builder_params{};
 

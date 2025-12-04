@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/executors/strand_executor.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/strand_executor.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -22,7 +22,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(is_task_executor<priority_task_strand_executor<task_executor*>>::value, "is_task_executor failed");
 static_assert(is_task_executor_ptr<priority_task_strand_executor<task_executor*>*>::value,
@@ -37,7 +37,7 @@ static void run_count_test(task_executor&       strand,
                            unsigned             nof_producers,
                            const WaitCondition& wait_tasks_to_run)
 {
-  srslog::init();
+  ocudulog::init();
 
   ASSERT_EQ(total_increments % nof_producers, 0);
   const unsigned increments_per_producer = total_increments / nof_producers;

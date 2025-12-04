@@ -12,12 +12,12 @@
 
 #include "../cell/resource_grid.h"
 #include "../config/ue_configuration.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_point.h"
 #include <cstdint>
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 /// Contains the results of the UCI allocation.
 struct uci_allocation {
@@ -91,4 +91,4 @@ public:
   virtual bool has_harq_ack_on_common_pucch_res(rnti_t crnti, slot_point sl_tx) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

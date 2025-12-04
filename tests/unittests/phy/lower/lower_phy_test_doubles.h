@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_error_notifier.h"
-#include "srsran/phy/lower/lower_phy_metrics_notifier.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_notifier.h"
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
-#include "srsran/phy/support/resource_grid_context.h"
+#include "ocudu/phy/lower/lower_phy_error_notifier.h"
+#include "ocudu/phy/lower/lower_phy_metrics_notifier.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/phy/support/resource_grid_context.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Lower PHY error notification spy class.
 ///
@@ -102,7 +102,7 @@ public:
 class lower_phy_rx_symbol_notifier_spy : public lower_phy_rx_symbol_notifier
 {
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   struct rx_symbol_event {
     lower_phy_rx_symbol_context context;
@@ -120,10 +120,10 @@ private:
 public:
   /// Constructor: creates the logger and sets the log level (default log level is "warning").
   explicit lower_phy_rx_symbol_notifier_spy(const std::string& log_level = "warning") :
-    logger(srslog::fetch_basic_logger("Rx Notifier"))
+    logger(ocudulog::fetch_basic_logger("Rx Notifier"))
   {
-    auto value = srslog::str_to_basic_level(log_level);
-    logger.set_level(value.has_value() ? value.value() : srslog::basic_levels::none);
+    auto value = ocudulog::str_to_basic_level(log_level);
+    logger.set_level(value.has_value() ? value.value() : ocudulog::basic_levels::none);
   }
 
   // See interface for documentation.
@@ -265,4 +265,4 @@ public:
   void on_new_receive_metrics(const lower_phy_baseband_metrics& metrics) override {}
 };
 
-} // namespace srsran
+} // namespace ocudu

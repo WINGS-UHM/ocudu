@@ -12,7 +12,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 struct app_resource_usage_config;
@@ -21,4 +21,4 @@ struct app_resource_usage_config;
 void fill_app_resource_usage_config_in_yaml_schema(YAML::Node& node, const app_resource_usage_config& config);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

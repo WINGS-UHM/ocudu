@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/radio/radio_factory.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/support/executors/task_worker.h"
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::radio_configuration::clock_sources::source> {
+struct formatter<ocudu::radio_configuration::clock_sources::source> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -26,16 +26,16 @@ struct formatter<srsran::radio_configuration::clock_sources::source> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::radio_configuration::clock_sources::source& source, FormatContext& ctx) const
+  auto format(const ocudu::radio_configuration::clock_sources::source& source, FormatContext& ctx) const
   {
     switch (source) {
-      case srsran::radio_configuration::clock_sources::source::DEFAULT:
+      case ocudu::radio_configuration::clock_sources::source::DEFAULT:
         return fmt::format_to(ctx.out(), "default");
-      case srsran::radio_configuration::clock_sources::source::INTERNAL:
+      case ocudu::radio_configuration::clock_sources::source::INTERNAL:
         return fmt::format_to(ctx.out(), "internal");
-      case srsran::radio_configuration::clock_sources::source::EXTERNAL:
+      case ocudu::radio_configuration::clock_sources::source::EXTERNAL:
         return fmt::format_to(ctx.out(), "external");
-      case srsran::radio_configuration::clock_sources::source::GPSDO:
+      case ocudu::radio_configuration::clock_sources::source::GPSDO:
       default:
         return fmt::format_to(ctx.out(), "gpsdo");
     }
@@ -43,7 +43,7 @@ struct formatter<srsran::radio_configuration::clock_sources::source> {
 };
 
 template <>
-struct formatter<srsran::radio_configuration::radio> {
+struct formatter<ocudu::radio_configuration::radio> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -51,7 +51,7 @@ struct formatter<srsran::radio_configuration::radio> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::radio_configuration::radio& config, FormatContext& ctx) const
+  auto format(const ocudu::radio_configuration::radio& config, FormatContext& ctx) const
   {
     return fmt::format_to(ctx.out(), "clock_src={} sync_src={}", config.clock.clock, config.clock.sync);
   }
@@ -81,7 +81,7 @@ const radio_configuration::radio radio_base_config = {base_clock_sources,
                                                       radio_configuration::transmission_mode::continuous,
                                                       0.0F,
                                                       "",
-                                                      srslog::basic_levels::none};
+                                                      ocudulog::basic_levels::none};
 
 struct test_case_t {
   std::function<radio_configuration::radio()> get_config;

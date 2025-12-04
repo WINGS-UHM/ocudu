@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/phy/upper/upper_phy_factories.h"
+#include "ocudu/phy/upper/upper_phy_factories.h"
 #include "downlink_processor_multi_executor_impl.h"
 #include "downlink_processor_pool_impl.h"
 #include "metrics/upper_phy_metrics_collector_impl.h"
@@ -17,23 +17,23 @@
 #include "upper_phy_impl.h"
 #include "upper_phy_pdu_validators.h"
 #include "upper_phy_rx_symbol_handler_printer_decorator.h"
-#include "srsran/phy/metrics/phy_metrics_factories.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_estimation.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
-#include "srsran/phy/upper/channel_processors/ssb/factories.h"
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/factories.h"
-#include "srsran/phy/upper/signal_processors/prs/factories.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_factory.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/phy/metrics/phy_metrics_factories.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_estimation.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
+#include "ocudu/phy/upper/channel_processors/ssb/factories.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/factories.h"
+#include "ocudu/phy/upper/signal_processors/prs/factories.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_factory.h"
+#include "ocudu/support/error_handling.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::unique_ptr<downlink_processor_pool>
 create_downlink_processor_pool(std::shared_ptr<downlink_processor_factory> factory,
@@ -126,7 +126,7 @@ public:
   }
 
   std::unique_ptr<uplink_processor>
-  create(const uplink_processor_config& config, srslog::basic_logger& logger, bool log_all_opportunities) override
+  create(const uplink_processor_config& config, ocudulog::basic_logger& logger, bool log_all_opportunities) override
   {
     std::unique_ptr<prach_detector> prach = prach_factory->create(logger, log_all_opportunities);
     report_fatal_error_if_not(prach, "Invalid PRACH detector.");
@@ -210,11 +210,11 @@ public:
     csi_rs_executor(*config.csi_rs_executor),
     prs_executor(*config.prs_executor)
   {
-    srsran_assert(pdcch_proc_factory, "Invalid PDCCH processor factory.");
-    srsran_assert(pdsch_proc_factory, "Invalid PDSCH processor factory.");
-    srsran_assert(ssb_proc_factory, "Invalid SSB processor factory.");
-    srsran_assert(nzp_csi_rs_factory, "Invalid NZP-CSI-RS generator factory.");
-    srsran_assert(prs_gen_factory, "Invalid PRS generator factory.");
+    ocudu_assert(pdcch_proc_factory, "Invalid PDCCH processor factory.");
+    ocudu_assert(pdsch_proc_factory, "Invalid PDSCH processor factory.");
+    ocudu_assert(ssb_proc_factory, "Invalid SSB processor factory.");
+    ocudu_assert(nzp_csi_rs_factory, "Invalid NZP-CSI-RS generator factory.");
+    ocudu_assert(prs_gen_factory, "Invalid PRS generator factory.");
   }
 
   // See interface for documentation.
@@ -246,12 +246,12 @@ public:
                                                                     ssb_executor,
                                                                     csi_rs_executor,
                                                                     prs_executor,
-                                                                    srslog::fetch_basic_logger("PHY"));
+                                                                    ocudulog::fetch_basic_logger("PHY"));
   }
 
   // See interface for documentation.
   std::unique_ptr<downlink_processor_base>
-  create(const downlink_processor_config& config, srslog::basic_logger& logger, bool enable_broadcast) override
+  create(const downlink_processor_config& config, ocudulog::basic_logger& logger, bool enable_broadcast) override
   {
     std::unique_ptr<pdcch_processor> pdcch = pdcch_proc_factory->create(logger, enable_broadcast);
     report_fatal_error_if_not(pdcch, "Invalid PDCCH processor.");
@@ -294,7 +294,7 @@ public:
                                                                     ssb_executor,
                                                                     csi_rs_executor,
                                                                     prs_executor,
-                                                                    srslog::fetch_basic_logger("PHY"));
+                                                                    ocudulog::fetch_basic_logger("PHY"));
   }
 
   std::unique_ptr<downlink_pdu_validator> create_pdu_validator() override
@@ -336,7 +336,7 @@ class upper_phy_rx_symbol_handler_printer_decorator_factory : public upper_phy_r
 public:
   explicit upper_phy_rx_symbol_handler_printer_decorator_factory(
       std::shared_ptr<upper_phy_rx_symbol_handler_factory> factory_,
-      srslog::basic_logger&                                logger_,
+      ocudulog::basic_logger&                              logger_,
       const std::string&                                   filename_,
       unsigned                                             nof_rb_,
       interval<unsigned>                                   ul_print_ports_,
@@ -348,7 +348,7 @@ public:
     ul_print_ports(ul_print_ports_),
     print_prach(print_prach_)
   {
-    srsran_assert(base_factory, "Invalid Rx symbol handler factory.");
+    ocudu_assert(base_factory, "Invalid Rx symbol handler factory.");
   }
 
   // See interface for documentation.
@@ -364,7 +364,7 @@ public:
 
 private:
   std::shared_ptr<upper_phy_rx_symbol_handler_factory> base_factory;
-  srslog::basic_logger&                                logger;
+  ocudulog::basic_logger&                              logger;
   const std::string&                                   filename;
   unsigned                                             nof_rb;
   interval<unsigned>                                   ul_print_ports;
@@ -380,7 +380,7 @@ public:
     factory_deps(std::move(factory_dependencies_)),
     rg_factory(create_resource_grid_factory())
   {
-    srsran_assert(rg_factory, "Invalid resource grid factory.");
+    ocudu_assert(rg_factory, "Invalid resource grid factory.");
 
     // Create upper PHY metrics collector.
     upper_phy_metrics_notifiers* metric_notifier = nullptr;
@@ -427,7 +427,7 @@ public:
         ul_ports.set(*factory_config.rx_symbol_printer_port, *factory_config.rx_symbol_printer_port + 1);
       }
       // Configure RX symbol handler for printing the resource grid.
-      srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY", true);
+      ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY", true);
       rx_symbol_handler_factory =
           create_rx_symbol_handler_printer_decorator_factory(std::move(rx_symbol_handler_factory),
                                                              logger,
@@ -516,11 +516,11 @@ create_downlink_processor_pool(std::shared_ptr<downlink_processor_factory> facto
       downlink_processor_config processor_config = {.id = i_proc, .gateway = dependencies.rg_gateway};
 
       std::unique_ptr<downlink_processor_base> dl_proc;
-      if (factory_config.log_level == srslog::basic_levels::none) {
+      if (factory_config.log_level == ocudulog::basic_levels::none) {
         dl_proc = factory->create(processor_config);
       } else {
         // Fetch logger.
-        srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY", true);
+        ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY", true);
         dl_proc = factory->create(processor_config, logger, factory_config.enable_logging_broadcast);
       }
       report_fatal_error_if_not(dl_proc, "Invalid downlink processor.");
@@ -791,11 +791,11 @@ create_ul_processor_factory(const upper_phy_factory_configuration& config,
 
   // Enable EVM calculation if PUSCH SINR is obtained from EVM or if it is logged by the PHY.
   bool enable_evm = (config.pusch_sinr_calc_method == channel_state_information::sinr_type::evm) ||
-                    (config.log_level == srslog::basic_levels::debug);
+                    (config.log_level == ocudulog::basic_levels::debug);
 
   // Enable post-equalization SINR if selected as PUSCH SINR method or if it is logged by the PHY.
   bool enable_eq_sinr = (config.pusch_sinr_calc_method == channel_state_information::sinr_type::post_equalization) ||
-                        (config.log_level == srslog::basic_levels::debug);
+                        (config.log_level == ocudulog::basic_levels::debug);
 
   // Create PUSCH demodulator.
   std::shared_ptr<pusch_demodulator_factory> pusch_demod_factory =
@@ -940,7 +940,7 @@ create_ul_processor_pool(uplink_processor_factory&              factory,
   uplink_processor_pool_config config_pool;
 
   // Fetch and configure logger.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY", true);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY", true);
   logger.set_level(factory_config.log_level);
   logger.set_hex_dump_max_size(factory_config.logger_max_hex_size);
 
@@ -963,7 +963,7 @@ create_ul_processor_pool(uplink_processor_factory&              factory,
     for (unsigned count = 0; count != config.nof_ul_rg; ++count) {
       // Create an uplink processor.
       std::unique_ptr<uplink_processor> ul_proc;
-      if (factory_config.log_level != srslog::basic_levels::none) {
+      if (factory_config.log_level != ocudulog::basic_levels::none) {
         ul_proc = factory.create(ul_proc_config, logger, factory_config.enable_logging_broadcast);
       } else {
         ul_proc = factory.create(ul_proc_config);
@@ -974,7 +974,7 @@ create_ul_processor_pool(uplink_processor_factory&              factory,
     }
 
     config_pool.ul_processors.push_back(std::move(info));
-    if (factory_config.log_level != srslog::basic_levels::none) {
+    if (factory_config.log_level != ocudulog::basic_levels::none) {
       config_pool.default_processor = factory.create(ul_proc_config, logger, factory_config.enable_logging_broadcast);
     } else {
       config_pool.default_processor = factory.create(ul_proc_config);
@@ -1006,26 +1006,26 @@ static std::vector<std::unique_ptr<prach_buffer>> create_prach_buffers(const upp
   return prach_buffers;
 }
 
-std::shared_ptr<upper_phy_rx_symbol_handler_factory> srsran::create_rx_symbol_handler_factory()
+std::shared_ptr<upper_phy_rx_symbol_handler_factory> ocudu::create_rx_symbol_handler_factory()
 {
   return std::make_shared<upper_phy_rx_symbol_handler_factory_impl>();
 }
 
-std::shared_ptr<upper_phy_rx_symbol_handler_factory> srsran::create_rx_symbol_handler_printer_decorator_factory(
-    std::shared_ptr<upper_phy_rx_symbol_handler_factory> factory_,
-    srslog::basic_logger&                                logger_,
-    const std::string&                                   filename,
-    unsigned                                             nof_rb,
-    interval<unsigned>                                   ul_print_ports,
-    bool                                                 print_prach_)
+std::shared_ptr<upper_phy_rx_symbol_handler_factory>
+ocudu::create_rx_symbol_handler_printer_decorator_factory(std::shared_ptr<upper_phy_rx_symbol_handler_factory> factory_,
+                                                          ocudulog::basic_logger&                              logger_,
+                                                          const std::string&                                   filename,
+                                                          unsigned                                             nof_rb,
+                                                          interval<unsigned> ul_print_ports,
+                                                          bool               print_prach_)
 {
   return std::make_shared<upper_phy_rx_symbol_handler_printer_decorator_factory>(
       std::move(factory_), logger_, filename, nof_rb, ul_print_ports, print_prach_);
 }
 
 std::shared_ptr<downlink_processor_factory>
-srsran::create_downlink_processor_factory_sw(const downlink_processor_factory_sw_config&       config,
-                                             const downlink_processor_factory_sw_dependencies& dependencies)
+ocudu::create_downlink_processor_factory_sw(const downlink_processor_factory_sw_config&       config,
+                                            const downlink_processor_factory_sw_dependencies& dependencies)
 {
   // Create channel precoder factory.
   std::shared_ptr<channel_precoder_factory> precoding_factory = create_channel_precoder_factory("auto");
@@ -1304,7 +1304,7 @@ srsran::create_downlink_processor_factory_sw(const downlink_processor_factory_sw
   return std::make_shared<downlink_processor_single_executor_factory>(dl_proc_config);
 }
 
-std::unique_ptr<uplink_processor_pool> srsran::create_uplink_processor_pool(uplink_processor_pool_config config)
+std::unique_ptr<uplink_processor_pool> ocudu::create_uplink_processor_pool(uplink_processor_pool_config config)
 {
   // Convert from pool config to pool_impl config.
   uplink_processor_pool_impl_config ul_processors;
@@ -1317,7 +1317,7 @@ std::unique_ptr<uplink_processor_pool> srsran::create_uplink_processor_pool(upli
   return std::make_unique<uplink_processor_pool_impl>(std::move(ul_processors));
 }
 
-std::unique_ptr<downlink_processor_pool> srsran::create_dl_processor_pool(downlink_processor_pool_config config)
+std::unique_ptr<downlink_processor_pool> ocudu::create_dl_processor_pool(downlink_processor_pool_config config)
 {
   // Convert from pool config to pool_impl config.
   downlink_processor_pool_impl_config dl_processors;
@@ -1330,16 +1330,16 @@ std::unique_ptr<downlink_processor_pool> srsran::create_dl_processor_pool(downli
 }
 
 std::unique_ptr<upper_phy_factory>
-srsran::create_upper_phy_factory(const upper_phy_factory_configuration& factory_config,
-                                 const upper_phy_factory_dependencies&  factory_deps)
+ocudu::create_upper_phy_factory(const upper_phy_factory_configuration& factory_config,
+                                const upper_phy_factory_dependencies&  factory_deps)
 {
   return std::make_unique<upper_phy_factory_impl>(factory_config, factory_deps);
 }
 
-#ifndef SRSRAN_HAS_PHY_TAP
+#ifndef OCUDU_HAS_PHY_TAP
 std::shared_ptr<phy_tap_factory>
-srsran::create_phy_tap_factory(unsigned nof_rb, unsigned nof_ports, const std::string& processor_arguments)
+ocudu::create_phy_tap_factory(unsigned nof_rb, unsigned nof_ports, const std::string& processor_arguments)
 {
   return nullptr;
 }
-#endif // SRSRAN_HAS_PHY_TAP
+#endif // OCUDU_HAS_PHY_TAP

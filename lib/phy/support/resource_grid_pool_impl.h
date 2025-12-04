@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_pool.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/synchronization/stop_event.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_pool.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/support/synchronization/stop_event.h"
+#include "ocudu/support/tracing/event_tracing.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -35,7 +35,7 @@ public:
   resource_grid_pool_wrapper(std::unique_ptr<resource_grid> grid_, task_executor* async_executor_) :
     grid(std::move(grid_)), async_executor(async_executor_)
   {
-    srsran_assert(grid, "Invalid resource grid pointer.");
+    ocudu_assert(grid, "Invalid resource grid pointer.");
   }
 
   /// Forbid copy constructor.
@@ -91,7 +91,7 @@ public:
   /// \brief Constructs a resource grid pool.
   /// \param grids_ Resource grids.
   resource_grid_pool_impl(std::vector<resource_grid_pool_wrapper> grids_) :
-    logger(srslog::fetch_basic_logger("PHY", true)), grids(std::move(grids_))
+    logger(ocudulog::fetch_basic_logger("PHY", true)), grids(std::move(grids_))
   {
   }
 
@@ -103,7 +103,7 @@ public:
 
 private:
   /// PHY logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Counts the resource grid requests.
   unsigned counter = 0;
   /// Resource grid state controllers. There is a controller for each grid.
@@ -112,4 +112,4 @@ private:
   stop_event_source stop_control;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,9 +9,9 @@
  */
 
 #include "cell_config_builder_profiles.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void derive_coreset0(cell_config_builder_params& params)
 {

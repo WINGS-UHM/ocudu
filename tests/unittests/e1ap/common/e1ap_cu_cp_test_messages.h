@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/rb_id.h"
 #include <map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Generate a dummy CU-CP E1 Reset Acknowledge.
 /// \return The CU-CP E1 Reset Acknowledge.
@@ -159,5 +159,5 @@ e1ap_message generate_bearer_context_inactivity_notification_with_pdu_session_le
 e1ap_message generate_invalid_bearer_context_inactivity_notification(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
                                                                      gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

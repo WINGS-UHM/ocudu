@@ -12,10 +12,10 @@
 #include "test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/unittests/gateways/test_helpers.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fixture class for F1AP ASN1 packer
 class f1ap_asn1_packer_test : public ::testing::Test
@@ -23,25 +23,25 @@ class f1ap_asn1_packer_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("F1AP-ASN1-PCK").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("F1AP-ASN1-PCK").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     gw     = std::make_unique<dummy_network_gateway_data_handler>();
     f1ap   = std::make_unique<dummy_f1ap_message_handler>();
-    packer = std::make_unique<srsran::f1ap_asn1_packer>(*gw, *f1ap);
+    packer = std::make_unique<ocudu::f1ap_asn1_packer>(*gw, *f1ap);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<dummy_network_gateway_data_handler> gw;
   std::unique_ptr<dummy_f1ap_message_handler>         f1ap;
-  std::unique_ptr<srsran::f1ap_asn1_packer>           packer;
-  srslog::basic_logger&                               test_logger = srslog::fetch_basic_logger("TEST");
+  std::unique_ptr<ocudu::f1ap_asn1_packer>            packer;
+  ocudulog::basic_logger&                             test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful packing and unpacking

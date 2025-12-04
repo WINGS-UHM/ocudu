@@ -8,16 +8,15 @@
  *
  */
 
-#include "srsran/ru/ofh/ru_ofh_factory.h"
+#include "ocudu/ru/ofh/ru_ofh_factory.h"
 #include "ru_ofh_impl.h"
 #include "ru_ofh_rx_symbol_handler_impl.h"
-#include "srsran/ofh/ofh_factories.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ofh/ofh_factories.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<radio_unit> srsran::create_ofh_ru(const ru_ofh_configuration& config,
-                                                  ru_ofh_dependencies&&       dependencies)
+std::unique_ptr<radio_unit> ocudu::create_ofh_ru(const ru_ofh_configuration& config, ru_ofh_dependencies&& dependencies)
 {
   report_fatal_error_if_not(dependencies.timing_notifier, "Invalid timing notifier");
 

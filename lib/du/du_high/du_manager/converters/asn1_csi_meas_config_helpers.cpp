@@ -9,11 +9,11 @@
  */
 
 #include "asn1_csi_meas_config_helpers.h"
-#include "srsran/asn1/asn1_diff_utils.h"
-#include "srsran/asn1/rrc_nr/serving_cell.h"
+#include "ocudu/asn1/asn1_diff_utils.h"
+#include "ocudu/asn1/rrc_nr/serving_cell.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 using namespace asn1::rrc_nr;
 
 static asn1::rrc_nr::csi_rs_res_map_s make_asn1_nzp_csi_rs_resource_mapping(const csi_rs_resource_mapping& cfg)
@@ -61,7 +61,7 @@ static asn1::rrc_nr::csi_rs_res_map_s make_asn1_nzp_csi_rs_resource_mapping(cons
       out.nrof_ports = csi_rs_res_map_s::nrof_ports_opts::p32;
       break;
     default:
-      srsran_assertion_failure("Invalid nof. NZP CSI-RS ports={}", cfg.nof_ports);
+      ocudu_assertion_failure("Invalid nof. NZP CSI-RS ports={}", cfg.nof_ports);
   }
 
   out.first_ofdm_symbol_in_time_domain = cfg.first_ofdm_symbol_in_td;
@@ -84,7 +84,7 @@ static asn1::rrc_nr::csi_rs_res_map_s make_asn1_nzp_csi_rs_resource_mapping(cons
       out.cdm_type = csi_rs_res_map_s::cdm_type_opts::cdm8_fd2_td4;
       break;
     default:
-      srsran_assertion_failure("Invalid CDM={}", fmt::underlying(cfg.cdm));
+      ocudu_assertion_failure("Invalid CDM={}", fmt::underlying(cfg.cdm));
   }
 
   switch (cfg.freq_density) {
@@ -105,7 +105,7 @@ static asn1::rrc_nr::csi_rs_res_map_s make_asn1_nzp_csi_rs_resource_mapping(cons
       out.density.set_three();
       break;
     default:
-      srsran_assertion_failure("Invalid freq. density={}", fmt::underlying(cfg.freq_density));
+      ocudu_assertion_failure("Invalid freq. density={}", fmt::underlying(cfg.freq_density));
   }
 
   out.freq_band.start_rb = cfg.freq_band_rbs.start();
@@ -185,11 +185,11 @@ static void make_asn1_csi_resource_periodicity_and_offset(csi_res_periodicity_an
       break;
     }
     default:
-      srsran_assertion_failure("Invalid CSI-RS periodicity={}", fmt::underlying(periodicity));
+      ocudu_assertion_failure("Invalid CSI-RS periodicity={}", fmt::underlying(periodicity));
   }
 }
 
-asn1::rrc_nr::zp_csi_rs_res_s srsran::srs_du::make_asn1_zp_csi_rs_resource(const zp_csi_rs_resource& cfg)
+asn1::rrc_nr::zp_csi_rs_res_s ocudu::odu::make_asn1_zp_csi_rs_resource(const zp_csi_rs_resource& cfg)
 {
   zp_csi_rs_res_s out{};
   out.zp_csi_rs_res_id = static_cast<uint8_t>(cfg.id);
@@ -201,7 +201,7 @@ asn1::rrc_nr::zp_csi_rs_res_s srsran::srs_du::make_asn1_zp_csi_rs_resource(const
   return out;
 }
 
-asn1::rrc_nr::zp_csi_rs_res_set_s srsran::srs_du::make_asn1_zp_csi_rs_resource_set(const zp_csi_rs_resource_set& cfg)
+asn1::rrc_nr::zp_csi_rs_res_set_s ocudu::odu::make_asn1_zp_csi_rs_resource_set(const zp_csi_rs_resource_set& cfg)
 {
   zp_csi_rs_res_set_s out{};
   out.zp_csi_rs_res_set_id = cfg.id;
@@ -234,7 +234,7 @@ static asn1::rrc_nr::nzp_csi_rs_res_s make_asn1_nzp_csi_rs_resource(const nzp_cs
         out.pwr_ctrl_offset_ss = nzp_csi_rs_res_s::pwr_ctrl_offset_ss_opts::db6;
         break;
       default:
-        srsran_assertion_failure("Invalid power control offset SS={}", cfg.pwr_ctrl_offset_ss_db.value());
+        ocudu_assertion_failure("Invalid power control offset SS={}", cfg.pwr_ctrl_offset_ss_db.value());
     }
   }
   out.scrambling_id = cfg.scrambling_id;
@@ -313,8 +313,8 @@ static asn1::rrc_nr::csi_im_res_s make_asn1_csi_im_resource(const csi_im_resourc
                 csi_im_res_s::csi_im_res_elem_pattern_c_::pattern0_s_::subcarrier_location_p0_opts::s10;
             break;
           default:
-            srsran_assertion_failure("Invalid CSI IM resource subcarrier location={}",
-                                     cfg.csi_im_res_element_pattern.value().subcarrier_location);
+            ocudu_assertion_failure("Invalid CSI IM resource subcarrier location={}",
+                                    cfg.csi_im_res_element_pattern.value().subcarrier_location);
         }
         pattern.symbol_location_p0 = cfg.csi_im_res_element_pattern.value().symbol_location;
         break;
@@ -335,15 +335,15 @@ static asn1::rrc_nr::csi_im_res_s make_asn1_csi_im_resource(const csi_im_resourc
                 csi_im_res_s::csi_im_res_elem_pattern_c_::pattern1_s_::subcarrier_location_p1_opts::s8;
             break;
           default:
-            srsran_assertion_failure("Invalid CSI IM resource subcarrier location={}",
-                                     cfg.csi_im_res_element_pattern.value().subcarrier_location);
+            ocudu_assertion_failure("Invalid CSI IM resource subcarrier location={}",
+                                    cfg.csi_im_res_element_pattern.value().subcarrier_location);
         }
         pattern.symbol_location_p1 = cfg.csi_im_res_element_pattern.value().symbol_location;
         break;
       }
       default:
-        srsran_assertion_failure("Invalid CSI IM resource element pattern={}",
-                                 fmt::underlying(cfg.csi_im_res_element_pattern.value().pattern_type));
+        ocudu_assertion_failure("Invalid CSI IM resource element pattern={}",
+                                fmt::underlying(cfg.csi_im_res_element_pattern.value().pattern_type));
     }
   }
 
@@ -416,7 +416,7 @@ static asn1::rrc_nr::csi_res_cfg_s make_asn1_csi_resource_config(const csi_resou
       out.res_type = csi_res_cfg_s::res_type_opts::periodic;
       break;
     default:
-      srsran_assertion_failure("Invalid CSI resource type={}", fmt::underlying(cfg.res_type));
+      ocudu_assertion_failure("Invalid CSI resource type={}", fmt::underlying(cfg.res_type));
   }
 
   return out;
@@ -478,7 +478,7 @@ static void make_asn1_csi_report_periodicity_and_offset(csi_report_periodicity_a
       break;
     }
     default:
-      srsran_assertion_failure("Invalid CSI report periodicity={}", fmt::underlying(periodicity));
+      ocudu_assertion_failure("Invalid CSI report periodicity={}", fmt::underlying(periodicity));
   }
 }
 
@@ -571,8 +571,7 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
             break;
           }
           default:
-            srsran_assertion_failure("Invalid n1-n2 type={}",
-                                     fmt::underlying(ant_restriction2->n1_n2_restriction_type));
+            ocudu_assertion_failure("Invalid n1-n2 type={}", fmt::underlying(ant_restriction2->n1_n2_restriction_type));
         }
         if (!ant_restriction2->typei_single_panel_codebook_subset_restriction_i2.empty()) {
           out_ant_restriction.type_i_single_panel_codebook_subset_restrict_i2_present = true;
@@ -625,7 +624,7 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
           break;
         }
         default:
-          srsran_assertion_failure("Invalid ng-n1-n2 type={}", fmt::underlying(mp_cfg_val->ng_n1_n2_restriction_type));
+          ocudu_assertion_failure("Invalid ng-n1-n2 type={}", fmt::underlying(mp_cfg_val->ng_n1_n2_restriction_type));
       }
       out_mp_cfg.ri_restrict.from_number(mp_cfg_val->ri_restriction.to_uint64());
     }
@@ -701,8 +700,8 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
           break;
         }
         default:
-          srsran_assertion_failure("Invalid n1-n2 codebook subset restriction type={}",
-                                   fmt::underlying(typeii->n1_n2_codebook_subset_restriction_type));
+          ocudu_assertion_failure("Invalid n1-n2 codebook subset restriction type={}",
+                                  fmt::underlying(typeii->n1_n2_codebook_subset_restriction_type));
       }
       out_typeii.type_ii_ri_restrict.from_number(typeii->typeii_ri_restriction.to_uint64());
     } else if (const auto* typeii_ps =
@@ -728,8 +727,8 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
                 type_ii_port_sel_s_::port_sel_sampling_size_opts::n4;
             break;
           default:
-            srsran_assertion_failure("Invalid port selection sampling size={}",
-                                     typeii_ps->port_selection_sampling_size.value());
+            ocudu_assertion_failure("Invalid port selection sampling size={}",
+                                    typeii_ps->port_selection_sampling_size.value());
         }
       }
       out_typeii_ps.type_ii_port_sel_ri_restrict.from_number(
@@ -745,7 +744,7 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
         out_tp2_cfg.phase_alphabet_size = codebook_cfg_s::codebook_type_c_::type2_s_::phase_alphabet_size_opts::n8;
         break;
       default:
-        srsran_assertion_failure("Invalid phase alphabet size={}", tp2_cfg_val->phase_alphabet_size);
+        ocudu_assertion_failure("Invalid phase alphabet size={}", tp2_cfg_val->phase_alphabet_size);
     }
 
     switch (tp2_cfg_val->nof_beams) {
@@ -759,7 +758,7 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
         out_tp2_cfg.nof_beams = codebook_cfg_s::codebook_type_c_::type2_s_::nof_beams_opts::four;
         break;
       default:
-        srsran_assertion_failure("Invalid nof. beams={}", tp2_cfg_val->nof_beams);
+        ocudu_assertion_failure("Invalid nof. beams={}", tp2_cfg_val->nof_beams);
     }
   }
 }
@@ -849,7 +848,7 @@ make_asn1_port_index_for_8_ranks(const csi_report_config::port_index_for_8_ranks
       break;
     }
     default:
-      srsran_assertion_failure("Invalid port index type={}", fmt::underlying(cfg.port_index_type));
+      ocudu_assertion_failure("Invalid port index type={}", fmt::underlying(cfg.port_index_type));
   }
   return out;
 }
@@ -926,7 +925,7 @@ static asn1::rrc_nr::csi_report_cfg_s make_asn1_csi_report_config(const csi_repo
             csi_report_cfg_s::report_cfg_type_c_::semi_persistent_on_pusch_s_::report_slot_cfg_opts::sl320;
         break;
       default:
-        srsran_assertion_failure("Invalid CSI report periodicity={}", fmt::underlying(rep_cfg_val2->slot_cfg));
+        ocudu_assertion_failure("Invalid CSI report periodicity={}", fmt::underlying(rep_cfg_val2->slot_cfg));
     }
     for (unsigned offset : rep_cfg_val2->report_slot_offset_list) {
       rep_cfg.report_slot_offset_list.push_back(offset);
@@ -972,7 +971,7 @@ static asn1::rrc_nr::csi_report_cfg_s make_asn1_csi_report_config(const csi_repo
       out.report_quant.set_cri_ri_li_pmi_cqi();
       break;
     default:
-      srsran_assertion_failure("Invalid CSI report quantity={}", fmt::underlying(cfg.report_qty_type));
+      ocudu_assertion_failure("Invalid CSI report quantity={}", fmt::underlying(cfg.report_qty_type));
   }
 
   if (cfg.report_freq_cfg.has_value()) {
@@ -1121,7 +1120,7 @@ static asn1::rrc_nr::csi_report_cfg_s make_asn1_csi_report_config(const csi_repo
               csi_report_cfg_s::group_based_beam_report_c_::disabled_s_::nrof_reported_rs_opts::n4;
           break;
         default:
-          srsran_assertion_failure("Invalid nof. reported RS={}", cfg.nof_reported_rs.value());
+          ocudu_assertion_failure("Invalid nof. reported RS={}", cfg.nof_reported_rs.value());
       }
     }
   }
@@ -1142,7 +1141,7 @@ static asn1::rrc_nr::csi_report_cfg_s make_asn1_csi_report_config(const csi_repo
         out.cqi_table = csi_report_cfg_s::cqi_table_opts::table4_r17;
         break;
       default:
-        srsran_assertion_failure("Invalid CQI table={}", fmt::underlying(cfg.cqi_table.value()));
+        ocudu_assertion_failure("Invalid CQI table={}", fmt::underlying(cfg.cqi_table.value()));
     }
   }
 
@@ -1154,7 +1153,7 @@ static asn1::rrc_nr::csi_report_cfg_s make_asn1_csi_report_config(const csi_repo
       out.subband_size = csi_report_cfg_s::subband_size_opts::value2;
       break;
     default:
-      srsran_assertion_failure("Invalid subband size={}", fmt::underlying(cfg.subband_size));
+      ocudu_assertion_failure("Invalid subband size={}", fmt::underlying(cfg.subband_size));
   }
 
   for (const auto& port_idx : cfg.non_pmi_port_indication) {
@@ -1209,9 +1208,9 @@ make_asn1_semi_persistent_on_pusch_trigger_state(const csi_semi_persistent_on_pu
   return out;
 }
 
-void srsran::srs_du::calculate_csi_meas_config_diff(asn1::rrc_nr::csi_meas_cfg_s& out,
-                                                    const csi_meas_config&        src,
-                                                    const csi_meas_config&        dest)
+void ocudu::odu::calculate_csi_meas_config_diff(asn1::rrc_nr::csi_meas_cfg_s& out,
+                                                const csi_meas_config&        src,
+                                                const csi_meas_config&        dest)
 {
   calculate_addmodremlist_diff(
       out.nzp_csi_rs_res_to_add_mod_list,

@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_sdr_unit_config;
 
@@ -22,4 +22,4 @@ void configure_cli11_with_ru_sdr_config_schema(CLI::App& app, ru_sdr_unit_config
 /// Auto derive SDR Radio Unit parameters after the parsing.
 void autoderive_ru_sdr_parameters_after_parsing(CLI::App& app, ru_sdr_unit_config& parsed_cfg, unsigned nof_cells);
 
-} // namespace srsran
+} // namespace ocudu

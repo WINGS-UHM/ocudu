@@ -9,11 +9,11 @@
  */
 
 #include "rlc_stress_test.h"
-#include "srsran/pdcp/pdcp_factory.h"
-#include "srsran/rlc/rlc_factory.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/pdcp/pdcp_factory.h"
+#include "ocudu/rlc/rlc_factory.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 ::pthread_barrier_t barrier;
 stress_stack::stress_stack(const stress_test_args& args_, uint32_t id, rb_id_t rb_id) :
   stack_id(id),
@@ -107,8 +107,8 @@ stress_stack::stress_stack(const stress_test_args& args_, uint32_t id, rb_id_t r
 
 void stress_stack::start()
 {
-  srsran_assert(peer_stack != nullptr, "Peer stack was not set when starting the stack.");
-  srsran_assert(peer_stack != this, "Peer cannot be itself.");
+  ocudu_assert(peer_stack != nullptr, "Peer stack was not set when starting the stack.");
+  ocudu_assert(peer_stack != this, "Peer cannot be itself.");
 
   for (uint32_t i = 0; i < 20; i++) {
     traffic_source->send_pdu();
@@ -192,7 +192,7 @@ void stress_stack::push_pdus(std::vector<byte_buffer_chain> list_pdus)
 
 void stress_test(const stress_test_args& args)
 {
-  auto& log_stack = srslog::fetch_basic_logger("STACK", false);
+  auto& log_stack = ocudulog::fetch_basic_logger("STACK", false);
 
   // Create the stack emulators
   stress_stack stack_emulator_0(args, 0, drb_id_t::drb1);
@@ -229,7 +229,7 @@ void stress_test(const stress_test_args& args)
 
 int main(int argc, char** argv)
 {
-  // srsgnb_debug_handle_crash(argc, argv);
+  // ocudu_debug_handle_crash(argc, argv);
   ::pthread_barrier_init(&barrier, nullptr, 2);
   stress_test_args args = {};
   if (not parse_args(args, argc, argv)) {

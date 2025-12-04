@@ -8,20 +8,20 @@
  *
  */
 
-#include "srsran/support/io/sockets.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/io/sockets.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <net/if.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::getnameinfo(const struct sockaddr&        ai_addr,
-                         const socklen_t&              ai_addrlen,
-                         std::array<char, NI_MAXHOST>& ip_address,
-                         int&                          port)
+bool ocudu::getnameinfo(const struct sockaddr&        ai_addr,
+                        const socklen_t&              ai_addrlen,
+                        std::array<char, NI_MAXHOST>& ip_address,
+                        int&                          port)
 {
   char port_nr[NI_MAXSERV];
   if (getnameinfo(
@@ -33,7 +33,7 @@ bool srsran::getnameinfo(const struct sockaddr&        ai_addr,
   return true;
 }
 
-socket_name_info srsran::get_nameinfo(const struct sockaddr& ai_addr, const socklen_t& ai_addrlen)
+socket_name_info ocudu::get_nameinfo(const struct sockaddr& ai_addr, const socklen_t& ai_addrlen)
 {
   std::array<char, NI_MAXHOST> ip_addr;
   int                          port;
@@ -43,9 +43,9 @@ socket_name_info srsran::get_nameinfo(const struct sockaddr& ai_addr, const sock
   return socket_name_info{std::string(ip_addr.data()), port};
 }
 
-bool srsran::set_reuse_addr(const unique_fd& fd, srslog::basic_logger& logger)
+bool ocudu::set_reuse_addr(const unique_fd& fd, ocudulog::basic_logger& logger)
 {
-  srsran_assert(fd.is_open(), "fd is not open");
+  ocudu_assert(fd.is_open(), "fd is not open");
   int one = 1;
   if (::setsockopt(fd.value(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) != 0) {
     logger.error("fd={}: Couldn't set reuseaddr for socket: {}", fd.value(), ::strerror(errno));
@@ -54,7 +54,7 @@ bool srsran::set_reuse_addr(const unique_fd& fd, srslog::basic_logger& logger)
   return true;
 }
 
-bool srsran::bind_to_interface(const unique_fd& fd, const std::string& interface, srslog::basic_logger& logger)
+bool ocudu::bind_to_interface(const unique_fd& fd, const std::string& interface, ocudulog::basic_logger& logger)
 {
   if (interface.empty() || interface == "auto") {
     // no need to change anything
@@ -75,7 +75,7 @@ bool srsran::bind_to_interface(const unique_fd& fd, const std::string& interface
   return true;
 }
 
-bool srsran::sockaddr_to_ip_str(const sockaddr* addr, std::string& ip_address, srslog::basic_logger& logger)
+bool ocudu::sockaddr_to_ip_str(const sockaddr* addr, std::string& ip_address, ocudulog::basic_logger& logger)
 {
   char addr_str[INET6_ADDRSTRLEN] = {};
   if (addr->sa_family == AF_INET) {
@@ -97,7 +97,7 @@ bool srsran::sockaddr_to_ip_str(const sockaddr* addr, std::string& ip_address, s
   return true;
 }
 
-uint16_t srsran::sockaddr_to_port(const sockaddr* addr, srslog::basic_logger& logger)
+uint16_t ocudu::sockaddr_to_port(const sockaddr* addr, ocudulog::basic_logger& logger)
 {
   if (addr->sa_family == AF_INET) {
     return ntohs(((sockaddr_in*)addr)->sin_port);
@@ -109,9 +109,9 @@ uint16_t srsran::sockaddr_to_port(const sockaddr* addr, srslog::basic_logger& lo
   return 0;
 }
 
-bool srsran::set_receive_timeout(const unique_fd& fd, std::chrono::seconds rx_timeout, srslog::basic_logger& logger)
+bool ocudu::set_receive_timeout(const unique_fd& fd, std::chrono::seconds rx_timeout, ocudulog::basic_logger& logger)
 {
-  srsran_sanity_check(fd.is_open(), "Invalid FD");
+  ocudu_sanity_check(fd.is_open(), "Invalid FD");
   struct timeval tv;
   tv.tv_sec  = rx_timeout.count();
   tv.tv_usec = 0;
@@ -123,7 +123,7 @@ bool srsran::set_receive_timeout(const unique_fd& fd, std::chrono::seconds rx_ti
   return true;
 }
 
-bool srsran::set_non_blocking(const unique_fd& fd, srslog::basic_logger& logger)
+bool ocudu::set_non_blocking(const unique_fd& fd, ocudulog::basic_logger& logger)
 {
   if (not fd.is_open()) {
     logger.error("Failed to set socket as non-blocking. Cause: Socket is closed");
@@ -144,7 +144,7 @@ bool srsran::set_non_blocking(const unique_fd& fd, srslog::basic_logger& logger)
   return true;
 }
 
-std::string srsran::sock_type_to_str(int type)
+std::string ocudu::sock_type_to_str(int type)
 {
   switch (type) {
     case SOCK_STREAM:

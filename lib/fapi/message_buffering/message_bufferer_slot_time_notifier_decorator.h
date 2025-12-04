@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_time_message_notifier.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>
 #include <functional>
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 class message_bufferer_slot_gateway_task_dispatcher;
@@ -44,4 +44,4 @@ private:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// CRC calculator generic implementation.
 class crc_calculator_generic_impl : public crc_calculator
@@ -42,4 +42,4 @@ public:
   crc_generator_poly get_generator_poly() const override { return poly; }
 };
 
-} // namespace srsran
+} // namespace ocudu

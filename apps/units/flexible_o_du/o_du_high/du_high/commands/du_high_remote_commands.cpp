@@ -11,7 +11,7 @@
 #include "apps/units/flexible_o_du/o_du_high/du_high/commands/du_high_remote_commands.h"
 #include "nlohmann/json.hpp"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string> ssb_modify_remote_command::execute(const nlohmann::json& json)
 {
@@ -28,7 +28,7 @@ error_type<std::string> ssb_modify_remote_command::execute(const nlohmann::json&
     return make_unexpected("'cells' object does not contain any cell entries");
   }
 
-  srs_du::du_param_config_request req;
+  odu::du_param_config_request req;
   for (const auto& cell : cells_items) {
     auto plmn_key = cell.value().find("plmn");
     if (plmn_key == cell.value().end()) {
@@ -88,7 +88,7 @@ error_type<std::string> rrm_policy_ratio_remote_command::execute(const nlohmann:
     return make_unexpected("'policies' object is missing and it is mandatory");
   }
 
-  srs_du::du_param_config_request req;
+  odu::du_param_config_request req;
 
   // RRM Policy ratio group.
   rrm_policy_ratio_group rrm_policy_group;

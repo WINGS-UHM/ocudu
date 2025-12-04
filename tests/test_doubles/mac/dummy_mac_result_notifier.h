@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct phy_cell_test_dummy : public mac_cell_result_notifier {
 public:
@@ -50,4 +50,4 @@ public:
   std::vector<phy_cell_test_dummy> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

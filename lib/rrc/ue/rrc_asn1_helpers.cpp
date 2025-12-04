@@ -12,12 +12,12 @@
 #include "rrc_asn1_converters.h"
 #include "rrc_measurement_types_asn1_converters.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-bool srsran::srs_cu_cp::fill_asn1_rrc_setup_msg(asn1::rrc_nr::rrc_setup_s& rrc_setup,
-                                                const byte_buffer&         mcg,
-                                                uint8_t                    rrc_transaction_id)
+bool ocudu::ocucp::fill_asn1_rrc_setup_msg(asn1::rrc_nr::rrc_setup_s& rrc_setup,
+                                           const byte_buffer&         mcg,
+                                           uint8_t                    rrc_transaction_id)
 {
   using namespace asn1::rrc_nr;
   rrc_setup_ies_s& setup_ies   = rrc_setup.crit_exts.set_rrc_setup();
@@ -39,12 +39,12 @@ bool srsran::srs_cu_cp::fill_asn1_rrc_setup_msg(asn1::rrc_nr::rrc_setup_s& rrc_s
   return true;
 }
 
-expected<uint8_t> srsran::srs_cu_cp::get_transaction_id(const asn1::rrc_nr::rrc_setup_complete_s& msg)
+expected<uint8_t> ocudu::ocucp::get_transaction_id(const asn1::rrc_nr::rrc_setup_complete_s& msg)
 {
   return msg.rrc_transaction_id;
 }
 
-expected<uint8_t> srsran::srs_cu_cp::get_transaction_id(const asn1::rrc_nr::ul_dcch_msg_s& msg)
+expected<uint8_t> ocudu::ocucp::get_transaction_id(const asn1::rrc_nr::ul_dcch_msg_s& msg)
 {
   using namespace asn1::rrc_nr;
   switch (msg.msg.c1().type().value) {
@@ -57,10 +57,10 @@ expected<uint8_t> srsran::srs_cu_cp::get_transaction_id(const asn1::rrc_nr::ul_d
   return make_unexpected(default_error_t{});
 }
 
-void srsran::srs_cu_cp::fill_asn1_rrc_smc_msg(asn1::rrc_nr::security_mode_cmd_s&   rrc_smc,
-                                              const security::integrity_algorithm& int_algo,
-                                              const security::ciphering_algorithm& ciph_algo,
-                                              uint8_t                              rrc_transaction_id)
+void ocudu::ocucp::fill_asn1_rrc_smc_msg(asn1::rrc_nr::security_mode_cmd_s&   rrc_smc,
+                                         const security::integrity_algorithm& int_algo,
+                                         const security::ciphering_algorithm& ciph_algo,
+                                         uint8_t                              rrc_transaction_id)
 {
   using namespace asn1::rrc_nr;
   security_mode_cmd_ies_s& smc_ies = rrc_smc.crit_exts.set_security_mode_cmd();
@@ -101,9 +101,9 @@ void srsran::srs_cu_cp::fill_asn1_rrc_smc_msg(asn1::rrc_nr::security_mode_cmd_s&
   }
 }
 
-void srsran::srs_cu_cp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s& asn1_rrc_reconf,
-                                                          uint8_t                    rrc_transaction_id,
-                                                          const rrc_reconfiguration_procedure_request& rrc_reconf)
+void ocudu::ocucp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s&                   asn1_rrc_reconf,
+                                                     uint8_t                                      rrc_transaction_id,
+                                                     const rrc_reconfiguration_procedure_request& rrc_reconf)
 {
   using namespace asn1::rrc_nr;
 
@@ -120,7 +120,7 @@ void srsran::srs_cu_cp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recf
 
     // Fill SRB to add mod list.
     for (const auto& srb_to_add : cu_cp_radio_bearer_cfg.srb_to_add_mod_list) {
-      srsran_assert(srb_to_add.srb_id != srb_id_t::nulltype, "Invalid SRB ID");
+      ocudu_assert(srb_to_add.srb_id != srb_id_t::nulltype, "Invalid SRB ID");
 
       asn1::rrc_nr::srb_to_add_mod_s asn1_srb_to_add;
       asn1_srb_to_add.srb_id = srb_id_to_uint(srb_to_add.srb_id);
@@ -140,7 +140,7 @@ void srsran::srs_cu_cp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recf
 
     // Fill DRB to add mod list.
     for (const auto& drb_to_add : cu_cp_radio_bearer_cfg.drb_to_add_mod_list) {
-      srsran_assert(drb_to_add.drb_id != drb_id_t::invalid, "Invalid DRB ID");
+      ocudu_assert(drb_to_add.drb_id != drb_id_t::invalid, "Invalid DRB ID");
 
       asn1::rrc_nr::drb_to_add_mod_s asn1_drb_to_add;
       asn1_drb_to_add.drb_id = drb_id_to_uint(drb_to_add.drb_id);
@@ -170,7 +170,7 @@ void srsran::srs_cu_cp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recf
 
     // Fill DRB to release list.
     for (const auto& drb_to_release : cu_cp_radio_bearer_cfg.drb_to_release_list) {
-      srsran_assert(drb_to_release != drb_id_t::invalid, "Invalid DRB ID");
+      ocudu_assert(drb_to_release != drb_id_t::invalid, "Invalid DRB ID");
       asn1_radio_bearer_cfg.drb_to_release_list.push_back(drb_id_to_uint(drb_to_release));
     }
 
@@ -223,7 +223,7 @@ void srsran::srs_cu_cp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recf
       asn1::rrc_nr::meas_gap_cfg_s asn1_meas_gap_cfg;
       asn1::cbit_ref               bref(rrc_reconf.meas_gap_cfg);
 
-      if (asn1_reconfig_ies.meas_cfg.meas_gap_cfg.unpack(bref) != asn1::SRSASN_SUCCESS) {
+      if (asn1_reconfig_ies.meas_cfg.meas_gap_cfg.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
         report_fatal_error("Couldn't unpack MeasGapConfig RRC container");
       }
     }

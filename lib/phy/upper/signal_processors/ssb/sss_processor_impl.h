@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/phy/upper/sequence_generators/sss_sequence_generator.h"
-#include "srsran/phy/upper/signal_processors/ssb/sss_processor.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/phy/upper/sequence_generators/sss_sequence_generator.h"
+#include "ocudu/phy/upper/signal_processors/ssb/sss_processor.h"
 
-namespace srsran {
+namespace ocudu {
 class sss_processor_impl : public sss_processor
 {
 private:
@@ -38,4 +38,4 @@ public:
   void map(resource_grid_writer& grid, const config_t& config) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

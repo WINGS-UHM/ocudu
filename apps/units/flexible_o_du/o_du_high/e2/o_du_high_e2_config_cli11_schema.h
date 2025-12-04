@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct o_du_high_e2_config;
 
@@ -22,4 +22,4 @@ void configure_cli11_with_o_du_high_e2_config_schema(CLI::App& app, o_du_high_e2
 /// Auto derive O-RAN DU high E2 parameters after the parsing.
 void autoderive_o_du_high_e2_parameters_after_parsing(o_du_high_e2_config& unit_cfg);
 
-} // namespace srsran
+} // namespace ocudu

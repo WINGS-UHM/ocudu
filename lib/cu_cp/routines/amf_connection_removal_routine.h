@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ngap_repository.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 async_task<void> start_amf_connection_removal(ngap_repository&                                    ngap_db,
                                               std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected);
@@ -29,10 +29,10 @@ public:
   void operator()(coro_context<async_task<void>>& ctx);
 
 private:
-  ngap_interface*       ngap = nullptr;
-  std::atomic<bool>&    amf_connected;
-  srslog::basic_logger& logger;
+  ngap_interface*         ngap = nullptr;
+  std::atomic<bool>&      amf_connected;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

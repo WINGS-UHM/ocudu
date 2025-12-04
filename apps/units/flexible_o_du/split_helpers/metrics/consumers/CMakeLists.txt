@@ -10,6 +10,6 @@ set(SOURCES
             o_du_low_metrics_consumers.cpp
             ru_metrics_consumers.cpp)
 
-add_library(srsran_flexible_o_du_split_helpers_metrics_consumers STATIC ${SOURCES})
-target_include_directories(srsran_flexible_o_du_split_helpers_metrics_consumers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_flexible_o_du_split_helpers_metrics_consumers PRIVATE srsran_metrics_json_generators)
+add_library(ocudu_flexible_o_du_split_helpers_metrics_consumers STATIC ${SOURCES})
+target_include_directories(ocudu_flexible_o_du_split_helpers_metrics_consumers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_flexible_o_du_split_helpers_metrics_consumers PRIVATE ocudu_metrics_json_generators)

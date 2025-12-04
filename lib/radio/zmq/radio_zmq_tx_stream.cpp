@@ -9,9 +9,9 @@
  */
 
 #include "radio_zmq_tx_stream.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/ocuduvec/conversion.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 radio_zmq_tx_stream::radio_zmq_tx_stream(void*                     zmq_context,
                                          const stream_description& config,
@@ -46,7 +46,7 @@ radio_zmq_tx_stream::radio_zmq_tx_stream(void*                     zmq_context,
   successful = true;
 }
 
-void radio_zmq_tx_stream::start(srsran::baseband_gateway_timestamp init_time)
+void radio_zmq_tx_stream::start(ocudu::baseband_gateway_timestamp init_time)
 {
   for (auto& channel : channels) {
     channel->start(init_time);
@@ -94,7 +94,7 @@ void radio_zmq_tx_stream::transmit(const baseband_gateway_buffer_reader&        
 
   for (unsigned channel_id = 0, channel_id_end = channels.size(); channel_id != channel_id_end; ++channel_id) {
     span<cf_t> view = span<cf_t>(cf_buffer).first(data.get_channel_buffer(channel_id).size());
-    srsvec::convert(view, data.get_channel_buffer(channel_id), scaling_factor_ci16_to_cf);
+    ocuduvec::convert(view, data.get_channel_buffer(channel_id), scaling_factor_ci16_to_cf);
     channels[channel_id]->transmit(view);
   }
 }

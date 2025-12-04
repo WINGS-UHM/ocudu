@@ -9,16 +9,16 @@
  */
 
 #include "pss_processor_impl.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/srsvec/sc_prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 const pss_sequence_generator pss_processor_impl::sequence_generator;
 
-void srsran::pss_processor_impl::mapping(const std::array<cf_t, SEQUENCE_LEN>& sequence,
-                                         resource_grid_writer&                 grid,
-                                         const config_t&                       args) const
+void ocudu::pss_processor_impl::mapping(const std::array<cf_t, SEQUENCE_LEN>& sequence,
+                                        resource_grid_writer&                 grid,
+                                        const config_t&                       args) const
 {
   // Calculate symbol and first subcarrier for PSS
   unsigned l = args.ssb_first_symbol + SSB_L;
@@ -31,7 +31,7 @@ void srsran::pss_processor_impl::mapping(const std::array<cf_t, SEQUENCE_LEN>& s
   }
 }
 
-void srsran::pss_processor_impl::map(resource_grid_writer& grid, const config_t& config)
+void ocudu::pss_processor_impl::map(resource_grid_writer& grid, const config_t& config)
 {
   // Generate sequence
   std::array<cf_t, SEQUENCE_LEN> sequence;

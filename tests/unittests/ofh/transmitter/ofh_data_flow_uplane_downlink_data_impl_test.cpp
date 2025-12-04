@@ -13,14 +13,14 @@
 #include "../compression/ofh_iq_compressor_test_doubles.h"
 #include "../ecpri/ecpri_packet_builder_test_doubles.h"
 #include "../ethernet/vlan_ethernet_frame_builder_test_doubles.h"
-#include "srsran/adt/interval.h"
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/ran/resource_block.h"
 #include <gtest/gtest.h>
 #include <vector>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 namespace {
@@ -106,7 +106,7 @@ protected:
   data_flow_uplane_downlink_data_impl_dependencies generate_data_flow_dependencies()
   {
     data_flow_uplane_downlink_data_impl_dependencies dependencies;
-    dependencies.logger         = &srslog::fetch_basic_logger("TEST");
+    dependencies.logger         = &ocudulog::fetch_basic_logger("TEST");
     dependencies.compressor_sel = std::make_unique<ofh::testing::iq_compressor_dummy>();
     dependencies.frame_pool     = std::make_shared<ether::eth_frame_pool>(
         *dependencies.logger, units::bytes(9000), 2, ofh::message_type::user_plane, ofh::data_direction::downlink);
@@ -234,7 +234,7 @@ TEST(ofh_data_flow_uplane_downlink_data_impl,
       {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11}, {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22}, 1, 0xaabb};
 
   data_flow_uplane_downlink_data_impl_dependencies dependencies;
-  dependencies.logger         = &srslog::fetch_basic_logger("TEST");
+  dependencies.logger         = &ocudulog::fetch_basic_logger("TEST");
   dependencies.compressor_sel = std::make_unique<ofh::testing::iq_compressor_dummy>();
 
   unsigned prb_size   = 28;
@@ -298,7 +298,7 @@ TEST(ofh_data_flow_uplane_downlink_data_impl, frame_buffer_size_of_nof_prbs_gene
       {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11}, {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22}, 1, 0xaabb};
 
   data_flow_uplane_downlink_data_impl_dependencies dependencies;
-  dependencies.logger         = &srslog::fetch_basic_logger("TEST");
+  dependencies.logger         = &ocudulog::fetch_basic_logger("TEST");
   dependencies.compressor_sel = std::make_unique<ofh::testing::iq_compressor_dummy>();
 
   unsigned prb_size  = 28;

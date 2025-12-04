@@ -10,14 +10,14 @@
 
 #include "mock_cu_up.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
-#include "srsran/adt/mutexed_mpmc_queue.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/common/e1ap_common.h"
-#include "srsran/e1ap/common/e1ap_message.h"
+#include "ocudu/adt/mutexed_mpmc_queue.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/common/e1ap_common.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 namespace {
 
@@ -106,7 +106,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<mock_cu_up> srsran::srs_cu_cp::create_mock_cu_up(cu_cp_e1_handler& cu_cp_e1_handler)
+std::unique_ptr<mock_cu_up> ocudu::ocucp::create_mock_cu_up(cu_cp_e1_handler& cu_cp_e1_handler)
 {
   auto ptr = std::make_unique<synchronized_mock_cu_up>(cu_cp_e1_handler);
   if (not ptr->connected()) {

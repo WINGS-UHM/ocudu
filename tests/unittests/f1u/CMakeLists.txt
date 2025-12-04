@@ -11,11 +11,11 @@ add_subdirectory(du)
 
 add_executable(f1u_local_connector_test common/f1u_connector_test.cpp)
 target_link_libraries(f1u_local_connector_test
-srsran_f1u_connector
-srsran_f1u_du
-srsran_f1u_cu_up
-srsran_support
-srslog
+ocudu_f1u_connector
+ocudu_f1u_du
+ocudu_f1u_cu_up
+ocudu_support
+ocudulog
 gtest
 gtest_main)
 
@@ -24,11 +24,11 @@ gtest_discover_tests(f1u_local_connector_test)
 
 add_executable(f1u_cu_up_split_connector_test common/f1u_cu_split_connector_test.cpp)
 target_link_libraries(f1u_cu_up_split_connector_test
-srsran_f1u_cu_up_split_connector
-srsran_f1u_cu_up
-srsran_gtpu
-srsran_support
-srslog
+ocudu_f1u_cu_up_split_connector
+ocudu_f1u_cu_up
+ocudu_gtpu
+ocudu_support
+ocudulog
 gtest
 gtest_main)
 
@@ -37,11 +37,11 @@ gtest_discover_tests(f1u_cu_up_split_connector_test)
 
 add_executable(f1u_du_split_connector_test common/f1u_du_split_connector_test.cpp)
 target_link_libraries(f1u_du_split_connector_test
-srsran_f1u_du_split_connector
-srsran_f1u_du
-srsran_gtpu
-srsran_support
-srslog
+ocudu_f1u_du_split_connector
+ocudu_f1u_du
+ocudu_gtpu
+ocudu_support
+ocudulog
 gtest
 gtest_main)
 
@@ -50,9 +50,9 @@ gtest_discover_tests(f1u_du_split_connector_test)
 
 add_executable(f1u_session_manager_test common/f1u_session_manager_test.cpp)
 target_link_libraries(f1u_session_manager_test
-srsran_f1u_split_connector
-srsran_support
-srslog
+ocudu_f1u_split_connector
+ocudu_support
+ocudulog
 gtest
 gtest_main)
 

@@ -11,15 +11,15 @@
 #include "f1ap_configuration_helpers.h"
 #include "asn1_rrc_config_helpers.h"
 #include "asn1_sys_info_packer.h"
-#include "srsran/asn1/rrc_nr/bcch_dl_sch_msg.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-byte_buffer srsran::srs_du::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_cfg)
+byte_buffer ocudu::odu::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_cfg)
 {
   byte_buffer                     buf;
   asn1::bit_ref                   bref{buf};
@@ -63,12 +63,12 @@ byte_buffer srsran::srs_du::make_asn1_meas_time_cfg_buffer(const du_cell_config&
   meas_item.pci_present = true;
   meas_item.pci         = du_cfg.pci;
 
-  asn1::SRSASN_CODE ret = cfg.pack(bref);
-  srsran_assert(ret == asn1::SRSASN_SUCCESS, "Failed to pack meas_time_cfg");
+  asn1::OCUDUASN_CODE ret = cfg.pack(bref);
+  ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack meas_time_cfg");
   return buf;
 }
 
-du_served_cell_info srsran::srs_du::make_f1ap_du_cell_info(const du_cell_config& du_cfg)
+du_served_cell_info ocudu::odu::make_f1ap_du_cell_info(const du_cell_config& du_cfg)
 {
   du_served_cell_info serv_cell;
 
@@ -87,7 +87,7 @@ du_served_cell_info srsran::srs_du::make_f1ap_du_cell_info(const du_cell_config&
   return serv_cell;
 }
 
-gnb_du_sys_info srsran::srs_du::make_f1ap_du_sys_info(const du_cell_config& du_cfg, std::string* js_str)
+gnb_du_sys_info ocudu::odu::make_f1ap_du_sys_info(const du_cell_config& du_cfg, std::string* js_str)
 {
   gnb_du_sys_info sys_info;
 
@@ -97,8 +97,7 @@ gnb_du_sys_info srsran::srs_du::make_f1ap_du_sys_info(const du_cell_config& du_c
   return sys_info;
 }
 
-void srsran::srs_du::fill_f1_setup_request(f1_setup_request_message&            req,
-                                           const du_manager_params::ran_params& ran_params)
+void ocudu::odu::fill_f1_setup_request(f1_setup_request_message& req, const du_manager_params::ran_params& ran_params)
 {
   req.gnb_du_id   = ran_params.gnb_du_id;
   req.gnb_du_name = ran_params.gnb_du_name;

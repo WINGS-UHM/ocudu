@@ -10,23 +10,23 @@
 
 #pragma once
 
-#include "srsran/fapi/error_message_notifier.h"
-#include "srsran/fapi/messages/config_request_tlvs.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/fapi/messages/tx_data_request.h"
-#include "srsran/fapi/messages/ul_dci_request.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/fapi/slot_last_message_notifier.h"
-#include "srsran/fapi/slot_message_gateway.h"
-#include "srsran/fapi_adaptor/precoding_matrix_repository.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_repository.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/fapi/messages/config_request_tlvs.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/messages/tx_data_request.h"
+#include "ocudu/fapi/messages/ul_dci_request.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_repository.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 class downlink_pdu_validator;
 class downlink_processor;
@@ -61,7 +61,7 @@ struct fapi_to_phy_fastpath_translator_config {
 /// FAPI-to-PHY fastpath translator dependencies.
 struct fapi_to_phy_fastpath_translator_dependencies {
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Downlink processor pool.
   downlink_processor_pool& dl_processor_pool;
   /// Downlink resource grid pool.
@@ -115,7 +115,7 @@ class fapi_to_phy_fastpath_translator : public fapi::slot_message_gateway, publi
                                     resource_grid_pool&      rg_pool,
                                     slot_point               slot_,
                                     unsigned                 sector_id,
-                                    srslog::basic_logger&    logger);
+                                    ocudulog::basic_logger&  logger);
 
     slot_based_upper_phy_controller(slot_based_upper_phy_controller&& other) = delete;
 
@@ -134,7 +134,7 @@ class fapi_to_phy_fastpath_translator : public fapi::slot_message_gateway, publi
     resource_grid_pool&                          rg_pool;
     const unsigned                               sector_id;
     std::vector<slot_based_upper_phy_controller> controllers;
-    srslog::basic_logger&                        logger;
+    ocudulog::basic_logger&                      logger;
 
     /// Returns the controller for the given slot.
     slot_based_upper_phy_controller& controller(slot_point slot)
@@ -156,7 +156,7 @@ class fapi_to_phy_fastpath_translator : public fapi::slot_message_gateway, publi
                                             resource_grid_pool&      rg_pool_,
                                             unsigned                 sector_id_,
                                             unsigned                 nof_slots_request_headroom,
-                                            srslog::basic_logger&    logger);
+                                            ocudulog::basic_logger&  logger);
 
     /// \brief Releases the controller for the given slot.
     ///
@@ -255,7 +255,7 @@ private:
   /// Allows to request uplink on empty UL_TTI.request.
   const bool allow_request_on_empty_ul_tti;
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Downlink PDU validator.
   const downlink_pdu_validator& dl_pdu_validator;
   /// Uplink request processor.
@@ -289,4 +289,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

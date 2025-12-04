@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/ran/pdcch/dci_packing.h"
-#include "srsran/adt/interval.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/pdcch/dci_packing_formatters.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/pdcch/dci_packing_formatters.h"
+#include "ocudu/support/math/math_utils.h"
 #include "fmt/std.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Maximum number of resource block groups per BWP.
 static constexpr unsigned MAX_NOF_RBGS = 18;
@@ -34,12 +34,12 @@ struct unique_dci_sizes_list {
   // Inserts a DCI size if it is not currently in the list.
   void insert_if_unique(unsigned dci_size)
   {
-    srsran_assert((dci_size != 0), "The DCI size cannot be zero.");
+    ocudu_assert((dci_size != 0), "The DCI size cannot be zero.");
 
     bool is_unique = (std::find(unique_dci_sizes.begin(), unique_dci_sizes.end(), dci_size)) == unique_dci_sizes.end();
 
     if (is_unique) {
-      srsran_assert((count() < MAX_NOF_DCI_SIZES), "The maximum number of unique DCI sizes has been exceeded");
+      ocudu_assert((count() < MAX_NOF_DCI_SIZES), "The maximum number of unique DCI sizes has been exceeded");
 
       unique_dci_sizes.emplace_back(dci_size);
     }
@@ -127,9 +127,9 @@ static unsigned bwp_indicator_size(unsigned nof_bwp_rrc)
       ++n_bwp;
     }
     bwp_ind_size = log2_ceil(n_bwp);
-    srsran_assert(bwp_ind_size <= 2,
-                  "The derived BWP indicator field size, i.e., {} exceeds the maximum expected size of 2",
-                  bwp_ind_size);
+    ocudu_assert(bwp_ind_size <= 2,
+                 "The derived BWP indicator field size, i.e., {} exceeds the maximum expected size of 2",
+                 bwp_ind_size);
   }
   return bwp_ind_size;
 }
@@ -194,9 +194,9 @@ static units::bits ul_precoding_info_size_4port_maxrank1(tx_scheme_codebook_subs
 static units::bits ul_precoding_info_size_2port(tx_scheme_codebook_subset codebook_subset)
 {
   using namespace units::literals;
-  srsran_assert(codebook_subset != tx_scheme_codebook_subset::partial_and_non_coherent,
-                "Codebook subset \"partial and non-coherent\" is not supported with two ports.",
-                fmt::underlying(codebook_subset));
+  ocudu_assert(codebook_subset != tx_scheme_codebook_subset::partial_and_non_coherent,
+               "Codebook subset \"partial and non-coherent\" is not supported with two ports.",
+               fmt::underlying(codebook_subset));
 
   if (codebook_subset == tx_scheme_codebook_subset::fully_and_partial_and_non_coherent) {
     return 4_bits;
@@ -209,9 +209,9 @@ static units::bits ul_precoding_info_size_2port(tx_scheme_codebook_subset codebo
 static units::bits ul_precoding_info_size_2port_maxrank1(tx_scheme_codebook_subset codebook_subset)
 {
   using namespace units::literals;
-  srsran_assert(codebook_subset != tx_scheme_codebook_subset::partial_and_non_coherent,
-                "Codebook subset \"partial and non-coherent\" is not supported with two ports.",
-                fmt::underlying(codebook_subset));
+  ocudu_assert(codebook_subset != tx_scheme_codebook_subset::partial_and_non_coherent,
+               "Codebook subset \"partial and non-coherent\" is not supported with two ports.",
+               fmt::underlying(codebook_subset));
 
   if (codebook_subset == tx_scheme_codebook_subset::fully_and_partial_and_non_coherent) {
     return 3_bits;
@@ -238,7 +238,7 @@ static units::bits ul_precoding_info_size(pusch_tx_scheme_configuration tx_schem
   }
 
   // Extract codebook transmission scheme parameters.
-  srsran_assert(std::holds_alternative<tx_scheme_codebook>(tx_scheme_config), "Transmission scheme is not codebook.");
+  ocudu_assert(std::holds_alternative<tx_scheme_codebook>(tx_scheme_config), "Transmission scheme is not codebook.");
   const tx_scheme_codebook& codebook_config = std::get<tx_scheme_codebook>(tx_scheme_config);
 
   if ((nof_antenna_ports == 4) && (codebook_config.max_rank == 1)) {
@@ -292,7 +292,7 @@ static unsigned ul_dmrs_ports_size(dmrs_config_type dmrs_type, dmrs_max_length d
     return 5;
   }
 
-  srsran_assertion_failure("Invalid combination of PUSCH DM-RS and transform precoding parameters.");
+  ocudu_assertion_failure("Invalid combination of PUSCH DM-RS and transform precoding parameters.");
   return 0;
 }
 
@@ -356,7 +356,7 @@ static units::bits dl_ports_size(std::optional<dmrs_config_type> dmrs_A_type,
 // Computes the SRS resource indicator field size for DCI format 0_1.
 static unsigned srs_resource_indicator_size(const dci_size_config& dci_config)
 {
-  srsran_assert(dci_config.pusch_tx_scheme.has_value(), "Transmit scheme is not present.");
+  ocudu_assert(dci_config.pusch_tx_scheme.has_value(), "Transmit scheme is not present.");
 
   // SRS resource indicator size for non-codebook based transmission.
   if (std::holds_alternative<tx_scheme_non_codebook>(dci_config.pusch_tx_scheme.value())) {
@@ -628,10 +628,10 @@ static void assert_dci_size_config(const dci_size_config& dci_sz_cfg)
     }
     return is_success;
   };
-  srsran_assert(validate_dci_sz_cfg(), "Invalid DCI size configuration: {}", error_msg);
+  ocudu_assert(validate_dci_sz_cfg(), "Invalid DCI size configuration: {}", error_msg);
 }
 
-dci_sizes srsran::get_dci_sizes(const dci_size_config& config)
+dci_sizes ocudu::get_dci_sizes(const dci_size_config& config)
 {
   // Assert DCI size configuration parameters.
   assert_dci_size_config(config);
@@ -680,8 +680,8 @@ dci_sizes srsran::get_dci_sizes(const dci_size_config& config)
     final_sizes.format0_0_common_size.total -= nof_truncated_bits;
   }
 
-  srsran_assert(final_sizes.format1_0_common_size.total == final_sizes.format0_0_common_size.total,
-                "DCI format 0_0 and 1_0 payload sizes must match");
+  ocudu_assert(final_sizes.format1_0_common_size.total == final_sizes.format0_0_common_size.total,
+               "DCI format 0_0 and 1_0 payload sizes must match");
 
   // Step 1.
   if (config.dci_0_0_and_1_0_ue_ss) {
@@ -724,8 +724,8 @@ dci_sizes srsran::get_dci_sizes(const dci_size_config& config)
       final_sizes.format1_0_ue_size.value().total += final_sizes.format1_0_ue_size.value().padding;
     }
 
-    srsran_assert(final_sizes.format1_0_ue_size.value().total == final_sizes.format0_0_ue_size.value().total,
-                  "DCI format 0_0 and 1_0 payload sizes must match");
+    ocudu_assert(final_sizes.format1_0_ue_size.value().total == final_sizes.format0_0_ue_size.value().total,
+                 "DCI format 0_0 and 1_0 payload sizes must match");
   }
 
   // Step 2.
@@ -800,11 +800,11 @@ dci_sizes srsran::get_dci_sizes(const dci_size_config& config)
   return final_sizes;
 }
 
-dci_payload srsran::dci_0_0_c_rnti_pack(const dci_0_0_c_rnti_configuration& config)
+dci_payload ocudu::dci_0_0_c_rnti_pack(const dci_0_0_c_rnti_configuration& config)
 {
-  srsran_assert(config.payload_size.total.value() >= 12,
-                "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 0_0 and C-RNTI.",
-                config.payload_size.total);
+  ocudu_assert(config.payload_size.total.value() >= 12,
+               "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 0_0 and C-RNTI.",
+               config.payload_size.total);
 
   dci_payload payload;
   units::bits frequency_resource_nof_bits = config.payload_size.frequency_resource;
@@ -814,18 +814,18 @@ dci_payload srsran::dci_0_0_c_rnti_pack(const dci_0_0_c_rnti_configuration& conf
 
   if (config.frequency_hopping_flag) {
     // Assert that the number of bits used to pack the frequency hopping offset is valid.
-    srsran_assert((config.N_ul_hop == 1) || (config.N_ul_hop == 2),
-                  "DCI frequency offset number of bits must be either 1 or 2");
+    ocudu_assert((config.N_ul_hop == 1) || (config.N_ul_hop == 2),
+                 "DCI frequency offset number of bits must be either 1 or 2");
 
     // Assert that the frequency resource field has enough bits to include the frequency hopping offset.
-    srsran_assert(config.N_ul_hop < frequency_resource_nof_bits.value(),
-                  "The frequency resource field must have enough bits to hold the frequency hopping offset");
+    ocudu_assert(config.N_ul_hop < frequency_resource_nof_bits.value(),
+                 "The frequency resource field must have enough bits to hold the frequency hopping offset");
 
     // Assert that the frequency hopping offset can be packed with the allocated bits.
-    srsran_assert(config.hopping_offset < (1U << config.N_ul_hop),
-                  "DCI frequency offset value ({}) cannot be packed with the allocated number of bits ({})",
-                  config.hopping_offset,
-                  config.N_ul_hop);
+    ocudu_assert(config.hopping_offset < (1U << config.N_ul_hop),
+                 "DCI frequency offset value ({}) cannot be packed with the allocated number of bits ({})",
+                 config.hopping_offset,
+                 config.N_ul_hop);
 
     // Truncate the frequency resource allocation field.
     frequency_resource_nof_bits -= units::bits(config.N_ul_hop);
@@ -875,19 +875,19 @@ dci_payload srsran::dci_0_0_c_rnti_pack(const dci_0_0_c_rnti_configuration& conf
   }
 
   // Assert total payload size.
-  srsran_assert(units::bits(payload.size()) == config.payload_size.total,
-                "Constructed payload size (i.e., {}) does not match expected payload size. Expected sizes:\n{}",
-                units::bits(payload.size()),
-                config.payload_size);
+  ocudu_assert(units::bits(payload.size()) == config.payload_size.total,
+               "Constructed payload size (i.e., {}) does not match expected payload size. Expected sizes:\n{}",
+               units::bits(payload.size()),
+               config.payload_size);
 
   return payload;
 }
 
-dci_payload srsran::dci_0_0_tc_rnti_pack(const dci_0_0_tc_rnti_configuration& config)
+dci_payload ocudu::dci_0_0_tc_rnti_pack(const dci_0_0_tc_rnti_configuration& config)
 {
-  srsran_assert(config.payload_size.total.value() >= 12,
-                "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 0_0 and TC-RNTI.",
-                config.payload_size.total);
+  ocudu_assert(config.payload_size.total.value() >= 12,
+               "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 0_0 and TC-RNTI.",
+               config.payload_size.total);
 
   units::bits frequency_resource_nof_bits = config.payload_size.frequency_resource;
   dci_payload payload;
@@ -899,18 +899,18 @@ dci_payload srsran::dci_0_0_tc_rnti_pack(const dci_0_0_tc_rnti_configuration& co
 
   if (config.frequency_hopping_flag) {
     // Assert that the number of bits used to pack the frequency hopping offset is valid.
-    srsran_assert((config.N_ul_hop == 1) || (config.N_ul_hop == 2),
-                  "DCI frequency offset number of bits must be either 1 or 2");
+    ocudu_assert((config.N_ul_hop == 1) || (config.N_ul_hop == 2),
+                 "DCI frequency offset number of bits must be either 1 or 2");
 
     // Assert that the frequency resource field has enough bits to include the frequency hopping offset.
-    srsran_assert(config.N_ul_hop < frequency_resource_nof_bits.value(),
-                  "The frequency resource field must have enough bits to hold the frequency hopping offset");
+    ocudu_assert(config.N_ul_hop < frequency_resource_nof_bits.value(),
+                 "The frequency resource field must have enough bits to hold the frequency hopping offset");
 
     // Assert that the frequency hopping offset can be packed with the allocated bits.
-    srsran_assert(config.hopping_offset < (1U << config.N_ul_hop),
-                  "DCI frequency offset value ({}) cannot be packed with the allocated number of bits ({})",
-                  config.hopping_offset,
-                  config.N_ul_hop);
+    ocudu_assert(config.hopping_offset < (1U << config.N_ul_hop),
+                 "DCI frequency offset value ({}) cannot be packed with the allocated number of bits ({})",
+                 config.hopping_offset,
+                 config.N_ul_hop);
 
     // Position of the LSB bit of the hopping offset within the frequency domain resource assignment field, as per
     // TS38.212 Section 7.3.1.1.1.
@@ -954,19 +954,19 @@ dci_payload srsran::dci_0_0_tc_rnti_pack(const dci_0_0_tc_rnti_configuration& co
   }
 
   // Assert total payload size.
-  srsran_assert(units::bits(payload.size()) == config.payload_size.total,
-                "Constructed payload size (i.e., {}) does not match expected payload size. Expected sizes:\n{}",
-                units::bits(payload.size()),
-                config.payload_size);
+  ocudu_assert(units::bits(payload.size()) == config.payload_size.total,
+               "Constructed payload size (i.e., {}) does not match expected payload size. Expected sizes:\n{}",
+               units::bits(payload.size()),
+               config.payload_size);
 
   return payload;
 }
 
-dci_payload srsran::dci_1_0_c_rnti_pack(const dci_1_0_c_rnti_configuration& config)
+dci_payload ocudu::dci_1_0_c_rnti_pack(const dci_1_0_c_rnti_configuration& config)
 {
-  srsran_assert(config.payload_size.total.value() >= 12,
-                "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 1_0 and C-RNTI.",
-                config.payload_size.total);
+  ocudu_assert(config.payload_size.total.value() >= 12,
+               "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 1_0 and C-RNTI.",
+               config.payload_size.total);
 
   dci_payload payload;
 
@@ -1010,15 +1010,15 @@ dci_payload srsran::dci_1_0_c_rnti_pack(const dci_1_0_c_rnti_configuration& conf
   payload.push_back(0x00U, config.payload_size.padding.value());
 
   // Assert total payload size.
-  srsran_assert(units::bits(payload.size()) == config.payload_size.total,
-                "Constructed payload size (i.e., {}) does not match expected payload size. Expected sizes:\n{}",
-                units::bits(payload.size()),
-                config.payload_size);
+  ocudu_assert(units::bits(payload.size()) == config.payload_size.total,
+               "Constructed payload size (i.e., {}) does not match expected payload size. Expected sizes:\n{}",
+               units::bits(payload.size()),
+               config.payload_size);
 
   return payload;
 }
 
-dci_payload srsran::dci_1_0_p_rnti_pack(const dci_1_0_p_rnti_configuration& config)
+dci_payload ocudu::dci_1_0_p_rnti_pack(const dci_1_0_p_rnti_configuration& config)
 {
   units::bits frequency_resource_nof_bits(log2_ceil(config.N_rb_dl_bwp * (config.N_rb_dl_bwp + 1) / 2));
   dci_payload payload;
@@ -1070,7 +1070,7 @@ dci_payload srsran::dci_1_0_p_rnti_pack(const dci_1_0_p_rnti_configuration& conf
   return payload;
 }
 
-dci_payload srsran::dci_1_0_si_rnti_pack(const dci_1_0_si_rnti_configuration& config)
+dci_payload ocudu::dci_1_0_si_rnti_pack(const dci_1_0_si_rnti_configuration& config)
 {
   units::bits frequency_resource_nof_bits(log2_ceil(config.N_rb_dl_bwp * (config.N_rb_dl_bwp + 1) / 2));
   dci_payload payload;
@@ -1099,7 +1099,7 @@ dci_payload srsran::dci_1_0_si_rnti_pack(const dci_1_0_si_rnti_configuration& co
   return payload;
 }
 
-dci_payload srsran::dci_1_0_ra_rnti_pack(const dci_1_0_ra_rnti_configuration& config)
+dci_payload ocudu::dci_1_0_ra_rnti_pack(const dci_1_0_ra_rnti_configuration& config)
 {
   units::bits frequency_resource_nof_bits(log2_ceil(config.N_rb_dl_bwp * (config.N_rb_dl_bwp + 1) / 2));
   dci_payload payload;
@@ -1125,7 +1125,7 @@ dci_payload srsran::dci_1_0_ra_rnti_pack(const dci_1_0_ra_rnti_configuration& co
   return payload;
 }
 
-dci_payload srsran::dci_1_0_tc_rnti_pack(const dci_1_0_tc_rnti_configuration& config)
+dci_payload ocudu::dci_1_0_tc_rnti_pack(const dci_1_0_tc_rnti_configuration& config)
 {
   units::bits frequency_resource_nof_bits(log2_ceil(config.N_rb_dl_bwp * (config.N_rb_dl_bwp + 1) / 2));
   dci_payload payload;
@@ -1169,15 +1169,15 @@ dci_payload srsran::dci_1_0_tc_rnti_pack(const dci_1_0_tc_rnti_configuration& co
   return payload;
 }
 
-dci_payload srsran::dci_0_1_pack(const dci_0_1_configuration& config)
+dci_payload ocudu::dci_0_1_pack(const dci_0_1_configuration& config)
 {
-  srsran_assert(config.payload_size.total.value() >= 12,
-                "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 0_1.",
-                config.payload_size.total);
+  ocudu_assert(config.payload_size.total.value() >= 12,
+               "DCI total payload size is {}, it must be at least 12 bit long for DCI Format 0_1.",
+               config.payload_size.total);
 
   // Assertions for unsupported fields.
-  srsran_assert(!config.ul_sul_indicator.has_value(), "UL/SUL indicator field is not currently supported.");
-  srsran_assert(!config.ptrs_dmrs_association.has_value(), "PT-RS/DM-RS association field is not currently supported.");
+  ocudu_assert(!config.ul_sul_indicator.has_value(), "UL/SUL indicator field is not currently supported.");
+  ocudu_assert(!config.ptrs_dmrs_association.has_value(), "PT-RS/DM-RS association field is not currently supported.");
 
   dci_payload payload;
 
@@ -1216,18 +1216,18 @@ dci_payload srsran::dci_0_1_pack(const dci_0_1_configuration& config)
 
   if (config.frequency_hopping_flag.has_value() && (config.frequency_hopping_flag.value() == 1)) {
     // Assert that the number of bits used to pack the frequency hopping offset is valid.
-    srsran_assert((config.N_ul_hop.value() == 1) || (config.N_ul_hop.value() == 2),
-                  "DCI frequency offset number of bits must be either 1 or 2");
+    ocudu_assert((config.N_ul_hop.value() == 1) || (config.N_ul_hop.value() == 2),
+                 "DCI frequency offset number of bits must be either 1 or 2");
 
     // Assert that the frequency resource field has enough bits to include the frequency hopping offset.
-    srsran_assert(config.N_ul_hop.value() < frequency_resource_nof_bits.value(),
-                  "The frequency resource field must have enough bits to hold the frequency hopping offset");
+    ocudu_assert(config.N_ul_hop.value() < frequency_resource_nof_bits.value(),
+                 "The frequency resource field must have enough bits to hold the frequency hopping offset");
 
     // Assert that the frequency hopping offset can be packed with the allocated bits.
-    srsran_assert(config.hopping_offset.value() < (1U << config.N_ul_hop.value()),
-                  "DCI frequency offset value, i.e., {} cannot be packed with the allocated number of bits, i.e., {}",
-                  config.hopping_offset,
-                  config.N_ul_hop);
+    ocudu_assert(config.hopping_offset.value() < (1U << config.N_ul_hop.value()),
+                 "DCI frequency offset value, i.e., {} cannot be packed with the allocated number of bits, i.e., {}",
+                 config.hopping_offset,
+                 config.N_ul_hop);
 
     // Truncate the frequency resource allocation field.
     frequency_resource_nof_bits -= units::bits(config.N_ul_hop.value());
@@ -1318,17 +1318,17 @@ dci_payload srsran::dci_0_1_pack(const dci_0_1_configuration& config)
   }
 
   // Assert total payload size.
-  srsran_assert(units::bits(payload.size()) == config.payload_size.total,
-                "Constructed payload size {} does not match expected payload size. Expected sizes:\n{}",
-                units::bits(payload.size()),
-                config.payload_size);
+  ocudu_assert(units::bits(payload.size()) == config.payload_size.total,
+               "Constructed payload size {} does not match expected payload size. Expected sizes:\n{}",
+               units::bits(payload.size()),
+               config.payload_size);
 
   return payload;
 }
 
-dci_payload srsran::dci_1_1_pack(const dci_1_1_configuration& config)
+dci_payload ocudu::dci_1_1_pack(const dci_1_1_configuration& config)
 {
-  srsran_assert(config.payload_size.total.value() >= 12, "DCI payloads must be at least 12 bit long");
+  ocudu_assert(config.payload_size.total.value() >= 12, "DCI payloads must be at least 12 bit long");
 
   dci_payload payload;
 
@@ -1464,15 +1464,15 @@ dci_payload srsran::dci_1_1_pack(const dci_1_1_configuration& config)
   }
 
   // Assert total payload size.
-  srsran_assert(units::bits(payload.size()) == config.payload_size.total,
-                "Constructed payload size {} does not match expected payload size. Expected sizes:\n{}",
-                units::bits(payload.size()),
-                config.payload_size);
+  ocudu_assert(units::bits(payload.size()) == config.payload_size.total,
+               "Constructed payload size {} does not match expected payload size. Expected sizes:\n{}",
+               units::bits(payload.size()),
+               config.payload_size);
 
   return payload;
 }
 
-dci_payload srsran::dci_rar_pack(const dci_rar_configuration& config)
+dci_payload ocudu::dci_rar_pack(const dci_rar_configuration& config)
 {
   dci_payload payload;
 
@@ -1497,7 +1497,7 @@ dci_payload srsran::dci_rar_pack(const dci_rar_configuration& config)
   return payload;
 }
 
-error_type<std::string> srsran::validate_dci_size_config(const dci_size_config& config)
+error_type<std::string> ocudu::validate_dci_size_config(const dci_size_config& config)
 {
   // Constants.
   static constexpr unsigned max_nof_bwp_rrc         = 4;

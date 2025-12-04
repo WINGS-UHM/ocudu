@@ -18,10 +18,10 @@
 #include "ue_channel_state_manager.h"
 #include "ue_drx_controller.h"
 #include "ue_link_adaptation_controller.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ul_crc_pdu_indication;
 struct pdsch_config_params;
@@ -198,7 +198,7 @@ private:
   const ue_cell_configuration*      ue_cfg;
   const scheduler_ue_expert_config& expert_cfg;
   ue_shared_context                 shared_ctx;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   /// \brief Whether cell is currently active.
   bool active = true;
@@ -214,4 +214,4 @@ private:
   pucch_power_controller pucch_pwr_controller;
 };
 
-} // namespace srsran
+} // namespace ocudu

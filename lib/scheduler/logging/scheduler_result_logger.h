@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ran/pci.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/pci.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct sched_result;
 
@@ -33,12 +33,12 @@ private:
 
   void log_info(const sched_result& result, std::chrono::microseconds slot_latency);
 
-  srslog::basic_logger& logger;
-  bool                  log_broadcast;
-  bool                  enabled;
-  const pci_t           pci;
+  ocudulog::basic_logger& logger;
+  bool                    log_broadcast;
+  bool                    enabled;
+  const pci_t             pci;
 
   fmt::memory_buffer fmtbuf;
 };
 
-} // namespace srsran
+} // namespace ocudu

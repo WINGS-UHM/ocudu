@@ -10,5 +10,5 @@ set(SOURCES udp_cli11_schema.cpp
 	udp_config_yaml_writer.cpp
 )
 
-add_library(srsran_network_app_helpers STATIC ${SOURCES})
-target_include_directories(srsran_network_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_network_app_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_network_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})

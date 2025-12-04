@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/du/du_cell_config.h"
-#include "srsran/mac/cell_configuration.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/mac/cell_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct sib19_info;
 
-namespace srs_du {
+namespace odu {
 namespace asn1_packer {
 
 /// \brief Derive and pack cell MIB based on DU cell configuration.
@@ -46,5 +46,5 @@ byte_buffer pack_sib19(const sib19_info& sib19_params, std::string* js_str = nul
 std::vector<bcch_dl_sch_payload_type> pack_all_bcch_dl_sch_msgs(const du_cell_config& du_cfg);
 
 } // namespace asn1_packer
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -15,14 +15,14 @@
 #include "apps/units/flexible_o_du/o_du_high/o_du_high_unit_factory.h"
 #include "split6_o_du_impl.h"
 #include "split6_o_du_unit_config.h"
-#include "srsran/e2/e2_du_metrics_connector.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
+#include "ocudu/e2/e2_du_metrics_connector.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-o_du_unit srsran::create_o_du_split6(const split6_o_du_unit_config&                  du_unit_cfg,
-                                     const o_du_unit_dependencies&                   du_dependencies,
-                                     std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> fapi_adaptor)
+o_du_unit ocudu::create_o_du_split6(const split6_o_du_unit_config&                  du_unit_cfg,
+                                    const o_du_unit_dependencies&                   du_dependencies,
+                                    std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> fapi_adaptor)
 {
   o_du_unit odu_unit;
   odu_unit.e2_metric_connectors = std::make_unique<

@@ -11,22 +11,22 @@
 #pragma once
 
 #include "o_du_high_metrics_notifier_proxy.h"
-#include "srsran/du/du_high/du_high.h"
-#include "srsran/du/du_high/o_du_high.h"
-#include "srsran/du/du_high/o_du_high_config.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/e2/e2.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
+#include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/o_du_high.h"
+#include "ocudu/du/du_high/o_du_high_config.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_result_notifier;
 
-namespace srs_du {
+namespace odu {
 
 /// O-RAN DU high implementation dependencies.
 struct o_du_high_impl_dependencies {
-  srslog::basic_logger*                                    logger;
+  ocudulog::basic_logger*                                  logger;
   std::unique_ptr<fapi_adaptor::mac_fapi_fastpath_adaptor> fapi_fastpath_adaptor;
   du_metrics_notifier*                                     metrics_notifier;
 };
@@ -69,7 +69,7 @@ public:
 
 private:
   const unsigned                                           nof_cells;
-  srslog::basic_logger&                                    logger;
+  ocudulog::basic_logger&                                  logger;
   o_du_high_metrics_notifier_proxy                         metrics_notifier_poxy;
   std::unique_ptr<fapi_adaptor::mac_fapi_fastpath_adaptor> fapi_fastpath_adaptor;
   std::unique_ptr<mac_result_notifier>                     du_high_result_notifier;
@@ -77,5 +77,5 @@ private:
   std::unique_ptr<e2_agent>                                e2agent;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

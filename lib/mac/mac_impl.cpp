@@ -9,14 +9,14 @@
  */
 
 #include "mac_impl.h"
-#include "mac_sched/srsran_scheduler_adapter.h"
+#include "mac_sched/ocudu_scheduler_adapter.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_impl::mac_impl(const mac_config& params) :
   rnti_table(params.mac_cfg.initial_crnti),
-  mac_sched(std::make_unique<srsran_scheduler_adapter>(
-      srsran_mac_sched_config{params.mac_cfg, params.ctrl_exec, params.timers.get_timer_manager(), params.sched_cfg},
+  mac_sched(std::make_unique<ocudu_scheduler_adapter>(
+      ocudu_mac_sched_config{params.mac_cfg, params.ctrl_exec, params.timers.get_timer_manager(), params.sched_cfg},
       rnti_table)),
   dl_unit(mac_dl_config{params.ue_exec_mapper,
                         params.cell_exec_mapper,

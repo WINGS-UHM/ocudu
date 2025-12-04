@@ -8,20 +8,20 @@
  *
  */
 
-#include "srsran/du/du_high/o_du_high_factory.h"
+#include "ocudu/du/du_high/o_du_high_factory.h"
 #include "o_du_high_impl.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_high/du_high_factory.h"
-#include "srsran/du/du_high/o_du_high_config.h"
-#include "srsran/e2/e2_du_factory.h"
-#include "srsran/fapi/decorator_factory.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_high/du_high_factory.h"
+#include "ocudu/du/du_high/o_du_high_config.h"
+#include "ocudu/e2/e2_du_factory.h"
+#include "ocudu/fapi/decorator_factory.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static fapi_adaptor::mac_fapi_fastpath_adaptor_config
 generate_fapi_fastpath_adaptor_config(const o_du_high_config& config)
@@ -59,11 +59,11 @@ generate_fapi_fastpath_adaptor_dependencies(const o_du_high_config& config, o_du
   return out_dependencies;
 }
 
-std::unique_ptr<o_du_high> srsran::srs_du::make_o_du_high(const o_du_high_config&  config,
-                                                          o_du_high_dependencies&& odu_dependencies)
+std::unique_ptr<o_du_high> ocudu::odu::make_o_du_high(const o_du_high_config&  config,
+                                                      o_du_high_dependencies&& odu_dependencies)
 {
   o_du_high_impl_dependencies dependencies;
-  srslog::basic_logger*       logger = &srslog::fetch_basic_logger("DU");
+  ocudulog::basic_logger*     logger = &ocudulog::fetch_basic_logger("DU");
   dependencies.logger                = logger;
   dependencies.fapi_fastpath_adaptor = fapi_adaptor::create_mac_fapi_fastpath_adaptor_factory()->create(
       generate_fapi_fastpath_adaptor_config(config),
@@ -72,7 +72,7 @@ std::unique_ptr<o_du_high> srsran::srs_du::make_o_du_high(const o_du_high_config
 
   logger->debug("FAPI adaptors created successfully");
 
-  srs_du::du_high_configuration du_hi_cfg = config.du_hi;
+  odu::du_high_configuration du_hi_cfg = config.du_hi;
 
   auto odu = std::make_unique<o_du_high_impl>(config.du_hi.ran.cells.size(), std::move(dependencies));
 

@@ -11,14 +11,14 @@
 #pragma once
 
 #include "du_low_metrics_collector_impl.h"
-#include "srsran/du/du_low/du_low.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/phy/upper/upper_phy.h"
+#include "ocudu/du/du_low/du_low.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/phy/upper/upper_phy.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// DU low implementation.
 class du_low_impl final : public du_low, public du_operation_controller
@@ -46,5 +46,5 @@ private:
   du_low_metrics_collector_impl           metrics_collector;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/fapi/message_validators.h"
+#include "ocudu/fapi/message_validators.h"
 #include "dl_csi_pdu.h"
 #include "dl_pdcch_pdu.h"
 #include "dl_pdsch_pdu.h"
@@ -20,9 +20,9 @@
 #include "ul_pucch_pdu.h"
 #include "ul_pusch_pdu.h"
 #include "ul_srs_pdu.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// Validates the SFN property of a message.
@@ -53,7 +53,7 @@ static bool validate_num_groups(unsigned value, message_type_id msg_type, valida
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Number of PDU groups", msg_type, report);
 }
 
-error_type<validator_report> srsran::fapi::validate_dl_tti_request(const dl_tti_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_dl_tti_request(const dl_tti_request_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -82,7 +82,7 @@ error_type<validator_report> srsran::fapi::validate_dl_tti_request(const dl_tti_
         success &= validate_dl_prs_pdu(pdu.prs_pdu, report);
         break;
       default:
-        srsran_assert(0, "Invalid pdu_type");
+        ocudu_assert(0, "Invalid pdu_type");
         break;
     }
   }
@@ -95,7 +95,7 @@ error_type<validator_report> srsran::fapi::validate_dl_tti_request(const dl_tti_
   return {};
 }
 
-error_type<validator_report> srsran::fapi::validate_ul_dci_request(const ul_dci_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_ul_dci_request(const ul_dci_request_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -111,7 +111,7 @@ error_type<validator_report> srsran::fapi::validate_ul_dci_request(const ul_dci_
         success &= validate_dl_pdcch_pdu(message_type_id::ul_dci_request, pdu.pdu, report);
         break;
       default:
-        srsran_assert(0, "Invalid pdu_type");
+        ocudu_assert(0, "Invalid pdu_type");
         break;
     }
   }
@@ -144,7 +144,7 @@ static bool validate_pdu_payload(const shared_transport_block& buffer, validator
   return false;
 }
 
-error_type<validator_report> srsran::fapi::validate_tx_data_request(const tx_data_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_tx_data_request(const tx_data_request_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -259,7 +259,7 @@ static bool validate_rsrp(unsigned value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, value, "RSRP", message_type_id::crc_indication, report);
 }
 
-error_type<validator_report> srsran::fapi::validate_crc_indication(const crc_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_crc_indication(const crc_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -406,7 +406,7 @@ static bool validate_preamble_power(unsigned value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Preamble power", message_type_id::rach_indication, report);
 }
 
-error_type<validator_report> srsran::fapi::validate_rach_indication(const rach_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_rach_indication(const rach_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -521,7 +521,7 @@ static bool validate_srs_rsrp(float value, validator_report& report)
       MIN_VALUE, MAX_VALUE, rsrp_in_tenths, "SRS Positioning Report RSRP", message_type_id::srs_indication, report);
 }
 
-error_type<validator_report> srsran::fapi::validate_srs_indication(const srs_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_srs_indication(const srs_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -565,7 +565,7 @@ error_type<validator_report> srsran::fapi::validate_srs_indication(const srs_ind
   return {};
 }
 
-error_type<validator_report> srsran::fapi::validate_uci_indication(const uci_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_uci_indication(const uci_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -587,7 +587,7 @@ error_type<validator_report> srsran::fapi::validate_uci_indication(const uci_ind
         success &= validate_uci_pucch_format234_pdu(pdu.pucch_pdu_f234, report);
         break;
       default:
-        srsran_assert(0, "Invalid pdu_type");
+        ocudu_assert(0, "Invalid pdu_type");
         break;
     }
   }
@@ -683,7 +683,7 @@ static bool validate_expected_slot(unsigned value, error_code_id error_id, valid
   return false;
 }
 
-error_type<validator_report> srsran::fapi::validate_error_indication(const error_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_error_indication(const error_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -733,7 +733,7 @@ static bool validate_pdu_value(const uint8_t* value, validator_report& report)
   return false;
 }
 
-error_type<validator_report> srsran::fapi::validate_rx_data_indication(const rx_data_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_data_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -766,7 +766,7 @@ error_type<validator_report> srsran::fapi::validate_rx_data_indication(const rx_
   return {};
 }
 
-error_type<validator_report> srsran::fapi::validate_slot_indication(const slot_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_slot_indication(const slot_indication_message& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 
@@ -785,7 +785,7 @@ error_type<validator_report> srsran::fapi::validate_slot_indication(const slot_i
   return {};
 }
 
-error_type<validator_report> srsran::fapi::validate_ul_tti_request(const ul_tti_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_ul_tti_request(const ul_tti_request_message& msg)
 {
   validator_report                 report(msg.sfn, msg.slot);
   static constexpr message_type_id msg_type = message_type_id::ul_tti_request;
@@ -812,7 +812,7 @@ error_type<validator_report> srsran::fapi::validate_ul_tti_request(const ul_tti_
         success &= validate_ul_srs_pdu(pdu.srs_pdu, report);
         break;
       default:
-        srsran_assert(0, "Invalid pdu_type");
+        ocudu_assert(0, "Invalid pdu_type");
         break;
     }
   }
@@ -836,7 +836,7 @@ static const char* get_uci_pdu_type_string(uci_pdu_type pdu_id)
     case uci_pdu_type::PUCCH_format_2_3_4:
       return "PUCCH Format 2/3/4";
     default:
-      srsran_assert(0, "Invalid UCI.indication PDU={}", fmt::underlying(pdu_id));
+      ocudu_assert(0, "Invalid UCI.indication PDU={}", fmt::underlying(pdu_id));
       break;
   }
   return "";
@@ -855,7 +855,7 @@ static const char* get_ul_tti_pdu_type_string(ul_pdu_type pdu_id)
     case ul_pdu_type::SRS:
       return "SRS";
     default:
-      srsran_assert(0, "Invalid UL_TTI.request PDU={}", fmt::underlying(pdu_id));
+      ocudu_assert(0, "Invalid UL_TTI.request PDU={}", fmt::underlying(pdu_id));
       break;
   }
   return "";
@@ -874,7 +874,7 @@ static const char* get_dl_tti_pdu_type_string(dl_pdu_type pdu_id)
     case dl_pdu_type::SSB:
       return "SSB";
     default:
-      srsran_assert(0, "Invalid DL_TTI.request PDU={}", fmt::underlying(pdu_id));
+      ocudu_assert(0, "Invalid DL_TTI.request PDU={}", fmt::underlying(pdu_id));
       break;
   }
   return "";
@@ -908,7 +908,7 @@ static const char* get_pdu_type_string(message_type_id msg_id, unsigned pdu_id)
     case message_type_id::ul_tti_request:
       return get_ul_tti_pdu_type_string(static_cast<ul_pdu_type>(pdu_id));
     default:
-      srsran_assert(0, "Invalid FAPI message type={}", fmt::underlying(msg_id));
+      ocudu_assert(0, "Invalid FAPI message type={}", fmt::underlying(msg_id));
       break;
   }
   return "";
@@ -957,7 +957,7 @@ static const char* get_message_type_string(message_type_id msg_id)
     case message_type_id::ul_tti_request:
       return "UL_TTI.request";
     default:
-      srsran_assert(0, "Invalid FAPI message type={}", fmt::underlying(msg_id));
+      ocudu_assert(0, "Invalid FAPI message type={}", fmt::underlying(msg_id));
       break;
   }
   return "";
@@ -998,9 +998,9 @@ static void log_basic_report(fmt::memory_buffer& buffer, const validator_report:
   fmt::format_to(std::back_inserter(buffer), "\t- Property={}, value={}\n", report.property_name, report.value);
 }
 
-void srsran::fapi::log_validator_report(const validator_report& report,
-                                        srslog::basic_logger&   logger,
-                                        unsigned                sector_id)
+void ocudu::fapi::log_validator_report(const validator_report& report,
+                                       ocudulog::basic_logger& logger,
+                                       unsigned                sector_id)
 {
   fmt::memory_buffer str_buffer;
   fmt::format_to(std::back_inserter(str_buffer),

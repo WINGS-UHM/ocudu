@@ -11,10 +11,10 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
-#include "srsran/adt/ranges/transform.h"
+#include "ocudu/adt/ranges/transform.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct multi_slice_test_params {
   std::vector<slice_rrm_policy_config> slices;

@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsDFTProcessorUnittest.m"
 
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   dft_processor::configuration config;
@@ -65,4 +65,4 @@ static const std::vector<test_case_t> dft_processor_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

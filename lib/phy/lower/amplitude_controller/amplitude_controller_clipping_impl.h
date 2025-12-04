@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
+#include "ocudu/support/math/math_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Clipping amplitude controller implementation.
 class amplitude_controller_clipping_impl : public amplitude_controller
@@ -54,4 +54,4 @@ public:
   amplitude_controller_metrics process(span<cf_t> output, span<const cf_t> input) override;
 };
 
-} // namespace srsran.
+} // namespace ocudu.

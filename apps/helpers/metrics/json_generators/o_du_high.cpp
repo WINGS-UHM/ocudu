@@ -11,13 +11,13 @@
 #include "o_du_high.h"
 #include "apps/helpers/metrics/helpers.h"
 #include "du_high/mac.h"
-#include "srsran/du/du_high/du_metrics_report.h"
+#include "ocudu/du/du_high/du_metrics_report.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const srs_du::du_metrics_report& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const odu::du_metrics_report& metrics)
 {
   nlohmann::json json;
 
@@ -32,7 +32,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const srs_du::du_m
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const srs_du::du_metrics_report& metrics, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const odu::du_metrics_report& metrics, int indent)
 {
   return generate(metrics).dump(indent);
 }

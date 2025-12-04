@@ -11,13 +11,13 @@
 #pragma once
 
 #include "external/nlohmann/json.hpp"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline void to_json(nlohmann::json& json, slot_point slot)
 {
   json = fmt::format("{}", slot);
 }
 
-} // namespace srsran
+} // namespace ocudu

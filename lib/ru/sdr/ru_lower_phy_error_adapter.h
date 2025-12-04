@@ -10,20 +10,20 @@
 
 #pragma once
 
-#include "srsran/instrumentation/traces/critical_traces.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/lower/lower_phy_error_notifier.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/ru/ru_error_notifier.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/instrumentation/traces/critical_traces.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/lower/lower_phy_error_notifier.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/ru/ru_error_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Lower phy to RU error adapter class.
 class ru_lower_phy_error_adapter : public lower_phy_error_notifier
 {
 public:
-  ru_lower_phy_error_adapter(srslog::basic_logger& logger_, ru_error_notifier& notifier_) :
+  ru_lower_phy_error_adapter(ocudulog::basic_logger& logger_, ru_error_notifier& notifier_) :
     logger(logger_), notifier(notifier_)
   {
   }
@@ -86,9 +86,9 @@ public:
 
 private:
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Radio Unit error notifier.
   ru_error_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

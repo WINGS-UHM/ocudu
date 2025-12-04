@@ -10,12 +10,12 @@
 
 #include "../common/test_helpers.h"
 #include "e1ap_cu_cp_test_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::e1ap;
 
 //////////////////////////////////////////////////////////////////////////////////////

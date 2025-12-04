@@ -8,21 +8,21 @@
  *
  */
 
-#include "srsran/phy/constants.h"
-#include "srsran/phy/generic_functions/precoding/precoding_factories.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Pseudo-random number generator.
 static std::mt19937 rgen;
@@ -35,7 +35,7 @@ using MultiplePRGParams = std::tuple<
     // PRG size in number of RB.
     unsigned>;
 
-namespace srsran {
+namespace ocudu {
 
 // Gets the tolerance from an expected value.
 static float get_tolerance(cf_t expected_value)
@@ -59,7 +59,7 @@ static bool operator==(span<const cf_t> lhs, span<const cf_t> rhs)
   });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 // Asserts that the contents of the resource grid match the golden symbols for the give allocation pattern.
 static void assert_grid(const re_buffer_reader<>&   golden,
@@ -92,7 +92,7 @@ static void assert_grid(const re_buffer_reader<>&   golden,
 
       // Golden sequence with all its elements set to zero.
       std::vector<cf_t> golden_zeros(re_mask.size() - re_count);
-      srsvec::zero(golden_zeros);
+      ocuduvec::zero(golden_zeros);
 
       grid.get(grid_zeros, i_port, i_symbol, 0, ~re_mask);
 
@@ -170,7 +170,7 @@ protected:
   {
     interval<unsigned, true> rb_range(1, MAX_RB);
 
-    srsran_assert(
+    ocudu_assert(
         rb_range.contains(nof_rb_grid), "The number of RBs (i.e., {}) is out of range {}.", nof_rb_grid, rb_range);
 
     std::uniform_int_distribution<unsigned> bool_dist(0, 1);
@@ -244,7 +244,7 @@ protected:
     golden_data.resize(nof_ports, nof_data_re);
 
     for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
-      srsvec::zero(golden_data.get_slice(i_port));
+      ocuduvec::zero(golden_data.get_slice(i_port));
     }
 
     unsigned i_re_buffer = 0;

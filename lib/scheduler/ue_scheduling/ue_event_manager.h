@@ -14,12 +14,12 @@
 #include "../slicing/inter_slice_scheduler.h"
 #include "../ue_context/ue.h"
 #include "ue_fallback_scheduler.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/scheduler/scheduler_positioning_handler.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/scheduler_positioning_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_metrics_handler;
 class scheduler_event_logger;
@@ -52,7 +52,7 @@ public:
   ue_cell_event_manager(ue_event_manager&          parent_,
                         const cell_creation_event& cell_ev,
                         ue_repository&             ue_db,
-                        srslog::basic_logger&      logger);
+                        ocudulog::basic_logger&    logger);
   ~ue_cell_event_manager() override;
 
   /// Activate cell event processing.
@@ -143,9 +143,9 @@ private:
   void handle_csi(ue_cell& ue_cc, slot_point sl_rx, const csi_report_data& csi_rep);
 
   // shared parameters.
-  ue_event_manager&     parent;
-  ue_repository&        ue_db;
-  srslog::basic_logger& logger;
+  ue_event_manager&       parent;
+  ue_repository&          ue_db;
+  ocudulog::basic_logger& logger;
   // cell parameters.
   const cell_configuration& cfg;
   cell_resource_allocator&  res_grid;
@@ -184,10 +184,10 @@ private:
 
   bool cell_exists(du_cell_index_t cell_index) const;
 
-  ue_repository&        ue_db;
-  srslog::basic_logger& logger;
+  ue_repository&          ue_db;
+  ocudulog::basic_logger& logger;
 
   std::array<ue_cell_event_manager*, MAX_NOF_DU_CELLS> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

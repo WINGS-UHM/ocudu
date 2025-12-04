@@ -34,9 +34,9 @@ services:
         ipv4_address: ${OPEN5GS_IP:-10.53.1.2}
 
   gnb:
-    container_name: srsran_gnb
+    container_name: ocudu_gnb
     # Build info
-    image: srsran/gnb
+    image: ocudu/gnb
     build:
       context: ..
       dockerfile: docker/Dockerfile

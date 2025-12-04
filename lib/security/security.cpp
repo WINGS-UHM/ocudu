@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/security/security.h"
-#include "srsran/ran/pci.h"
-#include "srsran/security/ssl.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/security/security.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/security/ssl.h"
+#include "ocudu/support/error_handling.h"
 #include <arpa/inet.h>
 
-using namespace srsran;
-using namespace srsran::security;
+using namespace ocudu;
+using namespace ocudu::security;
 
 bool security_context::select_algorithms(preferred_integrity_algorithms pref_inte_list,
                                          preferred_ciphering_algorithms pref_ciph_list)
@@ -65,7 +65,7 @@ bool security_context::select_algorithms(preferred_integrity_algorithms pref_int
 
 void security_context::generate_as_keys()
 {
-  srsran_sanity_check(sel_algos.algos_selected, "Tried to generate AS keys, but no algo is selected");
+  ocudu_sanity_check(sel_algos.algos_selected, "Tried to generate AS keys, but no algo is selected");
   // Generate K_rrc_enc and K_rrc_int
   security::generate_k_rrc(as_keys.k_rrc_enc, as_keys.k_rrc_int, k, sel_algos.cipher_algo, sel_algos.integ_algo);
 
@@ -101,7 +101,7 @@ sec_128_as_config security_context::get_128_as_config(sec_domain domain) const
 
 sec_as_config security_context::get_as_config(sec_domain domain) const
 {
-  srsran_sanity_check(sel_algos.algos_selected, "Tried to get AS config, but no algorithms are selected");
+  ocudu_sanity_check(sel_algos.algos_selected, "Tried to get AS config, but no algorithms are selected");
   sec_as_config as_cfg;
   as_cfg.domain = domain;
   switch (domain) {
@@ -114,7 +114,7 @@ sec_as_config security_context::get_as_config(sec_domain domain) const
       as_cfg.k_enc = as_keys.k_up_enc;
       break;
     default:
-      srsran_assertion_failure("Unsupported sec_domain={}", domain);
+      ocudu_assertion_failure("Unsupported sec_domain={}", domain);
   }
   as_cfg.integ_algo  = sel_algos.integ_algo;
   as_cfg.cipher_algo = sel_algos.cipher_algo;
@@ -123,11 +123,11 @@ sec_as_config security_context::get_as_config(sec_domain domain) const
 /******************************************************************************
  * Key Generation
  *****************************************************************************/
-void srsran::security::generate_k_rrc(sec_key&                  k_rrc_enc,
-                                      sec_key&                  k_rrc_int,
-                                      const sec_key&            k_gnb,
-                                      const ciphering_algorithm enc_alg_id,
-                                      const integrity_algorithm int_alg_id)
+void ocudu::security::generate_k_rrc(sec_key&                  k_rrc_enc,
+                                     sec_key&                  k_rrc_int,
+                                     const sec_key&            k_gnb,
+                                     const ciphering_algorithm enc_alg_id,
+                                     const integrity_algorithm int_alg_id)
 {
   // Derive RRC ENC
   // algorithm type distinguisher
@@ -149,11 +149,11 @@ void srsran::security::generate_k_rrc(sec_key&                  k_rrc_enc,
   generic_kdf(k_rrc_int, k_gnb, fc_value::algorithm_key_derivation, algo_distinguisher, algorithm_identity);
 }
 
-void srsran::security::generate_k_up(sec_key&                  k_up_enc,
-                                     sec_key&                  k_up_int,
-                                     const sec_key&            k_gnb,
-                                     const ciphering_algorithm enc_alg_id,
-                                     const integrity_algorithm int_alg_id)
+void ocudu::security::generate_k_up(sec_key&                  k_up_enc,
+                                    sec_key&                  k_up_int,
+                                    const sec_key&            k_gnb,
+                                    const ciphering_algorithm enc_alg_id,
+                                    const integrity_algorithm int_alg_id)
 {
   // Derive UP ENC
   // algorithm type distinguisher
@@ -175,10 +175,10 @@ void srsran::security::generate_k_up(sec_key&                  k_up_enc,
   generic_kdf(k_up_int, k_gnb, fc_value::algorithm_key_derivation, algo_distinguisher, algorithm_identity);
 }
 
-void srsran::security::generate_k_ng_ran_star(sec_key&       k_star,
-                                              const sec_key& k,
-                                              const pci_t&   target_pci_,
-                                              const uint32_t target_ssb_arfcn_)
+void ocudu::security::generate_k_ng_ran_star(sec_key&       k_star,
+                                             const sec_key& k,
+                                             const pci_t&   target_pci_,
+                                             const uint32_t target_ssb_arfcn_)
 {
   // PCI
   std::vector<uint8_t> target_pci;
@@ -204,11 +204,11 @@ void srsran::security::generate_k_ng_ran_star(sec_key&       k_star,
   generic_kdf(k_star, k, fc_value::k_ng_ran_star_derivation, target_pci, target_ssb_arfcn);
 }
 
-void srsran::security::generic_kdf(sec_key&                   key_out,
-                                   const sec_key&             key_in,
-                                   const fc_value             fc,
-                                   const span<const uint8_t>& p0,
-                                   const span<const uint8_t>& p1)
+void ocudu::security::generic_kdf(sec_key&                   key_out,
+                                  const sec_key&             key_in,
+                                  const fc_value             fc,
+                                  const span<const uint8_t>& p0,
+                                  const span<const uint8_t>& p1)
 {
   union p_len {
     uint16_t                                  length_value;
@@ -243,7 +243,7 @@ void srsran::security::generic_kdf(sec_key&                   key_out,
   sha256(key_in.data(), key_in.size(), s.data(), s.size(), key_out.data(), 0);
 }
 
-sec_128_key srsran::security::truncate_key(const sec_key& key_in)
+sec_128_key ocudu::security::truncate_key(const sec_key& key_in)
 {
   sec_128_key key_out = {};
   static_assert(sec_key_len > 0, "sec_key_len too small");
@@ -253,7 +253,7 @@ sec_128_key srsran::security::truncate_key(const sec_key& key_in)
   return key_out;
 }
 
-sec_128_as_config srsran::security::truncate_config(const sec_as_config& cfg_in)
+sec_128_as_config ocudu::security::truncate_config(const sec_as_config& cfg_in)
 {
   sec_128_as_config cfg_out = {};
   cfg_out.domain            = cfg_in.domain;

@@ -15,10 +15,10 @@
 #include "radio_uhd_device.h"
 #include "radio_uhd_device_type.h"
 #include "radio_uhd_multi_usrp.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/radio/radio_management_plane.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/radio/radio_management_plane.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Describes a radio session based on UHD that also implements the management and data plane functions.
 class radio_session_uhd_impl : public radio_session, private radio_management_plane
@@ -100,10 +100,10 @@ public:
   // See interface for documentation.
   baseband_gateway& get_baseband_gateway(unsigned stream_id) override
   {
-    srsran_assert(stream_id < bb_gateways.size(),
-                  "Stream identifier (i.e., {}) exceeds the number of baseband gateways (i.e., {})",
-                  stream_id,
-                  bb_gateways.size());
+    ocudu_assert(stream_id < bb_gateways.size(),
+                 "Stream identifier (i.e., {}) exceeds the number of baseband gateways (i.e., {})",
+                 stream_id,
+                 bb_gateways.size());
     return *bb_gateways[stream_id];
   }
 
@@ -146,4 +146,4 @@ public:
                                         radio_event_notifier&             notifier) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

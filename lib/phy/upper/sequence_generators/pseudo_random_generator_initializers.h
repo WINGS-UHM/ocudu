@@ -14,7 +14,7 @@
 #include <array>
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 /// Length of the generator state in bits.
 constexpr unsigned pseudo_random_generator_state_size = 31;
@@ -159,4 +159,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

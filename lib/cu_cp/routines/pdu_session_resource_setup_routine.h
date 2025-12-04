@@ -12,14 +12,14 @@
 
 #include "../cu_cp_impl_interface.h"
 #include "../up_resource_manager/up_resource_manager_impl.h"
-#include "srsran/cu_cp/ue_configuration.h"
-#include "srsran/cu_cp/ue_task_scheduler.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_cp/ue_configuration.h"
+#include "ocudu/cu_cp/ue_task_scheduler.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the setup of PDU session resources from the CU-CP point of view.
 ///
@@ -43,7 +43,7 @@ class pdu_session_resource_setup_routine
 public:
   pdu_session_resource_setup_routine(const cu_cp_pdu_session_resource_setup_request& setup_msg_,
                                      const ue_configuration&                         ue_cfg_,
-                                     const srsran::security::sec_as_config&          security_cfg_,
+                                     const ocudu::security::sec_as_config&           security_cfg_,
                                      const security_indication_t&                    default_security_indication_,
                                      e1ap_bearer_context_manager&                    e1ap_bearer_ctxt_mng_,
                                      f1ap_ue_context_manager&                        f1ap_ue_ctxt_mng_,
@@ -51,7 +51,7 @@ public:
                                      cu_cp_rrc_ue_interface&                         cu_cp_notifier_,
                                      ue_task_scheduler&                              ue_task_sched_,
                                      up_resource_manager&                            up_resource_mng_,
-                                     srslog::basic_logger&                           logger_);
+                                     ocudulog::basic_logger&                         logger_);
 
   void operator()(coro_context<async_task<cu_cp_pdu_session_resource_setup_response>>& ctx);
 
@@ -66,7 +66,7 @@ private:
 
   const cu_cp_pdu_session_resource_setup_request setup_msg;
   const ue_configuration                         ue_cfg;
-  const srsran::security::sec_as_config          security_cfg;
+  const ocudu::security::sec_as_config           security_cfg;
   const security_indication_t&                   default_security_indication; // default if not signaled via NGAP
 
   up_config_update next_config;
@@ -77,7 +77,7 @@ private:
   cu_cp_rrc_ue_interface&      cu_cp_notifier;       // to trigger UE release at CU-CP
   ue_task_scheduler&           ue_task_sched;        // to schedule UE release request
   up_resource_manager&         up_resource_mng;      // to get RRC DRB config
-  srslog::basic_logger&        logger;
+  ocudulog::basic_logger&      logger;
 
   // (sub-)routine requests
   e1ap_bearer_context_setup_request        bearer_context_setup_request;
@@ -94,5 +94,5 @@ private:
   bool rrc_reconfig_result = false;          // the final UE reconfiguration
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

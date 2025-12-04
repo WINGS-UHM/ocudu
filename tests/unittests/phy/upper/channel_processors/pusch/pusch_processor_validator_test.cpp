@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/formatters.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/support/executors/inline_task_executor.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/formatters.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
+#include "ocudu/support/executors/inline_task_executor.h"
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 #include <regex>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

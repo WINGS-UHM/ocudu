@@ -14,33 +14,32 @@
 #include "../common/test_helpers.h"
 #include "e1_test_local_gateway.h"
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/e1ap/common/e1ap_common.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp_factory.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/common/e1ap_common.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_factory.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Dummy notifier just printing the received msg.
-class dummy_e1ap_cu_cp_notifier : public srs_cu_cp::e1ap_cu_cp_notifier
+class dummy_e1ap_cu_cp_notifier : public ocucp::e1ap_cu_cp_notifier
 {
 public:
-  dummy_e1ap_cu_cp_notifier(srs_cu_cp::ue_manager& ue_mng_) :
-    ue_mng(ue_mng_), logger(srslog::fetch_basic_logger("TEST"))
+  dummy_e1ap_cu_cp_notifier(ocucp::ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST"))
   {
   }
 
-  void on_bearer_context_release_request_received(const srs_cu_cp::cu_cp_bearer_context_release_request& msg) override
+  void on_bearer_context_release_request_received(const ocucp::cu_cp_bearer_context_release_request& msg) override
   {
     last_release_request = msg;
     logger.info("Received a bearer context release request");
   }
 
-  void on_bearer_context_inactivity_notification_received(const srs_cu_cp::cu_cp_inactivity_notification& msg) override
+  void on_bearer_context_inactivity_notification_received(const ocucp::cu_cp_inactivity_notification& msg) override
   {
     last_msg = msg;
     logger.info("Received an inactivity notification");
@@ -62,7 +61,7 @@ public:
 
   bool schedule_async_task(ue_index_t ue_index, async_task<void> task) override
   {
-    srsran_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
+    ocudu_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
     return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
   }
 
@@ -75,12 +74,12 @@ public:
     });
   }
 
-  srs_cu_cp::cu_cp_bearer_context_release_request last_release_request;
-  srs_cu_cp::cu_cp_inactivity_notification        last_msg;
+  ocucp::cu_cp_bearer_context_release_request last_release_request;
+  ocucp::cu_cp_inactivity_notification        last_msg;
 
 private:
-  ue_manager&           ue_mng;
-  srslog::basic_logger& logger;
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 };
 
 /// \brief Reusable E1AP gateway test class for CU-CP unit tests. This class includes:
@@ -89,9 +88,9 @@ private:
 class dummy_cu_cp_e1ap_gateway
 {
 public:
-  dummy_cu_cp_e1ap_gateway() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_cu_cp_e1ap_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  void attach_cu_cp_cu_up_repo(srs_cu_cp::cu_cp_e1_handler& cu_cp_cu_up_mng_)
+  void attach_cu_cp_cu_up_repo(ocucp::cu_cp_e1_handler& cu_cp_cu_up_mng_)
   {
     local_e1ap_gw.attach_cu_cp_cu_up_repo(cu_cp_cu_up_mng_);
   }
@@ -134,8 +133,8 @@ public:
   size_t nof_connections() const { return cu_up_tx_notifiers.size(); }
 
 private:
-  srslog::basic_logger& logger;
-  e1_test_local_gateway local_e1ap_gw;
+  ocudulog::basic_logger& logger;
+  e1_test_local_gateway   local_e1ap_gw;
 
   std::vector<std::unique_ptr<e1ap_message_notifier>> cu_up_tx_notifiers;
 };
@@ -161,8 +160,8 @@ protected:
 
   void tick();
 
-  srslog::basic_logger& e1ap_logger = srslog::fetch_basic_logger("E1AP");
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& e1ap_logger = ocudulog::fetch_basic_logger("E1AP");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   std::unordered_map<ue_index_t, test_ue> test_ues;
 
@@ -177,5 +176,5 @@ protected:
   std::unique_ptr<e1ap_cu_cp> e1ap;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

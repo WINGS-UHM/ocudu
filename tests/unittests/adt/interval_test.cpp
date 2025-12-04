@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/adt/interval.h"
+#include "ocudu/adt/interval.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(not interval<int>::is_real::value, "Invalid type trait");
 static_assert(not interval<unsigned>::is_real::value, "Invalid type trait");

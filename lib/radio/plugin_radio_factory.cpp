@@ -9,12 +9,12 @@
  */
 
 #include "plugin_radio_factory.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/radio/radio_session.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/radio/radio_session.h"
 #include <dlfcn.h>
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -106,10 +106,10 @@ private:
 
 } // namespace
 
-std::unique_ptr<radio_factory> srsran::create_plugin_radio_factory(std::string driver_name)
+std::unique_ptr<radio_factory> ocudu::create_plugin_radio_factory(std::string driver_name)
 {
   char*       err         = nullptr;
-  std::string plugin_name = "libsrsran_radio_" + driver_name + ".so";
+  std::string plugin_name = "libocudu_radio_" + driver_name + ".so";
 
   void* dl_handle = ::dlopen(plugin_name.c_str(), RTLD_NOW + RTLD_DEEPBIND + RTLD_GLOBAL);
   if (dl_handle == nullptr) {
@@ -125,7 +125,7 @@ std::unique_ptr<radio_factory> srsran::create_plugin_radio_factory(std::string d
 
   // Load symbol.
   auto* create_factory =
-      reinterpret_cast<create_factory_func*>(::dlsym(dl_handle, "_ZN6srsran28create_dynamic_radio_factoryEv"));
+      reinterpret_cast<create_factory_func*>(::dlsym(dl_handle, "_ZN6ocudu28create_dynamic_radio_factoryEv"));
 
   // Handle an error loading the symbol.
   if (create_factory == nullptr) {

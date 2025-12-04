@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Task worker that implements the executor interface and requires manual calls to run pending deferred tasks.
 /// Useful for unit testing.
@@ -99,11 +99,11 @@ private:
 
   void assert_thread_id()
   {
-    srsran_assert(t_id == std::this_thread::get_id(), "run() caller thread should not change.");
+    ocudu_assert(t_id == std::this_thread::get_id(), "run() caller thread should not change.");
   }
 
   std::thread::id             t_id;
   blocking_queue<unique_task> pending_tasks;
 };
 
-} // namespace srsran
+} // namespace ocudu

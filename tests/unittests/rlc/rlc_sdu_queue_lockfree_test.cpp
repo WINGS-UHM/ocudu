@@ -11,11 +11,11 @@
 
 #include "lib/rlc/rlc_bearer_logger.h"
 #include "lib/rlc/rlc_sdu_queue_lockfree.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ran/du_types.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Fixture class for RLC SDU queue tests
 class rlc_sdu_queue_test : public ::testing::Test
@@ -24,12 +24,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    test_logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    test_logger.set_level(ocudulog::basic_levels::debug);
 
     // init RLC logger
-    srslog::fetch_basic_logger("RLC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("RLC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(-1);
 
     test_logger.info("Creating RLC SDU queue");
   }
@@ -37,7 +37,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   ///  Default value for RLC SDU queue limit in bytes are chosen such that it allows for 4096 PDCP pdus of 1500 of
@@ -46,9 +46,9 @@ protected:
   static constexpr uint32_t default_rlc_queue_size_sdus  = 16384;
   static constexpr uint32_t default_rlc_queue_size_bytes = 4096 * (1500 + 7);
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST", false);
-  rlc_bearer_logger     rlc_logger  = {"RLC",
-                                       {gnb_du_id_t::min, du_ue_index_t::MIN_DU_UE_INDEX, rb_id_t(drb_id_t::drb1), "DL"}};
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST", false);
+  rlc_bearer_logger       rlc_logger  = {"RLC",
+                                         {gnb_du_id_t::min, du_ue_index_t::MIN_DU_UE_INDEX, rb_id_t(drb_id_t::drb1), "DL"}};
 };
 
 TEST_F(rlc_sdu_queue_test, queue_unqueue)

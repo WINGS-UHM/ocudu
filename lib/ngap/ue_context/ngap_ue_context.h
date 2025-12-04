@@ -12,13 +12,13 @@
 
 #include "ngap_ue_logger.h"
 #include "ngap_ue_transaction_manager.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/support/timers.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/support/timers.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct ngap_ue_ids {
   ue_index_t        ue_index  = ue_index_t::invalid;
@@ -54,7 +54,7 @@ struct ngap_ue_context {
 class ngap_ue_context_list
 {
 public:
-  ngap_ue_context_list(timer_factory timers_, srslog::basic_logger& logger_) : timers(timers_), logger(logger_) {}
+  ngap_ue_context_list(timer_factory timers_, ocudulog::basic_logger& logger_) : timers(timers_), logger(logger_) {}
 
   /// \brief Checks whether a UE with the given RAN UE ID exists.
   /// \param[in] ran_ue_id The RAN UE ID used to find the UE.
@@ -91,28 +91,28 @@ public:
 
   ngap_ue_context& operator[](ran_ue_id_t ran_ue_id)
   {
-    srsran_assert(ues.find(ran_ue_id) != ues.end(), "ran_ue={}: NGAP UE context not found", fmt::underlying(ran_ue_id));
+    ocudu_assert(ues.find(ran_ue_id) != ues.end(), "ran_ue={}: NGAP UE context not found", fmt::underlying(ran_ue_id));
     return ues.at(ran_ue_id);
   }
 
   ngap_ue_context& operator[](ue_index_t ue_index)
   {
-    srsran_assert(
+    ocudu_assert(
         ue_index_to_ran_ue_id.find(ue_index) != ue_index_to_ran_ue_id.end(), "ue={}: RAN-UE-ID not found", ue_index);
-    srsran_assert(ues.find(ue_index_to_ran_ue_id.at(ue_index)) != ues.end(),
-                  "ran_ue={}: NGAP UE context not found",
-                  fmt::underlying(ue_index_to_ran_ue_id.at(ue_index)));
+    ocudu_assert(ues.find(ue_index_to_ran_ue_id.at(ue_index)) != ues.end(),
+                 "ran_ue={}: NGAP UE context not found",
+                 fmt::underlying(ue_index_to_ran_ue_id.at(ue_index)));
     return ues.at(ue_index_to_ran_ue_id.at(ue_index));
   }
 
   ngap_ue_context& operator[](amf_ue_id_t amf_ue_id)
   {
-    srsran_assert(amf_ue_id_to_ran_ue_id.find(amf_ue_id) != amf_ue_id_to_ran_ue_id.end(),
-                  "amf_ue={}: RAN-UE-ID not found",
-                  fmt::underlying(amf_ue_id));
-    srsran_assert(ues.find(amf_ue_id_to_ran_ue_id.at(amf_ue_id)) != ues.end(),
-                  "ran_ue={}: NGAP UE context not found",
-                  fmt::underlying(amf_ue_id_to_ran_ue_id.at(amf_ue_id)));
+    ocudu_assert(amf_ue_id_to_ran_ue_id.find(amf_ue_id) != amf_ue_id_to_ran_ue_id.end(),
+                 "amf_ue={}: RAN-UE-ID not found",
+                 fmt::underlying(amf_ue_id));
+    ocudu_assert(ues.find(amf_ue_id_to_ran_ue_id.at(amf_ue_id)) != ues.end(),
+                 "ran_ue={}: NGAP UE context not found",
+                 fmt::underlying(amf_ue_id_to_ran_ue_id.at(amf_ue_id)));
     return ues.at(amf_ue_id_to_ran_ue_id.at(amf_ue_id));
   }
 
@@ -152,8 +152,8 @@ public:
 
   ngap_ue_context& add_ue(ue_index_t ue_index, ran_ue_id_t ran_ue_id, ngap_cu_cp_ue_notifier& ue_notifier)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));
-    srsran_assert(ran_ue_id != ran_ue_id_t::invalid, "Invalid ran_ue={}", fmt::underlying(ran_ue_id));
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ran_ue_id != ran_ue_id_t::invalid, "Invalid ran_ue={}", fmt::underlying(ran_ue_id));
 
     logger.debug("ue={} ran_ue={}: NGAP UE context created", fmt::underlying(ue_index), fmt::underlying(ran_ue_id));
     ues.emplace(std::piecewise_construct,
@@ -165,9 +165,9 @@ public:
 
   void update_amf_ue_id(ran_ue_id_t ran_ue_id, amf_ue_id_t amf_ue_id)
   {
-    srsran_assert(amf_ue_id != amf_ue_id_t::invalid, "Invalid amf_ue={}", fmt::underlying(amf_ue_id));
-    srsran_assert(ran_ue_id != ran_ue_id_t::invalid, "Invalid ran_ue={}", fmt::underlying(ran_ue_id));
-    srsran_assert(ues.find(ran_ue_id) != ues.end(), "ran_ue={}: NGAP UE context not found", fmt::underlying(ran_ue_id));
+    ocudu_assert(amf_ue_id != amf_ue_id_t::invalid, "Invalid amf_ue={}", fmt::underlying(amf_ue_id));
+    ocudu_assert(ran_ue_id != ran_ue_id_t::invalid, "Invalid ran_ue={}", fmt::underlying(ran_ue_id));
+    ocudu_assert(ues.find(ran_ue_id) != ues.end(), "ran_ue={}: NGAP UE context not found", fmt::underlying(ran_ue_id));
 
     auto& ue = ues.at(ran_ue_id);
 
@@ -193,15 +193,15 @@ public:
 
   void update_ue_index(ue_index_t new_ue_index, ue_index_t old_ue_index, ngap_cu_cp_ue_notifier& new_ue_notifier)
   {
-    srsran_assert(new_ue_index != ue_index_t::invalid, "Invalid new_ue_index={}", new_ue_index);
-    srsran_assert(old_ue_index != ue_index_t::invalid, "Invalid old_ue_index={}", old_ue_index);
-    srsran_assert(ue_index_to_ran_ue_id.find(old_ue_index) != ue_index_to_ran_ue_id.end(),
-                  "ue={}: RAN-UE-ID not found",
-                  old_ue_index);
+    ocudu_assert(new_ue_index != ue_index_t::invalid, "Invalid new_ue_index={}", new_ue_index);
+    ocudu_assert(old_ue_index != ue_index_t::invalid, "Invalid old_ue_index={}", old_ue_index);
+    ocudu_assert(ue_index_to_ran_ue_id.find(old_ue_index) != ue_index_to_ran_ue_id.end(),
+                 "ue={}: RAN-UE-ID not found",
+                 old_ue_index);
 
     ran_ue_id_t ran_ue_id = ue_index_to_ran_ue_id.at(old_ue_index);
 
-    srsran_assert(ues.find(ran_ue_id) != ues.end(), "ran_ue={}: NGAP UE context not found", fmt::underlying(ran_ue_id));
+    ocudu_assert(ues.find(ran_ue_id) != ues.end(), "ran_ue={}: NGAP UE context not found", fmt::underlying(ran_ue_id));
 
     // Update UE context.
     ues.at(ran_ue_id).ue_ids.ue_index = new_ue_index;
@@ -219,7 +219,7 @@ public:
 
   void remove_ue_context(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
 
     if (ue_index_to_ran_ue_id.find(ue_index) == ue_index_to_ran_ue_id.end()) {
       logger.warning("ue={}: RAN-UE-ID not found", ue_index);
@@ -287,8 +287,8 @@ protected:
   ran_ue_id_t next_ran_ue_id = ran_ue_id_t::min;
 
 private:
-  timer_factory         timers;
-  srslog::basic_logger& logger;
+  timer_factory           timers;
+  ocudulog::basic_logger& logger;
 
   inline void increase_next_ran_ue_id()
   {
@@ -307,5 +307,5 @@ private:
   std::unordered_map<ran_ue_id_t, ngap_ue_context> ues;                    // indexed by ran_ue_id_t
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

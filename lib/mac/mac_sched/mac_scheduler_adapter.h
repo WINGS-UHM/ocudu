@@ -13,11 +13,11 @@
 #include "../mac_ctrl/mac_scheduler_configurator.h"
 #include "../mac_dl/mac_scheduler_cell_info_handler.h"
 #include "../mac_ul/mac_scheduler_ce_info_handler.h"
-#include "srsran/mac/mac_cell_control_information_handler.h"
-#include "srsran/mac/mac_cell_rach_handler.h"
-#include "srsran/mac/mac_paging_information_handler.h"
+#include "ocudu/mac/mac_cell_control_information_handler.h"
+#include "ocudu/mac/mac_cell_rach_handler.h"
+#include "ocudu/mac/mac_paging_information_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Interface from MAC to a scheduler implementation.
 class mac_scheduler_adapter : public mac_scheduler_configurator,
@@ -45,4 +45,4 @@ public:
   virtual mac_positioning_measurement_handler& get_positioning_handler() = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

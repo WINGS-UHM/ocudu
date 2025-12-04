@@ -12,10 +12,10 @@ add_executable(channel_precoder_test channel_precoder_test.cpp)
 
 target_link_libraries(
         channel_precoder_test
-        srsran_channel_precoder
-        srsran_ran
-        srslog
-        srsvec
+        ocudu_channel_precoder
+        ocudu_ran
+        ocudulog
+        ocuduvec
         gtest
         gtest_main)
 

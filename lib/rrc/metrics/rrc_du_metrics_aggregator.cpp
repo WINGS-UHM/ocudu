@@ -10,8 +10,8 @@
 
 #include "rrc_du_metrics_aggregator.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 rrc_du_metrics_aggregator::rrc_du_metrics_aggregator()
 {

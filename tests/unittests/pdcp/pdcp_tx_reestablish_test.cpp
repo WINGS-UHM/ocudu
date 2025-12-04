@@ -10,12 +10,12 @@
 
 #include "pdcp_tx_reestablish_test.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test SRB reestablishment
 TEST_P(pdcp_tx_reestablish_test, when_srb_reestablish_then_pdus_dropped)

@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/eager_async_task.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/eager_async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the setup of PDU session resources from the RRC viewpoint.
 class ue_context_release_routine
@@ -26,7 +26,7 @@ public:
                              f1ap_ue_context_manager&                f1ap_ue_ctxt_mng_,
                              cu_cp_ue_removal_handler&               ue_removal_handler_,
                              ue_manager&                             ue_mng_,
-                             srslog::basic_logger&                   logger_);
+                             ocudulog::basic_logger&                 logger_);
 
   void operator()(coro_context<async_task<cu_cp_ue_context_release_complete>>& ctx);
 
@@ -39,7 +39,7 @@ private:
   f1ap_ue_context_manager&     f1ap_ue_ctxt_mng;               // to trigger UE context modification at DU
   cu_cp_ue_removal_handler&    ue_removal_handler;             // to remove UE
   ue_manager&                  ue_mng;
-  srslog::basic_logger&        logger;
+  ocudulog::basic_logger&      logger;
 
   // (sub-)routine requests
   rrc_ue_release_context              release_context;
@@ -51,5 +51,5 @@ private:
   cu_cp_ue_context_release_complete release_complete;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

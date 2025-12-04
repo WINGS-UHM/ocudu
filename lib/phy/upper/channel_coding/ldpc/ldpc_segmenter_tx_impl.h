@@ -15,11 +15,11 @@
 
 #include "ldpc_graph_impl.h"
 #include "ldpc_segmenter_helpers.h"
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Bufferless implementation of Tx-chain LDPC segmentation.
 class ldpc_segmenter_tx_impl : public ldpc_segmenter_tx, private ldpc_segmenter_buffer
@@ -39,15 +39,15 @@ public:
   /// \param[in] crc Unique pointers to CRC calculators.
   ldpc_segmenter_tx_impl(sch_crc& c) : crc_set({std::move(c.crc16), std::move(c.crc24A), std::move(c.crc24B)})
   {
-    srsran_assert(crc_set.crc16, "Invalid CRC16 calculator.");
-    srsran_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
-    srsran_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
-    srsran_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16,
-                  "Not a CRC generator of type CRC16.");
-    srsran_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A,
-                  "Not a CRC generator of type CRC24A.");
-    srsran_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B,
-                  "Not a CRC generator of type CRC24B.");
+    ocudu_assert(crc_set.crc16, "Invalid CRC16 calculator.");
+    ocudu_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
+    ocudu_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
+    ocudu_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16,
+                 "Not a CRC generator of type CRC16.");
+    ocudu_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A,
+                 "Not a CRC generator of type CRC24A.");
+    ocudu_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B,
+                 "Not a CRC generator of type CRC24B.");
   }
 
   // See interface for the documentation.
@@ -94,4 +94,4 @@ private:
   unsigned get_rm_length(unsigned cb_index) const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

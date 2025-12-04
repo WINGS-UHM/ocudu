@@ -14,7 +14,7 @@
 #include "apps/units/flexible_o_du/o_du_unit.h"
 #include <yaml-cpp/node/node.h>
 
-namespace srsran {
+namespace ocudu {
 struct o_du_high_unit_config;
 struct worker_manager_config;
 
@@ -41,4 +41,4 @@ public:
 /// DU application unit.
 std::unique_ptr<flexible_o_du_application_unit> create_flexible_o_du_application_unit(std::string_view app_name);
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "ofh_sector_controller.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void sector_controller::start()

@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/bcch_bch_msg.h"
+#include "ocudu/asn1/rrc_nr/bcch_bch_msg.h"
 using namespace asn1;
 using namespace asn1::rrc_nr;
 
@@ -17,19 +17,19 @@ using namespace asn1::rrc_nr;
  ******************************************************************************/
 
 // PDCCH-ConfigSIB1 ::= SEQUENCE
-SRSASN_CODE pdcch_cfg_sib1_s::pack(bit_ref& bref) const
+OCUDUASN_CODE pdcch_cfg_sib1_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, coreset_zero, (uint8_t)0u, (uint8_t)15u));
   HANDLE_CODE(pack_integer(bref, search_space_zero, (uint8_t)0u, (uint8_t)15u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE pdcch_cfg_sib1_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE pdcch_cfg_sib1_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(coreset_zero, bref, (uint8_t)0u, (uint8_t)15u));
   HANDLE_CODE(unpack_integer(search_space_zero, bref, (uint8_t)0u, (uint8_t)15u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void pdcch_cfg_sib1_s::to_json(json_writer& j) const
 {
@@ -40,7 +40,7 @@ void pdcch_cfg_sib1_s::to_json(json_writer& j) const
 }
 
 // MIB ::= SEQUENCE
-SRSASN_CODE mib_s::pack(bit_ref& bref) const
+OCUDUASN_CODE mib_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(sys_frame_num.pack(bref));
   HANDLE_CODE(sub_carrier_spacing_common.pack(bref));
@@ -51,9 +51,9 @@ SRSASN_CODE mib_s::pack(bit_ref& bref) const
   HANDLE_CODE(intra_freq_resel.pack(bref));
   HANDLE_CODE(spare.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE mib_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE mib_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(sys_frame_num.unpack(bref));
   HANDLE_CODE(sub_carrier_spacing_common.unpack(bref));
@@ -64,7 +64,7 @@ SRSASN_CODE mib_s::unpack(cbit_ref& bref)
   HANDLE_CODE(intra_freq_resel.unpack(bref));
   HANDLE_CODE(spare.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void mib_s::to_json(json_writer& j) const
 {
@@ -144,7 +144,7 @@ void bcch_bch_msg_type_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE bcch_bch_msg_type_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bcch_bch_msg_type_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -155,11 +155,11 @@ SRSASN_CODE bcch_bch_msg_type_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "bcch_bch_msg_type_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bcch_bch_msg_type_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bcch_bch_msg_type_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -172,9 +172,9 @@ SRSASN_CODE bcch_bch_msg_type_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "bcch_bch_msg_type_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bcch_bch_msg_type_c::types_opts::to_string() const
@@ -184,21 +184,21 @@ const char* bcch_bch_msg_type_c::types_opts::to_string() const
 }
 
 // BCCH-BCH-Message ::= SEQUENCE
-SRSASN_CODE bcch_bch_msg_s::pack(bit_ref& bref) const
+OCUDUASN_CODE bcch_bch_msg_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(msg.pack(bref));
 
   bref.align_bytes_zero();
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bcch_bch_msg_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE bcch_bch_msg_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(msg.unpack(bref));
 
   bref.align_bytes();
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void bcch_bch_msg_s::to_json(json_writer& j) const
 {

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
-#include "srsran/phy/support/resource_grid_context.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
+#include "ocudu/phy/support/resource_grid_context.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdxch_processor_notifier_spy : public pdxch_processor_notifier
 {
@@ -36,4 +36,4 @@ private:
   std::vector<resource_grid_context> request_late;
 };
 
-} // namespace srsran
+} // namespace ocudu

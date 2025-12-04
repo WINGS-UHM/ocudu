@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/compression/iq_decompressor.h"
+#include "ocudu/ofh/compression/iq_decompressor.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// \brief IQ decompressor selector implementation.
@@ -34,4 +34,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

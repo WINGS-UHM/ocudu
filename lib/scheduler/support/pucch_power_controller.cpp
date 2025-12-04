@@ -10,9 +10,9 @@
 
 #include "pucch_power_controller.h"
 #include "../config/ue_configuration.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_cell_cfg) :
   rnti(ue_cell_cfg.crnti),
@@ -26,7 +26,7 @@ pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_c
   }()),
   pucch_f0_f1_sinr_dB(alpha_ema_sinr),
   pucch_f2_f3_f4_sinr_dB(alpha_ema_sinr),
-  logger(srslog::fetch_basic_logger("SCHED"))
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   // Save the PUCCH power control configuration.
   reconfigure(ue_cell_cfg);
@@ -54,10 +54,10 @@ void pucch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cf
         pucch_cfg.pucch_res_list.begin(),
         pucch_cfg.pucch_res_list.end(),
         [pucch_res_set_0_id](const pucch_resource& res) { return res.res_id.ue_res_id == pucch_res_set_0_id; });
-    srsran_assert(res_set_0 != pucch_cfg.pucch_res_list.end(),
-                  "rnti={}: PUCCH resource id={} not found in PUCCH resource set 0",
-                  rnti,
-                  pucch_res_set_0_id);
+    ocudu_assert(res_set_0 != pucch_cfg.pucch_res_list.end(),
+                 "rnti={}: PUCCH resource id={} not found in PUCCH resource set 0",
+                 rnti,
+                 pucch_res_set_0_id);
     format_set_0                               = res_set_0->format;
     static constexpr size_t id_pucch_res_set_1 = 1U;
     unsigned pucch_res_set_1_id = pucch_cfg.pucch_res_set[id_pucch_res_set_1].pucch_res_id_list.front().ue_res_id;
@@ -65,10 +65,10 @@ void pucch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cf
         pucch_cfg.pucch_res_list.begin(),
         pucch_cfg.pucch_res_list.end(),
         [pucch_res_set_1_id](const pucch_resource& res) { return res.res_id.ue_res_id == pucch_res_set_1_id; });
-    srsran_assert(res_set_1 != pucch_cfg.pucch_res_list.end(),
-                  "rnti={}: PUCCH resource id={} not found in PUCCH resource set 1",
-                  rnti,
-                  pucch_res_set_1_id);
+    ocudu_assert(res_set_1 != pucch_cfg.pucch_res_list.end(),
+                 "rnti={}: PUCCH resource id={} not found in PUCCH resource set 1",
+                 rnti,
+                 pucch_res_set_1_id);
     format_set_1 = res_set_1->format;
     if (ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().pucch_pw_control.has_value()) {
       pucch_pwr_ctrl.emplace(ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().pucch_pw_control.value());
@@ -76,7 +76,7 @@ void pucch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cf
   }
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 void pucch_power_controller::update_pucch_pw_ctrl_state(slot_point      slot,
                                                         pucch_format    format,
@@ -87,12 +87,12 @@ void pucch_power_controller::update_pucch_pw_ctrl_state(slot_point      slot,
                                                         bool            pi_2_bpsk,
                                                         bool            additional_dmrs)
 {
-  // Dummy function. This feature is only available in the SRSRAN 5G Enterprise version.
+  // Dummy function. This feature is only available in the OCUDU 5G Enterprise version.
 }
 
 void pucch_power_controller::update_pucch_sinr_f0_f1(slot_point slor_rx, float sinr_db)
 {
-  // Dummy function. This feature is only available in the SRSRAN 5G Enterprise version.
+  // Dummy function. This feature is only available in the OCUDU 5G Enterprise version.
 }
 
 void pucch_power_controller::update_pucch_sinr_f2_f3_f4(slot_point slor_rx,
@@ -100,14 +100,14 @@ void pucch_power_controller::update_pucch_sinr_f2_f3_f4(slot_point slor_rx,
                                                         bool       has_harq_bits,
                                                         bool       has_csi_bits)
 {
-  // Dummy function. This feature is only available in the SRSRAN 5G Enterprise version.
+  // Dummy function. This feature is only available in the OCUDU 5G Enterprise version.
 }
 
 uint8_t pucch_power_controller::compute_tpc_command(slot_point pucch_slot)
 {
-  // Dummy function. This feature is only available in the SRSRAN 5G Enterprise version.
+  // Dummy function. This feature is only available in the OCUDU 5G Enterprise version.
   static constexpr uint8_t default_tpc = 1;
   return default_tpc;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

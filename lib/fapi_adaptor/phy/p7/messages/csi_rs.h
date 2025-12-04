@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_generator.h"
-#include "srsran/ran/csi_rs/csi_rs_pattern.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_generator.h"
+#include "ocudu/ran/csi_rs/csi_rs_pattern.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// \brief Helper function that converts from a CSI-RS FAPI PDU to a NZP-CSI-RS processor PDU.
@@ -40,4 +40,4 @@ void get_csi_rs_pattern_from_fapi_pdu(csi_rs_pattern&            pattern,
                                       uint16_t                   cell_bandwidth_prb);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

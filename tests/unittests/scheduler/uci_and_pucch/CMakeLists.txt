@@ -21,9 +21,9 @@ add_executable(uci_pucch_sched_test
         uci_test_utils.cpp
         scheduler_uci_indication_test.cpp)
 target_link_libraries(uci_pucch_sched_test
-        srsran_sched
+        ocudu_sched
         scheduler_test_suite
-        srslog
+        ocudulog
         uci_test_utils
         sched_config
         mac_configuration_helpers

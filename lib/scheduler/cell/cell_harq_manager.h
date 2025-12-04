@@ -11,20 +11,20 @@
 #pragma once
 
 #include "../slicing/ran_slice_id.h"
-#include "srsran/adt/intrusive_list.h"
-#include "srsran/ran/csi_report/csi_report_data.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/logical_channel/lcid_dl_sch.h"
-#include "srsran/ran/pdsch/pdsch_mcs.h"
-#include "srsran/ran/pusch/pusch_mcs.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/harq_id.h"
-#include "srsran/scheduler/result/dci_info.h"
-#include "srsran/scheduler/result/vrb_alloc.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/intrusive_list.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/logical_channel/lcid_dl_sch.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/scheduler/result/dci_info.h"
+#include "ocudu/scheduler/result/vrb_alloc.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct dl_msg_alloc;
 struct pusch_information;
@@ -148,14 +148,14 @@ struct cell_harq_repository {
     slot_point             last_slot_ack;
   };
 
-  cell_harq_repository(unsigned               max_ues,
-                       unsigned               max_ack_wait_in_slots,
-                       unsigned               harq_retx_timeout,
-                       unsigned               max_harqs_per_ue,
-                       unsigned               ntn_cs_koffset,
-                       bool                   harq_mode_b,
-                       harq_timeout_notifier& timeout_notifier_,
-                       srslog::basic_logger&  logger_);
+  cell_harq_repository(unsigned                max_ues,
+                       unsigned                max_ack_wait_in_slots,
+                       unsigned                harq_retx_timeout,
+                       unsigned                max_harqs_per_ue,
+                       unsigned                ntn_cs_koffset,
+                       bool                    harq_mode_b,
+                       harq_timeout_notifier&  timeout_notifier_,
+                       ocudulog::basic_logger& logger_);
   ~cell_harq_repository();
 
   /// Time interval, in slots, before the HARQ process assumes that the ACK/CRC went missing.
@@ -163,9 +163,9 @@ struct cell_harq_repository {
   /// Maximum number of slots before a HARQ with pending retransmission is discarded.
   const unsigned harq_retx_timeout;
   /// Maximum number of HARQs allowed per UE.
-  const unsigned         max_harqs_per_ue;
-  harq_timeout_notifier& timeout_notifier;
-  srslog::basic_logger&  logger;
+  const unsigned          max_harqs_per_ue;
+  harq_timeout_notifier&  timeout_notifier;
+  ocudulog::basic_logger& logger;
 
   slot_point last_sl_ind;
 
@@ -374,7 +374,7 @@ public:
     }
     reference operator*()
     {
-      srsran_assert(it != pool->harq_pending_retx_list.end(), "Dereferencing list end()");
+      ocudu_assert(it != pool->harq_pending_retx_list.end(), "Dereferencing list end()");
       return handle_type{*pool, *it};
     }
     pointer operator->()
@@ -480,7 +480,7 @@ private:
   const unsigned                         max_harqs_per_ue;
   std::unique_ptr<harq_timeout_notifier> dl_timeout_notifier;
   std::unique_ptr<harq_timeout_notifier> ul_timeout_notifier;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 
   harq_utils::cell_harq_repository<true>  dl;
   harq_utils::cell_harq_repository<false> ul;
@@ -599,4 +599,4 @@ private:
   rnti_t             crnti         = rnti_t::INVALID_RNTI;
 };
 
-} // namespace srsran
+} // namespace ocudu

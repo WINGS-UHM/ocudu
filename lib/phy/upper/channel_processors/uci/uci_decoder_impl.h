@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_deallocator.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_decoder.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_rate_dematcher.h"
-#include "srsran/phy/upper/channel_coding/short/short_block_detector.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_deallocator.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_decoder.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_rate_dematcher.h"
+#include "ocudu/phy/upper/channel_coding/short/short_block_detector.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implementation of the UCI decoder.
 class uci_decoder_impl : public uci_decoder
@@ -39,15 +39,15 @@ public:
     crc6(std::move(crc6_)),
     crc11(std::move(crc11_))
   {
-    srsran_assert(block_detector, "Invalid short block detector.");
-    srsran_assert(code, "Invalid polar code instance.");
-    srsran_assert(rate_dematcher, "Invalid polar rate dematcher.");
-    srsran_assert(decoder, "Invalid polar decoder.");
-    srsran_assert(deallocator, "Invalid polar deallocator.");
-    srsran_assert(crc6, "Invalid CRC6 calculator.");
-    srsran_assert(crc6->get_generator_poly() == crc_generator_poly::CRC6, "Invalid CRC6 calculator.");
-    srsran_assert(crc11, "Invalid CRC11 calculator.");
-    srsran_assert(crc11->get_generator_poly() == crc_generator_poly::CRC11, "Invalid CRC11 calculator.");
+    ocudu_assert(block_detector, "Invalid short block detector.");
+    ocudu_assert(code, "Invalid polar code instance.");
+    ocudu_assert(rate_dematcher, "Invalid polar rate dematcher.");
+    ocudu_assert(decoder, "Invalid polar decoder.");
+    ocudu_assert(deallocator, "Invalid polar deallocator.");
+    ocudu_assert(crc6, "Invalid CRC6 calculator.");
+    ocudu_assert(crc6->get_generator_poly() == crc_generator_poly::CRC6, "Invalid CRC6 calculator.");
+    ocudu_assert(crc11, "Invalid CRC11 calculator.");
+    ocudu_assert(crc11->get_generator_poly() == crc_generator_poly::CRC11, "Invalid CRC11 calculator.");
   }
 
   // See interface for the documentation.
@@ -96,4 +96,4 @@ private:
   std::array<uint8_t, MAX_CODEBLOCK_SIZE> temp_deallocator_buffer;
 };
 
-} // namespace srsran
+} // namespace ocudu

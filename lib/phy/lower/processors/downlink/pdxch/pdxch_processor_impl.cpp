@@ -9,10 +9,10 @@
  */
 
 #include "pdxch_processor_impl.h"
-#include "srsran/instrumentation/traces/critical_traces.h"
-#include "srsran/phy/support/resource_grid_reader.h"
+#include "ocudu/instrumentation/traces/critical_traces.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pdxch_processor_impl::connect(pdxch_processor_notifier& notifier_)
 {
@@ -41,7 +41,7 @@ void pdxch_processor_impl::handle_request(const shared_resource_grid& grid, cons
     return;
   }
 
-  srsran_assert(notifier != nullptr, "Notifier has not been connected.");
+  ocudu_assert(notifier != nullptr, "Notifier has not been connected.");
 
   // Ignore grid if it is empty.
   if (grid.get_reader().is_empty()) {

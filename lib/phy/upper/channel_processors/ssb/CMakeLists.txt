@@ -6,11 +6,11 @@
 # the distribution.
 #
 
-add_library(srsran_ssb_tx_processor STATIC
+add_library(ocudu_ssb_tx_processor STATIC
         factories.cpp
         pbch_encoder_impl.cpp
         pbch_modulator_impl.cpp
         ssb_processor_impl.cpp)
-target_link_libraries(srsran_ssb_tx_processor
-        srsran_sequence_generators
-        srsran_signal_processors)
+target_link_libraries(ocudu_ssb_tx_processor
+        ocudu_sequence_generators
+        ocudu_signal_processors)

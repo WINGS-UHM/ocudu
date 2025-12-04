@@ -10,10 +10,10 @@
 
 #include "ul_pusch_pdu.h"
 #include "field_checkers.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/fapi/validator_report.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/validator_report.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks a UL_TTI.request message.
@@ -472,7 +472,7 @@ static bool validate_ldpc_base_graph(unsigned value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, value, "LDPC base graph", msg_type, pdu_type, report);
 }
 
-bool srsran::fapi::validate_ul_pusch_pdu(const ul_pusch_pdu& pdu, validator_report& report)
+bool ocudu::fapi::validate_ul_pusch_pdu(const ul_pusch_pdu& pdu, validator_report& report)
 {
   bool result = true;
 

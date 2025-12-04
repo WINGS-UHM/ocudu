@@ -11,20 +11,20 @@
 #include "f1ap_du_initiated_reset_procedure.h"
 #include "../ue_context/f1ap_du_ue_manager.h"
 #include "f1ap_du_event_manager.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 f1ap_du_initiated_reset_procedure::f1ap_du_initiated_reset_procedure(const f1_reset_request& req_,
                                                                      f1ap_message_notifier&  msg_notifier_,
                                                                      f1ap_event_manager&     ev_mng_,
                                                                      f1ap_du_ue_manager&     ues_) :
-  req(req_), msg_notifier(msg_notifier_), ev_mng(ev_mng_), ues(ues_), logger(srslog::fetch_basic_logger("DU-F1"))
+  req(req_), msg_notifier(msg_notifier_), ev_mng(ev_mng_), ues(ues_), logger(ocudulog::fetch_basic_logger("DU-F1"))
 {
 }
 

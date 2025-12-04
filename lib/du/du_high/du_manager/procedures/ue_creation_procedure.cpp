@@ -11,12 +11,12 @@
 #include "ue_creation_procedure.h"
 #include "../converters/asn1_rrc_config_helpers.h"
 #include "../converters/scheduler_configuration_helpers.h"
-#include "srsran/rlc/rlc_factory.h"
-#include "srsran/rlc/rlc_rx.h"
-#include "srsran/rlc/rlc_srb_config_factory.h"
+#include "ocudu/rlc/rlc_factory.h"
+#include "ocudu/rlc/rlc_rx.h"
+#include "ocudu/rlc/rlc_srb_config_factory.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 ue_creation_procedure::ue_creation_procedure(const du_ue_creation_request& req_,
                                              du_ue_manager_repository&     ue_mng_,
@@ -26,7 +26,7 @@ ue_creation_procedure::ue_creation_procedure(const du_ue_creation_request& req_,
   ue_mng(ue_mng_),
   du_params(du_params_),
   du_res_alloc(cell_res_alloc_),
-  proc_logger(srslog::fetch_basic_logger("DU-MNG"), name(), req.ue_index, req.tc_rnti)
+  proc_logger(ocudulog::fetch_basic_logger("DU-MNG"), name(), req.ue_index, req.tc_rnti)
 {
 }
 
@@ -258,9 +258,9 @@ f1ap_ue_creation_response ue_creation_procedure::create_f1ap_ue()
     // TS38.473, Section 8.4.1.2.
     calculate_cell_group_config_diff(cell_group, {}, ue_ctx->resources.value());
 
-    asn1::bit_ref     bref{f1ap_msg.du_cu_rrc_container};
-    asn1::SRSASN_CODE result = cell_group.pack(bref);
-    srsran_assert(result == asn1::SRSASN_SUCCESS, "Failed to generate CellConfigGroup");
+    asn1::bit_ref       bref{f1ap_msg.du_cu_rrc_container};
+    asn1::OCUDUASN_CODE result = cell_group.pack(bref);
+    ocudu_assert(result == asn1::OCUDUASN_SUCCESS, "Failed to generate CellConfigGroup");
   }
 
   return du_params.f1ap.ue_mng.handle_ue_creation_request(f1ap_msg);

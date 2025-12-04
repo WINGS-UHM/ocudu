@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
 #include "logging_pusch_processor_decorator.h"
 #include "pusch_codeblock_decoder.h"
 #include "pusch_decoder_empty_impl.h"
@@ -19,12 +19,12 @@
 #include "pusch_processor_pool.h"
 #include "pusch_processor_validator_impl.h"
 #include "ulsch_demultiplex_impl.h"
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/phy/upper/sequence_generators/sequence_generator_factories.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -37,8 +37,8 @@ public:
   /// Constructs a factory taking the maximum number of PRB and layers.
   pusch_decoder_factory_empty(unsigned nof_prb_, unsigned nof_layers_) : nof_prb(nof_prb_), nof_layers(nof_layers_)
   {
-    srsran_assert(nof_prb > 0, "Invalid number of PRB.");
-    srsran_assert(nof_layers > 0, "Invalid number of layers.");
+    ocudu_assert(nof_prb > 0, "Invalid number of PRB.");
+    ocudu_assert(nof_layers > 0, "Invalid number of layers.");
   }
 
   // See interface for documentation.
@@ -62,10 +62,10 @@ public:
     nof_prb(config.nof_prb),
     nof_layers(config.nof_layers)
   {
-    srsran_assert(crc_factory, "Invalid CRC calculator factory.");
-    srsran_assert(config.decoder_factory, "Invalid LDPC decoder factory.");
-    srsran_assert(config.dematcher_factory, "Invalid LDPC dematcher factory.");
-    srsran_assert(segmenter_factory, "Invalid LDPC segmenter factory.");
+    ocudu_assert(crc_factory, "Invalid CRC calculator factory.");
+    ocudu_assert(config.decoder_factory, "Invalid LDPC decoder factory.");
+    ocudu_assert(config.dematcher_factory, "Invalid LDPC dematcher factory.");
+    ocudu_assert(segmenter_factory, "Invalid LDPC segmenter factory.");
 
     std::vector<std::unique_ptr<pusch_codeblock_decoder>> codeblock_decoders(
         std::max(1U, config.nof_pusch_decoder_threads));
@@ -111,9 +111,9 @@ public:
     crc_factory(std::move(config.crc_factory)),
     executor(config.executor)
   {
-    srsran_assert(segmenter_factory, "Invalid LDPC segmenter factory.");
-    srsran_assert(crc_factory, "Invalid CRC factory.");
-    srsran_assert(config.hw_decoder_factory, "Invalid hardware accelerator factory.");
+    ocudu_assert(segmenter_factory, "Invalid LDPC segmenter factory.");
+    ocudu_assert(crc_factory, "Invalid CRC factory.");
+    ocudu_assert(config.hw_decoder_factory, "Invalid hardware accelerator factory.");
 
     // Creates a vector of hardware decoders. These are shared for all the PUSCH decoders.
     std::vector<std::unique_ptr<hal::hw_accelerator_pusch_dec>> hw_decoders(
@@ -161,10 +161,10 @@ public:
     max_nof_prb(max_nof_prb_),
     enable_post_eq_sinr(enable_post_eq_sinr_)
   {
-    srsran_assert(equalizer_factory, "Invalid equalizer factory.");
-    srsran_assert(precoder_factory, "Invalid transform precoder factory.");
-    srsran_assert(demodulation_factory, "Invalid demodulation factory.");
-    srsran_assert(prg_factory, "Invalid PRG factory.");
+    ocudu_assert(equalizer_factory, "Invalid equalizer factory.");
+    ocudu_assert(precoder_factory, "Invalid transform precoder factory.");
+    ocudu_assert(demodulation_factory, "Invalid demodulation factory.");
+    ocudu_assert(prg_factory, "Invalid PRG factory.");
   }
 
   std::unique_ptr<pusch_demodulator> create() override
@@ -206,11 +206,11 @@ public:
     dec_enable_early_stop(config.dec_enable_early_stop),
     csi_sinr_calc_method(config.csi_sinr_calc_method)
   {
-    srsran_assert(estimator_factory, "Invalid channel estimation factory.");
-    srsran_assert(demodulator_factory, "Invalid demodulation factory.");
-    srsran_assert(demux_factory, "Invalid demux factory.");
-    srsran_assert(decoder_factory, "Invalid decoder factory.");
-    srsran_assert(uci_dec_factory, "Invalid UCI decoder factory.");
+    ocudu_assert(estimator_factory, "Invalid channel estimation factory.");
+    ocudu_assert(demodulator_factory, "Invalid demodulation factory.");
+    ocudu_assert(demux_factory, "Invalid demux factory.");
+    ocudu_assert(decoder_factory, "Invalid decoder factory.");
+    ocudu_assert(uci_dec_factory, "Invalid UCI decoder factory.");
 
     // Create common dependencies.
     std::vector<std::unique_ptr<pusch_processor_impl::concurrent_dependencies>> dependencies(
@@ -265,8 +265,8 @@ public:
     nof_regular_processors(config.nof_regular_processors),
     nof_uci_processors(config.nof_uci_processors)
   {
-    srsran_assert(regular_factory, "Invalid PUSCH factory.");
-    srsran_assert(uci_factory, "Invalid PUSCH factory for UCI.");
+    ocudu_assert(regular_factory, "Invalid PUSCH factory.");
+    ocudu_assert(uci_factory, "Invalid PUSCH factory for UCI.");
   }
 
   std::unique_ptr<pusch_processor> create() override
@@ -291,7 +291,7 @@ public:
     return std::make_unique<pusch_processor_pool>(processors, uci_processor_pool);
   }
 
-  std::unique_ptr<pusch_processor> create(srslog::basic_logger& logger) override
+  std::unique_ptr<pusch_processor> create(ocudulog::basic_logger& logger) override
   {
     if (nof_regular_processors <= 1) {
       return regular_factory->create(logger);
@@ -331,31 +331,31 @@ public:
 
 } // namespace
 
-std::shared_ptr<pusch_decoder_factory> srsran::create_pusch_decoder_empty_factory(unsigned nof_prb, unsigned nof_layers)
+std::shared_ptr<pusch_decoder_factory> ocudu::create_pusch_decoder_empty_factory(unsigned nof_prb, unsigned nof_layers)
 {
   return std::make_shared<pusch_decoder_factory_empty>(nof_prb, nof_layers);
 }
 
 std::shared_ptr<pusch_decoder_factory>
-srsran::create_pusch_decoder_factory_sw(pusch_decoder_factory_sw_configuration config)
+ocudu::create_pusch_decoder_factory_sw(pusch_decoder_factory_sw_configuration config)
 {
   return std::make_shared<pusch_decoder_factory_generic>(std::move(config));
 }
 
 std::shared_ptr<pusch_decoder_factory>
-srsran::create_pusch_decoder_factory_hw(const pusch_decoder_factory_hw_configuration& config)
+ocudu::create_pusch_decoder_factory_hw(const pusch_decoder_factory_hw_configuration& config)
 {
   return std::make_shared<pusch_decoder_factory_hw>(config);
 }
 
 std::shared_ptr<pusch_demodulator_factory>
-srsran::create_pusch_demodulator_factory_sw(std::shared_ptr<channel_equalizer_factory>       equalizer_factory,
-                                            std::shared_ptr<transform_precoder_factory>      precoder_factory,
-                                            std::shared_ptr<demodulation_mapper_factory>     demodulation_factory,
-                                            std::shared_ptr<evm_calculator_factory>          evm_calc_factory,
-                                            std::shared_ptr<pseudo_random_generator_factory> prg_factory,
-                                            unsigned                                         max_nof_prb,
-                                            bool                                             enable_post_eq_sinr)
+ocudu::create_pusch_demodulator_factory_sw(std::shared_ptr<channel_equalizer_factory>       equalizer_factory,
+                                           std::shared_ptr<transform_precoder_factory>      precoder_factory,
+                                           std::shared_ptr<demodulation_mapper_factory>     demodulation_factory,
+                                           std::shared_ptr<evm_calculator_factory>          evm_calc_factory,
+                                           std::shared_ptr<pseudo_random_generator_factory> prg_factory,
+                                           unsigned                                         max_nof_prb,
+                                           bool                                             enable_post_eq_sinr)
 {
   return std::make_shared<pusch_demodulator_factory_generic>(std::move(equalizer_factory),
                                                              std::move(precoder_factory),
@@ -367,23 +367,22 @@ srsran::create_pusch_demodulator_factory_sw(std::shared_ptr<channel_equalizer_fa
 }
 
 std::shared_ptr<pusch_processor_factory>
-srsran::create_pusch_processor_factory_sw(pusch_processor_factory_sw_configuration& config)
+ocudu::create_pusch_processor_factory_sw(pusch_processor_factory_sw_configuration& config)
 {
   return std::make_shared<pusch_processor_factory_generic>(config);
 }
 
-std::shared_ptr<pusch_processor_factory>
-srsran::create_pusch_processor_pool(pusch_processor_pool_factory_config& config)
+std::shared_ptr<pusch_processor_factory> ocudu::create_pusch_processor_pool(pusch_processor_pool_factory_config& config)
 {
   return std::make_shared<pusch_processor_pool_factory>(config);
 }
 
-std::unique_ptr<pusch_processor> pusch_processor_factory::create(srslog::basic_logger& logger)
+std::unique_ptr<pusch_processor> pusch_processor_factory::create(ocudulog::basic_logger& logger)
 {
   return std::make_unique<logging_pusch_processor_decorator>(logger, create());
 }
 
-std::shared_ptr<ulsch_demultiplex_factory> srsran::create_ulsch_demultiplex_factory_sw()
+std::shared_ptr<ulsch_demultiplex_factory> ocudu::create_ulsch_demultiplex_factory_sw()
 {
   return std::make_shared<ulsch_demultiplex_factory_sw>();
 }

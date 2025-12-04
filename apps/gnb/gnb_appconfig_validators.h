@@ -12,7 +12,7 @@
 
 #include "gnb_appconfig.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_cp_unit_config;
 struct du_high_unit_config;
@@ -23,4 +23,4 @@ bool validate_appconfig(const gnb_appconfig& config);
 /// Validates that the DU PLMNs and TACs are present in the CU-CP config.
 bool validate_plmn_and_tacs(const du_high_unit_config& du_hi_cfg, const cu_cp_unit_config& cu_cp_cfg);
 
-} // namespace srsran
+} // namespace ocudu

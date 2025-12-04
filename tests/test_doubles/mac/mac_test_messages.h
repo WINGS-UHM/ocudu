@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_control_information_handler.h"
-#include "srsran/mac/mac_pdu_handler.h"
-#include "srsran/scheduler/harq_id.h"
+#include "ocudu/mac/mac_cell_control_information_handler.h"
+#include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/scheduler/harq_id.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct pucch_info;
 struct uci_info;
@@ -49,4 +49,4 @@ mac_srs_pdu create_srs_pdu(const srs_info& srs);
 mac_srs_indication_message create_srs_indication(slot_point sl_rx, span<const srs_info> srss);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

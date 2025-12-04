@@ -11,10 +11,10 @@
 #include "ru_emulator_cli11_schema.h"
 #include "helpers.h"
 #include "ru_emulator_appconfig.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Translates a string to the corresponding RU emulator's PRACH format.
 static ru_emulator_prach_format str_to_prach_format(std::string s)
@@ -46,23 +46,23 @@ static void configure_cli11_log_args(CLI::App& app, ru_emulator_log_appconfig& l
 {
   /// Function to check that the log level is correct.
   auto check_log_level = [](const std::string& value) -> std::string {
-    if (srslog::str_to_basic_level(value).has_value()) {
+    if (ocudulog::str_to_basic_level(value).has_value()) {
       return {};
     }
 
     return fmt::format("Log level '{}' not supported. Accepted values [none,info,debug,warning,error]", value);
   };
-  /// Function to convert string parameter to srslog level.
-  auto capture_log_level_function = [](srslog::basic_levels& level) {
+  /// Function to convert string parameter to ocudulog level.
+  auto capture_log_level_function = [](ocudulog::basic_levels& level) {
     return [&level](const std::string& value) {
-      auto val = srslog::str_to_basic_level(value);
-      level    = (val) ? val.value() : srslog::basic_levels::none;
+      auto val = ocudulog::str_to_basic_level(value);
+      level    = (val) ? val.value() : ocudulog::basic_levels::none;
     };
   };
 
   app.add_option("--filename", log_params.filename, "Log file output path")->capture_default_str();
   add_option_function<std::string>(app, " --level", capture_log_level_function(log_params.level), "Log level")
-      ->default_str(srslog::basic_level_to_string(log_params.level))
+      ->default_str(ocudulog::basic_level_to_string(log_params.level))
       ->check(check_log_level);
 }
 
@@ -140,7 +140,7 @@ static void configure_cli11_ru_emu_args(CLI::App& app, ru_emulator_ofh_appconfig
 
   // Function to check that the log level is correct.
   auto check_prach_format = [](const std::string& value) -> std::string {
-    if (str_to_prach_format(value) != srsran::ru_emulator_prach_format::NONE) {
+    if (str_to_prach_format(value) != ocudu::ru_emulator_prach_format::NONE) {
       return {};
     }
     return fmt::format("PRACH format '{}' not supported. Accepted values [long,short]. Set to 'long' to use format 0, "
@@ -156,7 +156,7 @@ static void configure_cli11_ru_emu_args(CLI::App& app, ru_emulator_ofh_appconfig
       ->check(check_prach_format);
 }
 
-void srsran::configure_cli11_with_ru_emulator_appconfig_schema(CLI::App& app, ru_emulator_appconfig& ru_emu_parsed_cfg)
+void ocudu::configure_cli11_with_ru_emulator_appconfig_schema(CLI::App& app, ru_emulator_appconfig& ru_emu_parsed_cfg)
 {
   // Logging section.
   CLI::App* log_subcmd = app.add_subcommand("log", "Logging configuration")->configurable();

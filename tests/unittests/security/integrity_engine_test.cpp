@@ -14,13 +14,13 @@
 #include "nia1_test_set.h"
 #include "nia2_test_set.h"
 #include "nia3_test_set.h"
-#include "srsran/security/integrity_engine.h"
-#include "srsran/security/security.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/security/integrity_engine.h"
+#include "ocudu/security/security.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::security;
+using namespace ocudu;
+using namespace ocudu::security;
 
 /// Fixture class for integrity engine tests
 class fxt_nia_base : public testing::TestWithParam<nia_test_set>
@@ -29,13 +29,13 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
     logger.set_hex_dump_max_size(3000);
 
     // init SEC logger
-    srslog::fetch_basic_logger("SEC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("SEC", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("SEC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("SEC", false).set_hex_dump_max_size(-1);
 
     logger.info("Created fixture for integrity engine test");
   }
@@ -43,10 +43,10 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 /// Fixture class for integrity engine tests with NIA1
@@ -109,7 +109,7 @@ TEST_P(fxt_nia1, integrity_engine_generic_nia1)
 {
   nia_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key      = make_sec_128_key(param.ik_cstr);
   auto        dir      = static_cast<security_direction>(param.direction);
   byte_buffer message  = make_byte_buffer(param.message_cstr).value();
@@ -147,7 +147,7 @@ TEST_P(fxt_nia2, integrity_engine_nia2_cmac)
 {
   nia_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key      = make_sec_128_key(param.ik_cstr);
   auto        dir      = static_cast<security_direction>(param.direction);
   byte_buffer message  = make_byte_buffer(param.message_cstr).value();
@@ -184,7 +184,7 @@ TEST_P(fxt_nia2, integrity_engine_nia2_non_cmac)
 {
   nia_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key      = make_sec_128_key(param.ik_cstr);
   auto        dir      = static_cast<security_direction>(param.direction);
   byte_buffer message  = make_byte_buffer(param.message_cstr).value();
@@ -220,7 +220,7 @@ TEST_P(fxt_nia2, integrity_engine_generic_nia2)
 {
   nia_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key      = make_sec_128_key(param.ik_cstr);
   auto        dir      = static_cast<security_direction>(param.direction);
   byte_buffer message  = make_byte_buffer(param.message_cstr).value();
@@ -257,7 +257,7 @@ TEST_P(fxt_nia3, integrity_engine_generic_nia3)
 {
   nia_test_set param = GetParam();
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key key      = make_sec_128_key(param.ik_cstr);
   auto        dir      = static_cast<security_direction>(param.direction);
   byte_buffer message  = make_byte_buffer(param.message_cstr).value();
@@ -317,7 +317,7 @@ INSTANTIATE_TEST_SUITE_P(nia3,
 
 int main(int argc, char** argv)
 {
-  srslog::init();
+  ocudulog::init();
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

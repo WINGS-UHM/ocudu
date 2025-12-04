@@ -8,25 +8,25 @@
  *
  */
 
-#include "srsran/phy/upper/channel_modulation/channel_modulation_factories.h"
-#include "srsran/support/math/complex_normal_random.h"
+#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
+#include "ocudu/support/math/complex_normal_random.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using EvmCalculatorTestParams = std::tuple<srsran::modulation_scheme, float, unsigned>;
+using EvmCalculatorTestParams = std::tuple<ocudu::modulation_scheme, float, unsigned>;
 
-namespace srsran {
+namespace ocudu {
 
 static std::ostream& operator<<(std::ostream& os, const modulation_scheme& modulation)
 {
-  fmt::print(os, "{}", srsran::to_string(modulation));
+  fmt::print(os, "{}", ocudu::to_string(modulation));
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 std::mt19937 rgen(0);
 

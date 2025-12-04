@@ -20,11 +20,11 @@
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace sched_no_ue_test {
 
@@ -33,8 +33,8 @@ class sched_no_ue_tester : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::info);
-    srslog::init();
+    ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::info);
+    ocudulog::init();
   }
 };
 

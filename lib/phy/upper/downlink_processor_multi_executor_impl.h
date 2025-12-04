@@ -11,17 +11,17 @@
 #pragma once
 
 #include "downlink_processor_multi_executor_state.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class upper_phy_rg_gateway;
 class task_executor;
@@ -84,7 +84,7 @@ public:
                                          task_executor&                        ssb_executor_,
                                          task_executor&                        csi_rs_executor_,
                                          task_executor&                        prs_executor_,
-                                         srslog::basic_logger&                 logger_);
+                                         ocudulog::basic_logger&               logger_);
 
   // See downlink_processor_base interface for documentation.
   downlink_processor_controller& get_controller() override { return *this; }
@@ -205,10 +205,10 @@ private:
   downlink_task_executor prs_executor;
   /// @}
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// DL processor internal state.
   downlink_processor_multi_executor_state state;
   /// PDSCH notifier wrapper.
   pdsch_processor_notifier_wrapper pdsch_notifier;
 };
-} // namespace srsran
+} // namespace ocudu

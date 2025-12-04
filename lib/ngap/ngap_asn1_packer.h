@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/gateways/sctp_network_gateway.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/pcap/dlt_pcap.h"
 #include <cstdio>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct ngap_message;
 
-class ngap_asn1_packer : public srs_cu_cp::ngap_message_handler
+class ngap_asn1_packer : public ocucp::ngap_message_handler
 {
 public:
   ngap_asn1_packer(sctp_network_gateway_data_handler& gw,
@@ -32,15 +32,15 @@ public:
 
   void handle_packed_pdu(const byte_buffer& pdu);
 
-  void handle_message(const srs_cu_cp::ngap_message& msg) override;
+  void handle_message(const ocucp::ngap_message& msg) override;
 
 private:
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   sctp_network_gateway_data_handler& gw;
   ngap_message_notifier&             amf_notifier;
   ngap_message_handler&              ngap;
   dlt_pcap&                          pcap;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

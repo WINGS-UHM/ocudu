@@ -11,10 +11,10 @@
 #include "metrics_config_yaml_writer.h"
 #include "metrics_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 
-void srsran::app_helpers::fill_metrics_appconfig_in_yaml_schema(YAML::Node& node, const metrics_config& config)
+void ocudu::app_helpers::fill_metrics_appconfig_in_yaml_schema(YAML::Node& node, const metrics_config& config)
 {
   YAML::Node log_node        = node["metrics"];
   log_node["enable_log"]     = config.enable_log_metrics;

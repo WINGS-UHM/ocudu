@@ -11,28 +11,28 @@
 #include "du_high_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "du_high_config.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_cell_config_validation.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/du/du_high/du_qos_config_helpers.h"
-#include "srsran/du/du_update_config_helpers.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/pucch/pucch_mapping.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/rlc/rlc_srb_config_factory.h"
-#include "srsran/scheduler/config/cell_config_builder_params.h"
-#include "srsran/scheduler/config/csi_helper.h"
-#include "srsran/scheduler/config/rlm_helper.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/config/scheduler_expert_config_validator.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_cell_config_validation.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/du/du_high/du_qos_config_helpers.h"
+#include "ocudu/du/du_update_config_helpers.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/rlc/rlc_srb_config_factory.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/rlm_helper.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_validator.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 static tdd_ul_dl_config_common generate_tdd_pattern(subcarrier_spacing scs, const du_high_unit_tdd_ul_dl_config& config)
 {
@@ -281,9 +281,9 @@ generate_du_slicing_rrm_policy_config(span<const std::string>                   
   return rrm_policy_cfgs;
 }
 
-std::vector<srs_du::du_cell_config> srsran::generate_du_cell_config(const du_high_unit_config& config)
+std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_unit_config& config)
 {
-  std::vector<srs_du::du_cell_config> out_cfg;
+  std::vector<odu::du_cell_config> out_cfg;
   out_cfg.reserve(config.cells_cfg.size());
 
   for (const auto& cell : config.cells_cfg) {
@@ -351,7 +351,7 @@ std::vector<srs_du::du_cell_config> srsran::generate_du_cell_config(const du_hig
 
     // Create the configuration.
     out_cfg.push_back(config_helpers::make_default_du_cell_config(param));
-    srs_du::du_cell_config& out_cell = out_cfg.back();
+    odu::du_cell_config& out_cell = out_cfg.back();
 
     // Set the rest of the parameters.
     out_cell.nr_cgi.plmn_id   = plmn_identity::parse(base_cell.plmn).value();
@@ -900,12 +900,12 @@ std::vector<srs_du::du_cell_config> srsran::generate_du_cell_config(const du_hig
 
     // DRX params. Long cycle != 0 if enabled.
     if (base_cell.drx_cfg.long_cycle != 0) {
-      srs_du::drx_params& drx = out_cell.mcg_params.drx.emplace();
-      drx.on_duration         = std::chrono::milliseconds{base_cell.drx_cfg.on_duration_timer};
-      drx.long_cycle          = std::chrono::milliseconds{base_cell.drx_cfg.long_cycle};
-      drx.inactivity_timer    = std::chrono::milliseconds{base_cell.drx_cfg.inactivity_timer};
-      drx.retx_timer_dl       = base_cell.drx_cfg.retx_timer_dl;
-      drx.retx_timer_ul       = base_cell.drx_cfg.retx_timer_ul;
+      odu::drx_params& drx = out_cell.mcg_params.drx.emplace();
+      drx.on_duration      = std::chrono::milliseconds{base_cell.drx_cfg.on_duration_timer};
+      drx.long_cycle       = std::chrono::milliseconds{base_cell.drx_cfg.long_cycle};
+      drx.inactivity_timer = std::chrono::milliseconds{base_cell.drx_cfg.inactivity_timer};
+      drx.retx_timer_dl    = base_cell.drx_cfg.retx_timer_dl;
+      drx.retx_timer_ul    = base_cell.drx_cfg.retx_timer_ul;
     }
 
     // Slicing configuration.
@@ -960,7 +960,7 @@ static void ntn_augment_rlc_config(const ntn_config& ntn_cfg, rlc_config& rlc)
   }
 }
 
-static void ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id_t, srs_du::du_srb_config>& srb_cfgs)
+static void ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id_t, odu::du_srb_config>& srb_cfgs)
 {
   // NTN is enabled, so we need to augment the RLC parameters for the NTN cell.
   for (auto& srb : srb_cfgs) {
@@ -968,7 +968,7 @@ static void ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id
   }
 }
 
-static void ntn_augment_du_qos_config(const ntn_config& ntn_cfg, std::map<five_qi_t, srs_du::du_qos_config>& qos_cfgs)
+static void ntn_augment_du_qos_config(const ntn_config& ntn_cfg, std::map<five_qi_t, odu::du_qos_config>& qos_cfgs)
 {
   // NTN is enabled, so we need to augment the QoS parameters for the NTN cell.
   for (auto& qos : qos_cfgs) {
@@ -1003,9 +1003,9 @@ static rlc_am_config generate_du_rlc_am_config(const du_high_unit_rlc_am_config&
   return out_rlc;
 }
 
-static std::map<five_qi_t, srs_du::du_qos_config> generate_du_qos_config(const du_high_unit_config& config)
+static std::map<five_qi_t, odu::du_qos_config> generate_du_qos_config(const du_high_unit_config& config)
 {
-  std::map<five_qi_t, srs_du::du_qos_config> out_cfg = {};
+  std::map<five_qi_t, odu::du_qos_config> out_cfg = {};
   if (config.qos_cfg.empty()) {
     out_cfg = config_helpers::make_default_du_qos_config_list(
         config.warn_on_drop, config.metrics.layers_cfg.enable_rlc ? config.metrics.du_report_period : 0);
@@ -1063,12 +1063,12 @@ static std::map<five_qi_t, srs_du::du_qos_config> generate_du_qos_config(const d
   return out_cfg;
 }
 
-static std::map<srb_id_t, srs_du::du_srb_config> generate_du_srb_config(const du_high_unit_config& config)
+static std::map<srb_id_t, odu::du_srb_config> generate_du_srb_config(const du_high_unit_config& config)
 {
-  std::map<srb_id_t, srs_du::du_srb_config> srb_cfg;
+  std::map<srb_id_t, odu::du_srb_config> srb_cfg;
 
   // SRB1
-  srb_cfg.insert(std::make_pair(srb_id_t::srb1, srs_du::du_srb_config{}));
+  srb_cfg.insert(std::make_pair(srb_id_t::srb1, odu::du_srb_config{}));
   if (config.srb_cfg.find(srb_id_t::srb1) != config.srb_cfg.end()) {
     auto& out_rlc             = srb_cfg[srb_id_t::srb1].rlc;
     out_rlc.mode              = rlc_mode::am;
@@ -1079,7 +1079,7 @@ static std::map<srb_id_t, srs_du::du_srb_config> generate_du_srb_config(const du
   }
 
   // SRB2
-  srb_cfg.insert(std::make_pair(srb_id_t::srb2, srs_du::du_srb_config{}));
+  srb_cfg.insert(std::make_pair(srb_id_t::srb2, odu::du_srb_config{}));
   if (config.srb_cfg.find(srb_id_t::srb2) != config.srb_cfg.end()) {
     auto& out_rlc             = srb_cfg[srb_id_t::srb2].rlc;
     out_rlc.mode              = rlc_mode::am;
@@ -1090,7 +1090,7 @@ static std::map<srb_id_t, srs_du::du_srb_config> generate_du_srb_config(const du
   }
 
   // SRB3
-  srb_cfg.insert(std::make_pair(srb_id_t::srb3, srs_du::du_srb_config{}));
+  srb_cfg.insert(std::make_pair(srb_id_t::srb3, odu::du_srb_config{}));
   if (config.srb_cfg.find(srb_id_t::srb3) != config.srb_cfg.end()) {
     auto& out_rlc             = srb_cfg[srb_id_t::srb3].rlc;
     out_rlc.mode              = rlc_mode::am;
@@ -1212,12 +1212,11 @@ static scheduler_expert_config generate_scheduler_expert_config(const du_high_un
   return out_cfg;
 }
 
-void srsran::generate_du_high_config(srs_du::du_high_configuration& du_hi_cfg,
-                                     const du_high_unit_config&     du_high_unit_cfg)
+void ocudu::generate_du_high_config(odu::du_high_configuration& du_hi_cfg, const du_high_unit_config& du_high_unit_cfg)
 {
   // DU-high configuration.
   du_hi_cfg.ran.gnb_du_id        = du_high_unit_cfg.gnb_du_id;
-  du_hi_cfg.ran.gnb_du_name      = fmt::format("srsdu{}", fmt::underlying(du_hi_cfg.ran.gnb_du_id));
+  du_hi_cfg.ran.gnb_du_name      = fmt::format("odu{}", fmt::underlying(du_hi_cfg.ran.gnb_du_id));
   du_hi_cfg.ran.cells            = generate_du_cell_config(du_high_unit_cfg);
   du_hi_cfg.metrics.enable_mac   = du_high_unit_cfg.metrics.layers_cfg.enable_mac;
   du_hi_cfg.metrics.enable_rlc   = du_high_unit_cfg.metrics.layers_cfg.enable_rlc;
@@ -1232,9 +1231,9 @@ void srsran::generate_du_high_config(srs_du::du_high_configuration& du_hi_cfg,
   du_hi_cfg.ran.sched_cfg             = generate_scheduler_expert_config(du_high_unit_cfg);
 }
 
-void srsran::fill_du_high_worker_manager_config(worker_manager_config&     config,
-                                                const du_high_unit_config& unit_cfg,
-                                                bool                       is_blocking_mode_enabled)
+void ocudu::fill_du_high_worker_manager_config(worker_manager_config&     config,
+                                               const du_high_unit_config& unit_cfg,
+                                               bool                       is_blocking_mode_enabled)
 {
   config.config_affinities.resize(unit_cfg.cells_cfg.size());
 

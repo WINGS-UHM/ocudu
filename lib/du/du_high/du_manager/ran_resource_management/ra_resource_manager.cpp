@@ -10,8 +10,8 @@
 
 #include "ra_resource_manager.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 ra_resource_manager::ra_resource_manager(span<const du_cell_config> cell_cfg_list)
 {

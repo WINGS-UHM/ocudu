@@ -9,20 +9,20 @@
  */
 
 #include "prach.h"
-#include "srsran/scheduler/result/prach_info.h"
+#include "ocudu/scheduler/result/prach_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
-void srsran::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu& fapi_pdu, const prach_occasion_info& mac_pdu)
+void ocudu::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu& fapi_pdu, const prach_occasion_info& mac_pdu)
 {
   fapi::ul_prach_pdu_builder builder(fapi_pdu);
 
   convert_prach_mac_to_fapi(builder, mac_pdu);
 }
 
-void srsran::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu_builder& builder,
-                                                     const prach_occasion_info&  mac_pdu)
+void ocudu::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu_builder& builder,
+                                                    const prach_occasion_info&  mac_pdu)
 {
   // NOTE: For long preambles the number of time-domain PRACH occasions parameter does not apply, so set it to 1 to be
   // compliant with the FAPI specification.

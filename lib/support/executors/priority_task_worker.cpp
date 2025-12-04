@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/executors/priority_task_worker.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/support/executors/priority_task_worker.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 priority_task_worker::priority_task_worker(std::string                         thread_name,
                                            span<const concurrent_queue_params> task_queue_params,
@@ -43,5 +43,5 @@ void priority_task_worker::run_pop_task_loop()
     t = {};
   }
 
-  srslog::fetch_basic_logger("ALL").info("Task worker \"{}\" finished.", this_thread_name());
+  ocudulog::fetch_basic_logger("ALL").info("Task worker \"{}\" finished.", this_thread_name());
 }

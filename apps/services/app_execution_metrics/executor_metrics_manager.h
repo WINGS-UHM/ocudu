@@ -13,12 +13,12 @@
 #include "apps/services/app_execution_metrics/executor_metrics_config.h"
 #include "apps/services/app_execution_metrics/metrics/app_execution_metrics_builder.h"
 #include "apps/services/metrics/metrics_config.h"
-#include "srsran/support/executors/execute_until_success.h"
-#include "srsran/support/executors/metrics/executor_metrics_backend.h"
-#include "srsran/support/synchronization/sync_event.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/executors/execute_until_success.h"
+#include "ocudu/support/executors/metrics/executor_metrics_backend.h"
+#include "ocudu/support/synchronization/sync_event.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 class metrics_notifier;
@@ -156,7 +156,7 @@ public:
     // Verify there is no other active session using the same metrics manager.
     bool expected = false;
     if (!session_active.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
-      srslog::fetch_basic_logger("METRICS").warning(
+      ocudulog::fetch_basic_logger("METRICS").warning(
           "Failed to create executor metrics session as only one running session is allowed");
       return {};
     }
@@ -207,4 +207,4 @@ build_executor_metrics_service(app_services::metrics_notifier& metrics_notifier,
 }
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

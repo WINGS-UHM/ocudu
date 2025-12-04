@@ -9,10 +9,10 @@
  */
 
 #include "modulation_mapper_avx512_impl.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
 #include <immintrin.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Implements a generic QAM modulator using AVX512 instruction sets.
 ///

@@ -17,17 +17,17 @@
 #include "pdcp_metrics_aggregator.h"
 #include "pdcp_pdu.h"
 #include "pdcp_rx_metrics_impl.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/byte_buffer_chain.h"
-#include "srsran/adt/ring_buffer.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/security/security_engine.h"
-#include "srsran/support/sdu_window.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/byte_buffer_chain.h"
+#include "ocudu/adt/ring_buffer.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/security/security_engine.h"
+#include "ocudu/support/sdu_window.h"
+#include "ocudu/support/timers.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PDCP RX state variables,
 /// TS 38.323, section 7.1
@@ -230,7 +230,7 @@ private:
   pdcp_metrics_aggregator& metrics_agg;
   unique_timer             metrics_timer;
 
-  void log_state(srslog::basic_levels level) { logger.log(level, "RX entity state. {}", st); }
+  void log_state(ocudulog::basic_levels level) { logger.log(level, "RX entity state. {}", st); }
 };
 
 // Reordering callback (t-Reordering)
@@ -243,11 +243,11 @@ public:
 private:
   pdcp_entity_rx* parent;
 };
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::pdcp_rx_state> {
+struct formatter<ocudu::pdcp_rx_state> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -255,7 +255,7 @@ struct formatter<srsran::pdcp_rx_state> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::pdcp_rx_state& st, FormatContext& ctx) const
+  auto format(const ocudu::pdcp_rx_state& st, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "rx_next={} rx_deliv={} rx_reord={}", st.rx_next, st.rx_deliv, st.rx_reord);
   }

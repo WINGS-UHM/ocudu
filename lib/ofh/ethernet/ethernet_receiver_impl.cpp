@@ -10,12 +10,12 @@
 
 #include "ethernet_receiver_impl.h"
 #include "ethernet_rx_buffer_impl.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
-#include "srsran/ofh/ethernet/ethernet_frame_notifier.h"
-#include "srsran/ofh/ethernet/ethernet_properties.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_notifier.h"
+#include "ocudu/ofh/ethernet/ethernet_properties.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <arpa/inet.h>
 #include <cstring>
 #include <net/if.h>
@@ -23,7 +23,7 @@
 #include <thread>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 namespace {
@@ -40,7 +40,7 @@ class dummy_frame_notifier : public frame_notifier
 /// actual frame notifier, which will be later set up through the \ref start() method.
 static dummy_frame_notifier dummy_notifier;
 
-receiver_impl::receiver_impl(const receiver_config& config, task_executor& executor_, srslog::basic_logger& logger_) :
+receiver_impl::receiver_impl(const receiver_config& config, task_executor& executor_, ocudulog::basic_logger& logger_) :
   logger(logger_),
   executor(executor_),
   notifier(&dummy_notifier),
@@ -113,7 +113,7 @@ void receiver_impl::stop()
 void receiver_impl::receive_loop()
 {
   auto token = stop_manager.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 

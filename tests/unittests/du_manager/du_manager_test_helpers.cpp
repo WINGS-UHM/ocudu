@@ -9,15 +9,15 @@
  */
 
 #include "du_manager_test_helpers.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_high/du_qos_config_helpers.h"
-#include "srsran/mac/config/mac_cell_group_config_factory.h"
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/rlc/rlc_srb_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_high/du_qos_config_helpers.h"
+#include "ocudu/mac/config/mac_cell_group_config_factory.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/rlc/rlc_srb_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 dummy_ue_resource_configurator_factory::dummy_ue_resource_configurator_factory()
 {
@@ -83,10 +83,10 @@ dummy_ue_resource_configurator_factory::create_ue_resource_configurator(du_ue_in
 }
 
 f1ap_ue_context_update_request
-srsran::srs_du::create_f1ap_ue_context_update_request(du_ue_index_t                   ue_idx,
-                                                      std::initializer_list<srb_id_t> srbs_to_addmod,
-                                                      std::initializer_list<drb_id_t> drbs_to_add,
-                                                      std::initializer_list<drb_id_t> drbs_to_mod)
+ocudu::odu::create_f1ap_ue_context_update_request(du_ue_index_t                   ue_idx,
+                                                  std::initializer_list<srb_id_t> srbs_to_addmod,
+                                                  std::initializer_list<drb_id_t> drbs_to_add,
+                                                  std::initializer_list<drb_id_t> drbs_to_mod)
 {
   f1ap_ue_context_update_request req = {};
 
@@ -125,17 +125,17 @@ du_manager_test_bench::du_manager_test_bench(span<const du_cell_config> cells) :
   du_mng_exec(worker),
   ue_exec_mapper(worker),
   cell_exec_mapper(worker),
-  params{{"srsgnb", (gnb_du_id_t)1, 1, du_cells},
+  params{{"ocudu", (gnb_du_id_t)1, 1, du_cells},
          {timers, du_mng_exec, ue_exec_mapper, cell_exec_mapper},
          {f1ap, f1ap, f1ap},
          {f1u_gw},
          {mac, f1ap, f1ap, rlc_pcap},
          {mac}},
-  logger(srslog::fetch_basic_logger("DU-MNG"))
+  logger(ocudulog::fetch_basic_logger("DU-MNG"))
 {
-  logger.set_level(srslog::basic_levels::debug);
+  logger.set_level(ocudulog::basic_levels::debug);
 
-  srslog::init();
+  ocudulog::init();
 
   params.ran.qos = config_helpers::make_default_du_qos_config_list(/* warn_on_drop */ true, 1000);
 }

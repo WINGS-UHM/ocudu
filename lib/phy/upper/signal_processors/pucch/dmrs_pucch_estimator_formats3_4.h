@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/upper/pucch_helper.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_generator.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
-#include "srsran/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
+#include "ocudu/phy/upper/pucch_helper.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic implementation of a DM-RS channel estimator for PUCCH Formats 3 and 4.
 class dmrs_pucch_estimator_formats3_4
@@ -29,8 +29,8 @@ public:
                                   std::unique_ptr<port_channel_estimator>      ch_est_) :
     helper(std::move(prg_)), low_papr_generator(std::move(low_papr_generator_)), ch_estimator(std::move(ch_est_))
   {
-    srsran_assert(low_papr_generator, "Invalid sequence generator.");
-    srsran_assert(ch_estimator, "Invalid port channel estimator.");
+    ocudu_assert(low_papr_generator, "Invalid sequence generator.");
+    ocudu_assert(ch_estimator, "Invalid port channel estimator.");
   }
 
   /// Estimates the channel of a PUCCH Format 3 transmission. See \ref dmrs_pucch_estimator for more details.
@@ -104,4 +104,4 @@ private:
   static layer_dmrs_pattern generate_dmrs_pattern(const estimate_config& config, unsigned nof_prb_grid);
 };
 
-} // namespace srsran
+} // namespace ocudu

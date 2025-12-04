@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "../../../include/srsran/ran/pucch/pucch_uci_bits.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/ran/pucch/pucch_configuration.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/math/exponential_averager.h"
+#include "../../../include/ocudu/ran/pucch/pucch_uci_bits.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/resource_grid_util.h"
+#include "ocudu/support/math/exponential_averager.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 class ue_cell_configuration;
 
@@ -122,7 +122,7 @@ private:
   /// \brief Ring of PUCCH power allocation parameters indexed by slot.
   circular_array<pucch_grants_pw_ctrl, get_allocator_ring_size_gt_min(MAX_UCI_IND_DELAY_SLOTS)> pucch_pw_ctrl_grid;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

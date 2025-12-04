@@ -10,9 +10,9 @@
 
 #include "ue.h"
 #include "../support/dmrs_helpers.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ue::ue(const ue_creation_command& cmd) :
   ue_index(cmd.cfg.ue_index),
@@ -21,7 +21,7 @@ ue::ue(const ue_creation_command& cmd) :
   cell_cfg_common(cmd.cfg.pcell_cfg().cell_cfg_common),
   ue_ded_cfg(&cmd.cfg),
   pcell_harq_pool(cmd.pcell_harq_pool),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   ta_mgr(expert_cfg.ta_control,
          cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs,
          ue_ded_cfg->pcell_cfg().tag_id(),
@@ -104,7 +104,7 @@ void ue::handle_config_applied()
 
 void ue::set_config(const ue_configuration& new_cfg, std::optional<slot_point> msg3_slot_rx)
 {
-  srsran_assert(new_cfg.nof_cells() > 0, "Creation of a UE requires at least PCell configuration.");
+  ocudu_assert(new_cfg.nof_cells() > 0, "Creation of a UE requires at least PCell configuration.");
   ue_ded_cfg = &new_cfg;
 
   // Configure Logical Channels.

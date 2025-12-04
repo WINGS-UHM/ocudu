@@ -12,20 +12,20 @@
 
 #include "gtpu_pdu.h"
 #include "gtpu_tunnel_base_tx.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/gtpu/gtpu_tunnel_ngu_tx.h"
-#include "srsran/support/bit_encoding.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/gtpu/gtpu_tunnel_ngu_tx.h"
+#include "ocudu/support/bit_encoding.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used for transmitting GTP-U NGU bearers, e.g. on N3 interface.
 class gtpu_tunnel_ngu_tx_impl final : public gtpu_tunnel_base_tx, public gtpu_tunnel_ngu_tx_lower_layer_interface
 {
 public:
-  gtpu_tunnel_ngu_tx_impl(srs_cu_up::ue_index_t                                    ue_index,
+  gtpu_tunnel_ngu_tx_impl(ocuup::ue_index_t                                        ue_index,
                           const gtpu_tunnel_ngu_config::gtpu_tunnel_ngu_tx_config& cfg_,
                           dlt_pcap&                                                gtpu_pcap_,
                           gtpu_tunnel_common_tx_upper_layer_notifier&              upper_dn_) :
@@ -91,4 +91,4 @@ private:
   sockaddr_storage                                        peer_sockaddr = {};
   bool                                                    stopped       = false;
 };
-} // namespace srsran
+} // namespace ocudu

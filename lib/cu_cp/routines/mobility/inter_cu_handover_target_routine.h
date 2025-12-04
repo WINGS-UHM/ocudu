@@ -12,9 +12,9 @@
 
 #include "../../cell_meas_manager/cell_meas_manager_impl.h"
 #include "../../ue_manager/ue_manager_impl.h"
-#include "srsran/ngap/ngap_handover.h"
+#include "ocudu/ngap/ngap_handover.h"
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 async_task<ngap_handover_resource_allocation_response>
 start_inter_cu_handover_target_routine(const ngap_handover_request& request,
@@ -24,6 +24,6 @@ start_inter_cu_handover_target_routine(const ngap_handover_request& request,
                                        ue_manager&                  ue_mng,
                                        cell_meas_manager&           cell_meas_mngr,
                                        const security_indication_t& default_security_indication,
-                                       srslog::basic_logger&        logger);
+                                       ocudulog::basic_logger&      logger);
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

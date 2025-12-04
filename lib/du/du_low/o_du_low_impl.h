@@ -11,14 +11,14 @@
 #pragma once
 
 #include "o_du_low_metrics_collector_impl.h"
-#include "srsran/du/du_low/du_low.h"
-#include "srsran/du/du_low/o_du_low.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
+#include "ocudu/du/du_low/du_low.h"
+#include "ocudu/du/du_low/o_du_low.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class o_du_low_impl final : public o_du_low, public du_operation_controller
 {
@@ -51,5 +51,5 @@ private:
   o_du_low_metrics_collector_impl                          metrics_collector;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

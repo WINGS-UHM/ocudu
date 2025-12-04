@@ -14,12 +14,12 @@
 #include "../support/uplink_context_repository.h"
 #include "../support/uplink_cplane_context_repository.h"
 #include "../support/uplink_notified_grid_symbol_repository.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter.h"
-#include "srsran/ofh/transmitter/ofh_transmitter.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_configuration.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -32,7 +32,7 @@ namespace ofh {
 /// Creates a transmitter with the given configuration and dependencies.
 std::unique_ptr<transmitter>
 create_transmitter(const transmitter_config&                               transmitter_cfg,
-                   srslog::basic_logger&                                   logger,
+                   ocudulog::basic_logger&                                 logger,
                    task_executor&                                          tx_executor,
                    task_executor&                                          downlink_executor,
                    error_notifier&                                         err_notifier,
@@ -44,4 +44,4 @@ create_transmitter(const transmitter_config&                               trans
                    std::shared_ptr<uplink_notified_grid_symbol_repository> notifier_symbol_repo);
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -12,9 +12,9 @@
 #include "mac_fapi_fastpath_adaptor_impl.h"
 #include "mac_fapi_sector_fastpath_adaptor_impl.h"
 #include "p7/mac_fapi_p7_sector_fastpath_adaptor_factory_impl.h"
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_config.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 std::unique_ptr<mac_fapi_fastpath_adaptor>
@@ -38,7 +38,7 @@ mac_fapi_fastpath_adaptor_factory_impl::create(const mac_fapi_fastpath_adaptor_c
   return std::make_unique<mac_fapi_fastpath_adaptor_impl>(std::move(sectors));
 }
 
-std::unique_ptr<mac_fapi_fastpath_adaptor_factory> srsran::fapi_adaptor::create_mac_fapi_fastpath_adaptor_factory()
+std::unique_ptr<mac_fapi_fastpath_adaptor_factory> ocudu::fapi_adaptor::create_mac_fapi_fastpath_adaptor_factory()
 {
   return std::make_unique<mac_fapi_fastpath_adaptor_factory_impl>();
 }

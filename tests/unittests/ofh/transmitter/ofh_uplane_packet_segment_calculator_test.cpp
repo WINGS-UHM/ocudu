@@ -9,10 +9,10 @@
  */
 
 #include "../../../../lib/ofh/transmitter/ofh_uplane_fragment_size_calculator.h"
-#include "srsran/adt/bounded_bitset.h"
+#include "ocudu/adt/bounded_bitset.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Returns number of segments after segmenting the given number of PRBs into frames of given size.

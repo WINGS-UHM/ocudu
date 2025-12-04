@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/resource_grid_dimensions.h"
-#include "srsran/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_dimensions.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements the resource grid reader interface.
 class resource_grid_reader_impl : public resource_grid_reader
@@ -72,4 +72,4 @@ private:
   const std::atomic<unsigned>& empty;
 };
 
-} // namespace srsran
+} // namespace ocudu

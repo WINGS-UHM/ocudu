@@ -13,14 +13,14 @@
 
 #pragma once
 
-#include "srsran/adt/to_array.h"
-#include "srsran/phy/upper/channel_modulation/demodulation_mapper.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_demodulator.h"
-#include "srsran/phy/upper/equalization/dynamic_ch_est_list.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/phy/upper/channel_modulation/demodulation_mapper.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_demodulator.h"
+#include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUCCH Format 2 demodulator.
 class pucch_demodulator_format2
@@ -35,9 +35,9 @@ public:
     descrambler(std::move(descrambler_)),
     ch_estimates(pucch_constants::MAX_NOF_RE, MAX_PORTS, 1)
   {
-    srsran_assert(equalizer, "Invalid pointer to channel_equalizer object.");
-    srsran_assert(demapper, "Invalid pointer to demodulation_mapper object.");
-    srsran_assert(descrambler, "Invalid pointer to pseudo_random_generator object.");
+    ocudu_assert(equalizer, "Invalid pointer to channel_equalizer object.");
+    ocudu_assert(demapper, "Invalid pointer to demodulation_mapper object.");
+    ocudu_assert(descrambler, "Invalid pointer to pseudo_random_generator object.");
   }
 
   /// Demodulates a PUCCH Format 2 transmission. See \ref pucch_demodulator for more details.
@@ -87,4 +87,4 @@ private:
   std::array<float, MAX_PORTS> noise_var_estimates;
 };
 
-} // namespace srsran
+} // namespace ocudu

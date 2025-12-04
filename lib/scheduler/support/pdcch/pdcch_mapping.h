@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../config_helpers.h"
-#include "srsran/ran/pdcch/aggregation_level.h"
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
+#include "ocudu/ran/pdcch/aggregation_level.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 namespace pdcch_helper {
 
 inline prb_index_list cce_to_prb_mapping(const bwp_configuration&     bwp_cfg,
@@ -47,4 +47,4 @@ inline prb_index_list cce_to_prb_mapping(const bwp_configuration&     bwp_cfg,
 }
 
 } // namespace pdcch_helper
-} // namespace srsran
+} // namespace ocudu

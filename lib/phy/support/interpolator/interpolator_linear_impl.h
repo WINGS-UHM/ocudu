@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "srsran/phy/support/interpolator.h"
+#include "ocudu/phy/support/interpolator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Linear interpolator.
 ///
@@ -28,4 +28,4 @@ public:
   void interpolate(span<cf_t> output, span<const cf_t> input, const configuration& cfg) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

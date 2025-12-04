@@ -18,7 +18,7 @@
 
 #include "lib/scheduler/cell/resource_grid.h"
 
-namespace srsran {
+namespace ocudu {
 
 class cell_configuration;
 struct cell_resource_allocator;
@@ -114,4 +114,4 @@ bool assert_ul_resource_grid_filled(const cell_configuration&      cell_cfg,
 
 bool test_res_grid_has_re_set(const cell_resource_allocator& cell_res_grid, grant_info grant, unsigned tx_delay);
 
-} // namespace srsran
+} // namespace ocudu

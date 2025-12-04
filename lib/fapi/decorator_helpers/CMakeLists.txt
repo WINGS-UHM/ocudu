@@ -16,4 +16,4 @@ set(SOURCES
         slot_time_notifier_dummy.cpp
 )
 
-add_library(srsran_fapi_decorator_helpers STATIC ${SOURCES})
+add_library(ocudu_fapi_decorator_helpers STATIC ${SOURCES})

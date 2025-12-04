@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct du_high_parsed_config;
 struct du_high_unit_config;
@@ -23,4 +23,4 @@ void configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_parsed_co
 /// Auto derive DU high parameters after the parsing.
 void autoderive_du_high_parameters_after_parsing(CLI::App& app, du_high_unit_config& unit_cfg);
 
-} // namespace srsran
+} // namespace ocudu

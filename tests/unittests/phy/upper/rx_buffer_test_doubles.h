@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rx_buffer_spy : public unique_rx_buffer::callback
 {
@@ -88,4 +88,4 @@ private:
   std::vector<uint8_t>                    crc;
 };
 
-} // namespace srsran
+} // namespace ocudu

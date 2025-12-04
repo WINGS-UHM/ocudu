@@ -13,7 +13,7 @@
 #include "apps/units/flexible_o_du/flexible_o_du_application_unit.h"
 #include "split_7_2_o_du_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Split 7.2 O-RAN DU application unit implementation.
 class split_7_2_o_du_application_unit_impl : public flexible_o_du_application_unit
@@ -53,4 +53,4 @@ private:
   split_7_2_o_du_unit_config unit_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -13,7 +13,7 @@
 #include "cu_cp/cu_cp_unit_config.h"
 #include "e2/o_cu_cp_e2_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN CU-CP application unit configuration.
 struct o_cu_cp_unit_config {
@@ -21,4 +21,4 @@ struct o_cu_cp_unit_config {
   o_cu_cp_e2_config e2_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

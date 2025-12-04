@@ -15,7 +15,7 @@
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
 static uint64_t get_ntp_timestamp()
 {
@@ -42,7 +42,7 @@ static uint64_t get_ntp_timestamp()
 
 e2sm_kpm_report_service_base::e2sm_kpm_report_service_base(e2sm_kpm_action_definition_s action_def_,
                                                            e2sm_kpm_meas_provider&      meas_provider_) :
-  logger(srslog::fetch_basic_logger("E2SM-KPM")),
+  logger(ocudulog::fetch_basic_logger("E2SM-KPM")),
   action_def_generic(action_def_),
   meas_provider(meas_provider_),
   ric_ind_header(ric_ind_header_generic.ind_hdr_formats.ind_hdr_format1())
@@ -81,11 +81,11 @@ bool e2sm_kpm_report_service_base::is_ind_msg_ready()
   return true;
 }
 
-srsran::byte_buffer e2sm_kpm_report_service_base::get_indication_message()
+ocudu::byte_buffer e2sm_kpm_report_service_base::get_indication_message()
 {
   byte_buffer   ind_msg_bytes;
   asn1::bit_ref bref_ind_msg(ind_msg_bytes);
-  if (ric_ind_message_generic.pack(bref_ind_msg) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_message_generic.pack(bref_ind_msg) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack RIC Indication Message");
   };
 
@@ -94,11 +94,11 @@ srsran::byte_buffer e2sm_kpm_report_service_base::get_indication_message()
   return ind_msg_bytes;
 }
 
-srsran::byte_buffer e2sm_kpm_report_service_base::get_indication_header()
+ocudu::byte_buffer e2sm_kpm_report_service_base::get_indication_header()
 {
   byte_buffer   ind_hdr_bytes;
   asn1::bit_ref bref_ind_hdr(ind_hdr_bytes);
-  if (ric_ind_header_generic.pack(bref_ind_hdr) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_header_generic.pack(bref_ind_hdr) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack RIC Indication header");
   };
 
@@ -546,7 +546,7 @@ bool e2sm_kpm_report_service_style5::collect_measurements()
   return true;
 }
 
-srsran::byte_buffer e2sm_kpm_report_service_style5::get_indication_message()
+ocudu::byte_buffer e2sm_kpm_report_service_style5::get_indication_message()
 {
   // UEs that report only no_values should not be reported.
   // Make a new indication msg and copy UEs that do not contain only no_values.
@@ -580,7 +580,7 @@ srsran::byte_buffer e2sm_kpm_report_service_style5::get_indication_message()
 
   byte_buffer   ind_msg_bytes;
   asn1::bit_ref bref_ind_msg(ind_msg_bytes);
-  if (ric_ind_message_copy.pack(bref_ind_msg) != asn1::SRSASN_SUCCESS) {
+  if (ric_ind_message_copy.pack(bref_ind_msg) != asn1::OCUDUASN_SUCCESS) {
     logger.error("Failed to pack RIC Indication Message");
   };
 

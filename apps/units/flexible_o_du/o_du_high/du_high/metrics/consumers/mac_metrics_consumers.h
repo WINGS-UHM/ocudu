@@ -10,22 +10,22 @@
 
 #pragma once
 
-#include "srsran/mac/mac_metrics.h"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/mac/mac_metrics.h"
+#include "ocudu/ocudulog/log_channel.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Logger consumer for the MAC metrics.
 class mac_metrics_consumer_log
 {
 public:
-  explicit mac_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit mac_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
 
   /// Handle the given DU high MAC metrics.
   void handle_metric(const mac_dl_metric_report& report);
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
-} // namespace srsran
+} // namespace ocudu

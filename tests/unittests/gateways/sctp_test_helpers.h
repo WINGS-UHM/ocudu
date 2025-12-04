@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/sctp_socket.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/sctp_socket.h"
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/sctp.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Dummy IO broker where the registered callbacks have to be called manually.
 class dummy_io_broker : public io_broker
@@ -68,13 +68,13 @@ struct test_recv_data {
   bool has_data() const { return not has_notification(); }
   int  sctp_notification() const
   {
-    srsran_assert(has_notification(), "bad access");
+    ocudu_assert(has_notification(), "bad access");
     const auto* notif = reinterpret_cast<const union sctp_notification*>(data.data());
     return notif->sn_header.sn_type;
   }
   const struct sctp_assoc_change& sctp_assoc_change() const
   {
-    srsran_assert(has_notification() and sctp_notification() == SCTP_ASSOC_CHANGE, "bad access");
+    ocudu_assert(has_notification() and sctp_notification() == SCTP_ASSOC_CHANGE, "bad access");
     const auto* notif = reinterpret_cast<const union sctp_notification*>(data.data());
     return notif->sn_assoc_change;
   }
@@ -83,9 +83,9 @@ struct test_recv_data {
 class dummy_sctp_node
 {
 public:
-  dummy_sctp_node(const std::string& name_) : name(name_), logger(srslog::fetch_basic_logger(name))
+  dummy_sctp_node(const std::string& name_) : name(name_), logger(ocudulog::fetch_basic_logger(name))
   {
-    logger.set_level(srslog::basic_levels::debug);
+    logger.set_level(ocudulog::basic_levels::debug);
   }
   ~dummy_sctp_node() { close(); }
 
@@ -164,9 +164,9 @@ public:
     return bytes_sent != -1;
   }
 
-  sctp_socket           socket;
-  std::string           name;
-  srslog::basic_logger& logger;
+  sctp_socket             socket;
+  std::string             name;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class f1ap_du_processor_notifier;
 class f1ap_ue_context_list;
@@ -33,5 +33,5 @@ private:
   f1ap_ue_context_list&       ue_ctxt_list;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

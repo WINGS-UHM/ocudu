@@ -10,12 +10,12 @@
 
 #include "pucch_guardbands.h"
 #include "pucch_default_resource.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-crb_bitmap srsran::compute_pucch_crbs(const cell_configuration& cell_cfg)
+crb_bitmap ocudu::compute_pucch_crbs(const cell_configuration& cell_cfg)
 {
   // Get the parameter N_bwp_size, which is the Initial UL BWP size in PRBs, as per TS 38.213, Section 9.2.1.
   const unsigned size_ul_bwp = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();

@@ -13,14 +13,14 @@
 #include "../ran_resource_management/du_ran_resource_manager.h"
 #include "../ran_resource_management/du_ue_resource_config.h"
 #include "du_ue_bearer_manager.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_ue_radio_link_notifier;
 
-namespace srs_du {
+namespace odu {
 
 /// \brief This class holds the context of an UE in the DU.
 struct du_ue_context {
@@ -102,5 +102,5 @@ public:
   std::unique_ptr<ue_capability_summary> reestablished_ue_caps_summary;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

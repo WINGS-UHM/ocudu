@@ -11,14 +11,14 @@
 #include "mcs_tbs_calculator.h"
 #include "dmrs_helpers.h"
 #include "sch_pdu_builder.h"
-#include "srsran/ran/pdsch/dlsch_info.h"
-#include "srsran/ran/pusch/pusch_mcs.h"
-#include "srsran/ran/pusch/ulsch_info.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/ran/uci/uci_info.h"
-#include "srsran/ran/uci/uci_mapping.h"
+#include "ocudu/ran/pdsch/dlsch_info.h"
+#include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/ran/uci/uci_info.h"
+#include "ocudu/ran/uci/uci_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
 
@@ -49,9 +49,9 @@ static ulsch_configuration build_ulsch_info(const pusch_config_params& pusch_cfg
       active_bwp_cfg.ul_ded.has_value() and active_bwp_cfg.ul_ded->pusch_cfg->uci_cfg.has_value()
           ? &active_bwp_cfg.ul_ded->pusch_cfg->uci_cfg.value()
           : nullptr;
-  srsran_assert(uci_cfg != nullptr or (pusch_cfg.nof_harq_ack_bits == 0 and pusch_cfg.nof_csi_part1_bits == 0 and
-                                       pusch_cfg.max_nof_csi_part2_bits == 0),
-                "No UCI bits should be present for fallback UEs.");
+  ocudu_assert(uci_cfg != nullptr or (pusch_cfg.nof_harq_ack_bits == 0 and pusch_cfg.nof_csi_part1_bits == 0 and
+                                      pusch_cfg.max_nof_csi_part2_bits == 0),
+               "No UCI bits should be present for fallback UEs.");
 
   // For fallback UEs, no dedicated PUSCH config exists; in that case, we set this to a default value of
   // alpha_scaling_opt::f1, as this is not used.
@@ -206,10 +206,10 @@ static compute_ul_mcs_tbs_error is_pusch_effective_rate_valid(const pusch_config
   return compute_ul_mcs_tbs_error::none;
 }
 
-std::optional<sch_mcs_tbs> srsran::compute_dl_mcs_tbs(const pdsch_config_params& pdsch_params,
-                                                      sch_mcs_index              max_mcs,
-                                                      unsigned                   nof_prbs,
-                                                      bool                       contains_dc)
+std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& pdsch_params,
+                                                     sch_mcs_index              max_mcs,
+                                                     unsigned                   nof_prbs,
+                                                     bool                       contains_dc)
 {
   // The maximum supported code rate is 0.95, as per TS38.214, Section 5.1.3. The maximum code rate is defined for DL,
   // but we consider the same value for UL.
@@ -270,11 +270,11 @@ std::optional<sch_mcs_tbs> srsran::compute_dl_mcs_tbs(const pdsch_config_params&
   return std::optional<sch_mcs_tbs>{sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes}};
 }
 
-expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> srsran::compute_ul_mcs_tbs(const pusch_config_params& pusch_cfg,
-                                                                           const bwp_config&          active_bwp_cfg,
-                                                                           sch_mcs_index              max_mcs,
-                                                                           unsigned                   nof_prbs,
-                                                                           bool                       contains_dc)
+expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const pusch_config_params& pusch_cfg,
+                                                                          const bwp_config&          active_bwp_cfg,
+                                                                          sch_mcs_index              max_mcs,
+                                                                          unsigned                   nof_prbs,
+                                                                          bool                       contains_dc)
 {
   const unsigned      dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   sch_mcs_description mcs_info  = pusch_mcs_get_config(
@@ -325,11 +325,11 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> srsran::compute_ul_mcs_tbs(const
   return sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes};
 }
 
-std::optional<unsigned> srsran::compute_ul_tbs(const pusch_config_params& pusch_cfg,
-                                               const bwp_config&          active_bwp_cfg,
-                                               sch_mcs_index              mcs,
-                                               unsigned                   nof_prbs,
-                                               bool                       contains_dc)
+std::optional<unsigned> ocudu::compute_ul_tbs(const pusch_config_params& pusch_cfg,
+                                              const bwp_config&          active_bwp_cfg,
+                                              sch_mcs_index              mcs,
+                                              unsigned                   nof_prbs,
+                                              bool                       contains_dc)
 {
   const unsigned            dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   const sch_mcs_description mcs_info =
@@ -357,11 +357,11 @@ std::optional<unsigned> srsran::compute_ul_tbs(const pusch_config_params& pusch_
   return std::nullopt;
 }
 
-bool srsran::is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
-                                           const bwp_config&          active_bwp_cfg,
-                                           sch_mcs_index              mcs,
-                                           unsigned                   nof_prbs,
-                                           bool                       contains_dc)
+bool ocudu::is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
+                                          const bwp_config&          active_bwp_cfg,
+                                          sch_mcs_index              mcs,
+                                          unsigned                   nof_prbs,
+                                          bool                       contains_dc)
 {
   const unsigned            dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   const sch_mcs_description mcs_info =
@@ -382,7 +382,7 @@ bool srsran::is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
   return ::is_pusch_effective_rate_valid(pusch_cfg, info, mcs_info, nof_prbs) == compute_ul_mcs_tbs_error::none;
 }
 
-unsigned srsran::compute_ul_tbs_unsafe(const pusch_config_params& pusch_cfg, sch_mcs_index mcs, unsigned nof_prbs)
+unsigned ocudu::compute_ul_tbs_unsafe(const pusch_config_params& pusch_cfg, sch_mcs_index mcs, unsigned nof_prbs)
 {
   const unsigned            dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   const sch_mcs_description mcs_info =

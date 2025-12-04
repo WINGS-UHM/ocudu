@@ -9,9 +9,9 @@
  */
 
 #include "error_notifier_dummy.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void fapi::error_message_notifier_dummy::on_error_indication(const error_indication_message& msg)
 {

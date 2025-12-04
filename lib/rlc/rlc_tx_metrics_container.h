@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/rlc/rlc_mode.h"
-#include "srsran/rlc/rlc_tx_metrics.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/rlc/rlc_mode.h"
+#include "ocudu/rlc/rlc_tx_metrics.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
+namespace ocudu {
 
 class rlc_tx_metrics_high_container
 {
@@ -62,7 +62,7 @@ public:
   // Metrics getters and setters
   rlc_tx_metrics_higher get_hi_metrics()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -71,7 +71,7 @@ public:
 
   void reset_metrics()
   {
-    srsran_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
     if (not enabled) {
       return;
     }
@@ -80,7 +80,7 @@ public:
 
   rlc_tx_metrics_higher get_and_reset_metrics()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {false};
     }
@@ -168,8 +168,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_tm_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for TM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_tm_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for TM metrics.");
     std::get<rlc_tm_tx_metrics_lower>(metrics_lo.mode_specific).num_small_allocs += num_allocs;
   }
 
@@ -179,8 +179,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_um_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for UM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_um_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for UM metrics.");
     auto& um = std::get<rlc_um_tx_metrics_lower>(metrics_lo.mode_specific);
     um.num_pdus_with_segmentation += num_pdus;
     um.num_pdu_bytes_with_segmentation += num_pdu_bytes;
@@ -192,8 +192,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for AM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for AM metrics.");
     auto& am = std::get<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific);
     am.num_pdus_with_segmentation += num_pdus;
     am.num_pdu_bytes_with_segmentation += num_pdu_bytes;
@@ -204,8 +204,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for AM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for AM metrics.");
     auto& am = std::get<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific);
     am.num_retx_pdus += num_pdus;
     am.num_retx_pdu_bytes += num_pdu_bytes;
@@ -216,8 +216,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for AM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for AM metrics.");
     auto& am = std::get<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific);
     am.num_ctrl_pdus += num_pdus;
     am.num_ctrl_pdu_bytes += num_pdu_bytes;
@@ -228,8 +228,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for AM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for AM metrics.");
     auto& am = std::get<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific);
     am.sum_ack_latency_ms += ack_latency_ms;
     am.num_ack_latency_meas++;
@@ -245,8 +245,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for AM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for AM metrics.");
     auto& am = std::get<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific);
     am.sum_handle_status_latency_us += handle_status_latency_us;
     am.num_handle_status_latency_meas++;
@@ -266,8 +266,8 @@ public:
     if (not enabled) {
       return;
     }
-    srsran_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
-                  "Wrong mode for AM metrics.");
+    ocudu_assert(std::holds_alternative<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific),
+                 "Wrong mode for AM metrics.");
     auto& am = std::get<rlc_am_tx_metrics_lower>(metrics_lo.mode_specific);
     am.poll_latency.sum_latency_us += t_poll_latency_us;
     am.poll_latency.num_latency_meas++;
@@ -283,7 +283,7 @@ public:
   // Metrics getters and setters
   rlc_tx_metrics_lower get_low_metrics()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -295,7 +295,7 @@ public:
 
   void reset_metrics()
   {
-    srsran_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
     if (not enabled) {
       return;
     }
@@ -304,7 +304,7 @@ public:
 
   rlc_tx_metrics_lower get_and_reset_metrics()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -313,4 +313,4 @@ public:
     return ret;
   }
 };
-} // namespace srsran
+} // namespace ocudu

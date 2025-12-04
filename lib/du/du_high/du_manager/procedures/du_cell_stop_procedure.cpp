@@ -12,11 +12,11 @@
 #include "../du_cell_manager.h"
 #include "../du_ue/du_ue_manager.h"
 #include "du_ue_reset_procedure.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_timer.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_cell_stop_procedure::du_cell_stop_procedure(du_ue_manager&           ue_mng_,
                                                du_cell_manager&         cell_mng_,
@@ -28,7 +28,7 @@ du_cell_stop_procedure::du_cell_stop_procedure(du_ue_manager&           ue_mng_,
   du_params(du_params_),
   cell_index(cell_index_),
   mode(mode_),
-  proc_logger(srslog::fetch_basic_logger("DU-MNG"), "DU Cell Stop"),
+  proc_logger(ocudulog::fetch_basic_logger("DU-MNG"), "DU Cell Stop"),
   timer(du_params.services.timers.create_unique_timer(du_params.services.du_mng_exec))
 {
 }

@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier_manager.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier_manager.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Realtime worker that generates OTA symbol notifications.
 class ru_emulator_timing_notifier : public ofh::ota_symbol_boundary_notifier_manager
 {
   enum class worker_status { running, stop_requested, stopped };
 
-  srslog::basic_logger&                           logger;
+  ocudulog::basic_logger&                         logger;
   std::vector<ofh::ota_symbol_boundary_notifier*> ota_notifiers;
   task_executor&                                  executor;
   subcarrier_spacing                              scs;
@@ -35,7 +35,7 @@ class ru_emulator_timing_notifier : public ofh::ota_symbol_boundary_notifier_man
   std::atomic<worker_status>                      status{worker_status::running};
 
 public:
-  ru_emulator_timing_notifier(srslog::basic_logger& logger_, task_executor& executor_);
+  ru_emulator_timing_notifier(ocudulog::basic_logger& logger_, task_executor& executor_);
 
   /// Starts operation of the timing notifier.
   void start();
@@ -57,4 +57,4 @@ private:
   void notify_slot_symbol_point(ofh::slot_symbol_point slot);
 };
 
-} // namespace srsran
+} // namespace ocudu

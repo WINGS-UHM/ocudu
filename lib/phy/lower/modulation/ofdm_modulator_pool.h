@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/lower/modulation/ofdm_modulator.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/lower/modulation/ofdm_modulator.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements an OFDM modulator concurrent pool.
 class ofdm_symbol_modulator_pool : public ofdm_symbol_modulator
@@ -30,7 +30,7 @@ public:
   /// \param[in] modulators_ Shared pool of OFDM modulators..
   ofdm_symbol_modulator_pool(std::unique_ptr<ofdm_symbol_modulator> base_,
                              std::shared_ptr<modulator_pool>        modulators_) :
-    logger(srslog::fetch_basic_logger("PHY")), base(std::move(base_)), modulators(std::move(modulators_))
+    logger(ocudulog::fetch_basic_logger("PHY")), base(std::move(base_)), modulators(std::move(modulators_))
   {
   }
 
@@ -49,7 +49,7 @@ public:
   {
     auto modulator = modulators->get();
     if (!modulator) {
-      srsvec::zero(output);
+      ocuduvec::zero(output);
       logger.error("Insufficient number of OFDM modulator instances.");
       return;
     }
@@ -64,9 +64,9 @@ public:
 
 private:
   std::atomic<double>                    center_frequency_Hz = {};
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
   std::unique_ptr<ofdm_symbol_modulator> base;
   std::shared_ptr<modulator_pool>        modulators;
 };
 
-} // namespace srsran
+} // namespace ocudu

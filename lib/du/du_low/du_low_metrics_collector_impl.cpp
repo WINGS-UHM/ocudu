@@ -9,10 +9,10 @@
  */
 
 #include "du_low_metrics_collector_impl.h"
-#include "srsran/du/du_low/du_low_metrics.h"
+#include "ocudu/du/du_low/du_low_metrics.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 void du_low_metrics_collector_impl::collect_metrics(du_low_metrics& metrics)
 {

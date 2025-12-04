@@ -11,10 +11,10 @@
 #pragma once
 
 #include "external/fmt/include/fmt/core.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/versioning/build_info.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/versioning/build_info.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// \brief Application message banners service.
@@ -42,11 +42,11 @@ public:
   /// Announces the application name and version using its build hash.
   static void announce_app_and_version(std::string_view app_name)
   {
-    fmt::print("\n--== srsRAN {} (commit {}) ==--\n\n", app_name, get_build_hash());
+    fmt::print("\n--== OCUDU {} (commit {}) ==--\n\n", app_name, get_build_hash());
   }
 
   /// Logs in the given logger application build parameters.
-  static void log_build_info(srslog::basic_logger& logger)
+  static void log_build_info(ocudulog::basic_logger& logger)
   {
     // Log build info
     logger.info("Built in {} mode using {}", get_build_mode(), get_build_info());
@@ -57,4 +57,4 @@ private:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

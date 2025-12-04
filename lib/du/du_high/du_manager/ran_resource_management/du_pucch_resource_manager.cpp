@@ -9,16 +9,16 @@
  */
 
 #include "du_pucch_resource_manager.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/result/pucch_format.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/result/pucch_format.h"
 #include <numeric>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static bool csi_offset_exceeds_grant_cnt(unsigned                     offset_candidate,
                                          unsigned                     max_pucch_grants_per_slot,
@@ -77,7 +77,7 @@ du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> 
   max_pucch_grants_per_slot(max_pucch_grants_per_slot_ - 1U),
   cells(cell_cfg_list_.size())
 {
-  srsran_assert(not default_pucch_cfg.sr_res_list.empty(), "There must be at least one SR Resource");
+  ocudu_assert(not default_pucch_cfg.sr_res_list.empty(), "There must be at least one SR Resource");
 
   // Compute fundamental SR period.
   // TODO: Handle more than one SR period.
@@ -172,8 +172,8 @@ du_pucch_resource_manager::find_optimal_csi_report_slot_offset(
     const pucch_resource& candidate_csi_res_cfg =
         default_pucch_res_list[csi_du_res_idx_to_pucch_res_idx(csi_res_offset_candidate.first)];
     if (sr_res_cfg.format == pucch_format::FORMAT_0 and candidate_csi_res_cfg.format == pucch_format::FORMAT_2) {
-      srsran_assert(std::holds_alternative<pucch_format_2_3_cfg>(candidate_csi_res_cfg.format_params),
-                    "PUCCH resource for CSI must be of format 2");
+      ocudu_assert(std::holds_alternative<pucch_format_2_3_cfg>(candidate_csi_res_cfg.format_params),
+                   "PUCCH resource for CSI must be of format 2");
 
       const ofdm_symbol_range csi_symbols = {candidate_csi_res_cfg.starting_sym_idx,
                                              candidate_csi_res_cfg.starting_sym_idx +
@@ -247,8 +247,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
   while (sr_res_offset_it != free_sr_list.end()) {
     bool pucch_cnt_exceeded = false;
     for (unsigned sr_off = sr_res_offset_it->second; sr_off < lcm_csi_sr_period; sr_off += sr_period_slots) {
-      srsran_assert(sr_off < static_cast<unsigned>(du_cell_res_ctxt.pucch_grants_per_slot_cnt.size()),
-                    "Index exceeds the size of the PUCCH grants vector");
+      ocudu_assert(sr_off < static_cast<unsigned>(du_cell_res_ctxt.pucch_grants_per_slot_cnt.size()),
+                   "Index exceeds the size of the PUCCH grants vector");
       pucch_cnt_exceeded = du_cell_res_ctxt.pucch_grants_per_slot_cnt[sr_off] >= max_pucch_grants_per_slot;
       if (pucch_cnt_exceeded) {
         break;
@@ -300,8 +300,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
   std::set<unsigned> csi_sr_offset_for_pucch_cnt = compute_sr_csi_pucch_offsets(
       sr_res_offset.value().second, default_csi_report_cfg.has_value() ? csi_res_offset.value().second : 0);
   for (auto offset : csi_sr_offset_for_pucch_cnt) {
-    srsran_assert(offset < static_cast<unsigned>(du_cell_res_ctxt.pucch_grants_per_slot_cnt.size()),
-                  "Index exceeds the size of the PUCCH grants vector");
+    ocudu_assert(offset < static_cast<unsigned>(du_cell_res_ctxt.pucch_grants_per_slot_cnt.size()),
+                 "Index exceeds the size of the PUCCH grants vector");
     ++du_cell_res_ctxt.pucch_grants_per_slot_cnt[offset];
   }
 
@@ -342,8 +342,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     auto* res_f2_it = std::find_if(ue_ded_pucch_cfg.pucch_res_list.begin(),
                                    ue_ded_pucch_cfg.pucch_res_list.end(),
                                    [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_2; });
-    srsran_assert(res_f2_it != ue_ded_pucch_cfg.pucch_res_list.end(),
-                  "No PUCCH F2 resource found in the UE dedicated configuration");
+    ocudu_assert(res_f2_it != ue_ded_pucch_cfg.pucch_res_list.end(),
+                 "No PUCCH F2 resource found in the UE dedicated configuration");
     ue_ded_pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] = get_pucch_format2_max_payload(
         std::get<pucch_format_2_3_cfg>(res_f2_it->format_params).nof_prbs,
         res_f2_it->nof_symbols,
@@ -353,8 +353,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     auto* res_f3_it = std::find_if(ue_ded_pucch_cfg.pucch_res_list.begin(),
                                    ue_ded_pucch_cfg.pucch_res_list.end(),
                                    [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_3; });
-    srsran_assert(res_f3_it != ue_ded_pucch_cfg.pucch_res_list.end(),
-                  "No PUCCH F3 resource found in the UE dedicated configuration");
+    ocudu_assert(res_f3_it != ue_ded_pucch_cfg.pucch_res_list.end(),
+                 "No PUCCH F3 resource found in the UE dedicated configuration");
     const auto& f3_common_params = ue_ded_pucch_cfg.format_3_common_param.value();
     ue_ded_pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_3)] =
         get_pucch_format3_max_payload(std::get<pucch_format_2_3_cfg>(res_f3_it->format_params).nof_prbs,
@@ -368,8 +368,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     auto* res_f4_it = std::find_if(ue_ded_pucch_cfg.pucch_res_list.begin(),
                                    ue_ded_pucch_cfg.pucch_res_list.end(),
                                    [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_4; });
-    srsran_assert(res_f4_it != ue_ded_pucch_cfg.pucch_res_list.end(),
-                  "No PUCCH F4 resource found in the UE dedicated configuration");
+    ocudu_assert(res_f4_it != ue_ded_pucch_cfg.pucch_res_list.end(),
+                 "No PUCCH F4 resource found in the UE dedicated configuration");
     const auto& f4_common_params = ue_ded_pucch_cfg.format_4_common_param.value();
     ue_ded_pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_4)] =
         get_pucch_format4_max_payload(res_f4_it->nof_symbols,
@@ -410,10 +410,10 @@ void du_pucch_resource_manager::dealloc_resources(cell_group_config& cell_grp_cf
   // Remove the SR and CSI offsets from the PUCCH grants-per-slot counter.
   std::set<unsigned> csi_sr_offset_for_pucch_cnt = compute_sr_csi_pucch_offsets(sr_to_deallocate.offset, csi_offset);
   for (auto offset : csi_sr_offset_for_pucch_cnt) {
-    srsran_assert(offset < du_cell_res.pucch_grants_per_slot_cnt.size(),
-                  "Index exceeds the size of the PUCCH grants vector");
-    srsran_assert(du_cell_res.pucch_grants_per_slot_cnt[offset] != 0,
-                  "Index exceeds the size of the PUCCH grants vector");
+    ocudu_assert(offset < du_cell_res.pucch_grants_per_slot_cnt.size(),
+                 "Index exceeds the size of the PUCCH grants vector");
+    ocudu_assert(du_cell_res.pucch_grants_per_slot_cnt[offset] != 0,
+                 "Index exceeds the size of the PUCCH grants vector");
     --du_cell_res.pucch_grants_per_slot_cnt[offset];
   }
 
@@ -515,7 +515,7 @@ bool du_pucch_resource_manager::csi_offset_collides_with_sr(unsigned sr_offset, 
 unsigned du_pucch_resource_manager::sr_du_res_idx_to_pucch_res_idx(unsigned sr_du_res_idx) const
 {
   // The mapping from the UE's PUCCH-Config \ref res_id index to the DU index for PUCCH SR resource is the inverse of
-  // what is defined in \ref srs_du::ue_pucch_config_builder.
+  // what is defined in \ref odu::ue_pucch_config_builder.
   return user_defined_pucch_cfg.res_set_0_size.to_uint() * user_defined_pucch_cfg.nof_cell_res_set_configs +
          sr_du_res_idx;
 }
@@ -523,7 +523,7 @@ unsigned du_pucch_resource_manager::sr_du_res_idx_to_pucch_res_idx(unsigned sr_d
 unsigned du_pucch_resource_manager::pucch_res_idx_to_sr_du_res_idx(unsigned pucch_res_idx) const
 {
   // The mapping from the UE's PUCCH-Config \ref res_id index to the DU index for PUCCH SR resource is the inverse of
-  // what is defined in \ref srs_du::ue_pucch_config_builder.
+  // what is defined in \ref odu::ue_pucch_config_builder.
   return pucch_res_idx -
          user_defined_pucch_cfg.res_set_0_size.to_uint() * user_defined_pucch_cfg.nof_cell_res_set_configs;
 }
@@ -531,7 +531,7 @@ unsigned du_pucch_resource_manager::pucch_res_idx_to_sr_du_res_idx(unsigned pucc
 unsigned du_pucch_resource_manager::csi_du_res_idx_to_pucch_res_idx(unsigned csi_du_res_idx) const
 {
   // The mapping from the UE's PUCCH-Config \ref res_id index to the DU index for PUCCH CSI resource is the inverse of
-  // what is defined in \ref srs_du::ue_pucch_config_builder.
+  // what is defined in \ref odu::ue_pucch_config_builder.
   return user_defined_pucch_cfg.res_set_0_size.to_uint() * user_defined_pucch_cfg.nof_cell_res_set_configs +
          user_defined_pucch_cfg.nof_cell_sr_resources +
          user_defined_pucch_cfg.res_set_1_size.to_uint() * user_defined_pucch_cfg.nof_cell_res_set_configs +
@@ -541,7 +541,7 @@ unsigned du_pucch_resource_manager::csi_du_res_idx_to_pucch_res_idx(unsigned csi
 unsigned du_pucch_resource_manager::pucch_res_idx_to_csi_du_res_idx(unsigned pucch_res_idx) const
 {
   // The mapping from the UE's PUCCH-Config \ref res_id index to the DU index for PUCCH CSI resource is the inverse of
-  // what is defined in \ref srs_du::ue_pucch_config_builder.
+  // what is defined in \ref odu::ue_pucch_config_builder.
   return pucch_res_idx -
          (user_defined_pucch_cfg.res_set_0_size.to_uint() * user_defined_pucch_cfg.nof_cell_res_set_configs +
           user_defined_pucch_cfg.nof_cell_sr_resources +

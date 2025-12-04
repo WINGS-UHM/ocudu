@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_port_context.h"
 #include <charconv>
 #include <optional>
 #include <rte_ethdev.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 /// DPDK configuration settings.

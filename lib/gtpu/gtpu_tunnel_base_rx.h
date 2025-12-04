@@ -12,10 +12,10 @@
 
 #include "gtpu_pdu.h"
 #include "gtpu_tunnel_logger.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/gtpu/gtpu_tunnel_common_rx.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_rx.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used for receiving GTP-U bearers.
 class gtpu_tunnel_base_rx : public gtpu_tunnel_common_rx_upper_layer_interface
@@ -53,4 +53,4 @@ protected:
   gtpu_tunnel_logger logger;
   bool               test_mode;
 };
-} // namespace srsran
+} // namespace ocudu

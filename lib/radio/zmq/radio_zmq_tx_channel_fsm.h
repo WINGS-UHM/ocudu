@@ -11,11 +11,11 @@
 #pragma once
 
 #include "radio_zmq_timer.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <condition_variable>
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// Finite state machine for the ZeroMQ-based radio transmit channel.
 class radio_zmq_tx_channel_fsm
@@ -49,7 +49,7 @@ public:
   void init_successful()
   {
     std::scoped_lock lock(mutex);
-    srsran_assert(state == states::UNINITIALIZED, "Invalid state.");
+    ocudu_assert(state == states::UNINITIALIZED, "Invalid state.");
     state = states::WAIT_START;
   }
 
@@ -57,7 +57,7 @@ public:
   void on_start()
   {
     std::scoped_lock lock(mutex);
-    srsran_assert(state == states::WAIT_START, "Invalid state.");
+    ocudu_assert(state == states::WAIT_START, "Invalid state.");
     state = states::WAIT_REQUEST;
     timer.start();
   }
@@ -155,4 +155,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

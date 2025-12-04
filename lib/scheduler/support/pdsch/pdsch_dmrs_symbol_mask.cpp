@@ -10,9 +10,9 @@
 
 #include "pdsch_dmrs_symbol_mask.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-dmrs_symbol_mask srsran::pdsch_dmrs_symbol_mask_mapping_type_A_single_get(
+dmrs_symbol_mask ocudu::pdsch_dmrs_symbol_mask_mapping_type_A_single_get(
     const pdsch_dmrs_symbol_mask_mapping_type_A_single_configuration& config)
 {
   unsigned l0 = static_cast<unsigned>(config.typeA_pos);

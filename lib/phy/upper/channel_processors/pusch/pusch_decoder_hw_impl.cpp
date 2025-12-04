@@ -9,14 +9,14 @@
  */
 
 #include "pusch_decoder_hw_impl.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
-#include "srsran/phy/upper/rx_buffer.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/rx_buffer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Number of bits in one byte.
 static constexpr unsigned BITS_PER_BYTE = 8;
@@ -95,12 +95,12 @@ pusch_decoder_buffer& pusch_decoder_hw_impl::new_data(span<uint8_t>             
 span<log_likelihood_ratio> pusch_decoder_hw_impl::get_next_block_view(unsigned block_size)
 {
   // Makes sure the block size does not overflow the buffer.
-  srsran_assert(softbits_count + block_size <= softbits_buffer.size(),
-                "The sum of current buffer number of elements (i.e., {}) and the block size (i.e., {}), exceeds the "
-                "total number of elements of the buffer (i.e., {}).",
-                softbits_count,
-                block_size,
-                softbits_buffer.size());
+  ocudu_assert(softbits_count + block_size <= softbits_buffer.size(),
+               "The sum of current buffer number of elements (i.e., {}) and the block size (i.e., {}), exceeds the "
+               "total number of elements of the buffer (i.e., {}).",
+               softbits_count,
+               block_size,
+               softbits_buffer.size());
 
   return span<log_likelihood_ratio>(softbits_buffer).subspan(softbits_count, block_size);
 }
@@ -111,7 +111,7 @@ void pusch_decoder_hw_impl::on_new_softbits(span<const log_likelihood_ratio> sof
 
   // Copy only if the soft bits do not match.
   if (block.data() != softbits.data()) {
-    srsvec::copy(block, softbits);
+    ocuduvec::copy(block, softbits);
   }
 
   softbits_count += softbits.size();
@@ -145,10 +145,10 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
   }
 
   unsigned modulation_order = get_bits_per_symbol(current_config.mod);
-  srsran_assert(softbits_count % modulation_order == 0,
-                "The number of soft bits (i.e., {}) must be multiple of the modulation order (i.e., {}).\n",
-                softbits_count,
-                modulation_order);
+  ocudu_assert(softbits_count % modulation_order == 0,
+               "The number of soft bits (i.e., {}) must be multiple of the modulation order (i.e., {}).\n",
+               softbits_count,
+               modulation_order);
 
   // Reserve a hardware-queue for the current decoding operation.
   decoder->reserve_queue();
@@ -170,10 +170,10 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
   segmenter->segment(codeblock_llrs, llrs, tb_size, segmentation_config);
 
   unsigned nof_cbs = codeblock_llrs.size();
-  srsran_assert(nof_cbs == softbuffer->get_nof_codeblocks(),
-                "Wrong number of codeblocks {} (expected {}).",
-                softbuffer->get_nof_codeblocks(),
-                nof_cbs);
+  ocudu_assert(nof_cbs == softbuffer->get_nof_codeblocks(),
+               "Wrong number of codeblocks {} (expected {}).",
+               softbuffer->get_nof_codeblocks(),
+               nof_cbs);
 
   unsigned tb_and_crc_size = get_tb_and_crc_size(tb_size, nof_cbs);
   tmp_tb_bits.resize(tb_and_crc_size);
@@ -186,7 +186,7 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
   // Reset CRCs if new data is flagged.
   span<bool> cb_crcs = softbuffer->get_codeblocks_crc();
   if (current_config.new_data) {
-    srsvec::zero(cb_crcs);
+    ocuduvec::zero(cb_crcs);
   }
 
   // Decode the CBs.
@@ -204,7 +204,7 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
       last_enqueued_cb_id = cb_id;
       const auto& cb_llrs = codeblock_llrs[cb_id].first;
       const auto& cb_meta = codeblock_llrs[cb_id].second;
-      srsran_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
+      ocudu_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
 
       // Get codeblock length, without rate matching, the message length and the number of data bits (no CRC, no filler
       // bits - may contain zero-padding).
@@ -281,7 +281,7 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
       last_dequeued_cb_id = cb_id;
       const auto& cb_llrs = codeblock_llrs[cb_id].first;
       const auto& cb_meta = codeblock_llrs[cb_id].second;
-      srsran_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
+      ocudu_assert(cb_llrs.size() == cb_meta.cb_specific.rm_length, "Wrong rate-matched codeblock length.");
 
       // Get codeblock length, without rate matching, the message length and the number of data bits (no CRC, no filler
       // bits - may contain zero-padding).
@@ -332,7 +332,7 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
       }
 
       // Copy the decoded code block into the transport block buffer.
-      srsvec::copy_offset(tmp_tb_bits, deq_tb_offset, message, 0, nof_new_bits);
+      ocuduvec::copy_offset(tmp_tb_bits, deq_tb_offset, message, 0, nof_new_bits);
 
       // Update the dequeuing offset within the TB.
       deq_tb_offset += nof_new_bits;
@@ -346,7 +346,7 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
       }
     }
   }
-  srsran_assert(deq_tb_offset == tb_and_crc_size, "All TB bits should be filled at this point.");
+  ocudu_assert(deq_tb_offset == tb_and_crc_size, "All TB bits should be filled at this point.");
 
   copy_tb_and_notify(std::move(decoder), cb_crcs.first(nof_cbs));
 }
@@ -355,7 +355,7 @@ void pusch_decoder_hw_impl::check_hw_results(span<bool>                     cb_c
                                              hal::hw_accelerator_pusch_dec& decoder,
                                              unsigned                       cb_id,
                                              hal::hw_dec_cb_crc_type        crc_type,
-                                             srsran::bit_buffer             data)
+                                             ocudu::bit_buffer              data)
 {
   hal::hw_pusch_decoder_outputs hw_out = {};
   decoder.read_operation_outputs(hw_out, cb_id, absolute_cb_ids[cb_id]);
@@ -397,7 +397,7 @@ void pusch_decoder_hw_impl::copy_tb_and_notify(hw_decoder_pool::ptr decoder, spa
     // When only one codeblock, the CRC of codeblock and transport block are the same.
     stats.tb_crc_ok = cb_crcs[0];
     if (stats.tb_crc_ok) {
-      srsvec::copy(transport_block, tmp_tb_bits.get_buffer().first(transport_block.size()));
+      ocuduvec::copy(transport_block, tmp_tb_bits.get_buffer().first(transport_block.size()));
       // Free the HARQ context entries.
       for (unsigned cb_idx = 0, cb_idx_end = cb_crcs.size(); cb_idx != cb_idx_end; ++cb_idx) {
         decoder->free_harq_context_entry(absolute_cb_ids[cb_idx]);
@@ -406,7 +406,7 @@ void pusch_decoder_hw_impl::copy_tb_and_notify(hw_decoder_pool::ptr decoder, spa
   } else if (std::all_of(cb_crcs.begin(), cb_crcs.end(), [](bool a) { return a; })) {
     // When more than one codeblock, we need to check the global transport block CRC. Note that there is no need to
     // compute the CRC if any of the codeblocks was not decoded correctly.
-    srsvec::copy(transport_block, tmp_tb_bits.get_buffer().first(transport_block.size()));
+    ocuduvec::copy(transport_block, tmp_tb_bits.get_buffer().first(transport_block.size()));
 
     if (crc_set.crc24A->calculate(tmp_tb_bits) == 0) {
       stats.tb_crc_ok = true;

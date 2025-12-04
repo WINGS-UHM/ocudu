@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/ssb/ssb_gscn.h"
+#include "ocudu/ran/ssb/ssb_gscn.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(test_get_ss_ref_from_gscn, mixed_bands)
 {

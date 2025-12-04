@@ -10,14 +10,14 @@
 
 #include "../../generic_functions/dft_processor_test_doubles.h"
 #include "../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/support/test_utils.h"
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {
@@ -132,7 +132,7 @@ int main()
             span<const cf_t> dft_input = dft_entries[symbol_idx].input;
 
             // Verify DFT input.
-            TESTASSERT(srsvec::equal(time_data_symbol.last(dft_size), dft_input.first(dft_size)));
+            TESTASSERT(ocuduvec::equal(time_data_symbol.last(dft_size), dft_input.first(dft_size)));
 
             // Generate ideal frequency domain outputs.
             for (unsigned subc_idx = 0; subc_idx != nsubc; ++subc_idx) {

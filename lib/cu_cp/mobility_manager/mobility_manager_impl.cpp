@@ -10,10 +10,10 @@
 
 #include "mobility_manager_impl.h"
 #include "../du_processor/du_processor_repository.h"
-#include "srsran/ran/nr_cgi.h"
+#include "ocudu/ran/nr_cgi.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 mobility_manager::mobility_manager(const mobility_manager_cfg&      cfg_,
                                    mobility_manager_cu_cp_notifier& cu_cp_notifier_,
@@ -25,7 +25,7 @@ mobility_manager::mobility_manager(const mobility_manager_cfg&      cfg_,
   ngap_db(ngap_db_),
   du_db(du_db_),
   ue_mng(ue_mng_),
-  logger(srslog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

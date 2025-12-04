@@ -9,17 +9,17 @@
  */
 
 #include "e1ap_cu_cp_ue_context.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
 e1ap_ue_context* e1ap_ue_context_list::add_ue(ue_index_t ue_index, gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id)
 {
-  srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));
-  srsran_assert(cu_cp_ue_e1ap_id != gnb_cu_cp_ue_e1ap_id_t::invalid,
-                "Invalid cu_cp_ue_e1ap_id={}",
-                fmt::underlying(cu_cp_ue_e1ap_id));
+  ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));
+  ocudu_assert(cu_cp_ue_e1ap_id != gnb_cu_cp_ue_e1ap_id_t::invalid,
+               "Invalid cu_cp_ue_e1ap_id={}",
+               fmt::underlying(cu_cp_ue_e1ap_id));
 
   if (ue_index_to_ue_e1ap_id.find(ue_index) != ue_index_to_ue_e1ap_id.end()) {
     logger.error("ue={}: UE already exists", ue_index);
@@ -41,7 +41,7 @@ e1ap_ue_context* e1ap_ue_context_list::add_ue(ue_index_t ue_index, gnb_cu_cp_ue_
 
 void e1ap_ue_context_list::remove_ue(ue_index_t ue_index)
 {
-  srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+  ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
 
   auto id_it = ue_index_to_ue_e1ap_id.find(ue_index);
   if (id_it == ue_index_to_ue_e1ap_id.end()) {
@@ -104,8 +104,8 @@ gnb_cu_cp_ue_e1ap_id_t e1ap_ue_context_list::allocate_gnb_cu_cp_ue_e1ap_id()
 
 void e1ap_ue_context_list::update_ue_index(ue_index_t new_ue_index, ue_index_t old_ue_index)
 {
-  srsran_assert(new_ue_index != ue_index_t::invalid, "Invalid new_ue_index={}", new_ue_index);
-  srsran_assert(old_ue_index != ue_index_t::invalid, "Invalid old_ue_index={}", old_ue_index);
+  ocudu_assert(new_ue_index != ue_index_t::invalid, "Invalid new_ue_index={}", new_ue_index);
+  ocudu_assert(old_ue_index != ue_index_t::invalid, "Invalid old_ue_index={}", old_ue_index);
   // no need to update if the ue indexes are equal
   if (new_ue_index == old_ue_index) {
     return;
@@ -113,11 +113,11 @@ void e1ap_ue_context_list::update_ue_index(ue_index_t new_ue_index, ue_index_t o
 
   // Fetch CU-CP-UE-E1AP-ID.
   auto id_it = ue_index_to_ue_e1ap_id.find(old_ue_index);
-  srsran_assert(id_it != ue_index_to_ue_e1ap_id.end(), "ue={}: GNB-CU-CP-UE-E1AP-ID not found", old_ue_index);
+  ocudu_assert(id_it != ue_index_to_ue_e1ap_id.end(), "ue={}: GNB-CU-CP-UE-E1AP-ID not found", old_ue_index);
   gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id = id_it->second;
 
   auto ue_it = ues.find(cu_cp_ue_e1ap_id);
-  srsran_sanity_check(
+  ocudu_sanity_check(
       ue_it != ues.end(), "cu_cp_ue_e1ap_id={}: UE context not found", fmt::underlying(cu_cp_ue_e1ap_id));
   e1ap_ue_context& ue = ue_it->second;
 

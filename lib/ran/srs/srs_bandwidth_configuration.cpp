@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
-#include "srsran/adt/span.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/adt/span.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // TS38.211 Table 6.4.1.4.3-1.
 static const std::array<srs_configuration, 64> table0 = {
@@ -48,7 +48,7 @@ static const std::array<srs_configuration, 64> table3 = {
      {4, 1},  {4, 10}, {4, 5}, {4, 4}, {4, 7}, {4, 11}, {4, 1}, {4, 12}, {4, 6},  {4, 4},  {4, 2},  {4, 13}, {4, 9},
      {4, 14}, {4, 15}, {4, 5}, {8, 2}, {4, 3}, {4, 16}, {4, 8}, {4, 2},  {4, 11}, {4, 17}, {4, 1},  {4, 2}}};
 
-std::optional<srs_configuration> srsran::srs_configuration_get(uint8_t c_srs, uint8_t b_srs)
+std::optional<srs_configuration> ocudu::srs_configuration_get(uint8_t c_srs, uint8_t b_srs)
 {
   span<const srs_configuration> table;
 

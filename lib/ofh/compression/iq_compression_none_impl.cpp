@@ -11,11 +11,11 @@
 #include "iq_compression_none_impl.h"
 #include "packing_utils_generic.h"
 #include "quantizer.h"
-#include "srsran/ofh/compression/compression_properties.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/support/units.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ofh/compression/compression_properties.h"
+#include "ocudu/support/units.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void iq_compression_none_impl::compress(span<uint8_t>                buffer,
@@ -31,7 +31,7 @@ void iq_compression_none_impl::compress(span<uint8_t>                buffer,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
+  ocudu_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
 
   span<const bf16_t> float_samples(reinterpret_cast<const bf16_t*>(iq_data.data()), iq_data.size() * 2);
 
@@ -66,7 +66,7 @@ void iq_compression_none_impl::decompress(span<cbf16_t>                output,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(
+  ocudu_assert(
       input.size() >= nof_prbs * prb_size, "Input does not contain enough bytes to decompress {} PRBs", nof_prbs);
 
   unsigned out_idx = 0;
@@ -85,9 +85,9 @@ void iq_compression_none_impl::decompress(span<cbf16_t>                output,
 
 void iq_compression_none_impl::log_post_quantization_rms(span<const int16_t> samples)
 {
-  if (SRSRAN_UNLIKELY(logger.debug.enabled() && !samples.empty())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled() && !samples.empty())) {
     // Calculate and print RMS of quantized samples.
-    float sum_squares = srsvec::dot_prod(samples, samples, 0);
+    float sum_squares = ocuduvec::dot_prod(samples, samples, 0);
     float rms         = std::sqrt(sum_squares / samples.size());
     if (std::isnormal(rms)) {
       logger.debug("Quantized IQ samples RMS value of '{}'", rms);

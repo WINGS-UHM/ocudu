@@ -13,11 +13,11 @@
 #include "../mac_config_interfaces.h"
 #include "mac_config.h"
 #include "mac_scheduler_configurator.h"
-#include "srsran/adt/span.h"
-#include "srsran/mac/mac.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_ue_create_request_procedure
 {
@@ -48,7 +48,7 @@ private:
 
   mac_ue_create_request       req;
   mac_control_config&         cfg;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
   mac_ctrl_configurator&      ctrl_unit;
   mac_ul_configurator&        ul_unit;
   mac_dl_configurator&        dl_unit;
@@ -60,4 +60,4 @@ private:
   bool   add_sched_ue_result = false;
 };
 
-} // namespace srsran
+} // namespace ocudu

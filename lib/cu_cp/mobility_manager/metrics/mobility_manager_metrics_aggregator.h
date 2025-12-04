@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/cu_cp/mobility_management_metrics.h"
+#include "ocudu/cu_cp/mobility_management_metrics.h"
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 class mobility_manager_metrics_aggregator
 {
@@ -35,4 +35,4 @@ private:
   mobility_management_metrics aggregated_mobility_manager_metrics;
 };
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

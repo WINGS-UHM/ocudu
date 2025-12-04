@@ -11,9 +11,9 @@
 #pragma once
 
 #include "scheduler_policy.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 class scheduler_time_rr : public scheduler_policy
 {
@@ -47,4 +47,4 @@ private:
   unsigned ul_alloc_count{0};
 };
 
-} // namespace srsran
+} // namespace ocudu

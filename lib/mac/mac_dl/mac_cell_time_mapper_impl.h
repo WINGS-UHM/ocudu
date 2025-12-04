@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/mac/mac_cell_slot_handler.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/mac/mac_cell_slot_handler.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief A lock-free atomic mapper that stores System Frame Number (SFN) and system time.
 /// This class provides an efficient, atomic way to store and retrieve a mapping between SFN and system time, using
@@ -111,7 +111,7 @@ public:
   std::optional<slot_point> get_slot_point(time_point time) const override;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   /// Atomic SFN-Timestamp mapping used as reference to compute any requested slot_point-time_point mapping.
   ///  This is the core reference mapping that links a System Frame Number(SFN) and a timestamp.
@@ -127,4 +127,4 @@ private:
   static constexpr usecs frame_dur = usecs{10000};
 };
 
-} // namespace srsran
+} // namespace ocudu

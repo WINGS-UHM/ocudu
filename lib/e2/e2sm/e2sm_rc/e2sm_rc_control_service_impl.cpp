@@ -14,10 +14,10 @@
 
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
-using namespace srsran;
+using namespace ocudu;
 
 e2sm_rc_control_service_base::e2sm_rc_control_service_base(uint32_t style_id_) :
-  logger(srslog::fetch_basic_logger("E2SM-RC")), style_id(style_id_)
+  logger(ocudulog::fetch_basic_logger("E2SM-RC")), style_id(style_id_)
 {
   if (!get_e2sm_rc_control_style_def(style_id_, control_service_def)) {
     logger.error("Control Service Style %i does not exist\n", style_id_);

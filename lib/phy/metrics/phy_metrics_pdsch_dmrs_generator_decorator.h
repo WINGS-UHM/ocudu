@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// DM-RS for PDSCH generator metric decorator.
 class phy_metrics_dmrs_pdsch_processor_decorator : public dmrs_pdsch_processor
@@ -27,7 +27,7 @@ public:
                                              pdsch_dmrs_generator_metric_notifier& notifier_) :
     base(std::move(base_)), notifier(notifier_)
   {
-    srsran_assert(base, "Invalid encoder.");
+    ocudu_assert(base, "Invalid encoder.");
   }
 
   // See interface for documentation.
@@ -47,4 +47,4 @@ private:
   pdsch_dmrs_generator_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

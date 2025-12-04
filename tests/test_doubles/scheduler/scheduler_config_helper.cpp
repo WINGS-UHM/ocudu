@@ -9,14 +9,14 @@
  */
 
 #include "scheduler_config_helper.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-sched_cell_configuration_request_message srsran::sched_config_helper::make_default_sched_cell_configuration_request(
+sched_cell_configuration_request_message ocudu::sched_config_helper::make_default_sched_cell_configuration_request(
     const cell_config_builder_params& params_input)
 {
   config_helpers::cell_config_builder_params_extended params{params_input};

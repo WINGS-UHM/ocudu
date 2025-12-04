@@ -12,17 +12,17 @@
 
 #include "../support/prach_context_repository.h"
 #include "../support/uplink_context_repository.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ofh/ofh_uplane_rx_symbol_notifier.h"
-#include "srsran/ofh/receiver/ofh_receiver_metrics.h"
-#include "srsran/ofh/receiver/ofh_receiver_timing_parameters.h"
-#include "srsran/ofh/receiver/ofh_receiver_warn_unreceived_frames_parameters.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/ofh/timing/slot_symbol_point.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
+#include "ocudu/ofh/receiver/ofh_receiver_metrics.h"
+#include "ocudu/ofh/receiver/ofh_receiver_timing_parameters.h"
+#include "ocudu/ofh/receiver/ofh_receiver_warn_unreceived_frames_parameters.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/ofh/timing/slot_symbol_point.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -43,7 +43,7 @@ struct closed_rx_window_handler_config {
 
 /// Closed reception window handler dependencies.
 struct closed_rx_window_handler_dependencies {
-  srslog::basic_logger*                      logger   = nullptr;
+  ocudulog::basic_logger*                    logger   = nullptr;
   task_executor*                             executor = nullptr;
   std::shared_ptr<prach_context_repository>  prach_repo;
   std::shared_ptr<uplink_context_repository> uplink_repo;
@@ -97,7 +97,7 @@ private:
   const unsigned                             sector_id;
   const warn_unreceived_ru_frames            warn_unreceived_frames;
   bool                                       log_unreceived_messages;
-  srslog::basic_logger&                      logger;
+  ocudulog::basic_logger&                    logger;
   task_executor&                             executor;
   std::shared_ptr<prach_context_repository>  prach_repo;
   std::shared_ptr<uplink_context_repository> uplink_repo;
@@ -110,4 +110,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

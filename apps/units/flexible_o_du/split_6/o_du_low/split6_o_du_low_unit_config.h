@@ -15,7 +15,7 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config.h"
 #include <variant>
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU low Split 6 unit configuration.
 struct split6_o_du_low_unit_config {
@@ -23,11 +23,11 @@ struct split6_o_du_low_unit_config {
   /// Start jitter in milliseconds.
   unsigned start_time_jitter_ms = 0;
   /// FAPI log level.
-  srslog::basic_levels fapi_level = srslog::basic_levels::warning;
+  ocudulog::basic_levels fapi_level = ocudulog::basic_levels::warning;
   /// DU low configuration.
   du_low_unit_config du_low_cfg;
   /// Radio Unit configuration.
   std::variant<ru_sdr_unit_config, ru_ofh_unit_parsed_config> ru_cfg = {ru_sdr_unit_config{}};
 };
 
-} // namespace srsran
+} // namespace ocudu

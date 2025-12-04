@@ -12,7 +12,7 @@
 
 #include <string_view>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Metrics properties.
@@ -27,4 +27,4 @@ public:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

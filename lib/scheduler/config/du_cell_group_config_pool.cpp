@@ -9,9 +9,9 @@
  */
 
 #include "du_cell_group_config_pool.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 du_cell_config_pool::du_cell_config_pool(const sched_cell_configuration_request_message& cell_cfg) :
   init_dl_bwp(cell_cfg.dl_cfg_common.init_dl_bwp), init_ul_bwp(cell_cfg.ul_cfg_common.init_ul_bwp)
@@ -105,7 +105,7 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
 
 void du_cell_group_config_pool::add_cell(const sched_cell_configuration_request_message& cell_cfg)
 {
-  srsran_assert(cells.count(cell_cfg.cell_index) == 0, "Cell already exists");
+  ocudu_assert(cells.count(cell_cfg.cell_index) == 0, "Cell already exists");
   cells.emplace(cell_cfg.cell_index, cell_cfg);
 }
 

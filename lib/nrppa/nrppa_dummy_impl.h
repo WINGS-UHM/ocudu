@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/nrppa/nrppa.h"
+#include "ocudu/nrppa/nrppa.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class nrppa_dummy_impl : public nrppa_interface, public nrppa_message_handler, public nrppa_ue_context_removal_handler
 {
@@ -33,8 +33,8 @@ public:
   nrppa_ue_context_removal_handler& get_nrppa_ue_context_removal_handler() override { return *this; }
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

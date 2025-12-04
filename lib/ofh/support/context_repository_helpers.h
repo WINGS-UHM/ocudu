@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ran/slot_point.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// System frame number maximum value in the Open Fronthaul repositories.
@@ -39,4 +39,4 @@ constexpr unsigned calculate_repository_index(slot_point slot, unsigned repo_siz
 }
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

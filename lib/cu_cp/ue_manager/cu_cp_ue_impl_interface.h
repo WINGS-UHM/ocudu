@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../ue_security_manager/ue_security_manager_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/nrppa/nrppa.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/nrppa/nrppa.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 // Forward declarations.
 class up_resource_manager;
@@ -55,5 +55,5 @@ public:
   virtual std::optional<cell_measurement_positioning_info>& get_measurement_results() = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

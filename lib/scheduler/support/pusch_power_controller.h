@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../ue_context/ue_channel_state_manager.h"
-#include "srsran/adt/circular_array.h"
+#include "ocudu/adt/circular_array.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ue_cell_configuration;
 
@@ -110,7 +110,7 @@ private:
   /// \brief Ring of PUSCH power allocation parameters indexed by slot.
   circular_array<pusch_pw_ctrl_data, get_allocator_ring_size_gt_min(MAX_PHR_IND_DELAY_SLOTS)> pusch_pw_ctrl_grid;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

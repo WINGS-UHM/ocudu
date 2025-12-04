@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/asn1/rrc_nr/sys_info.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/asn1/rrc_nr/sys_info.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/rnti.h"
 
-namespace srsran {
+namespace ocudu {
 namespace test_helpers {
 
 /// \brief Generates a dummy RRC Setup Request message.
@@ -49,4 +49,4 @@ byte_buffer pack_ul_dcch_msg(const asn1::rrc_nr::ul_dcch_msg_s& msg);
 asn1::rrc_nr::sib1_s create_sib1(const plmn_identity& plmn = plmn_identity::test_value());
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

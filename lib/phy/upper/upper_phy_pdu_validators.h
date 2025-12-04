@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator_validator.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration_validator.h"
-#include "srsran/phy/upper/uplink_pdu_validator.h"
-#include "srsran/phy/upper/uplink_processor.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator_validator.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration_validator.h"
+#include "ocudu/phy/upper/uplink_pdu_validator.h"
+#include "ocudu/phy/upper/uplink_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements the uplink PDU validator for \ref uplink_processor_single_executor_impl.
 class uplink_processor_validator_impl : public uplink_pdu_validator
@@ -29,10 +29,10 @@ public:
                                   std::unique_ptr<srs_estimator_configuration_validator> srs_) :
     prach(std::move(prach_)), pucch(std::move(pucch_)), pusch(std::move(pusch_)), srs(std::move(srs_))
   {
-    srsran_assert(prach, "Invalid PRACH detector validator.");
-    srsran_assert(pucch, "Invalid PUCCH processor validator.");
-    srsran_assert(pusch, "Invalid PUSCH processor validator.");
-    srsran_assert(srs, "Invalid SRS estimator configuration validator.");
+    ocudu_assert(prach, "Invalid PRACH detector validator.");
+    ocudu_assert(pucch, "Invalid PUCCH processor validator.");
+    ocudu_assert(pusch, "Invalid PUSCH processor validator.");
+    ocudu_assert(srs, "Invalid SRS estimator configuration validator.");
   }
 
   // See interface for documentation.
@@ -88,11 +88,11 @@ public:
                                     std::unique_ptr<prs_generator_validator>            prs_) :
     ssb(std::move(ssb_)), pdcch(std::move(pdcch_)), pdsch(std::move(pdsch_)), csi(std::move(csi_)), prs(std::move(prs_))
   {
-    srsran_assert(ssb, "Invalid SSB processor validator.");
-    srsran_assert(pdcch, "Invalid PDCCH processor validator.");
-    srsran_assert(pdsch, "Invalid PDSCH processor validator.");
-    srsran_assert(csi, "Invalid NZP-CSI-RS processor validator.");
-    srsran_assert(prs, "Invalid PRS generator validator.");
+    ocudu_assert(ssb, "Invalid SSB processor validator.");
+    ocudu_assert(pdcch, "Invalid PDCCH processor validator.");
+    ocudu_assert(pdsch, "Invalid PDSCH processor validator.");
+    ocudu_assert(csi, "Invalid NZP-CSI-RS processor validator.");
+    ocudu_assert(prs, "Invalid PRS generator validator.");
   }
 
   // See interface for documentation.
@@ -116,4 +116,4 @@ private:
   std::unique_ptr<prs_generator_validator>            prs;
 };
 
-} // namespace srsran
+} // namespace ocudu

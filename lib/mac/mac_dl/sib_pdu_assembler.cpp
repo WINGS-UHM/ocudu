@@ -9,10 +9,10 @@
  */
 
 #include "sib_pdu_assembler.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/units.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/units.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Max SI Message PDU size. This value is implementation-defined.
 static constexpr unsigned MAX_BCCH_DL_SCH_PDU_SIZE = 2048;
@@ -20,7 +20,7 @@ static constexpr unsigned MAX_BCCH_DL_SCH_PDU_SIZE = 2048;
 // Payload of zeros sent to when an error occurs.
 static const std::vector<uint8_t> zeros_payload(MAX_BCCH_DL_SCH_PDU_SIZE, 0);
 
-sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) : logger(srslog::fetch_basic_logger("MAC"))
+sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) : logger(ocudulog::fetch_basic_logger("MAC"))
 {
   // Version starts at 0.
   last_cfg_buffers.version  = 0;
@@ -34,8 +34,8 @@ sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) : logg
 void sib_pdu_assembler::handle_si_change_request(const mac_cell_sys_info_config& req)
 {
   // Save new buffers that have changed.
-  srsran_assert(last_cfg_buffers.version != req.si_sched_cfg.version,
-                "Version of the last SI message update is the same as the new one");
+  ocudu_assert(last_cfg_buffers.version != req.si_sched_cfg.version,
+               "Version of the last SI message update is the same as the new one");
   save_buffers(req.si_sched_cfg.version, req);
 
   // Forward new version and buffers to SIB assembler RT path.
@@ -95,10 +95,10 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
 
         // Set the SI message size.
         size_t si_msg_len = new_si_cfg.front().length();
-        srsran_assert(std::all_of(last_si_cfg_buf.begin(),
-                                  last_si_cfg_buf.end(),
-                                  [si_msg_len](const byte_buffer& si_msg) { return si_msg.length() == si_msg_len; }),
-                      "All segments of an SI message must have the same length.");
+        ocudu_assert(std::all_of(last_si_cfg_buf.begin(),
+                                 last_si_cfg_buf.end(),
+                                 [si_msg_len](const byte_buffer& si_msg) { return si_msg.length() == si_msg_len; }),
+                     "All segments of an SI message must have the same length.");
         last_cfg_buffers.si_msg_buffers[i].first = units::bytes{static_cast<unsigned>(si_msg_len)};
 
         // Copy the contents of the request into a linear buffer (deep copy each segment).
@@ -125,7 +125,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
 span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point sl_tx, const sib_information& si_info)
 {
   const unsigned tbs = si_info.pdsch_cfg.codewords[0].tb_size_bytes;
-  srsran_assert(tbs <= MAX_BCCH_DL_SCH_PDU_SIZE, "BCCH-DL-SCH is too long. Revisit constant");
+  ocudu_assert(tbs <= MAX_BCCH_DL_SCH_PDU_SIZE, "BCCH-DL-SCH is too long. Revisit constant");
 
   if (si_info.version != current_buffers.version) {
     // Current SI message version is too old. Fetch new version from shared buffer.
@@ -148,7 +148,7 @@ span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point sl_tx, const sib
     return span<const uint8_t>(current_buffers.sib1_buffer->data(), tbs);
   }
 
-  srsran_assert(si_info.si_msg_index.has_value(), "Invalid SI message index");
+  ocudu_assert(si_info.si_msg_index.has_value(), "Invalid SI message index");
   const unsigned idx = si_info.si_msg_index.value();
   if (idx >= current_buffers.si_msg_buffers.size()) {
     logger.error("Failed to encode SI-message in PDSCH. Cause: SI message index {} does not exist", idx);
@@ -185,12 +185,12 @@ span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point sl_tx, const sib
   return span<const uint8_t>(std::get<bcch_dl_sch_buffer>(current_buffers.si_msg_buffers[idx].second)->data(), tbs);
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE_NTN
+#ifndef OCUDU_HAS_ENTERPRISE_NTN
 
 std::unique_ptr<sib_pdu_assembler::message_handler>
-srsran::create_si_message_extension_handler(const mac_cell_sys_info_config& req)
+ocudu::create_si_message_extension_handler(const mac_cell_sys_info_config& req)
 {
   return nullptr;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE_NTN
+#endif // OCUDU_HAS_ENTERPRISE_NTN

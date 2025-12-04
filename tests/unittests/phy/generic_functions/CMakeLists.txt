@@ -15,12 +15,12 @@ add_subdirectory(precoding)
 add_subdirectory(transform_precoding)
 
 add_executable(dft_processor_test dft_processor_test.cpp)
-target_link_libraries(dft_processor_test srslog srsran_dft gtest gtest_main)
+target_link_libraries(dft_processor_test ocudulog ocudu_dft gtest gtest_main)
 add_test(dft_processor_test dft_processor_test)
 
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
     add_executable(dft_processor_ci16_test dft_processor_ci16_test.cpp)
-    target_link_libraries(dft_processor_ci16_test srslog srsran_dft gtest gtest_main)
+    target_link_libraries(dft_processor_ci16_test ocudulog ocudu_dft gtest gtest_main)
     add_test(dft_processor_ci16_test dft_processor_ci16_test)
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 
@@ -30,6 +30,6 @@ endif ((ENABLE_MKL AND MKL_FOUND) OR (ENABLE_ARMPL AND ARMPL_FOUND) OR (ENABLE_F
 
 if (USE_PHY_TESTVECTORS)
     add_executable(dft_processor_vectortest dft_processor_vectortest.cpp)
-    target_link_libraries(dft_processor_vectortest srslog srsran_dft gtest gtest_main)
+    target_link_libraries(dft_processor_vectortest ocudulog ocudu_dft gtest gtest_main)
     add_test_vector(dft_processor_vectortest dft_processor_test_data.tar.gz "")
 endif (USE_PHY_TESTVECTORS)

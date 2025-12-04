@@ -11,11 +11,11 @@
 #include "bearer_context_modification_procedure.h"
 #include "common/e1ap_asn1_converters.h"
 #include "cu_up/e1ap_cu_up_asn1_helpers.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_up;
+using namespace ocudu;
+using namespace ocudu::ocuup;
 
 bearer_context_modification_procedure::bearer_context_modification_procedure(
     const e1ap_ue_context&                          ue_ctxt_,

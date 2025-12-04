@@ -10,9 +10,9 @@
 
 #include "rlc.h"
 #include "helpers.h"
-#include "srsran/rlc/rlc_metrics.h"
+#include "ocudu/rlc/rlc_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
@@ -26,7 +26,7 @@ static nlohmann::json generate_tx_low_pdu_latency_histogram(unsigned id, unsigne
   return json;
 }
 
-namespace srsran {
+namespace ocudu {
 
 void to_json(nlohmann::json& json, const rlc_rx_metrics& metrics)
 {
@@ -64,9 +64,9 @@ void to_json(nlohmann::json& json, const rlc_metrics& metrics)
   json["rx"]     = metrics.rx;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const rlc_metrics& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const rlc_metrics& metrics)
 {
   nlohmann::json json;
 
@@ -76,7 +76,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const rlc_metrics&
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const rlc_metrics& metrics, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const rlc_metrics& metrics, int indent)
 {
   return generate(metrics).dump(indent);
 }

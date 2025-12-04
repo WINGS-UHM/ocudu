@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller_factories.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller_factories.h"
 #include "amplitude_controller_clipping_impl.h"
 #include "amplitude_controller_scaling_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -30,10 +30,9 @@ public:
   explicit amplitude_controller_clipping_factory(const amplitude_controller_clipping_config& config) :
     amplitude_controller_config(config)
   {
-    srsran_assert(
+    ocudu_assert(
         config.ceiling_dBFS <= 0.0F, "The amplitude ceiling ({} dBFS) cannot be above Full Scale", config.ceiling_dBFS);
-    srsran_assert(
-        config.full_scale_lin > 0.0F, "The Full Scale amplitude ({}) must be positive", config.full_scale_lin);
+    ocudu_assert(config.full_scale_lin > 0.0F, "The Full Scale amplitude ({}) must be positive", config.full_scale_lin);
   }
 
 private:
@@ -57,12 +56,12 @@ private:
 } // namespace
 
 std::shared_ptr<amplitude_controller_factory>
-srsran::create_amplitude_controller_clipping_factory(const amplitude_controller_clipping_config& config)
+ocudu::create_amplitude_controller_clipping_factory(const amplitude_controller_clipping_config& config)
 {
   return std::make_shared<amplitude_controller_clipping_factory>(config);
 }
 
-std::shared_ptr<amplitude_controller_factory> srsran::create_amplitude_controller_scaling_factory(float gain_dB_)
+std::shared_ptr<amplitude_controller_factory> ocudu::create_amplitude_controller_scaling_factory(float gain_dB_)
 {
   return std::make_shared<amplitude_controller_scaling_factory>(gain_dB_);
 }

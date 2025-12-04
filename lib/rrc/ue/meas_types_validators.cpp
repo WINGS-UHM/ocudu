@@ -8,27 +8,27 @@
  *
  */
 
-#include "srsran/rrc/meas_types_validators.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/rrc/meas_types_validators.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 #define LOG_CHAN ("RRC")
 
-bool srsran::srs_cu_cp::validate_config(const rrc_meas_trigger_quant_offset& config)
+bool ocudu::ocucp::validate_config(const rrc_meas_trigger_quant_offset& config)
 {
   if (not config.rsrp.has_value() and not config.rsrq.has_value() and not config.sinr.has_value()) {
-    srslog::fetch_basic_logger(LOG_CHAN).error("Either RSRP/RSRQ or SINR need to be configured.");
+    ocudulog::fetch_basic_logger(LOG_CHAN).error("Either RSRP/RSRQ or SINR need to be configured.");
     return false;
   }
   return true;
 }
 
-bool srsran::srs_cu_cp::validate_config(const rrc_cond_event_a3& event)
+bool ocudu::ocucp::validate_config(const rrc_cond_event_a3& event)
 {
   if (not validate_config(event.a3_offset)) {
-    srslog::fetch_basic_logger(LOG_CHAN).error("A3 offset config not valid.");
+    ocudulog::fetch_basic_logger(LOG_CHAN).error("A3 offset config not valid.");
     return false;
   }
 

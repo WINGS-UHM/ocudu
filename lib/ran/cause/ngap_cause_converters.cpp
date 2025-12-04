@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/cause/ngap_cause_converters.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/ran/cause/ngap_cause_converters.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr uint8_t ngap_to_f1ap_cause_radio_network[] = {
     (uint8_t)f1ap_cause_radio_network_t::unspecified, // unspecified
@@ -87,7 +87,7 @@ static constexpr uint8_t ngap_to_f1ap_cause_misc[] = {
     (uint8_t)cause_misc_t::unspecified, // unspecified
 };
 
-f1ap_cause_t srsran::ngap_to_f1ap_cause(ngap_cause_t ngap_cause)
+f1ap_cause_t ocudu::ngap_to_f1ap_cause(ngap_cause_t ngap_cause)
 {
   if (const auto* result = std::get_if<ngap_cause_radio_network_t>(&ngap_cause)) {
     return f1ap_cause_radio_network_t(ngap_to_f1ap_cause_radio_network[uint8_t(*result)]);
@@ -194,7 +194,7 @@ static constexpr uint8_t ngap_to_e1ap_cause_misc[] = {
     (uint8_t)cause_misc_t::unspecified  // unspecified
 };
 
-e1ap_cause_t srsran::ngap_to_e1ap_cause(ngap_cause_t ngap_cause)
+e1ap_cause_t ocudu::ngap_to_e1ap_cause(ngap_cause_t ngap_cause)
 {
   if (const auto* result = std::get_if<ngap_cause_radio_network_t>(&ngap_cause)) {
     return e1ap_cause_radio_network_t(ngap_to_e1ap_cause_radio_network[uint8_t(*result)]);

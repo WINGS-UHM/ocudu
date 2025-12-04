@@ -11,18 +11,18 @@
 #pragma once
 
 #include "../../resource_request_pool.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/modulation/ofdm_demodulator.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/modulation/ofdm_demodulator.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements PUxCH baseband processor.
 class puxch_processor_impl : public puxch_processor,
@@ -43,7 +43,7 @@ public:
     demodulator(std::move(demodulator_)),
     cf_buffer({2 * config.dft_size, nof_rx_ports})
   {
-    srsran_assert(demodulator, "Invalid demodulator.");
+    ocudu_assert(demodulator, "Invalid demodulator.");
   }
 
   // See interface for documentation.
@@ -90,4 +90,4 @@ private:
   dynamic_tensor<2, cf_t> cf_buffer;
 };
 
-} // namespace srsran
+} // namespace ocudu

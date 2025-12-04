@@ -12,12 +12,12 @@
 #include "lib/f1ap/f1ap_asn1_utils.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
 #include "unittests/f1ap/common/f1ap_du_test_messages.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static f1ap_message generate_f1_setup_failure_with_time_to_wait(const f1ap_message&        f1_req,
                                                                 asn1::f1ap::time_to_wait_e time_to_wait)

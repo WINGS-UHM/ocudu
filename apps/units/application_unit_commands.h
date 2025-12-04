@@ -15,7 +15,7 @@
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Application command-line commands.
 struct cmdline_commands {
@@ -31,4 +31,4 @@ struct application_unit_commands {
   std::vector<std::unique_ptr<app_services::remote_command>> remote;
 };
 
-} // namespace srsran
+} // namespace ocudu

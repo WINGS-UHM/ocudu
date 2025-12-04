@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace asn1;
-using namespace srsran;
+using namespace ocudu;
 
 #define JSON_OUTPUT 0
 
@@ -25,20 +25,20 @@ class asn1_f1ap_test : public ::testing::Test
 protected:
   asn1_f1ap_test()
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   ~asn1_f1ap_test()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 #if JSON_OUTPUT
@@ -48,7 +48,7 @@ protected:
 #else
   std::unique_ptr<dlt_pcap> pcap_writer = create_null_dlt_pcap();
 #endif
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 // initiating message F1SetupRequest
@@ -63,7 +63,7 @@ TEST_F(asn1_f1ap_test, when_setup_message_correct_then_packing_successful)
   setup_req->transaction_id      = 99;
   setup_req->gnb_du_id           = 0x11;
   setup_req->gnb_du_name_present = true;
-  setup_req->gnb_du_name.from_string("srsDU");
+  setup_req->gnb_du_name.from_string("OCUDU DU");
   setup_req->gnb_du_rrc_version.latest_rrc_version.from_number(1);
 
   setup_req->gnb_du_served_cells_list_present = true;
@@ -103,11 +103,11 @@ TEST_F(asn1_f1ap_test, when_setup_message_correct_then_packing_successful)
 
   setup_req->gnb_du_served_cells_list.push_back(served_cells_item_container);
 
-  srsran::byte_buffer tx_buffer;
-  asn1::bit_ref       bref(tx_buffer);
-  ASSERT_EQ(pdu.pack(bref), SRSASN_SUCCESS);
+  ocudu::byte_buffer tx_buffer;
+  asn1::bit_ref      bref(tx_buffer);
+  ASSERT_EQ(pdu.pack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
   std::vector<uint8_t> bytes{tx_buffer.begin(), tx_buffer.end()};
 #if JSON_OUTPUT
@@ -131,14 +131,14 @@ TEST_F(asn1_f1ap_test, when_setup_response_correct_then_packing_successful)
   auto& setup_res                = pdu.successful_outcome().value.f1_setup_resp();
   setup_res->transaction_id      = 99;
   setup_res->gnb_cu_name_present = true;
-  setup_res->gnb_cu_name.from_string("srsCU");
+  setup_res->gnb_cu_name.from_string("OCUDU CU");
   setup_res->gnb_cu_rrc_version.latest_rrc_version.from_number(2);
 
-  srsran::byte_buffer tx_pdu;
-  asn1::bit_ref       bref(tx_pdu);
-  ASSERT_EQ(pdu.pack(bref), SRSASN_SUCCESS);
+  ocudu::byte_buffer tx_pdu;
+  asn1::bit_ref      bref(tx_pdu);
+  ASSERT_EQ(pdu.pack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
   std::vector<uint8_t> tx_buffer{tx_pdu.begin(), tx_pdu.end()};
 #if JSON_OUTPUT
@@ -150,7 +150,7 @@ TEST_F(asn1_f1ap_test, when_setup_response_correct_then_packing_successful)
                    tx_buffer.size(),
                    json_writer1.to_string().c_str());
 
-  pcap_writer->push_pdu(srsran::span<uint8_t>(tx_buffer.data(), tx_buffer.size()));
+  pcap_writer->push_pdu(ocudu::span<uint8_t>(tx_buffer.data(), tx_buffer.size()));
 #endif
 }
 
@@ -171,11 +171,11 @@ TEST_F(asn1_f1ap_test, when_setup_failure_correct_then_packing_successful)
   setup_fail->time_to_wait.value   = asn1::f1ap::time_to_wait_opts::v10s;
   // add critical diagnostics
 
-  srsran::byte_buffer tx_pdu;
-  asn1::bit_ref       bref(tx_pdu);
-  ASSERT_EQ(pdu.pack(bref), SRSASN_SUCCESS);
+  ocudu::byte_buffer tx_pdu;
+  asn1::bit_ref      bref(tx_pdu);
+  ASSERT_EQ(pdu.pack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
   std::vector<uint8_t> tx_buffer{tx_pdu.begin(), tx_pdu.end()};
 #if JSON_OUTPUT
@@ -187,7 +187,7 @@ TEST_F(asn1_f1ap_test, when_setup_failure_correct_then_packing_successful)
                    tx_buffer.size(),
                    json_writer1.to_string().c_str());
 
-  pcap_writer->push_pdu(srsran::span<uint8_t>(tx_buffer.data(), tx_buffer.size()));
+  pcap_writer->push_pdu(ocudu::span<uint8_t>(tx_buffer.data(), tx_buffer.size()));
 #endif
 }
 
@@ -228,7 +228,7 @@ TEST_F(asn1_f1ap_test, when_ue_context_setup_request_correct_then_unpacking_succ
       0x22, 0x51, 0x40, 0x08, 0x09, 0x00, 0xfe, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x20, 0x66, 0x00, 0x17, 0x02, 0x00, 0x00, 0x00, 0xa1, 0x40, 0x01, 0x40, 0x00, 0x9e, 0x40,
       0x04, 0x20, 0x20, 0x3a, 0x00};
-  srsran::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
+  ocudu::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
 
 #ifdef JSON_OUTPUT
   pcap_writer->push_pdu(rx_msg);
@@ -237,14 +237,14 @@ TEST_F(asn1_f1ap_test, when_ue_context_setup_request_correct_then_unpacking_succ
   asn1::cbit_ref         bref{rx_pdu};
   asn1::f1ap::f1ap_pdu_c pdu;
 
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(asn1::f1ap::f1ap_pdu_c::types_opts::init_msg, pdu.type());
 
   ASSERT_EQ(pdu.init_msg().proc_code, ASN1_F1AP_ID_UE_CONTEXT_SETUP);
   ASSERT_EQ(pdu.init_msg().value.type(),
             asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::ue_context_setup_request);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   int               unpacked_len = bref.distance_bytes();
@@ -267,7 +267,7 @@ TEST_F(asn1_f1ap_test, when_initial_ul_rrc_message_transfer_correct_then_unpacki
       0x13, 0xb6, 0x4b, 0x18, 0x14, 0x40, 0x0e, 0x46, 0x8a, 0xcf, 0x12, 0x00, 0x00, 0x09, 0x60, 0x70, 0x82, 0x0f, 0x17,
       0x7e, 0x06, 0x08, 0x70, 0x00, 0x00, 0x00, 0xe2, 0x50, 0x38, 0x00, 0x00, 0x40, 0xbd, 0xe8, 0x02, 0x00, 0x04, 0x00,
       0x00, 0x00, 0x00, 0x02, 0x82, 0x01, 0x95, 0x03, 0x00, 0xc4, 0x00, 0x00, 0x4e, 0x40, 0x02, 0x00, 0x00};
-  srsran::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
+  ocudu::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
 
 #ifdef JSON_OUTPUT
   pcap_writer->push_pdu(rx_msg);
@@ -276,14 +276,14 @@ TEST_F(asn1_f1ap_test, when_initial_ul_rrc_message_transfer_correct_then_unpacki
   asn1::cbit_ref         bref{rx_pdu};
   asn1::f1ap::f1ap_pdu_c pdu;
 
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(pdu.type(), asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
 
   ASSERT_EQ(pdu.init_msg().proc_code, ASN1_F1AP_ID_INIT_UL_RRC_MSG_TRANSFER);
   ASSERT_EQ(pdu.init_msg().value.type(),
             asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::init_ul_rrc_msg_transfer);
 
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   int               unpacked_len = bref.distance_bytes();
@@ -307,7 +307,7 @@ TEST_F(asn1_f1ap_test, when_initial_ul_rrc_message_transfer_packing_correct_then
       0x13, 0xb6, 0x4b, 0x18, 0x14, 0x40, 0x0e, 0x46, 0x8a, 0xcf, 0x12, 0x00, 0x00, 0x09, 0x60, 0x70, 0x82, 0x0f, 0x17,
       0x7e, 0x06, 0x08, 0x70, 0x00, 0x00, 0x00, 0xe2, 0x50, 0x38, 0x00, 0x00, 0x40, 0xbd, 0xe8, 0x02, 0x00, 0x04, 0x00,
       0x00, 0x00, 0x00, 0x02, 0x82, 0x01, 0x95, 0x03, 0x00, 0xc4, 0x00, 0x00, 0x4e, 0x40, 0x02, 0x00, 0x00};
-  srsran::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
+  ocudu::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
 
   asn1::f1ap::f1ap_pdu_c tx_pdu;
 
@@ -328,9 +328,9 @@ TEST_F(asn1_f1ap_test, when_initial_ul_rrc_message_transfer_packing_correct_then
       "00204000400d008013b64b1814400e468acf120000096070820f177e060870000000e25038000040bde802000400000000028201950300"
       "c400");
 
-  srsran::byte_buffer tx_buffer;
-  asn1::bit_ref       bref_tx(tx_buffer);
-  ASSERT_EQ(tx_pdu.pack(bref_tx), SRSASN_SUCCESS);
+  ocudu::byte_buffer tx_buffer;
+  asn1::bit_ref      bref_tx(tx_buffer);
+  ASSERT_EQ(tx_pdu.pack(bref_tx), OCUDUASN_SUCCESS);
 
   // compare against original TV
   ASSERT_EQ(tx_buffer.length(), sizeof(rx_msg));

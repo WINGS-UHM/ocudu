@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/sched_consts.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_slot_resource_allocator;
 enum class ssb_pattern_case;
@@ -62,7 +62,7 @@ private:
   void handle_pending_sib1_update();
 
   /// SIB1 Logger.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("SCHED");
 
   /// Parameters for SIB1 scheduling.
   const scheduler_si_expert_config& expert_cfg;
@@ -90,4 +90,4 @@ private:
   units::bytes pending_sib1_len;
 };
 
-} // end of namespace srsran
+} // end of namespace ocudu

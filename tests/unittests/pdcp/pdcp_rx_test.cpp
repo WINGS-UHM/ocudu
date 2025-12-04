@@ -10,18 +10,18 @@
 
 #include "pdcp_rx_test.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test creation of PDCP RX entities
 TEST_P(pdcp_rx_test, create_new_entity)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Entity creation test. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Entity creation test. SN_SIZE={} ", sn_size);
 
   ASSERT_NE(pdcp_rx, nullptr);
   ASSERT_NE(test_frame, nullptr);
@@ -36,7 +36,7 @@ TEST_P(pdcp_rx_test, sn_unpack)
 {
   init(GetParam());
   auto test_hdr_reader = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter("Header reader test. SN_SIZE={} COUNT={}", sn_size, count);
+    ocudu::test_delimit_logger delimiter("Header reader test. SN_SIZE={} COUNT={}", sn_size, count);
     // Get PDU to test
     byte_buffer test_pdu;
     get_test_pdu(count, test_pdu);
@@ -69,7 +69,7 @@ TEST_P(pdcp_rx_test, rx_in_order)
 {
   init(GetParam());
   auto test_rx_in_order = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter("RX in order test. SN_SIZE={} COUNT={}", sn_size, count);
+    ocudu::test_delimit_logger delimiter("RX in order test. SN_SIZE={} COUNT={}", sn_size, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -115,7 +115,7 @@ TEST_P(pdcp_rx_test, rx_out_of_order)
 {
   init(GetParam());
   auto test_rx_out_of_order = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, no t-Reordering. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
@@ -183,7 +183,7 @@ TEST_P(pdcp_rx_test, rx_duplicate)
 {
   init(GetParam());
   auto test_rx_out_of_order = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter("RX duplicate test. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
+    ocudu::test_delimit_logger delimiter("RX duplicate test. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -264,7 +264,7 @@ TEST_P(pdcp_rx_test, rx_reordering_timer)
 {
   init(GetParam());
   auto test_rx_t_reorder = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, t-Reordering expires. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
@@ -317,7 +317,7 @@ TEST_P(pdcp_rx_test, rx_reordering_timer_0ms)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_t_reordering::ms0);
   auto test_rx_t_reorder = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, t-Reordering is set to 0. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
@@ -369,7 +369,7 @@ TEST_P(pdcp_rx_test, rx_reordering_timer_infinite)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_t_reordering::infinity);
   auto test_rx_t_reorder = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, t-Reordering is set to infinity. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
@@ -422,7 +422,7 @@ TEST_P(pdcp_rx_test, rx_integrity_fail)
 {
   init(GetParam());
   auto test_rx_integrity_fail = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter("RX PDU with bad integrity. SN_SIZE={} COUNT={}", sn_size, count);
+    ocudu::test_delimit_logger delimiter("RX PDU with bad integrity. SN_SIZE={} COUNT={}", sn_size, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 

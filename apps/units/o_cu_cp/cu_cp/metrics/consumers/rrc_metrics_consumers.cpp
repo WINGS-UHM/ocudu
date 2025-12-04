@@ -9,9 +9,9 @@
  */
 
 #include "rrc_metrics_consumers.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void rrc_metrics_consumer_log::handle_metric(const std::vector<cu_cp_metrics_report::du_info>& report,
                                              const mobility_management_metrics&                mobility_metrics)

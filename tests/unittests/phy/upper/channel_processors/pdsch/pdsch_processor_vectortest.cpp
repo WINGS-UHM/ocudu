@@ -10,23 +10,23 @@
 
 #include "pdsch_processor_test_data.h"
 #include "pdsch_processor_test_doubles.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/formatters.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/formatters.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #ifdef HWACC_PDSCH_ENABLED
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
 #endif // HWACC_PDSCH_ENABLED
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::string eal_arguments = "pdsch_processor_vectortest";
 #ifdef HWACC_PDSCH_ENABLED
@@ -67,7 +67,7 @@ static std::string capture_eal_args(int* argc, char*** argv)
 }
 #endif // HWACC_PDSCH_ENABLED
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -111,11 +111,11 @@ private:
   {
 #ifdef HWACC_PDSCH_ENABLED
     //  Hardcoded stdout and error logging.
-    srslog::sink* log_sink = srslog::create_stdout_sink();
-    srslog::set_default_sink(*log_sink);
-    srslog::init();
-    srslog::basic_logger& logger = srslog::fetch_basic_logger("HAL", false);
-    logger.set_level(srslog::basic_levels::error);
+    ocudulog::sink* log_sink = ocudulog::create_stdout_sink();
+    ocudulog::set_default_sink(*log_sink);
+    ocudulog::init();
+    ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HAL", false);
+    logger.set_level(ocudulog::basic_levels::error);
 
     // Pointer to a dpdk-based hardware-accelerator interface.
     if (!dpdk_interface && !skip_hwacc_test) {
@@ -151,7 +151,7 @@ private:
     hw_encoder_config.dedicated_queue   = true;
 
     // ACC100 hardware-accelerator implementation.
-    return srsran::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
+    return ocudu::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
 #else  // HWACC_PDSCH_ENABLED
     return nullptr;
 #endif // HWACC_PDSCH_ENABLED
@@ -441,7 +441,7 @@ INSTANTIATE_TEST_SUITE_P(PdschProcessorVectortest,
                                           ::testing::ValuesIn(pdsch_processor_test_data)));
 } // namespace
 
-} // namespace srsran
+} // namespace ocudu
 
 int main(int argc, char** argv)
 {

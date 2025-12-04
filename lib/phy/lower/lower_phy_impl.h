@@ -13,25 +13,25 @@
 #include "lower_phy_baseband_processor.h"
 #include "processors/adaptors/processor_handler_adaptor.h"
 #include "processors/adaptors/processor_notifier_adaptor.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/gateways/baseband/baseband_gateway.h"
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller.h"
-#include "srsran/phy/lower/lower_phy.h"
-#include "srsran/phy/lower/lower_phy_configuration.h"
-#include "srsran/phy/lower/lower_phy_controller.h"
-#include "srsran/phy/lower/lower_phy_downlink_handler.h"
-#include "srsran/phy/lower/lower_phy_error_notifier.h"
-#include "srsran/phy/lower/lower_phy_metrics_notifier.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_notifier.h"
-#include "srsran/phy/lower/lower_phy_timing_notifier.h"
-#include "srsran/phy/lower/lower_phy_uplink_request_handler.h"
-#include "srsran/phy/lower/modulation/ofdm_modulator.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor.h"
-#include "srsran/phy/support/resource_grid_pool.h"
-#include "srsran/support/math/stats.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/gateways/baseband/baseband_gateway.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
+#include "ocudu/phy/lower/lower_phy.h"
+#include "ocudu/phy/lower/lower_phy_configuration.h"
+#include "ocudu/phy/lower/lower_phy_controller.h"
+#include "ocudu/phy/lower/lower_phy_downlink_handler.h"
+#include "ocudu/phy/lower/lower_phy_error_notifier.h"
+#include "ocudu/phy/lower/lower_phy_metrics_notifier.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_notifier.h"
+#include "ocudu/phy/lower/lower_phy_uplink_request_handler.h"
+#include "ocudu/phy/lower/modulation/ofdm_modulator.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor.h"
+#include "ocudu/phy/support/resource_grid_pool.h"
+#include "ocudu/support/math/stats.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Lower physical layer implementation.
 class lower_phy_impl : public lower_phy, private lower_phy_controller
@@ -112,4 +112,4 @@ private:
   std::unique_ptr<lower_phy_controller> controller;
 };
 
-} // namespace srsran
+} // namespace ocudu

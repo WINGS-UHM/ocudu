@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/slot_point.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <atomic>
 #include <thread>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Notifier interface for uplink_processr_fsm.
 ///
@@ -86,14 +86,14 @@ public:
   {
     // Remove accepting PDU mask and verify the previous state was accepting PDU.
     [[maybe_unused]] uint32_t prev = pending_pdu_count.fetch_xor(accepting_pdu_mask);
-    srsran_assert(is_state_accepting_pdu(prev), "Unexpected prev={:08x} finishing PDUs.", prev);
+    ocudu_assert(is_state_accepting_pdu(prev), "Unexpected prev={:08x} finishing PDUs.", prev);
   }
 
   // See the uplink_processor_fsm_notifier interface for the documentation.
   void increment_pending_pdu_count() override
   {
     [[maybe_unused]] uint32_t prev = pending_pdu_count.fetch_add(pending_pdu_inc_queue);
-    srsran_assert(is_state_accepting_pdu(prev), "Cannot accept PDUs.");
+    ocudu_assert(is_state_accepting_pdu(prev), "Cannot accept PDUs.");
   }
 
   /// \brief Notifies the beginning of a slot discarding process.
@@ -136,10 +136,10 @@ public:
   void finish_discard_slot()
   {
     [[maybe_unused]] uint32_t prev_state = pending_pdu_count.exchange(pending_pdu_count_idle);
-    srsran_assert((get_nof_pending_pdu_in_queue(prev_state) == 0) && (get_nof_pending_pdu_in_exec(prev_state) == 0) &&
-                      is_state_locked(prev_state),
-                  "Unexpected state after discarding slot 0x{:08x}",
-                  prev_state);
+    ocudu_assert((get_nof_pending_pdu_in_queue(prev_state) == 0) && (get_nof_pending_pdu_in_exec(prev_state) == 0) &&
+                     is_state_locked(prev_state),
+                 "Unexpected state after discarding slot 0x{:08x}",
+                 prev_state);
   }
 
   /// \brief Notifies the start of handling a receive symbol.
@@ -180,7 +180,7 @@ public:
   void finish_handle_rx_symbol()
   {
     [[maybe_unused]] uint32_t prev_state = pending_pdu_count.fetch_xor(locked_mask);
-    srsran_assert(is_state_locked(prev_state), "Unexpected state after discarding slot 0x{:08x}", prev_state);
+    ocudu_assert(is_state_locked(prev_state), "Unexpected state after discarding slot 0x{:08x}", prev_state);
   }
 
   /// \brief Notifies the event of creating a new asynchronous execution task. It increments the PDU being executed
@@ -199,9 +199,9 @@ public:
         return true;
       }
 
-      srsran_assert(!is_state_accepting_pdu(current_state) && (get_nof_pending_pdu_in_queue(current_state) > 0),
-                    "The slot repository is in an unexpected state 0x{:08x}.",
-                    current_state);
+      ocudu_assert(!is_state_accepting_pdu(current_state) && (get_nof_pending_pdu_in_queue(current_state) > 0),
+                   "The slot repository is in an unexpected state 0x{:08x}.",
+                   current_state);
       return false;
     };
 
@@ -228,10 +228,10 @@ public:
     [[maybe_unused]] uint32_t prev = pending_pdu_count.fetch_sub(pending_pdu_inc_queue + pending_pdu_inc_exec);
 
     // Assert previous state.
-    srsran_assert(!is_state_accepting_pdu(prev) && !is_state_stopped(prev) && (get_nof_pending_pdu_in_exec(prev) > 0) &&
-                      (get_nof_pending_pdu_in_queue(prev) > 0),
-                  "The slot repository is in an unexpected state 0x{:08x}.",
-                  prev);
+    ocudu_assert(!is_state_accepting_pdu(prev) && !is_state_stopped(prev) && (get_nof_pending_pdu_in_exec(prev) > 0) &&
+                     (get_nof_pending_pdu_in_queue(prev) > 0),
+                 "The slot repository is in an unexpected state 0x{:08x}.",
+                 prev);
   }
 
   /// \brief Notifies a new PRACH detection request.
@@ -264,7 +264,7 @@ public:
     [[maybe_unused]] uint32_t prev = pending_prach_count.fetch_sub(1);
 
     // Assert previous count is valid.
-    srsran_assert(
+    ocudu_assert(
         !is_state_stopped(prev) && (prev != 0), "The PRACH detection task count 0x{:08x} is unexpected.", prev);
   }
 
@@ -337,4 +337,4 @@ private:
   static unsigned get_nof_pending_pdu_in_queue(uint32_t state) { return (state & 0xfff); }
 };
 
-} // namespace srsran
+} // namespace ocudu

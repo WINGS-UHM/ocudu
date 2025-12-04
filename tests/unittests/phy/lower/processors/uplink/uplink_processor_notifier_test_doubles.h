@@ -13,14 +13,14 @@
 #include "../../../../gateways/baseband/baseband_gateway_buffer_test_doubles.h"
 #include "prach/prach_processor_test_doubles.h"
 #include "puxch/puxch_processor_test_doubles.h"
-#include "srsran/phy/lower/lower_phy_timing_context.h"
-#include "srsran/phy/lower/processors/lower_phy_cfo_controller.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_factories.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_notifier.h"
+#include "ocudu/phy/lower/lower_phy_timing_context.h"
+#include "ocudu/phy/lower/processors/lower_phy_cfo_controller.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_factories.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class uplink_processor_notifier_spy : public uplink_processor_notifier
 {
@@ -157,4 +157,4 @@ private:
   std::vector<lower_phy_uplink_processor_spy*> entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

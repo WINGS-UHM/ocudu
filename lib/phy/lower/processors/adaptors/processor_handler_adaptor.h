@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_downlink_handler.h"
-#include "srsran/phy/lower/lower_phy_uplink_request_handler.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_request_handler.h"
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
+#include "ocudu/phy/lower/lower_phy_downlink_handler.h"
+#include "ocudu/phy/lower/lower_phy_uplink_request_handler.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_request_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class shared_resource_grid;
 
@@ -84,4 +84,4 @@ private:
   uplink_request_handler_adaptor ul_request_handler;
 };
 
-} // namespace srsran
+} // namespace ocudu

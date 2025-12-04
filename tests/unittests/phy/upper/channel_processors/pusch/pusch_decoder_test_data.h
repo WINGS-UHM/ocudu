@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsPUSCHDecoderUnittest.m"
 
-#include "srsran/phy/upper/codeblock_metadata.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   segmenter_config                  config;
@@ -204,4 +204,4 @@ static const std::vector<test_case_t> pusch_decoder_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

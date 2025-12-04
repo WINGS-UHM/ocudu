@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_high.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/du/du_high/du_manager/du_manager.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/mac/mac.h"
-#include "srsran/scheduler/scheduler_metrics.h"
+#include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/du/du_high/du_manager/du_manager.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_high_impl final : public du_high
 {
@@ -50,7 +50,7 @@ private:
 
   du_high_configuration cfg;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   timer_manager& timers;
 
@@ -67,5 +67,5 @@ private:
   std::unique_ptr<mac_interface>        mac;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -11,13 +11,13 @@
 #pragma once
 
 #include "metrics/split6_flexible_o_du_low_metrics_notifier.h"
-#include "srsran/ru/ru.h"
-#include "srsran/support/timers.h"
+#include "ocudu/ru/ru.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 class task_executor;
 
-namespace srs_du {
+namespace odu {
 class o_du_low_metrics_collector;
 }
 
@@ -26,7 +26,7 @@ class split6_o_du_low_metrics_collector_impl
 {
 public:
   split6_o_du_low_metrics_collector_impl() = default;
-  split6_o_du_low_metrics_collector_impl(srs_du::o_du_low_metrics_collector*        odu_low_,
+  split6_o_du_low_metrics_collector_impl(odu::o_du_low_metrics_collector*           odu_low_,
                                          ru_metrics_collector*                      ru_,
                                          split6_flexible_o_du_low_metrics_notifier* notifier_,
                                          unique_timer                               timer_,
@@ -49,8 +49,8 @@ private:
   std::chrono::milliseconds                  report_period{0};
   std::atomic<bool>                          stopped{true};
   split6_flexible_o_du_low_metrics_notifier* notifier = nullptr;
-  srs_du::o_du_low_metrics_collector*        odu_low  = nullptr;
+  odu::o_du_low_metrics_collector*           odu_low  = nullptr;
   ru_metrics_collector*                      ru       = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -2,11 +2,11 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator_factory.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ptrs_pdsch_generator_spy : public ptrs_pdsch_generator
 {
@@ -32,4 +32,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(ptrs_pdsch_generator);
 
-} // namespace srsran
+} // namespace ocudu

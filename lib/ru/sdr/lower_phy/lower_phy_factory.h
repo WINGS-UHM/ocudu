@@ -11,16 +11,16 @@
 #pragma once
 
 #include "lower_phy_sector.h"
-#include "srsran/phy/lower/lower_phy_factory.h"
+#include "ocudu/phy/lower/lower_phy_factory.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 struct lower_phy_configuration;
 
 /// Lower phy sector dependencies.
 struct lower_phy_sector_dependencies {
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
   task_executor&                rx_task_executor;
   task_executor&                tx_task_executor;
   task_executor&                dl_task_executor;
@@ -36,4 +36,4 @@ struct lower_phy_sector_dependencies {
 std::unique_ptr<lower_phy_sector> create_lower_phy_sector(const lower_phy_configuration&       lower_phy_config,
                                                           const lower_phy_sector_dependencies& sector_deps);
 
-} // namespace srsran
+} // namespace ocudu

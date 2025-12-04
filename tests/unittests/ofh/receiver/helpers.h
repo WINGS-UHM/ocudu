@@ -11,13 +11,13 @@
 #pragma once
 
 #include "../../phy/support/resource_grid_test_doubles.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/shared_prach_buffer.h"
-#include "srsran/ran/prach/prach_format_type.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/shared_prach_buffer.h"
+#include "ocudu/ran/prach/prach_format_type.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace testing {
 
@@ -173,4 +173,4 @@ public:
 
 } // namespace testing
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

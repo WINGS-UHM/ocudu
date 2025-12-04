@@ -9,10 +9,10 @@
  */
 
 #include "ssb_processor_impl.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ssb_processor_impl::process(resource_grid_writer& grid, const pdu_t& pdu)
 {
@@ -26,10 +26,10 @@ void ssb_processor_impl::process(resource_grid_writer& grid, const pdu_t& pdu)
                                      pdu.subcarrier_offset);
 
   // Make sure the slot matches with the SS/PBCH transmission slot.
-  srsran_assert((l_start_in_burst / get_nsymb_per_slot(cyclic_prefix::NORMAL)) == pdu.slot.hrf_slot_index(),
-                "Invalid slot index ({}) for SSB index {}",
-                pdu.slot.hrf_slot_index(),
-                l_start_in_burst);
+  ocudu_assert((l_start_in_burst / get_nsymb_per_slot(cyclic_prefix::NORMAL)) == pdu.slot.hrf_slot_index(),
+               "Invalid slot index ({}) for SSB index {}",
+               pdu.slot.hrf_slot_index(),
+               l_start_in_burst);
 
   // Generate PBCH message.
   pbch_encoder::pbch_msg_t pbch_msg;

@@ -9,15 +9,15 @@
  */
 
 #include "du_processor_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_factory.h"
-#include "srsran/ran/cause/f1ap_cause.h"
-#include "srsran/ran/cause/f1ap_cause_converters.h"
-#include "srsran/rrc/rrc_du_factory.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_factory.h"
+#include "ocudu/ran/cause/f1ap_cause.h"
+#include "ocudu/ran/cause/f1ap_cause_converters.h"
+#include "ocudu/rrc/rrc_du_factory.h"
+#include "ocudu/support/async/coroutine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static rrc_cfg_t create_rrc_config(const cu_cp_configuration& cu_cp_cfg)
 {
@@ -214,7 +214,7 @@ bool du_processor_impl::create_rrc_ue(cu_cp_ue&                              ue,
 ue_rrc_context_creation_outcome
 du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_creation_request& req)
 {
-  srsran_assert(req.c_rnti != rnti_t::INVALID_RNTI, "ue={} c-rnti={}: Invalid C-RNTI", req.ue_index, req.c_rnti);
+  ocudu_assert(req.c_rnti != rnti_t::INVALID_RNTI, "ue={} c-rnti={}: Invalid C-RNTI", req.ue_index, req.c_rnti);
 
   // Check that creation message is valid
   const du_cell_configuration* pcell = cfg.du_cfg_hdlr->get_context().find_cell(req.cgi);
@@ -272,7 +272,7 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
 
 void du_processor_impl::handle_du_initiated_ue_context_release_request(const f1ap_ue_context_release_request& request)
 {
-  srsran_assert(request.ue_index != ue_index_t::invalid, "Invalid UE index", request.ue_index);
+  ocudu_assert(request.ue_index != ue_index_t::invalid, "Invalid UE index", request.ue_index);
 
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
   if (ue == nullptr) {

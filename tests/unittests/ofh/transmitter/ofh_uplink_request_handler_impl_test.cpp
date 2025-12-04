@@ -13,19 +13,19 @@
 #include "../../phy/support/resource_grid_test_doubles.h"
 #include "../receiver/helpers.h"
 #include "ofh_data_flow_cplane_scheduling_commands_test_doubles.h"
-#include "srsran/ofh/ofh_error_notifier.h"
-#include "srsran/ofh/ofh_uplane_rx_symbol_notifier.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_timing_parameters.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
+#include "ocudu/ofh/ofh_error_notifier.h"
+#include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_timing_parameters.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
-using namespace srsran::ofh::testing;
+using namespace ocudu::ofh::testing;
 
 static const static_vector<unsigned, MAX_NOF_SUPPORTED_EAXC> eaxc            = {2};
 static const static_vector<unsigned, MAX_NOF_SUPPORTED_EAXC> prach_eaxc      = {4};
@@ -115,13 +115,13 @@ protected:
     auto temp = std::make_unique<data_flow_cplane_scheduling_commands_spy>();
     data_flow = temp.get();
 
-    return {srslog::fetch_basic_logger("TEST"),
+    return {ocudulog::fetch_basic_logger("TEST"),
             notifier_spy,
             ul_slot_repo,
             ul_prach_repo,
             notified_symbol_repo,
             std::move(temp),
-            std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+            std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                                     mtu_size,
                                                     2,
                                                     ofh::message_type::control_plane,
@@ -133,13 +133,13 @@ protected:
     auto temp       = std::make_unique<data_flow_cplane_scheduling_commands_spy>();
     data_flow_prach = temp.get();
 
-    return {srslog::fetch_basic_logger("TEST"),
+    return {ocudulog::fetch_basic_logger("TEST"),
             notifier_spy,
             ul_slot_repo,
             ul_prach_repo,
             notified_symbol_repo,
             std::move(temp),
-            std::make_shared<ether::eth_frame_pool>(srslog::fetch_basic_logger("TEST"),
+            std::make_shared<ether::eth_frame_pool>(ocudulog::fetch_basic_logger("TEST"),
                                                     mtu_size,
                                                     2,
                                                     ofh::message_type::control_plane,

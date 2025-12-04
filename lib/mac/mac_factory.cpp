@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/mac/mac_factory.h"
+#include "ocudu/mac/mac_factory.h"
 #include "mac_impl.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<mac_interface> srsran::create_mac(const mac_config& mac_cfg)
+std::unique_ptr<mac_interface> ocudu::create_mac(const mac_config& mac_cfg)
 {
   std::unique_ptr<mac_interface> mac_obj = std::make_unique<mac_impl>(mac_cfg);
   return mac_obj;

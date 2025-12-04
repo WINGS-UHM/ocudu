@@ -2,9 +2,9 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/signal_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dmrs_pdsch_processor_spy : public dmrs_pdsch_processor
 {
@@ -30,4 +30,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(dmrs_pdsch_processor);
 
-} // namespace srsran
+} // namespace ocudu

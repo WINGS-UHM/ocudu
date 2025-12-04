@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
 #include <unordered_set>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the release of the connected UEs and the deactivation of the cell.
 class cell_deactivation_routine
@@ -26,7 +26,7 @@ public:
                             du_processor_repository&          du_db_,
                             cu_cp_ue_context_release_handler& ue_release_handler_,
                             ue_manager&                       ue_mng_,
-                            srslog::basic_logger&             logger_);
+                            ocudulog::basic_logger&           logger_);
   ~cell_deactivation_routine() = default;
 
   void operator()(coro_context<async_task<void>>& ctx);
@@ -45,7 +45,7 @@ private:
   du_processor_repository&          du_db;
   cu_cp_ue_context_release_handler& ue_release_handler;
   ue_manager&                       ue_mng;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   unique_timer ue_release_timer;
 
@@ -65,5 +65,5 @@ private:
   du_processor*                                  du_proc = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

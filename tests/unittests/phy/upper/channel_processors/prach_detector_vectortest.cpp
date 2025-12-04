@@ -9,22 +9,22 @@
  */
 
 #include "prach_detector_test_data.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-static bool is_stable_conf(const srsran::prach_detector::configuration& conf)
+static bool is_stable_conf(const ocudu::prach_detector::configuration& conf)
 {
   // Skip FR2 configurations, which are still experimental.
   return (conf.ra_scs != prach_subcarrier_spacing::kHz120);
 }
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t test_case)
 {
@@ -38,9 +38,9 @@ std::ostream& operator<<(std::ostream& os, phy_time_unit value)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 using PrachDetectorParams = test_case_t;
 

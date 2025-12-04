@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/noop_functor.h"
-#include "srsran/adt/spsc_queue.h"
-#include "srsran/support/zero_copy_notifier.h"
+#include "ocudu/adt/noop_functor.h"
+#include "ocudu/adt/spsc_queue.h"
+#include "ocudu/support/zero_copy_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Notifier using SPSC queue and internal pooling of transferred objects.
 template <typename ReportType, typename RecycleFunc = noop_operation>
@@ -42,13 +42,13 @@ public:
   using reader  = std::unique_ptr<ReportType, consumer>;
 
   template <typename ConstructReport = noop_ctor>
-  spsc_metric_report_channel(size_t                 capacity,
-                             srslog::basic_logger&  logger_,
-                             const ConstructReport& report_ctor   = noop_ctor{},
-                             const RecycleFunc&     recycle_func_ = {}) :
+  spsc_metric_report_channel(size_t                  capacity,
+                             ocudulog::basic_logger& logger_,
+                             const ConstructReport&  report_ctor   = noop_ctor{},
+                             const RecycleFunc&      recycle_func_ = {}) :
     logger(logger_), recycle_func(recycle_func_), free_list(capacity), pending(capacity)
   {
-    srsran_assert(capacity >= 2, "Capacity must be greater than 1");
+    ocudu_assert(capacity >= 2, "Capacity must be greater than 1");
 
     reports.reserve(capacity);
     for (unsigned i = 0; i != capacity; ++i) {
@@ -71,7 +71,7 @@ public:
     if (not pending.try_pop(idx)) {
       return reader{nullptr, consumer{nullptr}};
     }
-    srsran_sanity_check(idx < reports.size(), "Invalid report being committed");
+    ocudu_sanity_check(idx < reports.size(), "Invalid report being committed");
     return reader{&reports[idx], consumer{this}};
   }
 
@@ -109,7 +109,7 @@ private:
       return;
     }
     unsigned idx = &report - reports.data();
-    srsran_sanity_check(idx < reports.size(), "Invalid report being committed");
+    ocudu_sanity_check(idx < reports.size(), "Invalid report being committed");
     if (not pending.try_push(idx)) {
       logger.error("Failed to push metric report. Discarding it...");
       recycle_func(report);
@@ -120,7 +120,7 @@ private:
   void dispose(ReportType& report)
   {
     unsigned idx = &report - reports.data();
-    srsran_sanity_check(idx < reports.size(), "Invalid report being committed");
+    ocudu_sanity_check(idx < reports.size(), "Invalid report being committed");
 
     // Clear the report before popping so that it can be recycled.
     recycle_func(report);
@@ -131,8 +131,8 @@ private:
     }
   }
 
-  srslog::basic_logger& logger;
-  RecycleFunc           recycle_func;
+  ocudulog::basic_logger& logger;
+  RecycleFunc             recycle_func;
 
   ReportType dummy_report;
 
@@ -141,4 +141,4 @@ private:
   queue_type              pending;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -13,10 +13,10 @@
 #include "../../cu_cp_impl_interface.h"
 #include "../../mobility_manager/mobility_manager_impl.h"
 #include "../../ue_manager/ue_manager_impl.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the handover of a UE between two different cells managed by the same CU.
 /// TODO Add seqdiag
@@ -30,7 +30,7 @@ public:
                             cu_cp_impl_interface&                  cu_cp_handler_,
                             ue_manager&                            ue_mng_,
                             mobility_manager&                      mobility_mng_,
-                            srslog::basic_logger&                  logger_);
+                            ocudulog::basic_logger&                logger_);
 
   void operator()(coro_context<async_task<cu_cp_intra_cu_handover_response>>& ctx);
 
@@ -42,7 +42,7 @@ private:
                                          const rrc_ue_transfer_context&               transfer_context);
   void create_srb(cu_cp_ue* ue, srb_id_t srb_id);
 
-  bool add_security_context_to_bearer_context_modification(const srsran::security::sec_as_config& security_cfg);
+  bool add_security_context_to_bearer_context_modification(const ocudu::security::sec_as_config& security_cfg);
 
   const cu_cp_intra_cu_handover_request request;
   const byte_buffer                     target_cell_sib1;
@@ -58,7 +58,7 @@ private:
   ue_manager&              ue_mng;                     // to remove UE context from source DU processor
   mobility_manager&        mobility_mng;               // to notify metrics about handover execution
   up_config_update         next_config;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   // (sub-)routine requests
   f1ap_ue_context_setup_request            target_ue_context_setup_request;
@@ -75,5 +75,5 @@ private:
   bool                                  rrc_reconfig_sent = false;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

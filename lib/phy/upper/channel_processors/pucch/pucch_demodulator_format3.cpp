@@ -12,11 +12,11 @@
 /// \brief PUCCH Format 3 demodulator definition.
 
 #include "pucch_demodulator_format3.h"
-#include "srsran/phy/support/mask_types.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/upper/pucch_formats3_4_helpers.h"
+#include "ocudu/phy/support/mask_types.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/upper/pucch_formats3_4_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pucch_demodulator_format3::demodulate(span<log_likelihood_ratio>                      llr,
                                            const resource_grid_reader&                     grid,
@@ -37,39 +37,39 @@ void pucch_demodulator_format3::demodulate(span<log_likelihood_ratio>           
   const unsigned nof_re_port = (config.nof_symbols - dmrs_symb_mask.count()) * nof_re_symb;
 
   // Assert that allocations are valid.
-  srsran_assert(config.nof_prb && config.nof_prb <= pucch_constants::FORMAT3_MAX_NPRB,
-                "Invalid Number of PRB allocated to PUCCH Format 3, i.e., {}. Valid range is 1 to {}.",
-                config.nof_prb,
-                pucch_constants::FORMAT3_MAX_NPRB);
+  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::FORMAT3_MAX_NPRB,
+               "Invalid Number of PRB allocated to PUCCH Format 3, i.e., {}. Valid range is 1 to {}.",
+               config.nof_prb,
+               pucch_constants::FORMAT3_MAX_NPRB);
 
-  srsran_assert((config.first_prb + config.nof_prb) * NRE <= grid.get_nof_subc(),
-                "PUCCH Format 3: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
-                config.first_prb,
-                config.first_prb + config.nof_prb,
-                grid.get_nof_subc() / NRE);
+  ocudu_assert((config.first_prb + config.nof_prb) * NRE <= grid.get_nof_subc(),
+               "PUCCH Format 3: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
+               config.first_prb,
+               config.first_prb + config.nof_prb,
+               grid.get_nof_subc() / NRE);
 
-  srsran_assert(!config.second_hop_prb.has_value() ||
-                    ((*config.second_hop_prb + config.nof_prb) * NRE <= grid.get_nof_subc()),
-                "PUCCH Format 3: PRB allocation outside grid (second hop). Requested [{}, {}), grid has {} PRBs.",
-                *config.second_hop_prb,
-                *config.second_hop_prb + config.nof_prb,
-                grid.get_nof_subc() / NRE);
+  ocudu_assert(!config.second_hop_prb.has_value() ||
+                   ((*config.second_hop_prb + config.nof_prb) * NRE <= grid.get_nof_subc()),
+               "PUCCH Format 3: PRB allocation outside grid (second hop). Requested [{}, {}), grid has {} PRBs.",
+               *config.second_hop_prb,
+               *config.second_hop_prb + config.nof_prb,
+               grid.get_nof_subc() / NRE);
 
   interval<unsigned, true> nof_symbols_range(pucch_constants::FORMAT3_MIN_NSYMB, pucch_constants::FORMAT3_MAX_NSYMB);
-  srsran_assert(nof_symbols_range.contains(config.nof_symbols),
-                "Invalid Number of OFDM symbols allocated to PUCCH Format 3, i.e., {}. Valid range is {}.",
-                config.nof_symbols,
-                nof_symbols_range);
+  ocudu_assert(nof_symbols_range.contains(config.nof_symbols),
+               "Invalid Number of OFDM symbols allocated to PUCCH Format 3, i.e., {}. Valid range is {}.",
+               config.nof_symbols,
+               nof_symbols_range);
 
   // Resize equalized data and post equalization noise variance buffers.
   eq_re.resize(nof_re_port);
   eq_noise_vars.resize(nof_re_port);
 
   // Assert that the number of RE returned by the channel equalizer matches the expected number of LLR.
-  srsran_assert(eq_re.size() == llr.size() / get_bits_per_symbol(mod_scheme),
-                "Number of equalized RE (i.e. {}) does not match the expected LLR data length (i.e. {})",
-                eq_re.size(),
-                llr.size() / get_bits_per_symbol(mod_scheme));
+  ocudu_assert(eq_re.size() == llr.size() / get_bits_per_symbol(mod_scheme),
+               "Number of equalized RE (i.e. {}) does not match the expected LLR data length (i.e. {})",
+               eq_re.size(),
+               llr.size() / get_bits_per_symbol(mod_scheme));
 
   pucch_3_4_extract_and_equalize(eq_re,
                                  eq_noise_vars,

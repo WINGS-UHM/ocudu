@@ -13,35 +13,35 @@
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/mac/mac_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/cu_cp/cu_cp_factory.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_high/du_high_factory.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_factory.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_high/du_high_factory.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr uint32_t task_worker_queue_size = 10000;
 
 static void init_loggers()
 {
-  srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("RLC").set_level(srslog::basic_levels::info);
-  srslog::fetch_basic_logger("DU-MNG").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("DU-F1").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("CU-CP-F1").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("CU-CP").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("RRC").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("NGAP").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-  srslog::init();
+  ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("RLC").set_level(ocudulog::basic_levels::info);
+  ocudulog::fetch_basic_logger("DU-MNG").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("DU-F1").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("CU-CP-F1").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("CU-CP").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("RRC").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("NGAP").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 }
 
 du_high_cu_cp_worker_manager::du_high_cu_cp_worker_manager(unsigned nof_dus, timer_manager& timers) :
@@ -74,16 +74,16 @@ void du_high_cu_cp_worker_manager::stop()
 
 du_high_cu_test_simulator::du_high_cu_test_simulator(const du_high_cu_cp_test_simulator_config& cfg_) :
   cfg(cfg_),
-  logger(srslog::fetch_basic_logger("TEST")),
+  logger(ocudulog::fetch_basic_logger("TEST")),
   workers(cfg.dus.size(), timers),
   broker(create_io_broker(io_broker_type::epoll)),
-  timer_ctrl(srs_du::create_du_high_clock_controller(timers, *broker, workers.dus[0]->timer_executor()))
+  timer_ctrl(odu::create_du_high_clock_controller(timers, *broker, workers.dus[0]->timer_executor()))
 {
   // Prepare CU-CP config.
-  srs_cu_cp::cu_cp_configuration cu_cfg = config_helpers::make_default_cu_cp_config();
-  cu_cfg.services.cu_cp_executor        = workers.cu_cp_exec;
-  cu_cfg.services.timers                = &timers;
-  cu_cfg.ngap.ngaps.push_back(srs_cu_cp::cu_cp_configuration::ngap_config{
+  ocucp::cu_cp_configuration cu_cfg = config_helpers::make_default_cu_cp_config();
+  cu_cfg.services.cu_cp_executor    = workers.cu_cp_exec;
+  cu_cfg.services.timers            = &timers;
+  cu_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{
       &n2_gw, {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}}});
 
   // Instatiate CU-CP.
@@ -95,7 +95,7 @@ du_high_cu_test_simulator::du_high_cu_test_simulator(const du_high_cu_cp_test_si
   // Connect AMF by injecting a ng_setup_response
   cu_cp_inst->get_ng_handler()
       .get_ngap_message_handler(plmn_identity::test_value())
-      ->handle_message(srs_cu_cp::generate_ng_setup_response());
+      ->handle_message(ocucp::generate_ng_setup_response());
 
   // Connect F1-C to CU-CP.
   f1c_gw.attach_cu_cp_du_repo(cu_cp_inst->get_f1c_handler());
@@ -125,7 +125,7 @@ bool du_high_cu_test_simulator::add_ue(unsigned du_index, rnti_t rnti)
   // Wait for Init UL RRC Message to come out of the F1AP.
   run_until([this, du_index]() { return not f1c_gw.get_last_cu_cp_rx_pdus(du_index).empty(); });
 
-  srsran_assert(f1c_gw.get_last_cu_cp_rx_pdus(du_index).size() == 1, "Too many messages sent by the DU");
+  ocudu_assert(f1c_gw.get_last_cu_cp_rx_pdus(du_index).size() == 1, "Too many messages sent by the DU");
 
   return test_helpers::is_init_ul_rrc_msg_transfer_valid(f1c_gw.get_last_cu_cp_rx_pdus(du_index)[0], rnti);
 }
@@ -140,13 +140,13 @@ void du_high_cu_test_simulator::start_dus()
     du_ctxt.next_slot = {0, test_rgen::uniform_int<unsigned>(0, 10239)};
 
     // Instantiate DU-high.
-    srs_du::du_high_configuration& du_hi_cfg = du_ctxt.du_high_cfg;
-    du_hi_cfg.ran.gnb_du_name                = fmt::format("srsgnb{}", du_idx + 1);
-    du_hi_cfg.ran.gnb_du_id                  = (gnb_du_id_t)(du_idx + 1);
-    du_hi_cfg.ran.cells                      = cfg.dus[du_idx];
-    du_hi_cfg.ran.sched_cfg                  = config_helpers::make_default_scheduler_expert_config();
+    odu::du_high_configuration& du_hi_cfg = du_ctxt.du_high_cfg;
+    du_hi_cfg.ran.gnb_du_name             = fmt::format("ocudu{}", du_idx + 1);
+    du_hi_cfg.ran.gnb_du_id               = (gnb_du_id_t)(du_idx + 1);
+    du_hi_cfg.ran.cells                   = cfg.dus[du_idx];
+    du_hi_cfg.ran.sched_cfg               = config_helpers::make_default_scheduler_expert_config();
 
-    srs_du::du_high_dependencies du_dependencies;
+    odu::du_high_dependencies du_dependencies;
     du_dependencies.exec_mapper = &workers.dus[du_idx]->get_exec_mapper();
     du_dependencies.f1c_client  = &f1c_gw;
     du_dependencies.f1u_gw      = nullptr;
@@ -164,7 +164,7 @@ void du_high_cu_test_simulator::start_dus()
 void du_high_cu_test_simulator::run_slot()
 {
   for (unsigned i = 0; i != dus.size(); ++i) {
-    srs_du::du_high& du_hi = *dus[i]->du_high_inst;
+    odu::du_high& du_hi = *dus[i]->du_high_inst;
 
     // Signal slot indication to l2.
     du_hi.get_slot_handler(to_du_cell_index(0))

@@ -9,16 +9,16 @@
  */
 
 #include "integrity_engine_nia2_non_cmac.h"
-#include "srsran/security/security.h"
-#include "srsran/security/ssl.h"
+#include "ocudu/security/security.h"
+#include "ocudu/security/ssl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace security;
 
 integrity_engine_nia2_non_cmac::integrity_engine_nia2_non_cmac(sec_128_key        k_128_int_,
                                                                uint8_t            bearer_id_,
                                                                security_direction direction_) :
-  k_128_int(k_128_int_), bearer_id(bearer_id_), direction(direction_), logger(srslog::fetch_basic_logger("SEC"))
+  k_128_int(k_128_int_), bearer_id(bearer_id_), direction(direction_), logger(ocudulog::fetch_basic_logger("SEC"))
 {
   std::array<uint8_t, 16> l;
 
@@ -57,11 +57,11 @@ expected<security::sec_mac, security_error> integrity_engine_nia2_non_cmac::comp
   std::array<uint8_t, 16> tmp;
 
   const uint32_t msg_len_block_8_with_padding = len + 8 + 16;
-  srsran_assert(msg_len_block_8_with_padding <= sec_max_pdu_size,
-                "{}: Maximum PDU length exceeded. len={} max_len={}",
-                __FUNCTION__,
-                msg_len_block_8_with_padding,
-                sec_max_pdu_size);
+  ocudu_assert(msg_len_block_8_with_padding <= sec_max_pdu_size,
+               "{}: Maximum PDU length exceeded. len={} max_len={}",
+               __FUNCTION__,
+               msg_len_block_8_with_padding,
+               sec_max_pdu_size);
 
   span<uint8_t> msg(msg_buf.data(), msg_len_block_8_with_padding);
 

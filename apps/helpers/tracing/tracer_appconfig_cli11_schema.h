@@ -12,11 +12,11 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct tracer_appconfig;
 
 /// Configures the given CLI11 application with the tracer application configuration schema.
 void configure_cli11_with_tracer_appconfig_schema(CLI::App& app, tracer_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/signal_processors/prs/formatters.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator_configuration.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/signal_processors/prs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 template <typename Func>
 std::chrono::nanoseconds time_execution(Func&& func)
@@ -30,10 +30,10 @@ std::chrono::nanoseconds time_execution(Func&& func)
 class logging_prs_generator_decorator : public prs_generator
 {
 public:
-  logging_prs_generator_decorator(srslog::basic_logger& logger_, std::unique_ptr<prs_generator> generator_) :
+  logging_prs_generator_decorator(ocudulog::basic_logger& logger_, std::unique_ptr<prs_generator> generator_) :
     logger(logger_), generator(std::move(generator_))
   {
-    srsran_assert(generator, "Invalid PRS generator.");
+    ocudu_assert(generator, "Invalid PRS generator.");
   }
 
   void generate(resource_grid_writer& grid, const prs_generator_configuration& config) override
@@ -52,8 +52,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
   std::unique_ptr<prs_generator> generator;
 };
 
-} // namespace srsran
+} // namespace ocudu

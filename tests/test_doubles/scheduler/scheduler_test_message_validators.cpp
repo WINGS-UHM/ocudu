@@ -10,22 +10,22 @@
 
 #include "scheduler_test_message_validators.h"
 #include "../lib/scheduler/support/dmrs_helpers.h"
-#include "srsran/ran/pusch/ulsch_info.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
-#include "srsran/ran/uci/uci_mapping.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/ran/uci/uci_mapping.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 template <typename... Args>
 void print_if_present(Args... args)
 {
   if constexpr (sizeof...(args) > 0) {
-    srslog::fetch_basic_logger("TEST").warning(args...);
-    srslog::flush();
+    ocudulog::fetch_basic_logger("TEST").warning(args...);
+    ocudulog::flush();
   }
 }
 

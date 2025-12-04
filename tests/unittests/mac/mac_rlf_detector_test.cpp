@@ -10,11 +10,11 @@
 
 #include "lib/mac/mac_sched/rlf_detector.h"
 #include "mac_test_helpers.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class mac_rlf_detector_test : public ::testing::Test
 {
@@ -23,10 +23,10 @@ protected:
 
   mac_rlf_detector_test() : rlf_handler(mac_expert_config{.configs = {{MAX_KOS, MAX_KOS, MAX_KOS}}}, worker)
   {
-    srslog::init();
-    srslog::fetch_basic_logger("MAC").set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    ocudulog::fetch_basic_logger("MAC").set_level(ocudulog::basic_levels::debug);
   }
-  ~mac_rlf_detector_test() override { srslog::flush(); }
+  ~mac_rlf_detector_test() override { ocudulog::flush(); }
 
   manual_task_worker                  worker{64};
   test_helpers::dummy_ue_rlf_notifier rlf_notif;

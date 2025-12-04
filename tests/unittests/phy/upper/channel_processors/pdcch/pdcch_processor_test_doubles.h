@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Spy implementation of a PDCCH processor.
 class pdcch_processor_spy : public pdcch_processor
@@ -30,4 +30,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(pdcch_processor);
 
-} // namespace srsran
+} // namespace ocudu

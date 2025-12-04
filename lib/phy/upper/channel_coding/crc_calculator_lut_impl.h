@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
 #include <array>
 #include <cstdint>
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 /// CRC calculator based on look-up tables.
 class crc_calculator_lut_impl : public crc_calculator
@@ -106,4 +106,4 @@ public:
   crc_generator_poly get_generator_poly() const override { return poly; }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -14,10 +14,10 @@
 #include "radio_uhd_exception_handler.h"
 #include "radio_uhd_rx_stream.h"
 #include "radio_uhd_tx_stream.h"
-#include "srsran/radio/radio_session.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/radio/radio_session.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Determines whether a frequency is valid within a range.
 ///
@@ -47,7 +47,7 @@ constexpr double to_MHz(double value_Hz)
 class radio_uhd_device : public uhd_exception_handler
 {
 public:
-  radio_uhd_device() : logger(srslog::fetch_basic_logger("RF")) {}
+  radio_uhd_device() : logger(ocudulog::fetch_basic_logger("RF")) {}
 
   bool is_valid() const { return usrp != nullptr; }
 
@@ -464,7 +464,7 @@ private:
   uhd::usrp::multi_usrp::sptr usrp                        = nullptr;
   radio_uhd_device_type       type                        = radio_uhd_device_type::types::UNKNOWN;
   bool                        automatic_master_clock_rate = false;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

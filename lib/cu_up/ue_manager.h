@@ -12,17 +12,17 @@
 
 #include "ngu_session_manager.h"
 #include "ue_manager_interfaces.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/cu_up/cu_up_state.h"
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/cu_up/cu_up_state.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/timers.h"
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_up {
+namespace ocuup {
 
 /// UE manager configuration.
 struct ue_manager_config {
@@ -42,7 +42,7 @@ struct ue_manager_dependencies {
   gtpu_teid_pool&               f1u_teid_allocator;
   cu_up_executor_mapper&        exec_pool;
   dlt_pcap&                     gtpu_pcap;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 };
 
 class ue_manager : public ue_manager_ctrl
@@ -93,9 +93,9 @@ private:
   timer_manager&                timers;
   ue_db_t                       ue_db;
   ue_task_schedulers_t          ue_task_schedulers;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
 };
 
-} // namespace srs_cu_up
+} // namespace ocuup
 
-} // namespace srsran
+} // namespace ocudu

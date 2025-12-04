@@ -11,18 +11,18 @@
 #pragma once
 
 #include "radio_zmq_rx_channel_fsm.h"
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
-#include "srsran/radio/radio_event_notifier.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_queue.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/radio/radio_event_notifier.h"
+#include "ocudu/support/async/async_queue.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <atomic>
 #include <set>
 #include <zmq.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Radio receive channel over ZeroMQ socket.
 class radio_zmq_rx_channel
@@ -45,7 +45,7 @@ class radio_zmq_rx_channel
   /// ZMQ socket type.
   int socket_type;
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Stores transmit buffer.
   blocking_queue<cf_t> circular_buffer;
   /// Transmission buffer.
@@ -69,7 +69,7 @@ public:
     /// Stream identifier string.
     std::string channel_id_str;
     /// Logging level.
-    srslog::basic_levels log_level;
+    ocudulog::basic_levels log_level;
     /// Indicates the socket send and receive timeout in milliseconds. It is ignored if it is zero.
     unsigned trx_timeout_ms;
     /// Indicates the socket linger timeout in milliseconds. If is ignored if trx_timeout_ms is zero.
@@ -101,4 +101,4 @@ private:
   void run_async();
 };
 
-} // namespace srsran
+} // namespace ocudu

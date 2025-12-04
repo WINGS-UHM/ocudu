@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_decoder_buffer_spy : public pusch_decoder_buffer
 {
@@ -35,7 +35,7 @@ public:
     span<log_likelihood_ratio> block = get_next_block_view(softbits.size());
 
     if (block.data() != softbits.data()) {
-      srsvec::copy(block, softbits);
+      ocuduvec::copy(block, softbits);
     }
 
     count += softbits.size();
@@ -54,4 +54,4 @@ private:
   std::vector<log_likelihood_ratio> data;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -15,8 +15,8 @@ add_executable(common_scheduler_test
         ra_scheduler_test.cpp
         paging_scheduler_test.cpp)
 target_link_libraries(common_scheduler_test
-        srsran_sched
-        srslog
+        ocudu_sched
+        ocudulog
         sched_config
         sched_config_manager
         mac_configuration_helpers

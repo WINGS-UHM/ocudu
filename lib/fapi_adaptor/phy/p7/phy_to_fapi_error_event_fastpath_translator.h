@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/error_message_notifier.h"
-#include "srsran/phy/upper/upper_phy_error_notifier.h"
+#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/phy/upper/upper_phy_error_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// \brief PHY-to-FAPI error event fastpath translator.
@@ -46,4 +46,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

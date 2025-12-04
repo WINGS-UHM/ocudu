@@ -8,6 +8,6 @@
  *
  */
 
-#include "srsran/instrumentation/traces/critical_traces.h"
+#include "ocudu/instrumentation/traces/critical_traces.h"
 
-srsran::file_event_tracer<true> srsran::general_critical_tracer;
+ocudu::file_event_tracer<true> ocudu::general_critical_tracer;

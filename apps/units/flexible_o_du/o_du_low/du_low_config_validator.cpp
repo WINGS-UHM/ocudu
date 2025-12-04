@@ -9,10 +9,10 @@
  */
 
 #include "du_low_config_validator.h"
-#include "srsran/adt/interval.h"
-#include "srsran/phy/upper/channel_processors/prach_detector_phy_validator.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector_phy_validator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool validate_upper_phy_threads_appconfig(const du_low_unit_expert_threads_config& config)
 {
@@ -104,8 +104,8 @@ static bool validate_log_options(const du_low_unit_logger_config& config, const 
   return true;
 }
 
-bool srsran::validate_du_low_config(const du_low_unit_config&                  config,
-                                    span<const du_low_prach_validation_config> prach_cells_config)
+bool ocudu::validate_du_low_config(const du_low_unit_config&                  config,
+                                   span<const du_low_prach_validation_config> prach_cells_config)
 {
   if (!validate_log_options(config.loggers, prach_cells_config.front())) {
     return false;

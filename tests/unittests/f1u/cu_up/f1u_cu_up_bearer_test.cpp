@@ -9,13 +9,13 @@
  */
 
 #include "lib/f1u/cu_up/f1u_bearer_impl.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <list>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 /// Mocking class of the surrounding layers invoked by the F1-U bearer
 class f1u_cu_up_test_frame : public f1u_tx_pdu_notifier, public f1u_rx_delivery_notifier, public f1u_rx_sdu_notifier
@@ -83,12 +83,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init F1-U logger
-    srslog::fetch_basic_logger("CU-F1-U", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("CU-F1-U", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("CU-F1-U", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("CU-F1-U", false).set_hex_dump_max_size(100);
 
     // create tester and testee
     logger.info("Creating F1-U bearer");
@@ -123,7 +123,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void tick(unsigned ms = 1)
@@ -134,14 +134,14 @@ protected:
     }
   }
 
-  srslog::basic_logger&                 logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&               logger = ocudulog::fetch_basic_logger("TEST", false);
   manual_task_worker                    ue_worker{128};
   timer_manager                         ue_timer_manager;
   timer_factory                         ue_timer_factory{ue_timer_manager, ue_worker};
   unique_timer                          ue_inactivity_timer;
   std::unique_ptr<f1u_cu_up_test_frame> tester;
   std::unique_ptr<f1u_bearer_impl>      f1u;
-  srs_cu_up::f1u_config                 f1u_cfg;
+  ocuup::f1u_config                     f1u_cfg;
   gtpu_teid_t                           ul_teid_next{1234};
 
   bool ue_inactivity_triggered = false;

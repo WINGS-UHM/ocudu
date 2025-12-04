@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/f1u/du/f1u_bearer_factory.h"
+#include "ocudu/f1u/du/f1u_bearer_factory.h"
 #include "f1u_bearer_impl.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-std::unique_ptr<f1u_bearer> srsran::srs_du::create_f1u_bearer(const f1u_bearer_creation_message& msg)
+std::unique_ptr<f1u_bearer> ocudu::odu::create_f1u_bearer(const f1u_bearer_creation_message& msg)
 {
-  srsran_assert(msg.rx_sdu_notifier != nullptr, "Cannot create F1-U bearer: RX SDU notifier is not configured.");
-  srsran_assert(msg.tx_pdu_notifier != nullptr, "Cannot create F1-U bearer: TX PDU notifier is not configured.");
-  srsran_assert(msg.ue_executor != nullptr, "Cannot create F1-U bearer: UE executor is not configured.");
-  srsran_assert(msg.disconnector != nullptr, "Cannot create F1-U bearer: disconnector is not configured.");
+  ocudu_assert(msg.rx_sdu_notifier != nullptr, "Cannot create F1-U bearer: RX SDU notifier is not configured.");
+  ocudu_assert(msg.tx_pdu_notifier != nullptr, "Cannot create F1-U bearer: TX PDU notifier is not configured.");
+  ocudu_assert(msg.ue_executor != nullptr, "Cannot create F1-U bearer: UE executor is not configured.");
+  ocudu_assert(msg.disconnector != nullptr, "Cannot create F1-U bearer: disconnector is not configured.");
   auto bearer = std::make_unique<f1u_bearer_impl>(msg.ue_index,
                                                   msg.drb_id,
                                                   msg.dl_tnl_info,

@@ -10,27 +10,27 @@
 
 #include "pxsch_bler_test_channel_emulator.h"
 #include "pxsch_bler_test_factories.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/ran/pusch/pusch_mcs.h"
-#include "srsran/ran/resource_allocation/rb_interval.h"
-#include "srsran/ran/sch/sch_dmrs_power.h"
-#include "srsran/ran/sch/sch_mcs.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/sch/sch_dmrs_power.h"
+#include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #include <condition_variable>
 #include <getopt.h>
 #include <mutex>
 #include <random>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr subcarrier_spacing scs                         = subcarrier_spacing::kHz30;
 static constexpr uint16_t           rnti                        = 0x1234;
@@ -128,7 +128,7 @@ class pxsch_bler_test
 public:
   pxsch_bler_test()
   {
-    srslog::init();
+    ocudulog::init();
     setup();
   }
 
@@ -204,7 +204,7 @@ private:
     executor = std::make_unique<task_worker_pool_executor<concurrent_queue_policy::locking_mpmc>>(*worker_pool);
 
     // Prepare logging.
-    srslog::fetch_basic_logger("ALL").set_level(srslog::basic_levels::warning);
+    ocudulog::fetch_basic_logger("ALL").set_level(ocudulog::basic_levels::warning);
 
     // Compute modulation and code scheme.
     sch_mcs_description mcs_descr = pusch_mcs_get_config(mcs_table, mcs_index, false, false);
@@ -353,7 +353,7 @@ private:
   void teardown()
   {
     worker_pool->stop();
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void print_stats(double completion_percent)

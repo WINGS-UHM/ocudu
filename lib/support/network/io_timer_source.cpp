@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/support/io/io_timer_source.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/io/io_timer_source.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/timers.h"
 #include <sys/timerfd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static unique_fd create_timer_fd(std::chrono::milliseconds tick_period)
 {
@@ -42,7 +42,7 @@ io_timer_source::io_timer_source(timer_manager&            tick_sink_,
   tick_sink(tick_sink_),
   broker(broker_),
   tick_exec(executor),
-  logger(srslog::fetch_basic_logger("IO-EPOLL"))
+  logger(ocudulog::fetch_basic_logger("IO-EPOLL"))
 {
   if (auto_start) {
     running.store(true, std::memory_order_relaxed);

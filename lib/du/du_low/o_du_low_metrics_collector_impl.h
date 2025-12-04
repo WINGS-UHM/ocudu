@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/du/du_low/o_du_low_metrics_collector.h"
+#include "ocudu/du/du_low/o_du_low_metrics_collector.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_low_metrics_collector;
 
@@ -32,5 +32,5 @@ public:
   bool enabled() const { return collector != nullptr; }
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

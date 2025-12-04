@@ -9,20 +9,20 @@
  */
 
 #include "channel_equalizer_test_data.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/upper/equalization/dynamic_ch_est_list.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr float max_abs_eq_symbol_error = 1.0F / 16.0F;
 static constexpr float max_abs_eq_nvar_error   = 1.0F / 64.0F;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -75,7 +75,7 @@ bool operator==(span<const float> left, span<const float> right)
   });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -97,7 +97,7 @@ protected:
   std::shared_ptr<channel_equalizer_factory> equalizer_factory;
   std::unique_ptr<channel_equalizer>         test_equalizer;
 
-  ChannelEqualizerFixture() : TestWithParam<srsran::test_case_t>(), rx_symbols(4, 1000) {}
+  ChannelEqualizerFixture() : TestWithParam<ocudu::test_case_t>(), rx_symbols(4, 1000) {}
 
   void SetUp() override
   {
@@ -140,9 +140,10 @@ protected:
     // Read the test case symbols and estimates.
     const auto rx_symbols_vector = t_case.received_symbols.read();
     for (unsigned i_port = 0; i_port != nof_rx_ports; ++i_port) {
-      srsvec::copy(rx_symbols.get_slice(i_port), span<const cf_t>(rx_symbols_vector).subspan(nof_re * i_port, nof_re));
+      ocuduvec::copy(rx_symbols.get_slice(i_port),
+                     span<const cf_t>(rx_symbols_vector).subspan(nof_re * i_port, nof_re));
     }
-    srsvec::copy(test_ch_estimates.get_data(), t_case.ch_estimates.read());
+    ocuduvec::copy(test_ch_estimates.get_data(), t_case.ch_estimates.read());
 
     // Prepare noise variance per receive port.
     std::fill(test_noise_vars.begin(), test_noise_vars.end(), t_case.context.noise_var);
@@ -177,7 +178,7 @@ TEST_P(ChannelEqualizerFixture, ChannelEqualizerAllZeroNvar)
   const test_case_t& t_case = GetParam();
 
   // Force noise variances set to zero.
-  srsvec::zero(test_noise_vars);
+  ocuduvec::zero(test_noise_vars);
 
   // Update expected equalizer outputs.
   std::fill(eq_symbols_expected.begin(), eq_symbols_expected.end(), cf_t());

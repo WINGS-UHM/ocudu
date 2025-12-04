@@ -20,21 +20,21 @@ set(SOURCES
         routines/cu_up_test_mode_routines.cpp
 )
 
-add_library(srsran_cu_up STATIC ${SOURCES})
-target_link_libraries(srsran_cu_up
-        srsran_e1ap_common
-        srsran_e1ap_cu_up
-        srsran_gtpu
-        srsran_pdcp
-        srsran_f1u_cu_up
-        srsran_gateway
+add_library(ocudu_cu_up STATIC ${SOURCES})
+target_link_libraries(ocudu_cu_up
+        ocudu_e1ap_common
+        ocudu_e1ap_cu_up
+        ocudu_gtpu
+        ocudu_pdcp
+        ocudu_f1u_cu_up
+        ocudu_gateway
         e1ap_asn1
-        srsran_sdap
-        srsran_security
-        srsran_support
-        srslog)
+        ocudu_sdap
+        ocudu_security
+        ocudu_support
+        ocudulog)
 
-add_library(srsran_o_cu_up STATIC
+add_library(ocudu_o_cu_up STATIC
         o_cu_up_factory.cpp
         o_cu_up_impl.cpp)
-target_link_libraries(srsran_o_cu_up PRIVATE srsran_cu_up srsran_e2)
+target_link_libraries(ocudu_o_cu_up PRIVATE ocudu_cu_up ocudu_e2)

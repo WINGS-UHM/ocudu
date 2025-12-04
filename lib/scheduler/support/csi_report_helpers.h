@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-namespace srsran {
+namespace ocudu {
 namespace csi_helper {
 
 /// \brief Helpers that checks if the slot is a candidate for CSI reporting for a given user.
 bool is_csi_reporting_slot(const csi_meas_config& csi_meas, slot_point sl_tx);
 
 } // namespace csi_helper
-} // namespace srsran
+} // namespace ocudu

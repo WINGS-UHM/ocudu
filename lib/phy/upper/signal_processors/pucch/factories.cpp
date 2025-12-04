@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/phy/upper/signal_processors/pucch/factories.h"
+#include "ocudu/phy/upper/signal_processors/pucch/factories.h"
 #include "dmrs_pucch_estimator_format2.h"
 #include "dmrs_pucch_estimator_formats3_4.h"
 #include "dmrs_pucch_estimator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -29,10 +29,10 @@ public:
     lpg_factory(std::move(lpg_factory_)),
     ch_estimator_factory(std::move(ch_estimator_factory_))
   {
-    srsran_assert(prg_factory, "Invalid sequence generator factory.");
-    srsran_assert(lpc_factory, "Invalid sequence collection factory.");
-    srsran_assert(lpg_factory, "Invalid sequence generator factory.");
-    srsran_assert(ch_estimator_factory, "Invalid channel estimator factory.");
+    ocudu_assert(prg_factory, "Invalid sequence generator factory.");
+    ocudu_assert(lpc_factory, "Invalid sequence collection factory.");
+    ocudu_assert(lpg_factory, "Invalid sequence generator factory.");
+    ocudu_assert(ch_estimator_factory, "Invalid channel estimator factory.");
   }
 
   std::unique_ptr<dmrs_pucch_estimator> create() override
@@ -64,10 +64,10 @@ private:
 } // namespace
 
 std::shared_ptr<dmrs_pucch_estimator_factory>
-srsran::create_dmrs_pucch_estimator_factory_sw(std::shared_ptr<pseudo_random_generator_factory>      prg_factory,
-                                               std::shared_ptr<low_papr_sequence_collection_factory> lpc_factory,
-                                               std::shared_ptr<low_papr_sequence_generator_factory>  lpg_factory,
-                                               std::shared_ptr<port_channel_estimator_factory> ch_estimator_factory)
+ocudu::create_dmrs_pucch_estimator_factory_sw(std::shared_ptr<pseudo_random_generator_factory>      prg_factory,
+                                              std::shared_ptr<low_papr_sequence_collection_factory> lpc_factory,
+                                              std::shared_ptr<low_papr_sequence_generator_factory>  lpg_factory,
+                                              std::shared_ptr<port_channel_estimator_factory> ch_estimator_factory)
 {
   return std::make_shared<dmrs_pucch_estimator_sw_factory>(prg_factory, lpc_factory, lpg_factory, ch_estimator_factory);
 }

@@ -9,9 +9,9 @@
  */
 
 #include "low_papr_sequence_collection_impl.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 low_papr_sequence_collection_impl::low_papr_sequence_collection_impl(low_papr_sequence_generator& generator,
                                                                      unsigned                     m,
@@ -49,10 +49,10 @@ span<const cf_t> low_papr_sequence_collection_impl::get(unsigned u, unsigned v, 
   std::array<unsigned, 3> indexes    = {u, v, alpha_idx};
 
   // Make sure the indexes are valid.
-  srsran_assert(u < dimensions[1] && v < dimensions[2] && alpha_idx < dimensions[3],
-                "The sequence collection was initialized with dimension sizes {} and it is trying to access {}",
-                span<const unsigned>(dimensions),
-                span<const unsigned>(indexes));
+  ocudu_assert(u < dimensions[1] && v < dimensions[2] && alpha_idx < dimensions[3],
+               "The sequence collection was initialized with dimension sizes {} and it is trying to access {}",
+               span<const unsigned>(dimensions),
+               span<const unsigned>(indexes));
 
   // Return the vector view of the sequence.
   return pregen_signals.get_view<1>({u, v, alpha_idx});

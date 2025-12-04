@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/ethernet/ethernet_mac_address.h"
-#include "srsran/support/units.h"
+#include "ocudu/ofh/ethernet/ethernet_mac_address.h"
+#include "ocudu/support/units.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ether {
 
 /// VLAN Tag protocol identifier.
@@ -26,4 +26,4 @@ constexpr units::bytes ETH_HEADER_SIZE{ETH_ADDR_LEN * 2 + sizeof(uint16_t)};
 constexpr units::bytes ETH_VLAN_TAG_SIZE{sizeof(uint16_t) * 2};
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

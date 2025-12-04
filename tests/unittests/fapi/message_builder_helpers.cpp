@@ -13,7 +13,7 @@
 
 static std::mt19937 gen(0);
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 static unsigned generate_sfn()
@@ -240,10 +240,10 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
   pdu.precoding_and_beamforming            = build_valid_tx_precoding_and_beamforming_pdu();
 
   // Maintenance v3.
-  pdu.pdsch_maintenance_v3.trans_type = srsran::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
+  pdu.pdsch_maintenance_v3.trans_type = ocudu::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
   pdu.pdsch_maintenance_v3.coreset_start_point                  = 2;
   pdu.pdsch_maintenance_v3.initial_dl_bwp_size                  = 3;
-  pdu.pdsch_maintenance_v3.ldpc_base_graph                      = srsran::ldpc_base_graph_type::BG1;
+  pdu.pdsch_maintenance_v3.ldpc_base_graph                      = ocudu::ldpc_base_graph_type::BG1;
   pdu.pdsch_maintenance_v3.tb_size_lbrm_bytes                   = units::bytes{12};
   pdu.pdsch_maintenance_v3.prb_sym_rm_pattern_bitmap_size_byref = 0;
   pdu.pdsch_maintenance_v3.num_prb_sym_rm_patts_by_value        = 0;
@@ -257,7 +257,7 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
 
   return pdu;
 }
-srsran::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
+ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
 {
   dl_prs_pdu pdu;
 
@@ -1243,7 +1243,7 @@ tx_data_request_message unittest::build_valid_tx_data_request()
   return msg;
 }
 
-srsran::fapi::crc_indication_message unittest::build_valid_crc_indication()
+ocudu::fapi::crc_indication_message unittest::build_valid_crc_indication()
 {
   crc_indication_message msg;
   msg.message_type = message_type_id::crc_indication;
@@ -1265,9 +1265,9 @@ srsran::fapi::crc_indication_message unittest::build_valid_crc_indication()
   return msg;
 }
 
-srsran::fapi::tx_precoding_and_beamforming_pdu unittest::build_valid_tx_precoding_and_beamforming_pdu()
+ocudu::fapi::tx_precoding_and_beamforming_pdu unittest::build_valid_tx_precoding_and_beamforming_pdu()
 {
-  srsran::fapi::tx_precoding_and_beamforming_pdu pdu;
+  ocudu::fapi::tx_precoding_and_beamforming_pdu pdu;
 
   pdu.trp_scheme        = 0U;
   pdu.prg_size          = 1U;

@@ -9,11 +9,11 @@
  */
 
 #include "ulsch_info_test_data.h"
-#include "srsran/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -28,9 +28,9 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 class UlschInfoFixture : public ::testing::TestWithParam<test_case_t>
 {};

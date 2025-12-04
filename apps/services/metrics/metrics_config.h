@@ -12,14 +12,14 @@
 
 #include "apps/services/metrics/metrics_consumer.h"
 #include "apps/services/metrics/metrics_producer.h"
-#include "srsran/adt/span.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -31,7 +31,7 @@ namespace app_services {
 /// defined by the given task executor. The implementation of the callback must make sure that the metrics object lives
 /// longer than the handling of the metrics by the consumer.
 using metrics_callback = std::function<
-    void(const metrics_set&, span<metrics_consumer*>, task_executor&, srslog::basic_logger&, stop_event_token)>;
+    void(const metrics_set&, span<metrics_consumer*>, task_executor&, ocudulog::basic_logger&, stop_event_token)>;
 
 /// Metrics configuration.
 struct metrics_config {
@@ -47,4 +47,4 @@ struct metrics_config {
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/phy/lower/processors/uplink/puxch/puxch_processor_factories.h"
+#include "ocudu/phy/lower/processors/uplink/puxch/puxch_processor_factories.h"
 #include "puxch_processor_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -21,7 +21,7 @@ public:
   explicit puxch_processor_factory_sw(std::shared_ptr<ofdm_demodulator_factory> ofdm_factory_) :
     ofdm_factory(std::move(ofdm_factory_))
   {
-    srsran_assert(ofdm_factory, "Invalid demodulator factory.");
+    ocudu_assert(ofdm_factory, "Invalid demodulator factory.");
   }
 
   std::unique_ptr<puxch_processor> create(const puxch_processor_configuration& config) override
@@ -59,7 +59,7 @@ private:
 } // namespace
 
 std::shared_ptr<puxch_processor_factory>
-srsran::create_puxch_processor_factory_sw(std::shared_ptr<ofdm_demodulator_factory> ofdm_demod_factory)
+ocudu::create_puxch_processor_factory_sw(std::shared_ptr<ofdm_demodulator_factory> ofdm_demod_factory)
 {
   return std::make_shared<puxch_processor_factory_sw>(std::move(ofdm_demod_factory));
 }

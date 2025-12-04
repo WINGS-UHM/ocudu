@@ -9,11 +9,11 @@
  */
 
 #include "ue_manager_test_helpers.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 //////////////////////////////////////////////////////////////////////////////////////
 /* DU UE                                                                            */
@@ -25,8 +25,8 @@ TEST_F(ue_manager_test, when_multiple_ue_indexes_allocated_then_ue_indexes_valid
   du_index_t du_index = du_index_t::min;
 
   // reduce log level to avoid flooding the log
-  ue_mng_logger.set_level(srslog::basic_levels::warning);
-  test_logger.set_level(srslog::basic_levels::warning);
+  ue_mng_logger.set_level(ocudulog::basic_levels::warning);
+  test_logger.set_level(ocudulog::basic_levels::warning);
 
   for (unsigned it = 0; it < cu_cp_cfg.admission.max_nof_ues; it++) {
     // Check that the ue index is valid
@@ -40,8 +40,8 @@ TEST_F(ue_manager_test, when_more_than_max_ue_indexes_allocated_then_ue_index_in
   du_index_t du_index = du_index_t::min;
 
   // reduce log level to avoid flooding the log
-  ue_mng_logger.set_level(srslog::basic_levels::warning);
-  test_logger.set_level(srslog::basic_levels::warning);
+  ue_mng_logger.set_level(ocudulog::basic_levels::warning);
+  test_logger.set_level(ocudulog::basic_levels::warning);
 
   for (unsigned it = 0; it < cu_cp_cfg.admission.max_nof_ues; it++) {
     // Check that the ue index is valid
@@ -49,8 +49,8 @@ TEST_F(ue_manager_test, when_more_than_max_ue_indexes_allocated_then_ue_index_in
   }
 
   // reset log level
-  ue_mng_logger.set_level(srslog::basic_levels::debug);
-  test_logger.set_level(srslog::basic_levels::debug);
+  ue_mng_logger.set_level(ocudulog::basic_levels::debug);
+  test_logger.set_level(ocudulog::basic_levels::debug);
 
   // Allocate additional ue index
   ASSERT_EQ(ue_mng.add_ue(du_index), ue_index_t::invalid);
@@ -59,10 +59,10 @@ TEST_F(ue_manager_test, when_more_than_max_ue_indexes_allocated_then_ue_index_in
 /// Test successful creation of a DU UE
 TEST_F(ue_manager_test, when_valid_du_context_added_at_creation_then_ue_added)
 {
-  du_index_t                 du_index    = du_index_t::min;
-  rnti_t                     rnti        = to_rnti(0x4601);
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
-  ue_index_t                 ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
+  du_index_t             du_index    = du_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
+  ue_index_t             ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
   auto* ue = ue_mng.find_ue(ue_index);
 
@@ -98,8 +98,8 @@ TEST_F(ue_manager_test, when_du_context_valid_then_ue_updated)
   du_index_t du_index = du_index_t::min;
   ue_index_t ue_index = ue_mng.add_ue(du_index);
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
-  rnti_t                     rnti        = to_rnti(0x4601);
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
 
   auto* ue = ue_mng.set_ue_du_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
 
@@ -132,10 +132,10 @@ TEST_F(ue_manager_test, when_du_context_valid_then_ue_updated)
 /// Test finding invalid UE index
 TEST_F(ue_manager_test, when_ue_index_invalid_then_ue_not_found)
 {
-  du_index_t                 du_index    = du_index_t::min;
-  rnti_t                     rnti        = to_rnti(0x4601);
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
-  ue_index_t                 ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
+  du_index_t             du_index    = du_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
+  ue_index_t             ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
   auto* ue = ue_mng.find_ue(ue_index);
 
@@ -149,10 +149,10 @@ TEST_F(ue_manager_test, when_ue_index_invalid_then_ue_not_found)
 /// Test duplicate UE creation
 TEST_F(ue_manager_test, when_rnti_already_exits_then_ue_not_added)
 {
-  du_index_t                 du_index    = du_index_t::min;
-  rnti_t                     rnti        = to_rnti(0x4601);
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
-  ue_index_t                 ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
+  du_index_t             du_index    = du_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
+  ue_index_t             ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
 
   // check that the number of DU UEs is 1
@@ -168,10 +168,10 @@ TEST_F(ue_manager_test, when_rnti_already_exits_then_ue_not_added)
 /// Test successful removal of a DU UE
 TEST_F(ue_manager_test, when_ue_exists_then_removal_successful)
 {
-  du_index_t                 du_index    = du_index_t::min;
-  rnti_t                     rnti        = to_rnti(0x4601);
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
-  ue_index_t                 ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
+  du_index_t             du_index    = du_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
+  ue_index_t             ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
   auto* ue = ue_mng.find_ue(ue_index);
 
@@ -184,12 +184,12 @@ TEST_F(ue_manager_test, when_ue_exists_then_removal_successful)
 /// Test creation of multiple DU UEs
 TEST_F(ue_manager_test, when_multiple_ues_added_then_ues_exist)
 {
-  du_index_t                 du_index    = du_index_t::min;
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
+  du_index_t             du_index    = du_index_t::min;
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
 
   // reduce log level to avoid flooding the log
-  ue_mng_logger.set_level(srslog::basic_levels::warning);
-  test_logger.set_level(srslog::basic_levels::warning);
+  ue_mng_logger.set_level(ocudulog::basic_levels::warning);
+  test_logger.set_level(ocudulog::basic_levels::warning);
 
   for (unsigned it = to_value(rnti_t::MIN_CRNTI);
        it < unsigned(to_value(rnti_t::MIN_CRNTI) + cu_cp_cfg.admission.max_nof_ues);
@@ -220,7 +220,7 @@ TEST_F(ue_manager_test, when_multiple_ues_added_then_ues_exist)
   }
 
   // reset log level
-  ue_mng_logger.set_level(srslog::basic_levels::debug);
+  ue_mng_logger.set_level(ocudulog::basic_levels::debug);
 
   // check that the maximum number of DU UEs has been reached
   ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues);
@@ -229,12 +229,12 @@ TEST_F(ue_manager_test, when_multiple_ues_added_then_ues_exist)
 /// Test creation of unsupported number of DU UEs
 TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_not_created)
 {
-  du_index_t                 du_index    = du_index_t::min;
-  srs_cu_cp::du_cell_index_t pcell_index = srs_cu_cp::du_cell_index_t::min;
+  du_index_t             du_index    = du_index_t::min;
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
 
   // reduce log level to avoid flooding the log
-  ue_mng_logger.set_level(srslog::basic_levels::warning);
-  test_logger.set_level(srslog::basic_levels::warning);
+  ue_mng_logger.set_level(ocudulog::basic_levels::warning);
+  test_logger.set_level(ocudulog::basic_levels::warning);
 
   for (unsigned it = to_value(rnti_t::MIN_CRNTI);
        it < unsigned(to_value(rnti_t::MIN_CRNTI) + cu_cp_cfg.admission.max_nof_ues);
@@ -265,8 +265,8 @@ TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_not_created)
   }
 
   // reset log level
-  ue_mng_logger.set_level(srslog::basic_levels::debug);
-  test_logger.set_level(srslog::basic_levels::debug);
+  ue_mng_logger.set_level(ocudulog::basic_levels::debug);
+  test_logger.set_level(ocudulog::basic_levels::debug);
 
   // check that the maximum number of DU UEs has been reached
   ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues);

@@ -9,10 +9,10 @@
  */
 
 #include "rlc_rx_am_entity.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/instrumentation/traces/up_traces.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/instrumentation/traces/up_traces.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_rx_am_entity::rlc_rx_am_entity(gnb_du_id_t                       gnb_du_id,
                                    du_ue_index_t                     ue_index,
@@ -39,9 +39,9 @@ rlc_rx_am_entity::rlc_rx_am_entity(gnb_du_id_t                       gnb_du_id,
   metrics.metrics_set_mode(rlc_mode::am);
 
   // check status_prohibit_timer
-  srsran_assert(status_prohibit_timer.is_valid(), "Cannot create RLC RX AM, status_prohibit_timer not configured.");
+  ocudu_assert(status_prohibit_timer.is_valid(), "Cannot create RLC RX AM, status_prohibit_timer not configured.");
   // check reassembly_timer
-  srsran_assert(reassembly_timer.is_valid(), "Cannot create RLC RX AM, reassembly_timer not configured.");
+  ocudu_assert(reassembly_timer.is_valid(), "Cannot create RLC RX AM, reassembly_timer not configured.");
 
   // configure status_prohibit_timer
   if (cfg.t_status_prohibit > 0) {
@@ -58,10 +58,10 @@ rlc_rx_am_entity::rlc_rx_am_entity(gnb_du_id_t                       gnb_du_id,
   // configure status report limits
   if (cfg.max_sn_per_status.has_value()) {
     uint32_t max_sn_per_status = cfg.max_sn_per_status.value();
-    srsran_assert(max_sn_per_status <= window_size(to_number(cfg.sn_field_length)),
-                  "Cannot create RLC RX AM, max_sn_per_status exceeds window_size. {}",
-                  cfg);
-    srsran_assert(max_sn_per_status > 0, "Cannot create RLC RX AM, max_sn_per_status must not be zero. {}", cfg);
+    ocudu_assert(max_sn_per_status <= window_size(to_number(cfg.sn_field_length)),
+                 "Cannot create RLC RX AM, max_sn_per_status exceeds window_size. {}",
+                 cfg);
+    ocudu_assert(max_sn_per_status > 0, "Cannot create RLC RX AM, max_sn_per_status must not be zero. {}", cfg);
     max_nof_sn_per_status_report = max_sn_per_status;
   } else {
     max_nof_sn_per_status_report = window_size(to_number(cfg.sn_field_length));
@@ -182,7 +182,7 @@ void rlc_rx_am_entity::handle_data_pdu(byte_buffer_slice buf)
   }
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   // 5.2.3.2.3 Actions when an AMD PDU is placed in the reception buffer
   /*
@@ -462,8 +462,8 @@ bool rlc_rx_am_entity::store_segment(rlc_rx_am_sdu_info& sdu_info, rlc_rx_am_sdu
 
 void rlc_rx_am_entity::update_segment_inventory(rlc_rx_am_sdu_info& rx_sdu) const
 {
-  srsran_assert(std::holds_alternative<rlc_rx_am_sdu_info::segment_set_t>(rx_sdu.sdu_data),
-                "Invalid sdu_data variant for update of segment inventory");
+  ocudu_assert(std::holds_alternative<rlc_rx_am_sdu_info::segment_set_t>(rx_sdu.sdu_data),
+               "Invalid sdu_data variant for update of segment inventory");
   rlc_rx_am_sdu_info::segment_set_t& segments = std::get<rlc_rx_am_sdu_info::segment_set_t>(rx_sdu.sdu_data);
   if (segments.empty()) {
     rx_sdu.fully_received = false;
@@ -563,9 +563,9 @@ void rlc_rx_am_entity::refresh_status_report()
         logger.log_debug("Adding nack={}.", nack);
         status_owned_by_writer->push_nack(nack);
       } else if (not rx_window[i].fully_received) {
-        srsran_assert(std::holds_alternative<rlc_rx_am_sdu_info::segment_set_t>(rx_window[i].sdu_data),
-                      "Invalid sdu_data variant of incomplete SDU in rx_window. sn={}",
-                      i);
+        ocudu_assert(std::holds_alternative<rlc_rx_am_sdu_info::segment_set_t>(rx_window[i].sdu_data),
+                     "Invalid sdu_data variant of incomplete SDU in rx_window. sn={}",
+                     i);
         rlc_rx_am_sdu_info::segment_set_t& segments =
             std::get<rlc_rx_am_sdu_info::segment_set_t>(rx_window[i].sdu_data);
         // Some segments were received, but not all.
@@ -590,10 +590,10 @@ void rlc_rx_am_entity::refresh_status_report()
                 logger.log_error("Segment: so={} len={}", segm_it->so, segm_it->payload.length());
               }
               logger.log_error("Invalid segment offsets in nack={} for segment so={}.", nack, segm->so);
-              srsran_assert(nack.so_start <= nack.so_end,
-                            "Invalid segment offsets in nack={} for segment so={}.",
-                            nack,
-                            segm->so);
+              ocudu_assert(nack.so_start <= nack.so_end,
+                           "Invalid segment offsets in nack={} for segment so={}.",
+                           nack,
+                           segm->so);
             }
           }
           if (segm->si == rlc_si_field::last_segment) {
@@ -612,7 +612,7 @@ void rlc_rx_am_entity::refresh_status_report()
           logger.log_debug("Adding nack={}.", nack);
           status_owned_by_writer->push_nack(nack);
           // Sanity check
-          srsran_assert(nack.so_start <= nack.so_end, "Invalid segment offsets in nack={}.", nack);
+          ocudu_assert(nack.so_start <= nack.so_end, "Invalid segment offsets in nack={}.", nack);
         }
       }
     }
@@ -711,7 +711,7 @@ void rlc_rx_am_entity::on_expired_reassembly_timer()
   if (not valid_ack_sn(sn_upd)) {
     logger.log_error("Invalid rx_highest_status={} outside RX window. {}", sn_upd, st);
   }
-  srsran_assert(valid_ack_sn(sn_upd), "Error: rx_highest_status={} outside RX window. {}", sn_upd, st);
+  ocudu_assert(valid_ack_sn(sn_upd), "Error: rx_highest_status={} outside RX window. {}", sn_upd, st);
   st.rx_highest_status = sn_upd;
 
   bool restart_reassembly_timer = false;
@@ -738,6 +738,6 @@ void rlc_rx_am_entity::on_expired_reassembly_timer()
   do_status.store(true, std::memory_order_relaxed);
   notify_status_report_changed();
 
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
   logger.log_debug("RX window state: nof_sdus={}", rx_window.size());
 }

@@ -11,13 +11,13 @@
 #pragma once
 
 #include "external/nlohmann/json.hpp"
-#include "srsran/adt/span.h"
-#include "srsran/ran/pci.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/pci.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_du {
+namespace odu {
 struct o_du_low_metrics;
 }
 
@@ -25,11 +25,11 @@ namespace app_helpers {
 namespace json_generators {
 
 /// Generates a nlohmann JSON object that codifies the given O-DU low metrics.
-nlohmann::json generate(const srs_du::o_du_low_metrics& metrics);
+nlohmann::json generate(const odu::o_du_low_metrics& metrics);
 
 /// Generates a string in JSON format that codifies the given O-DU low metrics.
-std::string generate_string(const srs_du::o_du_low_metrics& metrics, int indent = -1);
+std::string generate_string(const odu::o_du_low_metrics& metrics, int indent = -1);
 
 } // namespace json_generators
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

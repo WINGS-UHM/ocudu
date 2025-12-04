@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_metrics_notifier.h"
-#include "srsran/support/math/stats.h"
+#include "ocudu/phy/lower/lower_phy_metrics_notifier.h"
+#include "ocudu/support/math/stats.h"
 #include <mutex>
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_sdr_sector_metrics;
 
@@ -43,4 +43,4 @@ private:
   std::optional<std::pair<uint64_t, uint64_t>> rx_clipping;
 };
 
-} // namespace srsran
+} // namespace ocudu

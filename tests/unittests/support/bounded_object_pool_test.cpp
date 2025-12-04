@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
@@ -20,7 +20,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Colllect metrics on the bounded object pool operations.
 static constexpr bool EnableMetrics = false;

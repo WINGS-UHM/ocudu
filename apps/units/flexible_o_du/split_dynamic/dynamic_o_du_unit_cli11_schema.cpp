@@ -16,10 +16,10 @@
 #include "apps/units/flexible_o_du/split_7_2/helpers/ru_ofh_config_cli11_schema.h"
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config_cli11_schema.h"
 #include "dynamic_o_du_unit_config.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static ru_ofh_unit_parsed_config ofh_cfg;
 static ru_sdr_unit_config        sdr_cfg;
@@ -85,7 +85,7 @@ static void configure_cli11_metrics_args(CLI::App& app, ru_dummy_unit_metrics_co
   add_option(*layers_subcmd, "--enable_ru", config.enable_ru_metrics, "Enable Radio Unit metrics");
 }
 
-void srsran::configure_cli11_with_dynamic_o_du_unit_config_schema(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg)
+void ocudu::configure_cli11_with_dynamic_o_du_unit_config_schema(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg)
 {
   configure_cli11_with_o_du_high_config_schema(app, parsed_cfg.odu_high_cfg);
   configure_cli11_with_du_low_config_schema(app, parsed_cfg.du_low_cfg);
@@ -121,8 +121,8 @@ static void manage_ru(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg)
   nof_ru_types += (nof_dummy_entries != 0) ? 1 : 0;
 
   if (nof_ru_types > 1) {
-    srsran_terminate("Radio Unit configuration allows either a SDR, Open Fronthaul, or Dummy configuration, but not "
-                     "different types of them at the same time");
+    ocudu_terminate("Radio Unit configuration allows either a SDR, Open Fronthaul, or Dummy configuration, but not "
+                    "different types of them at the same time");
   }
 
   if (nof_ofh_entries != 0) {
@@ -146,7 +146,7 @@ static void manage_ru(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg)
   ofh_subcmd->disabled();
 }
 
-void srsran::autoderive_dynamic_o_du_parameters_after_parsing(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg)
+void ocudu::autoderive_dynamic_o_du_parameters_after_parsing(CLI::App& app, dynamic_o_du_unit_config& parsed_cfg)
 {
   const unsigned nof_cells = parsed_cfg.odu_high_cfg.du_high_cfg.config.cells_cfg.size();
   autoderive_o_du_high_parameters_after_parsing(app, parsed_cfg.odu_high_cfg);

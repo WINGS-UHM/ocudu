@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/ngap/ngap_init_context_setup.h"
-#include "srsran/ngap/ngap_ue_radio_capability_management.h"
+#include "ocudu/ngap/ngap_init_context_setup.h"
+#include "ocudu/ngap/ngap_ue_radio_capability_management.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the setup of PDU session resources from the RRC viewpoint.
 class initial_context_setup_routine
@@ -27,7 +27,7 @@ public:
                                 ue_security_manager&                         security_mng_,
                                 f1ap_ue_context_manager&                     f1ap_ue_ctxt_mng_,
                                 cu_cp_ngap_handler&                          pdu_session_setup_handler_,
-                                srslog::basic_logger&                        logger_);
+                                ocudulog::basic_logger&                      logger_);
 
   void operator()(
       coro_context<async_task<expected<ngap_init_context_setup_response, ngap_init_context_setup_failure>>>& ctx);
@@ -46,7 +46,7 @@ private:
   ue_security_manager&                         security_mng;
   f1ap_ue_context_manager&                     f1ap_ue_ctxt_mng;          // to trigger UE context setup at F1AP
   cu_cp_ngap_handler&                          pdu_session_setup_handler; // to setup PDU sessions
-  srslog::basic_logger&                        logger;
+  ocudulog::basic_logger&                      logger;
 
   // (sub-)routine requests
   rrc_ue_security_mode_command_context     rrc_smc_ctxt;
@@ -64,5 +64,5 @@ private:
   ngap_init_context_setup_response          resp_msg;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

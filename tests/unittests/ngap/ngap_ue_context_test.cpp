@@ -9,19 +9,19 @@
  */
 
 #include "lib/ngap/ue_context/ngap_ue_context.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 // Test class.
 class ngap_ue_context_list_test : public ngap_ue_context_list
 {
 public:
-  ngap_ue_context_list_test(timer_factory& timers_, srslog::basic_logger& logger_) :
+  ngap_ue_context_list_test(timer_factory& timers_, ocudulog::basic_logger& logger_) :
     ngap_ue_context_list(timers_, logger_)
   {
   }
@@ -33,13 +33,13 @@ class ngap_ue_context_test : public ::testing::Test
 protected:
   ngap_ue_context_test()
   {
-    ngap_logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ngap_logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
   ~ngap_ue_context_test()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   ue_index_t generate_random_ue_index()
@@ -54,7 +54,7 @@ protected:
         test_rgen::uniform_int<uint64_t>(ran_ue_id_to_uint(ran_ue_id_t::min), ran_ue_id_to_uint(ran_ue_id_t::max) - 1));
   }
 
-  srslog::basic_logger&        ngap_logger = srslog::fetch_basic_logger("NGAP");
+  ocudulog::basic_logger&      ngap_logger = ocudulog::fetch_basic_logger("NGAP");
   timer_manager                timer_mng;
   manual_task_worker           ctrl_worker{128};
   timer_factory                timers{timer_mng, ctrl_worker};

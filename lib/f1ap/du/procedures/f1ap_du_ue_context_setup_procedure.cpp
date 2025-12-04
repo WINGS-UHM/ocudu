@@ -12,12 +12,12 @@
 #include "../../asn1_helpers.h"
 #include "../ue_context/f1ap_du_ue_manager.h"
 #include "proc_logger.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 /// Time waiting for RRC container delivery.
@@ -53,7 +53,7 @@ f1ap_du_ue_context_setup_procedure::f1ap_du_ue_context_setup_procedure(
   ue_mng(ue_mng_),
   du_mng(du_mng_),
   ue_index(ue_index_),
-  logger(srslog::fetch_basic_logger("DU-F1")),
+  logger(ocudulog::fetch_basic_logger("DU-F1")),
   du_ctxt(ctxt_)
 {
 }
@@ -111,7 +111,7 @@ void f1ap_du_ue_context_setup_procedure::operator()(coro_context<async_task<void
 
     // Fetch created UE context.
     ue = ue_mng.find(ue_index);
-    srsran_assert(ue != nullptr, "UE context was not correctly created");
+    ocudu_assert(ue != nullptr, "UE context was not correctly created");
 
     // Save allocated C-RNTI for created UE.
     ue->context.rnti = du_ue_create_response->crnti;

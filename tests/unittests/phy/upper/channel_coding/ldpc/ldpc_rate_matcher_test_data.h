@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsLDPCRateMatcherUnittest.m"
 
-#include "srsran/ran/sch/modulation_scheme.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/ran/sch/modulation_scheme.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   unsigned             rm_length  = 0;
@@ -59,4 +59,4 @@ static const std::vector<test_case_t> ldpc_rate_matcher_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

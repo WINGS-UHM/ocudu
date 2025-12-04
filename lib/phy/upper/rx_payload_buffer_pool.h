@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/units.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/units.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Represents a pool of payload buffers.
 ///
@@ -38,8 +38,8 @@ public:
   rx_payload_buffer_pool(unsigned max_nof_prb, unsigned max_nof_layers) :
     pool(round_to_block_size(units::bits(max_nof_prb * 156 * 8 * max_nof_layers).truncate_to_bytes().value()))
   {
-    srsran_assert(max_nof_prb != 0, "Invalid number of PRB.");
-    srsran_assert(max_nof_layers != 0, "Invalid number of layers.");
+    ocudu_assert(max_nof_prb != 0, "Invalid number of PRB.");
+    ocudu_assert(max_nof_layers != 0, "Invalid number of layers.");
   }
 
   /// Resets the payload buffer pool.
@@ -71,4 +71,4 @@ private:
   span<uint8_t> available;
 };
 
-} // namespace srsran
+} // namespace ocudu

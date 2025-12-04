@@ -13,15 +13,15 @@
 #include "../operation_controller_dummy.h"
 #include "ofh_data_flow_uplane_downlink_data.h"
 #include "sequence_identifier_generator.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
-#include "srsran/ofh/compression/iq_compressor.h"
-#include "srsran/ofh/ecpri/ecpri_packet_builder.h"
-#include "srsran/ofh/ethernet/ethernet_frame_builder.h"
-#include "srsran/ofh/serdes/ofh_uplane_message_builder.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ofh/compression/iq_compressor.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_builder.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_builder.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_builder.h"
+#include "ocudu/ran/cyclic_prefix.h"
 
-namespace srsran {
+namespace ocudu {
 struct resource_grid_context;
 
 namespace ether {
@@ -47,7 +47,7 @@ struct data_flow_uplane_downlink_data_impl_config {
 /// Open Fronthaul User-Plane downlink data flow implementation dependencies.
 struct data_flow_uplane_downlink_data_impl_dependencies {
   /// Logger
-  srslog::basic_logger* logger = nullptr;
+  ocudulog::basic_logger* logger = nullptr;
   /// Ethernet frame pool.
   std::shared_ptr<ether::eth_frame_pool> frame_pool;
   /// VLAN frame builder.
@@ -116,7 +116,7 @@ private:
   data_flow_message_encoding_metrics_collector* get_metrics_collector() override;
 
 private:
-  srslog::basic_logger&                     logger;
+  ocudulog::basic_logger&                   logger;
   const unsigned                            nof_symbols_per_slot;
   const unsigned                            ru_nof_prbs;
   const unsigned                            sector_id;
@@ -132,4 +132,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

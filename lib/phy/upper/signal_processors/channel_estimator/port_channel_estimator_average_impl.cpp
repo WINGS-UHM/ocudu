@@ -10,21 +10,21 @@
 
 #include "port_channel_estimator_average_impl.h"
 #include "port_channel_estimator_helpers.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/srsvec/add.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/mean.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/simd.h"
-#include "srsran/srsvec/subtract.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/transform_optional.h"
+#include "ocudu/ocuduvec/add.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/mean.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/simd.h"
+#include "ocudu/ocuduvec/subtract.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/support/transform_optional.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static const unsigned& MAX_LAYERS   = port_channel_estimator_average_impl::MAX_LAYERS;
 static const unsigned& MAX_V_PILOTS = port_channel_estimator_average_impl::MAX_V_PILOTS;
@@ -117,15 +117,15 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   unsigned nof_symbols     = cfg_local.first_symbol + cfg_local.nof_symbols;
   unsigned nof_layers      = cfg_local.dmrs_pattern.size();
 
-  srsran_assert(symbol.size() == nof_subcarriers,
-                "Symbol size mismatch: requested {} subcarriers, supported {}.",
-                symbol.size(),
-                nof_subcarriers);
-  srsran_assert(i_symbol < nof_symbols,
-                "Symbol index {} is larger than the maximum supported index {}.",
-                i_symbol,
-                nof_symbols - 1);
-  srsran_assert(
+  ocudu_assert(symbol.size() == nof_subcarriers,
+               "Symbol size mismatch: requested {} subcarriers, supported {}.",
+               symbol.size(),
+               nof_subcarriers);
+  ocudu_assert(i_symbol < nof_symbols,
+               "Symbol index {} is larger than the maximum supported index {}.",
+               i_symbol,
+               nof_symbols - 1);
+  ocudu_assert(
       tx_layer < nof_layers, "Layer index {} is larger than the maximum supported index {}.", tx_layer, nof_layers - 1);
 
   // Get the time-domain characteristics of the DM-RS pattern, common to all layers.
@@ -158,7 +158,7 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   int      lowest_rb  = hop_rb_mask.find_lowest();
   int      highest_rb = hop_rb_mask.find_highest();
   unsigned rb_count   = hop_rb_mask.count();
-  srsran_assert(highest_rb >= lowest_rb, "Invalid hop RB mask.");
+  ocudu_assert(highest_rb >= lowest_rb, "Invalid hop RB mask.");
   bool is_contiguous = (static_cast<unsigned>(highest_rb + 1 - lowest_rb) == rb_count);
 
   // Total number of REs with an estimated channel coefficient in the requested OFDM symbol.
@@ -187,7 +187,7 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   if (compensate_cfo && cfo_normalized.has_value()) {
     // Apply CFO to the estimated channel.
     float cfo = *cfo_normalized;
-    srsvec::sc_prod(symbol_fr_resp, symbol_fr_resp, std::polar(1.0F, TWOPI * symbol_start_epochs[i_symbol] * cfo));
+    ocuduvec::sc_prod(symbol_fr_resp, symbol_fr_resp, std::polar(1.0F, TWOPI * symbol_start_epochs[i_symbol] * cfo));
   }
 }
 
@@ -208,7 +208,7 @@ void port_channel_estimator_average_impl::do_compute(const resource_grid_reader&
   // Compute the cumulative duration of all CPs for the given subcarrier spacing.
   initialize_symbol_start_epochs(cfg_local.cp, cfg_local.scs);
 
-  srsvec::zero(rsrp);
+  ocuduvec::zero(rsrp);
   epre             = 0;
   noise_var        = 0;
   time_alignment_s = 0;
@@ -221,13 +221,13 @@ void port_channel_estimator_average_impl::do_compute(const resource_grid_reader&
     time_alignment_s /= 2.0F;
   }
 
-  srsvec::sc_prod(rsrp, rsrp, 1.0F / static_cast<float>(nof_dmrs_pilots));
+  ocuduvec::sc_prod(rsrp, rsrp, 1.0F / static_cast<float>(nof_dmrs_pilots));
   epre /= static_cast<float>(nof_dmrs_pilots);
 
   // Compute the estimated data received power by scaling the RSRP.
-  srsran_assert(cfg_local.scaling > 0, "The DM-RS to data scaling factor should be a positive number.");
+  ocudu_assert(cfg_local.scaling > 0, "The DM-RS to data scaling factor should be a positive number.");
   unsigned nof_tx_layers = cfg_local.dmrs_pattern.size();
-  float    rsrp_avg      = srsvec::mean(span<float>(rsrp).first(nof_tx_layers));
+  float    rsrp_avg      = ocuduvec::mean(span<float>(rsrp).first(nof_tx_layers));
   float    datarp        = rsrp_avg * nof_tx_layers / cfg_local.scaling / cfg_local.scaling;
 
   // Normalize the noise variance and bound it from below (this is needed mostly in synthetic testing environments with
@@ -246,13 +246,13 @@ void port_channel_estimator_average_impl::do_compute(const resource_grid_reader&
   cfo_Hz = transform_optional(cfo_normalized, std::multiplies(), static_cast<float>(scs_to_khz(cfg_local.scs) * 1000));
 }
 
-void port_channel_estimator_average_impl::compute_hop(const srsran::resource_grid_reader& grid,
-                                                      unsigned                            port,
-                                                      const dmrs_symbol_list&             pilots,
-                                                      unsigned                            hop)
+void port_channel_estimator_average_impl::compute_hop(const ocudu::resource_grid_reader& grid,
+                                                      unsigned                           port,
+                                                      const dmrs_symbol_list&            pilots,
+                                                      unsigned                           hop)
 {
   unsigned nof_tx_layers = cfg_local.dmrs_pattern.size();
-  srsran_assert(
+  ocudu_assert(
       nof_tx_layers <= MAX_LAYERS, "The number of Tx layers is {}, max {} supported.", nof_tx_layers, MAX_LAYERS);
 
   float beta_scaling = cfg_local.scaling;
@@ -295,15 +295,15 @@ void port_channel_estimator_average_impl::compute_hop(const srsran::resource_gri
 
   // We process layers in groups of two, since the DM-RS for layer 2n and layer 2n+1 are mapped onto the same REs.
   for (unsigned i_layer = 0; i_layer < nof_tx_layers; i_layer += 2U) {
-    srsran_assert((hop == 0) || cfg_local.dmrs_pattern[i_layer].hopping_symbol_index.has_value(),
-                  "Frequency hopping requested but not configured.");
+    ocudu_assert((hop == 0) || cfg_local.dmrs_pattern[i_layer].hopping_symbol_index.has_value(),
+                 "Frequency hopping requested but not configured.");
 
     // Extract symbols from resource grid.
     extract_layer_hop_rx_pilots(rx_pilots, grid, port, cfg_local, hop, i_layer);
 
     unsigned i_cdm = i_layer / 2;
     for (unsigned i_dmrs = 0; i_dmrs != nof_dmrs_symbols; ++i_dmrs) {
-      epre += srsvec::average_power(rx_pilots.get_symbol(i_dmrs, i_cdm)) * rx_pilots.get_symbol(i_dmrs, i_cdm).size();
+      epre += ocuduvec::average_power(rx_pilots.get_symbol(i_dmrs, i_cdm)) * rx_pilots.get_symbol(i_dmrs, i_cdm).size();
     }
 
     unsigned hop_offset = 0;
@@ -355,7 +355,7 @@ void port_channel_estimator_average_impl::compute_hop(const srsran::resource_gri
 
     // Apply frequency domain processing.
     for (unsigned i_symbol = 0; i_symbol != nof_lse_symbols; ++i_symbol) {
-      srsvec::sc_prod(
+      ocuduvec::sc_prod(
           pilots_lse.get_symbol(i_symbol, i_layer), pilots_lse.get_symbol(i_symbol, i_layer), total_scaling);
 
       // Apply a smoothing strategy to remove some noise ("high-time" components). Note that pilots_lse and
@@ -367,7 +367,7 @@ void port_channel_estimator_average_impl::compute_hop(const srsran::resource_gri
                          fd_smoothing_strategy);
 
       // Energy of the DM-RS in the current symbol and layer.
-      float avg = srsvec::average_power(filtered_pilots_lse.get_symbol(i_symbol, i_layer)) *
+      float avg = ocuduvec::average_power(filtered_pilots_lse.get_symbol(i_symbol, i_layer)) *
                   filtered_pilots_lse.get_symbol(i_symbol, i_layer).size();
 
       // Normalization factor: the factor nof_dmrs_symbols / nof_lse_symbols accounts for whether the
@@ -424,10 +424,10 @@ std::optional<float> port_channel_estimator_average_impl::preprocess_pilots_and_
     unsigned                                  start_layer,
     unsigned                                  stop_layer)
 {
-  srsran_assert((stop_layer == start_layer + 1) || (stop_layer == start_layer + 2),
-                "Layers must be processed either independently on in pairs, required {{{}, ..., {}}}.",
-                start_layer,
-                stop_layer - 1);
+  ocudu_assert((stop_layer == start_layer + 1) || (stop_layer == start_layer + 2),
+               "Layers must be processed either independently on in pairs, required {{{}, ..., {}}}.",
+               start_layer,
+               stop_layer - 1);
   bool need_average = (stop_layer - start_layer > 1);
 
   unsigned i_cdm = start_layer / 2;
@@ -437,7 +437,7 @@ std::optional<float> port_channel_estimator_average_impl::preprocess_pilots_and_
 
   for (unsigned i_layer = start_layer; i_layer != stop_layer; ++i_layer) {
     // Match received and transmitted pilots in the first DM-RS symbol.
-    srsvec::prod_conj(
+    ocuduvec::prod_conj(
         pilots_lse.get_symbol(0, i_layer), rx_pilots.get_symbol(0, i_cdm), pilots.get_symbol(hop_offset, i_layer));
   }
 
@@ -462,9 +462,10 @@ std::optional<float> port_channel_estimator_average_impl::preprocess_pilots_and_
     }
 
     // Match received and transmitted pilots in the second DM-RS symbol.
-    srsvec::prod_conj(temp_pilot_products, rx_pilots.get_symbol(1, i_cdm), pilots.get_symbol(hop_offset + 1, i_layer));
+    ocuduvec::prod_conj(
+        temp_pilot_products, rx_pilots.get_symbol(1, i_cdm), pilots.get_symbol(hop_offset + 1, i_layer));
 
-    noisy_phase_acc += srsvec::dot_prod(temp_pilot_products, pilots_lse.get_symbol(0, i_layer));
+    noisy_phase_acc += ocuduvec::dot_prod(temp_pilot_products, pilots_lse.get_symbol(0, i_layer));
   }
 
   float noisy_phase = std::arg(noisy_phase_acc);
@@ -499,16 +500,16 @@ void port_channel_estimator_average_impl::compensate_cfo_and_accumulate(
     }
 
     if (compensate_cfo && cfo.has_value()) {
-      srsvec::sc_prod(pilots_lse.get_symbol(0, i_layer),
-                      pilots_lse.get_symbol(0, i_layer),
-                      std::polar(1.0F, -TWOPI * symbol_start_epochs[i_dmrs_0] * cfo.value()));
-      srsvec::sc_prod(temp_pilot_products,
-                      temp_pilot_products,
-                      std::polar(1.0F, -TWOPI * symbol_start_epochs[i_dmrs_1] * cfo.value()));
+      ocuduvec::sc_prod(pilots_lse.get_symbol(0, i_layer),
+                        pilots_lse.get_symbol(0, i_layer),
+                        std::polar(1.0F, -TWOPI * symbol_start_epochs[i_dmrs_0] * cfo.value()));
+      ocuduvec::sc_prod(temp_pilot_products,
+                        temp_pilot_products,
+                        std::polar(1.0F, -TWOPI * symbol_start_epochs[i_dmrs_1] * cfo.value()));
     }
 
     if (td_interpolation_strategy == port_channel_estimator_td_interpolation_strategy::average) {
-      srsvec::add(pilots_lse.get_symbol(0, i_layer), temp_pilot_products, pilots_lse.get_symbol(0, i_layer));
+      ocuduvec::add(pilots_lse.get_symbol(0, i_layer), temp_pilot_products, pilots_lse.get_symbol(0, i_layer));
     }
   }
 
@@ -525,16 +526,16 @@ void port_channel_estimator_average_impl::compensate_cfo_and_accumulate(
         temp_pilot_products = pilots_lse.get_symbol(i_dmrs, i_layer);
       }
 
-      srsvec::prod_conj(
+      ocuduvec::prod_conj(
           temp_pilot_products, rx_pilots.get_symbol(i_dmrs, i_cdm), pilots.get_symbol(hop_offset + i_dmrs, i_layer));
       if (compensate_cfo && cfo.has_value()) {
-        srsvec::sc_prod(temp_pilot_products,
-                        temp_pilot_products,
-                        std::polar(1.0F, -TWOPI * symbol_start_epochs[i_symbol] * cfo.value()));
+        ocuduvec::sc_prod(temp_pilot_products,
+                          temp_pilot_products,
+                          std::polar(1.0F, -TWOPI * symbol_start_epochs[i_symbol] * cfo.value()));
       }
 
       if (td_interpolation_strategy == port_channel_estimator_td_interpolation_strategy::average) {
-        srsvec::add(pilots_lse.get_symbol(0, i_layer), temp_pilot_products, pilots_lse.get_symbol(0, i_layer));
+        ocuduvec::add(pilots_lse.get_symbol(0, i_layer), temp_pilot_products, pilots_lse.get_symbol(0, i_layer));
       }
     }
     ++i_dmrs;
@@ -570,7 +571,7 @@ void port_channel_estimator_average_impl::apply_td_domain_strategy(span<cbf16_t>
 {
   // If the time-domain strategy is average, skip all interpolation.
   if (td_interpolation_strategy == port_channel_estimator_td_interpolation_strategy::average) {
-    srsvec::convert(estimated_rg, freq_response_dmrs.get_symbol(0, i_layer));
+    ocuduvec::convert(estimated_rg, freq_response_dmrs.get_symbol(0, i_layer));
     return;
   }
 
@@ -588,7 +589,7 @@ void port_channel_estimator_average_impl::apply_td_domain_strategy(span<cbf16_t>
 
     // If there is no other DM-RS symbol, then use the same estimated channel.
     if (second_dmrs_symbol == -1) {
-      srsvec::convert(estimated_rg, freq_response_dmrs.get_symbol(0, i_layer));
+      ocuduvec::convert(estimated_rg, freq_response_dmrs.get_symbol(0, i_layer));
       return;
     }
 
@@ -604,7 +605,7 @@ void port_channel_estimator_average_impl::apply_td_domain_strategy(span<cbf16_t>
 
     // If there is no other DM-RS symbol, then use the same estimated channel.
     if (second_last_dmrs_symbol == -1) {
-      srsvec::convert(estimated_rg, freq_response_dmrs.get_symbol(nof_dmrs_symbols - 1, i_layer));
+      ocuduvec::convert(estimated_rg, freq_response_dmrs.get_symbol(nof_dmrs_symbols - 1, i_layer));
       return;
     }
 
@@ -636,7 +637,7 @@ extract_common_pattern(const port_channel_estimator::configuration& cfg, unsigne
                                                                                   : cfg.first_symbol + cfg.nof_symbols;
 
   unsigned nof_dmrs_symbols = pattern.symbols.slice(first_symbol, last_symbol).count();
-  srsran_assert(nof_dmrs_symbols != 0, "No DM-RS symbols were found.");
+  ocudu_assert(nof_dmrs_symbols != 0, "No DM-RS symbols were found.");
 
   return {pattern.symbols, first_symbol, last_symbol, nof_dmrs_symbols};
 }
@@ -725,10 +726,10 @@ static float estimate_noise(const dmrs_symbol_list&                   pilots,
 {
   constexpr unsigned max_layers = 2;
 
-  srsran_assert((stop_layer == start_layer + 1) || (stop_layer == start_layer + max_layers),
-                "Layers must be processed either independently on in pairs, required {{{}, ..., {}}}.",
-                start_layer,
-                stop_layer - 1);
+  ocudu_assert((stop_layer == start_layer + 1) || (stop_layer == start_layer + max_layers),
+               "Layers must be processed either independently on in pairs, required {{{}, ..., {}}}.",
+               start_layer,
+               stop_layer - 1);
 
   // Deduce the number of RE to process.
   unsigned nof_re = estimates.size().nof_subc;
@@ -743,7 +744,7 @@ static float estimate_noise(const dmrs_symbol_list&                   pilots,
 
   for (unsigned i_layer = start_layer; i_layer != stop_layer; ++i_layer) {
     unsigned i_helper = i_layer - start_layer;
-    srsvec::sc_prod(scaled_estimates.get_slice(i_helper), estimates.get_symbol(0, i_layer), scaling_factor);
+    ocuduvec::sc_prod(scaled_estimates.get_slice(i_helper), estimates.get_symbol(0, i_layer), scaling_factor);
     for (unsigned i_symbol = 1; i_symbol != nof_lse_symbols; ++i_symbol) {
       span<cf_t>       scaled           = scaled_estimates.get_slice(i_helper);
       span<const cf_t> estimates_symbol = estimates.get_symbol(i_symbol, i_layer);
@@ -779,27 +780,27 @@ static float estimate_noise(const dmrs_symbol_list&                   pilots,
       span<const cf_t> symbol_pilots = pilots.get_symbol(hop_offset + i_dmrs, i_layer);
 
       // Apply estimated channel response to the original symbol pilots.
-      srsvec::prod(predicted_obs, scaled_estimates.get_slice(i_helper), symbol_pilots);
+      ocuduvec::prod(predicted_obs, scaled_estimates.get_slice(i_helper), symbol_pilots);
 
       // Compensate for CFO only if present.
       if (compensate_cfo && cfo.has_value()) {
-        srsvec::sc_prod(
+        ocuduvec::sc_prod(
             predicted_obs, predicted_obs, std::polar(1.0F, TWOPI * symbol_start_epochs[i_symbol] * cfo.value()));
       }
 
       // Skip addition if the intermediate buffer is skipped.
       if (predicted_obs.data() != noise_samples.data()) {
-        srsvec::add(noise_samples, predicted_obs, noise_samples);
+        ocuduvec::add(noise_samples, predicted_obs, noise_samples);
       }
     }
 
     // Estimate receiver error as the difference between the received pilots and the regenerated ones.
     unsigned         i_cdm            = start_layer / 2;
     span<const cf_t> symbol_rx_pilots = rx_pilots.get_symbol(i_dmrs, i_cdm);
-    srsvec::subtract(noise_samples, symbol_rx_pilots, noise_samples);
+    ocuduvec::subtract(noise_samples, symbol_rx_pilots, noise_samples);
 
     // Accumulate received power.
-    noise_energy += srsvec::average_power(noise_samples) * noise_samples.size();
+    noise_energy += ocuduvec::average_power(noise_samples) * noise_samples.size();
     ++i_dmrs;
   };
 
@@ -814,26 +815,26 @@ __attribute_noinline__ static void
 simd_vector_interpolate(span<cbf16_t> out, span<const cf_t> first, span<const cf_t> second, float weight)
 {
   unsigned size = out.size();
-  srsran_assert(size == first.size(), "Invalid size.");
-  srsran_assert(size == second.size(), "Invalid size.");
+  ocudu_assert(size == first.size(), "Invalid size.");
+  ocudu_assert(size == second.size(), "Invalid size.");
 
   unsigned i = 0;
-#if SRSRAN_SIMD_CF_SIZE
-  for (unsigned end = (size / SRSRAN_SIMD_CF_SIZE) * SRSRAN_SIMD_CF_SIZE; i != end; i += SRSRAN_SIMD_CF_SIZE) {
+#if OCUDU_SIMD_CF_SIZE
+  for (unsigned end = (size / OCUDU_SIMD_CF_SIZE) * OCUDU_SIMD_CF_SIZE; i != end; i += OCUDU_SIMD_CF_SIZE) {
     // Load inputs.
-    simd_f_t first_0  = srsran_simd_f_loadu(reinterpret_cast<const float*>(&first[i]));
-    simd_f_t first_1  = srsran_simd_f_loadu(reinterpret_cast<const float*>(&first[i + SRSRAN_SIMD_CF_SIZE / 2]));
-    simd_f_t second_0 = srsran_simd_f_loadu(reinterpret_cast<const float*>(&second[i]));
-    simd_f_t second_1 = srsran_simd_f_loadu(reinterpret_cast<const float*>(&second[i + SRSRAN_SIMD_CF_SIZE / 2]));
+    simd_f_t first_0  = ocudu_simd_f_loadu(reinterpret_cast<const float*>(&first[i]));
+    simd_f_t first_1  = ocudu_simd_f_loadu(reinterpret_cast<const float*>(&first[i + OCUDU_SIMD_CF_SIZE / 2]));
+    simd_f_t second_0 = ocudu_simd_f_loadu(reinterpret_cast<const float*>(&second[i]));
+    simd_f_t second_1 = ocudu_simd_f_loadu(reinterpret_cast<const float*>(&second[i + OCUDU_SIMD_CF_SIZE / 2]));
 
     // Calculate result.
-    simd_f_t result_0 = srsran_simd_f_fma(first_0, srsran_simd_f_sub(second_0, first_0), srsran_simd_f_set1(weight));
-    simd_f_t result_1 = srsran_simd_f_fma(first_1, srsran_simd_f_sub(second_1, first_1), srsran_simd_f_set1(weight));
+    simd_f_t result_0 = ocudu_simd_f_fma(first_0, ocudu_simd_f_sub(second_0, first_0), ocudu_simd_f_set1(weight));
+    simd_f_t result_1 = ocudu_simd_f_fma(first_1, ocudu_simd_f_sub(second_1, first_1), ocudu_simd_f_set1(weight));
 
     // Store result.
-    srsran_simd_bf16_storeu(reinterpret_cast<bf16_t*>(&out[i]), result_0, result_1);
+    ocudu_simd_bf16_storeu(reinterpret_cast<bf16_t*>(&out[i]), result_0, result_1);
   }
-#endif // SRSRAN_SIMD_CF_SIZE
+#endif // OCUDU_SIMD_CF_SIZE
 
   for (; i != size; ++i) {
     out[i] = to_cbf16(first[i] + (second[i] - first[i]) * weight);

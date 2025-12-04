@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_modulator.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_modulator.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 class resource_grid_mapper;
 
@@ -78,10 +78,10 @@ public:
                        std::unique_ptr<resource_grid_mapper>    mapper_) :
     modulator(std::move(modulator_)), scrambler(std::move(scrambler_)), mapper(std::move(mapper_))
   {
-    srsran_assert(modulator, "Invalid modulator");
-    srsran_assert(scrambler, "Invalid scrambler");
-    srsran_assert(mapper, "Invalid resource grid mapper");
+    ocudu_assert(modulator, "Invalid modulator");
+    ocudu_assert(scrambler, "Invalid scrambler");
+    ocudu_assert(mapper, "Invalid resource grid mapper");
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

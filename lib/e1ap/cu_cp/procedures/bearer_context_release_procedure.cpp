@@ -12,10 +12,10 @@
 #include "cu_cp/e1ap_cu_cp_impl.h"
 #include "cu_cp/ue_context/e1ap_bearer_transaction_manager.h"
 #include "cu_cp/ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::e1ap;
 
 bearer_context_release_procedure::bearer_context_release_procedure(const e1ap_configuration& e1ap_cfg_,
@@ -25,7 +25,7 @@ bearer_context_release_procedure::bearer_context_release_procedure(const e1ap_co
                                                                    e1ap_message_notifier&    e1ap_notif_) :
   e1ap_cfg(e1ap_cfg_), command(command_), ue_index(ue_index_), ue_ctxt_list(ue_ctxt_list_), e1ap_notifier(e1ap_notif_)
 {
-  srsran_assert(ue_ctxt_list.contains(ue_index), "Bearer context does not exist in UE context list.");
+  ocudu_assert(ue_ctxt_list.contains(ue_index), "Bearer context does not exist in UE context list.");
 }
 
 void bearer_context_release_procedure::operator()(coro_context<async_task<void>>& ctx)

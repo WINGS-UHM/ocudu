@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_manager/du_manager.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/mac/mac.h"
-#include "srsran/mac/mac_metrics_notifier.h"
+#include "ocudu/du/du_high/du_manager/du_manager.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/mac/mac_metrics_notifier.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_manager_mac_event_indicator : public mac_ul_ccch_notifier, public mac_metrics_notifier
 {
@@ -53,5 +53,5 @@ private:
   mac_paging_information_handler* mac = nullptr;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

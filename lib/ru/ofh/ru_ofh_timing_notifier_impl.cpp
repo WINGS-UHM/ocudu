@@ -9,10 +9,10 @@
  */
 
 #include "ru_ofh_timing_notifier_impl.h"
-#include "srsran/ru/ru_timing_notifier.h"
+#include "ocudu/ru/ru_timing_notifier.h"
 #include <chrono>
 
-using namespace srsran;
+using namespace ocudu;
 
 ru_ofh_timing_notifier_impl::ru_ofh_timing_notifier_impl(unsigned            nof_slot_offset_du_ru_,
                                                          unsigned            nof_symbols_per_slot,

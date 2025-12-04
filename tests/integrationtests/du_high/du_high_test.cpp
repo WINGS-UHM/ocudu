@@ -20,14 +20,14 @@
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 class du_high_tester : public du_high_env_simulator, public testing::Test
@@ -290,7 +290,7 @@ TEST_F(du_high_tester, when_ue_context_modification_with_rem_drbs_is_received_th
   {
     asn1::cbit_ref                 bref{resp->du_to_cu_rrc_info.cell_group_cfg};
     asn1::rrc_nr::cell_group_cfg_s cell_grp_cfg;
-    ASSERT_EQ(cell_grp_cfg.unpack(bref), asn1::SRSASN_SUCCESS);
+    ASSERT_EQ(cell_grp_cfg.unpack(bref), asn1::OCUDUASN_SUCCESS);
     ASSERT_EQ(cell_grp_cfg.rlc_bearer_to_release_list.size(), 1);
     ASSERT_EQ(cell_grp_cfg.rlc_bearer_to_release_list[0], 4) << "DRB1 with LCID=4 should have been removed";
   }

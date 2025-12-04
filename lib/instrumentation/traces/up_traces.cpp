@@ -8,6 +8,6 @@
  *
  */
 
-#include "srsran/instrumentation/traces/up_traces.h"
+#include "ocudu/instrumentation/traces/up_traces.h"
 
-srsran::file_event_tracer<srsran::UP_TRACE_ENABLED> srsran::up_tracer;
+ocudu::file_event_tracer<ocudu::UP_TRACE_ENABLED> ocudu::up_tracer;

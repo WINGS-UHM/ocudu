@@ -11,21 +11,21 @@
 #pragma once
 
 #include "o_du_low_unit_factory_config.h"
-#include "srsran/adt/span.h"
-#include "srsran/du/du_low/o_du_low_config.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/du/du_low/o_du_low_config.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_du {
+namespace odu {
 struct du_cell_config;
 struct du_low_config;
-} // namespace srs_du
+} // namespace odu
 
 struct du_low_unit_config;
 struct worker_manager_config;
 
 /// Generates O-DU low configuration from the given parameters.
-void generate_o_du_low_config(srs_du::o_du_low_config&                        out_config,
+void generate_o_du_low_config(odu::o_du_low_config&                           out_config,
                               const du_low_unit_config&                       du_low_unit_cfg,
                               span<const o_du_low_unit_config::du_low_config> cells);
 
@@ -36,4 +36,4 @@ void fill_du_low_worker_manager_config(worker_manager_config&    config,
                                        span<const unsigned>      nof_dl_antennas,
                                        span<const unsigned>      nof_ul_antennas);
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/rohc/rohc_config.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/rohc/rohc_config.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::rohc;
+using namespace ocudu;
+using namespace ocudu::rohc;
 
 /// Fixture class for ROHC config tests
 class rohc_config_test : public ::testing::Test
@@ -22,23 +22,23 @@ public:
   rohc_config_test()
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init ROHC logger
-    srslog::fetch_basic_logger("ROHC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ROHC", false).set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ROHC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ROHC", false).set_hex_dump_max_size(-1);
 
     logger.info("ROHC config test initialized.");
   }
   ~rohc_config_test() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 protected:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 TEST_F(rohc_config_test, default_values)
@@ -64,15 +64,15 @@ TEST_F(rohc_config_test, format)
   EXPECT_NE(str.find("profiles="), std::string::npos);
   EXPECT_NE(str.find("continue_rohc=false"), std::string::npos);
 
-  cfg.profiles.set_profile(srsran::rohc::rohc_profile::profile0x0001, true);
-  cfg.profiles.set_profile(srsran::rohc::rohc_profile::profile0x0006, true);
+  cfg.profiles.set_profile(ocudu::rohc::rohc_profile::profile0x0001, true);
+  cfg.profiles.set_profile(ocudu::rohc::rohc_profile::profile0x0006, true);
   logger.debug("Config: {}", cfg);
   str = fmt::format("{}", cfg);
   EXPECT_NE(str.find("profiles="), std::string::npos);
   EXPECT_NE(str.find("v1-RTP/UDP/IP"), std::string::npos);
   EXPECT_NE(str.find("v1-TCP/IP"), std::string::npos);
 
-  cfg.profiles.set_profile(srsran::rohc::rohc_profile::profile0x0006, false);
+  cfg.profiles.set_profile(ocudu::rohc::rohc_profile::profile0x0006, false);
   logger.debug("Config: {}", cfg);
   str = fmt::format("{}", cfg);
   EXPECT_NE(str.find("profiles="), std::string::npos);

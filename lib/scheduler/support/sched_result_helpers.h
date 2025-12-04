@@ -11,15 +11,15 @@
 #pragma once
 
 #include "../cell/resource_grid.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/result/pusch_info.h"
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-namespace srsran {
+namespace ocudu {
 /// Determine the space left for a new UCI PDU of a gived C-RNTI in the scheduler result.
 inline bool
 has_space_for_uci_pdu(const sched_result& result, rnti_t crnti, const scheduler_ue_expert_config& expert_cfg)
@@ -155,4 +155,4 @@ inline std::pair<grant_info, std::optional<grant_info>> get_pucch_grant_info(con
           std::nullopt};
 }
 
-} // namespace srsran
+} // namespace ocudu

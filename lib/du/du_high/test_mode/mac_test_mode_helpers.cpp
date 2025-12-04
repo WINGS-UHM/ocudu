@@ -9,14 +9,14 @@
  */
 
 #include "mac_test_mode_helpers.h"
-#include "srsran/scheduler/result/pucch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/result/pucch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 expected<mac_rx_data_indication>
-srs_du::create_test_pdu_with_bsr(du_cell_index_t cell_index, slot_point sl_rx, rnti_t test_rnti, harq_id_t harq_id)
+odu::create_test_pdu_with_bsr(du_cell_index_t cell_index, slot_point sl_rx, rnti_t test_rnti, harq_id_t harq_id)
 {
   // - 8-bit R/LCID MAC subheader.
   // - MAC CE with Long BSR.
@@ -36,10 +36,10 @@ srs_du::create_test_pdu_with_bsr(du_cell_index_t cell_index, slot_point sl_rx, r
       sl_rx, cell_index, mac_rx_pdu_list{mac_rx_pdu{test_rnti, 0, harq_id, std::move(buf.value())}}};
 }
 
-expected<mac_rx_data_indication> srs_du::create_test_pdu_with_rrc_setup_complete(du_cell_index_t cell_index,
-                                                                                 slot_point      sl_rx,
-                                                                                 rnti_t          test_rnti,
-                                                                                 harq_id_t       harq_id)
+expected<mac_rx_data_indication> odu::create_test_pdu_with_rrc_setup_complete(du_cell_index_t cell_index,
+                                                                              slot_point      sl_rx,
+                                                                              rnti_t          test_rnti,
+                                                                              harq_id_t       harq_id)
 {
   auto buf = byte_buffer::create({0x01, 0x23, 0xc0, 0x00, 0x00, 0x00, 0x10, 0x00, 0x05, 0xdf, 0x80, 0x10, 0x5e,
                                   0x40, 0x03, 0x40, 0x40, 0x3c, 0x44, 0x3c, 0x3f, 0xc0, 0x00, 0x04, 0x0c, 0x95,
@@ -128,8 +128,8 @@ static mac_uci_pdu::pucch_f0_or_f1_type make_f0f1_uci_pdu(const pucch_info&     
   mac_uci_pdu::pucch_f0_or_f1_type pucch_ind;
 
   pucch_ind.ul_sinr_dB = 100;
-  srsran_assert(pucch.format() == pucch_format::FORMAT_0 or pucch.format() == pucch_format::FORMAT_1,
-                "Expected PUCCH Format is F0 or F1");
+  ocudu_assert(pucch.format() == pucch_format::FORMAT_0 or pucch.format() == pucch_format::FORMAT_1,
+               "Expected PUCCH Format is F0 or F1");
   if (pucch.format() == pucch_format::FORMAT_0) {
     // In case of Format 0, unlike with Format 0, the GNB only schedules 1 PUCCH per slot; this PUCCH (and the
     // corresponding UCI indication) can have HARQ-ACK bits or SR bits, or both.
@@ -163,9 +163,9 @@ static mac_uci_pdu::pucch_f0_or_f1_type make_f0f1_uci_pdu(const pucch_info&     
 static mac_uci_pdu::pucch_f2_or_f3_or_f4_type
 make_f2f3f4_uci_pdu(const pucch_info& pucch, const du_test_mode_config::test_mode_ue_config& test_ue_cfg)
 {
-  srsran_assert(pucch.format() == pucch_format::FORMAT_2 or pucch.format() == pucch_format::FORMAT_3 or
-                    pucch.format() == pucch_format::FORMAT_4,
-                "Expected PUCCH Format is F2, F3 or F4");
+  ocudu_assert(pucch.format() == pucch_format::FORMAT_2 or pucch.format() == pucch_format::FORMAT_3 or
+                   pucch.format() == pucch_format::FORMAT_4,
+               "Expected PUCCH Format is F2, F3 or F4");
 
   const sr_nof_bits sr_bits           = pucch.uci_bits.sr_bits;
   const unsigned    harq_ack_nof_bits = pucch.uci_bits.harq_ack_nof_bits;
@@ -192,7 +192,7 @@ make_f2f3f4_uci_pdu(const pucch_info& pucch, const du_test_mode_config::test_mod
   return pucch_ind;
 }
 
-mac_uci_pdu srs_du::create_uci_pdu(const pucch_info& pucch, const du_test_mode_config::test_mode_ue_config& test_ue_cfg)
+mac_uci_pdu odu::create_uci_pdu(const pucch_info& pucch, const du_test_mode_config::test_mode_ue_config& test_ue_cfg)
 {
   mac_uci_pdu pdu;
   pdu.rnti = pucch.crnti;
@@ -212,8 +212,7 @@ mac_uci_pdu srs_du::create_uci_pdu(const pucch_info& pucch, const du_test_mode_c
   return pdu;
 }
 
-mac_uci_pdu srs_du::create_uci_pdu(const ul_sched_info&                            pusch,
-                                   const du_test_mode_config::test_mode_ue_config& test_ue_cfg)
+mac_uci_pdu odu::create_uci_pdu(const ul_sched_info& pusch, const du_test_mode_config::test_mode_ue_config& test_ue_cfg)
 {
   mac_uci_pdu pdu;
   pdu.rnti                  = pusch.pusch_cfg.rnti;
@@ -235,7 +234,7 @@ mac_uci_pdu srs_du::create_uci_pdu(const ul_sched_info&                         
   return pdu;
 }
 
-bool srs_du::pucch_info_and_uci_ind_match(const pucch_info& pucch, const mac_uci_pdu& uci_ind)
+bool odu::pucch_info_and_uci_ind_match(const pucch_info& pucch, const mac_uci_pdu& uci_ind)
 {
   if (pucch.crnti != uci_ind.rnti) {
     return false;

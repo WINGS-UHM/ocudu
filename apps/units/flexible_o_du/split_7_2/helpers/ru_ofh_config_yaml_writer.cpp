@@ -12,11 +12,11 @@
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "ru_ofh_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_ru_ofh_log_section(YAML::Node node, const ru_ofh_unit_logger_config& config)
 {
-  node["ofh_level"] = srslog::basic_level_to_string(config.ofh_level);
+  node["ofh_level"] = ocudulog::basic_level_to_string(config.ofh_level);
 }
 
 static void fill_ru_ofh_expert_execution_section(YAML::Node node, const ru_ofh_unit_expert_execution_config& config)
@@ -145,7 +145,7 @@ static void fill_ru_ofh_metrics_section(YAML::Node node, const ru_ofh_unit_metri
   layers_node["enable_ru"] = config.enable_ru_metrics;
 }
 
-void srsran::fill_ru_ofh_config_in_yaml_schema(YAML::Node& node, const ru_ofh_unit_config& config)
+void ocudu::fill_ru_ofh_config_in_yaml_schema(YAML::Node& node, const ru_ofh_unit_config& config)
 {
   fill_ru_ofh_metrics_section(node, config.metrics_cfg);
   fill_ru_ofh_log_section(node["log"], config.loggers);

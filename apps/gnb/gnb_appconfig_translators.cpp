@@ -12,13 +12,13 @@
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "gnb_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace std::chrono_literals;
 
-void srsran::fill_gnb_worker_manager_config(worker_manager_config& config, const gnb_appconfig& app_cfg)
+void ocudu::fill_gnb_worker_manager_config(worker_manager_config& config, const gnb_appconfig& app_cfg)
 {
-  srsran_assert(config.cu_up_cfg, "CU-UP worker config does not exist");
-  srsran_assert(config.du_hi_cfg, "DU high worker config does not exist");
+  ocudu_assert(config.cu_up_cfg, "CU-UP worker config does not exist");
+  ocudu_assert(config.du_hi_cfg, "DU high worker config does not exist");
 
   config.nof_main_pool_threads     = app_cfg.expert_execution_cfg.threads.main_pool.nof_threads;
   config.main_pool_task_queue_size = app_cfg.expert_execution_cfg.threads.main_pool.task_queue_size;

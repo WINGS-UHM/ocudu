@@ -13,21 +13,21 @@
 
 #pragma once
 
-#include "srsran/adt/mutexed_mpsc_queue.h"
-#include "srsran/hal/hw_accelerator.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec.h"
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_rx.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/codeblock_metadata.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/mutexed_mpsc_queue.h"
+#include "ocudu/hal/hw_accelerator.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_rx.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Maximum accepted transport block size.
 constexpr unsigned MAX_TBS = 1277992;
@@ -69,7 +69,7 @@ public:
                         sch_crc&                           c,
                         std::shared_ptr<hw_decoder_pool>   decoder_pool_,
                         task_executor*                     executor_) :
-    logger(srslog::fetch_basic_logger("PHY")),
+    logger(ocudulog::fetch_basic_logger("PHY")),
     segmenter(std::move(seg)),
     crc_set({std::move(c.crc16), std::move(c.crc24A), std::move(c.crc24B)}),
     decoder_pool(std::move(decoder_pool_)),
@@ -77,17 +77,17 @@ public:
     softbits_buffer(pdsch_constants::CODEWORD_MAX_SIZE.value()),
     cb_stats(MAX_NOF_SEGMENTS)
   {
-    srsran_assert(segmenter, "Invalid LDPC segmenter factory.");
-    srsran_assert(crc_set.crc16, "Invalid CRC16 calculator.");
-    srsran_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
-    srsran_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
-    srsran_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16,
-                  "Not a CRC generator of type CRC16.");
-    srsran_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A,
-                  "Not a CRC generator of type CRC24A.");
-    srsran_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B,
-                  "Not a CRC generator of type CRC24B.");
-    srsran_assert(decoder_pool, "Invalid hardware-accelerated PUSCH decoder pool.");
+    ocudu_assert(segmenter, "Invalid LDPC segmenter factory.");
+    ocudu_assert(crc_set.crc16, "Invalid CRC16 calculator.");
+    ocudu_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
+    ocudu_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
+    ocudu_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16,
+                 "Not a CRC generator of type CRC16.");
+    ocudu_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A,
+                 "Not a CRC generator of type CRC24A.");
+    ocudu_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B,
+                 "Not a CRC generator of type CRC24B.");
+    ocudu_assert(decoder_pool, "Invalid hardware-accelerated PUSCH decoder pool.");
     absolute_cb_ids.resize(MAX_NOF_SEGMENTS);
   }
 
@@ -104,7 +104,7 @@ public:
   }
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Pointer to an LDPC segmenter.
   std::unique_ptr<ldpc_segmenter_rx> segmenter;
   /// \brief Pointer to a CRC calculator for TB-wise checksum.
@@ -191,4 +191,4 @@ private:
                                 unsigned                       cb_index);
 };
 
-} // namespace srsran
+} // namespace ocudu

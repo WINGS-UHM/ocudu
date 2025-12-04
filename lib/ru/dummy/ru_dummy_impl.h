@@ -12,28 +12,28 @@
 
 #include "ru_dummy_metrics_collector.h"
 #include "ru_dummy_sector.h"
-#include "srsran/adt/interval.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/resource_grid.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ru/dummy/ru_dummy_configuration.h"
-#include "srsran/ru/ru.h"
-#include "srsran/ru/ru_controller.h"
-#include "srsran/ru/ru_downlink_plane.h"
-#include "srsran/ru/ru_timing_notifier.h"
-#include "srsran/ru/ru_uplink_plane.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/resource_grid.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ru/dummy/ru_dummy_configuration.h"
+#include "ocudu/ru/ru.h"
+#include "ocudu/ru/ru_controller.h"
+#include "ocudu/ru/ru_downlink_plane.h"
+#include "ocudu/ru/ru_timing_notifier.h"
+#include "ocudu/ru/ru_uplink_plane.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements a dummy radio unit.
 ///
@@ -92,10 +92,10 @@ private:
   void handle_dl_data(const resource_grid_context& context, const shared_resource_grid& grid) override
   {
     interval<unsigned> sector_range(0, sectors.size());
-    srsran_assert(sector_range.contains(context.sector),
-                  "Sector identifier (i.e., {}) is out-of-bounds {}.",
-                  context.sector,
-                  sector_range);
+    ocudu_assert(sector_range.contains(context.sector),
+                 "Sector identifier (i.e., {}) is out-of-bounds {}.",
+                 context.sector,
+                 sector_range);
     sectors[context.sector]->handle_dl_data(context, grid);
   }
 
@@ -103,10 +103,10 @@ private:
   void handle_prach_occasion(const prach_buffer_context& context, shared_prach_buffer buffer) override
   {
     interval<unsigned> sector_range(0, sectors.size());
-    srsran_assert(sector_range.contains(context.sector),
-                  "Sector identifier (i.e., {}) is out-of-bounds {}.",
-                  context.sector,
-                  sector_range);
+    ocudu_assert(sector_range.contains(context.sector),
+                 "Sector identifier (i.e., {}) is out-of-bounds {}.",
+                 context.sector,
+                 sector_range);
     sectors[context.sector]->handle_prach_occasion(context, std::move(buffer));
   }
 
@@ -114,10 +114,10 @@ private:
   void handle_new_uplink_slot(const resource_grid_context& context, const shared_resource_grid& grid) override
   {
     interval<unsigned> sector_range(0, sectors.size());
-    srsran_assert(sector_range.contains(context.sector),
-                  "Sector identifier (i.e., {}) is out-of-bounds {}.",
-                  context.sector,
-                  sector_range);
+    ocudu_assert(sector_range.contains(context.sector),
+                 "Sector identifier (i.e., {}) is out-of-bounds {}.",
+                 context.sector,
+                 sector_range);
     sectors[context.sector]->handle_new_uplink_slot(context, grid);
   }
 
@@ -131,7 +131,7 @@ private:
   /// Flag that enables (or not) metrics.
   const bool are_metrics_enabled;
   /// Ru logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Internal executor.
   task_executor& executor;
   /// Radio Unit timing notifier.
@@ -150,4 +150,4 @@ private:
   ru_dummy_metrics_collector metrics_collector;
 };
 
-} // namespace srsran
+} // namespace ocudu

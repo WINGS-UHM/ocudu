@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Configuration of packet capture functionalities.
 struct cu_up_unit_pcap_config {
@@ -35,4 +35,4 @@ struct cu_up_unit_pcap_config {
   void disable_e1_pcaps() { e1ap.enabled = false; }
 };
 
-} // namespace srsran
+} // namespace ocudu

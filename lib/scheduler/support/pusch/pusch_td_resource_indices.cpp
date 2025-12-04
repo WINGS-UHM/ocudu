@@ -11,10 +11,10 @@
 #include "pusch_td_resource_indices.h"
 #include "../../config/ue_configuration.h"
 #include "pusch_default_time_allocation.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 using pusch_index_list = static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>;
 
@@ -39,7 +39,7 @@ get_pusch_time_domain_resource_table(const cell_configuration& cell_cfg, const s
 static pusch_index_list get_fdd_pusch_td_resource_indices(const cell_configuration& cell_cfg,
                                                           const search_space_info*  ss_info)
 {
-  srsran_sanity_check(not cell_cfg.is_tdd(), "Function expects FDD config");
+  ocudu_sanity_check(not cell_cfg.is_tdd(), "Function expects FDD config");
   const unsigned min_k1                 = get_min_k1(cell_cfg, ss_info);
   auto           pusch_time_domain_list = get_pusch_time_domain_resource_table(cell_cfg, ss_info);
 
@@ -52,9 +52,9 @@ static pusch_index_list get_fdd_pusch_td_resource_indices(const cell_configurati
   return result;
 }
 
-pusch_index_list srsran::get_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                                                       slot_point                pdcch_slot,
-                                                       const search_space_info*  ss_info)
+pusch_index_list ocudu::get_pusch_td_resource_indices(const cell_configuration& cell_cfg,
+                                                      slot_point                pdcch_slot,
+                                                      const search_space_info*  ss_info)
 {
   if (not cell_cfg.is_tdd()) {
     // FDD case.
@@ -101,8 +101,8 @@ pusch_index_list srsran::get_pusch_td_resource_indices(const cell_configuration&
   return result;
 }
 
-std::vector<pusch_index_list> srsran::get_pusch_td_resource_indices_per_slot(const cell_configuration& cell_cfg,
-                                                                             const search_space_info*  ss_info)
+std::vector<pusch_index_list> ocudu::get_pusch_td_resource_indices_per_slot(const cell_configuration& cell_cfg,
+                                                                            const search_space_info*  ss_info)
 {
   // Note: [Implementation-defined] In case of FDD, we only consider one slot.
   if (not cell_cfg.is_tdd()) {
@@ -141,8 +141,8 @@ static std::optional<unsigned> find_td_index_with_k2(span<const pusch_time_domai
 }
 
 std::vector<pusch_index_list>
-srsran::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                                                         const search_space_info*  ss_info)
+ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration& cell_cfg,
+                                                        const search_space_info*  ss_info)
 {
   // List circularly indexed by slot with the list of applicable PUSCH Time Domain resource indexes per slot.
   // NOTE: The list would be empty for UL slots.
@@ -223,7 +223,7 @@ srsran::get_fairly_distributed_pusch_td_resource_indices(const cell_configuratio
     }
 
     // Note: This should not happen if the config passed the validation.
-    srsran_sanity_check(
+    ocudu_sanity_check(
         last_valid_k2.has_value(), "Invalid TDD pattern which leads to UL slot index={} with no valid k2", ul_slot_idx);
 
     // [Implementation-defined] If no PDCCH slot is found we pick the last valid PDCCH slot for this UL slot, regardless
@@ -266,7 +266,7 @@ srsran::get_fairly_distributed_pusch_td_resource_indices(const cell_configuratio
       if (pusch_td_res_idx_for_required_k2.has_value()) {
         final_pusch_td_list_per_slot[pdcch_slot_index].push_back(*pusch_td_res_idx_for_required_k2);
       } else {
-        srslog::basic_logger& logger = srslog::fetch_basic_logger("SCHED", false);
+        ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("SCHED", false);
         logger.warning("No valid PUSCH time domain resource found for UL slot dx={}", ul_slot_idx);
       }
     }

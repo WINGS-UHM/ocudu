@@ -16,11 +16,11 @@
 #include "cu_up_connection_manager.h"
 #include "du_connection_manager.h"
 #include "node_connection_notifier.h"
-#include "srsran/cu_cp/common_task_scheduler.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/common_task_scheduler.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_up_processor_repository;
 class ue_manager;
@@ -62,7 +62,7 @@ public:
 private:
   const cu_cp_configuration& cfg;
   task_executor&             ctrl_exec;
-  srslog::basic_logger&      logger;
+  ocudulog::basic_logger&    logger;
 
   amf_connection_manager   amf_mng;
   du_connection_manager    du_mng;
@@ -72,5 +72,5 @@ private:
   bool       running = true;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,5 +10,5 @@ set(SOURCES
         mac_metrics_consumers.cpp
         scheduler_metrics_consumers.cpp)
 
-add_library(srsran_du_high_unit_metrics_consumers STATIC ${SOURCES})
-target_include_directories(srsran_du_high_unit_metrics_consumers PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_du_high_unit_metrics_consumers STATIC ${SOURCES})
+target_include_directories(ocudu_du_high_unit_metrics_consumers PRIVATE ${CMAKE_SOURCE_DIR})

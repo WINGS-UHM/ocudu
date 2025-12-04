@@ -12,11 +12,11 @@
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "fapi_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::fill_fapi_worker_manager_config(worker_manager_config&  config,
-                                             const fapi_unit_config& unit_cfg,
-                                             unsigned                nof_cells)
+void ocudu::fill_fapi_worker_manager_config(worker_manager_config&  config,
+                                            const fapi_unit_config& unit_cfg,
+                                            unsigned                nof_cells)
 {
   // No configuration for FAPI if there is no buffered module.
   if (unit_cfg.l2_nof_slots_ahead == 0) {

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ofh/compression/iq_decompressor.h"
-#include "srsran/ofh/serdes/ofh_uplane_message_decoder.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/compression/iq_decompressor.h"
+#include "ocudu/ofh/serdes/ofh_uplane_message_decoder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class iq_decompressor;
@@ -50,7 +50,7 @@ protected:
   enum class decoded_section_status { ok, incomplete, malformed };
 
 public:
-  uplane_message_decoder_impl(srslog::basic_logger&            logger_,
+  uplane_message_decoder_impl(ocudulog::basic_logger&          logger_,
                               subcarrier_spacing               scs_,
                               unsigned                         nof_symbols_,
                               unsigned                         ru_nof_prbs_,
@@ -63,7 +63,7 @@ public:
     ru_nof_prbs(ru_nof_prbs_),
     sector_id(sector_id_)
   {
-    srsran_assert(decompressor, "Invalid IQ decompressor");
+    ocudu_assert(decompressor, "Invalid IQ decompressor");
   }
 
   // See interface for documentation.
@@ -99,7 +99,7 @@ private:
                                                            network_order_binary_deserializer& deserializer) = 0;
 
 protected:
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
   std::unique_ptr<iq_decompressor> decompressor;
   const subcarrier_spacing         scs;
   const unsigned                   nof_symbols;
@@ -108,4 +108,4 @@ protected:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

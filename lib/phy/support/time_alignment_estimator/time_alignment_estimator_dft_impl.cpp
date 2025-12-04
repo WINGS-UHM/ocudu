@@ -9,20 +9,20 @@
  */
 
 #include "time_alignment_estimator_dft_impl.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/complex.h"
-#include "srsran/adt/span.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_measurement.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/modulus_square.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/modulus_square.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_measurement.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include <algorithm>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Estimates a fractional sample delay from samples around a maximum.
 ///
@@ -62,8 +62,8 @@ static float fractional_sample_delay(span<const float> peak_center_correlation)
   }
 
   // Solve equation.
-  float num    = srsvec::dot_prod(num_weights, peak_center_correlation, 0.0F);
-  float den    = srsvec::dot_prod(den_weights, peak_center_correlation, 0.0F);
+  float num    = ocuduvec::dot_prod(num_weights, peak_center_correlation, 0.0F);
+  float den    = ocuduvec::dot_prod(den_weights, peak_center_correlation, 0.0F);
   float result = -correction * num / den;
 
   // Make sure the function does not return a result greater than one, lower than minus one, infinity or NaN.
@@ -80,7 +80,7 @@ const unsigned time_alignment_estimator_dft_impl::min_dft_size = pow2(log2_ceil(
 const unsigned time_alignment_estimator_dft_impl::max_dft_size = pow2(log2_ceil(max_nof_re));
 
 time_alignment_estimator_dft_impl::time_alignment_estimator_dft_impl(
-    srsran::time_alignment_estimator_dft_impl::collection_dft_processors dft_processors_) :
+    ocudu::time_alignment_estimator_dft_impl::collection_dft_processors dft_processors_) :
   dft_processors(std::move(dft_processors_)), idft_abs2(max_dft_size)
 {
   // Make sure all the possible powers of 2 between the minimum and the maximum DFT sizes are present and valid.
@@ -89,13 +89,13 @@ time_alignment_estimator_dft_impl::time_alignment_estimator_dft_impl(
        dft_size <= dft_size_max;
        dft_size *= 2) {
     // Check the IDFT size is present.
-    srsran_assert(dft_processors.count(dft_size), "Missing DFT.");
+    ocudu_assert(dft_processors.count(dft_size), "Missing DFT.");
 
     // Select IDFT and validate.
     const auto& idft = dft_processors.at(dft_size);
-    srsran_assert(idft, "Invalid DFT processor.");
-    srsran_assert(idft->get_size() == dft_size, "Invalid DFT size.");
-    srsran_assert(idft->get_direction() == dft_processor::direction::INVERSE, "Invalid DFT direction.");
+    ocudu_assert(idft, "Invalid DFT processor.");
+    ocudu_assert(idft->get_size() == dft_size, "Invalid DFT size.");
+    ocudu_assert(idft->get_direction() == dft_processor::direction::INVERSE, "Invalid DFT direction.");
   }
 }
 
@@ -104,10 +104,10 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(const re_
                                                                        subcarrier_spacing                     scs,
                                                                        double                                 max_ta)
 {
-  srsran_assert(mask.count() == symbols.get_slice(0).size(),
-                "The number of complex symbols per port {} does not match the mask size {}.",
-                symbols.get_slice(0).size(),
-                mask.count());
+  ocudu_assert(mask.count() == symbols.get_slice(0).size(),
+               "The number of complex symbols per port {} does not match the mask size {}.",
+               symbols.get_slice(0).size(),
+               mask.count());
   unsigned       mask_highest = mask.find_highest();
   unsigned       mask_lowest  = mask.find_lowest();
   dft_processor& idft         = get_idft(mask_highest - mask_lowest + 1);
@@ -116,7 +116,7 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(const re_
   span<cf_t> channel_observed_freq = idft.get_input();
 
   // Zero input buffer.
-  srsvec::zero(channel_observed_freq);
+  ocuduvec::zero(channel_observed_freq);
 
   // Prepare correlation temporary buffer.
   span<float> correlation = span<float>(idft_abs2).first(idft.get_size());
@@ -137,10 +137,10 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(const re_
 
     // Calculate the absolute square of the correlation.
     if (i_in == 0) {
-      srsvec::modulus_square(correlation, channel_observed_time);
+      ocuduvec::modulus_square(correlation, channel_observed_time);
     } else {
       // Accumulate the correlation.
-      srsvec::modulus_square_and_add(correlation, channel_observed_time, correlation);
+      ocuduvec::modulus_square_and_add(correlation, channel_observed_time, correlation);
     }
   }
 
@@ -161,7 +161,7 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(span<cons
 
 time_alignment_measurement time_alignment_estimator_dft_impl::estimate(const re_buffer_reader<cf_t>& symbols,
                                                                        unsigned                      stride,
-                                                                       srsran::subcarrier_spacing    scs,
+                                                                       ocudu::subcarrier_spacing     scs,
                                                                        double                        max_ta)
 {
   unsigned       nof_symbols = symbols.get_nof_re();
@@ -171,7 +171,7 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(const re_
   span<cf_t> channel_observed_freq = idft.get_input();
 
   // Zero input buffer.
-  srsvec::zero(channel_observed_freq.last(channel_observed_freq.size() - nof_symbols));
+  ocuduvec::zero(channel_observed_freq.last(channel_observed_freq.size() - nof_symbols));
 
   // Prepare correlation temporary buffer.
   span<float> correlation = span<float>(idft_abs2).first(idft.get_size());
@@ -182,17 +182,17 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(const re_
     span<const cf_t> symbols_in = symbols.get_slice(i_in);
 
     // Write the symbols in their corresponding positions.
-    srsvec::copy(channel_observed_freq.first(nof_symbols), symbols_in);
+    ocuduvec::copy(channel_observed_freq.first(nof_symbols), symbols_in);
 
     // Perform correlation in frequency domain.
     span<const cf_t> channel_observed_time = idft.run();
 
     // Calculate the absolute square of the correlation.
     if (i_in == 0) {
-      srsvec::modulus_square(correlation, channel_observed_time);
+      ocuduvec::modulus_square(correlation, channel_observed_time);
     } else {
       // Accumulate the correlation.
-      srsvec::modulus_square_and_add(correlation, channel_observed_time, correlation);
+      ocuduvec::modulus_square_and_add(correlation, channel_observed_time, correlation);
     }
   }
 
@@ -214,10 +214,10 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate(span<cons
 dft_processor& time_alignment_estimator_dft_impl::get_idft(unsigned nof_required_re)
 {
   // Ensure the number of required RE is smaller than the maximum DFT size.
-  srsran_assert(nof_required_re <= max_nof_re,
-                "The number of required RE (i.e., {}) is larger than the maximum allowed number of RE (i.e., {}).",
-                nof_required_re,
-                max_nof_re);
+  ocudu_assert(nof_required_re <= max_nof_re,
+               "The number of required RE (i.e., {}) is larger than the maximum allowed number of RE (i.e., {}).",
+               nof_required_re,
+               max_nof_re);
 
   // Leave some guards to avoid circular interference.
   nof_required_re = (nof_required_re * max_dft_size) / max_nof_re;
@@ -251,10 +251,10 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate_ta_correl
   }
 
   // Find the maximum of the delayed taps.
-  std::pair<unsigned, float> observed_max_delay = srsvec::max_element(correlation.first(max_ta_samples));
+  std::pair<unsigned, float> observed_max_delay = ocuduvec::max_element(correlation.first(max_ta_samples));
 
   // Find the maximum of the advanced taps.
-  std::pair<unsigned, float> observed_max_advance = srsvec::max_element(correlation.last(max_ta_samples));
+  std::pair<unsigned, float> observed_max_advance = ocuduvec::max_element(correlation.last(max_ta_samples));
 
   // Determine the number of taps the signal is advanced or delayed (negative).
   int idx = -(max_ta_samples - observed_max_advance.first);

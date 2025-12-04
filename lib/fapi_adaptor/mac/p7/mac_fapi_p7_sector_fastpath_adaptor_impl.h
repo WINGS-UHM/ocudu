@@ -14,10 +14,10 @@
 #include "fapi_to_mac_error_msg_fastpath_translator.h"
 #include "fapi_to_mac_time_msg_fastpath_translator.h"
 #include "mac_to_fapi_fastpath_translator.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor_config.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor_config.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// MAC-FAPI P7 bidirectional sector fastpath adaptor implementation.
@@ -67,4 +67,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

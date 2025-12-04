@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/scheduler/scheduler_factory.h"
+#include "ocudu/scheduler/scheduler_factory.h"
 #include "scheduler_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<mac_scheduler> srsran::create_scheduler(const scheduler_config& sched_cfg)
+std::unique_ptr<mac_scheduler> ocudu::create_scheduler(const scheduler_config& sched_cfg)
 {
   return std::make_unique<scheduler_impl>(sched_cfg);
 }

@@ -10,9 +10,9 @@
 
 #include "app_resource_usage_metrics_consumer.h"
 #include "apps/helpers/metrics/json_generators/resource_usage.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void resource_usage_metrics_consumer_json::handle_metric(const app_services::metrics_set& metric)
 {

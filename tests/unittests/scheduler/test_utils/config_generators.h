@@ -12,11 +12,11 @@
 
 #include "lib/scheduler/config/sched_config_manager.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 class sched_metrics_ue_configurator;
 
@@ -55,4 +55,4 @@ private:
 };
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

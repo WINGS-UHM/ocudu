@@ -10,9 +10,9 @@
 
 #include "mac_rach_handler.h"
 #include "../rnti_manager.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_cell_rach_handler_impl::mac_cell_rach_handler_impl(mac_rach_handler&                               parent_,
                                                        const sched_cell_configuration_request_message& sched_cfg) :
@@ -35,7 +35,7 @@ bool mac_cell_rach_handler_impl::is_cfra_preamble(unsigned ra_preamble_id) const
 
 unsigned mac_cell_rach_handler_impl::get_cfra_index(unsigned ra_preamble_id) const
 {
-  srsran_assert(is_cfra_preamble(ra_preamble_id), "Invalid CFRA preamble");
+  ocudu_assert(is_cfra_preamble(ra_preamble_id), "Invalid CFRA preamble");
   return ra_preamble_id - nof_cb_preambles;
 }
 
@@ -90,7 +90,7 @@ void mac_cell_rach_handler_impl::handle_rach_indication(const mac_rach_indicatio
 
 bool mac_cell_rach_handler_impl::handle_cfra_allocation(uint8_t preamble_id, du_ue_index_t ue_idx, rnti_t crnti)
 {
-  srsran_assert(is_cfra_preamble(preamble_id), "Invalid preamble_id={}", preamble_id);
+  ocudu_assert(is_cfra_preamble(preamble_id), "Invalid preamble_id={}", preamble_id);
   if (parent.ue_map[ue_idx].cell_idx != INVALID_DU_CELL_INDEX or
       parent.ue_map[ue_idx].preamble_id != MAX_NOF_RA_PREAMBLES_PER_OCCASION) {
     return false;
@@ -118,7 +118,7 @@ void mac_cell_rach_handler_impl::handle_cfra_deallocation(du_ue_index_t ue_idx)
 
 mac_rach_handler::mac_rach_handler(scheduler_configurator& sched_,
                                    rnti_manager&           rnti_mng_,
-                                   srslog::basic_logger&   logger_) :
+                                   ocudulog::basic_logger& logger_) :
   sched(sched_),
   rnti_mng(rnti_mng_),
   logger(logger_),
@@ -128,13 +128,13 @@ mac_rach_handler::mac_rach_handler(scheduler_configurator& sched_,
 
 mac_cell_rach_handler_impl& mac_rach_handler::add_cell(const sched_cell_configuration_request_message& sched_cfg)
 {
-  srsran_assert(not cell_map.contains(sched_cfg.cell_index), "Cell already exists");
+  ocudu_assert(not cell_map.contains(sched_cfg.cell_index), "Cell already exists");
   cell_map.emplace(sched_cfg.cell_index, std::make_unique<mac_cell_rach_handler_impl>(*this, sched_cfg));
   return *cell_map[sched_cfg.cell_index];
 }
 
 void mac_rach_handler::rem_cell(du_cell_index_t cell_index)
 {
-  srsran_assert(cell_map.contains(cell_index), "Cell does not exist");
+  ocudu_assert(cell_map.contains(cell_index), "Cell does not exist");
   cell_map.erase(cell_index);
 }

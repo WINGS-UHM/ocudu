@@ -9,11 +9,11 @@
  */
 
 #include "positioning_handler.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -43,10 +43,10 @@ public:
 
 } // namespace
 
-std::unique_ptr<positioning_handler> srsran::create_positioning_handler(scheduler_positioning_handler& sched,
-                                                                        task_executor&                 ctrl_exec,
-                                                                        timer_manager&                 timers,
-                                                                        srslog::basic_logger&          logger)
+std::unique_ptr<positioning_handler> ocudu::create_positioning_handler(scheduler_positioning_handler& sched,
+                                                                       task_executor&                 ctrl_exec,
+                                                                       timer_manager&                 timers,
+                                                                       ocudulog::basic_logger&        logger)
 {
   return std::make_unique<disabled_positioning_handler>();
 }

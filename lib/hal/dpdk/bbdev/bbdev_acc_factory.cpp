@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace dpdk;
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-std::shared_ptr<bbdev_acc> srsran::dpdk::create_bbdev_acc(const bbdev_acc_configuration& cfg,
-                                                          srslog::basic_logger&          logger)
+std::shared_ptr<bbdev_acc> ocudu::dpdk::create_bbdev_acc(const bbdev_acc_configuration& cfg,
+                                                         ocudulog::basic_logger&        logger)
 {
   logger.error("[bbdev] bbdev accelerator creation failed. Cause: hardware-acceleration is not supported.");
 
   return nullptr;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

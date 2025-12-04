@@ -1,12 +1,12 @@
-#include "srsran/rohc/rohc_factory.h"
+#include "ocudu/rohc/rohc_factory.h"
 #ifdef ENABLE_ROHC_LIB
 #include "rohc_lib/rohc_lib_engine.h"
 #endif
 
-using namespace srsran;
-using namespace srsran::rohc;
+using namespace ocudu;
+using namespace ocudu::rohc;
 
-std::unique_ptr<rohc_engine> srsran::rohc::create_rohc_engine()
+std::unique_ptr<rohc_engine> ocudu::rohc::create_rohc_engine()
 {
 #ifdef ENABLE_ROHC_LIB
   return std::make_unique<rohc_lib_engine>();

@@ -11,10 +11,10 @@
 #pragma once
 
 #include "du_ue_manager_repository.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_ue_controller_impl final : public du_ue
 {
@@ -50,12 +50,12 @@ private:
 
   du_ue_manager_repository& ue_db;
   const du_manager_params&  cfg;
-  srslog::basic_logger&     logger = srslog::fetch_basic_logger("DU-MNG");
+  ocudulog::basic_logger&   logger = ocudulog::fetch_basic_logger("DU-MNG");
 
   std::unique_ptr<rlf_state_machine>                   rlf_handler;
   std::unique_ptr<mac_ue_radio_link_notifier>          mac_rlf_notifier;
   std::unique_ptr<rlc_tx_upper_layer_control_notifier> rlc_rlf_notifier;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

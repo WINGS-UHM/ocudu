@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/phy/support/support_factories.h"
+#include "ocudu/phy/support/support_factories.h"
 #include "interpolator/interpolator_linear_impl.h"
 #include "prach_buffer_impl.h"
 #include "resource_grid_impl.h"
 #include "resource_grid_pool_impl.h"
-#include "srsran/phy/generic_functions/precoding/precoding_factories.h"
-#include "srsran/ran/prach/prach_constants.h"
+#include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
+#include "ocudu/ran/prach/prach_constants.h"
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -39,7 +39,7 @@ public:
 } // namespace
 
 std::unique_ptr<resource_grid_pool>
-srsran::create_generic_resource_grid_pool(std::vector<std::unique_ptr<resource_grid>> grids)
+ocudu::create_generic_resource_grid_pool(std::vector<std::unique_ptr<resource_grid>> grids)
 {
   std::vector<resource_grid_pool_wrapper> rg_wrappers;
   std::for_each(grids.begin(), grids.end(), [&rg_wrappers](std::unique_ptr<resource_grid>& grid) {
@@ -50,8 +50,8 @@ srsran::create_generic_resource_grid_pool(std::vector<std::unique_ptr<resource_g
 }
 
 std::unique_ptr<resource_grid_pool>
-srsran::create_asynchronous_resource_grid_pool(task_executor&                              async_executor,
-                                               std::vector<std::unique_ptr<resource_grid>> grids)
+ocudu::create_asynchronous_resource_grid_pool(task_executor&                              async_executor,
+                                              std::vector<std::unique_ptr<resource_grid>> grids)
 {
   std::vector<resource_grid_pool_wrapper> rg_wrappers;
   std::for_each(grids.begin(),
@@ -72,7 +72,7 @@ public:
   resource_grid_mapper_factory_impl(std::shared_ptr<channel_precoder_factory> precoder_factory_) :
     precoder_factory(std::move(precoder_factory_))
   {
-    srsran_assert(precoder_factory, "Invalid precoder factory.");
+    ocudu_assert(precoder_factory, "Invalid precoder factory.");
   }
 
   /// \brief Creates a resource grid mapper instance.
@@ -89,24 +89,24 @@ private:
 } // namespace
 
 std::shared_ptr<resource_grid_mapper_factory>
-srsran::create_resource_grid_mapper_factory(std::shared_ptr<channel_precoder_factory> precoder_factory)
+ocudu::create_resource_grid_mapper_factory(std::shared_ptr<channel_precoder_factory> precoder_factory)
 {
   return std::make_shared<resource_grid_mapper_factory_impl>(precoder_factory);
 }
 
-std::unique_ptr<prach_buffer> srsran::create_prach_buffer_long(unsigned max_nof_antennas, unsigned max_nof_fd_occasions)
+std::unique_ptr<prach_buffer> ocudu::create_prach_buffer_long(unsigned max_nof_antennas, unsigned max_nof_fd_occasions)
 {
   static constexpr interval<unsigned, true> nof_rx_ports_range(1, MAX_PORTS);
   static constexpr interval<unsigned, true> max_nof_fd_prach_occasions_range(
       1, prach_constants::MAX_NOF_PRACH_FD_OCCASIONS);
-  srsran_assert(nof_rx_ports_range.contains(max_nof_antennas),
-                "The maximum number of antennas (i.e., {}) is out of range {}·",
-                max_nof_antennas,
-                nof_rx_ports_range);
-  srsran_assert(max_nof_fd_prach_occasions_range.contains(max_nof_fd_occasions),
-                "The maximum number of frequency domain occasions (i.e., {}) is out of range {}·",
-                max_nof_fd_occasions,
-                max_nof_fd_prach_occasions_range);
+  ocudu_assert(nof_rx_ports_range.contains(max_nof_antennas),
+               "The maximum number of antennas (i.e., {}) is out of range {}·",
+               max_nof_antennas,
+               nof_rx_ports_range);
+  ocudu_assert(max_nof_fd_prach_occasions_range.contains(max_nof_fd_occasions),
+               "The maximum number of frequency domain occasions (i.e., {}) is out of range {}·",
+               max_nof_fd_occasions,
+               max_nof_fd_prach_occasions_range);
   return std::make_unique<prach_buffer_impl>(max_nof_antennas,
                                              1,
                                              max_nof_fd_occasions,
@@ -114,27 +114,27 @@ std::unique_ptr<prach_buffer> srsran::create_prach_buffer_long(unsigned max_nof_
                                              prach_constants::LONG_SEQUENCE_LENGTH);
 }
 
-std::unique_ptr<prach_buffer> srsran::create_prach_buffer_short(unsigned max_nof_antennas,
-                                                                unsigned max_nof_td_occasions,
-                                                                unsigned max_nof_fd_occasions)
+std::unique_ptr<prach_buffer> ocudu::create_prach_buffer_short(unsigned max_nof_antennas,
+                                                               unsigned max_nof_td_occasions,
+                                                               unsigned max_nof_fd_occasions)
 {
   static constexpr interval<unsigned, true> nof_rx_ports_range(1, MAX_PORTS);
   static constexpr interval<unsigned, true> max_nof_td_prach_occasions_range(
       1, prach_constants::MAX_NOF_PRACH_TD_OCCASIONS);
   static constexpr interval<unsigned, true> max_nof_fd_prach_occasions_range(
       1, prach_constants::MAX_NOF_PRACH_FD_OCCASIONS);
-  srsran_assert(nof_rx_ports_range.contains(max_nof_antennas),
-                "The maximum number of antennas (i.e., {}) is out of range {}·",
-                max_nof_antennas,
-                nof_rx_ports_range);
-  srsran_assert(max_nof_td_prach_occasions_range.contains(max_nof_td_occasions),
-                "The maximum number of time domain occasions (i.e., {}) is out of range {}·",
-                max_nof_td_occasions,
-                max_nof_td_prach_occasions_range);
-  srsran_assert(max_nof_fd_prach_occasions_range.contains(max_nof_fd_occasions),
-                "The maximum number of frequency domain occasions (i.e., {}) is out of range {}·",
-                max_nof_fd_occasions,
-                max_nof_fd_prach_occasions_range);
+  ocudu_assert(nof_rx_ports_range.contains(max_nof_antennas),
+               "The maximum number of antennas (i.e., {}) is out of range {}·",
+               max_nof_antennas,
+               nof_rx_ports_range);
+  ocudu_assert(max_nof_td_prach_occasions_range.contains(max_nof_td_occasions),
+               "The maximum number of time domain occasions (i.e., {}) is out of range {}·",
+               max_nof_td_occasions,
+               max_nof_td_prach_occasions_range);
+  ocudu_assert(max_nof_fd_prach_occasions_range.contains(max_nof_fd_occasions),
+               "The maximum number of frequency domain occasions (i.e., {}) is out of range {}·",
+               max_nof_fd_occasions,
+               max_nof_fd_prach_occasions_range);
   return std::make_unique<prach_buffer_impl>(max_nof_antennas,
                                              max_nof_td_occasions,
                                              max_nof_fd_occasions,
@@ -142,12 +142,12 @@ std::unique_ptr<prach_buffer> srsran::create_prach_buffer_short(unsigned max_nof
                                              prach_constants::SHORT_SEQUENCE_LENGTH);
 }
 
-std::unique_ptr<srsran::interpolator> srsran::create_interpolator()
+std::unique_ptr<ocudu::interpolator> ocudu::create_interpolator()
 {
   return std::make_unique<interpolator_linear_impl>();
 }
 
-std::shared_ptr<resource_grid_factory> srsran::create_resource_grid_factory()
+std::shared_ptr<resource_grid_factory> ocudu::create_resource_grid_factory()
 {
   return std::make_shared<resource_grid_factory_impl>();
 }

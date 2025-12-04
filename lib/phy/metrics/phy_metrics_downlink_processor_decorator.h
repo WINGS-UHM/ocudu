@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/downlink_processor.h"
-#include "srsran/phy/upper/upper_phy_rg_gateway.h"
+#include "ocudu/phy/upper/downlink_processor.h"
+#include "ocudu/phy/upper/upper_phy_rg_gateway.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Downlink processor metric decorator.
 class phy_metrics_downlink_processor_decorator : public downlink_processor_base,
@@ -90,8 +90,8 @@ public:
                                            std::unique_ptr<rg_gateway_adaptor>      adaptor_) :
     base(std::move(base_)), adaptor(std::move(adaptor_))
   {
-    srsran_assert(base, "Invalid base instance.");
-    srsran_assert(adaptor, "Invalid RG gateway adaptor.");
+    ocudu_assert(base, "Invalid base instance.");
+    ocudu_assert(adaptor, "Invalid RG gateway adaptor.");
   }
 
   // See downlink_processor_base interface for documentation.
@@ -179,4 +179,4 @@ private:
   unique_downlink_processor                base_processor;
 };
 
-} // namespace srsran
+} // namespace ocudu

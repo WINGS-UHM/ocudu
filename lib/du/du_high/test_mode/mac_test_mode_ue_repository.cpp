@@ -9,10 +9,10 @@
  */
 
 #include "mac_test_mode_ue_repository.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_test_mode_ue_repository::mac_test_mode_ue_repository(mac_test_mode_event_handler& event_handler_,
                                                          rnti_t                       rnti_start_,
@@ -33,7 +33,7 @@ unsigned mac_test_mode_ue_repository::get_cell_index(rnti_t rnti) const
 {
   unsigned rnti_idx = static_cast<unsigned>(rnti) - static_cast<unsigned>(rnti_start);
   unsigned cell_idx = rnti_idx / nof_ues;
-  srsran_assert(cell_idx < cells.size(), "Invalid RNTI {}", rnti);
+  ocudu_assert(cell_idx < cells.size(), "Invalid RNTI {}", rnti);
   return cell_idx;
 }
 
@@ -84,7 +84,7 @@ void mac_test_mode_ue_repository::add_ue(rnti_t                         rnti,
     return;
   }
   const du_cell_index_t pcell_index = sched_ue_cfg_req.cells.value()[0].serv_cell_cfg.cell_index;
-  srsran_assert(is_cell_test_ue(pcell_index, rnti), "Invalid rnti={} for cell={}", rnti, fmt::underlying(pcell_index));
+  ocudu_assert(is_cell_test_ue(pcell_index, rnti), "Invalid rnti={} for cell={}", rnti, fmt::underlying(pcell_index));
 
   // Dispatch creation of UE to du_cell thread.
   while (not event_handler.schedule(pcell_index, [this, rnti, ue_idx, cfg = sched_ue_cfg_req]() mutable {
@@ -92,7 +92,7 @@ void mac_test_mode_ue_repository::add_ue(rnti_t                         rnti,
     cells[cellidx]->rnti_to_ue_info_lookup.emplace(
         rnti, test_ue_info{.ue_idx = ue_idx, .sched_ue_cfg_req = std::move(cfg), .msg4_rx_flag = false});
   })) {
-    srslog::fetch_basic_logger("MAC").warning("Failed to add test mode UE. Retrying...");
+    ocudulog::fetch_basic_logger("MAC").warning("Failed to add test mode UE. Retrying...");
   }
 }
 
@@ -105,6 +105,6 @@ void mac_test_mode_ue_repository::remove_ue(rnti_t rnti)
       cells[idx]->rnti_to_ue_info_lookup.erase(rnti);
     }
   })) {
-    srslog::fetch_basic_logger("MAC").warning("Failed to remove test mode UE. Retrying...");
+    ocudulog::fetch_basic_logger("MAC").warning("Failed to remove test mode UE. Retrying...");
   }
 }

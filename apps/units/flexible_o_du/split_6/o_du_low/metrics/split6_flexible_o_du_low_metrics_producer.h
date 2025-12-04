@@ -14,7 +14,7 @@
 #include "apps/services/metrics/metrics_producer.h"
 #include "split6_flexible_o_du_low_metrics_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU metrics producer implementation.
 class split6_o_du_low_metrics_producer_impl : public split6_flexible_o_du_low_metrics_notifier,
@@ -33,4 +33,4 @@ private:
   app_services::metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

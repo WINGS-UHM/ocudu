@@ -13,19 +13,19 @@
 
 #pragma once
 
-#include "srsran/phy/generic_functions/transform_precoding/transform_precoder.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/upper/channel_modulation/demodulation_mapper.h"
-#include "srsran/phy/upper/channel_modulation/evm_calculator.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator.h"
-#include "srsran/phy/upper/equalization/channel_equalizer.h"
-#include "srsran/phy/upper/equalization/dynamic_ch_est_list.h"
-#include "srsran/phy/upper/equalization/modular_ch_est_list.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/generic_functions/transform_precoding/transform_precoder.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/upper/channel_modulation/demodulation_mapper.h"
+#include "ocudu/phy/upper/channel_modulation/evm_calculator.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
+#include "ocudu/phy/upper/equalization/channel_equalizer.h"
+#include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
+#include "ocudu/phy/upper/equalization/modular_ch_est_list.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH demodulator implementation.
 // todo(david): Evaluate whether it is worth delegating the private methods to specialized subcomponent classes.
@@ -51,9 +51,9 @@ public:
     ch_estimates_copy(max_nof_rb * NRE, pusch_constants::MAX_NOF_RX_PORTS, pusch_constants::MAX_NOF_LAYERS),
     compute_post_eq_sinr(compute_post_eq_sinr_)
   {
-    srsran_assert(equalizer, "Invalid pointer to channel_equalizer object.");
-    srsran_assert(demapper, "Invalid pointer to demodulation_mapper object.");
-    srsran_assert(descrambler, "Invalid pointer to pseudo_random_generator object.");
+    ocudu_assert(equalizer, "Invalid pointer to channel_equalizer object.");
+    ocudu_assert(demapper, "Invalid pointer to demodulation_mapper object.");
+    ocudu_assert(descrambler, "Invalid pointer to pseudo_random_generator object.");
   }
   // See interface for the documentation.
   void demodulate(pusch_codeword_buffer&      data,
@@ -85,7 +85,7 @@ private:
     unsigned nof_re = re_mask.count();
     int      begin  = re_mask.find_lowest();
     int      end    = re_mask.find_highest();
-    srsran_assert(begin <= end, "Invalid mask.");
+    ocudu_assert(begin <= end, "Invalid mask.");
 
     // Check if the mask is contiguous.
     if (nof_re == static_cast<unsigned>(end + 1 - begin)) {
@@ -115,7 +115,7 @@ private:
       re_port_buffer = grid.get(re_port_buffer, rx_ports[i_port], i_symbol, 0, re_mask);
 
       // Verify buffer size.
-      srsran_assert(
+      ocudu_assert(
           re_port_buffer.empty(), "Invalid number of RE read from the grid. {} RE are missing.", re_port_buffer.size());
     }
 
@@ -145,7 +145,7 @@ private:
     unsigned nof_re = re_mask.count();
     int      begin  = re_mask.find_lowest();
     int      end    = re_mask.find_highest();
-    srsran_assert(begin <= end, "Invalid mask.");
+    ocudu_assert(begin <= end, "Invalid mask.");
 
     // Check if the mask is contiguous.
     if (nof_re == static_cast<unsigned>(end + 1 - begin)) {
@@ -191,9 +191,9 @@ private:
         });
 
         // Verify buffer size.
-        srsran_assert(ch_port_buffer.empty(),
-                      "Invalid number of RE read from the channel estimates. {} RE are missing.",
-                      ch_port_buffer.size());
+        ocudu_assert(ch_port_buffer.empty(),
+                     "Invalid number of RE read from the channel estimates. {} RE are missing.",
+                     ch_port_buffer.size());
       }
     }
 
@@ -229,4 +229,4 @@ private:
   bool compute_post_eq_sinr;
 };
 
-} // namespace srsran
+} // namespace ocudu

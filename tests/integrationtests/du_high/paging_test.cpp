@@ -14,14 +14,14 @@
 #include "lib/f1ap/f1ap_asn1_packer.h"
 #include "tests/integrationtests/du_high/test_utils/du_high_env_simulator.h"
 #include "tests/unittests/gateways/test_helpers.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 using namespace asn1::f1ap;
 
 class paging_tester : public du_high_env_simulator, public testing::Test
@@ -73,7 +73,7 @@ TEST_F(paging_tester, when_paging_message_is_received_its_relayed_to_ue)
     for (const auto& pg_grant : this->phy.cells[0].last_dl_res->dl_res->paging_grants) {
       const auto& pg_ue_it =
           std::find_if(pg_grant.paging_ue_list.begin(), pg_grant.paging_ue_list.end(), [](const paging_ue_info& ue) {
-            return ue.paging_type_indicator == srsran::paging_ue_info::cn_ue_paging_identity and
+            return ue.paging_type_indicator == ocudu::paging_ue_info::cn_ue_paging_identity and
                    ue.paging_identity == five_g_tmsi;
           });
       if (pg_ue_it != pg_grant.paging_ue_list.end()) {

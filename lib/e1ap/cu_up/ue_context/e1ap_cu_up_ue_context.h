@@ -11,13 +11,13 @@
 #pragma once
 
 #include "e1ap_ue_logger.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/e1ap/common/e1ap_types.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 struct e1ap_ue_ids {
   ue_index_t                   ue_index         = INVALID_UE_INDEX;
@@ -44,7 +44,7 @@ struct e1ap_ue_context {
 class e1ap_ue_context_list
 {
 public:
-  e1ap_ue_context_list(srslog::basic_logger& logger_) : logger(logger_) {}
+  e1ap_ue_context_list(ocudulog::basic_logger& logger_) : logger(logger_) {}
 
   bool contains(gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id) const { return ues.find(cu_up_ue_e1ap_id) != ues.end(); }
 
@@ -76,19 +76,19 @@ public:
 
   e1ap_ue_context& operator[](gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
   {
-    srsran_assert(ues.find(cu_up_ue_e1ap_id) != ues.end(),
-                  "cu_up_ue_e1ap_id={}: E1AP UE context not found",
-                  fmt::underlying(cu_up_ue_e1ap_id));
+    ocudu_assert(ues.find(cu_up_ue_e1ap_id) != ues.end(),
+                 "cu_up_ue_e1ap_id={}: E1AP UE context not found",
+                 fmt::underlying(cu_up_ue_e1ap_id));
     return ues.at(cu_up_ue_e1ap_id);
   }
   e1ap_ue_context& operator[](ue_index_t ue_index)
   {
-    srsran_assert(ue_index_to_ue_e1ap_id.find(ue_index) != ue_index_to_ue_e1ap_id.end(),
-                  "ue={} gNB-CU-UP-UE-E1AP-ID not found",
-                  fmt::underlying(ue_index));
-    srsran_assert(ues.find(ue_index_to_ue_e1ap_id.at(ue_index)) != ues.end(),
-                  "cu_up_ue_e1ap_id={}: E1AP UE context not found",
-                  fmt::underlying(ue_index_to_ue_e1ap_id.at(ue_index)));
+    ocudu_assert(ue_index_to_ue_e1ap_id.find(ue_index) != ue_index_to_ue_e1ap_id.end(),
+                 "ue={} gNB-CU-UP-UE-E1AP-ID not found",
+                 fmt::underlying(ue_index));
+    ocudu_assert(ues.find(ue_index_to_ue_e1ap_id.at(ue_index)) != ues.end(),
+                 "cu_up_ue_e1ap_id={}: E1AP UE context not found",
+                 fmt::underlying(ue_index_to_ue_e1ap_id.at(ue_index)));
     return ues.at(ue_index_to_ue_e1ap_id.at(ue_index));
   }
 
@@ -97,13 +97,13 @@ public:
                           gnb_cu_cp_ue_e1ap_id_t        cu_cp_ue_e1ap_id,
                           activity_notification_level_t activity_notification_level)
   {
-    srsran_assert(ue_index != INVALID_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
-    srsran_assert(cu_up_ue_e1ap_id != gnb_cu_up_ue_e1ap_id_t::invalid,
-                  "Invalid cu_up_ue_e1ap_id={}",
-                  fmt::underlying(cu_up_ue_e1ap_id));
-    srsran_assert(cu_cp_ue_e1ap_id != gnb_cu_cp_ue_e1ap_id_t::invalid,
-                  "Invalid cu_cp_ue_e1ap_id={}",
-                  fmt::underlying(cu_cp_ue_e1ap_id));
+    ocudu_assert(ue_index != INVALID_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(cu_up_ue_e1ap_id != gnb_cu_up_ue_e1ap_id_t::invalid,
+                 "Invalid cu_up_ue_e1ap_id={}",
+                 fmt::underlying(cu_up_ue_e1ap_id));
+    ocudu_assert(cu_cp_ue_e1ap_id != gnb_cu_cp_ue_e1ap_id_t::invalid,
+                 "Invalid cu_cp_ue_e1ap_id={}",
+                 fmt::underlying(cu_cp_ue_e1ap_id));
 
     logger.debug("ue={} cu_up_ue_e1ap_id={} cu_cp_ue_e1ap_id={}: Adding E1AP UE context",
                  fmt::underlying(ue_index),
@@ -118,7 +118,7 @@ public:
 
   void remove_ue(ue_index_t ue_index)
   {
-    srsran_assert(ue_index != INVALID_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index != INVALID_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
 
     if (ue_index_to_ue_e1ap_id.find(ue_index) == ue_index_to_ue_e1ap_id.end()) {
       logger.warning("ue={}: GNB-CU-UP-UE-E1AP-ID not found", fmt::underlying(ue_index));
@@ -183,7 +183,7 @@ protected:
   gnb_cu_up_ue_e1ap_id_t next_cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_t::min;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   inline void increase_next_cu_up_ue_e1ap_id()
   {
@@ -200,5 +200,5 @@ private:
   std::unordered_map<ue_index_t, gnb_cu_up_ue_e1ap_id_t>      ue_index_to_ue_e1ap_id; // indexed by ue_index
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

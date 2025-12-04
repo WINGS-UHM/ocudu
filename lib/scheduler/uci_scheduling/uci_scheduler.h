@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_resource_allocator;
 
@@ -25,4 +25,4 @@ public:
   virtual void run_slot(cell_resource_allocator& res_alloc) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

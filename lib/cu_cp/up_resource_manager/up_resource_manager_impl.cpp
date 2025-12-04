@@ -10,13 +10,13 @@
 
 #include "up_resource_manager_impl.h"
 #include "up_resource_manager_helpers.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 up_resource_manager::up_resource_manager(const up_resource_manager_cfg& cfg_) :
-  cfg(cfg_), logger(srslog::fetch_basic_logger("CU-CP"))
+  cfg(cfg_), logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 
@@ -39,20 +39,20 @@ bool up_resource_manager::validate_request(const cu_cp_pdu_session_resource_rele
 up_config_update up_resource_manager::calculate_update(
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items)
 {
-  srsran_assert(is_valid(setup_items, context, cfg, logger), "Invalid PDU Session Resource Setup items.");
-  return srsran::srs_cu_cp::calculate_update(setup_items, context, cfg, logger);
+  ocudu_assert(is_valid(setup_items, context, cfg, logger), "Invalid PDU Session Resource Setup items.");
+  return ocudu::ocucp::calculate_update(setup_items, context, cfg, logger);
 }
 
 up_config_update up_resource_manager::calculate_update(const cu_cp_pdu_session_resource_modify_request& pdu)
 {
-  srsran_assert(is_valid(pdu, context, cfg, logger), "Invalid PDU Session Resource Modify request.");
-  return srsran::srs_cu_cp::calculate_update(pdu, context, cfg, logger);
+  ocudu_assert(is_valid(pdu, context, cfg, logger), "Invalid PDU Session Resource Modify request.");
+  return ocudu::ocucp::calculate_update(pdu, context, cfg, logger);
 }
 
 up_config_update up_resource_manager::calculate_update(const cu_cp_pdu_session_resource_release_command& pdu)
 {
-  srsran_assert(is_valid(pdu, context, cfg, logger), "Invalid PDU Session Resource Release command.");
-  return srsran::srs_cu_cp::calculate_update(pdu, context, cfg, logger);
+  ocudu_assert(is_valid(pdu, context, cfg, logger), "Invalid PDU Session Resource Release command.");
+  return ocudu::ocucp::calculate_update(pdu, context, cfg, logger);
 }
 
 static void apply_update_for_new_drbs(up_pdu_session_context&                   pdu_session_context,
@@ -107,7 +107,7 @@ bool up_resource_manager::apply_config_update(const up_config_update_result& res
   }
 
   for (const auto& mod_session : result.pdu_sessions_modified_list) {
-    srsran_assert(
+    ocudu_assert(
         context.pdu_sessions.find(mod_session.id) != context.pdu_sessions.end(), "{} not allocated", mod_session.id);
     auto& session_context = context.pdu_sessions.at(mod_session.id);
 
@@ -119,8 +119,7 @@ bool up_resource_manager::apply_config_update(const up_config_update_result& res
   }
 
   for (const auto& rem_session : result.pdu_sessions_removed_list) {
-    srsran_assert(
-        context.pdu_sessions.find(rem_session) != context.pdu_sessions.end(), "{} not allocated", rem_session);
+    ocudu_assert(context.pdu_sessions.find(rem_session) != context.pdu_sessions.end(), "{} not allocated", rem_session);
 
     auto& session_context = context.pdu_sessions.at(rem_session);
 
@@ -141,7 +140,7 @@ bool up_resource_manager::apply_config_update(const up_config_update_result& res
 
 const up_pdu_session_context& up_resource_manager::get_pdu_session_context(pdu_session_id_t psi) const
 {
-  srsran_assert(context.pdu_sessions.find(psi) != context.pdu_sessions.end(), "{} not allocated", psi);
+  ocudu_assert(context.pdu_sessions.find(psi) != context.pdu_sessions.end(), "{} not allocated", psi);
   return context.pdu_sessions.at(psi);
 }
 
@@ -152,13 +151,13 @@ bool up_resource_manager::has_pdu_session(pdu_session_id_t pdu_session_id) const
 
 const up_drb_context& up_resource_manager::get_drb_context(drb_id_t drb_id) const
 {
-  srsran_assert(context.drb_map.find(drb_id) != context.drb_map.end(), "{} not allocated", drb_id);
+  ocudu_assert(context.drb_map.find(drb_id) != context.drb_map.end(), "{} not allocated", drb_id);
   const auto& psi = context.drb_map.at(drb_id);
-  srsran_assert(context.pdu_sessions.find(psi) != context.pdu_sessions.end(), "Couldn't find {}", psi);
-  srsran_assert(context.pdu_sessions.at(psi).drbs.find(drb_id) != context.pdu_sessions.at(psi).drbs.end(),
-                "Couldn't find {} in {}",
-                drb_id,
-                psi);
+  ocudu_assert(context.pdu_sessions.find(psi) != context.pdu_sessions.end(), "Couldn't find {}", psi);
+  ocudu_assert(context.pdu_sessions.at(psi).drbs.find(drb_id) != context.pdu_sessions.at(psi).drbs.end(),
+               "Couldn't find {} in {}",
+               drb_id,
+               psi);
   return context.pdu_sessions.at(psi).drbs.at(drb_id);
 }
 

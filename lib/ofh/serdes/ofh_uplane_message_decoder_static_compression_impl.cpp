@@ -11,7 +11,7 @@
 #include "ofh_uplane_message_decoder_static_compression_impl.h"
 #include "../support/network_order_binary_deserializer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 uplane_message_decoder_impl::decoded_section_status
@@ -26,7 +26,7 @@ uplane_message_decoder_static_compression_impl::decode_compression_header(
 }
 
 uplane_message_decoder_static_compression_impl::uplane_message_decoder_static_compression_impl(
-    srslog::basic_logger&            logger_,
+    ocudulog::basic_logger&          logger_,
     subcarrier_spacing               scs_,
     unsigned                         nof_symbols_,
     unsigned                         ru_nof_prbs_,

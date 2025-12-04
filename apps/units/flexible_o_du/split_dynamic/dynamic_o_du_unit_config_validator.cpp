@@ -13,9 +13,9 @@
 #include "apps/units/flexible_o_du/o_du_low/du_low_config_validator.h"
 #include "apps/units/flexible_o_du/split_7_2/helpers/ru_ofh_config_validator.h"
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config_validator.h"
-#include "srsran/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::vector<du_low_prach_validation_config> get_du_low_validation_dependencies(const du_high_unit_config& config)
 {
@@ -92,7 +92,7 @@ static std::vector<ru_sdr_cell_validation_config> get_ru_sdr_validation_dependen
   return out_cfg;
 }
 
-bool srsran::validate_dynamic_o_du_unit_config(const dynamic_o_du_unit_config& config)
+bool ocudu::validate_dynamic_o_du_unit_config(const dynamic_o_du_unit_config& config)
 {
   if (!validate_o_du_high_config(config.odu_high_cfg)) {
     return false;

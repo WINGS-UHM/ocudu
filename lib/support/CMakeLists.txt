@@ -45,14 +45,14 @@ set(SOURCES
         math_utils.cpp
 )
 
-add_library(srsran_support STATIC ${SOURCES})
-target_link_libraries(srsran_support PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES}
-	${NUMA_LIBRARIES} srslog)
-add_backward(srsran_support)
+add_library(ocudu_support STATIC ${SOURCES})
+target_link_libraries(ocudu_support PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES}
+	${NUMA_LIBRARIES} ocudulog)
+add_backward(ocudu_support)
 
 if (Backward_FOUND AND BACKWARD_HAS_EXTERNAL_LIBRARIES)
     set_source_files_properties(backtrace.cpp APPEND PROPERTIES COMPILE_DEFINITIONS "HAVE_BACKWARD")
     set_source_files_properties(backtrace.cpp APPEND PROPERTIES INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/external)
 endif (Backward_FOUND AND BACKWARD_HAS_EXTERNAL_LIBRARIES)
 
-add_to_exported_libs(srsran_support)
+add_to_exported_libs(ocudu_support)

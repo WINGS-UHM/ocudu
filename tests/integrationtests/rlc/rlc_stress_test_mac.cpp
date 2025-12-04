@@ -10,7 +10,7 @@
 
 #include "rlc_stress_test_mac.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 std::vector<byte_buffer_chain> mac_dummy::run_tx_tti(uint32_t tti)
 {

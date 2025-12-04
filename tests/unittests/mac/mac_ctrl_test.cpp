@@ -13,20 +13,20 @@
 #include "mac_ctrl_test_dummies.h"
 #include "mac_test_helpers.h"
 #include "tests/test_doubles/mac/dummy_mac_metrics_notifier.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class mac_controller_test : public ::testing::Test
 {
 protected:
   mac_controller_test()
   {
-    srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
   }
 
   void start_ue_creation(mac_ue_create_request req)

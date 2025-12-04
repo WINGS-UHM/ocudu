@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/memory_pool/unbounded_object_pool.h"
+#include "ocudu/support/memory_pool/unbounded_object_pool.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class unbounded_object_pool_test : public ::testing::Test
 {

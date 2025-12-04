@@ -9,11 +9,11 @@
  */
 
 #include "o_du_high_metrics_notifier_proxy.h"
-#include "srsran/du/du_high/o_du_high_metrics.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/du/du_high/o_du_high_metrics.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 

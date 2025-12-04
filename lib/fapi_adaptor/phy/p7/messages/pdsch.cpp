@@ -9,11 +9,11 @@
  */
 
 #include "pdsch.h"
-#include "srsran/fapi_adaptor/precoding_matrix_repository.h"
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
-#include "srsran/ran/sch/sch_dmrs_power.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/ran/sch/sch_dmrs_power.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// Fills the reserved RE pattern list field in a PDSCH PDU.
@@ -22,10 +22,10 @@ static void fill_reserved_re_pattern(pdsch_processor::pdu_t&     proc_pdu,
                                      span<const re_pattern_list> csi_re_pattern_list)
 {
   for (auto csi_index : fapi_pdu.pdsch_maintenance_v3.csi_for_rm) {
-    srsran_assert(csi_index < csi_re_pattern_list.size(),
-                  "CSI-RS PDU index={} value out of bounds CSI RE patterns={}",
-                  csi_index,
-                  csi_re_pattern_list.size());
+    ocudu_assert(csi_index < csi_re_pattern_list.size(),
+                 "CSI-RS PDU index={} value out of bounds CSI RE patterns={}",
+                 csi_index,
+                 csi_re_pattern_list.size());
 
     proc_pdu.reserved.merge(csi_re_pattern_list[csi_index]);
   }
@@ -145,12 +145,12 @@ static void fill_rb_allocation(pdsch_processor::pdu_t& proc_pdu, const fapi::dl_
   proc_pdu.freq_alloc = rb_allocation::make_type0(vrb_bitmap, vrb_to_prb_config);
 }
 
-void srsran::fapi_adaptor::convert_pdsch_fapi_to_phy(pdsch_processor::pdu_t&            proc_pdu,
-                                                     const fapi::dl_pdsch_pdu&          fapi_pdu,
-                                                     uint16_t                           sfn,
-                                                     uint16_t                           slot,
-                                                     span<const re_pattern_list>        csi_re_pattern_list,
-                                                     const precoding_matrix_repository& pm_repo)
+void ocudu::fapi_adaptor::convert_pdsch_fapi_to_phy(pdsch_processor::pdu_t&            proc_pdu,
+                                                    const fapi::dl_pdsch_pdu&          fapi_pdu,
+                                                    uint16_t                           sfn,
+                                                    uint16_t                           slot,
+                                                    span<const re_pattern_list>        csi_re_pattern_list,
+                                                    const precoding_matrix_repository& pm_repo)
 {
   proc_pdu.slot         = slot_point(fapi_pdu.scs, sfn, slot);
   proc_pdu.rnti         = to_value(fapi_pdu.rnti);
@@ -191,9 +191,9 @@ void srsran::fapi_adaptor::convert_pdsch_fapi_to_phy(pdsch_processor::pdu_t&    
 
   fill_reserved_re_pattern(proc_pdu, fapi_pdu, csi_re_pattern_list);
 
-  srsran_assert(fapi_pdu.precoding_and_beamforming.prgs.size() == 1U,
-                "Unsupported number of PRGs={}",
-                fapi_pdu.precoding_and_beamforming.prgs.size());
+  ocudu_assert(fapi_pdu.precoding_and_beamforming.prgs.size() == 1U,
+               "Unsupported number of PRGs={}",
+               fapi_pdu.precoding_and_beamforming.prgs.size());
   proc_pdu.precoding = precoding_configuration::make_wideband(
       pm_repo.get_precoding_matrix(fapi_pdu.precoding_and_beamforming.prgs.front().pm_index));
 

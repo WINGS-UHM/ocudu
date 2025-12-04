@@ -12,10 +12,10 @@
 
 #include "../cu_cp_impl_interface.h"
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Removes a UE from the CU-CP
 class ue_removal_routine
@@ -28,7 +28,7 @@ public:
                      ngap_ue_context_removal_handler*     ngap_removal_handler_,
                      nrppa_ue_context_removal_handler*    nrppa_removal_handler_,
                      ue_manager&                          ue_mng_,
-                     srslog::basic_logger&                logger_);
+                     ocudulog::basic_logger&              logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -43,9 +43,9 @@ private:
   ngap_ue_context_removal_handler*     ngap_removal_handler  = nullptr;
   nrppa_ue_context_removal_handler*    nrppa_removal_handler = nullptr;
   // To remove UE context from DU processor.
-  ue_manager&           ue_mng;
-  srslog::basic_logger& logger;
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

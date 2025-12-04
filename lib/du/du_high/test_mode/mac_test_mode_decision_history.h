@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/mac/cell_configuration.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/scheduler/result/pucch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/mac/cell_configuration.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/scheduler/resource_grid_util.h"
+#include "ocudu/scheduler/result/pucch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Stores the decision history of the MAC cell when in test mode. This is an SPSC class.
 class mac_test_mode_cell_decision_history
@@ -37,8 +37,8 @@ public:
     {
       if (ptr != nullptr) {
         auto prev = lock->fetch_sub(2, std::memory_order_release);
-        srsran_sanity_check((prev & 1) == 0, "Invalid lock state in reader deleter");
-        srsran_sanity_check(prev > 0, "Invalid lock state in reader deleter");
+        ocudu_sanity_check((prev & 1) == 0, "Invalid lock state in reader deleter");
+        ocudu_sanity_check(prev > 0, "Invalid lock state in reader deleter");
       }
     }
 
@@ -52,7 +52,7 @@ public:
     {
       if (ptr != nullptr) {
         auto prev = lock->exchange(0, std::memory_order_release);
-        srsran_sanity_check(prev == 1, "Invalid lock state in writer deleter");
+        ocudu_sanity_check(prev == 1, "Invalid lock state in writer deleter");
       }
     }
 
@@ -143,4 +143,4 @@ private:
   std::vector<locked_slot_context> sched_decision_history;
 };
 
-} // namespace srsran
+} // namespace ocudu

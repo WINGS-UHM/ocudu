@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ru/ofh/ru_ofh_configuration.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ru/ofh/ru_ofh_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool check_compression_params(const ofh::ru_compression_params& params)
 {
@@ -67,7 +67,7 @@ static bool check_eaxcs_id(const ofh::sector_configuration& config)
   return true;
 }
 
-bool srsran::is_valid_ru_ofh_config(const ru_ofh_configuration& config)
+bool ocudu::is_valid_ru_ofh_config(const ru_ofh_configuration& config)
 {
   for (const auto& sector : config.sector_configs) {
     if (!check_compression_params(sector.ul_compression_params)) {

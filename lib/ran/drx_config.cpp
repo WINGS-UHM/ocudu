@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/drx_config.h"
-#include "srsran/adt/to_array.h"
+#include "ocudu/ran/drx_config.h"
+#include "ocudu/adt/to_array.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 span<const std::chrono::milliseconds> drx_helper::valid_long_cycle_values()
 {

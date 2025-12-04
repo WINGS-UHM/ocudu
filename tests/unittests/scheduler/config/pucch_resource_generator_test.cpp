@@ -9,12 +9,12 @@
  */
 
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace sched_pucch_gen {
 // Test struct.
@@ -154,10 +154,10 @@ public:
   void add_resource(const pucch_resource& res)
   {
     if (res.format == pucch_format::FORMAT_0) {
-      srsran_assert(std::holds_alternative<pucch_format_0_cfg>(res.format_params), "Expected PUCCH Format 0");
+      ocudu_assert(std::holds_alternative<pucch_format_0_cfg>(res.format_params), "Expected PUCCH Format 0");
 
       if (res.second_hop_prb.has_value()) {
-        srsran_assert(res.nof_symbols == 2U, "Intra-slot freq. hopping for PUCCH Format 0 requires 2 symbols");
+        ocudu_assert(res.nof_symbols == 2U, "Intra-slot freq. hopping for PUCCH Format 0 requires 2 symbols");
         // First hop.
         for (unsigned sym_idx = res.starting_sym_idx, sym_stop = res.starting_sym_idx + res.nof_symbols / 2;
              sym_idx != sym_stop;
@@ -186,7 +186,7 @@ public:
       }
 
     } else if (res.format == pucch_format::FORMAT_1) {
-      srsran_assert(std::holds_alternative<pucch_format_1_cfg>(res.format_params), "Expected PUCCH Format 1");
+      ocudu_assert(std::holds_alternative<pucch_format_1_cfg>(res.format_params), "Expected PUCCH Format 1");
       const auto& res_f1 = std::get<pucch_format_1_cfg>(res.format_params);
 
       if (res.second_hop_prb.has_value()) {
@@ -198,8 +198,8 @@ public:
           grid_elem.format          = pucch_format::FORMAT_1;
           grid_elem.element_used    = true;
           const unsigned occ_cs_idx = res_f1.initial_cyclic_shift + res_f1.time_domain_occ * max_nof_cs;
-          srsran_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
-          srsran_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
+          ocudu_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
+          ocudu_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
           grid_elem.allocated_occ_cs_list[occ_cs_idx] = true;
         }
         // Second hop.
@@ -211,8 +211,8 @@ public:
           grid_elem.format          = pucch_format::FORMAT_1;
           grid_elem.element_used    = true;
           const unsigned occ_cs_idx = res_f1.initial_cyclic_shift + res_f1.time_domain_occ * max_nof_cs;
-          srsran_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
-          srsran_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
+          ocudu_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
+          ocudu_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
           grid_elem.allocated_occ_cs_list[occ_cs_idx] = true;
         }
       } else {
@@ -223,17 +223,17 @@ public:
           grid_elem.format          = pucch_format::FORMAT_1;
           grid_elem.element_used    = true;
           const unsigned occ_cs_idx = res_f1.initial_cyclic_shift + res_f1.time_domain_occ * max_nof_cs;
-          srsran_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
-          srsran_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
+          ocudu_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
+          ocudu_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
           grid_elem.allocated_occ_cs_list[occ_cs_idx] = true;
         }
       }
     } else if (res.format == pucch_format::FORMAT_2) {
-      srsran_assert(std::holds_alternative<pucch_format_2_3_cfg>(res.format_params), "Expected PUCCH Format 2");
+      ocudu_assert(std::holds_alternative<pucch_format_2_3_cfg>(res.format_params), "Expected PUCCH Format 2");
       const auto& res_f2 = std::get<pucch_format_2_3_cfg>(res.format_params);
 
       if (res.second_hop_prb.has_value()) {
-        srsran_assert(res.nof_symbols == 2U, "Intra-slot freq. hopping for PUCCH Format 0 requires 2 symbols");
+        ocudu_assert(res.nof_symbols == 2U, "Intra-slot freq. hopping for PUCCH Format 0 requires 2 symbols");
         // First hop.
         for (unsigned rb_idx = res.starting_prb, rb_stop = res.starting_prb + res_f2.nof_prbs; rb_idx != rb_stop;
              ++rb_idx) {
@@ -271,7 +271,7 @@ public:
         }
       }
     } else if (res.format == pucch_format::FORMAT_3) {
-      srsran_assert(std::holds_alternative<pucch_format_2_3_cfg>(res.format_params), "Expected PUCCH Format 3");
+      ocudu_assert(std::holds_alternative<pucch_format_2_3_cfg>(res.format_params), "Expected PUCCH Format 3");
       const auto& res_f3 = std::get<pucch_format_2_3_cfg>(res.format_params);
 
       if (res.second_hop_prb.has_value()) {
@@ -312,7 +312,7 @@ public:
         }
       }
     } else if (res.format == pucch_format::FORMAT_4) {
-      srsran_assert(std::holds_alternative<pucch_format_4_cfg>(res.format_params), "Expected PUCCH Format 4");
+      ocudu_assert(std::holds_alternative<pucch_format_4_cfg>(res.format_params), "Expected PUCCH Format 4");
 
       if (res.second_hop_prb.has_value()) {
         // First hop.
@@ -355,7 +355,7 @@ public:
   bool verify_collision(const pucch_resource& res) const
   {
     if (res.format == pucch_format::FORMAT_0) {
-      srsran_assert(std::holds_alternative<pucch_format_0_cfg>(res.format_params), "Expected PUCCH Format 0");
+      ocudu_assert(std::holds_alternative<pucch_format_0_cfg>(res.format_params), "Expected PUCCH Format 0");
       // Intra-slot frequency hopping.
       if (res.second_hop_prb.has_value()) {
         // First hop.
@@ -391,7 +391,7 @@ public:
         }
       }
     } else if (res.format == pucch_format::FORMAT_1) {
-      srsran_assert(std::holds_alternative<pucch_format_1_cfg>(res.format_params), "Expected PUCCH Format 1");
+      ocudu_assert(std::holds_alternative<pucch_format_1_cfg>(res.format_params), "Expected PUCCH Format 1");
       const auto& res_f1 = std::get<pucch_format_1_cfg>(res.format_params);
       // Intra-slot frequency hopping.
       if (res.second_hop_prb.has_value()) {
@@ -405,8 +405,8 @@ public:
               return true;
             }
             const unsigned occ_cs_idx = res_f1.initial_cyclic_shift + res_f1.time_domain_occ * max_nof_cs;
-            srsran_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
-            srsran_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
+            ocudu_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
+            ocudu_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
             if (grid_elem.allocated_occ_cs_list[occ_cs_idx]) {
               return true;
             }
@@ -423,8 +423,8 @@ public:
               return true;
             }
             const unsigned occ_cs_idx = res_f1.initial_cyclic_shift + res_f1.time_domain_occ * max_nof_cs;
-            srsran_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
-            srsran_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
+            ocudu_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
+            ocudu_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
             if (grid_elem.allocated_occ_cs_list[occ_cs_idx]) {
               return true;
             }
@@ -443,8 +443,8 @@ public:
               return true;
             }
             const unsigned occ_cs_idx = res_f1.initial_cyclic_shift + res_f1.time_domain_occ * max_nof_cs;
-            srsran_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
-            srsran_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
+            ocudu_assert(res_f1.initial_cyclic_shift < max_nof_cs, "Initial Cyclic Shift exceeds maximum value 11");
+            ocudu_assert(res_f1.time_domain_occ < max_nof_occ, " Time Domain OCC exceeds maximum value 7");
             if (grid_elem.allocated_occ_cs_list[occ_cs_idx]) {
               return true;
             }
@@ -452,7 +452,7 @@ public:
         }
       }
     } else if (res.format == pucch_format::FORMAT_2 or res.format == pucch_format::FORMAT_3) {
-      srsran_assert(std::holds_alternative<pucch_format_2_3_cfg>(res.format_params), "Expected PUCCH Format 2");
+      ocudu_assert(std::holds_alternative<pucch_format_2_3_cfg>(res.format_params), "Expected PUCCH Format 2");
       const auto& res_f2_f3 = std::get<pucch_format_2_3_cfg>(res.format_params);
 
       // Intra-slot frequency hopping.
@@ -499,7 +499,7 @@ public:
         }
       }
     } else if (res.format == pucch_format::FORMAT_4) {
-      srsran_assert(std::holds_alternative<pucch_format_4_cfg>(res.format_params), "Expected PUCCH Format 4");
+      ocudu_assert(std::holds_alternative<pucch_format_4_cfg>(res.format_params), "Expected PUCCH Format 4");
       const auto& res_f4 = std::get<pucch_format_4_cfg>(res.format_params);
 
       // Intra-slot frequency hopping.
@@ -515,7 +515,7 @@ public:
                 return true;
               }
               const auto occ_index = static_cast<unsigned>(res_f4.occ_index);
-              srsran_assert(occ_index < static_cast<unsigned>(res_f4.occ_length), " OCC index exceeds OCC length");
+              ocudu_assert(occ_index < static_cast<unsigned>(res_f4.occ_length), " OCC index exceeds OCC length");
               if (grid_unit.allocated_occ_cs_list[occ_index]) {
                 return true;
               }
@@ -535,7 +535,7 @@ public:
                 return true;
               }
               const auto occ_index = static_cast<unsigned>(res_f4.occ_index);
-              srsran_assert(occ_index < static_cast<unsigned>(res_f4.occ_length), " OCC index exceeds OCC length");
+              ocudu_assert(occ_index < static_cast<unsigned>(res_f4.occ_length), " OCC index exceeds OCC length");
               if (grid_unit.allocated_occ_cs_list[occ_index]) {
                 return true;
               }
@@ -555,7 +555,7 @@ public:
                 return true;
               }
               const auto occ_index = static_cast<unsigned>(res_f4.occ_index);
-              srsran_assert(occ_index < static_cast<unsigned>(res_f4.occ_length), " OCC index exceeds OCC length");
+              ocudu_assert(occ_index < static_cast<unsigned>(res_f4.occ_length), " OCC index exceeds OCC length");
               if (grid_unit.allocated_occ_cs_list[occ_index]) {
                 return true;
               }
@@ -713,7 +713,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f2_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 39,
                                               .nof_res_f2                = 19,
@@ -723,7 +723,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 39,
                                               .nof_res_f2                = 19,
@@ -733,7 +733,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 39,
                                               .nof_res_f2                = 19,
@@ -743,7 +743,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 137,
                                               .nof_res_f2                = 25,
@@ -753,7 +753,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 36,
                                               .nof_res_f2                = 27,
@@ -763,7 +763,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = false,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 7,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 34,
                                               .nof_res_f2                = 10,
@@ -774,7 +774,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f2_nof_symbols            = 1,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f2_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 15,
                                               .nof_res_f2                = 10,
@@ -785,7 +785,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 34,
                                               .nof_res_f2                = 10,
@@ -794,7 +794,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f2_nof_symbols            = 1,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f2_intraslot_freq_hopping = false},
                              // F0 and F2 test cases.
                              pucch_gen_params{.nof_res_f0                = 15,
@@ -803,7 +803,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f0_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f2_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f0                = 39,
                                               .nof_res_f2                = 19,
@@ -811,7 +811,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f0_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f0                = 39,
                                               .nof_res_f2                = 19,
@@ -819,7 +819,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f0_intraslot_freq_hopping = false,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f0                = 9,
                                               .nof_res_f2                = 19,
@@ -827,7 +827,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f0_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f0                = 39,
                                               .nof_res_f2                = 25,
@@ -835,7 +835,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f0_intraslot_freq_hopping = true,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f0                = 36,
                                               .nof_res_f2                = 27,
@@ -843,7 +843,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f0_intraslot_freq_hopping = false,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 7,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f2_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f0                = 15,
                                               .nof_res_f2                = 10,
@@ -852,7 +852,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f2_nof_symbols            = 2,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f2_intraslot_freq_hopping = true},
                              // F1 and F3 test cases.
                              pucch_gen_params{.nof_res_f1                = 15,
@@ -862,7 +862,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 7,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 39,
@@ -872,7 +872,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 7,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 39,
@@ -882,7 +882,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 7,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 39,
@@ -892,7 +892,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 11,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 137,
@@ -902,7 +902,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 14,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 36,
@@ -912,7 +912,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 9,
                                               .f1_intraslot_freq_hopping = false,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 34,
@@ -923,7 +923,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = false,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 15,
@@ -934,7 +934,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = false,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f3_nof_symbols            = 4,
                                               .f3_intraslot_freq_hopping = true},
                              // F1 and F4 test cases.
@@ -945,7 +945,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 7,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 39,
@@ -955,7 +955,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 7,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 39,
@@ -965,7 +965,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 7,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_25,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_25,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 39,
@@ -975,7 +975,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 11,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 137,
@@ -985,7 +985,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 14,
                                               .f1_intraslot_freq_hopping = true,
                                               .max_nof_rbs               = 1,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 36,
@@ -995,7 +995,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_nof_symbols            = 9,
                                               .f1_intraslot_freq_hopping = false,
                                               .max_nof_rbs               = 2,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_15,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_15,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 34,
@@ -1006,7 +1006,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = false,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = false},
                              pucch_gen_params{.nof_res_f1                = 15,
@@ -1017,7 +1017,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f1_intraslot_freq_hopping = false,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = true},
                              pucch_gen_params{.nof_res_f1                = 34,
@@ -1027,7 +1027,7 @@ INSTANTIATE_TEST_SUITE_P(test_res_generation_given_number,
                                               .f2_nof_symbols            = 1,
                                               .max_nof_rbs               = 7,
                                               .max_payload_bits          = 11,
-                                              .max_code_rate             = srsran::max_pucch_code_rate::dot_08,
+                                              .max_code_rate             = ocudu::max_pucch_code_rate::dot_08,
                                               .f4_nof_symbols            = 4,
                                               .f4_intraslot_freq_hopping = false}));
 
@@ -1102,14 +1102,14 @@ protected:
 
   bool verify_nof_res_and_idx(unsigned harq_cfg_idx, unsigned sr_idx, unsigned csi_idx) const
   {
-    srsran_assert(harq_cfg_idx < nof_harq_cfg_per_ue,
-                  "HARQ resources config index must be smaller than the number of HARQ resources configurations");
-    srsran_assert(sr_idx < nof_sr_res_per_cell,
-                  "SR resource config index must be smaller than the number of cell SR resources");
+    ocudu_assert(harq_cfg_idx < nof_harq_cfg_per_ue,
+                 "HARQ resources config index must be smaller than the number of HARQ resources configurations");
+    ocudu_assert(sr_idx < nof_sr_res_per_cell,
+                 "SR resource config index must be smaller than the number of cell SR resources");
     const bool has_csi = serv_cell_cfg.csi_meas_cfg.has_value();
     if (has_csi) {
-      srsran_assert(csi_idx < nof_csi_res_per_cell,
-                    "CSI resource config index must be smaller than the number of cell CSI resources");
+      ocudu_assert(csi_idx < nof_csi_res_per_cell,
+                   "CSI resource config index must be smaller than the number of cell CSI resources");
     }
 
     const pucch_config& pucch_cfg          = serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
@@ -1182,13 +1182,13 @@ protected:
     // Check CSI and related PUCCH resource.
     if (has_csi) {
       const auto& csi_cfg = serv_cell_cfg.csi_meas_cfg.value();
-      srsran_assert(not csi_cfg.csi_report_cfg_list.empty() and
-                        std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                            csi_cfg.csi_report_cfg_list.front().report_cfg_type) and
-                        not std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                                csi_cfg.csi_report_cfg_list.front().report_cfg_type)
-                                .pucch_csi_res_list.empty(),
-                    "PUCCH-CSI-ResourceList has not been configured in the CSI-reportConfig");
+      ocudu_assert(not csi_cfg.csi_report_cfg_list.empty() and
+                       std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
+                           csi_cfg.csi_report_cfg_list.front().report_cfg_type) and
+                       not std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
+                               csi_cfg.csi_report_cfg_list.front().report_cfg_type)
+                               .pucch_csi_res_list.empty(),
+                   "PUCCH-CSI-ResourceList has not been configured in the CSI-reportConfig");
 
       const pucch_res_id_t csi_res_id = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
                                             csi_cfg.csi_report_cfg_list.front().report_cfg_type)
@@ -1337,9 +1337,9 @@ protected:
 
     // Special case of F0 and F2.
     if (has_f0_res and has_f2_res) {
-      srsran_assert(sr_pucch_res_cfg.format == pucch_format::FORMAT_0 and
-                        std::holds_alternative<pucch_format_0_cfg>(sr_pucch_res_cfg.format_params),
-                    "SR PUCCH resource must be of Format 0 if any of the PUCCH resources from set 0 has Format 0.");
+      ocudu_assert(sr_pucch_res_cfg.format == pucch_format::FORMAT_0 and
+                       std::holds_alternative<pucch_format_0_cfg>(sr_pucch_res_cfg.format_params),
+                   "SR PUCCH resource must be of Format 0 if any of the PUCCH resources from set 0 has Format 0.");
 
       const auto harq_res_set_0_for_sr_idx =
           pucch_cfg.pucch_res_set[0].pucch_res_id_list[pucch_cfg.pucch_res_set[0].pucch_res_id_list.size() - 1];
@@ -1361,13 +1361,13 @@ protected:
                 .pucch_res_id;
 
         const auto* csi_it = get_pucch_resource_with_id(csi_res_id);
-        srsran_assert(csi_it != pucch_cfg.pucch_res_list.end(),
-                      "CSI PUCCH resource not found in the PUCCH resource list");
+        ocudu_assert(csi_it != pucch_cfg.pucch_res_list.end(),
+                     "CSI PUCCH resource not found in the PUCCH resource list");
         const auto& csi_pucch_res_cfg = *csi_it;
 
-        srsran_assert(csi_pucch_res_cfg.format == pucch_format::FORMAT_2 and
-                          std::holds_alternative<pucch_format_2_3_cfg>(csi_pucch_res_cfg.format_params),
-                      "CSI PUCCH resource must be of Format 2");
+        ocudu_assert(csi_pucch_res_cfg.format == pucch_format::FORMAT_2 and
+                         std::holds_alternative<pucch_format_2_3_cfg>(csi_pucch_res_cfg.format_params),
+                     "CSI PUCCH resource must be of Format 2");
 
         const auto harq_res_set_1_for_csi_idx =
             pucch_cfg.pucch_res_set[1].pucch_res_id_list[pucch_cfg.pucch_res_set[1].pucch_res_id_list.size() - 2U];

@@ -9,10 +9,10 @@
  */
 
 #include "du_high_cu_test_simulator.h"
-#include "srsran/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_cell_config_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

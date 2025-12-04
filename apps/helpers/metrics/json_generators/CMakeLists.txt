@@ -17,9 +17,9 @@ set(SOURCES
         o_du_low.cpp
         resource_usage.cpp)
 
-add_library(srsran_metrics_json_generators STATIC ${SOURCES})
-target_include_directories(srsran_metrics_json_generators PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_metrics_json_generators PRIVATE srsran_cu_cp_metrics_json_generators_helpers
-                                                             srsran_cu_up_metrics_json_generators_helpers
-                                                             srsran_du_high_metrics_json_generators_helpers
-                                                             srsran_ru_metrics_json_generators_helpers)
+add_library(ocudu_metrics_json_generators STATIC ${SOURCES})
+target_include_directories(ocudu_metrics_json_generators PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_metrics_json_generators PRIVATE ocudu_cu_cp_metrics_json_generators_helpers
+                                                             ocudu_cu_up_metrics_json_generators_helpers
+                                                             ocudu_du_high_metrics_json_generators_helpers
+                                                             ocudu_ru_metrics_json_generators_helpers)

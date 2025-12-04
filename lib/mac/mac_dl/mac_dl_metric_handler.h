@@ -11,16 +11,16 @@
 #pragma once
 
 #include "mac_dl_configurator.h"
-#include "srsran/adt/noop_functor.h"
-#include "srsran/adt/spsc_queue.h"
-#include "srsran/mac/mac_metrics.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/support/tracing/resource_usage.h"
+#include "ocudu/adt/noop_functor.h"
+#include "ocudu/adt/spsc_queue.h"
+#include "ocudu/mac/mac_metrics.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/tracing/resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class mac_metrics_notifier;
 class task_executor;
@@ -171,4 +171,4 @@ private:
   metric_clock::time_point last_slot_ind_enqueue_tp{};
 };
 
-} // namespace srsran
+} // namespace ocudu

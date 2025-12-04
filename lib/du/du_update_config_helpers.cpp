@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/du/du_update_config_helpers.h"
-#include "srsran/ran/pusch/pusch_constants.h"
-#include "srsran/scheduler/config/pucch_resource_generator.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/srs_builder_params.h"
+#include "ocudu/du/du_update_config_helpers.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/srs_builder_params.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace config_helpers;
 
 /// Helper function that, for a given PUCCH resource, returns the (inner) interval of PRBs that are not used for the

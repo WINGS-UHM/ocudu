@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/security/integrity_engine.h"
-#include "srsran/security/security.h"
+#include "ocudu/security/integrity_engine.h"
+#include "ocudu/security/security.h"
 
-namespace srsran {
+namespace ocudu {
 namespace security {
 
 class integrity_engine_generic final : public integrity_engine
@@ -34,8 +34,8 @@ private:
   security_direction  direction;
   integrity_algorithm integ_algo;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace security
-} // namespace srsran
+} // namespace ocudu

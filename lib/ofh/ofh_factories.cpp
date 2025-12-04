@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/ofh/ofh_factories.h"
+#include "ocudu/ofh/ofh_factories.h"
 #include "ofh_sector_impl.h"
 #include "receiver/ofh_receiver_factories.h"
 #include "receiver/ofh_sequence_id_checker_impl.h"
 #include "timing/ofh_timing_manager_impl.h"
 #include "transmitter/ofh_transmitter_factories.h"
-#include "srsran/ofh/ethernet/ethernet_factories.h"
+#include "ocudu/ofh/ethernet/ethernet_factories.h"
 
 #ifdef DPDK_FOUND
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_factories.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_factories.h"
 #endif
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 std::unique_ptr<sequence_id_checker> ofh::create_sequence_id_checker()
@@ -28,9 +28,9 @@ std::unique_ptr<sequence_id_checker> ofh::create_sequence_id_checker()
   return std::make_unique<sequence_id_checker_impl>();
 }
 
-std::unique_ptr<timing_manager> srsran::ofh::create_ofh_timing_manager(const controller_config& config,
-                                                                       srslog::basic_logger&    logger,
-                                                                       task_executor&           executor)
+std::unique_ptr<timing_manager> ocudu::ofh::create_ofh_timing_manager(const controller_config& config,
+                                                                      ocudulog::basic_logger&  logger,
+                                                                      task_executor&           executor)
 {
   realtime_worker_cfg rt_cfg = {
       config.cp, config.scs, config.gps_Alpha, config.gps_Beta, config.enable_log_warnings_for_lates};
@@ -109,7 +109,7 @@ static transmitter_config generate_transmitter_config(const sector_configuration
 
 #ifdef DPDK_FOUND
 static std::pair<std::unique_ptr<ether::transmitter>, std::unique_ptr<ether::receiver>>
-create_dpdk_txrx(const sector_configuration& sector_cfg, task_executor& rx_executor, srslog::basic_logger& logger)
+create_dpdk_txrx(const sector_configuration& sector_cfg, task_executor& rx_executor, ocudulog::basic_logger& logger)
 {
   ether::transmitter_config eth_cfg;
   eth_cfg.interface                    = sector_cfg.interface;
@@ -124,7 +124,7 @@ create_dpdk_txrx(const sector_configuration& sector_cfg, task_executor& rx_execu
 #endif
 
 static std::pair<std::unique_ptr<ether::transmitter>, std::unique_ptr<ether::receiver>>
-create_socket_txrx(const sector_configuration& sector_cfg, task_executor& rx_executor, srslog::basic_logger& logger)
+create_socket_txrx(const sector_configuration& sector_cfg, task_executor& rx_executor, ocudulog::basic_logger& logger)
 {
   auto eth_receiver_config = ether::receiver_config{
       sector_cfg.interface, sector_cfg.is_promiscuous_mode_enabled, sector_cfg.are_metrics_enabled};
@@ -147,7 +147,7 @@ create_txrx(const sector_configuration&                        sector_cfg,
             std::optional<std::unique_ptr<ether::transmitter>> eth_transmitter,
             std::optional<std::unique_ptr<ether::receiver>>    eth_receiver,
             task_executor&                                     eth_rx_executor,
-            srslog::basic_logger&                              logger)
+            ocudulog::basic_logger&                            logger)
 {
   if (eth_transmitter && eth_receiver) {
     // Do not proceed if both optionals are provided.
@@ -169,8 +169,8 @@ create_txrx(const sector_configuration&                        sector_cfg,
   return eth_txrx;
 }
 
-std::unique_ptr<sector> srsran::ofh::create_ofh_sector(const sector_configuration& sector_cfg,
-                                                       sector_dependencies&&       sector_deps)
+std::unique_ptr<sector> ocudu::ofh::create_ofh_sector(const sector_configuration& sector_cfg,
+                                                      sector_dependencies&&       sector_deps)
 {
   unsigned repository_size = calculate_repository_size(sector_cfg.scs, sector_cfg.max_processing_delay_slots * 4);
 
@@ -203,7 +203,7 @@ std::unique_ptr<sector> srsran::ofh::create_ofh_sector(const sector_configuratio
                                   prach_cp_repo,
                                   ul_grid_symbol_notified_repo);
 
-  srsran_assert(sector_deps.err_notifier, "Invalid error notifier");
+  ocudu_assert(sector_deps.err_notifier, "Invalid error notifier");
 
   // Build the OFH transmitter.
   auto tx_config   = generate_transmitter_config(sector_cfg);

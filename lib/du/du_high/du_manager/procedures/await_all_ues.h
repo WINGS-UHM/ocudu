@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../du_ue/du_ue_manager.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/manual_event.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/manual_event.h"
 #include <vector>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 namespace detail {
 
@@ -101,9 +101,8 @@ private:
 
 /// \brief Runs an async_task in the respective task scheduler of a list of UEs.
 template <typename AsyncTaskFactory>
-auto await_all_ues(du_ue_manager&            ue_mng,
-                   span<const du_ue_index_t> ues_to_update,
-                   AsyncTaskFactory          ue_task_factory) -> async_task<void>
+auto await_all_ues(du_ue_manager& ue_mng, span<const du_ue_index_t> ues_to_update, AsyncTaskFactory ue_task_factory)
+    -> async_task<void>
 {
   return launch_async<detail::await_all_ues_impl<AsyncTaskFactory>>(ue_mng, ues_to_update, std::move(ue_task_factory));
 }
@@ -122,5 +121,5 @@ auto await_all_ues(du_ue_manager& ue_mng, AsyncTaskFactory ue_task_factory) -> a
   return await_all_ues(ue_mng, ues_to_update, std::forward<AsyncTaskFactory>(ue_task_factory));
 }
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

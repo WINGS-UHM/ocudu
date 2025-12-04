@@ -18,7 +18,7 @@
 #include "neon_helpers.h"
 #endif // __ARM_NEON
 
-using namespace srsran;
+using namespace ocudu;
 
 // Maximum (absolute) value considered for quantization. Larger values will be clipped.
 static constexpr float RANGE_LIMIT_FLOAT = 24;
@@ -117,9 +117,9 @@ static log_likelihood_ratio demod_QPSK_symbol(float x, float noise_var)
   return log_likelihood_ratio::quantize(l_value, RANGE_LIMIT_FLOAT);
 }
 
-void srsran::demodulate_soft_QPSK(span<log_likelihood_ratio> llrs,
-                                  span<const cf_t>           symbols,
-                                  span<const float>          noise_vars)
+void ocudu::demodulate_soft_QPSK(span<log_likelihood_ratio> llrs,
+                                 span<const cf_t>           symbols,
+                                 span<const float>          noise_vars)
 {
   const cf_t*           symbols_it   = symbols.begin();
   const float*          noise_it     = noise_vars.begin();

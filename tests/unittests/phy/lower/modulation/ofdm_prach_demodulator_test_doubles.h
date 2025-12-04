@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ofdm_prach_demodulator_spy : public ofdm_prach_demodulator
 {
@@ -84,4 +84,4 @@ private:
   std::vector<ofdm_prach_demodulator_spy*> entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

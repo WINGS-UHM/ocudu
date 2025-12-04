@@ -9,19 +9,19 @@
  */
 
 #include "du_high_config_validator.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/nr_cell_identity.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_helper.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/pucch/pucch_mapping.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
-#include "srsran/rlc/rlc_config.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/nr_cell_identity.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/rlc/rlc_config.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool validate_pcap_configs(const du_high_unit_config& config)
 {
@@ -182,7 +182,7 @@ static bool validate_pdcch_unit_config(const du_high_unit_base_cell_config& base
     }
     // NOTE: The CORESET duration of 3 symbols is only permitted if the dmrs-typeA-Position information element has
     // been set to 3. And, we use only pos2 or pos1.
-    const pdcch_type0_css_coreset_description desc = srsran::pdcch_type0_css_coreset_get(
+    const pdcch_type0_css_coreset_description desc = ocudu::pdcch_type0_css_coreset_get(
         band, base_cell.common_scs, base_cell.common_scs, cs0_idx, ssb_coreset0_freq_loc->k_ssb.to_uint());
     if (desc.pattern != PDCCH_TYPE0_CSS_CORESET_RESERVED.pattern and desc.nof_symb_coreset == 3) {
       fmt::print("CORESET duration of 3 OFDM symbols corresponding to CORESET#0 index={} is not supported\n", cs0_idx);
@@ -677,7 +677,7 @@ static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
       return false;
     }
 
-    if (scs_common == srsran::subcarrier_spacing::kHz30 and config.srs_period_ms.value() > 1280) {
+    if (scs_common == ocudu::subcarrier_spacing::kHz30 and config.srs_period_ms.value() > 1280) {
       fmt::print("With 30kHz SCS the maximum SRS period is 1280ms\n");
       return false;
     }
@@ -753,7 +753,7 @@ template <typename T>
 static bool
 validate_prach_cell_unit_config(const du_high_unit_prach_config& config, nr_band band, unsigned nof_rx_atennas)
 {
-  srsran_assert(config.prach_config_index.has_value(), "The PRACH configuration index must be set.");
+  ocudu_assert(config.prach_config_index.has_value(), "The PRACH configuration index must be set.");
 
   frequency_range freq_range = band_helper::get_freq_range(band);
   duplex_mode     dplx_mode  = band_helper::get_duplex_mode(band);
@@ -950,7 +950,7 @@ static bool validate_dl_ul_arfcn_and_band(const du_high_unit_base_cell_config& c
   // NOTE: Band n46 would be compatible with the 10MHz BW, but there is no sync raster that falls within the band
   // limits. Also, the Coreset#0 width in RBs given in Table 13-4A, TS 38.213, is larger than the band itself, which is
   // odd. Therefore, we limit the band to minimum 20MHz BW.
-  if (band == srsran::nr_band::n46 and config.channel_bw_mhz < bs_channel_bandwidth::MHz20) {
+  if (band == ocudu::nr_band::n46 and config.channel_bw_mhz < bs_channel_bandwidth::MHz20) {
     fmt::print("Minimum supported bandwidth for n46 is 20MHz.\n");
     return false;
   }
@@ -1136,28 +1136,28 @@ static bool validate_base_cell_unit_config(const du_high_unit_base_cell_config& 
     fmt::print("The number of UL antennas cannot be zero.\n");
     return false;
   }
-  if (config.common_scs == srsran::subcarrier_spacing::kHz15 and
-      config.channel_bw_mhz > srsran::bs_channel_bandwidth::MHz50) {
+  if (config.common_scs == ocudu::subcarrier_spacing::kHz15 and
+      config.channel_bw_mhz > ocudu::bs_channel_bandwidth::MHz50) {
     fmt::print("Maximum Channel BW with SCS common 15kHz is 50MHz.\n");
     return false;
   }
-  if (config.common_scs == srsran::subcarrier_spacing::kHz30 and
-      config.channel_bw_mhz < srsran::bs_channel_bandwidth::MHz10) {
+  if (config.common_scs == ocudu::subcarrier_spacing::kHz30 and
+      config.channel_bw_mhz < ocudu::bs_channel_bandwidth::MHz10) {
     fmt::print("Minimum supported Channel BW with SCS common 30kHz is 10MHz.\n");
     return false;
   }
-  if (config.common_scs == srsran::subcarrier_spacing::kHz30 and
-      config.channel_bw_mhz > srsran::bs_channel_bandwidth::MHz100) {
+  if (config.common_scs == ocudu::subcarrier_spacing::kHz30 and
+      config.channel_bw_mhz > ocudu::bs_channel_bandwidth::MHz100) {
     fmt::print("Maximum Channel BW with SCS common 30kHz is 100MHz.\n");
     return false;
   }
-  if (config.common_scs == srsran::subcarrier_spacing::kHz60 and
-      config.channel_bw_mhz > srsran::bs_channel_bandwidth::MHz200) {
+  if (config.common_scs == ocudu::subcarrier_spacing::kHz60 and
+      config.channel_bw_mhz > ocudu::bs_channel_bandwidth::MHz200) {
     fmt::print("Maximum Channel BW with SCS common 60kHz is 200MHz.\n");
     return false;
   }
-  if (config.common_scs == srsran::subcarrier_spacing::kHz120 and
-      config.channel_bw_mhz > srsran::bs_channel_bandwidth::MHz400) {
+  if (config.common_scs == ocudu::subcarrier_spacing::kHz120 and
+      config.channel_bw_mhz > ocudu::bs_channel_bandwidth::MHz400) {
     fmt::print("Maximum Channel BW with SCS common 120kHz is 400MHz.\n");
     return false;
   }
@@ -1518,7 +1518,7 @@ static bool validate_qos_config(span<const du_high_unit_qos_config> config)
   return true;
 }
 
-bool srsran::validate_du_high_config(const du_high_unit_config& config)
+bool ocudu::validate_du_high_config(const du_high_unit_config& config)
 {
   if (!validate_cells_unit_config(config.cells_cfg, config.gnb_id)) {
     return false;

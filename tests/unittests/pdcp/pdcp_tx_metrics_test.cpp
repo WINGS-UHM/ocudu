@@ -10,17 +10,17 @@
 
 #include "pdcp_tx_metrics_test.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST_F(pdcp_tx_metrics_container_test, init)
 {
   pdcp_tx_metrics_container m = {};
 
-  srslog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
+  ocudulog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
 
   // Check values
   ASSERT_EQ(m.num_sdus, 0);
@@ -47,8 +47,8 @@ TEST_F(pdcp_tx_metrics_container_test, init)
         "num_sdus=0 num_sdu_bytes=0 num_dropped_sdus=0 num_pdus=0 num_pdu_bytes=0 num_discard_timeouts=0 "
         "avg_pdu_latency=0.00us "
         "pdu_latency_hist=[0 0 0 0 0 0 0 0] min_pdu_latency={na} max_pdu_latency={na} avg_crypto_latency=0.00us";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 
@@ -60,8 +60,8 @@ TEST_F(pdcp_tx_metrics_container_test, init)
         "num_sdus=0 sdu_rate= 0bps dropped_sdus=0 num_pdus=0 pdu_rate= 0bps num_discard_timeouts=0 "
         "avg_pdu_latency=0.00us "
         "pdu_latency_hist=[ 0  0  0  0  0  0  0  0] min_pdu_latency={na} max_pdu_latency={na} crypto_cpu_usage=0.00\%";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 }
@@ -81,7 +81,7 @@ TEST_F(pdcp_tx_metrics_container_test, values)
                                  .min_pdu_latency_ns = 1200,
                                  .max_pdu_latency_ns = 54322};
 
-  srslog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
+  ocudulog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
 
   // Check values
   ASSERT_EQ(m.num_sdus, 4598);
@@ -107,8 +107,8 @@ TEST_F(pdcp_tx_metrics_container_test, values)
                           "num_discard_timeouts=7 "
                           "avg_pdu_latency=0.01us pdu_latency_hist=[999 20 400 8000 160000 3200000 64000000 128] "
                           "min_pdu_latency=1200ns max_pdu_latency=54322ns avg_crypto_latency=0.11us";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 
@@ -120,8 +120,8 @@ TEST_F(pdcp_tx_metrics_container_test, values)
         "num_sdus=4.6k sdu_rate=156Mbps dropped_sdus=12 num_pdus=9.4k pdu_rate=278Mbps num_discard_timeouts=7 "
         "avg_pdu_latency=0.01us pdu_latency_hist=[ 999  20  400 8.0k 160k 3.2M 64M  128] "
         "min_pdu_latency=1.20us max_pdu_latency=54.32us crypto_cpu_usage=50.00\%";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 }
@@ -132,7 +132,7 @@ TEST_P(pdcp_tx_metrics_test, sdu_pdu)
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::ms150);
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
-    srsran::test_delimit_logger delimiter("TX SDU/PDU metrics test. SN_SIZE={} COUNT={}", sn_size, tx_next);
+    ocudu::test_delimit_logger delimiter("TX SDU/PDU metrics test. SN_SIZE={} COUNT={}", sn_size, tx_next);
     // Set state of PDCP entiy
 
     pdcp_tx_state st = {tx_next, tx_next, 0, tx_next, tx_next};

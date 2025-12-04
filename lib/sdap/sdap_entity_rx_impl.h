@@ -11,11 +11,11 @@
 #pragma once
 
 #include "sdap_session_logger.h"
-#include "srsran/sdap/sdap.h"
+#include "ocudu/sdap/sdap.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_up {
+namespace ocuup {
 
 class sdap_entity_rx_impl : public sdap_rx_pdu_handler
 {
@@ -45,6 +45,6 @@ private:
   sdap_rx_sdu_notifier&   sdu_notifier;
 };
 
-} // namespace srs_cu_up
+} // namespace ocuup
 
-} // namespace srsran
+} // namespace ocudu

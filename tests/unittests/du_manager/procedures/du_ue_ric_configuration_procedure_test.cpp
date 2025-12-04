@@ -10,12 +10,12 @@
 
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/du_ue_ric_configuration_procedure.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class du_ue_ric_config_tester : public du_manager_proc_tester, public ::testing::Test
 {

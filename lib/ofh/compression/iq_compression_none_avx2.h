@@ -12,7 +12,7 @@
 
 #include "iq_compression_none_impl.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Implementation of no-compression compressor using AVX2 intrinsics.
@@ -20,7 +20,7 @@ class iq_compression_none_avx2 : public iq_compression_none_impl
 {
 public:
   // Constructor.
-  explicit iq_compression_none_avx2(srslog::basic_logger& logger_, float iq_scaling_ = 1.0) :
+  explicit iq_compression_none_avx2(ocudulog::basic_logger& logger_, float iq_scaling_ = 1.0) :
     iq_compression_none_impl(logger_, iq_scaling_)
   {
   }
@@ -34,4 +34,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -18,15 +18,15 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-#include "srsran/support/math/complex_normal_random.h"
+#include "ocudu/support/math/complex_normal_random.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
-using namespace srsran;
+using namespace ocudu;
 
 template <typename ComplexType>
 class ComplexNormalFixture : public ::testing::Test

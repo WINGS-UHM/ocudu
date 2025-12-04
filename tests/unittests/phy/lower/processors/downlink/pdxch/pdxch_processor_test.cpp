@@ -12,19 +12,19 @@
 #include "../../../amplitude_control/amplitude_controller_test_doubles.h"
 #include "../../../modulation/ofdm_modulator_test_doubles.h"
 #include "pdxch_processor_notifier_test_doubles.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_factories.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_factories.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 bool operator==(const lower_phy_baseband_metrics& left, const lower_phy_baseband_metrics& right)
 {
@@ -117,7 +117,7 @@ bool operator==(const baseband_gateway_buffer_reader& left, const baseband_gatew
   return true;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using LowerPhyDownlinkProcessorParams = std::tuple<unsigned, sampling_rate, subcarrier_spacing, cyclic_prefix>;
 
@@ -128,7 +128,7 @@ class LowerPhyDownlinkProcessorFixture : public ::testing::TestWithParam<LowerPh
 protected:
   static void SetUpTestSuite()
   {
-    srslog::init();
+    ocudulog::init();
 
     if (pdxch_proc_factory == nullptr) {
       ofdm_mod_factory_spy = std::make_shared<ofdm_modulator_factory_spy>();

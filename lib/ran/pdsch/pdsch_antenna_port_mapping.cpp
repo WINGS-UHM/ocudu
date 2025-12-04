@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/pdsch/pdsch_antenna_ports_mapping.h"
+#include "ocudu/ran/pdsch/pdsch_antenna_ports_mapping.h"
 #include <array>
 
-using namespace srsran;
+using namespace ocudu;
 
 // The following entries are taken from Table 7.3.1.2.2-1, TS 38.212, which is applicable when dmrs-Type=1, maxLength=1.
 static const uint32_t antenna_port_mapping_dmrs_type1_max_length1_table_entries = 12;
@@ -212,9 +212,9 @@ static const std::array<pdsch_antenna_ports_mapping, antenna_port_mapping_dmrs_t
         // clang-format on
     }};
 
-span<const pdsch_antenna_ports_mapping> srsran::get_pdsch_antenna_port_mapping_table(dmrs_config_type dmrs_cfg_type,
-                                                                                     dmrs_max_length  dmrs_max_len,
-                                                                                     bool are_both_cws_enabled)
+span<const pdsch_antenna_ports_mapping> ocudu::get_pdsch_antenna_port_mapping_table(dmrs_config_type dmrs_cfg_type,
+                                                                                    dmrs_max_length  dmrs_max_len,
+                                                                                    bool are_both_cws_enabled)
 {
   if (dmrs_cfg_type == dmrs_config_type::type1 and dmrs_max_len == dmrs_max_length::len1) {
     return antenna_port_mapping_dmrs_type1_max_length1;
@@ -247,10 +247,10 @@ static const pdsch_antenna_ports_mapping* get_pdsch_antenna_port_mapping_row(uns
                                                                              dmrs_max_length  dmrs_max_len,
                                                                              bool             are_both_cws_enabled)
 {
-  srsran_assert(nof_layers <= nof_dl_antenna_ports,
-                "Number of DL layers={} cannot be greater than number of DL antenna ports={} of the cell.",
-                nof_layers,
-                nof_dl_antenna_ports);
+  ocudu_assert(nof_layers <= nof_dl_antenna_ports,
+               "Number of DL layers={} cannot be greater than number of DL antenna ports={} of the cell.",
+               nof_layers,
+               nof_dl_antenna_ports);
   const auto  mapping_table = get_pdsch_antenna_port_mapping_table(dmrs_cfg_type, dmrs_max_len, are_both_cws_enabled);
   const auto* it            = std::find_if(mapping_table.begin(),
                                 mapping_table.end(),
@@ -260,26 +260,26 @@ static const pdsch_antenna_ports_mapping* get_pdsch_antenna_port_mapping_row(uns
                                           nof_dl_antenna_ports);
                                 });
   if (it == mapping_table.end()) {
-    srsran_assertion_failure("No matching PDSCH antenna ports mapping found in TS 38.212, tables 7.3.1.2.2-1/2/3/4");
+    ocudu_assertion_failure("No matching PDSCH antenna ports mapping found in TS 38.212, tables 7.3.1.2.2-1/2/3/4");
   }
   return it;
 }
 
-const pdsch_antenna_ports_mapping& srsran::get_pdsch_antenna_port_mapping(unsigned         nof_layers,
-                                                                          unsigned         nof_dl_antenna_ports,
-                                                                          dmrs_config_type dmrs_cfg_type,
-                                                                          dmrs_max_length  dmrs_max_len,
-                                                                          bool             are_both_cws_enabled)
+const pdsch_antenna_ports_mapping& ocudu::get_pdsch_antenna_port_mapping(unsigned         nof_layers,
+                                                                         unsigned         nof_dl_antenna_ports,
+                                                                         dmrs_config_type dmrs_cfg_type,
+                                                                         dmrs_max_length  dmrs_max_len,
+                                                                         bool             are_both_cws_enabled)
 {
   return *get_pdsch_antenna_port_mapping_row(
       nof_layers, nof_dl_antenna_ports, dmrs_cfg_type, dmrs_max_len, are_both_cws_enabled);
 }
 
-unsigned srsran::get_pdsch_antenna_port_mapping_row_index(unsigned         nof_layers,
-                                                          unsigned         nof_dl_antenna_ports,
-                                                          dmrs_config_type dmrs_cfg_type,
-                                                          dmrs_max_length  dmrs_max_len,
-                                                          bool             are_both_cws_enabled)
+unsigned ocudu::get_pdsch_antenna_port_mapping_row_index(unsigned         nof_layers,
+                                                         unsigned         nof_dl_antenna_ports,
+                                                         dmrs_config_type dmrs_cfg_type,
+                                                         dmrs_max_length  dmrs_max_len,
+                                                         bool             are_both_cws_enabled)
 {
   const auto mapping_table = get_pdsch_antenna_port_mapping_table(dmrs_cfg_type, dmrs_max_len, are_both_cws_enabled);
   return std::distance(mapping_table.begin(),

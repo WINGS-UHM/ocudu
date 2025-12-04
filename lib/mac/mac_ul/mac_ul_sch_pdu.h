@@ -13,15 +13,15 @@
 #include "lcid_ul_sch.h"
 #include "ul_bsr.h"
 #include "ul_phr.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/span.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/std.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_ul_sch_subpdu
 {
@@ -86,12 +86,12 @@ inline rnti_t decode_crnti_ce(byte_buffer_view payload)
   return to_rnti(le16toh((uint16_t)payload[0] << 8U | payload[1]));
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::mac_ul_sch_subpdu> {
+struct formatter<ocudu::mac_ul_sch_subpdu> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -99,9 +99,9 @@ struct formatter<srsran::mac_ul_sch_subpdu> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::mac_ul_sch_subpdu& subpdu, FormatContext& ctx) const -> decltype(ctx.out())
+  auto format(const ocudu::mac_ul_sch_subpdu& subpdu, FormatContext& ctx) const -> decltype(ctx.out())
   {
-    using namespace srsran;
+    using namespace ocudu;
     if (subpdu.lcid().is_sdu()) {
       format_to(ctx.out(), "lcid={}: len={}", subpdu.lcid(), subpdu.sdu_length());
       return ctx.out();
@@ -158,14 +158,14 @@ struct formatter<srsran::mac_ul_sch_subpdu> {
 };
 
 template <>
-struct formatter<srsran::mac_ul_sch_pdu> {
+struct formatter<ocudu::mac_ul_sch_pdu> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
     return ctx.begin();
   }
   template <typename FormatContext>
-  auto format(const srsran::mac_ul_sch_pdu& pdu, FormatContext& ctx) const
+  auto format(const ocudu::mac_ul_sch_pdu& pdu, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", fmt::join(pdu.begin(), pdu.end(), ", "));
   }

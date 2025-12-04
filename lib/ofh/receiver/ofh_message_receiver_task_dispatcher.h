@@ -11,18 +11,18 @@
 #pragma once
 
 #include "ofh_message_receiver.h"
-#include "srsran/ofh/ethernet/ethernet_controller.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ofh/ethernet/ethernet_controller.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul message receiver interface implementation that dispatches tasks to the actual receiver.
 class ofh_message_receiver_task_dispatcher : public message_receiver, public operation_controller
 {
 public:
-  ofh_message_receiver_task_dispatcher(srslog::basic_logger&            logger_,
+  ofh_message_receiver_task_dispatcher(ocudulog::basic_logger&          logger_,
                                        message_receiver&                msg_receiver_,
                                        task_executor&                   executor_,
                                        unsigned                         sector_,
@@ -33,7 +33,7 @@ public:
     sector(sector_),
     eth_receiver(std::move(eth_receiver_))
   {
-    srsran_assert(eth_receiver, "Invalid Ethernet receiver");
+    ocudu_assert(eth_receiver, "Invalid Ethernet receiver");
   }
 
   // See interface for documentation.
@@ -58,7 +58,7 @@ public:
   void on_new_frame(ether::unique_rx_buffer buffer) override
   {
     auto token = stop_manager.get_token();
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -73,7 +73,7 @@ public:
   message_receiver_metrics_collector* get_metrics_collector() override { return msg_receiver.get_metrics_collector(); }
 
 private:
-  srslog::basic_logger&            logger;
+  ocudulog::basic_logger&          logger;
   message_receiver&                msg_receiver;
   task_executor&                   executor;
   const unsigned                   sector;
@@ -82,4 +82,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

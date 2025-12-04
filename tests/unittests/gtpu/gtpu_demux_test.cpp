@@ -9,14 +9,14 @@
  */
 
 #include "gtpu_test_shared.h"
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/gtpu/gtpu_demux_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/gtpu/gtpu_demux_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class gtpu_tunnel_rx_upper_dummy : public gtpu_tunnel_common_rx_upper_layer_interface
 {
@@ -32,8 +32,8 @@ class gtpu_demux_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     gtpu_tunnel = std::make_unique<gtpu_tunnel_rx_upper_dummy>();
 
@@ -46,7 +46,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<gtpu_tunnel_rx_upper_dummy> gtpu_tunnel;
@@ -54,7 +54,7 @@ protected:
   null_dlt_pcap                               dummy_pcap;
 
   std::unique_ptr<gtpu_demux> dut;
-  srslog::basic_logger&       test_logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&     test_logger = ocudulog::fetch_basic_logger("TEST", false);
 };
 
 //// GTPU demux tesst

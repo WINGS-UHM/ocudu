@@ -10,7 +10,7 @@
 
 #include "upper_phy_ldpc_metrics_collector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void upper_phy_ldpc_metrics_collector::collect_metrics(upper_phy_ldpc_metrics& metrics)
 {

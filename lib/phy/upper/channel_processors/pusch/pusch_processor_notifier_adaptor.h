@@ -11,13 +11,13 @@
 #pragma once
 
 #include "pusch_uci_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace detail {
 
@@ -95,7 +95,7 @@ public:
   /// Gets the HARQ-ACK notifier and sets the field as pending.
   pusch_uci_decoder_notifier& get_harq_ack_notifier()
   {
-    srsran_assert(!pending_harq_ack, "HARQ-ACK has already been requested.");
+    ocudu_assert(!pending_harq_ack, "HARQ-ACK has already been requested.");
     pending_harq_ack = true;
     return harq_ack_notifier;
   }
@@ -103,7 +103,7 @@ public:
   /// Gets the CSI Part 1 notifier and sets the field as pending.
   pusch_uci_decoder_notifier& get_csi_part1_notifier()
   {
-    srsran_assert(!pending_csi_part1, "CSI Part 1 has already been requested.");
+    ocudu_assert(!pending_csi_part1, "CSI Part 1 has already been requested.");
     pending_csi_part1 = true;
     return csi_part_1_notifier;
   }
@@ -111,7 +111,7 @@ public:
   /// Gets the CSI Part 2 notifier and sets the field as pending.
   pusch_uci_decoder_notifier& get_csi_part2_notifier()
   {
-    srsran_assert(!pending_csi_part2, "CSI Part 2 has already been requested.");
+    ocudu_assert(!pending_csi_part2, "CSI Part 2 has already been requested.");
     pending_csi_part2 = true;
     return csi_part_2_notifier;
   }
@@ -119,9 +119,9 @@ public:
   /// Default destructor - verifies that the previous fields are valid.
   ~pusch_processor_notifier_adaptor() override
   {
-    srsran_assert(!pending_harq_ack, "HARQ-ACK has not been notified.");
-    srsran_assert(!pending_csi_part1, "CSI Part 1 has not been notified.");
-    srsran_assert(!pending_csi_part2, "CSI Part 2 has not been notified.");
+    ocudu_assert(!pending_harq_ack, "HARQ-ACK has not been notified.");
+    ocudu_assert(!pending_csi_part1, "CSI Part 1 has not been notified.");
+    ocudu_assert(!pending_csi_part2, "CSI Part 2 has not been notified.");
   }
 
 private:
@@ -241,7 +241,7 @@ private:
   void on_harq_ack(const pusch_uci_field& field) override
   {
     // Check HARQ ACK is pending.
-    srsran_assert(pending_harq_ack, "HARQ ACK is not pending.");
+    ocudu_assert(pending_harq_ack, "HARQ ACK is not pending.");
 
     // Set HARQ ACK field.
     uci_payload.harq_ack = field;
@@ -257,10 +257,10 @@ private:
   void on_csi_part1(const pusch_uci_field& field) override
   {
     // Check CSI Part 1 is pending.
-    srsran_assert(pending_csi_part1, "CSI Part 1 is not pending.");
+    ocudu_assert(pending_csi_part1, "CSI Part 1 is not pending.");
 
     if (field.status == uci_status::valid) {
-      srsran_assert(csi_part_1_feedback != nullptr, "Invalid CSI Part 1 feedback.");
+      ocudu_assert(csi_part_1_feedback != nullptr, "Invalid CSI Part 1 feedback.");
       csi_part_1_feedback->on_csi_part1(field.payload);
     }
 
@@ -278,7 +278,7 @@ private:
   void on_csi_part2(const pusch_uci_field& field) override
   {
     // Check CSI Part 2 is pending.
-    srsran_assert(pending_csi_part2, "CSI Part 2 is not pending.");
+    ocudu_assert(pending_csi_part2, "CSI Part 2 is not pending.");
 
     // Set CSI Part 2 field.
     uci_payload.csi_part2 = field;
@@ -293,7 +293,7 @@ private:
   /// Check if the no UCI fields are pending and notify the results.
   void check_and_notify_uci()
   {
-    srsran_assert(notifier != nullptr, "Invalid notifier.");
+    ocudu_assert(notifier != nullptr, "Invalid notifier.");
     if (!pending_harq_ack && !pending_csi_part1 && !pending_csi_part2) {
       notifier->on_uci(uci_payload);
     }
@@ -323,4 +323,4 @@ private:
   csi_part2_notifier_impl csi_part_2_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

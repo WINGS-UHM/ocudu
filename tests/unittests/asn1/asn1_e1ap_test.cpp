@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/asn1/e1ap/common.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/e1ap/common.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace asn1;
-using namespace srsran;
+using namespace ocudu;
 
 #define JSON_OUTPUT 1
 
@@ -26,22 +26,22 @@ class asn1_e1ap_test : public ::testing::Test
 protected:
   asn1_e1ap_test()
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
-    srslog::init();
+    ocudulog::init();
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   ~asn1_e1ap_test()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
 #if JSON_OUTPUT
@@ -49,13 +49,13 @@ protected:
   std::unique_ptr<task_executor> pcap_exec   = make_task_executor_ptr(worker);
   std::unique_ptr<dlt_pcap>      pcap_writer = create_e1ap_pcap("/tmp/e1ap.pcap", *pcap_exec);
 #endif
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(asn1_e1ap_test, when_gnb_cu_up_e1_setup_correct_then_packing_successful)
 {
-  auto& logger = srslog::fetch_basic_logger("ASN1", false);
-  logger.set_level(srslog::basic_levels::debug);
+  auto& logger = ocudulog::fetch_basic_logger("ASN1", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(-1);
 
   asn1::e1ap::e1ap_pdu_c pdu;
@@ -75,9 +75,9 @@ TEST_F(asn1_e1ap_test, when_gnb_cu_up_e1_setup_correct_then_packing_successful)
   setup_request->gnb_cu_up_name_present = true;
   setup_request->gnb_cu_up_name.from_string("srs-cu-cp");
 
-  srsran::byte_buffer buffer;
-  asn1::bit_ref       bref(buffer);
-  ASSERT_EQ(pdu.pack(bref), SRSASN_SUCCESS);
+  ocudu::byte_buffer buffer;
+  asn1::bit_ref      bref(buffer);
+  ASSERT_EQ(pdu.pack(bref), OCUDUASN_SUCCESS);
 
   // TODO: Accept byte buffer in pcap and log.
   std::vector<uint8_t> bytes{buffer.begin(), buffer.end()};
@@ -105,7 +105,7 @@ TEST_F(asn1_e1ap_test, when_bearer_context_setup_request_correct_then_unpacking_
                       0x00, 0x2a, 0x00, 0x23, 0x00, 0x40, 0x01, 0x00, 0x02, 0x12, 0x30, 0x05, 0xf5, 0xe1, 0x00, 0x01,
                       0xf0, 0xac, 0x15, 0x04, 0x86, 0x00, 0x00, 0x00, 0x36, 0x00, 0x03, 0x01, 0x30, 0x0a, 0x20, 0xef,
                       0x00, 0x00, 0x00, 0x80, 0x00, 0x09, 0x7a, 0x00, 0x4d, 0x40, 0x02, 0x00, 0x00};
-  srsran::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
+  ocudu::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
 
 #if JSON_OUTPUT
   pcap_writer->push_pdu(rx_msg);
@@ -114,11 +114,11 @@ TEST_F(asn1_e1ap_test, when_bearer_context_setup_request_correct_then_unpacking_
   asn1::cbit_ref         bref{rx_pdu};
   asn1::e1ap::e1ap_pdu_c pdu;
 
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(pdu.init_msg().proc_code, ASN1_E1AP_ID_BEARER_CONTEXT_SETUP);
   ASSERT_EQ(pdu.init_msg().value.type(),
             asn1::e1ap::e1ap_elem_procs_o::init_msg_c::types_opts::bearer_context_setup_request);
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
   // Get the message.
   const auto& msg = pdu.init_msg().value.bearer_context_setup_request();
@@ -162,11 +162,11 @@ TEST_F(asn1_e1ap_test, when_bearer_context_setup_request_correct_then_unpacking_
 
 TEST_F(asn1_e1ap_test, when_bearer_context_setup_response_correct_then_unpacking_successful)
 {
-  uint8_t rx_msg[] = {0x20, 0x08, 0x00, 0x37, 0x00, 0x00, 0x03, 0x00, 0x02, 0x00, 0x02, 0x00, 0x09, 0x00, 0x03,
-                      0x00, 0x03, 0x40, 0x02, 0x80, 0x00, 0x10, 0x40, 0x23, 0x40, 0x00, 0x01, 0x00, 0x2e, 0x40,
-                      0x1c, 0x00, 0x00, 0x01, 0x01, 0xf0, 0xac, 0x15, 0x06, 0x09, 0x00, 0x00, 0x02, 0x83, 0x00,
-                      0x06, 0x00, 0x1f, 0xac, 0x15, 0x06, 0x09, 0x80, 0x00, 0x02, 0x83, 0x00, 0x00, 0x80};
-  srsran::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
+  uint8_t rx_msg[]          = {0x20, 0x08, 0x00, 0x37, 0x00, 0x00, 0x03, 0x00, 0x02, 0x00, 0x02, 0x00, 0x09, 0x00, 0x03,
+                               0x00, 0x03, 0x40, 0x02, 0x80, 0x00, 0x10, 0x40, 0x23, 0x40, 0x00, 0x01, 0x00, 0x2e, 0x40,
+                               0x1c, 0x00, 0x00, 0x01, 0x01, 0xf0, 0xac, 0x15, 0x06, 0x09, 0x00, 0x00, 0x02, 0x83, 0x00,
+                               0x06, 0x00, 0x1f, 0xac, 0x15, 0x06, 0x09, 0x80, 0x00, 0x02, 0x83, 0x00, 0x00, 0x80};
+  ocudu::byte_buffer rx_pdu = byte_buffer::create(rx_msg).value();
 
 #if JSON_OUTPUT
   pcap_writer->push_pdu(rx_msg);
@@ -175,11 +175,11 @@ TEST_F(asn1_e1ap_test, when_bearer_context_setup_response_correct_then_unpacking
   asn1::cbit_ref         bref{rx_pdu};
   asn1::e1ap::e1ap_pdu_c pdu;
 
-  ASSERT_EQ(pdu.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(pdu.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(pdu.init_msg().proc_code, ASN1_E1AP_ID_BEARER_CONTEXT_SETUP);
   ASSERT_EQ(pdu.init_msg().value.type(),
             asn1::e1ap::e1ap_elem_procs_o::successful_outcome_c::types_opts::bearer_context_setup_resp);
-  ASSERT_EQ(test_pack_unpack_consistency(pdu), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(pdu), OCUDUASN_SUCCESS);
 
   // Get the message.
   const auto& msg = pdu.successful_outcome().value.bearer_context_setup_resp();

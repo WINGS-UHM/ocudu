@@ -11,7 +11,7 @@
 #include "logging_slot_gateway_decorator.h"
 #include "message_loggers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 void logging_slot_gateway_decorator::dl_tti_request(const dl_tti_request_message& msg)

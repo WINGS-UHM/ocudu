@@ -9,15 +9,15 @@
  */
 
 #include "pdcch_processor_test_data.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
-#include "srsran/phy/upper/channel_processors/pdcch/formatters.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/formatters.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t test_case)
 {
@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, test_case_t test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 class PdcchProcessorFixture : public ::testing::TestWithParam<test_case_t>

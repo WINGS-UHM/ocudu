@@ -9,9 +9,9 @@
 add_subdirectory(prach)
 add_subdirectory(puxch)
 
-add_library(srsran_lower_phy_uplink_processor STATIC
+add_library(ocudu_lower_phy_uplink_processor STATIC
         uplink_processor_factories.cpp
         uplink_processor_impl.cpp)
-target_link_libraries(srsran_lower_phy_uplink_processor
-        srsran_lower_phy_prach_processor
-        srsran_lower_phy_puxch_processor)
+target_link_libraries(ocudu_lower_phy_uplink_processor
+        ocudu_lower_phy_prach_processor
+        ocudu_lower_phy_puxch_processor)

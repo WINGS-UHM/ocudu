@@ -11,7 +11,7 @@
 #include "context_repository_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 namespace {

@@ -10,12 +10,12 @@
 
 #include "ng_setup_procedure.h"
 #include "../ngap_asn1_helpers.h"
-#include "srsran/ngap/ngap_setup.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/support/async/async_timer.h"
 #include <variant>
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
 static constexpr std::chrono::milliseconds ng_setup_response_timeout{5000};
@@ -26,7 +26,7 @@ ng_setup_procedure::ng_setup_procedure(ngap_context_t&           context_,
                                        ngap_message_notifier&    amf_notif_,
                                        ngap_transaction_manager& ev_mng_,
                                        timer_factory             timers,
-                                       srslog::basic_logger&     logger_) :
+                                       ocudulog::basic_logger&   logger_) :
   context(context_),
   request(request_),
   max_setup_retries(max_setup_retries_),

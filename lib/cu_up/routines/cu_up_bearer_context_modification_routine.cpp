@@ -11,13 +11,13 @@
 #include "cu_up_bearer_context_modification_routine.h"
 #include "../cu_up_manager_helpers.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 cu_up_bearer_context_modification_routine ::cu_up_bearer_context_modification_routine(
     ue_context&                                     ue_ctxt_,
     const e1ap_bearer_context_modification_request& msg_) :
-  ue_ctxt(ue_ctxt_), msg(msg_), logger(srslog::fetch_basic_logger("CU-UP"))
+  ue_ctxt(ue_ctxt_), msg(msg_), logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
 }
 

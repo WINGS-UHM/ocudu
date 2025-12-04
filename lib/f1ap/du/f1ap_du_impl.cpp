@@ -23,14 +23,14 @@
 #include "procedures/f1ap_du_ue_context_setup_procedure.h"
 #include "procedures/gnb_cu_configuration_update_procedure.h"
 #include "ue_context/f1ap_du_ue_config_update.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/nr_cgi.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/nr_cgi.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::f1ap;
-using namespace srs_du;
+using namespace odu;
 
 class f1ap_du_impl::tx_pdu_notifier_with_logging final : public f1ap_message_notifier
 {
@@ -60,7 +60,7 @@ f1ap_du_impl::f1ap_du_impl(f1c_connection_client&      f1c_client_handler_,
                            du_high_ue_executor_mapper& ue_exec_mapper_,
                            f1ap_du_paging_notifier&    paging_notifier_,
                            timer_manager&              timers_) :
-  logger(srslog::fetch_basic_logger("DU-F1")),
+  logger(ocudulog::fetch_basic_logger("DU-F1")),
   ctrl_exec(ctrl_exec_),
   du_mng(du_mng_),
   paging_notifier(paging_notifier_),
@@ -682,7 +682,7 @@ void f1ap_du_impl::log_pdu(bool is_rx, const f1ap_message& msg)
   }
 
   // Fetch UE index.
-  auto                         cu_ue_id = srsran::get_gnb_du_ue_f1ap_id(msg.pdu);
+  auto                         cu_ue_id = ocudu::get_gnb_du_ue_f1ap_id(msg.pdu);
   std::optional<du_ue_index_t> ue_idx;
   if (cu_ue_id.has_value()) {
     auto* ue_ptr = ues.find(cu_ue_id.value());

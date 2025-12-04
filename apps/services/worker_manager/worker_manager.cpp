@@ -9,15 +9,15 @@
  */
 
 #include "worker_manager.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/ru/ofh/ru_ofh_executor_mapper_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/executor_decoration_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/strand_executor.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ru/ofh/ru_ofh_executor_mapper_factory.h"
+#include "ocudu/support/executors/executor_decoration_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/strand_executor.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static const uint32_t task_worker_queue_size = 2048;
 
@@ -90,7 +90,7 @@ private:
 } // namespace
 
 worker_manager::worker_manager(const worker_manager_config& worker_cfg) :
-  app_logger(srslog::fetch_basic_logger("ALL")), main_pool_affinity_mng({worker_cfg.main_pool_affinity_cfg})
+  app_logger(ocudulog::fetch_basic_logger("ALL")), main_pool_affinity_mng({worker_cfg.main_pool_affinity_cfg})
 {
   // Add preinitialization of resources to created threads.
   unique_thread::add_observer(std::make_unique<thread_resource_preinitializer>(*worker_cfg.app_timers));
@@ -108,7 +108,7 @@ worker_manager::worker_manager(const worker_manager_config& worker_cfg) :
       ++ru_config_count;
     }
 
-    srsran_assert(ru_config_count <= 1, "Worker manager received configuration for more than one RU type");
+    ocudu_assert(ru_config_count <= 1, "Worker manager received configuration for more than one RU type");
   }
 
   for (const auto& cell_affinities : worker_cfg.config_affinities) {
@@ -240,8 +240,8 @@ std::vector<execution_config_helper::single_worker> worker_manager::create_fapi_
 
 void worker_manager::create_cu_cp_executors(const worker_manager_config::cu_cp_config& config, timer_manager& timers)
 {
-  cu_cp_exec_mapper = srs_cu_cp::make_cu_cp_executor_mapper(
-      srs_cu_cp::strand_based_executor_config{*non_rt_hi_prio_exec, exec_metrics_channel_registry});
+  cu_cp_exec_mapper = ocucp::make_cu_cp_executor_mapper(
+      ocucp::strand_based_executor_config{*non_rt_hi_prio_exec, exec_metrics_channel_registry});
 }
 
 void worker_manager::create_cu_up_executors(const worker_manager_config::cu_up_config& config, timer_manager& timers)
@@ -251,31 +251,31 @@ void worker_manager::create_cu_up_executors(const worker_manager_config::cu_up_c
   auto* metrics_channel_mngr = config.skip_cu_up_executor ? nullptr : exec_metrics_channel_registry;
 
   cu_up_exec_mapper =
-      srs_cu_up::make_cu_up_executor_mapper(srs_cu_up::strand_based_executor_config{config.max_nof_ue_strands,
-                                                                                    task_worker_queue_size,
-                                                                                    config.dl_ue_executor_queue_size,
-                                                                                    config.ul_ue_executor_queue_size,
-                                                                                    config.ctrl_ue_executor_queue_size,
-                                                                                    config.strand_batch_size,
-                                                                                    *non_rt_medium_prio_exec,
-                                                                                    *non_rt_low_prio_exec,
-                                                                                    *non_rt_hi_prio_exec,
-                                                                                    config.dedicated_io_ul_strand,
-                                                                                    &timers,
-                                                                                    config.executor_tracing_enable,
-                                                                                    metrics_channel_mngr});
+      ocuup::make_cu_up_executor_mapper(ocuup::strand_based_executor_config{config.max_nof_ue_strands,
+                                                                            task_worker_queue_size,
+                                                                            config.dl_ue_executor_queue_size,
+                                                                            config.ul_ue_executor_queue_size,
+                                                                            config.ctrl_ue_executor_queue_size,
+                                                                            config.strand_batch_size,
+                                                                            *non_rt_medium_prio_exec,
+                                                                            *non_rt_low_prio_exec,
+                                                                            *non_rt_hi_prio_exec,
+                                                                            config.dedicated_io_ul_strand,
+                                                                            &timers,
+                                                                            config.executor_tracing_enable,
+                                                                            metrics_channel_mngr});
 }
 
 void worker_manager::create_du_high_executors(const worker_manager_config::du_high_config& du_hi)
 {
-  srs_du::du_high_executor_config cfg;
+  odu::du_high_executor_config cfg;
 
-  srs_du::du_high_executor_config::strand_based_worker_pool pool_desc;
+  odu::du_high_executor_config::strand_based_worker_pool pool_desc;
   pool_desc.nof_cells                  = du_hi.nof_cells;
   pool_desc.default_task_queue_size    = task_worker_queue_size;
   pool_desc.pool_executors             = {rt_hi_prio_exec};
   cfg.cell_executors                   = pool_desc;
-  cfg.ue_executors.policy              = srs_du::du_high_executor_config::ue_executor_config::map_policy::per_cell;
+  cfg.ue_executors.policy              = odu::du_high_executor_config::ue_executor_config::map_policy::per_cell;
   cfg.ue_executors.max_nof_strands     = 1;
   cfg.ue_executors.ctrl_queue_size     = task_worker_queue_size;
   cfg.ue_executors.pdu_queue_size      = du_hi.ue_data_tasks_queue_size;
@@ -403,13 +403,13 @@ void worker_manager::create_main_worker_pool(const worker_manager_config& worker
   non_rt_hi_prio_exec     = exec_mng.executors().at("high_prio_exec");
   rt_hi_prio_exec         = exec_mng.executors().at("rt_prio_exec");
 
-  srslog::fetch_basic_logger("CONFIG").info("Worker pool \"{}\" instantiated with #workers={}, "
-                                            "task_queue_size={}, backoff_period={}us and priority={}.",
-                                            main_pool.name,
-                                            nof_workers_general_pool,
-                                            qsize,
-                                            worker_cfg.main_pool_backoff_period.count(),
-                                            worker_pool_prio.native());
+  ocudulog::fetch_basic_logger("CONFIG").info("Worker pool \"{}\" instantiated with #workers={}, "
+                                              "task_queue_size={}, backoff_period={}us and priority={}.",
+                                              main_pool.name,
+                                              nof_workers_general_pool,
+                                              qsize,
+                                              worker_cfg.main_pool_backoff_period.count(),
+                                              worker_pool_prio.native());
 }
 
 void worker_manager::create_support_strands(const worker_manager_config& worker_cfg)
@@ -437,7 +437,7 @@ void worker_manager::create_du_low_executors(const worker_manager_config::du_low
   using namespace execution_config_helper;
 
   // DU low executor mapper configuration.
-  srs_du::du_low_executor_mapper_config du_low_exec_mapper_config;
+  odu::du_low_executor_mapper_config du_low_exec_mapper_config;
 
   const bool rt_mode = !du_low.is_sequential_mode_active;
 
@@ -454,13 +454,13 @@ void worker_manager::create_du_low_executors(const worker_manager_config::du_low
 
     // Fill the task executors.
     du_low_exec_mapper_config.executors =
-        srs_du::du_low_executor_mapper_single_exec_config{.common_executor = {phy_exec, nof_workers_general_pool}};
+        odu::du_low_executor_mapper_single_exec_config{.common_executor = {phy_exec, nof_workers_general_pool}};
 
   } else {
     // RF case.
 
     // Fill the task executors for each cell.
-    du_low_exec_mapper_config.executors = srs_du::du_low_executor_mapper_flexible_exec_config{
+    du_low_exec_mapper_config.executors = odu::du_low_executor_mapper_flexible_exec_config{
         .rt_hi_prio_exec               = {rt_hi_prio_exec, nof_workers_general_pool},
         .non_rt_hi_prio_exec           = {non_rt_hi_prio_exec, nof_workers_general_pool},
         .non_rt_medium_prio_exec       = {non_rt_medium_prio_exec, nof_workers_general_pool},
@@ -475,7 +475,7 @@ void worker_manager::create_du_low_executors(const worker_manager_config::du_low
   }
 
   // Create DU low executor mapper.
-  du_low_exec_mapper = srs_du::create_du_low_executor_mapper(du_low_exec_mapper_config);
+  du_low_exec_mapper = odu::create_du_low_executor_mapper(du_low_exec_mapper_config);
 }
 
 void worker_manager::create_ofh_executors(const worker_manager_config::ru_ofh_config& config)
@@ -692,7 +692,7 @@ void worker_manager::create_lower_phy_executors(const worker_manager_config::ru_
     }
   }
 
-  srsran_assert(sdr_exec_mapper, "Failed to create SDR executor mapper.");
+  ocudu_assert(sdr_exec_mapper, "Failed to create SDR executor mapper.");
 }
 
 void worker_manager::create_ru_dummy_executors()

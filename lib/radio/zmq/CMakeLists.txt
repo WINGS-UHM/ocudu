@@ -14,8 +14,8 @@ set(SOURCES_ZMQ
         radio_zmq_rx_stream.cpp
         radio_zmq_tx_channel.cpp
         radio_zmq_tx_stream.cpp)
-add_library(srsran_radio_zmq STATIC ${SOURCES_ZMQ})
+add_library(ocudu_radio_zmq STATIC ${SOURCES_ZMQ})
 
-target_link_libraries(srsran_radio_zmq ${ZEROMQ_LIBRARIES} fmt srslog srsvec srsran_support)
+target_link_libraries(ocudu_radio_zmq ${ZEROMQ_LIBRARIES} fmt ocudulog ocuduvec ocudu_support)
 
-add_to_exported_libs(srsran_radio_zmq)
+add_to_exported_libs(ocudu_radio_zmq)

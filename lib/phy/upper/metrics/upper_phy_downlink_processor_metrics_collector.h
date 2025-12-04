@@ -11,10 +11,10 @@
 #pragma once
 
 #include "aggregators/downlink_processor_metrics_aggregator.h"
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/upper_phy_metrics.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/upper_phy_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Upper PHY downlink processing metrics collector.
 class upper_phy_downlink_processor_metrics_collector
@@ -36,4 +36,4 @@ private:
   downlink_processor_metrics_aggregator downlink_processor_aggregator;
 };
 
-} // namespace srsran
+} // namespace ocudu

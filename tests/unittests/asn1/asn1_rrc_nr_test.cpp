@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
+#include "ocudu/support/test_utils.h"
 #include <cstdio>
 #include <gtest/gtest.h>
 
 using namespace asn1;
 using namespace asn1::rrc_nr;
-using namespace srsran;
+using namespace ocudu;
 
 #define JSON_OUTPUT 0
 
@@ -25,26 +25,26 @@ class asn1_rrc_nr_test : public ::testing::Test
 protected:
   asn1_rrc_nr_test()
   {
-    srslog::fetch_basic_logger("ASN1").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("ASN1").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("ASN1").set_hex_dump_max_size(-1);
 
-    srslog::fetch_basic_logger("RRC").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("RRC").set_hex_dump_max_size(-1);
+    ocudulog::fetch_basic_logger("RRC").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("RRC").set_hex_dump_max_size(-1);
 
-    test_logger.set_level(srslog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_hex_dump_max_size(-1);
 
     // Start the log backend.
-    srslog::init();
+    ocudulog::init();
   }
 
   ~asn1_rrc_nr_test()
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 TEST_F(asn1_rrc_nr_test, when_eutra_nr_capabilities_correct_then_packing_successful)
@@ -138,65 +138,65 @@ TEST_F(asn1_rrc_nr_test, when_eutra_nr_capabilities_correct_then_packing_success
   mrdc_cap.feature_set_combinations.push_back(feature_set_combination);
 
   // Pack mrdc_cap
-  srsran::byte_buffer buffer;
-  asn1::bit_ref       bref(buffer);
+  ocudu::byte_buffer buffer;
+  asn1::bit_ref      bref(buffer);
   mrdc_cap.pack(bref);
 
-  ASSERT_EQ(test_pack_unpack_consistency(mrdc_cap), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(mrdc_cap), OCUDUASN_SUCCESS);
 
-  //  srslog::fetch_basic_logger("RRC").info(
+  //  ocudulog::fetch_basic_logger("RRC").info(
   //      buffer, bref.distance_bytes(), "Packed cap struct ({} bytes):", bref.distance_bytes());
 }
 
 TEST_F(asn1_rrc_nr_test, when_ue_mrdc_capabilities_correct_then_unpacking_successful)
 {
-  srsran::byte_buffer pdu =
-      srsran::byte_buffer::create({0x01, 0x1c, 0x04, 0x81, 0x60, 0x00, 0x1c, 0x4d, 0x00, 0x00, 0x00, 0x04,
-                                   0x00, 0x40, 0x04, 0x04, 0xd0, 0x10, 0x74, 0x06, 0x14, 0xe8, 0x1b, 0x10,
-                                   0x78, 0x00, 0x00, 0x20, 0x00, 0x10, 0x08, 0x08, 0x01, 0x00, 0x20})
+  ocudu::byte_buffer pdu =
+      ocudu::byte_buffer::create({0x01, 0x1c, 0x04, 0x81, 0x60, 0x00, 0x1c, 0x4d, 0x00, 0x00, 0x00, 0x04,
+                                  0x00, 0x40, 0x04, 0x04, 0xd0, 0x10, 0x74, 0x06, 0x14, 0xe8, 0x1b, 0x10,
+                                  0x78, 0x00, 0x00, 0x20, 0x00, 0x10, 0x08, 0x08, 0x01, 0x00, 0x20})
           .value();
   // 011c048160001c4d0000000400400404d010740614e81b107800002000100808010020
 
   asn1::cbit_ref bref{pdu};
   ue_mrdc_cap_s  mrdc_cap;
 
-  ASSERT_EQ(mrdc_cap.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(mrdc_cap.unpack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(mrdc_cap), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(mrdc_cap), OCUDUASN_SUCCESS);
 }
 
 TEST_F(asn1_rrc_nr_test, when_ue_rrc_reconfiguration_correct_then_unpacking_successful)
 {
-  uint8_t             rrc_msg[] = "\x08\x81\x7c\x5c\x40\xb1\xc0\x7d\x48\x3a\x04\xc0\x3e\x01\x04\x54"
-                                  "\x1e\xb5\x00\x02\xe8\x53\x98\xdf\x46\x93\x4b\x80\x04\xd2\x69\x34"
-                                  "\x00\x00\x08\xc9\x8d\x6d\x8c\xa2\x01\xff\x00\x00\x00\x00\x01\x1b"
-                                  "\x82\x21\x00\x00\x04\x04\x00\xd1\x14\x0e\x70\x00\x00\x08\xc9\xc6"
-                                  "\xb6\xc6\x44\xa0\x00\x1e\xb8\x95\x63\xe0\x24\x94\x22\x0d\xb8\x44"
-                                  "\x70\x0c\x02\x10\xb0\x1d\x80\x48\xf1\x18\x06\xea\x00\x08\x0e\x01"
-                                  "\x25\xc0\xc8\x80\x37\x08\x42\x00\x00\x88\x16\x50\x02\x0c\x82\x00"
-                                  "\x00\x20\x69\x81\x01\x45\x0a\x00\x0e\x48\x18\x00\x01\x33\x55\x64"
-                                  "\x84\x1c\x00\x10\x40\xc2\x05\x0c\x1c\x9c\x40\x91\x42\xc6\x0d\x1c"
-                                  "\x3c\x8e\x00\x00\x32\x21\x40\x30\x20\x01\x91\x4a\x01\x82\x00\x0c"
-                                  "\x8c\x50\x0c\x18\x00\x64\x42\x80\xe1\x00\x03\x22\x94\x07\x0a\x00"
-                                  "\x19\x18\xa0\x38\x60\x00\xc8\x85\x02\xc3\x80\x06\x45\x28\x16\x20"
-                                  "\x64\x00\x41\x6c\x48\x04\x62\x82\x18\xa0\x08\xc5\x04\xb1\x60\x11"
-                                  "\x8a\x0a\x63\x00\x23\x14\x16\xc6\x80\x46\x28\x31\x8e\x00\x8c\x50"
-                                  "\x6b\x1e\x01\x18\xa0\xe6\x40\x00\x32\x31\x40\xb2\x23\x10\x0a\x08"
-                                  "\x40\x90\x86\x05\x10\x43\xcc\x3b\x2a\x6e\x4d\x01\xa4\x92\x1e\x2e"
-                                  "\xe0\x0c\x10\xe0\x00\x00\x01\x8f\xfd\x29\x49\x8c\x63\x72\x81\x60"
-                                  "\x00\x02\x19\x70\x00\x00\x00\x00\x00\x00\x52\xf0\x0f\xa0\x84\x8a"
-                                  "\xd5\x45\x00\x47\x00\x18\x00\x08\x20\x00\xe2\x10\x02\x40\x80\x70"
-                                  "\x10\x10\x84\x00\x0e\x21\x00\x1c\xb0\x0e\x04\x02\x20\x80\x01\xc4"
-                                  "\x20\x03\x96\x01\xc0\xc0\x42\x10\x00\x38\x84\x00\x73\x00\x38\x20"
-                                  "\x08\x82\x00\x07\x10\x80\x0e\x60\x00\x40\x00\x00\x04\x10\xc0\x40"
-                                  "\x80\xc1\x00\xe0\xd0\x00\x0e\x48\x10\x00\x00\x02\x00\x40\x00\x80"
-                                  "\x60\x00\x80\x90\x02\x20\x0a\x40\x00\x02\x38\x90\x11\x31\xc8";
-  srsran::byte_buffer pdu       = srsran::byte_buffer::create(rrc_msg).value();
+  uint8_t            rrc_msg[] = "\x08\x81\x7c\x5c\x40\xb1\xc0\x7d\x48\x3a\x04\xc0\x3e\x01\x04\x54"
+                                 "\x1e\xb5\x00\x02\xe8\x53\x98\xdf\x46\x93\x4b\x80\x04\xd2\x69\x34"
+                                 "\x00\x00\x08\xc9\x8d\x6d\x8c\xa2\x01\xff\x00\x00\x00\x00\x01\x1b"
+                                 "\x82\x21\x00\x00\x04\x04\x00\xd1\x14\x0e\x70\x00\x00\x08\xc9\xc6"
+                                 "\xb6\xc6\x44\xa0\x00\x1e\xb8\x95\x63\xe0\x24\x94\x22\x0d\xb8\x44"
+                                 "\x70\x0c\x02\x10\xb0\x1d\x80\x48\xf1\x18\x06\xea\x00\x08\x0e\x01"
+                                 "\x25\xc0\xc8\x80\x37\x08\x42\x00\x00\x88\x16\x50\x02\x0c\x82\x00"
+                                 "\x00\x20\x69\x81\x01\x45\x0a\x00\x0e\x48\x18\x00\x01\x33\x55\x64"
+                                 "\x84\x1c\x00\x10\x40\xc2\x05\x0c\x1c\x9c\x40\x91\x42\xc6\x0d\x1c"
+                                 "\x3c\x8e\x00\x00\x32\x21\x40\x30\x20\x01\x91\x4a\x01\x82\x00\x0c"
+                                 "\x8c\x50\x0c\x18\x00\x64\x42\x80\xe1\x00\x03\x22\x94\x07\x0a\x00"
+                                 "\x19\x18\xa0\x38\x60\x00\xc8\x85\x02\xc3\x80\x06\x45\x28\x16\x20"
+                                 "\x64\x00\x41\x6c\x48\x04\x62\x82\x18\xa0\x08\xc5\x04\xb1\x60\x11"
+                                 "\x8a\x0a\x63\x00\x23\x14\x16\xc6\x80\x46\x28\x31\x8e\x00\x8c\x50"
+                                 "\x6b\x1e\x01\x18\xa0\xe6\x40\x00\x32\x31\x40\xb2\x23\x10\x0a\x08"
+                                 "\x40\x90\x86\x05\x10\x43\xcc\x3b\x2a\x6e\x4d\x01\xa4\x92\x1e\x2e"
+                                 "\xe0\x0c\x10\xe0\x00\x00\x01\x8f\xfd\x29\x49\x8c\x63\x72\x81\x60"
+                                 "\x00\x02\x19\x70\x00\x00\x00\x00\x00\x00\x52\xf0\x0f\xa0\x84\x8a"
+                                 "\xd5\x45\x00\x47\x00\x18\x00\x08\x20\x00\xe2\x10\x02\x40\x80\x70"
+                                 "\x10\x10\x84\x00\x0e\x21\x00\x1c\xb0\x0e\x04\x02\x20\x80\x01\xc4"
+                                 "\x20\x03\x96\x01\xc0\xc0\x42\x10\x00\x38\x84\x00\x73\x00\x38\x20"
+                                 "\x08\x82\x00\x07\x10\x80\x0e\x60\x00\x40\x00\x00\x04\x10\xc0\x40"
+                                 "\x80\xc1\x00\xe0\xd0\x00\x0e\x48\x10\x00\x00\x02\x00\x40\x00\x80"
+                                 "\x60\x00\x80\x90\x02\x20\x0a\x40\x00\x02\x38\x90\x11\x31\xc8";
+  ocudu::byte_buffer pdu       = ocudu::byte_buffer::create(rrc_msg).value();
 
   cbit_ref    bref(pdu);
   rrc_recfg_s rrc_recfg;
 
-  ASSERT_EQ(rrc_recfg.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(rrc_recfg.unpack(bref), OCUDUASN_SUCCESS);
   ASSERT_EQ(rrc_recfg.rrc_transaction_id, 0);
 
 #if JSON_OUTPUT
@@ -210,7 +210,7 @@ TEST_F(asn1_rrc_nr_test, when_ue_rrc_reconfiguration_correct_then_unpacking_succ
 
   cell_group_cfg_s cell_group_cfg;
   cbit_ref         bref0(rrc_recfg.crit_exts.rrc_recfg().secondary_cell_group);
-  ASSERT_EQ(cell_group_cfg.unpack(bref0), SRSASN_SUCCESS);
+  ASSERT_EQ(cell_group_cfg.unpack(bref0), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   json_writer jw1;
@@ -226,12 +226,12 @@ TEST_F(asn1_rrc_nr_test, when_ue_rrc_reconfiguration_correct_then_unpacking_succ
 
 TEST_F(asn1_rrc_nr_test, when_radio_bearer_config_correct_then_unpacking_successful)
 {
-  uint8_t             rrc_msg[] = "\x14\x09\x28\x17\x87\xc0\x0c\x28";
-  srsran::byte_buffer pdu       = srsran::byte_buffer::create(rrc_msg).value();
+  uint8_t            rrc_msg[] = "\x14\x09\x28\x17\x87\xc0\x0c\x28";
+  ocudu::byte_buffer pdu       = ocudu::byte_buffer::create(rrc_msg).value();
 
   cbit_ref           bref(pdu);
   radio_bearer_cfg_s radio_bearer_cfg;
-  ASSERT_EQ(radio_bearer_cfg.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(radio_bearer_cfg.unpack(bref), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   json_writer jw;
@@ -246,39 +246,39 @@ TEST_F(asn1_rrc_nr_test, when_radio_bearer_config_correct_then_unpacking_success
 
 TEST_F(asn1_rrc_nr_test, when_cell_group_config_correct_then_unpacking_successful)
 {
-  uint8_t             cell_group_config_raw[] = "\x5c\x40\xb1\xc0\x33\xc8\x53\xe0\x12\x0f\x05\x38\x0f\x80\x41\x15"
-                                                "\x07\xad\x40\x00\xba\x14\xe6\x37\xd1\xa4\xd3\xa0\x01\x34\x9a\x5f"
-                                                "\xc0\x00\x00\x33\x63\x6c\x91\x28\x80\x7f\xc0\x00\x00\x00\x00\x46"
-                                                "\xe0\x88\x40\x00\x01\x01\x00\x34\x45\x03\x9c\x00\x00\x00\x33\x71"
-                                                "\xb6\x48\x90\x04\x00\x08\x2e\x25\x18\xf0\x02\x4a\x31\x06\xe2\x8d"
-                                                "\xb8\x44\x70\x0c\x02\x10\x38\x1d\x80\x48\xf1\x18\x5e\xea\x00\x08"
-                                                "\x0e\x01\x25\xc0\xca\x80\x01\x7f\x80\x00\x00\x00\x00\x83\x70\x88"
-                                                "\x20\x00\x08\x81\x65\x00\x20\xc8\x20\x00\x02\x06\x98\x10\x14\x50"
-                                                "\xa0\x00\xe4\x81\x80\x00\x13\x35\x56\x48\x41\xc0\x01\x04\x0c\x20"
-                                                "\x50\xc1\xc9\xc4\x09\x14\x2c\x60\xd1\xc3\xc8\xe0\x00\x03\x32\x14"
-                                                "\x03\x02\x00\x19\x94\xa0\x18\x20\x00\xcc\xc5\x00\xc1\x80\x06\x64"
-                                                "\x28\x0e\x10\x00\x33\x29\x40\x70\xa0\x01\x99\x8a\x03\x86\x00\x0c"
-                                                "\xc8\x50\x2c\x38\x00\x66\x52\x81\x62\x06\x60\x04\x16\xc4\x80\x46"
-                                                "\x48\x21\x8a\x00\x8c\x90\x4b\x16\x01\x19\x20\xa6\x30\x02\x32\x41"
-                                                "\x6c\x68\x04\x64\x83\x18\xe0\x08\xc9\x06\xb1\xe0\x11\x92\x0e\x64"
-                                                "\x00\x03\x33\x14\x0b\x22\x32\x00\xa0\x84\x09\x08\x60\x51\x04\x34"
-                                                "\x3b\x2a\x65\xcd\x01\xa4\x92\x1e\x2e\xe0\x0c\x10\xe0\x00\x00\x01"
-                                                "\x8f\xfd\x29\x49\x8c\x63\x72\x81\x60\x00\x02\x19\x70\x00\x00\x00"
-                                                "\x00\x00\x00\x62\xf0\x0f\xa0\x84\x8a\xd5\x45\x00\x47\x00\x18\x00"
-                                                "\x08\x20\x00\xe2\x10\x02\x40\x80\x70\x10\x10\x84\x00\x0e\x21\x00"
-                                                "\x1c\xb0\x0e\x04\x02\x20\x80\x01\xc4\x20\x03\x96\x01\xc0\xc0\x42"
-                                                "\x10\x00\x38\x84\x00\x73\x00\x38\x20\x08\x82\x00\x07\x10\x80\x0e"
-                                                "\x60\x00\x40\x00\x00\x04\x10\xc0\x40\x80\xc1\x00\xe0\xd0\x00\x0e"
-                                                "\x48\x10\x00\x00\x02\x00\x40\x00\x80\x60\x00\x80\x90\x02\x20\x0a"
-                                                "\x40\x00\x02\x38\x90\x11\x31\xc8";
-  srsran::byte_buffer pdu                     = srsran::byte_buffer::create(cell_group_config_raw).value();
+  uint8_t            cell_group_config_raw[] = "\x5c\x40\xb1\xc0\x33\xc8\x53\xe0\x12\x0f\x05\x38\x0f\x80\x41\x15"
+                                               "\x07\xad\x40\x00\xba\x14\xe6\x37\xd1\xa4\xd3\xa0\x01\x34\x9a\x5f"
+                                               "\xc0\x00\x00\x33\x63\x6c\x91\x28\x80\x7f\xc0\x00\x00\x00\x00\x46"
+                                               "\xe0\x88\x40\x00\x01\x01\x00\x34\x45\x03\x9c\x00\x00\x00\x33\x71"
+                                               "\xb6\x48\x90\x04\x00\x08\x2e\x25\x18\xf0\x02\x4a\x31\x06\xe2\x8d"
+                                               "\xb8\x44\x70\x0c\x02\x10\x38\x1d\x80\x48\xf1\x18\x5e\xea\x00\x08"
+                                               "\x0e\x01\x25\xc0\xca\x80\x01\x7f\x80\x00\x00\x00\x00\x83\x70\x88"
+                                               "\x20\x00\x08\x81\x65\x00\x20\xc8\x20\x00\x02\x06\x98\x10\x14\x50"
+                                               "\xa0\x00\xe4\x81\x80\x00\x13\x35\x56\x48\x41\xc0\x01\x04\x0c\x20"
+                                               "\x50\xc1\xc9\xc4\x09\x14\x2c\x60\xd1\xc3\xc8\xe0\x00\x03\x32\x14"
+                                               "\x03\x02\x00\x19\x94\xa0\x18\x20\x00\xcc\xc5\x00\xc1\x80\x06\x64"
+                                               "\x28\x0e\x10\x00\x33\x29\x40\x70\xa0\x01\x99\x8a\x03\x86\x00\x0c"
+                                               "\xc8\x50\x2c\x38\x00\x66\x52\x81\x62\x06\x60\x04\x16\xc4\x80\x46"
+                                               "\x48\x21\x8a\x00\x8c\x90\x4b\x16\x01\x19\x20\xa6\x30\x02\x32\x41"
+                                               "\x6c\x68\x04\x64\x83\x18\xe0\x08\xc9\x06\xb1\xe0\x11\x92\x0e\x64"
+                                               "\x00\x03\x33\x14\x0b\x22\x32\x00\xa0\x84\x09\x08\x60\x51\x04\x34"
+                                               "\x3b\x2a\x65\xcd\x01\xa4\x92\x1e\x2e\xe0\x0c\x10\xe0\x00\x00\x01"
+                                               "\x8f\xfd\x29\x49\x8c\x63\x72\x81\x60\x00\x02\x19\x70\x00\x00\x00"
+                                               "\x00\x00\x00\x62\xf0\x0f\xa0\x84\x8a\xd5\x45\x00\x47\x00\x18\x00"
+                                               "\x08\x20\x00\xe2\x10\x02\x40\x80\x70\x10\x10\x84\x00\x0e\x21\x00"
+                                               "\x1c\xb0\x0e\x04\x02\x20\x80\x01\xc4\x20\x03\x96\x01\xc0\xc0\x42"
+                                               "\x10\x00\x38\x84\x00\x73\x00\x38\x20\x08\x82\x00\x07\x10\x80\x0e"
+                                               "\x60\x00\x40\x00\x00\x04\x10\xc0\x40\x80\xc1\x00\xe0\xd0\x00\x0e"
+                                               "\x48\x10\x00\x00\x02\x00\x40\x00\x80\x60\x00\x80\x90\x02\x20\x0a"
+                                               "\x40\x00\x02\x38\x90\x11\x31\xc8";
+  ocudu::byte_buffer pdu                     = ocudu::byte_buffer::create(cell_group_config_raw).value();
 
   cbit_ref         bref(pdu);
   cell_group_cfg_s cell_group_cfg;
 
-  ASSERT_EQ(cell_group_cfg.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(cell_group_cfg.unpack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(cell_group_cfg), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(cell_group_cfg), OCUDUASN_SUCCESS);
 
   ASSERT_TRUE(cell_group_cfg.sp_cell_cfg_present);
   ASSERT_TRUE(cell_group_cfg.sp_cell_cfg.serv_cell_idx_present);
@@ -328,8 +328,8 @@ TEST_F(asn1_rrc_nr_test, when_cell_group_config_correct_then_unpacking_successfu
 TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel15_correct_then_unpacking_successful)
 {
   // UE caps of a Simcom SIM8262E-M2 5G module with IEs and extensions up to Rel15.4
-  srsran::byte_buffer pdu =
-      srsran::byte_buffer::create(
+  ocudu::byte_buffer pdu =
+      ocudu::byte_buffer::create(
           {0xe1, 0xa0, 0x53, 0x80, 0x57, 0x4f, 0x7a, 0x03, 0x16, 0x00, 0x03, 0x06, 0x40, 0x02, 0xc1, 0x00, 0x10,
            0x18, 0x09, 0x31, 0x70, 0x01, 0x9c, 0x3d, 0x09, 0x00, 0x31, 0x20, 0xd0, 0x09, 0x80, 0x40, 0x62, 0x30,
            0x01, 0x50, 0x6c, 0x4d, 0xd6, 0x08, 0xc2, 0x1a, 0x08, 0x10, 0x74, 0x82, 0x40, 0x51, 0x6c, 0xaa, 0x2a,
@@ -350,9 +350,9 @@ TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel15_correct_then_unpacking_su
   asn1::cbit_ref            bref{pdu};
   asn1::rrc_nr::ue_nr_cap_s ue_nr_cap;
 
-  ASSERT_EQ(ue_nr_cap.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(ue_nr_cap.unpack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(ue_nr_cap), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(ue_nr_cap), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   asn1::json_writer json_writer;
@@ -364,8 +364,8 @@ TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel15_correct_then_unpacking_su
 TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel16_correct_then_unpacking_successful)
 {
   // UE caps of a QC SM8450 Snapdragon 8 Gen 1 module with AS release set to 16 and also IE and fields up to Rel16
-  srsran::byte_buffer pdu =
-      srsran::byte_buffer::create(
+  ocudu::byte_buffer pdu =
+      ocudu::byte_buffer::create(
           {0xe1, 0xa2, 0x53, 0x80, 0x57, 0x4f, 0x7a, 0x03, 0x56, 0x08, 0x03, 0x04, 0x40, 0x0b, 0x04, 0x00, 0x40, 0x60,
            0x24, 0xc5, 0xc0, 0x06, 0x70, 0xf4, 0x1c, 0x01, 0x89, 0x06, 0x80, 0x4c, 0x02, 0x03, 0x11, 0x80, 0x82, 0x83,
            0x61, 0x3e, 0xb0, 0x46, 0x10, 0xd0, 0x40, 0x83, 0xa4, 0x0a, 0x0a, 0x2d, 0x95, 0x45, 0x42, 0x43, 0x9f, 0x40,
@@ -454,9 +454,9 @@ TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel16_correct_then_unpacking_su
   asn1::cbit_ref            bref{pdu};
   asn1::rrc_nr::ue_nr_cap_s ue_nr_cap;
 
-  ASSERT_EQ(ue_nr_cap.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(ue_nr_cap.unpack(bref), OCUDUASN_SUCCESS);
 
-  ASSERT_EQ(test_pack_unpack_consistency(ue_nr_cap), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(ue_nr_cap), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   asn1::json_writer json_writer;
@@ -468,8 +468,8 @@ TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel16_correct_then_unpacking_su
 TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel16_v2_correct_then_unpacking_successful)
 {
   // UE caps of a SIMCOM X62 based module with AS release set to 16 and also IE and fields up to Rel16
-  srsran::byte_buffer pdu =
-      srsran::byte_buffer::create(
+  ocudu::byte_buffer pdu =
+      ocudu::byte_buffer::create(
           {0xe1, 0xa2, 0x53, 0x80, 0x57, 0x4f, 0x7a, 0x3,  0x56, 0x0,  0x3,  0xc3, 0xa8, 0x0,  0xb0, 0x1e, 0x80, 0x0,
            0x13, 0x0,  0x43, 0x20, 0x10, 0x24, 0x18, 0xf4, 0x4,  0x7b, 0x0,  0x3c, 0x13, 0x26, 0x43, 0x9f, 0x22, 0xd7,
            0xa0, 0xab, 0xd8, 0x25, 0xe8, 0x19, 0xf6, 0x4,  0xf8, 0x1e, 0x3c, 0x47, 0x1e, 0x47, 0x9f, 0x63, 0xcf, 0xb0,
@@ -572,12 +572,12 @@ TEST_F(asn1_rrc_nr_test, when_ue_nr_capabilities_rel16_v2_correct_then_unpacking
   asn1::cbit_ref            bref{pdu};
   asn1::rrc_nr::ue_nr_cap_s ue_nr_cap;
 
-  ASSERT_EQ(ue_nr_cap.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_EQ(ue_nr_cap.unpack(bref), OCUDUASN_SUCCESS);
 
   ASSERT_TRUE(ue_nr_cap.feature_sets_present);
   ASSERT_EQ(ue_nr_cap.feature_sets.feature_sets_dl.size(), 1);
 
-  ASSERT_EQ(test_pack_unpack_consistency(ue_nr_cap), SRSASN_SUCCESS);
+  ASSERT_EQ(test_pack_unpack_consistency(ue_nr_cap), OCUDUASN_SUCCESS);
 
 #if JSON_OUTPUT
   asn1::json_writer json_writer;
@@ -597,5 +597,5 @@ TEST_F(asn1_rrc_nr_test, unpack_malformed_rrc_setup_complete)
   ul_dcch_msg_s rrc_msg;
 
   cbit_ref bref{pdu};
-  ASSERT_NE(rrc_msg.unpack(bref), SRSASN_SUCCESS);
+  ASSERT_NE(rrc_msg.unpack(bref), OCUDUASN_SUCCESS);
 }

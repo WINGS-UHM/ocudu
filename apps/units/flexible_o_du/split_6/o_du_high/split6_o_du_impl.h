@@ -10,24 +10,24 @@
 
 #pragma once
 
-#include "srsran/du/du.h"
-#include "srsran/du/du_high/o_du_high.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_adaptor.h"
+#include "ocudu/du/du.h"
+#include "ocudu/du/du_high/o_du_high.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class radio_unit;
 
 /// Split 6 O-RAN DU implementation.
-class split6_o_du_impl : public srs_du::du, public du_operation_controller
+class split6_o_du_impl : public odu::du, public du_operation_controller
 {
 public:
   explicit split6_o_du_impl(unsigned                                        nof_cells_,
                             std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> adaptor_,
-                            std::unique_ptr<srs_du::o_du_high>              odu_hi_);
+                            std::unique_ptr<odu::o_du_high>                 odu_hi_);
 
   // See interface for documentation.
   du_operation_controller& get_operation_controller() override { return *this; }
@@ -40,8 +40,8 @@ public:
 
 private:
   const unsigned                                  nof_cells;
-  std::unique_ptr<srs_du::o_du_high>              odu_hi;
+  std::unique_ptr<odu::o_du_high>                 odu_hi;
   std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> adaptor;
 };
 
-} // namespace srsran
+} // namespace ocudu

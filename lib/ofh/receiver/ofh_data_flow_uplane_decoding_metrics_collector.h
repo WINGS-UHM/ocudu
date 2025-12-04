@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../support/metrics_helpers.h"
-#include "srsran/ofh/receiver/ofh_receiver_data_flow_metrics.h"
+#include "ocudu/ofh/receiver/ofh_receiver_data_flow_metrics.h"
 #include <atomic>
 #include <chrono>
 #include <limits>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul receiver data flow performance metrics collector.
@@ -93,4 +93,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -12,12 +12,12 @@
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "du_low_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_du_low_log_section(YAML::Node node, const du_low_unit_logger_config& config)
 {
-  node["phy_level"]         = srslog::basic_level_to_string(config.phy_level);
-  node["hal_level"]         = srslog::basic_level_to_string(config.hal_level);
+  node["phy_level"]         = ocudulog::basic_level_to_string(config.phy_level);
+  node["hal_level"]         = ocudulog::basic_level_to_string(config.hal_level);
   node["broadcast_enabled"] = config.broadcast_enabled;
   node["hex_max_size"]      = config.hex_max_size;
   if (!config.phy_rx_symbols_filename.empty()) {
@@ -127,7 +127,7 @@ static void fill_du_low_metrics_section(YAML::Node node, const du_low_unit_metri
   layers_node["enable_du_low"] = config.enable_du_low;
 }
 
-void srsran::fill_du_low_config_in_yaml_schema(YAML::Node& node, const du_low_unit_config& config)
+void ocudu::fill_du_low_config_in_yaml_schema(YAML::Node& node, const du_low_unit_config& config)
 {
   fill_du_low_metrics_section(node, config.metrics_cfg);
   fill_du_low_log_section(node["log"], config.loggers);

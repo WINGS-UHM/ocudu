@@ -6,14 +6,14 @@
 # the distribution.
 #
 
-add_library(srsran_pucch_processor STATIC factories.cpp pucch_processor_impl.cpp)
+add_library(ocudu_pucch_processor STATIC factories.cpp pucch_processor_impl.cpp)
 
-add_library(srsran_pucch_detector STATIC
+add_library(ocudu_pucch_detector STATIC
         factories.cpp
         pucch_detector_format0.cpp
         pucch_detector_format1.cpp)
 
-add_library(srsran_pucch_demodulator STATIC
+add_library(ocudu_pucch_demodulator STATIC
         factories.cpp
         pucch_demodulator_format2.cpp
         pucch_demodulator_format3.cpp

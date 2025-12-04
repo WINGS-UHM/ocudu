@@ -11,9 +11,9 @@
 #pragma once
 
 #include "ofh_uplane_message_decoder_impl.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class iq_decompressor;
@@ -23,7 +23,7 @@ class network_order_binary_deserializer;
 class uplane_message_decoder_dynamic_compression_impl : public uplane_message_decoder_impl
 {
 public:
-  uplane_message_decoder_dynamic_compression_impl(srslog::basic_logger&            logger_,
+  uplane_message_decoder_dynamic_compression_impl(ocudulog::basic_logger&          logger_,
                                                   subcarrier_spacing               scs_,
                                                   unsigned                         nof_symbols_,
                                                   unsigned                         ru_nof_prbs_,
@@ -40,4 +40,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

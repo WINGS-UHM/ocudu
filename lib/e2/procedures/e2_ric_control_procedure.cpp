@@ -10,14 +10,14 @@
 
 #include "e2_ric_control_procedure.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 using namespace asn1::e2sm;
 
 e2_ric_control_procedure::e2_ric_control_procedure(const e2_ric_control_request& request_,
                                                    e2_message_notifier&          notif_,
                                                    e2sm_manager&                 e2sm_mng_,
-                                                   srslog::basic_logger&         logger_) :
+                                                   ocudulog::basic_logger&       logger_) :
   logger(logger_), ric_notif(notif_), e2sm_mng(e2sm_mng_), e2_request(request_)
 {
 }

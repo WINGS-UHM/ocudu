@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_data_message_notifier.h"
+#include "ocudu/fapi/slot_data_message_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Dummy slot data message notifier implementation that will terminate the application if its methods are called.
@@ -36,4 +36,4 @@ public:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

@@ -12,14 +12,14 @@
 
 #include "mac_test_mode_decision_history.h"
 #include "mac_test_mode_ue_repository.h"
-#include "srsran/du/du_high/du_test_mode_config.h"
-#include "srsran/mac/mac.h"
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/du/du_high/du_test_mode_config.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class phy_test_mode_adapter : public mac_result_notifier
 {
@@ -55,15 +55,15 @@ class mac_test_mode_cell_adapter : public mac_cell_control_information_handler,
                                    public mac_cell_slot_handler
 {
 public:
-  mac_test_mode_cell_adapter(const srs_du::du_test_mode_config::test_mode_ue_config& test_ue_cfg_,
-                             const mac_cell_creation_request&                        cell_cfg,
-                             mac_cell_control_information_handler&                   adapted_,
-                             mac_pdu_handler&                                        pdu_handler_,
-                             mac_cell_slot_handler&                                  slot_handler_,
-                             mac_cell_result_notifier&                               result_notifier_,
-                             std::function<void(rnti_t)>                             dl_bs_notifier_,
-                             mac_test_mode_event_handler&                            event_handler_,
-                             mac_test_mode_ue_repository&                            ue_info_mgr_);
+  mac_test_mode_cell_adapter(const odu::du_test_mode_config::test_mode_ue_config& test_ue_cfg_,
+                             const mac_cell_creation_request&                     cell_cfg,
+                             mac_cell_control_information_handler&                adapted_,
+                             mac_pdu_handler&                                     pdu_handler_,
+                             mac_cell_slot_handler&                               slot_handler_,
+                             mac_cell_result_notifier&                            result_notifier_,
+                             std::function<void(rnti_t)>                          dl_bs_notifier_,
+                             mac_test_mode_event_handler&                         event_handler_,
+                             mac_test_mode_ue_repository&                         ue_info_mgr_);
 
   void on_new_downlink_scheduler_results(const mac_dl_sched_result& dl_res) override;
 
@@ -97,7 +97,7 @@ private:
   mac_cell_slot_handler&                          slot_handler;
   mac_cell_result_notifier&                       result_notifier;
   std::function<void(rnti_t)>                     dl_bs_notifier;
-  srslog::basic_logger&                           logger;
+  ocudulog::basic_logger&                         logger;
 
   /// Ring buffer of slot decision history.
   mac_test_mode_cell_decision_history history;
@@ -184,8 +184,8 @@ private:
   std::vector<mac_logical_channel_config>
   adapt_bearers(const std::vector<mac_logical_channel_config>& orig_bearers) const;
 
-  srs_du::du_test_mode_config::test_mode_ue_config test_ue;
-  std::unique_ptr<mac_interface>                   mac_adapted;
+  odu::du_test_mode_config::test_mode_ue_config test_ue;
+  std::unique_ptr<mac_interface>                mac_adapted;
 
   mac_test_mode_event_handler event_handler;
 
@@ -196,5 +196,5 @@ private:
   std::vector<std::unique_ptr<mac_test_mode_cell_adapter>> cell_info_handler;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

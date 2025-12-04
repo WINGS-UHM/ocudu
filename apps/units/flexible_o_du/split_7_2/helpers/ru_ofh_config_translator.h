@@ -11,9 +11,9 @@
 #pragma once
 
 #include "apps/units/flexible_o_du/split_helpers/flexible_o_du_configs.h"
-#include "srsran/ru/ofh/ru_ofh_configuration.h"
+#include "ocudu/ru/ofh/ru_ofh_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_ofh_unit_config;
 struct worker_manager_config;
@@ -27,4 +27,4 @@ ru_ofh_configuration generate_ru_ofh_config(const ru_ofh_unit_config&           
 /// Fills the OFH worker manager parameters of the given worker manager configuration.
 void fill_ofh_worker_manager_config(worker_manager_config& config, const ru_ofh_unit_config& ru_cfg);
 
-} // namespace srsran
+} // namespace ocudu

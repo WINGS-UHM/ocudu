@@ -10,13 +10,13 @@
 
 #include "dl_sch_pdu_assembler.h"
 #include "cell_dl_harq_buffer_pool.h"
-#include "srsran/mac/mac_pdu_format.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/mac/mac_pdu_format.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Minimum size required to fit a MAC subheader and SDU.
 static constexpr size_t min_mac_subhdr_and_sdu_space_required(lcid_t lcid)
@@ -50,7 +50,7 @@ span<uint8_t> dl_sch_pdu::mac_sdu_encoder::sdu_buffer() const
 
 unsigned dl_sch_pdu::mac_sdu_encoder::encode_sdu(unsigned sdu_bytes_written)
 {
-  srsran_assert(pdu != nullptr, "encode_sdu called for invalid MAC grant");
+  ocudu_assert(pdu != nullptr, "encode_sdu called for invalid MAC grant");
   if (sdu_bytes_written == 0 or sdu_bytes_written > max_sdu_size) {
     return 0;
   }
@@ -59,7 +59,7 @@ unsigned dl_sch_pdu::mac_sdu_encoder::encode_sdu(unsigned sdu_bytes_written)
   // Note: This is important because some basebands reject the message if the PDU could be enclosed by the shorter
   // subheader.
   if (get_mac_sdu_subheader_size(sdu_bytes_written) != subhr_len) {
-    srsran_sanity_check(subhr_len == MAX_MAC_SDU_SUBHEADER_SIZE, "Unexpected subheader size change");
+    ocudu_sanity_check(subhr_len == MAX_MAC_SDU_SUBHEADER_SIZE, "Unexpected subheader size change");
 
     // Shift bytes to the left by 1 position.
     uint8_t* new_start = pdu->pdu.data() + pdu->byte_offset + MIN_MAC_SDU_SUBHEADER_SIZE;
@@ -102,7 +102,7 @@ dl_sch_pdu::mac_sdu_encoder dl_sch_pdu::get_sdu_encoder(lcid_t lcid, unsigned sd
 
 unsigned dl_sch_pdu::add_sdu(lcid_t lcid, span<uint8_t> sdu)
 {
-  srsran_assert(not sdu.empty(), "Trying to add an empty SDU");
+  ocudu_assert(not sdu.empty(), "Trying to add an empty SDU");
 
   mac_sdu_encoder sdu_enc = get_sdu_encoder(lcid, sdu.size());
   if (not sdu_enc.valid()) {
@@ -118,7 +118,7 @@ unsigned dl_sch_pdu::add_sdu(lcid_t lcid, span<uint8_t> sdu)
 
 unsigned dl_sch_pdu::add_sdu(lcid_t lcid, const byte_buffer& sdu)
 {
-  srsran_assert(not sdu.empty(), "Trying to add an empty SDU");
+  ocudu_assert(not sdu.empty(), "Trying to add an empty SDU");
 
   size_t sdu_len = sdu.length();
 
@@ -134,7 +134,7 @@ unsigned dl_sch_pdu::add_sdu(lcid_t lcid, const byte_buffer& sdu)
     std::memcpy(sdu_buf.data() + offset, seg.data(), seg.size());
     offset += seg.size();
   }
-  srsran_sanity_check(offset == sdu_len, "Error while copying SDU payload");
+  ocudu_sanity_check(offset == sdu_len, "Error while copying SDU payload");
 
   // Encode subheader.
   return sdu_enc.encode_sdu(sdu_len);
@@ -205,11 +205,11 @@ void dl_sch_pdu::encode_subheader(bool F_bit, lcid_dl_sch_t lcid, unsigned heade
 class dl_sch_pdu_assembler::pdu_log_builder
 {
 public:
-  pdu_log_builder(du_ue_index_t         ue_index_,
-                  rnti_t                rnti_,
-                  units::bytes          tbs_,
-                  fmt::memory_buffer&   fmtbuf_,
-                  srslog::basic_logger& logger_) :
+  pdu_log_builder(du_ue_index_t           ue_index_,
+                  rnti_t                  rnti_,
+                  units::bytes            tbs_,
+                  fmt::memory_buffer&     fmtbuf_,
+                  ocudulog::basic_logger& logger_) :
     ue_index(ue_index_), rnti(rnti_), tbs(tbs_), logger(logger_), fmtbuf(fmtbuf_), enabled(logger.info.enabled())
   {
     fmtbuf.clear();
@@ -284,9 +284,9 @@ private:
   rnti_t        rnti;
   units::bytes  tbs;
 
-  srslog::basic_logger& logger;
-  fmt::memory_buffer&   fmtbuf;
-  const bool            enabled;
+  ocudulog::basic_logger& logger;
+  fmt::memory_buffer&     fmtbuf;
+  const bool              enabled;
 
   lcid_t       current_sdu_lcid = lcid_t::INVALID_LCID;
   unsigned     nof_sdus         = 0;
@@ -297,7 +297,7 @@ private:
 
 dl_sch_pdu_assembler::dl_sch_pdu_assembler(mac_dl_ue_repository&     ue_mng_,
                                            cell_dl_harq_buffer_pool& cell_dl_harq_buffers) :
-  ue_mng(ue_mng_), harq_buffers(cell_dl_harq_buffers), logger(srslog::fetch_basic_logger("MAC"))
+  ue_mng(ue_mng_), harq_buffers(cell_dl_harq_buffers), logger(ocudulog::fetch_basic_logger("MAC"))
 {
 }
 
@@ -367,7 +367,7 @@ void dl_sch_pdu_assembler::assemble_sdus(dl_sch_pdu&           ue_pdu,
   // Fetch RLC Bearer.
   const lcid_t        lcid   = lc_grant_info.lcid.to_lcid();
   mac_sdu_tx_builder* bearer = ue_mng.get_lc_sdu_builder(rnti, lcid);
-  srsran_sanity_check(bearer != nullptr, "Scheduler is allocating inexistent bearers");
+  ocudu_sanity_check(bearer != nullptr, "Scheduler is allocating inexistent bearers");
 
   const unsigned total_space =
       std::min(get_mac_sdu_required_bytes(lc_grant_info.sched_bytes), ue_pdu.nof_empty_bytes());
@@ -411,7 +411,7 @@ void dl_sch_pdu_assembler::assemble_sdus(dl_sch_pdu&           ue_pdu,
                    lc_grant_info.sched_bytes);
       break;
     }
-    srsran_assert(rem_bytes >= subh_and_sdu_size, "Too many bytes were packed in MAC SDU");
+    ocudu_assert(rem_bytes >= subh_and_sdu_size, "Too many bytes were packed in MAC SDU");
 
     // Log SDU.
     pdu_logger.add_sdu(lc_grant_info.lcid.to_lcid(), subh_and_sdu_size);
@@ -454,9 +454,9 @@ void dl_sch_pdu_assembler::assemble_ce(dl_sch_pdu&           ue_pdu,
       pdu_logger.add_conres_id(conres);
     } break;
     case lcid_dl_sch_t::TA_CMD: {
-      srsran_assert(std::holds_alternative<ta_cmd_ce_payload>(subpdu.ce_payload) == true,
-                    "Invalid MAC CE payload for lcid={}",
-                    subpdu.lcid.value());
+      ocudu_assert(std::holds_alternative<ta_cmd_ce_payload>(subpdu.ce_payload) == true,
+                   "Invalid MAC CE payload for lcid={}",
+                   subpdu.lcid.value());
       const auto ce_payload = std::get<ta_cmd_ce_payload>(subpdu.ce_payload);
       ue_pdu.add_tag_cmd(ce_payload);
       pdu_logger.add_ta_cmd(ce_payload);

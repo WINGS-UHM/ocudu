@@ -17,16 +17,16 @@
 #include "du_configuration_handler.h"
 #include "du_processor.h"
 #include "du_processor_config.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_cp/du_processor_context.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/du_processor_context.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class du_processor_impl : public du_processor, public du_metrics_handler, public du_processor_mobility_handler
 {
@@ -91,8 +91,8 @@ private:
                      byte_buffer                            du_to_cu_rrc_container,
                      std::optional<rrc_ue_transfer_context> rrc_context);
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("CU-CP");
-  du_processor_config_t cfg;
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-CP");
+  du_processor_config_t   cfg;
 
   du_processor_cu_cp_notifier& cu_cp_notifier;
   f1ap_message_notifier&       f1ap_pdu_notifier;
@@ -113,5 +113,5 @@ private:
   std::unique_ptr<rrc_du>  rrc;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

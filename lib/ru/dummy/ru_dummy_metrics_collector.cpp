@@ -9,9 +9,9 @@
  */
 
 #include "ru_dummy_metrics_collector.h"
-#include "srsran/ru/ru_metrics.h"
+#include "ocudu/ru/ru_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_dummy_metrics_collector::collect_metrics(ru_metrics& metrics)
 {

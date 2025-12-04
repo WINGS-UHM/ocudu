@@ -13,11 +13,11 @@
 #include "rlc_bearer_logger.h"
 #include "rlc_bearer_metrics_collector.h"
 #include "rlc_tx_metrics_container.h"
-#include "srsran/pcap/rlc_pcap.h"
-#include "srsran/rlc/rlc_tx.h"
-#include "srsran/support/rtsan.h"
+#include "ocudu/pcap/rlc_pcap.h"
+#include "ocudu/rlc/rlc_tx.h"
+#include "ocudu/support/rtsan.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Base class used for transmitting RLC bearers.
 /// It provides interfaces for the RLC bearers, for both higher layers and lower layers
@@ -62,7 +62,7 @@ protected:
                                high_metrics_timer.run();
                              });
       low_metrics_timer.set(std::chrono::milliseconds(metrics_coll.get_metrics_period().count()),
-                            [this](timer_id_t tid) noexcept SRSRAN_RTSAN_NONBLOCKING {
+                            [this](timer_id_t tid) noexcept OCUDU_RTSAN_NONBLOCKING {
                               metrics_coll.push_tx_low_metrics(metrics_low.get_and_reset_metrics());
                               low_metrics_timer.run();
                             });
@@ -111,4 +111,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

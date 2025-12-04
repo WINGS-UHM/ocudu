@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ru/ru_controller.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ru/ru_controller.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class lower_phy_sector;
 class lower_phy_cfo_controller;
@@ -141,4 +141,4 @@ private:
   ru_tx_time_offset_controller_sdr_impl                tx_time_offset_controller;
 };
 
-} // namespace srsran
+} // namespace ocudu

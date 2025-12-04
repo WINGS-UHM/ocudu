@@ -10,7 +10,7 @@ set(SOURCES
         channel_equalizer_generic_impl.cpp
         equalization_factories.cpp)
 
-add_library(srsran_channel_equalizer STATIC ${SOURCES})
-target_link_libraries(srsran_channel_equalizer srsvec)
+add_library(ocudu_channel_equalizer STATIC ${SOURCES})
+target_link_libraries(ocudu_channel_equalizer ocuduvec)
 
-add_to_exported_libs(srsran_channel_equalizer)
+add_to_exported_libs(ocudu_channel_equalizer)

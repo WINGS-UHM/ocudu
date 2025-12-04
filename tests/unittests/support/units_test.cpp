@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/units.h"
+#include "ocudu/support/units.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(bit_units, basic)
 {

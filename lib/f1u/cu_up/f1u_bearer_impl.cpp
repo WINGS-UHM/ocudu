@@ -10,8 +10,8 @@
 
 #include "f1u_bearer_impl.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 f1u_bearer_impl::f1u_bearer_impl(uint32_t                       ue_index,
                                  drb_id_t                       drb_id_,

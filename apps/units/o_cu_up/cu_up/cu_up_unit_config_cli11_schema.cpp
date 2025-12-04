@@ -14,10 +14,10 @@
 #include "apps/helpers/network/udp_cli11_schema.h"
 #include "apps/units/o_cu_up/cu_up/cu_up_unit_config.h"
 #include "apps/units/o_cu_up/cu_up/cu_up_unit_pcap_config.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_ngu_socket_args(CLI::App& app, cu_up_unit_ngu_socket_config& ngu_sock_params)
 {
@@ -216,7 +216,7 @@ static void configure_cli11_qos_args(CLI::App& app, cu_up_unit_qos_config& qos_p
   configure_cli11_f1u_cu_up_args(*f1u_cu_up_subcmd, qos_params.f1u_cu_up);
 }
 
-void srsran::configure_cli11_with_cu_up_unit_config_schema(CLI::App& app, cu_up_unit_config& unit_cfg)
+void ocudu::configure_cli11_with_cu_up_unit_config_schema(CLI::App& app, cu_up_unit_config& unit_cfg)
 {
   add_option(app, "--gnb_id", unit_cfg.gnb_id.id, "gNodeB identifier")->capture_default_str();
   // Adding a default function to display correctly the uint8_t type.

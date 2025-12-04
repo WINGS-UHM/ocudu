@@ -12,29 +12,29 @@
 /// \brief PUCCH detector definition for Format 1.
 
 #include "pucch_detector_format1.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_detector.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_status.h"
-#include "srsran/phy/upper/pucch_orthogonal_sequence.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srsvec/add.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/mean.h"
-#include "srsran/srsvec/modulus_square.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/subtract.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/ocuduvec/add.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/mean.h"
+#include "ocudu/ocuduvec/modulus_square.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/subtract.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_detector.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_status.h"
+#include "ocudu/phy/upper/pucch_orthogonal_sequence.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/base.h"
 #include <array>
 #include <cstdint>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Pre-generated orthogonal cover code.
 static const pucch_orthogonal_sequence_format1 occ;
@@ -45,43 +45,43 @@ static constexpr unsigned NSHIFTS = pucch_constants::format1_initial_cyclic_shif
 static void validate_config(const pucch_detector::format1_configuration& config,
                             const pucch_format1_map<unsigned>&           mux_nof_harq_ack)
 {
-  srsran_assert(config.start_symbol_index <= 10,
-                "Setting {} as the first PUCCH symbol index, but only values between 0 and 10 are valid.",
-                config.start_symbol_index);
-  srsran_assert((config.nof_symbols >= 4) && (config.nof_symbols <= 14),
-                "Requiring {} OFDM symbols for PUCCH, but only values between 4 and 14 are valid.",
-                config.nof_symbols);
-  srsran_assert(
+  ocudu_assert(config.start_symbol_index <= 10,
+               "Setting {} as the first PUCCH symbol index, but only values between 0 and 10 are valid.",
+               config.start_symbol_index);
+  ocudu_assert((config.nof_symbols >= 4) && (config.nof_symbols <= 14),
+               "Requiring {} OFDM symbols for PUCCH, but only values between 4 and 14 are valid.",
+               config.nof_symbols);
+  ocudu_assert(
       config.nof_symbols + config.start_symbol_index <= 14,
       "The sum of the starting OFDM symbol (i.e., {}) and the number of allocated symbols (i.e., {}) cannot exceed 14.",
       config.start_symbol_index,
       config.nof_symbols);
-  srsran_assert(config.starting_prb <= 274,
-                "Setting {} as the PRB allocated to PUCCH, but only values between 0 and 274 are valid.",
-                config.starting_prb);
-  srsran_assert(config.n_id <= 1023,
-                "Initializing the pseudorandom generator with {}, but only values between 0 and 1023 are valid.",
-                config.n_id);
+  ocudu_assert(config.starting_prb <= 274,
+               "Setting {} as the PRB allocated to PUCCH, but only values between 0 and 274 are valid.",
+               config.starting_prb);
+  ocudu_assert(config.n_id <= 1023,
+               "Initializing the pseudorandom generator with {}, but only values between 0 and 1023 are valid.",
+               config.n_id);
   if (config.second_hop_prb.has_value()) {
-    srsran_assert(*config.second_hop_prb <= 274,
-                  "Setting {} as the PRB allocated to PUCCH after frequency hopping, but only values between 0 and 274 "
-                  "are valid.",
-                  *config.second_hop_prb);
+    ocudu_assert(*config.second_hop_prb <= 274,
+                 "Setting {} as the PRB allocated to PUCCH after frequency hopping, but only values between 0 and 274 "
+                 "are valid.",
+                 *config.second_hop_prb);
   }
   unsigned symbol_occ_ratio = (config.second_hop_prb.has_value() ? 4U : 2U);
   for (const auto& this_pucch : mux_nof_harq_ack) {
-    srsran_assert(this_pucch.initial_cyclic_shift <= 11,
-                  "Setting {} as the initial cyclic shift, but only values between 0 and 11 are valid.",
-                  this_pucch.initial_cyclic_shift);
-    srsran_assert(this_pucch.time_domain_occ <= 6,
-                  "Setting {} as the time-domain OCC index, but only values between 0 and 6 are valid.",
-                  this_pucch.time_domain_occ);
-    srsran_assert(this_pucch.time_domain_occ < config.nof_symbols / symbol_occ_ratio,
-                  "Cannot have OCCI {} with {} allocated OFDM symbols and frequency hopping {}.",
-                  this_pucch.time_domain_occ,
-                  config.nof_symbols,
-                  (config.second_hop_prb.has_value() ? "enabled" : "disabled"));
-    srsran_assert(this_pucch.value <= 2, "At most two ACK bits - requested {}.", this_pucch.value);
+    ocudu_assert(this_pucch.initial_cyclic_shift <= 11,
+                 "Setting {} as the initial cyclic shift, but only values between 0 and 11 are valid.",
+                 this_pucch.initial_cyclic_shift);
+    ocudu_assert(this_pucch.time_domain_occ <= 6,
+                 "Setting {} as the time-domain OCC index, but only values between 0 and 6 are valid.",
+                 this_pucch.time_domain_occ);
+    ocudu_assert(this_pucch.time_domain_occ < config.nof_symbols / symbol_occ_ratio,
+                 "Cannot have OCCI {} with {} allocated OFDM symbols and frequency hopping {}.",
+                 this_pucch.time_domain_occ,
+                 config.nof_symbols,
+                 (config.second_hop_prb.has_value() ? "enabled" : "disabled"));
+    ocudu_assert(this_pucch.value <= 2, "At most two ACK bits - requested {}.", this_pucch.value);
   }
 }
 
@@ -96,7 +96,7 @@ static void validate_config(const pucch_detector::format1_configuration& config,
 static float detect_symbol(span<uint8_t> bits, cf_t cross_term)
 {
   unsigned nof_bits = bits.size();
-  srsran_assert(nof_bits <= 2, "PUCCH Format 1 supports max 2 bits, requested {}.", nof_bits);
+  ocudu_assert(nof_bits <= 2, "PUCCH Format 1 supports max 2 bits, requested {}.", nof_bits);
 
   // Case BPSK.
   if (nof_bits == 1) {
@@ -196,7 +196,7 @@ pucch_detector_format1::detect(const resource_grid_reader&                  grid
       detection_threshold = 6.95F;
       break;
     default:
-      srsran_terminate("The PUCCH detector does not support more than 4 ports, configured {}.", grid.get_nof_ports());
+      ocudu_terminate("The PUCCH detector does not support more than 4 ports, configured {}.", grid.get_nof_ports());
   }
 
   // Clear previous results.
@@ -264,9 +264,9 @@ pucch_detector_format1::detect(const resource_grid_reader&                  grid
 
     ++this_pucch_nof_harq_ack;
   }
-  srsran_assert(this_metric_hop1 == metrics_hop1.end(), "Not all hop1 metrics have been processed.");
-  srsran_assert(this_pucch_nof_harq_ack == mux_nof_harq_ack.end(),
-                "Not all PUCCH in the input list have been processed.");
+  ocudu_assert(this_metric_hop1 == metrics_hop1.end(), "Not all hop1 metrics have been processed.");
+  ocudu_assert(this_pucch_nof_harq_ack == mux_nof_harq_ack.end(),
+               "Not all PUCCH in the input list have been processed.");
 
   return mux_results;
 }
@@ -285,30 +285,30 @@ combine_symbols(static_tensor<2, cf_t, NSHIFTS * MAX_PORTS>&                    
   const auto& out_dims = out.get_dimensions_size();
   const auto& in_dims  = in.get_dimensions_size();
 
-  srsran_assert(out_dims[0] == NSHIFTS,
-                "The number of entries {} per port in the output tensor is not {}.",
-                out_dims[0],
-                NSHIFTS);
-  srsran_assert(
+  ocudu_assert(out_dims[0] == NSHIFTS,
+               "The number of entries {} per port in the output tensor is not {}.",
+               out_dims[0],
+               NSHIFTS);
+  ocudu_assert(
       in_dims[0] == NSHIFTS, "The number of entries {} per port in the input tensor is not {}.", in_dims[0], NSHIFTS);
   unsigned n_ports = out_dims[1];
-  srsran_assert(in_dims[2] == n_ports,
-                "The number of antenna ports {} in the input tensor does not match that of the output tensor {}.",
-                in_dims[2],
-                n_ports);
+  ocudu_assert(in_dims[2] == n_ports,
+               "The number of antenna ports {} in the input tensor does not match that of the output tensor {}.",
+               in_dims[2],
+               n_ports);
   unsigned n_symbols = in_dims[1];
-  srsran_assert(n_symbols == w.size(),
-                "The number of OFDM symbols in the input tensor {} does not match the length of the w sequence {}.",
-                n_symbols,
-                w.size());
+  ocudu_assert(n_symbols == w.size(),
+               "The number of OFDM symbols in the input tensor {} does not match the length of the w sequence {}.",
+               n_symbols,
+               w.size());
 
   std::array<cf_t, NSHIFTS> scaled;
   float                     normalizer = 1.0F / std::sqrt(static_cast<float>(n_symbols));
   for (unsigned i_port = 0; i_port != n_ports; ++i_port) {
-    srsvec::sc_prod(out.get_view({i_port}), in.get_view({0, i_port}), w[0] * normalizer);
+    ocuduvec::sc_prod(out.get_view({i_port}), in.get_view({0, i_port}), w[0] * normalizer);
     for (unsigned i_symbol = 1; i_symbol != n_symbols; ++i_symbol) {
-      srsvec::sc_prod(scaled, in.get_view({i_symbol, i_port}), w[i_symbol] * normalizer);
-      srsvec::add(out.get_view({i_port}), scaled, out.get_view({i_port}));
+      ocuduvec::sc_prod(scaled, in.get_view({i_symbol, i_port}), w[i_symbol] * normalizer);
+      ocuduvec::add(out.get_view({i_port}), scaled, out.get_view({i_port}));
     }
   }
 }
@@ -332,27 +332,27 @@ static void estimate_channels(static_tensor<2, cf_t, NSHIFTS * MAX_PORTS>&      
   const auto& ch_dims = ch.get_dimensions_size();
   const auto& in_dims = in.get_dimensions_size();
 
-  srsran_assert(
+  ocudu_assert(
       ch_dims[0] == NSHIFTS, "The number of entries {} per port in the output tensor is not {}.", ch_dims[0], NSHIFTS);
-  srsran_assert(
+  ocudu_assert(
       in_dims[0] == NSHIFTS, "The number of entries {} per port in the input tensor is not {}.", in_dims[0], NSHIFTS);
   unsigned n_ports = ch_dims[1];
-  srsran_assert(in_dims[1] == n_ports,
-                "The number of antenna ports {} in the input tensor does not match that of the output tensor {}.",
-                in_dims[1],
-                n_ports);
+  ocudu_assert(in_dims[1] == n_ports,
+               "The number of antenna ports {} in the input tensor does not match that of the output tensor {}.",
+               in_dims[1],
+               n_ports);
 
   // Normalize the input to take into account the spreading factor.
-  srsvec::sc_prod(ch.get_data(), in.get_data(), 1.0F / static_cast<float>(std::sqrt(nof_dmrs_symbols_hop) * NSHIFTS));
+  ocuduvec::sc_prod(ch.get_data(), in.get_data(), 1.0F / static_cast<float>(std::sqrt(nof_dmrs_symbols_hop) * NSHIFTS));
 
   // Estimate the total channel energy (across ports) for all ICSs.
-  srsvec::modulus_square(rsrp, ch.get_view({0}));
+  ocuduvec::modulus_square(rsrp, ch.get_view({0}));
   for (unsigned i_port = 1; i_port != n_ports; ++i_port) {
-    srsvec::modulus_square_and_add(rsrp, ch.get_view({i_port}), rsrp);
+    ocuduvec::modulus_square_and_add(rsrp, ch.get_view({i_port}), rsrp);
   }
 
   // Find the strongest ICS and neglect all ICSs that are 10+ dB below that one.
-  auto [pos, value] = srsvec::max_element(rsrp);
+  auto [pos, value] = ocuduvec::max_element(rsrp);
   float th          = value / 10;
 
   for (unsigned i_port = 0; i_port != n_ports; ++i_port) {
@@ -362,7 +362,7 @@ static void estimate_channels(static_tensor<2, cf_t, NSHIFTS * MAX_PORTS>&      
     }
   }
 
-  srsvec::sc_prod(rsrp, rsrp, 1.0F / n_ports);
+  ocuduvec::sc_prod(rsrp, rsrp, 1.0F / n_ports);
 }
 
 /// Estimates the noise by looking at the difference between the received and the reconstructed signal.
@@ -373,27 +373,27 @@ static float estimate_noise(
   const auto& lse_dims           = dmrs_lse.get_dimensions_size();
   const auto& reconstructed_dims = dmrs_reconstructed.get_dimensions_size();
 
-  srsran_assert(lse_dims[0] == NRE, "The number of REs {} in the LSE tensor is not {}.", lse_dims[0], NRE);
-  srsran_assert(reconstructed_dims[0] == NRE,
-                "The number of REs {} in the reconstructed tensor is not {}.",
-                reconstructed_dims[0],
-                NRE);
+  ocudu_assert(lse_dims[0] == NRE, "The number of REs {} in the LSE tensor is not {}.", lse_dims[0], NRE);
+  ocudu_assert(reconstructed_dims[0] == NRE,
+               "The number of REs {} in the reconstructed tensor is not {}.",
+               reconstructed_dims[0],
+               NRE);
   unsigned n_ports = lse_dims[2];
-  srsran_assert(reconstructed_dims[2] == n_ports,
-                "The number of antenna ports {} in the reconstructed tensor does not match that of the LSE tensor {}.",
-                reconstructed_dims[2],
-                n_ports);
+  ocudu_assert(reconstructed_dims[2] == n_ports,
+               "The number of antenna ports {} in the reconstructed tensor does not match that of the LSE tensor {}.",
+               reconstructed_dims[2],
+               n_ports);
   unsigned n_symbols = lse_dims[1];
-  srsran_assert(reconstructed_dims[1] == n_symbols,
-                "The number of OFDM symbols {} in the reconstructed tensor does not match that of the LSE tensor {}.",
-                reconstructed_dims[1],
-                n_symbols);
+  ocudu_assert(reconstructed_dims[1] == n_symbols,
+               "The number of OFDM symbols {} in the reconstructed tensor does not match that of the LSE tensor {}.",
+               reconstructed_dims[1],
+               n_symbols);
 
   static_vector<cf_t, MAX_PORTS*(pucch_detector_format1::MAX_ALLOCATED_RE_F1 / 2 + 1)> all_differences(
       dmrs_lse.get_data().size());
-  srsvec::subtract(all_differences, dmrs_lse.get_data(), dmrs_reconstructed.get_data());
+  ocuduvec::subtract(all_differences, dmrs_lse.get_data(), dmrs_reconstructed.get_data());
 
-  return (srsvec::average_power(all_differences) * all_differences.size());
+  return (ocuduvec::average_power(all_differences) * all_differences.size());
 }
 
 void pucch_detector_format1::combine_reconstructed_contributions(
@@ -405,18 +405,18 @@ void pucch_detector_format1::combine_reconstructed_contributions(
   const auto& ch_dims   = ch.get_dimensions_size();
   const auto& dmrs_dims = dmrs_reconstructed.get_dimensions_size();
 
-  srsran_assert(ch_dims[0] == NSHIFTS, "The number of REs {} in the input tensor is not {}.", ch_dims[0], NSHIFTS);
-  srsran_assert(dmrs_dims[0] == NRE, "The number of REs {} in the output tensor is not {}.", dmrs_dims[0], NRE);
+  ocudu_assert(ch_dims[0] == NSHIFTS, "The number of REs {} in the input tensor is not {}.", ch_dims[0], NSHIFTS);
+  ocudu_assert(dmrs_dims[0] == NRE, "The number of REs {} in the output tensor is not {}.", dmrs_dims[0], NRE);
   unsigned n_ports = ch_dims[1];
-  srsran_assert(dmrs_dims[2] == n_ports,
-                "The number of antenna ports {} in the output tensor does not match that of the input tensor {}.",
-                dmrs_dims[2],
-                n_ports);
+  ocudu_assert(dmrs_dims[2] == n_ports,
+               "The number of antenna ports {} in the output tensor does not match that of the input tensor {}.",
+               dmrs_dims[2],
+               n_ports);
   unsigned n_symbols = w_star_dmrs.size();
-  srsran_assert(dmrs_dims[1] == n_symbols,
-                "The number of OFDM symbols {} in the output tensor does not match the length of the sequence w {}.",
-                dmrs_dims[1],
-                n_symbols);
+  ocudu_assert(dmrs_dims[1] == n_symbols,
+               "The number of OFDM symbols {} in the output tensor does not match the length of the sequence w {}.",
+               dmrs_dims[1],
+               n_symbols);
 
   std::array<cf_t, NRE> reconstructed;
 
@@ -424,18 +424,19 @@ void pucch_detector_format1::combine_reconstructed_contributions(
     // Spreading in frequency domain is done with columns of DFT matrix. Therefore, the superposition of all PUCCH is
     // equivalent to taking the iDFT of the vector of channel coefficients.
     span<cf_t> idft_input = idft->get_input();
-    srsvec::copy(idft_input, ch.get_view({i_port}));
+    ocuduvec::copy(idft_input, ch.get_view({i_port}));
     span<const cf_t> idft_output = idft->run();
 
     for (unsigned i_symbol = 0; i_symbol != n_symbols; ++i_symbol) {
       // Now copy (or combine) the result to each output symbol after applying the OCC.
       if (is_first) {
-        srsvec::sc_prod(dmrs_reconstructed.get_view({i_symbol, i_port}), idft_output, std::conj(w_star_dmrs[i_symbol]));
+        ocuduvec::sc_prod(
+            dmrs_reconstructed.get_view({i_symbol, i_port}), idft_output, std::conj(w_star_dmrs[i_symbol]));
       } else {
-        srsvec::sc_prod(reconstructed, idft_output, std::conj(w_star_dmrs[i_symbol]));
-        srsvec::add(dmrs_reconstructed.get_view({i_symbol, i_port}),
-                    reconstructed,
-                    dmrs_reconstructed.get_view({i_symbol, i_port}));
+        ocuduvec::sc_prod(reconstructed, idft_output, std::conj(w_star_dmrs[i_symbol]));
+        ocuduvec::add(dmrs_reconstructed.get_view({i_symbol, i_port}),
+                      reconstructed,
+                      dmrs_reconstructed.get_view({i_symbol, i_port}));
       }
     }
   }
@@ -462,43 +463,43 @@ static void compute_contributions(span<float>                                   
   const auto& data_dims = data.get_dimensions_size();
   const auto& dmrs_dims = dmrs.get_dimensions_size();
 
-  srsran_assert(main_contributions.size() == NSHIFTS,
-                "The number of elements {} in the main contributions output is not {}.",
-                main_contributions.size(),
-                NSHIFTS);
-  srsran_assert(cross_contributions.size() == NSHIFTS,
-                "The number of elements {} in the cross contributions output is not {}.",
-                cross_contributions.size(),
-                NSHIFTS);
-  srsran_assert(data_dims[0] == NSHIFTS,
-                "The number of elements {} per port in the data tensor is not {}.",
-                data_dims[0],
-                NSHIFTS);
-  srsran_assert(dmrs_dims[0] == NSHIFTS,
-                "The number of elements {} per port in the dmrs tensor is not {}.",
-                dmrs_dims[0],
-                NSHIFTS);
+  ocudu_assert(main_contributions.size() == NSHIFTS,
+               "The number of elements {} in the main contributions output is not {}.",
+               main_contributions.size(),
+               NSHIFTS);
+  ocudu_assert(cross_contributions.size() == NSHIFTS,
+               "The number of elements {} in the cross contributions output is not {}.",
+               cross_contributions.size(),
+               NSHIFTS);
+  ocudu_assert(data_dims[0] == NSHIFTS,
+               "The number of elements {} per port in the data tensor is not {}.",
+               data_dims[0],
+               NSHIFTS);
+  ocudu_assert(dmrs_dims[0] == NSHIFTS,
+               "The number of elements {} per port in the dmrs tensor is not {}.",
+               dmrs_dims[0],
+               NSHIFTS);
   unsigned n_ports = data_dims[1];
-  srsran_assert(dmrs_dims[1] == n_ports,
-                "The number of antenna ports {} in the data tensor does not match that of the dmrs tensor {}.",
-                n_ports,
-                dmrs_dims[1]);
+  ocudu_assert(dmrs_dims[1] == n_ports,
+               "The number of antenna ports {} in the data tensor does not match that of the dmrs tensor {}.",
+               n_ports,
+               dmrs_dims[1]);
 
   // Main contributions are just to total energy of the two components.
-  srsvec::modulus_square(main_contributions, data.get_view({0}));
-  srsvec::modulus_square_and_add(main_contributions, dmrs.get_view({0}), main_contributions);
+  ocuduvec::modulus_square(main_contributions, data.get_view({0}));
+  ocuduvec::modulus_square_and_add(main_contributions, dmrs.get_view({0}), main_contributions);
 
   // Cross contributions are the cross conjugated product of the two components.
-  srsvec::prod_conj(cross_contributions, dmrs.get_view({0}), data.get_view({0}));
+  ocuduvec::prod_conj(cross_contributions, dmrs.get_view({0}), data.get_view({0}));
   std::array<cf_t, NSHIFTS> support_cross;
 
   // Accumulate the contributions from all ports.
   for (unsigned i_port = 1; i_port != n_ports; ++i_port) {
-    srsvec::modulus_square_and_add(main_contributions, data.get_view({i_port}), main_contributions);
-    srsvec::modulus_square_and_add(main_contributions, dmrs.get_view({i_port}), main_contributions);
+    ocuduvec::modulus_square_and_add(main_contributions, data.get_view({i_port}), main_contributions);
+    ocuduvec::modulus_square_and_add(main_contributions, dmrs.get_view({i_port}), main_contributions);
 
-    srsvec::prod_conj(support_cross, dmrs.get_view({i_port}), data.get_view({i_port}));
-    srsvec::add(cross_contributions, support_cross, cross_contributions);
+    ocuduvec::prod_conj(support_cross, dmrs.get_view({i_port}), data.get_view({i_port}));
+    ocuduvec::add(cross_contributions, support_cross, cross_contributions);
   }
 }
 
@@ -556,32 +557,32 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
       for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
         span<cf_t> dmrs_help = dmrs_lse.get_view({i_dmrs, i_port});
         grid.get(dmrs_help, i_port, i_symbol, first_subcarrier);
-        epre += srsvec::average_power(dmrs_help) * dmrs_help.size();
-        srsvec::prod_conj(dmrs_help, dmrs_help, seq_r);
+        epre += ocuduvec::average_power(dmrs_help) * dmrs_help.size();
+        ocuduvec::prod_conj(dmrs_help, dmrs_help, seq_r);
 
         span<cf_t> dft_input = dft->get_input();
-        srsvec::copy(dft_input, dmrs_help);
+        ocuduvec::copy(dft_input, dmrs_help);
         span<const cf_t> dft_output = dft->run();
-        srsvec::copy(dmrs_dft.get_view({i_dmrs, i_port}), dft_output);
+        ocuduvec::copy(dmrs_dft.get_view({i_dmrs, i_port}), dft_output);
       }
       ++i_dmrs;
     } else {
       for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
         span<cf_t> data_help = data_lse.get_view({i_data, i_port});
         grid.get(data_help, i_port, i_symbol, first_subcarrier);
-        epre += srsvec::average_power(data_help) * data_help.size();
-        srsvec::prod_conj(data_help, data_help, seq_r);
+        epre += ocuduvec::average_power(data_help) * data_help.size();
+        ocuduvec::prod_conj(data_help, data_help, seq_r);
 
         span<cf_t> dft_input = dft->get_input();
-        srsvec::copy(dft_input, data_help);
+        ocuduvec::copy(dft_input, data_help);
         span<const cf_t> dft_output = dft->run();
-        srsvec::copy(data_dft.get_view({i_data, i_port}), dft_output);
+        ocuduvec::copy(data_dft.get_view({i_data, i_port}), dft_output);
       }
       ++i_data;
     }
   }
-  srsran_assert(i_data == nof_data_symbols_hop, "Error reading PUCCH F1 data symbols.");
-  srsran_assert(i_dmrs == nof_dmrs_symbols_hop, "Error reading PUCCH F1 dmrs symbols.");
+  ocudu_assert(i_data == nof_data_symbols_hop, "Error reading PUCCH F1 data symbols.");
+  ocudu_assert(i_dmrs == nof_dmrs_symbols_hop, "Error reading PUCCH F1 dmrs symbols.");
 
   bool                                                        is_first = true;
   static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> dmrs_reconstructed(
@@ -613,8 +614,8 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
 
     float normalizer = 1.0F / static_cast<float>(NSHIFTS * (nof_dmrs_symbols_hop + nof_data_symbols_hop));
 
-    srsvec::sc_prod(main_contributions, main_contributions, normalizer);
-    srsvec::sc_prod(cross_contributions, cross_contributions, normalizer);
+    ocuduvec::sc_prod(main_contributions, main_contributions, normalizer);
+    ocuduvec::sc_prod(cross_contributions, cross_contributions, normalizer);
 
     // Estimate the channels from the DM-RS symbols.
     static_tensor<2, cf_t, MAX_PORTS * NSHIFTS> estimated_channels({NSHIFTS, nof_ports});
@@ -636,10 +637,10 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
     is_first = false;
   }
 
-  srsran_assert(hop_metrics.size() == mux_nof_harq_ack.size(),
-                "The number of computed hop metrics {} does not match the number of multiplexed PUCCHs {}.",
-                hop_metrics.size(),
-                mux_nof_harq_ack.size());
+  ocudu_assert(hop_metrics.size() == mux_nof_harq_ack.size(),
+               "The number of computed hop metrics {} does not match the number of multiplexed PUCCHs {}.",
+               hop_metrics.size(),
+               mux_nof_harq_ack.size());
 
   // Estimate the noise by comparing received and reconstructed signal.
   float noise_var = estimate_noise(dmrs_lse, dmrs_reconstructed);

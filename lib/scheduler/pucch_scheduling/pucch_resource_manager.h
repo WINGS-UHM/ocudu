@@ -12,13 +12,13 @@
 
 #include "../config/ue_configuration.h"
 #include "pucch_collision_manager.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/resource_grid_util.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 #include <array>
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 /// Container used to return the result of a PUCCH HARQ resource allocation request.
 struct pucch_harq_resource_alloc_record {
@@ -183,8 +183,8 @@ private:
     {
       for (unsigned r_pucch = 0; r_pucch != res_to_check.size(); ++r_pucch) {
         const unsigned cell_res_id = res_to_check[r_pucch].cell_res_id;
-        srsran_assert(cell_res_id < ues_using_pucch_res.size(),
-                      "PUCCH resource index from PUCCH resource set exceeds the size of the cell resource array");
+        ocudu_assert(cell_res_id < ues_using_pucch_res.size(),
+                     "PUCCH resource index from PUCCH resource set exceeds the size of the cell resource array");
         if (ues_using_pucch_res[cell_res_id] == rnti) {
           return r_pucch;
         }
@@ -203,4 +203,4 @@ private:
   slot_point last_sl_ind;
 };
 
-} // namespace srsran
+} // namespace ocudu

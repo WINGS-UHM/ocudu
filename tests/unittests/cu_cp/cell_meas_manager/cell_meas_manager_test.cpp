@@ -9,10 +9,10 @@
  */
 
 #include "cell_meas_manager_test_helpers.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/ran/plmn_identity.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 TEST_F(cell_meas_manager_test, when_empty_cell_config_is_used_validation_fails)
 {

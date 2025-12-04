@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH demodulator metric decorator.
 class phy_metrics_pusch_demodulator_decorator : public pusch_demodulator, private pusch_codeword_buffer
@@ -26,7 +26,7 @@ public:
                                           pusch_demodulator_metric_notifier& notifier_) :
     base(std::move(base_)), notifier(notifier_)
   {
-    srsran_assert(base, "Invalid PUSCH demodulator.");
+    ocudu_assert(base, "Invalid PUSCH demodulator.");
   }
 
   void demodulate(pusch_codeword_buffer&      codeword_buffer,
@@ -56,7 +56,7 @@ private:
   // See pusch_codeword_buffer interface for documentation.
   span<log_likelihood_ratio> get_next_block_view(unsigned block_size) override
   {
-    srsran_assert(base_buffer != nullptr, "Invalid base buffer.");
+    ocudu_assert(base_buffer != nullptr, "Invalid base buffer.");
 
     // Assume this method takes a small amount of time.
     return base_buffer->get_next_block_view(block_size);
@@ -65,7 +65,7 @@ private:
   // See pusch_codeword_buffer interface for documentation.
   void on_new_block(span<const log_likelihood_ratio> data, const bit_buffer& scrambling_seq) override
   {
-    srsran_assert(base_buffer != nullptr, "Invalid base buffer.");
+    ocudu_assert(base_buffer != nullptr, "Invalid base buffer.");
 
     auto tp_before = std::chrono::high_resolution_clock::now();
     base_buffer->on_new_block(data, scrambling_seq);
@@ -78,7 +78,7 @@ private:
   // See pusch_codeword_buffer interface for documentation.
   void on_end_codeword() override
   {
-    srsran_assert(base_buffer != nullptr, "Invalid base buffer.");
+    ocudu_assert(base_buffer != nullptr, "Invalid base buffer.");
 
     auto tp_before = std::chrono::high_resolution_clock::now();
     base_buffer->on_end_codeword();
@@ -94,4 +94,4 @@ private:
   std::chrono::nanoseconds           elapsed_on_end_codeword = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

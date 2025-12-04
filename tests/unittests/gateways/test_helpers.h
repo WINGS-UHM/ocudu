@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/gateways/sctp_network_gateway.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/sctp_socket.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/sctp_socket.h"
 #include <arpa/inet.h>
 #include <condition_variable>
 #include <gtest/gtest.h>
@@ -24,7 +24,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-namespace srsran {
+namespace ocudu {
 
 inline byte_buffer make_tx_byte_buffer(uint32_t length)
 {
@@ -184,14 +184,14 @@ class dummy_network_gateway_notifier : public sctp_network_gateway_control_notif
                                        public network_gateway_data_notifier
 {
 public:
-  dummy_network_gateway_notifier() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_network_gateway_notifier() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   void on_connection_loss() override { logger.info("Connection loss"); }
   void on_connection_established() override { logger.info("Connection established"); }
   void on_new_pdu(byte_buffer pdu) override { logger.info("Received PDU"); }
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy PDU handler
@@ -204,4 +204,4 @@ public:
   byte_buffer last_pdu;
 };
 
-} // namespace srsran
+} // namespace ocudu

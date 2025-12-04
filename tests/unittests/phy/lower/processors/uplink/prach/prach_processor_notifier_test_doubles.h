@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/shared_prach_buffer.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/shared_prach_buffer.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class prach_processor_notifier_spy : public prach_processor_notifier
 {
@@ -27,18 +27,18 @@ private:
     shared_prach_buffer  buffer;
   };
 
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   std::vector<prach_buffer_context>  request_late_entries;
   std::vector<prach_buffer_context>  request_overflow_entries;
   std::vector<rx_prach_window_entry> rx_prach_window_entries;
 
 public:
   explicit prach_processor_notifier_spy(const std::string& log_level = "info") :
-    logger(srslog::fetch_basic_logger("Notifier", false))
+    logger(ocudulog::fetch_basic_logger("Notifier", false))
   {
-    srslog::init();
-    auto value = srslog::str_to_basic_level(log_level);
-    logger.set_level(value.has_value() ? value.value() : srslog::basic_levels::none);
+    ocudulog::init();
+    auto value = ocudulog::str_to_basic_level(log_level);
+    logger.set_level(value.has_value() ? value.value() : ocudulog::basic_levels::none);
   }
 
   void on_prach_request_late(const prach_buffer_context& context) override
@@ -93,4 +93,4 @@ public:
   const std::vector<rx_prach_window_entry>& get_rx_prach_window_entries() const { return rx_prach_window_entries; }
 };
 
-} // namespace srsran
+} // namespace ocudu

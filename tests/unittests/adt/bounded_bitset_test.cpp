@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/interval.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/support/test_utils.h"
 #include <bitset>
 #include <gtest/gtest.h>
 
@@ -21,7 +21,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 template <typename T>
 class bitmask_test : public ::testing::Test
@@ -169,7 +169,7 @@ protected:
 
   unsigned get_random_size(unsigned min_val = 1, unsigned max_val = bitset_type::max_size()) const
   {
-    srsran_assert(max_val <= bitset_type::max_size(), "Invalid test bitset size argument");
+    ocudu_assert(max_val <= bitset_type::max_size(), "Invalid test bitset size argument");
     return test_rgen::uniform_int<unsigned>(min_val, max_val);
   }
 

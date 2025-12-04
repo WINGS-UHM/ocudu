@@ -12,11 +12,11 @@
 
 #include "../cu_up_processor/cu_up_processor_repository.h"
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/plmn_identity.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ue_transaction_info_release_routine
 {
@@ -26,7 +26,7 @@ public:
                                       ngap_repository&                      ngap_db_,
                                       cu_up_processor_repository&           cu_up_db_,
                                       cu_cp_ue_removal_handler&             ue_rem_handler_,
-                                      srslog::basic_logger&                 logger_);
+                                      ocudulog::basic_logger&               logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -42,7 +42,7 @@ private:
   ngap_repository&                     ngap_db;
   cu_up_processor_repository&          cu_up_db;
   cu_cp_ue_removal_handler&            ue_rem_handler;
-  srslog::basic_logger&                logger;
+  ocudulog::basic_logger&              logger;
 
   // NG reset messages per PLMN.
   std::map<plmn_identity, cu_cp_reset>           ng_reset_per_plmn;
@@ -58,5 +58,5 @@ private:
   manual_event_flag all_ues_reset;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,16 +10,16 @@
 
 #include "f1c_du_bearer_impl.h"
 #include "du/procedures/f1ap_du_event_manager.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/pdcp/pdcp_sn_util.h"
-#include "srsran/support/async/async_no_op_task.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/async/execute_on_blocking.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/support/async/async_no_op_task.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/execute_on_blocking.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 
 f1c_srb0_du_bearer::f1c_srb0_du_bearer(f1ap_ue_context&           ue_ctxt_,
                                        const nr_cell_global_id_t& pcell_cgi,
@@ -39,7 +39,7 @@ f1c_srb0_du_bearer::f1c_srb0_du_bearer(f1ap_ue_context&           ue_ctxt_,
   du_configurator(du_configurator_),
   ctrl_exec(ctrl_exec_),
   ue_exec(ue_exec_),
-  logger(srslog::fetch_basic_logger("DU-F1"))
+  logger(ocudulog::fetch_basic_logger("DU-F1"))
 {
 }
 
@@ -141,7 +141,7 @@ f1c_other_srb_du_bearer::f1c_other_srb_du_bearer(f1ap_ue_context&       ue_ctxt_
   ctrl_exec(ctrl_exec_),
   ue_exec(ue_exec_),
   timers(timers_),
-  logger(srslog::fetch_basic_logger("DU-F1")),
+  logger(ocudulog::fetch_basic_logger("DU-F1")),
   event_pool(MAX_CONCURRENT_PDU_EVENTS)
 {
   // set up the always set event
@@ -195,7 +195,7 @@ void f1c_other_srb_du_bearer::handle_sdu(byte_buffer_chain sdu)
   }
 }
 
-void f1c_other_srb_du_bearer::handle_pdu(srsran::byte_buffer pdu, bool rrc_delivery_status_request)
+void f1c_other_srb_du_bearer::handle_pdu(ocudu::byte_buffer pdu, bool rrc_delivery_status_request)
 {
   if (pdu.length() < 3) {
     logger.warning(

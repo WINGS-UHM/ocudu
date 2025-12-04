@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ofh/receiver/ofh_receiver_timing_parameters.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/receiver/ofh_receiver_timing_parameters.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Helper structure with aggregated reception window statistics.
 struct ru_emulator_rx_kpis {
@@ -79,4 +79,4 @@ public:
   ru_emulator_rx_kpis get_statistics();
 };
 
-} // namespace srsran
+} // namespace ocudu

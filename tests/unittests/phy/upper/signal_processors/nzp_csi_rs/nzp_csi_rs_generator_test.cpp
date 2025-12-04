@@ -9,15 +9,15 @@
  */
 
 #include "nzp_csi_rs_generator_test_data.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/factories.h"
-#include "srsran/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_formatter.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/factories.h"
+#include "ocudu/phy/upper/signal_processors/nzp_csi_rs/nzp_csi_rs_formatter.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t tcase)
 {
@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, test_case_t tcase)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 class NzpCsiRsGeneratorFixture : public ::testing::TestWithParam<test_case_t>

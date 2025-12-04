@@ -11,11 +11,11 @@
 #pragma once
 
 #include "e1ap_asn1_converters.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/ran/qos/qos_prio_level.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/ran/qos/qos_prio_level.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline void fill_e1ap_cu_up_e1_setup_request(cu_up_e1_setup_request&                         req,
                                              const asn1::e1ap::gnb_cu_up_e1_setup_request_s& asn1_req)
@@ -82,4 +82,4 @@ inline void fill_e1ap_cu_up_e1_setup_request(cu_up_e1_setup_request&            
   }
 }
 
-} // namespace srsran
+} // namespace ocudu

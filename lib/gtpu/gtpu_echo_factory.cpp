@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/gtpu/gtpu_echo_factory.h"
+#include "ocudu/gtpu/gtpu_echo_factory.h"
 #include "gtpu_echo_impl.h"
 
 /// Notice this would be the only place were we include concrete class implementation files.
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<gtpu_echo> srsran::create_gtpu_echo(gtpu_echo_creation_message& msg)
+std::unique_ptr<gtpu_echo> ocudu::create_gtpu_echo(gtpu_echo_creation_message& msg)
 {
   return std::make_unique<gtpu_echo_impl>(*msg.gtpu_pcap, *msg.tx_upper);
 }

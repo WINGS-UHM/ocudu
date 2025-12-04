@@ -11,18 +11,18 @@
 #pragma once
 
 #include "gtpu_tunnel_base_rx.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/gtpu/gtpu_tunnel_nru_rx.h"
-#include "srsran/nru/nru_packing.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/gtpu/gtpu_tunnel_nru_rx.h"
+#include "ocudu/nru/nru_packing.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used for receiving GTP-U NR-U bearers, e.g. on F1-U interface.
 class gtpu_tunnel_nru_rx_impl : public gtpu_tunnel_base_rx
 {
 public:
-  gtpu_tunnel_nru_rx_impl(srs_cu_up::ue_index_t                             ue_index,
+  gtpu_tunnel_nru_rx_impl(ocuup::ue_index_t                                 ue_index,
                           gtpu_tunnel_nru_config::gtpu_tunnel_nru_rx_config cfg,
                           gtpu_tunnel_nru_rx_lower_layer_notifier&          rx_lower_) :
     gtpu_tunnel_base_rx(gtpu_tunnel_log_prefix{ue_index, cfg.local_teid, "RX"}),
@@ -31,7 +31,7 @@ public:
     config(cfg)
   {
     logger.log_info("GTPU NR-U Rx configured. node={} local_teid={}", config.node, config.local_teid);
-    srsran_assert(cfg.node != nru_node::invalid, "GTP-U RX node not correctly initialized");
+    ocudu_assert(cfg.node != nru_node::invalid, "GTP-U RX node not correctly initialized");
   }
   ~gtpu_tunnel_nru_rx_impl() override = default;
 
@@ -132,4 +132,4 @@ private:
   /// Rx config
   gtpu_tunnel_nru_config::gtpu_tunnel_nru_rx_config config;
 };
-} // namespace srsran
+} // namespace ocudu

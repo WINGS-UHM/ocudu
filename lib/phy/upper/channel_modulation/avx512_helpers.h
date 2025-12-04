@@ -24,7 +24,7 @@
 #error "GCC version must be greater than 9."
 #endif // defined(__GNUC__) && (__GNUC__ <= 9)
 
-namespace srsran {
+namespace ocudu {
 
 namespace mm512 {
 
@@ -249,4 +249,4 @@ inline __m256 safe_div(__m256 dividend, __m256 divisor)
 }
 
 } // namespace mm512
-} // namespace srsran
+} // namespace ocudu

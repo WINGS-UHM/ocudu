@@ -9,15 +9,15 @@
  */
 
 #include "e2_subscription_delete_procedure.h"
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 
 e2_subscription_delete_procedure::e2_subscription_delete_procedure(const asn1::e2ap::ric_sub_delete_request_s& request_,
-                                                                   e2_event_manager&     event_manager_,
-                                                                   e2_message_notifier&  ric_notif_,
-                                                                   e2_subscription_proc& subscription_mngr_,
-                                                                   timer_factory         timers_,
-                                                                   srslog::basic_logger& logger_) :
+                                                                   e2_event_manager&       event_manager_,
+                                                                   e2_message_notifier&    ric_notif_,
+                                                                   e2_subscription_proc&   subscription_mngr_,
+                                                                   timer_factory           timers_,
+                                                                   ocudulog::basic_logger& logger_) :
   request(request_),
   event_manager(event_manager_),
   logger(logger_),

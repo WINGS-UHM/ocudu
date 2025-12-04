@@ -10,11 +10,11 @@
 
 #include "du_high_sim_dependencies.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -58,7 +58,7 @@ public:
     // Note: F1AP Tx PDU notifier can be deleted by the F1AP-DU at any moment. Therefore, we cannot pass this in the
     // capture.
     bool result = test_exec.execute([ul_msgs = &f1ap_ul_msgs, next_msg_no = &next_msg_number, msg]() {
-      static srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+      static ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
       logger.info("Received F1 UL message with {}", msg.pdu.type().to_string());
       ul_msgs->emplace(std::make_pair((*next_msg_no)++, msg));
     });

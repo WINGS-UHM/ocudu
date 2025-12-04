@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/cu_cp/cu_configurator.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2sm/e2sm.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/cu_cp/cu_configurator.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 class e2sm_rc_control_action_cu_executor_base : public e2sm_control_action_executor
 {
@@ -35,10 +35,10 @@ public:
   async_task<e2sm_ric_control_response> return_ctrl_failure(const e2sm_ric_control_request& req);
 
 protected:
-  srslog::basic_logger& logger;
-  uint32_t              action_id;
-  std::string           action_name;
-  cu_configurator&      cu_param_configurator;
+  ocudulog::basic_logger& logger;
+  uint32_t                action_id;
+  std::string             action_name;
+  cu_configurator&        cu_param_configurator;
 };
 
 class e2sm_rc_control_action_3_1_cu_executor : public e2sm_rc_control_action_cu_executor_base
@@ -59,4 +59,4 @@ public:
 private:
 };
 
-} // namespace srsran
+} // namespace ocudu

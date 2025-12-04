@@ -12,7 +12,7 @@
 #include "../message_builder_helpers.h"
 #include "helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 using namespace unittest;
 
@@ -29,7 +29,7 @@ TEST_P(validate_tx_precoding_and_beamforming_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_tx_precoding_and_beamforming_pdu,
                validate_tx_precoding_and_beamforming_pdu,
-               srsran::fapi::message_type_id::dl_tti_request,
+               ocudu::fapi::message_type_id::dl_tti_request,
                dl_pdu_type::SSB);
 }
 
@@ -76,7 +76,7 @@ TEST(validate_tx_precoding_and_beamforming_pdu, valid_pdu_passes)
   tx_precoding_and_beamforming_pdu pdu = build_valid_tx_precoding_and_beamforming_pdu();
 
   validator_report report(0, 0);
-  EXPECT_TRUE(validate_tx_precoding_and_beamforming_pdu(pdu, report, srsran::fapi::dl_pdu_type::CSI_RS));
+  EXPECT_TRUE(validate_tx_precoding_and_beamforming_pdu(pdu, report, ocudu::fapi::dl_pdu_type::CSI_RS));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
 }
@@ -90,7 +90,7 @@ TEST(validate_tx_precoding_and_beamforming_pdu, invalid_pdu_should_fails)
   pdu.prg_size = 0;
 
   validator_report report(0, 0);
-  EXPECT_FALSE(validate_tx_precoding_and_beamforming_pdu(pdu, report, srsran::fapi::dl_pdu_type::CSI_RS));
+  EXPECT_FALSE(validate_tx_precoding_and_beamforming_pdu(pdu, report, ocudu::fapi::dl_pdu_type::CSI_RS));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 2u);
 }

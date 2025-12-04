@@ -15,8 +15,8 @@ add_executable(ue_scheduler_test
         ta_manager_test.cpp
         ue_harq_link_adaptation_test.cpp)
 target_link_libraries(ue_scheduler_test
-        srsran_sched
-        srslog
+        ocudu_sched
+        ocudulog
         mac_configuration_helpers
         scheduler_test_suite
         sched_config

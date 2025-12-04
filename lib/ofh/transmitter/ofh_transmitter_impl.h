@@ -16,17 +16,17 @@
 #include "ofh_transmitter_ota_symbol_task_dispatcher.h"
 #include "ofh_uplink_request_handler_impl.h"
 #include "ofh_uplink_request_handler_task_dispatcher.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ofh/transmitter/ofh_transmitter.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_configuration.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul transmitter implementation dependencies.
 struct transmitter_impl_dependencies {
   /// Log.
-  srslog::basic_logger* logger = nullptr;
+  ocudulog::basic_logger* logger = nullptr;
   /// Error notifier.
   error_notifier* err_notifier = nullptr;
   /// Transmitter task executor.
@@ -92,4 +92,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

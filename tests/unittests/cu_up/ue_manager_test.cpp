@@ -10,13 +10,13 @@
 
 #include "cu_up_test_helpers.h"
 #include "lib/cu_up/ue_manager.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 /// Fixture class for UE manager tests
 class ue_manager_test : public ::testing::Test
@@ -24,8 +24,8 @@ class ue_manager_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // create required objects
     gtpu_rx_demux      = std::make_unique<dummy_gtpu_demux_ctrl>();
@@ -60,7 +60,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<gtpu_demux_ctrl>                            gtpu_rx_demux;
@@ -79,7 +79,7 @@ protected:
   std::unique_ptr<ue_manager_ctrl>                            ue_mng;
   n3_interface_config                                         n3_config;
   cu_up_test_mode_config                                      test_mode_config{};
-  srslog::basic_logger&                                       test_logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&                                     test_logger = ocudulog::fetch_basic_logger("TEST", false);
   manual_task_worker                                          worker{64};
 
   async_task<void>                        t;

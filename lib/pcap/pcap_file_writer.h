@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/span.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <fstream>
 #include <netinet/in.h>
 #include <string>
 
 #define PCAP_CONTEXT_HEADER_MAX 256
 
-namespace srsran {
+namespace ocudu {
 
 // End-of-options
 const uint32_t EXP_PDU_TAG_END_OF_OPT    = 0;
@@ -72,15 +72,15 @@ public:
   void close();
   void write_pdu_header(uint32_t length, const std::string& dissector);
   void write_exported_pdu_header(const std::string& dissector);
-  void write_pdu(srsran::const_span<uint8_t> pdu);
+  void write_pdu(ocudu::const_span<uint8_t> pdu);
   void write_pdu(const byte_buffer& pdu);
 
 private:
-  srslog::basic_logger& logger;
-  std::ofstream         pcap_fstream;
-  std::string           filename;
-  uint32_t              dlt = 0;
-  std::array<char, 4>   padding{};
+  ocudulog::basic_logger& logger;
+  std::ofstream           pcap_fstream;
+  std::string             filename;
+  uint32_t                dlt = 0;
+  std::array<char, 4>     padding{};
 };
 
-} // namespace srsran
+} // namespace ocudu

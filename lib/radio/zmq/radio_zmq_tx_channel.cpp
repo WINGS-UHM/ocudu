@@ -9,9 +9,9 @@
  */
 
 #include "radio_zmq_tx_channel.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/support/synchronization/sync_event.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static const std::set<int> VALID_SOCKET_TYPES = {ZMQ_REP};
 
@@ -23,7 +23,7 @@ radio_zmq_tx_channel::radio_zmq_tx_channel(void*                      zmq_contex
   channel_id(config.channel_id),
   channel_id_str(config.channel_id_str),
   socket_type(config.socket_type),
-  logger(srslog::fetch_basic_logger(config.channel_id_str, false)),
+  logger(ocudulog::fetch_basic_logger(config.channel_id_str, false)),
   circular_buffer(config.buffer_size),
   buffer(config.buffer_size * sizeof(cf_t)),
   notification_handler(notification_handler_),
@@ -189,7 +189,7 @@ void radio_zmq_tx_channel::send_response()
 void radio_zmq_tx_channel::run_async()
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
@@ -248,7 +248,7 @@ void radio_zmq_tx_channel::transmit_samples(span<const cf_t> data)
 bool radio_zmq_tx_channel::align(uint64_t timestamp, std::chrono::milliseconds timeout)
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return false;
   }
 
@@ -293,7 +293,7 @@ bool radio_zmq_tx_channel::align(uint64_t timestamp, std::chrono::milliseconds t
 void radio_zmq_tx_channel::transmit(span<const cf_t> data)
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 

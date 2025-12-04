@@ -10,20 +10,20 @@
 
 #pragma once
 
-#include "srsran/gateways/sctp_network_gateway.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/sctp_socket.h"
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/sctp_socket.h"
 
 struct addrinfo;
 
-namespace srsran {
+namespace ocudu {
 
 /// Helper generator class that traverses a list of SCTP sockaddr param candidates (ipv4, ipv6, hostnames).
 class sockaddr_searcher
 {
 public:
-  sockaddr_searcher(const std::string& address, int port, srslog::basic_logger& logger);
+  sockaddr_searcher(const std::string& address, int port, ocudulog::basic_logger& logger);
   sockaddr_searcher(const sockaddr_searcher&) = delete;
   sockaddr_searcher(sockaddr_searcher&&)      = delete;
   ~sockaddr_searcher();
@@ -57,11 +57,11 @@ protected:
   [[nodiscard]] bool validate_and_log_sctp_notification(span<const uint8_t> payload) const;
 
   const sctp_network_gateway_config node_cfg;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   sctp_socket socket;
 
   io_broker::subscriber io_sub;
 };
 
-} // namespace srsran
+} // namespace ocudu

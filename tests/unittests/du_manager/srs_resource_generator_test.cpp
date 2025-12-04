@@ -9,12 +9,12 @@
  */
 
 #include "lib/du/du_high/du_manager/ran_resource_management/srs_resource_generator.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 struct srs_cfg_builder_params {
@@ -37,19 +37,19 @@ protected:
       /// Cyclic shift that we can use with the n2 TX comb size.
       const std::array<nof_cyclic_shifts, 3> css{
           nof_cyclic_shifts::no_cyclic_shift, nof_cyclic_shifts::two, nof_cyclic_shifts::four};
-      srsran_assert(std::find(css.cbegin(), css.cend(), GetParam().cyclic_shift_reuse_factor) != css.end(),
-                    "Cyclic shift reuse factor set is not compatible with the TX comb size");
+      ocudu_assert(std::find(css.cbegin(), css.cend(), GetParam().cyclic_shift_reuse_factor) != css.end(),
+                   "Cyclic shift reuse factor set is not compatible with the TX comb size");
     }
-    srsran_assert(GetParam().max_nof_symbols.to_uint() >= static_cast<unsigned>(GetParam().nof_symbols),
-                  "The number of symbols per SRS resource cannot be larger than the maximum number of symbols for the "
-                  "entire SRS area");
+    ocudu_assert(GetParam().max_nof_symbols.to_uint() >= static_cast<unsigned>(GetParam().nof_symbols),
+                 "The number of symbols per SRS resource cannot be larger than the maximum number of symbols for the "
+                 "entire SRS area");
 
     // Default PCI.
     du_cell_cfg.pci = 1U;
 
     // In the TDD configuration, the only parameter that matters is the number of UL symbols.
     if (GetParam().nof_ul_symbols.has_value()) {
-      tdd_ul_dl_config_common tdd_cfg = {.ref_scs  = srsran::subcarrier_spacing::kHz30,
+      tdd_ul_dl_config_common tdd_cfg = {.ref_scs  = ocudu::subcarrier_spacing::kHz30,
                                          .pattern1 = tdd_ul_dl_pattern{10U, 6, 0, 3, GetParam().nof_ul_symbols.value()},
                                          .pattern2 = std::nullopt};
       du_cell_cfg.tdd_ul_dl_cfg_common.emplace(tdd_cfg);
@@ -85,7 +85,7 @@ protected:
 
   bool check_res_list_elements(span<const du_srs_resource> srs_res_list) const
   {
-    const unsigned max_cs = du_cell_cfg.srs_cfg.tx_comb == srsran::tx_comb_size::n2 ? 8U : 12U;
+    const unsigned max_cs = du_cell_cfg.srs_cfg.tx_comb == ocudu::tx_comb_size::n2 ? 8U : 12U;
     for (const auto& srs_res : srs_res_list) {
       if (srs_res.tx_comb_offset >= static_cast<unsigned>(du_cell_cfg.srs_cfg.tx_comb)) {
         return false;
@@ -96,7 +96,7 @@ protected:
     }
 
     // Count the number of SRS resources for each TX comb offset.
-    const std::vector<unsigned> tx_comb_offsets = du_cell_cfg.srs_cfg.tx_comb == srsran::tx_comb_size::n2
+    const std::vector<unsigned> tx_comb_offsets = du_cell_cfg.srs_cfg.tx_comb == ocudu::tx_comb_size::n2
                                                       ? std::vector<unsigned>{0U, 1U}
                                                       : std::vector<unsigned>{0U, 1U, 2U, 3U};
     for (const auto& comb_offset : tx_comb_offsets) {

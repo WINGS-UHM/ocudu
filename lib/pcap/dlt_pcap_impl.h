@@ -11,10 +11,10 @@
 #pragma once
 
 #include "backend_pcap_writer.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/pcap/dlt_pcap.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/pcap/dlt_pcap.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dlt_pcap_impl final : public dlt_pcap
 {
@@ -43,8 +43,8 @@ public:
   void push_pdu(const_span<uint8_t> pdu) override;
 
 private:
-  srslog::basic_logger& logger;
-  backend_pcap_writer   writer;
+  ocudulog::basic_logger& logger;
+  backend_pcap_writer     writer;
 };
 
-} // namespace srsran
+} // namespace ocudu

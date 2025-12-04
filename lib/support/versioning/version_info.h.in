@@ -10,8 +10,8 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
-#define SRSRAN_VERSION_STRING "@SRSRAN_VERSION_STRING@"
+#define OCUDU_VERSION_STRING "@OCUDU_VERSION_STRING@"
 
-} // namespace srsran
+} // namespace ocudu

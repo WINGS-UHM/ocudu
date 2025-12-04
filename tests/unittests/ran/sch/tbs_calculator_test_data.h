@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 21-01-2024 (seed 0):
 //   + "srsTBSCalculatorUnittest.m"
 
-#include "srsran/ran/sch/tbs_calculator.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   tbs_calculator_configuration config;
@@ -284,4 +284,4 @@ static const std::vector<test_case_t> tbs_calculator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

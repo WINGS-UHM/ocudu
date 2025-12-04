@@ -8,12 +8,12 @@
 
 add_executable(e1_gateway_test e1_gateway_test.cpp)
 target_link_libraries(e1_gateway_test
-        srsran_e1_gateway
-        srsran_gateway
+        ocudu_e1_gateway
+        ocudu_gateway
         e1ap_test_helpers
-        srsran_e1ap_common
-        srsran_support
-        srslog
+        ocudu_e1ap_common
+        ocudu_support
+        ocudulog
         e1ap_asn1
         gtest
         gtest_main)

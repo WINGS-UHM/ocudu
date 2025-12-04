@@ -13,10 +13,10 @@
 #include "rlc_bearer_logger.h"
 #include "rlc_rx_entity.h"
 #include "rlc_tx_entity.h"
-#include "srsran/rlc/rlc_entity.h"
-#include "srsran/support/timers.h"
+#include "ocudu/rlc/rlc_entity.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Class used to store common members to all RLC entites.
 /// It will contain the base class for TX and RX entities and getters
@@ -86,4 +86,4 @@ protected:
   rlc_bearer_metrics_collector   metrics_coll;
 };
 
-} // namespace srsran
+} // namespace ocudu

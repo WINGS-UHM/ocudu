@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ofh/transmitter/ofh_transmitter_configuration.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_configuration.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Returns the maximum value between the minimum T1a values in symbol units.
@@ -38,4 +38,4 @@ inline unsigned calculate_nof_symbols_before_ota(cyclic_prefix                  
 }
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

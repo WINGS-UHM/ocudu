@@ -14,8 +14,8 @@ add_subdirectory(serdes)
 add_subdirectory(timing)
 add_subdirectory(transmitter)
 
-add_library(srsran_ofh ofh_factories.cpp ofh_metrics_collector_impl.cpp ofh_sector_impl.cpp ofh_sector_controller.cpp)
-target_link_libraries(srsran_ofh srsran_ofh_receiver srsran_ofh_timing srsran_ofh_transmitter srsran_ofh_ethernet)
+add_library(ocudu_ofh ofh_factories.cpp ofh_metrics_collector_impl.cpp ofh_sector_impl.cpp ofh_sector_controller.cpp)
+target_link_libraries(ocudu_ofh ocudu_ofh_receiver ocudu_ofh_timing ocudu_ofh_transmitter ocudu_ofh_ethernet)
 
 if (DPDK_FOUND)
     add_definitions(-DDPDK_FOUND)

@@ -12,7 +12,7 @@
 
 #include "uci_test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Number of RBs configured for the test cases.
 constexpr unsigned NOF_RBS = 52;

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/strong_type.h"
+#include "ocudu/adt/strong_type.h"
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 /// RAN slice identifier that should be unique for a given cell,PLMN,S-NSSAI.
 struct ran_slice_id_tag {};
@@ -30,4 +30,4 @@ constexpr ran_slice_id_t SRB_RAN_SLICE_ID = ran_slice_id_t{0};
 /// RAN slice ID for default slice used to schedule DRB(s) traffic.
 constexpr ran_slice_id_t DEFAULT_DRB_RAN_SLICE_ID = ran_slice_id_t{1};
 
-} // namespace srsran
+} // namespace ocudu

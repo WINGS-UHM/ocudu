@@ -15,7 +15,7 @@
 #include <optional>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Expert upper physical layer configuration.
 struct du_low_unit_expert_upper_phy_config {
@@ -80,9 +80,9 @@ struct du_low_unit_expert_upper_phy_config {
 /// DU low logging functionalities.
 struct du_low_unit_logger_config {
   /// Upper physical layer log level.
-  srslog::basic_levels phy_level = srslog::basic_levels::warning;
+  ocudulog::basic_levels phy_level = ocudulog::basic_levels::warning;
   /// Hardware Abstraction Layer log level.
-  srslog::basic_levels hal_level = srslog::basic_levels::warning;
+  ocudulog::basic_levels hal_level = ocudulog::basic_levels::warning;
   /// Set to true to log broadcasting messages and all PRACH opportunities.
   bool broadcast_enabled = false;
   /// Maximum number of bytes to write when dumping hex arrays.
@@ -248,4 +248,4 @@ struct du_low_unit_config {
   du_low_unit_metrics_config metrics_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

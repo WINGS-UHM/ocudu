@@ -13,12 +13,12 @@
 #include "mac_test_helpers.h"
 #include "tests/test_doubles/mac/dummy_mac_metrics_notifier.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
+#include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static void print_report(const mac_dl_metric_report& rep)
 {
@@ -104,7 +104,7 @@ protected:
   const subcarrier_spacing        scs = subcarrier_spacing::kHz15;
   const unsigned                  period_slots{static_cast<unsigned>(period.count() * get_nof_slots_per_subframe(scs))};
   unsigned aggr_timeout_slots = mac_metrics_aggregator::aggregation_timeout.count() * get_nof_slots_per_subframe(scs);
-  srslog::basic_logger&                    logger = srslog::fetch_basic_logger("MAC", true);
+  ocudulog::basic_logger&                  logger = ocudulog::fetch_basic_logger("MAC", true);
   timer_manager                            timers{2};
   manual_task_worker                       task_worker{16};
   test_helpers::dummy_mac_clock_controller timer_ctrl{timers};

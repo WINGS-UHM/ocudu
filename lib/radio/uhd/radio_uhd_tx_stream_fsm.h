@@ -24,7 +24,7 @@
 #include <uhd/types/time_spec.hpp>
 #pragma GCC diagnostic pop
 
-namespace srsran {
+namespace ocudu {
 
 /// Radio UHD transmit stream finite state machine.
 class radio_uhd_tx_stream_fsm
@@ -147,4 +147,4 @@ public:
   bool on_stop() const { return (state == states::IN_BURST); }
 };
 
-} // namespace srsran
+} // namespace ocudu

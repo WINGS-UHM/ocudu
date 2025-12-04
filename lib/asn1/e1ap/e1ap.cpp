@@ -8,8 +8,8 @@
  *
  */
 
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 using namespace asn1;
 using namespace asn1::e1ap;
 
@@ -1067,7 +1067,7 @@ void e1ap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE e1ap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
+OCUDUASN_CODE e1ap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1193,11 +1193,11 @@ SRSASN_CODE e1ap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_elem_procs_o::init_msg_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE e1ap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE e1ap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1323,9 +1323,9 @@ SRSASN_CODE e1ap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_elem_procs_o::init_msg_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* e1ap_elem_procs_o::init_msg_c::types_opts::to_string() const
@@ -1736,7 +1736,7 @@ void e1ap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE e1ap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
+OCUDUASN_CODE e1ap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1802,11 +1802,11 @@ SRSASN_CODE e1ap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_elem_procs_o::successful_outcome_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE e1ap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE e1ap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -1872,9 +1872,9 @@ SRSASN_CODE e1ap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_elem_procs_o::successful_outcome_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* e1ap_elem_procs_o::successful_outcome_c::types_opts::to_string() const
@@ -2126,7 +2126,7 @@ void e1ap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE e1ap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) const
+OCUDUASN_CODE e1ap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -2168,11 +2168,11 @@ SRSASN_CODE e1ap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_elem_procs_o::unsuccessful_outcome_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE e1ap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE e1ap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   switch (type_) {
@@ -2214,9 +2214,9 @@ SRSASN_CODE e1ap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_elem_procs_o::unsuccessful_outcome_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* e1ap_elem_procs_o::unsuccessful_outcome_c::types_opts::to_string() const
@@ -2237,23 +2237,23 @@ const char* e1ap_elem_procs_o::unsuccessful_outcome_c::types_opts::to_string() c
 }
 
 // InitiatingMessage ::= SEQUENCE{{E1AP-ELEMENTARY-PROCEDURE}}
-SRSASN_CODE init_msg_s::pack(bit_ref& bref) const
+OCUDUASN_CODE init_msg_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, proc_code, (uint16_t)0u, (uint16_t)255u, false, true));
   warn_assert(crit != e1ap_elem_procs_o::get_crit(proc_code), __func__, __LINE__);
   HANDLE_CODE(crit.pack(bref));
   HANDLE_CODE(value.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE init_msg_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE init_msg_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(proc_code, bref, (uint16_t)0u, (uint16_t)255u, false, true));
   HANDLE_CODE(crit.unpack(bref));
   value = e1ap_elem_procs_o::get_init_msg(proc_code);
   HANDLE_CODE(value.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void init_msg_s::to_json(json_writer& j) const
 {
@@ -2276,23 +2276,23 @@ bool init_msg_s::load_info_obj(const uint16_t& proc_code_)
 }
 
 // SuccessfulOutcome ::= SEQUENCE{{E1AP-ELEMENTARY-PROCEDURE}}
-SRSASN_CODE successful_outcome_s::pack(bit_ref& bref) const
+OCUDUASN_CODE successful_outcome_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, proc_code, (uint16_t)0u, (uint16_t)255u, false, true));
   warn_assert(crit != e1ap_elem_procs_o::get_crit(proc_code), __func__, __LINE__);
   HANDLE_CODE(crit.pack(bref));
   HANDLE_CODE(value.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE successful_outcome_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE successful_outcome_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(proc_code, bref, (uint16_t)0u, (uint16_t)255u, false, true));
   HANDLE_CODE(crit.unpack(bref));
   value = e1ap_elem_procs_o::get_successful_outcome(proc_code);
   HANDLE_CODE(value.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void successful_outcome_s::to_json(json_writer& j) const
 {
@@ -2315,23 +2315,23 @@ bool successful_outcome_s::load_info_obj(const uint16_t& proc_code_)
 }
 
 // UnsuccessfulOutcome ::= SEQUENCE{{E1AP-ELEMENTARY-PROCEDURE}}
-SRSASN_CODE unsuccessful_outcome_s::pack(bit_ref& bref) const
+OCUDUASN_CODE unsuccessful_outcome_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, proc_code, (uint16_t)0u, (uint16_t)255u, false, true));
   warn_assert(crit != e1ap_elem_procs_o::get_crit(proc_code), __func__, __LINE__);
   HANDLE_CODE(crit.pack(bref));
   HANDLE_CODE(value.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE unsuccessful_outcome_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE unsuccessful_outcome_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(proc_code, bref, (uint16_t)0u, (uint16_t)255u, false, true));
   HANDLE_CODE(crit.unpack(bref));
   value = e1ap_elem_procs_o::get_unsuccessful_outcome(proc_code);
   HANDLE_CODE(value.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void unsuccessful_outcome_s::to_json(json_writer& j) const
 {
@@ -2469,7 +2469,7 @@ void e1ap_pdu_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE e1ap_pdu_c::pack(bit_ref& bref) const
+OCUDUASN_CODE e1ap_pdu_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -2484,11 +2484,11 @@ SRSASN_CODE e1ap_pdu_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_pdu_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE e1ap_pdu_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE e1ap_pdu_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -2505,9 +2505,9 @@ SRSASN_CODE e1ap_pdu_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "e1ap_pdu_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* e1ap_pdu_c::types_opts::to_string() const

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_data_message_notifier.h"
-#include "srsran/mac/mac_cell_control_information_handler.h"
-#include "srsran/mac/mac_cell_rach_handler.h"
-#include "srsran/mac/mac_pdu_handler.h"
+#include "ocudu/fapi/slot_data_message_notifier.h"
+#include "ocudu/mac/mac_cell_control_information_handler.h"
+#include "ocudu/mac/mac_cell_rach_handler.h"
+#include "ocudu/mac/mac_pdu_handler.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// \brief FAPI-to-MAC data message fastpath translator.
@@ -60,4 +60,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

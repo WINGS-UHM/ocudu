@@ -9,11 +9,11 @@
  */
 
 #include "srs_validator_generic_impl.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/srs/srs_information.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/srs/srs_information.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string> srs_validator_generic_impl::is_valid(const srs_estimator_configuration& config) const
 {

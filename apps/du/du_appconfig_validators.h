@@ -12,9 +12,9 @@
 
 #include "du_appconfig.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Validates the given DU application configuration. Returns true on success, false otherwise.
 bool validate_appconfig(const du_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

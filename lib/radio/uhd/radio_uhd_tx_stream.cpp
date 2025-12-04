@@ -9,11 +9,11 @@
  */
 
 #include "radio_uhd_tx_stream.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
+#include "ocudu/ocuduvec/zero.h"
 #include <uhd/version.hpp>
 
-using namespace srsran;
+using namespace ocudu;
 
 void radio_uhd_tx_stream::recv_async_msg()
 {
@@ -79,7 +79,7 @@ void radio_uhd_tx_stream::recv_async_msg()
 void radio_uhd_tx_stream::run_recv_async_msg()
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
@@ -130,7 +130,7 @@ radio_uhd_tx_stream::radio_uhd_tx_stream(uhd::usrp::multi_usrp::sptr& usrp,
   last_tx_timespec(0.0),
   power_ramping_buffer(nof_channels, 0)
 {
-  srsran_assert(std::isnormal(srate_hz) && (srate_hz > 0.0), "Invalid sampling rate {}.", srate_hz);
+  ocudu_assert(std::isnormal(srate_hz) && (srate_hz > 0.0), "Invalid sampling rate {}.", srate_hz);
 
   // Build stream arguments.
   uhd::stream_args_t stream_args = {};
@@ -172,7 +172,7 @@ radio_uhd_tx_stream::radio_uhd_tx_stream(uhd::usrp::multi_usrp::sptr& usrp,
 
     power_ramping_buffer.resize(power_ramping_nof_samples);
     for (unsigned i_channel = 0; i_channel != nof_channels; ++i_channel) {
-      srsvec::zero(power_ramping_buffer.get_writer()[i_channel]);
+      ocuduvec::zero(power_ramping_buffer.get_writer()[i_channel]);
     }
   }
 
@@ -184,7 +184,7 @@ void radio_uhd_tx_stream::transmit(const baseband_gateway_buffer_reader&        
                                    const baseband_gateway_transmitter_metadata& tx_md)
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 

@@ -10,17 +10,17 @@
 
 #include "ngap_test_helpers.h"
 #include "tests/unittests/ngap/test_helpers.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <chrono>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 ngap_test::ngap_test() :
   cu_cp_cfg([this]() {
@@ -36,9 +36,9 @@ ngap_test::ngap_test() :
     return cucfg;
   }())
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  ngap_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  ngap_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   ngap_configuration ngap_cfg{};
   ngap_cfg.gnb_id                      = cu_cp_cfg.node.gnb_id;
@@ -57,7 +57,7 @@ ngap_test::ngap_test() :
 ngap_test::~ngap_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }
 
 bool ngap_test::run_ng_setup()

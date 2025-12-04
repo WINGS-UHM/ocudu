@@ -11,22 +11,22 @@
 /*!
 \mainpage
 
-The srsRAN Project is a complete 5G RAN solution, featuring an ORAN-native
+The OCUDU Project is a complete 5G RAN solution, featuring an ORAN-native
 CU/DU developed by [SRS](https://www.srs.io/).
 
 The solution includes a complete L1/2/3 implementation with minimal external
 dependencies. Portable across processor architectures, the software has been
-optimized for x86 and ARM. srsRAN follows the 3GPP 5G system architecture
+optimized for x86 and ARM. OCUDU follows the 3GPP 5G system architecture
 implementing the functional splits between distributed unit (DU) and
 centralized unit (CU). The CU is further disaggregated into control plane
 (CU-CP) and user-plane (CU-UP).
 
-See the [srsRAN Project](https://www.srsran.com/) for information, guides and
+See the [OCUDU Project](https://www.ocudu.com/) for information, guides and
 project news.
 
-This is the API documentation for srsRAN Project, generated from the source
+This is the API documentation for OCUDU Project, generated from the source
 code by [Doxygen](https://www.doxygen.nl/). For application features, build
-instructions and user guides see the [srsRAN Project
-documentation](https://docs.srsran.com/projects/project).
+instructions and user guides see the [OCUDU Project
+documentation](https://docs.ocudu.com/projects/project).
 
 */

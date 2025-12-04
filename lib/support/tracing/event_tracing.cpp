@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/support/tracing/event_tracing.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/format/custom_formattable.h"
-#include "srsran/support/format/fmt_basic_parser.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/tracing/rusage_trace_recorder.h"
+#include "ocudu/support/tracing/event_tracing.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/format/custom_formattable.h"
+#include "ocudu/support/format/fmt_basic_parser.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/tracing/rusage_trace_recorder.h"
 #include "fmt/chrono.h"
 #include <sched.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace std::chrono;
 
 namespace {
@@ -63,7 +63,7 @@ public:
       if (not warn_logged.exchange(true, std::memory_order_relaxed)) {
         file_event_tracer<true> warn_tracer;
         warn_tracer << instant_trace_event{"trace_overflow", instant_trace_event::cpu_scope::global};
-        srslog::fetch_basic_logger("ALL").warning("Tracing thread cannot keep up with the number of events.");
+        ocudulog::fetch_basic_logger("ALL").warning("Tracing thread cannot keep up with the number of events.");
       }
     }
   }
@@ -72,7 +72,7 @@ private:
   template <typename EventType>
   void backend_write_event(const EventType& ev)
   {
-    if (SRSRAN_LIKELY(nof_lines > 0)) {
+    if (OCUDU_LIKELY(nof_lines > 0)) {
       fmt::print(fptr, ",\n{}", ev);
     } else {
       fmt::print(fptr, "\n{}", ev);
@@ -203,7 +203,7 @@ static const trace_point run_epoch = trace_clock::now();
 /// Unique event trace file writer.
 static std::unique_ptr<event_trace_writer> trace_file_writer;
 
-void srsran::open_trace_file(std::string_view trace_file_name, unsigned split_after_n, unsigned event_trigger_n)
+void ocudu::open_trace_file(std::string_view trace_file_name, unsigned split_after_n, unsigned event_trigger_n)
 {
   if (trace_file_writer != nullptr) {
     report_fatal_error("Trace file '{}' already open", trace_file_name);
@@ -211,12 +211,12 @@ void srsran::open_trace_file(std::string_view trace_file_name, unsigned split_af
   trace_file_writer = std::make_unique<event_trace_writer>(trace_file_name, split_after_n, event_trigger_n);
 }
 
-void srsran::close_trace_file()
+void ocudu::close_trace_file()
 {
   trace_file_writer = nullptr;
 }
 
-bool srsran::is_trace_file_open()
+bool ocudu::is_trace_file_open()
 {
   return trace_file_writer != nullptr;
 }

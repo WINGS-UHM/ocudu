@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/adt/batched_dispatch_queue.h"
-#include "srsran/f1u/cu_up/f1u_bearer.h"
-#include "srsran/f1u/cu_up/f1u_bearer_logger.h"
-#include "srsran/f1u/cu_up/f1u_config.h"
-#include "srsran/f1u/cu_up/f1u_rx_delivery_notifier.h"
-#include "srsran/f1u/cu_up/f1u_rx_sdu_notifier.h"
-#include "srsran/f1u/cu_up/f1u_tx_pdu_notifier.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/batched_dispatch_queue.h"
+#include "ocudu/f1u/cu_up/f1u_bearer.h"
+#include "ocudu/f1u/cu_up/f1u_bearer_logger.h"
+#include "ocudu/f1u/cu_up/f1u_config.h"
+#include "ocudu/f1u/cu_up/f1u_rx_delivery_notifier.h"
+#include "ocudu/f1u/cu_up/f1u_rx_sdu_notifier.h"
+#include "ocudu/f1u/cu_up/f1u_tx_pdu_notifier.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/support/timers.h"
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 class f1u_bearer_impl final : public f1u_bearer, public f1u_rx_pdu_handler, public f1u_tx_sdu_handler
 {
@@ -117,4 +117,4 @@ private:
   void flush_discard_blocks();
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

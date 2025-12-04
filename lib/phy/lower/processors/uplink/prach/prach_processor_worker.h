@@ -10,22 +10,22 @@
 
 #pragma once
 
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
-#include "srsran/phy/lower/modulation/ofdm_prach_demodulator.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/shared_prach_buffer.h"
-#include "srsran/ran/phy_time_unit.h"
-#include "srsran/ran/prach/prach_constants.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/lower/modulation/ofdm_prach_demodulator.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_notifier.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/shared_prach_buffer.h"
+#include "ocudu/ran/phy_time_unit.h"
+#include "ocudu/ran/prach/prach_constants.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Lower PHY PRACH processor worker subcomponent.
 ///
@@ -59,7 +59,7 @@ class prach_processor_worker
   static constexpr float scaling_factor_ci16_to_cf = std::numeric_limits<int16_t>::max();
 
   /// PHY logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// OFDM PRACH demodulator.
   std::unique_ptr<ofdm_prach_demodulator> demodulator;
   /// Asynchronous task executor.
@@ -104,7 +104,7 @@ public:
                          task_executor&                          async_task_executor_,
                          sampling_rate                           srate,
                          unsigned                                max_nof_ports) :
-    logger(srslog::fetch_basic_logger("PHY")),
+    logger(ocudulog::fetch_basic_logger("PHY")),
     demodulator(std::move(demodulator_)),
     async_task_executor(async_task_executor_),
     sampling_rate_Hz(srate.to_Hz()),
@@ -112,9 +112,9 @@ public:
     temp_cf_baseband(
         {static_cast<unsigned>(prach_constants::MAX_WINDOW_LENGTH.to_samples(sampling_rate_Hz)), max_nof_ports})
   {
-    srsran_assert(sampling_rate_Hz && prach_constants::MAX_WINDOW_LENGTH.is_sample_accurate(sampling_rate_Hz),
-                  "Invalid sampling rate of {} Hz.",
-                  sampling_rate_Hz);
+    ocudu_assert(sampling_rate_Hz && prach_constants::MAX_WINDOW_LENGTH.is_sample_accurate(sampling_rate_Hz),
+                 "Invalid sampling rate of {} Hz.",
+                 sampling_rate_Hz);
   }
 
   /// Connects the worker with the given PRACH processor notifier.
@@ -141,4 +141,4 @@ public:
   void stop();
 };
 
-} // namespace srsran
+} // namespace ocudu

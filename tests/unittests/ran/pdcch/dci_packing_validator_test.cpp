@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/ran/pdcch/dci_packing.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Maximum number of resource block groups per BWP.
 static constexpr unsigned MAX_NOF_RBGS = 18;

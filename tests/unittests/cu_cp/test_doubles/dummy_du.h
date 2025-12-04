@@ -12,11 +12,11 @@
 
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 struct f1ap_message;
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 class cu_cp_f1c_handler;
 
@@ -37,5 +37,5 @@ struct du_stub_params {
 /// Creates an emulator of a DU from the perspective of the CU-CP.
 std::unique_ptr<du_test_stub> create_du_stub(du_stub_params params);
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "ofh_receiver_controller.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void receiver_controller::start()

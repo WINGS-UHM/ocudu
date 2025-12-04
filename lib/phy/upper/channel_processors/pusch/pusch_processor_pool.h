@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/phy/upper/channel_processors/pusch/formatters.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/phy/upper/channel_processors/pusch/formatters.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH processor wrapper. It appends its identifier into the free list when the processing is finished.
 class pusch_processor_wrapper : public pusch_processor, private pusch_processor_result_notifier
@@ -28,7 +28,7 @@ public:
   /// Creates a pusch processor wrapper from another pusch processor.
   explicit pusch_processor_wrapper(std::unique_ptr<pusch_processor> processor_) : processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid pusch processor.");
+    ocudu_assert(processor, "Invalid pusch processor.");
   }
 
   /// Creates a PUSCH processor wrapper from another PUSCH processor wrapper.
@@ -47,7 +47,7 @@ public:
   {
     // Save original notifier.
     [[maybe_unused]] pusch_processor_result_notifier* prev_notifier = std::exchange(notifier, &notifier_);
-    srsran_assert(prev_notifier == nullptr, "PUSCH processor is in use.");
+    ocudu_assert(prev_notifier == nullptr, "PUSCH processor is in use.");
 
     // Process.
     processor->process(data, std::move(rm_buffer), *this, grid, pdu);
@@ -60,7 +60,7 @@ private:
   // See pusch_processor_result_notifier for documentation.
   void on_uci(const pusch_processor_result_control& uci) override
   {
-    srsran_assert(notifier != nullptr, "Invalid notifier.");
+    ocudu_assert(notifier != nullptr, "Invalid notifier.");
     notifier->on_uci(uci);
   }
 
@@ -69,7 +69,7 @@ private:
   {
     // Notify the completion of the processing.
     pusch_processor_result_notifier* current_notifier = std::exchange(notifier, nullptr);
-    srsran_assert(current_notifier != nullptr, "Invalid notifier.");
+    ocudu_assert(current_notifier != nullptr, "Invalid notifier.");
     current_notifier->on_sch(sch);
 
     // Return the pusch processor identifier to the free list.
@@ -99,7 +99,7 @@ public:
   /// Creates a PUSCH processor pool from a list of processors. Ownership is transferred to the pool.
   pusch_processor_pool(span<std::unique_ptr<pusch_processor_wrapper>> processors_,
                        std::shared_ptr<uci_processor_pool>            uci_processors_) :
-    logger(srslog::fetch_basic_logger("PHY")), processors(processors_), uci_processors(uci_processors_)
+    logger(ocudulog::fetch_basic_logger("PHY")), processors(processors_), uci_processors(uci_processors_)
   {
   }
 
@@ -162,7 +162,7 @@ public:
 
 private:
   /// Physical layer logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Actual PUSCH processor pool.
   pusch_processor_wrapper::pool processors;
   /// UCI processor pool, used only the normal processor pool runs out of processors or the PUSCH transmission only
@@ -170,4 +170,4 @@ private:
   std::shared_ptr<uci_processor_pool> uci_processors;
 };
 
-} // namespace srsran
+} // namespace ocudu

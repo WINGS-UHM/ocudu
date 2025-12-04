@@ -12,9 +12,9 @@
 
 #include "apps/services/buffer_pool/buffer_pool_appconfig.h"
 #include "apps/services/buffer_pool/metrics/buffer_pool_metrics_builder.h"
-#include "srsran/adt/detail/byte_buffer_segment_pool.h"
+#include "ocudu/adt/detail/byte_buffer_segment_pool.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// Buffer pool manager for the applications.
@@ -51,4 +51,4 @@ public:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

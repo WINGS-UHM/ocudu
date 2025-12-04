@@ -14,7 +14,7 @@
 #include "apps/units/flexible_o_du/o_du_low/du_low_config.h"
 #include "apps/units/flexible_o_du/split_7_2/helpers/ru_ofh_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Split 7.2 O-RAN DU unit configuration.
 struct split_7_2_o_du_unit_config {
@@ -26,4 +26,4 @@ struct split_7_2_o_du_unit_config {
   ru_ofh_unit_parsed_config ru_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_factory.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_factory.h"
 #include "logging_srs_estimator_decorator.h"
 #include "srs_estimator_generic_impl.h"
 #include "srs_estimator_pool.h"
 #include "srs_validator_generic_impl.h"
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_estimator_factories.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -29,9 +29,9 @@ public:
     ta_estimator_factory(std::move(ta_estimator_factory_)),
     max_nof_prb(max_nof_prb_)
   {
-    srsran_assert(sequence_generator_factory, "Invalid sequence generator factory.");
-    srsran_assert(ta_estimator_factory, "Invalid TA estimator factory.");
-    srsran_assert(max_nof_prb != 0, "Maximum number of PRB cannot be zero.");
+    ocudu_assert(sequence_generator_factory, "Invalid sequence generator factory.");
+    ocudu_assert(ta_estimator_factory, "Invalid TA estimator factory.");
+    ocudu_assert(max_nof_prb != 0, "Maximum number of PRB cannot be zero.");
   }
 
   std::unique_ptr<srs_estimator> create() override
@@ -60,8 +60,8 @@ public:
   srs_estimator_factory_pool(std::shared_ptr<srs_estimator_factory> factory_, unsigned nof_concurrent_threads_) :
     factory(std::move(factory_)), nof_concurrent_threads(nof_concurrent_threads_)
   {
-    srsran_assert(factory, "Invalid factory.");
-    srsran_assert(nof_concurrent_threads != 0, "Number of threads must be larger than 0.");
+    ocudu_assert(factory, "Invalid factory.");
+    ocudu_assert(nof_concurrent_threads != 0, "Number of threads must be larger than 0.");
   }
 
   // See interface for documentation.
@@ -94,7 +94,7 @@ private:
 
 } // namespace
 
-std::shared_ptr<srs_estimator_factory> srsran::create_srs_estimator_generic_factory(
+std::shared_ptr<srs_estimator_factory> ocudu::create_srs_estimator_generic_factory(
     std::shared_ptr<low_papr_sequence_generator_factory> sequence_generator_factory,
     std::shared_ptr<time_alignment_estimator_factory>    ta_estimator_factory,
     unsigned                                             max_nof_prb)
@@ -104,12 +104,12 @@ std::shared_ptr<srs_estimator_factory> srsran::create_srs_estimator_generic_fact
 }
 
 std::shared_ptr<srs_estimator_factory>
-srsran::create_srs_estimator_pool(std::shared_ptr<srs_estimator_factory> base_factory, unsigned max_nof_threads)
+ocudu::create_srs_estimator_pool(std::shared_ptr<srs_estimator_factory> base_factory, unsigned max_nof_threads)
 {
   return std::make_shared<srs_estimator_factory_pool>(std::move(base_factory), max_nof_threads);
 }
 
-std::unique_ptr<srs_estimator> srs_estimator_factory::create(srslog::basic_logger& logger)
+std::unique_ptr<srs_estimator> srs_estimator_factory::create(ocudulog::basic_logger& logger)
 {
   return std::make_unique<logging_srs_estimator_decorator>(logger, create());
 }

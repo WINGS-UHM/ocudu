@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/e1ap/common.h"
+#include "ocudu/asn1/e1ap/common.h"
 using namespace asn1;
 using namespace asn1::e1ap;
 
@@ -44,7 +44,7 @@ void private_ie_id_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE private_ie_id_c::pack(bit_ref& bref) const
+OCUDUASN_CODE private_ie_id_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -55,11 +55,11 @@ SRSASN_CODE private_ie_id_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "private_ie_id_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE private_ie_id_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE private_ie_id_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -72,9 +72,9 @@ SRSASN_CODE private_ie_id_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "private_ie_id_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* private_ie_id_c::types_opts::to_string() const
@@ -85,22 +85,22 @@ const char* private_ie_id_c::types_opts::to_string() const
 
 // PrivateIE-Field{E1AP-PRIVATE-IES : IEsSetParam} ::= SEQUENCE{{E1AP-PRIVATE-IES}}
 template <class ies_set_paramT_>
-SRSASN_CODE private_ie_field_s<ies_set_paramT_>::pack(bit_ref& bref) const
+OCUDUASN_CODE private_ie_field_s<ies_set_paramT_>::pack(bit_ref& bref) const
 {
   HANDLE_CODE(id.pack(bref));
   HANDLE_CODE(crit.pack(bref));
   HANDLE_CODE(value.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 template <class ies_set_paramT_>
-SRSASN_CODE private_ie_field_s<ies_set_paramT_>::unpack(cbit_ref& bref)
+OCUDUASN_CODE private_ie_field_s<ies_set_paramT_>::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(id.unpack(bref));
   HANDLE_CODE(crit.unpack(bref));
   HANDLE_CODE(value.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 template <class ies_set_paramT_>
 void private_ie_field_s<ies_set_paramT_>::to_json(json_writer& j) const
@@ -119,7 +119,7 @@ private_ie_container_item_s<valueT_>::private_ie_container_item_s(private_ie_id_
 {
 }
 template <class valueT_>
-SRSASN_CODE private_ie_container_item_s<valueT_>::pack(bit_ref& bref) const
+OCUDUASN_CODE private_ie_container_item_s<valueT_>::pack(bit_ref& bref) const
 {
   HANDLE_CODE(id.pack(bref));
   HANDLE_CODE(crit.pack(bref));
@@ -127,10 +127,10 @@ SRSASN_CODE private_ie_container_item_s<valueT_>::pack(bit_ref& bref) const
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(value.pack(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 template <class valueT_>
-SRSASN_CODE private_ie_container_item_s<valueT_>::unpack(cbit_ref& bref)
+OCUDUASN_CODE private_ie_container_item_s<valueT_>::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(id.unpack(bref));
   HANDLE_CODE(crit.unpack(bref));
@@ -138,7 +138,7 @@ SRSASN_CODE private_ie_container_item_s<valueT_>::unpack(cbit_ref& bref)
     varlength_field_unpack_guard varlen_scope(bref, true);
     HANDLE_CODE(value.unpack(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 template <class valueT_>
 void private_ie_container_item_s<valueT_>::to_json(json_writer& j) const

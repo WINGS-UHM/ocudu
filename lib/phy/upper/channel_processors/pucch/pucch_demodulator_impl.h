@@ -16,9 +16,9 @@
 #include "pucch_demodulator_format2.h"
 #include "pucch_demodulator_format3.h"
 #include "pucch_demodulator_format4.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_demodulator.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_demodulator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PUCCH demodulator implementation.
 class pucch_demodulator_impl : public pucch_demodulator
@@ -34,9 +34,9 @@ public:
     demodulator_format3(std::move(demodulator_format3_)),
     demodulator_format4(std::move(demodulator_format4_))
   {
-    srsran_assert(demodulator_format2, "Invalid pointer to pucch_demodulator_format2 object.");
-    srsran_assert(demodulator_format3, "Invalid pointer to pucch_demodulator_format3 object.");
-    srsran_assert(demodulator_format4, "Invalid pointer to pucch_demodulator_format4 object.");
+    ocudu_assert(demodulator_format2, "Invalid pointer to pucch_demodulator_format2 object.");
+    ocudu_assert(demodulator_format3, "Invalid pointer to pucch_demodulator_format3 object.");
+    ocudu_assert(demodulator_format4, "Invalid pointer to pucch_demodulator_format4 object.");
   }
 
   // See interface for the documentation.
@@ -75,4 +75,4 @@ private:
   std::unique_ptr<pucch_demodulator_format4> demodulator_format4;
 };
 
-} // namespace srsran
+} // namespace ocudu

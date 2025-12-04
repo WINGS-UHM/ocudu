@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/rrc/rrc_du_factory.h"
+#include "ocudu/rrc/rrc_du_factory.h"
 #include "rrc_du_impl.h"
-#include "srsran/rrc/rrc_config.h"
+#include "ocudu/rrc/rrc_config.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-std::unique_ptr<rrc_du> srsran::srs_cu_cp::create_rrc_du(const rrc_cfg_t& cfg)
+std::unique_ptr<rrc_du> ocudu::ocucp::create_rrc_du(const rrc_cfg_t& cfg)
 {
   return std::make_unique<rrc_du_impl>(cfg);
 }

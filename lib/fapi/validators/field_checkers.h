@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/message_validators.h"
+#include "ocudu/fapi/message_validators.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// \brief Helper validation function.
@@ -82,4 +82,4 @@ inline bool validate_field_eq(Integer           expected_value,
 }
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 struct uci_pucch_pdu_format_0_1;
@@ -28,4 +28,4 @@ bool validate_uci_pucch_format01_pdu(const uci_pucch_pdu_format_0_1& pdu, valida
 bool validate_uci_pucch_format234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, validator_report& report);
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

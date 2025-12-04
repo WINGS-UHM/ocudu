@@ -10,18 +10,18 @@
  */
 
 #include "pdcp_rx_metrics_test.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST_F(pdcp_rx_metrics_container_test, init)
 {
   pdcp_rx_metrics_container m = {};
 
-  srslog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
+  ocudulog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
 
   // Check values
   ASSERT_EQ(m.num_pdus, 0);
@@ -54,8 +54,8 @@ TEST_F(pdcp_rx_metrics_container_test, init)
         "num_integrity_verified_pdus=0 num_integrity_failed_pdus=0 num_t_reordering_timeouts=0 "
         "avg_reordering_delay=0.00ms reordering_counter=0 avg_sdu_latency=0.00us sdu_latency_hist=[0 0 0 0 0 0 "
         "0 0] min_sdu_latency={na} max_sdu_latency={na} avg_crypto_latency=0.00us";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 
@@ -68,8 +68,8 @@ TEST_F(pdcp_rx_metrics_container_test, init)
         "num_integrity_verified_pdus=0 num_integrity_failed_pdus=0 num_t_reordering_timeouts=0 "
         "avg_reordering_delay=0.00ms reordering_counter=0 avg_sdu_latency=0.00us sdu_latency_hist=[ 0  0  0  0 "
         " 0  0  0  0] min_sdu_latency={na} max_sdu_latency={na} crypto_cpu_usage=0.00\%";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 }
@@ -95,7 +95,7 @@ TEST_F(pdcp_rx_metrics_container_test, values)
                                  .min_sdu_latency_ns = 1200,
                                  .max_sdu_latency_ns = 54322};
 
-  srslog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
+  ocudulog::fetch_basic_logger("TEST", false).info("Metrics: {}", m);
 
   // Check values
   ASSERT_EQ(m.num_pdus, 49532);
@@ -130,8 +130,8 @@ TEST_F(pdcp_rx_metrics_container_test, values)
         "8000 "
         "160000 3200000 64000000 128] min_sdu_latency=1200ns max_sdu_latency=54322ns "
         "avg_crypto_latency=0.17us";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 
@@ -145,8 +145,8 @@ TEST_F(pdcp_rx_metrics_container_test, values)
         "avg_reordering_delay=19.86ms reordering_counter=23 avg_sdu_latency=0.01us sdu_latency_hist=[ 999  20  400 "
         "8.0k "
         "160k 3.2M 64M  128] min_sdu_latency=1.20us max_sdu_latency=54.32us crypto_cpu_usage=500.00\%";
-    srslog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
-    srslog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("out_str={}", out_str);
+    ocudulog::fetch_basic_logger("TEST", false).info("exp_str={}", exp_str);
     EXPECT_EQ(out_str, exp_str);
   }
 }
@@ -156,7 +156,7 @@ TEST_P(pdcp_rx_metrics_test, sdu_pdu_metrics)
 {
   auto test_metrics = [this](uint32_t count) {
     init(GetParam());
-    srsran::test_delimit_logger delimiter("RX PDU/SDU metrics tests. SN_SIZE={} COUNT={}", sn_size, count);
+    ocudu::test_delimit_logger delimiter("RX PDU/SDU metrics tests. SN_SIZE={} COUNT={}", sn_size, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -211,8 +211,7 @@ TEST_P(pdcp_rx_metrics_test, integrity_metrics)
   init(GetParam());
 
   auto test_metrics = [this](uint32_t count) {
-    srsran::test_delimit_logger delimiter(
-        "RX PDU with bad integrity metrics test. SN_SIZE={} COUNT={}", sn_size, count);
+    ocudu::test_delimit_logger delimiter("RX PDU with bad integrity metrics test. SN_SIZE={} COUNT={}", sn_size, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -266,7 +265,7 @@ TEST_P(pdcp_rx_metrics_test, rx_reordering_timer)
 {
   auto test_rx_t_reorder = [this](uint32_t count) {
     init(GetParam());
-    srsran::test_delimit_logger delimiter(
+    ocudu::test_delimit_logger delimiter(
         "t-Reordering expiration metrics test. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
     pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);

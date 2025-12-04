@@ -9,12 +9,12 @@
  */
 
 #include "pdsch.h"
-#include "srsran/fapi/message_builders.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 static std::mt19937 gen(0);

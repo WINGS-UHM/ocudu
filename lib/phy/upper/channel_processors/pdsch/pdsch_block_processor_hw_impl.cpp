@@ -11,7 +11,7 @@
 #include "pdsch_block_processor_hw_impl.h"
 #include "pdsch_processor_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 resource_grid_mapper::symbol_buffer&
 pdsch_block_processor_hw_impl::configure_new_transmission(span<const uint8_t>           data,
@@ -160,10 +160,10 @@ span<const ci8_t> pdsch_block_processor_hw_impl::pop_symbols(unsigned block_size
     }
   }
 
-  srsran_assert(block_size <= codeblock_symbols.size(),
-                "The block size (i.e., {}) exceeds the number of available symbols (i.e., {}).",
-                block_size,
-                codeblock_symbols.size());
+  ocudu_assert(block_size <= codeblock_symbols.size(),
+               "The block size (i.e., {}) exceeds the number of available symbols (i.e., {}).",
+               block_size,
+               codeblock_symbols.size());
 
   // Select view of the current block.
   span<ci8_t> symbols = codeblock_symbols.first(block_size);

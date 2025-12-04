@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/f1ap/f1ap_pdu_items.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_items.h"
 using namespace asn1;
 using namespace asn1::f1ap;
 
@@ -59,17 +59,17 @@ void associated_scell_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE associated_scell_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE associated_scell_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE associated_scell_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE associated_scell_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* associated_scell_item_ies_o::value_c::types_opts::to_string() const
@@ -123,17 +123,17 @@ void bap_hdr_rewriting_added_list_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bap_hdr_rewriting_added_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bap_hdr_rewriting_added_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bap_hdr_rewriting_added_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bap_hdr_rewriting_added_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bap_hdr_rewriting_added_list_item_ies_o::value_c::types_opts::to_string() const
@@ -187,17 +187,17 @@ void bap_hdr_rewriting_remd_list_item_ies_o::value_c::to_json(json_writer& j) co
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bap_hdr_rewriting_remd_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bap_hdr_rewriting_remd_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bap_hdr_rewriting_remd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bap_hdr_rewriting_remd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bap_hdr_rewriting_remd_list_item_ies_o::value_c::types_opts::to_string() const
@@ -251,17 +251,17 @@ void bh_routing_info_added_list_item_ies_o::value_c::to_json(json_writer& j) con
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_routing_info_added_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_routing_info_added_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_routing_info_added_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_routing_info_added_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_routing_info_added_list_item_ies_o::value_c::types_opts::to_string() const
@@ -313,17 +313,17 @@ void bh_routing_info_remd_list_item_ies_o::value_c::to_json(json_writer& j) cons
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_routing_info_remd_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_routing_info_remd_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_routing_info_remd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_routing_info_remd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_routing_info_remd_list_item_ies_o::value_c::types_opts::to_string() const
@@ -379,17 +379,17 @@ void bh_chs_failed_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_failed_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -443,17 +443,17 @@ void bh_chs_failed_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) cons
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -508,17 +508,17 @@ void bh_chs_failed_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) 
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_failed_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -572,17 +572,17 @@ void bh_chs_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -637,17 +637,17 @@ void bh_chs_required_to_be_released_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_required_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -701,17 +701,17 @@ void bh_chs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -765,17 +765,17 @@ void bh_chs_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -829,17 +829,17 @@ void bh_chs_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -893,17 +893,17 @@ void bh_chs_to_be_released_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -957,17 +957,17 @@ void bh_chs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -1021,17 +1021,17 @@ void bh_chs_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE bh_chs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE bh_chs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bh_chs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE bh_chs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* bh_chs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -1086,17 +1086,17 @@ void broadcast_to_be_cancelled_list_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_to_be_cancelled_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_to_be_cancelled_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_to_be_cancelled_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_to_be_cancelled_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_to_be_cancelled_list_item_ies_o::value_c::types_opts::to_string() const
@@ -1151,17 +1151,17 @@ void broadcast_m_rbs_to_be_modified_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -1214,17 +1214,17 @@ void broadcast_m_rbs_to_be_released_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -1277,17 +1277,17 @@ void broadcast_m_rbs_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -1346,17 +1346,17 @@ void broadcast_m_rbs_failed_to_be_modified_item_ies_o::value_c::to_json(json_wri
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_failed_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -1409,17 +1409,17 @@ void broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::to_json(json_wr
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -1471,17 +1471,17 @@ void broadcast_m_rbs_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -1533,17 +1533,17 @@ void broadcast_m_rbs_setup_mod_item_ies_o::value_c::to_json(json_writer& j) cons
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -1603,17 +1603,17 @@ void broadcast_m_rbs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) co
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -1668,17 +1668,17 @@ void broadcast_m_rbs_failed_to_be_setup_item_ies_o::value_c::to_json(json_writer
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -1730,17 +1730,17 @@ void broadcast_m_rbs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE broadcast_m_rbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE broadcast_m_rbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE broadcast_m_rbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE broadcast_m_rbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* broadcast_m_rbs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -1796,17 +1796,17 @@ void candidate_sp_cell_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE candidate_sp_cell_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE candidate_sp_cell_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE candidate_sp_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE candidate_sp_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* candidate_sp_cell_item_ies_o::value_c::types_opts::to_string() const
@@ -1861,17 +1861,17 @@ void cells_broadcast_cancelled_list_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_broadcast_cancelled_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_broadcast_cancelled_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_broadcast_cancelled_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_broadcast_cancelled_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_broadcast_cancelled_list_item_ies_o::value_c::types_opts::to_string() const
@@ -1926,17 +1926,17 @@ void cells_broadcast_completed_list_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_broadcast_completed_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_broadcast_completed_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_broadcast_completed_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_broadcast_completed_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_broadcast_completed_list_item_ies_o::value_c::types_opts::to_string() const
@@ -1991,17 +1991,17 @@ void cells_failed_to_be_activ_list_item_ies_o::value_c::to_json(json_writer& j) 
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_failed_to_be_activ_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_failed_to_be_activ_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_failed_to_be_activ_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_failed_to_be_activ_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_failed_to_be_activ_list_item_ies_o::value_c::types_opts::to_string() const
@@ -2055,17 +2055,17 @@ void cells_status_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_status_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_status_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_status_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_status_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_status_item_ies_o::value_c::types_opts::to_string() const
@@ -2119,17 +2119,17 @@ void cells_to_be_broadcast_list_item_ies_o::value_c::to_json(json_writer& j) con
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_to_be_broadcast_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_to_be_broadcast_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_to_be_broadcast_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_to_be_broadcast_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_to_be_broadcast_list_item_ies_o::value_c::types_opts::to_string() const
@@ -2183,17 +2183,17 @@ void cells_to_be_activ_list_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_to_be_activ_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_to_be_activ_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_to_be_activ_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_to_be_activ_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_to_be_activ_list_item_ies_o::value_c::types_opts::to_string() const
@@ -2247,17 +2247,17 @@ void cells_to_be_barred_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_to_be_barred_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_to_be_barred_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_to_be_barred_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_to_be_barred_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_to_be_barred_item_ies_o::value_c::types_opts::to_string() const
@@ -2311,17 +2311,17 @@ void cells_to_be_deactiv_list_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE cells_to_be_deactiv_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE cells_to_be_deactiv_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE cells_to_be_deactiv_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE cells_to_be_deactiv_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* cells_to_be_deactiv_list_item_ies_o::value_c::types_opts::to_string() const
@@ -2376,17 +2376,17 @@ void dl_up_tnl_address_to_upd_list_item_ies_o::value_c::to_json(json_writer& j) 
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE dl_up_tnl_address_to_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE dl_up_tnl_address_to_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE dl_up_tnl_address_to_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE dl_up_tnl_address_to_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* dl_up_tnl_address_to_upd_list_item_ies_o::value_c::types_opts::to_string() const
@@ -2440,17 +2440,17 @@ void drb_activity_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drb_activity_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drb_activity_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drb_activity_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drb_activity_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drb_activity_item_ies_o::value_c::types_opts::to_string() const
@@ -2504,17 +2504,17 @@ void drb_notify_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drb_notify_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drb_notify_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drb_notify_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drb_notify_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drb_notify_item_ies_o::value_c::types_opts::to_string() const
@@ -2568,17 +2568,17 @@ void drbs_failed_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) con
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_failed_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -2632,17 +2632,17 @@ void drbs_failed_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -2696,17 +2696,17 @@ void drbs_failed_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) co
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_failed_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -2760,17 +2760,17 @@ void drbs_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -2824,17 +2824,17 @@ void drbs_modified_conf_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_modified_conf_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_modified_conf_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_modified_conf_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_modified_conf_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_modified_conf_item_ies_o::value_c::types_opts::to_string() const
@@ -2888,17 +2888,17 @@ void drbs_required_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_required_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_required_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_required_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_required_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_required_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -2952,17 +2952,17 @@ void drbs_required_to_be_released_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_required_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -3016,17 +3016,17 @@ void drbs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -3080,17 +3080,17 @@ void drbs_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -3144,17 +3144,17 @@ void drbs_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -3208,17 +3208,17 @@ void drbs_to_be_released_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -3272,17 +3272,17 @@ void drbs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -3336,17 +3336,17 @@ void drbs_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE drbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE drbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE drbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE drbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* drbs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -3400,17 +3400,17 @@ void ded_si_delivery_needed_ue_item_ies_o::value_c::to_json(json_writer& j) cons
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ded_si_delivery_needed_ue_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ded_si_delivery_needed_ue_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ded_si_delivery_needed_ue_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ded_si_delivery_needed_ue_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ded_si_delivery_needed_ue_item_ies_o::value_c::types_opts::to_string() const
@@ -3465,17 +3465,17 @@ void gnb_cu_tnl_assoc_failed_to_setup_item_ies_o::value_c::to_json(json_writer& 
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_cu_tnl_assoc_failed_to_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_cu_tnl_assoc_failed_to_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_cu_tnl_assoc_failed_to_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_cu_tnl_assoc_failed_to_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_cu_tnl_assoc_failed_to_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -3527,17 +3527,17 @@ void gnb_cu_tnl_assoc_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_cu_tnl_assoc_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_cu_tnl_assoc_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_cu_tnl_assoc_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_cu_tnl_assoc_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_cu_tnl_assoc_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -3589,17 +3589,17 @@ void gnb_cu_tnl_assoc_to_add_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_cu_tnl_assoc_to_add_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_cu_tnl_assoc_to_add_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_cu_tnl_assoc_to_add_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_cu_tnl_assoc_to_add_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_cu_tnl_assoc_to_add_item_ies_o::value_c::types_opts::to_string() const
@@ -3651,17 +3651,17 @@ void gnb_cu_tnl_assoc_to_rem_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_cu_tnl_assoc_to_rem_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_cu_tnl_assoc_to_rem_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_cu_tnl_assoc_to_rem_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_cu_tnl_assoc_to_rem_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_cu_tnl_assoc_to_rem_item_ies_o::value_c::types_opts::to_string() const
@@ -3713,17 +3713,17 @@ void gnb_cu_tnl_assoc_to_upd_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_cu_tnl_assoc_to_upd_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_cu_tnl_assoc_to_upd_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_cu_tnl_assoc_to_upd_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_cu_tnl_assoc_to_upd_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_cu_tnl_assoc_to_upd_item_ies_o::value_c::types_opts::to_string() const
@@ -3775,17 +3775,17 @@ void gnb_du_served_cells_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_du_served_cells_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_du_served_cells_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_du_served_cells_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_du_served_cells_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_du_served_cells_item_ies_o::value_c::types_opts::to_string() const
@@ -3837,17 +3837,17 @@ void gnb_du_tnl_assoc_to_rem_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE gnb_du_tnl_assoc_to_rem_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE gnb_du_tnl_assoc_to_rem_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE gnb_du_tnl_assoc_to_rem_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE gnb_du_tnl_assoc_to_rem_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* gnb_du_tnl_assoc_to_rem_item_ies_o::value_c::types_opts::to_string() const
@@ -3900,17 +3900,17 @@ void iab_allocated_tnl_address_list_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE iab_allocated_tnl_address_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE iab_allocated_tnl_address_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE iab_allocated_tnl_address_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE iab_allocated_tnl_address_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* iab_allocated_tnl_address_list_item_ies_o::value_c::types_opts::to_string() const
@@ -3962,17 +3962,17 @@ void iab_tnl_addresses_to_rem_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE iab_tnl_addresses_to_rem_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE iab_tnl_addresses_to_rem_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE iab_tnl_addresses_to_rem_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE iab_tnl_addresses_to_rem_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* iab_tnl_addresses_to_rem_item_ies_o::value_c::types_opts::to_string() const
@@ -4024,17 +4024,17 @@ void mc_paging_cell_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE mc_paging_cell_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE mc_paging_cell_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE mc_paging_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE mc_paging_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* mc_paging_cell_item_ies_o::value_c::types_opts::to_string() const
@@ -4087,17 +4087,17 @@ void multicast_f1_u_context_failed_to_be_setup_item_ies_o::value_c::to_json(json
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_f1_u_context_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_f1_u_context_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_f1_u_context_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_f1_u_context_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_f1_u_context_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -4154,17 +4154,17 @@ void multicast_f1_u_context_setup_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_f1_u_context_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_f1_u_context_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_f1_u_context_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_f1_u_context_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_f1_u_context_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -4222,17 +4222,17 @@ void multicast_f1_u_context_to_be_setup_item_ies_o::value_c::to_json(json_writer
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_f1_u_context_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_f1_u_context_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_f1_u_context_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_f1_u_context_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_f1_u_context_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -4290,17 +4290,17 @@ void multicast_m_rbs_failed_to_be_modified_item_ies_o::value_c::to_json(json_wri
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_failed_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -4353,17 +4353,17 @@ void multicast_m_rbs_failed_to_be_setup_item_ies_o::value_c::to_json(json_writer
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -4416,17 +4416,17 @@ void multicast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::to_json(json_wr
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_failed_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -4478,17 +4478,17 @@ void multicast_m_rbs_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -4540,17 +4540,17 @@ void multicast_m_rbs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -4602,17 +4602,17 @@ void multicast_m_rbs_setup_mod_item_ies_o::value_c::to_json(json_writer& j) cons
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -4665,17 +4665,17 @@ void multicast_m_rbs_to_be_modified_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -4728,17 +4728,17 @@ void multicast_m_rbs_to_be_released_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -4790,17 +4790,17 @@ void multicast_m_rbs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) co
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -4853,17 +4853,17 @@ void multicast_m_rbs_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE multicast_m_rbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE multicast_m_rbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE multicast_m_rbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE multicast_m_rbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* multicast_m_rbs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -4915,17 +4915,17 @@ void nr_cgi_list_for_restart_list_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE nr_cgi_list_for_restart_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE nr_cgi_list_for_restart_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE nr_cgi_list_for_restart_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE nr_cgi_list_for_restart_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* nr_cgi_list_for_restart_list_item_ies_o::value_c::types_opts::to_string() const
@@ -4977,17 +4977,17 @@ void neighbour_cell_info_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE neighbour_cell_info_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE neighbour_cell_info_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE neighbour_cell_info_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE neighbour_cell_info_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* neighbour_cell_info_item_ies_o::value_c::types_opts::to_string() const
@@ -5039,17 +5039,17 @@ void pws_failed_nr_cgi_list_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE pws_failed_nr_cgi_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE pws_failed_nr_cgi_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE pws_failed_nr_cgi_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE pws_failed_nr_cgi_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* pws_failed_nr_cgi_list_item_ies_o::value_c::types_opts::to_string() const
@@ -5101,17 +5101,17 @@ void paging_cell_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE paging_cell_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE paging_cell_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE paging_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE paging_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* paging_cell_item_ies_o::value_c::types_opts::to_string() const
@@ -5163,17 +5163,17 @@ void potential_sp_cell_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE potential_sp_cell_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE potential_sp_cell_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE potential_sp_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE potential_sp_cell_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* potential_sp_cell_item_ies_o::value_c::types_opts::to_string() const
@@ -5225,17 +5225,17 @@ void protected_eutra_res_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE protected_eutra_res_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE protected_eutra_res_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE protected_eutra_res_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE protected_eutra_res_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* protected_eutra_res_item_ies_o::value_c::types_opts::to_string() const
@@ -5287,17 +5287,17 @@ void scell_failedto_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE scell_failedto_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE scell_failedto_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE scell_failedto_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE scell_failedto_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* scell_failedto_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -5349,17 +5349,17 @@ void scell_failedto_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE scell_failedto_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE scell_failedto_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE scell_failedto_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE scell_failedto_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* scell_failedto_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -5411,17 +5411,17 @@ void scell_to_be_remd_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE scell_to_be_remd_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE scell_to_be_remd_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE scell_to_be_remd_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE scell_to_be_remd_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* scell_to_be_remd_item_ies_o::value_c::types_opts::to_string() const
@@ -5473,17 +5473,17 @@ void scell_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE scell_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE scell_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE scell_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE scell_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* scell_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -5535,17 +5535,17 @@ void scell_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE scell_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE scell_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE scell_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE scell_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* scell_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -5598,17 +5598,17 @@ void sl_drbs_failed_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) 
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_failed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_failed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_failed_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -5660,17 +5660,17 @@ void sl_drbs_failed_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) con
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -5723,17 +5723,17 @@ void sl_drbs_failed_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_failed_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -5785,17 +5785,17 @@ void sl_drbs_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -5847,17 +5847,17 @@ void sl_drbs_modified_conf_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_modified_conf_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_modified_conf_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_modified_conf_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_modified_conf_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_modified_conf_item_ies_o::value_c::types_opts::to_string() const
@@ -5910,17 +5910,17 @@ void sl_drbs_required_to_be_modified_item_ies_o::value_c::to_json(json_writer& j
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_required_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_required_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_required_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_required_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_required_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -5973,17 +5973,17 @@ void sl_drbs_required_to_be_released_item_ies_o::value_c::to_json(json_writer& j
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_required_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -6035,17 +6035,17 @@ void sl_drbs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -6097,17 +6097,17 @@ void sl_drbs_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -6159,17 +6159,17 @@ void sl_drbs_to_be_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -6221,17 +6221,17 @@ void sl_drbs_to_be_released_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -6283,17 +6283,17 @@ void sl_drbs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -6345,17 +6345,17 @@ void sl_drbs_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE sl_drbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drbs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -6407,17 +6407,17 @@ void srbs_failed_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_failed_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_failed_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_failed_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -6469,17 +6469,17 @@ void srbs_failed_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) co
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_failed_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_failed_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_failed_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -6531,17 +6531,17 @@ void srbs_modified_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -6593,17 +6593,17 @@ void srbs_required_to_be_released_item_ies_o::value_c::to_json(json_writer& j) c
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_required_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -6655,17 +6655,17 @@ void srbs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -6717,17 +6717,17 @@ void srbs_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -6779,17 +6779,17 @@ void srbs_to_be_released_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -6841,17 +6841,17 @@ void srbs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -6903,17 +6903,17 @@ void srbs_to_be_setup_mod_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE srbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE srbs_to_be_setup_mod_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE srbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE srbs_to_be_setup_mod_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* srbs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() const
@@ -6965,17 +6965,17 @@ void served_cells_to_add_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE served_cells_to_add_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE served_cells_to_add_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE served_cells_to_add_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE served_cells_to_add_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* served_cells_to_add_item_ies_o::value_c::types_opts::to_string() const
@@ -7027,17 +7027,17 @@ void served_cells_to_delete_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE served_cells_to_delete_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE served_cells_to_delete_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE served_cells_to_delete_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE served_cells_to_delete_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* served_cells_to_delete_item_ies_o::value_c::types_opts::to_string() const
@@ -7089,17 +7089,17 @@ void served_cells_to_modify_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE served_cells_to_modify_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE served_cells_to_modify_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE served_cells_to_modify_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE served_cells_to_modify_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* served_cells_to_modify_item_ies_o::value_c::types_opts::to_string() const
@@ -7151,17 +7151,17 @@ void serving_cell_mo_list_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE serving_cell_mo_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE serving_cell_mo_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE serving_cell_mo_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE serving_cell_mo_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* serving_cell_mo_list_item_ies_o::value_c::types_opts::to_string() const
@@ -7214,17 +7214,17 @@ void ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o::value_c::to_json(js
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -7277,17 +7277,17 @@ void ue_multicast_m_rbs_required_to_be_modified_item_ies_o::value_c::to_json(jso
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_required_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_required_to_be_modified_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_required_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_required_to_be_modified_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_required_to_be_modified_item_ies_o::value_c::types_opts::to_string() const
@@ -7340,17 +7340,17 @@ void ue_multicast_m_rbs_required_to_be_released_item_ies_o::value_c::to_json(jso
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_required_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_required_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_required_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -7402,17 +7402,17 @@ void ue_multicast_m_rbs_setup_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -7465,17 +7465,17 @@ void ue_multicast_m_rbs_to_be_released_item_ies_o::value_c::to_json(json_writer&
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_to_be_released_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_to_be_released_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_to_be_released_item_ies_o::value_c::types_opts::to_string() const
@@ -7528,17 +7528,17 @@ void ue_multicast_m_rbs_to_be_setup_item_ies_o::value_c::to_json(json_writer& j)
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_to_be_setup_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_to_be_setup_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_to_be_setup_item_ies_o::value_c::types_opts::to_string() const
@@ -7591,17 +7591,17 @@ void ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o::value_c::to_json(json_
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o::value_c::types_opts::to_string() const
@@ -7653,17 +7653,17 @@ void ue_id_list_for_paging_item_ies_o::value_c::to_json(json_writer& j) const
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ue_id_list_for_paging_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ue_id_list_for_paging_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ue_id_list_for_paging_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ue_id_list_for_paging_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ue_id_list_for_paging_item_ies_o::value_c::types_opts::to_string() const
@@ -7716,17 +7716,17 @@ void ul_up_tnl_address_to_upd_list_item_ies_o::value_c::to_json(json_writer& j) 
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ul_up_tnl_address_to_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ul_up_tnl_address_to_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ul_up_tnl_address_to_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ul_up_tnl_address_to_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ul_up_tnl_address_to_upd_list_item_ies_o::value_c::types_opts::to_string() const
@@ -7778,17 +7778,17 @@ void ul_up_tnl_info_to_upd_list_item_ies_o::value_c::to_json(json_writer& j) con
   c.to_json(j);
   j.end_obj();
 }
-SRSASN_CODE ul_up_tnl_info_to_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
+OCUDUASN_CODE ul_up_tnl_info_to_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
 {
   varlength_field_pack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.pack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE ul_up_tnl_info_to_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE ul_up_tnl_info_to_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
 {
   varlength_field_unpack_guard varlen_scope(bref, true);
   HANDLE_CODE(c.unpack(bref));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* ul_up_tnl_info_to_upd_list_item_ies_o::value_c::types_opts::to_string() const

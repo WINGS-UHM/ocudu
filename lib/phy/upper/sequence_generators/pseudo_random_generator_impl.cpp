@@ -12,8 +12,8 @@
 #include "pseudo_random_generator_fast_advance.h"
 #include "pseudo_random_generator_initializers.h"
 #include "pseudo_random_generator_sequence.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 
 #if __SSE3__
 #include <immintrin.h>
@@ -23,7 +23,7 @@
 #include <arm_neon.h>
 #endif // __aarch64__
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Parameter \f$N_{\textup{C}}\f$, as defined in TS38.211 Section 5.2.1.
 ///
@@ -235,10 +235,10 @@ void pseudo_random_generator_impl::generate(span<float> out, float value)
 
 void pseudo_random_generator_impl::apply_xor(bit_buffer& out, const bit_buffer& in)
 {
-  srsran_assert(in.size() == out.size(),
-                "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
-                in.size(),
-                out.size());
+  ocudu_assert(in.size() == out.size(),
+               "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
+               in.size(),
+               out.size());
 
   // Number of bits per processing word.
   static constexpr unsigned nof_bits_per_byte = 8;
@@ -305,10 +305,10 @@ void pseudo_random_generator_impl::apply_xor(bit_buffer& out, const bit_buffer& 
 
 void pseudo_random_generator_impl::apply_xor(span<uint8_t> out, span<const uint8_t> in)
 {
-  srsran_assert(in.size() == out.size(),
-                "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
-                in.size(),
-                out.size());
+  ocudu_assert(in.size() == out.size(),
+               "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
+               in.size(),
+               out.size());
 
   // Number of bits that can be processed with a SIMD register.
   static constexpr unsigned nof_bits_per_simd = 16;
@@ -410,10 +410,10 @@ void pseudo_random_generator_impl::apply_xor(span<uint8_t> out, span<const uint8
 
 void pseudo_random_generator_impl::apply_xor(span<log_likelihood_ratio> out, span<const log_likelihood_ratio> in)
 {
-  srsran_assert(in.size() == out.size(),
-                "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
-                in.size(),
-                out.size());
+  ocudu_assert(in.size() == out.size(),
+               "Input size (i.e., {}) and output size (i.e., {}) must be equal.",
+               in.size(),
+               out.size());
 
   unsigned i      = 0;
   unsigned length = in.size();

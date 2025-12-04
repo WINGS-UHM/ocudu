@@ -10,9 +10,9 @@
 
 #include "flexible_o_du_metrics_aggregator.h"
 #include "metrics/flexible_o_du_metrics.h"
-#include "srsran/ru/ru_metrics_collector.h"
+#include "ocudu/ru/ru_metrics_collector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -43,7 +43,7 @@ flexible_o_du_metrics_aggregator::flexible_o_du_metrics_aggregator(flexible_o_du
 {
 }
 
-void flexible_o_du_metrics_aggregator::on_new_metrics(const srs_du::o_du_metrics& odu_metrics)
+void flexible_o_du_metrics_aggregator::on_new_metrics(const odu::o_du_metrics& odu_metrics)
 {
   flexible_o_du_metrics metrics;
 

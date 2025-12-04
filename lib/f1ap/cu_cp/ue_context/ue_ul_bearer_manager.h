@@ -11,11 +11,11 @@
 #pragma once
 
 #include "f1ap_ue_logger.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/adt/slotted_array.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/slotted_array.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class f1ap_ul_ccch_notifier;
 class f1ap_ul_dcch_notifier;
@@ -53,5 +53,5 @@ private:
   slotted_array<std::unique_ptr<f1c_ul_bearer_handler>, MAX_NOF_SRBS> f1c_ul_bearers;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -8,18 +8,18 @@
  *
  */
 
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-pdcch_type0_css_coreset_description srsran::pdcch_type0_css_coreset_get(nr_band            band,
-                                                                        subcarrier_spacing ssb_scs,
-                                                                        subcarrier_spacing pdcch_scs,
-                                                                        uint8_t            coreset_zero_index,
-                                                                        uint8_t            subcarrier_offset)
+pdcch_type0_css_coreset_description ocudu::pdcch_type0_css_coreset_get(nr_band            band,
+                                                                       subcarrier_spacing ssb_scs,
+                                                                       subcarrier_spacing pdcch_scs,
+                                                                       uint8_t            coreset_zero_index,
+                                                                       uint8_t            subcarrier_offset)
 {
   // TS38.213 Table 13-1. {SS/PBCH block, PDCCH} SCS is {15, 15} kHz and minimum channel bandwidth 5 MHz or 10 MHz.
   static const std::array<pdcch_type0_css_coreset_description, 15> TABLE_13_1 = {{

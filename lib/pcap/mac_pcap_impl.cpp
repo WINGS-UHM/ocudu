@@ -12,12 +12,12 @@
 #include "pcap_dlts.h"
 #include <netinet/in.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static int nr_pcap_pack_mac_context_to_buffer(const mac_nr_context_info& context, span<uint8_t> buffer);
 
 mac_pcap_impl::mac_pcap_impl(const std::string& filename_, mac_pcap_type type_, task_executor& backend_exec_) :
-  logger(srslog::fetch_basic_logger("ALL")),
+  logger(ocudulog::fetch_basic_logger("ALL")),
   type(type_),
   writer(PCAP_EXPORT_PDU_DLT, "MAC", filename_, type == mac_pcap_type::dlt ? "mac-nr-framed" : "udp", backend_exec_)
 {
@@ -75,7 +75,7 @@ void mac_pcap_impl::push_pdu(const mac_nr_context_info& context, byte_buffer pdu
 int nr_pcap_pack_mac_context_to_buffer(const mac_nr_context_info& context, span<uint8_t> buffer)
 {
   if (buffer.size() < PCAP_CONTEXT_HEADER_MAX) {
-    srslog::fetch_basic_logger("ALL").error("Writing buffer length is too small");
+    ocudulog::fetch_basic_logger("ALL").error("Writing buffer length is too small");
     return -1;
   }
 
@@ -122,13 +122,13 @@ int nr_pcap_pack_mac_context_to_buffer(const mac_nr_context_info& context, span<
 }
 
 std::unique_ptr<mac_pcap>
-srsran::create_mac_pcap(const std::string& filename, mac_pcap_type pcap_type, task_executor& backend_exec)
+ocudu::create_mac_pcap(const std::string& filename, mac_pcap_type pcap_type, task_executor& backend_exec)
 {
-  srsran_assert(not filename.empty(), "File name is empty");
+  ocudu_assert(not filename.empty(), "File name is empty");
   return std::make_unique<mac_pcap_impl>(filename, pcap_type, backend_exec);
 }
 
-std::unique_ptr<mac_pcap> srsran::create_null_mac_pcap()
+std::unique_ptr<mac_pcap> ocudu::create_null_mac_pcap()
 {
   return std::make_unique<null_mac_pcap>();
 }

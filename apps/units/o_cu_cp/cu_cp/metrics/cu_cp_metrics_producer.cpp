@@ -11,7 +11,7 @@
 #include "cu_cp_metrics_producer.h"
 #include "cu_cp_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void cu_cp_metrics_producer_impl::notify_metrics_report_request(const cu_cp_metrics_report& report)
 {

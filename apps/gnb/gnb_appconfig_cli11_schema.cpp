@@ -21,11 +21,11 @@
 #include "apps/units/flexible_o_du/o_du_high/du_high/du_high_config.h"
 #include "apps/units/o_cu_cp/cu_cp/cu_cp_unit_config.h"
 #include "gnb_appconfig.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/cli11_utils.h"
 #include "CLI/CLI11.hpp"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_metrics_args(CLI::App& app, metrics_appconfig& metrics_params)
 {
@@ -43,7 +43,7 @@ static void manage_hal_optional(CLI::App& app, gnb_appconfig& gnb_cfg)
 }
 #endif
 
-void srsran::configure_cli11_with_gnb_appconfig_schema(CLI::App& app, gnb_appconfig& gnb_parsed_cfg)
+void ocudu::configure_cli11_with_gnb_appconfig_schema(CLI::App& app, gnb_appconfig& gnb_parsed_cfg)
 {
   gnb_appconfig& gnb_cfg = gnb_parsed_cfg;
   app.add_flag("--dryrun", gnb_cfg.enable_dryrun, "Enable application dry run mode")->capture_default_str();
@@ -93,15 +93,15 @@ void srsran::configure_cli11_with_gnb_appconfig_schema(CLI::App& app, gnb_appcon
   configure_cli11_with_remote_control_appconfig_schema(app, gnb_cfg.remote_control_config);
 }
 
-void srsran::autoderive_gnb_parameters_after_parsing(CLI::App& app, gnb_appconfig& config)
+void ocudu::autoderive_gnb_parameters_after_parsing(CLI::App& app, gnb_appconfig& config)
 {
 #ifdef DPDK_FOUND
   manage_hal_optional(app, config);
 #endif
 }
 
-void srsran::autoderive_supported_tas_for_amf_from_du_cells(const du_high_unit_config& du_hi_cfg,
-                                                            cu_cp_unit_config&         cu_cp_cfg)
+void ocudu::autoderive_supported_tas_for_amf_from_du_cells(const du_high_unit_config& du_hi_cfg,
+                                                           cu_cp_unit_config&         cu_cp_cfg)
 {
   // If no cells are found in DU configuration.
   if (du_hi_cfg.cells_cfg.empty()) {
@@ -109,7 +109,7 @@ void srsran::autoderive_supported_tas_for_amf_from_du_cells(const du_high_unit_c
   }
 
   // Clear supported TAs.
-  srslog::fetch_basic_logger("CONFIG").debug(
+  ocudulog::fetch_basic_logger("CONFIG").debug(
       "{} supported TAs will be derived from DU cell config",
       cu_cp_cfg.amf_config.amf.is_default_supported_tas ? "No supported TAs configured," : "--no-core configured,");
   cu_cp_cfg.amf_config.amf.supported_tas.clear();

@@ -11,14 +11,14 @@
 #include "../common/test_helpers.h"
 #include "e1ap_cu_cp_test_helpers.h"
 #include "lib/e1ap/common/e1ap_asn1_utils.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp_factory.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_factory.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /////////////////////////////////////
 // CU-UP initiated E1 Setup Procedure
@@ -35,7 +35,7 @@ TEST_F(e1ap_cu_cp_test, when_received_cu_up_e1_setup_request_valid_then_connect_
   e1ap->handle_message(e1_setup_msg);
 
   // Action 2: Check if CuUpE1SetupRequest was forwarded to NGAP
-  ASSERT_EQ(cu_up_processor_notifier.last_cu_up_e1_setup_request.gnb_cu_up_name.value(), "srsCU-UP");
+  ASSERT_EQ(cu_up_processor_notifier.last_cu_up_e1_setup_request.gnb_cu_up_name.value(), "OCUDU CU-UP");
 
   // Action 3: Transmit CuUpE1SetupResponse message
   test_logger.info("TEST: Transmit CuUpE1SetupResponse message...");
@@ -58,7 +58,7 @@ TEST_F(e1ap_cu_cp_test, when_received_cu_up_e1_setup_request_invalid_then_reject
   e1ap->handle_message(e1_setup_msg);
 
   // Action 2 : Check if E1SetupRequest was forwarded to NGAP
-  ASSERT_EQ(cu_up_processor_notifier.last_cu_up_e1_setup_request.gnb_cu_up_name.value(), "srsCU-UP");
+  ASSERT_EQ(cu_up_processor_notifier.last_cu_up_e1_setup_request.gnb_cu_up_name.value(), "OCUDU CU-UP");
 
   // Action 3: Transmit E1SetupFailure message
   test_logger.info("TEST: Transmit CuUpE1SetupFailure message...");

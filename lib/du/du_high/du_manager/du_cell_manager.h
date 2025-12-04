@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/mac/cell_configuration.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/mac/cell_configuration.h"
+#include "ocudu/ran/du_types.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct du_cell_param_config_request;
 
@@ -108,14 +108,14 @@ public:
 private:
   void assert_cell_exists(du_cell_index_t cell_index) const
   {
-    srsran_assert(has_cell(cell_index), "cell_index={} does not exist", fmt::underlying(cell_index));
+    ocudu_assert(has_cell(cell_index), "cell_index={} does not exist", fmt::underlying(cell_index));
   }
 
   const du_manager_params& cfg;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   std::vector<std::unique_ptr<du_cell_context>> cells;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

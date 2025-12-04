@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/e2/gateways/e2_network_client_factory.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/e2/e2_messages.h"
-#include "srsran/gateways/sctp_network_client_factory.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/support/io/io_broker.h"
+#include "ocudu/e2/gateways/e2_network_client_factory.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/e2/e2_messages.h"
+#include "ocudu/gateways/sctp_network_client_factory.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/io/io_broker.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -26,7 +26,7 @@ class sctp_to_e2_pdu_notifier final : public sctp_association_sdu_notifier
 public:
   sctp_to_e2_pdu_notifier(std::unique_ptr<e2_message_notifier> du_rx_pdu_notifier_,
                           dlt_pcap&                            pcap_writer_,
-                          srslog::basic_logger&                logger_) :
+                          ocudulog::basic_logger&              logger_) :
     e2_rx_pdu_notifier(std::move(du_rx_pdu_notifier_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -36,7 +36,7 @@ public:
     // Unpack E2AP PDU.
     asn1::cbit_ref bref(sdu);
     e2_message     msg;
-    if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Couldn't unpack E2AP PDU");
       return false;
     }
@@ -55,7 +55,7 @@ public:
 private:
   std::unique_ptr<e2_message_notifier> e2_rx_pdu_notifier;
   dlt_pcap&                            pcap_writer;
-  srslog::basic_logger&                logger;
+  ocudulog::basic_logger&              logger;
 };
 
 /// Notifier for converting unpacked E2AP PDUs coming from the E2 Agent into packed E2AP PDUs and forward them to the
@@ -65,7 +65,7 @@ class e2_to_sctp_pdu_notifier final : public e2_message_notifier
 public:
   e2_to_sctp_pdu_notifier(std::unique_ptr<sctp_association_sdu_notifier> sctp_rx_pdu_notifier_,
                           dlt_pcap&                                      pcap_writer_,
-                          srslog::basic_logger&                          logger_) :
+                          ocudulog::basic_logger&                        logger_) :
     sctp_rx_pdu_notifier(std::move(sctp_rx_pdu_notifier_)), pcap_writer(pcap_writer_), logger(logger_)
   {
   }
@@ -75,7 +75,7 @@ public:
     // pack E2AP PDU into SCTP SDU.
     byte_buffer   tx_sdu{byte_buffer::fallback_allocation_tag{}};
     asn1::bit_ref bref(tx_sdu);
-    if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to pack E2AP PDU");
       return;
     }
@@ -92,7 +92,7 @@ public:
 private:
   std::unique_ptr<sctp_association_sdu_notifier> sctp_rx_pdu_notifier;
   dlt_pcap&                                      pcap_writer;
-  srslog::basic_logger&                          logger;
+  ocudulog::basic_logger&                        logger;
 };
 
 class e2_sctp_gateway_client final : public e2_connection_client
@@ -109,7 +109,7 @@ public:
   std::unique_ptr<e2_message_notifier>
   handle_e2_connection_request(std::unique_ptr<e2_message_notifier> e2_rx_pdu_notifier) override
   {
-    srsran_assert(e2_rx_pdu_notifier != nullptr, "E2 Agent Rx PDU notifier is null");
+    ocudu_assert(e2_rx_pdu_notifier != nullptr, "E2 Agent Rx PDU notifier is null");
 
     logger.debug(
         "Establishing E2 connection to Near-RT RIC ({}:{})...", sctp_params.connect_address, sctp_params.connect_port);
@@ -140,10 +140,10 @@ public:
   }
 
 private:
-  dlt_pcap&                             pcap_writer;
-  io_broker&                            broker;
-  srsran::sctp_network_connector_config sctp_params;
-  srslog::basic_logger&                 logger;
+  dlt_pcap&                            pcap_writer;
+  io_broker&                           broker;
+  ocudu::sctp_network_connector_config sctp_params;
+  ocudulog::basic_logger&              logger;
 
   // SCTP network gateway
   std::unique_ptr<sctp_network_client> sctp_gateway;
@@ -151,7 +151,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<e2_connection_client> srsran::create_e2_gateway_client(const e2_sctp_gateway_config& params)
+std::unique_ptr<e2_connection_client> ocudu::create_e2_gateway_client(const e2_sctp_gateway_config& params)
 {
   return std::make_unique<e2_sctp_gateway_client>(params);
 }

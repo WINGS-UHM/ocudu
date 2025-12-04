@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/scheduler/scheduler_metrics.h"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/ocudulog/log_channel.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 /// STDOUT consumer for the scheduler cell metrics.
 class scheduler_cell_metrics_consumer_stdout
@@ -38,16 +38,16 @@ private:
 class scheduler_cell_metrics_consumer_log
 {
 public:
-  explicit scheduler_cell_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_)
+  explicit scheduler_cell_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
   {
-    srsran_assert(log_chan.enabled(), "Logger log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "Logger log channel is not enabled");
   }
 
   /// Handle scheduler metrics.
   void handle_metric(const std::optional<scheduler_metrics_report>& report);
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// E2 consumer for the scheduler cell metrics.
@@ -63,4 +63,4 @@ private:
   scheduler_metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,24 +8,23 @@
  *
  */
 
-#include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
-#include "srsran/ran/resource_allocation/sliv.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
+#include "ocudu/ran/resource_allocation/sliv.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-unsigned srsran::ra_frequency_type1_get_riv(const ra_frequency_type1_configuration& config)
+unsigned ocudu::ra_frequency_type1_get_riv(const ra_frequency_type1_configuration& config)
 {
-  srsran_assert(config.length_vrb >= 1,
-                "The number of contiguous allocated blocks must be greater than or equal to 1.");
-  srsran_assert(config.length_vrb <= (config.N_bwp_size - config.start_vrb),
-                "The number of contiguous allocated blocks exceeds the maximum ({}).",
-                config.N_bwp_size - config.start_vrb);
+  ocudu_assert(config.length_vrb >= 1, "The number of contiguous allocated blocks must be greater than or equal to 1.");
+  ocudu_assert(config.length_vrb <= (config.N_bwp_size - config.start_vrb),
+               "The number of contiguous allocated blocks exceeds the maximum ({}).",
+               config.N_bwp_size - config.start_vrb);
 
   return sliv_from_s_and_l(config.N_bwp_size, config.start_vrb, config.length_vrb);
 }
 
-ra_frequency_type1_configuration srsran::ra_frequency_type1_from_riv(unsigned N_bwp_size, unsigned riv)
+ra_frequency_type1_configuration ocudu::ra_frequency_type1_from_riv(unsigned N_bwp_size, unsigned riv)
 {
   ra_frequency_type1_configuration out;
   out.N_bwp_size = N_bwp_size;
@@ -33,7 +32,7 @@ ra_frequency_type1_configuration srsran::ra_frequency_type1_from_riv(unsigned N_
   return out;
 }
 
-unsigned srsran::ra_frequency_type1_special_get_riv(const ra_frequency_type1_special_configuration& config)
+unsigned ocudu::ra_frequency_type1_special_get_riv(const ra_frequency_type1_special_configuration& config)
 {
   // Determine K.
   unsigned K = 8;
@@ -47,17 +46,17 @@ unsigned srsran::ra_frequency_type1_special_get_riv(const ra_frequency_type1_spe
   unsigned start_vrb  = config.start_vrb / K;
   unsigned length_vrb = config.length_vrb / K;
 
-  srsran_assert(length_vrb >= 1, "The number of contiguous allocated blocks must be greater than or equal to 1.");
-  srsran_assert(length_vrb <= (config.N_bwp_initial - start_vrb),
-                "The number of contiguous allocated blocks ({}) exceeds the maximum ({}). K={} RB_start={} L_RBs={} "
-                "N_bwp_initial={} N_bwp_active={}.",
-                length_vrb,
-                config.N_bwp_initial - start_vrb,
-                K,
-                config.start_vrb,
-                config.length_vrb,
-                config.N_bwp_initial,
-                config.N_bwp_active);
+  ocudu_assert(length_vrb >= 1, "The number of contiguous allocated blocks must be greater than or equal to 1.");
+  ocudu_assert(length_vrb <= (config.N_bwp_initial - start_vrb),
+               "The number of contiguous allocated blocks ({}) exceeds the maximum ({}). K={} RB_start={} L_RBs={} "
+               "N_bwp_initial={} N_bwp_active={}.",
+               length_vrb,
+               config.N_bwp_initial - start_vrb,
+               K,
+               config.start_vrb,
+               config.length_vrb,
+               config.N_bwp_initial,
+               config.N_bwp_active);
 
   return sliv_from_s_and_l(config.N_bwp_initial, start_vrb, length_vrb);
 }

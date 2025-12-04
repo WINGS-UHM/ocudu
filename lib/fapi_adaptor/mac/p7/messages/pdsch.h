@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/message_builders.h"
+#include "ocudu/fapi/message_builders.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct dl_msg_alloc;
 struct dl_paging_allocation;
@@ -128,4 +128,4 @@ void convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder&    builder,
                                unsigned                       cell_nof_prbs);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

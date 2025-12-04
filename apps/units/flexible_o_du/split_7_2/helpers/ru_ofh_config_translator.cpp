@@ -12,7 +12,7 @@
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "ru_ofh_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool parse_mac_address(const std::string& mac_str, span<uint8_t> mac)
 {
@@ -88,11 +88,11 @@ static void generate_config(ru_ofh_configuration&                            out
     sector_cfg.are_metrics_enabled          = ru_cfg.metrics_cfg.enable_ru_metrics;
     sector_cfg.mtu_size                     = ofh_cell_cfg.mtu_size;
     if (!parse_mac_address(ofh_cell_cfg.du_mac_address, sector_cfg.mac_src_address)) {
-      srsran_terminate("Invalid Distributed Unit MAC address");
+      ocudu_terminate("Invalid Distributed Unit MAC address");
     }
 
     if (!parse_mac_address(ofh_cell_cfg.ru_mac_address, sector_cfg.mac_dst_address)) {
-      srsran_terminate("Invalid Radio Unit MAC address");
+      ocudu_terminate("Invalid Radio Unit MAC address");
     }
 
     std::chrono::duration<double, std::nano> symbol_duration(
@@ -171,9 +171,9 @@ static void generate_config(ru_ofh_configuration&                            out
   }
 }
 
-ru_ofh_configuration srsran::generate_ru_ofh_config(const ru_ofh_unit_config&                        ru_cfg,
-                                                    span<const flexible_o_du_ru_config::cell_config> cells,
-                                                    unsigned max_processing_delay_slots)
+ru_ofh_configuration ocudu::generate_ru_ofh_config(const ru_ofh_unit_config&                        ru_cfg,
+                                                   span<const flexible_o_du_ru_config::cell_config> cells,
+                                                   unsigned max_processing_delay_slots)
 {
   ru_ofh_configuration out_cfg;
   generate_config(out_cfg, ru_cfg, cells, max_processing_delay_slots);
@@ -181,7 +181,7 @@ ru_ofh_configuration srsran::generate_ru_ofh_config(const ru_ofh_unit_config&   
   return out_cfg;
 }
 
-void srsran::fill_ofh_worker_manager_config(worker_manager_config& config, const ru_ofh_unit_config& ru_cfg)
+void ocudu::fill_ofh_worker_manager_config(worker_manager_config& config, const ru_ofh_unit_config& ru_cfg)
 {
   auto& ofh_cfg           = config.ru_ofh_cfg.emplace();
   ofh_cfg.nof_cells       = ru_cfg.cells.size();
@@ -196,8 +196,8 @@ void srsran::fill_ofh_worker_manager_config(worker_manager_config& config, const
     }
   }
 
-  srsran_assert(config.config_affinities.size() == ru_cfg.expert_execution_cfg.cell_affinities.size(),
-                "Invalid number of cell affinities");
+  ocudu_assert(config.config_affinities.size() == ru_cfg.expert_execution_cfg.cell_affinities.size(),
+               "Invalid number of cell affinities");
 
   for (unsigned i = 0, e = ru_cfg.expert_execution_cfg.cell_affinities.size(); i != e; ++i) {
     config.config_affinities[i].push_back(ru_cfg.expert_execution_cfg.cell_affinities[i].ru_cpu_cfg);

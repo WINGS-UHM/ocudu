@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/math/complex_normal_random.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/math/complex_normal_random.h"
 #include <getopt.h>
 #include <random>
 #include <set>
 
-using namespace srsran;
+using namespace ocudu;
 
 // General test configuration parameters.
 static uint64_t                    nof_repetitions   = 1000;

@@ -9,15 +9,15 @@
  */
 
 #include "mac_test_messages.h"
-#include "srsran/scheduler/result/pucch_info.h"
-#include "srsran/scheduler/result/pusch_info.h"
-#include "srsran/scheduler/result/srs_info.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/result/pucch_info.h"
+#include "ocudu/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/result/srs_info.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_rx_data_indication
-srsran::test_helpers::create_ccch_message(slot_point sl_rx, rnti_t rnti, du_cell_index_t du_cell_index)
+ocudu::test_helpers::create_ccch_message(slot_point sl_rx, rnti_t rnti, du_cell_index_t du_cell_index)
 {
   return mac_rx_data_indication{
       sl_rx,
@@ -29,7 +29,7 @@ srsran::test_helpers::create_ccch_message(slot_point sl_rx, rnti_t rnti, du_cell
 }
 
 mac_rx_data_indication
-srsran::test_helpers::create_pdu_with_sdu(slot_point sl_rx, rnti_t rnti, lcid_t lcid, uint32_t rlc_sn)
+ocudu::test_helpers::create_pdu_with_sdu(slot_point sl_rx, rnti_t rnti, lcid_t lcid, uint32_t rlc_sn)
 {
   // assuming RLC SN size of 12bits.
   uint8_t rlc_sn_part1 = (rlc_sn & 0xf00U) >> 8U;
@@ -52,14 +52,14 @@ srsran::test_helpers::create_pdu_with_sdu(slot_point sl_rx, rnti_t rnti, lcid_t 
   return mac_rx_data_indication{sl_rx, to_du_cell_index(0), {mac_rx_pdu{rnti, 0, 0, std::move(mac_pdu)}}};
 }
 
-mac_crc_indication_message srsran::test_helpers::create_crc_indication(slot_point sl_rx, rnti_t rnti, harq_id_t h_id)
+mac_crc_indication_message ocudu::test_helpers::create_crc_indication(slot_point sl_rx, rnti_t rnti, harq_id_t h_id)
 {
   return mac_crc_indication_message{.sl_rx = sl_rx,
                                     .crcs  = {mac_crc_pdu{.rnti = rnti, .harq_id = h_id, .tb_crc_success = true}}};
 }
 
-mac_crc_indication_message srsran::test_helpers::create_crc_indication(slot_point                sl_rx,
-                                                                       span<const ul_sched_info> puschs)
+mac_crc_indication_message ocudu::test_helpers::create_crc_indication(slot_point                sl_rx,
+                                                                      span<const ul_sched_info> puschs)
 {
   mac_crc_indication_message crc_ind;
   crc_ind.sl_rx = sl_rx;
@@ -72,7 +72,7 @@ mac_crc_indication_message srsran::test_helpers::create_crc_indication(slot_poin
   return crc_ind;
 }
 
-mac_uci_pdu srsran::test_helpers::create_uci_pdu(const pucch_info& pucch)
+mac_uci_pdu ocudu::test_helpers::create_uci_pdu(const pucch_info& pucch)
 {
   mac_uci_pdu pdu{};
 
@@ -121,7 +121,7 @@ mac_uci_pdu srsran::test_helpers::create_uci_pdu(const pucch_info& pucch)
   return pdu;
 }
 
-mac_uci_pdu srsran::test_helpers::create_uci_pdu(rnti_t rnti, const uci_info& pusch_uci)
+mac_uci_pdu ocudu::test_helpers::create_uci_pdu(rnti_t rnti, const uci_info& pusch_uci)
 {
   mac_uci_pdu pdu{};
   pdu.rnti             = rnti;
@@ -145,7 +145,7 @@ mac_uci_pdu srsran::test_helpers::create_uci_pdu(rnti_t rnti, const uci_info& pu
   return pdu;
 }
 
-mac_uci_indication_message srsran::test_helpers::create_uci_indication(slot_point sl_rx, span<const pucch_info> pucchs)
+mac_uci_indication_message ocudu::test_helpers::create_uci_indication(slot_point sl_rx, span<const pucch_info> pucchs)
 {
   mac_uci_indication_message uci_ind;
   uci_ind.sl_rx = sl_rx;
@@ -155,8 +155,8 @@ mac_uci_indication_message srsran::test_helpers::create_uci_indication(slot_poin
   return uci_ind;
 }
 
-std::optional<mac_uci_indication_message> srsran::test_helpers::create_uci_indication(slot_point                sl_rx,
-                                                                                      span<const ul_sched_info> puschs)
+std::optional<mac_uci_indication_message> ocudu::test_helpers::create_uci_indication(slot_point                sl_rx,
+                                                                                     span<const ul_sched_info> puschs)
 {
   mac_uci_indication_message uci_ind;
   uci_ind.sl_rx = sl_rx;

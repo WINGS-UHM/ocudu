@@ -9,10 +9,10 @@
  */
 
 #include "rrc_ue_context.h"
-#include "srsran/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/asn1/rrc_nr/rrc_nr.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 rrc_ue_context_t::rrc_ue_context_t(const ue_index_t                       ue_index_,
                                    const rnti_t                           c_rnti_,
@@ -24,7 +24,7 @@ rrc_ue_context_t::rrc_ue_context_t(const ue_index_t                       ue_ind
   cell(cell_),
   cfg(cfg_),
   transfer_context(rrc_context_),
-  logger(srslog::fetch_basic_logger("RRC"))
+  logger(ocudulog::fetch_basic_logger("RRC"))
 {
   if (transfer_context.has_value()) {
     // Handle handover preparation info.
@@ -33,7 +33,7 @@ rrc_ue_context_t::rrc_ue_context_t(const ue_index_t                       ue_ind
       asn1::cbit_ref               bref({transfer_context.value().handover_preparation_info.begin(),
                                          transfer_context.value().handover_preparation_info.end()});
 
-      if (ho_prep.unpack(bref) != asn1::SRSASN_SUCCESS) {
+      if (ho_prep.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
         logger.error("Couldn't unpack Handover Preparation Info.");
         return;
       }

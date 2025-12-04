@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/asn1/rrc_nr/serving_cell.h"
-#include "srsran/ran/csi_rs/csi_meas_config.h"
+#include "ocudu/asn1/rrc_nr/serving_cell.h"
+#include "ocudu/ran/csi_rs/csi_meas_config.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Fills ASN.1 ZP-CSI-RS-Resource struct.
 /// \param[in] cfg ZP-CSI-RS-Resource configuration.
@@ -34,5 +34,5 @@ void calculate_csi_meas_config_diff(asn1::rrc_nr::csi_meas_cfg_s& out,
                                     const csi_meas_config&        src,
                                     const csi_meas_config&        dest);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

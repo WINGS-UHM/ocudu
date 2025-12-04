@@ -10,19 +10,23 @@
 
 #include "f1ap_du_reset_procedure.h"
 #include "../ue_context/f1ap_du_ue_manager.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 reset_procedure::reset_procedure(const asn1::f1ap::reset_s& msg_,
                                  f1ap_du_configurator&      du_mng_,
                                  f1ap_du_ue_manager&        ue_mng_,
                                  f1ap_message_notifier&     msg_notifier_) :
-  msg(msg_), du_mng(du_mng_), ue_mng(ue_mng_), msg_notifier(msg_notifier_), logger(srslog::fetch_basic_logger("DU-F1"))
+  msg(msg_),
+  du_mng(du_mng_),
+  ue_mng(ue_mng_),
+  msg_notifier(msg_notifier_),
+  logger(ocudulog::fetch_basic_logger("DU-F1"))
 {
 }
 

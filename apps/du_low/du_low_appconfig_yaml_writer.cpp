@@ -16,7 +16,7 @@
 #include "apps/services/metrics/metrics_config_yaml_writer.h"
 #include "du_low_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_du_appconfig_expert_execution_section(YAML::Node node, const expert_execution_appconfig& config)
 {
@@ -50,7 +50,7 @@ static void fill_du_appconfig_remote_control_section(YAML::Node node, const remo
   node["port"]         = config.port;
 }
 
-void srsran::fill_du_low_appconfig_in_yaml_schema(YAML::Node& node, const du_low_appconfig& config)
+void ocudu::fill_du_low_appconfig_in_yaml_schema(YAML::Node& node, const du_low_appconfig& config)
 {
   app_services::fill_app_resource_usage_config_in_yaml_schema(node, config.metrics_cfg.rusage_config);
   app_services::fill_metrics_appconfig_in_yaml_schema(node, config.metrics_cfg.metrics_service_cfg);

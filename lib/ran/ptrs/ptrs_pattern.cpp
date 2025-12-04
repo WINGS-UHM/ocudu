@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/ptrs/ptrs_pattern.h"
+#include "ocudu/ran/ptrs/ptrs_pattern.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static span<const uint8_t> get_k_re_ref(dmrs_config_type dmrs_type, ptrs_re_offset offset, unsigned nof_ports)
 {
@@ -31,21 +31,21 @@ static span<const uint8_t> get_k_re_ref(dmrs_config_type dmrs_type, ptrs_re_offs
                                      : span<const uint8_t>(k_re_ref_type2[re_offset]);
 
   interval<unsigned, true> nof_ports_range(1, k_re_ref.size());
-  srsran_assert(nof_ports_range.contains(nof_ports),
-                "The number of ports (i.e., {}), is out of the range {} for DM-RS type {}.",
-                nof_ports,
-                nof_ports_range,
-                static_cast<unsigned>(dmrs_type));
+  ocudu_assert(nof_ports_range.contains(nof_ports),
+               "The number of ports (i.e., {}), is out of the range {} for DM-RS type {}.",
+               nof_ports,
+               nof_ports_range,
+               static_cast<unsigned>(dmrs_type));
 
   return k_re_ref.first(nof_ports);
 }
 
-ptrs_pattern srsran::get_ptrs_pattern(const ptrs_pattern_configuration& pattern_config)
+ptrs_pattern ocudu::get_ptrs_pattern(const ptrs_pattern_configuration& pattern_config)
 {
-  srsran_assert(pattern_config.rb_mask.is_contiguous(), "Only contiguous allocations are supported.");
+  ocudu_assert(pattern_config.rb_mask.is_contiguous(), "Only contiguous allocations are supported.");
   int rb_begin = pattern_config.rb_mask.find_lowest();
   int rb_end   = pattern_config.rb_mask.find_highest();
-  srsran_assert((rb_begin >= 0) && (rb_begin <= rb_end), "Invalid RB mask (i.e., {}).", pattern_config.rb_mask);
+  ocudu_assert((rb_begin >= 0) && (rb_begin <= rb_end), "Invalid RB mask (i.e., {}).", pattern_config.rb_mask);
 
   // Count number of RB used for the transmission, parameter N_{RB}.
   unsigned N_rb = pattern_config.rb_mask.count();

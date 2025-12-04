@@ -34,34 +34,34 @@
 #include "gnb_appconfig_translators.h"
 #include "gnb_appconfig_validators.h"
 #include "gnb_appconfig_yaml_writer.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/cu_cp/cu_cp_operation_controller.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/e1ap/gateways/e1_local_connector_factory.h"
-#include "srsran/e2/e2ap_config_translators.h"
-#include "srsran/e2/gateways/e2_network_client_factory.h"
-#include "srsran/f1ap/gateways/f1c_local_connector_factory.h"
-#include "srsran/f1u/local_connector/f1u_local_connector.h"
-#include "srsran/ngap/gateways/n2_connection_client_factory.h"
-#include "srsran/support/backtrace.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/cpu_features.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/signal_handling.h"
-#include "srsran/support/signal_observer.h"
-#include "srsran/support/sysinfo.h"
-#include "srsran/support/versioning/build_info.h"
-#include "srsran/support/versioning/version.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/cu_cp/cu_cp_operation_controller.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/e1ap/gateways/e1_local_connector_factory.h"
+#include "ocudu/e2/e2ap_config_translators.h"
+#include "ocudu/e2/gateways/e2_network_client_factory.h"
+#include "ocudu/f1ap/gateways/f1c_local_connector_factory.h"
+#include "ocudu/f1u/local_connector/f1u_local_connector.h"
+#include "ocudu/ngap/gateways/n2_connection_client_factory.h"
+#include "ocudu/support/backtrace.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/cpu_features.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/signal_handling.h"
+#include "ocudu/support/signal_observer.h"
+#include "ocudu/support/sysinfo.h"
+#include "ocudu/support/versioning/build_info.h"
+#include "ocudu/support/versioning/version.h"
 #include <atomic>
 #ifdef DPDK_FOUND
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
 #endif
 // Include ThreadSanitizer (TSAN) options if thread sanitization is enabled.
 // This include is not unused - it helps prevent false alarms from the thread sanitizer.
-#include "srsran/support/tsan_options.h"
+#include "ocudu/support/tsan_options.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Application of a co-located gNB with combined distributed unit (DU) and centralized unit (CU).
@@ -81,8 +81,8 @@ static constexpr unsigned MAX_CONFIG_FILES = 10;
 static void populate_cli11_generic_args(CLI::App& app)
 {
   fmt::memory_buffer buffer;
-  format_to(std::back_inserter(buffer), "srsRAN 5G gNB version {} ({})", get_version(), get_build_hash());
-  app.set_version_flag("-v,--version", srsran::to_c_str(buffer));
+  format_to(std::back_inserter(buffer), "OCUDU 5G gNB version {} ({})", get_version(), get_build_hash());
+  app.set_version_flag("-v,--version", ocudu::to_c_str(buffer));
   app.set_config("-c,", config_file, "Read config from file", false)->expected(1, MAX_CONFIG_FILES);
 }
 
@@ -98,25 +98,26 @@ static signal_dispatcher cleanup_signal_dispatcher;
 static void cleanup_signal_handler(int signal)
 {
   cleanup_signal_dispatcher.notify_signal(signal);
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 /// Function to call when an error is reported by the application.
 static void app_error_report_handler()
 {
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 static void initialize_log(const std::string& filename)
 {
-  srslog::sink* log_sink = (filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(filename);
+  ocudulog::sink* log_sink =
+      (filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 }
 
 static void register_app_logs(const gnb_appconfig&            gnb_cfg,
@@ -127,28 +128,28 @@ static void register_app_logs(const gnb_appconfig&            gnb_cfg,
   const logger_appconfig& log_cfg = gnb_cfg.log_cfg;
   // Set log-level of app and all non-layer specific components to app level.
   for (const auto& id : {"ALL", "SCTP-GW", "IO-EPOLL", "UDP-GW", "PCAP", "ASN1"}) {
-    auto& logger = srslog::fetch_basic_logger(id, false);
+    auto& logger = ocudulog::fetch_basic_logger(id, false);
     logger.set_level(log_cfg.lib_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& app_logger = srslog::fetch_basic_logger("GNB", false);
-  app_logger.set_level(srslog::basic_levels::info);
+  auto& app_logger = ocudulog::fetch_basic_logger("GNB", false);
+  app_logger.set_level(ocudulog::basic_levels::info);
   app_services::application_message_banners::log_build_info(app_logger);
   app_logger.set_level(log_cfg.all_level);
   app_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
   {
-    auto& logger = srslog::fetch_basic_logger("APP", false);
+    auto& logger = ocudulog::fetch_basic_logger("APP", false);
     logger.set_level(log_cfg.all_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& config_logger = srslog::fetch_basic_logger("CONFIG", false);
+  auto& config_logger = ocudulog::fetch_basic_logger("CONFIG", false);
   config_logger.set_level(log_cfg.config_level);
   config_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
-  auto& e2ap_logger = srslog::fetch_basic_logger("E2AP", false);
+  auto& e2ap_logger = ocudulog::fetch_basic_logger("E2AP", false);
   e2ap_logger.set_level(log_cfg.e2ap_level);
   e2ap_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
@@ -212,7 +213,7 @@ int main(int argc, char** argv)
   enable_backtrace();
 
   // Setup and configure config parsing.
-  CLI::App app("srsGNB application");
+  CLI::App app("OCUDU gNB application");
   app.config_formatter(create_yaml_config_parser());
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
@@ -281,11 +282,11 @@ int main(int argc, char** argv)
 
   // Set up logging.
   initialize_log(gnb_cfg.log_cfg.filename);
-  auto log_flusher = make_scope_exit([]() { srslog::flush(); });
+  auto log_flusher = make_scope_exit([]() { ocudulog::flush(); });
   register_app_logs(gnb_cfg, *o_cu_cp_app_unit, *o_cu_up_app_unit, *o_du_app_unit);
 
   // Check the metrics and metrics consumers.
-  srslog::basic_logger& gnb_logger = srslog::fetch_basic_logger("GNB");
+  ocudulog::basic_logger& gnb_logger = ocudulog::fetch_basic_logger("GNB");
   bool metrics_enabled = o_cu_cp_app_unit->are_metrics_enabled() || o_cu_up_app_unit->are_metrics_enabled() ||
                          o_du_app_unit->are_metrics_enabled() || gnb_cfg.metrics_cfg.rusage_config.enable_app_usage;
 
@@ -295,7 +296,7 @@ int main(int argc, char** argv)
   }
 
   // Log input configuration.
-  srslog::basic_logger& config_logger = srslog::fetch_basic_logger("CONFIG");
+  ocudulog::basic_logger& config_logger = ocudulog::fetch_basic_logger("CONFIG");
   if (config_logger.debug.enabled()) {
     YAML::Node node;
     fill_gnb_appconfig_in_yaml_schema(node, gnb_cfg);
@@ -320,7 +321,7 @@ int main(int argc, char** argv)
   if (gnb_cfg.hal_config) {
     // Prepend the application name in argv[0] as it is expected by EAL.
     eal = dpdk::create_dpdk_eal(std::string(argv[0]) + " " + gnb_cfg.hal_config->eal_args,
-                                srslog::fetch_basic_logger("EAL", false));
+                                ocudulog::fetch_basic_logger("EAL", false));
   }
 #endif
 
@@ -371,8 +372,7 @@ int main(int argc, char** argv)
   std::unique_ptr<io_broker> epoll_broker = create_io_broker(io_broker_type::epoll, io_broker_cfg);
 
   // Create a DU-high timer source.
-  auto time_ctrl =
-      srs_du::create_du_high_clock_controller(app_timers, *epoll_broker, workers.get_timer_source_executor());
+  auto time_ctrl = odu::create_du_high_clock_controller(app_timers, *epoll_broker, workers.get_timer_source_executor());
 
   // Create layer specific PCAPs.
   // In the gNB app, there is no point in instantiating two pcaps for each node of E1 and F1.
@@ -446,8 +446,8 @@ int main(int argc, char** argv)
   o_cucp_deps.e2_gw            = e2_gw_cu_cp.get();
 
   // create O-CU-CP.
-  auto                o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
-  srs_cu_cp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
+  auto            o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
+  ocucp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
   for (auto& metric : o_cucp_unit.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
@@ -480,14 +480,14 @@ int main(int argc, char** argv)
 
   auto du_inst_and_cmds = o_du_app_unit->create_flexible_o_du_unit(odu_dependencies);
 
-  srs_du::du& du_inst = *du_inst_and_cmds.unit;
+  odu::du& du_inst = *du_inst_and_cmds.unit;
 
   for (auto& metric : du_inst_and_cmds.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
 
   app_services::metrics_manager metrics_mngr(
-      srslog::fetch_basic_logger("GNB"),
+      ocudulog::fetch_basic_logger("GNB"),
       workers.get_metrics_executor(),
       metrics_configs,
       app_timers,

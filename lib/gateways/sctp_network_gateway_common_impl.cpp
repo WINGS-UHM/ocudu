@@ -9,16 +9,16 @@
  */
 
 #include "sctp_network_gateway_common_impl.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <netdb.h>
 #include <netinet/sctp.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-sockaddr_searcher::sockaddr_searcher(const std::string& address, int port, srslog::basic_logger& logger)
+sockaddr_searcher::sockaddr_searcher(const std::string& address, int port, ocudulog::basic_logger& logger)
 {
-  struct addrinfo hints {};
+  struct addrinfo hints{};
   // support ipv4, ipv6 and hostnames
   hints.ai_family    = AF_UNSPEC;
   hints.ai_socktype  = SOCK_SEQPACKET;
@@ -56,7 +56,7 @@ struct addrinfo* sockaddr_searcher::next()
 // class common_sctp_network_gateway_impl
 
 sctp_network_gateway_common_impl::sctp_network_gateway_common_impl(const sctp_network_gateway_config& cfg) :
-  node_cfg(cfg), logger(srslog::fetch_basic_logger("SCTP-GW"))
+  node_cfg(cfg), logger(ocudulog::fetch_basic_logger("SCTP-GW"))
 {
 }
 

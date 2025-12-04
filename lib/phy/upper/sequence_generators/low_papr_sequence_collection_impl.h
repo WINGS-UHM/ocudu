@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_collection.h"
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_generator.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Pre-generates and collects low PAPR sequences.
 class low_papr_sequence_collection_impl : public low_papr_sequence_collection
@@ -46,4 +46,4 @@ private:
   dynamic_tensor<4, cf_t> pregen_signals;
 };
 
-} // namespace srsran
+} // namespace ocudu

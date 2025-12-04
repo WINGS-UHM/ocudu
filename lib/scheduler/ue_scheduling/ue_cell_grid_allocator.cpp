@@ -12,17 +12,17 @@
 #include "../support/dci_builder.h"
 #include "../ue_context/ue_drx_controller.h"
 #include "grant_params_selector.h"
-#include "srsran/scheduler/result/dci_info.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/scheduler/result/dci_info.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ue_cell_grid_allocator::ue_cell_grid_allocator(const scheduler_ue_expert_config& expert_cfg_,
                                                ue_repository&                    ues_,
                                                pdcch_resource_allocator&         pdcch_sched_,
                                                uci_allocator&                    uci_alloc_,
                                                cell_resource_allocator&          cell_alloc_,
-                                               srslog::basic_logger&             logger_) :
+                                               ocudulog::basic_logger&           logger_) :
   expert_cfg(expert_cfg_),
   ues(ues_),
   pdcch_sched(pdcch_sched_),
@@ -165,12 +165,12 @@ ue_cell_grid_allocator::setup_dl_grant_builder(const slice_ue&                  
   // Fetch PDCCH and PDSCH resource grid allocators.
   cell_slot_resource_allocator& pdcch_alloc = cell_alloc[0];
   cell_slot_resource_allocator& pdsch_alloc = cell_alloc[pdsch_td_cfg.k0];
-  srsran_sanity_check(not pdcch_alloc.result.dl.dl_pdcchs.full(), "No space available for PDCCH");
-  srsran_sanity_check(pdsch_alloc.result.dl.bc.sibs.size() + pdsch_alloc.result.dl.paging_grants.size() +
-                              pdsch_alloc.result.dl.rar_grants.size() + pdsch_alloc.result.dl.ue_grants.size() <
-                          expert_cfg.max_pdschs_per_slot,
-                      "Max number of PDSCHs per slot was reached");
-  srsran_sanity_check(not pdsch_alloc.result.dl.ue_grants.full(), "No space available in scheduler PDSCH outputs");
+  ocudu_sanity_check(not pdcch_alloc.result.dl.dl_pdcchs.full(), "No space available for PDCCH");
+  ocudu_sanity_check(pdsch_alloc.result.dl.bc.sibs.size() + pdsch_alloc.result.dl.paging_grants.size() +
+                             pdsch_alloc.result.dl.rar_grants.size() + pdsch_alloc.result.dl.ue_grants.size() <
+                         expert_cfg.max_pdschs_per_slot,
+                     "Max number of PDSCHs per slot was reached");
+  ocudu_sanity_check(not pdsch_alloc.result.dl.ue_grants.full(), "No space available in scheduler PDSCH outputs");
 
   // Allocate PDCCH.
   auto pdcch_result = alloc_dl_pdcch(ue_cc, ss_info);
@@ -200,11 +200,11 @@ ue_cell_grid_allocator::setup_dl_grant_builder(const slice_ue&                  
                               expert_cfg.max_nof_dl_harq_retxs,
                               uci.harq_bit_idx)
                .value();
-    srsran_assert(h_dl.has_value(), "Failed to allocate DL HARQ");
+    ocudu_assert(h_dl.has_value(), "Failed to allocate DL HARQ");
   } else {
     // It is a retx.
     bool result = h_dl->new_retx(pdsch_alloc.slot, k1 + ue_cell_cfg.cell_cfg_common.ntn_cs_koffset, uci.harq_bit_idx);
-    srsran_assert(result, "Harq is in invalid state");
+    ocudu_assert(result, "Harq is in invalid state");
   }
 
   // Create PDSCH PDU.
@@ -248,12 +248,12 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
     return;
   }
 
-  srsran_sanity_check(not(pdsch_alloc.dl_res_grid.collides(scs, pdsch_td_cfg.symbols, crbs.first) or
-                          pdsch_alloc.dl_res_grid.collides(scs, pdsch_td_cfg.symbols, crbs.second)),
-                      "Invalid calculation of PDSCH RBs. Used CRBs={:i}. Allocated CRBs={}{}.",
-                      pdsch_alloc.dl_res_grid.used_crbs(scs, {0, cell_cfg.nof_dl_prbs}, pdsch_td_cfg.symbols),
-                      crbs.first,
-                      crbs.second);
+  ocudu_sanity_check(not(pdsch_alloc.dl_res_grid.collides(scs, pdsch_td_cfg.symbols, crbs.first) or
+                         pdsch_alloc.dl_res_grid.collides(scs, pdsch_td_cfg.symbols, crbs.second)),
+                     "Invalid calculation of PDSCH RBs. Used CRBs={:i}. Allocated CRBs={}{}.",
+                     pdsch_alloc.dl_res_grid.used_crbs(scs, {0, cell_cfg.nof_dl_prbs}, pdsch_td_cfg.symbols),
+                     crbs.first,
+                     crbs.second);
 
   sch_mcs_tbs mcs_tbs_info;
   if (is_retx) {
@@ -512,8 +512,8 @@ ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                  
   cell_slot_resource_allocator& pdcch_alloc = cell_alloc[0];
   const unsigned                final_k2    = pusch_td_cfg.k2 + cell_alloc.cfg.ntn_cs_koffset;
   cell_slot_resource_allocator& pusch_alloc = cell_alloc[final_k2];
-  srsran_sanity_check(not pdcch_alloc.result.dl.ul_pdcchs.full(), "Maximum number of UL PDCCH grants per slot reached");
-  srsran_sanity_check(not pusch_alloc.result.ul.puschs.full(), "No PUSCH space available in scheduler output list");
+  ocudu_sanity_check(not pdcch_alloc.result.dl.ul_pdcchs.full(), "Maximum number of UL PDCCH grants per slot reached");
+  ocudu_sanity_check(not pusch_alloc.result.ul.puschs.full(), "No PUSCH space available in scheduler output list");
 
   // [Implementation-defined] We skip allocation of PUSCH if there is already a PUCCH grant scheduled using common
   // PUCCH resources.
@@ -550,11 +550,11 @@ ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                  
   if (not is_retx) {
     // It is a new tx.
     h_ul = ue_cc.harqs.alloc_ul_harq(pusch_alloc.slot, expert_cfg.max_nof_ul_harq_retxs).value();
-    srsran_assert(h_ul.has_value(), "Failed to allocate UL HARQ");
+    ocudu_assert(h_ul.has_value(), "Failed to allocate UL HARQ");
   } else {
     // It is a retx.
     bool result = h_ul->new_retx(pusch_alloc.slot);
-    srsran_assert(result, "Failed to allocate HARQ retx");
+    ocudu_assert(result, "Failed to allocate HARQ retx");
   }
 
   // Create PUSCH PDU.
@@ -566,7 +566,7 @@ ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                  
 
 void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_interval& vrbs) const
 {
-  srsran_assert(not vrbs.empty(), "Invalid set of PUSCH VRBs");
+  ocudu_assert(not vrbs.empty(), "Invalid set of PUSCH VRBs");
 
   ue&      u     = ues[grant.user->ue_index()];
   ue_cell& ue_cc = *u.find_cell(cell_alloc.cell_index());
@@ -650,13 +650,13 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
     // If it's a reTx, fetch the MCS, TBS and number of layers from the previous transmission.
     const auto& prev_params = grant.h_ul.get_grant_params();
     mcs_tbs_info.emplace(sch_mcs_tbs{.mcs = prev_params.mcs, .tbs = prev_params.tbs_bytes});
-    srsran_sanity_check(prev_params.mcs_table == pusch_cfg.mcs_table, "MCS table cannot change across HARQ reTxs");
+    ocudu_sanity_check(prev_params.mcs_table == pusch_cfg.mcs_table, "MCS table cannot change across HARQ reTxs");
   }
 
-  srsran_sanity_check(not pusch_alloc.ul_res_grid.collides(scs, pusch_td_cfg.symbols, crbs),
-                      "Invalid calculation of PUSCH RBs. Used CRBs={:i}. Allocated CRBs={}.",
-                      pusch_alloc.ul_res_grid.used_crbs(scs, {0, cell_cfg.nof_ul_prbs}, pusch_td_cfg.symbols),
-                      crbs);
+  ocudu_sanity_check(not pusch_alloc.ul_res_grid.collides(scs, pusch_td_cfg.symbols, crbs),
+                     "Invalid calculation of PUSCH RBs. Used CRBs={:i}. Allocated CRBs={}.",
+                     pusch_alloc.ul_res_grid.used_crbs(scs, {0, cell_cfg.nof_ul_prbs}, pusch_td_cfg.symbols),
+                     crbs);
 
   // Mark resources as occupied in the ResourceGrid.
   pusch_alloc.ul_res_grid.fill(grant_info{scs, pusch_td_cfg.symbols, crbs});

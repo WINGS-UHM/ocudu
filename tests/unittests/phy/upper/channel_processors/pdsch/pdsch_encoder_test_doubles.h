@@ -2,10 +2,10 @@
 #pragma once
 
 #include "../../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdsch_encoder_spy : public pdsch_encoder
 {
@@ -27,7 +27,7 @@ public:
 
     // Fill data.
     entry.transport_block.resize(transport_block.size());
-    srsvec::copy(entry.transport_block, transport_block);
+    ocuduvec::copy(entry.transport_block, transport_block);
 
     // Generate encoded message.
     for (unsigned i = 0, len = codeword.size(); i != len; ++i) {
@@ -46,4 +46,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(pdsch_encoder);
 
-} // namespace srsran
+} // namespace ocudu

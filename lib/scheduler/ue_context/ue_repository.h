@@ -13,10 +13,10 @@
 #include "../config/sched_config_manager.h"
 #include "../ue_context/logical_channel_system.h"
 #include "../ue_context/ue.h"
-#include "srsran/adt/flat_map.h"
-#include "srsran/adt/ring_buffer.h"
+#include "ocudu/adt/flat_map.h"
+#include "ocudu/adt/ring_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Container that stores all the UEs that are configured in a given cell.
 class ue_cell_repository
@@ -28,7 +28,7 @@ public:
   using iterator       = ue_list::iterator;
   using const_iterator = ue_list::const_iterator;
 
-  ue_cell_repository(du_cell_index_t cell_idx, srslog::basic_logger& logger_);
+  ue_cell_repository(du_cell_index_t cell_idx, ocudulog::basic_logger& logger_);
 
   du_cell_index_t cell_index() const { return cell_idx; }
   bool            contains(du_ue_index_t ue_index) const { return ues.contains(ue_index); }
@@ -61,8 +61,8 @@ private:
   void add_ue(ue_cell& u_cc);
   void rem_ue(du_ue_index_t ue_index);
 
-  const du_cell_index_t cell_idx;
-  srslog::basic_logger& logger;
+  const du_cell_index_t   cell_idx;
+  ocudulog::basic_logger& logger;
 
   // List of UEs in the cell.
   ue_list ues;
@@ -138,7 +138,7 @@ private:
   /// Force the removal of the UE without waiting for the flushing of pending events.
   void rem_ue(const ue& u);
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   /// Management of all UE logical channels.
   logical_channel_system lc_ch_sys;
@@ -163,4 +163,4 @@ private:
   concurrent_queue<std::unique_ptr<ue>, concurrent_queue_policy::lockfree_mpmc> ues_to_destroy;
 };
 
-} // namespace srsran
+} // namespace ocudu

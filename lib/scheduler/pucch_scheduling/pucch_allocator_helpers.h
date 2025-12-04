@@ -13,11 +13,11 @@
 
 #include "../cell/resource_grid.h"
 #include "../config/ue_configuration.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/result/pucch_info.h"
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/result/pucch_info.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Retrieves the correct N_{ID}^0 parameter for PUCCH scrambling from the UE configuration.
 unsigned get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, unsigned cell_pci);
@@ -71,4 +71,4 @@ private:
   unsigned pdu_id   = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

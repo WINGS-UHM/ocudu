@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/scheduler/result/pusch_info.h"
-#include "srsran/scheduler/scheduler_configurator.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/result/pusch_info.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct pucch_info;
 
@@ -48,4 +48,4 @@ ul_crc_pdu_indication create_crc_pdu_indication(const ul_sched_info& ul_grant);
 
 } // namespace test_helper
 
-} // namespace srsran
+} // namespace ocudu

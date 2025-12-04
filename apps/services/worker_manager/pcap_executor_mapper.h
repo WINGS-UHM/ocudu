@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Mapper of PCAP executors for the DU.
 class du_pcap_executor_mapper
@@ -74,4 +74,4 @@ public:
   virtual task_executor& get_n3_executor() = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

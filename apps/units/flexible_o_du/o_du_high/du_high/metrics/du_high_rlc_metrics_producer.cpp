@@ -11,7 +11,7 @@
 #include "du_high_rlc_metrics_producer.h"
 #include "du_high_rlc_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void rlc_metrics_producer_impl::report_metrics(const rlc_metrics& report)
 {

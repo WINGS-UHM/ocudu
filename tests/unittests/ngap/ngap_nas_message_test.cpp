@@ -9,14 +9,14 @@
  */
 
 #include "ngap_test_helpers.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class ngap_nas_message_routine_test : public ngap_test
 {

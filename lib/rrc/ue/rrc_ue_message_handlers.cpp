@@ -17,15 +17,15 @@
 #include "rrc_ue_impl.h"
 #include "ue/rrc_asn1_converters.h"
 #include "ue/rrc_measurement_types_asn1_converters.h"
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/asn1/rrc_nr/dl_dcch_msg_ies.h"
-#include "srsran/asn1/rrc_nr/ul_ccch_msg.h"
-#include "srsran/ran/rb_id.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg.h"
+#include "ocudu/ran/rb_id.h"
 #include <chrono>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::rrc_nr;
 
 void rrc_ue_impl::handle_ul_ccch_pdu(byte_buffer pdu)
@@ -34,7 +34,7 @@ void rrc_ue_impl::handle_ul_ccch_pdu(byte_buffer pdu)
   ul_ccch_msg_s ul_ccch_msg;
   {
     asn1::cbit_ref bref(pdu);
-    if (ul_ccch_msg.unpack(bref) != asn1::SRSASN_SUCCESS or
+    if (ul_ccch_msg.unpack(bref) != asn1::OCUDUASN_SUCCESS or
         ul_ccch_msg.msg.type().value != ul_ccch_msg_type_c::types_opts::c1) {
       logger.log_error(pdu.begin(), pdu.end(), "Failed to unpack CCCH UL PDU");
       on_ue_release_required(ngap_cause_radio_network_t::unspecified);
@@ -161,7 +161,7 @@ void rrc_ue_impl::handle_pdu(const srb_id_t srb_id, byte_buffer rrc_pdu)
   ul_dcch_msg_s ul_dcch_msg;
   {
     asn1::cbit_ref bref(rrc_pdu);
-    if (ul_dcch_msg.unpack(bref) != asn1::SRSASN_SUCCESS or
+    if (ul_dcch_msg.unpack(bref) != asn1::OCUDUASN_SUCCESS or
         ul_dcch_msg.msg.type().value != ul_dcch_msg_type_c::types_opts::c1) {
       logger.log_error(rrc_pdu.begin(), rrc_pdu.end(), "Failed to unpack DCCH UL PDU");
       return;
@@ -237,8 +237,8 @@ void rrc_ue_impl::handle_ul_dcch_pdu(const srb_id_t srb_id, byte_buffer pdcp_pdu
 
 void rrc_ue_impl::handle_security_mode_complete(const asn1::rrc_nr::security_mode_complete_s& msg)
 {
-  srsran_sanity_check(context.srbs.find(srb_id_t::srb1) != context.srbs.end(),
-                      "Attempted to configure security, but there is no interface to PDCP");
+  ocudu_sanity_check(context.srbs.find(srb_id_t::srb1) != context.srbs.end(),
+                     "Attempted to configure security, but there is no interface to PDCP");
 
   context.srbs.at(srb_id_t::srb1)
       .enable_rx_security(
@@ -264,7 +264,7 @@ void rrc_ue_impl::handle_measurement_report(const asn1::rrc_nr::meas_report_s& m
 {
   // Convert asn1 to common type.
   rrc_meas_results meas_results =
-      asn1_to_measurement_results(msg.crit_exts.meas_report().meas_results, srslog::fetch_basic_logger("RRC"));
+      asn1_to_measurement_results(msg.crit_exts.meas_report().meas_results, ocudulog::fetch_basic_logger("RRC"));
   // Send measurement results to cell measurement manager.
   measurement_notifier.on_measurement_report(meas_results);
 }
@@ -380,7 +380,7 @@ byte_buffer rrc_ue_impl::get_packed_ue_capability_rat_container_list() const
   if (context.capabilities_list.has_value()) {
     asn1::bit_ref bref{pdu};
 
-    if (pack_dyn_seq_of(bref, context.capabilities_list.value(), 0, 8) != asn1::SRSASN_SUCCESS) {
+    if (pack_dyn_seq_of(bref, context.capabilities_list.value(), 0, 8) != asn1::OCUDUASN_SUCCESS) {
       logger.log_error("Error packing UECapabilityRATContainer List");
       return byte_buffer{};
     }
@@ -407,7 +407,7 @@ bool rrc_ue_impl::handle_rrc_handover_preparation_info(byte_buffer pdu)
   asn1::rrc_nr::ho_prep_info_s ho_prep_info;
   asn1::cbit_ref               bref({pdu.begin(), pdu.end()});
 
-  if (ho_prep_info.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (ho_prep_info.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.log_error("Couldn't unpack HandoverPreparationInfo RRC container");
     return false;
   }
@@ -515,7 +515,7 @@ bool rrc_ue_impl::store_ue_capabilities(byte_buffer ue_capabilities)
   asn1::rrc_nr::ue_radio_access_cap_info_s ue_radio_access_cap_info;
   asn1::cbit_ref                           bref({ue_capabilities.begin(), ue_capabilities.end()});
 
-  if (ue_radio_access_cap_info.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (ue_radio_access_cap_info.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.log_error("Couldn't unpack UERadioAccessCapabilityInfo RRC container");
     return false;
   }
@@ -524,7 +524,7 @@ bool rrc_ue_impl::store_ue_capabilities(byte_buffer ue_capabilities)
   asn1::cbit_ref                            bref2(
       {ue_radio_access_cap_info.crit_exts.c1().ue_radio_access_cap_info().ue_radio_access_cap_info.begin(),
                                   ue_radio_access_cap_info.crit_exts.c1().ue_radio_access_cap_info().ue_radio_access_cap_info.end()});
-  if (asn1::unpack_dyn_seq_of(ue_cap_rat_container_list, bref2, 0, 8) != asn1::SRSASN_SUCCESS) {
+  if (asn1::unpack_dyn_seq_of(ue_cap_rat_container_list, bref2, 0, 8) != asn1::OCUDUASN_SUCCESS) {
     logger.log_error("Couldn't unpack UE Capability RAT Container List RRC container");
     return false;
   }
@@ -702,7 +702,7 @@ byte_buffer rrc_ue_impl::get_rrc_handover_command(const rrc_reconfiguration_proc
   // Unpack MasterCellGroup to extract T304.
   asn1::rrc_nr::cell_group_cfg_s cell_group_cfg;
   asn1::cbit_ref                 bref2(request.non_crit_ext->master_cell_group);
-  if (cell_group_cfg.unpack(bref2) != asn1::SRSASN_SUCCESS) {
+  if (cell_group_cfg.unpack(bref2) != asn1::OCUDUASN_SUCCESS) {
     report_fatal_error("Failed to unpack MasterCellGroupCfg");
   }
   context.cell.timers.t304 = std::chrono::milliseconds{cell_group_cfg.sp_cell_cfg.recfg_with_sync.t304.to_number()};
@@ -737,7 +737,7 @@ byte_buffer rrc_ue_impl::handle_rrc_handover_command(byte_buffer cmd)
   asn1::rrc_nr::ho_cmd_s handover_command;
   asn1::cbit_ref         bref({cmd.begin(), cmd.end()});
 
-  if (handover_command.unpack(bref) != asn1::SRSASN_SUCCESS) {
+  if (handover_command.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     logger.log_error("Couldn't unpack Handover Command RRC container");
     return ho_reconf_pdu;
   }
@@ -749,7 +749,7 @@ byte_buffer rrc_ue_impl::handle_rrc_handover_command(byte_buffer cmd)
   dl_dcch_msg_s dl_dcch_msg;
   auto&         rrc_recfg = dl_dcch_msg.msg.set_c1().set_rrc_recfg();
 
-  if (rrc_recfg.unpack(bref2) != asn1::SRSASN_SUCCESS) {
+  if (rrc_recfg.unpack(bref2) != asn1::OCUDUASN_SUCCESS) {
     logger.log_error("Couldn't unpack RRC Reconfiguration container");
     return ho_reconf_pdu;
   }

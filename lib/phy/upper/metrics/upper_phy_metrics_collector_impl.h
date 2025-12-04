@@ -15,11 +15,11 @@
 #include "upper_phy_ldpc_metrics_collector.h"
 #include "upper_phy_pdsch_metrics_collector.h"
 #include "upper_phy_pusch_metrics_collector.h"
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/upper_phy_metrics.h"
-#include "srsran/phy/upper/upper_phy_metrics_collector.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/upper_phy_metrics.h"
+#include "ocudu/phy/upper/upper_phy_metrics_collector.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU low metrics collector implementation.
 class upper_phy_metrics_collector_impl : public upper_phy_metrics_collector, public upper_phy_metrics_notifiers
@@ -178,4 +178,4 @@ private:
   std::chrono::high_resolution_clock::time_point last_timestamp = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

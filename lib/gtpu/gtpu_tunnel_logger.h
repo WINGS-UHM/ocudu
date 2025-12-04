@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/gtpu/gtpu_teid.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/format/prefixed_logger.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/gtpu/gtpu_teid.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 class gtpu_tunnel_log_prefix
 {
 public:
-  gtpu_tunnel_log_prefix(std::optional<srs_cu_up::ue_index_t> ue_index, gtpu_teid_t teid, const char* dir)
+  gtpu_tunnel_log_prefix(std::optional<ocuup::ue_index_t> ue_index, gtpu_teid_t teid, const char* dir)
   {
     fmt::memory_buffer buffer;
     if (ue_index.has_value()) {
@@ -29,7 +29,7 @@ public:
     } else {
       fmt::format_to(std::back_inserter(buffer), "{} teid={}: ", dir, teid);
     }
-    prefix = srsran::to_c_str(buffer);
+    prefix = ocudu::to_c_str(buffer);
   }
   const char* to_c_str() const { return prefix.c_str(); }
 
@@ -39,13 +39,13 @@ private:
 
 using gtpu_tunnel_logger = prefixed_logger<gtpu_tunnel_log_prefix>;
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 // associated formatter
 template <>
-struct formatter<srsran::gtpu_tunnel_log_prefix> {
+struct formatter<ocudu::gtpu_tunnel_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -53,7 +53,7 @@ struct formatter<srsran::gtpu_tunnel_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::gtpu_tunnel_log_prefix o, FormatContext& ctx) const
+  auto format(ocudu::gtpu_tunnel_log_prefix o, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", o.to_c_str());
   }

@@ -16,13 +16,13 @@
 #include "messages/pusch.h"
 #include "messages/srs.h"
 #include "messages/ssb.h"
-#include "srsran/fapi/message_validators.h"
-#include "srsran/fapi/slot_last_message_notifier.h"
-#include "srsran/fapi/slot_message_gateway.h"
-#include "srsran/ran/bwp/bwp_configuration.h"
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/fapi/message_validators.h"
+#include "ocudu/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/ran/bwp/bwp_configuration.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
@@ -79,8 +79,8 @@ mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
   part2_mapper(std::move(dependencies.part2_mapper)),
   mac_slot_handler(&dummy_cell_handler)
 {
-  srsran_assert(pm_mapper, "Invalid precoding matrix mapper");
-  srsran_assert(part2_mapper, "Invalid Part2 mapper");
+  ocudu_assert(pm_mapper, "Invalid precoding matrix mapper");
+  ocudu_assert(part2_mapper, "Invalid Part2 mapper");
 }
 
 void mac_to_fapi_fastpath_translator::stop()
@@ -95,7 +95,7 @@ static void add_pdcch_pdus_to_builder(builder_type&                  builder,
                                       const precoding_matrix_mapper& pm_mapper,
                                       unsigned                       cell_nof_prbs)
 {
-  srsran_assert(pdcch_info.size() == payloads.size(), "Size mismatch");
+  ocudu_assert(pdcch_info.size() == payloads.size(), "Size mismatch");
 
   if (pdcch_info.empty()) {
     return;
@@ -201,7 +201,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
 {
   stop_event_token token = stop_manager.get_token();
   // Do not process results when the translator is not running.
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
@@ -262,15 +262,15 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
 {
   stop_event_token token = stop_manager.get_token();
   // Do not process results when the translator is not running.
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
   stop_token = std::move(token);
 
-  srsran_assert(!dl_data.si_pdus.empty() || !dl_data.rar_pdus.empty() || !dl_data.ue_pdus.empty() ||
-                    !dl_data.paging_pdus.empty(),
-                "Received a mac_dl_data_result object with zero payloads");
+  ocudu_assert(!dl_data.si_pdus.empty() || !dl_data.rar_pdus.empty() || !dl_data.ue_pdus.empty() ||
+                   !dl_data.paging_pdus.empty(),
+               "Received a mac_dl_data_result object with zero payloads");
 
   fapi::tx_data_request_message msg;
   fapi::tx_data_request_builder builder(msg);
@@ -344,7 +344,7 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
 {
   stop_event_token token = stop_manager.get_token();
   // Do not process results when the translator is not running.
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 

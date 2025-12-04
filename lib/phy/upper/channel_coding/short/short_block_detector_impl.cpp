@@ -10,14 +10,14 @@
 
 #include "short_block_detector_impl.h"
 #include "short_block_encoder_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/uci/uci_info.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/fill.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/fill.h"
+#include "ocudu/ran/uci/uci_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::array<std::array<int8_t, MAX_BLOCK_LENGTH>, MAX_NOF_CODEWORDS_2> create_lut()
 {
@@ -29,7 +29,7 @@ static std::array<std::array<int8_t, MAX_BLOCK_LENGTH>, MAX_NOF_CODEWORDS_2> cre
   for (unsigned idx = 0; idx != MAX_NOF_CODEWORDS_2; ++idx) {
     // Generate an "even-valued" message.
     std::array<uint8_t, MAX_MSG_LENGTH> bits;
-    srsvec::bit_unpack(bits, 2 * idx, MAX_MSG_LENGTH);
+    ocuduvec::bit_unpack(bits, 2 * idx, MAX_MSG_LENGTH);
     std::reverse(bits.begin(), bits.end());
 
     // Encode the message. Note that, since the message is longer than 2 bits, all modulation schemes give the same
@@ -97,7 +97,7 @@ static double detect_2(span<uint8_t> output, span<const log_likelihood_ratio> in
   double   max_metric = std::numeric_limits<double>::min();
   // Brute-force ML detector: correlate all codewords with the LLRs and pick the best one.
   for (unsigned cdwd_idx = 0; cdwd_idx != 4; ++cdwd_idx) {
-    int metric = srsvec::dot_prod(llr_as_int, TABLE2[cdwd_idx], 0);
+    int metric = ocuduvec::dot_prod(llr_as_int, TABLE2[cdwd_idx], 0);
     if (metric > max_metric) {
       max_metric = metric;
       max_idx    = cdwd_idx;
@@ -109,7 +109,7 @@ static double detect_2(span<uint8_t> output, span<const log_likelihood_ratio> in
 
   // TODO(david): this is not really working, 3 symbols are not enough for a meaningful GLRT detector.
   max_metric *= max_metric;
-  int in_norm_sqr = srsvec::dot_prod(llr_as_int, llr_as_int, 0);
+  int in_norm_sqr = ocuduvec::dot_prod(llr_as_int, llr_as_int, 0);
   return 2.0 * max_metric / (3.0 * in_norm_sqr - max_metric);
 }
 
@@ -135,7 +135,7 @@ double short_block_detector_impl::detect_3_11(span<uint8_t> output, span<const l
 
   // Recover the message from the index of the codeword with the highest correlation. Recall that only "even-valued"
   // messages have been correlated, the "odd-values" ones are those with negative correlation and, in turn, bit0 = 1.
-  srsvec::bit_unpack(output, 2 * max_idx + bit0, output.size());
+  ocuduvec::bit_unpack(output, 2 * max_idx + bit0, output.size());
   std::reverse(output.begin(), output.end());
 
   // GLRT detector metric.
@@ -149,11 +149,11 @@ static void rate_dematch(span<log_likelihood_ratio> output, span<const log_likel
 {
   // Copy the first samples in common.
   unsigned nof_copy = std::min(input.size(), output.size());
-  srsvec::copy(output.first(nof_copy), input.first(nof_copy));
+  ocuduvec::copy(output.first(nof_copy), input.first(nof_copy));
 
   // Pad the output with zeros if longer than the input.
   if (input.size() <= output.size()) {
-    srsvec::fill(output.last(output.size() - nof_copy), 0);
+    ocuduvec::fill(output.last(output.size() - nof_copy), 0);
     return;
   }
 

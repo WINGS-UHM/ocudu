@@ -11,7 +11,7 @@
 #include "split_7_2_o_du_factory.h"
 #include "helpers/ru_ofh_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 std::unique_ptr<radio_unit>
 split_7_2_o_du_factory::create_radio_unit(const flexible_o_du_ru_config&       ru_config,

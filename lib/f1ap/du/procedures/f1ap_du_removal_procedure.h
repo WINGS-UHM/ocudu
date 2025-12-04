@@ -12,10 +12,10 @@
 
 #include "../f1ap_du_connection_handler.h"
 #include "f1ap_du_event_manager.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct f1ap_du_context;
 
@@ -41,10 +41,10 @@ private:
   f1ap_message_notifier&      cu_notifier;
   f1ap_event_manager&         ev_mng;
   f1ap_du_context&            du_ctxt;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
 
   f1ap_transaction transaction;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

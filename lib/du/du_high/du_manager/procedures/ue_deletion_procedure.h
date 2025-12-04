@@ -13,11 +13,11 @@
 #include "../du_ue/du_ue.h"
 #include "../du_ue/du_ue_manager_repository.h"
 #include "procedure_logger.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class ue_deletion_procedure
 {
@@ -47,5 +47,5 @@ private:
   du_ue* ue = nullptr;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

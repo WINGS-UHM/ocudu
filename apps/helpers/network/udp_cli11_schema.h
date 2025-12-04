@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct udp_appconfig;
 
@@ -22,4 +22,4 @@ struct udp_appconfig;
 /// \param[out] config UDP configuration that stores the parameters.
 void configure_cli11_with_udp_config_schema(CLI::App& app, udp_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

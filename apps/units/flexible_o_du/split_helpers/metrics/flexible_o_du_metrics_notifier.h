@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct flexible_o_du_metrics;
 
@@ -24,4 +24,4 @@ public:
   virtual void on_new_metrics(const flexible_o_du_metrics& metric) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

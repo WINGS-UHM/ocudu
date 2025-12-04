@@ -13,13 +13,13 @@
 #include "../ngap_repository.h"
 #include "../ue_manager/ue_manager_impl.h"
 #include "metrics/mobility_manager_metrics_aggregator.h"
-#include "srsran/cu_cp/cu_cp_command_handler.h"
-#include "srsran/cu_cp/cu_cp_f1c_handler.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_cp/mobility_manager_config.h"
+#include "ocudu/cu_cp/cu_cp_command_handler.h"
+#include "ocudu/cu_cp/cu_cp_f1c_handler.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/mobility_manager_config.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class du_processor_repository;
 
@@ -89,8 +89,8 @@ private:
 
   mobility_manager_metrics_aggregator metrics_handler;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

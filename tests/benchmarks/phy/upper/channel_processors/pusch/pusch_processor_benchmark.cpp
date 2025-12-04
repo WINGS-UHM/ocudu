@@ -9,33 +9,33 @@
  */
 
 #include "../../../lib/phy/upper/rx_buffer_pool_impl.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/math/complex_normal_random.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/math/complex_normal_random.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_test.h"
+#include "ocudu/support/rtsan.h"
 #ifdef HWACC_PUSCH_ENABLED
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
 #endif // HWACC_PUSCH_ENABLED
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // A test case consists of a PUSCH PDU configuration and a Transport Block Size.
 using test_case_type = std::tuple<pusch_processor::pdu_t, unsigned>;
@@ -137,11 +137,11 @@ static std::atomic<int>      pending_count = {0};
 static std::atomic<unsigned> finish_count  = {0};
 
 #ifdef HWACC_PUSCH_ENABLED
-static bool                 dedicated_queue  = true;
-static bool                 force_local_harq = false;
-static bool                 std_out_sink     = true;
-static srslog::basic_levels hal_log_level    = srslog::basic_levels::error;
-static std::string          eal_arguments    = "";
+static bool                   dedicated_queue  = true;
+static bool                   force_local_harq = false;
+static bool                   std_out_sink     = true;
+static ocudulog::basic_levels hal_log_level    = ocudulog::basic_levels::error;
+static std::string            eal_arguments    = "";
 #endif // HWACC_PUSCH_ENABLED
 
 // Test profile structure, initialized with default profile values.
@@ -326,8 +326,8 @@ static int parse_args(int argc, char** argv)
         std_out_sink = false;
         break;
       case 'z': {
-        auto level    = srslog::str_to_basic_level(std::string(optarg));
-        hal_log_level = level.has_value() ? level.value() : srslog::basic_levels::error;
+        auto level    = ocudulog::str_to_basic_level(std::string(optarg));
+        hal_log_level = level.has_value() ? level.value() : ocudulog::basic_levels::error;
         break;
       }
 #endif // HWACC_PUSCH_ENABLED
@@ -343,14 +343,14 @@ static int parse_args(int argc, char** argv)
   for (const auto& candidate_profile : profile_set) {
     if (selected_profile_name == candidate_profile.name) {
       selected_profile = candidate_profile;
-      srslog::fetch_basic_logger("TEST").info("Loading profile: {}", selected_profile.name);
+      ocudulog::fetch_basic_logger("TEST").info("Loading profile: {}", selected_profile.name);
       profile_found = true;
       break;
     }
   }
   if (!profile_found) {
     usage(argv[0]);
-    srslog::fetch_basic_logger("TEST").error("Invalid profile: {}.", selected_profile_name);
+    ocudulog::fetch_basic_logger("TEST").error("Invalid profile: {}.", selected_profile_name);
     fmt::print(stderr, "Invalid profile: {}.\n", selected_profile_name);
     return -1;
   }
@@ -456,7 +456,7 @@ static std::shared_ptr<hal::hw_accelerator_pusch_dec_factory> create_hw_accelera
              dpdk::MAX_NOF_BBDEV_VF_INSTANCES);
 
   // Intefacing to the bbdev-based hardware-accelerator.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("HWACC", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HWACC", false);
   logger.set_level(hal_log_level);
   dpdk::bbdev_acc_configuration bbdev_config;
   bbdev_config.id                                    = 0;
@@ -483,7 +483,7 @@ static std::shared_ptr<hal::hw_accelerator_pusch_dec_factory> create_hw_accelera
   hw_decoder_config.dedicated_queue     = dedicated_queue;
 
   // ACC100 hardware-accelerator implementation.
-  return srsran::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
+  return ocudu::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
 #else  // HWACC_PUSCH_ENABLED
   return nullptr;
 #endif // HWACC_PUSCH_ENABLED
@@ -712,7 +712,7 @@ static void thread_process(pusch_processor&              proc,
     unique_rx_buffer rm_buffer = buffer_pool->get_pool().reserve(config.slot, buffer_id, nof_codeblocks, true);
 
     // Process PDU.
-    [&]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+    [&]() noexcept OCUDU_RTSAN_NONBLOCKING {
       proc.process(data, std::move(rm_buffer), result_notifier, grid, config);
     }();
 
@@ -751,11 +751,11 @@ int main(int argc, char** argv)
   if (ldpc_decoder_type == "acc100" || rate_dematcher_type == "acc100") {
     ldpc_decoder_type   = "acc100";
     rate_dematcher_type = "acc100";
-    srslog::sink* log_sink =
-        std_out_sink ? srslog::create_stdout_sink() : srslog::create_file_sink("processor_benchmark.log");
-    srslog::set_default_sink(*log_sink);
-    srslog::init();
-    srslog::basic_logger& logger = srslog::fetch_basic_logger("EAL", false);
+    ocudulog::sink* log_sink =
+        std_out_sink ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink("processor_benchmark.log");
+    ocudulog::set_default_sink(*log_sink);
+    ocudulog::init();
+    ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("EAL", false);
     logger.set_level(hal_log_level);
     dpdk_interface = dpdk::create_dpdk_eal(eal_arguments, logger);
     TESTASSERT(dpdk_interface, "Failed to open DPDK EAL with arguments.");

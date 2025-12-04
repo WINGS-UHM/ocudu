@@ -9,10 +9,10 @@
  */
 
 #include "radio_zmq_rx_channel.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/support/synchronization/sync_event.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Lists the supported socket types.
 static const std::set<int> VALID_SOCKET_TYPES = {ZMQ_REQ};
@@ -24,7 +24,7 @@ radio_zmq_rx_channel::radio_zmq_rx_channel(void*                      zmq_contex
   stream_id(config.stream_id),
   channel_id(config.channel_id),
   socket_type(config.socket_type),
-  logger(srslog::fetch_basic_logger(config.channel_id_str, false)),
+  logger(ocudulog::fetch_basic_logger(config.channel_id_str, false)),
   circular_buffer(config.buffer_size),
   buffer(config.buffer_size * sizeof(cf_t)),
   notification_handler(notification_handler_),
@@ -201,7 +201,7 @@ void radio_zmq_rx_channel::receive_response()
 void radio_zmq_rx_channel::run_async()
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
@@ -231,8 +231,8 @@ void radio_zmq_rx_channel::run_async()
 void radio_zmq_rx_channel::receive(span<cf_t> data)
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
-    srsvec::zero(data);
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
+    ocuduvec::zero(data);
     return;
   }
 
@@ -263,7 +263,7 @@ void radio_zmq_rx_channel::receive(span<cf_t> data)
   }
 
   if (!state_fsm.is_running()) {
-    srsvec::zero(data);
+    ocuduvec::zero(data);
   }
 }
 

@@ -13,12 +13,12 @@
 #include "../du_ue/du_ue.h"
 #include "../du_ue/du_ue_manager_repository.h"
 #include "procedure_logger.h"
-#include "srsran/mac/mac.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct du_ue_creation_request {
   du_ue_index_t   ue_index;
@@ -95,5 +95,5 @@ private:
   f1ap_ue_creation_response     f1ap_resp{};
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

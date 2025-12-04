@@ -9,17 +9,17 @@
 set_directory_properties(PROPERTIES LABELS "cu;du;integrationtest")
 
 add_executable(cu_du_test cu_du_test.cpp du_high_cu_test_simulator.cpp cu_multi_du_test.cpp)
-target_link_libraries(cu_du_test srsran_cu_cp
-        srsran_du_high
+target_link_libraries(cu_du_test ocudu_cu_cp
+        ocudu_du_high
         du_high_worker_manager
-        srsran_f1ap_cu
+        ocudu_f1ap_cu
         mac_test_doubles
         f1ap_test_doubles
         du_test_doubles
         cu_cp_test_helpers
-        srsran_rrc
-        srsran_support
-        srslog
+        ocudu_rrc
+        ocudu_support
+        ocudulog
         ngap_test_helpers
         f1ap_asn1
         ngap_asn1

@@ -13,9 +13,9 @@
 #include "../cell/cell_harq_manager.h"
 #include "../slicing/slice_ue_repository.h"
 #include "../support/sch_pdu_builder.h"
-#include "srsran/ran/sch/sch_mcs.h"
+#include "ocudu/ran/sch/sch_mcs.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ue_cell;
 class slice_ue;
@@ -101,4 +101,4 @@ vrb_interval compute_newtx_ul_vrbs(const ul_sched_context& decision_ctxt,
 vrb_interval compute_retx_ul_vrbs(const ul_sched_context& decision_ctxt, const vrb_bitmap& used_vrbs);
 
 } // namespace sched_helper
-} // namespace srsran
+} // namespace ocudu

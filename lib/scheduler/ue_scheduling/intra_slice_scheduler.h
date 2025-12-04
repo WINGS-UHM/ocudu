@@ -14,7 +14,7 @@
 #include "../slicing/ran_slice_candidate.h"
 #include "ue_cell_grid_allocator.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdcch_resource_allocator;
 class scheduler_policy;
@@ -31,7 +31,7 @@ public:
                         cell_resource_allocator&          cell_alloc,
                         cell_metrics_handler&             cell_metrics_,
                         cell_harq_manager&                cell_harqs_,
-                        srslog::basic_logger&             logger_);
+                        ocudulog::basic_logger&           logger_);
 
   /// Reset context in preparation for new slot.
   void slot_indication(slot_point sl_tx);
@@ -114,7 +114,7 @@ private:
   cell_harq_manager&                cell_harqs;
   uci_allocator&                    uci_alloc;
   ue_repository&                    ues;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   // Derived parameters.
   const unsigned expected_pdschs_per_slot;
@@ -148,4 +148,4 @@ private:
   std::vector<ue_cell_grid_allocator::ul_newtx_grant_builder> pending_ul_newtxs;
 };
 
-} // namespace srsran
+} // namespace ocudu

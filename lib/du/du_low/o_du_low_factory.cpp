@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/du/du_low/o_du_low_factory.h"
+#include "ocudu/du/du_low/o_du_low_factory.h"
 #include "o_du_low_impl.h"
-#include "srsran/du/du_low/du_low_factory.h"
-#include "srsran/du/du_low/o_du_low_config.h"
-#include "srsran/fapi/messages/config_request_tlvs.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_fastpath_adaptor_factory.h"
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/du/du_low/du_low_factory.h"
+#include "ocudu/du/du_low/o_du_low_config.h"
+#include "ocudu/fapi/messages/config_request_tlvs.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor_factory.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static fapi_adaptor::phy_fapi_fastpath_adaptor_dependencies
 generate_fapi_fastpath_adaptor_dependencies(du_low&                                               du_low,
@@ -29,7 +29,7 @@ generate_fapi_fastpath_adaptor_dependencies(du_low&                             
   for (unsigned i = 0, e = fapi_cfg.sectors.size(); i != e; ++i) {
     upper_phy&                                                  upper               = du_low.get_upper_phy(i);
     fapi_adaptor::phy_fapi_sector_fastpath_adaptor_dependencies sector_dependencies = {
-        {.logger               = srslog::fetch_basic_logger("FAPI"),
+        {.logger               = ocudulog::fetch_basic_logger("FAPI"),
          .dl_processor_pool    = upper.get_downlink_processor_pool(),
          .dl_rg_pool           = upper.get_downlink_resource_grid_pool(),
          .dl_pdu_validator     = upper.get_downlink_pdu_validator(),
@@ -46,8 +46,7 @@ generate_fapi_fastpath_adaptor_dependencies(du_low&                             
   return out_dependencies;
 }
 
-std::unique_ptr<o_du_low> srsran::srs_du::make_o_du_low(const o_du_low_config& config,
-                                                        o_du_low_dependencies& o_du_low_deps)
+std::unique_ptr<o_du_low> ocudu::odu::make_o_du_low(const o_du_low_config& config, o_du_low_dependencies& o_du_low_deps)
 {
   du_low_dependencies& du_low_deps = o_du_low_deps.du_low_deps;
 

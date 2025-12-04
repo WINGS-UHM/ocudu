@@ -9,16 +9,16 @@
  */
 
 #include "f1ap_common_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::f1ap;
 
-f1ap_message srsran::generate_error_indication(uint8_t                                   transaction_id,
-                                               const std::optional<gnb_du_ue_f1ap_id_t>& du_ue_id,
-                                               const std::optional<gnb_cu_ue_f1ap_id_t>& cu_ue_id,
-                                               const std::optional<asn1::f1ap::cause_c>& cause)
+f1ap_message ocudu::generate_error_indication(uint8_t                                   transaction_id,
+                                              const std::optional<gnb_du_ue_f1ap_id_t>& du_ue_id,
+                                              const std::optional<gnb_cu_ue_f1ap_id_t>& cu_ue_id,
+                                              const std::optional<asn1::f1ap::cause_c>& cause)
 {
   f1ap_message msg;
   msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_ERROR_IND);

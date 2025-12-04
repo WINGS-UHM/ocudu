@@ -10,23 +10,23 @@
 
 #include "reestablishment_context_modification_routine.h"
 #include "pdu_session_routine_helpers.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
-#include "srsran/f1ap/ue_context_management_configs.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
+#include "ocudu/f1ap/ue_context_management_configs.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 reestablishment_context_modification_routine::reestablishment_context_modification_routine(
-    ue_index_t                             ue_index_,
-    const srsran::security::sec_as_config& security_cfg_,
-    e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
-    f1ap_ue_context_manager&               f1ap_ue_ctxt_mng_,
-    rrc_ue_interface*                      rrc_ue_,
-    cu_cp_rrc_ue_interface&                cu_cp_notifier_,
-    ue_task_scheduler&                     ue_task_sched_,
-    up_resource_manager&                   up_resource_mng_,
-    srslog::basic_logger&                  logger_) :
+    ue_index_t                            ue_index_,
+    const ocudu::security::sec_as_config& security_cfg_,
+    e1ap_bearer_context_manager&          e1ap_bearer_ctxt_mng_,
+    f1ap_ue_context_manager&              f1ap_ue_ctxt_mng_,
+    rrc_ue_interface*                     rrc_ue_,
+    cu_cp_rrc_ue_interface&               cu_cp_notifier_,
+    ue_task_scheduler&                    ue_task_sched_,
+    up_resource_manager&                  up_resource_mng_,
+    ocudulog::basic_logger&               logger_) :
   ue_index(ue_index_),
   security_cfg(security_cfg_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),

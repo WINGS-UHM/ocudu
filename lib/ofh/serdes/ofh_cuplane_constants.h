@@ -10,11 +10,11 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul payload version as per O-RAN WG4 CUS, Section 7.5.2.2.
 constexpr unsigned OFH_PAYLOAD_VERSION = 1U;
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

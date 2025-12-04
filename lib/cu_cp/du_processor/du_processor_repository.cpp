@@ -11,15 +11,15 @@
 #include "du_processor_repository.h"
 #include "du_processor_config.h"
 #include "du_processor_factory.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/rrc/rrc_config.h"
-#include "srsran/support/executors/sync_task_executor.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/rrc/rrc_config.h"
+#include "ocudu/support/executors/sync_task_executor.h"
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 du_processor_repository::du_processor_repository(du_repository_config cfg_) :
   cfg(cfg_),
@@ -42,7 +42,7 @@ du_index_t du_processor_repository::add_du(std::unique_ptr<f1ap_message_notifier
 
   // Create DU object
   auto it = du_db.insert(std::make_pair(du_index, du_context{}));
-  srsran_assert(it.second, "Unable to insert DU in map");
+  ocudu_assert(it.second, "Unable to insert DU in map");
   du_context& du_ctxt = it.first->second;
   du_ctxt.du_to_cu_cp_notifier.connect_cu_cp(
       cfg.cu_cp_du_handler, cfg.meas_config_handler, cfg.ue_removal_handler, cfg.ue_context_handler);
@@ -55,7 +55,7 @@ du_index_t du_processor_repository::add_du(std::unique_ptr<f1ap_message_notifier
                                                          cfg.common_task_sched,
                                                          cfg.ue_mng);
 
-  srsran_assert(du != nullptr, "Failed to create DU processor");
+  ocudu_assert(du != nullptr, "Failed to create DU processor");
   du_ctxt.processor = std::move(du);
 
   return du_index;
@@ -63,7 +63,7 @@ du_index_t du_processor_repository::add_du(std::unique_ptr<f1ap_message_notifier
 
 async_task<void> du_processor_repository::remove_du(du_index_t du_index)
 {
-  srsran_assert(du_index != du_index_t::invalid, "Invalid du_index={}", du_index);
+  ocudu_assert(du_index != du_index_t::invalid, "Invalid du_index={}", du_index);
   logger.debug("Removing DU {}...", du_index);
 
   return launch_async([this, du_index](coro_context<async_task<void>>& ctx) {
@@ -132,8 +132,8 @@ du_processor* du_processor_repository::find_du_processor(du_index_t du_index)
 
 du_processor& du_processor_repository::get_du_processor(du_index_t du_index)
 {
-  srsran_assert(du_index != du_index_t::invalid, "Invalid du_index={}", du_index);
-  srsran_assert(du_db.find(du_index) != du_db.end(), "DU not found du_index={}", du_index);
+  ocudu_assert(du_index != du_index_t::invalid, "Invalid du_index={}", du_index);
+  ocudu_assert(du_db.find(du_index) != du_db.end(), "DU not found du_index={}", du_index);
   return *du_db.at(du_index).processor;
 }
 

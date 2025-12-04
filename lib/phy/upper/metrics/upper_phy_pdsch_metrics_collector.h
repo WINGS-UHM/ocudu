@@ -16,9 +16,9 @@
 #include "aggregators/pdsch_dmrs_generator_metrics_aggregator.h"
 #include "aggregators/pdsch_processor_metrics_aggregator.h"
 #include "aggregators/scrambling_metrics_aggregator.h"
-#include "srsran/phy/upper/upper_phy_metrics.h"
+#include "ocudu/phy/upper/upper_phy_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PDSCH processing metrics collector.
 class upper_phy_pdsch_metrics_collector
@@ -66,4 +66,4 @@ private:
   pdsch_dmrs_generator_metrics_aggregator pdsch_dmrs_generator_aggregator;
 };
 
-} // namespace srsran
+} // namespace ocudu

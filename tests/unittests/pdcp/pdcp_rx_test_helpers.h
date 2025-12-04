@@ -13,15 +13,15 @@
 #include "lib/pdcp/pdcp_entity_rx.h"
 #include "lib/pdcp/pdcp_interconnect.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_entity.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/timers.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_entity.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-namespace srsran {
+namespace ocudu {
 
 class mock_pdcp_metrics_notifier : public pdcp_metrics_notifier
 {
@@ -127,7 +127,7 @@ protected:
                                                *metrics_agg);
     pdcp_rx->set_status_handler(test_frame.get());
 
-    srslog::flush();
+    ocudulog::flush();
   }
 
   /// \brief Gets test PDU based on the COUNT and SN size
@@ -161,7 +161,7 @@ protected:
   uint32_t HFN(uint32_t count) const { return (count >> static_cast<uint8_t>(sn_size)); }
   uint32_t COUNT(uint32_t hfn, uint32_t sn) const { return (hfn << static_cast<uint8_t>(sn_size)) | sn; }
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 
   pdcp_sn_size                        sn_size = {};
   unsigned                            algo    = {};
@@ -223,4 +223,4 @@ protected:
 private:
   manual_task_worker crypto_worker;
 };
-} // namespace srsran
+} // namespace ocudu

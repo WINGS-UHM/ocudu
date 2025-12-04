@@ -12,13 +12,13 @@
 #include "decorator_helpers/slot_data_message_notifier_dummy.h"
 #include "message_loggers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 static slot_data_message_notifier_dummy dummy_notifier;
 
-logging_slot_data_notifier_decorator::logging_slot_data_notifier_decorator(unsigned              sector_id_,
-                                                                           srslog::basic_logger& logger_) :
+logging_slot_data_notifier_decorator::logging_slot_data_notifier_decorator(unsigned                sector_id_,
+                                                                           ocudulog::basic_logger& logger_) :
   sector_id(sector_id_), logger(logger_), notifier(&dummy_notifier)
 {
 }

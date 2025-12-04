@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <gtest/gtest.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 class stop_event_test : public ::testing::Test
 {

@@ -13,13 +13,13 @@
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "apps/services/worker_manager/cli11_cpu_affinities_parser_helper.h"
 #include "du_low_config.h"
-#include "srsran/adt/expected.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/slot_point_extended.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/config_parsers.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/config_parsers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 template <typename Integer>
 static expected<Integer, std::string> parse_int(const std::string& value)
@@ -374,7 +374,7 @@ static void configure_cli11_metrics_args(CLI::App& app, du_low_unit_metrics_conf
       ->capture_default_str();
 }
 
-void srsran::configure_cli11_with_du_low_config_schema(CLI::App& app, du_low_unit_config& parsed_cfg)
+void ocudu::configure_cli11_with_du_low_config_schema(CLI::App& app, du_low_unit_config& parsed_cfg)
 {
   // Loggers section.
   CLI::App* log_subcmd = add_subcommand(app, "log", "Logging configuration")->configurable();
@@ -405,7 +405,7 @@ void srsran::configure_cli11_with_du_low_config_schema(CLI::App& app, du_low_uni
   configure_cli11_metrics_args(*metrics_subcmd, parsed_cfg.metrics_cfg);
 }
 
-void srsran::autoderive_du_low_parameters_after_parsing(CLI::App& app, du_low_unit_config& parsed_cfg, duplex_mode mode)
+void ocudu::autoderive_du_low_parameters_after_parsing(CLI::App& app, du_low_unit_config& parsed_cfg, duplex_mode mode)
 {
   // If max proc delay property is not present in the config, configure the default value.
   CLI::App* expert_cmd = app.get_subcommand("expert_phy");

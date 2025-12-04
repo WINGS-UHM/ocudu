@@ -12,14 +12,14 @@
 
 #include "f1ap_ue_context.h"
 #include "ue_bearer_manager.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/du_types.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct f1ap_du_context;
 
@@ -50,5 +50,5 @@ public:
                                               const f1ap_du_context&                      ctxt_);
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

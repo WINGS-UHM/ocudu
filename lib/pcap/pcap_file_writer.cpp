@@ -11,12 +11,12 @@
 #include "pcap_file_writer.h"
 #include <sys/time.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static uint16_t get_dissector_name_size(const std::string& dissector);
 static uint16_t get_export_pdu_metadata_length(const std::string& dissector);
 
-pcap_file_writer::pcap_file_writer() : logger(srslog::fetch_basic_logger("ALL")) {}
+pcap_file_writer::pcap_file_writer() : logger(ocudulog::fetch_basic_logger("ALL")) {}
 
 pcap_file_writer::~pcap_file_writer()
 {
@@ -142,7 +142,7 @@ void pcap_file_writer::write_exported_pdu_header(const std::string& dissector)
   }
 }
 
-void pcap_file_writer::write_pdu(srsran::const_span<uint8_t> pdu)
+void pcap_file_writer::write_pdu(ocudu::const_span<uint8_t> pdu)
 {
   if (not is_write_enabled()) {
     return;

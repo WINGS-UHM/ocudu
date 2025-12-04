@@ -10,25 +10,25 @@
 
 #include "lib/rrc/ue/rrc_measurement_types_asn1_converters.h"
 #include "rrc_ue_test_helpers.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class RRC Reestablishment tests preparation
 class rrc_ue_meas_report : public rrc_ue_test_helper, public ::testing::Test
 {
 protected:
-  static void SetUpTestSuite() { srslog::init(); }
+  static void SetUpTestSuite() { ocudulog::init(); }
 
   void SetUp() override { init(); }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 
@@ -39,7 +39,7 @@ TEST_F(rrc_ue_meas_report, when_dummy_meas_report_received_then_conversion_succe
   // Parse UL-CCCH
   asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
   asn1::cbit_ref              bref({meas_report_pdu.begin(), meas_report_pdu.end()});
-  ASSERT_EQ(ul_dcch_msg.unpack(bref), asn1::SRSASN_SUCCESS);
+  ASSERT_EQ(ul_dcch_msg.unpack(bref), asn1::OCUDUASN_SUCCESS);
   ASSERT_EQ(ul_dcch_msg.msg.type().value, asn1::rrc_nr::ul_dcch_msg_type_c::types_opts::c1);
   ASSERT_EQ(ul_dcch_msg.msg.c1().type().value, asn1::rrc_nr::ul_dcch_msg_type_c::c1_c_::types_opts::meas_report);
 
@@ -58,12 +58,12 @@ TEST_F(rrc_ue_meas_report, when_invalid_meas_report_received_then_meas_results_a
                                    0xe0, 0x01, 0x66, 0x07, 0x08, 0xcf, 0x92, 0x81, 0xc0, 0x40, 0x00, 0x60, 0x00,
                                    0x01, 0x00, 0x81, 0x05, 0x25, 0xb9, 0xb4, 0xad, 0x44, 0x06, 0xa0, 0xd3, 0x0f,
                                    0x4a, 0x6f, 0x10, 0x20, 0xc0, 0xfc, 0x00, 0xfb, 0x85, 0xcd, 0x8e, 0x00, 0x00};
-  srsran::byte_buffer  meas_report_pdu = srsran::byte_buffer::create(fuzzed_data).value();
+  ocudu::byte_buffer   meas_report_pdu = ocudu::byte_buffer::create(fuzzed_data).value();
 
   // Parse UL-CCCH
   asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
   asn1::cbit_ref              bref({meas_report_pdu.begin(), meas_report_pdu.end()});
-  ASSERT_EQ(ul_dcch_msg.unpack(bref), asn1::SRSASN_SUCCESS);
+  ASSERT_EQ(ul_dcch_msg.unpack(bref), asn1::OCUDUASN_SUCCESS);
   ASSERT_EQ(ul_dcch_msg.msg.type().value, asn1::rrc_nr::ul_dcch_msg_type_c::types_opts::c1);
   ASSERT_EQ(ul_dcch_msg.msg.c1().type().value, asn1::rrc_nr::ul_dcch_msg_type_c::c1_c_::types_opts::meas_report);
 

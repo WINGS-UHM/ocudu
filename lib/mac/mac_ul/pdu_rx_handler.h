@@ -13,14 +13,14 @@
 #include "mac_scheduler_ce_info_handler.h"
 #include "mac_ul_sch_pdu.h"
 #include "mac_ul_ue_manager.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/mac/mac.h"
-#include "srsran/pcap/mac_pcap.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/pcap/mac_pcap.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/slot_point.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Stores MAC RX PDU, as well as any contextual or temporary information related to the PDU decoding.
 struct decoded_mac_rx_pdu {
@@ -31,7 +31,7 @@ struct decoded_mac_rx_pdu {
                      du_ue_index_t   ue_index_ = MAX_NOF_DU_UES) :
     slot_rx(slot_rx_), cell_index_rx(cell_idx_), ue_index(ue_index_), pdu_rx(std::move(pdu_rx_))
   {
-    srsran_sanity_check(not pdu_rx.pdu.empty(), "Received empty PDU");
+    ocudu_sanity_check(not pdu_rx.pdu.empty(), "Received empty PDU");
   }
 
   /// Clear PDU context.
@@ -67,12 +67,12 @@ struct decoded_mac_rx_pdu {
 class pdu_rx_handler
 {
 public:
-  pdu_rx_handler(mac_ul_ccch_notifier&               ccch_notifier_,
-                 srs_du::du_high_ue_executor_mapper& ue_exec_mapper_,
-                 mac_scheduler_ce_info_handler&      sched_,
-                 mac_ul_ue_manager&                  ue_manager_,
-                 du_rnti_table&                      rnti_table_,
-                 mac_pcap&                           pcap_);
+  pdu_rx_handler(mac_ul_ccch_notifier&            ccch_notifier_,
+                 odu::du_high_ue_executor_mapper& ue_exec_mapper_,
+                 mac_scheduler_ce_info_handler&   sched_,
+                 mac_ul_ue_manager&               ue_manager_,
+                 du_rnti_table&                   rnti_table_,
+                 mac_pcap&                        pcap_);
 
   /// Decode MAC Rx PDU, log contents and handle subPDUs.
   /// \param sl_rx Slot when MAC UL PDU was received.
@@ -119,13 +119,13 @@ private:
   /// Handle PDU to PCAP file
   void write_pcap_rx_pdu(slot_point sl_rx, const mac_rx_pdu& pdu);
 
-  mac_ul_ccch_notifier&               ccch_notifier;
-  srs_du::du_high_ue_executor_mapper& ue_exec_mapper;
-  srslog::basic_logger&               logger;
-  mac_scheduler_ce_info_handler&      sched;
-  mac_ul_ue_manager&                  ue_manager;
-  du_rnti_table&                      rnti_table;
-  mac_pcap&                           pcap;
+  mac_ul_ccch_notifier&            ccch_notifier;
+  odu::du_high_ue_executor_mapper& ue_exec_mapper;
+  ocudulog::basic_logger&          logger;
+  mac_scheduler_ce_info_handler&   sched;
+  mac_ul_ue_manager&               ue_manager;
+  du_rnti_table&                   rnti_table;
+  mac_pcap&                        pcap;
 };
 
-} // namespace srsran
+} // namespace ocudu

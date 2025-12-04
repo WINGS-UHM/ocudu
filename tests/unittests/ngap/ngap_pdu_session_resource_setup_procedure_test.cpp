@@ -9,14 +9,14 @@
  */
 
 #include "ngap_test_helpers.h"
-#include "srsran/asn1/ngap/ngap_ies.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class ngap_pdu_session_resource_setup_procedure_test : public ngap_test
 {
@@ -55,7 +55,7 @@ protected:
     asn1::cbit_ref bref({asn1_request_item.pdu_session_res_setup_request_transfer.begin(),
                          asn1_request_item.pdu_session_res_setup_request_transfer.end()});
 
-    if (asn1_setup_req_transfer.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (asn1_setup_req_transfer.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       test_logger.error("Couldn't unpack PDU Session Resource Setup Request Transfer PDU");
       return false;
     }

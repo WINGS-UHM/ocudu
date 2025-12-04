@@ -14,7 +14,7 @@
 #include "apps/services/metrics/metrics_notifier.h"
 #include "apps/services/metrics/metrics_producer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Resource usage metrics producer implementation.
 class resource_usage_metrics_producer_impl : public app_services::metrics_producer
@@ -37,4 +37,4 @@ private:
   app_services::app_resource_usage& app_resource_usage;
 };
 
-} // namespace srsran
+} // namespace ocudu

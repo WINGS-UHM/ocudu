@@ -11,11 +11,11 @@
 #pragma once
 
 #include "nlohmann/json_fwd.hpp"
-#include "srsran/adt/expected.h"
+#include "ocudu/adt/expected.h"
 #include <string>
 #include <string_view>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// \brief Remote command interface.
@@ -38,4 +38,4 @@ public:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

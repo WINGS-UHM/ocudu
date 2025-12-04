@@ -11,9 +11,9 @@
 #include "pdcch_slot_resource_allocator.h"
 #include "../cell/resource_grid.h"
 #include "../support/pdcch/pdcch_mapping.h"
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcch_slot_allocator::pdcch_slot_allocator()
 {

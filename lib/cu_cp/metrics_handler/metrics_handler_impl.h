@@ -14,15 +14,15 @@
 #include "../mobility_manager/mobility_manager_impl.h"
 #include "../ngap_repository.h"
 #include "../ue_manager/ue_metrics_handler.h"
-#include "srsran/cu_cp/cu_cp_f1c_handler.h"
-#include "srsran/cu_cp/cu_cp_metrics_handler.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/timers.h"
+#include "ocudu/cu_cp/cu_cp_f1c_handler.h"
+#include "ocudu/cu_cp/cu_cp_metrics_handler.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/timers.h"
 #include <deque>
 #include <mutex>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class metrics_handler_impl final : public metrics_handler
 {
@@ -59,7 +59,7 @@ private:
   du_repository_metrics_handler&    du_handler;
   ngap_repository_metrics_handler&  ngap_handler;
   mobility_manager_metrics_handler& mobility_handler;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   // Member variables to manage pool of sessions.
   std::mutex                           mutex;
@@ -67,5 +67,5 @@ private:
   std::vector<unsigned>                free_list;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/du/du_high/du_test_mode_config.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/f1ap/gateways/f1c_connection_client.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/du/du_high/du_test_mode_config.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/f1ap/gateways/f1c_connection_client.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// Creates an F1AP handler for the DU-high.
 std::unique_ptr<f1ap_du> create_du_high_f1ap(f1c_connection_client&      f1c_client_handler,
@@ -28,5 +28,5 @@ std::unique_ptr<f1ap_du> create_du_high_f1ap(f1c_connection_client&      f1c_cli
                                              timer_manager&              timers,
                                              const du_test_mode_config&  test_cfg);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

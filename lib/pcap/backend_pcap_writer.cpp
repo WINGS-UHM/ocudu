@@ -9,12 +9,12 @@
  */
 
 #include "backend_pcap_writer.h"
-#include "srsran/support/executors/sync_task_executor.h"
+#include "ocudu/support/executors/sync_task_executor.h"
 #include <linux/udp.h>
 #include <netinet/in.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 pcap_pdu_data::pcap_pdu_data(uint16_t            src,
                              uint16_t            dest,
@@ -30,7 +30,7 @@ pcap_pdu_data::pcap_pdu_data(uint16_t            src,
   udp_header.dest   = htons(dest);
   // length
   unsigned length = sizeof(udphdr) + layer_str_len + context_header.size() + payload_.length();
-  srsran_assert(length < std::numeric_limits<uint16_t>::max(), "PDU length is too large");
+  ocudu_assert(length < std::numeric_limits<uint16_t>::max(), "PDU length is too large");
   udp_header.len = htons(length);
   // dummy CRC
   udp_header.check = 0x0;
@@ -53,7 +53,7 @@ backend_pcap_writer::backend_pcap_writer(uint32_t           dlt,
   filename(filename_),
   dissector(dissector_),
   backend_exec(backend_exec_),
-  logger(srslog::fetch_basic_logger("ALL"))
+  logger(ocudulog::fetch_basic_logger("ALL"))
 {
   writer.open(dlt, filename);
 }

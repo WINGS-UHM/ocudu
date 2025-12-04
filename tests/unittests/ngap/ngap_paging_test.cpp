@@ -11,8 +11,8 @@
 #include "ngap_test_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class ngap_paging_test : public ngap_test
 {

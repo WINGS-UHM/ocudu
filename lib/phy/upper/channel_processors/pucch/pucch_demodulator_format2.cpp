@@ -12,9 +12,9 @@
 /// \brief PUCCH Format 2 demodulator definition.
 
 #include "pucch_demodulator_format2.h"
-#include "srsran/phy/support/mask_types.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/support/mask_types.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
 
 #if defined(__AVX2__)
 #include <immintrin.h>
@@ -22,19 +22,19 @@
 #include <arm_neon.h>
 #endif
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Extracts REs containing PUCCH Format 2 data from a block of contiguous PRBs.
 /// \param[out] out Output buffer.
 /// \param[in]  in  Input buffer containing data and DM-RS.
 static inline void extract_re(span<cbf16_t> out, span<const cbf16_t> in)
 {
-  srsran_assert(in.size() % NRE == 0, "Invalid output size.");
+  ocudu_assert(in.size() % NRE == 0, "Invalid output size.");
   unsigned nof_prb = in.size() / NRE;
-  srsran_assert(out.size() == nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC,
-                "Invalid output size (i.e., {}), expected {}.",
-                out.size(),
-                nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC);
+  ocudu_assert(out.size() == nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC,
+               "Invalid output size (i.e., {}), expected {}.",
+               out.size(),
+               nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC);
 
 #if defined(__AVX2__)
   const int* in_ptr   = reinterpret_cast<const int*>(in.data());
@@ -89,28 +89,28 @@ void pucch_demodulator_format2::demodulate(span<log_likelihood_ratio>           
   unsigned nof_re_port = pucch_constants::FORMAT2_NOF_DATA_SC * config.nof_prb * config.nof_symbols;
 
   // Assert that allocations are valid.
-  srsran_assert(config.nof_prb && config.nof_prb <= pucch_constants::FORMAT2_MAX_NPRB,
-                "Invalid Number of PRB allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
-                config.nof_prb,
-                pucch_constants::FORMAT2_MAX_NPRB);
+  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::FORMAT2_MAX_NPRB,
+               "Invalid Number of PRB allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
+               config.nof_prb,
+               pucch_constants::FORMAT2_MAX_NPRB);
 
-  srsran_assert((config.first_prb + config.nof_prb) * NRE <= grid.get_nof_subc(),
-                "PUCCH Format 2: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
-                config.first_prb,
-                config.first_prb + config.nof_prb,
-                grid.get_nof_subc() / NRE);
+  ocudu_assert((config.first_prb + config.nof_prb) * NRE <= grid.get_nof_subc(),
+               "PUCCH Format 2: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
+               config.first_prb,
+               config.first_prb + config.nof_prb,
+               grid.get_nof_subc() / NRE);
 
-  srsran_assert(!config.second_hop_prb.has_value() ||
-                    ((*config.second_hop_prb + config.nof_prb) * NRE <= grid.get_nof_subc()),
-                "PUCCH Format 2: PRB allocation outside grid (second hop). Requested [{}, {}), grid has {} PRBs.",
-                *config.second_hop_prb,
-                *config.second_hop_prb + config.nof_prb,
-                grid.get_nof_subc() / NRE);
+  ocudu_assert(!config.second_hop_prb.has_value() ||
+                   ((*config.second_hop_prb + config.nof_prb) * NRE <= grid.get_nof_subc()),
+               "PUCCH Format 2: PRB allocation outside grid (second hop). Requested [{}, {}), grid has {} PRBs.",
+               *config.second_hop_prb,
+               *config.second_hop_prb + config.nof_prb,
+               grid.get_nof_subc() / NRE);
 
-  srsran_assert(config.nof_symbols && config.nof_symbols <= pucch_constants::FORMAT2_MAX_NSYMB,
-                "Invalid Number of OFDM symbols allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
-                config.nof_symbols,
-                pucch_constants::FORMAT2_MAX_NSYMB);
+  ocudu_assert(config.nof_symbols && config.nof_symbols <= pucch_constants::FORMAT2_MAX_NSYMB,
+               "Invalid Number of OFDM symbols allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
+               config.nof_symbols,
+               pucch_constants::FORMAT2_MAX_NSYMB);
 
   // Resize data and channel estimation buffers.
   ch_re.resize(nof_rx_ports, nof_re_port);
@@ -133,10 +133,10 @@ void pucch_demodulator_format2::demodulate(span<log_likelihood_ratio>           
       eq_re, eq_noise_vars, ch_re, ch_estimates, span<float>(noise_var_estimates).first(nof_rx_ports), 1.0F);
 
   // Assert that the number of RE returned by the channel equalizer matches the expected number of LLR.
-  srsran_assert(eq_re.size() == llr.size() / get_bits_per_symbol(modulation_scheme::QPSK),
-                "Number of equalized RE (i.e. {}) does not match the expected LLR data length (i.e. {})",
-                eq_re.size(),
-                llr.size() / get_bits_per_symbol(modulation_scheme::QPSK));
+  ocudu_assert(eq_re.size() == llr.size() / get_bits_per_symbol(modulation_scheme::QPSK),
+               "Number of equalized RE (i.e. {}) does not match the expected LLR data length (i.e. {})",
+               eq_re.size(),
+               llr.size() / get_bits_per_symbol(modulation_scheme::QPSK));
 
   // Apply soft symbol demodulation. PUCCH Format 2 modulation scheme is always QPSK, as per TS38.211 Section 6.3.2.5.2.
   demapper->demodulate_soft(llr, eq_re, eq_noise_vars, modulation_scheme::QPSK);
@@ -188,13 +188,13 @@ void pucch_demodulator_format2::get_data_re_ests(const resource_grid_reader&    
     }
 
     // Assert that all port data RE buffer elements have been filled.
-    srsran_assert(re_port_buffer.empty(),
-                  "Number of extracted port data RE does not match destination buffer dimensions: "
-                  "{} unused elements.",
-                  re_port_buffer.size());
+    ocudu_assert(re_port_buffer.empty(),
+                 "Number of extracted port data RE does not match destination buffer dimensions: "
+                 "{} unused elements.",
+                 re_port_buffer.size());
 
     // Assert that all port channel estimates buffer elements have been filled.
-    srsran_assert(
+    ocudu_assert(
         ests_port_buffer.empty(),
         "Number of extracted port channel estimation coefficients does not match destination buffer dimensions: "
         "{} unused elements.",

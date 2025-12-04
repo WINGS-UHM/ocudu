@@ -10,12 +10,12 @@
 
 #include "asn1_rrc_config_helpers.h"
 #include "asn1_csi_meas_config_helpers.h"
-#include "srsran/asn1/asn1_diff_utils.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/asn1/asn1_diff_utils.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 using namespace asn1::rrc_nr;
 
 namespace {
@@ -210,7 +210,7 @@ static rlc_bearer_cfg_s make_asn1_rrc_rlc_bearer(const rlc_bearer_config& cfg)
   return out;
 }
 
-asn1::rrc_nr::coreset_s srsran::srs_du::make_asn1_rrc_coreset(const coreset_configuration& cfg)
+asn1::rrc_nr::coreset_s ocudu::odu::make_asn1_rrc_coreset(const coreset_configuration& cfg)
 {
   coreset_s cs;
   cs.coreset_id = cfg.id;
@@ -236,7 +236,7 @@ asn1::rrc_nr::coreset_s srsran::srs_du::make_asn1_rrc_coreset(const coreset_conf
   return cs;
 }
 
-asn1::rrc_nr::search_space_s srsran::srs_du::make_asn1_rrc_search_space(const search_space_configuration& cfg)
+asn1::rrc_nr::search_space_s ocudu::odu::make_asn1_rrc_search_space(const search_space_configuration& cfg)
 {
   search_space_s ss;
   ss.search_space_id                                = cfg.get_id();
@@ -245,7 +245,7 @@ asn1::rrc_nr::search_space_s srsran::srs_du::make_asn1_rrc_search_space(const se
   ss.monitoring_slot_periodicity_and_offset_present = true;
   search_space_s::monitoring_slot_periodicity_and_offset_c_::types period;
   bool success = asn1::number_to_enum(period, cfg.get_monitoring_slot_periodicity());
-  srsran_assert(success, "Invalid slot period");
+  ocudu_assert(success, "Invalid slot period");
   ss.monitoring_slot_periodicity_and_offset.set(period);
   switch (ss.monitoring_slot_periodicity_and_offset.type().value) {
     case search_space_s::monitoring_slot_periodicity_and_offset_c_::types_opts::sl1:
@@ -293,7 +293,7 @@ asn1::rrc_nr::search_space_s srsran::srs_du::make_asn1_rrc_search_space(const se
       ss.monitoring_slot_periodicity_and_offset.sl2560() = cfg.get_monitoring_slot_offset();
       break;
     default:
-      srsran_assertion_failure("Invalid PDCCH slot offset={}", cfg.get_monitoring_slot_offset());
+      ocudu_assertion_failure("Invalid PDCCH slot offset={}", cfg.get_monitoring_slot_offset());
   }
   if (cfg.get_duration() != 1) {
     ss.dur_present = true;
@@ -322,7 +322,7 @@ asn1::rrc_nr::search_space_s srsran::srs_du::make_asn1_rrc_search_space(const se
     const auto dci_fmt = std::get<search_space_configuration::ue_specific_dci_format>(cfg.get_monitored_dci_formats());
     ss.search_space_type.set_ue_specific();
     ss.search_space_type.ue_specific().dci_formats.value =
-        dci_fmt == srsran::search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0
+        dci_fmt == ocudu::search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0
             ? search_space_s::search_space_type_c_::ue_specific_s_::dci_formats_opts::formats0_neg0_and_neg1_neg0
             : search_space_s::search_space_type_c_::ue_specific_s_::dci_formats_opts::formats0_neg1_and_neg1_neg1;
   }
@@ -330,7 +330,7 @@ asn1::rrc_nr::search_space_s srsran::srs_du::make_asn1_rrc_search_space(const se
 }
 
 asn1::dyn_array<scs_specific_carrier_s>
-srsran::srs_du::make_asn1_rrc_scs_specific_carrier_list(span<const scs_specific_carrier> scs_carrier_list)
+ocudu::odu::make_asn1_rrc_scs_specific_carrier_list(span<const scs_specific_carrier> scs_carrier_list)
 {
   asn1::dyn_array<scs_specific_carrier_s> list(scs_carrier_list.size());
   for (unsigned i = 0; i < scs_carrier_list.size(); ++i) {
@@ -346,7 +346,7 @@ srsran::srs_du::make_asn1_rrc_scs_specific_carrier_list(span<const scs_specific_
   return list;
 }
 
-asn1::rrc_nr::bwp_dl_common_s srsran::srs_du::make_asn1_init_dl_bwp(const dl_config_common& cfg)
+asn1::rrc_nr::bwp_dl_common_s ocudu::odu::make_asn1_init_dl_bwp(const dl_config_common& cfg)
 {
   asn1::rrc_nr::bwp_dl_common_s init_dl_bwp;
 
@@ -747,7 +747,7 @@ static asn1::rrc_nr::rach_cfg_generic_s make_asn1_rach_cfg_generic(const rach_co
   return out;
 }
 
-asn1::rrc_nr::bwp_ul_common_s srsran::srs_du::make_asn1_rrc_initial_up_bwp(const ul_config_common& cfg)
+asn1::rrc_nr::bwp_ul_common_s ocudu::odu::make_asn1_rrc_initial_up_bwp(const ul_config_common& cfg)
 {
   asn1::rrc_nr::bwp_ul_common_s init_ul_bwp;
 
@@ -768,7 +768,7 @@ asn1::rrc_nr::bwp_ul_common_s srsran::srs_du::make_asn1_rrc_initial_up_bwp(const
   ssb_per_rach_occasion_and_cb_preambles_per_ssb_to_asn1(
       ssb_per_rach_occ_to_float(rach_cfg.nof_ssb_per_ro), rach_cfg.nof_cb_preambles_per_ssb, rach);
   bool success = asn1::number_to_enum(rach.ra_contention_resolution_timer, rach_cfg.ra_con_res_timer.count());
-  srsran_assert(success, "Invalid ra-ContentionResolutionTimer");
+  ocudu_assert(success, "Invalid ra-ContentionResolutionTimer");
   if (rach_cfg.msg3_transform_precoder) {
     rach.msg3_transform_precoder_present = true;
   }
@@ -904,7 +904,7 @@ static asn1::rrc_nr::tdd_ul_dl_pattern_s make_asn1_rrc_tdd_ul_dl_pattern(subcarr
 }
 
 asn1::rrc_nr::tdd_ul_dl_cfg_common_s
-srsran::srs_du::make_asn1_rrc_tdd_ul_dl_cfg_common(const tdd_ul_dl_config_common& tdd_cfg)
+ocudu::odu::make_asn1_rrc_tdd_ul_dl_cfg_common(const tdd_ul_dl_config_common& tdd_cfg)
 {
   asn1::rrc_nr::tdd_ul_dl_cfg_common_s out;
 
@@ -948,7 +948,7 @@ static void make_asn1_rrc_dmrs_dl_for_pdsch(asn1::rrc_nr::dmrs_dl_cfg_s& out, co
     out.dmrs_type_present = true;
   }
 
-  if (cfg.additional_positions != srsran::dmrs_additional_positions::pos2) {
+  if (cfg.additional_positions != ocudu::dmrs_additional_positions::pos2) {
     out.dmrs_add_position_present = true;
     switch (cfg.additional_positions) {
       case dmrs_additional_positions::pos0:
@@ -961,7 +961,7 @@ static void make_asn1_rrc_dmrs_dl_for_pdsch(asn1::rrc_nr::dmrs_dl_cfg_s& out, co
         out.dmrs_add_position = dmrs_dl_cfg_s::dmrs_add_position_opts::pos3;
         break;
       default:
-        srsran_assertion_failure("Invalid DMRS DL Add. Position={}", fmt::underlying(cfg.additional_positions));
+        ocudu_assertion_failure("Invalid DMRS DL Add. Position={}", fmt::underlying(cfg.additional_positions));
     }
   }
 
@@ -990,10 +990,10 @@ static void make_asn1_rrc_qcl_info(asn1::rrc_nr::qcl_info_s& out, const qcl_info
     out.bwp_id_present = true;
     out.bwp_id         = cfg.bwp_id.value();
   }
-  if (cfg.ref_sig.type == srsran::qcl_info::reference_signal::reference_signal_type::ssb) {
+  if (cfg.ref_sig.type == ocudu::qcl_info::reference_signal::reference_signal_type::ssb) {
     auto& ssb = out.ref_sig.set_ssb();
     ssb       = cfg.ref_sig.ssb;
-  } else if (cfg.ref_sig.type == srsran::qcl_info::reference_signal::reference_signal_type::csi_rs) {
+  } else if (cfg.ref_sig.type == ocudu::qcl_info::reference_signal::reference_signal_type::csi_rs) {
     auto& csi_rs = out.ref_sig.set_csi_rs();
     csi_rs       = cfg.ref_sig.csi_rs;
   }
@@ -1011,7 +1011,7 @@ static void make_asn1_rrc_qcl_info(asn1::rrc_nr::qcl_info_s& out, const qcl_info
       out.qcl_type = qcl_info_s::qcl_type_opts::type_d;
       break;
     default:
-      srsran_assertion_failure("Invalid QCL Type={}", fmt::underlying(cfg.qcl_type));
+      ocudu_assertion_failure("Invalid QCL Type={}", fmt::underlying(cfg.qcl_type));
   }
 }
 
@@ -1029,7 +1029,7 @@ make_asn1_rrc_pdsch_time_domain_alloc_list(const pdsch_time_domain_resource_allo
       out.map_type = pdsch_time_domain_res_alloc_s::map_type_opts::type_b;
       break;
     default:
-      srsran_assertion_failure("Invalid SCH mapping Type={}", fmt::underlying(cfg.map_type));
+      ocudu_assertion_failure("Invalid SCH mapping Type={}", fmt::underlying(cfg.map_type));
   }
 
   out.start_symbol_and_len = ofdm_symbol_range_to_sliv(cfg.symbols);
@@ -1037,7 +1037,7 @@ make_asn1_rrc_pdsch_time_domain_alloc_list(const pdsch_time_domain_resource_allo
   return out;
 }
 
-asn1::rrc_nr::tci_state_s srsran::srs_du::make_asn1_rrc_tci_state(const tci_state& cfg)
+asn1::rrc_nr::tci_state_s ocudu::odu::make_asn1_rrc_tci_state(const tci_state& cfg)
 {
   tci_state_s tci_st;
   tci_st.tci_state_id = cfg.state_id;
@@ -1092,17 +1092,17 @@ calculate_pdsch_config_diff(asn1::rrc_nr::pdsch_cfg_s& out, const pdsch_config& 
       [](const tci_state& st) { return st.state_id; });
 
   // VRB-to-PRB Interleaver.
-  if (dest.vrb_to_prb_interleaving != srsran::vrb_to_prb::mapping_type::non_interleaved) {
+  if (dest.vrb_to_prb_interleaving != ocudu::vrb_to_prb::mapping_type::non_interleaved) {
     out.vrb_to_prb_interleaver_present = true;
     switch (dest.vrb_to_prb_interleaving) {
-      case srsran::vrb_to_prb::mapping_type::interleaved_n2:
+      case ocudu::vrb_to_prb::mapping_type::interleaved_n2:
         out.vrb_to_prb_interleaver = pdsch_cfg_s::vrb_to_prb_interleaver_opts::n2;
         break;
-      case srsran::vrb_to_prb::mapping_type::interleaved_n4:
+      case ocudu::vrb_to_prb::mapping_type::interleaved_n4:
         out.vrb_to_prb_interleaver = pdsch_cfg_s::vrb_to_prb_interleaver_opts::n4;
         break;
       default:
-        srsran_assertion_failure("Invalid VRB-to-PRB Interleaver={}", fmt::underlying(dest.vrb_to_prb_interleaving));
+        ocudu_assertion_failure("Invalid VRB-to-PRB Interleaver={}", fmt::underlying(dest.vrb_to_prb_interleaving));
     }
   }
 
@@ -1118,7 +1118,7 @@ calculate_pdsch_config_diff(asn1::rrc_nr::pdsch_cfg_s& out, const pdsch_config& 
       out.res_alloc = pdsch_cfg_s::res_alloc_opts::dyn_switch;
       break;
     default:
-      srsran_assertion_failure("Invalid resource allocation type={}", fmt::underlying(dest.res_alloc));
+      ocudu_assertion_failure("Invalid resource allocation type={}", fmt::underlying(dest.res_alloc));
   }
 
   // PDSCH Time Domain Allocation.
@@ -1144,7 +1144,7 @@ calculate_pdsch_config_diff(asn1::rrc_nr::pdsch_cfg_s& out, const pdsch_config& 
       out.rbg_size = pdsch_cfg_s::rbg_size_opts::cfg2;
       break;
     default:
-      srsran_assertion_failure("Invalid RBG size={}", fmt::underlying(dest.rbg_sz));
+      ocudu_assertion_failure("Invalid RBG size={}", fmt::underlying(dest.rbg_sz));
   }
 
   // PRB Bundling.
@@ -1160,7 +1160,7 @@ calculate_pdsch_config_diff(asn1::rrc_nr::pdsch_cfg_s& out, const pdsch_config& 
           st_bundling.bundle_size = pdsch_cfg_s::prb_bundling_type_c_::static_bundling_s_::bundle_size_opts::wideband;
           break;
         default:
-          srsran_assertion_failure("Invalid static PRB bundling size={}", fmt::underlying(result->sz.value()));
+          ocudu_assertion_failure("Invalid static PRB bundling size={}", fmt::underlying(result->sz.value()));
       }
     }
   } else {
@@ -1185,7 +1185,7 @@ calculate_pdsch_config_diff(asn1::rrc_nr::pdsch_cfg_s& out, const pdsch_config& 
             pdsch_cfg_s::prb_bundling_type_c_::dyn_bundling_s_::bundle_size_set1_opts::n4_wideband;
         break;
       default:
-        srsran_assertion_failure("Invalid dynamic PRB bundling set 1 size={}", fmt::underlying(bdlng.sz_set1.value()));
+        ocudu_assertion_failure("Invalid dynamic PRB bundling set 1 size={}", fmt::underlying(bdlng.sz_set1.value()));
     }
     dy_bundling.bundle_size_set2_present = true;
     switch (bdlng.sz_set2.value()) {
@@ -1197,7 +1197,7 @@ calculate_pdsch_config_diff(asn1::rrc_nr::pdsch_cfg_s& out, const pdsch_config& 
             pdsch_cfg_s::prb_bundling_type_c_::dyn_bundling_s_::bundle_size_set2_opts::wideband;
         break;
       default:
-        srsran_assertion_failure("Invalid dynamic PRB bundling set 2 size={}", fmt::underlying(bdlng.sz_set2.value()));
+        ocudu_assertion_failure("Invalid dynamic PRB bundling set 2 size={}", fmt::underlying(bdlng.sz_set2.value()));
     }
   }
 
@@ -1263,7 +1263,7 @@ make_asn1_rrc_rlm_resource(const radio_link_monitoring_config::radio_link_monito
     case radio_link_monitoring_config::radio_link_monitoring_rs::purpose::both:
       rlm_res.purpose = radio_link_monitoring_rs_s::purpose_opts::both;
     default:
-      srsran_assertion_failure("Invalid RLM resource purpose={}", fmt::underlying(cfg.resource_purpose));
+      ocudu_assertion_failure("Invalid RLM resource purpose={}", fmt::underlying(cfg.resource_purpose));
   }
 
   if (std::holds_alternative<ssb_id_t>(cfg.detection_resource)) {
@@ -1332,7 +1332,7 @@ static bool calculate_bwp_dl_dedicated_diff(asn1::rrc_nr::bwp_dl_ded_s&   out,
   return out.pdcch_cfg_present || out.pdsch_cfg_present || out.radio_link_monitoring_cfg_present;
 }
 
-asn1::rrc_nr::pucch_res_set_s srsran::srs_du::make_asn1_rrc_pucch_resource_set(const pucch_resource_set& cfg)
+asn1::rrc_nr::pucch_res_set_s ocudu::odu::make_asn1_rrc_pucch_resource_set(const pucch_resource_set& cfg)
 {
   pucch_res_set_s pucch_res_set;
   pucch_res_set.pucch_res_set_id = static_cast<uint8_t>(cfg.pucch_res_set_id);
@@ -1379,7 +1379,7 @@ static void make_asn1_rrc_pucch_formats_common_param(asn1::rrc_nr::pucch_format_
         out.max_code_rate = pucch_max_code_rate_opts::zero_dot80;
         break;
       default:
-        srsran_assertion_failure("Invalid PUCCH Common Format 1 Max. Code Rate={}", fmt::underlying(cfg.max_c_rate));
+        ocudu_assertion_failure("Invalid PUCCH Common Format 1 Max. Code Rate={}", fmt::underlying(cfg.max_c_rate));
     }
   }
   if (cfg.nof_slots == pucch_common_all_formats::num_of_slots::not_set) {
@@ -1397,12 +1397,12 @@ static void make_asn1_rrc_pucch_formats_common_param(asn1::rrc_nr::pucch_format_
         out.nrof_slots = pucch_format_cfg_s::nrof_slots_opts::n8;
         break;
       default:
-        srsran_assertion_failure("Invalid PUCCH Common Format 1 No. of slots={}", fmt::underlying(cfg.nof_slots));
+        ocudu_assertion_failure("Invalid PUCCH Common Format 1 No. of slots={}", fmt::underlying(cfg.nof_slots));
     }
   }
 }
 
-asn1::rrc_nr::pucch_res_s srsran::srs_du::make_asn1_rrc_pucch_resource(const pucch_resource& cfg)
+asn1::rrc_nr::pucch_res_s ocudu::odu::make_asn1_rrc_pucch_resource(const pucch_resource& cfg)
 {
   pucch_res_s pucch_res;
   pucch_res.pucch_res_id                = cfg.res_id.ue_res_id;
@@ -1461,7 +1461,7 @@ asn1::rrc_nr::pucch_res_s srsran::srs_du::make_asn1_rrc_pucch_resource(const puc
           format4.occ_idx = pucch_format4_s::occ_idx_opts::n3;
           break;
         default:
-          srsran_assertion_failure("Invalid PUCCH Format 4 index={}", fmt::underlying(f4.occ_index));
+          ocudu_assertion_failure("Invalid PUCCH Format 4 index={}", fmt::underlying(f4.occ_index));
       }
       switch (f4.occ_length) {
         case pucch_f4_occ_len::n2:
@@ -1471,17 +1471,17 @@ asn1::rrc_nr::pucch_res_s srsran::srs_du::make_asn1_rrc_pucch_resource(const puc
           format4.occ_len = pucch_format4_s::occ_len_opts::n4;
           break;
         default:
-          srsran_assertion_failure("Invalid PUCCH Format 4 length={}", fmt::underlying(f4.occ_length));
+          ocudu_assertion_failure("Invalid PUCCH Format 4 length={}", fmt::underlying(f4.occ_length));
       }
     } break;
     default:
-      srsran_assertion_failure("Invalid PDCCH resource format={}", fmt::underlying(cfg.format));
+      ocudu_assertion_failure("Invalid PDCCH resource format={}", fmt::underlying(cfg.format));
   }
   return pucch_res;
 }
 
 asn1::rrc_nr::sched_request_res_cfg_s
-srsran::srs_du::make_asn1_rrc_sr_resource(const scheduling_request_resource_config& cfg)
+ocudu::odu::make_asn1_rrc_sr_resource(const scheduling_request_resource_config& cfg)
 {
   sched_request_res_cfg_s sr_res_cfg;
   sr_res_cfg.sched_request_res_id           = cfg.sr_res_id;
@@ -1548,7 +1548,7 @@ srsran::srs_du::make_asn1_rrc_sr_resource(const scheduling_request_resource_conf
       period_and_offset       = cfg.offset;
     } break;
     default:
-      srsran_assertion_failure("Invalid SR periodicity={}", fmt::underlying(cfg.period));
+      ocudu_assertion_failure("Invalid SR periodicity={}", fmt::underlying(cfg.period));
   }
   return sr_res_cfg;
 }
@@ -1656,11 +1656,11 @@ static void make_asn1_rrc_ptrs_ul_cfg(asn1::rrc_nr::ptrs_ul_cfg_s& out, const pt
         out_trans_preco_dis.max_nrof_ports = ptrs_ul_cfg_s::transform_precoder_disabled_s_::max_nrof_ports_opts::n2;
         break;
       default:
-        srsran_assertion_failure("Invalid PTRS UL Cfg Max. Ports={}", fmt::underlying(cfg_trans_preco_dis.max_ports));
+        ocudu_assertion_failure("Invalid PTRS UL Cfg Max. Ports={}", fmt::underlying(cfg_trans_preco_dis.max_ports));
     }
 
     if (cfg_trans_preco_dis.res_elem_offset !=
-        srsran::ptrs_uplink_config::transform_precoder_disabled::resource_element_offset::not_set) {
+        ocudu::ptrs_uplink_config::transform_precoder_disabled::resource_element_offset::not_set) {
       switch (cfg_trans_preco_dis.res_elem_offset) {
         case ptrs_uplink_config::transform_precoder_disabled::resource_element_offset::offset01:
           out_trans_preco_dis.res_elem_offset =
@@ -1675,8 +1675,8 @@ static void make_asn1_rrc_ptrs_ul_cfg(asn1::rrc_nr::ptrs_ul_cfg_s& out, const pt
               ptrs_ul_cfg_s::transform_precoder_disabled_s_::res_elem_offset_opts::offset11;
           break;
         default:
-          srsran_assertion_failure("Invalid Resource Element Offset={}",
-                                   fmt::underlying(cfg_trans_preco_dis.res_elem_offset));
+          ocudu_assertion_failure("Invalid Resource Element Offset={}",
+                                  fmt::underlying(cfg_trans_preco_dis.res_elem_offset));
       }
     }
 
@@ -1694,7 +1694,7 @@ static void make_asn1_rrc_ptrs_ul_cfg(asn1::rrc_nr::ptrs_ul_cfg_s& out, const pt
         out_trans_preco_dis.ptrs_pwr = ptrs_ul_cfg_s::transform_precoder_disabled_s_::ptrs_pwr_opts::p11;
         break;
       default:
-        srsran_assertion_failure("Invalid PTRS UL Cfg Power={}", fmt::underlying(cfg_trans_preco_dis.power));
+        ocudu_assertion_failure("Invalid PTRS UL Cfg Power={}", fmt::underlying(cfg_trans_preco_dis.power));
     }
   }
 
@@ -1721,7 +1721,7 @@ static void make_asn1_rrc_dmrs_ul_for_pusch(asn1::rrc_nr::dmrs_ul_cfg_s& out,
     out.dmrs_type_present = true;
   }
 
-  if (dest.additional_positions != srsran::dmrs_additional_positions::pos2) {
+  if (dest.additional_positions != ocudu::dmrs_additional_positions::pos2) {
     out.dmrs_add_position_present = true;
     switch (dest.additional_positions) {
       case dmrs_additional_positions::pos0:
@@ -1734,7 +1734,7 @@ static void make_asn1_rrc_dmrs_ul_for_pusch(asn1::rrc_nr::dmrs_ul_cfg_s& out,
         out.dmrs_add_position = dmrs_ul_cfg_s::dmrs_add_position_opts::pos3;
         break;
       default:
-        srsran_assertion_failure("Invalid UL DMRS Add. pos={}", fmt::underlying(dest.additional_positions));
+        ocudu_assertion_failure("Invalid UL DMRS Add. pos={}", fmt::underlying(dest.additional_positions));
     }
   }
 
@@ -1784,7 +1784,7 @@ static void make_asn1_rrc_dmrs_ul_for_pusch(asn1::rrc_nr::dmrs_ul_cfg_s& out,
 }
 
 asn1::rrc_nr::pusch_pathloss_ref_rs_s
-srsran::srs_du::make_asn1_rrc_pusch_pathloss_ref_rs(const pusch_config::pusch_power_control::pusch_pathloss_ref_rs& cfg)
+ocudu::odu::make_asn1_rrc_pusch_pathloss_ref_rs(const pusch_config::pusch_power_control::pusch_pathloss_ref_rs& cfg)
 {
   pusch_pathloss_ref_rs_s ploss_ref_rs;
   ploss_ref_rs.pusch_pathloss_ref_rs_id = cfg.id;
@@ -1799,7 +1799,7 @@ srsran::srs_du::make_asn1_rrc_pusch_pathloss_ref_rs(const pusch_config::pusch_po
 }
 
 asn1::rrc_nr::sri_pusch_pwr_ctrl_s
-srsran::srs_du::make_asn1_rrc_sri_pusch_pwr_ctrl(const pusch_config::pusch_power_control::sri_pusch_pwr_ctrl& cfg)
+ocudu::odu::make_asn1_rrc_sri_pusch_pwr_ctrl(const pusch_config::pusch_power_control::sri_pusch_pwr_ctrl& cfg)
 {
   sri_pusch_pwr_ctrl_s sri_pwr_ctl;
   sri_pwr_ctl.sri_pusch_pwr_ctrl_id        = cfg.id;
@@ -1813,7 +1813,7 @@ srsran::srs_du::make_asn1_rrc_sri_pusch_pwr_ctrl(const pusch_config::pusch_power
       sri_pwr_ctl.sri_pusch_closed_loop_idx = sri_pusch_pwr_ctrl_s::sri_pusch_closed_loop_idx_opts::i1;
       break;
     default:
-      srsran_assertion_failure("Invalid SRI Closed loop idx={}", fmt::underlying(cfg.closed_loop_idx));
+      ocudu_assertion_failure("Invalid SRI Closed loop idx={}", fmt::underlying(cfg.closed_loop_idx));
   }
   return sri_pwr_ctl;
 }
@@ -1846,7 +1846,7 @@ static void make_asn1_rrc_alpha(asn1::rrc_nr::alpha_e& out, alpha cfg)
       out = alpha_opts::alpha1;
       break;
     default:
-      srsran_assertion_failure("Invalid alpha={}", fmt::underlying(cfg));
+      ocudu_assertion_failure("Invalid alpha={}", fmt::underlying(cfg));
   }
 }
 
@@ -1858,7 +1858,7 @@ static void make_asn1_rrc_pusch_pwr_ctrl(asn1::rrc_nr::pusch_pwr_ctrl_s&        
     out.tpc_accumulation_present = true;
   }
 
-  if (dest.msg3_alpha != srsran::alpha::not_set) {
+  if (dest.msg3_alpha != ocudu::alpha::not_set) {
     out.msg3_alpha_present = true;
     make_asn1_rrc_alpha(out.msg3_alpha, dest.msg3_alpha);
   }
@@ -1875,7 +1875,7 @@ static void make_asn1_rrc_pusch_pwr_ctrl(asn1::rrc_nr::pusch_pwr_ctrl_s&        
       p0_alphaset.p0_present = true;
       p0_alphaset.p0         = set.p0.value();
     }
-    if (set.p0_pusch_alpha != srsran::alpha::not_set) {
+    if (set.p0_pusch_alpha != ocudu::alpha::not_set) {
       p0_alphaset.alpha_present = true;
       make_asn1_rrc_alpha(p0_alphaset.alpha, set.p0_pusch_alpha);
     }
@@ -1971,7 +1971,7 @@ static void fill_uci_on_pusch(asn1::rrc_nr::uci_on_pusch_s& uci_asn1, const uci_
       uci_asn1.scaling.value = uci_on_pusch_s::scaling_opts::f1;
       break;
     default:
-      srsran_assertion_failure("Invalid Alpha Value Scaling={}", fmt::underlying(uci_in.scaling));
+      ocudu_assertion_failure("Invalid Alpha Value Scaling={}", fmt::underlying(uci_in.scaling));
   }
 
   if (uci_in.beta_offsets_cfg.has_value()) {
@@ -1984,7 +1984,7 @@ static void fill_uci_on_pusch(asn1::rrc_nr::uci_on_pusch_s& uci_asn1, const uci_
       const auto& input_dynamic = std::get<uci_on_pusch::beta_offsets_dynamic>(uci_in.beta_offsets_cfg.value());
       auto&       out_dynamic   = uci_asn1.beta_offsets.set_dyn();
 
-      srsran_assert(input_dynamic.size() == out_dynamic.max_size(), "Mismatch between input and output vectors");
+      ocudu_assert(input_dynamic.size() == out_dynamic.max_size(), "Mismatch between input and output vectors");
 
       for (unsigned i = 0, e = input_dynamic.size(); i != e; ++i) {
         fill_uci_beta_offset(out_dynamic[i], input_dynamic[i]);
@@ -2009,7 +2009,7 @@ make_asn1_rrc_pusch_time_domain_alloc_list(const pusch_time_domain_resource_allo
       out.map_type = pusch_time_domain_res_alloc_s::map_type_opts::type_b;
       break;
     default:
-      srsran_assertion_failure("Invalid SCH mapping Type={}", fmt::underlying(cfg.map_type));
+      ocudu_assertion_failure("Invalid SCH mapping Type={}", fmt::underlying(cfg.map_type));
   }
 
   out.start_symbol_and_len = ofdm_symbol_range_to_sliv(cfg.symbols);
@@ -2105,7 +2105,7 @@ calculate_pusch_config_diff(asn1::rrc_nr::pusch_cfg_s& out, const pusch_config& 
       out.res_alloc = pusch_cfg_s::res_alloc_opts::dyn_switch;
       break;
     default:
-      srsran_assertion_failure("Invalid PUSCH Resource Allocation={}", fmt::underlying(dest.res_alloc));
+      ocudu_assertion_failure("Invalid PUSCH Resource Allocation={}", fmt::underlying(dest.res_alloc));
   }
 
   // PUSCH Time Domain Allocation.
@@ -2122,7 +2122,7 @@ calculate_pusch_config_diff(asn1::rrc_nr::pusch_cfg_s& out, const pusch_config& 
     out.pusch_time_domain_alloc_list.set_release();
   }
 
-  if (dest.mcs_table != srsran::pusch_mcs_table::qam64) {
+  if (dest.mcs_table != ocudu::pusch_mcs_table::qam64) {
     out.mcs_table_present = true;
     switch (dest.mcs_table) {
       case pusch_mcs_table::qam64LowSe:
@@ -2136,7 +2136,7 @@ calculate_pusch_config_diff(asn1::rrc_nr::pusch_cfg_s& out, const pusch_config& 
     }
   }
 
-  if (dest.trans_precoder != srsran::pusch_config::transform_precoder::not_set) {
+  if (dest.trans_precoder != ocudu::pusch_config::transform_precoder::not_set) {
     out.transform_precoder_present = true;
     switch (dest.trans_precoder) {
       case pusch_config::transform_precoder::enabled:
@@ -2146,7 +2146,7 @@ calculate_pusch_config_diff(asn1::rrc_nr::pusch_cfg_s& out, const pusch_config& 
         out.transform_precoder = pusch_cfg_s::transform_precoder_opts::disabled;
         break;
       default:
-        srsran_assertion_failure("Invalid PUSCH Transform Precoder={}", fmt::underlying(dest.trans_precoder));
+        ocudu_assertion_failure("Invalid PUSCH Transform Precoder={}", fmt::underlying(dest.trans_precoder));
     }
 
     if (dest.mcs_table != pusch_mcs_table::qam64) {
@@ -2247,7 +2247,7 @@ static srs_res_set_s make_asn1_rrc_srs_res_set(const srs_config::srs_resource_se
       srs_res_set.usage = srs_res_set_s::usage_opts::ant_switching;
       break;
     default:
-      srsran_assertion_failure("Invalid SRS resource set usage={}", fmt::underlying(cfg.srs_res_set_usage));
+      ocudu_assertion_failure("Invalid SRS resource set usage={}", fmt::underlying(cfg.srs_res_set_usage));
   }
 
   if (cfg.srs_pwr_ctrl_alpha != alpha::not_set) {
@@ -2271,7 +2271,7 @@ static srs_res_set_s make_asn1_rrc_srs_res_set(const srs_config::srs_resource_se
             srs_res_set_s::srs_pwr_ctrl_adjustment_states_opts::separate_closed_loop;
         break;
       default:
-        srsran_assertion_failure("Invalid Power Control Adj. state={}", fmt::underlying(cfg.pwr_ctrl_adj_states));
+        ocudu_assertion_failure("Invalid Power Control Adj. state={}", fmt::underlying(cfg.pwr_ctrl_adj_states));
     }
   }
 
@@ -2293,7 +2293,7 @@ static void make_asn1_rrc_srs_config_perioidicity_and_offset(asn1::rrc_nr::srs_p
                                                              const srs_config::srs_periodicity_and_offset& cfg)
 {
   if (cfg.period != srs_periodicity::sl1) {
-    srsran_sanity_check(cfg.offset < static_cast<uint16_t>(cfg.period), "Offset must be smaller than the periodicity");
+    ocudu_sanity_check(cfg.offset < static_cast<uint16_t>(cfg.period), "Offset must be smaller than the periodicity");
   }
 
   switch (cfg.period) {
@@ -2365,7 +2365,7 @@ static void make_asn1_rrc_srs_config_perioidicity_and_offset(asn1::rrc_nr::srs_p
       p_and_o       = cfg.offset;
     } break;
     default:
-      srsran_assertion_failure("Invalid periodicity and offset={}", fmt::underlying(cfg.period));
+      ocudu_assertion_failure("Invalid periodicity and offset={}", fmt::underlying(cfg.period));
   }
 }
 
@@ -2385,7 +2385,7 @@ static srs_res_s make_asn1_rrc_srs_res(const srs_config::srs_resource& cfg)
       res.nrof_srs_ports = srs_res_s::nrof_srs_ports_opts::ports4;
       break;
     default:
-      srsran_assertion_failure("Invalid number of SRS ports={}", fmt::underlying(cfg.nof_ports));
+      ocudu_assertion_failure("Invalid number of SRS ports={}", fmt::underlying(cfg.nof_ports));
   }
 
   if (cfg.ptrs_port != srs_config::srs_resource::ptrs_port_index::not_set) {
@@ -2398,7 +2398,7 @@ static srs_res_s make_asn1_rrc_srs_res(const srs_config::srs_resource& cfg)
         res.ptrs_port_idx = srs_res_s::ptrs_port_idx_opts::n1;
         break;
       default:
-        srsran_assertion_failure("Invalid PTRS port={}", fmt::underlying(cfg.ptrs_port));
+        ocudu_assertion_failure("Invalid PTRS port={}", fmt::underlying(cfg.ptrs_port));
     }
   }
 
@@ -2424,7 +2424,7 @@ static srs_res_s make_asn1_rrc_srs_res(const srs_config::srs_resource& cfg)
       res.res_map.nrof_symbols = srs_res_s::res_map_s_::nrof_symbols_opts::n4;
       break;
     default:
-      srsran_assertion_failure("Invalid number of OFDM symb={}", fmt::underlying(cfg.res_mapping.nof_symb));
+      ocudu_assertion_failure("Invalid number of OFDM symb={}", fmt::underlying(cfg.res_mapping.nof_symb));
   }
   switch (cfg.res_mapping.rept_factor) {
     case srs_nof_symbols::n1:
@@ -2437,7 +2437,7 @@ static srs_res_s make_asn1_rrc_srs_res(const srs_config::srs_resource& cfg)
       res.res_map.repeat_factor = srs_res_s::res_map_s_::repeat_factor_opts::n4;
       break;
     default:
-      srsran_assertion_failure("Invalid repetition factor={}", fmt::underlying(cfg.res_mapping.rept_factor));
+      ocudu_assertion_failure("Invalid repetition factor={}", fmt::underlying(cfg.res_mapping.rept_factor));
   }
 
   res.freq_domain_position = cfg.freq_domain_pos;
@@ -2458,7 +2458,7 @@ static srs_res_s make_asn1_rrc_srs_res(const srs_config::srs_resource& cfg)
       res.group_or_seq_hop = srs_res_s::group_or_seq_hop_opts::seq_hop;
       break;
     default:
-      srsran_assertion_failure("Invalid grp or seq hop={}", fmt::underlying(cfg.grp_or_seq_hop));
+      ocudu_assertion_failure("Invalid grp or seq hop={}", fmt::underlying(cfg.grp_or_seq_hop));
   }
 
   switch (cfg.res_type) {
@@ -2467,19 +2467,18 @@ static srs_res_s make_asn1_rrc_srs_res(const srs_config::srs_resource& cfg)
     } break;
     case srs_resource_type::semi_persistent: {
       auto& sp_res = res.res_type.set_semi_persistent();
-      srsran_assert(cfg.periodicity_and_offset.has_value(),
-                    "Semi-persistent resource must have periodicity and offset");
+      ocudu_assert(cfg.periodicity_and_offset.has_value(), "Semi-persistent resource must have periodicity and offset");
       make_asn1_rrc_srs_config_perioidicity_and_offset(sp_res.periodicity_and_offset_sp,
                                                        cfg.periodicity_and_offset.value());
     } break;
     case srs_resource_type::periodic: {
-      srsran_assert(cfg.periodicity_and_offset.has_value(), "Periodic resource must have periodicity and offset");
+      ocudu_assert(cfg.periodicity_and_offset.has_value(), "Periodic resource must have periodicity and offset");
       auto& p_res = res.res_type.set_periodic();
       make_asn1_rrc_srs_config_perioidicity_and_offset(p_res.periodicity_and_offset_p,
                                                        cfg.periodicity_and_offset.value());
     } break;
     default:
-      srsran_assertion_failure("Invalid resource type={}", fmt::underlying(cfg.res_type));
+      ocudu_assertion_failure("Invalid resource type={}", fmt::underlying(cfg.res_type));
   }
 
   res.seq_id = cfg.sequence_id;
@@ -2642,7 +2641,7 @@ static void calculate_pdsch_serving_cell_cfg_diff(asn1::rrc_nr::pdsch_serving_ce
             pdsch_code_block_group_tx_s::max_code_block_groups_per_transport_block_opts::n8;
         break;
       default:
-        srsran_assertion_failure("Invalid xOverhead={}", fmt::underlying(dest.x_ov_head));
+        ocudu_assertion_failure("Invalid xOverhead={}", fmt::underlying(dest.x_ov_head));
     }
   } else if (src.code_block_group_tx.has_value() && not dest.code_block_group_tx.has_value()) {
     out.code_block_group_tx_present = true;
@@ -2662,7 +2661,7 @@ static void calculate_pdsch_serving_cell_cfg_diff(asn1::rrc_nr::pdsch_serving_ce
         out.xoverhead = pdsch_serving_cell_cfg_s::xoverhead_opts::xoh18;
         break;
       default:
-        srsran_assertion_failure("Invalid xOverhead={}", fmt::underlying(dest.x_ov_head));
+        ocudu_assertion_failure("Invalid xOverhead={}", fmt::underlying(dest.x_ov_head));
     }
   }
 
@@ -2693,7 +2692,7 @@ static void calculate_pdsch_serving_cell_cfg_diff(asn1::rrc_nr::pdsch_serving_ce
         out.nrof_harq_processes_for_pdsch_v1700_present = true;
         break;
       default:
-        srsran_assertion_failure("Invalid max. nof.HARQ process for PDSCH={}", fmt::underlying(dest.nof_harq_proc));
+        ocudu_assertion_failure("Invalid max. nof.HARQ process for PDSCH={}", fmt::underlying(dest.nof_harq_proc));
     }
   }
 
@@ -2790,7 +2789,7 @@ static sched_request_to_add_mod_s make_asn1_rrc_scheduling_request(const schedul
         req.sr_prohibit_timer = sched_request_to_add_mod_s::sr_prohibit_timer_opts::ms128;
         break;
       default:
-        srsran_assertion_failure("Invalid SR prohibit timer={}", fmt::underlying(cfg.prohibit_timer.value()));
+        ocudu_assertion_failure("Invalid SR prohibit timer={}", fmt::underlying(cfg.prohibit_timer.value()));
     }
   }
 
@@ -2811,7 +2810,7 @@ static sched_request_to_add_mod_s make_asn1_rrc_scheduling_request(const schedul
       req.sr_trans_max = sched_request_to_add_mod_s::sr_trans_max_opts::n64;
       break;
     default:
-      srsran_assertion_failure("Invalid SR trans. max={}", fmt::underlying(cfg.max_tx));
+      ocudu_assertion_failure("Invalid SR trans. max={}", fmt::underlying(cfg.max_tx));
   }
 
   return req;
@@ -2944,7 +2943,7 @@ static void make_asn1_rrc_bsr_config(asn1::rrc_nr::bsr_cfg_s& out, const bsr_con
       out.retx_bsr_timer = bsr_cfg_s::retx_bsr_timer_opts::sf10240;
       break;
     default:
-      srsran_assertion_failure("Invalid BSR Retx. Timer={}", fmt::underlying(cfg.retx_timer));
+      ocudu_assertion_failure("Invalid BSR Retx. Timer={}", fmt::underlying(cfg.retx_timer));
   }
 
   switch (cfg.periodic_timer) {
@@ -2997,7 +2996,7 @@ static void make_asn1_rrc_bsr_config(asn1::rrc_nr::bsr_cfg_s& out, const bsr_con
       out.periodic_bsr_timer = bsr_cfg_s::periodic_bsr_timer_opts::infinity;
       break;
     default:
-      srsran_assertion_failure("Invalid Periodic BSR Timer={}", fmt::underlying(cfg.periodic_timer));
+      ocudu_assertion_failure("Invalid Periodic BSR Timer={}", fmt::underlying(cfg.periodic_timer));
   }
 
   if (cfg.lc_sr_delay_timer.has_value()) {
@@ -3025,7 +3024,7 @@ static void make_asn1_rrc_bsr_config(asn1::rrc_nr::bsr_cfg_s& out, const bsr_con
         out.lc_ch_sr_delay_timer = bsr_cfg_s::lc_ch_sr_delay_timer_opts::sf2560;
         break;
       default:
-        srsran_assertion_failure("Invalid BSR LC SR Delay Timer={}", fmt::underlying(cfg.lc_sr_delay_timer.value()));
+        ocudu_assertion_failure("Invalid BSR LC SR Delay Timer={}", fmt::underlying(cfg.lc_sr_delay_timer.value()));
     }
   }
 }
@@ -3061,7 +3060,7 @@ static tag_s make_asn1_rrc_tag_config(const time_alignment_group& cfg)
       tag_cfg.time_align_timer = time_align_timer_opts::infinity;
       break;
     default:
-      srsran_assertion_failure("Invalid Time Align. Timer={}", fmt::underlying(cfg.ta_timer));
+      ocudu_assertion_failure("Invalid Time Align. Timer={}", fmt::underlying(cfg.ta_timer));
   }
 
   return tag_cfg;
@@ -3095,7 +3094,7 @@ static void make_asn1_rrc_phr_config(asn1::rrc_nr::phr_cfg_s& out, const phr_con
       out.phr_periodic_timer = phr_cfg_s::phr_periodic_timer_opts::infinity;
       break;
     default:
-      srsran_assertion_failure("Invalid PHR Periodic Timer={}", fmt::underlying(cfg.periodic_timer));
+      ocudu_assertion_failure("Invalid PHR Periodic Timer={}", fmt::underlying(cfg.periodic_timer));
   }
 
   switch (cfg.prohibit_timer) {
@@ -3124,7 +3123,7 @@ static void make_asn1_rrc_phr_config(asn1::rrc_nr::phr_cfg_s& out, const phr_con
       out.phr_prohibit_timer = phr_cfg_s::phr_prohibit_timer_opts::sf1000;
       break;
     default:
-      srsran_assertion_failure("Invalid PHR Prohibit Timer={}", fmt::underlying(cfg.prohibit_timer));
+      ocudu_assertion_failure("Invalid PHR Prohibit Timer={}", fmt::underlying(cfg.prohibit_timer));
   }
 
   switch (cfg.power_factor_change) {
@@ -3141,7 +3140,7 @@ static void make_asn1_rrc_phr_config(asn1::rrc_nr::phr_cfg_s& out, const phr_con
       out.phr_tx_pwr_factor_change = phr_cfg_s::phr_tx_pwr_factor_change_opts::infinity;
       break;
     default:
-      srsran_assertion_failure("Invalid PHR Prohibit Timer={}", fmt::underlying(cfg.power_factor_change));
+      ocudu_assertion_failure("Invalid PHR Prohibit Timer={}", fmt::underlying(cfg.power_factor_change));
   }
 
   out.multiple_phr         = cfg.multiple_phr;
@@ -3156,7 +3155,7 @@ static void make_asn1_rrc_phr_config(asn1::rrc_nr::phr_cfg_s& out, const phr_con
       out.phr_mode_other_cg = phr_cfg_s::phr_mode_other_cg_opts::virtual_value;
       break;
     default:
-      srsran_assertion_failure("Invalid PHR Mode={}", fmt::underlying(cfg.phr_mode));
+      ocudu_assertion_failure("Invalid PHR Mode={}", fmt::underlying(cfg.phr_mode));
   }
 }
 
@@ -3238,9 +3237,9 @@ static static_vector<rlc_bearer_config, MAX_NOF_RB_LCIDS> fill_rlc_bearers(const
   return list;
 }
 
-void srsran::srs_du::calculate_cell_group_config_diff(asn1::rrc_nr::cell_group_cfg_s& out,
-                                                      const du_ue_resource_config&    src,
-                                                      const du_ue_resource_config&    dest)
+void ocudu::odu::calculate_cell_group_config_diff(asn1::rrc_nr::cell_group_cfg_s& out,
+                                                  const du_ue_resource_config&    src,
+                                                  const du_ue_resource_config&    dest)
 {
   static_vector<rlc_bearer_config, MAX_NOF_RB_LCIDS> src_bearers  = fill_rlc_bearers(src);
   static_vector<rlc_bearer_config, MAX_NOF_RB_LCIDS> dest_bearers = fill_rlc_bearers(dest);
@@ -3308,11 +3307,11 @@ static ssb_mtc_s make_ssb_mtc(const du_cell_config& du_cell_cfg)
   return ret;
 }
 
-bool srsran::srs_du::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync_s&    out,
-                                                       const du_cell_config&               du_cell_cfg,
-                                                       const du_ue_resource_config&        dest,
-                                                       const asn1::rrc_nr::ho_prep_info_s& ho_prep_info,
-                                                       rnti_t                              rnti)
+bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync_s&    out,
+                                                   const du_cell_config&               du_cell_cfg,
+                                                   const du_ue_resource_config&        dest,
+                                                   const asn1::rrc_nr::ho_prep_info_s& ho_prep_info,
+                                                   rnti_t                              rnti)
 {
   out.sp_cell_cfg_common_present = true;
 
@@ -3351,7 +3350,7 @@ bool srsran::srs_du::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_
   out.sp_cell_cfg_common.ssb_positions_in_burst_present = true;
   const uint8_t l_max                                   = band_helper::get_ssb_l_max(
       du_cell_cfg.dl_carrier.band, du_cell_cfg.ssb_cfg.scs, static_cast<uint32_t>(du_cell_cfg.dl_carrier.arfcn_f_ref));
-  srsran_assert(l_max == 4U or l_max == 8U or l_max == 64U, "L_max value {} not valid", l_max);
+  ocudu_assert(l_max == 4U or l_max == 8U or l_max == 64U, "L_max value {} not valid", l_max);
   if (l_max == 4U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_short_bitmap().from_number(
         static_cast<uint64_t>(du_cell_cfg.ssb_cfg.ssb_bitmap) >> static_cast<uint64_t>(60U));
@@ -3438,9 +3437,9 @@ static gap_cfg_s make_gap_cfg(const meas_gap_config& cfg)
   return gap;
 }
 
-void srs_du::calculate_meas_gap_config_diff(meas_gap_cfg_s&                       out,
-                                            const std::optional<meas_gap_config>& src,
-                                            const std::optional<meas_gap_config>& dest)
+void odu::calculate_meas_gap_config_diff(meas_gap_cfg_s&                       out,
+                                         const std::optional<meas_gap_config>& src,
+                                         const std::optional<meas_gap_config>& dest)
 {
   out = {};
   out.gap_fr1.set_present();

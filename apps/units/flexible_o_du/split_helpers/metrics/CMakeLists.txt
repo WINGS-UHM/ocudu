@@ -13,6 +13,6 @@ set(SOURCES
         flexible_o_du_metrics_consumers.cpp
         flexible_o_du_metrics_producer.cpp)
 
-add_library(srsran_flexible_o_du_unit_metrics_helpers STATIC ${SOURCES})
-target_include_directories(srsran_flexible_o_du_unit_metrics_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_flexible_o_du_unit_metrics_helpers PRIVATE srsran_metrics_json_generators srsran_flexible_o_du_split_helpers_metrics_consumers)
+add_library(ocudu_flexible_o_du_unit_metrics_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_flexible_o_du_unit_metrics_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_flexible_o_du_unit_metrics_helpers PRIVATE ocudu_metrics_json_generators ocudu_flexible_o_du_split_helpers_metrics_consumers)

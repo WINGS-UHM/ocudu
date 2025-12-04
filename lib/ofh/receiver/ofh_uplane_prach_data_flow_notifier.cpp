@@ -9,9 +9,9 @@
  */
 
 #include "ofh_uplane_prach_data_flow_notifier.h"
-#include "srsran/ofh/ofh_uplane_rx_symbol_notifier.h"
+#include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void uplane_prach_data_flow_notifier::notify_prach(slot_point slot)
@@ -27,7 +27,7 @@ void uplane_prach_data_flow_notifier::notify_prach(slot_point slot)
 
   notifier->on_new_prach_window_data(ctx_value, std::move(context->buffer));
 
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Notifying PRACH in slot '{}' for sector#{}", ctx_value.slot, ctx_value.sector);
   }
 }

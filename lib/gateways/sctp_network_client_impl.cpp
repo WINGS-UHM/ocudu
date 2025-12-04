@@ -9,11 +9,11 @@
  */
 
 #include "sctp_network_client_impl.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/io/sockets.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/sockets.h"
 #include <netinet/sctp.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Stream number to use for sending.
 static constexpr unsigned stream_no = 0;
@@ -108,7 +108,7 @@ private:
   const std::string             client_name;
   const uint32_t                ppid;
   int                           fd;
-  srslog::basic_logger&         logger;
+  ocudulog::basic_logger&       logger;
   const transport_layer_address server_addr;
 
   std::array<uint8_t, network_gateway_sctp_max_len> send_buffer;
@@ -404,7 +404,7 @@ std::unique_ptr<sctp_network_client> sctp_network_client_impl::create(const sctp
 {
   // Validate arguments.
   if (sctp_cfg.if_name.empty()) {
-    srslog::fetch_basic_logger("SCTP-GW").error("Cannot create SCTP client. Cause: No name was provided");
+    ocudulog::fetch_basic_logger("SCTP-GW").error("Cannot create SCTP client. Cause: No name was provided");
     return nullptr;
   }
 

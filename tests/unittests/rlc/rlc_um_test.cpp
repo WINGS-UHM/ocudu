@@ -10,14 +10,14 @@
 
 #include "lib/rlc/rlc_um_entity.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <list>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Mocking class of the surrounding layers invoked by the RLC.
 class rlc_test_frame : public rlc_rx_upper_layer_data_notifier,
@@ -71,12 +71,12 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init RLC logger
-    srslog::fetch_basic_logger("RLC", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("RLC", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("RLC", false).set_hex_dump_max_size(100);
 
     logger.info("Creating RLC UM ({} bit)", to_number(sn_size));
 
@@ -132,7 +132,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   /// \brief Constructs a SDU with deterministic content.
@@ -253,7 +253,7 @@ protected:
     ue_worker.run_pending_tasks();
   }
 
-  srslog::basic_logger&              logger  = srslog::fetch_basic_logger("TEST", false);
+  ocudulog::basic_logger&            logger  = ocudulog::fetch_basic_logger("TEST", false);
   rlc_um_sn_size                     sn_size = GetParam();
   rlc_um_config                      config;
   timer_manager                      timers;

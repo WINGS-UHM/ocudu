@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_request_notifier.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_request_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class upper_phy_rx_symbol_request_notifier_spy : public upper_phy_rx_symbol_request_notifier
 {
@@ -29,4 +29,4 @@ public:
   bool has_prach_result_been_notified() const { return prach_capture_request_notified; }
 };
 
-} // namespace srsran
+} // namespace ocudu

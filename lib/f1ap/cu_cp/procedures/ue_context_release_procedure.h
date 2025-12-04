@@ -14,12 +14,12 @@
 #include "../ue_context/f1ap_cu_ue_context.h"
 #include "cu_cp/ue_context/f1ap_cu_ue_transaction_manager.h"
 #include "f1ap_asn1_utils.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ue_context_release_procedure
 {
@@ -44,10 +44,10 @@ private:
   f1ap_ue_context&                     ue_ctxt;
   asn1::f1ap::ue_context_release_cmd_s command;
   f1ap_message_notifier&               f1ap_notifier;
-  srslog::basic_logger&                logger;
+  ocudulog::basic_logger&              logger;
 
   protocol_transaction_outcome_observer<asn1::f1ap::ue_context_release_complete_s> transaction_sink;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -15,9 +15,9 @@
 #include "../uci_scheduling/uci_allocator.h"
 #include "../ue_context/ue_repository.h"
 #include "grant_params_selector.h"
-#include "srsran/adt/noop_functor.h"
+#include "ocudu/adt/noop_functor.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct scheduler_ue_expert_config;
 
@@ -123,7 +123,7 @@ public:
   public:
     dl_newtx_grant_builder(dl_newtx_grant_builder&&) noexcept            = default;
     dl_newtx_grant_builder& operator=(dl_newtx_grant_builder&&) noexcept = default;
-    ~dl_newtx_grant_builder() { srsran_assert(parent == nullptr, "PDSCH parameters were not set"); }
+    ~dl_newtx_grant_builder() { ocudu_assert(parent == nullptr, "PDSCH parameters were not set"); }
 
     /// Sets the final VRBs for the PDSCH allocation.
     void set_pdsch_params(vrb_interval                                 alloc_vrbs,
@@ -162,7 +162,7 @@ public:
   public:
     ul_newtx_grant_builder(ul_newtx_grant_builder&&) noexcept            = default;
     ul_newtx_grant_builder& operator=(ul_newtx_grant_builder&&) noexcept = default;
-    ~ul_newtx_grant_builder() { srsran_assert(parent == nullptr, "PUSCH parameters were not set"); }
+    ~ul_newtx_grant_builder() { ocudu_assert(parent == nullptr, "PUSCH parameters were not set"); }
 
     /// Sets the final VRBs for the PUSCH allocation.
     void set_pusch_params(const vrb_interval& alloc_vrbs);
@@ -198,7 +198,7 @@ public:
                          pdcch_resource_allocator&         pdcch_sched_,
                          uci_allocator&                    uci_alloc_,
                          cell_resource_allocator&          cell_alloc_,
-                         srslog::basic_logger&             logger_);
+                         ocudulog::basic_logger&           logger_);
 
   /// Allocate PDCCH, UCI and PDSCH PDUs for a UE DL grant and return a builder to set the PDSCH parameters.
   expected<dl_newtx_grant_builder, dl_alloc_failure_cause> allocate_dl_grant(const ue_newtx_dl_grant_request& request);
@@ -260,10 +260,10 @@ private:
   pdcch_resource_allocator&         pdcch_sched;
   uci_allocator&                    uci_alloc;
   cell_resource_allocator&          cell_alloc;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   std::vector<dl_grant_info> dl_grants;
   std::vector<ul_grant_info> ul_grants;
 };
 
-} // namespace srsran
+} // namespace ocudu

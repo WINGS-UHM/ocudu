@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/adt/strong_type.h"
+#include "ocudu/adt/strong_type.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(strong_type_test, construction)
 {

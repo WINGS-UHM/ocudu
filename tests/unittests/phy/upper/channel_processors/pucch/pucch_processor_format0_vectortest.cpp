@@ -11,13 +11,13 @@
 #include "pucch_detector_test_doubles.h"
 #include "pucch_processor_format0_test_data.h"
 #include "pucch_processor_test_fixture.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/phy/upper/channel_processors/pucch/formatters.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/support/math/complex_normal_random.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pucch/formatters.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/support/math/complex_normal_random.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using PucchProcessorFormat0Param   = test_case_t;
 using PucchProcessorFormat0Fixture = PucchProcessorTestFixture<PucchProcessorFormat0Param>;
@@ -26,7 +26,7 @@ std::unique_ptr<pucch_processor> PucchProcessorFormat0Fixture::processor = nullp
 template <>
 std::unique_ptr<pucch_pdu_validator> PucchProcessorFormat0Fixture::validator = nullptr;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const pucch_processor::format0_configuration& config)
 {
@@ -57,7 +57,7 @@ std::ostream& operator<<(std::ostream& os, span<const uint8_t> data)
   return os << fmt::format("{}", data);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 

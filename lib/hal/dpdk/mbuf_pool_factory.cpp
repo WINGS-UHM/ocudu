@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/hal/dpdk/mbuf_pool_factory.h"
+#include "ocudu/hal/dpdk/mbuf_pool_factory.h"
 #include "dpdk.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace dpdk;
 
-std::unique_ptr<mbuf_pool> srsran::dpdk::create_mbuf_pool(const char*           pool_name,
-                                                          int                   socket,
-                                                          const mempool_config& cfg,
-                                                          srslog::basic_logger& logger)
+std::unique_ptr<mbuf_pool> ocudu::dpdk::create_mbuf_pool(const char*             pool_name,
+                                                         int                     socket,
+                                                         const mempool_config&   cfg,
+                                                         ocudulog::basic_logger& logger)
 {
   // Create a new memory pool.
   ::rte_mempool* pool =

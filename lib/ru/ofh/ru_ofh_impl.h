@@ -17,15 +17,15 @@
 #include "ru_ofh_rx_symbol_handler_impl.h"
 #include "ru_ofh_timing_notifier_impl.h"
 #include "ru_ofh_uplink_plane_handler_proxy.h"
-#include "srsran/ofh/ofh_sector.h"
-#include "srsran/ofh/timing/ofh_timing_manager.h"
-#include "srsran/ru/ofh/ru_ofh_configuration.h"
-#include "srsran/ru/ru.h"
-#include "srsran/ru/ru_timing_notifier.h"
-#include "srsran/ru/ru_uplink_plane.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ofh_sector.h"
+#include "ocudu/ofh/timing/ofh_timing_manager.h"
+#include "ocudu/ru/ofh/ru_ofh_configuration.h"
+#include "ocudu/ru/ru.h"
+#include "ocudu/ru/ru_timing_notifier.h"
+#include "ocudu/ru/ru_uplink_plane.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Open Fronthaul implementation configuration.
 struct ru_ofh_impl_config {
@@ -36,7 +36,7 @@ struct ru_ofh_impl_config {
 
 /// Open Fronthaul implementation dependencies.
 struct ru_ofh_impl_dependencies {
-  srslog::basic_logger*                logger;
+  ocudulog::basic_logger*              logger;
   std::unique_ptr<ofh::timing_manager> timing_mngr;
   ru_timing_notifier*                  timing_notifier    = nullptr;
   ru_error_notifier*                   error_notifier     = nullptr;
@@ -82,4 +82,4 @@ private:
   ru_ofh_metrics_collector_impl             metrics_collector;
 };
 
-} // namespace srsran
+} // namespace ocudu

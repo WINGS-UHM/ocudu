@@ -13,9 +13,9 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsLDPCSegmenterUnittest.m"
 
-#include "srsran/support/file_vector.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   unsigned             tbs            = 0;
@@ -42,4 +42,4 @@ static const std::vector<test_case_t> ldpc_segmenter_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

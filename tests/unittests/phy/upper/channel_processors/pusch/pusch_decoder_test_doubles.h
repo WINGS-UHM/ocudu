@@ -12,12 +12,12 @@
 
 #include "../../../phy_test_utils.h"
 #include "pusch_decoder_buffer_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_decoder_spy : public pusch_decoder
 {
@@ -31,7 +31,7 @@ public:
     pusch_decoder_notifier*  notifier;
   };
 
-  ~pusch_decoder_spy() { srsran_assert(entries.empty(), "Entries must be cleared."); }
+  ~pusch_decoder_spy() { ocudu_assert(entries.empty(), "Entries must be cleared."); }
 
   pusch_decoder_buffer& new_data(span<uint8_t>           transport_block,
                                  unique_rx_buffer        rm_buffer,
@@ -69,4 +69,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(pusch_decoder);
 
-} // namespace srsran
+} // namespace ocudu

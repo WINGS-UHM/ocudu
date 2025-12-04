@@ -10,24 +10,24 @@
 
 #include "rrc_ue_test_helpers.h"
 #include "rrc_ue_test_messages.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class RRC Setup tests preparation
 class rrc_ue_capability_transfer_proc_test : public rrc_ue_test_helper, public ::testing::Test
 {
 protected:
-  static void SetUpTestSuite() { srslog::init(); }
+  static void SetUpTestSuite() { ocudulog::init(); }
 
   void SetUp() override
   {
     init();
 
-    srslog::basic_logger& rrc_logger = srslog::fetch_basic_logger("RRC", false);
-    rrc_logger.set_level(srslog::basic_levels::debug);
+    ocudulog::basic_logger& rrc_logger = ocudulog::fetch_basic_logger("RRC", false);
+    rrc_logger.set_level(ocudulog::basic_levels::debug);
     rrc_logger.set_hex_dump_max_size(30);
 
     receive_setup_request();
@@ -45,7 +45,7 @@ protected:
     const char* k_enc_cstr  = "4ea96992c8c7e82977231ad001309062ae9f31ead90a4d0842af6cd25cb44dc4";
     const char* k_int_cstr  = "aeeb5e0ae02c6188ecb1625c4a9e022fdfc2a1fc845b44b44443ac9a3bda667c";
 
-    // Pack hex strings into srsgnb types
+    // Pack hex strings into ocudu types
     security::sec_key sk_gnb = make_sec_key(sk_gnb_cstr);
     security::sec_key k_enc  = make_sec_key(k_enc_cstr);
     security::sec_key k_int  = make_sec_key(k_int_cstr);
@@ -75,7 +75,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 

@@ -9,12 +9,12 @@
  */
 
 #include "e1ap_cu_cp_test_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 e1ap_cu_cp_test::e1ap_cu_cp_test() :
   cu_cp_cfg([this]() {
@@ -25,9 +25,9 @@ e1ap_cu_cp_test::e1ap_cu_cp_test() :
     return cucfg;
   }())
 {
-  test_logger.set_level(srslog::basic_levels::debug);
-  e1ap_logger.set_level(srslog::basic_levels::debug);
-  srslog::init();
+  test_logger.set_level(ocudulog::basic_levels::debug);
+  e1ap_logger.set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   // We enable Json logging by default for the purpose of testing.
   e1ap_configuration tmp;
@@ -47,7 +47,7 @@ e1ap_cu_cp_test::e1ap_cu_cp_test() :
 e1ap_cu_cp_test::~e1ap_cu_cp_test()
 {
   // flush logger after each test
-  srslog::flush();
+  ocudulog::flush();
 }
 
 void e1ap_cu_cp_test::run_bearer_context_setup(ue_index_t ue_index, gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
@@ -73,7 +73,7 @@ void e1ap_cu_cp_test::run_bearer_context_setup(ue_index_t ue_index, gnb_cu_up_ue
   test_logger.info("Injecting BearerContextSetupResponse");
   e1ap->handle_message(bearer_context_setup_response);
 
-  srsran_assert(t.ready(), "The procedure should have completed by now");
+  ocudu_assert(t.ready(), "The procedure should have completed by now");
 }
 
 e1ap_cu_cp_test::test_ue& e1ap_cu_cp_test::create_ue()

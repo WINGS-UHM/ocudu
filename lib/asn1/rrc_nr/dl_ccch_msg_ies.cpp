@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/asn1/rrc_nr/dl_ccch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg_ies.h"
 using namespace asn1;
 using namespace asn1::rrc_nr;
 
@@ -17,21 +17,21 @@ using namespace asn1::rrc_nr;
  ******************************************************************************/
 
 // SL-MinMaxMCS-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_min_max_mcs_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_min_max_mcs_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(sl_mcs_table_r16.pack(bref));
   HANDLE_CODE(pack_integer(bref, sl_min_mcs_pssch_r16, (uint8_t)0u, (uint8_t)27u));
   HANDLE_CODE(pack_integer(bref, sl_max_mcs_pssch_r16, (uint8_t)0u, (uint8_t)31u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_min_max_mcs_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_min_max_mcs_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(sl_mcs_table_r16.unpack(bref));
   HANDLE_CODE(unpack_integer(sl_min_mcs_pssch_r16, bref, (uint8_t)0u, (uint8_t)27u));
   HANDLE_CODE(unpack_integer(sl_max_mcs_pssch_r16, bref, (uint8_t)0u, (uint8_t)31u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_min_max_mcs_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -49,7 +49,7 @@ const char* sl_min_max_mcs_cfg_r16_s::sl_mcs_table_r16_opts::to_string() const
 }
 
 // SL-PriorityTxConfigIndex-r16 ::= SEQUENCE
-SRSASN_CODE sl_prio_tx_cfg_idx_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_prio_tx_cfg_idx_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_prio_thres_r16_present, 1));
   HANDLE_CODE(bref.pack(sl_default_tx_cfg_idx_r16_present, 1));
@@ -69,9 +69,9 @@ SRSASN_CODE sl_prio_tx_cfg_idx_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_tx_cfg_idx_list_r16, 1, 16, integer_packer<uint8_t>(0, 63)));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_prio_tx_cfg_idx_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_prio_tx_cfg_idx_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_prio_thres_r16_present, 1));
   HANDLE_CODE(bref.unpack(sl_default_tx_cfg_idx_r16_present, 1));
@@ -92,7 +92,7 @@ SRSASN_CODE sl_prio_tx_cfg_idx_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_tx_cfg_idx_list_r16, bref, 1, 16, integer_packer<uint8_t>(0, 63)));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_prio_tx_cfg_idx_r16_s::to_json(json_writer& j) const
 {
@@ -117,7 +117,7 @@ void sl_prio_tx_cfg_idx_r16_s::to_json(json_writer& j) const
 }
 
 // SL-PriorityTxConfigIndex-v1650 ::= SEQUENCE
-SRSASN_CODE sl_prio_tx_cfg_idx_v1650_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_prio_tx_cfg_idx_v1650_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_mcs_range_list_r16.size() > 0, 1));
 
@@ -125,9 +125,9 @@ SRSASN_CODE sl_prio_tx_cfg_idx_v1650_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_mcs_range_list_r16, 1, 16, SeqOfPacker<Packer>(1, 3, Packer())));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_prio_tx_cfg_idx_v1650_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_prio_tx_cfg_idx_v1650_s::unpack(cbit_ref& bref)
 {
   bool sl_mcs_range_list_r16_present;
   HANDLE_CODE(bref.unpack(sl_mcs_range_list_r16_present, 1));
@@ -136,7 +136,7 @@ SRSASN_CODE sl_prio_tx_cfg_idx_v1650_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_mcs_range_list_r16, bref, 1, 16, SeqOfPacker<Packer>(1, 3, Packer())));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_prio_tx_cfg_idx_v1650_s::to_json(json_writer& j) const
 {
@@ -156,19 +156,19 @@ void sl_prio_tx_cfg_idx_v1650_s::to_json(json_writer& j) const
 }
 
 // SL-SelectionWindowConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_sel_win_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_sel_win_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, sl_prio_r16, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(sl_sel_win_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_sel_win_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_sel_win_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(sl_prio_r16, bref, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(sl_sel_win_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_sel_win_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -190,19 +190,19 @@ uint8_t sl_sel_win_cfg_r16_s::sl_sel_win_r16_opts::to_number() const
 }
 
 // SL-ThresholdRSRP-Condition1-B-1-r17 ::= SEQUENCE
-SRSASN_CODE sl_thres_rsrp_condition1_b_1_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_thres_rsrp_condition1_b_1_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, sl_prio_r17, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(pack_integer(bref, sl_thres_rsrp_condition1_b_1_r17, (uint8_t)0u, (uint8_t)66u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_thres_rsrp_condition1_b_1_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_thres_rsrp_condition1_b_1_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(sl_prio_r17, bref, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(unpack_integer(sl_thres_rsrp_condition1_b_1_r17, bref, (uint8_t)0u, (uint8_t)66u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_thres_rsrp_condition1_b_1_r17_s::to_json(json_writer& j) const
 {
@@ -213,7 +213,7 @@ void sl_thres_rsrp_condition1_b_1_r17_s::to_json(json_writer& j) const
 }
 
 // SL-InterUE-CoordinationScheme1-r17 ::= SEQUENCE
-SRSASN_CODE sl_inter_ue_coordination_scheme1_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_inter_ue_coordination_scheme1_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_iuc_explicit_r17_present, 1));
@@ -283,9 +283,9 @@ SRSASN_CODE sl_inter_ue_coordination_scheme1_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_determine_res_type_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_inter_ue_coordination_scheme1_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_inter_ue_coordination_scheme1_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_iuc_explicit_r17_present, 1));
@@ -357,7 +357,7 @@ SRSASN_CODE sl_inter_ue_coordination_scheme1_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_determine_res_type_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_inter_ue_coordination_scheme1_r17_s::to_json(json_writer& j) const
 {
@@ -455,7 +455,7 @@ const char* sl_inter_ue_coordination_scheme1_r17_s::sl_determine_res_type_r17_op
 }
 
 // SL-InterUE-CoordinationScheme2-r17 ::= SEQUENCE
-SRSASN_CODE sl_inter_ue_coordination_scheme2_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_inter_ue_coordination_scheme2_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_iuc_scheme2_r17_present, 1));
@@ -493,9 +493,9 @@ SRSASN_CODE sl_inter_ue_coordination_scheme2_r17_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_inter_ue_coordination_scheme2_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_inter_ue_coordination_scheme2_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_iuc_scheme2_r17_present, 1));
@@ -531,7 +531,7 @@ SRSASN_CODE sl_inter_ue_coordination_scheme2_r17_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_inter_ue_coordination_scheme2_r17_s::to_json(json_writer& j) const
 {
@@ -641,7 +641,7 @@ void sl_res_reserve_period_r16_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_res_reserve_period_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_res_reserve_period_r16_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -653,11 +653,11 @@ SRSASN_CODE sl_res_reserve_period_r16_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "sl_res_reserve_period_r16_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_res_reserve_period_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_res_reserve_period_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -671,9 +671,9 @@ SRSASN_CODE sl_res_reserve_period_r16_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_res_reserve_period_r16_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_res_reserve_period_r16_c::sl_res_reserve_period1_r16_opts::to_string() const
@@ -700,19 +700,19 @@ uint8_t sl_res_reserve_period_r16_c::types_opts::to_number() const
 }
 
 // SL-TxPercentageConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_tx_percentage_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_tx_percentage_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, sl_prio_r16, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(sl_tx_percentage_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_tx_percentage_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_tx_percentage_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(sl_prio_r16, bref, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(sl_tx_percentage_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_tx_percentage_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -734,19 +734,19 @@ uint8_t sl_tx_percentage_cfg_r16_s::sl_tx_percentage_r16_opts::to_number() const
 }
 
 // SL-ZoneConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_zone_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_zone_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(sl_zone_len_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_zone_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_zone_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(sl_zone_len_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_zone_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -794,7 +794,7 @@ uint8_t filt_coef_opts::to_number() const
 }
 
 // SL-InterUE-CoordinationConfig-r17 ::= SEQUENCE
-SRSASN_CODE sl_inter_ue_coordination_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_inter_ue_coordination_cfg_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_inter_ue_coordination_scheme1_r17_present, 1));
@@ -807,9 +807,9 @@ SRSASN_CODE sl_inter_ue_coordination_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_inter_ue_coordination_scheme2_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_inter_ue_coordination_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_inter_ue_coordination_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_inter_ue_coordination_scheme1_r17_present, 1));
@@ -822,7 +822,7 @@ SRSASN_CODE sl_inter_ue_coordination_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_inter_ue_coordination_scheme2_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_inter_ue_coordination_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -839,7 +839,7 @@ void sl_inter_ue_coordination_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-PBPS-CPS-Config-r17 ::= SEQUENCE
-SRSASN_CODE sl_pbps_cp_s_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pbps_cp_s_cfg_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_allowed_res_sel_cfg_r17_present, 1));
@@ -885,9 +885,9 @@ SRSASN_CODE sl_pbps_cp_s_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_partial_sensing_inactive_time_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pbps_cp_s_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pbps_cp_s_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_allowed_res_sel_cfg_r17_present, 1));
@@ -935,7 +935,7 @@ SRSASN_CODE sl_pbps_cp_s_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_partial_sensing_inactive_time_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pbps_cp_s_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -998,7 +998,7 @@ const char* sl_pbps_cp_s_cfg_r17_s::sl_partial_sensing_inactive_time_r17_opts::t
 }
 
 // SL-PSCCH-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_pscch_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pscch_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_time_res_pscch_r16_present, 1));
@@ -1019,9 +1019,9 @@ SRSASN_CODE sl_pscch_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_num_reserved_bits_r16, (uint8_t)2u, (uint8_t)4u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pscch_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pscch_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_time_res_pscch_r16_present, 1));
@@ -1042,7 +1042,7 @@ SRSASN_CODE sl_pscch_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_num_reserved_bits_r16, bref, (uint8_t)2u, (uint8_t)4u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pscch_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -1085,7 +1085,7 @@ uint8_t sl_pscch_cfg_r16_s::sl_freq_res_pscch_r16_opts::to_number() const
 }
 
 // SL-PSFCH-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_psfch_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_psfch_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_psfch_period_r16_present, 1));
@@ -1114,9 +1114,9 @@ SRSASN_CODE sl_psfch_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_psfch_candidate_res_type_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_psfch_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_psfch_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_psfch_period_r16_present, 1));
@@ -1145,7 +1145,7 @@ SRSASN_CODE sl_psfch_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_psfch_candidate_res_type_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_psfch_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -1211,7 +1211,7 @@ const char* sl_psfch_cfg_r16_s::sl_psfch_candidate_res_type_r16_opts::to_string(
 }
 
 // SL-PSSCH-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_pssch_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pssch_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_pssch_dmrs_time_pattern_list_r16.size() > 0, 1));
@@ -1229,9 +1229,9 @@ SRSASN_CODE sl_pssch_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_scaling_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pssch_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pssch_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   bool sl_pssch_dmrs_time_pattern_list_r16_present;
@@ -1250,7 +1250,7 @@ SRSASN_CODE sl_pssch_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_scaling_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pssch_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -1282,7 +1282,7 @@ const char* sl_pssch_cfg_r16_s::sl_scaling_r16_opts::to_string() const
 }
 
 // SL-PTRS-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_ptrs_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_ptrs_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_ptrs_freq_density_r16_present, 1));
@@ -1301,9 +1301,9 @@ SRSASN_CODE sl_ptrs_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_ptrs_re_offset_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_ptrs_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_ptrs_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_ptrs_freq_density_r16_present, 1));
@@ -1322,7 +1322,7 @@ SRSASN_CODE sl_ptrs_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_ptrs_re_offset_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_ptrs_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -1364,7 +1364,7 @@ const char* sl_ptrs_cfg_r16_s::sl_ptrs_re_offset_r16_opts::to_number_string() co
 }
 
 // SL-PowerControl-r16 ::= SEQUENCE
-SRSASN_CODE sl_pwr_ctrl_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pwr_ctrl_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_alpha_pssch_pscch_r16_present, 1));
@@ -1418,9 +1418,9 @@ SRSASN_CODE sl_pwr_ctrl_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pwr_ctrl_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pwr_ctrl_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_alpha_pssch_pscch_r16_present, 1));
@@ -1470,7 +1470,7 @@ SRSASN_CODE sl_pwr_ctrl_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pwr_ctrl_r16_s::to_json(json_writer& j) const
 {
@@ -1557,21 +1557,21 @@ const char* sl_pwr_ctrl_r16_s::dl_alpha_psfch_r16_opts::to_number_string() const
 }
 
 // SL-SyncAllowed-r16 ::= SEQUENCE
-SRSASN_CODE sl_sync_allowed_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_sync_allowed_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(gnss_sync_r16_present, 1));
   HANDLE_CODE(bref.pack(gnb_enb_sync_r16_present, 1));
   HANDLE_CODE(bref.pack(ue_sync_r16_present, 1));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_sync_allowed_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_sync_allowed_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(gnss_sync_r16_present, 1));
   HANDLE_CODE(bref.unpack(gnb_enb_sync_r16_present, 1));
   HANDLE_CODE(bref.unpack(ue_sync_r16_present, 1));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_sync_allowed_r16_s::to_json(json_writer& j) const
 {
@@ -1589,7 +1589,7 @@ void sl_sync_allowed_r16_s::to_json(json_writer& j) const
 }
 
 // SL-UE-SelectedConfigRP-r16 ::= SEQUENCE
-SRSASN_CODE sl_ue_sel_cfg_rp_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_ue_sel_cfg_rp_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_cbr_prio_tx_cfg_list_r16.size() > 0, 1));
@@ -1635,9 +1635,9 @@ SRSASN_CODE sl_ue_sel_cfg_rp_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_ue_sel_cfg_rp_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_ue_sel_cfg_rp_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   bool sl_cbr_prio_tx_cfg_list_r16_present;
@@ -1683,7 +1683,7 @@ SRSASN_CODE sl_ue_sel_cfg_rp_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_ue_sel_cfg_rp_r16_s::to_json(json_writer& j) const
 {
@@ -1767,7 +1767,7 @@ const char* sl_ue_sel_cfg_rp_r16_s::sl_rs_for_sensing_r16_opts::to_string() cons
 }
 
 // SL-ZoneConfigMCR-r16 ::= SEQUENCE
-SRSASN_CODE sl_zone_cfg_mcr_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_zone_cfg_mcr_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_trans_range_r16_present, 1));
@@ -1781,9 +1781,9 @@ SRSASN_CODE sl_zone_cfg_mcr_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_zone_cfg_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_zone_cfg_mcr_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_zone_cfg_mcr_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_trans_range_r16_present, 1));
@@ -1797,7 +1797,7 @@ SRSASN_CODE sl_zone_cfg_mcr_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_zone_cfg_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_zone_cfg_mcr_r16_s::to_json(json_writer& j) const
 {
@@ -1860,22 +1860,22 @@ void sl_meas_report_quant_r16_c::to_json(json_writer& j) const
   j.write_bool("sl-RSRP-r16", c);
   j.end_obj();
 }
-SRSASN_CODE sl_meas_report_quant_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_report_quant_r16_c::pack(bit_ref& bref) const
 {
   pack_enum(bref, type());
   HANDLE_CODE(bref.pack(c, 1));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_report_quant_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_report_quant_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   unpack_enum(e, bref);
   if (e != type()) {
     log_invalid_choice_id(e, "sl_meas_report_quant_r16_c");
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
   HANDLE_CODE(bref.unpack(c, 1));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_meas_report_quant_r16_c::types_opts::to_string() const
@@ -1891,22 +1891,22 @@ void sl_meas_trigger_quant_r16_c::to_json(json_writer& j) const
   j.write_int("sl-RSRP-r16", c);
   j.end_obj();
 }
-SRSASN_CODE sl_meas_trigger_quant_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_trigger_quant_r16_c::pack(bit_ref& bref) const
 {
   pack_enum(bref, type());
   HANDLE_CODE(pack_integer(bref, c, (uint8_t)0u, (uint8_t)127u));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_trigger_quant_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_trigger_quant_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   unpack_enum(e, bref);
   if (e != type()) {
     log_invalid_choice_id(e, "sl_meas_trigger_quant_r16_c");
-    return SRSASN_ERROR_DECODE_FAIL;
+    return OCUDUASN_ERROR_DECODE_FAIL;
   }
   HANDLE_CODE(unpack_integer(c, bref, (uint8_t)0u, (uint8_t)127u));
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_meas_trigger_quant_r16_c::types_opts::to_string() const
@@ -1923,7 +1923,7 @@ const char* sl_rs_type_r16_opts::to_string() const
 }
 
 // SL-ResourcePool-r16 ::= SEQUENCE
-SRSASN_CODE sl_res_pool_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_res_pool_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_pscch_cfg_r16_present, 1));
@@ -2060,9 +2060,9 @@ SRSASN_CODE sl_res_pool_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_res_pool_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_res_pool_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_pscch_cfg_r16_present, 1));
@@ -2195,7 +2195,7 @@ SRSASN_CODE sl_res_pool_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_res_pool_r16_s::to_json(json_writer& j) const
 {
@@ -2415,19 +2415,19 @@ uint16_t time_to_trigger_opts::to_number() const
 }
 
 // SL-CG-MaxTransNum-r16 ::= SEQUENCE
-SRSASN_CODE sl_cg_max_trans_num_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_cg_max_trans_num_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, sl_prio_r16, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(pack_integer(bref, sl_max_trans_num_r16, (uint8_t)1u, (uint8_t)32u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_cg_max_trans_num_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_cg_max_trans_num_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(sl_prio_r16, bref, (uint8_t)1u, (uint8_t)8u));
   HANDLE_CODE(unpack_integer(sl_max_trans_num_r16, bref, (uint8_t)1u, (uint8_t)32u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_cg_max_trans_num_r16_s::to_json(json_writer& j) const
 {
@@ -2438,7 +2438,7 @@ void sl_cg_max_trans_num_r16_s::to_json(json_writer& j) const
 }
 
 // SL-EventTriggerConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_event_trigger_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_event_trigger_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(sl_event_id_r16.pack(bref));
@@ -2447,9 +2447,9 @@ SRSASN_CODE sl_event_trigger_cfg_r16_s::pack(bit_ref& bref) const
   HANDLE_CODE(sl_report_quant_r16.pack(bref));
   HANDLE_CODE(sl_rs_type_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_event_trigger_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_event_trigger_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(sl_event_id_r16.unpack(bref));
@@ -2458,7 +2458,7 @@ SRSASN_CODE sl_event_trigger_cfg_r16_s::unpack(cbit_ref& bref)
   HANDLE_CODE(sl_report_quant_r16.unpack(bref));
   HANDLE_CODE(sl_rs_type_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_event_trigger_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -2583,7 +2583,7 @@ void sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::to_json(json_writer& j) con
   }
   j.end_obj();
 }
-SRSASN_CODE sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -2603,11 +2603,11 @@ SRSASN_CODE sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::pack(bit_ref& bref) 
       break;
     default:
       log_invalid_choice_id(type_, "sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -2629,9 +2629,9 @@ SRSASN_CODE sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::unpack(cbit_ref& bre
       break;
     default:
       log_invalid_choice_id(type_, "sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_event_trigger_cfg_r16_s::sl_event_id_r16_c_::types_opts::to_string() const
@@ -2765,7 +2765,7 @@ void sl_pqi_r16_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_pqi_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pqi_r16_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -2806,11 +2806,11 @@ SRSASN_CODE sl_pqi_r16_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "sl_pqi_r16_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pqi_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pqi_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -2853,9 +2853,9 @@ SRSASN_CODE sl_pqi_r16_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_pqi_r16_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_pqi_r16_c::sl_non_standardized_pqi_r16_s_::sl_res_type_r16_opts::to_string() const
@@ -2871,7 +2871,7 @@ const char* sl_pqi_r16_c::types_opts::to_string() const
 }
 
 // SL-PeriodicalReportConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_periodical_report_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_periodical_report_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(sl_report_interv_r16.pack(bref));
@@ -2879,9 +2879,9 @@ SRSASN_CODE sl_periodical_report_cfg_r16_s::pack(bit_ref& bref) const
   HANDLE_CODE(sl_report_quant_r16.pack(bref));
   HANDLE_CODE(sl_rs_type_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_periodical_report_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_periodical_report_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(sl_report_interv_r16.unpack(bref));
@@ -2889,7 +2889,7 @@ SRSASN_CODE sl_periodical_report_cfg_r16_s::unpack(cbit_ref& bref)
   HANDLE_CODE(sl_report_quant_r16.unpack(bref));
   HANDLE_CODE(sl_rs_type_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_periodical_report_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -2914,7 +2914,7 @@ int8_t sl_periodical_report_cfg_r16_s::sl_report_amount_r16_opts::to_number() co
 }
 
 // SL-ResourcePoolConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_res_pool_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_res_pool_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_res_pool_r16_present, 1));
 
@@ -2923,9 +2923,9 @@ SRSASN_CODE sl_res_pool_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_res_pool_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_res_pool_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_res_pool_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_res_pool_r16_present, 1));
 
@@ -2934,7 +2934,7 @@ SRSASN_CODE sl_res_pool_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_res_pool_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_res_pool_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -2975,7 +2975,7 @@ void sl_tx_pwr_r16_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_tx_pwr_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_tx_pwr_r16_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -2986,11 +2986,11 @@ SRSASN_CODE sl_tx_pwr_r16_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "sl_tx_pwr_r16_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_tx_pwr_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_tx_pwr_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -3003,9 +3003,9 @@ SRSASN_CODE sl_tx_pwr_r16_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_tx_pwr_r16_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_tx_pwr_r16_c::types_opts::to_string() const
@@ -3020,19 +3020,19 @@ int8_t sl_tx_pwr_r16_c::types_opts::to_number() const
 }
 
 // SL-MeasObject-r16 ::= SEQUENCE
-SRSASN_CODE sl_meas_obj_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_obj_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(pack_integer(bref, freq_info_sl_r16, (uint32_t)0u, (uint32_t)3279165u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_obj_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_obj_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(unpack_integer(freq_info_sl_r16, bref, (uint32_t)0u, (uint32_t)3279165u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_meas_obj_r16_s::to_json(json_writer& j) const
 {
@@ -3042,7 +3042,7 @@ void sl_meas_obj_r16_s::to_json(json_writer& j) const
 }
 
 // SL-PSBCH-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_ps_bch_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_ps_bch_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(dl_p0_ps_bch_r16_present, 1));
@@ -3069,9 +3069,9 @@ SRSASN_CODE sl_ps_bch_cfg_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_ps_bch_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_ps_bch_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(dl_p0_ps_bch_r16_present, 1));
@@ -3096,7 +3096,7 @@ SRSASN_CODE sl_ps_bch_cfg_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_ps_bch_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -3132,7 +3132,7 @@ const char* sl_ps_bch_cfg_r16_s::dl_alpha_ps_bch_r16_opts::to_number_string() co
 }
 
 // SL-PSSCH-TxParameters-r16 ::= SEQUENCE
-SRSASN_CODE sl_pssch_tx_params_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pssch_tx_params_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_max_tx_pwr_r16_present, 1));
 
@@ -3145,9 +3145,9 @@ SRSASN_CODE sl_pssch_tx_params_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_max_tx_pwr_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pssch_tx_params_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pssch_tx_params_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_max_tx_pwr_r16_present, 1));
 
@@ -3160,7 +3160,7 @@ SRSASN_CODE sl_pssch_tx_params_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_max_tx_pwr_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pssch_tx_params_r16_s::to_json(json_writer& j) const
 {
@@ -3246,7 +3246,7 @@ void sl_period_cg_r16_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_period_cg_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_period_cg_r16_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -3258,11 +3258,11 @@ SRSASN_CODE sl_period_cg_r16_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "sl_period_cg_r16_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_period_cg_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_period_cg_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -3276,9 +3276,9 @@ SRSASN_CODE sl_period_cg_r16_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_period_cg_r16_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_period_cg_r16_c::sl_period_cg1_r16_opts::to_string() const
@@ -3319,7 +3319,7 @@ uint8_t sl_period_cg_r16_c::types_opts::to_number() const
 }
 
 // SL-QoS-Profile-r16 ::= SEQUENCE
-SRSASN_CODE sl_qos_profile_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_qos_profile_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_pqi_r16_present, 1));
@@ -3340,9 +3340,9 @@ SRSASN_CODE sl_qos_profile_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_range_r16, (uint16_t)1u, (uint16_t)1000u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_qos_profile_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_qos_profile_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_pqi_r16_present, 1));
@@ -3363,7 +3363,7 @@ SRSASN_CODE sl_qos_profile_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_range_r16, bref, (uint16_t)1u, (uint16_t)1000u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_qos_profile_r16_s::to_json(json_writer& j) const
 {
@@ -3385,19 +3385,19 @@ void sl_qos_profile_r16_s::to_json(json_writer& j) const
 }
 
 // SL-ReportConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_report_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_report_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(sl_report_type_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_report_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_report_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(sl_report_type_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_report_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -3503,7 +3503,7 @@ void sl_report_cfg_r16_s::sl_report_type_r16_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_report_cfg_r16_s::sl_report_type_r16_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_report_cfg_r16_s::sl_report_type_r16_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -3515,11 +3515,11 @@ SRSASN_CODE sl_report_cfg_r16_s::sl_report_type_r16_c_::pack(bit_ref& bref) cons
       break;
     default:
       log_invalid_choice_id(type_, "sl_report_cfg_r16_s::sl_report_type_r16_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_report_cfg_r16_s::sl_report_type_r16_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_report_cfg_r16_s::sl_report_type_r16_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -3533,9 +3533,9 @@ SRSASN_CODE sl_report_cfg_r16_s::sl_report_type_r16_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_report_cfg_r16_s::sl_report_type_r16_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_report_cfg_r16_s::sl_report_type_r16_c_::types_opts::to_string() const
@@ -3545,7 +3545,7 @@ const char* sl_report_cfg_r16_s::sl_report_type_r16_c_::types_opts::to_string() 
 }
 
 // SL-SSB-TimeAllocation-r16 ::= SEQUENCE
-SRSASN_CODE sl_ssb_time_alloc_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_ssb_time_alloc_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_num_ssb_within_period_r16_present, 1));
   HANDLE_CODE(bref.pack(sl_time_offset_ssb_r16_present, 1));
@@ -3561,9 +3561,9 @@ SRSASN_CODE sl_ssb_time_alloc_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_time_interv_r16, (uint16_t)0u, (uint16_t)639u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_ssb_time_alloc_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_ssb_time_alloc_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_num_ssb_within_period_r16_present, 1));
   HANDLE_CODE(bref.unpack(sl_time_offset_ssb_r16_present, 1));
@@ -3579,7 +3579,7 @@ SRSASN_CODE sl_ssb_time_alloc_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_time_interv_r16, bref, (uint16_t)0u, (uint16_t)639u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_ssb_time_alloc_r16_s::to_json(json_writer& j) const
 {
@@ -3608,7 +3608,7 @@ uint8_t sl_ssb_time_alloc_r16_s::sl_num_ssb_within_period_r16_opts::to_number() 
 }
 
 // SL-TxPoolDedicated-r16 ::= SEQUENCE
-SRSASN_CODE sl_tx_pool_ded_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_tx_pool_ded_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_pool_to_release_list_r16.size() > 0, 1));
   HANDLE_CODE(bref.pack(sl_pool_to_add_mod_list_r16.size() > 0, 1));
@@ -3620,9 +3620,9 @@ SRSASN_CODE sl_tx_pool_ded_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_pool_to_add_mod_list_r16, 1, 8));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_tx_pool_ded_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_tx_pool_ded_r16_s::unpack(cbit_ref& bref)
 {
   bool sl_pool_to_release_list_r16_present;
   HANDLE_CODE(bref.unpack(sl_pool_to_release_list_r16_present, 1));
@@ -3636,7 +3636,7 @@ SRSASN_CODE sl_tx_pool_ded_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_pool_to_add_mod_list_r16, bref, 1, 8));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_tx_pool_ded_r16_s::to_json(json_writer& j) const
 {
@@ -3666,7 +3666,7 @@ const char* sl_type_tx_sync_r16_opts::to_string() const
 }
 
 // BSR-Config ::= SEQUENCE
-SRSASN_CODE bsr_cfg_s::pack(bit_ref& bref) const
+OCUDUASN_CODE bsr_cfg_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(lc_ch_sr_delay_timer_present, 1));
@@ -3677,9 +3677,9 @@ SRSASN_CODE bsr_cfg_s::pack(bit_ref& bref) const
     HANDLE_CODE(lc_ch_sr_delay_timer.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE bsr_cfg_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE bsr_cfg_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(lc_ch_sr_delay_timer_present, 1));
@@ -3690,7 +3690,7 @@ SRSASN_CODE bsr_cfg_s::unpack(cbit_ref& bref)
     HANDLE_CODE(lc_ch_sr_delay_timer.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void bsr_cfg_s::to_json(json_writer& j) const
 {
@@ -3805,7 +3805,7 @@ int32_t poll_pdu_opts::to_number() const
 }
 
 // SL-BWP-DiscPoolConfig-r17 ::= SEQUENCE
-SRSASN_CODE sl_bwp_disc_pool_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_bwp_disc_pool_cfg_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_disc_rx_pool_r17.size() > 0, 1));
   HANDLE_CODE(bref.pack(sl_disc_tx_pool_sel_r17_present, 1));
@@ -3821,9 +3821,9 @@ SRSASN_CODE sl_bwp_disc_pool_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_disc_tx_pool_sched_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_bwp_disc_pool_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_bwp_disc_pool_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bool sl_disc_rx_pool_r17_present;
   HANDLE_CODE(bref.unpack(sl_disc_rx_pool_r17_present, 1));
@@ -3840,7 +3840,7 @@ SRSASN_CODE sl_bwp_disc_pool_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_disc_tx_pool_sched_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_bwp_disc_pool_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -3864,7 +3864,7 @@ void sl_bwp_disc_pool_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-BWP-Generic-r16 ::= SEQUENCE
-SRSASN_CODE sl_bwp_generic_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_bwp_generic_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_bwp_r16_present, 1));
@@ -3889,9 +3889,9 @@ SRSASN_CODE sl_bwp_generic_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_tx_direct_current_location_r16, (uint16_t)0u, (uint16_t)3301u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_bwp_generic_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_bwp_generic_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_bwp_r16_present, 1));
@@ -3916,7 +3916,7 @@ SRSASN_CODE sl_bwp_generic_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_tx_direct_current_location_r16, bref, (uint16_t)0u, (uint16_t)3301u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_bwp_generic_r16_s::to_json(json_writer& j) const
 {
@@ -3964,7 +3964,7 @@ uint8_t sl_bwp_generic_r16_s::sl_start_symbol_r16_opts::to_number() const
 }
 
 // SL-BWP-PoolConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_bwp_pool_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_bwp_pool_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_rx_pool_r16.size() > 0, 1));
   HANDLE_CODE(bref.pack(sl_tx_pool_sel_normal_r16_present, 1));
@@ -3984,9 +3984,9 @@ SRSASN_CODE sl_bwp_pool_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_tx_pool_exceptional_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_bwp_pool_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_bwp_pool_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bool sl_rx_pool_r16_present;
   HANDLE_CODE(bref.unpack(sl_rx_pool_r16_present, 1));
@@ -4007,7 +4007,7 @@ SRSASN_CODE sl_bwp_pool_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_tx_pool_exceptional_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_bwp_pool_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -4035,7 +4035,7 @@ void sl_bwp_pool_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-CBR-PSSCH-TxConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_cbr_pssch_tx_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_cbr_pssch_tx_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_cr_limit_r16_present, 1));
   HANDLE_CODE(bref.pack(sl_tx_params_r16_present, 1));
@@ -4047,9 +4047,9 @@ SRSASN_CODE sl_cbr_pssch_tx_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_tx_params_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_cbr_pssch_tx_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_cbr_pssch_tx_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_cr_limit_r16_present, 1));
   HANDLE_CODE(bref.unpack(sl_tx_params_r16_present, 1));
@@ -4061,7 +4061,7 @@ SRSASN_CODE sl_cbr_pssch_tx_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_tx_params_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_cbr_pssch_tx_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -4077,7 +4077,7 @@ void sl_cbr_pssch_tx_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-ConfiguredGrantConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_cfg_grant_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_cfg_grant_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_period_cg_r16_present, 1));
@@ -4150,9 +4150,9 @@ SRSASN_CODE sl_cfg_grant_cfg_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_cfg_grant_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_cfg_grant_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_period_cg_r16_present, 1));
@@ -4224,7 +4224,7 @@ SRSASN_CODE sl_cfg_grant_cfg_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_cfg_grant_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -4285,7 +4285,7 @@ void sl_cfg_grant_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-DRX-ConfigUC-r17 ::= SEQUENCE
-SRSASN_CODE sl_drx_cfg_uc_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_cfg_uc_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_drx_harq_rtt_timer1_r17_present, 1));
   HANDLE_CODE(bref.pack(sl_drx_harq_rtt_timer2_r17_present, 1));
@@ -4302,9 +4302,9 @@ SRSASN_CODE sl_drx_cfg_uc_r17_s::pack(bit_ref& bref) const
   HANDLE_CODE(sl_drx_cycle_start_offset_r17.pack(bref));
   HANDLE_CODE(pack_integer(bref, sl_drx_slot_offset, (uint8_t)0u, (uint8_t)31u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_cfg_uc_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_cfg_uc_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_drx_harq_rtt_timer1_r17_present, 1));
   HANDLE_CODE(bref.unpack(sl_drx_harq_rtt_timer2_r17_present, 1));
@@ -4321,7 +4321,7 @@ SRSASN_CODE sl_drx_cfg_uc_r17_s::unpack(cbit_ref& bref)
   HANDLE_CODE(sl_drx_cycle_start_offset_r17.unpack(bref));
   HANDLE_CODE(unpack_integer(sl_drx_slot_offset, bref, (uint8_t)0u, (uint8_t)31u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_drx_cfg_uc_r17_s::to_json(json_writer& j) const
 {
@@ -4413,7 +4413,7 @@ void sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::to_json(json_writer& j) co
   }
   j.end_obj();
 }
-SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -4425,11 +4425,11 @@ SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::pack(bit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -4443,9 +4443,9 @@ SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::unpack(cbit_ref& br
       break;
     default:
       log_invalid_choice_id(type_, "sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drx_cfg_uc_r17_s::sl_drx_on_dur_timer_r17_c_::milli_seconds_opts::to_string() const
@@ -4842,7 +4842,7 @@ void sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::to_json(json_writer&
   }
   j.end_obj();
 }
-SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -4908,11 +4908,11 @@ SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::pack(bit_ref&
       break;
     default:
       log_invalid_choice_id(type_, "sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -4980,9 +4980,9 @@ SRSASN_CODE sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::unpack(cbit_r
       break;
     default:
       log_invalid_choice_id(type_, "sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::types_opts::to_string() const
@@ -5000,7 +5000,7 @@ uint16_t sl_drx_cfg_uc_r17_s::sl_drx_cycle_start_offset_r17_c_::types_opts::to_n
 }
 
 // SL-DRX-GC-BC-QoS-r17 ::= SEQUENCE
-SRSASN_CODE sl_drx_gc_bc_qos_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_gc_bc_qos_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_drx_gc_bc_mapped_qos_flow_list_r17.size() > 0, 1));
@@ -5012,9 +5012,9 @@ SRSASN_CODE sl_drx_gc_bc_qos_r17_s::pack(bit_ref& bref) const
   HANDLE_CODE(sl_drx_gc_inactivity_timer_r17.pack(bref));
   HANDLE_CODE(sl_drx_gc_bc_cycle_r17.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_gc_bc_qos_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_gc_bc_qos_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   bool sl_drx_gc_bc_mapped_qos_flow_list_r17_present;
@@ -5027,7 +5027,7 @@ SRSASN_CODE sl_drx_gc_bc_qos_r17_s::unpack(cbit_ref& bref)
   HANDLE_CODE(sl_drx_gc_inactivity_timer_r17.unpack(bref));
   HANDLE_CODE(sl_drx_gc_bc_cycle_r17.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_drx_gc_bc_qos_r17_s::to_json(json_writer& j) const
 {
@@ -5118,7 +5118,7 @@ void sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::to_json(json_writ
   }
   j.end_obj();
 }
-SRSASN_CODE sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -5130,11 +5130,11 @@ SRSASN_CODE sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::pack(bit_r
       break;
     default:
       log_invalid_choice_id(type_, "sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -5148,9 +5148,9 @@ SRSASN_CODE sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::unpack(cbi
       break;
     default:
       log_invalid_choice_id(type_, "sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_on_dur_timer_r17_c_::milli_seconds_opts::to_string() const
@@ -5207,7 +5207,7 @@ uint16_t sl_drx_gc_bc_qos_r17_s::sl_drx_gc_bc_cycle_r17_opts::to_number() const
 }
 
 // SL-DRX-GC-Generic-r17 ::= SEQUENCE
-SRSASN_CODE sl_drx_gc_generic_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_gc_generic_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_drx_gc_harq_rtt_timer1_r17_present, 1));
   HANDLE_CODE(bref.pack(sl_drx_gc_harq_rtt_timer2_r17_present, 1));
@@ -5220,9 +5220,9 @@ SRSASN_CODE sl_drx_gc_generic_r17_s::pack(bit_ref& bref) const
   }
   HANDLE_CODE(sl_drx_gc_retx_timer_r17.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_gc_generic_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_gc_generic_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_drx_gc_harq_rtt_timer1_r17_present, 1));
   HANDLE_CODE(bref.unpack(sl_drx_gc_harq_rtt_timer2_r17_present, 1));
@@ -5235,7 +5235,7 @@ SRSASN_CODE sl_drx_gc_generic_r17_s::unpack(cbit_ref& bref)
   }
   HANDLE_CODE(sl_drx_gc_retx_timer_r17.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_drx_gc_generic_r17_s::to_json(json_writer& j) const
 {
@@ -5287,23 +5287,23 @@ uint16_t sl_drx_gc_generic_r17_s::sl_drx_gc_retx_timer_r17_opts::to_number() con
 }
 
 // SL-MeasIdInfo-r16 ::= SEQUENCE
-SRSASN_CODE sl_meas_id_info_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_id_info_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(pack_integer(bref, sl_meas_id_r16, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(pack_integer(bref, sl_meas_obj_id_r16, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(pack_integer(bref, sl_report_cfg_id_r16, (uint8_t)1u, (uint8_t)64u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_id_info_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_id_info_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(unpack_integer(sl_meas_id_r16, bref, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(unpack_integer(sl_meas_obj_id_r16, bref, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(unpack_integer(sl_report_cfg_id_r16, bref, (uint8_t)1u, (uint8_t)64u));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_meas_id_info_r16_s::to_json(json_writer& j) const
 {
@@ -5315,21 +5315,21 @@ void sl_meas_id_info_r16_s::to_json(json_writer& j) const
 }
 
 // SL-MeasObjectInfo-r16 ::= SEQUENCE
-SRSASN_CODE sl_meas_obj_info_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_obj_info_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(pack_integer(bref, sl_meas_obj_id_r16, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(sl_meas_obj_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_obj_info_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_obj_info_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(unpack_integer(sl_meas_obj_id_r16, bref, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(sl_meas_obj_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_meas_obj_info_r16_s::to_json(json_writer& j) const
 {
@@ -5341,7 +5341,7 @@ void sl_meas_obj_info_r16_s::to_json(json_writer& j) const
 }
 
 // SL-PSSCH-TxConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_pssch_tx_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pssch_tx_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_type_tx_sync_r16_present, 1));
@@ -5372,9 +5372,9 @@ SRSASN_CODE sl_pssch_tx_cfg_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pssch_tx_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pssch_tx_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_type_tx_sync_r16_present, 1));
@@ -5402,7 +5402,7 @@ SRSASN_CODE sl_pssch_tx_cfg_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pssch_tx_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -5446,21 +5446,21 @@ uint8_t sl_pssch_tx_cfg_r16_s::sl_thres_ue_speed_r16_opts::to_number() const
 }
 
 // SL-ReportConfigInfo-r16 ::= SEQUENCE
-SRSASN_CODE sl_report_cfg_info_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_report_cfg_info_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(pack_integer(bref, sl_report_cfg_id_r16, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(sl_report_cfg_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_report_cfg_info_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_report_cfg_info_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(unpack_integer(sl_report_cfg_id_r16, bref, (uint8_t)1u, (uint8_t)64u));
   HANDLE_CODE(sl_report_cfg_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_report_cfg_info_r16_s::to_json(json_writer& j) const
 {
@@ -5472,7 +5472,7 @@ void sl_report_cfg_info_r16_s::to_json(json_writer& j) const
 }
 
 // SL-SyncConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_sync_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_sync_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_sync_ref_min_hyst_r16_present, 1));
@@ -5518,9 +5518,9 @@ SRSASN_CODE sl_sync_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(tx_params_r16.sync_info_reserved_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_sync_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_sync_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_sync_ref_min_hyst_r16_present, 1));
@@ -5566,7 +5566,7 @@ SRSASN_CODE sl_sync_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(tx_params_r16.sync_info_reserved_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_sync_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -5682,7 +5682,7 @@ uint16_t t_poll_retx_opts::to_number() const
 }
 
 // MAC-MainConfigSL-r16 ::= SEQUENCE
-SRSASN_CODE mac_main_cfg_sl_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE mac_main_cfg_sl_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_bsr_cfg_r16_present, 1));
@@ -5699,9 +5699,9 @@ SRSASN_CODE mac_main_cfg_sl_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_prioritization_thres_r16, (uint8_t)1u, (uint8_t)8u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE mac_main_cfg_sl_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE mac_main_cfg_sl_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_bsr_cfg_r16_present, 1));
@@ -5718,7 +5718,7 @@ SRSASN_CODE mac_main_cfg_sl_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_prioritization_thres_r16, bref, (uint8_t)1u, (uint8_t)8u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void mac_main_cfg_sl_r16_s::to_json(json_writer& j) const
 {
@@ -5737,7 +5737,7 @@ void mac_main_cfg_sl_r16_s::to_json(json_writer& j) const
 }
 
 // SL-BWP-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_bwp_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_bwp_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_bwp_generic_r16_present, 1));
@@ -5770,9 +5770,9 @@ SRSASN_CODE sl_bwp_cfg_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_bwp_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_bwp_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_bwp_generic_r16_present, 1));
@@ -5802,7 +5802,7 @@ SRSASN_CODE sl_bwp_cfg_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_bwp_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -5830,7 +5830,7 @@ void sl_bwp_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-CBR-CommonTxConfigList-r16 ::= SEQUENCE
-SRSASN_CODE sl_cbr_common_tx_cfg_list_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_cbr_common_tx_cfg_list_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_cbr_range_cfg_list_r16.size() > 0, 1));
   HANDLE_CODE(bref.pack(sl_cbr_pssch_tx_cfg_list_r16.size() > 0, 1));
@@ -5846,9 +5846,9 @@ SRSASN_CODE sl_cbr_common_tx_cfg_list_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_cbr_pssch_tx_cfg_list_r16, 1, 64));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_cbr_common_tx_cfg_list_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_cbr_common_tx_cfg_list_r16_s::unpack(cbit_ref& bref)
 {
   bool sl_cbr_range_cfg_list_r16_present;
   HANDLE_CODE(bref.unpack(sl_cbr_range_cfg_list_r16_present, 1));
@@ -5866,7 +5866,7 @@ SRSASN_CODE sl_cbr_common_tx_cfg_list_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_cbr_pssch_tx_cfg_list_r16, bref, 1, 64));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_cbr_common_tx_cfg_list_r16_s::to_json(json_writer& j) const
 {
@@ -5893,7 +5893,7 @@ void sl_cbr_common_tx_cfg_list_r16_s::to_json(json_writer& j) const
 }
 
 // SL-ConfiguredGrantConfigList-r16 ::= SEQUENCE
-SRSASN_CODE sl_cfg_grant_cfg_list_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_cfg_grant_cfg_list_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_cfg_grant_cfg_to_release_list_r16.size() > 0, 1));
   HANDLE_CODE(bref.pack(sl_cfg_grant_cfg_to_add_mod_list_r16.size() > 0, 1));
@@ -5905,9 +5905,9 @@ SRSASN_CODE sl_cfg_grant_cfg_list_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_cfg_grant_cfg_to_add_mod_list_r16, 1, 8));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_cfg_grant_cfg_list_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_cfg_grant_cfg_list_r16_s::unpack(cbit_ref& bref)
 {
   bool sl_cfg_grant_cfg_to_release_list_r16_present;
   HANDLE_CODE(bref.unpack(sl_cfg_grant_cfg_to_release_list_r16_present, 1));
@@ -5921,7 +5921,7 @@ SRSASN_CODE sl_cfg_grant_cfg_list_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_cfg_grant_cfg_to_add_mod_list_r16, bref, 1, 8));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_cfg_grant_cfg_list_r16_s::to_json(json_writer& j) const
 {
@@ -5944,7 +5944,7 @@ void sl_cfg_grant_cfg_list_r16_s::to_json(json_writer& j) const
 }
 
 // SL-DRX-ConfigGC-BC-r17 ::= SEQUENCE
-SRSASN_CODE sl_drx_cfg_gc_bc_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_cfg_gc_bc_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_drx_gc_bc_per_qos_list_r17.size() > 0, 1));
@@ -5961,9 +5961,9 @@ SRSASN_CODE sl_drx_cfg_gc_bc_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_default_drx_gc_bc_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_cfg_gc_bc_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_cfg_gc_bc_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   bool sl_drx_gc_bc_per_qos_list_r17_present;
@@ -5981,7 +5981,7 @@ SRSASN_CODE sl_drx_cfg_gc_bc_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_default_drx_gc_bc_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_drx_cfg_gc_bc_r17_s::to_json(json_writer& j) const
 {
@@ -6005,7 +6005,7 @@ void sl_drx_cfg_gc_bc_r17_s::to_json(json_writer& j) const
 }
 
 // SL-DRX-ConfigUC-Info-r17 ::= SEQUENCE
-SRSASN_CODE sl_drx_cfg_uc_info_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_cfg_uc_info_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_dest_idx_r17_present, 1));
@@ -6018,9 +6018,9 @@ SRSASN_CODE sl_drx_cfg_uc_info_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_drx_cfg_uc_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_cfg_uc_info_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_cfg_uc_info_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_dest_idx_r17_present, 1));
@@ -6033,7 +6033,7 @@ SRSASN_CODE sl_drx_cfg_uc_info_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_drx_cfg_uc_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_drx_cfg_uc_info_r17_s::to_json(json_writer& j) const
 {
@@ -6049,7 +6049,7 @@ void sl_drx_cfg_uc_info_r17_s::to_json(json_writer& j) const
 }
 
 // SL-LogicalChannelConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_lc_ch_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_lc_ch_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_cfg_grant_type1_allowed_r16_present, 1));
@@ -6086,9 +6086,9 @@ SRSASN_CODE sl_lc_ch_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(bref.pack(sl_lc_ch_sr_delay_timer_applied_r16, 1));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_lc_ch_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_lc_ch_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_cfg_grant_type1_allowed_r16_present, 1));
@@ -6126,7 +6126,7 @@ SRSASN_CODE sl_lc_ch_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(bref.unpack(sl_lc_ch_sr_delay_timer_applied_r16, 1));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_lc_ch_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -6234,7 +6234,7 @@ const char* sl_lc_ch_cfg_r16_s::sl_max_pusch_dur_r16_opts::to_string() const
 }
 
 // SL-MappedQoS-FlowsListDedicated-r16 ::= SEQUENCE
-SRSASN_CODE sl_mapped_qos_flows_list_ded_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_mapped_qos_flows_list_ded_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_mapped_qos_flows_to_add_list_r16.size() > 0, 1));
   HANDLE_CODE(bref.pack(sl_mapped_qos_flows_to_release_list_r16.size() > 0, 1));
@@ -6247,9 +6247,9 @@ SRSASN_CODE sl_mapped_qos_flows_list_ded_r16_s::pack(bit_ref& bref) const
         pack_dyn_seq_of(bref, sl_mapped_qos_flows_to_release_list_r16, 1, 2048, integer_packer<uint16_t>(1, 2048)));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_mapped_qos_flows_list_ded_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_mapped_qos_flows_list_ded_r16_s::unpack(cbit_ref& bref)
 {
   bool sl_mapped_qos_flows_to_add_list_r16_present;
   HANDLE_CODE(bref.unpack(sl_mapped_qos_flows_to_add_list_r16_present, 1));
@@ -6265,7 +6265,7 @@ SRSASN_CODE sl_mapped_qos_flows_list_ded_r16_s::unpack(cbit_ref& bref)
         unpack_dyn_seq_of(sl_mapped_qos_flows_to_release_list_r16, bref, 1, 2048, integer_packer<uint16_t>(1, 2048)));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_mapped_qos_flows_list_ded_r16_s::to_json(json_writer& j) const
 {
@@ -6288,7 +6288,7 @@ void sl_mapped_qos_flows_list_ded_r16_s::to_json(json_writer& j) const
 }
 
 // SL-QuantityConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_quant_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_quant_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_filt_coef_dmrs_r16_present, 1));
@@ -6297,9 +6297,9 @@ SRSASN_CODE sl_quant_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_filt_coef_dmrs_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_quant_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_quant_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_filt_coef_dmrs_r16_present, 1));
@@ -6308,7 +6308,7 @@ SRSASN_CODE sl_quant_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_filt_coef_dmrs_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_quant_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -6426,7 +6426,7 @@ void sl_rlc_cfg_r16_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_rlc_cfg_r16_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_rlc_cfg_r16_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -6450,11 +6450,11 @@ SRSASN_CODE sl_rlc_cfg_r16_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "sl_rlc_cfg_r16_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_rlc_cfg_r16_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_rlc_cfg_r16_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -6480,9 +6480,9 @@ SRSASN_CODE sl_rlc_cfg_r16_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_rlc_cfg_r16_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_rlc_cfg_r16_c::sl_am_rlc_r16_s_::sl_max_retx_thres_r16_opts::to_string() const
@@ -6571,7 +6571,7 @@ void sl_remote_ue_rb_id_r17_c::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE sl_remote_ue_rb_id_r17_c::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_remote_ue_rb_id_r17_c::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -6583,11 +6583,11 @@ SRSASN_CODE sl_remote_ue_rb_id_r17_c::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "sl_remote_ue_rb_id_r17_c");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_remote_ue_rb_id_r17_c::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_remote_ue_rb_id_r17_c::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -6601,9 +6601,9 @@ SRSASN_CODE sl_remote_ue_rb_id_r17_c::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "sl_remote_ue_rb_id_r17_c");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_remote_ue_rb_id_r17_c::types_opts::to_string() const
@@ -6613,7 +6613,7 @@ const char* sl_remote_ue_rb_id_r17_c::types_opts::to_string() const
 }
 
 // SL-ReselectionConfig-r17 ::= SEQUENCE
-SRSASN_CODE sl_resel_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_resel_cfg_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_rsrp_thresh_r17_present, 1));
   HANDLE_CODE(bref.pack(sl_filt_coef_rsrp_r17_present, 1));
@@ -6629,9 +6629,9 @@ SRSASN_CODE sl_resel_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_hyst_min_r17, (uint8_t)0u, (uint8_t)30u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_resel_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_resel_cfg_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_rsrp_thresh_r17_present, 1));
   HANDLE_CODE(bref.unpack(sl_filt_coef_rsrp_r17_present, 1));
@@ -6647,7 +6647,7 @@ SRSASN_CODE sl_resel_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_hyst_min_r17, bref, (uint8_t)0u, (uint8_t)30u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_resel_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -6665,7 +6665,7 @@ void sl_resel_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-DRX-Config-r17 ::= SEQUENCE
-SRSASN_CODE sl_drx_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_drx_cfg_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_drx_cfg_gc_bc_r17_present, 1));
@@ -6682,9 +6682,9 @@ SRSASN_CODE sl_drx_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_drx_cfg_uc_to_add_mod_list_r17, 1, 32));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_drx_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_drx_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_drx_cfg_gc_bc_r17_present, 1));
@@ -6703,7 +6703,7 @@ SRSASN_CODE sl_drx_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_drx_cfg_uc_to_add_mod_list_r17, bref, 1, 32));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_drx_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -6730,7 +6730,7 @@ void sl_drx_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-FreqConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_freq_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_freq_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_absolute_freq_point_a_r16_present, 1));
   HANDLE_CODE(bref.pack(sl_absolute_freq_ssb_r16_present, 1));
@@ -6762,9 +6762,9 @@ SRSASN_CODE sl_freq_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_sync_prio_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_freq_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_freq_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_absolute_freq_point_a_r16_present, 1));
   HANDLE_CODE(bref.unpack(sl_absolute_freq_ssb_r16_present, 1));
@@ -6799,7 +6799,7 @@ SRSASN_CODE sl_freq_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_sync_prio_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_freq_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -6854,7 +6854,7 @@ const char* sl_freq_cfg_r16_s::sl_sync_prio_r16_opts::to_string() const
 }
 
 // SL-MappingToAddMod-r17 ::= SEQUENCE
-SRSASN_CODE sl_map_to_add_mod_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_map_to_add_mod_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_egress_rlc_ch_uu_r17_present, 1));
@@ -6868,9 +6868,9 @@ SRSASN_CODE sl_map_to_add_mod_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_egress_rlc_ch_pc5_r17, (uint16_t)1u, (uint16_t)512u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_map_to_add_mod_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_map_to_add_mod_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_egress_rlc_ch_uu_r17_present, 1));
@@ -6884,7 +6884,7 @@ SRSASN_CODE sl_map_to_add_mod_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_egress_rlc_ch_pc5_r17, bref, (uint16_t)1u, (uint16_t)512u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_map_to_add_mod_r17_s::to_json(json_writer& j) const
 {
@@ -6901,7 +6901,7 @@ void sl_map_to_add_mod_r17_s::to_json(json_writer& j) const
 }
 
 // SL-MeasConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_meas_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_meas_obj_to_rem_list_r16.size() > 0, 1));
@@ -6934,9 +6934,9 @@ SRSASN_CODE sl_meas_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_quant_cfg_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   bool sl_meas_obj_to_rem_list_r16_present;
@@ -6975,7 +6975,7 @@ SRSASN_CODE sl_meas_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_quant_cfg_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_meas_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -7030,7 +7030,7 @@ void sl_meas_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-PDCP-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_pdcp_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_pdcp_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_discard_timer_r16_present, 1));
@@ -7044,9 +7044,9 @@ SRSASN_CODE sl_pdcp_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_pdcp_sn_size_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_pdcp_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_pdcp_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_discard_timer_r16_present, 1));
@@ -7060,7 +7060,7 @@ SRSASN_CODE sl_pdcp_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_pdcp_sn_size_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_pdcp_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -7117,7 +7117,7 @@ uint8_t sl_pdcp_cfg_r16_s::sl_pdcp_sn_size_r16_opts::to_number() const
 }
 
 // SL-RLC-BearerConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_rlc_bearer_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_rlc_bearer_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_served_radio_bearer_r16_present, 1));
@@ -7135,9 +7135,9 @@ SRSASN_CODE sl_rlc_bearer_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_mac_lc_ch_cfg_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_rlc_bearer_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_rlc_bearer_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_served_radio_bearer_r16_present, 1));
@@ -7155,7 +7155,7 @@ SRSASN_CODE sl_rlc_bearer_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_mac_lc_ch_cfg_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_rlc_bearer_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -7176,7 +7176,7 @@ void sl_rlc_bearer_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-RLC-ChannelConfig-r17 ::= SEQUENCE
-SRSASN_CODE sl_rlc_ch_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_rlc_ch_cfg_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_rlc_cfg_r17_present, 1));
@@ -7194,9 +7194,9 @@ SRSASN_CODE sl_rlc_ch_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_packet_delay_budget_r17, (uint16_t)0u, (uint16_t)1023u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_rlc_ch_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_rlc_ch_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_rlc_cfg_r17_present, 1));
@@ -7214,7 +7214,7 @@ SRSASN_CODE sl_rlc_ch_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_packet_delay_budget_r17, bref, (uint16_t)0u, (uint16_t)1023u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_rlc_ch_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -7235,7 +7235,7 @@ void sl_rlc_ch_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-RelayUE-Config-r17 ::= SEQUENCE
-SRSASN_CODE sl_relay_ue_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_relay_ue_cfg_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(thresh_high_relay_r17_present, 1));
   HANDLE_CODE(bref.pack(thresh_low_relay_r17_present, 1));
@@ -7255,9 +7255,9 @@ SRSASN_CODE sl_relay_ue_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, hyst_min_relay_r17, (uint8_t)0u, (uint8_t)30u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_relay_ue_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_relay_ue_cfg_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(thresh_high_relay_r17_present, 1));
   HANDLE_CODE(bref.unpack(thresh_low_relay_r17_present, 1));
@@ -7277,7 +7277,7 @@ SRSASN_CODE sl_relay_ue_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(hyst_min_relay_r17, bref, (uint8_t)0u, (uint8_t)30u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_relay_ue_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -7298,7 +7298,7 @@ void sl_relay_ue_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-RemoteUE-Config-r17 ::= SEQUENCE
-SRSASN_CODE sl_remote_ue_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_remote_ue_cfg_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(thresh_high_remote_r17_present, 1));
   HANDLE_CODE(bref.pack(hyst_max_remote_r17_present, 1));
@@ -7314,9 +7314,9 @@ SRSASN_CODE sl_remote_ue_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_resel_cfg_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_remote_ue_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_remote_ue_cfg_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(thresh_high_remote_r17_present, 1));
   HANDLE_CODE(bref.unpack(hyst_max_remote_r17_present, 1));
@@ -7332,7 +7332,7 @@ SRSASN_CODE sl_remote_ue_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_resel_cfg_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_remote_ue_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -7351,7 +7351,7 @@ void sl_remote_ue_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-SDAP-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_sdap_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_sdap_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_mapped_qos_flows_r16_present, 1));
@@ -7366,9 +7366,9 @@ SRSASN_CODE sl_sdap_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_cast_type_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_sdap_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_sdap_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_mapped_qos_flows_r16_present, 1));
@@ -7383,7 +7383,7 @@ SRSASN_CODE sl_sdap_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_cast_type_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_sdap_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -7507,7 +7507,7 @@ void sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::to_json(json_writer& j) cons
   }
   j.end_obj();
 }
-SRSASN_CODE sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -7519,11 +7519,11 @@ SRSASN_CODE sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::pack(bit_ref& bref) c
       break;
     default:
       log_invalid_choice_id(type_, "sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -7537,9 +7537,9 @@ SRSASN_CODE sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::unpack(cbit_ref& bref
       break;
     default:
       log_invalid_choice_id(type_, "sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* sl_sdap_cfg_r16_s::sl_mapped_qos_flows_r16_c_::types_opts::to_string() const
@@ -7555,7 +7555,7 @@ const char* sl_sdap_cfg_r16_s::sl_cast_type_r16_opts::to_string() const
 }
 
 // SL-ScheduledConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_sched_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_sched_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(mac_main_cfg_sl_r16_present, 1));
@@ -7591,9 +7591,9 @@ SRSASN_CODE sl_sched_cfg_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_sched_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_sched_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(mac_main_cfg_sl_r16_present, 1));
@@ -7628,7 +7628,7 @@ SRSASN_CODE sl_sched_cfg_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_sched_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -7665,7 +7665,7 @@ void sl_sched_cfg_r16_s::to_json(json_writer& j) const
 }
 
 // SL-UE-SelectedConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_ue_sel_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_ue_sel_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_pssch_tx_cfg_list_r16.size() > 0, 1));
@@ -7694,9 +7694,9 @@ SRSASN_CODE sl_ue_sel_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_prioritization_thres_r16, (uint8_t)1u, (uint8_t)8u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_ue_sel_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_ue_sel_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   bool sl_pssch_tx_cfg_list_r16_present;
@@ -7726,7 +7726,7 @@ SRSASN_CODE sl_ue_sel_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_prioritization_thres_r16, bref, (uint8_t)1u, (uint8_t)8u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_ue_sel_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -7785,7 +7785,7 @@ uint8_t sl_ue_sel_cfg_r16_s::sl_reselect_after_r16_opts::to_number() const
 }
 
 // SL-DiscConfig-r17 ::= SEQUENCE
-SRSASN_CODE sl_disc_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_disc_cfg_r17_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_relay_ue_cfg_r17_present, 1));
   HANDLE_CODE(bref.pack(sl_remote_ue_cfg_r17_present, 1));
@@ -7797,9 +7797,9 @@ SRSASN_CODE sl_disc_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_remote_ue_cfg_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_disc_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_disc_cfg_r17_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_relay_ue_cfg_r17_present, 1));
   HANDLE_CODE(bref.unpack(sl_remote_ue_cfg_r17_present, 1));
@@ -7811,7 +7811,7 @@ SRSASN_CODE sl_disc_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_remote_ue_cfg_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_disc_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -7828,21 +7828,21 @@ void sl_disc_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-MeasConfigInfo-r16 ::= SEQUENCE
-SRSASN_CODE sl_meas_cfg_info_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_meas_cfg_info_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(pack_integer(bref, sl_dest_idx_r16, (uint8_t)0u, (uint8_t)31u));
   HANDLE_CODE(sl_meas_cfg_r16.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_meas_cfg_info_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_meas_cfg_info_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(unpack_integer(sl_dest_idx_r16, bref, (uint8_t)0u, (uint8_t)31u));
   HANDLE_CODE(sl_meas_cfg_r16.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_meas_cfg_info_r16_s::to_json(json_writer& j) const
 {
@@ -7854,7 +7854,7 @@ void sl_meas_cfg_info_r16_s::to_json(json_writer& j) const
 }
 
 // SL-PHY-MAC-RLC-Config-r16 ::= SEQUENCE
-SRSASN_CODE sl_phy_mac_rlc_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_phy_mac_rlc_cfg_r16_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_sched_cfg_r16_present, 1));
   HANDLE_CODE(bref.pack(sl_ue_sel_cfg_r16_present, 1));
@@ -7899,9 +7899,9 @@ SRSASN_CODE sl_phy_mac_rlc_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(network_ctrl_sync_tx_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_phy_mac_rlc_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_phy_mac_rlc_cfg_r16_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_sched_cfg_r16_present, 1));
   HANDLE_CODE(bref.unpack(sl_ue_sel_cfg_r16_present, 1));
@@ -7950,7 +7950,7 @@ SRSASN_CODE sl_phy_mac_rlc_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(network_ctrl_sync_tx_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_phy_mac_rlc_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -8028,7 +8028,7 @@ const char* sl_phy_mac_rlc_cfg_r16_s::network_ctrl_sync_tx_r16_opts::to_string()
 }
 
 // SL-PHY-MAC-RLC-Config-v1700 ::= SEQUENCE
-SRSASN_CODE sl_phy_mac_rlc_cfg_v1700_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_phy_mac_rlc_cfg_v1700_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_drx_cfg_r17_present, 1));
@@ -8045,9 +8045,9 @@ SRSASN_CODE sl_phy_mac_rlc_cfg_v1700_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_rlc_ch_to_add_mod_list_r17, 1, 512));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_phy_mac_rlc_cfg_v1700_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_phy_mac_rlc_cfg_v1700_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_drx_cfg_r17_present, 1));
@@ -8066,7 +8066,7 @@ SRSASN_CODE sl_phy_mac_rlc_cfg_v1700_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_rlc_ch_to_add_mod_list_r17, bref, 1, 512));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_phy_mac_rlc_cfg_v1700_s::to_json(json_writer& j) const
 {
@@ -8093,7 +8093,7 @@ void sl_phy_mac_rlc_cfg_v1700_s::to_json(json_writer& j) const
 }
 
 // SL-RadioBearerConfig-r16 ::= SEQUENCE
-SRSASN_CODE sl_radio_bearer_cfg_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_radio_bearer_cfg_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_sdap_cfg_r16_present, 1));
@@ -8111,9 +8111,9 @@ SRSASN_CODE sl_radio_bearer_cfg_r16_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_trans_range_r16.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_radio_bearer_cfg_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_radio_bearer_cfg_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_sdap_cfg_r16_present, 1));
@@ -8131,7 +8131,7 @@ SRSASN_CODE sl_radio_bearer_cfg_r16_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_trans_range_r16.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_radio_bearer_cfg_r16_s::to_json(json_writer& j) const
 {
@@ -8167,7 +8167,7 @@ uint16_t sl_radio_bearer_cfg_r16_s::sl_trans_range_r16_opts::to_number() const
 }
 
 // SL-SRAP-Config-r17 ::= SEQUENCE
-SRSASN_CODE sl_srap_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_srap_cfg_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_local_id_r17_present, 1));
@@ -8184,9 +8184,9 @@ SRSASN_CODE sl_srap_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_dyn_seq_of(bref, sl_map_to_release_list_r17, 1, 32));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_srap_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_srap_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_local_id_r17_present, 1));
@@ -8205,7 +8205,7 @@ SRSASN_CODE sl_srap_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_dyn_seq_of(sl_map_to_release_list_r17, bref, 1, 32));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_srap_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -8231,7 +8231,7 @@ void sl_srap_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // SL-ConfigDedicatedNR-r16 ::= SEQUENCE
-SRSASN_CODE sl_cfg_ded_nr_r16_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_cfg_ded_nr_r16_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_phy_mac_rlc_cfg_r16_present, 1));
@@ -8279,9 +8279,9 @@ SRSASN_CODE sl_cfg_ded_nr_r16_s::pack(bit_ref& bref) const
       }
     }
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_cfg_ded_nr_r16_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_cfg_ded_nr_r16_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_phy_mac_rlc_cfg_r16_present, 1));
@@ -8330,7 +8330,7 @@ SRSASN_CODE sl_cfg_ded_nr_r16_s::unpack(cbit_ref& bref)
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_cfg_ded_nr_r16_s::to_json(json_writer& j) const
 {
@@ -8395,7 +8395,7 @@ uint16_t sl_cfg_ded_nr_r16_s::t400_r16_opts::to_number() const
 }
 
 // SL-L2RemoteUE-Config-r17 ::= SEQUENCE
-SRSASN_CODE sl_l2_remote_ue_cfg_r17_s::pack(bit_ref& bref) const
+OCUDUASN_CODE sl_l2_remote_ue_cfg_r17_s::pack(bit_ref& bref) const
 {
   bref.pack(ext, 1);
   HANDLE_CODE(bref.pack(sl_srap_cfg_remote_r17_present, 1));
@@ -8408,9 +8408,9 @@ SRSASN_CODE sl_l2_remote_ue_cfg_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, sl_ue_id_remote_r17, (uint32_t)0u, (uint32_t)65535u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE sl_l2_remote_ue_cfg_r17_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE sl_l2_remote_ue_cfg_r17_s::unpack(cbit_ref& bref)
 {
   bref.unpack(ext, 1);
   HANDLE_CODE(bref.unpack(sl_srap_cfg_remote_r17_present, 1));
@@ -8423,7 +8423,7 @@ SRSASN_CODE sl_l2_remote_ue_cfg_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(sl_ue_id_remote_r17, bref, (uint32_t)0u, (uint32_t)65535u));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void sl_l2_remote_ue_cfg_r17_s::to_json(json_writer& j) const
 {
@@ -8439,7 +8439,7 @@ void sl_l2_remote_ue_cfg_r17_s::to_json(json_writer& j) const
 }
 
 // RRCSetup-v1700-IEs ::= SEQUENCE
-SRSASN_CODE rrc_setup_v1700_ies_s::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_setup_v1700_ies_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(sl_cfg_ded_nr_r17_present, 1));
   HANDLE_CODE(bref.pack(sl_l2_remote_ue_cfg_r17_present, 1));
@@ -8452,9 +8452,9 @@ SRSASN_CODE rrc_setup_v1700_ies_s::pack(bit_ref& bref) const
     HANDLE_CODE(sl_l2_remote_ue_cfg_r17.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_setup_v1700_ies_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_setup_v1700_ies_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(sl_cfg_ded_nr_r17_present, 1));
   HANDLE_CODE(bref.unpack(sl_l2_remote_ue_cfg_r17_present, 1));
@@ -8467,7 +8467,7 @@ SRSASN_CODE rrc_setup_v1700_ies_s::unpack(cbit_ref& bref)
     HANDLE_CODE(sl_l2_remote_ue_cfg_r17.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void rrc_setup_v1700_ies_s::to_json(json_writer& j) const
 {
@@ -8489,7 +8489,7 @@ void rrc_setup_v1700_ies_s::to_json(json_writer& j) const
 }
 
 // RRCReject-IEs ::= SEQUENCE
-SRSASN_CODE rrc_reject_ies_s::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_reject_ies_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(wait_time_present, 1));
   HANDLE_CODE(bref.pack(late_non_crit_ext.size() > 0, 1));
@@ -8502,9 +8502,9 @@ SRSASN_CODE rrc_reject_ies_s::pack(bit_ref& bref) const
     HANDLE_CODE(late_non_crit_ext.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_reject_ies_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_reject_ies_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack(wait_time_present, 1));
   bool late_non_crit_ext_present;
@@ -8518,7 +8518,7 @@ SRSASN_CODE rrc_reject_ies_s::unpack(cbit_ref& bref)
     HANDLE_CODE(late_non_crit_ext.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void rrc_reject_ies_s::to_json(json_writer& j) const
 {
@@ -8538,7 +8538,7 @@ void rrc_reject_ies_s::to_json(json_writer& j) const
 }
 
 // RRCSetup-IEs ::= SEQUENCE
-SRSASN_CODE rrc_setup_ies_s::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_setup_ies_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(bref.pack(late_non_crit_ext.size() > 0, 1));
   HANDLE_CODE(bref.pack(non_crit_ext_present, 1));
@@ -8552,9 +8552,9 @@ SRSASN_CODE rrc_setup_ies_s::pack(bit_ref& bref) const
     HANDLE_CODE(non_crit_ext.pack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_setup_ies_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_setup_ies_s::unpack(cbit_ref& bref)
 {
   bool late_non_crit_ext_present;
   HANDLE_CODE(bref.unpack(late_non_crit_ext_present, 1));
@@ -8569,7 +8569,7 @@ SRSASN_CODE rrc_setup_ies_s::unpack(cbit_ref& bref)
     HANDLE_CODE(non_crit_ext.unpack(bref));
   }
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void rrc_setup_ies_s::to_json(json_writer& j) const
 {
@@ -8588,17 +8588,17 @@ void rrc_setup_ies_s::to_json(json_writer& j) const
 }
 
 // RRCReject ::= SEQUENCE
-SRSASN_CODE rrc_reject_s::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_reject_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(crit_exts.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_reject_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_reject_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(crit_exts.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void rrc_reject_s::to_json(json_writer& j) const
 {
@@ -8636,7 +8636,7 @@ void rrc_reject_s::crit_exts_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE rrc_reject_s::crit_exts_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_reject_s::crit_exts_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -8647,11 +8647,11 @@ SRSASN_CODE rrc_reject_s::crit_exts_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "rrc_reject_s::crit_exts_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_reject_s::crit_exts_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_reject_s::crit_exts_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -8664,9 +8664,9 @@ SRSASN_CODE rrc_reject_s::crit_exts_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "rrc_reject_s::crit_exts_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* rrc_reject_s::crit_exts_c_::types_opts::to_string() const
@@ -8676,19 +8676,19 @@ const char* rrc_reject_s::crit_exts_c_::types_opts::to_string() const
 }
 
 // RRCSetup ::= SEQUENCE
-SRSASN_CODE rrc_setup_s::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_setup_s::pack(bit_ref& bref) const
 {
   HANDLE_CODE(pack_integer(bref, rrc_transaction_id, (uint8_t)0u, (uint8_t)3u));
   HANDLE_CODE(crit_exts.pack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_setup_s::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_setup_s::unpack(cbit_ref& bref)
 {
   HANDLE_CODE(unpack_integer(rrc_transaction_id, bref, (uint8_t)0u, (uint8_t)3u));
   HANDLE_CODE(crit_exts.unpack(bref));
 
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 void rrc_setup_s::to_json(json_writer& j) const
 {
@@ -8727,7 +8727,7 @@ void rrc_setup_s::crit_exts_c_::to_json(json_writer& j) const
   }
   j.end_obj();
 }
-SRSASN_CODE rrc_setup_s::crit_exts_c_::pack(bit_ref& bref) const
+OCUDUASN_CODE rrc_setup_s::crit_exts_c_::pack(bit_ref& bref) const
 {
   type_.pack(bref);
   switch (type_) {
@@ -8738,11 +8738,11 @@ SRSASN_CODE rrc_setup_s::crit_exts_c_::pack(bit_ref& bref) const
       break;
     default:
       log_invalid_choice_id(type_, "rrc_setup_s::crit_exts_c_");
-      return SRSASN_ERROR_ENCODE_FAIL;
+      return OCUDUASN_ERROR_ENCODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
-SRSASN_CODE rrc_setup_s::crit_exts_c_::unpack(cbit_ref& bref)
+OCUDUASN_CODE rrc_setup_s::crit_exts_c_::unpack(cbit_ref& bref)
 {
   types e;
   e.unpack(bref);
@@ -8755,9 +8755,9 @@ SRSASN_CODE rrc_setup_s::crit_exts_c_::unpack(cbit_ref& bref)
       break;
     default:
       log_invalid_choice_id(type_, "rrc_setup_s::crit_exts_c_");
-      return SRSASN_ERROR_DECODE_FAIL;
+      return OCUDUASN_ERROR_DECODE_FAIL;
   }
-  return SRSASN_SUCCESS;
+  return OCUDUASN_SUCCESS;
 }
 
 const char* rrc_setup_s::crit_exts_c_::types_opts::to_string() const

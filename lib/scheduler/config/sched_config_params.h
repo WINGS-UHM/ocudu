@@ -11,11 +11,11 @@
 #pragma once
 
 #include "logical_channel_list_config.h"
-#include "srsran/adt/slotted_vector.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
+#include "ocudu/adt/slotted_vector.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct sched_ue_config_request;
 
@@ -97,4 +97,4 @@ struct ue_reconfig_params {
   slotted_id_vector<du_cell_index_t, ue_cell_config_ptr> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

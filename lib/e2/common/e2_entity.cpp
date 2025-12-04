@@ -11,9 +11,9 @@
 #include "e2_entity.h"
 #include "e2_impl.h"
 #include "e2_subscription_manager_impl.h"
-#include "srsran/e2/e2.h"
+#include "ocudu/e2/e2.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e2ap;
 
 e2_entity::e2_entity(e2_agent_dependencies&& dependencies) :

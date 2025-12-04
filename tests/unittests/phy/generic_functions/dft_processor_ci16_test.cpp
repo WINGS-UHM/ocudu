@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include "fmt/ostream.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Random generator.
 static std::mt19937 rgen(0);
@@ -28,7 +28,7 @@ static std::set<unsigned> dft_required_sizes = {4, 8, 16, 32, 64, 128, 256, 512,
 // Maximum allowed peak error.
 static float ASSERT_MAX_ERROR = 10;
 
-namespace srsran {
+namespace ocudu {
 
 static bool operator==(span<const ci16_t> lhs, span<const ci16_t> rhs)
 {
@@ -49,7 +49,7 @@ std::ostream& operator<<(std::ostream& os, span<const ci16_t> data)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using DFTprocessorParams = std::tuple<std::string, unsigned, dft_processor_ci16::direction>;
 
@@ -100,8 +100,8 @@ protected:
   static void run_expected_dft(span<ci16_t> output, dft_processor_ci16::direction direction, span<const ci16_t> input)
   {
     // Formal checks to avoid zero division among other failures.
-    srsran_assert(!input.empty(), "Empty input span");
-    srsran_assert(input.size() == output.size(), "Input and output span sizes must be identical");
+    ocudu_assert(!input.empty(), "Empty input span");
+    ocudu_assert(input.size() == output.size(), "Input and output span sizes must be identical");
 
     // Derive parameters.
     unsigned size = input.size();
@@ -123,7 +123,7 @@ protected:
     ditfft(output_cf, input_cf, exp, N, 1);
 
     float scaling = 1 / static_cast<float>(N);
-    srsvec::sc_prod(output_cf, output_cf, scaling);
+    ocuduvec::sc_prod(output_cf, output_cf, scaling);
 
     std::transform(output_cf.begin(), output_cf.end(), output.begin(), [](cf_t sample) { return to_ci16(sample); });
   }

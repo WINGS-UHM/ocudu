@@ -11,16 +11,16 @@
 #include "realtime_timing_worker.h"
 #include "../support/logger_utils.h"
 #include "../support/metrics_helpers.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
-#include "srsran/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
+#include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/support/rtsan.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
-realtime_timing_worker::realtime_timing_worker(srslog::basic_logger&      logger_,
+realtime_timing_worker::realtime_timing_worker(ocudulog::basic_logger&    logger_,
                                                task_executor&             executor_,
                                                const realtime_worker_cfg& cfg) :
   logger(logger_),
@@ -94,9 +94,9 @@ void realtime_timing_worker::stop()
   logger.info("Stopped the realtime timing worker");
 }
 
-void realtime_timing_worker::timing_loop(const stop_event_token& token) noexcept SRSRAN_RTSAN_NONBLOCKING
+void realtime_timing_worker::timing_loop(const stop_event_token& token) noexcept OCUDU_RTSAN_NONBLOCKING
 {
-  while (SRSRAN_LIKELY(!token.is_stop_requested())) {
+  while (OCUDU_LIKELY(!token.is_stop_requested())) {
     poll();
   }
 }
@@ -138,7 +138,7 @@ void realtime_timing_worker::poll()
   if (delta_ns < 0) {
     logger.info("Real-time timing worker detected PTP-synchronized time going backward by {}ns", -delta_ns);
 
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     std::this_thread::sleep_for(sleep_time);
     return;
   }
@@ -149,19 +149,19 @@ void realtime_timing_worker::poll()
 
   // Are we still in the same symbol as before?
   if (delta == 0) {
-    SRSRAN_RTSAN_SCOPED_DISABLER(d);
+    OCUDU_RTSAN_SCOPED_DISABLER(d);
     std::this_thread::sleep_for(sleep_time);
     return;
   }
 
   // Check if we have missed more than one symbol.
-  if (SRSRAN_UNLIKELY(delta > 1)) {
+  if (OCUDU_UNLIKELY(delta > 1)) {
     logger.info("Real-time timing worker woke up late, skipped '{}' symbols, current symbol is '{}'",
                 delta,
                 current_symbol_index % nof_symbols_per_slot);
     metrics_collector.update_skipped_symbols(delta);
   }
-  if (SRSRAN_UNLIKELY(delta >= 3)) {
+  if (OCUDU_UNLIKELY(delta >= 3)) {
     log_conditional_warning(
         logger,
         enable_log_warnings_for_lates,
@@ -173,7 +173,7 @@ void realtime_timing_worker::poll()
         sleeping_time.count());
   }
 
-  if (SRSRAN_UNLIKELY(delta >= nof_symbols_per_slot)) {
+  if (OCUDU_UNLIKELY(delta >= nof_symbols_per_slot)) {
     log_conditional_warning(
         logger,
         enable_log_warnings_for_lates,

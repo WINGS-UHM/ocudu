@@ -9,9 +9,9 @@
  */
 
 #include "mac_ul_sch_pdu.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string> mac_ul_sch_subpdu::unpack(const byte_buffer& subpdu)
 {
@@ -94,7 +94,7 @@ error_type<std::string> mac_ul_sch_pdu::unpack(const byte_buffer& payload)
   byte_buffer_reader reader = payload;
   while (not reader.empty()) {
     if (subpdus.full()) {
-      srslog::fetch_basic_logger("MAC", true)
+      ocudulog::fetch_basic_logger("MAC", true)
           .warning("Maximum number of subPDUs per UL MAC PDU limit of {} was reached.", (unsigned)MAX_SUBPDUS_PER_PDU);
       return {};
     }

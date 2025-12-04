@@ -12,7 +12,7 @@
 #include "app_resource_usage_config.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_metrics_section(YAML::Node node, const app_services::app_resource_usage_config& config)
 {

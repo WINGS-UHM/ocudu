@@ -16,11 +16,11 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config_translator.h"
 #include "dynamic_o_du_unit_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-ru_dummy_configuration srsran::generate_ru_dummy_config(const ru_dummy_unit_config&                      ru_cfg,
-                                                        span<const flexible_o_du_ru_config::cell_config> du_cells,
-                                                        unsigned max_processing_delay_slots)
+ru_dummy_configuration ocudu::generate_ru_dummy_config(const ru_dummy_unit_config&                      ru_cfg,
+                                                       span<const flexible_o_du_ru_config::cell_config> du_cells,
+                                                       unsigned max_processing_delay_slots)
 {
   ru_dummy_configuration out_cfg;
 
@@ -41,15 +41,15 @@ static void fill_dummy_worker_manager_config(worker_manager_config& config, cons
 {
   config.ru_dummy_cfg.emplace();
 
-  srsran_assert(config.config_affinities.size() == ru_cfg.cell_affinities.size(), "Invalid number of cell affinities");
+  ocudu_assert(config.config_affinities.size() == ru_cfg.cell_affinities.size(), "Invalid number of cell affinities");
 
   for (unsigned i = 0, e = ru_cfg.cell_affinities.size(); i != e; ++i) {
     config.config_affinities[i].push_back(ru_cfg.cell_affinities[i].ru_cpu_cfg);
   }
 }
 
-void srsran::fill_dynamic_du_worker_manager_config(worker_manager_config&          config,
-                                                   const dynamic_o_du_unit_config& unit_cfg)
+void ocudu::fill_dynamic_du_worker_manager_config(worker_manager_config&          config,
+                                                  const dynamic_o_du_unit_config& unit_cfg)
 {
   bool is_blocking_mode_enable = false;
   if (std::holds_alternative<ru_sdr_unit_config>(unit_cfg.ru_cfg)) {

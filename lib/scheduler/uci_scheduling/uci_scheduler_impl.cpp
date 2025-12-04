@@ -12,16 +12,16 @@
 #include "../cell/resource_grid.h"
 #include "../support/sched_result_helpers.h"
 #include "uci_allocator_impl.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 uci_scheduler_impl::uci_scheduler_impl(const cell_configuration& cell_cfg_,
                                        uci_allocator&            uci_alloc_,
                                        ue_repository&            ues_) :
-  cell_cfg(cell_cfg_), uci_alloc(uci_alloc_), ues(ues_), logger(srslog::fetch_basic_logger("SCHED"))
+  cell_cfg(cell_cfg_), uci_alloc(uci_alloc_), ues(ues_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   // Max size of the UCI resource slot wheel, dimensioned based on the UCI periods.
   periodic_uci_slot_wheel.resize(std::max(MAX_SR_PERIOD, MAX_CSI_REPORT_PERIOD));
@@ -130,7 +130,7 @@ void uci_scheduler_impl::add_ue_to_grid(const ue_cell_configuration& ue_cfg, boo
   const auto& sr_resource_cfg_list = ue_cfg.init_bwp().ul_ded->pucch_cfg.value().sr_res_list;
   for (unsigned i = 0, sz = sr_resource_cfg_list.size(); i != sz; ++i) {
     const auto& sr_res = sr_resource_cfg_list[i];
-    srsran_assert(sr_res.period >= sr_periodicity::sl_1, "Minimum supported SR periodicity is 1 slot.");
+    ocudu_assert(sr_res.period >= sr_periodicity::sl_1, "Minimum supported SR periodicity is 1 slot.");
 
     unsigned period_slots = sr_periodicity_to_slot(sr_res.period);
     add_resource(ue_cfg.crnti, sr_res.offset, period_slots, true);

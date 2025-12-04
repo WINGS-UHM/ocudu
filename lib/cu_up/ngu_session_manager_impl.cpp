@@ -9,15 +9,15 @@
  */
 
 #include "ngu_session_manager_impl.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 ngu_session_manager_impl::ngu_session_manager_impl(const std::vector<std::unique_ptr<gtpu_tnl_pdu_session>>& ngu_gws_) :
   ngu_gws(ngu_gws_)
 {
-  srsran_assert(not ngu_gws.empty(), "NG-U gateways cannot be empty");
+  ocudu_assert(not ngu_gws.empty(), "NG-U gateways cannot be empty");
 }
 
 gtpu_tnl_pdu_session& ngu_session_manager_impl::get_next_ngu_gateway()

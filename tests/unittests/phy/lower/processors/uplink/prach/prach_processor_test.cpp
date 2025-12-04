@@ -13,22 +13,22 @@
 #include "../../../modulation/ofdm_prach_demodulator_test_doubles.h"
 #include "prach_processor_notifier_test_doubles.h"
 #include "prach_processor_test_doubles.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_factories.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader_view.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_factories.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <numeric>
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, subcarrier_spacing value)
 {
@@ -83,9 +83,9 @@ bool operator==(span<const cf_t> rhs, span<const cf_t> lhs)
   return std::equal(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 // Combined parameters. In order, PRACH format, PUSCH subcarrier spacing and sampling rate.
 using PrachProcessorParams = std::tuple<prach_format_type, subcarrier_spacing, sampling_rate>;
@@ -507,7 +507,7 @@ TEST_P(PrachProcessorFixture, SingleBasebandSymbols)
   ASSERT_EQ(1, ofdm_prach_factory_spy->get_nof_total_demodulate_entries());
 
   std::vector<cf_t> cf_buffer(prach_window_length);
-  srsvec::convert(
+  ocuduvec::convert(
       cf_buffer, samples.get_reader().get_channel_buffer(context.ports.front()).first(prach_window_length), INT16_MAX);
 
   // Verify demodulation entry.
@@ -650,7 +650,7 @@ TEST_P(PrachProcessorFixture, ThreeBasebandSymbols)
   ASSERT_EQ(1, ofdm_prach_factory_spy->get_nof_total_demodulate_entries());
 
   std::vector<cf_t> cf_buffer(prach_window_length);
-  srsvec::convert(
+  ocuduvec::convert(
       cf_buffer, samples.get_reader().get_channel_buffer(context.ports.front()).first(prach_window_length), INT16_MAX);
 
   // Verify demodulation entry.

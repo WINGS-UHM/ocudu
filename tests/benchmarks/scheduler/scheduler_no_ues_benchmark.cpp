@@ -13,13 +13,13 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/scheduler/scheduler_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/benchmark_utils.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/scheduler/scheduler_factory.h"
+#include "ocudu/support/benchmark_utils.h"
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct bench_params {
   unsigned nof_repetitions = 100;
@@ -64,7 +64,7 @@ void benchmark_sib_scheduling()
   cell_configuration cell_cfg{sched_cfg, cell_cfg_msg};
   sch->handle_cell_configuration_request(cell_cfg_msg);
 
-  auto& logger = srslog::fetch_basic_logger("SCHED", true);
+  auto& logger = ocudulog::fetch_basic_logger("SCHED", true);
 
   // Run benchmark.
   slot_point sl_tx{0, 0};
@@ -89,7 +89,7 @@ void benchmark_rach_scheduling()
   cell_configuration cell_cfg{sched_cfg, cell_cfg_msg};
   sch->handle_cell_configuration_request(cell_cfg_msg);
 
-  auto&                   logger = srslog::fetch_basic_logger("SCHED", true);
+  auto&                   logger = ocudulog::fetch_basic_logger("SCHED", true);
   slot_point              sl_tx{0, 0};
   rach_indication_message rach_ind =
       test_helper::create_rach_indication(sl_tx - 4, {test_helper::create_preamble(0, to_rnti(0x4601))});
@@ -125,10 +125,10 @@ void benchmark_rach_scheduling()
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::warning);
 
-  srslog::init();
+  ocudulog::init();
 
   bench_params params{};
   parse_args(argc, argv, params);

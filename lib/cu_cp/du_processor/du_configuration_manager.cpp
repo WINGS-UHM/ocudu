@@ -9,10 +9,10 @@
  */
 
 #include "du_configuration_manager.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/ran/plmn_identity.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static error_type<du_setup_result::rejected> validate_cell_config(const cu_cp_du_served_cells_item& served_cell)
 {
@@ -73,7 +73,7 @@ public:
   void handle_gnb_cu_configuration_update(const f1ap_gnb_cu_configuration_update& req) override
   {
     if (this->ctxt == nullptr) {
-      srslog::fetch_basic_logger("CU-CP").debug(
+      ocudulog::fetch_basic_logger("CU-CP").debug(
           "Can't handle gNB CU Configuration Update. Cause: DU configuration context not found.");
       return;
     }
@@ -85,7 +85,7 @@ private:
 };
 
 du_configuration_manager::du_configuration_manager(const gnb_id_t& gnb_id_, const std::vector<plmn_identity>& plmns_) :
-  gnb_id(gnb_id_), plmns(plmns_), logger(srslog::fetch_basic_logger("CU-CP"))
+  gnb_id(gnb_id_), plmns(plmns_), logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 
@@ -191,7 +191,7 @@ du_configuration_manager::handle_du_config_update(const du_configuration_context
       }
     }
     // Note: Existence of a free cell index should be guaranteed during validation.
-    srsran_assert(cell_idx != du_cell_index_t::invalid, "Failed to allocate cell index");
+    ocudu_assert(cell_idx != du_cell_index_t::invalid, "Failed to allocate cell index");
 
     du_context.served_cells.push_back(create_du_cell_config(cell_idx, cell_to_add));
   }

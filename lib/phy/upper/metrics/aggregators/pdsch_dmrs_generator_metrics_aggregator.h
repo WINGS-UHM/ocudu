@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// PDSCH DM-RS generator metrics aggregator.
 class pdsch_dmrs_generator_metrics_aggregator : public pdsch_dmrs_generator_metric_notifier
@@ -59,4 +59,4 @@ private:
   std::atomic<uint64_t> count          = {};
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "lower_phy_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::shared_ptr<lower_phy_factory> create_lower_phy_factory(const lower_phy_configuration& config,
                                                                    task_executor&                 prach_async_executor)
@@ -89,8 +89,8 @@ static std::shared_ptr<lower_phy_factory> create_lower_phy_factory(const lower_p
   return create_lower_phy_factory_sw(downlink_proc_factory, uplink_proc_factory);
 }
 
-std::unique_ptr<lower_phy_sector> srsran::create_lower_phy_sector(const lower_phy_configuration&       lower_phy_config,
-                                                                  const lower_phy_sector_dependencies& sector_deps)
+std::unique_ptr<lower_phy_sector> ocudu::create_lower_phy_sector(const lower_phy_configuration&       lower_phy_config,
+                                                                 const lower_phy_sector_dependencies& sector_deps)
 {
   auto sector = std::make_unique<lower_phy_sector>(sector_deps.timing_notifier);
 

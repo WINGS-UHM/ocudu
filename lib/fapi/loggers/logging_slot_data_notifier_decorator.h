@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/fapi/slot_data_message_notifier.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/fapi/slot_data_message_notifier.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 /// Adds logging information over the implemented interface.
 class logging_slot_data_notifier_decorator : public slot_data_message_notifier
 {
 public:
-  logging_slot_data_notifier_decorator(unsigned sector_id_, srslog::basic_logger& logger_);
+  logging_slot_data_notifier_decorator(unsigned sector_id_, ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
   void on_rx_data_indication(const rx_data_indication_message& msg) override;
@@ -42,9 +42,9 @@ public:
 
 private:
   const unsigned              sector_id;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
   slot_data_message_notifier* notifier;
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

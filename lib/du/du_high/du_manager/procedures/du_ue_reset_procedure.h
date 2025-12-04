@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/manual_event.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/manual_event.h"
 #include <vector>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_ue_manager;
 struct du_manager_params;
@@ -48,5 +48,5 @@ private:
   /// Whether to trigger F1 Reset towards CU after removing UEs.
   const std::optional<f1_reset_request::cause_type> cause;
 };
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

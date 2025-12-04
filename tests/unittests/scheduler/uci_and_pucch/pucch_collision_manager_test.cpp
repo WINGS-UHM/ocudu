@@ -12,12 +12,12 @@
 #include "lib/scheduler/pucch_scheduling/pucch_collision_manager.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/pucch/pucch_configuration.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static cell_configuration make_test_cell_configuration(const std::vector<pucch_resource>& ded_res               = {},
                                                        unsigned                           pucch_resource_common = 11)

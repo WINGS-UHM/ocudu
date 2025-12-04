@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Generate a Intra CU Handover Request.
 cu_cp_intra_cu_handover_request generate_intra_cu_handover_request();
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

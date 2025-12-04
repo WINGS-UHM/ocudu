@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_fastpath_adaptor.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 struct mac_fapi_p7_sector_fastpath_adaptor_dependencies;
@@ -25,4 +25,4 @@ create_mac_fapi_p7_sector_fastpath_adaptor(const mac_fapi_p7_sector_fastpath_ada
                                            mac_fapi_p7_sector_fastpath_adaptor_dependencies  dependencies);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

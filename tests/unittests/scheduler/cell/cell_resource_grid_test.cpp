@@ -10,11 +10,11 @@
 
 #include "lib/scheduler/cell/resource_grid.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 std::vector<scs_specific_carrier> test_carriers()
 {
@@ -99,7 +99,7 @@ TEST(cell_resource_grid_test, test_all)
   {
     cell_slot_resource_grid cell_grid{carrier_cfgs};
     bwp_configuration       bwp_cfg{};
-    bwp_cfg.scs  = srsran::subcarrier_spacing::kHz15;
+    bwp_cfg.scs  = ocudu::subcarrier_spacing::kHz15;
     bwp_cfg.crbs = {0, 52};
 
     TESTASSERT(not cell_grid.collides(bwp_sch_grant_info(bwp_cfg, {0, 14}, {0, 52})));
@@ -119,7 +119,7 @@ TEST(cell_resource_grid_test, test_all)
   {
     cell_slot_resource_grid cell_grid{carrier_cfgs};
     bwp_configuration       bwp_cfg{};
-    bwp_cfg.scs  = srsran::subcarrier_spacing::kHz15;
+    bwp_cfg.scs  = ocudu::subcarrier_spacing::kHz15;
     bwp_cfg.crbs = {10, 30};
 
     TESTASSERT(not cell_grid.collides(subcarrier_spacing::kHz15, {0, 14}, crb_interval{0, 52}));
@@ -139,7 +139,7 @@ TEST(cell_resource_grid_test, test_all)
   {
     cell_slot_resource_grid cell_grid{carrier_cfgs};
     bwp_configuration       bwp_cfg{};
-    bwp_cfg.scs  = srsran::subcarrier_spacing::kHz120;
+    bwp_cfg.scs  = ocudu::subcarrier_spacing::kHz120;
     bwp_cfg.crbs = {10, 275};
 
     TESTASSERT(not cell_grid.collides(subcarrier_spacing::kHz120, {0, 14}, crb_interval{0, 265}));

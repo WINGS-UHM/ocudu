@@ -9,11 +9,11 @@
  */
 
 #include "e2_config_yaml_writer.h"
-#include "srsran/e2/e2ap_configuration.h"
+#include "ocudu/e2/e2ap_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::fill_e2_config_in_yaml_schema(YAML::Node node, const e2_config& config)
+void ocudu::fill_e2_config_in_yaml_schema(YAML::Node node, const e2_config& config)
 {
   node["addr"]                   = config.ip_addr;
   node["port"]                   = config.port;

@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct gnb_appconfig;
 struct cu_cp_unit_config;
@@ -27,4 +27,4 @@ void autoderive_gnb_parameters_after_parsing(CLI::App& app, gnb_appconfig& parse
 /// Auto derive the supported TAs for the CU-CP AMF config from the DU cells config.
 void autoderive_supported_tas_for_amf_from_du_cells(const du_high_unit_config& du_hi_cfg, cu_cp_unit_config& cu_cp_cfg);
 
-} // namespace srsran
+} // namespace ocudu

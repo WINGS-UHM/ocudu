@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/security/ciphering_engine.h"
-#include "srsran/security/integrity_engine.h"
-#include "srsran/security/security.h"
-#include "srsran/security/security_engine.h"
+#include "ocudu/security/ciphering_engine.h"
+#include "ocudu/security/integrity_engine.h"
+#include "ocudu/security/security.h"
+#include "ocudu/security/security_engine.h"
 
-namespace srsran::security {
+namespace ocudu::security {
 
 class security_engine_impl final : public security_engine_tx, public security_engine_rx
 {
@@ -34,7 +34,7 @@ private:
   std::unique_ptr<integrity_engine> integ_eng;
   std::unique_ptr<ciphering_engine> cipher_eng;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srsran::security
+} // namespace ocudu::security

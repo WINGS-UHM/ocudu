@@ -18,7 +18,7 @@ namespace CLI {
 class App;
 } // namespace CLI
 
-namespace srsran {
+namespace ocudu {
 
 struct worker_manager_config;
 struct os_sched_affinity_bitmask;
@@ -52,4 +52,4 @@ public:
   virtual void fill_worker_manager_config(worker_manager_config& config) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

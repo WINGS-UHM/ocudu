@@ -10,13 +10,13 @@
 
 #include "../../support/resource_grid_test_doubles.h"
 #include "ofdm_modulator_test_data.h"
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/support/test_utils.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 static std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -31,9 +31,9 @@ static std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 class ofdm_modulator_tester : public ::testing::TestWithParam<test_case_t>
 {

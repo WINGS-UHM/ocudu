@@ -10,24 +10,24 @@
 
 #include "prach_detector_generic_impl.h"
 #include "prach_detector_generic_thresholds.h"
-#include "srsran/adt/interval.h"
-#include "srsran/phy/upper/channel_processors/prach_detector_phy_validator.h"
-#include "srsran/ran/prach/prach_cyclic_shifts.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/srsvec/accumulate.h"
-#include "srsran/srsvec/add.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/conversion.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/division.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/modulus_square.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/srsvec/sc_prod.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ocuduvec/accumulate.h"
+#include "ocudu/ocuduvec/add.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/division.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/modulus_square.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector_phy_validator.h"
+#include "ocudu/ran/prach/prach_cyclic_shifts.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string> prach_detector_validator_impl::is_valid(const prach_detector::configuration& config) const
 {
@@ -49,29 +49,29 @@ prach_detector_generic_impl::prach_detector_generic_impl(std::unique_ptr<dft_pro
   static constexpr interval<unsigned, true> idft_short_sz_range(prach_constants::SHORT_SEQUENCE_LENGTH, MAX_IDFT_SIZE);
 
   // Verify IDFT for long preambles.
-  srsran_assert(idft_long, "Invalid IDFT processor.");
-  srsran_assert(idft_long->get_direction() == dft_processor::direction::INVERSE, "Expected IDFT.");
-  srsran_assert(idft_long_sz_range.contains(idft_long->get_size()),
-                "IDFT size for long preambles (i.e., {}) must be in range {}.",
-                idft_long->get_size(),
-                idft_long_sz_range);
+  ocudu_assert(idft_long, "Invalid IDFT processor.");
+  ocudu_assert(idft_long->get_direction() == dft_processor::direction::INVERSE, "Expected IDFT.");
+  ocudu_assert(idft_long_sz_range.contains(idft_long->get_size()),
+               "IDFT size for long preambles (i.e., {}) must be in range {}.",
+               idft_long->get_size(),
+               idft_long_sz_range);
 
   // Verify IDFT for short preambles.
-  srsran_assert(idft_short, "Invalid IDFT processor.");
-  srsran_assert(idft_short->get_direction() == dft_processor::direction::INVERSE, "Expected IDFT.");
-  srsran_assert(idft_short_sz_range.contains(idft_short->get_size()),
-                "IDFT size for short preambles (i.e., {}) must be in range {}.",
-                idft_short->get_size(),
-                idft_long_sz_range);
+  ocudu_assert(idft_short, "Invalid IDFT processor.");
+  ocudu_assert(idft_short->get_direction() == dft_processor::direction::INVERSE, "Expected IDFT.");
+  ocudu_assert(idft_short_sz_range.contains(idft_short->get_size()),
+               "IDFT size for short preambles (i.e., {}) must be in range {}.",
+               idft_short->get_size(),
+               idft_long_sz_range);
 }
 
 prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& input, const configuration& config)
 {
-  srsran_assert(config.start_preamble_index + config.nof_preamble_indices <= prach_constants::MAX_NUM_PREAMBLES,
-                "The start preamble index (i.e., {}) and the number of preambles to detect (i.e., {}), exceed the "
-                "maximum of 64.",
-                config.start_preamble_index,
-                config.nof_preamble_indices);
+  ocudu_assert(config.start_preamble_index + config.nof_preamble_indices <= prach_constants::MAX_NUM_PREAMBLES,
+               "The start preamble index (i.e., {}) and the number of preambles to detect (i.e., {}), exceed the "
+               "maximum of 64.",
+               config.start_preamble_index,
+               config.nof_preamble_indices);
 
   // Get preamble information.
   prach_preamble_information preamble_info;
@@ -87,7 +87,7 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
 
   // Get cyclic shift.
   unsigned N_cs = prach_cyclic_shifts_get(config.ra_scs, config.restricted_set, config.zero_correlation_zone);
-  srsran_assert(N_cs != PRACH_CYCLIC_SHIFTS_RESERVED, "Reserved cyclic shift.");
+  ocudu_assert(N_cs != PRACH_CYCLIC_SHIFTS_RESERVED, "Reserved cyclic shift.");
 
   // Get sequence length.
   unsigned L_ra = prach_constants::LONG_SEQUENCE_LENGTH;
@@ -137,11 +137,11 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
   auto     th_and_margin = detail::get_threshold_and_margin(th_params);
   float    threshold     = std::get<0>(th_and_margin);
   unsigned win_margin    = std::get<1>(th_and_margin);
-  srsran_assert((win_margin > 0) && (threshold > 0.0),
-                "Window margin and threshold are not selected for the number of ports (i.e., {}) and the preamble "
-                "format (i.e., {}).",
-                config.nof_rx_ports,
-                to_string(config.format));
+  ocudu_assert((win_margin > 0) && (threshold > 0.0),
+               "Window margin and threshold are not selected for the number of ports (i.e., {}) and the preamble "
+               "format (i.e., {}).",
+               config.nof_rx_ports,
+               to_string(config.format));
 
   // Calculate maximum delay.
   unsigned max_delay_samples = (N_cs == 0) ? cp_prach : std::min(std::max(N_cs, 1U) - 1U, cp_prach);
@@ -157,7 +157,7 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
   float rssi = 0.0F;
   for (unsigned i_port = 0; i_port != config.nof_rx_ports; ++i_port) {
     for (unsigned i_symbol = 0; i_symbol != nof_symbols; ++i_symbol) {
-      rssi += srsvec::average_power(input.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_symbol));
+      rssi += ocuduvec::average_power(input.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_symbol));
     }
   }
   rssi /= static_cast<float>(config.nof_rx_ports * nof_symbols);
@@ -177,7 +177,7 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
 
   // Get view of the IDFT input and zero it.
   span<cf_t> idft_input = idft.get_input();
-  srsvec::zero(idft_input);
+  ocuduvec::zero(idft_input);
 
   for (unsigned i_sequence = 0; i_sequence != nof_sequences; ++i_sequence) {
     // Range of preambles to detect within this sequence.
@@ -201,11 +201,11 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
 
     // Prepare metric global numerator.
     metric_global_num.resize({win_width, nof_shifts});
-    srsvec::zero(metric_global_num.get_data());
+    ocuduvec::zero(metric_global_num.get_data());
 
     // Prepare metric global denominator.
     metric_global_den.resize({win_width, nof_shifts});
-    srsvec::zero(metric_global_den.get_data());
+    ocuduvec::zero(metric_global_den.get_data());
 
     // Iterate over all receive ports.
     for (unsigned i_port = 0; i_port != config.nof_rx_ports; ++i_port) {
@@ -219,37 +219,37 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
         span<const cbf16_t> preamble = input.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_symbol);
 
         // Copy the first PRACH symbol.
-        srsvec::convert(combined_symbols, preamble);
+        ocuduvec::convert(combined_symbols, preamble);
 
         // Combine the rest of PRACH symbols.
         if (combine_symbols && (nof_symbols > 1)) {
           for (unsigned i_comb_symbol = 1; i_comb_symbol != nof_symbols; ++i_comb_symbol) {
-            srsvec::add(combined_symbols,
-                        combined_symbols,
-                        input.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_comb_symbol));
+            ocuduvec::add(combined_symbols,
+                          combined_symbols,
+                          input.get_symbol(i_port, i_td_occasion, i_fd_occasion, i_comb_symbol));
           }
         }
 
         // Multiply the preamble by the complex conjugate of the root sequence.
         std::array<cf_t, prach_constants::LONG_SEQUENCE_LENGTH> no_root_temp;
         span<cf_t>                                              no_root = span<cf_t>(no_root_temp).first(L_ra);
-        srsvec::prod_conj(no_root, combined_symbols, root);
+        ocuduvec::prod_conj(no_root, combined_symbols, root);
 
         // Prepare IDFT for correlation.
-        srsvec::copy(idft_input.first(L_ra / 2 + 1), no_root.last(L_ra / 2 + 1));
-        srsvec::copy(idft_input.last(L_ra / 2), no_root.first(L_ra / 2));
+        ocuduvec::copy(idft_input.first(L_ra / 2 + 1), no_root.last(L_ra / 2 + 1));
+        ocuduvec::copy(idft_input.last(L_ra / 2), no_root.first(L_ra / 2));
 
         // Perform IDFT.
         span<const cf_t> no_root_time_simple = idft.run();
 
         // Perform the modulus square of the correlation.
         span<float> mod_square = span<float>(temp).first(dft_size);
-        srsvec::modulus_square(mod_square, no_root_time_simple);
+        ocuduvec::modulus_square(mod_square, no_root_time_simple);
 
         // Normalize the signal: we divide by the DFT size to compensate for the inherent scaling of the DFT, and by
         // L_ra to compensate for the amplitude of the ZC sequence in the frequency domain (provided by
         // by the internal generator in the span "root").
-        srsvec::sc_prod(mod_square, mod_square, 1.0F / static_cast<float>(dft_size * L_ra));
+        ocuduvec::sc_prod(mod_square, mod_square, 1.0F / static_cast<float>(dft_size * L_ra));
 
         // Process each shift of the sequence.
         for (unsigned i_window = 0; i_window != nof_shifts; ++i_window) {
@@ -261,9 +261,9 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
           {
             unsigned i_start = ((window_start + dft_size) - win_margin) % dft_size;
             unsigned i_end   = i_start + 2 * win_margin + win_width;
-            reference += srsvec::accumulate(mod_square.subspan(i_start, std::min(i_end, dft_size) - i_start));
+            reference += ocuduvec::accumulate(mod_square.subspan(i_start, std::min(i_end, dft_size) - i_start));
             if (i_end > dft_size) {
-              reference += srsvec::accumulate(mod_square.first(i_end - dft_size));
+              reference += ocuduvec::accumulate(mod_square.first(i_end - dft_size));
             }
           }
 
@@ -271,9 +271,9 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
           span<float> window_mod_square = span<float>(temp2).first(win_width);
 
           // Scale window.
-          srsvec::sc_prod(window_mod_square,
-                          mod_square.subspan(window_start, win_width),
-                          static_cast<float>(dft_size) / static_cast<float>(L_ra));
+          ocuduvec::sc_prod(window_mod_square,
+                            mod_square.subspan(window_start, win_width),
+                            static_cast<float>(dft_size) / static_cast<float>(L_ra));
 
           // Select metric global numerator.
           span<float> window_metric_global_num = metric_global_num.get_view({i_window});
@@ -282,7 +282,7 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
           span<float> window_metric_global_den = metric_global_den.get_view({i_window});
 
           // Scale modulus square and accumulate numerator.
-          srsvec::add(window_metric_global_num, window_mod_square, window_metric_global_num);
+          ocuduvec::add(window_metric_global_num, window_mod_square, window_metric_global_num);
 
           // Scale modulus square and accumulate denominator.
           vector_noise_estimation(window_metric_global_den, reference, window_mod_square);
@@ -309,10 +309,10 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
       for (float& a : window_metric_global_den) {
         a = std::abs(a);
       }
-      srsvec::divide(metric_global, window_metric_global_num, window_metric_global_den);
+      ocuduvec::divide(metric_global, window_metric_global_num, window_metric_global_den);
 
       // Find maximum.
-      std::pair<unsigned, float> max_element = srsvec::max_element(metric_global);
+      std::pair<unsigned, float> max_element = ocuduvec::max_element(metric_global);
 
       // Extract peak value and index from the iterator.
       unsigned delay = max_element.first;

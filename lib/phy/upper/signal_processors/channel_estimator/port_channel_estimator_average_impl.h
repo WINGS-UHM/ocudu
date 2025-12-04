@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/support/interpolator.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_estimator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
-#include "srsran/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
+#include "ocudu/phy/support/interpolator.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator.h"
+#include "ocudu/phy/upper/signal_processors/channel_estimator/port_channel_estimator_parameters.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Port channel estimator that averages all OFDM symbols containing DM-RS.
 ///
@@ -55,8 +55,8 @@ public:
     freq_interpolator(std::move(interp)),
     ta_estimator(std::move(ta_estimator_))
   {
-    srsran_assert(freq_interpolator, "Invalid interpolator.");
-    srsran_assert(ta_estimator, "Invalid TA estimator.");
+    ocudu_assert(freq_interpolator, "Invalid interpolator.");
+    ocudu_assert(ta_estimator, "Invalid TA estimator.");
   }
 
   // See the port_channel_estimator interface for documentation.
@@ -86,10 +86,10 @@ private:
   // See the port_channel_estimator_results interface for documentation.
   float get_rsrp(unsigned tx_layer) const override
   {
-    srsran_assert(tx_layer < cfg_local.dmrs_pattern.size(),
-                  "Layer index {} is larger than the maximum supported index {}.",
-                  tx_layer,
-                  cfg_local.dmrs_pattern.size() - 1);
+    ocudu_assert(tx_layer < cfg_local.dmrs_pattern.size(),
+                 "Layer index {} is larger than the maximum supported index {}.",
+                 tx_layer,
+                 cfg_local.dmrs_pattern.size() - 1);
     return rsrp[tx_layer];
   }
 
@@ -236,4 +236,4 @@ private:
   std::optional<float> cfo_Hz = std::nullopt;
 };
 
-} // namespace srsran
+} // namespace ocudu

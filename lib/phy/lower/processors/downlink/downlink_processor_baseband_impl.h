@@ -11,21 +11,21 @@
 #pragma once
 
 #include "../baseband_cfo_processor.h"
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/downlink_processor_notifier.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/lower_phy_tx_time_offset_controller.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/ran/cyclic_prefix.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/math/stats.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/downlink_processor_notifier.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/lower_phy_tx_time_offset_controller.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/support/math/stats.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Collects downlink processor baseband configuration parameters.
 struct downlink_processor_baseband_configuration {
@@ -75,8 +75,8 @@ public:
   /// \remark The number of ports of \c out must match the number of ports of the symbol buffer.
   unsigned read(baseband_gateway_buffer_writer& out, baseband_gateway_timestamp timestamp)
   {
-    srsran_assert(!empty, "Attempting to read from empty buffer.");
-    srsran_assert(out.get_nof_channels() == nof_ports, "Number of ports does not match.");
+    ocudu_assert(!empty, "Attempting to read from empty buffer.");
+    ocudu_assert(out.get_nof_channels() == nof_ports, "Number of ports does not match.");
 
     // Clear the buffer if attempting to read samples in the past.
     if (timestamp < symbol_start_timestamp) {
@@ -104,7 +104,7 @@ public:
       // Select view of the output samples.
       span<ci16_t> temp_buffer_dst = out.get_channel_buffer(i_port).first(count);
 
-      srsvec::copy(temp_buffer_dst, temp_buffer_src);
+      ocuduvec::copy(temp_buffer_dst, temp_buffer_src);
     }
 
     // Clear the buffer if all available samples have been read.
@@ -127,8 +127,8 @@ public:
   /// \remark The buffer must be cleared by calling \ref clear or by reading all of its contents between writes.
   baseband_gateway_buffer_writer& write_symbol(baseband_gateway_timestamp symbol_timestamp, unsigned symbol_size)
   {
-    srsran_assert(empty, "Attempting to write into non-empty buffer.");
-    srsran_assert(symbol_size > 0, "Symbol size cannot be zero.");
+    ocudu_assert(empty, "Attempting to write into non-empty buffer.");
+    ocudu_assert(symbol_size > 0, "Symbol size cannot be zero.");
 
     buffer.resize(symbol_size);
     symbol_start_timestamp = symbol_timestamp;
@@ -235,4 +235,4 @@ private:
   std::optional<slot_point> previous_slot;
 };
 
-} // namespace srsran
+} // namespace ocudu

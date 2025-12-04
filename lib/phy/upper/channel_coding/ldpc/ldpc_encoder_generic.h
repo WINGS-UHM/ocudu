@@ -13,9 +13,9 @@
 #pragma once
 
 #include "ldpc_encoder_impl.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic LDPC encoder implementation without any optimization.
 class ldpc_encoder_generic : public ldpc_encoder_impl
@@ -24,7 +24,7 @@ class ldpc_encoder_generic : public ldpc_encoder_impl
   void load_input(const bit_buffer& in) override
   {
     span<uint8_t> message_ = span<uint8_t>(temp_message).first(in.size());
-    srsvec::bit_unpack(message_, in);
+    ocuduvec::bit_unpack(message_, in);
 
     // From now on, the encoder only needs a read-only view of the input message.
     message = message_;
@@ -60,4 +60,4 @@ class ldpc_encoder_generic : public ldpc_encoder_impl
   std::array<uint8_t, static_cast<size_t>(ldpc::MAX_BG_N_FULL* ldpc::MAX_LIFTING_SIZE)> codeblock;
 };
 
-} // namespace srsran
+} // namespace ocudu

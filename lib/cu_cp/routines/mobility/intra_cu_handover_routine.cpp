@@ -12,15 +12,15 @@
 #include "../pdu_session_routine_helpers.h"
 #include "handover_reconfiguration_routine.h"
 #include "mobility_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 static bool verify_ho_request(const cu_cp_intra_cu_handover_request& request,
                               ue_manager&                            ue_mng,
-                              const srslog::basic_logger&            logger)
+                              const ocudulog::basic_logger&          logger)
 {
   if (request.target_pci == INVALID_PCI) {
     logger.warning("Target PCI must not be invalid");
@@ -52,7 +52,7 @@ intra_cu_handover_routine::intra_cu_handover_routine(const cu_cp_intra_cu_handov
                                                      cu_cp_impl_interface&                  cu_cp_handler_,
                                                      ue_manager&                            ue_mng_,
                                                      mobility_manager&                      mobility_mng_,
-                                                     srslog::basic_logger&                  logger_) :
+                                                     ocudulog::basic_logger&                logger_) :
   request(request_),
   target_cell_sib1(target_cell_sib1_),
   source_du_f1ap_ue_ctxt_mng(source_du_f1ap_ue_ctxt_mng_),
@@ -128,7 +128,7 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
 
   // Target UE object exists from this point on.
   target_ue = ue_mng.find_du_ue(target_ue_context_setup_response.ue_index);
-  srsran_assert(target_ue != nullptr, "Couldn't find ue={} in target DU", target_ue_context_setup_response.ue_index);
+  ocudu_assert(target_ue != nullptr, "Couldn't find ue={} in target DU", target_ue_context_setup_response.ue_index);
 
   // Setup SRB1 and initialize security context in RRC.
   {

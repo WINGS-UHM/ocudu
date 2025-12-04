@@ -12,17 +12,17 @@
 
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "ngap_test_messages.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/cu_cp/ue_task_scheduler.h"
-#include "srsran/ngap/gateways/n2_connection_client.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/security/security.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/ue_task_scheduler.h"
+#include "ocudu/ngap/gateways/n2_connection_client.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/security/security.h"
 #include <gtest/gtest.h>
 #include <optional>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Reusable class that a) stores the messages sent to the AMF for test inspection and b)
 /// calls the registered msg handler (if any). The handler can be added upon construction
@@ -30,7 +30,7 @@ namespace srs_cu_cp {
 class dummy_n2_gateway : public n2_connection_client
 {
 public:
-  dummy_n2_gateway() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_n2_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   void attach_handler(ngap_message_handler* handler_) { handler = handler_; }
 
@@ -50,7 +50,7 @@ public:
         // Verify correct packing of outbound PDU.
         byte_buffer   pack_buffer;
         asn1::bit_ref bref(pack_buffer);
-        if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+        if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
           parent.logger.error("Failed to pack message");
           return false;
         }
@@ -77,8 +77,8 @@ public:
   std::vector<ngap_message> last_ngap_msgs = {};
 
 private:
-  srslog::basic_logger& logger;
-  ngap_message_handler* handler = nullptr;
+  ocudulog::basic_logger& logger;
+  ngap_message_handler*   handler = nullptr;
 
   std::unique_ptr<ngap_rx_message_notifier> rx_pdu_notifier;
 };
@@ -87,7 +87,7 @@ private:
 class dummy_ngap_message_notifier : public ngap_message_notifier
 {
 public:
-  dummy_ngap_message_notifier() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_ngap_message_notifier() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   [[nodiscard]] bool on_new_message(const ngap_message& msg) override
   {
     last_msg = msg;
@@ -97,14 +97,14 @@ public:
   ngap_message last_msg;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy handler storing and printing the received PDU.
 class dummy_ngap_message_handler : public ngap_message_handler
 {
 public:
-  dummy_ngap_message_handler() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_ngap_message_handler() : logger(ocudulog::fetch_basic_logger("TEST")) {}
   void handle_message(const ngap_message& msg) override
   {
     last_msg = msg;
@@ -113,14 +113,14 @@ public:
   ngap_message last_msg;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 /// Dummy NGAP to RRC UE notifier
 class dummy_ngap_rrc_ue_notifier : public ngap_rrc_ue_notifier
 {
 public:
-  dummy_ngap_rrc_ue_notifier() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_ngap_rrc_ue_notifier() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   void on_new_pdu(byte_buffer nas_pdu) override
   {
@@ -142,13 +142,13 @@ public:
   byte_buffer last_handover_command;
 
 private:
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
 class dummy_ngap_cu_cp_notifier : public ngap_cu_cp_notifier
 {
 public:
-  dummy_ngap_cu_cp_notifier(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_ngap_cu_cp_notifier(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   void connect_ngap(ngap_ue_context_removal_handler& ngap_handler_) { ngap_handler = &ngap_handler_; }
 
@@ -168,7 +168,7 @@ public:
 
   bool schedule_async_task(ue_index_t ue_index, async_task<void> task) override
   {
-    srsran_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
+    ocudu_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
     return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
   }
 
@@ -176,7 +176,7 @@ public:
                                     const plmn_identity&              selected_plmn,
                                     const security::security_context& sec_ctxt) override
   {
-    srsran_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present");
+    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present");
     logger.info("Received a handover request");
 
     if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
@@ -302,7 +302,7 @@ public:
   async_task<cu_cp_ue_context_release_complete>
   on_new_ue_context_release_command(const cu_cp_ue_context_release_command& command) override
   {
-    srsran_assert(ngap_handler != nullptr, "ngap_handler must not be nullptr");
+    ocudu_assert(ngap_handler != nullptr, "ngap_handler must not be nullptr");
 
     logger.info("Received a new UE Context Release Command");
 
@@ -395,18 +395,19 @@ public:
   cu_cp_paging_message                       last_paging_msg;
 
 private:
-  ue_manager&           ue_mng;
-  srslog::basic_logger& logger;
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 
   ngap_ue_context_removal_handler* ngap_handler = nullptr;
 
-  uint64_t ue_id = ue_index_to_uint(srs_cu_cp::ue_index_t::min);
+  uint64_t ue_id = ue_index_to_uint(ocucp::ue_index_t::min);
 };
 
 class dummy_rrc_ngap_message_handler : public rrc_ngap_message_handler
 {
 public:
-  dummy_rrc_ngap_message_handler(ue_index_t ue_index_) : ue_index(ue_index_), logger(srslog::fetch_basic_logger("TEST"))
+  dummy_rrc_ngap_message_handler(ue_index_t ue_index_) :
+    ue_index(ue_index_), logger(ocudulog::fetch_basic_logger("TEST"))
   {
   }
 
@@ -428,9 +429,9 @@ public:
   byte_buffer last_nas_pdu;
 
 private:
-  ue_index_t            ue_index = ue_index_t::invalid;
-  srslog::basic_logger& logger;
-  byte_buffer           ho_preparation_message;
+  ue_index_t              ue_index = ue_index_t::invalid;
+  ocudulog::basic_logger& logger;
+  byte_buffer             ho_preparation_message;
 };
 
 class dummy_ngap_cu_cp_ue_notifier : public ngap_cu_cp_ue_notifier
@@ -450,7 +451,7 @@ public:
   /// \brief Get the RRC UE notifier of the UE.
   ngap_rrc_ue_notifier& get_ngap_rrc_ue_notifier() override
   {
-    srsran_assert(rrc_ue_notifier != nullptr, "RRC UE notifier must not be nullptr");
+    ocudu_assert(rrc_ue_notifier != nullptr, "RRC UE notifier must not be nullptr");
     return *rrc_ue_notifier;
   }
 
@@ -466,5 +467,5 @@ public:
   dummy_ngap_rrc_ue_notifier* rrc_ue_notifier = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

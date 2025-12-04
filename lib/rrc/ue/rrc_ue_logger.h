@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/support/format/fmt_to_c_str.h"
-#include "srsran/support/format/prefixed_logger.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
 #include <string.h>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class rrc_ue_log_prefix
 {
@@ -27,7 +27,7 @@ public:
   {
     fmt::memory_buffer buffer;
     fmt::format_to(std::back_inserter(buffer), "ue={} c-rnti={}: ", ue_index, c_rnti);
-    prefix = srsran::to_c_str(buffer);
+    prefix = ocudu::to_c_str(buffer);
   }
   const char* to_c_str() const { return prefix.c_str(); }
 
@@ -37,14 +37,14 @@ private:
 
 using rrc_ue_logger = prefixed_logger<rrc_ue_log_prefix>;
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu
 
 namespace fmt {
 
 // associated formatter
 template <>
-struct formatter<srsran::srs_cu_cp::rrc_ue_log_prefix> {
+struct formatter<ocudu::ocucp::rrc_ue_log_prefix> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -52,7 +52,7 @@ struct formatter<srsran::srs_cu_cp::rrc_ue_log_prefix> {
   }
 
   template <typename FormatContext>
-  auto format(srsran::srs_cu_cp::rrc_ue_log_prefix o, FormatContext& ctx) const
+  auto format(ocudu::ocucp::rrc_ue_log_prefix o, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "{}", o.to_c_str());
   }

@@ -17,18 +17,18 @@
 /// configuration parameters.
 
 #include "ldpc_rate_matcher_test_data.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/cpu_features.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder_buffer.h"
+#include "ocudu/support/cpu_features.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, modulation_scheme mod)
 {
@@ -74,7 +74,7 @@ std::ostream& operator<<(std::ostream& os, const bit_buffer& data)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -90,7 +90,7 @@ public:
   unsigned get_codeblock_length() const override { return buffer.size(); }
   void     write_codeblock(span<uint8_t> data, unsigned offset) const override
   {
-    srsvec::copy(data, buffer.subspan(offset, data.size()));
+    ocuduvec::copy(data, buffer.subspan(offset, data.size()));
   }
 
 private:
@@ -181,7 +181,7 @@ TEST_P(LDPCRateMatchingFixture, LDPCRateMatchingTest)
   matcher->rate_match(matched_packed, rm_buffer, rm_cfg);
 
   // Unpack rate matched.
-  srsvec::bit_unpack(matched, matched_packed);
+  ocuduvec::bit_unpack(matched, matched_packed);
 
   // Compare the rate matched codeblocks with the expected ones.
   std::vector<uint8_t> expected_matched = test_data.rm_cblock.read();

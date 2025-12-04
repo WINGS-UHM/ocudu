@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/scheduler/config/serving_cell_config_validator.h"
-#include "srsran/ran/csi_report/csi_report_config_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/support/config/validator_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_validator.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/sched_consts.h"
+#include "ocudu/support/config/validator_helpers.h"
 #include "fmt/std.h"
 #include <numeric>
 
-using namespace srsran;
+using namespace ocudu;
 
 #define VERIFY_ID_EXISTS(cond_lambda, id_list, ...)                                                                    \
   if (std::find_if(id_list.begin(), id_list.end(), cond_lambda) == id_list.end()) {                                    \

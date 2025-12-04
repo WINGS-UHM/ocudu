@@ -12,9 +12,9 @@
 
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 // DLT for EXPORT PDU pcaps.
 constexpr uint16_t PCAP_EXPORT_PDU_DLT = 252;
 
-} // namespace srsran
+} // namespace ocudu

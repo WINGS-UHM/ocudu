@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/executors/task_fork_limiter.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/task_fork_limiter.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class fork_limit_executor_test : public ::testing::Test
 {
@@ -23,8 +23,8 @@ protected:
 
 TEST_F(fork_limit_executor_test, max_forks_limit_are_respected)
 {
-  srslog::fetch_basic_logger("ALL").set_level(srslog::basic_levels::warning);
-  srslog::init();
+  ocudulog::fetch_basic_logger("ALL").set_level(ocudulog::basic_levels::warning);
+  ocudulog::init();
 
   static const unsigned max_forks = 4;
   const unsigned        nof_tasks = 5000;

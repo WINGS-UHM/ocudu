@@ -10,21 +10,21 @@
 
 #pragma once
 
-#include "srsran/f1u/du/f1u_bearer_logger.h"
-#include "srsran/f1u/du/f1u_gateway.h"
-#include "srsran/f1u/split_connector/f1u_five_qi_gw_maps.h"
-#include "srsran/f1u/split_connector/f1u_session_manager.h"
-#include "srsran/gtpu/gtpu_demux.h"
-#include "srsran/gtpu/gtpu_gateway.h"
-#include "srsran/gtpu/gtpu_tunnel_common_tx.h"
-#include "srsran/gtpu/gtpu_tunnel_nru.h"
-#include "srsran/gtpu/gtpu_tunnel_nru_factory.h"
-#include "srsran/gtpu/gtpu_tunnel_nru_rx.h"
-#include "srsran/pcap/dlt_pcap.h"
+#include "ocudu/f1u/du/f1u_bearer_logger.h"
+#include "ocudu/f1u/du/f1u_gateway.h"
+#include "ocudu/f1u/split_connector/f1u_five_qi_gw_maps.h"
+#include "ocudu/f1u/split_connector/f1u_session_manager.h"
+#include "ocudu/gtpu/gtpu_demux.h"
+#include "ocudu/gtpu/gtpu_gateway.h"
+#include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
+#include "ocudu/gtpu/gtpu_tunnel_nru.h"
+#include "ocudu/gtpu/gtpu_tunnel_nru_factory.h"
+#include "ocudu/gtpu/gtpu_tunnel_nru_rx.h"
+#include "ocudu/pcap/dlt_pcap.h"
 #include <cstdint>
 #include <unordered_map>
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 class gtpu_tx_udp_gw_adapter : public gtpu_tunnel_common_tx_upper_layer_notifier
 {
@@ -45,7 +45,7 @@ public:
   gtpu_tnl_pdu_session* handler;
 };
 
-class gtpu_rx_f1u_adapter : public srsran::gtpu_tunnel_nru_rx_lower_layer_notifier
+class gtpu_rx_f1u_adapter : public ocudu::gtpu_tunnel_nru_rx_lower_layer_notifier
 {
 public:
   /// \brief Interface for the GTP-U to pass a SDU (i.e. NR-U DL message) into the lower layer.
@@ -69,7 +69,7 @@ public:
 };
 
 /// Adapter between Network Gateway (Data) and GTP-U demux
-class network_gateway_data_gtpu_demux_adapter : public srsran::network_gateway_data_notifier_with_src_addr
+class network_gateway_data_gtpu_demux_adapter : public ocudu::network_gateway_data_notifier_with_src_addr
 {
 public:
   network_gateway_data_gtpu_demux_adapter()           = default;
@@ -79,7 +79,7 @@ public:
 
   void on_new_pdu(byte_buffer pdu, const sockaddr_storage& src_addr) override
   {
-    srsran_assert(gtpu_demux != nullptr, "GTP-U handler must not be nullptr");
+    ocudu_assert(gtpu_demux != nullptr, "GTP-U handler must not be nullptr");
     gtpu_demux->handle_pdu(std::move(pdu), src_addr);
   }
 
@@ -95,15 +95,15 @@ private:
 class f1u_split_gateway_du_bearer : public f1u_du_gateway_bearer
 {
 public:
-  f1u_split_gateway_du_bearer(uint32_t                                   ue_index,
-                              drb_id_t                                   drb_id,
-                              const up_transport_layer_info&             dl_tnl_info_,
-                              srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx_,
-                              const up_transport_layer_info&             ul_up_tnl_info_,
-                              gtpu_tnl_pdu_session&                      udp_session_,
-                              srs_du::f1u_bearer_disconnector&           disconnector_,
-                              dlt_pcap&                                  gtpu_pcap,
-                              uint16_t                                   peer_port) :
+  f1u_split_gateway_du_bearer(uint32_t                                ue_index,
+                              drb_id_t                                drb_id,
+                              const up_transport_layer_info&          dl_tnl_info_,
+                              odu::f1u_du_gateway_bearer_rx_notifier& du_rx_,
+                              const up_transport_layer_info&          ul_up_tnl_info_,
+                              gtpu_tnl_pdu_session&                   udp_session_,
+                              odu::f1u_bearer_disconnector&           disconnector_,
+                              dlt_pcap&                               gtpu_pcap,
+                              uint16_t                                peer_port) :
     logger("DU-F1-U", {ue_index, drb_id, dl_tnl_info_}),
     disconnector(disconnector_),
     dl_tnl_info(dl_tnl_info_),
@@ -124,7 +124,7 @@ public:
     msg.tx_upper          = &gtpu_to_network_adapter;
     msg.rx_lower          = &gtpu_to_f1u_adapter;
 
-    tunnel = srsran::create_gtpu_tunnel_nru(msg);
+    tunnel = ocudu::create_gtpu_tunnel_nru(msg);
   }
 
   ~f1u_split_gateway_du_bearer() override { stop(); }
@@ -189,23 +189,23 @@ public:
     return f1u_sessions.default_gw_sessions[0]->get_bind_port();
   }
 
-  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                   ue_index,
-                                                          drb_id_t                                   drb_id,
-                                                          s_nssai_t                                  snssai,
-                                                          five_qi_t                                  five_qi,
-                                                          srs_du::f1u_config                         config,
-                                                          const gtpu_teid_t&                         dl_teid,
-                                                          const up_transport_layer_info&             ul_up_tnl_info,
-                                                          srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx,
-                                                          timer_factory                              timers,
-                                                          task_executor& ue_executor) override;
+  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                ue_index,
+                                                          drb_id_t                                drb_id,
+                                                          s_nssai_t                               snssai,
+                                                          five_qi_t                               five_qi,
+                                                          odu::f1u_config                         config,
+                                                          const gtpu_teid_t&                      dl_teid,
+                                                          const up_transport_layer_info&          ul_up_tnl_info,
+                                                          odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
+                                                          timer_factory                           timers,
+                                                          task_executor&                          ue_executor) override;
 
   void remove_du_bearer(const up_transport_layer_info& dl_up_tnl_info) override;
 
   expected<std::string> get_du_bind_address(gnb_du_id_t gnb_du_id) const override;
 
 private:
-  srslog::basic_logger& logger_du;
+  ocudulog::basic_logger& logger_du;
   // Key is the UL UP TNL Info (CU-CP address and UL TEID reserved by CU-CP)
   std::unordered_map<up_transport_layer_info, f1u_split_gateway_du_bearer*> du_map;
   std::mutex map_mutex; // shared mutex for access to cu_map
@@ -220,4 +220,4 @@ private:
   std::string f1u_ext_addr = "auto"; // External address advertised by the F1-U interface
 };
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

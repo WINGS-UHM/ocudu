@@ -12,8 +12,8 @@
 
 #include "du_ue_resource_config.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class drx_offset_pool;
 
@@ -44,5 +44,5 @@ private:
   std::unique_ptr<drx_offset_pool> offset_pool;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

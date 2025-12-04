@@ -11,9 +11,9 @@
 #include "ru_sdr_config_translator.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "ru_sdr_config.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/ran/band_helper.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Generates a lower PHY configuration from the given RU and cell configurations.
 static lower_phy_configuration generate_lower_phy_config(const flexible_o_du_ru_config::cell_config& config,
@@ -224,9 +224,9 @@ static void generate_radio_config(radio_configuration::radio&                   
   }
 }
 
-ru_sdr_configuration srsran::generate_ru_sdr_config(const ru_sdr_unit_config&                        ru_cfg,
-                                                    span<const flexible_o_du_ru_config::cell_config> cells,
-                                                    unsigned max_processing_delay_slots)
+ru_sdr_configuration ocudu::generate_ru_sdr_config(const ru_sdr_unit_config&                        ru_cfg,
+                                                   span<const flexible_o_du_ru_config::cell_config> cells,
+                                                   unsigned max_processing_delay_slots)
 {
   ru_sdr_configuration out_cfg;
   out_cfg.are_metrics_enabled = ru_cfg.metrics_cfg.enable_ru_metrics;
@@ -243,7 +243,7 @@ ru_sdr_configuration srsran::generate_ru_sdr_config(const ru_sdr_unit_config&   
   return out_cfg;
 }
 
-void srsran::fill_sdr_worker_manager_config(worker_manager_config& config, const ru_sdr_unit_config& ru_cfg)
+void ocudu::fill_sdr_worker_manager_config(worker_manager_config& config, const ru_sdr_unit_config& ru_cfg)
 {
   auto& sdr_cfg = config.ru_sdr_cfg.emplace();
 
@@ -253,8 +253,8 @@ void srsran::fill_sdr_worker_manager_config(worker_manager_config& config, const
                               ru_cfg.expert_execution_cfg.threads.execution_profile)
                           : worker_manager_config::ru_sdr_config::lower_phy_thread_profile::sequential;
 
-  srsran_assert(config.config_affinities.size() == ru_cfg.expert_execution_cfg.cell_affinities.size(),
-                "Invalid number of cell affinities");
+  ocudu_assert(config.config_affinities.size() == ru_cfg.expert_execution_cfg.cell_affinities.size(),
+               "Invalid number of cell affinities");
 
   for (unsigned i = 0; i != sdr_cfg.nof_cells; ++i) {
     config.config_affinities[i].push_back(ru_cfg.expert_execution_cfg.cell_affinities[i].ru_cpu_cfg);

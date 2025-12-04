@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ran/band_helper.h"
+#include "ocudu/ran/band_helper.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Verify that the SSB and CORESET 0 configuration parameters are valid and the allocation is within the band.
 ///
@@ -30,4 +30,4 @@ void test_ssb_coreset0_allocation(unsigned                                      
                                   subcarrier_spacing                             scs_ssb,
                                   const band_helper::ssb_coreset0_freq_location& params);
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,12 +11,12 @@
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_creation_procedure.h"
 #include "lib/du/du_high/du_manager/procedures/ue_deletion_procedure.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class ue_deletion_tester : public du_manager_proc_tester, public ::testing::Test
 {

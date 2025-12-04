@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../du_ue/du_ue_manager_repository.h"
-#include "srsran/du/du_high/du_manager/du_configurator.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/support/async/manual_event.h"
+#include "ocudu/du/du_high/du_manager/du_configurator.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/support/async/manual_event.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_ue_ric_configuration_procedure
 {
@@ -44,5 +44,5 @@ private:
   manual_event<du_mac_sched_control_config_response> ue_config_completed;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

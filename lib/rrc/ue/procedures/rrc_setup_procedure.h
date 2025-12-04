@@ -13,16 +13,16 @@
 #include "../rrc_ue_context.h"
 #include "../rrc_ue_logger.h"
 #include "rrc_ue_event_manager.h"
-#include "srsran/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/rrc/rrc_du.h"
-#include "srsran/rrc/rrc_ue.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/eager_async_task.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/rrc/rrc_du.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/eager_async_task.h"
 #include <chrono>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the creation of SRBs in the RRC UE.
 ///  \startuml
@@ -104,5 +104,5 @@ private:
   plmn_identity                      selected_plmn = plmn_identity::test_value();
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

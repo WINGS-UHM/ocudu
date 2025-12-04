@@ -10,5 +10,5 @@ set(SOURCES
         configuration_procedure.cpp
         phy_fapi_p5_sector_operation_request_adaptor.cpp)
 
-add_library(srsran_split6_flexible_o_du_low_unit_phy_fapi_p5_adaptor STATIC ${SOURCES})
-target_include_directories(srsran_split6_flexible_o_du_low_unit_phy_fapi_p5_adaptor PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_split6_flexible_o_du_low_unit_phy_fapi_p5_adaptor STATIC ${SOURCES})
+target_include_directories(ocudu_split6_flexible_o_du_low_unit_phy_fapi_p5_adaptor PRIVATE ${CMAKE_SOURCE_DIR})

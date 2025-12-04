@@ -11,14 +11,14 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
-#include "srsran/cu_cp/cell_meas_manager_config.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/rrc/meas_types.h"
+#include "ocudu/cu_cp/cell_meas_manager_config.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/rrc/meas_types.h"
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Methods used by cell measurement manager to signal measurement events to the mobility manager.
 class cell_meas_mobility_manager_notifier
@@ -67,8 +67,8 @@ private:
   std::unordered_map<ssb_frequency_t, std::vector<nr_cell_identity>> ssb_freq_to_ncis;
   std::map<nr_cell_identity, serving_cell_meas_config>               nci_to_serving_cell_meas_config;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

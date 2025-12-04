@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
-#include "srsran/f1ap/f1ap_message_handler.h"
-#include "srsran/f1ap/gateways/f1c_connection_client.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/f1ap/f1ap_message_handler.h"
+#include "ocudu/f1ap/gateways/f1c_connection_client.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class f1ap_du_configurator;
 struct f1ap_du_context;
@@ -47,12 +47,12 @@ private:
 
   void handle_connection_loss_impl();
 
-  f1c_connection_client& f1c_client_handler;
-  f1ap_message_handler&  f1ap_pdu_handler;
-  f1ap_du_configurator&  du_mng;
-  f1ap_du_context&       du_ctxt;
-  task_executor&         ctrl_exec;
-  srslog::basic_logger&  logger;
+  f1c_connection_client&  f1c_client_handler;
+  f1ap_message_handler&   f1ap_pdu_handler;
+  f1ap_du_configurator&   du_mng;
+  f1ap_du_context&        du_ctxt;
+  task_executor&          ctrl_exec;
+  ocudulog::basic_logger& logger;
 
   bool connected_flag{false};
 
@@ -62,5 +62,5 @@ private:
   manual_event_flag rx_path_disconnected;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

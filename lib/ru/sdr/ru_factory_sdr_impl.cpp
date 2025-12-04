@@ -12,11 +12,11 @@
 #include "ru_lower_phy_error_adapter.h"
 #include "ru_radio_event_handler.h"
 #include "ru_sdr_impl.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/ru/sdr/ru_sdr_configuration.h"
-#include "srsran/ru/sdr/ru_sdr_factory.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/ru/sdr/ru_sdr_configuration.h"
+#include "ocudu/ru/sdr/ru_sdr_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Creates a radio session with the given parameters.
 static std::unique_ptr<radio_session> create_radio_session(task_executor&                    executor,
@@ -38,8 +38,8 @@ static std::unique_ptr<radio_session> create_radio_session(task_executor&       
   return factory->create(config, executor, radio_handler);
 }
 
-std::unique_ptr<radio_unit> srsran::create_sdr_ru(const ru_sdr_configuration& config,
-                                                  const ru_sdr_dependencies&  dependencies)
+std::unique_ptr<radio_unit> ocudu::create_sdr_ru(const ru_sdr_configuration& config,
+                                                 const ru_sdr_dependencies&  dependencies)
 {
   ru_sdr_impl_config ru_config = {.srate_MHz           = config.radio_cfg.sampling_rate_Hz * 1e-6,
                                   .start_time          = config.start_time,

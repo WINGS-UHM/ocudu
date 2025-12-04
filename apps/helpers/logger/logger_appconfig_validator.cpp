@@ -11,9 +11,9 @@
 #include "logger_appconfig_validator.h"
 #include "logger_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_logger_appconfig(const logger_appconfig& config)
+bool ocudu::validate_logger_appconfig(const logger_appconfig& config)
 {
   return !config.filename.empty();
 }

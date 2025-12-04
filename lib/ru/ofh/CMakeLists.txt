@@ -19,5 +19,5 @@ set(SOURCES
         ru_ofh_timing_notifier_impl.cpp
         ru_ofh_uplink_plane_handler_proxy.cpp)
 
-add_library(srsran_ru_ofh STATIC ${SOURCES})
-target_link_libraries(srsran_ru_ofh srsran_ofh srsran_ofh_ethernet srsran_ofh_ecpri)
+add_library(ocudu_ru_ofh STATIC ${SOURCES})
+target_link_libraries(ocudu_ru_ofh ocudu_ofh ocudu_ofh_ethernet ocudu_ofh_ecpri)

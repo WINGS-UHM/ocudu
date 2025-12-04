@@ -12,7 +12,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 struct buffer_pool_appconfig;
@@ -21,4 +21,4 @@ struct buffer_pool_appconfig;
 void fill_buffer_pool_config_in_yaml_schema(YAML::Node& node, const buffer_pool_appconfig& config);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

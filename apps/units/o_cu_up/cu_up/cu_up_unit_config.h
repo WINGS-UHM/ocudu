@@ -14,11 +14,11 @@
 #include "apps/helpers/network/udp_appconfig.h"
 #include "apps/units/o_cu_up/cu_up/cu_up_unit_pcap_config.h"
 #include "cu_up_unit_logger_config.h"
-#include "srsran/ran/gnb_cu_up_id.h"
-#include "srsran/ran/gnb_id.h"
-#include "srsran/ran/qos/five_qi.h"
+#include "ocudu/ran/gnb_cu_up_id.h"
+#include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/qos/five_qi.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Configuration to enable/disable metrics per layer.
 struct cu_up_unit_metrics_layer_config {
@@ -122,4 +122,4 @@ struct cu_up_unit_config {
   cu_up_unit_test_mode_config test_mode_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ngap/gateways/n2_connection_client.h"
-#include "srsran/ngap/ngap.h"
+#include "ocudu/ngap/gateways/n2_connection_client.h"
+#include "ocudu/ngap/ngap.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Interface to AMF node that can be accessed safely from the test main thread.
 class mock_amf : public n2_connection_client
@@ -36,5 +36,5 @@ public:
 /// Creates a mock AMF to interface with the CU-CP.
 std::unique_ptr<mock_amf> create_mock_amf();
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

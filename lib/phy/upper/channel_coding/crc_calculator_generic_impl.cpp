@@ -9,10 +9,10 @@
  */
 
 #include "crc_calculator_generic_impl.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 crc_calculator_generic_impl::crc_calculator_generic_impl(crc_generator_poly poly_) : poly(poly_)
 {
@@ -44,7 +44,7 @@ crc_calculator_generic_impl::crc_calculator_generic_impl(crc_generator_poly poly
   }
 }
 
-crc_calculator_checksum_t srsran::crc_calculator_generic_impl::calculate_byte(span<const uint8_t> input) const
+crc_calculator_checksum_t ocudu::crc_calculator_generic_impl::calculate_byte(span<const uint8_t> input) const
 {
   uint64_t highbit   = 1U << order;
   uint64_t remainder = 0;
@@ -72,7 +72,7 @@ crc_calculator_checksum_t srsran::crc_calculator_generic_impl::calculate_byte(sp
   return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
 }
 
-crc_calculator_checksum_t crc_calculator_generic_impl::calculate_bit(srsran::span<const uint8_t> input) const
+crc_calculator_checksum_t crc_calculator_generic_impl::calculate_bit(ocudu::span<const uint8_t> input) const
 {
   uint64_t highbit   = 1U << order;
   uint64_t remainder = 0;

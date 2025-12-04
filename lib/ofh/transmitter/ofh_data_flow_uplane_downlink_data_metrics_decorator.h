@@ -12,10 +12,10 @@
 
 #include "../support/metrics_helpers.h"
 #include "ofh_data_flow_uplane_downlink_data.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul User-Plane downlink data flow metrics decorator.
@@ -27,7 +27,7 @@ public:
       std::unique_ptr<data_flow_uplane_downlink_data> data_flow_uplane_) :
     data_flow_uplane(std::move(data_flow_uplane_))
   {
-    srsran_assert(data_flow_uplane, "Invalid data flow");
+    ocudu_assert(data_flow_uplane, "Invalid data flow");
   }
 
   // See interface for documentation.
@@ -96,4 +96,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

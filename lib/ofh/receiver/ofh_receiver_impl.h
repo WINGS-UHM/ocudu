@@ -18,10 +18,10 @@
 #include "ofh_receiver_metrics_collector_impl.h"
 #include "ofh_rx_symbol_reorderer.h"
 #include "ofh_rx_window_checker.h"
-#include "srsran/ofh/receiver/ofh_receiver.h"
-#include "srsran/ofh/receiver/ofh_receiver_configuration.h"
+#include "ocudu/ofh/receiver/ofh_receiver.h"
+#include "ocudu/ofh/receiver/ofh_receiver_configuration.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -32,7 +32,7 @@ struct receiver_impl_dependencies {
   /// Message receiver dependencies.
   struct message_rx_dependencies {
     /// Logger.
-    srslog::basic_logger* logger = nullptr;
+    ocudulog::basic_logger* logger = nullptr;
     /// eCPRI packet decoder.
     std::unique_ptr<ecpri::packet_decoder> ecpri_decoder;
     /// Ethernet frame decoder.
@@ -52,7 +52,7 @@ struct receiver_impl_dependencies {
   };
 
   /// Logger.
-  srslog::basic_logger* logger = nullptr;
+  ocudulog::basic_logger* logger = nullptr;
   /// Task executor.
   task_executor* executor = nullptr;
   /// Message receiver dependencies.
@@ -110,4 +110,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -9,27 +9,27 @@
  */
 
 #include "du_low_impl.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_low_impl::du_low_impl(std::vector<std::unique_ptr<upper_phy>> upper_) : upper(std::move(upper_))
 {
-  srsran_assert(!upper.empty(), "Invalid upper PHY");
+  ocudu_assert(!upper.empty(), "Invalid upper PHY");
   // All the upper PHYs share the same metrics collector. Use the first one to configure the DU low metrics collector.
   metrics_collector = du_low_metrics_collector_impl(upper.front()->get_metrics_collector());
 }
 
 upper_phy& du_low_impl::get_upper_phy(unsigned cell_id)
 {
-  srsran_assert(cell_id < upper.size(), "Invalid cell index '{}'. Valid cell indexes [0-{})", cell_id, upper.size());
+  ocudu_assert(cell_id < upper.size(), "Invalid cell index '{}'. Valid cell indexes [0-{})", cell_id, upper.size());
 
   return *upper[cell_id];
 }
 
-srs_du::du_low_metrics_collector* du_low_impl::get_metrics_collector()
+odu::du_low_metrics_collector* du_low_impl::get_metrics_collector()
 {
   return metrics_collector.enabled() ? &metrics_collector : nullptr;
 }

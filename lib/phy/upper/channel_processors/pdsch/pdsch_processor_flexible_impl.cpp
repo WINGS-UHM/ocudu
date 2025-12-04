@@ -11,13 +11,13 @@
 #include "pdsch_processor_flexible_impl.h"
 #include "pdsch_processor_helpers.h"
 #include "pdsch_processor_validator_impl.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/ran/ptrs/ptrs_pattern.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ran/ptrs/ptrs_pattern.h"
+#include "ocudu/support/rtsan.h"
+#include "ocudu/support/tracing/event_tracing.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills \c msg with the error message.
 ///
@@ -38,7 +38,7 @@ void pdsch_processor_flexible_impl::process(resource_grid_writer&               
 {
   // Makes sure the PDU is valid.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdsch_processor_validator_impl().is_valid(pdu_)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdsch_processor_validator_impl().is_valid(pdu_)), "{}", msg);
 
   // Initialize transmission and save inputs.
   initialize_new_transmission(grid_, notifier_, std::move(data_), pdu_);
@@ -67,7 +67,7 @@ void pdsch_processor_flexible_impl::process(resource_grid_writer&               
       ++async_task_counter;
 
       // Process PT-RS concurrently.
-      auto ptrs_task = [this]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+      auto ptrs_task = [this]() noexcept OCUDU_RTSAN_NONBLOCKING {
         auto execute_on_exit = make_scope_exit([this]() {
           // Decrement asynchronous task counter.
           if (async_task_counter.fetch_sub(1) == 1) {
@@ -92,7 +92,7 @@ void pdsch_processor_flexible_impl::process(resource_grid_writer&               
     }
 
     // Process DM-RS concurrently.
-    auto dmrs_task = [this]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+    auto dmrs_task = [this]() noexcept OCUDU_RTSAN_NONBLOCKING {
       auto execute_on_exit = make_scope_exit([this]() {
         // Decrement asynchronous task counter.
         if (async_task_counter.fetch_sub(1) == 1) {
@@ -192,10 +192,10 @@ void pdsch_processor_flexible_impl::initialize_new_transmission(
       // Increment RE count.
       re_count_sum += rm_length_re;
     }
-    srsran_assert(re_count_sum * nof_layers * bits_per_symbol == cw_length,
-                  "RM length sum (i.e., {}) must be equal to the codeword length (i.e., {}).",
-                  units::bits(re_count_sum * nof_layers * bits_per_symbol),
-                  cw_length);
+    ocudu_assert(re_count_sum * nof_layers * bits_per_symbol == cw_length,
+                 "RM length sum (i.e., {}) must be equal to the codeword length (i.e., {}).",
+                 units::bits(re_count_sum * nof_layers * bits_per_symbol),
+                 cw_length);
   }
 
   // First symbol used in this transmission.
@@ -204,10 +204,10 @@ void pdsch_processor_flexible_impl::initialize_new_transmission(
   // Calculate the end symbol index (excluded) and assert it does not exceed the slot boundary.
   unsigned end_symbol_index = config.start_symbol_index + config.nof_symbols;
 
-  srsran_assert(end_symbol_index <= MAX_NSYMB_PER_SLOT,
-                "The time allocation of the transmission ({}:{}) exceeds the slot boundary.",
-                start_symbol_index,
-                end_symbol_index);
+  ocudu_assert(end_symbol_index <= MAX_NSYMB_PER_SLOT,
+               "The time allocation of the transmission ({}:{}) exceeds the slot boundary.",
+               start_symbol_index,
+               end_symbol_index);
 
   // PDSCH OFDM symbol mask.
   symbol_slot_mask symbols;
@@ -304,7 +304,7 @@ void pdsch_processor_flexible_impl::fork_cb_batches()
     unsigned i_batch = nof_cb_batches - 1 - i_task;
 
     // Create asynchronous task for the codeblock batch.
-    auto async_task = [this, nof_cb_per_batch, i_batch]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+    auto async_task = [this, nof_cb_per_batch, i_batch]() noexcept OCUDU_RTSAN_NONBLOCKING {
       // Start PDSCH codeblock batch tracing.
       trace_point cb_batch_pdsch_tp = l1_dl_tracer.now();
 

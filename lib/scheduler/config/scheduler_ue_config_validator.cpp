@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/scheduler/config/scheduler_ue_config_validator.h"
+#include "ocudu/scheduler/config/scheduler_ue_config_validator.h"
 #include "cell_configuration.h"
-#include "srsran/scheduler/config/serving_cell_config_validator.h"
-#include "srsran/support/config/validator_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_validator.h"
+#include "ocudu/support/config/validator_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace config_validators;
 
 error_type<std::string>
-srsran::config_validators::validate_sched_ue_creation_request_message(const sched_ue_creation_request_message& msg,
-                                                                      const cell_configuration&                cell_cfg)
+ocudu::config_validators::validate_sched_ue_creation_request_message(const sched_ue_creation_request_message& msg,
+                                                                     const cell_configuration&                cell_cfg)
 {
   // Verify the list of ServingCellConfig contains spCellConfig.
   VERIFY(msg.cfg.cells.has_value() and not msg.cfg.cells->empty(), "Empty list of ServingCellConfig");

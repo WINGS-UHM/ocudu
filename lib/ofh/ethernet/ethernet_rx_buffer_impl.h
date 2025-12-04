@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/ethernet/ethernet_unique_buffer.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ofh/ethernet/ethernet_unique_buffer.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ether {
 
 class ethernet_rx_buffer_pool;
@@ -58,4 +58,4 @@ private:
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

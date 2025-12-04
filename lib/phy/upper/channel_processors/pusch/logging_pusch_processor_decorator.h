@@ -10,24 +10,24 @@
 
 #pragma once
 
-#include "srsran/phy/support/support_formatters.h"
-#include "srsran/phy/upper/channel_processors/pusch/formatters.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
+#include "ocudu/phy/support/support_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pusch/formatters.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
 #include "fmt/std.h"
 #include <atomic>
 
 namespace fmt {
 
 struct pusch_results_wrapper {
-  std::optional<srsran::pusch_processor_result_control> uci;
-  std::optional<srsran::pusch_processor_result_data>    sch;
+  std::optional<ocudu::pusch_processor_result_control> uci;
+  std::optional<ocudu::pusch_processor_result_data>    sch;
 };
 
 /// \brief Custom formatter for \c pusch_results_wrapper.
 template <>
 struct formatter<pusch_results_wrapper> {
   /// Helper used to parse formatting options and format fields.
-  srsran::delimited_formatter helper;
+  ocudu::delimited_formatter helper;
 
   /// Default constructor.
   formatter() = default;
@@ -64,15 +64,15 @@ struct formatter<pusch_results_wrapper> {
 
 } // namespace fmt
 
-namespace srsran {
+namespace ocudu {
 
 class logging_pusch_processor_decorator : public pusch_processor, private pusch_processor_result_notifier
 {
 public:
-  logging_pusch_processor_decorator(srslog::basic_logger& logger_, std::unique_ptr<pusch_processor> processor_) :
+  logging_pusch_processor_decorator(ocudulog::basic_logger& logger_, std::unique_ptr<pusch_processor> processor_) :
     logger(logger_), processor(std::move(processor_))
   {
-    srsran_assert(processor, "Invalid processor.");
+    ocudu_assert(processor, "Invalid processor.");
   }
 
   void process(span<uint8_t>                    data_,
@@ -99,7 +99,7 @@ public:
 private:
   void on_uci(const pusch_processor_result_control& uci) override
   {
-    srsran_assert(notifier, "Invalid notifier");
+    ocudu_assert(notifier, "Invalid notifier");
     time_uci    = std::chrono::steady_clock::now();
     results.uci = uci;
     notifier->on_uci(uci);
@@ -107,7 +107,7 @@ private:
 
   void on_sch(const pusch_processor_result_data& sch) override
   {
-    srsran_assert(notifier, "Invalid notifier");
+    ocudu_assert(notifier, "Invalid notifier");
 
     // Save SCH results.
     results.sch = sch;
@@ -175,7 +175,7 @@ private:
     notifier_->on_sch(sch);
   }
 
-  srslog::basic_logger&                              logger;
+  ocudulog::basic_logger&                            logger;
   std::unique_ptr<pusch_processor>                   processor;
   span<uint8_t>                                      data;
   pdu_t                                              pdu;
@@ -189,4 +189,4 @@ private:
   static_assert(std::atomic<decltype(time_return)>::is_always_lock_free);
 };
 
-} // namespace srsran
+} // namespace ocudu

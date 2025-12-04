@@ -13,16 +13,16 @@
 #include "puxch/puxch_processor_notifier_test_doubles.h"
 #include "puxch/puxch_processor_test_doubles.h"
 #include "uplink_processor_notifier_test_doubles.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_baseband.h"
-#include "srsran/phy/lower/processors/uplink/uplink_processor_factories.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_baseband.h"
+#include "ocudu/phy/lower/processors/uplink/uplink_processor_factories.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, span<const cf_t> data)
 {
@@ -115,7 +115,7 @@ bool operator==(const puxch_processor_configuration& left, const puxch_processor
          (left.center_freq_Hz == right.center_freq_Hz) && (left.nof_rx_ports == right.nof_rx_ports);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using LowerPhyUplinkProcessorParams = std::tuple<unsigned, sampling_rate, subcarrier_spacing, cyclic_prefix>;
 

@@ -12,17 +12,17 @@
 
 #include "../common/test_helpers.h"
 #include "tests/test_doubles/f1ap/f1c_test_local_gateway.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_configuration.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_configuration.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Generate a random gnb_cu_ue_f1ap_id
 gnb_cu_ue_f1ap_id_t generate_random_gnb_cu_ue_f1ap_id();
@@ -33,9 +33,9 @@ gnb_cu_ue_f1ap_id_t generate_random_gnb_cu_ue_f1ap_id();
 class dummy_cu_cp_f1c_gateway
 {
 public:
-  dummy_cu_cp_f1c_gateway() : logger(srslog::fetch_basic_logger("TEST")) {}
+  dummy_cu_cp_f1c_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  void attach_cu_cp_du_repo(srs_cu_cp::cu_cp_f1c_handler& cu_cp_du_mng_)
+  void attach_cu_cp_du_repo(ocucp::cu_cp_f1c_handler& cu_cp_du_mng_)
   {
     local_f1c_gw.attach_cu_cp_du_repo(cu_cp_du_mng_);
   }
@@ -77,13 +77,13 @@ public:
   size_t nof_connections() const { return du_tx_notifiers.size(); }
 
 private:
-  srslog::basic_logger&  logger;
-  f1c_test_local_gateway local_f1c_gw;
+  ocudulog::basic_logger& logger;
+  f1c_test_local_gateway  local_f1c_gw;
 
   std::vector<std::unique_ptr<f1ap_message_notifier>> du_tx_notifiers;
 };
 
-class dummy_f1ap_ul_ccch_message_notifier : public srs_cu_cp::f1ap_ul_ccch_notifier
+class dummy_f1ap_ul_ccch_message_notifier : public ocucp::f1ap_ul_ccch_notifier
 {
 public:
   dummy_f1ap_ul_ccch_message_notifier() = default;
@@ -96,10 +96,10 @@ public:
   byte_buffer last_ul_ccch_pdu;
 
 private:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
-class dummy_f1ap_ul_dcch_message_notifier : public srs_cu_cp::f1ap_ul_dcch_notifier
+class dummy_f1ap_ul_dcch_message_notifier : public ocucp::f1ap_ul_dcch_notifier
 {
 public:
   dummy_f1ap_ul_dcch_message_notifier() = default;
@@ -112,14 +112,14 @@ public:
   byte_buffer last_ul_dcch_pdu;
 
 private:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
-class dummy_f1ap_du_processor_notifier : public srs_cu_cp::f1ap_du_processor_notifier
+class dummy_f1ap_du_processor_notifier : public ocucp::f1ap_du_processor_notifier
 {
 public:
   dummy_f1ap_du_processor_notifier(const unsigned max_nof_supported_ues_) :
-    max_nof_supported_ues(max_nof_supported_ues_), logger(srslog::fetch_basic_logger("TEST"))
+    max_nof_supported_ues(max_nof_supported_ues_), logger(ocudulog::fetch_basic_logger("TEST"))
   {
   }
 
@@ -130,7 +130,7 @@ public:
     return next_du_setup_resp;
   }
 
-  srs_cu_cp::ue_rrc_context_creation_outcome
+  ocucp::ue_rrc_context_creation_outcome
   on_ue_rrc_context_creation_request(const ue_rrc_context_creation_request& msg) override
   {
     logger.info("Received {}", __FUNCTION__);
@@ -139,7 +139,7 @@ public:
     last_ue_creation_msg.du_to_cu_rrc_container = msg.du_to_cu_rrc_container.copy();
     last_ue_creation_msg.c_rnti                 = msg.c_rnti;
 
-    srs_cu_cp::ue_rrc_context_creation_response response{
+    ocucp::ue_rrc_context_creation_response response{
         msg.ue_index, f1ap_srb0_notifier.get(), f1ap_srb1_notifier.get(), f1ap_srb2_notifier.get()};
     if (msg.ue_index == ue_index_t::invalid) {
       response.ue_index = on_new_cu_cp_ue_required();
@@ -155,9 +155,9 @@ public:
 
   ue_index_t on_new_cu_cp_ue_required()
   {
-    ue_index_t ue_index = srs_cu_cp::ue_index_t::invalid;
+    ue_index_t ue_index = ocucp::ue_index_t::invalid;
     if (ue_id < max_nof_supported_ues) {
-      ue_index              = srs_cu_cp::uint_to_ue_index(ue_id);
+      ue_index              = ocucp::uint_to_ue_index(ue_id);
       last_created_ue_index = ue_index;
       ue_id++;
     }
@@ -165,7 +165,7 @@ public:
     return ue_index;
   }
 
-  void on_du_initiated_ue_context_release_request(const srs_cu_cp::f1ap_ue_context_release_request& req) override
+  void on_du_initiated_ue_context_release_request(const ocucp::f1ap_ue_context_release_request& req) override
   {
     logger.info("Received UEContextReleaseRequest");
     // TODO
@@ -183,11 +183,11 @@ public:
 
   void set_ue_id(uint16_t ue_id_) { ue_id = ue_id_; }
 
-  srs_cu_cp::du_setup_request last_f1_setup_request_msg;
-  srs_cu_cp::du_setup_result  next_du_setup_resp;
+  ocucp::du_setup_request last_f1_setup_request_msg;
+  ocucp::du_setup_result  next_du_setup_resp;
 
-  srs_cu_cp::ue_rrc_context_creation_request           last_ue_creation_msg;
-  std::optional<srs_cu_cp::ue_index_t>                 last_created_ue_index;
+  ocucp::ue_rrc_context_creation_request               last_ue_creation_msg;
+  std::optional<ocucp::ue_index_t>                     last_created_ue_index;
   std::unique_ptr<dummy_f1ap_ul_ccch_message_notifier> f1ap_srb0_notifier =
       std::make_unique<dummy_f1ap_ul_ccch_message_notifier>();
   std::unique_ptr<dummy_f1ap_ul_dcch_message_notifier> f1ap_srb1_notifier =
@@ -197,8 +197,8 @@ public:
 
 private:
   const unsigned            max_nof_supported_ues;
-  srslog::basic_logger&     logger;
-  uint16_t                  ue_id = ue_index_to_uint(srs_cu_cp::ue_index_t::min);
+  ocudulog::basic_logger&   logger;
+  uint16_t                  ue_id = ue_index_to_uint(ocucp::ue_index_t::min);
   fifo_async_task_scheduler task_sched{16};
 };
 
@@ -231,8 +231,8 @@ protected:
 
   void tick();
 
-  srslog::basic_logger& f1ap_logger = srslog::fetch_basic_logger("CU-CP-F1");
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& f1ap_logger = ocudulog::fetch_basic_logger("CU-CP-F1");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   std::unordered_map<ue_index_t, test_ue> test_ues;
 
@@ -245,5 +245,5 @@ protected:
   std::unique_ptr<f1ap_cu>         f1ap;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

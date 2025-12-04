@@ -16,12 +16,12 @@
 #include "split6_o_du_low_unit_config.h"
 #include <variant>
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers all the loggers for the O-RAN DU low split 6.
 inline void register_split6_o_du_low_loggers(const split6_o_du_low_unit_config& config)
 {
-  auto& fapi = srslog::fetch_basic_logger("FAPI", true);
+  auto& fapi = ocudulog::fetch_basic_logger("FAPI", true);
   fapi.set_level(config.fapi_level);
 
   register_du_low_loggers(config.du_low_cfg.loggers);
@@ -33,4 +33,4 @@ inline void register_split6_o_du_low_loggers(const split6_o_du_low_unit_config& 
   }
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,11 +9,11 @@
  */
 
 #include "crc_calculator_neon_impl.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/zero.h"
 #include <arm_neon.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -115,8 +115,8 @@ static inline uint64x2_t neon_safe_load(span<const uint8_t> data)
   alignas(64) std::array<uint8_t, 16> temp_data;
   span<uint8_t>                       simd_data = temp_data;
 
-  srsvec::copy(simd_data.first(data.size()), data);
-  srsvec::zero(simd_data.last(16 - data.size()));
+  ocuduvec::copy(simd_data.first(data.size()), data);
+  ocuduvec::zero(simd_data.last(16 - data.size()));
 
   return vld1q_u64(reinterpret_cast<const uint64_t*>(simd_data.data()));
 }

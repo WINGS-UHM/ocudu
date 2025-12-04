@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/f1ap/du/f1ap_du_positioning_handler.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 class du_cell_manager;
 class du_ue_manager;
@@ -22,6 +22,6 @@ struct du_manager_params;
 std::unique_ptr<f1ap_du_positioning_handler> create_du_positioning_handler(const du_manager_params& du_params,
                                                                            du_cell_manager&         cell_mng,
                                                                            du_ue_manager&           ue_mng,
-                                                                           srslog::basic_logger&    logger);
+                                                                           ocudulog::basic_logger&  logger);
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

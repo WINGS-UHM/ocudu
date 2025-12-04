@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace hal;
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 std::shared_ptr<hw_accelerator_pdsch_enc_factory>
-srsran::hal::create_bbdev_pdsch_enc_acc_factory(const bbdev_hwacc_pdsch_enc_factory_configuration& accelerator_config)
+ocudu::hal::create_bbdev_pdsch_enc_acc_factory(const bbdev_hwacc_pdsch_enc_factory_configuration& accelerator_config)
 {
   return nullptr;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/support/executors/unique_thread.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/support/executors/unique_thread.h"
 
-namespace srsran {
+namespace ocudu {
 
 class timer_manager;
 
@@ -27,7 +27,7 @@ public:
 
   virtual void stop() = 0;
 
-  virtual srs_du::du_high_executor_mapper& get_exec_mapper() = 0;
+  virtual odu::du_high_executor_mapper& get_exec_mapper() = 0;
 
   virtual task_executor& timer_executor() = 0;
 
@@ -45,4 +45,4 @@ struct du_high_worker_config {
 std::unique_ptr<du_high_worker_manager> create_multi_threaded_du_high_executor_mapper(const du_high_worker_config& cfg);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

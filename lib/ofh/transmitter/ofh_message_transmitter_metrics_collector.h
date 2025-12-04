@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../support/metrics_helpers.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_metrics.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul message transmitter metrics collector.
@@ -85,4 +85,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

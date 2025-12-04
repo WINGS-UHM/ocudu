@@ -12,10 +12,10 @@
 
 #include "split6_flexible_o_du_low_session.h"
 #include "split6_flexible_o_du_low_session_factory.h"
-#include "srsran/fapi/cell_operation_request_notifier.h"
+#include "ocudu/fapi/cell_operation_request_notifier.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 class split6_flexible_o_du_low_metrics_notifier;
 
 /// \brief Split 6 flexible O-DU low session manager.
@@ -28,7 +28,7 @@ public:
       std::unique_ptr<split6_flexible_o_du_low_session_factory> odu_low_session_factory_) :
     odu_low_session_factory(std::move(odu_low_session_factory_))
   {
-    srsran_assert(odu_low_session_factory, "Invalid O-DU low session factory");
+    ocudu_assert(odu_low_session_factory, "Invalid O-DU low session factory");
   }
 
   // See interface for documentation.
@@ -42,4 +42,4 @@ private:
   std::unique_ptr<split6_flexible_o_du_low_session>         flexible_odu_low;
 };
 
-} // namespace srsran
+} // namespace ocudu

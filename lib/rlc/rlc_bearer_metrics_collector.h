@@ -11,11 +11,11 @@
 #pragma once
 
 #include "rlc_bearer_logger.h"
-#include "srsran/adt/lockfree_triple_buffer.h"
-#include "srsran/ran/gnb_du_id.h"
-#include "srsran/rlc/rlc_metrics.h"
+#include "ocudu/adt/lockfree_triple_buffer.h"
+#include "ocudu/ran/gnb_du_id.h"
+#include "ocudu/rlc/rlc_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 class rlc_bearer_metrics_collector
 {
 public:
@@ -71,4 +71,4 @@ private:
   /// Triple buffer for alloc-free forwarding of \c rlc_tx_metrics_lower from cell executor to ue executor
   lockfree_triple_buffer<rlc_tx_metrics_lower> metrics_lower_triple_buf;
 };
-} // namespace srsran
+} // namespace ocudu

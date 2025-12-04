@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/asn1/asn1_utils.h"
-#include "srsran/asn1/e2sm/e2sm_kpm_ies.h"
-#include "srsran/e2/e2sm/e2sm_kpm.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/e2sm/e2sm_kpm_ies.h"
+#include "ocudu/e2/e2sm/e2sm_kpm.h"
 
-namespace srsran {
+namespace ocudu {
 
 std::string         e2sm_kpm_label_2_str(e2sm_kpm_label_enum label);
 std::string         e2sm_kpm_scope_2_str(e2sm_kpm_metric_level_enum level);
@@ -27,4 +27,4 @@ bool operator<(const asn1::e2sm::ue_id_c& lhs, const asn1::e2sm::ue_id_c& rhs);
 bool operator==(const asn1::e2sm::ue_id_gnb_du_s& lhs, const asn1::e2sm::ue_id_gnb_du_s& rhs);
 bool operator<(const asn1::e2sm::ue_id_gnb_du_s& lhs, const asn1::e2sm::ue_id_gnb_du_s& rhs);
 
-} // namespace srsran
+} // namespace ocudu

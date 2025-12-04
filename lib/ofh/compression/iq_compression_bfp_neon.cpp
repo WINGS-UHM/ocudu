@@ -12,10 +12,10 @@
 #include "neon_helpers.h"
 #include "packing_utils_neon.h"
 #include "quantizer.h"
-#include "srsran/ofh/compression/compression_properties.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ofh/compression/compression_properties.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 #define shift_right_x3vector(src, dst, exponent)                                                                       \
@@ -77,7 +77,7 @@ void iq_compression_bfp_neon::compress(span<uint8_t>                buffer,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
+  ocudu_assert(buffer.size() >= prb_size * nof_prbs, "Output buffer doesn't have enough space to decompress PRBs");
 
   // Auxiliary arrays used for float to fixed point conversion of the input data.
   std::array<int16_t, NOF_SAMPLES_PER_PRB * MAX_NOF_PRBS> input_quantized;
@@ -108,7 +108,7 @@ void iq_compression_bfp_neon::compress(span<uint8_t>                buffer,
     uint8_t exponent_2 = 0;
     uint8_t exponent_3 = 0;
     // Determine exponents.
-    if (SRSRAN_LIKELY(params.data_width != MAX_IQ_WIDTH)) {
+    if (OCUDU_LIKELY(params.data_width != MAX_IQ_WIDTH)) {
       exponent_0 = neon::determine_bfp_exponent(vec_s16x3_0, params.data_width);
       exponent_1 = neon::determine_bfp_exponent(vec_s16x3_1, params.data_width);
       exponent_2 = neon::determine_bfp_exponent(vec_s16x3_2, params.data_width);
@@ -155,7 +155,7 @@ void iq_compression_bfp_neon::compress(span<uint8_t>                buffer,
     // Determine exponents.
     uint8_t exponent_0 = 0;
     uint8_t exponent_1 = 0;
-    if (SRSRAN_LIKELY(params.data_width != MAX_IQ_WIDTH)) {
+    if (OCUDU_LIKELY(params.data_width != MAX_IQ_WIDTH)) {
       exponent_0 = neon::determine_bfp_exponent(vec_s16x3_0, params.data_width);
       exponent_1 = neon::determine_bfp_exponent(vec_s16x3_1, params.data_width);
     }
@@ -187,7 +187,7 @@ void iq_compression_bfp_neon::compress(span<uint8_t>                buffer,
 
     // Determine exponent.
     uint8_t exponent = 0;
-    if (SRSRAN_LIKELY(params.data_width != MAX_IQ_WIDTH)) {
+    if (OCUDU_LIKELY(params.data_width != MAX_IQ_WIDTH)) {
       exponent = neon::determine_bfp_exponent(vec_s16x3, params.data_width);
     }
 
@@ -221,9 +221,9 @@ void iq_compression_bfp_neon::decompress(span<cbf16_t>                iq_data,
   // Size in bytes of one compressed PRB using the given compression parameters.
   unsigned comp_prb_size = get_compressed_prb_size(params).value();
 
-  srsran_assert(compressed_data.size() >= nof_prbs * comp_prb_size,
-                "Input does not contain enough bytes to decompress {} PRBs",
-                nof_prbs);
+  ocudu_assert(compressed_data.size() >= nof_prbs * comp_prb_size,
+               "Input does not contain enough bytes to decompress {} PRBs",
+               nof_prbs);
 
   quantizer q_out(Q_BIT_WIDTH);
 

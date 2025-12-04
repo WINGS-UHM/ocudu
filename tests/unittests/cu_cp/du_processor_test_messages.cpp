@@ -13,22 +13,22 @@
 #include "lib/f1ap/cu_cp/f1ap_asn1_helpers.h"
 #include "lib/f1ap/cu_cp/procedures/f1_setup_procedure.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-void srsran::srs_cu_cp::generate_valid_f1_setup_request(du_setup_request& setup_request,
-                                                        gnb_du_id_t       gnb_du_id,
-                                                        nr_cell_identity  nci,
-                                                        pci_t             pci,
-                                                        unsigned          tac)
+void ocudu::ocucp::generate_valid_f1_setup_request(du_setup_request& setup_request,
+                                                   gnb_du_id_t       gnb_du_id,
+                                                   nr_cell_identity  nci,
+                                                   pci_t             pci,
+                                                   unsigned          tac)
 {
   f1ap_message f1setup_msg = test_helpers::generate_f1_setup_request(gnb_du_id, {{.nci = nci, .pci = pci, .tac = tac}});
   setup_request            = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request());
 }
 
-void srsran::srs_cu_cp::generate_f1_setup_request_base(du_setup_request& setup_request)
+void ocudu::ocucp::generate_f1_setup_request_base(du_setup_request& setup_request)
 {
   f1ap_message f1setup_msg = test_helpers::generate_f1_setup_request(
       int_to_gnb_du_id(0x11), {{.nci = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value(), .pci = 0, .tac = 7}});
@@ -37,7 +37,7 @@ void srsran::srs_cu_cp::generate_f1_setup_request_base(du_setup_request& setup_r
   setup_request = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request());
 }
 
-f1ap_message srsran::srs_cu_cp::create_f1_setup_request_with_too_many_cells(const f1ap_message& base)
+f1ap_message ocudu::ocucp::create_f1_setup_request_with_too_many_cells(const f1ap_message& base)
 {
   f1ap_message msg = base;
 
@@ -54,7 +54,7 @@ f1ap_message srsran::srs_cu_cp::create_f1_setup_request_with_too_many_cells(cons
   return msg;
 }
 
-void srsran::srs_cu_cp::generate_f1_setup_request_with_too_many_cells(du_setup_request& setup_request)
+void ocudu::ocucp::generate_f1_setup_request_with_too_many_cells(du_setup_request& setup_request)
 {
   f1ap_message f1setup_msg  = test_helpers::generate_f1_setup_request();
   auto&        f1_setup_req = f1setup_msg.pdu.init_msg().value.f1_setup_request();
@@ -76,9 +76,8 @@ void srsran::srs_cu_cp::generate_f1_setup_request_with_too_many_cells(du_setup_r
   setup_request = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request());
 }
 
-ue_rrc_context_creation_request srsran::srs_cu_cp::generate_ue_rrc_context_creation_request(ue_index_t       ue_index,
-                                                                                            rnti_t           c_rnti,
-                                                                                            nr_cell_identity nrcell_id)
+ue_rrc_context_creation_request
+ocudu::ocucp::generate_ue_rrc_context_creation_request(ue_index_t ue_index, rnti_t c_rnti, nr_cell_identity nrcell_id)
 {
   ue_rrc_context_creation_request req = {};
   req.ue_index                        = ue_index;

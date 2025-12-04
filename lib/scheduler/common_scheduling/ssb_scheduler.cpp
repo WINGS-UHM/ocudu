@@ -9,15 +9,15 @@
  */
 
 #include "ssb_scheduler.h"
-#include "srsran/ran/frame_types.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/frame_types.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ssb_scheduler::ssb_scheduler(const cell_configuration& cfg_) :
-  cell_cfg(cfg_), logger(srslog::fetch_basic_logger("SCHED"))
+  cell_cfg(cfg_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   ssb_period = ssb_periodicity_to_value(cell_cfg.ssb_cfg.ssb_period);
 }
@@ -72,7 +72,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid)
       ssb_alloc_case_D(ssb_list, sl_point_mod);
       break;
     default:
-      srsran_assert(cell_cfg.ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
+      ocudu_assert(cell_cfg.ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
   }
 
   // Update the used DL PRBs with those allocated to the SSBs.
@@ -112,7 +112,7 @@ void ssb_scheduler::ssb_alloc_case_A_C(ssb_information_list& ssb_list,
 
     for (uint8_t n = 0; n < ssb_burst_ofdm_symb.size(); n++) {
       if (in_burst_bitmap & ssb_idx_mask) {
-        srsran_assert(n < sizeof(ssb_burst_ofdm_symb), "SSB index exceeding OFDM symbols array size");
+        ocudu_assert(n < sizeof(ssb_burst_ofdm_symb), "SSB index exceeding OFDM symbols array size");
         uint8_t ssb_idx = n + slot_idx * 2;
         fill_ssb_parameters(ssb_list,
                             cell_cfg.ssb_cfg.offset_to_point_A,
@@ -151,7 +151,7 @@ void ssb_scheduler::ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point 
 
     for (uint8_t n = 0; n < ssb_burst_ofdm_symb.size(); n++) {
       if (in_burst_bitmap & ssb_idx_mask) {
-        srsran_assert(n < sizeof(ssb_burst_ofdm_symb), "SSB index exceeding OFDM symbols array size");
+        ocudu_assert(n < sizeof(ssb_burst_ofdm_symb), "SSB index exceeding OFDM symbols array size");
         uint8_t ssb_idx = n + slot_idx * 2;
         fill_ssb_parameters(ssb_list,
                             cell_cfg.ssb_cfg.offset_to_point_A,
@@ -173,7 +173,7 @@ void ssb_scheduler::ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point 
 
     for (uint8_t n = 0; n < ssb_burst_ofdm_symb.size(); n++) {
       if (in_burst_bitmap & ssb_idx_mask) {
-        srsran_assert(n < sizeof(ssb_burst_ofdm_symb), "SSB index exceeding OFDM symbols array size");
+        ocudu_assert(n < sizeof(ssb_burst_ofdm_symb), "SSB index exceeding OFDM symbols array size");
         uint8_t ssb_idx = n + slot_idx * 2;
         fill_ssb_parameters(ssb_list,
                             cell_cfg.ssb_cfg.offset_to_point_A,

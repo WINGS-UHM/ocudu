@@ -15,7 +15,7 @@
 #include "apps/units/flexible_o_du/split_7_2/helpers/ru_ofh_logger_registrator.h"
 #include "split_7_2_o_du_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Registers all the loggers for the O-RAN DU split 7.2.
 inline void register_split_7_2_o_du_loggers(const split_7_2_o_du_unit_config& config)
@@ -25,4 +25,4 @@ inline void register_split_7_2_o_du_loggers(const split_7_2_o_du_unit_config& co
   register_ru_ofh_loggers(config.ru_cfg.config.loggers);
 }
 
-} // namespace srsran
+} // namespace ocudu

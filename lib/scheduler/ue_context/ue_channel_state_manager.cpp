@@ -9,9 +9,9 @@
  */
 
 #include "ue_channel_state_manager.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ue_channel_state_manager::ue_channel_state_manager(const scheduler_ue_expert_config& expert_cfg,
                                                    unsigned                          nof_dl_ports_) :
@@ -77,14 +77,14 @@ void ue_channel_state_manager::update_srs_channel_matrix(const srs_channel_matri
       get_tpmi_select_info(channel_matrix, noise_var, codebook_cfg.max_rank.value(), codebook_cfg.codebook_subset);
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 unsigned ue_channel_state_manager::get_nof_ul_layers() const
 {
   return 1;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 unsigned ue_channel_state_manager::get_recommended_pusch_tpmi(unsigned nof_layers) const
 {

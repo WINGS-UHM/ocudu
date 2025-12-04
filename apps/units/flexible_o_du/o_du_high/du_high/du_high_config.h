@@ -11,44 +11,44 @@
 #pragma once
 
 #include "apps/helpers/metrics/metrics_config.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/bs_channel_bandwidth.h"
-#include "srsran/ran/direct_current_offset.h"
-#include "srsran/ran/gnb_du_id.h"
-#include "srsran/ran/gnb_id.h"
-#include "srsran/ran/ntn.h"
-#include "srsran/ran/pcch/pcch_configuration.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/ran/pdsch/pdsch_mcs.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/pucch/pucch_configuration.h"
-#include "srsran/ran/pucch/pucch_mapping.h"
-#include "srsran/ran/pusch/pusch_mcs.h"
-#include "srsran/ran/qos/five_qi.h"
-#include "srsran/ran/radio_link_monitoring.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/ran/sib/system_info_config.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/ran/tac.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/direct_current_offset.h"
+#include "ocudu/ran/gnb_du_id.h"
+#include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/ntn.h"
+#include "ocudu/ran/pcch/pcch_configuration.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/qos/five_qi.h"
+#include "ocudu/ran/radio_link_monitoring.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/ran/sib/system_info_config.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/ran/tac.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include <map>
 #include <string>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// DU high logging functionalities.
 struct du_high_unit_logger_config {
-  srslog::basic_levels du_level   = srslog::basic_levels::warning;
-  srslog::basic_levels mac_level  = srslog::basic_levels::warning;
-  srslog::basic_levels rlc_level  = srslog::basic_levels::warning;
-  srslog::basic_levels f1ap_level = srslog::basic_levels::warning;
-  srslog::basic_levels f1u_level  = srslog::basic_levels::warning;
-  srslog::basic_levels gtpu_level = srslog::basic_levels::warning;
+  ocudulog::basic_levels du_level   = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels mac_level  = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels rlc_level  = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels f1ap_level = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels f1u_level  = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels gtpu_level = ocudulog::basic_levels::warning;
 
   /// Maximum number of bytes to write when dumping hex arrays.
   int hex_max_size = 0;
@@ -1159,4 +1159,4 @@ struct du_high_parsed_config {
   du_high_unit_base_cell_config common_cell_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

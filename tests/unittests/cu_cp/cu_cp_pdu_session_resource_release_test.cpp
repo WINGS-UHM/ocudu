@@ -17,15 +17,15 @@
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
-#include "srsran/ran/cu_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/cu_types.h"
 #include <gtest/gtest.h>
 #include <optional>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_pdu_session_resource_release_test : public cu_cp_test_environment, public ::testing::Test
 {

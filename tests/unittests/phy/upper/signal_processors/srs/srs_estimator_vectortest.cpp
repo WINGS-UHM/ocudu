@@ -10,19 +10,19 @@
 
 #include "../../../support/resource_grid_test_doubles.h"
 #include "srs_estimator_test_data.h"
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/phy/upper/signal_processors/srs/formatters.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_factory.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_result.h"
-#include "srsran/ran/phy_time_unit.h"
-#include "srsran/ran/srs/srs_channel_matrix_formatters.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/phy/upper/signal_processors/srs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_factory.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"
+#include "ocudu/ran/phy_time_unit.h"
+#include "ocudu/ran/srs/srs_channel_matrix_formatters.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 {
@@ -41,9 +41,9 @@ bool operator==(const srs_channel_matrix& left, const srs_channel_matrix& right)
   return left.is_near(right, 0.05F);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 class srsEstimatorFixture : public ::testing::TestWithParam<test_case_t>
 {
@@ -94,7 +94,7 @@ TEST_P(srsEstimatorFixture, FromVector)
       convert_dB_to_power(test_case.context.result.epre_dB.value()), convert_dB_to_power(result.epre_dB.value()), 5e-3);
 
   double ta_aligment_tolerance_s =
-      srsran::phy_time_unit::from_timing_advance(1, to_subcarrier_spacing(config.slot.numerology())).to_seconds();
+      ocudu::phy_time_unit::from_timing_advance(1, to_subcarrier_spacing(config.slot.numerology())).to_seconds();
   ASSERT_NEAR(test_case.context.result.time_alignment.time_alignment,
               result.time_alignment.time_alignment,
               ta_aligment_tolerance_s);

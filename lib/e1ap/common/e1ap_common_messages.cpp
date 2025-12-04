@@ -9,16 +9,16 @@
  */
 
 #include "e1ap_common_messages.h"
-#include "srsran/asn1/e1ap/common.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/asn1/e1ap/common.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::e1ap;
 
-e1ap_message srsran::generate_error_indication(uint8_t                                      transaction_id,
-                                               const std::optional<gnb_cu_up_ue_e1ap_id_t>& cu_up_ue_id,
-                                               const std::optional<gnb_cu_cp_ue_e1ap_id_t>& cu_cp_ue_id,
-                                               const std::optional<asn1::e1ap::cause_c>&    cause)
+e1ap_message ocudu::generate_error_indication(uint8_t                                      transaction_id,
+                                              const std::optional<gnb_cu_up_ue_e1ap_id_t>& cu_up_ue_id,
+                                              const std::optional<gnb_cu_cp_ue_e1ap_id_t>& cu_cp_ue_id,
+                                              const std::optional<asn1::e1ap::cause_c>&    cause)
 {
   e1ap_message msg;
   msg.pdu.set_init_msg().load_info_obj(ASN1_E1AP_ID_ERROR_IND);

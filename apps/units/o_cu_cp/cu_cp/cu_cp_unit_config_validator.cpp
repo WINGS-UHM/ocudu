@@ -9,15 +9,15 @@
  */
 
 #include "cu_cp_unit_config_validator.h"
-#include "srsran/adt/span.h"
-#include "srsran/pdcp/pdcp_t_reordering.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/rlc/rlc_config.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/pdcp/pdcp_t_reordering.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/rlc/rlc_config.h"
 #include <map>
 #include <set>
 #include <sstream>
 
-using namespace srsran;
+using namespace ocudu;
 
 static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobility_config& config)
 {
@@ -510,7 +510,7 @@ static bool validate_cu_cp_appconfig(const gnb_id_t gnb_id, const cu_cp_unit_con
   return true;
 }
 
-bool srsran::validate_cu_cp_unit_config(const cu_cp_unit_config& config)
+bool ocudu::validate_cu_cp_unit_config(const cu_cp_unit_config& config)
 {
   return validate_cu_cp_appconfig(config.gnb_id, config);
 }

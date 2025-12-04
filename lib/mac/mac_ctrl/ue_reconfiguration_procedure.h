@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../mac_config_interfaces.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct mac_control_config;
 class mac_scheduler_configurator;
@@ -37,7 +37,7 @@ private:
 
   mac_ue_reconfiguration_request req;
   mac_control_config&            cfg;
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
   mac_ul_configurator&           ul_unit;
   mac_dl_configurator&           dl_unit;
   mac_scheduler_configurator&    sched_cfg;
@@ -46,4 +46,4 @@ private:
   bool sched_conf_res = true;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,14 +11,14 @@
 #pragma once
 
 #include "context_repository_helpers.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/serdes/ofh_cplane_message_properties.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/serdes/ofh_cplane_message_properties.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include <array>
 #include <atomic>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Uplink Control-Plane context.
@@ -103,4 +103,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/ran/du_types.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class mac_test_mode_event_handler
 {
@@ -35,13 +35,13 @@ public:
 
   bool schedule(du_cell_index_t cell_index, unique_task t)
   {
-    srsran_assert(cell_index < cells.size(), "Invalid cell index {}", fmt::underlying(cell_index));
+    ocudu_assert(cell_index < cells.size(), "Invalid cell index {}", fmt::underlying(cell_index));
     return cells[cell_index]->try_push(std::move(t));
   }
 
   void process_pending_tasks(du_cell_index_t cell_index)
   {
-    srsran_assert(cell_index < cells.size(), "Invalid cell index {}", fmt::underlying(cell_index));
+    ocudu_assert(cell_index < cells.size(), "Invalid cell index {}", fmt::underlying(cell_index));
     auto& c = *cells[cell_index];
 
     unique_task task;
@@ -54,4 +54,4 @@ private:
   std::vector<std::unique_ptr<cell_event_queue>> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

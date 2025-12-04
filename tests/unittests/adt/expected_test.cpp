@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/adt/expected.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // test trivially_destructible
 static_assert(std::is_trivially_destructible_v<expected<int, int>>, "expected should be trivially destructible");

@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_allocator.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_code.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_encoder.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_interleaver.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_rate_matcher.h"
-#include "srsran/phy/upper/channel_processors/ssb/pbch_encoder.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_allocator.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_code.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_encoder.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_interleaver.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_rate_matcher.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_encoder.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/support/error_handling.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PBCH encoder implementation.
 class pbch_encoder_impl : public pbch_encoder
@@ -36,13 +36,13 @@ class pbch_encoder_impl : public pbch_encoder
   /// \brief Implements TS38.312 Section 7.1.1 PBCH payload generation.
   /// \param[out] a Generated payload.
   /// \param[in] msg PBCH message.
-  void payload_generate(span<uint8_t> a, const srsran::pbch_encoder::pbch_msg_t& msg);
+  void payload_generate(span<uint8_t> a, const ocudu::pbch_encoder::pbch_msg_t& msg);
 
   /// \brief Implements TS38.312 Section 7.1.2 Scrambling.
   /// \param[out] a_prime Scrambled payload.
   /// \param[in] msg PBCH message.
   /// \param[in] a Payload.
-  void scramble(span<uint8_t> a_prime, const srsran::pbch_encoder::pbch_msg_t& msg, span<const uint8_t> a);
+  void scramble(span<uint8_t> a_prime, const ocudu::pbch_encoder::pbch_msg_t& msg, span<const uint8_t> a);
 
   /// \brief Implements TS38.312 Section 7.1.3 Transport block CRC attachment.
   /// \param[in] b Data with CRC attached.
@@ -91,4 +91,4 @@ public:
   void encode(span<uint8_t> encoded, const pbch_msg_t& pbch_msg) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

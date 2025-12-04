@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/mac/cell_configuration.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/ssb/ssb_configuration.h"
-#include "srsran/scheduler/config/dmrs.h"
+#include "ocudu/mac/cell_configuration.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/ssb/ssb_configuration.h"
+#include "ocudu/scheduler/config/dmrs.h"
 #include <cstddef>
 
-namespace srsran {
+namespace ocudu {
 
 struct dl_ssb_pdu;
 struct ssb_information;
@@ -50,4 +50,4 @@ private:
   uint8_t          L_max;
 };
 
-} // namespace srsran
+} // namespace ocudu

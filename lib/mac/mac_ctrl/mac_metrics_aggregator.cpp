@@ -10,12 +10,12 @@
 
 #include "mac_metrics_aggregator.h"
 #include "spsc_metric_report_channel.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/mac/mac_metrics_notifier.h"
-#include "srsran/scheduler/scheduler_metrics.h"
-#include "srsran/support/executors/execute_until_success.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/mac/mac_metrics_notifier.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
+#include "ocudu/support/executors/execute_until_success.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -54,7 +54,7 @@ public:
                       subcarrier_spacing         scs_common_,
                       unsigned                   tdd_period_slots,
                       mac_cell_clock_controller& time_source_,
-                      srslog::basic_logger&      logger_) :
+                      ocudulog::basic_logger&    logger_) :
     parent(parent_),
     cell_index(cell_index_),
     scs_common(scs_common_),
@@ -70,14 +70,14 @@ public:
   {
     // Note: Called by MAC, from the cell execution context.
 
-    if (SRSRAN_UNLIKELY(not last_sl_tx.valid())) {
+    if (OCUDU_UNLIKELY(not last_sl_tx.valid())) {
       // Cell not yet active.
       return false;
     }
 
     // Add HFN.
     slot_point_extended new_last_sl_tx{slot_tx, last_sl_tx.hyper_sfn()};
-    if (SRSRAN_UNLIKELY(new_last_sl_tx < last_sl_tx)) {
+    if (OCUDU_UNLIKELY(new_last_sl_tx < last_sl_tx)) {
       // SFN rollover detected.
       new_last_sl_tx += slot_tx.nof_slots_per_hyper_system_frame();
     }
@@ -94,13 +94,13 @@ public:
   {
     // Note: Called by SCHED, from the cell execution context.
 
-    if (SRSRAN_UNLIKELY(not last_sl_tx.valid())) {
+    if (OCUDU_UNLIKELY(not last_sl_tx.valid())) {
       return false;
     }
 
     // Add HFN.
     slot_point_extended new_last_sl_tx{slot_tx, last_sl_tx.hyper_sfn()};
-    if (SRSRAN_UNLIKELY(new_last_sl_tx < last_sl_tx)) {
+    if (OCUDU_UNLIKELY(new_last_sl_tx < last_sl_tx)) {
       // SFN rollover detected.
       new_last_sl_tx += slot_tx.nof_slots_per_hyper_system_frame();
     }
@@ -142,7 +142,7 @@ public:
   void on_cell_metric_report(const mac_dl_cell_metric_report& report) override
   {
     // Note: Function called from the DU cell execution context.
-    srsran_sanity_check(is_report_required(last_sl_tx.without_hyper_sfn()), "Report not required");
+    ocudu_sanity_check(is_report_required(last_sl_tx.without_hyper_sfn()), "Report not required");
 
     // Save MAC report.
     mac_builder->mac = report;
@@ -199,7 +199,7 @@ private:
   void commit(scheduler_cell_metrics& report) final
   {
     // Note: This function is called from the scheduler execution context.
-    srsran_sanity_check(&report == &sched_builder->sched, "Invalid report being committed");
+    ocudu_sanity_check(&report == &sched_builder->sched, "Invalid report being committed");
 
     // Scheduler prepared report, now it is the turn of the MAC cell to prepare its report.
     mac_builder = std::move(sched_builder);
@@ -229,7 +229,7 @@ private:
 mac_metrics_aggregator::mac_metrics_aggregator(const mac_control_config::metrics_config& cfg_,
                                                task_executor&                            ctrl_exec_,
                                                timer_manager&                            timers_,
-                                               srslog::basic_logger&                     logger_) :
+                                               ocudulog::basic_logger&                   logger_) :
   cfg(cfg_), ctrl_exec(ctrl_exec_), timers(timers_), logger(logger_)
 {
   aggr_timer = timers_.create_unique_timer(ctrl_exec);
@@ -243,7 +243,7 @@ cell_metric_report_config mac_metrics_aggregator::add_cell(du_cell_index_t      
                                                            unsigned                   tdd_period_slots,
                                                            mac_cell_clock_controller& time_source)
 {
-  srsran_assert(not cells.contains(cell_index), "Duplicate cell creation");
+  ocudu_assert(not cells.contains(cell_index), "Duplicate cell creation");
 
   // Reserve space in reports for new cell.
   for (auto& rep : report_ring) {
@@ -263,7 +263,7 @@ cell_metric_report_config mac_metrics_aggregator::add_cell(du_cell_index_t      
 
 void mac_metrics_aggregator::rem_cell(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "Cell not found");
+  ocudu_assert(cells.contains(cell_index), "Cell not found");
   cells.erase(cell_index);
 }
 
@@ -366,25 +366,25 @@ void mac_metrics_aggregator::try_send_new_report()
 
 void mac_metrics_aggregator::handle_cell_activation(du_cell_index_t cell_index, slot_point_extended report_end_sl_tx)
 {
-  srsran_assert(cells.contains(cell_index), "MAC cell activated but not configured");
+  ocudu_assert(cells.contains(cell_index), "MAC cell activated but not configured");
   auto& cell = *cells[cell_index];
-  srsran_assert(not cell.active_flag, "Reactivation of cell not supported");
+  ocudu_assert(not cell.active_flag, "Reactivation of cell not supported");
 
   cell.active_flag = true;
   if (not next_report_start_slot.valid()) {
     next_report_start_slot = report_end_sl_tx - cell.period_slots;
     period_slots           = cell.period_slots;
-    srsran_sanity_check(next_report_start_slot.count() % period_slots == 0,
-                        "Invalid report end slot provided during the first MAC cell activation");
+    ocudu_sanity_check(next_report_start_slot.count() % period_slots == 0,
+                       "Invalid report end slot provided during the first MAC cell activation");
   }
   ++nof_active_cells;
 }
 
 void mac_metrics_aggregator::handle_cell_deactivation(du_cell_index_t cell_index)
 {
-  srsran_assert(cells.contains(cell_index), "MAC cell activated but not configured");
+  ocudu_assert(cells.contains(cell_index), "MAC cell activated but not configured");
   auto& cell = *cells[cell_index];
-  srsran_assert(cell.active_flag, "Deactivation of already deactivated cell not supported");
+  ocudu_assert(cell.active_flag, "Deactivation of already deactivated cell not supported");
 
   cell.active_flag = false;
   if (--nof_active_cells == 0) {

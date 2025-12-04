@@ -16,7 +16,7 @@
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_config_yaml_writer.h"
 #include "dynamic_o_du_unit_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_ru_dummy_metrics_section(YAML::Node node, const ru_dummy_unit_metrics_config& config)
 {
@@ -55,7 +55,7 @@ static void fill_ru_dummy_config(YAML::Node node, const ru_dummy_unit_config& co
   }
 }
 
-void srsran::fill_dynamic_o_du_unit_config_in_yaml_schema(YAML::Node& node, const dynamic_o_du_unit_config& config)
+void ocudu::fill_dynamic_o_du_unit_config_in_yaml_schema(YAML::Node& node, const dynamic_o_du_unit_config& config)
 {
   fill_o_du_high_config_in_yaml_schema(node, config.odu_high_cfg);
   fill_du_low_config_in_yaml_schema(node, config.du_low_cfg);

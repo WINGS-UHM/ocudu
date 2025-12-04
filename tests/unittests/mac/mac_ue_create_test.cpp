@@ -12,21 +12,21 @@
 #include "mac_ctrl_test_dummies.h"
 #include "tests/test_doubles/mac/dummy_mac_metrics_notifier.h"
 #include "tests/unittests/mac/mac_test_helpers.h"
-#include "srsran/pcap/mac_pcap.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/async/manual_event.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/pcap/mac_pcap.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class mac_ue_create_procedure_test : public testing::Test
 {
 protected:
   mac_ue_create_procedure_test()
   {
-    srslog::fetch_basic_logger("MAC", true).set_level(srslog::basic_levels::info);
-    srslog::init();
+    ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::info);
+    ocudulog::init();
 
     // Launch procedure
     msg.ue_index   = to_du_ue_index(1);

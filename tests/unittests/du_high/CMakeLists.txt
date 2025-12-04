@@ -11,5 +11,5 @@ set_directory_properties(PROPERTIES LABELS "du_high")
 include_directories(../../..)
 
 add_executable(du_high_clock_controller_test du_high_clock_controller_test.cpp)
-target_link_libraries(du_high_clock_controller_test srsran_du_high srsran_support srslog gtest gtest_main)
+target_link_libraries(du_high_clock_controller_test ocudu_du_high ocudu_support ocudulog gtest gtest_main)
 add_test(du_high_clock_controller_test du_high_clock_controller_test)

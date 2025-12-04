@@ -13,12 +13,12 @@
 // This file was generated using the following MATLAB class on 29-01-2024 (seed 0):
 //   + "srsUCIDecoderUnittest.m"
 
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/ran/sch/modulation_scheme.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/ran/sch/modulation_scheme.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   unsigned                          message_length = 0;
@@ -193,4 +193,4 @@ static const std::vector<test_case_t> uci_decoder_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

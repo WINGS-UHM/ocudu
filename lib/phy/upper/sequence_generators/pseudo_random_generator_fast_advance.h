@@ -13,7 +13,7 @@
 #include "pseudo_random_generator_initializers.h"
 #include <cstdint>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements a pseudo-random fast state advance class.
 ///
@@ -70,8 +70,8 @@ class pseudo_random_generator_fast_advance<0>
 public:
   void advance(uint32_t& /* x1_state */, uint32_t& /* x2_state */, unsigned count) const
   {
-    srsran_assert(count == 0, "Count must be zero.");
+    ocudu_assert(count == 0, "Count must be zero.");
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

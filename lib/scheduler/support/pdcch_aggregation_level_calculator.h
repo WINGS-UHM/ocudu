@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ran/csi_report/csi_report_data.h"
-#include "srsran/ran/pdcch/aggregation_level.h"
-#include "srsran/ran/pdcch/dci_packing.h"
+#include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/pdcch/aggregation_level.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
 
-namespace srsran {
+namespace ocudu {
 
 enum class cqi_table_t;
 
@@ -32,4 +32,4 @@ aggregation_level map_cqi_to_aggregation_level(float               cqi,
                                                span<const uint8_t> pdcch_candidates,
                                                unsigned            nof_dci_bits);
 
-} // namespace srsran
+} // namespace ocudu

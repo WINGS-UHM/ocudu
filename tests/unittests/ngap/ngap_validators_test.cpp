@@ -11,15 +11,15 @@
 #include "lib/ngap/ngap_asn1_helpers.h"
 #include "lib/ngap/ngap_validators/ngap_validators.h"
 #include "ngap_test_helpers.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ngap/ngap_types.h"
-#include "srsran/ran/cu_types.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/cu_types.h"
 #include <gtest/gtest.h>
 #include <sys/types.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class ngap_validator_test : public ngap_test
 {

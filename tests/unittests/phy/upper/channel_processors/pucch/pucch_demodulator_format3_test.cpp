@@ -9,23 +9,23 @@
  */
 
 #include "pucch_demodulator_format3_test_data.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/factories.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_demodulator.h"
-#include "srsran/phy/upper/equalization/equalization_factories.h"
-#include "srsran/phy/upper/pucch_formats3_4_helpers.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_demodulator.h"
+#include "ocudu/phy/upper/equalization/equalization_factories.h"
+#include "ocudu/phy/upper/pucch_formats3_4_helpers.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 using PucchDemodulatorParams = test_case_t;
 
-namespace srsran {
+namespace ocudu {
 
 // Maximum allowed error.
 constexpr log_likelihood_ratio::value_type LLR_MAX_ERROR = 2;
@@ -62,7 +62,7 @@ static bool operator==(span<const log_likelihood_ratio> lhs, span<const log_like
       });
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 class PucchDemodulatorFixture : public ::testing::TestWithParam<PucchDemodulatorParams>
 {
@@ -151,7 +151,7 @@ protected:
 
     // Set estimated channel.
     std::vector<cf_t> estimates = test_case.estimates.read();
-    srsvec::convert(channel_est.get_path_ch_estimate(0, 0), estimates);
+    ocuduvec::convert(channel_est.get_path_ch_estimate(0, 0), estimates);
 
     // Set noise variance.
     channel_est.set_noise_variance(test_case.context.noise_var, 0);

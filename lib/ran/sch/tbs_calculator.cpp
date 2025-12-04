@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/ran/resource_block.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned tbs_calculator_step3(float nof_info)
 {
@@ -62,13 +62,13 @@ tbs_calculator_step2(float scaling, unsigned nof_re, float tcr, unsigned modulat
   return tbs_calculator_step4(nof_info, tcr);
 }
 
-float srsran::tbs_calculator_pdsch_get_scaling_factor(unsigned scaling)
+float ocudu::tbs_calculator_pdsch_get_scaling_factor(unsigned scaling)
 {
-  srsran_assert(scaling < 3, "Invalid scaling value ({}, max 2).", scaling);
+  ocudu_assert(scaling < 3, "Invalid scaling value ({}, max 2).", scaling);
   return 1.0F / static_cast<float>(pow2(scaling));
 }
 
-unsigned srsran::tbs_calculator_table_find_smallest_not_less_than(unsigned nof_info_prime)
+unsigned ocudu::tbs_calculator_table_find_smallest_not_less_than(unsigned nof_info_prime)
 {
   // LUT indexed by nof_info_prime in bytes based on TS38.214 Table 5.1.3.2-1 where the contents are the smallest not
   // less than nof_info_prime.
@@ -101,15 +101,15 @@ unsigned srsran::tbs_calculator_table_find_smallest_not_less_than(unsigned nof_i
       3824, 3824, 3824, 3824};
 
   unsigned index = divide_ceil(nof_info_prime, 8);
-  srsran_assert(index < table_valid_tbs.size(),
-                "The number of information bits exceeds {} the maximum {}.",
-                nof_info_prime,
-                3824);
+  ocudu_assert(index < table_valid_tbs.size(),
+               "The number of information bits exceeds {} the maximum {}.",
+               nof_info_prime,
+               3824);
 
   return table_valid_tbs[index];
 }
 
-unsigned srsran::tbs_calculator_calculate(const tbs_calculator_configuration& config)
+unsigned ocudu::tbs_calculator_calculate(const tbs_calculator_configuration& config)
 {
   static constexpr unsigned NOF_SC_RB = NOF_SUBCARRIERS_PER_RB;
 
@@ -119,9 +119,9 @@ unsigned srsran::tbs_calculator_calculate(const tbs_calculator_configuration& co
 
   float scaling = tbs_calculator_pdsch_get_scaling_factor(config.tb_scaling_field);
 
-  srsran_assert(config.mcs_descr.modulation > modulation_scheme::BPSK,
-                "Modulation scheme should be QPSK or higher, provided {}.",
-                fmt::underlying(config.mcs_descr.modulation));
+  ocudu_assert(config.mcs_descr.modulation > modulation_scheme::BPSK,
+               "Modulation scheme should be QPSK or higher, provided {}.",
+               fmt::underlying(config.mcs_descr.modulation));
 
   // Step 2. Intermediate number of information bits.
   return tbs_calculator_step2(scaling,

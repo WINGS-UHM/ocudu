@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 #include <string_view>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// \brief Command-line command interface.
@@ -36,4 +36,4 @@ public:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

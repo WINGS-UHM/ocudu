@@ -16,15 +16,15 @@
 #include "test_doubles/mock_cu_up.h"
 #include "test_doubles/mock_du.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/cu_cp/cu_cp.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct cu_cp_test_amf_config {
   std::vector<supported_tracking_area> supported_tas;
@@ -80,8 +80,8 @@ public:
   explicit cu_cp_test_environment(cu_cp_test_env_params params = {});
   ~cu_cp_test_environment();
 
-  srslog::basic_logger& test_logger  = srslog::fetch_basic_logger("TEST");
-  srslog::basic_logger& cu_cp_logger = srslog::fetch_basic_logger("CU-CP");
+  ocudulog::basic_logger& test_logger  = ocudulog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP");
 
   cu_cp&      get_cu_cp() { return *cu_cp_inst; }
   mock_amf&   get_amf(size_t amf_index = 0) { return *amf_configs.at(amf_index).amf_stub; }
@@ -265,5 +265,5 @@ private:
   std::unique_ptr<cu_cp> cu_cp_inst;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

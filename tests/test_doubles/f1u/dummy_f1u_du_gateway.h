@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/f1u/du/f1u_gateway.h"
+#include "ocudu/f1u/du/f1u_gateway.h"
 #include <map>
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 class dummy_f1u_du_gateway_bearer_rx_notifier : public f1u_du_gateway_bearer_rx_notifier
 {
@@ -37,24 +37,24 @@ class cu_up_simulator : public f1u_du_gateway
 {
 public:
   struct bearer_context_t {
-    srs_du::f1u_du_gateway_bearer_rx_notifier* rx_notifier;
-    gtpu_teid_t                                dl_teid;
+    odu::f1u_du_gateway_bearer_rx_notifier* rx_notifier;
+    gtpu_teid_t                             dl_teid;
   };
   std::map<std::pair<uint32_t, drb_id_t>, bearer_context_t> bearers;
 
   std::optional<uint32_t> last_ue_idx;
   std::optional<drb_id_t> last_drb_id;
 
-  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                   ue_index,
-                                                          drb_id_t                                   drb_id,
-                                                          s_nssai_t                                  s_nssai,
-                                                          five_qi_t                                  five_qi,
-                                                          srs_du::f1u_config                         config,
-                                                          const gtpu_teid_t&                         dl_teid,
-                                                          const up_transport_layer_info&             ul_up_tnl_info,
-                                                          srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx,
-                                                          timer_factory                              timers,
-                                                          task_executor& ue_executor) override
+  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                ue_index,
+                                                          drb_id_t                                drb_id,
+                                                          s_nssai_t                               s_nssai,
+                                                          five_qi_t                               five_qi,
+                                                          odu::f1u_config                         config,
+                                                          const gtpu_teid_t&                      dl_teid,
+                                                          const up_transport_layer_info&          ul_up_tnl_info,
+                                                          odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
+                                                          timer_factory                           timers,
+                                                          task_executor&                          ue_executor) override
   {
     bearers.insert(std::make_pair(std::make_pair(ue_index, drb_id), bearer_context_t{&du_rx, dl_teid}));
     last_ue_idx = ue_index;
@@ -76,4 +76,4 @@ public:
   expected<std::string> get_du_bind_address(gnb_du_id_t du_index) const override { return std::string("127.0.0.1"); }
 };
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

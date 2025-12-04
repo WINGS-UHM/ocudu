@@ -12,17 +12,17 @@
 
 #include "../cell/resource_grid.h"
 #include "../config/cell_configuration.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/bounded_integer.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/span.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/bounded_integer.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/slot_point.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 namespace detail {
 
@@ -168,4 +168,4 @@ private:
   void free_resource(slot_point sl, unsigned res_idx);
 };
 
-} // namespace srsran
+} // namespace ocudu

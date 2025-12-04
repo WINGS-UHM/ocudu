@@ -10,7 +10,7 @@
 
 #include "ofh_sector_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 receiver& sector_impl::get_receiver()

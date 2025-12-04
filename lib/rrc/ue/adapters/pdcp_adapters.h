@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/pdcp/pdcp_rx.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/ran/cause/ngap_cause.h"
+#include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Adapter between PDCP Rx data and RRC in UL direction (Rx)
 class pdcp_rrc_ue_rx_adapter : public pdcp_rx_upper_data_notifier, public pdcp_rx_upper_control_notifier
@@ -27,19 +27,21 @@ public:
 
   void on_protocol_failure() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Received protocol failure from PDCP Rx");
+    ocudulog::fetch_basic_logger("PDCP").warning(
+        "Requesting UE release. Cause: Received protocol failure from PDCP Rx");
     cause = cause_protocol_t::unspecified;
   }
 
   void on_integrity_failure() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Received integrity failure from PDCP Rx");
+    ocudulog::fetch_basic_logger("PDCP").warning(
+        "Requesting UE release. Cause: Received integrity failure from PDCP Rx");
     cause = cause_protocol_t::unspecified;
   }
 
   void on_max_count_reached() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Max count reached from PDCP Rx");
+    ocudulog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Max count reached from PDCP Rx");
     cause = cause_protocol_t::unspecified;
   }
 
@@ -90,13 +92,14 @@ public:
 
   void on_protocol_failure() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Received protocol failure from PDCP Tx");
+    ocudulog::fetch_basic_logger("PDCP").warning(
+        "Requesting UE release. Cause: Received protocol failure from PDCP Tx");
     cause = cause_protocol_t::unspecified;
   }
 
   void on_max_count_reached() override
   {
-    srslog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Max count reached from PDCP Tx");
+    ocudulog::fetch_basic_logger("PDCP").warning("Requesting UE release. Cause: Max count reached from PDCP Tx");
     cause = cause_protocol_t::unspecified;
   }
 
@@ -106,5 +109,5 @@ private:
   ngap_cause_t cause;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

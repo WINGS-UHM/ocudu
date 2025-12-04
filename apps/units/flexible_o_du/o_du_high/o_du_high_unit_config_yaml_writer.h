@@ -16,7 +16,7 @@
 #include "o_du_high_unit_config.h"
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 /// Fills the given node with the O-DU high configuration values.
 inline void fill_o_du_high_config_in_yaml_schema(YAML::Node& node, const o_du_high_unit_config& config)
@@ -26,4 +26,4 @@ inline void fill_o_du_high_config_in_yaml_schema(YAML::Node& node, const o_du_hi
   fill_o_du_high_e2_config_in_yaml_schema(node, config.e2_cfg);
 }
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,13 +9,13 @@
  */
 
 #include "../du_manager_test_helpers.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/du/du_high/du_manager/du_manager_factory.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/du/du_high/du_manager/du_manager_factory.h"
+#include "ocudu/support/executors/task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class du_manager_procedure_tester
 {

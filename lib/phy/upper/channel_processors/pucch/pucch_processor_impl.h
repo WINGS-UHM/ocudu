@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_demodulator.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_detector.h"
-#include "srsran/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "srsran/phy/upper/channel_processors/uci/uci_decoder.h"
-#include "srsran/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_demodulator.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_detector.h"
+#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
+#include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
+#include "ocudu/phy/upper/signal_processors/pucch/dmrs_pucch_estimator.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a parameter validator for \ref pucch_processor_impl.
 class pucch_pdu_validator_impl : public pucch_pdu_validator
@@ -82,10 +82,10 @@ public:
     decoder(std::move(decoder_)),
     estimates(estimates_dimensions)
   {
-    srsran_assert(channel_estimator, "Invalid channel estimator.");
-    srsran_assert(detector, "Invalid detector.");
-    srsran_assert(demodulator, "Invalid PUCCH demodulator.");
-    srsran_assert(decoder, "Invalid UCI decoder.");
+    ocudu_assert(channel_estimator, "Invalid channel estimator.");
+    ocudu_assert(detector, "Invalid detector.");
+    ocudu_assert(demodulator, "Invalid PUCCH demodulator.");
+    ocudu_assert(decoder, "Invalid UCI decoder.");
   }
 
 private:
@@ -105,4 +105,4 @@ private:
   std::array<log_likelihood_ratio, pucch_constants::MAX_NOF_LLR> temp_llr;
 };
 
-} // namespace srsran
+} // namespace ocudu

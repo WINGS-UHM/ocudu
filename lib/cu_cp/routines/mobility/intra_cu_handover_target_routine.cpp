@@ -9,10 +9,10 @@
  */
 
 #include "intra_cu_handover_target_routine.h"
-#include "srsran/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 intra_cu_handover_target_routine::intra_cu_handover_target_routine(
@@ -24,7 +24,7 @@ intra_cu_handover_target_routine::intra_cu_handover_target_routine(
     cu_cp_ue_context_manipulation_handler&        cu_cp_handler_,
     ue_manager&                                   ue_mng_,
     mobility_manager&                             mobility_mng_,
-    srslog::basic_logger&                         logger_) :
+    ocudulog::basic_logger&                       logger_) :
   request(request_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   target_du_f1ap_ue_ctxt_mng(target_du_f1ap_ue_ctxt_mng_),
@@ -137,7 +137,7 @@ void intra_cu_handover_target_routine::operator()(coro_context<async_task<void>>
 }
 
 bool intra_cu_handover_target_routine::add_security_context_to_bearer_context_modification(
-    const srsran::security::sec_as_config& security_cfg)
+    const ocudu::security::sec_as_config& security_cfg)
 {
   // Fill security info.
   bearer_context_modification_request.security_info.emplace();

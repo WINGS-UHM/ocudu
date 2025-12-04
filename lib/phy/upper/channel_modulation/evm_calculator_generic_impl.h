@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_modulation/evm_calculator.h"
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/phy/upper/channel_modulation/evm_calculator.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Generic software implementation of the EVM calculator interface.
 class evm_calculator_generic_impl : public evm_calculator
@@ -23,7 +23,7 @@ public:
   evm_calculator_generic_impl(std::unique_ptr<modulation_mapper> modulator_) :
     modulator(std::move(modulator_)), temp_hard_bits(MAX_NOF_BITS), temp_modulated(MAX_NOF_SYMBOLS)
   {
-    srsran_assert(modulator, "Invalid modulator.");
+    ocudu_assert(modulator, "Invalid modulator.");
   }
 
   // See interface for documentation.
@@ -44,4 +44,4 @@ private:
   std::vector<cf_t> temp_modulated;
 };
 
-} // namespace srsran
+} // namespace ocudu

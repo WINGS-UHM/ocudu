@@ -9,9 +9,9 @@
  */
 
 #include "lower_phy_impl.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 lower_phy_impl::lower_phy_impl(dependencies deps) :
   notification_adaptor(deps.error_notifier, deps.metrics_notifier, deps.rx_symbol_notifier, deps.timing_notifier),
@@ -22,9 +22,9 @@ lower_phy_impl::lower_phy_impl(dependencies deps) :
                   uplink_proc->get_puxch_request_handler()),
   controller(std::move(deps.controller))
 {
-  srsran_assert(downlink_proc != nullptr, "Invalid downlink processor.");
-  srsran_assert(uplink_proc != nullptr, "Invalid uplink processor.");
-  srsran_assert(controller != nullptr, "Invalid controller.");
+  ocudu_assert(downlink_proc != nullptr, "Invalid downlink processor.");
+  ocudu_assert(uplink_proc != nullptr, "Invalid uplink processor.");
+  ocudu_assert(controller != nullptr, "Invalid controller.");
 
   // Connect internal adaptors.
   downlink_proc->connect(notification_adaptor.get_downlink_notifier(), notification_adaptor.get_pdxch_notifier());

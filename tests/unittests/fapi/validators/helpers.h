@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/adt/expected.h"
-#include "srsran/fapi/messages/dl_tti_request.h"
-#include "srsran/fapi/validator_report.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/validator_report.h"
 #include <gtest/gtest.h>
 
 namespace unittest {
@@ -36,9 +36,9 @@ struct test_case_data {
   bool     result;
 };
 
-using validator_report = srsran::fapi::validator_report;
-using message_type_id  = srsran::fapi::message_type_id;
-using error_report     = srsran::fapi::validator_report::error_report;
+using validator_report = ocudu::fapi::validator_report;
+using message_type_id  = ocudu::fapi::message_type_id;
+using error_report     = ocudu::fapi::validator_report::error_report;
 
 inline std::ostream& operator<<(std::ostream& os, const test_case_data& arg)
 {
@@ -60,11 +60,11 @@ protected:
     then_check_the_report(result, property.property, params.result);
   }
 
-  void execute_test_pdu(pdu_field_data<T>         property,
-                        test_case_data            params,
-                        std::function<T()>        builder,
-                        F                         validator,
-                        srsran::fapi::dl_pdu_type pdu_type)
+  void execute_test_pdu(pdu_field_data<T>        property,
+                        test_case_data           params,
+                        std::function<T()>       builder,
+                        F                        validator,
+                        ocudu::fapi::dl_pdu_type pdu_type)
   {
     T    pdu    = given_the_pdu(property, params, builder);
     bool result = when_executing_the_validation(pdu, validator, pdu_type);
@@ -81,7 +81,7 @@ private:
 
   virtual bool when_executing_the_validation(T pdu, F validator) { return true; }
 
-  virtual bool when_executing_the_validation(T pdu, F validator, srsran::fapi::dl_pdu_type pdu_type) { return true; }
+  virtual bool when_executing_the_validation(T pdu, F validator, ocudu::fapi::dl_pdu_type pdu_type) { return true; }
 
   void then_check_the_report(bool result, const std::string& property, bool expected_result)
   {
@@ -99,7 +99,7 @@ protected:
   validator_report report = {0, 0};
 };
 
-using fapi_error = srsran::error_type<validator_report>;
+using fapi_error = ocudu::error_type<validator_report>;
 
 template <typename T>
 class validate_fapi_message : public validate_fapi_field<T, std::function<fapi_error(T& pdu)>>
@@ -143,17 +143,17 @@ private:
 
 template <typename T, typename U>
 class validate_fapi_pdu
-  : public validate_fapi_field<T, std::function<bool(T& pdu, srsran::fapi::validator_report& report)>>
+  : public validate_fapi_field<T, std::function<bool(T& pdu, ocudu::fapi::validator_report& report)>>
 {
-  using base = validate_fapi_field<T, std::function<bool(T& pdu, srsran::fapi::validator_report& report)>>;
+  using base = validate_fapi_field<T, std::function<bool(T& pdu, ocudu::fapi::validator_report& report)>>;
 
 public:
-  void execute_test(pdu_field_data<T>                                                   property,
-                    test_case_data                                                      params,
-                    std::function<T()>                                                  builder,
-                    std::function<bool(T& pdu, srsran::fapi::validator_report& report)> validator,
-                    message_type_id                                                     msg_type_id,
-                    U                                                                   pdu_type)
+  void execute_test(pdu_field_data<T>                                                  property,
+                    test_case_data                                                     params,
+                    std::function<T()>                                                 builder,
+                    std::function<bool(T& pdu, ocudu::fapi::validator_report& report)> validator,
+                    message_type_id                                                    msg_type_id,
+                    U                                                                  pdu_type)
   {
     base::execute_test(property, params, builder, validator);
 
@@ -181,17 +181,17 @@ private:
 
 template <typename T, typename U>
 class validate_fapi_sub_pdu
-  : public validate_fapi_field<T, std::function<bool(T& pdu, srsran::fapi::validator_report& report, U pdu_type)>>
+  : public validate_fapi_field<T, std::function<bool(T& pdu, ocudu::fapi::validator_report& report, U pdu_type)>>
 {
-  using base = validate_fapi_field<T, std::function<bool(T& pdu, srsran::fapi::validator_report& report, U pdu_type)>>;
+  using base = validate_fapi_field<T, std::function<bool(T& pdu, ocudu::fapi::validator_report& report, U pdu_type)>>;
 
 public:
-  void execute_test(pdu_field_data<T>                                                               property,
-                    test_case_data                                                                  params,
-                    std::function<T()>                                                              builder,
-                    std::function<bool(T& pdu, srsran::fapi::validator_report& report, U pdu_type)> validator,
-                    message_type_id                                                                 msg_type_id,
-                    U                                                                               pdu_type)
+  void execute_test(pdu_field_data<T>                                                              property,
+                    test_case_data                                                                 params,
+                    std::function<T()>                                                             builder,
+                    std::function<bool(T& pdu, ocudu::fapi::validator_report& report, U pdu_type)> validator,
+                    message_type_id                                                                msg_type_id,
+                    U                                                                              pdu_type)
   {
     base::execute_test_pdu(property, params, builder, validator, pdu_type);
 
@@ -202,7 +202,7 @@ private:
   virtual bool
   when_executing_the_validation(T                                                                 pdu,
                                 std::function<bool(T& pdu, validator_report& report, U pdu_type)> validator,
-                                srsran::fapi::dl_pdu_type                                         pdu_type) override
+                                ocudu::fapi::dl_pdu_type                                          pdu_type) override
   {
     return validator(pdu, base::report, pdu_type);
   }

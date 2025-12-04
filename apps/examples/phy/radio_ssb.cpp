@@ -27,21 +27,21 @@
 #include "phy_timing_adapter.h"
 #include "rx_symbol_handler_example.h"
 #include "upper_phy_ssb_example.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/phy/lower/lower_phy.h"
-#include "srsran/phy/lower/lower_phy_controller.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/radio/radio_factory.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/signal_handling.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/phy/lower/lower_phy.h"
+#include "ocudu/phy/lower/lower_phy_controller.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/radio/radio_factory.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/signal_handling.h"
 #include <atomic>
 #include <getopt.h>
 #include <string>
 #include <unistd.h>
 #include <unordered_map>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 struct configuration_profile {
@@ -59,7 +59,7 @@ static const auto modulations = to_array<std::string>({to_string(modulation_sche
                                                        to_string(modulation_scheme::QAM64),
                                                        to_string(modulation_scheme::QAM256)});
 
-static srslog::basic_levels log_level = srslog::basic_levels::warning;
+static ocudulog::basic_levels log_level = ocudulog::basic_levels::warning;
 
 /// Program parameters.
 static subcarrier_spacing                        scs                        = subcarrier_spacing::kHz15;
@@ -282,7 +282,7 @@ static void interrupt_signal_handler(int signal)
 /// Function to call when the application is going to be forcefully shutdown.
 static void cleanup_signal_handler(int signal)
 {
-  srslog::flush();
+  ocudulog::flush();
 }
 
 static void usage(std::string_view prog)
@@ -348,8 +348,8 @@ static void parse_args(int argc, char** argv)
         }
         break;
       case 'v': {
-        auto level = srslog::str_to_basic_level(std::string(optarg));
-        log_level  = level.has_value() ? level.value() : srslog::basic_levels::info;
+        auto level = ocudulog::str_to_basic_level(std::string(optarg));
+        log_level  = level.has_value() ? level.value() : ocudulog::basic_levels::info;
         break;
       }
       case 'd':
@@ -455,7 +455,7 @@ create_lower_phy_configuration(task_executor*                rx_task_executor,
                                lower_phy_rx_symbol_notifier* rx_symbol_notifier,
                                lower_phy_timing_notifier*    timing_notifier,
                                baseband_gateway&             bb_gateway,
-                               srslog::basic_logger*         logger)
+                               ocudulog::basic_logger*       logger)
 {
   lower_phy_configuration phy_config;
   phy_config.srate                             = srate;
@@ -512,7 +512,7 @@ int main(int argc, char** argv)
   parse_args(argc, argv);
 
   // Make sure thread pool logging matches the test level.
-  srslog::fetch_basic_logger("POOL").set_level(log_level);
+  ocudulog::fetch_basic_logger("POOL").set_level(log_level);
 
   // Make sure parameters are valid.
   report_fatal_error_if_not(
@@ -605,13 +605,13 @@ int main(int argc, char** argv)
 
   // Create radio.
   std::unique_ptr<radio_session> radio = factory->create(radio_config, *async_task_executor, notification_handler);
-  srsran_assert(radio, "Failed to create radio.");
+  ocudu_assert(radio, "Failed to create radio.");
 
   // Create symbol handler.
   rx_symbol_handler_example rx_symbol_handler(log_level);
 
   // Create lower PHY error adapter logger.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY");
   logger.set_level(log_level);
 
   // Create adapters.
@@ -638,7 +638,7 @@ int main(int argc, char** argv)
                                                      radio->get_baseband_gateway(0),
                                                      &logger);
     lower_phy_instance = create_lower_phy(phy_config.first, phy_config.second);
-    srsran_assert(lower_phy_instance, "Failed to create lower physical layer.");
+    ocudu_assert(lower_phy_instance, "Failed to create lower physical layer.");
   }
 
   double scs_Hz = static_cast<double>(1000U * scs_to_khz(scs));
@@ -660,12 +660,12 @@ int main(int argc, char** argv)
   // Frequency offset from Point A to the lowest SS/PBCH block subcarrier in 15kHz subcarriers (only valid for FR1).
   unsigned ssb_offset_pointA_subc_ref = static_cast<unsigned>(ssb_offset_pointA_Hz / ref_scs_Hz);
   // Make sure it is possible to map the SS/PBCH block in the grid.
-  srsran_assert(ssb_offset_pointA_subc_ref % ratio_scs_over_ref == 0,
-                "The combination of DL center frequency {} MHz and SSB center frequency {} MHz results in a fractional "
-                "offset of {}kHz SCS between Point A and the lowest SS/PBCH block lowest subcarrier.",
-                dl_center_freq,
-                ssb_center_freq,
-                scs_to_khz(scs));
+  ocudu_assert(ssb_offset_pointA_subc_ref % ratio_scs_over_ref == 0,
+               "The combination of DL center frequency {} MHz and SSB center frequency {} MHz results in a fractional "
+               "offset of {}kHz SCS between Point A and the lowest SS/PBCH block lowest subcarrier.",
+               dl_center_freq,
+               ssb_center_freq,
+               scs_to_khz(scs));
   // SSB frequency offset to Point A as a number of RBs.
   ssb_offset_to_pointA ssb_offset_pointA_subc_rb = ssb_offset_pointA_subc_ref / NRE;
   // Round down the offset to Point A to match CRB boundaries.
@@ -695,7 +695,7 @@ int main(int argc, char** argv)
   upper_phy_sample_config.enable_prach_processing      = enable_prach_processing;
   upper_phy_sample_config.data_modulation              = data_mod_scheme;
   std::unique_ptr<upper_phy_ssb_example> upper_phy     = upper_phy_ssb_example::create(upper_phy_sample_config);
-  srsran_assert(upper_phy, "Failed to create upper physical layer.");
+  ocudu_assert(upper_phy, "Failed to create upper physical layer.");
 
   // Connect adapters.
   rx_symbol_adapter.connect(&rx_symbol_handler);

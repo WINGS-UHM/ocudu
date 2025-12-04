@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/nrppa/nrppa.h"
-#include "srsran/ran/gnb_id.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/pci.h"
-#include "srsran/rrc/meas_types.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/nrppa/nrppa.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/rrc/meas_types.h"
 #include <map>
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 struct meas_context_t {
   meas_obj_id_t    meas_obj_id   = meas_obj_id_t::invalid;
@@ -100,5 +100,5 @@ public:
   }
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

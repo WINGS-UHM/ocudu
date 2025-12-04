@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/ran/transform_precoding/transform_precoding_helpers.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include "fmt/ostream.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Random generator.
 static std::mt19937 rgen(0);
@@ -44,7 +44,7 @@ static std::set<unsigned> dft_required_sizes = []() {
 // Maximum allowed peak error.
 static float ASSERT_MAX_ERROR = 1e-3;
 
-namespace srsran {
+namespace ocudu {
 
 static bool operator==(span<const cf_t> transform, span<const cf_t> dft_output)
 {
@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& os, span<const cf_t> data)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 using DFTprocessorParams = std::tuple<std::string, unsigned, dft_processor::direction>;
 
@@ -122,8 +122,8 @@ protected:
   static void run_expected_dft(span<cf_t> output, dft_processor::direction direction, span<const cf_t> input)
   {
     // Formal checks to avoid zero division among other failures.
-    srsran_assert(!input.empty(), "Empty input span");
-    srsran_assert(input.size() == output.size(), "Input and output span sizes must be identical");
+    ocudu_assert(!input.empty(), "Empty input span");
+    ocudu_assert(input.size() == output.size(), "Input and output span sizes must be identical");
 
     // Derive parameters.
     unsigned size = input.size();

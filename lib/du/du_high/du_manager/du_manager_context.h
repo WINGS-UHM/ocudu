@@ -10,8 +10,8 @@
 
 #pragma once
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// General operational state of the DU.
 struct du_manager_context {
@@ -21,5 +21,5 @@ struct du_manager_context {
   bool stop_command_received = false;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

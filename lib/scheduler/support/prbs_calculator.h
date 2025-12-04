@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/resource_block.h"
-#include "srsran/ran/sch/modulation_scheme.h"
-#include "srsran/ran/sch/sch_mcs.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/sch/modulation_scheme.h"
+#include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/support/math/math_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Collects the parameters to calculate the num. of PRBS given the payload size, for a PDSCH transmission.
 ///
@@ -84,4 +84,4 @@ sch_prbs_tbs get_nof_prbs(const prbs_calculator_sch_config& sch_config, unsigned
 unsigned estimate_required_nof_prbs(const prbs_calculator_sch_config& sch_config,
                                     unsigned                          max_nof_available_rbs = 273U);
 
-} // namespace srsran
+} // namespace ocudu

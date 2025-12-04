@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/adt/moodycamel_bounded_mpmc_queue.h"
-#include "srsran/adt/moodycamel_mpmc_queue.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/mutexed_mpmc_queue.h"
-#include "srsran/adt/mutexed_mpsc_queue.h"
-#include "srsran/adt/spsc_queue.h"
-#include "srsran/support/detail/type_list.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/moodycamel_bounded_mpmc_queue.h"
+#include "ocudu/adt/moodycamel_mpmc_queue.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/mutexed_mpmc_queue.h"
+#include "ocudu/adt/mutexed_mpsc_queue.h"
+#include "ocudu/adt/spsc_queue.h"
+#include "ocudu/support/detail/type_list.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
@@ -26,7 +26,7 @@
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 #endif // __clang__
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Metafunction to convert type_list into ::testing::Types.
 template <typename T>
@@ -50,9 +50,9 @@ protected:
   base_concurrent_queue_test(std::false_type /**/, size_t qsize) : queue(qsize) {}
 
   base_concurrent_queue_test(size_t qsize = 128) :
-    base_concurrent_queue_test(std::conditional_t<QueueType::wait_policy == concurrent_queue_wait_policy::sleep,
-                                                  std::true_type,
-                                                  std::false_type>{},
+    base_concurrent_queue_test(std::conditional_t < QueueType::wait_policy == concurrent_queue_wait_policy::sleep,
+                               std::true_type,
+                               std::false_type > {},
                                qsize)
   {
   }

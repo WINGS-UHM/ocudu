@@ -10,11 +10,11 @@
 
 #include "cu_up_e1_connection_loss_routine.h"
 #include "cu_up_setup_routine.h"
-#include "srsran/support/async/async_timer.h"
+#include "ocudu/support/async/async_timer.h"
 #include <utility>
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 cu_up_e1_connection_loss_routine::cu_up_e1_connection_loss_routine(gnb_cu_up_id_t           cu_up_id_,
                                                                    std::string              cu_up_name_,
@@ -31,7 +31,7 @@ cu_up_e1_connection_loss_routine::cu_up_e1_connection_loss_routine(gnb_cu_up_id_
   retry_timer(timers.create_unique_timer(ctrl_exec)),
   e1ap_conn_mng(e1ap_conn_mng_),
   ue_mng(ue_mng_),
-  logger(srslog::fetch_basic_logger("CU-UP"))
+  logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
 }
 

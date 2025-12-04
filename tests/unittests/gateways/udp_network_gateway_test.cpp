@@ -9,30 +9,30 @@
  */
 
 #include "test_helpers.h"
-#include "srsran/gateways/udp_network_gateway.h"
-#include "srsran/gateways/udp_network_gateway_factory.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/gateways/udp_network_gateway.h"
+#include "ocudu/gateways/udp_network_gateway_factory.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 class udp_network_gateway_tester : public ::testing::Test
 {
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // init GW logger
-    srslog::fetch_basic_logger("UDP-GW", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("UDP-GW", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("UDP-GW", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("UDP-GW", false).set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
 
     stop_token.store(true, std::memory_order_relaxed);
     if (rx_thread.joinable()) {

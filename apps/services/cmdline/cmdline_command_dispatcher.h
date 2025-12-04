@@ -11,13 +11,13 @@
 #pragma once
 
 #include "cmdline_command.h"
-#include "srsran/adt/span.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/io/io_broker.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/io/io_broker.h"
 #include <string>
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// \brief Command-line command dispatcher.
@@ -42,10 +42,10 @@ private:
   void print_help();
 
 private:
-  srslog::basic_logger&                                             logger;
+  ocudulog::basic_logger&                                           logger;
   io_broker::subscriber                                             stdin_handle;
   std::unordered_map<std::string, std::unique_ptr<cmdline_command>> commands;
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct du_low_appconfig;
 
@@ -22,4 +22,4 @@ void configure_cli11_with_du_low_appconfig_schema(CLI::App& app, du_low_appconfi
 /// Auto derive DU parameters after the parsing.
 void autoderive_du_low_parameters_after_parsing(CLI::App& app, du_low_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Helper function that determines from SSB bitmap whether n-th beam is used.
 /// \param[in] ssb_bitmap SSB bitmap.
@@ -19,9 +19,9 @@ namespace srsran {
 inline bool is_nth_ssb_beam_active(uint64_t ssb_bitmap, unsigned ssb_index)
 {
   // In the current implementation state, only SSB indices within the interval [0, 7] are allowed.
-  srsran_sanity_check(
+  ocudu_sanity_check(
       ssb_index >= 0 and ssb_index < MAX_NUM_BEAMS, "SSB index must be within the interval [0, '{}')", MAX_NUM_BEAMS);
   return (ssb_bitmap & (static_cast<uint64_t>(0b1U) << static_cast<uint64_t>(63U - ssb_index))) > 0;
 }
 
-} // namespace srsran
+} // namespace ocudu

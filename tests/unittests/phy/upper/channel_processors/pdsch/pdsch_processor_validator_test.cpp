@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/formatters.h"
-#include "srsran/ran/dmrs.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/formatters.h"
+#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 #include <regex>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

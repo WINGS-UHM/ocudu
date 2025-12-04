@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// CRC calculator metrics aggregator.
 class crc_calculator_metrics_aggregator : public crc_calculator_metric_notifier
@@ -133,4 +133,4 @@ private:
   metrics_per_polynomial other_metrics_collection;
 };
 
-} // namespace srsran
+} // namespace ocudu

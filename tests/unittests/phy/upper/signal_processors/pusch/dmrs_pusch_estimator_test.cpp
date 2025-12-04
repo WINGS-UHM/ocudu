@@ -10,16 +10,16 @@
 
 #include "../../../support/resource_grid_test_doubles.h"
 #include "dmrs_pusch_estimator_test_data.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
-#include "srsran/phy/upper/signal_processors/pusch/factories.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/executors/inline_task_executor.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
+#include "ocudu/phy/upper/signal_processors/pusch/factories.h"
+#include "ocudu/support/executors/inline_task_executor.h"
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, dmrs_pusch_estimator::configuration config)
 {
@@ -45,10 +45,10 @@ std::ostream& operator<<(std::ostream& os, test_case_t test_case)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 template <>
-struct fmt::formatter<srsran::dmrs_pusch_estimator::configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::dmrs_pusch_estimator::configuration> : ostream_formatter {};
 
 namespace {
 
@@ -159,7 +159,7 @@ TEST_P(DmrsPuschEstimatorFixture, Creation)
   for (unsigned i_port = 0; i_port != ch_estimate_dims.nof_rx_ports; ++i_port) {
     for (unsigned i_layer = 0; i_layer != ch_estimate_dims.nof_tx_layers; ++i_layer) {
       span<cbf16_t> path = ch_est.get_path_ch_estimate(i_port, i_layer);
-      srsvec::zero(path);
+      ocuduvec::zero(path);
     }
   }
 

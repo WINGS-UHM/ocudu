@@ -11,11 +11,11 @@
 #pragma once
 
 #include "phase_compensation_lut.h"
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/phy/lower/modulation/ofdm_modulator.h"
-#include "srsran/ran/cyclic_prefix.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/lower/modulation/ofdm_modulator.h"
+#include "ocudu/ran/cyclic_prefix.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// OFDM modulator dependencies. Provides the necessary dependency instances.
 struct ofdm_modulator_dependencies {
@@ -88,7 +88,7 @@ public:
                            std::unique_ptr<ofdm_symbol_modulator> symbol_modulator_) :
     cp(ofdm_config.cp), numerology(ofdm_config.numerology), symbol_modulator(std::move(symbol_modulator_))
   {
-    srsran_assert(symbol_modulator, "Invalid OFDM symbol modulator.");
+    ocudu_assert(symbol_modulator, "Invalid OFDM symbol modulator.");
   }
 
   // See interface for documentation;
@@ -98,4 +98,4 @@ public:
   void modulate(span<cf_t> output, const resource_grid_reader& grid, unsigned port_index, unsigned slot_index) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

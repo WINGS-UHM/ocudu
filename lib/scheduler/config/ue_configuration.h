@@ -15,16 +15,16 @@
 #include "cell_configuration.h"
 #include "logical_channel_list_config.h"
 #include "sched_config_params.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
-#include "srsran/scheduler/config/bwp_configuration.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 struct ue_creation_params;
 struct ue_reconfig_params;
@@ -73,9 +73,8 @@ struct search_space_info {
 
   const pdsch_config_params& get_pdsch_config(unsigned pdsch_td_res_index, unsigned nof_layers) const
   {
-    srsran_assert(pdsch_cfg_list.size() > pdsch_td_res_index and
-                      pdsch_cfg_list[pdsch_td_res_index].size() >= nof_layers,
-                  "get_pdsch_config: Invalid params");
+    ocudu_assert(pdsch_cfg_list.size() > pdsch_td_res_index and pdsch_cfg_list[pdsch_td_res_index].size() >= nof_layers,
+                 "get_pdsch_config: Invalid params");
     return pdsch_cfg_list[pdsch_td_res_index][nof_layers - 1];
   }
 
@@ -218,12 +217,12 @@ public:
   /// \remark An assertion is triggered if the transmission scheme is not present or not set to codebook.
   const tx_scheme_codebook& get_pusch_codebook_config() const
   {
-    srsran_assert(init_bwp().ul_ded.has_value(), "Missing dedicated UL configuration.");
+    ocudu_assert(init_bwp().ul_ded.has_value(), "Missing dedicated UL configuration.");
     const auto& ul_ded = init_bwp().ul_ded.value();
-    srsran_assert(ul_ded.pusch_cfg.has_value(), "Missing dedicated PUSCH configuration.");
-    srsran_assert(ul_ded.pusch_cfg.value().tx_cfg.has_value(), "Missing transmit configuration.");
-    srsran_assert(std::holds_alternative<tx_scheme_codebook>(ul_ded.pusch_cfg.value().tx_cfg.value()),
-                  "PUSCH Transmission scheme must be set to codebook.");
+    ocudu_assert(ul_ded.pusch_cfg.has_value(), "Missing dedicated PUSCH configuration.");
+    ocudu_assert(ul_ded.pusch_cfg.value().tx_cfg.has_value(), "Missing transmit configuration.");
+    ocudu_assert(std::holds_alternative<tx_scheme_codebook>(ul_ded.pusch_cfg.value().tx_cfg.value()),
+                 "PUSCH Transmission scheme must be set to codebook.");
     return std::get<tx_scheme_codebook>(ul_ded.pusch_cfg.value().tx_cfg.value());
   }
 
@@ -231,9 +230,9 @@ public:
   /// \remark An assertion is triggered if no SRS resource is present.
   const auto& get_srs_nof_ports() const
   {
-    srsran_assert(init_bwp().ul_ded.has_value(), "Missing dedicated UL configuration.");
-    srsran_assert(init_bwp().ul_ded->srs_cfg.has_value(), "Missing dedicated SRS configuration.");
-    srsran_assert(init_bwp().ul_ded->srs_cfg.value().srs_res_list.size() == 1, "SRS resource list size must be one.");
+    ocudu_assert(init_bwp().ul_ded.has_value(), "Missing dedicated UL configuration.");
+    ocudu_assert(init_bwp().ul_ded->srs_cfg.has_value(), "Missing dedicated SRS configuration.");
+    ocudu_assert(init_bwp().ul_ded->srs_cfg.value().srs_res_list.size() == 1, "SRS resource list size must be one.");
     return init_bwp().ul_ded->srs_cfg.value().srs_res_list.front().nof_ports;
   }
 
@@ -287,7 +286,7 @@ public:
   /// Get the configuration of a cell that is common to all UEs.
   const cell_configuration& common_cell_cfg(du_cell_index_t cell_index) const
   {
-    srsran_assert(du_cells.contains(cell_index), "Invalid cell_index={}", fmt::underlying(cell_index));
+    ocudu_assert(du_cells.contains(cell_index), "Invalid cell_index={}", fmt::underlying(cell_index));
     return du_cells[cell_index]->cell_cfg_common;
   }
   const cell_configuration& pcell_common_cfg() const
@@ -298,12 +297,12 @@ public:
   /// Get the configuration of a cell that is dedicated to the UE.
   const ue_cell_configuration& ue_cell_cfg(du_cell_index_t cell_index) const
   {
-    srsran_assert(du_cells.contains(cell_index), "Invalid cell_index={}", fmt::underlying(cell_index));
+    ocudu_assert(du_cells.contains(cell_index), "Invalid cell_index={}", fmt::underlying(cell_index));
     return *du_cells[cell_index];
   }
   const ue_cell_configuration& ue_cell_cfg(ue_cell_index_t ue_cell_index) const
   {
-    srsran_assert(
+    ocudu_assert(
         ue_cell_index < ue_cell_to_du_cell_index.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
     return ue_cell_cfg(ue_cell_to_du_cell_index[ue_cell_index]);
   }
@@ -336,4 +335,4 @@ private:
   std::optional<drx_config> ue_drx_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

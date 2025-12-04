@@ -11,16 +11,16 @@ set(SOURCES
         worker_manager_cli11_schema.cpp
         worker_manager_appconfig_validator.cpp)
 
-add_library(srsran_cpu_affinities_helper STATIC cli11_cpu_affinities_parser_helper.cpp)
+add_library(ocudu_cpu_affinities_helper STATIC cli11_cpu_affinities_parser_helper.cpp)
 
-add_library(srsran_worker_manager_app_service STATIC ${SOURCES})
-target_include_directories(srsran_worker_manager_app_service PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_worker_manager_app_service
-        srsran_cpu_affinities_helper
-        srsran_cu_up      # TODO: Temp
-        srsran_du_high    # TODO: Temp
-        srsran_cu_cp      # TODO: Temp
-        srsran_o_du_low   # TODO: Temp
-        srsran_ru_dummy   # TODO: Temp
-        srsran_ru_sdr     # TODO: Temp
-        srsran_ru_ofh)    # TODO: Temp
+add_library(ocudu_worker_manager_app_service STATIC ${SOURCES})
+target_include_directories(ocudu_worker_manager_app_service PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_worker_manager_app_service
+        ocudu_cpu_affinities_helper
+        ocudu_cu_up      # TODO: Temp
+        ocudu_du_high    # TODO: Temp
+        ocudu_cu_cp      # TODO: Temp
+        ocudu_o_du_low   # TODO: Temp
+        ocudu_ru_dummy   # TODO: Temp
+        ocudu_ru_sdr     # TODO: Temp
+        ocudu_ru_ofh)    # TODO: Temp

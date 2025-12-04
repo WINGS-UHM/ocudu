@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/support/math/math_utils.h"
 #include <arm_neon.h>
 
-namespace srsran {
+namespace ocudu {
 
 namespace neon {
 
@@ -234,4 +234,4 @@ inline float32x4_t safe_div(float32x4_t dividend, float32x4_t divisor)
 
 } // namespace neon
 
-} // namespace srsran
+} // namespace ocudu

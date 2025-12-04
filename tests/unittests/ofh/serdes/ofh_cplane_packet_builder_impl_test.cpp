@@ -11,7 +11,7 @@
 #include "../../../../lib/ofh/serdes/ofh_cplane_message_builder_static_compression_impl.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 TEST(ofh_control_plane_packet_builder_impl_test, build_valid_control_packet_should_pass)
@@ -97,7 +97,7 @@ TEST(ofh_control_plane_packet_builder_impl_test, build_valid_invented_idle_packe
   section.nof_symbols                           = 4;
 
   packet_params.cp          = cyclic_prefix::NORMAL;
-  packet_params.scs         = srsran::subcarrier_spacing::kHz30;
+  packet_params.scs         = ocudu::subcarrier_spacing::kHz30;
   packet_params.time_offset = 2208;
 
   cplane_message_builder_static_compression_impl builder;

@@ -11,14 +11,14 @@
 #include "lib/gtpu/gtpu_pdu.h"
 #include "lib/gtpu/gtpu_tunnel_ngu_rx_impl.h"
 #include "lib/gtpu/gtpu_tunnel_ngu_tx_impl.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/rate_limiting/token_bucket.h"
-#include "srsran/support/rate_limiting/token_bucket_config.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/rate_limiting/token_bucket.h"
+#include "ocudu/support/rate_limiting/token_bucket_config.h"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class gtpu_pdu_generator
 {
@@ -38,8 +38,7 @@ public:
     cfg.peer_teid                                         = teid;
     cfg.peer_addr                                         = "127.0.0.1";
 
-    tx =
-        std::make_unique<gtpu_tunnel_ngu_tx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
+    tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
   }
 
   byte_buffer create_gtpu_pdu(byte_buffer buf, gtpu_teid_t teid, qos_flow_id_t flow_id, std::optional<uint16_t> sn)
@@ -89,7 +88,7 @@ private:
   gtpu_tunnel_tx_upper_dummy               tx_upper_dummy;
   std::unique_ptr<gtpu_tunnel_ngu_tx_impl> tx;
   byte_buffer                              gen_pdu;
-  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
 
 public:
 };
@@ -131,7 +130,7 @@ class gtpu_tunnel_ngu_rx_test : public ::testing::Test
 {
 public:
   gtpu_tunnel_ngu_rx_test() :
-    logger(srslog::fetch_basic_logger("TEST", false)), gtpu_logger(srslog::fetch_basic_logger("GTPU", false))
+    logger(ocudulog::fetch_basic_logger("TEST", false)), gtpu_logger(ocudulog::fetch_basic_logger("GTPU", false))
   {
   }
 
@@ -139,11 +138,11 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init GTP-U logger
-    gtpu_logger.set_level(srslog::basic_levels::debug);
+    gtpu_logger.set_level(ocudulog::basic_levels::debug);
     gtpu_logger.set_hex_dump_max_size(100);
   }
 
@@ -151,7 +150,7 @@ protected:
   {
     // flush logger after each test
     rx_lower.clear();
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void create_gtpu_rx_entity()
@@ -168,7 +167,7 @@ protected:
     rx_cfg.t_reordering                                      = std::chrono::milliseconds{10};
     rx_cfg.warn_on_drop                                      = false;
 
-    rx = std::make_unique<gtpu_tunnel_ngu_rx_impl>(srs_cu_up::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower, timers);
+    rx = std::make_unique<gtpu_tunnel_ngu_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower, timers);
   }
 
   /// \brief Helper to advance the timers
@@ -184,11 +183,11 @@ protected:
   gtpu_pdu_generator pdu_generator{gtpu_teid_t{0x1}};
 
   // Test logger
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // GTP-U logger
-  srslog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger    gtpu_rx_logger{"GTPU", {srs_cu_up::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  ocudulog::basic_logger& gtpu_logger;
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
 
   // Timers
   manual_task_worker worker{64};

@@ -11,7 +11,7 @@
 #include "flexible_o_du_metrics_consumers.h"
 #include "flexible_o_du_app_service_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void flexible_o_du_metrics_consumer_json::handle_metric(const app_services::metrics_set& metric)
 {

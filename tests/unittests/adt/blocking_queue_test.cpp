@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/blocking_queue.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/blocking_queue.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(blocking_queue_test, blocking_push_from_main_thread_and_pop_from_another_thread)
 {

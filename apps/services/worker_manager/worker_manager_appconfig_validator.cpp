@@ -11,9 +11,9 @@
 #include "worker_manager_appconfig_validator.h"
 #include "worker_manager_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_expert_execution_appconfig(const expert_execution_appconfig& config)
+bool ocudu::validate_expert_execution_appconfig(const expert_execution_appconfig& config)
 {
   // Ensure the number of non-real time threads does not exceed the number of CPU cores
   auto&    cpu_desc  = cpu_architecture_info::get();

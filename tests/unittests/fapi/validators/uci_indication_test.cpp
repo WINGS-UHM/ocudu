@@ -11,9 +11,9 @@
 #include "../../../lib/fapi/validators/uci_pdus.h"
 #include "../message_builder_helpers.h"
 #include "helpers.h"
-#include "srsran/fapi/message_validators.h"
+#include "ocudu/fapi/message_validators.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 using namespace unittest;
 
@@ -30,7 +30,7 @@ TEST_P(validate_uci_pusch_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_uci_pusch_pdu,
                validate_uci_pusch_pdu,
-               srsran::fapi::message_type_id::uci_indication,
+               ocudu::fapi::message_type_id::uci_indication,
                uci_pdu_type::PUSCH);
 }
 
@@ -106,8 +106,8 @@ INSTANTIATE_TEST_SUITE_P(
                            pdu.pdu_bitmap.set(uci_pusch_pdu::HARQ_BIT);
                            pdu.harq.detection_status = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(value);
                            if (pdu.harq.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure ||
-                               pdu.harq.detection_status == srsran::uci_pusch_or_pucch_f2_3_4_detection_status::dtx) {
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure ||
+                               pdu.harq.detection_status == ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::dtx) {
                              pdu.harq.payload = {};
                            }
                          }}),
@@ -150,7 +150,7 @@ INSTANTIATE_TEST_SUITE_P(HARQ_payload_bit_length_invalid,
                                               "Expected HARQ payload",
                                               [](uci_pusch_pdu& pdu, int value) {
                                                 pdu.harq.detection_status =
-                                                    srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure;
+                                                    ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure;
                                                 pdu.harq.payload =
                                                     bounded_bitset<uci_constants::MAX_NOF_HARQ_BITS>(value);
                                               }}),
@@ -166,9 +166,9 @@ INSTANTIATE_TEST_SUITE_P(
                            pdu.csi_part1.detection_status =
                                static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(value);
                            if (pdu.csi_part1.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure ||
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure ||
                                pdu.csi_part1.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::dtx) {
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::dtx) {
                              pdu.csi_part1.payload = {};
                            }
                          }}),
@@ -202,9 +202,9 @@ INSTANTIATE_TEST_SUITE_P(
                            pdu.csi_part2.detection_status =
                                static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(value);
                            if (pdu.csi_part2.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure ||
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure ||
                                pdu.csi_part2.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::dtx) {
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::dtx) {
                              pdu.csi_part2.payload = {};
                            }
                          }}),
@@ -266,7 +266,7 @@ TEST_P(validate_uci_pucch_format01_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_uci_pucch_format01_pdu,
                validate_uci_pucch_format01_pdu,
-               srsran::fapi::message_type_id::uci_indication,
+               ocudu::fapi::message_type_id::uci_indication,
                uci_pdu_type::PUCCH_format_0_1);
 }
 
@@ -438,7 +438,7 @@ TEST_P(validate_uci_pucch_format234_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_uci_pucch_format234_pdu,
                validate_uci_pucch_format234_pdu,
-               srsran::fapi::message_type_id::uci_indication,
+               ocudu::fapi::message_type_id::uci_indication,
                uci_pdu_type::PUCCH_format_2_3_4);
 }
 
@@ -540,9 +540,9 @@ INSTANTIATE_TEST_SUITE_P(
                          [](uci_pucch_pdu_format_2_3_4& pdu, int value) {
                            pdu.pdu_bitmap.set(uci_pucch_pdu_format_2_3_4::HARQ_BIT);
                            pdu.harq.detection_status = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(value);
-                           if (pdu.harq.detection_status == srsran::uci_pusch_or_pucch_f2_3_4_detection_status::dtx ||
+                           if (pdu.harq.detection_status == ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::dtx ||
                                pdu.harq.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure) {
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure) {
                              pdu.harq.payload = {};
                            }
                          }}),
@@ -562,9 +562,9 @@ INSTANTIATE_TEST_SUITE_P(
                            pdu.csi_part1.detection_status =
                                static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(value);
                            if (pdu.csi_part1.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::dtx ||
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::dtx ||
                                pdu.csi_part1.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure) {
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure) {
                              pdu.csi_part1.payload = {};
                            }
                          }}),
@@ -602,9 +602,9 @@ INSTANTIATE_TEST_SUITE_P(
                            pdu.csi_part2.detection_status =
                                static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(value);
                            if (pdu.csi_part2.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::dtx ||
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::dtx ||
                                pdu.csi_part2.detection_status ==
-                                   srsran::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure) {
+                                   ocudu::uci_pusch_or_pucch_f2_3_4_detection_status::crc_failure) {
                              pdu.csi_part2.payload = {};
                            }
                          }}),
@@ -653,7 +653,7 @@ TEST_P(validate_uci_indication_field, WithValue)
                std::get<1>(params),
                build_valid_uci_indication,
                validate_uci_indication,
-               srsran::fapi::message_type_id::uci_indication);
+               ocudu::fapi::message_type_id::uci_indication);
 }
 
 INSTANTIATE_TEST_SUITE_P(SFN,

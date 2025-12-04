@@ -14,16 +14,16 @@
 #pragma once
 
 #include "pdcp_pdu_generator.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-byte_buffer srsran::test_helpers::create_pdcp_pdu(pdcp_sn_size pdcp_sn_len,
-                                                  bool         is_srb,
-                                                  uint32_t     pdcp_sn,
-                                                  uint32_t     sdu_size,
-                                                  uint8_t      first_byte)
+byte_buffer ocudu::test_helpers::create_pdcp_pdu(pdcp_sn_size pdcp_sn_len,
+                                                 bool         is_srb,
+                                                 uint32_t     pdcp_sn,
+                                                 uint32_t     sdu_size,
+                                                 uint8_t      first_byte)
 {
   if (is_srb && pdcp_sn_len != pdcp_sn_size::size12bits) {
     report_error("Cannot create SRB PDU: Invalid pdcp_sn_len={}", pdcp_sn_len);
@@ -61,7 +61,7 @@ byte_buffer srsran::test_helpers::create_pdcp_pdu(pdcp_sn_size pdcp_sn_len,
       // PDCP SN
       write_ok &= encoder.pack(pdcp_sn, 12);
       break;
-    case srsran::pdcp_sn_size::size18bits:
+    case ocudu::pdcp_sn_size::size18bits:
       // Reserved
       write_ok &= encoder.pack(0, 5);
       // PDCP SN

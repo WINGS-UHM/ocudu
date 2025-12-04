@@ -8,17 +8,17 @@
  *
  */
 
-#include "srsran/ran/prach/prach_helper.h"
-#include "srsran/adt/span.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 error_type<std::string>
-srsran::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequency_range fr, duplex_mode mode)
+ocudu::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequency_range fr, duplex_mode mode)
 {
   // Supported PRACH Configuration Index values for FDD in FR1, as per TS38.211 Table 6.3.3.2-2.
   static constexpr auto fr1_tdd_intervals = to_array<interval<uint8_t>>({{0, 87}, {145, 169}});
@@ -47,10 +47,10 @@ srsran::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequen
   return {};
 }
 
-error_type<std::string> srsran::prach_helper::zero_correlation_zone_is_valid(uint8_t         zero_correlation_zone,
-                                                                             uint8_t         prach_cfg_idx,
-                                                                             frequency_range freq_range,
-                                                                             duplex_mode     dplx_mode)
+error_type<std::string> ocudu::prach_helper::zero_correlation_zone_is_valid(uint8_t         zero_correlation_zone,
+                                                                            uint8_t         prach_cfg_idx,
+                                                                            frequency_range freq_range,
+                                                                            duplex_mode     dplx_mode)
 {
   const prach_configuration prach_config = prach_configuration_get(freq_range, dplx_mode, prach_cfg_idx);
   if (prach_config.format == prach_format_type::invalid) {
@@ -78,9 +78,9 @@ error_type<std::string> srsran::prach_helper::zero_correlation_zone_is_valid(uin
   return {};
 }
 
-error_type<interval<uint8_t>> srsran::prach_helper::prach_fits_in_tdd_pattern(subcarrier_spacing pusch_scs,
-                                                                              uint8_t            prach_cfg_idx,
-                                                                              const tdd_ul_dl_config_common& tdd_cfg)
+error_type<interval<uint8_t>> ocudu::prach_helper::prach_fits_in_tdd_pattern(subcarrier_spacing pusch_scs,
+                                                                             uint8_t            prach_cfg_idx,
+                                                                             const tdd_ul_dl_config_common& tdd_cfg)
 {
   const frequency_range fr = (pusch_scs < subcarrier_spacing::kHz120) ? frequency_range::FR1 : frequency_range::FR2;
 
@@ -117,9 +117,9 @@ error_type<interval<uint8_t>> srsran::prach_helper::prach_fits_in_tdd_pattern(su
   return {};
 }
 
-std::optional<uint8_t> srsran::prach_helper::find_valid_prach_config_index(subcarrier_spacing pusch_scs,
-                                                                           uint8_t            zero_correlation_zone,
-                                                                           const tdd_ul_dl_config_common& tdd_cfg)
+std::optional<uint8_t> ocudu::prach_helper::find_valid_prach_config_index(subcarrier_spacing pusch_scs,
+                                                                          uint8_t            zero_correlation_zone,
+                                                                          const tdd_ul_dl_config_common& tdd_cfg)
 {
   static constexpr size_t NOF_PRACH_CONFIG_INDEXES = 256;
 
@@ -137,8 +137,8 @@ std::optional<uint8_t> srsran::prach_helper::find_valid_prach_config_index(subca
 }
 
 error_type<std::string>
-srsran::prach_helper::nof_ssb_per_ro_and_nof_cb_preambles_per_ssb_is_valid(ssb_per_rach_occasions nof_ssb_per_ro,
-                                                                           uint8_t nof_cb_preambles_per_ssb)
+ocudu::prach_helper::nof_ssb_per_ro_and_nof_cb_preambles_per_ssb_is_valid(ssb_per_rach_occasions nof_ssb_per_ro,
+                                                                          uint8_t nof_cb_preambles_per_ssb)
 {
   bool is_valid = true;
 
@@ -180,8 +180,8 @@ srsran::prach_helper::nof_ssb_per_ro_and_nof_cb_preambles_per_ssb_is_valid(ssb_p
   return {};
 }
 
-error_type<std::string> srsran::prach_helper::prach_root_sequence_index_is_valid(unsigned          prach_root_seq_idx,
-                                                                                 prach_format_type format)
+error_type<std::string> ocudu::prach_helper::prach_root_sequence_index_is_valid(unsigned          prach_root_seq_idx,
+                                                                                prach_format_type format)
 {
   if (format >= prach_format_type::invalid) {
     return make_unexpected(fmt::format("Invalid PRACH format {}.\n", to_string(format)));

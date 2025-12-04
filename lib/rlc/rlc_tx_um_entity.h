@@ -12,10 +12,10 @@
 
 #include "rlc_sdu_queue_lockfree.h"
 #include "rlc_tx_entity.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/support/executors/task_executor.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 ///
 /// \brief TX state variables
@@ -125,16 +125,16 @@ private:
   /// Safe execution from: pcell_executor
   void update_mac_buffer_state() noexcept;
 
-  void log_state(srslog::basic_levels level) { logger.log(level, "TX entity state. {} next_so={}", st, next_so); }
+  void log_state(ocudulog::basic_levels level) { logger.log(level, "TX entity state. {} next_so={}", st, next_so); }
 
   bool stopped = false;
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::rlc_tx_um_state> {
+struct formatter<ocudu::rlc_tx_um_state> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -142,7 +142,7 @@ struct formatter<srsran::rlc_tx_um_state> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_tx_um_state& st, FormatContext& ctx) const
+  auto format(const ocudu::rlc_tx_um_state& st, FormatContext& ctx) const
   {
     return format_to(ctx.out(), "tx_next={}", st.tx_next);
   }

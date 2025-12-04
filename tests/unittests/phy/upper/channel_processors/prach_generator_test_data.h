@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsPRACHGeneratorUnittest.m"
 
-#include "srsran/phy/upper/channel_processors/prach_generator.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/prach_generator.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   prach_generator::configuration config;
@@ -532,4 +532,4 @@ static const std::vector<test_case_t> prach_generator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

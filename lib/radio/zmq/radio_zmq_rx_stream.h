@@ -12,10 +12,10 @@
 
 #include "radio_zmq_rx_channel.h"
 #include "radio_zmq_tx_align_interface.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a gateway receiver based on ZMQ receive socket.
 class radio_zmq_rx_stream : public baseband_gateway_receiver
@@ -48,7 +48,7 @@ public:
     /// Stream identifier string.
     std::string stream_id_str;
     /// Logging level.
-    srslog::basic_levels log_level;
+    ocudulog::basic_levels log_level;
     /// Indicates the socket send and receive timeout in milliseconds. It is ignored if it is zero.
     unsigned trx_timeout_ms;
     /// Indicates the socket linger timeout in milliseconds. If is ignored if trx_timeout_ms is zero.
@@ -75,4 +75,4 @@ public:
   void stop();
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,10 +10,10 @@
 
 #include "amf_connection_loss_routine.h"
 #include "cell_deactivation_routine.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/support/async/coroutine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 amf_connection_loss_routine::amf_connection_loss_routine(const amf_index_t                 amf_index_,
                                                          const cu_cp_configuration&        cu_cp_cfg_,
@@ -22,7 +22,7 @@ amf_connection_loss_routine::amf_connection_loss_routine(const amf_index_t      
                                                          cu_cp_ue_context_release_handler& ue_release_handler_,
                                                          ue_manager&                       ue_mng_,
                                                          cu_cp_controller&                 controller_,
-                                                         srslog::basic_logger&             logger_) :
+                                                         ocudulog::basic_logger&           logger_) :
   amf_index(amf_index_),
   cu_cp_cfg(cu_cp_cfg_),
   plmns(plmns_),

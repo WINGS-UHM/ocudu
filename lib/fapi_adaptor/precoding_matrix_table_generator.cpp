@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/fapi_adaptor/precoding_matrix_table_generator.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "precoding_matrix_mapper_functions.h"
 #include "precoding_matrix_repository_builder.h"
-#include "srsran/fapi_adaptor/precoding_matrix_mapper.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
+#include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// Maximum number of codebooks for 1-port, 2-port and 4-port configurations.
@@ -243,10 +243,10 @@ static void generate_4_ports_table(precoding_matrix_mapper_codebook_offset_confi
 }
 
 std::pair<std::unique_ptr<precoding_matrix_mapper>, std::unique_ptr<precoding_matrix_repository>>
-srsran::fapi_adaptor::generate_precoding_matrix_tables(unsigned nof_antenna_ports, unsigned sector_id)
+ocudu::fapi_adaptor::generate_precoding_matrix_tables(unsigned nof_antenna_ports, unsigned sector_id)
 {
-  srsran_assert(nof_antenna_ports > 0, "Invalid number of antenna ports={}", nof_antenna_ports);
-  srsran_assert(nof_antenna_ports != 3, "Unsupported number of antenna ports={}", nof_antenna_ports);
+  ocudu_assert(nof_antenna_ports > 0, "Invalid number of antenna ports={}", nof_antenna_ports);
+  ocudu_assert(nof_antenna_ports != 3, "Unsupported number of antenna ports={}", nof_antenna_ports);
 
   unsigned                                              nof_ports_index = nof_antenna_ports - 1U;
   precoding_matrix_mapper_codebook_offset_configuration mapper_offsets;
@@ -273,6 +273,6 @@ srsran::fapi_adaptor::generate_precoding_matrix_tables(unsigned nof_antenna_port
             repo_builder.build()};
   }
 
-  srsran_assert(false, "Unsupported number of ports", nof_antenna_ports);
+  ocudu_assert(false, "Unsupported number of ports", nof_antenna_ports);
   return {};
 }

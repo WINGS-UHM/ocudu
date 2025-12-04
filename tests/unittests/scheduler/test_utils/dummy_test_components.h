@@ -14,10 +14,10 @@
 #include "lib/scheduler/logging/scheduler_metrics_ue_configurator.h"
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator.h"
-#include "srsran/scheduler/scheduler_metrics.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
+#include "ocudu/support/test_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dummy_pdcch_resource_allocator : public pdcch_resource_allocator
 {
@@ -42,7 +42,7 @@ public:
     slot_alloc.result.dl.dl_pdcchs.back().ctx.bwp_cfg = &slot_alloc.cfg.dl_cfg_common.init_dl_bwp.generic_params;
     slot_alloc.result.dl.dl_pdcchs.back().ctx.coreset_cfg =
         &*slot_alloc.cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
-    slot_alloc.result.dl.dl_pdcchs.back().ctx.cces = {get_ncce(slot_alloc.slot), srsran::aggregation_level::n4};
+    slot_alloc.result.dl.dl_pdcchs.back().ctx.cces = {get_ncce(slot_alloc.slot), ocudu::aggregation_level::n4};
     return &slot_alloc.result.dl.dl_pdcchs[0];
   }
 
@@ -62,7 +62,7 @@ public:
                                           search_space_id               ss_id,
                                           aggregation_level             aggr_lvl) override
   {
-    srsran_terminate("UE-dedicated PDCCHs not supported");
+    ocudu_terminate("UE-dedicated PDCCHs not supported");
     return nullptr;
   }
 
@@ -76,7 +76,7 @@ public:
 
   bool cancel_last_pdcch(cell_slot_resource_allocator& slot_alloc) override
   {
-    srsran_terminate("Cancellations not supported");
+    ocudu_terminate("Cancellations not supported");
     return false;
   }
 
@@ -84,12 +84,12 @@ private:
   unsigned get_ncce(slot_point pdcch_sl)
   {
     if (not last_sl.valid() or pdcch_sl != last_sl) {
-      next_ncce = to_nof_cces(srsran::aggregation_level::n4);
+      next_ncce = to_nof_cces(ocudu::aggregation_level::n4);
       last_sl   = pdcch_sl;
       return 0;
     }
     unsigned ret = next_ncce;
-    next_ncce += to_nof_cces(srsran::aggregation_level::n4);
+    next_ncce += to_nof_cces(ocudu::aggregation_level::n4);
     return ret;
   }
 
@@ -172,4 +172,4 @@ public:
   void handle_ue_deletion(du_ue_index_t ue_index) override {}
 };
 
-} // namespace srsran
+} // namespace ocudu

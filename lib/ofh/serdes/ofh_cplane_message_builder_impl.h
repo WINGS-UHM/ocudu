@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/serdes/ofh_cplane_message_builder.h"
+#include "ocudu/ofh/serdes/ofh_cplane_message_builder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class network_order_binary_serializer;
@@ -41,4 +41,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

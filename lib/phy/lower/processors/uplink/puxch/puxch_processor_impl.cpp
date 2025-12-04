@@ -9,17 +9,17 @@
  */
 
 #include "puxch_processor_impl.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 bool puxch_processor_impl::process_symbol(const baseband_gateway_buffer_reader& samples,
                                           const lower_phy_rx_symbol_context&    context)
 {
-  srsran_assert(notifier != nullptr, "Notifier has not been connected.");
+  ocudu_assert(notifier != nullptr, "Notifier has not been connected.");
 
   // Check if the slot has changed.
   if (context.slot != current_slot) {
@@ -63,7 +63,7 @@ bool puxch_processor_impl::process_symbol(const baseband_gateway_buffer_reader& 
     channel_buffer_cf   = cf_buffer.get_view({i_port}).subspan(0, channel_buffer_ci16.size());
 
     // Convert integer based complex samples to floating-point based.
-    srsvec::convert(channel_buffer_cf, channel_buffer_ci16, scaling_factor_ci16_to_cf);
+    ocuduvec::convert(channel_buffer_cf, channel_buffer_ci16, scaling_factor_ci16_to_cf);
     demodulator->demodulate(current_grid.get().get_writer(), channel_buffer_cf, i_port, symbol_index_subframe);
   }
 
@@ -85,7 +85,7 @@ void puxch_processor_impl::handle_request(const shared_resource_grid& grid, cons
     return;
   }
 
-  srsran_assert(notifier != nullptr, "Notifier has not been connected.");
+  ocudu_assert(notifier != nullptr, "Notifier has not been connected.");
 
   // Swap the new request by the current request in the circular array.
   auto request = requests.exchange({context.slot, grid.copy()});

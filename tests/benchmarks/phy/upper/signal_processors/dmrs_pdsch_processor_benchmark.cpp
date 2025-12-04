@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/pdsch/factories.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/factories.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Random generator.
 static std::mt19937 rgen(0);

@@ -8,5 +8,5 @@
 
 set(SOURCES pdcp_factory.cpp pdcp_entity_tx.cpp pdcp_entity_rx.cpp pdcp_tx_window.cpp pdcp_pdu.cpp pdcp_metrics_aggregator.cpp)
 
-add_library(srsran_pdcp STATIC ${SOURCES})
-target_link_libraries(srsran_pdcp srsran_rohc srsran_security srsran_instrumentation srsran_support)
+add_library(ocudu_pdcp STATIC ${SOURCES})
+target_link_libraries(ocudu_pdcp ocudu_rohc ocudu_security ocudu_instrumentation ocudu_support)

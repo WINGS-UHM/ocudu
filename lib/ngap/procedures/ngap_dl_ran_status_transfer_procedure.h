@@ -12,10 +12,10 @@
 
 #include "ue_context/ngap_ue_logger.h"
 #include "ue_context/ngap_ue_transaction_manager.h"
-#include "srsran/ngap/ngap_handover.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran::srs_cu_cp {
+namespace ocudu::ocucp {
 
 async_task<expected<ngap_dl_ran_status_transfer>>
 start_ngap_dl_status_transfer_procedure(ue_index_t                   ue_index,
@@ -23,4 +23,4 @@ start_ngap_dl_status_transfer_procedure(ue_index_t                   ue_index,
                                         timer_factory                timers,
                                         ngap_ue_logger&              logger);
 
-} // namespace srsran::srs_cu_cp
+} // namespace ocudu::ocucp

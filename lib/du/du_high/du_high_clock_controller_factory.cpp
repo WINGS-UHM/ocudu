@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/adt/noop_functor.h"
-#include "srsran/du/du_high/du_high_clock_controller.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/io/io_timer_source.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/noop_functor.h"
+#include "ocudu/du/du_high/du_high_clock_controller.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/io/io_timer_source.h"
+#include "ocudu/support/timers.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -64,7 +64,7 @@ public:
                         io_broker&                broker,
                         task_executor&            tick_exec_,
                         std::chrono::milliseconds tick_period,
-                        srslog::basic_logger&     logger_,
+                        ocudulog::basic_logger&   logger_,
                         bool                      auto_start = true) :
     timers(timers_),
     tick_exec(tick_exec_),
@@ -112,9 +112,9 @@ private:
     }
   }
 
-  timer_manager&        timers;
-  task_executor&        tick_exec;
-  srslog::basic_logger& logger;
+  timer_manager&          timers;
+  task_executor&          tick_exec;
+  ocudulog::basic_logger& logger;
 
   std::atomic<unsigned> nof_tickers{0};
   std::atomic<unsigned> missed_ticks{0};
@@ -147,7 +147,7 @@ public:
   private:
     slot_point_extended do_on_slot_indication(slot_point sl_tx) override
     {
-      srsran_assert(parent != nullptr, "Slot indication for a deleted cell");
+      ocudu_assert(parent != nullptr, "Slot indication for a deleted cell");
       return parent->handle_slot_indication(cell_index, sl_tx);
     }
 
@@ -158,14 +158,14 @@ public:
   du_high_time_source_impl(timer_manager& timers_, io_broker& broker, task_executor& tick_exec_) :
     timers(timers_),
     tick_exec(tick_exec_),
-    logger(srslog::fetch_basic_logger("DU", false)),
+    logger(ocudulog::fetch_basic_logger("DU", false)),
     io_source(timers, broker, tick_exec, std::chrono::milliseconds{1}, logger)
   {
   }
 
   std::unique_ptr<mac_cell_clock_controller> add_cell(du_cell_index_t cell_index) override
   {
-    srsran_assert(not cells[cell_index].active(), "Cell ticker already created");
+    ocudu_assert(not cells[cell_index].active(), "Cell ticker already created");
     return std::make_unique<cell_ticker>(*this, cell_index);
   }
 
@@ -185,7 +185,7 @@ private:
 
     // Update cell slot counter.
     slot_point_extended& cell_sl_counter = cells[cell_index].last_counter;
-    if (SRSRAN_UNLIKELY(not cells[cell_index].active())) {
+    if (OCUDU_UNLIKELY(not cells[cell_index].active())) {
       // Create cell if it is not yet active.
       handle_cell_activation(cell_index, sl_tx);
     } else {
@@ -292,9 +292,9 @@ private:
     return pack_slot_ext(sl) | (static_cast<uint64_t>(nof_active_cells) << 32U);
   }
 
-  timer_manager&        timers;
-  task_executor&        tick_exec;
-  srslog::basic_logger& logger;
+  timer_manager&          timers;
+  task_executor&          tick_exec;
+  ocudulog::basic_logger& logger;
 
   std::array<cell_context, MAX_NOF_DU_CELLS> cells;
 
@@ -309,7 +309,7 @@ private:
 } // namespace
 
 std::unique_ptr<mac_clock_controller>
-srs_du::create_du_high_clock_controller(timer_manager& timers, io_broker& broker, task_executor& tick_exec)
+odu::create_du_high_clock_controller(timer_manager& timers, io_broker& broker, task_executor& tick_exec)
 {
   return std::make_unique<du_high_time_source_impl>(timers, broker, tick_exec);
 }

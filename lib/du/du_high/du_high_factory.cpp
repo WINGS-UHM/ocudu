@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/du/du_high/du_high_factory.h"
+#include "ocudu/du/du_high/du_high_factory.h"
 #include "du_high_impl.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-std::unique_ptr<du_high> srsran::srs_du::make_du_high(const du_high_configuration& du_hi_cfg,
-                                                      const du_high_dependencies&  dependencies)
+std::unique_ptr<du_high> ocudu::odu::make_du_high(const du_high_configuration& du_hi_cfg,
+                                                  const du_high_dependencies&  dependencies)
 {
   return std::make_unique<du_high_impl>(du_hi_cfg, dependencies);
 }

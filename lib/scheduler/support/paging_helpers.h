@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../config/cell_configuration.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/scheduler/scheduler_configurator.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/sched_consts.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Helper class for checking if paging conditions are satisfied for a given slot.
 class paging_slot_helper
@@ -65,4 +65,4 @@ private:
   bool is_paging_slot_in_search_space0(slot_point pdcch_slot, unsigned i_s) const;
 };
 
-} // namespace srsran
+} // namespace ocudu

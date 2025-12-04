@@ -10,17 +10,17 @@
 
 #include "lib/cu_cp/routines/mobility/handover_reconfiguration_routine.h"
 #include "mobility_test_helpers.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/rrc/rrc_cell_context.h"
-#include "srsran/rrc/rrc_types.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/rrc/rrc_cell_context.h"
+#include "ocudu/rrc/rrc_types.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/async/coroutine.h"
 #include <chrono>
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 struct dummy_rrc_ue : public rrc_ue_interface, public rrc_ue_controller {
 public:
@@ -214,7 +214,7 @@ public:
   byte_buffer last_ue_capabilities;
 
 private:
-  srslog::basic_logger&                 logger                      = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&               logger                      = ocudulog::fetch_basic_logger("TEST");
   bool                                  ue_cap_transfer_outcome     = true;
   bool                                  rrc_reconfiguration_outcome = false;
   unsigned                              test_transaction_id;
@@ -229,7 +229,7 @@ protected:
   void create_ues(bool procedure_outcome, unsigned transaction_id_)
   {
     ue_index_t source_ue_index = get_ue_manager()->add_ue(
-        source_du_index, int_to_gnb_du_id(0), source_pci, source_rnti, srs_cu_cp::du_cell_index_t::min);
+        source_du_index, int_to_gnb_du_id(0), source_pci, source_rnti, ocucp::du_cell_index_t::min);
     get_ue_manager()->set_plmn(source_ue_index, plmn_identity::test_value());
     source_ue = get_ue_manager()->find_ue(source_ue_index);
     ASSERT_NE(source_ue, nullptr);
@@ -237,7 +237,7 @@ protected:
     source_ue->set_rrc_ue(source_rrc_ue);
 
     ue_index_t target_ue_index = get_ue_manager()->add_ue(
-        target_du_index, int_to_gnb_du_id(0), target_pci, target_rnti, srs_cu_cp::du_cell_index_t::min);
+        target_du_index, int_to_gnb_du_id(0), target_pci, target_rnti, ocucp::du_cell_index_t::min);
     get_ue_manager()->set_plmn(target_ue_index, plmn_identity::test_value());
     target_ue = get_ue_manager()->find_ue(target_ue_index);
     ASSERT_NE(target_ue, nullptr);

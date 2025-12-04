@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct gnb_appconfig;
 
 /// Fills the given node with the gNB application configuration values.
 void fill_gnb_appconfig_in_yaml_schema(YAML::Node& node, const gnb_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

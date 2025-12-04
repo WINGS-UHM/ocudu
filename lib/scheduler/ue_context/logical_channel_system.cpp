@@ -9,9 +9,9 @@
  */
 
 #include "logical_channel_system.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// (Implementation-defined) Estimation of how much space the MAC should leave for RLC segmentation header overhead.
 static constexpr unsigned RLC_SEGMENTATION_OVERHEAD = 3;
@@ -61,7 +61,7 @@ ue_logical_channel_repository logical_channel_system::create_ue(du_ue_index_t   
                                                                 bool                            starts_in_fallback,
                                                                 logical_channel_config_list_ptr log_channels_configs)
 {
-  srsran_assert(configured_ues.size() <= ue_index or not configured_ues.test(ue_index), "duplicate UE index");
+  ocudu_assert(configured_ues.size() <= ue_index or not configured_ues.test(ue_index), "duplicate UE index");
   // Creates a UE entry in the table.
   soa::row_id ue_rid =
       ues.insert(ue_config_context{}, ue_context{}, ue_ul_context{}, ue_channel_context{}, ue_ul_channel_context{});
@@ -187,9 +187,9 @@ static uint16_t get_lc_prio(const logical_channel_config& cfg)
 
 void logical_channel_system::remove_ue(soa::row_id ue_rid)
 {
-  srsran_assert(ues.has_row_id(ue_rid), "trying to remove non-existing UE");
+  ocudu_assert(ues.has_row_id(ue_rid), "trying to remove non-existing UE");
   const auto ue_index = ues.row(ue_rid).at<ue_config_context>().ue_index;
-  srsran_assert(configured_ues.size() > ue_index and configured_ues.test(ue_index), "duplicate UE index");
+  ocudu_assert(configured_ues.size() > ue_index and configured_ues.test(ue_index), "duplicate UE index");
   // Disable any slicing, QoS and CE tracking.
   deactivate(ue_rid);
 
@@ -418,7 +418,7 @@ void logical_channel_system::set_lcid_ran_slice(soa::row_id ue_rid, lcid_t lcid,
   auto        u      = ues.row(ue_rid);
   auto&       ue_ch  = u.at<ue_channel_context>();
   ue_context& ue_ctx = u.at<ue_context>();
-  srsran_assert(ue_ch.channels.contains(lcid), "LCID not configured");
+  ocudu_assert(ue_ch.channels.contains(lcid), "LCID not configured");
 
   dl_logical_channel_context& ch_ctx = ue_ch.channels.at(lcid);
   if (ch_ctx.slice_id == slice_id) {
@@ -455,7 +455,7 @@ void logical_channel_system::set_lcg_ran_slice(soa::row_id ue_rid, lcg_id_t lcgi
   auto  u      = ues.row(ue_rid);
   auto& ue_ch  = u.at<ue_ul_channel_context>();
   auto& ue_ctx = u.at<ue_ul_context>();
-  srsran_assert(ue_ch.lcgs.contains(lcgid), "LCG-ID not configured");
+  ocudu_assert(ue_ch.lcgs.contains(lcgid), "LCG-ID not configured");
 
   ul_logical_channel_group_context& ch_ctx = ue_ch.lcgs.at(lcgid);
   if (ch_ctx.slice_id == slice_id) {
@@ -542,7 +542,7 @@ void logical_channel_system::handle_dl_buffer_status_indication(soa::row_id ue_r
 {
   // We apply this limit to avoid potential overflows.
   static constexpr unsigned max_buffer_status = 1U << 24U;
-  srsran_sanity_check(lcid < MAX_NOF_RB_LCIDS, "Max LCID value 32 exceeded");
+  ocudu_sanity_check(lcid < MAX_NOF_RB_LCIDS, "Max LCID value 32 exceeded");
   auto  u     = get_ue(ue_row_id);
   auto& ue_ch = u.at<ue_channel_context>();
   if (ue_ch.channels.contains(lcid)) {
@@ -559,7 +559,7 @@ void logical_channel_system::remove_lcg(soa::row_id                       ue_rid
                                         lcg_id_t                          lcgid,
                                         ul_logical_channel_group_context& ue_lcg)
 {
-  srsran_assert(ue_lcg.lc_count == 0, "There are still LCIDs in this LCG");
+  ocudu_assert(ue_lcg.lc_count == 0, "There are still LCIDs in this LCG");
 
   // Detach LCG from QoS tracking.
   if (ue_lcg.qos_row.has_value()) {
@@ -593,8 +593,8 @@ void logical_channel_system::on_single_channel_buf_st_update(ue_row&            
   auto&      slice_pending_bytes     = ue_ctx.pending_bytes_per_slice.find(*slice_id)->second;
   const auto prev_buf_st_incl_subhdr = get_mac_sdu_required_bytes(prev_buf_st);
   const auto new_buf_st_incl_subhdr  = get_mac_sdu_required_bytes(new_buf_st);
-  srsran_sanity_check(slice_pending_bytes + new_buf_st_incl_subhdr >= prev_buf_st_incl_subhdr,
-                      "Invalid slice pending bytes");
+  ocudu_sanity_check(slice_pending_bytes + new_buf_st_incl_subhdr >= prev_buf_st_incl_subhdr,
+                     "Invalid slice pending bytes");
   const auto prev_slice_pending_bytes = slice_pending_bytes;
   slice_pending_bytes += new_buf_st_incl_subhdr - prev_buf_st_incl_subhdr;
 
@@ -623,7 +623,7 @@ void logical_channel_system::on_single_lcg_buf_st_update(ue_row&                
   auto&      slice_pending_bytes     = ue_ctx.pending_bytes_per_slice.find(*slice_id)->second;
   const auto prev_buf_st_incl_subhdr = get_mac_sdu_required_bytes(add_upper_layer_header_bytes(lcgid, prev_buf_st));
   const auto new_buf_st_incl_subhdr  = get_mac_sdu_required_bytes(add_upper_layer_header_bytes(lcgid, new_buf_st));
-  srsran_assert(slice_pending_bytes + new_buf_st_incl_subhdr >= prev_buf_st_incl_subhdr, "Invalid slice pending bytes");
+  ocudu_assert(slice_pending_bytes + new_buf_st_incl_subhdr >= prev_buf_st_incl_subhdr, "Invalid slice pending bytes");
   const auto prev_slice_pending_bytes = slice_pending_bytes;
   slice_pending_bytes += new_buf_st_incl_subhdr - prev_buf_st_incl_subhdr;
 
@@ -727,7 +727,7 @@ lcid_t logical_channel_system::get_max_prio_lcid(const const_ue_row& u) const
 unsigned
 logical_channel_system::allocate_mac_sdu(soa::row_id ue_rid, dl_msg_lc_info& subpdu, lcid_t lcid, unsigned rem_bytes)
 {
-  srsran_sanity_check(lcid < MAX_NOF_RB_LCIDS, "Max LCID value 32 exceeded");
+  ocudu_sanity_check(lcid < MAX_NOF_RB_LCIDS, "Max LCID value 32 exceeded");
   const unsigned min_bytes_needed = get_mac_sdu_with_subhdr_and_rlc_hdr_estim(lcid, 1);
   if (rem_bytes < min_bytes_needed) {
     // There is no space even for a minimal MAC SDU.
@@ -1030,10 +1030,10 @@ void ue_logical_channel_repository::reset_sr_indication()
   parent->ues_with_pending_sr.set(ue_index, false);
 }
 
-unsigned srsran::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
-                                   ue_logical_channel_repository& lch_mng,
-                                   unsigned                       total_tbs,
-                                   lcid_t                         lcid)
+unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
+                                  ue_logical_channel_repository& lch_mng,
+                                  unsigned                       total_tbs,
+                                  lcid_t                         lcid)
 {
   static constexpr unsigned min_mac_sdu_space = 4; // Needs to fit at least MAC SDU subheader and RLC header.
   unsigned                  rem_tbs           = total_tbs;
@@ -1057,7 +1057,7 @@ unsigned srsran::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
   return total_tbs - rem_tbs;
 }
 
-unsigned srsran::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs)
+unsigned ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs)
 {
   unsigned rem_tbs = total_tbs;
 
@@ -1077,9 +1077,9 @@ unsigned srsran::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_re
   return total_tbs - rem_tbs;
 }
 
-unsigned srsran::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb_info,
-                                               ue_logical_channel_repository& lch_mng,
-                                               unsigned                       total_tbs)
+unsigned ocudu::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb_info,
+                                              ue_logical_channel_repository& lch_mng,
+                                              unsigned                       total_tbs)
 {
   unsigned rem_tbs = total_tbs;
 
@@ -1097,9 +1097,9 @@ unsigned srsran::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb
   return total_tbs - rem_tbs;
 }
 
-unsigned srsran::build_dl_fallback_transport_block_info(dl_msg_tb_info&                tb_info,
-                                                        ue_logical_channel_repository& lch_mng,
-                                                        unsigned                       tb_size_bytes)
+unsigned ocudu::build_dl_fallback_transport_block_info(dl_msg_tb_info&                tb_info,
+                                                       ue_logical_channel_repository& lch_mng,
+                                                       unsigned                       tb_size_bytes)
 {
   unsigned total_subpdu_bytes = 0;
   total_subpdu_bytes += allocate_ue_con_res_id_mac_ce(tb_info, lch_mng, tb_size_bytes);
@@ -1113,10 +1113,10 @@ unsigned srsran::build_dl_fallback_transport_block_info(dl_msg_tb_info&         
   return total_subpdu_bytes;
 }
 
-unsigned srsran::build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
-                                               ue_logical_channel_repository& lch_mng,
-                                               unsigned                       tb_size_bytes,
-                                               ran_slice_id_t                 slice_id)
+unsigned ocudu::build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
+                                              ue_logical_channel_repository& lch_mng,
+                                              unsigned                       tb_size_bytes,
+                                              ran_slice_id_t                 slice_id)
 {
   unsigned total_subpdu_bytes = 0;
   total_subpdu_bytes += allocate_mac_ces(tb_info, lch_mng, tb_size_bytes);

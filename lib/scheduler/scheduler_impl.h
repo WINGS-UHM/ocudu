@@ -14,10 +14,10 @@
 #include "config/sched_config_manager.h"
 #include "logging/scheduler_metrics_handler.h"
 #include "ue_scheduling/ue_scheduler.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/mac_scheduler.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/mac_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class scheduler_impl final : public mac_scheduler
 {
@@ -70,7 +70,7 @@ public:
 private:
   const scheduler_expert_config expert_params;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // Slot metrics sink.
   scheduler_metrics_handler metrics;
@@ -85,4 +85,4 @@ private:
   slotted_id_table<du_cell_index_t, std::unique_ptr<cell_scheduler>, MAX_NOF_DU_CELLS> cells;
 };
 
-} // namespace srsran
+} // namespace ocudu

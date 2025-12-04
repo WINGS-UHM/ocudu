@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration_validator.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration_validator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements a Sounding Reference Signal channel estimator configuration validator.
 ///
@@ -30,4 +30,4 @@ private:
   unsigned max_nof_prb;
 };
 
-} // namespace srsran
+} // namespace ocudu

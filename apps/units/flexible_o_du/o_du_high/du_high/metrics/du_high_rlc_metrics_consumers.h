@@ -11,41 +11,41 @@
 #pragma once
 
 #include "du_high_rlc_metrics.h"
-#include "srsran/srslog/log_channel.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/log_channel.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Consumer for the json RLC metrics.
 class rlc_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit rlc_metrics_consumer_json(srslog::log_channel& log_chan_) : log_chan(log_chan_)
+  explicit rlc_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
   {
-    srsran_assert(log_chan.enabled(), "JSON log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// Consumer for the log RLC metrics.
 class rlc_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit rlc_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_)
+  explicit rlc_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
   {
-    srsran_assert(log_chan.enabled(), "Logger log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "Logger log channel is not enabled");
   }
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
 /// Consumer for the E2 RLC metrics.
@@ -61,4 +61,4 @@ private:
   rlc_metrics_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

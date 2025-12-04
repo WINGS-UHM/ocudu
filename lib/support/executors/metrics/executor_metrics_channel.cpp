@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/executors/metrics/executor_metrics_channel.h"
-#include "srsran/support/executors/unique_thread.h"
+#include "ocudu/support/executors/metrics/executor_metrics_channel.h"
+#include "ocudu/support/executors/unique_thread.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void executor_metrics_channel::update(const executed_task_metrics& new_metrics)
 {
@@ -88,7 +88,7 @@ executor_metrics executor_metrics_channel::read()
     total_count += metrics.count;
   }
 
-  if (SRSRAN_LIKELY(total_count > 0)) {
+  if (OCUDU_LIKELY(total_count > 0)) {
     new_report.avg_enqueue_latency_us = duration_cast<microseconds>(total_enqueue_latency / total_count);
     new_report.avg_task_us            = duration_cast<microseconds>(total_task_latency / total_count);
     new_report.max_enqueue_latency_us = duration_cast<microseconds>(max_enqueue_latency);

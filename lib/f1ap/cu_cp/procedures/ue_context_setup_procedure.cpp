@@ -10,10 +10,10 @@
 
 #include "ue_context_setup_procedure.h"
 #include "../f1ap_asn1_converters.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::f1ap;
 
 /// \brief Convert the UE Context Setup Request from common type to ASN.1.
@@ -46,7 +46,7 @@ ue_context_setup_procedure::ue_context_setup_procedure(const f1ap_configuration&
                                                        f1ap_ue_context_list&                  ue_ctxt_list_,
                                                        f1ap_du_processor_notifier&            du_processor_notifier_,
                                                        f1ap_message_notifier&                 f1ap_notif_,
-                                                       srslog::basic_logger&                  logger_,
+                                                       ocudulog::basic_logger&                logger_,
                                                        std::optional<rrc_ue_transfer_context> rrc_context_) :
   f1ap_cfg(f1ap_cfg_),
   request(request_),
@@ -56,7 +56,7 @@ ue_context_setup_procedure::ue_context_setup_procedure(const f1ap_configuration&
   logger(logger_),
   rrc_context(rrc_context_)
 {
-  srsran_assert(request.ue_index != ue_index_t::invalid, "UE index of F1AP UeContextSetupRequest must not be invalid");
+  ocudu_assert(request.ue_index != ue_index_t::invalid, "UE index of F1AP UeContextSetupRequest must not be invalid");
 }
 
 void ue_context_setup_procedure::operator()(coro_context<async_task<f1ap_ue_context_setup_response>>& ctx)

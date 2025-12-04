@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Modulation mapper metric decorator.
 class phy_metrics_modulation_mapper_decorator : public modulation_mapper
@@ -26,7 +26,7 @@ public:
                                           common_channel_modulation_metric_notifier& notifier_) :
     base(std::move(base_)), notifier(notifier_)
   {
-    srsran_assert(base, "Invalid base instance.");
+    ocudu_assert(base, "Invalid base instance.");
   }
 
   // See interface for documentation.
@@ -65,4 +65,4 @@ private:
   common_channel_modulation_metric_notifier& notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

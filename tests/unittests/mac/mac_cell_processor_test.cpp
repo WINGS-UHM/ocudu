@@ -10,12 +10,12 @@
 
 #include "lib/mac/mac_dl/mac_cell_processor.h"
 #include "mac_test_helpers.h"
-#include "srsran/mac/mac_cell_timing_context.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/mac/mac_cell_timing_context.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class base_mac_cell_processor_test
 {

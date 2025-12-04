@@ -7,7 +7,7 @@
 #
 
 
-add_library(srsran_f1ap_cu
+add_library(ocudu_f1ap_cu
         f1ap_cu_impl.cpp
         f1ap_cu_factory.cpp
         procedures/f1_setup_procedure.cpp
@@ -20,5 +20,5 @@ add_library(srsran_f1ap_cu
         ue_context/f1ap_cu_ue_context.cpp
         ue_context/ue_ul_bearer_manager.cpp)
 
-target_include_directories(srsran_f1ap_cu PRIVATE ..)
-target_link_libraries(srsran_f1ap_cu srsran_support srsran_ran srsran_f1ap_common f1ap_asn1)
+target_include_directories(ocudu_f1ap_cu PRIVATE ..)
+target_link_libraries(ocudu_f1ap_cu ocudu_support ocudu_ran ocudu_f1ap_common f1ap_asn1)

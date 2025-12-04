@@ -10,7 +10,7 @@
 
 #include "mac_ctrl_test_dummies.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 async_task<bool> mac_ul_dummy_configurer::add_ue(const mac_ue_create_request& msg)
 {

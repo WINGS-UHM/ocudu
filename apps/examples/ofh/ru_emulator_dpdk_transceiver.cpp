@@ -9,13 +9,13 @@
  */
 
 #include "ru_emulator_transceiver.h"
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_rx_buffer.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_rx_buffer.h"
 #include <chrono>
 #include <future>
 #include <rte_ethdev.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 void ru_emu_dpdk_receiver::start(frame_notifier& notifier_)
@@ -118,7 +118,7 @@ void ru_emu_dpdk_transmitter::send(span<span<const uint8_t>> frames)
 
     unsigned nof_sent_packets = ::rte_eth_tx_burst(port_ctx.get_dpdk_port_id(), 0, mbufs.data(), mbufs.size());
 
-    if (SRSRAN_UNLIKELY(nof_sent_packets < mbufs.size())) {
+    if (OCUDU_UNLIKELY(nof_sent_packets < mbufs.size())) {
       logger.warning("DPDK dropped '{}' packets out of a total of '{}' in the tx burst",
                      mbufs.size() - nof_sent_packets,
                      mbufs.size());
@@ -130,9 +130,9 @@ void ru_emu_dpdk_transmitter::send(span<span<const uint8_t>> frames)
 }
 
 std::unique_ptr<ru_emulator_transceiver>
-srsran::ru_emu_create_dpdk_transceiver(srslog::basic_logger&              logger,
-                                       task_executor&                     executor,
-                                       std::shared_ptr<dpdk_port_context> context)
+ocudu::ru_emu_create_dpdk_transceiver(ocudulog::basic_logger&            logger,
+                                      task_executor&                     executor,
+                                      std::shared_ptr<dpdk_port_context> context)
 {
   return std::make_unique<ru_emulator_transceiver>(std::make_unique<ru_emu_dpdk_receiver>(logger, executor, context),
                                                    std::make_unique<ru_emu_dpdk_transmitter>(logger, context));

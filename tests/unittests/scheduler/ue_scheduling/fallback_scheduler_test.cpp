@@ -21,15 +21,15 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 static cell_config_builder_params test_builder_params(duplex_mode duplx_mode)
 {
@@ -37,7 +37,7 @@ static cell_config_builder_params test_builder_params(duplex_mode duplx_mode)
   if (duplx_mode == duplex_mode::TDD) {
     // Band 40.
     builder_params.dl_f_ref_arfcn = 474000;
-    builder_params.scs_common     = srsran::subcarrier_spacing::kHz30;
+    builder_params.scs_common     = ocudu::subcarrier_spacing::kHz30;
     builder_params.band           = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
     builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
 
@@ -103,9 +103,9 @@ struct test_bench {
     fallback_sched(expert_cfg, cell_cfg, pdcch_sch, pucch_alloc, uci_alloc, ue_db),
     csi_rs_sched(cell_cfg)
   {
-    srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::info);
-    srslog::init();
+    ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::info);
+    ocudulog::init();
   }
 
   bool add_ue(const sched_ue_creation_request_message& create_req)
@@ -144,8 +144,8 @@ class base_fallback_tester
 {
 protected:
   slot_point                 current_slot{0, 0};
-  srslog::basic_logger&      mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger&      test_logger = srslog::fetch_basic_logger("TEST", true);
+  ocudulog::basic_logger&    mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger&    test_logger = ocudulog::fetch_basic_logger("TEST", true);
   scheduler_result_logger    result_logger{false, 0};
   std::optional<test_bench>  bench;
   duplex_mode                duplx_mode;
@@ -167,7 +167,7 @@ protected:
     for (unsigned i = 0; i != max_k_value; ++i) {
       run_slot();
     }
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void setup_sched(const scheduler_expert_config& sched_cfg, const sched_cell_configuration_request_message& msg)
@@ -239,8 +239,8 @@ protected:
     msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0 = k0;
 
     if (add_extra_pdcch_candidate) {
-      srsran_assert(msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.size() > 1U,
-                    "This test assumes that the cell configuration has at least 2 search spaces");
+      ocudu_assert(msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.size() > 1U,
+                   "This test assumes that the cell configuration has at least 2 search spaces");
       msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_nof_candidates({0, 0, 2, 0, 0});
     }
     return msg;
@@ -353,7 +353,7 @@ protected:
     ul_bsr_indication_message msg{.cell_index = to_du_cell_index(0U),
                                   .ue_index   = ue_idx,
                                   .crnti      = to_rnti(0x4601 + static_cast<uint16_t>(ue_idx)),
-                                  .type       = srsran::bsr_format::SHORT_BSR};
+                                  .type       = ocudu::bsr_format::SHORT_BSR};
 
     msg.reported_lcgs.emplace_back(ul_bsr_lcg_report{.lcg_id = uint_to_lcg_id(0U), .nof_bytes = buffer_size});
 
@@ -474,7 +474,7 @@ TEST_P(fallback_scheduler_tester, successfully_allocated_resources_for_srb1_pdu_
                     bench->res_grid[0].result.ul.pucchs.end(),
                     [&test_ue](const pucch_info& pucch) {
                       return pucch.crnti == test_ue.crnti and pucch.uci_bits.harq_ack_nof_bits != 0 and
-                             pucch.format() == srsran::pucch_format::FORMAT_1;
+                             pucch.format() == ocudu::pucch_format::FORMAT_1;
                     })) {
       bench->set_conres_state(ue_idx, true);
     }
@@ -824,7 +824,7 @@ TEST_P(fallback_scheduler_tester, test_srb0_buffer_size_exceeding_max_msg4_mcs_i
     run_slot();
     const pdcch_dl_information* pdcch_it = get_ue_allocated_pdcch(test_ue);
     // ConRes CE is sent beforehand hence DCI 1_0 scrambled with C-RNTI is used to send Msg4.
-    ASSERT_FALSE(pdcch_it != nullptr and pdcch_it->dci.type == srsran::dci_dl_rnti_config_type::c_rnti_f1_0);
+    ASSERT_FALSE(pdcch_it != nullptr and pdcch_it->dci.type == ocudu::dci_dl_rnti_config_type::c_rnti_f1_0);
     if (pdcch_it != nullptr) {
       const dl_msg_alloc* pdsch_it = get_ue_allocated_pdsch(test_ue);
       // ConRes CE is sent beforehand hence Msg4 should consist only SDU with no ConRes MAC CE.
@@ -844,7 +844,7 @@ TEST_P(fallback_scheduler_tester, sanity_check_with_random_max_mcs_and_payload_s
   const auto mac_srb0_sdu_size = test_rgen::uniform_int<unsigned>(1, 458);
   push_buffer_state_to_dl_ue(to_du_ue_index(0), current_slot, mac_srb0_sdu_size, true);
 
-  srslog::basic_logger& logger(srslog::fetch_basic_logger("TEST"));
+  ocudulog::basic_logger& logger(ocudulog::fetch_basic_logger("TEST"));
   logger.info("SRB0 scheduler sanity test params PDU size ({}), max msg4 mcs ({}).", mac_srb0_sdu_size, max_msg4_mcs);
 
   run_slot();
@@ -853,7 +853,7 @@ TEST_P(fallback_scheduler_tester, sanity_check_with_random_max_mcs_and_payload_s
 class fallback_scheduler_tdd_tester : public base_fallback_tester, public ::testing::Test
 {
 protected:
-  fallback_scheduler_tdd_tester() : base_fallback_tester(srsran::duplex_mode::TDD, false) {}
+  fallback_scheduler_tdd_tester() : base_fallback_tester(ocudu::duplex_mode::TDD, false) {}
 };
 
 TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_appropriate_slots_in_tdd)
@@ -1206,7 +1206,7 @@ protected:
       std::optional<dl_harq_process_handle> dl_harq =
           test_ue.get_pcell().harqs.find_dl_harq_waiting_ack(sl, bit_index_1_harq_only);
       if (dl_harq.has_value()) {
-        srsran_assert(dl_harq->id() == ongoing_h_id, "HARQ process mismatch");
+        ocudu_assert(dl_harq->id() == ongoing_h_id, "HARQ process mismatch");
         dl_harq->dl_ack_info(ack_outcome ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
       }
     }
@@ -1303,7 +1303,7 @@ protected:
     {
       slot_update_srb_traffic = parent->current_slot + generate_srb1_next_update_delay();
       nof_packet_to_tx        = parent->SRB_PACKETS_TOT_TX;
-      test_logger.set_level(srslog::basic_levels::debug);
+      test_logger.set_level(ocudulog::basic_levels::debug);
 
       latest_harq_states.reserve(MAX_NOF_HARQS);
       for (uint8_t h_id_idx = 0; h_id_idx != std::underlying_type_t<harq_id_t>(MAX_HARQ_ID); ++h_id_idx) {
@@ -1436,7 +1436,7 @@ protected:
     slot_point                            slot_update_srb_traffic;
     unsigned                              nof_packet_to_tx;
     fallback_scheduler_srb1_segmentation* parent;
-    srslog::basic_logger&                 test_logger        = srslog::fetch_basic_logger("TEST");
+    ocudulog::basic_logger&               test_logger        = ocudulog::fetch_basic_logger("TEST");
     unsigned                              missing_retx       = 0;
     unsigned                              pending_srb1_bytes = 0;
     std::optional<slot_point>             latest_rlc_update_slot;
@@ -1562,7 +1562,7 @@ protected:
     ue&                           test_ue;
     ul_fallback_scheduler_tester* parent;
     unsigned                      buffer_bytes = 0;
-    srslog::basic_logger&         test_logger  = srslog::fetch_basic_logger("TEST");
+    ocudulog::basic_logger&       test_logger  = ocudulog::fetch_basic_logger("TEST");
     slot_point                    slot_generate_srb_traffic;
     bool                          initied_with_ul_traffic = false;
   };

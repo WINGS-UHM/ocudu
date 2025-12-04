@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/uplink_pdu_slot_repository.h"
-#include "srsran/phy/upper/uplink_processor.h"
+#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/phy/upper/uplink_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 class uplink_processor_spy : public uplink_processor,
                              private unique_uplink_pdu_slot_repository::uplink_pdu_slot_repository_callback,
@@ -78,4 +78,4 @@ private:
   unsigned on_rx_symbol_count              = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

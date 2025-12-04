@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/io/transport_layer_address.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/io/transport_layer_address.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 std::string create_random_ipv4_string()
 {

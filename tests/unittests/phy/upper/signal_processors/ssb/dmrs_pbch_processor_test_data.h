@@ -14,10 +14,10 @@
 //   + "srsPBCHdmrsUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   dmrs_pbch_processor::config_t                           config;
@@ -67,4 +67,4 @@ static const std::vector<test_case_t> dmrs_pbch_processor_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

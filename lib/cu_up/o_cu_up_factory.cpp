@@ -8,16 +8,16 @@
  *
  */
 
-#include "srsran/cu_up/o_cu_up_factory.h"
+#include "ocudu/cu_up/o_cu_up_factory.h"
 #include "o_cu_up_impl.h"
-#include "srsran/cu_up/cu_up_factory.h"
-#include "srsran/cu_up/o_cu_up.h"
-#include "srsran/e2/e2_cu_up_factory.h"
+#include "ocudu/cu_up/cu_up_factory.h"
+#include "ocudu/cu_up/o_cu_up.h"
+#include "ocudu/e2/e2_cu_up_factory.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
-std::unique_ptr<o_cu_up> srs_cu_up::create_o_cu_up(const o_cu_up_config& config, o_cu_up_dependencies&& dependencies)
+std::unique_ptr<o_cu_up> ocuup::create_o_cu_up(const o_cu_up_config& config, o_cu_up_dependencies&& dependencies)
 {
   auto cu_up = create_cu_up(config.cu_up_cfg, dependencies.cu_dependencies);
 

@@ -10,12 +10,12 @@
 
 #include "pucch_allocator_helpers.h"
 #include "../support/sched_result_helpers.h"
-#include "srsran/ran/pucch/pucch_configuration.h"
-#include "srsran/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_info.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-unsigned srsran::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, unsigned cell_pci)
+unsigned ocudu::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, unsigned cell_pci)
 {
   // As per TS 38.211, Section 6.4.1.3.2.1, N_{ID}^0 is given by the higher-layer parameter scramblingID0 in the
   // DMRS-UplinkConfig IE if provided and by N_{ID}^{cell} otherwise. If a UE is configured with both
@@ -39,10 +39,10 @@ unsigned srsran::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, 
   return cell_pci;
 }
 
-bool srsran::check_ul_collisions(span<const grant_info>    grants,
-                                 const ul_sched_result&    result,
-                                 const cell_configuration& cell_cfg,
-                                 bool                      is_common)
+bool ocudu::check_ul_collisions(span<const grant_info>    grants,
+                                const ul_sched_result&    result,
+                                const cell_configuration& cell_cfg,
+                                bool                      is_common)
 {
   if (is_common and not result.srss.empty()) {
     // [Implementation defined] Since we configure SRS to occupy the whole band, common PUCCH resources will
@@ -72,11 +72,11 @@ bool srsran::check_ul_collisions(span<const grant_info>    grants,
   return false;
 }
 
-void srsran::mark_pucch_in_resource_grid(cell_slot_resource_allocator&    pucch_slot_alloc,
-                                         const grant_info&                first_hop_grant,
-                                         const std::optional<grant_info>& second_hop_grant,
-                                         const crb_interval&              ul_bwp_crbs,
-                                         const scheduler_expert_config&   expert_cfg)
+void ocudu::mark_pucch_in_resource_grid(cell_slot_resource_allocator&    pucch_slot_alloc,
+                                        const grant_info&                first_hop_grant,
+                                        const std::optional<grant_info>& second_hop_grant,
+                                        const crb_interval&              ul_bwp_crbs,
+                                        const scheduler_expert_config&   expert_cfg)
 {
   const unsigned guard_rbs = expert_cfg.ue.min_pucch_pusch_prb_distance;
 
@@ -105,7 +105,7 @@ void srsran::mark_pucch_in_resource_grid(cell_slot_resource_allocator&    pucch_
 }
 
 std::pair<grant_info, std::optional<grant_info>>
-srsran::pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp, const pucch_resource& pucch_res)
+ocudu::pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp, const pucch_resource& pucch_res)
 {
   unsigned nof_prbs = 1;
   if (const auto* format_2_3 = std::get_if<pucch_format_2_3_cfg>(&pucch_res.format_params)) {
@@ -128,9 +128,9 @@ srsran::pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp, const
   return {grant_info{init_ul_bwp.scs, symbols, crbs}, std::nullopt};
 }
 
-void srsran::mark_pucch_in_resource_grid(cell_slot_resource_allocator& pucch_slot_alloc,
-                                         const pucch_resource&         pucch_res,
-                                         const ue_cell_configuration&  ue_cell_cfg)
+void ocudu::mark_pucch_in_resource_grid(cell_slot_resource_allocator& pucch_slot_alloc,
+                                        const pucch_resource&         pucch_res,
+                                        const ue_cell_configuration&  ue_cell_cfg)
 {
   const auto& init_ul_bwp = ue_cell_cfg.init_bwp().ul_common.value()->generic_params;
   const auto  grants      = pucch_resource_to_grant_info(init_ul_bwp, pucch_res);
@@ -190,7 +190,7 @@ pucch_existing_pdus_handler::pucch_existing_pdus_handler(rnti_t              crn
           harq_pdu = &pucch;
           ++pdus_cnt;
         } else {
-          srsran_assertion_failure("Invalid HARQ/SR bits for PUCCH Format 0");
+          ocudu_assertion_failure("Invalid HARQ/SR bits for PUCCH Format 0");
         }
       } else if (pucch.format() == pucch_format::FORMAT_1) {
         const pucch_resource* sr_res = get_sr_pucch_resource(pucch_cfg);
@@ -216,7 +216,7 @@ pucch_existing_pdus_handler::pucch_existing_pdus_handler(rnti_t              crn
 pucch_info* pucch_existing_pdus_handler::get_next_pdu(static_vector<pucch_info, MAX_PUCCH_PDUS_PER_SLOT>& pucchs)
 {
   if (is_empty()) {
-    srsran_assert(not pucchs.full(), "PUCCH grants list is full");
+    ocudu_assert(not pucchs.full(), "PUCCH grants list is full");
     auto* new_pdu           = &pucchs.emplace_back();
     new_pdu->pdu_context.id = pdu_id++;
     return new_pdu;
@@ -260,8 +260,8 @@ void pucch_existing_pdus_handler::update_sr_pdu_bits(sr_nof_bits sr_bits, unsign
   if (sr_pdu == nullptr) {
     return;
   }
-  srsran_assert(sr_pdu->format() == pucch_format::FORMAT_0 or sr_pdu->format() == pucch_format::FORMAT_1,
-                "Only PUCCH Formats 0 or 1 can be used for SR grant");
+  ocudu_assert(sr_pdu->format() == pucch_format::FORMAT_0 or sr_pdu->format() == pucch_format::FORMAT_1,
+               "Only PUCCH Formats 0 or 1 can be used for SR grant");
 
   sr_pdu->uci_bits.sr_bits           = sr_bits;
   sr_pdu->uci_bits.harq_ack_nof_bits = harq_ack_bits;
@@ -274,9 +274,9 @@ void pucch_existing_pdus_handler::update_sr_pdu_bits(sr_nof_bits sr_bits, unsign
 
 void pucch_existing_pdus_handler::update_csi_pdu_bits(unsigned csi_part1_bits, sr_nof_bits sr_bits)
 {
-  srsran_assert(csi_pdu->format() == pucch_format::FORMAT_2 or csi_pdu->format() == pucch_format::FORMAT_3 or
-                    csi_pdu->format() == pucch_format::FORMAT_4,
-                "Only PUCCH Formats 2, 3 and 4 can be used for CSI grant");
+  ocudu_assert(csi_pdu->format() == pucch_format::FORMAT_2 or csi_pdu->format() == pucch_format::FORMAT_3 or
+                   csi_pdu->format() == pucch_format::FORMAT_4,
+               "Only PUCCH Formats 2, 3 and 4 can be used for CSI grant");
 
   csi_pdu->uci_bits.csi_part1_nof_bits = csi_part1_bits;
   csi_pdu->uci_bits.sr_bits            = sr_bits;

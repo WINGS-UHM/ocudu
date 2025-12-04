@@ -12,9 +12,9 @@
 #include "apps/helpers/f1u/f1u_appconfig_validator.h"
 #include "apps/helpers/logger/logger_appconfig_validator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_appconfig(const du_appconfig& config)
+bool ocudu::validate_appconfig(const du_appconfig& config)
 {
   if (!validate_logger_appconfig(config.log_cfg)) {
     return false;

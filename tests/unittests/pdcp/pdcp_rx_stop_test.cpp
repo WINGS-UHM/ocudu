@@ -9,16 +9,16 @@
  */
 
 #include "pdcp_rx_stop_test.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test stopping PDCP RX entities when no PDUs are present.
 TEST_P(pdcp_rx_stop_test, stop_when_there_are_no_pending_pdus)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
 
   pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -37,7 +37,7 @@ TEST_P(pdcp_rx_stop_test, stop_when_there_are_no_pending_pdus)
 TEST_P(pdcp_rx_stop_test, stop_when_there_are_pending_pdus)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
 
   pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -91,7 +91,7 @@ TEST_P(pdcp_rx_stop_test, stop_when_there_are_pending_pdus)
 TEST_P(pdcp_rx_stop_test, stop_when_integrity_failed)
 {
   init(GetParam());
-  srsran::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
+  ocudu::test_delimit_logger delimiter("Normal stop test. SN_SIZE={} ", sn_size);
 
   pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 

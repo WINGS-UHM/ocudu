@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct mac_cell_creation_request;
 class scheduler_cell_metrics_notifier;
@@ -23,7 +23,7 @@ struct mac_scheduler_cell_creation_request {
   scheduler_cell_metrics_notifier* metric_notifier;
 };
 
-/// \brief Adapter interface between MAC and scheduler that allows the srsGNB MAC to configure different scheduler
+/// \brief Adapter interface between MAC and scheduler that allows the OCUDU gNB MAC to configure different scheduler
 /// implementations.
 /// Note: This adapter interface makes scheduler configuration methods awaitable.
 class mac_scheduler_configurator
@@ -61,4 +61,4 @@ public:
   virtual void handle_ue_config_applied(du_ue_index_t ue_index) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

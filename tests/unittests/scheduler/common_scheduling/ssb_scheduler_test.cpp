@@ -12,17 +12,17 @@
 #include "lib/scheduler/common_scheduling/ssb_scheduler.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
-#include "srsran/ran/frame_types.h"
-#include "srsran/ran/ssb/ssb_mapping.h"
-#include "srsran/scheduler/sched_consts.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/frame_types.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/sched_consts.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 /// This will be removed once we can get this value from the slot object.
 #define TEST_HARQ_ASSERT_MSG(SLOT, PERIODICITY, CASE)                                                                  \
   "Failed at slot: '{}', periodicity '{}', case '{}'", SLOT, PERIODICITY, ssb_case_to_str(CASE)
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Helper function to print the SSB CASE.
 const char* ssb_case_to_str(ssb_pattern_case ssb_case)
@@ -30,9 +30,9 @@ const char* ssb_case_to_str(ssb_pattern_case ssb_case)
   switch (ssb_case) {
     case ssb_pattern_case::A:
       return "SSB case A";
-    case srsran::ssb_pattern_case::B:
+    case ocudu::ssb_pattern_case::B:
       return "SSB case B";
-    case srsran::ssb_pattern_case::C:
+    case ocudu::ssb_pattern_case::C:
       return "SSB case C - paired spectrum";
     default:
       return "SSB case invalid";
@@ -41,8 +41,8 @@ const char* ssb_case_to_str(ssb_pattern_case ssb_case)
 
 /// Helper struct to test HARQs and update loggers slot context.
 struct ssb_test_bench {
-  srslog::basic_logger& mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   ssb_test_bench(ssb_periodicity    ssb_period,
                  uint32_t           freq_arfcn,
@@ -65,8 +65,7 @@ struct ssb_test_bench {
         numerology = 1;
         break;
       default:
-        srsran_assert(cfg.ssb_case < ssb_pattern_case::invalid,
-                      "Invalid SSB case. Only case A, B, and C are supported");
+        ocudu_assert(cfg.ssb_case < ssb_pattern_case::invalid, "Invalid SSB case. Only case A, B, and C are supported");
     }
     test_logger.set_context(0, 0);
     mac_logger.set_context(0, 0);
@@ -443,7 +442,7 @@ void test_ssb_allocation(ssb_periodicity    ssb_period,
         test_ssb_case_A_C(bench.slot_tx(), f_cutoff_arfnc, bench.get_cell_sched_config(), bench.get_slot_allocator());
       } break;
       default:
-        srsran_assert(ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
+        ocudu_assert(ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
     }
   }
 }

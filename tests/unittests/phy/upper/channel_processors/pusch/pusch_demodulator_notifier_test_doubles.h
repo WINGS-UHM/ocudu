@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_demodulator_notifier_spy : public pusch_demodulator_notifier
 {
@@ -33,4 +33,4 @@ private:
   std::vector<demodulation_stats> end_stats_entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_modulation/demodulation_mapper.h"
+#include "ocudu/phy/upper/channel_modulation/demodulation_mapper.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Approximate-LLR demodulator.
 ///
@@ -37,4 +37,4 @@ public:
                        modulation_scheme          mod) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

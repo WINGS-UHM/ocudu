@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 30-07-2024 (seed 0):
 //   + "srsOFDMDemodulatorUnittest.m"
 
-#include "srsran/phy/lower/modulation/ofdm_demodulator.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/lower/modulation/ofdm_demodulator.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ofdm_demodulator_test_configuration {
   ofdm_demodulator_configuration config;
@@ -60,4 +60,4 @@ static const std::vector<test_case_t> ofdm_demodulator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

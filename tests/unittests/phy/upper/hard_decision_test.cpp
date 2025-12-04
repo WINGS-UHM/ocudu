@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 static std::mt19937       rgen(1234);
 static constexpr unsigned nof_repetitions = 100;
@@ -52,7 +52,7 @@ TEST(HardDecision, valid_results)
     build_random_softbits(soft_bits);
 
     // Compute hard bit sequence;
-    srsran::hard_decision(hard_bits_actual, soft_bits);
+    ocudu::hard_decision(hard_bits_actual, soft_bits);
 
     // Compute expected hard bit sequence.
     hard_decision_golden(hard_bits_expected, soft_bits);

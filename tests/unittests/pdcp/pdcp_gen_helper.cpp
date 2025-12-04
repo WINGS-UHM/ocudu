@@ -10,15 +10,15 @@
 
 #include "lib/pdcp/pdcp_entity_tx.h"
 #include "pdcp_test_vectors.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_tx.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/timers.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/timers.h"
 #include <cstdlib>
 #include <getopt.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct pdcp_gen_helper_args {
   std::string sn_size = {};
@@ -109,9 +109,9 @@ int main(int argc, char** argv)
   pdcp_gen_helper_args args;
   parse_args(args, argc, argv);
 
-  srslog::init();
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("PDCP", false);
-  logger.set_level(srslog::basic_levels::debug);
+  ocudulog::init();
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PDCP", false);
+  logger.set_level(ocudulog::basic_levels::debug);
   logger.set_hex_dump_max_size(1500);
 
   pdcp_sn_size sn_size = args.sn_size == "12" ? pdcp_sn_size::size12bits : pdcp_sn_size::size18bits;

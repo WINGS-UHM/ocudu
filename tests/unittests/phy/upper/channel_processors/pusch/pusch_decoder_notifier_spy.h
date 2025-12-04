@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class pusch_decoder_notifier_spy : public pusch_decoder_notifier
 {
@@ -29,4 +29,4 @@ private:
   std::vector<pusch_decoder_result> entries;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,12 +11,12 @@
 #include "lib/cu_cp/metrics_handler/metrics_handler_impl.h"
 #include "lib/cu_cp/mobility_manager/mobility_manager_impl.h"
 #include "lib/cu_cp/ngap_repository.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class dummy_ue_metrics_handler : public ue_metrics_handler,
                                  public du_repository_metrics_handler,

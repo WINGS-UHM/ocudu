@@ -10,7 +10,7 @@
 
 #include "rlc_bearer_metrics_collector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_bearer_metrics_collector::rlc_bearer_metrics_collector(gnb_du_id_t           du_,
                                                            du_ue_index_t         ue_,

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/static_vector.h"
-#include "srsran/adt/tensor.h"
-#include "srsran/phy/support/prach_buffer.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/adt/tensor.h"
+#include "ocudu/phy/support/prach_buffer.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// PRACH buffer with a fix storage size at initialization.
 class prach_buffer_impl : public prach_buffer
@@ -62,23 +62,23 @@ public:
   // See interface for documentation.
   span<cbf16_t> get_symbol(unsigned i_port, unsigned i_td_occasion, unsigned i_fd_occasion, unsigned i_symbol) override
   {
-    srsran_assert(i_port < get_max_nof_ports(),
-                  "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
-                  i_port,
-                  get_max_nof_ports());
-    srsran_assert(i_td_occasion < get_max_nof_td_occasions(),
-                  "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
-                  i_td_occasion,
-                  get_max_nof_td_occasions());
-    srsran_assert(
+    ocudu_assert(i_port < get_max_nof_ports(),
+                 "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
+                 i_port,
+                 get_max_nof_ports());
+    ocudu_assert(i_td_occasion < get_max_nof_td_occasions(),
+                 "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
+                 i_td_occasion,
+                 get_max_nof_td_occasions());
+    ocudu_assert(
         i_fd_occasion < get_max_nof_fd_occasions(),
         "The frequency-domain occasion (i.e., {}) exceeds the maximum number of frequency-domain occasions (i.e., {}).",
         i_fd_occasion,
         get_max_nof_fd_occasions());
-    srsran_assert(i_symbol < get_max_nof_symbols(),
-                  "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
-                  i_symbol,
-                  get_max_nof_symbols());
+    ocudu_assert(i_symbol < get_max_nof_symbols(),
+                 "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
+                 i_symbol,
+                 get_max_nof_symbols());
     return data.get_view({i_symbol, i_fd_occasion, i_td_occasion, i_port});
   }
 
@@ -86,25 +86,25 @@ public:
   span<const cbf16_t>
   get_symbol(unsigned i_port, unsigned i_td_occasion, unsigned i_fd_occasion, unsigned i_symbol) const override
   {
-    srsran_assert(i_port < get_max_nof_ports(),
-                  "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
-                  i_port,
-                  get_max_nof_ports());
-    srsran_assert(i_td_occasion < get_max_nof_td_occasions(),
-                  "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
-                  i_td_occasion,
-                  get_max_nof_td_occasions());
-    srsran_assert(
+    ocudu_assert(i_port < get_max_nof_ports(),
+                 "The port index (i.e., {}) exceeds the maximum number of ports (i.e., {}).",
+                 i_port,
+                 get_max_nof_ports());
+    ocudu_assert(i_td_occasion < get_max_nof_td_occasions(),
+                 "The time-domain occasion (i.e., {}) exceeds the maximum number of time-domain occasions (i.e., {}).",
+                 i_td_occasion,
+                 get_max_nof_td_occasions());
+    ocudu_assert(
         i_fd_occasion < get_max_nof_fd_occasions(),
         "The frequency-domain occasion (i.e., {}) exceeds the maximum number of frequency-domain occasions (i.e., {}).",
         i_fd_occasion,
         get_max_nof_fd_occasions());
-    srsran_assert(i_symbol < get_max_nof_symbols(),
-                  "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
-                  i_symbol,
-                  get_max_nof_symbols());
+    ocudu_assert(i_symbol < get_max_nof_symbols(),
+                 "The symbol index (i.e., {}) exceeds the maximum number of symbols (i.e., {}).",
+                 i_symbol,
+                 get_max_nof_symbols());
     return data.get_view({i_symbol, i_fd_occasion, i_td_occasion, i_port});
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

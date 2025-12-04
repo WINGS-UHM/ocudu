@@ -9,11 +9,11 @@
  */
 
 #include "short_block_encoder_impl.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/srsvec/binary.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ocuduvec/binary.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Maximum message length.
 static constexpr unsigned MAX_IN_BITS = 11;
@@ -37,15 +37,15 @@ static void validate_spans(span<uint8_t> output, span<const uint8_t> input, unsi
 {
   unsigned in_size  = input.size();
   unsigned out_size = output.size();
-  srsran_assert((in_size > 0) && (in_size <= MAX_IN_BITS), "The input length should be between 1 and 11 bits.");
+  ocudu_assert((in_size > 0) && (in_size <= MAX_IN_BITS), "The input length should be between 1 and 11 bits.");
   if (in_size > 2) {
-    srsran_assert(out_size > in_size,
-                  "The number of output bits (i.e., {}) must be larger than the number of bits to encode (i.e., {}).",
-                  out_size,
-                  in_size);
+    ocudu_assert(out_size > in_size,
+                 "The number of output bits (i.e., {}) must be larger than the number of bits to encode (i.e., {}).",
+                 out_size,
+                 in_size);
   } else {
     // Output length must be no less than the number of bits per symbol of the block modulation.
-    srsran_assert(out_size >= bits_per_symbol, "Invalid output length.");
+    ocudu_assert(out_size >= bits_per_symbol, "Invalid output length.");
   }
 }
 
@@ -91,7 +91,7 @@ static void encode_3_11(span<uint8_t> output, span<const uint8_t> input)
 
   for (unsigned c_i = 0, length = input.size(); c_i != length; ++c_i) {
     if (input[c_i] == 1) {
-      srsvec::binary_xor(output, BASIS_SEQUENCES[c_i], output);
+      ocuduvec::binary_xor(output, BASIS_SEQUENCES[c_i], output);
     }
   }
 }
@@ -130,7 +130,7 @@ void short_block_encoder_impl::encode(span<uint8_t> output, span<const uint8_t> 
   rate_match(output, tmp);
 }
 
-std::unique_ptr<short_block_encoder> srsran::create_short_block_encoder()
+std::unique_ptr<short_block_encoder> ocudu::create_short_block_encoder()
 {
   return std::make_unique<short_block_encoder_impl>();
 }

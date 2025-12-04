@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/phy/lower/processors/uplink/prach/prach_processor_factories.h"
+#include "ocudu/phy/lower/processors/uplink/prach/prach_processor_factories.h"
 #include "prach_processor_impl.h"
 #include "prach_processor_worker.h"
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/phy/lower/sampling_rate.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/phy/lower/sampling_rate.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -38,8 +38,8 @@ public:
     max_nof_ports(max_nof_ports_),
     max_nof_concurrent_requests(max_nof_concurrent_requests_)
   {
-    srsran_assert(ofdm_prach_factory, "Invalid OFDM PRACH factory.");
-    srsran_assert(max_nof_concurrent_requests, "Zero is an invalid maximum number of concurrent reqs.");
+    ocudu_assert(ofdm_prach_factory, "Invalid OFDM PRACH factory.");
+    ocudu_assert(max_nof_concurrent_requests, "Zero is an invalid maximum number of concurrent reqs.");
   }
 
   std::unique_ptr<prach_processor> create() override
@@ -58,11 +58,11 @@ public:
 } // namespace
 
 std::shared_ptr<prach_processor_factory>
-srsran::create_prach_processor_factory_sw(std::shared_ptr<ofdm_prach_demodulator_factory> ofdm_prach_factory,
-                                          task_executor&                                  async_task_executor,
-                                          sampling_rate                                   srate,
-                                          unsigned                                        max_nof_ports,
-                                          unsigned                                        max_nof_concurrent_requests)
+ocudu::create_prach_processor_factory_sw(std::shared_ptr<ofdm_prach_demodulator_factory> ofdm_prach_factory,
+                                         task_executor&                                  async_task_executor,
+                                         sampling_rate                                   srate,
+                                         unsigned                                        max_nof_ports,
+                                         unsigned                                        max_nof_concurrent_requests)
 {
   return std::make_shared<prach_processor_factory_sw>(
       std::move(ofdm_prach_factory), async_task_executor, srate, max_nof_ports, max_nof_concurrent_requests);

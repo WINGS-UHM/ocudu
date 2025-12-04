@@ -12,7 +12,7 @@
 
 #include "split6_o_du_low_plugin.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct worker_manager_config;
 
@@ -43,4 +43,4 @@ public:
   void fill_worker_manager_config(worker_manager_config& config) override {}
 };
 
-} // namespace srsran
+} // namespace ocudu

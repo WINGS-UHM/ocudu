@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_decoder.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_rate_dematcher.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_rx.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder.h"
-#include "srsran/ran/pusch/pusch_constants.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_decoder.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_rate_dematcher.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_rx.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief PUSCH code block decoder.
 ///
@@ -49,21 +49,21 @@ public:
     decoder(std::move(dec)),
     crc_set({std::move(crcs.crc16), std::move(crcs.crc24A), std::move(crcs.crc24B)})
   {
-    srsran_assert(dematcher, "Invalid dematcher.");
-    srsran_assert(crc_set.crc16, "Invalid CRC16 calculator.");
-    srsran_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
-    srsran_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
-    srsran_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16, "Wrong TB CRC calculator.");
-    srsran_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A, "Wrong TB CRC calculator.");
-    srsran_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B, "Wrong TB CRC calculator.");
+    ocudu_assert(dematcher, "Invalid dematcher.");
+    ocudu_assert(crc_set.crc16, "Invalid CRC16 calculator.");
+    ocudu_assert(crc_set.crc24A, "Invalid CRC24A calculator.");
+    ocudu_assert(crc_set.crc24B, "Invalid CRC24B calculator.");
+    ocudu_assert(crc_set.crc16->get_generator_poly() == crc_generator_poly::CRC16, "Wrong TB CRC calculator.");
+    ocudu_assert(crc_set.crc24A->get_generator_poly() == crc_generator_poly::CRC24A, "Wrong TB CRC calculator.");
+    ocudu_assert(crc_set.crc24B->get_generator_poly() == crc_generator_poly::CRC24B, "Wrong TB CRC calculator.");
   }
 
   /// Selects the CRC calculator from a CRC polynomial.
   crc_calculator* select_crc(crc_generator_poly poly)
   {
-    srsran_assert((poly == crc_generator_poly::CRC16) || (poly == crc_generator_poly::CRC24A) ||
-                      (poly == crc_generator_poly::CRC24B),
-                  "Invalid CRC polynomial.");
+    ocudu_assert((poly == crc_generator_poly::CRC16) || (poly == crc_generator_poly::CRC24A) ||
+                     (poly == crc_generator_poly::CRC24B),
+                 "Invalid CRC polynomial.");
     if (poly == crc_generator_poly::CRC16) {
       return crc_set.crc16.get();
     }
@@ -107,7 +107,7 @@ public:
                                  span<log_likelihood_ratio>       rm_buffer,
                                  span<const log_likelihood_ratio> cb_llrs,
                                  bool                             new_data,
-                                 srsran::crc_generator_poly       crc_poly,
+                                 ocudu::crc_generator_poly        crc_poly,
                                  bool                             use_early_stop,
                                  unsigned                         nof_ldpc_iterations,
                                  bool                             force_decoding,
@@ -125,4 +125,4 @@ private:
   sch_crc crc_set;
 };
 
-} // namespace srsran
+} // namespace ocudu

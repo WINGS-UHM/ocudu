@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp.h"
-#include "srsran/cu_cp/cu_cp_operation_controller.h"
-#include "srsran/cu_cp/o_cu_cp.h"
-#include "srsran/e2/e2.h"
+#include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/cu_cp/cu_cp_operation_controller.h"
+#include "ocudu/cu_cp/o_cu_cp.h"
+#include "ocudu/e2/e2.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// O-RAN CU-CP implementation.
 class o_cu_cp_impl : public o_cu_cp, public cu_cp_operation_controller
@@ -57,5 +57,5 @@ private:
   std::unique_ptr<e2_agent> e2agent;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

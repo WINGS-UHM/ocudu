@@ -19,15 +19,15 @@ set(SOURCES
             split6_o_du_low_unit_cli11_schema.cpp
             split6_o_du_low_unit_config_validator.cpp)
 
-add_library(srsran_split6_o_du_low_plugin STATIC split6_o_du_low_plugin_dummy.cpp)
-target_include_directories(srsran_split6_o_du_low_plugin PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_split6_o_du_low_plugin STATIC split6_o_du_low_plugin_dummy.cpp)
+target_include_directories(ocudu_split6_o_du_low_plugin PRIVATE ${CMAKE_SOURCE_DIR})
 
-add_library(srsran_flexible_o_du_low_split_6 STATIC ${SOURCES})
-target_include_directories(srsran_flexible_o_du_low_split_6 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_flexible_o_du_low_split_6 PRIVATE
-        srsran_split6_flexible_o_du_low_unit_metrics_helpers
-        srsran_split6_flexible_o_du_low_unit_phy_fapi_p5_adaptor
-        srsran_o_du_low_unit_helpers
-        srsran_split_8_app_unit_helpers
-        srsran_split_7_2_app_unit_helpers
-        srsran_split6_o_du_low_plugin)
+add_library(ocudu_flexible_o_du_low_split_6 STATIC ${SOURCES})
+target_include_directories(ocudu_flexible_o_du_low_split_6 PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_flexible_o_du_low_split_6 PRIVATE
+        ocudu_split6_flexible_o_du_low_unit_metrics_helpers
+        ocudu_split6_flexible_o_du_low_unit_phy_fapi_p5_adaptor
+        ocudu_o_du_low_unit_helpers
+        ocudu_split_8_app_unit_helpers
+        ocudu_split_7_2_app_unit_helpers
+        ocudu_split6_o_du_low_plugin)

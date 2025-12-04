@@ -14,6 +14,6 @@ set(SOURCES
         cu_cp_unit_config_validator.cpp
         cu_cp_unit_config_yaml_writer.cpp)
 
-add_library(srsran_cu_cp_app_unit STATIC ${SOURCES})
-target_include_directories(srsran_cu_cp_app_unit PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_cu_cp_app_unit PRIVATE srsran_cu_cp_unit_metrics_helpers srsran_app_helpers)
+add_library(ocudu_cu_cp_app_unit STATIC ${SOURCES})
+target_include_directories(ocudu_cu_cp_app_unit PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_cu_cp_app_unit PRIVATE ocudu_cu_cp_unit_metrics_helpers ocudu_app_helpers)

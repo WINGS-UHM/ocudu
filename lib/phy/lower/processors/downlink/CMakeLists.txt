@@ -8,9 +8,9 @@
 
 add_subdirectory(pdxch)
 
-add_library(srsran_lower_phy_downlink_processor STATIC
+add_library(ocudu_lower_phy_downlink_processor STATIC
         downlink_processor_baseband_impl.cpp
         downlink_processor_factories.cpp
         downlink_processor_impl.cpp)
 
-target_link_libraries(srsran_lower_phy_downlink_processor srsvec srsran_instrumentation)
+target_link_libraries(ocudu_lower_phy_downlink_processor ocuduvec ocudu_instrumentation)

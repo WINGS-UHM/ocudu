@@ -11,16 +11,16 @@
 #include "lib/scheduler/support/pucch/pucch_default_resource.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, pucch_format format)
 {
   return os << "Format" << std::to_string(static_cast<unsigned>(format));
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 // Combined parameters. First row index and second BWP size.
 using PucchDefaultResourceParam = std::tuple<unsigned, unsigned>;

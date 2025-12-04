@@ -14,7 +14,7 @@
 #include "../ue_scheduling/grant_params_selector.h"
 #include <algorithm>
 
-using namespace srsran;
+using namespace ocudu;
 
 // [Implementation-defined] Limit for the coefficient of the proportional fair metric to avoid issues with double
 // imprecision.
@@ -30,7 +30,7 @@ scheduler_time_qos::scheduler_time_qos(const scheduler_ue_expert_config& expert_
 
 void scheduler_time_qos::add_ue(du_ue_index_t ue_index)
 {
-  srsran_assert(not ue_history_db.contains(ue_index), "UE was already added to this slice");
+  ocudu_assert(not ue_history_db.contains(ue_index), "UE was already added to this slice");
   ue_history_db.emplace(ue_index, ue_ctxt{ue_index, cell_index, this});
 }
 
@@ -272,9 +272,9 @@ void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u,
   const ue_cell& ue_cc = u.get_cc();
 
   // This should be ensured at this point.
-  srsran_sanity_check(ue_cc.is_pdsch_enabled(pdcch_slot, pdsch_slot) and ue_cc.harqs.has_empty_dl_harqs() and
-                          u.has_pending_dl_newtx_bytes(),
-                      "Invalid DL UE candidate state");
+  ocudu_sanity_check(ue_cc.is_pdsch_enabled(pdcch_slot, pdsch_slot) and ue_cc.harqs.has_empty_dl_harqs() and
+                         u.has_pending_dl_newtx_bytes(),
+                     "Invalid DL UE candidate state");
 
   // [Implementation-defined] We consider only the SearchSpace defined in UE dedicated configuration.
   const search_space_id ue_ded_ss_id = to_search_space_id(2);
@@ -311,9 +311,9 @@ void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u,
   compute_ul_avg_rate(u, nof_slots_elapsed);
 
   const ue_cell& ue_cc = u.get_cc();
-  srsran_sanity_check(not ue_cc.is_in_fallback_mode() and ue_cc.is_pusch_enabled(pdcch_slot, pusch_slot) and
-                          ue_cc.harqs.has_empty_ul_harqs() and u.pending_ul_newtx_bytes() > 0,
-                      "UE UL candidate in invalid state");
+  ocudu_sanity_check(not ue_cc.is_in_fallback_mode() and ue_cc.is_pusch_enabled(pdcch_slot, pusch_slot) and
+                         ue_cc.harqs.has_empty_ul_harqs() and u.pending_ul_newtx_bytes() > 0,
+                     "UE UL candidate in invalid state");
 
   // [Implementation-defined] We consider only the SearchSpace defined in UE dedicated configuration.
   const search_space_id ue_ded_ss_id = to_search_space_id(2);

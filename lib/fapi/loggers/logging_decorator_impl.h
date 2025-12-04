@@ -15,21 +15,21 @@
 #include "logging_slot_data_notifier_decorator.h"
 #include "logging_slot_gateway_decorator.h"
 #include "logging_slot_time_notifier_decorator.h"
-#include "srsran/fapi/decorator.h"
+#include "ocudu/fapi/decorator.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 class logging_decorator_impl : public fapi_decorator
 {
 public:
   logging_decorator_impl(unsigned                    sector_id,
-                         srslog::basic_logger&       logger,
+                         ocudulog::basic_logger&     logger,
                          slot_message_gateway&       gateway_,
                          slot_last_message_notifier& last_msg_notifier_);
 
   logging_decorator_impl(unsigned                        sector_id,
-                         srslog::basic_logger&           logger,
+                         ocudulog::basic_logger&         logger,
                          std::unique_ptr<fapi_decorator> next_decorator_);
 
   // See interface for documentation.
@@ -66,4 +66,4 @@ private:
 };
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

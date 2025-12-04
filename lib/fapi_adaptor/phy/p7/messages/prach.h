@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/config_request_tlvs.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/messages/config_request_tlvs.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct prach_buffer_context;
 
@@ -39,4 +39,4 @@ void convert_prach_fapi_to_phy(prach_buffer_context&       context,
                                unsigned                    sector_id);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

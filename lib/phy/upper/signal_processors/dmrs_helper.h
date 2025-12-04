@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/adt/span.h"
-#include "srsran/phy/support/mask_types.h"
-#include "srsran/phy/upper/dmrs_mapping.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/phy/support/mask_types.h"
+#include "ocudu/phy/upper/dmrs_mapping.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/ran/resource_block.h"
 #include <array>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Helper function to generate DM-RS sequences.
 ///
@@ -65,4 +65,4 @@ struct dmrs_pxsch_parameters {
 /// \return The DM-RS parameters for the specified channel and configuration type.
 dmrs_pxsch_parameters get_pxsch_dmrs_params(dmrs_type type, unsigned i_dmrs_port);
 
-} // namespace srsran
+} // namespace ocudu

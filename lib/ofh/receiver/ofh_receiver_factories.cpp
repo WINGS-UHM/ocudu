@@ -14,16 +14,16 @@
 #include "ofh_receiver_impl.h"
 #include "ofh_sequence_id_checker_dummy_impl.h"
 #include "ofh_sequence_id_checker_impl.h"
-#include "srsran/ofh/compression/compression_factory.h"
-#include "srsran/ofh/ecpri/ecpri_factories.h"
-#include "srsran/ofh/ethernet/ethernet_factories.h"
-#include "srsran/ofh/serdes/ofh_serdes_factories.h"
+#include "ocudu/ofh/compression/compression_factory.h"
+#include "ocudu/ofh/ecpri/ecpri_factories.h"
+#include "ocudu/ofh/ethernet/ethernet_factories.h"
+#include "ocudu/ofh/serdes/ofh_serdes_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 static std::unique_ptr<uplane_message_decoder> create_uplane_decoder(const receiver_config&       receiver_cfg,
-                                                                     srslog::basic_logger&        logger,
+                                                                     ocudulog::basic_logger&      logger,
                                                                      const ru_compression_params& compr_params)
 {
   // Compressors.
@@ -58,7 +58,7 @@ static std::unique_ptr<uplane_message_decoder> create_uplane_decoder(const recei
 
 static std::unique_ptr<data_flow_uplane_uplink_prach>
 create_uplink_prach_data_flow(const receiver_config&                            receiver_cfg,
-                              srslog::basic_logger&                             logger,
+                              ocudulog::basic_logger&                           logger,
                               std::shared_ptr<uplane_rx_symbol_notifier>        notifier,
                               std::shared_ptr<prach_context_repository>         prach_context_repo,
                               std::shared_ptr<uplink_cplane_context_repository> prach_cp_context_repo)
@@ -82,7 +82,7 @@ create_uplink_prach_data_flow(const receiver_config&                            
 
 static std::unique_ptr<data_flow_uplane_uplink_data>
 create_uplink_data_flow(const receiver_config&                            receiver_cfg,
-                        srslog::basic_logger&                             logger,
+                        ocudulog::basic_logger&                           logger,
                         std::shared_ptr<uplane_rx_symbol_notifier>        notifier,
                         std::shared_ptr<uplink_context_repository>        ul_slot_context_repo,
                         std::shared_ptr<uplink_cplane_context_repository> ul_cp_context_repo)
@@ -104,7 +104,7 @@ create_uplink_data_flow(const receiver_config&                            receiv
 
 static receiver_impl_dependencies
 resolve_receiver_dependencies(const receiver_config&                                  receiver_cfg,
-                              srslog::basic_logger&                                   logger,
+                              ocudulog::basic_logger&                                 logger,
                               task_executor&                                          uplink_executor,
                               std::unique_ptr<ether::receiver>                        eth_receiver,
                               uplane_rx_symbol_notifier*                              notifier,
@@ -114,7 +114,7 @@ resolve_receiver_dependencies(const receiver_config&                            
                               std::shared_ptr<uplink_cplane_context_repository>       prach_cp_context_repo,
                               std::shared_ptr<uplink_notified_grid_symbol_repository> notifier_symbol_repo)
 {
-  srsran_assert(notifier, "Invalid received symbol notifier");
+  ocudu_assert(notifier, "Invalid received symbol notifier");
 
   receiver_impl_dependencies dependencies;
   dependencies.logger           = &logger;
@@ -160,16 +160,16 @@ resolve_receiver_dependencies(const receiver_config&                            
 }
 
 std::unique_ptr<receiver>
-srsran::ofh::create_receiver(const receiver_config&                                  receiver_cfg,
-                             srslog::basic_logger&                                   logger,
-                             task_executor&                                          uplink_executor,
-                             std::unique_ptr<ether::receiver>                        eth_rx,
-                             uplane_rx_symbol_notifier*                              notifier,
-                             std::shared_ptr<prach_context_repository>               prach_context_repo,
-                             std::shared_ptr<uplink_context_repository>              ul_slot_context_repo,
-                             std::shared_ptr<uplink_cplane_context_repository>       ul_cp_context_repo,
-                             std::shared_ptr<uplink_cplane_context_repository>       prach_cp_context_repo,
-                             std::shared_ptr<uplink_notified_grid_symbol_repository> notifier_symbol_repo)
+ocudu::ofh::create_receiver(const receiver_config&                                  receiver_cfg,
+                            ocudulog::basic_logger&                                 logger,
+                            task_executor&                                          uplink_executor,
+                            std::unique_ptr<ether::receiver>                        eth_rx,
+                            uplane_rx_symbol_notifier*                              notifier,
+                            std::shared_ptr<prach_context_repository>               prach_context_repo,
+                            std::shared_ptr<uplink_context_repository>              ul_slot_context_repo,
+                            std::shared_ptr<uplink_cplane_context_repository>       ul_cp_context_repo,
+                            std::shared_ptr<uplink_cplane_context_repository>       prach_cp_context_repo,
+                            std::shared_ptr<uplink_notified_grid_symbol_repository> notifier_symbol_repo)
 {
   auto rx_deps = resolve_receiver_dependencies(receiver_cfg,
                                                logger,

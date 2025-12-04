@@ -14,7 +14,7 @@ ADD dashboards   /usr/share/grafana/public/dashboards
 
 USER root
 RUN rm -rf /usr/share/grafana/public/app/plugins/panel/table
-ARG LOGO_SRC=https://raw.githubusercontent.com/srsran/srsRAN_Project_docs/main/docs/source/.imgs/logo.png
+ARG LOGO_SRC=https://raw.githubusercontent.com/ocudu/OCUDU_Project_docs/main/docs/source/.imgs/logo.png
 # If LOGO_SRC is a valid path inside the container, then move it to the correct location
 # Otherwise, download it from the URL
 RUN if [ -f "${LOGO_SRC}" ]; then \

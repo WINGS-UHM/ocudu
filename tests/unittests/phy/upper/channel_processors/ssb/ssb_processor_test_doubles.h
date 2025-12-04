@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/ssb/ssb_processor.h"
+#include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Spy implementation of a SSB processor.
 class ssb_processor_spy : public ssb_processor
@@ -26,4 +26,4 @@ public:
   bool is_process_called() const { return process_method_called; }
 };
 
-} // namespace srsran
+} // namespace ocudu

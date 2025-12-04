@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// Implementation of the MAC-FAPI adaptor factory.
@@ -25,4 +25,4 @@ public:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
 #include <cmath>
 #include <optional>
 
@@ -21,7 +21,7 @@
 #include <arm_neon.h>
 #endif // __ARM_NEON
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Computes the sum when at least one of the summands is plus/minus infinity.
 /// Note that also the indeterminate case +LLR_INFTY + (-LLR_INFTY) is set to zero.
@@ -77,7 +77,7 @@ log_likelihood_ratio log_likelihood_ratio::promotion_sum(log_likelihood_ratio a,
 
 log_likelihood_ratio log_likelihood_ratio::quantize(float value, float range_limit)
 {
-  srsran_assert(range_limit > 0, "Second input must be positive.");
+  ocudu_assert(range_limit > 0, "Second input must be positive.");
 
   float clipped = value;
   if (std::abs(value) > range_limit) {
@@ -249,15 +249,15 @@ static void hard_decision_simd(bit_buffer& hard_bits, const int8_t* soft_bits, u
 }
 #endif // __ARM_NEON
 
-void srsran::clamp(span<log_likelihood_ratio>       out,
-                   span<const log_likelihood_ratio> in,
-                   log_likelihood_ratio             low,
-                   log_likelihood_ratio             high)
+void ocudu::clamp(span<log_likelihood_ratio>       out,
+                  span<const log_likelihood_ratio> in,
+                  log_likelihood_ratio             low,
+                  log_likelihood_ratio             high)
 {
-  srsran_assert(out.size() == in.size(),
-                "Input size (i.e., {}) is not equal to the output size (i.e., {}).",
-                in.size(),
-                out.size());
+  ocudu_assert(out.size() == in.size(),
+               "Input size (i.e., {}) is not equal to the output size (i.e., {}).",
+               in.size(),
+               out.size());
   unsigned len = in.size();
   unsigned i   = 0;
 
@@ -335,13 +335,13 @@ void srsran::clamp(span<log_likelihood_ratio>       out,
 #endif // defined(__AVX512F__) && defined(__AVX512BW__)
 }
 
-bool srsran::hard_decision(bit_buffer& hard_bits, span<const log_likelihood_ratio> soft_bits, unsigned offset)
+bool ocudu::hard_decision(bit_buffer& hard_bits, span<const log_likelihood_ratio> soft_bits, unsigned offset)
 {
   // Make sure that there is enough space in the output to accommodate the hard bits.
-  srsran_assert(soft_bits.size() <= hard_bits.size(),
-                "Input size (i.e., {}) does not fit into the output buffer with size {}",
-                soft_bits.size(),
-                hard_bits.size());
+  ocudu_assert(soft_bits.size() <= hard_bits.size(),
+               "Input size (i.e., {}) does not fit into the output buffer with size {}",
+               soft_bits.size(),
+               hard_bits.size());
 
   unsigned nof_bits = soft_bits.size();
 
@@ -360,7 +360,7 @@ bool srsran::hard_decision(bit_buffer& hard_bits, span<const log_likelihood_rati
 #endif // __AVX2__ or __ARM_NEON
 
   // Return false if it finds a zero in the soft bits.
-  return srsvec::find(soft_bits, log_likelihood_ratio(0)) == soft_bits.end();
+  return ocuduvec::find(soft_bits, log_likelihood_ratio(0)) == soft_bits.end();
 }
 
 #ifdef __AVX2__
@@ -395,9 +395,9 @@ static int32_t dot_prod_sign_avx2(__m256i x_epi8, __m256i y_epi8)
 
 #endif // __AVX2__
 
-int32_t log_likelihood_ratio::dot_prod_sign(span<const srsran::log_likelihood_ratio> x, span<const int8_t> y)
+int32_t log_likelihood_ratio::dot_prod_sign(span<const ocudu::log_likelihood_ratio> x, span<const int8_t> y)
 {
-  srsran_assert(x.size() == y.size(), "Sizes must be equal.");
+  ocudu_assert(x.size() == y.size(), "Sizes must be equal.");
 
 #ifdef __AVX2__
   // Optimized calculation in AVX2 for 32 values.
@@ -453,8 +453,8 @@ void log_likelihood_ratio::sum(span<log_likelihood_ratio>       out,
                                span<const log_likelihood_ratio> in0,
                                span<const log_likelihood_ratio> in1)
 {
-  srsran_assert(out.size() == in0.size(), "All sizes must be equal.");
-  srsran_assert(out.size() == in1.size(), "All sizes must be equal.");
+  ocudu_assert(out.size() == in0.size(), "All sizes must be equal.");
+  ocudu_assert(out.size() == in1.size(), "All sizes must be equal.");
 
 #if defined(__AVX2__)
   unsigned index = 0;
@@ -477,8 +477,8 @@ void log_likelihood_ratio::sum(span<log_likelihood_ratio>       out,
   // Copy the end of the input bits in vectors of AVX register size.
   std::array<log_likelihood_ratio, AVX2_SIZE_BYTE> in0_remainder;
   std::array<log_likelihood_ratio, AVX2_SIZE_BYTE> in1_remainder;
-  srsvec::copy(span<log_likelihood_ratio>(in0_remainder).first(remainder), in0.last(remainder));
-  srsvec::copy(span<log_likelihood_ratio>(in1_remainder).first(remainder), in1.last(remainder));
+  ocuduvec::copy(span<log_likelihood_ratio>(in0_remainder).first(remainder), in0.last(remainder));
+  ocuduvec::copy(span<log_likelihood_ratio>(in1_remainder).first(remainder), in1.last(remainder));
 
   // Load the remainder bits in AVX registers.
   __m256i in0_epi8 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(in0_remainder.data()));
@@ -489,7 +489,7 @@ void log_likelihood_ratio::sum(span<log_likelihood_ratio>       out,
   _mm256_storeu_si256(reinterpret_cast<__m256i*>(out_remainder.data()), avx2_sum_llr(in0_epi8, in1_epi8));
 
   // Copy the last bits.
-  srsvec::copy(out.last(remainder), span<log_likelihood_ratio>(out_remainder).first(remainder));
+  ocuduvec::copy(out.last(remainder), span<log_likelihood_ratio>(out_remainder).first(remainder));
 #elif defined(__ARM_NEON)
   unsigned                  index          = 0;
   unsigned                  out_size       = out.size();
@@ -523,8 +523,8 @@ void log_likelihood_ratio::sum(span<log_likelihood_ratio>       out,
   // Copy the end of the input bits in vectors of AVX register size.
   std::array<log_likelihood_ratio, NEON_SIZE_BYTE> in0_remainder;
   std::array<log_likelihood_ratio, NEON_SIZE_BYTE> in1_remainder;
-  srsvec::copy(span<log_likelihood_ratio>(in0_remainder).first(remainder), in0.last(remainder));
-  srsvec::copy(span<log_likelihood_ratio>(in1_remainder).first(remainder), in1.last(remainder));
+  ocuduvec::copy(span<log_likelihood_ratio>(in0_remainder).first(remainder), in0.last(remainder));
+  ocuduvec::copy(span<log_likelihood_ratio>(in1_remainder).first(remainder), in1.last(remainder));
 
   // Load the remainder bits in NEON registers.
   int8x16_t in0_s8 = vld1q_s8(reinterpret_cast<const int8_t*>(in0_remainder.data()));
@@ -535,7 +535,7 @@ void log_likelihood_ratio::sum(span<log_likelihood_ratio>       out,
   vst1q_s8(reinterpret_cast<int8_t*>(out_remainder.data()), neon_sum_llr(in0_s8, in1_s8));
 
   // Copy the last bits.
-  srsvec::copy(out.last(remainder), span<log_likelihood_ratio>(out_remainder).first(remainder));
+  ocuduvec::copy(out.last(remainder), span<log_likelihood_ratio>(out_remainder).first(remainder));
 #else
   std::transform(
       in0.begin(), in0.end(), in1.begin(), out.begin(), [](log_likelihood_ratio left, log_likelihood_ratio right) {

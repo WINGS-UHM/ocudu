@@ -12,12 +12,12 @@
 
 #include "../e1ap_cu_cp_impl.h"
 #include "../ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief This class handles the E1AP Bearer Context Setup Procedure, as per TS 38.461 8.3.1.
 class bearer_context_setup_procedure
@@ -53,5 +53,5 @@ private:
       transaction_sink;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

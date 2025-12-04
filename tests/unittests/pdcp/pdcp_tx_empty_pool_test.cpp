@@ -10,11 +10,11 @@
 
 #include "pdcp_test_vectors.h"
 #include "pdcp_tx_test.h"
-#include "srsran/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_config.h"
 #include <gtest/gtest.h>
 #include <queue>
 
-using namespace srsran;
+using namespace ocudu;
 
 constexpr uint32_t pool_size = 128;
 
@@ -28,18 +28,18 @@ protected:
   void SetUp() override
   {
     //  init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // init RLC logger
-    srslog::fetch_basic_logger("PDCP", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("PDCP", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("PDCP", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("PDCP", false).set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
 

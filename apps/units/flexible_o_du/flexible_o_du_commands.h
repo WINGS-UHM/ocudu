@@ -13,12 +13,12 @@
 #include "apps/services/cmdline/cmdline_command_dispatcher_utils.h"
 #include "apps/services/cmdline/stdout_metrics_command.h"
 #include "split_helpers/metrics/flexible_o_du_metrics_consumers.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/ru/ru_controller.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ru/ru_controller.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Application command to change the transmission gain.
 class tx_gain_app_command : public app_services::cmdline_command
@@ -154,19 +154,19 @@ public:
     }
 
     // Check if the log channel exists.
-    if (srslog::find_logger<srslog::basic_logger>(channel_str) == nullptr) {
+    if (ocudulog::find_logger<ocudulog::basic_logger>(channel_str) == nullptr) {
       fmt::print("Nonexistent {} log channel.\n", channel_str);
       return;
     }
 
     // Convert to enum and check if it is valid.
-    auto level = srslog::str_to_basic_level(level_str);
+    auto level = ocudulog::str_to_basic_level(level_str);
     if (!level.has_value()) {
       fmt::print("Invalid {} log level. Valid levels are: none, error, warning, info and debug\n", args.back());
       return;
     }
 
-    srslog::basic_logger& channel = srslog::fetch_basic_logger(channel_str);
+    ocudulog::basic_logger& channel = ocudulog::fetch_basic_logger(channel_str);
     channel.set_level(level.value());
   }
 };
@@ -289,4 +289,4 @@ public:
   void disable() override { printer.disable(); }
 };
 
-} // namespace srsran
+} // namespace ocudu

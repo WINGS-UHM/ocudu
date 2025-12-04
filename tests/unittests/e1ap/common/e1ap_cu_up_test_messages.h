@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// \brief Generate a dummy CU-UP E1 Setup Request.
 cu_up_e1_setup_request generate_cu_up_e1_setup_request();
@@ -42,5 +42,5 @@ e1ap_message generate_bearer_context_release_command(unsigned cu_cp_ue_e1ap_id, 
 /// \brief Generate a dummy E1 Reset message.
 e1ap_message generate_e1_reset(std::vector<std::pair<gnb_cu_cp_ue_e1ap_id_t, gnb_cu_up_ue_e1ap_id_t>> ues);
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

@@ -10,27 +10,27 @@
 
 #pragma once
 
-#include "srsran/cu_cp/mobility_management_metrics.h"
-#include "srsran/ngap/ngap_metrics.h"
-#include "srsran/srslog/log_channel.h"
+#include "ocudu/cu_cp/mobility_management_metrics.h"
+#include "ocudu/ngap/ngap_metrics.h"
+#include "ocudu/ocudulog/log_channel.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 /// Logger consumer for the NGAP metrics.
 class ngap_metrics_consumer_log
 {
 public:
-  explicit ngap_metrics_consumer_log(srslog::log_channel& log_chan_) : log_chan(log_chan_)
+  explicit ngap_metrics_consumer_log(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
   {
-    srsran_assert(log_chan.enabled(), "Logger log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "Logger log channel is not enabled");
   }
 
   /// Handle NGAP metrics.
   void handle_metric(const std::vector<ngap_info>& report, const mobility_management_metrics& mobility_metrics);
 
 private:
-  srslog::log_channel& log_chan;
+  ocudulog::log_channel& log_chan;
 };
 
-} // namespace srsran
+} // namespace ocudu

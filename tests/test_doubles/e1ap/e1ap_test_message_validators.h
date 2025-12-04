@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct e1ap_message;
 class byte_buffer;
@@ -33,4 +33,4 @@ bool is_valid_bearer_context_release_command(const e1ap_message& msg);
 bool is_valid_e1_reset(const e1ap_message& msg);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

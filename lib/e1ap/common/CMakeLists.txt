@@ -6,9 +6,9 @@
 # the distribution.
 #
 
-add_library(srsran_e1ap_common
+add_library(ocudu_e1ap_common
         e1ap_asn1_packer.cpp
         e1ap_common_messages.cpp
         log_helpers.cpp
         )
-target_link_libraries(srsran_e1ap_common e1ap_asn1)
+target_link_libraries(ocudu_e1ap_common e1ap_asn1)

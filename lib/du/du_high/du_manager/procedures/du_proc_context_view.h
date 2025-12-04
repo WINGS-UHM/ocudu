@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct du_manager_params;
 struct du_manager_context;
@@ -28,8 +28,8 @@ struct du_proc_context_view {
   du_cell_manager&                    cell_mng;
   du_ue_manager&                      ue_mng;
   du_manager_metrics_aggregator_impl& metrics;
-  srslog::basic_logger&               logger;
+  ocudulog::basic_logger&             logger;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

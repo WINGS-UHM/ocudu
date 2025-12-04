@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_encoder.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_modulator.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
-#include "srsran/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_encoder.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_modulator.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
+#include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic PDSCH processor.
 class pdsch_processor_impl : public pdsch_processor
@@ -30,10 +30,10 @@ public:
                        std::unique_ptr<ptrs_pdsch_generator> ptrs_) :
     encoder(std::move(encoder_)), modulator(std::move(modulator_)), dmrs(std::move(dmrs_)), ptrs(std::move(ptrs_))
   {
-    srsran_assert(encoder != nullptr, "Invalid encoder pointer.");
-    srsran_assert(modulator != nullptr, "Invalid modulator pointer.");
-    srsran_assert(dmrs != nullptr, "Invalid dmrs pointer.");
-    srsran_assert(ptrs != nullptr, "Invalid ptrs pointer.");
+    ocudu_assert(encoder != nullptr, "Invalid encoder pointer.");
+    ocudu_assert(modulator != nullptr, "Invalid modulator pointer.");
+    ocudu_assert(dmrs != nullptr, "Invalid dmrs pointer.");
+    ocudu_assert(ptrs != nullptr, "Invalid ptrs pointer.");
   }
 
   // See interface for documentation.
@@ -69,4 +69,4 @@ private:
       temp_packed_codewords;
 };
 
-} // namespace srsran
+} // namespace ocudu

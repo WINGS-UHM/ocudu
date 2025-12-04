@@ -15,8 +15,8 @@ if (USE_PHY_TESTVECTORS)
     add_executable(channel_equalizer_test channel_equalizer_test.cpp)
     target_link_libraries(
             channel_equalizer_test
-            srsran_channel_equalizer
-            srslog
+            ocudu_channel_equalizer
+            ocudulog
             gtest
             gtest_main)
     add_test_vector(channel_equalizer_test channel_equalizer_test_data.tar.gz "")

@@ -14,10 +14,10 @@
 //   + "srsPUSCHDemodulatorUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_demodulator.h"
-#include "srsran/support/file_tensor.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
+#include "ocudu/support/file_tensor.h"
 
-namespace srsran {
+namespace ocudu {
 
 enum class ch_dims : unsigned { subcarrier = 0, symbol = 1, rx_port = 2, tx_layer = 3, nof_dims = 4 };
 
@@ -110,4 +110,4 @@ static const std::vector<test_case_t> pusch_demodulator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

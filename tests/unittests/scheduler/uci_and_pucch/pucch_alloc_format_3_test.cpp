@@ -13,7 +13,7 @@
 #include "uci_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 ///////   Test PUCCH Format 3.    ///////
 

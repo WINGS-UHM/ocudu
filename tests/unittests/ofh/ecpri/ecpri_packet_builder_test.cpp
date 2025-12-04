@@ -11,7 +11,7 @@
 #include "../../../lib/ofh/ecpri/ecpri_packet_builder_impl.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ecpri;
 
 TEST(ecpri_packet_builder_impl_test, build_valid_control_packet_should_pass)

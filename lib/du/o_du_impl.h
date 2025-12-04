@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/du/du_high/o_du_high.h"
-#include "srsran/du/du_high/o_du_high_metrics_notifier.h"
-#include "srsran/du/du_low/o_du_low.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/du/o_du.h"
-#include "srsran/du/o_du_config.h"
+#include "ocudu/du/du_high/o_du_high.h"
+#include "ocudu/du/du_high/o_du_high_metrics_notifier.h"
+#include "ocudu/du/du_low/o_du_low.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/du/o_du.h"
+#include "ocudu/du/o_du_config.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// O-RAN DU implementation.
 class o_du_impl final : public o_du, public du_operation_controller, public o_du_high_metrics_notifier
@@ -51,5 +51,5 @@ private:
   std::unique_ptr<o_du_low>  odu_lo;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

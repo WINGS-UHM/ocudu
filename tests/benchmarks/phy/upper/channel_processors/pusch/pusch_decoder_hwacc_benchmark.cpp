@@ -15,26 +15,26 @@
 /// one.
 
 #include "../../../../../unittests/phy/upper/channel_processors/pusch/pusch_decoder_notifier_spy.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/support/test_utils.h"
 #ifdef DPDK_FOUND
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
 #include <rte_cycles.h>
 #endif // DPDK_FOUND
 #include <getopt.h>
 #include <random>
 
 /// \cond
-using namespace srsran;
+using namespace ocudu;
 
 // A test case consists of a LDPC segmenter configuration, a Transport Block size, a number of LLRs and a PRB size.
 using test_case_type = std::tuple<segmenter_config, unsigned, unsigned, unsigned>;
@@ -49,12 +49,12 @@ static bounded_bitset<MAX_NSYMB_PER_SLOT> dmrs_symbol_mask =
     {false, false, true, false, false, false, false, false, false, false, false, false, false, false};
 
 #ifdef DPDK_FOUND
-static bool                 dedicated_queue  = true;
-static bool                 test_harq        = false;
-static bool                 force_local_harq = false;
-static srslog::basic_levels hal_log_level    = srslog::basic_levels::error;
-static bool                 std_out_sink     = true;
-static std::string          eal_arguments    = "";
+static bool                   dedicated_queue  = true;
+static bool                   test_harq        = false;
+static bool                   force_local_harq = false;
+static ocudulog::basic_levels hal_log_level    = ocudulog::basic_levels::error;
+static bool                   std_out_sink     = true;
+static std::string            eal_arguments    = "";
 #endif // DPDK_FOUND
 
 // Test profile structure, initialized with default profile values.
@@ -150,8 +150,8 @@ static int parse_args(int argc, char** argv)
         std_out_sink = false;
         break;
       case 'z': {
-        auto level    = srslog::str_to_basic_level(std::string(optarg));
-        hal_log_level = level.has_value() ? level.value() : srslog::basic_levels::error;
+        auto level    = ocudulog::str_to_basic_level(std::string(optarg));
+        hal_log_level = level.has_value() ? level.value() : ocudulog::basic_levels::error;
         break;
       }
 #endif // DPDK_FOUND
@@ -193,11 +193,11 @@ static std::shared_ptr<pusch_decoder_factory> create_generic_pusch_decoder_facto
 static std::shared_ptr<hal::hw_accelerator_pusch_dec_factory> create_hw_accelerator_pusch_dec_factory()
 {
 #ifdef DPDK_FOUND
-  srslog::sink* log_sink =
-      std_out_sink ? srslog::create_stdout_sink() : srslog::create_file_sink("hwacc_decoderacc_benchmark.log");
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("HAL", false);
+  ocudulog::sink* log_sink =
+      std_out_sink ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink("hwacc_decoderacc_benchmark.log");
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HAL", false);
   logger.set_level(hal_log_level);
 
   // Pointer to a dpdk-based hardware-accelerator interface.
@@ -236,7 +236,7 @@ static std::shared_ptr<hal::hw_accelerator_pusch_dec_factory> create_hw_accelera
   hw_decoder_config.dedicated_queue     = dedicated_queue;
 
   // ACC100 hardware-accelerator implementation.
-  return srsran::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
+  return ocudu::hal::create_bbdev_pusch_dec_acc_factory(hw_decoder_config);
 #else  // DPDK_FOUND
   return nullptr;
 #endif // DPDK_FOUND

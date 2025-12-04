@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/mac/mac_cell_slot_handler.h"
-#include "srsran/mac/mac_ue_control_information_handler.h"
-#include "srsran/ran/du_types.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/mac/mac_cell_slot_handler.h"
+#include "ocudu/mac/mac_ue_control_information_handler.h"
+#include "ocudu/ran/du_types.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct si_scheduling_update_request;
 struct sched_result;
@@ -59,4 +59,4 @@ public:
   virtual void handle_slice_reconfiguration_request(const du_cell_slice_reconfig_request& req) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

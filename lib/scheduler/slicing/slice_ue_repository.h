@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../ue_context/ue_repository.h"
-#include "srsran/adt/slotted_array.h"
+#include "ocudu/adt/slotted_array.h"
 
-namespace srsran {
+namespace ocudu {
 
 class slice_ue_repository;
 
@@ -163,4 +163,4 @@ private:
   slotted_id_table<du_ue_index_t, slice_ue, MAX_NOF_DU_UES> ue_map;
 };
 
-} // namespace srsran
+} // namespace ocudu

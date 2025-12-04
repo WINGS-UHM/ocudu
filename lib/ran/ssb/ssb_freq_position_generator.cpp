@@ -9,12 +9,12 @@
  */
 
 #include "ssb_freq_position_generator.h"
-#include "srsran/adt/span.h"
-#include "srsran/ran/band_helper_constants.h"
-#include "srsran/ran/ssb/ssb_gscn.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/band_helper_constants.h"
+#include "ocudu/ran/ssb/ssb_gscn.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Compute the frequency (in Hz) corresponding to the first subcarrier of the SSB.
 static double get_f_ssb_0_hz(double ss_ref, subcarrier_spacing scs_ssb)
@@ -294,9 +294,9 @@ ssb_freq_location ssb_freq_position_generator::get_next_ssb_location()
 
 ssb_freq_location ssb_freq_position_generator::get_next_ssb_location_special_raster()
 {
-  srsran_assert(band == nr_band::n34 or band == nr_band::n38 or band == nr_band::n39 or band == nr_band::n46 or
-                    band == nr_band::n96 or band == nr_band::n102,
-                "Special sync. raster is only for bands n46, n96, and n102");
+  ocudu_assert(band == nr_band::n34 or band == nr_band::n38 or band == nr_band::n39 or band == nr_band::n46 or
+                   band == nr_band::n96 or band == nr_band::n102,
+               "Special sync. raster is only for bands n46, n96, and n102");
 
   ssb_freq_location ssb{.is_valid = false};
 

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/async/fifo_async_task_scheduler.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/test_utils.h"
 #include <chrono>
 
-using namespace srsran;
+using namespace ocudu;
 
 void test_async_loop_empty_tasks()
 {

@@ -11,23 +11,23 @@
 #pragma once
 
 #include "pdcp_rx_test_helpers.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
-srsran::log_sink_spy& test_spy = []() -> srsran::log_sink_spy& {
-  if (!srslog::install_custom_sink(
-          srsran::log_sink_spy::name(),
-          std::unique_ptr<srsran::log_sink_spy>(new srsran::log_sink_spy(srslog::get_default_log_formatter())))) {
+ocudu::log_sink_spy& test_spy = []() -> ocudu::log_sink_spy& {
+  if (!ocudulog::install_custom_sink(
+          ocudu::log_sink_spy::name(),
+          std::unique_ptr<ocudu::log_sink_spy>(new ocudu::log_sink_spy(ocudulog::get_default_log_formatter())))) {
     report_fatal_error("Unable to create logger spy");
   }
-  auto* spy = static_cast<srsran::log_sink_spy*>(srslog::find_sink(srsran::log_sink_spy::name()));
+  auto* spy = static_cast<ocudu::log_sink_spy*>(ocudulog::find_sink(ocudu::log_sink_spy::name()));
   if (spy == nullptr) {
     report_fatal_error("Unable to create logger spy");
   }
 
-  srslog::fetch_basic_logger("PDCP", *spy, true);
+  ocudulog::fetch_basic_logger("PDCP", *spy, true);
   return *spy;
 }();
 
@@ -41,21 +41,21 @@ protected:
   void SetUp() override
   {
     // init test's logger
-    srslog::init();
-    logger.set_level(srslog::basic_levels::debug);
+    ocudulog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
 
     // reset log spy
     test_spy.reset_counters();
 
     // init RLC logger
-    srslog::fetch_basic_logger("PDCP", false).set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("PDCP", false).set_hex_dump_max_size(100);
+    ocudulog::fetch_basic_logger("PDCP", false).set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("PDCP", false).set_hex_dump_max_size(100);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 };
-} // namespace srsran
+} // namespace ocudu

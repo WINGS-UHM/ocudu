@@ -11,13 +11,13 @@
 #pragma once
 
 #include "../procedures/e2_indication_procedure.h"
-#include "srsran/asn1/e2ap/e2ap.h"
-#include "srsran/asn1/e2sm/e2sm_kpm_ies.h"
-#include "srsran/e2/e2.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
+#include "ocudu/asn1/e2ap/e2ap.h"
+#include "ocudu/asn1/e2sm/e2sm_kpm_ies.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
 #include <map>
 
-namespace srsran {
+namespace ocudu {
 
 class e2_subscription_manager_impl : public e2_subscription_manager
 {
@@ -95,7 +95,7 @@ private:
   std::map<std::string, std::unique_ptr<e2sm_interface>> e2sm_iface_list;
   std::map<uint16_t, std::string>                        supported_ran_functions;
   e2sm_manager&                                          e2sm_mngr;
-  srslog::basic_logger&                                  logger;
+  ocudulog::basic_logger&                                logger;
 };
 
-} // namespace srsran
+} // namespace ocudu

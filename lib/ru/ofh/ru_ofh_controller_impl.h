@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ofh/ofh_controller.h"
-#include "srsran/ru/ru_controller.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ofh/ofh_controller.h"
+#include "ocudu/ru/ru_controller.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief RU controller implementation for the Open Fronthaul interface.
 ///
@@ -24,7 +24,7 @@ namespace srsran {
 class ru_ofh_controller_impl : public ru_controller, public ru_operation_controller
 {
 public:
-  ru_ofh_controller_impl(srslog::basic_logger& logger_) : logger(logger_) {}
+  ru_ofh_controller_impl(ocudulog::basic_logger& logger_) : logger(logger_) {}
 
   // See the ru_operation_controller interface for documentation.
   void start() override;
@@ -51,8 +51,8 @@ public:
   void set_sector_controllers(std::vector<ofh::operation_controller*> controllers);
 
 private:
-  srslog::basic_logger&                   logger;
+  ocudulog::basic_logger&                 logger;
   std::vector<ofh::operation_controller*> sector_controllers;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -16,12 +16,12 @@
 #include "rlc_retx_queue.h"
 #include "rlc_sdu_queue_lockfree.h"
 #include "rlc_tx_entity.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/sdu_window.h"
-#include "srsran/support/timers.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/sdu_window.h"
+#include "ocudu/support/timers.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Container to hold a SDU for transmission, the progress in case of segmentation, and associated meta data
 struct rlc_tx_am_sdu_info {
@@ -370,7 +370,7 @@ private:
   /// \param force_notify forces a notification of the lower layer regardless of the current/previous buffer state.
   void update_mac_buffer_state(bool force_notify) noexcept;
 
-  void log_state(srslog::basic_levels level)
+  void log_state(ocudulog::basic_levels level)
   {
     if (sn_under_segmentation == INVALID_RLC_SN) {
       logger.log(level, "TX entity state. {} sn_under_segmentation=none", st, sn_under_segmentation);
@@ -380,11 +380,11 @@ private:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 template <>
-struct formatter<srsran::rlc_tx_am_state> {
+struct formatter<ocudu::rlc_tx_am_state> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -392,7 +392,7 @@ struct formatter<srsran::rlc_tx_am_state> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_tx_am_state& st, FormatContext& ctx) const
+  auto format(const ocudu::rlc_tx_am_state& st, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
                      "tx_next_ack={} tx_next={} poll_sn={} pdu_without_poll={} byte_without_poll={}",

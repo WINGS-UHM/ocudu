@@ -6,7 +6,7 @@
 # the distribution.
 #
 
-add_library(srsran_pdsch_processor STATIC
+add_library(ocudu_pdsch_processor STATIC
         factories.cpp
         pdsch_block_processor_impl.cpp
         pdsch_block_processor_hw_impl.cpp
@@ -17,8 +17,8 @@ add_library(srsran_pdsch_processor STATIC
         pdsch_processor_impl.cpp
         pdsch_processor_validator_impl.cpp)
 
-target_link_libraries(srsran_pdsch_processor
-        srsran_channel_modulation
-        srsran_phy_support
-        srsran_ran
-        srsran_upper_phy_support)
+target_link_libraries(ocudu_pdsch_processor
+        ocudu_channel_modulation
+        ocudu_phy_support
+        ocudu_ran
+        ocudu_upper_phy_support)

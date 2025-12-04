@@ -18,14 +18,14 @@
 #include "../up_resource_manager/up_resource_manager_impl.h"
 #include "cu_cp_ue_impl_interface.h"
 #include "ue_task_scheduler_impl.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <unordered_map>
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_cp {
+namespace ocucp {
 
 /// \brief Context of a CU-CP UE.
 struct cu_cp_ue_context {
@@ -187,5 +187,5 @@ private:
   std::optional<cu_cp_ue_handover_context> ho_context;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

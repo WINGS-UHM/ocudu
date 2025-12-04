@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/message_builders.h"
-#include "srsran/scheduler/result/pdcch_info.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/scheduler/result/pdcch_info.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 class precoding_matrix_mapper;
@@ -56,4 +56,4 @@ void convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder&    builder,
                                unsigned                       cell_nof_prbs);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

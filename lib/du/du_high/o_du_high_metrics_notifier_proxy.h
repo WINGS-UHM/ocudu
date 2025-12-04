@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_metrics_notifier.h"
-#include "srsran/du/du_high/o_du_high_metrics_notifier.h"
+#include "ocudu/du/du_high/du_metrics_notifier.h"
+#include "ocudu/du/du_high/o_du_high_metrics_notifier.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// Proxy class that listen to scheduler metrics and forwards them to the configured scheduler metrics notifier and O-DU
 /// high metrics notifier.
@@ -33,5 +33,5 @@ public:
   void set_o_du_high_metrics_notifier(o_du_high_metrics_notifier& notifier);
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

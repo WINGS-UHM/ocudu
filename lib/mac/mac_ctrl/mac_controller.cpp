@@ -13,11 +13,11 @@
 #include "mac_ue_removal_procedure.h"
 #include "ue_creation_procedure.h"
 #include "ue_reconfiguration_procedure.h"
-#include "srsran/mac/mac_clock_controller.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/mac/mac_clock_controller.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "fmt/base.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 mac_controller::mac_controller(const mac_control_config&   cfg_,
                                mac_ul_configurator&        ul_unit_,
@@ -93,7 +93,7 @@ mac_controller::handle_ue_reconfiguration_request(const mac_ue_reconfiguration_r
 
 void mac_controller::handle_ue_config_applied(du_ue_index_t ue_index)
 {
-  srsran_assert(ue_db.contains(ue_index), "Invalid ue_index={}", fmt::underlying(ue_index));
+  ocudu_assert(ue_db.contains(ue_index), "Invalid ue_index={}", fmt::underlying(ue_index));
 
   ul_unit.handle_ue_config_applied(ue_index);
 
@@ -102,7 +102,7 @@ void mac_controller::handle_ue_config_applied(du_ue_index_t ue_index)
 
 rnti_t mac_controller::add_ue(du_ue_index_t ue_index, du_cell_index_t cell_index, rnti_t tc_rnti)
 {
-  srsran_assert(is_du_ue_index_valid(ue_index), "Invalid ue_index={}", fmt::underlying(ue_index));
+  ocudu_assert(is_du_ue_index_valid(ue_index), "Invalid ue_index={}", fmt::underlying(ue_index));
 
   if (ue_db.contains(ue_index)) {
     // UE already existed with same ue_index.

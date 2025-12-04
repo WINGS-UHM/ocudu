@@ -12,14 +12,14 @@
 
 #include "radio_uhd_exception_handler.h"
 #include "radio_uhd_multi_usrp.h"
-#include "srsran/gateways/baseband/baseband_gateway_receiver.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
-#include "srsran/radio/radio_configuration.h"
-#include "srsran/radio/radio_event_notifier.h"
-#include "srsran/support/synchronization/stop_event.h"
+#include "ocudu/gateways/baseband/baseband_gateway_receiver.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
+#include "ocudu/radio/radio_configuration.h"
+#include "ocudu/radio/radio_event_notifier.h"
+#include "ocudu/support/synchronization/stop_event.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a gateway receiver based on UHD receive stream.
 class radio_uhd_rx_stream : public uhd_exception_handler, public baseband_gateway_receiver
@@ -96,4 +96,4 @@ public:
   metadata receive(baseband_gateway_buffer_writer& data) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

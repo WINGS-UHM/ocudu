@@ -9,15 +9,15 @@
  */
 
 #include "dpdk_ethernet_receiver.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
-#include "srsran/ofh/ethernet/dpdk/dpdk_ethernet_rx_buffer.h"
-#include "srsran/ofh/ethernet/ethernet_frame_notifier.h"
-#include "srsran/support/executors/task_executor.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
+#include "ocudu/ofh/ethernet/dpdk/dpdk_ethernet_rx_buffer.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_notifier.h"
+#include "ocudu/support/executors/task_executor.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <rte_ethdev.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ether;
 
 namespace {
@@ -36,7 +36,7 @@ static dummy_frame_notifier dummy_notifier;
 
 dpdk_receiver_impl::dpdk_receiver_impl(task_executor&                     executor_,
                                        std::shared_ptr<dpdk_port_context> port_ctx_,
-                                       srslog::basic_logger&              logger_,
+                                       ocudulog::basic_logger&            logger_,
                                        bool                               are_metrics_enabled) :
   logger(logger_),
   executor(executor_),
@@ -44,7 +44,7 @@ dpdk_receiver_impl::dpdk_receiver_impl(task_executor&                     execut
   port_ctx(std::move(port_ctx_)),
   metrics_collector(are_metrics_enabled)
 {
-  srsran_assert(port_ctx, "Invalid port context");
+  ocudu_assert(port_ctx, "Invalid port context");
 }
 
 void dpdk_receiver_impl::start(frame_notifier& notifier_)
@@ -76,7 +76,7 @@ void dpdk_receiver_impl::stop()
 void dpdk_receiver_impl::receive_loop()
 {
   auto token = stop_manager.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 

@@ -9,10 +9,10 @@
  */
 
 #include "integrity_engine_generic.h"
-#include "srsran/security/integrity.h"
-#include "srsran/security/security.h"
+#include "ocudu/security/integrity.h"
+#include "ocudu/security/security.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace security;
 
 integrity_engine_generic::integrity_engine_generic(sec_128_key         k_128_int_,
@@ -23,7 +23,7 @@ integrity_engine_generic::integrity_engine_generic(sec_128_key         k_128_int
   bearer_id(bearer_id_),
   direction(direction_),
   integ_algo(integ_algo_),
-  logger(srslog::fetch_basic_logger("SEC"))
+  logger(ocudulog::fetch_basic_logger("SEC"))
 {
 }
 

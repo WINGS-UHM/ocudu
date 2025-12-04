@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/mac/mac_metrics.h"
-#include "srsran/mac/mac_metrics_notifier.h"
+#include "ocudu/mac/mac_metrics.h"
+#include "ocudu/mac/mac_metrics_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class dummy_mac_metrics_notifier : public mac_metrics_notifier
 {
@@ -23,4 +23,4 @@ public:
   void on_new_metrics_report(const mac_metric_report& report) override { last_report = report; }
 };
 
-} // namespace srsran
+} // namespace ocudu

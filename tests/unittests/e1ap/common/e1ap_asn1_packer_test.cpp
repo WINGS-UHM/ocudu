@@ -14,8 +14,8 @@
 #include "tests/unittests/gateways/test_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Fixture class for E1AP ASN1 packer
 class e1ap_asn1_packer_test : public ::testing::Test
@@ -23,25 +23,25 @@ class e1ap_asn1_packer_test : public ::testing::Test
 protected:
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("E1AP-ASN1-PCK").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("E1AP-ASN1-PCK").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     gw     = std::make_unique<dummy_network_gateway_data_handler>();
     e1ap   = std::make_unique<dummy_e1ap_message_handler>();
-    packer = std::make_unique<srsran::e1ap_asn1_packer>(*gw, *e1ap);
+    packer = std::make_unique<ocudu::e1ap_asn1_packer>(*gw, *e1ap);
   }
 
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   std::unique_ptr<dummy_network_gateway_data_handler> gw;
   std::unique_ptr<dummy_e1ap_message_handler>         e1ap;
-  std::unique_ptr<srsran::e1ap_asn1_packer>           packer;
-  srslog::basic_logger&                               test_logger = srslog::fetch_basic_logger("TEST");
+  std::unique_ptr<ocudu::e1ap_asn1_packer>            packer;
+  ocudulog::basic_logger&                             test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful packing and unpacking

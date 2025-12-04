@@ -9,7 +9,7 @@
 services:
   telegraf:
     container_name: telegraf
-    image: srsran/telegraf
+    image: ocudu/telegraf
     build:
       context: telegraf
     depends_on:
@@ -47,7 +47,7 @@ services:
 
   grafana:
     container_name: grafana
-    image: srsran/grafana
+    image: ocudu/grafana
     build:
       context: grafana
       args:

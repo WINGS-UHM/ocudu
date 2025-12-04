@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_ofh_unit_config;
 struct ru_ofh_unit_parsed_config;
@@ -23,4 +23,4 @@ void configure_cli11_with_ru_ofh_config_schema(CLI::App& app, ru_ofh_unit_parsed
 /// Auto derive OFH Radio Unit parameters after the parsing.
 void autoderive_ru_ofh_parameters_after_parsing(CLI::App& app, ru_ofh_unit_parsed_config& parsed_cfg);
 
-} // namespace srsran
+} // namespace ocudu

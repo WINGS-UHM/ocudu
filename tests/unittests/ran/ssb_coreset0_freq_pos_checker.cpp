@@ -10,11 +10,11 @@
 
 #include "ssb_coreset0_freq_pos_checker.h"
 #include "lib/ran/ssb/ssb_freq_position_generator.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Verify that the frequency ss_ssb_hz, or frequency corresponding to the 120th subcarrier of the SSB, is compatible
 // with the synchronization raster defined in Table 5.4.3.1-1, TS 38.104.
@@ -46,12 +46,12 @@ static void test_ssb_belong_to_sync_raster(double ss_ssb_hz)
   }
 }
 
-void srsran::test_ssb_coreset0_allocation(unsigned                                       dl_arfcn,
-                                          nr_band                                        nr_band,
-                                          unsigned                                       n_rbs,
-                                          subcarrier_spacing                             scs_common,
-                                          subcarrier_spacing                             scs_ssb,
-                                          const band_helper::ssb_coreset0_freq_location& params)
+void ocudu::test_ssb_coreset0_allocation(unsigned                                       dl_arfcn,
+                                         nr_band                                        nr_band,
+                                         unsigned                                       n_rbs,
+                                         subcarrier_spacing                             scs_common,
+                                         subcarrier_spacing                             scs_ssb,
+                                         const band_helper::ssb_coreset0_freq_location& params)
 {
   // Position of SSB central carrier, located at the 120th SSB's subcarrier.
   double f_ref_hz   = band_helper::nr_arfcn_to_freq(dl_arfcn);

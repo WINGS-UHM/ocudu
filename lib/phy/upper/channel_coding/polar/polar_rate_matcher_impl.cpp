@@ -9,9 +9,9 @@
  */
 
 #include "polar_rate_matcher_impl.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /*!
  * generic interleaver
@@ -87,7 +87,7 @@ void polar_rate_matcher_impl::rate_match(span<uint8_t> output, span<const uint8_
   span<uint8_t> e = bit_selection_rm_tx(y, N, E, K); // moves the pointer if puncturing e = y + (N-E), otherwise e = y;
 
   if (code.get_ibil() == polar_code_ibil::not_present) {
-    srsvec::copy(output, e);
+    ocuduvec::copy(output, e);
   } else {
     ch_interleaver_rm_tx(e.data(), output.data(), E);
   }

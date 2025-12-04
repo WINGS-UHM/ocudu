@@ -16,7 +16,7 @@
 #include "o_du_high_unit_config.h"
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 /// Configures the given CLI11 application with the O-DU high configuration schema.
 inline void configure_cli11_with_o_du_high_config_schema(CLI::App& app, o_du_high_unit_config& unit_cfg)
@@ -33,4 +33,4 @@ inline void autoderive_o_du_high_parameters_after_parsing(CLI::App& app, o_du_hi
   autoderive_o_du_high_e2_parameters_after_parsing(unit_cfg.e2_cfg);
 }
 
-} // namespace srsran
+} // namespace ocudu

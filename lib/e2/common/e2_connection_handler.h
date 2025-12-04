@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/e2/e2.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/manual_event.h"
+#include "ocudu/e2/e2.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/manual_event.h"
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 
@@ -46,11 +46,11 @@ private:
   // Called from within E2AP execution context to handle a TNL association loss.
   void handle_connection_loss_impl();
 
-  e2_connection_client&  client_handler;
-  e2_message_handler&    rx_pdu_handler;
-  e2ap_e2agent_notifier& agent_notifier;
-  task_executor&         ctrl_exec;
-  srslog::basic_logger&  logger;
+  e2_connection_client&   client_handler;
+  e2_message_handler&     rx_pdu_handler;
+  e2ap_e2agent_notifier&  agent_notifier;
+  task_executor&          ctrl_exec;
+  ocudulog::basic_logger& logger;
 
   bool connected_flag{false};
 
@@ -59,4 +59,4 @@ private:
   manual_event_flag rx_path_disconnected;
 };
 
-} // namespace srsran
+} // namespace ocudu

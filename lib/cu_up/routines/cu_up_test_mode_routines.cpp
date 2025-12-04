@@ -11,8 +11,8 @@
 #include "cu_up_test_mode_routines.h"
 #include "../cu_up_manager_helpers.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 /// Enable test mode routine.
 cu_up_enable_test_mode_routine::cu_up_enable_test_mode_routine(cu_up_test_mode_config test_mode_cfg_,
@@ -23,7 +23,7 @@ cu_up_enable_test_mode_routine::cu_up_enable_test_mode_routine(cu_up_test_mode_c
   cu_up_mngr(cu_up_mngr_),
   ue_mngr(ue_mngr_),
   ngu_demux(ngu_demux_),
-  logger(srslog::fetch_basic_logger("CU-UP"))
+  logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
 }
 
@@ -55,7 +55,7 @@ void cu_up_enable_test_mode_routine::operator()(coro_context<async_task<void>>& 
 /// Disable test mode routine.
 cu_up_disable_test_mode_routine::cu_up_disable_test_mode_routine(cu_up_manager_impl& cu_up_mngr_,
                                                                  ue_manager&         ue_mngr_) :
-  cu_up_mngr(cu_up_mngr_), ue_mngr(ue_mngr_), logger(srslog::fetch_basic_logger("CU-UP"))
+  cu_up_mngr(cu_up_mngr_), ue_mngr(ue_mngr_), logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
   for (const auto& ue : ue_mngr.get_ues()) {
     release_command.ue_index = ue.first;

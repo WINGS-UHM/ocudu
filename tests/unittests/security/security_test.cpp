@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/security/ciphering.h"
-#include "srsran/security/integrity.h"
-#include "srsran/security/security.h"
+#include "ocudu/security/ciphering.h"
+#include "ocudu/security/integrity.h"
+#include "ocudu/security/security.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::security;
+using namespace ocudu;
+using namespace ocudu::security;
 
 /// Converts a hex string (e.g. 01FA02) to a sec_as_key.
 sec_key make_sec_key(std::string hex_str)
@@ -62,7 +62,7 @@ TEST(security_nea1_test, testset1)
   const char* plaintext_cstr  = "981BA6824C1BFB1AB485472029B71D808CE33E2CC3C0B5FC1F3DE8A6DC66B1F0";
   const char* ciphertext_cstr = "5D5BFE75EB04F68CE0A12377EA00B37D47C6A0BA06309155086A859C4341B378";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -94,7 +94,7 @@ TEST(security_nea1_test, testset2)
       "3F67850714B8DA69EFB727ED7A6C0C50714AD736C4F5600006E3525BE807C467C677FF864AF45FBA09C27CDE38F87A1F84D59AB255408F2C"
       "7B82F9EAD41A1FE65EABEBFBC1F3A4C56C9A26FCF7B3D66D0220EE4775BC58170A2B12F3431D11B344D6E36C";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -121,7 +121,7 @@ TEST(security_nea1_test, testset3)
   const char* plaintext_cstr  = "FD40A41D370A1F65745095687D47BA1D36D2349E23F644392C8EA9C49D40C13271AFF264D0F248";
   const char* ciphertext_cstr = "48148E5452A210C05F46BC80DC6F73495B02048C1B958B026102CA97280279A4C18D2EE308921C";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -152,7 +152,7 @@ TEST(security_nea1_test, testset4)
                                 "7FDD44A269A96ECB28617700E332EB2F736B34F4F2693094E22FF94F9BE4723DA40C40DFD3931CC1AC9723"
                                 "F6B4A9913E96B6DB7ABCACE415177C1D0115C5F09B5FDEA0B3ADB8F9DA6E9F9A04C543397B9D43F87330";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -185,7 +185,7 @@ TEST(security_nea1_test, testset5)
       "5D9035D5D9C5A40AF602280B542597B0CB18619EEB35925759D195E100E8E4AA0C38A3C2ABE0F3D8FF04F3C33C295069C23694B5BBEACDD5"
       "42E28E8A94EDB9119F412D054BE1FA7272B5FFB2B2570F4F7CEAF383A8A9D93572F04D6E3A6E293726EC62C8";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -230,7 +230,7 @@ TEST(security_nea1_test, testset6)
       "5C6C2CC481D51FFECE3CD7D2581348827A71F091428EBE38C95A3F5C63E056DFB7CC45A9B7C07D834E7B20B99ED202429C14BB85FFA43B7C"
       "B68495CD75AB66D964D4CAFE64DD9404DAE2DC5110617F194FC3C184F583CD0DEF6D00";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -255,7 +255,7 @@ TEST(security_nia1_test, testset1)
   const char* message_cstr = "3332346263393861373479";
   const char* mact_cstr    = "731f1165";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -281,7 +281,7 @@ TEST(security_nia1_test, testset2)
   const char* message_cstr = "b3d3c9170a4e1632f60f861013d22d84b726b6a278d802d1eeaf1321ba5929dc";
   const char* mact_cstr    = "e3259f6f";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -307,7 +307,7 @@ TEST(security_nia1_test, testset2_mod)
   const char* message_cstr = "b3d3c9170a4e1632f60f861013d22d84b726b6a278d802d1eeaf1321ba5929dc";
   const char* mact_cstr    = "666f3e58";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -334,7 +334,7 @@ TEST(security_nia1_test, testset3)
                              "0c66a8b6da556663e4e461205d84580bee5bc7e";
   const char* mact_cstr    = "9a16c77d";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -361,7 +361,7 @@ TEST(security_nia1_test, testset3_mod)
                              "0c66a8b6da556663e4e461205d84580bee5bc7e";
   const char* mact_cstr    = "27986aa7";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -389,7 +389,7 @@ TEST(security_nia1_test, testset4)
       "006045b674bb54729304c382be53a5af05556176f6eaa2ef1d05e4b083181ee674cda5a485f74d7a";
   const char* mact_cstr = "bba74492";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -416,7 +416,7 @@ TEST(security_nia1_test, testset5)
       "d3c53839626820717765667620323837636240981ba6824c1bfb1ab485472029b71d808ce33e2cc3c0b5fc1f3de8a6dc";
   const char* mact_cstr = "4145e4b0";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -443,7 +443,7 @@ TEST(security_nia1_test, testset5_mod)
       "d3c53839626820717765667620323837636240981ba6824c1bfb1ab485472029b71d808ce33e2cc3c0b5fc1f3de8a6dc";
   const char* mact_cstr = "bd09fa41";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -475,7 +475,7 @@ TEST(security_nia1_test, testset6)
       "74cbb3638a2033aaa15464eaa733385dbbeb6fd73509b857e6a419dca1d8907af977fbac4dfa35ec";
   const char* mact_cstr = "0fa2b1ee";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -507,7 +507,7 @@ TEST(security_nia1_test, testset6_mod)
       "74cbb3638a2033aaa15464eaa733385dbbeb6fd73509b857e6a419dca1d8907af977fbac4dfa35ec";
   const char* mact_cstr = "d7f391d8";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -570,7 +570,7 @@ TEST(security_nia1_test, testset7)
       "b0ce3cc10d2a596d565dba82f88ce4cff3b33d5d24e9c0831124bf1ad54b792532983dd6c3a8b7d0";
   const char* mact_cstr = "abf3e651";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -596,7 +596,7 @@ TEST(security_nea2_test, testset1)
   const char* plaintext_cstr  = "981ba6824c1bfb1ab485472029b71d808ce33e2cc3c0b5fc1f3de8a6dc66b1f0";
   const char* ciphertext_cstr = "e9fed8a63d155304d71df20bf3e82214b20ed7dad2f233dc3c22d7bdeeed8e78";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -625,7 +625,7 @@ TEST(security_nea2_test, testset2)
       "5961605353c64bdca15b195e288553a910632506d6200aa790c4c806c99904cf2445cc50bb1cf168a49673734e081b57e324ce5259c0e78d"
       "4cd97b870976503c0943f2cb5ae8f052c7b7d392239587b8956086bcab18836042e2e6ce42432a17105c53d0";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -650,7 +650,7 @@ TEST(security_nea2_test, testset3)
   const char* plaintext_cstr  = "fd40a41d370a1f65745095687d47ba1d36d2349e23f644392c8ea9c49d40c13271aff264d0f248";
   const char* ciphertext_cstr = "75750d37b4bba2a4dedb34235bd68c6645acdaaca48138a3b0c471e2a7041a576423d2927287f0";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -679,7 +679,7 @@ TEST(security_nea2_test, testset4)
                                 "72ac808fa8c49e26788ed04a5d606cb418de74878b9a22f8ef29590bc4eb57c9faf7c41524a885b8979c42"
                                 "3f2f8f8e0592a9879201be7ff9777a162ab810feb324ba74c4c156e04d39097209653ac33e5a5f2d8864";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -710,7 +710,7 @@ TEST(security_nea2_test, testset5)
       "be074faa5d9029f71fb457b647834714b0e18f117fca10677945096c8c5f326ba8d6095eb29c3e36cf245d1622aafe921f7566c4f5d644f2"
       "f1fc0ec684ddb21349747622e209295d27ff3f95623371d49b147c0af486171f22cd04b1cbeb2658223e6938";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -753,7 +753,7 @@ TEST(security_nea2_test, testset6)
       "bee8eeb23d8652461db6493103003baf89f5e18261ea43c84a92ebffffe4909dc46c5192f825f770600b9602c557b5f8b431a79d45977dd9"
       "c41b863da9e142e90020cfd074d6927b7ab3b6725d1a6f3f98b9c9daa8982aff067828";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -781,7 +781,7 @@ TEST(security_nia2_test, testset1)
   const char* message_cstr = "3332346263393840";
   const char* mact_cstr    = "118c6eb8";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -807,7 +807,7 @@ TEST(security_nia2_test, testset1_mod)
   const char* message_cstr = "3332346263393840";
   const char* mact_cstr    = "c28458e9";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -845,7 +845,7 @@ TEST(security_nia2_test, testset2)
   const char* message_cstr = "484583d5afe082ae";
   const char* mact_cstr    = "b93787e6";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -886,7 +886,7 @@ TEST(security_nia2_test, testset3)
   const char* message_cstr = "b3d3c9170a4e1632f60f861013d22d84b726b6a278d802d1eeaf1321ba5929dc";
   const char* mact_cstr    = "1f60b01d";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -912,7 +912,7 @@ TEST(security_nia2_test, testset3_mod)
   const char* message_cstr = "b3d3c9170a4e1632f60f861013d22d84b726b6a278d802d1eeaf1321ba5929dc";
   const char* mact_cstr    = "fde6c737";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -954,7 +954,7 @@ TEST(security_nia2_test, testset4)
                              "0c66a8b6da556663e4e461205d84580bee5bc7e";
   const char* mact_cstr    = "6846a2f0";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -981,7 +981,7 @@ TEST(security_nia2_test, testset4_mod)
                              "0c66a8b6da556663e4e461205d84580bee5bc7e";
   const char* mact_cstr    = "20c0dce4";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1021,7 +1021,7 @@ TEST(security_nia2_test, testset5)
       "006045b674bb54729304c382be53a5af05556176f6eaa2ef1d05e4b083181ee674cda5a485f74d7a";
   const char* mact_cstr = "e657e182";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1063,7 +1063,7 @@ TEST(security_nia2_test, testset6)
       "d3c53839626820717765667620323837636240981ba6824c1bfb1ab485472029b71d808ce33e2cc3c0b5fc1f3de8a6dc";
   const char* mact_cstr = "f0668c1e";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1093,7 +1093,7 @@ TEST(security_nia2_test, testset6_mod)
       "d3c53839626820717765667620323837636240981ba6824c1bfb1ab485472029b71d808ce33e2cc3c0b5fc1f3de8a6dc";
   const char* mact_cstr = "fe69c8ad";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1140,7 +1140,7 @@ TEST(security_nia2_test, testset7)
       "74cbb3638a2033aaa15464eaa733385dbbeb6fd73509b857e6a419dca1d8907af977fbac4dfa35ec";
   const char* mact_cstr = "f4cc8fa3";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1175,7 +1175,7 @@ TEST(security_nia2_test, testset7_mod)
       "74cbb3638a2033aaa15464eaa733385dbbeb6fd73509b857e6a419dca1d8907af977fbac4dfa35ec";
   const char* mact_cstr = "e5bfbdf7";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1250,7 +1250,7 @@ TEST(security_nia2_test, testset8)
       "b0ce3cc10d2a596d565dba82f88ce4cff3b33d5d24e9c0831124bf1ad54b792532983dd6c3a8b7d0";
   const char* mact_cstr = "ebd5ccb0";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key      = make_sec_128_key(ik_cstr);
   security_direction dir      = static_cast<security_direction>(direction);
   byte_buffer        message  = make_byte_buffer(message_cstr).value();
@@ -1290,7 +1290,7 @@ TEST(security_nea3_test, testset1)
   const char* plaintext_cstr  = "6cf65340735552ab0c9752fa6f9025fe0bd675d9005875b200";
   const char* ciphertext_cstr = "a6c85fc66afb8533aafc2518dfe784940ee1e4b030238cc800";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -1321,7 +1321,7 @@ TEST(security_nea3_test, testset2)
       "131d43e0dea1be5c5a1bfd971d852cbf712d7b4f57961fea3208afa8bca433f456ad09c7417e58bc69cf8866d1353f74865e80781d202dfb"
       "3ecff7fcbc3b190fe82a204ed0e350fc0f6f2613b2f2bca6df5a473a57a4a00d985ebad880d6f23864a07b01";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -1356,7 +1356,7 @@ TEST(security_nea3_test, testset3)
       "13e5e550085d3291df7d5fecedded559641b6c2f585233bc71e9602bd2305855bbd25ffa7f17ecbc042daae38c1f57ad8e8ebd37346f71be"
       "fdbb7432e0e0bb2cfc09bcd96570cb0c0c39df5e29294e82703a637f80";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -1397,7 +1397,7 @@ TEST(security_nea3_test, testset4)
       "f1a526ccda9fd9abbd53c3a684f9ae1e7ee6b11da138ea826c5516b5aadf1abbe36fa7fff92e3a1176064e8d95f2e4882b5500b93228b219"
       "4a475c1a27f63f9ffd264989a1bc";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -1442,7 +1442,7 @@ TEST(security_nea3_test, testset5)
       "7193228609adb948686f7de294a802cc38f7fe5208f5ea3196d0167b9bdd02f0d2a5221ca508f893af5c4b4bb9f4f520fd84289b3dbe7e61"
       "497a7e2a584037ea637b6981127174af57b471df4b2768fd79c1540fb3edf2ea22cb69bec0cf8d933d9c6fdd645e850591cca3d62c0cc0";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key        = make_sec_128_key(key_cstr);
   security_direction dir        = static_cast<security_direction>(direction);
   byte_buffer        plaintext  = make_byte_buffer(plaintext_cstr).value();
@@ -1469,7 +1469,7 @@ TEST(security_nia3_test, testset1)
   const char* message_cstr = "00";
   const char* mac_cstr     = "c8a9595e";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1497,7 +1497,7 @@ TEST(security_nia3_test, testset1_mod)
   const char* message_cstr = "00";
   const char* mac_cstr     = "390a91b7";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1525,7 +1525,7 @@ TEST(security_nia3_test, testset2)
   const char* message_cstr = "000000000000000000000000";
   const char* mac_cstr     = "6719a088";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1553,7 +1553,7 @@ TEST(security_nia3_test, testset2_mod)
   const char* message_cstr = "000000000000000000000000";
   const char* mac_cstr     = "89a58b47";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1582,7 +1582,7 @@ TEST(security_nia3_test, testset3)
                              "17fecd97f9f68adb16e5d7d21e569d280ed775cebde3f4093c5388100";
   const char* mac_cstr     = "fae8ff0b";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1611,7 +1611,7 @@ TEST(security_nia3_test, testset3_mod)
                              "17fecd97f9f68adb16e5d7d21e569d280ed775cebde3f4093c5388100";
   const char* mac_cstr     = "24a842b3";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1644,7 +1644,7 @@ TEST(security_nia3_test, testset4)
       "15cc1a85b36b5501046e9c4bdcae5135690b8666bd54b7a703ea7b6f220a5469a568027e";
   const char* mac_cstr = "004ac4d6";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1677,7 +1677,7 @@ TEST(security_nia3_test, testset4_mod)
       "15cc1a85b36b5501046e9c4bdcae5135690b8666bd54b7a703ea7b6f220a5469a568027e";
   const char* mac_cstr = "039532e1";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1718,7 +1718,7 @@ TEST(security_nia3_test, testset5)
       "d9cd957808f08571d9a4bb792af271f6cc6dbb8dc7ec36e36be1ed308164c31c7c0afc541c";
   const char* mac_cstr = "0ca12792";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1759,7 +1759,7 @@ TEST(security_nia3_test, testset5_mod)
       "d9cd957808f08571d9a4bb792af271f6cc6dbb8dc7ec36e36be1ed308164c31c7c0afc541c";
   const char* mac_cstr = "fb9ab74c";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_128_key        key     = make_sec_128_key(key_cstr);
   security_direction dir     = static_cast<security_direction>(direction);
   byte_buffer        message = make_byte_buffer(message_cstr).value();
@@ -1780,7 +1780,7 @@ TEST(security_gen_k_rrc, testset1)
   const char* k_rrc_enc_cstr = "52a995dff89bc294bd89ffb137a29f2466a09e992386c8d1df7892964c6fb522";
   const char* k_rrc_int_cstr = "534208f43b924efb677d95f93dbcbcb05c2cc2fda0f318a1e0ce35b9db5e80a5";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_key sk_gnb    = make_sec_key(sk_gnb_cstr);
   sec_key k_rrc_enc = make_sec_key(k_rrc_enc_cstr);
   sec_key k_rrc_int = make_sec_key(k_rrc_int_cstr);
@@ -1800,7 +1800,7 @@ TEST(security_gen_k_up, testset1)
   const char* k_up_enc_cstr = "7ce20670bbbcc5904087c0d42653c540152052d3dfbc3f05869b7f920095be68";
   const char* k_up_int_cstr = "1ac74475a60bea4b4002a0439b722361d0deb4584095599e5806eae4f67656d8";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_key sk_gnb   = make_sec_key(sk_gnb_cstr);
   sec_key k_up_enc = make_sec_key(k_up_enc_cstr);
   sec_key k_up_int = make_sec_key(k_up_int_cstr);
@@ -1819,7 +1819,7 @@ TEST(security_gen_k_ng_ran_star, testset1)
   const char* k_gnb_cstr         = "c4c7bc798ab94e3d354cd6608e79aa92f5569df46519507850051e36f018ca5f";
   const char* k_ng_ran_star_cstr = "82fe5b109099321225a953633c4fec579051652b77f472b33840127bdfa7a655";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_key k_gnb         = make_sec_key(k_gnb_cstr);
   sec_key k_ng_ran_star = make_sec_key(k_ng_ran_star_cstr);
   sec_key k_ng_ran_star_o;
@@ -1835,7 +1835,7 @@ TEST(security_truncate_key, testset1)
   const char* k_256_cstr = "d46259077dd393da0b503ac713c38f57c05623c8a37b346aa4e041a08ea62a07";
   const char* k_128_cstr = "c05623c8a37b346aa4e041a08ea62a07";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_key     k_256 = make_sec_key(k_256_cstr);
   sec_128_key k_128 = make_sec_128_key(k_128_cstr);
 
@@ -1932,7 +1932,7 @@ TEST(short_mac, short_mac_valid)
   // Testdata in plain format
   const char* k_int_cstr = "534208f43b924efb677d95f93dbcbcb05c2cc2fda0f318a1e0ce35b9db5e80a5";
 
-  // Pack hex strings into srsran types
+  // Pack hex strings into ocudu types
   sec_as_config sec_config = {};
   sec_config.domain        = security::sec_domain::rrc;
   sec_config.integ_algo    = integrity_algorithm::nia2;
@@ -1947,7 +1947,7 @@ TEST(short_mac, short_mac_valid)
 
 int main(int argc, char** argv)
 {
-  srslog::init();
+  ocudulog::init();
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

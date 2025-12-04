@@ -9,20 +9,20 @@
  */
 
 #include "pxsch_bler_test_factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
 #if defined(HWACC_PDSCH_ENABLED) && defined(HWACC_PUSCH_ENABLED)
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/ext_harq_buffer_context_repository_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #endif // HWACC_PDSCH_ENABLED && HWACC_PUSCH_ENABLED
 
-using namespace srsran;
+using namespace ocudu;
 
 #if defined(HWACC_PDSCH_ENABLED) && defined(HWACC_PUSCH_ENABLED)
 static bool                                                   hwacc_pxsch_init_done   = false;
@@ -34,11 +34,11 @@ static void create_hwacc_pxsch_factories(const std::string& eal_arguments)
 {
   if (!hwacc_pxsch_init_done) {
     // Hardcoded stdout and error logging.
-    srslog::sink* log_sink = srslog::create_stdout_sink();
-    srslog::set_default_sink(*log_sink);
-    srslog::init();
-    srslog::basic_logger& logger = srslog::fetch_basic_logger("HAL", false);
-    logger.set_level(srslog::basic_levels::error);
+    ocudulog::sink* log_sink = ocudulog::create_stdout_sink();
+    ocudulog::set_default_sink(*log_sink);
+    ocudulog::init();
+    ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HAL", false);
+    logger.set_level(ocudulog::basic_levels::error);
 
     // Pointer to a dpdk-based hardware-accelerator interface.
     if (!dpdk_interface) {
@@ -69,7 +69,7 @@ static void create_hwacc_pxsch_factories(const std::string& eal_arguments)
     hw_encoder_config.max_tb_size       = RTE_BBDEV_LDPC_E_MAX_MBUF;
     hw_encoder_config.dedicated_queue   = true;
     // ACC100 hardware-accelerator implementation.
-    hwacc_pdsch_enc_factory = srsran::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
+    hwacc_pdsch_enc_factory = ocudu::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
     if (!hwacc_pdsch_enc_factory) {
       return;
     }
@@ -101,10 +101,10 @@ static void create_hwacc_pxsch_factories(const std::string& eal_arguments)
 }
 #endif // HWACC_PDSCH_ENABLED && HWACC_PUSCH_ENABLED
 
-std::shared_ptr<pdsch_processor_factory> srsran::create_sw_pdsch_processor_factory(task_executor&     executor,
-                                                                                   unsigned           max_nof_threads,
-                                                                                   const std::string& eal_arguments,
-                                                                                   const std::string& pxsch_type)
+std::shared_ptr<pdsch_processor_factory> ocudu::create_sw_pdsch_processor_factory(task_executor&     executor,
+                                                                                  unsigned           max_nof_threads,
+                                                                                  const std::string& eal_arguments,
+                                                                                  const std::string& pxsch_type)
 {
   std::shared_ptr<crc_calculator_factory> crc_calc_factory = create_crc_calculator_factory_sw("auto");
   report_fatal_error_if_not(crc_calc_factory, "Failed to create CRC calculator factory.");
@@ -181,13 +181,13 @@ std::shared_ptr<pdsch_processor_factory> srsran::create_sw_pdsch_processor_facto
 }
 
 std::shared_ptr<pusch_processor_factory>
-srsran::create_sw_pusch_processor_factory(task_executor&                                   executor,
-                                          unsigned                                         max_nof_threads,
-                                          unsigned                                         nof_ldpc_iterations,
-                                          bool                                             dec_enable_early_stop,
-                                          const std::string&                               pxsch_type,
-                                          port_channel_estimator_td_interpolation_strategy td_interpolation_strategy,
-                                          channel_equalizer_algorithm_type                 equalizer_algorithm_type)
+ocudu::create_sw_pusch_processor_factory(task_executor&                                   executor,
+                                         unsigned                                         max_nof_threads,
+                                         unsigned                                         nof_ldpc_iterations,
+                                         bool                                             dec_enable_early_stop,
+                                         const std::string&                               pxsch_type,
+                                         port_channel_estimator_td_interpolation_strategy td_interpolation_strategy,
+                                         channel_equalizer_algorithm_type                 equalizer_algorithm_type)
 {
   pusch_processor_phy_capabilities pusch_processor_phy_cap = get_pusch_processor_phy_capabilities();
 

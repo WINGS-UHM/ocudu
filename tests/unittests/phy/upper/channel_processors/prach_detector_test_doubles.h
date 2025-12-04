@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector.h"
 
-namespace srsran {
+namespace ocudu {
 
 class prach_detector_spy : public prach_detector
 {
@@ -29,4 +29,4 @@ public:
   bool has_detect_method_been_called() const { return detect_method_been_called; }
 };
 
-} // namespace srsran
+} // namespace ocudu

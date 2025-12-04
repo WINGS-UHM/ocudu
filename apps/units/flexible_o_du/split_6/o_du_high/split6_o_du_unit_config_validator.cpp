@@ -11,9 +11,9 @@
 #include "split6_o_du_unit_config_validator.h"
 #include "apps/units/flexible_o_du/o_du_high/o_du_high_unit_config_validator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_split6_o_du_unit_config(const split6_o_du_unit_config& config)
+bool ocudu::validate_split6_o_du_unit_config(const split6_o_du_unit_config& config)
 {
   if (!validate_o_du_high_config(config.odu_high_cfg)) {
     return false;

@@ -12,7 +12,7 @@
 
 #include "external/nlohmann/json.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct mac_dl_metric_report;
 
@@ -24,4 +24,4 @@ nlohmann::json generate(const mac_dl_metric_report& metrics);
 
 } // namespace json_generators
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

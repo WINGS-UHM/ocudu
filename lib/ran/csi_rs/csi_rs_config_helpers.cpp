@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
+#include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace csi_rs;
 
 // CSI-RS locations within a slot. See TS 38.211 Table 7.4.1.5.3-1.
@@ -70,10 +70,10 @@ static constexpr std::array<csi_rs_resource_mapping_info, nof_csi_rs_resource_ma
         // clang-format on
     }};
 
-unsigned srsran::csi_rs::get_csi_rs_resource_mapping_row_number(uint8_t                          nof_ports,
-                                                                csi_rs_freq_density_type         density,
-                                                                csi_rs_cdm_type                  cdm_type,
-                                                                const freq_allocation_mask_type& fd_alloc)
+unsigned ocudu::csi_rs::get_csi_rs_resource_mapping_row_number(uint8_t                          nof_ports,
+                                                               csi_rs_freq_density_type         density,
+                                                               csi_rs_cdm_type                  cdm_type,
+                                                               const freq_allocation_mask_type& fd_alloc)
 {
   // The following mapping can be inferred from Section 7.4.1.5.3, TS 38.211.
   for (const csi_rs_resource_mapping_info& info : csi_rs_resource_mapping_within_slot) {
@@ -104,12 +104,12 @@ unsigned srsran::csi_rs::get_csi_rs_resource_mapping_row_number(uint8_t         
       return info.row;
     }
   }
-  srsran_assertion_failure("The CSI-RS resource config does not match any row of Table 7.4.1.5.3-1, TS 38.211.");
+  ocudu_assertion_failure("The CSI-RS resource config does not match any row of Table 7.4.1.5.3-1, TS 38.211.");
   const unsigned invalid_row_index = 0;
   return invalid_row_index;
 }
 
-unsigned srsran::csi_rs::get_nof_csi_rs_ports(unsigned csi_rs_row_id)
+unsigned ocudu::csi_rs::get_nof_csi_rs_ports(unsigned csi_rs_row_id)
 {
   switch (csi_rs_row_id) {
     case 1:
@@ -139,7 +139,7 @@ unsigned srsran::csi_rs::get_nof_csi_rs_ports(unsigned csi_rs_row_id)
     case 18:
       return 32;
     default:
-      srsran_assertion_failure("Invalid CSI-RS mapping table row, i.e., {}.", csi_rs_row_id);
+      ocudu_assertion_failure("Invalid CSI-RS mapping table row, i.e., {}.", csi_rs_row_id);
       return 0;
   }
 }

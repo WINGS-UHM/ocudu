@@ -15,12 +15,12 @@ set(SOURCES
         flexible_o_du_ntn_configuration_manager_factory.cpp
         commands/ntn_config_update_remote_command_factory.cpp)
 
-add_library(srsran_flexible_o_du_helpers STATIC ${SOURCES})
-target_include_directories(srsran_flexible_o_du_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_flexible_o_du_helpers
-        srsran_o_du
-        srsran_pcap
-        srsran_app_services
-        srsran_o_du_low_unit_helpers
-        srsran_o_du_high_unit_helpers
-        srsran_flexible_o_du_unit_metrics_helpers)
+add_library(ocudu_flexible_o_du_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_flexible_o_du_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_flexible_o_du_helpers
+        ocudu_o_du
+        ocudu_pcap
+        ocudu_app_services
+        ocudu_o_du_low_unit_helpers
+        ocudu_o_du_high_unit_helpers
+        ocudu_flexible_o_du_unit_metrics_helpers)

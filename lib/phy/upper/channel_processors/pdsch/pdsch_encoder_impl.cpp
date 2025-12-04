@@ -9,9 +9,9 @@
  */
 
 #include "pdsch_encoder_impl.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void pdsch_encoder_impl::encode(span<uint8_t>        codeword,
                                 span<const uint8_t>  transport_block,
@@ -50,7 +50,7 @@ void pdsch_encoder_impl::encode(span<uint8_t>        codeword,
 
     // Select the correct chunk of the output codeword.
     unsigned rm_length = segment_buffer.get_rm_length(i_cb);
-    srsran_assert(offset + rm_length <= codeword.size(), "Wrong codeword length.");
+    ocudu_assert(offset + rm_length <= codeword.size(), "Wrong codeword length.");
     span<uint8_t> codeblock = span<uint8_t>(codeword).subspan(offset, rm_length);
 
     // Rate match the codeblock.
@@ -58,7 +58,7 @@ void pdsch_encoder_impl::encode(span<uint8_t>        codeword,
     rate_matcher->rate_match(codeblock_packed, rm_buffer, cb_metadata);
 
     // Unpack code block.
-    srsvec::bit_unpack(codeblock, codeblock_packed);
+    ocuduvec::bit_unpack(codeblock, codeblock_packed);
 
     // Advance write code block.
     offset += rm_length;

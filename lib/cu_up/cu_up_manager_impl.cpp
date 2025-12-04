@@ -13,10 +13,10 @@
 #include "routines/cu_up_bearer_context_modification_routine.h"
 #include "routines/cu_up_e1_connection_loss_routine.h"
 #include "routines/cu_up_test_mode_routines.h"
-#include "srsran/support/async/execute_on_blocking.h"
+#include "ocudu/support/async/execute_on_blocking.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 /// Helper functions
 static ue_manager_config generate_ue_manager_config(const n3_interface_config&    n3_config,
@@ -27,7 +27,7 @@ static ue_manager_config generate_ue_manager_config(const n3_interface_config&  
 
 static ue_manager_dependencies generate_ue_manager_dependencies(const cu_up_manager_impl_dependencies& dependencies,
                                                                 cu_up_manager_pdcp_interface& cu_up_mngr_pdcp_if,
-                                                                srslog::basic_logger&         logger)
+                                                                ocudulog::basic_logger&       logger)
 {
   return {dependencies.e1ap,
           dependencies.timers,

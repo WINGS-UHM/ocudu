@@ -11,11 +11,11 @@
 #include "worker_manager_cli11_schema.h"
 #include "cli11_cpu_affinities_parser_helper.h"
 #include "worker_manager_appconfig.h"
-#include "srsran/adt/expected.h"
-#include "srsran/support/cli11_utils.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/support/cli11_utils.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_main_pool_threads_args(CLI::App& app, main_thread_pool_appconfig& config)
 {
@@ -68,7 +68,7 @@ static void configure_cli11_expert_execution_args(CLI::App& app, expert_executio
   configure_cli11_main_pool_threads_args(*main_threads_subcmd, config.threads.main_pool);
 }
 
-void srsran::configure_cli11_with_worker_manager_appconfig_schema(CLI::App& app, expert_execution_appconfig& config)
+void ocudu::configure_cli11_with_worker_manager_appconfig_schema(CLI::App& app, expert_execution_appconfig& config)
 {
   // Expert section.
   CLI::App* expert_subcmd = app.add_subcommand("expert_execution", "Expert execution configuration")->configurable();

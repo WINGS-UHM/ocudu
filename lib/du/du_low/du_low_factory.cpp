@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/du/du_low/du_low_factory.h"
+#include "ocudu/du/du_low/du_low_factory.h"
 #include "du_low_impl.h"
-#include "srsran/du/du_low/du_low_config.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/du/du_low/du_low_config.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-std::unique_ptr<du_low> srsran::srs_du::make_du_low(const du_low_config& config, du_low_dependencies&& deps)
+std::unique_ptr<du_low> ocudu::odu::make_du_low(const du_low_config& config, du_low_dependencies&& deps)
 {
   unsigned nof_cells = config.cells.size();
 

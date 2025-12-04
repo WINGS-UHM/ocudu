@@ -12,6 +12,6 @@ set(SOURCES
         upper_phy_pusch_metrics_collector.cpp
         upper_phy_metrics_collector_impl.cpp)
 
-add_library(srsran_upper_phy_metrics STATIC ${SOURCES})
-target_link_libraries(srsran_upper_phy_metrics srsran_support)
-target_include_directories(srsran_upper_phy_metrics PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_upper_phy_metrics STATIC ${SOURCES})
+target_link_libraries(ocudu_upper_phy_metrics ocudu_support)
+target_include_directories(ocudu_upper_phy_metrics PRIVATE ${CMAKE_SOURCE_DIR})

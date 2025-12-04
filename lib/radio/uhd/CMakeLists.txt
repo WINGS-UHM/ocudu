@@ -12,8 +12,8 @@ set(SOURCES_UHD
         radio_uhd_rx_stream.cpp
         radio_uhd_tx_stream.cpp)
 
-add_library(srsran_radio_uhd STATIC ${SOURCES_UHD})
+add_library(ocudu_radio_uhd STATIC ${SOURCES_UHD})
 
-target_link_libraries(srsran_radio_uhd ${UHD_LIBRARIES} fmt srslog srsran_support)
+target_link_libraries(ocudu_radio_uhd ${UHD_LIBRARIES} fmt ocudulog ocudu_support)
 
-add_to_exported_libs(srsran_radio_uhd)
+add_to_exported_libs(ocudu_radio_uhd)

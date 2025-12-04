@@ -12,10 +12,10 @@
 
 #include "baseband_gateway_receiver_test_doubles.h"
 #include "baseband_gateway_transmitter_test_doubles.h"
-#include "srsran/gateways/baseband/baseband_gateway.h"
+#include "ocudu/gateways/baseband/baseband_gateway.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Baseband gateway spy class.
 ///
@@ -59,4 +59,4 @@ private:
   baseband_gateway_receiver_spy    receiver;
 };
 
-} // namespace srsran
+} // namespace ocudu

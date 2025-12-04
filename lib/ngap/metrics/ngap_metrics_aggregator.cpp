@@ -10,8 +10,8 @@
 
 #include "ngap_metrics_aggregator.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 void ngap_metrics_aggregator::aggregate_requested_pdu_session(s_nssai_t s_nssai)
 {

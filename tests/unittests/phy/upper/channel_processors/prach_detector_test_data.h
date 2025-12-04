@@ -14,10 +14,10 @@
 //   + "srsPRACHDetectorUnittest.m"
 
 #include "../../support/prach_buffer_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/prach_detector.h"
-#include "srsran/support/file_tensor.h"
+#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/support/file_tensor.h"
 
-namespace srsran {
+namespace ocudu {
 
 using sequence_data_type =
     file_tensor<static_cast<unsigned>(prach_buffer_tensor::dims::count), cf_t, prach_buffer_tensor::dims>;
@@ -158,4 +158,4 @@ static const std::vector<test_case_t> prach_detector_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

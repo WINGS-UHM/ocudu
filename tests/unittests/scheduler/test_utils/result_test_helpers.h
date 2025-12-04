@@ -11,9 +11,9 @@
 #pragma once
 
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 inline const pdcch_dl_information* find_ue_dl_pdcch(rnti_t rnti, const sched_result& res)
 {
@@ -73,10 +73,10 @@ inline uci_indication::uci_pdu create_uci_pdu_with_harq_ack(du_ue_index_t ue_ind
       pdu.pdu = f2_pdu;
     } break;
     default:
-      srsran_terminate("Format {} not supported", fmt::underlying(pucch_pdu.format()));
+      ocudu_terminate("Format {} not supported", fmt::underlying(pucch_pdu.format()));
       break;
   }
   return pdu;
 }
 
-} // namespace srsran
+} // namespace ocudu

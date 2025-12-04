@@ -10,11 +10,11 @@
 
 #include "pdcch_aggregation_level_calculator.h"
 #include "mcs_calculator.h"
-#include "srsran/ran/csi_rs/csi_report_config.h"
-#include "srsran/ran/pdcch/pdcch_constants.h"
-#include "srsran/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/csi_rs/csi_report_config.h"
+#include "ocudu/ran/pdcch/pdcch_constants.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Returns Modulation and Coding scheme corresponding to effective CQI.
 // \remark Effective CQI = CQI reported by UE + OLLA offset.
@@ -61,10 +61,10 @@ static pdsch_mcs_table fetch_mcs_table(cqi_table_t cqi_table)
   }
 }
 
-aggregation_level srsran::map_cqi_to_aggregation_level(float               cqi,
-                                                       cqi_table_t         cqi_table,
-                                                       span<const uint8_t> pdcch_candidates,
-                                                       unsigned            nof_dci_bits)
+aggregation_level ocudu::map_cqi_to_aggregation_level(float               cqi,
+                                                      cqi_table_t         cqi_table,
+                                                      span<const uint8_t> pdcch_candidates,
+                                                      unsigned            nof_dci_bits)
 {
   if (cqi > 0.0F) {
     const pdsch_mcs_table     mcs_table = fetch_mcs_table(cqi_table);

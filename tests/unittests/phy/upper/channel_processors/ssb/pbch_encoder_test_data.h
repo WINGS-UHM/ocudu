@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 11-04-2025 (seed 0):
 //   + "srsPBCHEncoderUnittest.m"
 
-#include "srsran/phy/upper/channel_processors/ssb/pbch_encoder.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_encoder.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   pbch_encoder::pbch_msg_t pbch_msg;
@@ -260,4 +260,4 @@ static const std::vector<test_case_t> pbch_encoder_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

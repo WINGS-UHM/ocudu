@@ -11,10 +11,10 @@
 #include "metrics_config_yaml_writer.h"
 #include "metrics_appconfig.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
-void srsran::app_services::fill_metrics_appconfig_in_yaml_schema(YAML::Node& node, const metrics_appconfig& config)
+void ocudu::app_services::fill_metrics_appconfig_in_yaml_schema(YAML::Node& node, const metrics_appconfig& config)
 {
   YAML::Node metrics_node                     = node["metrics"];
   YAML::Node periodicity_node                 = metrics_node["periodicity"];

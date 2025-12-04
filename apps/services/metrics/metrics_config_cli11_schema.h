@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 struct metrics_appconfig;
@@ -21,4 +21,4 @@ struct metrics_appconfig;
 void configure_cli11_with_metrics_appconfig_schema(CLI::App& app, metrics_appconfig& config);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

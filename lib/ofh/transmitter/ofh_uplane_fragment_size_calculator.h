@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/compression/compression_params.h"
-#include "srsran/support/units.h"
+#include "ocudu/ofh/compression/compression_params.h"
+#include "ocudu/support/units.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// \brief Open Fronthaul fragment size calculator.
@@ -55,4 +55,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

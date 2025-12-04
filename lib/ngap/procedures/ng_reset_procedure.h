@@ -12,12 +12,12 @@
 
 #include "ngap_transaction_manager.h"
 #include "ue_context/ngap_ue_context.h"
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ng_reset_procedure
 {
@@ -26,7 +26,7 @@ public:
                      ngap_message_notifier&    amf_notif_,
                      ngap_transaction_manager& ev_mng_,
                      ngap_ue_context_list&     ue_ctxt_list_,
-                     srslog::basic_logger&     logger_);
+                     ocudulog::basic_logger&   logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -39,10 +39,10 @@ private:
   ngap_message_notifier&    amf_notifier;
   ngap_transaction_manager& ev_mng;
   ngap_ue_context_list&     ue_ctxt_list;
-  srslog::basic_logger&     logger;
+  ocudulog::basic_logger&   logger;
 
   protocol_transaction_outcome_observer<asn1::ngap::ng_reset_ack_s> transaction_sink;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

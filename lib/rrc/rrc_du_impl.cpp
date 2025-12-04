@@ -11,17 +11,17 @@
 #include "rrc_du_impl.h"
 #include "ue/rrc_measurement_types_asn1_converters.h"
 #include "ue/rrc_ue_helpers.h"
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
-#include "srsran/asn1/rrc_nr/dl_ccch_msg.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/plmn_identity.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/plmn_identity.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 using namespace asn1::rrc_nr;
 
-rrc_du_impl::rrc_du_impl(const rrc_cfg_t& cfg_) : cfg(cfg_), logger(srslog::fetch_basic_logger("RRC", false))
+rrc_du_impl::rrc_du_impl(const rrc_cfg_t& cfg_) : cfg(cfg_), logger(ocudulog::fetch_basic_logger("RRC", false))
 {
   for (const auto& qos : cfg.drb_config) {
     logger.debug("5QI DRB config: {} {}", qos.first, qos.second.pdcp);
@@ -54,7 +54,7 @@ rrc_du_impl::get_cell_info(const std::vector<cu_cp_du_served_cells_item>& served
 
     asn1::cbit_ref                  bref_meas{served_cell.served_cell_info.meas_timing_cfg};
     asn1::rrc_nr::meas_timing_cfg_s asn1_meas_timing_cfg;
-    if (asn1_meas_timing_cfg.unpack(bref_meas) != asn1::SRSASN_SUCCESS) {
+    if (asn1_meas_timing_cfg.unpack(bref_meas) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to unpack Measurement Timing Config container");
       return {};
     }
@@ -80,7 +80,7 @@ rrc_du_impl::get_cell_info(const std::vector<cu_cp_du_served_cells_item>& served
     // Unpack SIB1 to store timers.
     asn1::rrc_nr::sib1_s sib1_msg;
     asn1::cbit_ref       bref2(served_cell.gnb_du_sys_info.value().sib1_msg);
-    if (sib1_msg.unpack(bref2) != asn1::SRSASN_SUCCESS) {
+    if (sib1_msg.unpack(bref2) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to unpack SIB1");
       return {};
     }
@@ -156,7 +156,7 @@ rrc_ue_interface* rrc_du_impl::add_ue(const rrc_ue_creation_message& msg)
     // Unpack DU to CU container.
     asn1::rrc_nr::cell_group_cfg_s cell_group_cfg;
     asn1::cbit_ref                 bref_cell({msg.du_to_cu_container.begin(), msg.du_to_cu_container.end()});
-    if (cell_group_cfg.unpack(bref_cell) != asn1::SRSASN_SUCCESS) {
+    if (cell_group_cfg.unpack(bref_cell) != asn1::OCUDUASN_SUCCESS) {
       logger.error("Failed to unpack DU to CU RRC container - aborting user creation");
       return nullptr;
     }

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/error_message_notifier.h"
-#include "srsran/ran/subcarrier_spacing.h"
+#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_cell_slot_handler;
 
@@ -40,4 +40,4 @@ private:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

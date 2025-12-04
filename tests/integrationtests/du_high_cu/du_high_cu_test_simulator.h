@@ -14,13 +14,13 @@
 #include "tests/test_doubles/f1ap/f1c_test_local_gateway.h"
 #include "tests/test_doubles/mac/dummy_mac_result_notifier.h"
 #include "tests/unittests/ngap/test_helpers.h"
-#include "srsran/cu_cp/cu_cp.h"
-#include "srsran/du/du_high/du_high.h"
-#include "srsran/du/du_high/du_high_configuration.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker.h"
+#include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
 
-namespace srsran {
+namespace ocudu {
 
 class io_broker;
 
@@ -38,18 +38,18 @@ public:
 };
 
 struct du_high_cu_cp_test_simulator_config {
-  std::vector<std::vector<srs_du::du_cell_config>> dus;
+  std::vector<std::vector<odu::du_cell_config>> dus;
 };
 
 class du_high_cu_test_simulator
 {
 public:
   struct du_sim {
-    srs_du::du_high_configuration    du_high_cfg;
-    phy_test_dummy                   phy;
-    null_mac_pcap                    mac_pcap;
-    null_rlc_pcap                    rlc_pcap;
-    std::unique_ptr<srs_du::du_high> du_high_inst;
+    odu::du_high_configuration    du_high_cfg;
+    phy_test_dummy                phy;
+    null_mac_pcap                 mac_pcap;
+    null_rlc_pcap                 rlc_pcap;
+    std::unique_ptr<odu::du_high> du_high_inst;
 
     slot_point next_slot;
 
@@ -69,16 +69,16 @@ public:
 
   const du_high_cu_cp_test_simulator_config cfg;
 
-  srslog::basic_logger&                 logger;
+  ocudulog::basic_logger&               logger;
   timer_manager                         timers;
   du_high_cu_cp_worker_manager          workers;
   std::unique_ptr<io_broker>            broker;
   std::unique_ptr<mac_clock_controller> timer_ctrl;
-  srs_cu_cp::dummy_n2_gateway           n2_gw;
+  ocucp::dummy_n2_gateway               n2_gw;
   f1c_test_local_gateway                f1c_gw;
 
-  std::unique_ptr<srs_cu_cp::cu_cp>    cu_cp_inst;
+  std::unique_ptr<ocucp::cu_cp>        cu_cp_inst;
   std::vector<std::unique_ptr<du_sim>> dus;
 };
 
-} // namespace srsran
+} // namespace ocudu

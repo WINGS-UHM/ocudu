@@ -11,7 +11,7 @@
 #include "flexible_o_du_metrics_producer.h"
 #include "flexible_o_du_app_service_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void o_du_metrics_producer_impl::on_new_metrics(const flexible_o_du_metrics& metrics)
 {

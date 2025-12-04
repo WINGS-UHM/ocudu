@@ -11,8 +11,8 @@ add_executable(scheduler_cell_resource_test
         cell_resource_grid_test.cpp
         cell_harq_manager_test.cpp)
 target_link_libraries(scheduler_cell_resource_test
-        srsran_sched
-        srslog
+        ocudu_sched
+        ocudulog
         mac_configuration_helpers
         sched_config
         scheduler_test_utils

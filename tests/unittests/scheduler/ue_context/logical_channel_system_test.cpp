@@ -10,11 +10,11 @@
 
 #include "lib/scheduler/config/logical_channel_config_pool.h"
 #include "lib/scheduler/ue_context/logical_channel_system.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// (Implementation-defined) Estimation of how much space the MAC should leave for RLC segmentation header overhead.
 static constexpr unsigned RLC_SEGMENTATION_OVERHEAD = 3;

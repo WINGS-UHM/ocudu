@@ -14,10 +14,10 @@
 //   + "srsPUSCHdmrsUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   dmrs_pusch_estimator::configuration                     config;
@@ -173,4 +173,4 @@ static const std::vector<test_case_t> dmrs_pusch_estimator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

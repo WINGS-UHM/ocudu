@@ -11,13 +11,13 @@
 #pragma once
 
 #include "pdcp_bearer_logger.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/pdcp/pdcp_config.h"
-#include "srsran/pdcp/pdcp_sn_size.h"
-#include "srsran/security/security.h"
-#include "srsran/support/sdu_window.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_sn_size.h"
+#include "ocudu/security/security.h"
+#include "ocudu/support/sdu_window.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Helper structure used to pass TX SDUs info to the TX window from the PDCP TX entity.
 /// It will be held by the TX window along some extra meta-data.
@@ -99,4 +99,4 @@ private:
   uint32_t nof_sdus  = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

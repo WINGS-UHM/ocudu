@@ -17,10 +17,10 @@
 #include "../support/prbs_calculator.h"
 #include "../support/sch_pdu_builder.h"
 #include "../support/ssb_helpers.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/sib/sib_configuration.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/sib/sib_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// SIB1 new transmission period in milliseconds, as per TS 38.331, 5.2.1.
 static constexpr std::chrono::milliseconds sib1_newtx_period{160};
@@ -212,7 +212,7 @@ void sib1_scheduler::fill_sib1_grant(cell_slot_resource_allocator& res_grid,
   static const unsigned sib1_si_indicator = 0;
 
   // Add DCI to list to dl_pdcch.
-  srsran_assert(res_grid.result.dl.dl_pdcchs.size() > 0, "No DL PDCCH grant found in the DL sched results.");
+  ocudu_assert(res_grid.result.dl.dl_pdcchs.size() > 0, "No DL PDCCH grant found in the DL sched results.");
 
   const auto& pdsch_td_res_alloc_list =
       get_si_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);

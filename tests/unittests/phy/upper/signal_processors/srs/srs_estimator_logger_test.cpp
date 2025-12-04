@@ -10,13 +10,13 @@
 
 #include "../../../support/resource_grid_test_doubles.h"
 #include "srs_estimator_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/srs/formatters.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_factory.h"
+#include "ocudu/phy/upper/signal_processors/srs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_factory.h"
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -49,10 +49,10 @@ public:
 
 TEST(srsEstimator, LoggerInfoTest)
 {
-  srslog::init();
+  ocudulog::init();
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY", true);
-  logger.set_level(srslog::basic_levels::info);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY", true);
+  logger.set_level(ocudulog::basic_levels::info);
 
   std::shared_ptr<srs_estimator_factory> factory = std::make_shared<srs_estimator_dummy_factory>();
 
@@ -67,10 +67,10 @@ TEST(srsEstimator, LoggerInfoTest)
 
 TEST(srsEstimator, LoggerDebugTest)
 {
-  srslog::init();
+  ocudulog::init();
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("PHY", true);
-  logger.set_level(srslog::basic_levels::debug);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("PHY", true);
+  logger.set_level(ocudulog::basic_levels::debug);
 
   std::shared_ptr<srs_estimator_factory> factory = std::make_shared<srs_estimator_dummy_factory>();
 

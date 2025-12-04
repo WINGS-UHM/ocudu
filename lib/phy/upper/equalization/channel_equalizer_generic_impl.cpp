@@ -14,11 +14,11 @@
 #include "channel_equalizer_generic_impl.h"
 #include "equalize_zf_1xn.h"
 #include "equalize_zf_2xn.h"
-#include "srsran/adt/interval.h"
-#include "srsran/phy/support/re_buffer.h"
-#include "srsran/phy/upper/equalization/modular_ch_est_list.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/phy/support/re_buffer.h"
+#include "ocudu/phy/upper/equalization/modular_ch_est_list.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Assert that the dimensions of the equalizer input and output data structures match.
 static inline void assert_sizes(span<const cf_t>                      eq_symbols,
@@ -46,41 +46,41 @@ static inline void assert_sizes(span<const cf_t>                      eq_symbols
   unsigned ch_ests_nof_tx_layers = ch_estimates.get_nof_tx_layers();
 
   // Assert that the number of Resource Elements is the same for both inputs.
-  srsran_assert(ch_symb_nof_re == ch_ests_nof_re,
-                "The number of channel estimates (i.e., {}) is not equal to the number of input RE (i.e., {}).",
-                ch_symb_nof_re,
-                ch_ests_nof_re);
+  ocudu_assert(ch_symb_nof_re == ch_ests_nof_re,
+               "The number of channel estimates (i.e., {}) is not equal to the number of input RE (i.e., {}).",
+               ch_symb_nof_re,
+               ch_ests_nof_re);
 
   // Assert that the number of Resource Elements is the same for both outputs.
-  srsran_assert(eq_symb_nof_re == eq_nvars_nof_re,
-                "The number of equalized RE (i.e., {}) is not equal to the number of noise variances (i.e., {}).",
-                eq_symb_nof_re,
-                eq_nvars_nof_re);
+  ocudu_assert(eq_symb_nof_re == eq_nvars_nof_re,
+               "The number of equalized RE (i.e., {}) is not equal to the number of noise variances (i.e., {}).",
+               eq_symb_nof_re,
+               eq_nvars_nof_re);
 
   // Assert that the number of receive ports is within the valid range.
   static constexpr interval<unsigned, true> nof_rx_ports_range(1, channel_equalizer_generic_impl::max_nof_ports);
-  srsran_assert(nof_rx_ports_range.contains(ch_ests_nof_rx_ports),
-                "The number of receive ports (i.e., {}) must be in the range {}.",
-                ch_ests_nof_rx_ports,
-                nof_rx_ports_range);
+  ocudu_assert(nof_rx_ports_range.contains(ch_ests_nof_rx_ports),
+               "The number of receive ports (i.e., {}) must be in the range {}.",
+               ch_ests_nof_rx_ports,
+               nof_rx_ports_range);
 
   // Assert that the number of receive ports matches.
-  srsran_assert((ch_ests_nof_rx_ports == ch_symb_nof_rx_ports) && (ch_ests_nof_rx_ports == nvar_ests_nof_rx_ports),
-                "Number of Rx ports does not match: \n"
-                "Received symbols Rx ports:\t {}\n"
-                "Noise variance estimates Rx ports: \t {}\n"
-                "Channel estimates Rx ports:\t {}",
-                ch_symb_nof_rx_ports,
-                nvar_ests_nof_rx_ports,
-                ch_ests_nof_rx_ports);
+  ocudu_assert((ch_ests_nof_rx_ports == ch_symb_nof_rx_ports) && (ch_ests_nof_rx_ports == nvar_ests_nof_rx_ports),
+               "Number of Rx ports does not match: \n"
+               "Received symbols Rx ports:\t {}\n"
+               "Noise variance estimates Rx ports: \t {}\n"
+               "Channel estimates Rx ports:\t {}",
+               ch_symb_nof_rx_ports,
+               nvar_ests_nof_rx_ports,
+               ch_ests_nof_rx_ports);
 
   // Assert that the number of transmit layers matches.
-  srsran_assert(ch_ests_nof_re * ch_ests_nof_tx_layers == eq_symb_nof_re,
-                "The number of channel estimates (i.e., {}) and number of layers (i.e., {}) is not consistent with the "
-                "number of equalized RE (i.e., {}).",
-                ch_ests_nof_re,
-                ch_ests_nof_tx_layers,
-                eq_symb_nof_re);
+  ocudu_assert(ch_ests_nof_re * ch_ests_nof_tx_layers == eq_symb_nof_re,
+               "The number of channel estimates (i.e., {}) and number of layers (i.e., {}) is not consistent with the "
+               "number of equalized RE (i.e., {}).",
+               ch_ests_nof_re,
+               ch_ests_nof_tx_layers,
+               eq_symb_nof_re);
 }
 
 /// Calls the equalizer function for receive spatial diversity with the appropriate number of receive ports.
@@ -138,8 +138,8 @@ void equalize_zf_single_tx_layer_reduction(span<cf_t>                           
 
   // No valid noise variances, fill output with invalid data.
   if (nof_valid_noise_var == 0) {
-    srsvec::zero(eq_symbols);
-    srsvec::fill(eq_noise_vars, std::numeric_limits<float>::infinity());
+    ocuduvec::zero(eq_symbols);
+    ocuduvec::fill(eq_noise_vars, std::numeric_limits<float>::infinity());
     return;
   }
 
@@ -174,65 +174,65 @@ void equalize_zf_single_tx_layer_reduction(span<cf_t>                           
       nof_valid_noise_var, eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
-void channel_equalizer_generic_impl::equalize_zf_3x4(span<srsran::cf_t> /* eq_symbols */,
+#ifndef OCUDU_HAS_ENTERPRISE
+void channel_equalizer_generic_impl::equalize_zf_3x4(span<ocudu::cf_t> /* eq_symbols */,
                                                      span<float> /* noise_vars */,
-                                                     const re_buffer_reader<srsran::cbf16_t>& /* ch_symbols */,
+                                                     const re_buffer_reader<ocudu::cbf16_t>& /* ch_symbols */,
                                                      const channel_equalizer::ch_est_list& /* ch_estimates */,
                                                      float /* noise_var_est */,
                                                      float /* tx_scaling */)
 {
-  srsran_assertion_failure("Equalizer not implemented for 3x4 ZF algorithm.");
+  ocudu_assertion_failure("Equalizer not implemented for 3x4 ZF algorithm.");
 }
 
-void channel_equalizer_generic_impl::equalize_zf_4x4(span<srsran::cf_t> /* eq_symbols */,
+void channel_equalizer_generic_impl::equalize_zf_4x4(span<ocudu::cf_t> /* eq_symbols */,
                                                      span<float> /* noise_vars */,
-                                                     const re_buffer_reader<srsran::cbf16_t>& /* ch_symbols */,
+                                                     const re_buffer_reader<ocudu::cbf16_t>& /* ch_symbols */,
                                                      const channel_equalizer::ch_est_list& /* ch_estimates */,
                                                      float /* noise_var_est */,
                                                      float /* tx_scaling */)
 {
-  srsran_assertion_failure("Equalizer not implemented for 4x4 ZF algorithm.");
+  ocudu_assertion_failure("Equalizer not implemented for 4x4 ZF algorithm.");
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_2x2(span<srsran::cf_t> /* eq_symbols */,
+void channel_equalizer_generic_impl::equalize_mmse_2x2(span<ocudu::cf_t> /* eq_symbols */,
                                                        span<float> /* noise_vars */,
-                                                       const re_buffer_reader<srsran::cbf16_t>& /* ch_symbols */,
+                                                       const re_buffer_reader<ocudu::cbf16_t>& /* ch_symbols */,
                                                        const channel_equalizer::ch_est_list& /* ch_estimates */,
                                                        float /* noise_var_est */,
                                                        float /* tx_scaling */)
 {
-  srsran_assertion_failure("Equalizer not implemented for 2x2 MMSE algorithm.");
+  ocudu_assertion_failure("Equalizer not implemented for 2x2 MMSE algorithm.");
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_2x4(span<srsran::cf_t> /* eq_symbols */,
+void channel_equalizer_generic_impl::equalize_mmse_2x4(span<ocudu::cf_t> /* eq_symbols */,
                                                        span<float> /* noise_vars */,
-                                                       const re_buffer_reader<srsran::cbf16_t>& /* ch_symbols */,
+                                                       const re_buffer_reader<ocudu::cbf16_t>& /* ch_symbols */,
                                                        const channel_equalizer::ch_est_list& /* ch_estimates */,
                                                        float /* noise_var_est */,
                                                        float /* tx_scaling */)
 {
-  srsran_assertion_failure("Equalizer not implemented for 2x4 MMSE algorithm.");
+  ocudu_assertion_failure("Equalizer not implemented for 2x4 MMSE algorithm.");
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_3x4(span<srsran::cf_t> /* eq_symbols */,
+void channel_equalizer_generic_impl::equalize_mmse_3x4(span<ocudu::cf_t> /* eq_symbols */,
                                                        span<float> /* noise_vars */,
-                                                       const re_buffer_reader<srsran::cbf16_t>& /* ch_symbols */,
+                                                       const re_buffer_reader<ocudu::cbf16_t>& /* ch_symbols */,
                                                        const channel_equalizer::ch_est_list& /* ch_estimates */,
                                                        float /* noise_var_est */,
                                                        float /* tx_scaling */)
 {
-  srsran_assertion_failure("Equalizer not implemented for 3x4 MMSE algorithm.");
+  ocudu_assertion_failure("Equalizer not implemented for 3x4 MMSE algorithm.");
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_4x4(span<srsran::cf_t> /* eq_symbols */,
+void channel_equalizer_generic_impl::equalize_mmse_4x4(span<ocudu::cf_t> /* eq_symbols */,
                                                        span<float> /* noise_vars */,
-                                                       const re_buffer_reader<srsran::cbf16_t>& /* ch_symbols */,
+                                                       const re_buffer_reader<ocudu::cbf16_t>& /* ch_symbols */,
                                                        const channel_equalizer::ch_est_list& /* ch_estimates */,
                                                        float /* noise_var_est */,
                                                        float /* tx_scaling */)
 {
-  srsran_assertion_failure("Equalizer not implemented for 4x4 MMSE algorithm.");
+  ocudu_assertion_failure("Equalizer not implemented for 4x4 MMSE algorithm.");
 }
 
 bool channel_equalizer_generic_impl::is_supported(channel_equalizer_algorithm_type type,
@@ -264,7 +264,7 @@ bool channel_equalizer_generic_impl::is_supported(channel_equalizer_algorithm_ty
   return true;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
 bool channel_equalizer_generic_impl::is_supported(unsigned nof_ports, unsigned nof_layers)
 {
@@ -281,7 +281,7 @@ void channel_equalizer_generic_impl::equalize(span<cf_t>                       e
   // Make sure that the input and output symbol lists and channel estimate dimensions are valid.
   assert_sizes(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var_estimates);
 
-  srsran_assert(tx_scaling > 0, "Tx scaling factor must be positive.");
+  ocudu_assert(tx_scaling > 0, "Tx scaling factor must be positive.");
 
   // Channel dimensions.
   unsigned nof_rx_ports  = ch_estimates.get_nof_rx_ports();
@@ -360,7 +360,7 @@ void channel_equalizer_generic_impl::equalize(span<cf_t>                       e
     }
   }
 
-  srsran_assertion_failure(
+  ocudu_assertion_failure(
       "Invalid combination of channel spatial topology (i.e., {} Rx ports, {} Tx layers) and algorithm (i.e., {}).",
       ch_estimates.get_nof_rx_ports(),
       ch_estimates.get_nof_tx_layers(),

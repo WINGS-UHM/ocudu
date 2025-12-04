@@ -9,11 +9,11 @@
  */
 
 #include "pbch_encoder_test_data.h"
-#include "srsran/phy/upper/channel_processors/ssb/factories.h"
-#include "srsran/phy/upper/channel_processors/ssb/pbch_encoder.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_processors/ssb/factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_encoder.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

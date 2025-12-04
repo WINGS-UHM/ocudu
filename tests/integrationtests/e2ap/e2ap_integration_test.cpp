@@ -11,17 +11,17 @@
 #include "lib/e2/common/e2_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
 #include "tests/unittests/e2/common/e2ap_asn1_packer.h"
-#include "srsran/e2/e2ap_configuration_helpers.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/e2/gateways/e2_network_client_factory.h"
-#include "srsran/gateways/sctp_network_client_factory.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/timers.h"
+#include "ocudu/e2/e2ap_configuration_helpers.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/e2/gateways/e2_network_client_factory.h"
+#include "ocudu/gateways/sctp_network_client_factory.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// This test is an integration test between:
 /// * E2AP (E2 setup procedure)
@@ -73,7 +73,7 @@ private:
     // pack E2AP PDU into SCTP SDU.
     byte_buffer   tx_sdu{byte_buffer::fallback_allocation_tag{}};
     asn1::bit_ref bref(tx_sdu);
-    if (msg.pdu.pack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
       test_logger.error("Failed to pack E2AP PDU");
       return;
     }
@@ -88,7 +88,7 @@ private:
     // Unpack E2AP PDU.
     asn1::cbit_ref bref(pdu);
     e2_message     msg;
-    if (msg.pdu.unpack(bref) != asn1::SRSASN_SUCCESS) {
+    if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       test_logger.error("Couldn't unpack E2AP PDU");
       return false;
     }
@@ -110,7 +110,7 @@ private:
   std::unique_ptr<sctp_network_client>           gw;
   e2_interface*                                  e2ap = nullptr;
   std::unique_ptr<sctp_association_sdu_notifier> sctp_sender;
-  srslog::basic_logger&                          test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                        test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 class my_dummy_e2_pdu_tx_notifier : public e2_message_notifier
@@ -156,8 +156,8 @@ protected:
 
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.gnb_du_id        = int_to_gnb_du_id(1);
@@ -203,7 +203,7 @@ protected:
   std::unique_ptr<e2sm_interface>             e2sm_iface;
   std::unique_ptr<e2_interface>               e2ap;
   std::unique_ptr<dummy_e2_con_client>        e2_client;
-  srslog::basic_logger&                       test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                     test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful e2 setup procedure
@@ -243,8 +243,8 @@ protected:
 
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.gnb_id           = {123, 22};
@@ -265,7 +265,7 @@ protected:
     du_metrics        = std::make_unique<dummy_e2_du_metrics>();
     f1ap_ue_id_mapper = std::make_unique<dummy_f1ap_ue_id_translator>();
     e2_client         = create_e2_gateway_client(
-        e2_sctp_gateway_config{nw_config, *epoll_broker, rx_executor, *pcap, srslog::fetch_basic_logger("E2")});
+        e2_sctp_gateway_config{nw_config, *epoll_broker, rx_executor, *pcap, ocudulog::fetch_basic_logger("E2")});
     du_param_configurator = std::make_unique<dummy_du_configurator>();
     e2agent               = create_e2_du_agent(
         cfg, *e2_client, &(*du_metrics), &(*f1ap_ue_id_mapper), &(*du_param_configurator), factory, ctrl_worker);
@@ -280,10 +280,10 @@ protected:
   std::unique_ptr<dummy_e2ap_pcap>             pcap;
   std::unique_ptr<e2_du_metrics_interface>     du_metrics;
   std::unique_ptr<dummy_f1ap_ue_id_translator> f1ap_ue_id_mapper;
-  std::unique_ptr<srs_du::du_configurator>     du_param_configurator;
+  std::unique_ptr<odu::du_configurator>        du_param_configurator;
   std::unique_ptr<e2_connection_client>        e2_client;
   std::unique_ptr<e2_agent>                    e2agent;
-  srslog::basic_logger&                        test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                      test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful e2 setup procedure, runs with an external nearRT-RIC.

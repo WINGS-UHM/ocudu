@@ -37,7 +37,7 @@ include:
     TEST_MODE: "default"
     TEST_EXECUTION_TIMEOUT: 0
     # CI
-    SRSRANDIR: ${CI_PROJECT_DIR}
+    OCUDUDIR: ${CI_PROJECT_DIR}
     INFRASTRUCTURE_TAG: amd64-avx2
     TRANSFER_METER_FREQUENCY: 5s
     ARTIFACT_COMPRESSION_LEVEL: slowest
@@ -116,14 +116,14 @@ include:
       echo "BUILD_ARGS=${BUILD_ARGS}"
       echo "TEST_MODE=${TEST_MODE}"
     - |
-      build_srsran() {
+      build_ocudu() {
         set -x
-        builder.sh -m "-j${KUBERNETES_CPU_REQUEST} ${SRS_TARGET}" ${BUILD_CMD} ${SRSRANDIR}
+        builder.sh -m "-j${KUBERNETES_CPU_REQUEST} ${SRS_TARGET}" ${BUILD_CMD} ${OCUDUDIR}
         { set +x; } 2>/dev/null
       }
     - |
-      launch_tests_srsran() {
-        cd ${SRSRANDIR}/build
+      launch_tests_ocudu() {
+        cd ${OCUDUDIR}/build
         echo "Using LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
         set -x
         ctest -j${KUBERNETES_CPU_REQUEST} --schedule-random --output-on-failure --output-junit xunit.xml $CTEST_ARGS

@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_coding/polar/polar_decoder.h"
-#include "srsran/phy/upper/channel_coding/polar/polar_encoder.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_decoder.h"
+#include "ocudu/phy/upper/channel_coding/polar/polar_encoder.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Polar decoder implementation.
 ///
@@ -149,4 +149,4 @@ public:
   void decode(span<uint8_t> data_decoded, span<const log_likelihood_ratio> input_llr, const polar_code& code) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

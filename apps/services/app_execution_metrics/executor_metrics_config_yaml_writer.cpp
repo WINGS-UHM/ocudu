@@ -12,7 +12,7 @@
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "executor_metrics_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_exec_metrics_section(YAML::Node node, const app_services::executor_metrics_config& config)
 {

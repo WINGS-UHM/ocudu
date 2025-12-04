@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 18-12-2024 (seed 0):
 //   + "srsPDCCHEncoderUnittest.m"
 
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_encoder.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_encoder.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   pdcch_encoder::config_t config;
@@ -58,4 +58,4 @@ static const std::vector<test_case_t> pdcch_encoder_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

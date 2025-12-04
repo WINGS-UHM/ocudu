@@ -10,14 +10,14 @@
 
 #include "paging_message_handler.h"
 #include "../du_processor/du_processor_repository.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/ran/tac.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/tac.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 paging_message_handler::paging_message_handler(du_processor_repository& dus_) :
-  dus(dus_), logger(srslog::fetch_basic_logger("CU-CP"))
+  dus(dus_), logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 

@@ -14,7 +14,7 @@
 #include "apps/units/o_cu_up/o_cu_up_builder.h"
 #include <yaml-cpp/node/node.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct o_cu_up_unit_config;
 struct worker_manager_config;
@@ -39,4 +39,4 @@ public:
 /// Creates an O-RAN CU-UP application unit.
 std::unique_ptr<o_cu_up_application_unit> create_o_cu_up_application_unit(std::string_view app_name);
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,14 +9,14 @@
  */
 
 #include "crc_calculator_lut_impl.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/support/math/math_utils.h"
 
 #if __SSE4_1__
 #include <immintrin.h>
 #endif // __SSE4_1__
 
-using namespace srsran;
+using namespace ocudu;
 
 const std::map<crc_generator_poly, crc_calculator_lut_impl::crc_table_s> crc_calculator_lut_impl::crc_tables = {
     {crc_generator_poly::CRC24A, crc_calculator_lut_impl::crc_table_s(0x1864cfb, 24)},
@@ -51,7 +51,7 @@ crc_calculator_lut_impl::crc_calculator_lut_impl(crc_generator_poly poly_) :
   // Do nothing
 }
 
-crc_calculator_checksum_t srsran::crc_calculator_lut_impl::calculate_byte(span<const uint8_t> input) const
+crc_calculator_checksum_t ocudu::crc_calculator_lut_impl::calculate_byte(span<const uint8_t> input) const
 {
   uint32_t crc = 0;
 
@@ -63,7 +63,7 @@ crc_calculator_checksum_t srsran::crc_calculator_lut_impl::calculate_byte(span<c
   return get_checksum(crc);
 }
 
-crc_calculator_checksum_t crc_calculator_lut_impl::calculate_bit(srsran::span<const uint8_t> input) const
+crc_calculator_checksum_t crc_calculator_lut_impl::calculate_bit(ocudu::span<const uint8_t> input) const
 {
   uint32_t crc = 0;
 
@@ -87,7 +87,7 @@ crc_calculator_checksum_t crc_calculator_lut_impl::calculate_bit(srsran::span<co
     // Get mask and reverse.
     uint8_t byte = reverse_byte(static_cast<uint8_t>(_mm_movemask_pi8(mask)));
 #else  // __SSE4_1__
-    uint8_t byte = (uint8_t)(srsvec::bit_pack(pter, 8) & 0xff);
+    uint8_t byte = (uint8_t)(ocuduvec::bit_pack(pter, 8) & 0xff);
 #endif // __SSE4_1__
     crc = put_byte(crc, byte);
   }

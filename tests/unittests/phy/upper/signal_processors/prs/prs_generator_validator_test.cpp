@@ -9,16 +9,16 @@
  */
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/signal_processors/prs/factories.h"
-#include "srsran/phy/upper/signal_processors/prs/formatters.h"
-#include "srsran/phy/upper/signal_processors/prs/prs_generator.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/signal_processors/prs/factories.h"
+#include "ocudu/phy/upper/signal_processors/prs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/prs/prs_generator.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

@@ -9,9 +9,9 @@
  */
 
 #include "dmrs_pucch_estimator_format2.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief DM-RS RE allocation pattern for PUCCH Format 2.
 ///
@@ -77,9 +77,9 @@ void dmrs_pucch_estimator_format2::estimate(channel_estimate&                   
                                             const resource_grid_reader&                        grid,
                                             const dmrs_pucch_estimator::format2_configuration& config)
 {
-  srsran_assert((!config.second_hop_prb.has_value() || (config.nof_symbols > pucch_constants::FORMAT2_MIN_NSYMB)),
-                "Frequency hopping requires {} OFDM symbols.",
-                pucch_constants::FORMAT2_MAX_NSYMB);
+  ocudu_assert((!config.second_hop_prb.has_value() || (config.nof_symbols > pucch_constants::FORMAT2_MIN_NSYMB)),
+               "Frequency hopping requires {} OFDM symbols.",
+               pucch_constants::FORMAT2_MAX_NSYMB);
 
   unsigned nof_rx_ports = config.ports.size();
 

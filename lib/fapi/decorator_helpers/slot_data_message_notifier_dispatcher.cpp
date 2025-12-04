@@ -11,7 +11,7 @@
 #include "slot_data_message_notifier_dispatcher.h"
 #include "slot_data_message_notifier_dummy.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 static slot_data_message_notifier_dummy dummy_notifier;

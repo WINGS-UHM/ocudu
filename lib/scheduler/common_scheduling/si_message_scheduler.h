@@ -11,9 +11,9 @@
 #pragma once
 
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
+namespace ocudu {
 
 class si_message_scheduler
 {
@@ -63,10 +63,10 @@ private:
   const cell_configuration&           cell_cfg;
   pdcch_resource_allocator&           pdcch_sch;
   std::optional<si_scheduling_config> si_sched_cfg;
-  srslog::basic_logger&               logger;
+  ocudulog::basic_logger&             logger;
 
   std::vector<message_window_context> pending_messages;
   unsigned                            version = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

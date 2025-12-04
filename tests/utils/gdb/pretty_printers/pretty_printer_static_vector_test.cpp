@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/static_vector.h"
+#include "ocudu/adt/static_vector.h"
 
 int main()
 {
-  srsran::static_vector<int, 5> a;
+  ocudu::static_vector<int, 5> a;
 
   for (unsigned i = 0; i != 3; ++i) {
     a.push_back(i);

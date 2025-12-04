@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/uplink_slot_processor.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_handler.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/uplink_slot_processor.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implementation of the upper PHY handler of receive symbols events.
 ///
@@ -40,4 +40,4 @@ private:
   uplink_slot_processor_pool& ul_processor_pool;
 };
 
-} // namespace srsran
+} // namespace ocudu

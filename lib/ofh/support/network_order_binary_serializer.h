@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <arpa/inet.h>
 #include <cstdint>
 #include <cstring>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// This class serializes input data into the configured memory buffer in network order (big-endian).
@@ -25,7 +25,7 @@ class network_order_binary_serializer
 public:
   explicit network_order_binary_serializer(uint8_t* ptr_) : ptr(ptr_)
   {
-    srsran_assert(ptr, "Invalid pointer to buffer");
+    ocudu_assert(ptr, "Invalid pointer to buffer");
   }
 
   /// Serializes the given value and advances the position by sizeof(x) bytes.
@@ -96,4 +96,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

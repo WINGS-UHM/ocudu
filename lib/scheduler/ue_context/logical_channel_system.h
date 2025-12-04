@@ -12,14 +12,14 @@
 
 #include "../config/logical_channel_list_config.h"
 #include "../slicing/ran_slice_id.h"
-#include "srsran/adt/soa_table.h"
-#include "srsran/adt/static_flat_map.h"
-#include "srsran/mac/mac_pdu_format.h"
-#include "srsran/ran/logical_channel/lcid_dl_sch.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/support/math/moving_averager.h"
+#include "ocudu/adt/soa_table.h"
+#include "ocudu/adt/static_flat_map.h"
+#include "ocudu/mac/mac_pdu_format.h"
+#include "ocudu/ran/logical_channel/lcid_dl_sch.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/support/math/moving_averager.h"
 
-namespace srsran {
+namespace ocudu {
 
 class ue_logical_channel_repository;
 struct ul_bsr_indication_message;
@@ -688,4 +688,4 @@ unsigned build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
                                        unsigned                       tb_size_bytes,
                                        ran_slice_id_t                 slice_id);
 
-} // namespace srsran
+} // namespace ocudu

@@ -16,7 +16,7 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

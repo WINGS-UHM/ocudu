@@ -10,16 +10,16 @@
 
 #include "resource_usage.h"
 #include "apps/helpers/metrics/helpers.h"
-#include "srsran/support/resource_usage/resource_usage_metrics.h"
+#include "ocudu/support/resource_usage/resource_usage_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
 /// Bytes in one Mega Byte.
 static constexpr double BYTES_IN_MB = (1 << 20);
 
-namespace srsran {
+namespace ocudu {
 
 void to_json(nlohmann::json& json, const resource_usage_metrics& metrics)
 {
@@ -31,9 +31,9 @@ void to_json(nlohmann::json& json, const resource_usage_metrics& metrics)
   json["power_consumption_watts"] = validate_fp_value(metrics.power_usage_watts);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const resource_usage_metrics& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const resource_usage_metrics& metrics)
 {
   nlohmann::json json;
 
@@ -43,7 +43,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const resource_usa
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const resource_usage_metrics& metrics, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const resource_usage_metrics& metrics, int indent)
 {
   return generate(metrics).dump(indent);
 }

@@ -12,9 +12,9 @@
 
 #include "../support/sch_pdu_builder.h"
 #include "../ue_context/ue_repository.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdcch_resource_allocator;
 class pucch_allocator;
@@ -229,7 +229,7 @@ private:
 
   std::vector<uint8_t> dci_1_0_k1_values;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   /// List of UE's DU Indexes for which SRB0 and SRB1 messages needs to be scheduled.
   std::vector<fallback_ue> pending_dl_ues_new_tx;
@@ -238,4 +238,4 @@ private:
   std::vector<du_ue_index_t> pending_ul_ues;
 };
 
-} // namespace srsran
+} // namespace ocudu

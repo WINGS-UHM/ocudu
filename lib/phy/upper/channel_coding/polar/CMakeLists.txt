@@ -6,7 +6,7 @@
 # the distribution.
 #
 
-add_library(srsran_polar STATIC
+add_library(ocudu_polar STATIC
         polar_allocator_impl.cpp
         polar_code_impl.cpp
         polar_deallocator_impl.cpp
@@ -16,4 +16,4 @@ add_library(srsran_polar STATIC
         polar_rate_dematcher_impl.cpp
         polar_rate_matcher_impl.cpp
         )
-target_link_libraries(srsran_polar log_likelihood_ratio srslog)
+target_link_libraries(ocudu_polar log_likelihood_ratio ocudulog)

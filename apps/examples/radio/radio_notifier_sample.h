@@ -10,28 +10,28 @@
 
 #pragma once
 
-#include "srsran/radio/radio_factory.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/radio/radio_factory.h"
 
-namespace srsran {
+namespace ocudu {
 
 class radio_notifier_spy : public radio_event_notifier
 {
 private:
-  srslog::basic_logger& logger;
-  unsigned              count_tx_overflow  = 0;
-  unsigned              count_tx_underflow = 0;
-  unsigned              count_tx_late      = 0;
-  unsigned              count_tx_other     = 0;
-  unsigned              count_rx_overflow  = 0;
-  unsigned              count_rx_underflow = 0;
-  unsigned              count_rx_late      = 0;
-  unsigned              count_rx_other     = 0;
+  ocudulog::basic_logger& logger;
+  unsigned                count_tx_overflow  = 0;
+  unsigned                count_tx_underflow = 0;
+  unsigned                count_tx_late      = 0;
+  unsigned                count_tx_other     = 0;
+  unsigned                count_rx_overflow  = 0;
+  unsigned                count_rx_underflow = 0;
+  unsigned                count_rx_late      = 0;
+  unsigned                count_rx_other     = 0;
 
 public:
-  radio_notifier_spy(srslog::basic_levels log_level_) : logger(srslog::fetch_basic_logger("Radio notification"))
+  radio_notifier_spy(ocudulog::basic_levels log_level_) : logger(ocudulog::fetch_basic_logger("Radio notification"))
   {
-    srslog::init();
+    ocudulog::init();
     logger.set_level(log_level_);
   }
 
@@ -96,4 +96,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

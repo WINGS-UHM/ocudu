@@ -10,25 +10,25 @@
 
 #pragma once
 
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/ran/rnti.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rnti.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 struct f1ap_message;
 class byte_buffer;
 
-namespace srs_du {
+namespace odu {
 struct gnbdu_config_update_request;
 }
 
 namespace test_helpers {
 
 bool is_gnb_du_config_update_valid(const f1ap_message& msg);
-bool is_gnb_du_config_update_valid(const f1ap_message& msg, const srs_du::gnbdu_config_update_request& req);
+bool is_gnb_du_config_update_valid(const f1ap_message& msg, const odu::gnbdu_config_update_request& req);
 
 bool is_gnb_cu_config_update_acknowledge_valid(const f1ap_message& msg);
 bool is_gnb_cu_config_update_acknowledge_valid(const f1ap_message& msg, const f1ap_message& req);
@@ -99,4 +99,4 @@ bool is_valid_f1ap_positioning_measurement_failure(const f1ap_message& msg);
 bool is_valid_gnb_cu_configuration_update(const f1ap_message& msg);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

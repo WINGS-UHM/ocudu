@@ -14,11 +14,11 @@
 //   + "srsPUSCHProcessorUnittest.m"
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/channel_estimation.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_processor.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_estimation.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_context {
   unsigned               rg_nof_rb;
@@ -69,4 +69,4 @@ static const std::vector<test_case_t> pusch_processor_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

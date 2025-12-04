@@ -14,16 +14,16 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/ran/pusch/pusch_configuration.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/scheduler/result/dci_info.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/pusch/pusch_configuration.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/result/dci_info.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <unordered_map>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct sched_test_ue {
   rnti_t                                                         crnti;
@@ -74,8 +74,8 @@ class scheduler_impl_tester
 {
 protected:
   slot_point                    current_slot{0, 0};
-  srslog::basic_logger&         mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger&         test_logger = srslog::fetch_basic_logger("TEST", true);
+  ocudulog::basic_logger&       mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger&       test_logger = ocudulog::fetch_basic_logger("TEST", true);
   std::optional<test_bench>     bench;
   pucch_res_builder_test_helper pucch_cfg_builder;
 
@@ -88,7 +88,7 @@ protected:
     for (unsigned i = 0; i != max_k_value; ++i) {
       run_slot();
     }
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void setup_sched(const scheduler_expert_config& expert_cfg, sched_cell_configuration_request_message msg)
@@ -195,7 +195,7 @@ protected:
     if (mode == duplex_mode::TDD) {
       // Band 40.
       cell_cfg.dl_f_ref_arfcn = 474000;
-      cell_cfg.scs_common     = srsran::subcarrier_spacing::kHz30;
+      cell_cfg.scs_common     = ocudu::subcarrier_spacing::kHz30;
       cell_cfg.band           = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_f_ref_arfcn);
       cell_cfg.channel_bw_mhz = bs_channel_bandwidth::MHz20;
 
@@ -260,7 +260,7 @@ protected:
       ue_creation_req.cfg.cells.value()[0]
           .serv_cell_cfg.ul_config.value()
           .init_ul_bwp.pusch_cfg.value()
-          .trans_precoder = srsran::pusch_config::transform_precoder::enabled;
+          .trans_precoder = ocudu::pusch_config::transform_precoder::enabled;
     }
     bench->sch.handle_ue_creation_request(ue_creation_req);
 
@@ -513,7 +513,7 @@ protected:
         break;
       }
       default:
-        srsran_assertion_failure("Unsupported PUCCH format");
+        ocudu_assertion_failure("Unsupported PUCCH format");
     }
     return pdu;
   }
@@ -1007,7 +1007,7 @@ TEST_P(multiple_ue_sched_tester, dl_dci_format_1_1_test)
   ue_creation_req.cfg.cells->begin()
       ->serv_cell_cfg.init_dl_bwp.pdcch_cfg.value()
       .search_spaces.back()
-      .set_non_ss0_monitored_dci_formats(srsran::search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
+      .set_non_ss0_monitored_dci_formats(ocudu::search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
 
   // Setup scheduler and add UEs.
   setup_sched(create_expert_config(10, params.pdsch_interleaving_bundle_size),
@@ -1059,21 +1059,21 @@ TEST_P(multiple_ue_sched_tester, dl_dci_format_1_1_test)
                                                        fmt::underlying(pdcch_grant->ctx.context.ss_id));
         if (ss_cfg->is_common_search_space()) {
           // Checking for only TC-RNTI and C-RNTI F1_0.
-          ASSERT_TRUE(pdcch_grant->dci.type == srsran::dci_dl_rnti_config_type::c_rnti_f1_0 or
-                      pdcch_grant->dci.type == srsran::dci_dl_rnti_config_type::tc_rnti_f1_0)
+          ASSERT_TRUE(pdcch_grant->dci.type == ocudu::dci_dl_rnti_config_type::c_rnti_f1_0 or
+                      pdcch_grant->dci.type == ocudu::dci_dl_rnti_config_type::tc_rnti_f1_0)
               << fmt::format("Condition failed for UE with c-rnti={} and SS id={}",
                              test_ue.crnti,
                              fmt::underlying(pdcch_grant->ctx.context.ss_id));
         } else {
           const auto dci_fmt =
               std::get<search_space_configuration::ue_specific_dci_format>(ss_cfg->get_monitored_dci_formats());
-          if (dci_fmt == srsran::search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0) {
-            ASSERT_TRUE(pdcch_grant->dci.type == srsran::dci_dl_rnti_config_type::c_rnti_f1_0)
+          if (dci_fmt == ocudu::search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0) {
+            ASSERT_TRUE(pdcch_grant->dci.type == ocudu::dci_dl_rnti_config_type::c_rnti_f1_0)
                 << fmt::format("Condition failed for UE with c-rnti={} and SS id={}",
                                test_ue.crnti,
                                fmt::underlying(pdcch_grant->ctx.context.ss_id));
           } else {
-            ASSERT_TRUE(pdcch_grant->dci.type == srsran::dci_dl_rnti_config_type::c_rnti_f1_1)
+            ASSERT_TRUE(pdcch_grant->dci.type == ocudu::dci_dl_rnti_config_type::c_rnti_f1_1)
                 << fmt::format("Condition failed for UE with c-rnti={} and SS id={}",
                                test_ue.crnti,
                                fmt::underlying(pdcch_grant->ctx.context.ss_id));
@@ -1148,7 +1148,7 @@ TEST_P(multiple_ue_sched_tester, ul_dci_format_0_1_test)
   ue_creation_req.cfg.cells->begin()
       ->serv_cell_cfg.init_dl_bwp.pdcch_cfg.value()
       .search_spaces.back()
-      .set_non_ss0_monitored_dci_formats(srsran::search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
+      .set_non_ss0_monitored_dci_formats(ocudu::search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
 
   // Setup scheduler and add UEs.
   setup_sched(create_expert_config(10, params.pdsch_interleaving_bundle_size),
@@ -1195,21 +1195,21 @@ TEST_P(multiple_ue_sched_tester, ul_dci_format_0_1_test)
                                                        fmt::underlying(pdcch_grant->ctx.context.ss_id));
         if (ss_cfg->is_common_search_space()) {
           // Checking for only TC-RNTI and C-RNTI F1_0.
-          ASSERT_TRUE(pdcch_grant->dci.type == srsran::dci_ul_rnti_config_type::c_rnti_f0_0 or
-                      pdcch_grant->dci.type == srsran::dci_ul_rnti_config_type::tc_rnti_f0_0)
+          ASSERT_TRUE(pdcch_grant->dci.type == ocudu::dci_ul_rnti_config_type::c_rnti_f0_0 or
+                      pdcch_grant->dci.type == ocudu::dci_ul_rnti_config_type::tc_rnti_f0_0)
               << fmt::format("Condition failed for UE with c-rnti={} and SS id={}",
                              test_ue.crnti,
                              fmt::underlying(pdcch_grant->ctx.context.ss_id));
         } else {
           const auto dci_fmt =
               std::get<search_space_configuration::ue_specific_dci_format>(ss_cfg->get_monitored_dci_formats());
-          if (dci_fmt == srsran::search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0) {
-            ASSERT_TRUE(pdcch_grant->dci.type == srsran::dci_ul_rnti_config_type::c_rnti_f0_0)
+          if (dci_fmt == ocudu::search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0) {
+            ASSERT_TRUE(pdcch_grant->dci.type == ocudu::dci_ul_rnti_config_type::c_rnti_f0_0)
                 << fmt::format("Condition failed for UE with c-rnti={} and SS id={}",
                                test_ue.crnti,
                                fmt::underlying(pdcch_grant->ctx.context.ss_id));
           } else {
-            ASSERT_TRUE(pdcch_grant->dci.type == srsran::dci_ul_rnti_config_type::c_rnti_f0_1)
+            ASSERT_TRUE(pdcch_grant->dci.type == ocudu::dci_ul_rnti_config_type::c_rnti_f0_1)
                 << fmt::format("Condition failed for UE with c-rnti={} and SS id={}",
                                test_ue.crnti,
                                fmt::underlying(pdcch_grant->ctx.context.ss_id));
@@ -1325,9 +1325,9 @@ TEST_F(single_ue_sched_tester, srb0_retransmission_not_scheduled_if_csi_rs_is_pr
   std::optional<uci_indication> uci_ind_to_send;
 
   setup_sched(create_expert_config(10, vrb_to_prb::mapping_type::non_interleaved),
-              create_custom_cell_config_request(srsran::duplex_mode::FDD, false));
+              create_custom_cell_config_request(ocudu::duplex_mode::FDD, false));
   // Add UE.
-  add_ue(to_du_ue_index(0), LCID_SRB0, static_cast<lcg_id_t>(0), srsran::duplex_mode::FDD, false);
+  add_ue(to_du_ue_index(0), LCID_SRB0, static_cast<lcg_id_t>(0), ocudu::duplex_mode::FDD, false);
 
   if (not bench->cell_cfg.nzp_csi_rs_list.empty()) {
     const unsigned csi_rs_periodicity =
@@ -1384,9 +1384,9 @@ TEST_F(single_ue_sched_tester, srb0_retransmission_not_scheduled_if_csi_rs_is_pr
 TEST_F(single_ue_sched_tester, test_ue_scheduling_with_empty_spcell_cfg)
 {
   setup_sched(create_expert_config(10, vrb_to_prb::mapping_type::non_interleaved),
-              create_custom_cell_config_request(srsran::duplex_mode::TDD, false));
+              create_custom_cell_config_request(ocudu::duplex_mode::TDD, false));
   // Add UE.
-  const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(srsran::duplex_mode::TDD);
+  const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(ocudu::duplex_mode::TDD);
   auto        ue_creation_req = sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(cell_cfg_params);
   ue_creation_req.starts_in_fallback = true;
 
@@ -1450,9 +1450,9 @@ INSTANTIATE_TEST_SUITE_P(multiple_ue_sched_tester,
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("SCHED", true).set_level(srslog::basic_levels::debug);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-  srslog::init();
+  ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+  ocudulog::init();
 
   ::testing::InitGoogleTest(&argc, argv);
 

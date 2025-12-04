@@ -9,10 +9,10 @@
  */
 
 #include "ue_manager.h"
-#include "srsran/support/async/execute_on_blocking.h"
+#include "ocudu/support/async/execute_on_blocking.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 
 ue_manager::ue_manager(const ue_manager_config& config, const ue_manager_dependencies& dependencies) :
   n3_config(config.n3_config),
@@ -63,7 +63,7 @@ async_task<void> ue_manager::remove_all_ues()
 
 ue_context* ue_manager::find_ue(ue_index_t ue_index)
 {
-  srsran_assert(ue_index < MAX_NOF_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+  ocudu_assert(ue_index < MAX_NOF_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
   return ue_db.find(ue_index) != ue_db.end() ? ue_db[ue_index].get() : nullptr;
 }
 
@@ -118,7 +118,7 @@ ue_context* ue_manager::add_ue(const ue_context_cfg& ue_cfg)
 async_task<void> ue_manager::remove_ue(ue_index_t ue_index)
 {
   logger.debug("ue={}: Scheduling UE deletion", fmt::underlying(ue_index));
-  srsran_assert(
+  ocudu_assert(
       ue_db.find(ue_index) != ue_db.end(), "Remove UE called for nonexistent ue_index={}", fmt::underlying(ue_index));
 
   // Move UE context out from ue_db and erase the slot (from CU-UP shared ctrl executor)

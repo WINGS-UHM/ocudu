@@ -11,8 +11,8 @@
 #include "f1ap_stop_procedure.h"
 #include "../ue_context/f1ap_cu_ue_context.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 f1ap_stop_procedure::f1ap_stop_procedure(f1ap_du_processor_notifier& cu_cp_notifier_,
                                          f1ap_ue_context_list&       ue_ctxt_list_) :

@@ -17,12 +17,12 @@ add_subdirectory(metrics)
 add_subdirectory(remote_control)
 add_subdirectory(worker_manager)
 
-add_library(srsran_app_services INTERFACE)
-target_link_libraries(srsran_app_services INTERFACE
-        srsran_exec_metrics_app_service
-        srsran_buffer_pool_app_service
-        srsran_cmdline_app_service
-        srsran_metrics_app_service
-        srsran_remote_control_app_service
-        srsran_resource_usage_app_service
-        srsran_worker_manager_app_service)
+add_library(ocudu_app_services INTERFACE)
+target_link_libraries(ocudu_app_services INTERFACE
+        ocudu_exec_metrics_app_service
+        ocudu_buffer_pool_app_service
+        ocudu_cmdline_app_service
+        ocudu_metrics_app_service
+        ocudu_remote_control_app_service
+        ocudu_resource_usage_app_service
+        ocudu_worker_manager_app_service)

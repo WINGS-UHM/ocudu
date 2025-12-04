@@ -9,16 +9,16 @@
  */
 
 #include "ngap_validators.h"
-#include "srsran/ran/cause/common.h"
+#include "ocudu/ran/cause/common.h"
 #include <unordered_set>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-pdu_session_resource_setup_validation_outcome srsran::srs_cu_cp::verify_pdu_session_resource_setup_request(
-    const cu_cp_pdu_session_resource_setup_request&    request,
-    const asn1::ngap::pdu_session_res_setup_request_s& asn1_request,
-    const ngap_ue_logger&                              ue_logger)
+pdu_session_resource_setup_validation_outcome
+ocudu::ocucp::verify_pdu_session_resource_setup_request(const cu_cp_pdu_session_resource_setup_request&    request,
+                                                        const asn1::ngap::pdu_session_res_setup_request_s& asn1_request,
+                                                        const ngap_ue_logger&                              ue_logger)
 {
   pdu_session_resource_setup_validation_outcome verification_outcome;
 
@@ -101,7 +101,7 @@ pdu_session_resource_setup_validation_outcome srsran::srs_cu_cp::verify_pdu_sess
   return verification_outcome;
 }
 
-pdu_session_resource_modify_validation_outcome srsran::srs_cu_cp::verify_pdu_session_resource_modify_request(
+pdu_session_resource_modify_validation_outcome ocudu::ocucp::verify_pdu_session_resource_modify_request(
     const cu_cp_pdu_session_resource_modify_request&    request,
     const asn1::ngap::pdu_session_res_modify_request_s& asn1_request,
     const ngap_ue_logger&                               ue_logger)

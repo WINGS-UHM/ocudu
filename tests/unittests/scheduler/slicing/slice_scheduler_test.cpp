@@ -11,11 +11,11 @@
 #include "lib/scheduler/slicing/inter_slice_scheduler.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static constexpr logical_channel_config create_logical_channel_config(lcid_t lcid, rrm_policy_member policy = {})
 {
@@ -44,13 +44,13 @@ protected:
       return *test_cfg.add_cell(req);
     }())
   {
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     ues.add_cell(cell_cfg.cell_index);
   }
 
-  ~slice_scheduler_test() { srslog::flush(); }
+  ~slice_scheduler_test() { ocudulog::flush(); }
 
   void run_slot()
   {
@@ -68,7 +68,7 @@ protected:
     return ue_cfg;
   }
 
-  srslog::basic_logger&                   logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                 logger = ocudulog::fetch_basic_logger("TEST");
   test_helpers::test_sched_config_manager test_cfg;
   const cell_configuration&               cell_cfg;
 

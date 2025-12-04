@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_e1_handler.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/e1ap/gateways/e1_connection_client.h"
+#include "ocudu/cu_cp/cu_cp_e1_handler.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/e1ap/gateways/e1_connection_client.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief E1AP message notifier that stores the last received PDU.
 class test_e1ap_message_notifier : public e1ap_message_notifier
@@ -43,7 +43,7 @@ public:
   }
 
 private:
-  srslog::basic_logger&                  logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                logger = ocudulog::fetch_basic_logger("TEST");
   bool                                   cu_cp_to_cu_up_dir;
   std::vector<e1ap_message>*             last_pdus;
   std::unique_ptr<e1ap_message_notifier> notifier;
@@ -51,13 +51,13 @@ private:
 
 /// \brief Test helper class that creates an E1AP gateway for co-located setups (CU-CP and CU-UP in the same process),
 /// and stores the messages received by the CU-CP and CU-UP for testing purposes.
-class e1_test_local_gateway : public srs_cu_up::e1_connection_client
+class e1_test_local_gateway : public ocuup::e1_connection_client
 {
 public:
   e1_test_local_gateway() = default;
-  explicit e1_test_local_gateway(srs_cu_cp::cu_cp_e1_handler& cu_cp_cu_up_mng_) : cu_cp_cu_up_mng(&cu_cp_cu_up_mng_) {}
+  explicit e1_test_local_gateway(ocucp::cu_cp_e1_handler& cu_cp_cu_up_mng_) : cu_cp_cu_up_mng(&cu_cp_cu_up_mng_) {}
 
-  void attach_cu_cp_cu_up_repo(srs_cu_cp::cu_cp_e1_handler& cu_cp_cu_up_mng_) { cu_cp_cu_up_mng = &cu_cp_cu_up_mng_; }
+  void attach_cu_cp_cu_up_repo(ocucp::cu_cp_e1_handler& cu_cp_cu_up_mng_) { cu_cp_cu_up_mng = &cu_cp_cu_up_mng_; }
 
   std::unique_ptr<e1ap_message_notifier>
   handle_cu_up_connection_request(std::unique_ptr<e1ap_message_notifier> cu_up_rx_pdu_notifier) override
@@ -100,9 +100,9 @@ private:
     std::vector<e1ap_message> last_cu_up_rx_pdus;
   };
 
-  srs_cu_cp::cu_cp_e1_handler* cu_cp_cu_up_mng = nullptr;
+  ocucp::cu_cp_e1_handler* cu_cp_cu_up_mng = nullptr;
 
   std::vector<std::unique_ptr<cu_up_connection_test_context>> connections;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,10 +9,10 @@
  */
 
 #include "mac_metrics_consumers.h"
-#include "srsran/support/format/custom_formattable.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/support/format/custom_formattable.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void write_latency_information(fmt::memory_buffer&                              buffer,
                                       const mac_dl_cell_metric_report::latency_report& report,

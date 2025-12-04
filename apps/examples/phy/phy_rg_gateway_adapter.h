@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_downlink_handler.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/upper_phy_rg_gateway.h"
+#include "ocudu/phy/lower/lower_phy_downlink_handler.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/upper_phy_rg_gateway.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic physical layer resource grid gateway adapter.
 class phy_rg_gateway_adapter : public upper_phy_rg_gateway
@@ -34,4 +34,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

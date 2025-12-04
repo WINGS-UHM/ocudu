@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class pbch_modulator_spy : public pbch_modulator
 {
@@ -42,4 +42,4 @@ public:
 
 PHY_SPY_FACTORY_TEMPLATE(pbch_modulator);
 
-} // namespace srsran
+} // namespace ocudu

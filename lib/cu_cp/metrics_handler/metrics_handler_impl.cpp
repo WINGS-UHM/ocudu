@@ -9,13 +9,13 @@
  */
 
 #include "metrics_handler_impl.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/sync_task_executor.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/sync_task_executor.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <thread>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 metrics_handler_impl::metrics_handler_impl(task_executor&                    cu_cp_exec_,
                                            timer_manager&                    timers_,
@@ -29,7 +29,7 @@ metrics_handler_impl::metrics_handler_impl(task_executor&                    cu_
   du_handler(du_handler_),
   ngap_handler(ngap_handler_),
   mobility_handler(mobility_handler_),
-  logger(srslog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
 
@@ -47,7 +47,7 @@ metrics_handler_impl::create_periodic_report_session(const periodic_metric_repor
 
     void reconfigure_request(const periodic_metric_report_request& request) override
     {
-      srsran_assert(handler != nullptr, "Using invalid metric report session");
+      ocudu_assert(handler != nullptr, "Using invalid metric report session");
       handler->request_session_reconfiguration(session_id, request);
     }
 

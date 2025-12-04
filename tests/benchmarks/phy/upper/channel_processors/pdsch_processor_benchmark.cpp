@@ -9,31 +9,31 @@
  */
 
 #include "../../../../unittests/phy/upper/channel_processors/pdsch/pdsch_processor_test_doubles.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pdsch/factories.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/ran/sch/tbs_calculator.h"
-#include "srsran/support/benchmark_utils.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/srsran_test.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
+#include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/support/ocudu_test.h"
+#include "ocudu/support/rtsan.h"
+#include "ocudu/support/tracing/event_tracing.h"
 #ifdef HWACC_PDSCH_ENABLED
-#include "srsran/hal/dpdk/bbdev/bbdev_acc.h"
-#include "srsran/hal/dpdk/bbdev/bbdev_acc_factory.h"
-#include "srsran/hal/dpdk/dpdk_eal_factory.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
+#include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
+#include "ocudu/hal/dpdk/dpdk_eal_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_factories.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
 #endif // HWACC_PDSCH_ENABLED
 #include <condition_variable>
 #include <getopt.h>
 #include <mutex>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 // A test case consists of a PDSCH PDU configuration and a Transport Block Size.
 using test_case_type = std::tuple<pdsch_processor::pdu_t, unsigned>;
@@ -102,11 +102,11 @@ static std::unique_ptr<task_worker_pool<queue_policy>>          pdsch_worker_poo
 static std::unique_ptr<task_worker_pool_executor<queue_policy>> pdsch_executor    = nullptr;
 
 #ifdef HWACC_PDSCH_ENABLED
-static bool                 dedicated_queue = true;
-static bool                 cb_mode         = false;
-static bool                 std_out_sink    = true;
-static srslog::basic_levels hal_log_level   = srslog::basic_levels::error;
-static std::string          eal_arguments   = "";
+static bool                   dedicated_queue = true;
+static bool                   cb_mode         = false;
+static bool                   std_out_sink    = true;
+static ocudulog::basic_levels hal_log_level   = ocudulog::basic_levels::error;
+static std::string            eal_arguments   = "";
 #endif // HWACC_PDSCH_ENABLED
 
 // Test profile structure, initialized with default profile values.
@@ -406,8 +406,8 @@ static int parse_args(int argc, char** argv)
         std_out_sink = false;
         break;
       case 'z': {
-        auto level    = srslog::str_to_basic_level(std::string(optarg));
-        hal_log_level = level.has_value() ? level.value() : srslog::basic_levels::error;
+        auto level    = ocudulog::str_to_basic_level(std::string(optarg));
+        hal_log_level = level.has_value() ? level.value() : ocudulog::basic_levels::error;
         break;
       }
 #endif // HWACC_PDSCH_ENABLED
@@ -423,14 +423,14 @@ static int parse_args(int argc, char** argv)
   for (const auto& candidate_profile : profile_set) {
     if (selected_profile_name == candidate_profile.name) {
       selected_profile = candidate_profile;
-      srslog::fetch_basic_logger("TEST").info("Loading profile: {}", selected_profile.name);
+      ocudulog::fetch_basic_logger("TEST").info("Loading profile: {}", selected_profile.name);
       profile_found = true;
       break;
     }
   }
   if (!profile_found) {
     usage(argv[0]);
-    srslog::fetch_basic_logger("TEST").error("Invalid profile: {}.", selected_profile_name);
+    ocudulog::fetch_basic_logger("TEST").error("Invalid profile: {}.", selected_profile_name);
     fmt::print(stderr, "Invalid profile: {}.\n", selected_profile_name);
     return -1;
   }
@@ -526,7 +526,7 @@ static std::shared_ptr<hal::hw_accelerator_pdsch_enc_factory> create_hw_accelera
 {
 #ifdef HWACC_PDSCH_ENABLED
   // Intefacing to the bbdev-based hardware-accelerator.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("HWACC", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("HWACC", false);
   logger.set_level(hal_log_level);
   unsigned nof_ldpc_enc_cores = nof_threads;
   if (nof_pdsch_processor_concurrent_threads > 0) {
@@ -554,7 +554,7 @@ static std::shared_ptr<hal::hw_accelerator_pdsch_enc_factory> create_hw_accelera
   hw_encoder_config.dedicated_queue   = dedicated_queue;
 
   // ACC100 hardware-accelerator implementation.
-  return srsran::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
+  return ocudu::hal::create_bbdev_pdsch_enc_acc_factory(hw_encoder_config);
 #else  // HWACC_PDSCH_ENABLED
   return nullptr;
 #endif // HWACC_PDSCH_ENABLED
@@ -743,10 +743,10 @@ static bounded_unique_object_pool<resource_grid> create_resource_grid_pool()
 int main(int argc, char** argv)
 {
   // Prepare logging for only errors.
-  srslog::init();
-  srslog::fetch_basic_logger("PHY").set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::warning);
-  srslog::fetch_basic_logger("ALL").set_level(srslog::basic_levels::warning);
+  ocudulog::init();
+  ocudulog::fetch_basic_logger("PHY").set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("ALL").set_level(ocudulog::basic_levels::warning);
 
 #ifdef HWACC_PDSCH_ENABLED
   // Separate EAL and non-EAL arguments.
@@ -766,10 +766,10 @@ int main(int argc, char** argv)
   // Check if we actually need to initialize the EAL.
   static std::unique_ptr<dpdk::dpdk_eal> dpdk_interface = nullptr;
   if (ldpc_encoder_type == "acc100") {
-    srslog::sink* log_sink =
-        std_out_sink ? srslog::create_stdout_sink() : srslog::create_file_sink("pdsch_processor_benchmark.log");
-    srslog::set_default_sink(*log_sink);
-    srslog::basic_logger& logger = srslog::fetch_basic_logger("EAL", false);
+    ocudulog::sink* log_sink =
+        std_out_sink ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink("pdsch_processor_benchmark.log");
+    ocudulog::set_default_sink(*log_sink);
+    ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("EAL", false);
     logger.set_level(hal_log_level);
     dpdk_interface = dpdk::create_dpdk_eal(eal_arguments, logger);
     TESTASSERT(dpdk_interface, "Failed to open DPDK EAL with arguments.");
@@ -849,7 +849,7 @@ int main(int argc, char** argv)
 
     // Create benchmark routine.
     auto benchmark_task =
-        [&notifiers, &grids, &data, &config, &proc, &completion_counter]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+        [&notifiers, &grids, &data, &config, &proc, &completion_counter]() noexcept OCUDU_RTSAN_NONBLOCKING {
           // Reset counter.
           completion_counter = 0;
 
@@ -859,7 +859,7 @@ int main(int argc, char** argv)
             pdsch_processor_notifier_spy& notifier = notifiers[i_thread];
 
             bool success = pdsch_executor->execute(
-                [&notifier, &grids, &data, &config, &proc, &completion_counter]() noexcept SRSRAN_RTSAN_NONBLOCKING {
+                [&notifier, &grids, &data, &config, &proc, &completion_counter]() noexcept OCUDU_RTSAN_NONBLOCKING {
                   // Get a resource grid.
                   auto grid = grids.get();
                   report_fatal_error_if_not(grid, "Failed to retrieve resource grid.");

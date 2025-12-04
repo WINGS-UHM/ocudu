@@ -13,10 +13,10 @@
 #include "../du_metrics_aggregator_impl.h"
 #include "du_proc_context_view.h"
 #include "procedure_logger.h"
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_cell_manager;
 struct du_manager_params;
@@ -58,5 +58,5 @@ private:
   std::string failure_cause;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

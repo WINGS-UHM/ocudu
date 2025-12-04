@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/io/transport_layer_address.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/io/transport_layer_address.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <netinet/in.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 transport_layer_address::transport_layer_address(const struct sockaddr& addr_, socklen_t socklen) : addrlen(socklen)
 {
@@ -35,7 +35,7 @@ transport_layer_address transport_layer_address::create_from_string(const std::s
   ::addrinfo* results;
 
   int err = ::getaddrinfo(ip_str.c_str(), nullptr, nullptr, &results);
-  srsran_assert(err == 0, "Getaddrinfo error: {} - {}", ip_str, ::gai_strerror(err));
+  ocudu_assert(err == 0, "Getaddrinfo error: {} - {}", ip_str, ::gai_strerror(err));
 
   transport_layer_address res(*results->ai_addr, results->ai_addrlen);
 
@@ -46,7 +46,7 @@ transport_layer_address transport_layer_address::create_from_string(const std::s
 
 transport_layer_address transport_layer_address::create_from_bitstring(const std::string& bit_str)
 {
-  srsran_assert(bit_str.length() < 160, "Combined IPv4 and IPv6 addresses are currently not supported");
+  ocudu_assert(bit_str.length() < 160, "Combined IPv4 and IPv6 addresses are currently not supported");
 
   // See TS 38.414: 32 bits in case of IPv4 address according to IETF RFC 791.
   if (bit_str.length() == 32) {

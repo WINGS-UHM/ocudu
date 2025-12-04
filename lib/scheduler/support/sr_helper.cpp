@@ -10,7 +10,7 @@
 
 #include "sr_helper.h"
 
-bool srsran::sr_helper::is_sr_opportunity_slot(const pucch_config& pucch_cfg, slot_point sl_tx)
+bool ocudu::sr_helper::is_sr_opportunity_slot(const pucch_config& pucch_cfg, slot_point sl_tx)
 {
   // NOTE: This function is only used within the scheduler, where we assume the UE has a \c ul_config, a \c pucch_cfg
   // and a \c sr_res_list (verified by the scheduler validator).

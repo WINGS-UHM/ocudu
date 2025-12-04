@@ -10,11 +10,11 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_appconfig;
 
 /// Validates the given CU application configuration. Returns true on success, false otherwise.
 bool validate_cu_appconfig(const cu_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

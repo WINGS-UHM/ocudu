@@ -11,7 +11,7 @@
 #include "dft_processor_ci16_avx2.h"
 #include <immintrin.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -180,7 +180,7 @@ public:
       _mm_storeu_si128(reinterpret_cast<__m128i*>(&out[k + N / 2]), _mm_sub_epi16(simd_p, simd_q));
     }
 
-    srsran_assert(k == N / 2, "k is {} but expected {}.", k, N / 2);
+    ocudu_assert(k == N / 2, "k is {} but expected {}.", k, N / 2);
   }
 
 private:
@@ -265,14 +265,14 @@ public:
   // See interface for documentation.
   void run(span<ci16_t> out, span<const ci16_t> in) override
   {
-    srsran_assert(out.size() == dft_size,
-                  "The DFT output size (i.e., {}) is not equal to the DFT size (i.e., {})",
-                  out.size(),
-                  dft_size);
-    srsran_assert(in.size() == dft_size,
-                  "The DFT input size (i.e., {}) is not equal to the DFT size (i.e., {})",
-                  in.size(),
-                  dft_size);
+    ocudu_assert(out.size() == dft_size,
+                 "The DFT output size (i.e., {}) is not equal to the DFT size (i.e., {})",
+                 out.size(),
+                 dft_size);
+    ocudu_assert(in.size() == dft_size,
+                 "The DFT input size (i.e., {}) is not equal to the DFT size (i.e., {})",
+                 in.size(),
+                 dft_size);
     dft.run(out.data(), in.data());
   }
 
@@ -308,8 +308,8 @@ std::unique_ptr<dft_processor_ci16> create_dft_ci16_avx2<2>(unsigned, dft_proces
 
 } // namespace
 
-std::unique_ptr<dft_processor_ci16> srsran::create_dft_processor_ci16_avx2(unsigned                      dft_size,
-                                                                           dft_processor_ci16::direction direction)
+std::unique_ptr<dft_processor_ci16> ocudu::create_dft_processor_ci16_avx2(unsigned                      dft_size,
+                                                                          dft_processor_ci16::direction direction)
 {
   return create_dft_ci16_avx2<8192>(dft_size, direction);
 }

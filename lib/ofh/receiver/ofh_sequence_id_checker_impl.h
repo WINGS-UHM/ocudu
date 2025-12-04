@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/circular_map.h"
-#include "srsran/ofh/ofh_constants.h"
-#include "srsran/ofh/receiver/ofh_sequence_id_checker.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/circular_map.h"
+#include "ocudu/ofh/ofh_constants.h"
+#include "ocudu/ofh/receiver/ofh_sequence_id_checker.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul sequence identifier checker implementation.
@@ -39,10 +39,10 @@ public:
   // See interface for documentation.
   int update_and_compare_seq_id(unsigned eaxc, uint8_t seq_id) override
   {
-    srsran_assert(eaxc < MAX_SUPPORTED_EAXC_ID_VALUE,
-                  "Invalid eAxC value '{}'. Maximum eAxC value is '{}'",
-                  eaxc,
-                  MAX_SUPPORTED_EAXC_ID_VALUE);
+    ocudu_assert(eaxc < MAX_SUPPORTED_EAXC_ID_VALUE,
+                 "Invalid eAxC value '{}'. Maximum eAxC value is '{}'",
+                 eaxc,
+                 MAX_SUPPORTED_EAXC_ID_VALUE);
 
     auto& counter = counters[eaxc];
 
@@ -94,4 +94,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

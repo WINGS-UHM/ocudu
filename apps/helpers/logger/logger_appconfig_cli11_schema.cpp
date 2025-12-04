@@ -11,16 +11,16 @@
 #include "logger_appconfig_cli11_schema.h"
 #include "logger_appconfig.h"
 #include "logger_appconfig_cli11_utils.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_log_args(CLI::App& app, logger_appconfig& log_params)
 {
   auto config_level_check = [](const std::string& value) -> std::string {
-    if (auto level = srslog::str_to_basic_level(value); !level.has_value() ||
-                                                        level.value() == srslog::basic_levels::error ||
-                                                        level.value() == srslog::basic_levels::warning) {
+    if (auto level = ocudulog::str_to_basic_level(value); !level.has_value() ||
+                                                          level.value() == ocudulog::basic_levels::error ||
+                                                          level.value() == ocudulog::basic_levels::warning) {
       return "Log level value not supported. Accepted values [none,info,debug]";
     }
 
@@ -36,7 +36,7 @@ static void configure_cli11_log_args(CLI::App& app, logger_appconfig& log_params
 
   add_option_function<std::string>(
       app, " --config_level", app_helpers::capture_log_level_function(log_params.config_level), "Config log level")
-      ->default_str(srslog::basic_level_to_string(log_params.config_level))
+      ->default_str(ocudulog::basic_level_to_string(log_params.config_level))
       ->check(config_level_check);
   add_option(app,
              "--hex_max_size",
@@ -47,7 +47,7 @@ static void configure_cli11_log_args(CLI::App& app, logger_appconfig& log_params
   // Post-parsing callback. This allows us to set the log level to "all" level, if no level is provided.
   app.callback([&]() {
     // Do nothing when all_level is not defined or it is defined as warning.
-    if (app.count("--all_level") == 0 || log_params.all_level == srslog::basic_levels::warning) {
+    if (app.count("--all_level") == 0 || log_params.all_level == ocudulog::basic_levels::warning) {
       return;
     }
 
@@ -65,7 +65,7 @@ static void configure_cli11_log_args(CLI::App& app, logger_appconfig& log_params
 
       // Config logger have only subset of levels.
       if (option->check_name("--config_level")) {
-        if (log_params.all_level == srslog::basic_levels::error) {
+        if (log_params.all_level == ocudulog::basic_levels::error) {
           option->default_val<std::string>("none");
           continue;
         }
@@ -76,12 +76,12 @@ static void configure_cli11_log_args(CLI::App& app, logger_appconfig& log_params
         continue;
       }
 
-      option->default_val<std::string>(srslog::basic_level_to_string(log_params.all_level));
+      option->default_val<std::string>(ocudulog::basic_level_to_string(log_params.all_level));
     }
   });
 }
 
-void srsran::configure_cli11_with_logger_appconfig_schema(CLI::App& app, logger_appconfig& config)
+void ocudu::configure_cli11_with_logger_appconfig_schema(CLI::App& app, logger_appconfig& config)
 {
   // Logging section.
   CLI::App* log_subcmd = add_subcommand(app, "log", "Logging configuration")->configurable();

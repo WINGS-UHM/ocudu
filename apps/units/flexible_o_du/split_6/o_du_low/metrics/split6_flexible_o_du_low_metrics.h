@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/du/du_low/o_du_low_metrics.h"
-#include "srsran/ru/ru_metrics.h"
+#include "ocudu/du/du_low/o_du_low_metrics.h"
+#include "ocudu/ru/ru_metrics.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Flexible O-RAN DU metrics.
 struct split6_flexible_o_du_low_metrics {
-  srs_du::o_du_low_metrics du_low;
-  ru_metrics               ru;
+  odu::o_du_low_metrics du_low;
+  ru_metrics            ru;
 };
 
-} // namespace srsran
+} // namespace ocudu

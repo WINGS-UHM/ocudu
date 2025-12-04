@@ -10,18 +10,18 @@
 
 #pragma once
 
-#include "srsran/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_block_processor.h"
-#include "srsran/phy/upper/channel_processors/pdsch/pdsch_processor.h"
-#include "srsran/phy/upper/sequence_generators/pseudo_random_generator.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_block_processor.h"
+#include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
+#include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Hardware-accelerated PDSCH block processor.
 ///
@@ -123,4 +123,4 @@ private:
   bool dequeue_codeblock(bool force_dequeue);
 };
 
-} // namespace srsran
+} // namespace ocudu

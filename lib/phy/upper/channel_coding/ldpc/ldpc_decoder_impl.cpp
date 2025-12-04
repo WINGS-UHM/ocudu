@@ -10,13 +10,13 @@
 
 #include "ldpc_decoder_impl.h"
 #include "ldpc_luts_impl.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/fill.h"
-#include "srsran/srsvec/zero.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/fill.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 void ldpc_decoder_impl::init(const configuration& cfg)
 {
@@ -28,14 +28,14 @@ void ldpc_decoder_impl::init(const configuration& cfg)
   bg_M           = current_graph->get_nof_BG_check_nodes();
   bg_K           = current_graph->get_nof_BG_info_nodes();
   bg_N_high_rate = bg_K + 4;
-  srsran_assert(bg_K == bg_N_full - bg_M, "Invalid bg_K value '{}'", bg_K);
+  ocudu_assert(bg_K == bg_N_full - bg_M, "Invalid bg_K value '{}'", bg_K);
   lifting_size = static_cast<uint16_t>(cfg.lifting_size);
 
   max_iterations = cfg.max_iterations;
-  srsran_assert(max_iterations > 0, "Max iterations must be different to 0");
+  ocudu_assert(max_iterations > 0, "Max iterations must be different to 0");
 
   unsigned nof_crc_bits = cfg.nof_crc_bits;
-  srsran_assert((nof_crc_bits == 16) || (nof_crc_bits == 24), "Invalid number of CRC bits.");
+  ocudu_assert((nof_crc_bits == 16) || (nof_crc_bits == 24), "Invalid number of CRC bits.");
 
   nof_significant_bits = bg_K * lifting_size - cfg.nof_filler_bits;
 
@@ -51,21 +51,21 @@ std::optional<unsigned> ldpc_decoder_impl::decode(bit_buffer&                   
 
   uint16_t message_length   = bg_K * lifting_size;
   uint16_t max_input_length = bg_N_short * lifting_size;
-  srsran_assert(output.size() == message_length,
-                "The output size {} is not equal to the message length {}.",
-                output.size(),
-                message_length);
-  srsran_assert(input.size() <= max_input_length,
-                "The input size {} exceeds the maximum message length {}.",
-                input.size(),
-                max_input_length);
+  ocudu_assert(output.size() == message_length,
+               "The output size {} is not equal to the message length {}.",
+               output.size(),
+               message_length);
+  ocudu_assert(input.size() <= max_input_length,
+               "The input size {} exceeds the maximum message length {}.",
+               input.size(),
+               max_input_length);
 
   // The minimum input length is message_length + two times the lifting size.
   uint16_t min_input_length = message_length + 2 * lifting_size;
-  srsran_assert(input.size() >= min_input_length,
-                "The input length {} does not reach minimum {}",
-                input.size(),
-                min_input_length);
+  ocudu_assert(input.size() >= min_input_length,
+               "The input length {} does not reach minimum {}",
+               input.size(),
+               min_input_length);
 
   // Find the last soft bit in the buffer and trim the output.
   const log_likelihood_ratio* last =
@@ -145,7 +145,7 @@ void ldpc_decoder_impl::load_soft_bits(span<const log_likelihood_ratio> llrs, un
   span<const log_likelihood_ratio> llr_view = llrs;
   // Recall that the first 2 * lifting_size bits (2 nodes) are not transmitted.
   span<log_likelihood_ratio> soft_bits_view(soft_bits);
-  srsvec::zero(soft_bits_view.first(2 * node_size_byte));
+  ocuduvec::zero(soft_bits_view.first(2 * node_size_byte));
   soft_bits_view = soft_bits_view.last(soft_bits_view.size() - 2 * node_size_byte);
   for (unsigned i_node = 2 * node_size_byte, max_node = nof_full_nodes * node_size_byte; i_node != max_node;
        i_node += node_size_byte) {
@@ -154,7 +154,7 @@ void ldpc_decoder_impl::load_soft_bits(span<const log_likelihood_ratio> llrs, un
       clamp(
           soft_bits_view.first(lifting_size), llr_view.first(lifting_size), soft_bits_clamp_low, soft_bits_clamp_high);
     } else {
-      srsvec::zero(soft_bits_view.first(lifting_size));
+      ocuduvec::zero(soft_bits_view.first(lifting_size));
     }
 
     // Advance input LLR.
@@ -162,7 +162,7 @@ void ldpc_decoder_impl::load_soft_bits(span<const log_likelihood_ratio> llrs, un
     nof_llr  = (nof_llr >= lifting_size) ? (nof_llr - lifting_size) : 0;
 
     // Zero node tail soft bits.
-    srsvec::zero(soft_bits_view.subspan(lifting_size, node_size_byte - lifting_size));
+    ocuduvec::zero(soft_bits_view.subspan(lifting_size, node_size_byte - lifting_size));
 
     // Recall that soft bits may have zero padding in SIMD implementations (i.e., when node_size_byte != lifting_size).
     soft_bits_view = soft_bits_view.last(soft_bits_view.size() - node_size_byte);
@@ -172,9 +172,9 @@ void ldpc_decoder_impl::load_soft_bits(span<const log_likelihood_ratio> llrs, un
   unsigned tail_positions = llr_view.size();
   if (tail_positions != 0) {
     // Copy last LLRs.
-    srsvec::copy(soft_bits_view.first(tail_positions), llr_view);
+    ocuduvec::copy(soft_bits_view.first(tail_positions), llr_view);
     // Zero the remaining soft bits.
-    srsvec::zero(soft_bits_view.subspan(tail_positions, node_size_byte - lifting_size));
+    ocuduvec::zero(soft_bits_view.subspan(tail_positions, node_size_byte - lifting_size));
   }
 }
 
@@ -201,9 +201,9 @@ void ldpc_decoder_impl::update_variable_to_check_messages(unsigned check_node)
     if (is_check_to_var_initialized[check_node]) {
       compute_var_to_check_msgs(v2c, soft, c2v);
     } else {
-      srsvec::copy(v2c, soft);
+      ocuduvec::copy(v2c, soft);
     }
-    srsvec::copy(v2c_copy, v2c);
+    ocuduvec::copy(v2c_copy, v2c);
   }
 
   // Next, update the messages corresponding to the extension region, if applicable.
@@ -217,9 +217,9 @@ void ldpc_decoder_impl::update_variable_to_check_messages(unsigned check_node)
     if (is_check_to_var_initialized[check_node]) {
       compute_var_to_check_msgs(v2c, soft, c2v);
     } else {
-      srsvec::copy(v2c, soft);
+      ocuduvec::copy(v2c, soft);
     }
-    srsvec::copy(v2c_copy, v2c);
+    ocuduvec::copy(v2c_copy, v2c);
   }
 }
 
@@ -257,12 +257,12 @@ void ldpc_decoder_impl::update_check_to_variable_messages(unsigned check_node)
   span<uint8_t> sign_prod_var_to_check_view = span<uint8_t>(sign_prod_var_to_check).first(node_size_byte);
 
   // Reset temporal buffers.
-  srsvec::fill(min_var_to_check_view, LLR_MAX);
-  srsvec::fill(second_min_var_to_check_view, LLR_MAX);
-  srsvec::zero(min_var_to_check_index_view);
+  ocuduvec::fill(min_var_to_check_view, LLR_MAX);
+  ocuduvec::fill(second_min_var_to_check_view, LLR_MAX);
+  ocuduvec::zero(min_var_to_check_index_view);
   // For the optimized implementations, we store 0 if the sign is positive and 1 if the sign is negative. Therefore, the
   // following is equivalent to setting al signs to +1.
-  srsvec::zero(sign_prod_var_to_check_view);
+  ocuduvec::zero(sign_prod_var_to_check_view);
 
   // Retrieve list of variable nodes connected to this check node.
   const BG_adjacency_row_t& current_var_indices = current_graph->get_adjacency_row(check_node);

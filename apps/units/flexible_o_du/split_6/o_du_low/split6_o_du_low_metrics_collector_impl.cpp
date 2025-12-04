@@ -10,10 +10,10 @@
 
 #include "split6_o_du_low_metrics_collector_impl.h"
 #include "metrics/split6_flexible_o_du_low_metrics.h"
-#include "srsran/du/du_low/o_du_low_metrics_collector.h"
-#include "srsran/ru/ru_metrics_collector.h"
+#include "ocudu/du/du_low/o_du_low_metrics_collector.h"
+#include "ocudu/ru/ru_metrics_collector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -25,10 +25,10 @@ public:
 };
 
 /// O-DU low metrics collector dummy implementation.
-class o_du_low_metrics_collector_dummy : public srs_du::o_du_low_metrics_collector
+class o_du_low_metrics_collector_dummy : public odu::o_du_low_metrics_collector
 {
 public:
-  void collect_metrics(srs_du::o_du_low_metrics& metrics) override {}
+  void collect_metrics(odu::o_du_low_metrics& metrics) override {}
 };
 
 } // namespace
@@ -37,7 +37,7 @@ static o_du_low_metrics_collector_dummy dummy_odu_low;
 static ru_metrics_collector_dummy       dummy_ru;
 
 split6_o_du_low_metrics_collector_impl::split6_o_du_low_metrics_collector_impl(
-    srs_du::o_du_low_metrics_collector*        odu_low_,
+    odu::o_du_low_metrics_collector*           odu_low_,
     ru_metrics_collector*                      ru_,
     split6_flexible_o_du_low_metrics_notifier* notifier_,
     unique_timer                               timer_,
@@ -53,7 +53,7 @@ split6_o_du_low_metrics_collector_impl::split6_o_du_low_metrics_collector_impl(
     return;
   }
 
-  srsran_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
+  ocudu_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
   timer.set(report_period, [this](timer_id_t tid) { collect_metrics(); });
 
   stopped.store(false, std::memory_order_relaxed);

@@ -11,9 +11,9 @@
 #include "scheduler.h"
 #include "helpers.h"
 #include "json_generators/generator_helpers.h"
-#include "srsran/scheduler/scheduler_metrics.h"
+#include "ocudu/scheduler/scheduler_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
@@ -32,7 +32,7 @@ static const char* event_to_string(scheduler_cell_event::event_type ev)
   return "invalid";
 }
 
-namespace srsran {
+namespace ocudu {
 
 void to_json(nlohmann::json& json, const scheduler_cell_event& metrics)
 {
@@ -137,9 +137,9 @@ void to_json(nlohmann::json& json, const scheduler_cell_metrics& metrics)
   }
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const scheduler_metrics_report& metrics)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const scheduler_metrics_report& metrics)
 {
   nlohmann::json json;
 
@@ -149,7 +149,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const scheduler_me
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const scheduler_metrics_report& metrics, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const scheduler_metrics_report& metrics, int indent)
 {
   return generate(metrics).dump(indent);
 }

@@ -14,7 +14,7 @@
 #include "mac_config.h"
 #include "mac_scheduler_configurator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Procedure to remove UE from MAC UL, MAC DL, MAC CTRL and MAC scheduler.
 class mac_ue_removal_procedure
@@ -43,11 +43,11 @@ public:
 private:
   mac_ue_delete_request       req;
   mac_control_config&         cfg;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
   mac_ctrl_configurator&      ctrl_mac;
   mac_ul_configurator&        ul_mac;
   mac_dl_configurator&        dl_mac;
   mac_scheduler_configurator& sched_configurator;
 };
 
-} // namespace srsran
+} // namespace ocudu

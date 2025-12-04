@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/io/unique_fd.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/io/unique_fd.h"
 #include <condition_variable>
 #include <future>
 #include <gtest/gtest.h>
@@ -19,7 +19,7 @@
 #include <sys/socket.h>
 #include <sys/un.h> // for unix sockets
 
-using namespace srsran;
+using namespace ocudu;
 
 static const std::string tx_buf = "hello world!";
 
@@ -28,11 +28,11 @@ class io_broker_epoll : public ::testing::Test
 protected:
   io_broker_epoll()
   {
-    srslog::init();
+    ocudulog::init();
     epoll_broker = create_io_broker(io_broker_type::epoll);
   }
 
-  ~io_broker_epoll() override { srslog::flush(); }
+  ~io_broker_epoll() override { ocudulog::flush(); }
 
   void data_receive_callback()
   {

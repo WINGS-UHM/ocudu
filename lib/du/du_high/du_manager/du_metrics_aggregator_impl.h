@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_manager/du_manager.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/du/du_high/du_metrics_notifier.h"
+#include "ocudu/du/du_high/du_manager/du_manager.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/du/du_high/du_metrics_notifier.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_metrics_notifier;
 class scheduler_metrics_notifier;
 struct scheduler_metrics_report;
 
-namespace srs_du {
+namespace odu {
 
 class du_manager_metrics_aggregator_impl final : public du_manager_mac_metric_aggregator
 {
@@ -49,5 +49,5 @@ private:
   du_metrics_report next_report{};
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

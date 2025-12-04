@@ -14,11 +14,11 @@
 #include "apps/helpers/metrics/metrics_config.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-executor_metrics_notifier& srsran::build_app_execution_metrics_config(app_services::metrics_config&   exec_metric_cfg,
-                                                                      app_services::metrics_notifier& notifier,
-                                                                      const app_helpers::metrics_config& metrics_cfg)
+executor_metrics_notifier& ocudu::build_app_execution_metrics_config(app_services::metrics_config&      exec_metric_cfg,
+                                                                     app_services::metrics_notifier&    notifier,
+                                                                     const app_helpers::metrics_config& metrics_cfg)
 {
   auto                       producer  = std::make_unique<app_execution_metrics_producer_impl>(notifier);
   executor_metrics_notifier& out_value = *producer;

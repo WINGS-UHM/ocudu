@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_notifier.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_handler.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_notifier.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a generic physical layer receive symbol adapter.
 class phy_rx_symbol_adapter : public lower_phy_rx_symbol_notifier
@@ -46,4 +46,4 @@ public:
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

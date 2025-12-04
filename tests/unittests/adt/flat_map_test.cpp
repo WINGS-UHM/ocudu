@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/adt/flat_map.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/flat_map.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 static_assert(std::is_same_v<flat_map<int, char>::key_type, int>, "Invalid key type");
 static_assert(std::is_same_v<flat_map<int, char>::mapped_type, char>, "Invalid value type");

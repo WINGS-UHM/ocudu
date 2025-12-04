@@ -19,14 +19,14 @@
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
-#include "srsran/adt/unique_function.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/ran/qos/five_qi_qos_mapping.h"
-#include "srsran/scheduler/config/logical_channel_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/unique_function.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/ran/qos/five_qi_qos_mapping.h"
+#include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Type of policy scheduler.
 ///
@@ -44,7 +44,7 @@ protected:
       cell_config_builder_params params_    = {}) :
     params(params_),
     cell_cfg_req(sched_config_helper::make_default_sched_cell_configuration_request(params)),
-    logger(srslog::fetch_basic_logger("SCHED", true)),
+    logger(ocudulog::fetch_basic_logger("SCHED", true)),
     res_logger(false, cell_cfg_req.pci),
     sched_cfg([&sched_cfg_, policy]() {
       if (policy == policy_scheduler_type::time_qos) {
@@ -61,13 +61,13 @@ protected:
     cell_metrics(cell_cfg, cell_cfg_req.metrics),
     intra_slice_sched(cell_cfg.expert_cfg.ue, ues, pdcch_alloc, uci_alloc, res_grid, cell_metrics, cell_harqs, logger)
   {
-    logger.set_level(srslog::basic_levels::debug);
-    srslog::init();
+    logger.set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     cfg_pool.add_cell(cell_cfg_req);
   }
 
-  ~base_scheduler_policy_test() { srslog::flush(); }
+  ~base_scheduler_policy_test() { ocudulog::flush(); }
 
   void run_slot()
   {
@@ -172,7 +172,7 @@ protected:
   const cell_config_builder_params               params;
   const sched_cell_configuration_request_message cell_cfg_req;
 
-  srslog::basic_logger&                          logger;
+  ocudulog::basic_logger&                        logger;
   scheduler_result_logger                        res_logger;
   scheduler_expert_config                        sched_cfg;
   cell_common_configuration_list                 cell_cfg_list;
@@ -437,7 +437,7 @@ protected:
       builder_params.dl_f_ref_arfcn = 465000;
       builder_params.scs_common     = subcarrier_spacing::kHz30;
       builder_params.band           = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
-      builder_params.channel_bw_mhz = srsran::bs_channel_bandwidth::MHz20;
+      builder_params.channel_bw_mhz = ocudu::bs_channel_bandwidth::MHz20;
 
       const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
           builder_params.channel_bw_mhz,
@@ -453,7 +453,7 @@ protected:
                                                       builder_params.scs_common,
                                                       builder_params.search_space0_index,
                                                       builder_params.max_coreset0_duration);
-      srsran_assert(ssb_freq_loc.has_value(), "Invalid cell config parameters");
+      ocudu_assert(ssb_freq_loc.has_value(), "Invalid cell config parameters");
       builder_params.offset_to_point_a    = ssb_freq_loc->offset_to_point_A;
       builder_params.k_ssb                = ssb_freq_loc->k_ssb;
       builder_params.coreset0_index       = ssb_freq_loc->coreset0_idx;

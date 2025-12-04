@@ -9,12 +9,12 @@
  */
 
 #include "pdu_session_routine_helpers.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
-void srsran::srs_cu_cp::fill_e1ap_drb_pdcp_config(e1ap_pdcp_config& e1ap_pdcp_cfg, const pdcp_config& cu_cp_pdcp_cfg)
+void ocudu::ocucp::fill_e1ap_drb_pdcp_config(e1ap_pdcp_config& e1ap_pdcp_cfg, const pdcp_config& cu_cp_pdcp_cfg)
 {
   e1ap_pdcp_cfg.pdcp_sn_size_ul = cu_cp_pdcp_cfg.tx.sn_size;
   e1ap_pdcp_cfg.pdcp_sn_size_dl = cu_cp_pdcp_cfg.rx.sn_size;
@@ -44,9 +44,9 @@ void srsran::srs_cu_cp::fill_e1ap_drb_pdcp_config(e1ap_pdcp_config& e1ap_pdcp_cf
   }
 }
 
-void srsran::srs_cu_cp::fill_e1ap_qos_flow_param_item(e1ap_qos_flow_qos_param_item&      e1ap_qos_item,
-                                                      const srslog::basic_logger&        logger,
-                                                      const qos_flow_setup_request_item& request_item)
+void ocudu::ocucp::fill_e1ap_qos_flow_param_item(e1ap_qos_flow_qos_param_item&      e1ap_qos_item,
+                                                 const ocudulog::basic_logger&      logger,
+                                                 const qos_flow_setup_request_item& request_item)
 {
   e1ap_qos_item.qos_flow_id = request_item.qos_flow_id;
 
@@ -58,13 +58,13 @@ void srsran::srs_cu_cp::fill_e1ap_qos_flow_param_item(e1ap_qos_flow_qos_param_it
   e1ap_qos_item.qos_flow_level_qos_params.gbr_qos_flow_info = request_item.qos_flow_level_qos_params.gbr_qos_info;
 }
 
-bool srsran::srs_cu_cp::verify_and_log_cell_group_config(const byte_buffer&          packed_cell_group_cfg,
-                                                         const srslog::basic_logger& logger)
+bool ocudu::ocucp::verify_and_log_cell_group_config(const byte_buffer&            packed_cell_group_cfg,
+                                                    const ocudulog::basic_logger& logger)
 {
   // Unpack DU to CU container.
   asn1::rrc_nr::cell_group_cfg_s cell_group_cfg;
   asn1::cbit_ref                 bref_cell({packed_cell_group_cfg.begin(), packed_cell_group_cfg.end()});
-  if (cell_group_cfg.unpack(bref_cell) != asn1::SRSASN_SUCCESS) {
+  if (cell_group_cfg.unpack(bref_cell) != asn1::OCUDUASN_SUCCESS) {
     logger.warning("Failed to unpack cellGroupConfig");
     return false;
   }
@@ -78,20 +78,19 @@ bool srsran::srs_cu_cp::verify_and_log_cell_group_config(const byte_buffer&     
   return true;
 }
 
-bool srsran::srs_cu_cp::fill_rrc_reconfig_args(
-    rrc_reconfiguration_procedure_request&                           rrc_reconfig_args,
-    const std::vector<f1ap_srb_to_setup>&                            srbs_to_be_setup_mod_list,
-    const std::map<pdu_session_id_t, up_pdu_session_context_update>& pdu_sessions,
-    const std::vector<drb_id_t>&                                     drb_to_remove,
-    const f1ap_du_to_cu_rrc_info&                                    du_to_cu_rrc_info,
-    const std::vector<byte_buffer>&                                  nas_pdus,
-    const std::optional<rrc_meas_cfg>&                               rrc_meas_cfg,
-    bool                                                             reestablish_srbs,
-    bool                                                             reestablish_drbs,
-    std::optional<uint8_t>                                           ncc,
-    byte_buffer                                                      sib1,
-    std::optional<security::sec_selected_algos>                      selected_algos,
-    const srslog::basic_logger&                                      logger)
+bool ocudu::ocucp::fill_rrc_reconfig_args(rrc_reconfiguration_procedure_request& rrc_reconfig_args,
+                                          const std::vector<f1ap_srb_to_setup>&  srbs_to_be_setup_mod_list,
+                                          const std::map<pdu_session_id_t, up_pdu_session_context_update>& pdu_sessions,
+                                          const std::vector<drb_id_t>&                drb_to_remove,
+                                          const f1ap_du_to_cu_rrc_info&               du_to_cu_rrc_info,
+                                          const std::vector<byte_buffer>&             nas_pdus,
+                                          const std::optional<rrc_meas_cfg>&          rrc_meas_cfg,
+                                          bool                                        reestablish_srbs,
+                                          bool                                        reestablish_drbs,
+                                          std::optional<uint8_t>                      ncc,
+                                          byte_buffer                                 sib1,
+                                          std::optional<security::sec_selected_algos> selected_algos,
+                                          const ocudulog::basic_logger&               logger)
 {
   rrc_radio_bearer_config radio_bearer_config;
   // If default DRB is being setup, SRB2 needs to be setup as well.
@@ -213,7 +212,7 @@ bool srsran::srs_cu_cp::fill_rrc_reconfig_args(
   return true;
 }
 
-bool srsran::srs_cu_cp::fill_f1ap_drb_setup_mod_item(
+bool ocudu::ocucp::fill_f1ap_drb_setup_mod_item(
     f1ap_drb_to_setup&                                           drb_setup_mod_item, // Request to setup DRB at DU.
     slotted_id_vector<qos_flow_id_t, cu_cp_associated_qos_flow>* response_flow_list,
     pdu_session_id_t                                             psi,
@@ -221,8 +220,8 @@ bool srsran::srs_cu_cp::fill_f1ap_drb_setup_mod_item(
     up_drb_context&                                              next_drb_config, // DRB config (info is written back).
     const e1ap_drb_setup_item_ng_ran&                            e1ap_drb_item,   // Response from CU-UP.
     const slotted_id_vector<qos_flow_id_t, qos_flow_setup_request_item>&
-                                ngap_qos_flow_setup_items, // Initial request from AMF.
-    const srslog::basic_logger& logger)
+                                  ngap_qos_flow_setup_items, // Initial request from AMF.
+    const ocudulog::basic_logger& logger)
 {
   // Catch implementation limitations.
   if (!e1ap_drb_item.flow_failed_list.empty()) {
@@ -293,11 +292,11 @@ bool srsran::srs_cu_cp::fill_f1ap_drb_setup_mod_item(
   return true;
 }
 
-void srsran::srs_cu_cp::fill_drb_to_setup_list(
+void ocudu::ocucp::fill_drb_to_setup_list(
     slotted_id_vector<drb_id_t, e1ap_drb_to_setup_item_ng_ran>&          e1ap_drb_to_setup_list,
     const slotted_id_vector<qos_flow_id_t, qos_flow_setup_request_item>& qos_flow_list,
     const std::map<drb_id_t, up_drb_context>&                            drb_to_add_list,
-    const srslog::basic_logger&                                          logger)
+    const ocudulog::basic_logger&                                        logger)
 {
   for (const auto& drb_to_setup : drb_to_add_list) {
     e1ap_drb_to_setup_item_ng_ran e1ap_drb_setup_item;
@@ -312,7 +311,7 @@ void srsran::srs_cu_cp::fill_drb_to_setup_list(
 
     // Only iterate over the QoS flows mapped to this particular DRB.
     for (const auto& flow : drb_to_setup.second.qos_flows) {
-      srsran_assert(qos_flow_list.contains(flow.first), "Original setup request doesn't contain {}", flow.first);
+      ocudu_assert(qos_flow_list.contains(flow.first), "Original setup request doesn't contain {}", flow.first);
       // Lookup the QoS characteristics from the original request.
       const auto&                  qos_flow_params = qos_flow_list[flow.first];
       e1ap_qos_flow_qos_param_item e1ap_qos_item;
@@ -324,11 +323,11 @@ void srsran::srs_cu_cp::fill_drb_to_setup_list(
   }
 }
 
-void srsran::srs_cu_cp::fill_drb_to_modify_list(
+void ocudu::ocucp::fill_drb_to_modify_list(
     slotted_id_vector<drb_id_t, e1ap_drb_to_modify_item_ng_ran>&            e1ap_drb_to_modify_list,
     const slotted_id_vector<qos_flow_id_t, cu_cp_qos_flow_add_or_mod_item>& qos_flow_list,
     const std::map<drb_id_t, up_drb_context>&                               drb_to_modify_list,
-    const srslog::basic_logger&                                             logger)
+    const ocudulog::basic_logger&                                           logger)
 {
   for (const auto& drb_to_modify : drb_to_modify_list) {
     e1ap_drb_to_modify_item_ng_ran e1ap_drb_to_modify_item;
@@ -340,7 +339,7 @@ void srsran::srs_cu_cp::fill_drb_to_modify_list(
 
     // Only iterate over the QoS flows mapped to this particular DRB.
     for (const auto& flow : drb_to_modify.second.qos_flows) {
-      srsran_assert(qos_flow_list.contains(flow.first), "Original setup request doesn't contain {}", flow.first);
+      ocudu_assert(qos_flow_list.contains(flow.first), "Original setup request doesn't contain {}", flow.first);
       // Lookup the QoS characteristics from the original request.
       const auto&                  qos_flow_params = qos_flow_list[flow.first];
       e1ap_qos_flow_qos_param_item e1ap_qos_item;
@@ -352,15 +351,15 @@ void srsran::srs_cu_cp::fill_drb_to_modify_list(
   }
 }
 
-void srsran::srs_cu_cp::fill_drb_to_remove_list(std::vector<drb_id_t>&       e1ap_drb_to_remove_list,
-                                                const std::vector<drb_id_t>& drb_to_remove_list)
+void ocudu::ocucp::fill_drb_to_remove_list(std::vector<drb_id_t>&       e1ap_drb_to_remove_list,
+                                           const std::vector<drb_id_t>& drb_to_remove_list)
 {
   for (const auto& drb_to_remove : drb_to_remove_list) {
     e1ap_drb_to_remove_list.push_back(drb_to_remove);
   }
 }
 
-void srsran::srs_cu_cp::fill_e1ap_bearer_context_list(
+void ocudu::ocucp::fill_e1ap_bearer_context_list(
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_res_to_modify_item>& e1ap_list,
     const std::vector<f1ap_drb_setupmod>&                                     drb_setup_items,
     const std::map<pdu_session_id_t, up_pdu_session_context_update>&          pdu_sessions_update_list)
@@ -392,9 +391,9 @@ void srsran::srs_cu_cp::fill_e1ap_bearer_context_list(
   }
 }
 
-void srsran::srs_cu_cp::fill_e1ap_pdu_session_res_to_setup_list(
+void ocudu::ocucp::fill_e1ap_pdu_session_res_to_setup_list(
     slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_res_to_setup_item>&     pdu_session_res_to_setup_list,
-    const srslog::basic_logger&                                                  logger,
+    const ocudulog::basic_logger&                                                logger,
     const up_config_update&                                                      next_config,
     const slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item>& setup_items,
     const ue_configuration&                                                      ue_cfg,
@@ -402,7 +401,7 @@ void srsran::srs_cu_cp::fill_e1ap_pdu_session_res_to_setup_list(
 {
   for (const auto& setup_item : next_config.pdu_sessions_to_setup_list) {
     const auto& session = setup_item.second;
-    srsran_assert(setup_items.contains(session.id), "Setup request doesn't contain config for {}", session.id);
+    ocudu_assert(setup_items.contains(session.id), "Setup request doesn't contain config for {}", session.id);
     // Obtain PDU session config from original setup request.
     const auto&                        pdu_session_cfg = setup_items[session.id];
     e1ap_pdu_session_res_to_setup_item e1ap_pdu_session_item;
@@ -430,11 +429,11 @@ void srsran::srs_cu_cp::fill_e1ap_pdu_session_res_to_setup_list(
   }
 }
 
-bool srsran::srs_cu_cp::update_setup_list_with_ue_ctxt_setup_response(
+bool ocudu::ocucp::update_setup_list_with_ue_ctxt_setup_response(
     e1ap_bearer_context_modification_request& bearer_ctxt_mod_request,
     const std::vector<f1ap_drb_setupmod>&     drb_setup_mod_list,
     const up_config_update&                   next_config,
-    const srslog::basic_logger&               logger)
+    const ocudulog::basic_logger&             logger)
 {
   // Start with empty message.
   e1ap_ng_ran_bearer_context_mod_request& e1ap_bearer_context_mod =

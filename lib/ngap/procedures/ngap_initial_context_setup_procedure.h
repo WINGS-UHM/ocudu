@@ -12,12 +12,12 @@
 
 #include "../ue_context/ngap_ue_context.h"
 #include "metrics/ngap_metrics_aggregator.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_init_context_setup.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_init_context_setup.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ngap_initial_context_setup_procedure
 {
@@ -56,5 +56,5 @@ private:
   expected<ngap_init_context_setup_response, ngap_init_context_setup_failure> init_ctxt_setup_routine_outcome;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

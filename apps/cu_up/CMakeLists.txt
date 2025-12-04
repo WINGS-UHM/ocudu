@@ -6,28 +6,28 @@
 # the distribution.
 #
 
-add_executable(srscuup
+add_executable(ocuup
         cu_up.cpp
         cu_up_appconfig_cli11_schema.cpp
         cu_up_appconfig_validator.cpp
 )
 
-install(TARGETS srscuup
+install(TARGETS ocuup
         RUNTIME)
 
-target_link_libraries(srscuup PRIVATE
-        srsran_app_helpers
-        srsran_app_services
-        srsran_e1_gateway
-        srsran_e2
-        srsran_f1u_cu_up_split_connector
-        srsran_o_cu_up_app_unit
-        srsran_pcap
-        srsran_support
-        srsran_versioning
+target_link_libraries(ocuup PRIVATE
+        ocudu_app_helpers
+        ocudu_app_services
+        ocudu_e1_gateway
+        ocudu_e2
+        ocudu_f1u_cu_up_split_connector
+        ocudu_o_cu_up_app_unit
+        ocudu_pcap
+        ocudu_support
+        ocudu_versioning
 )
 
-add_backward(srscuup)
+add_backward(ocuup)
 
-target_include_directories(srscuup PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/external)
-notify_binary_target(srscuup)
+target_include_directories(ocuup PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/external)
+notify_binary_target(ocuup)

@@ -10,13 +10,13 @@
 
 #include "pdcp_entity_rx.h"
 #include "../security/security_engine_impl.h"
-#include "srsran/instrumentation/traces/up_traces.h"
-#include "srsran/rohc/rohc_support.h"
-#include "srsran/support/bit_encoding.h"
-#include "srsran/support/executors/execution_context_description.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/rohc/rohc_support.h"
+#include "ocudu/support/bit_encoding.h"
+#include "ocudu/support/executors/execution_context_description.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcp_entity_rx::pdcp_entity_rx(uint32_t                        ue_index,
                                rb_id_t                         rb_id_,
@@ -257,7 +257,7 @@ void pdcp_entity_rx::handle_data_pdu(byte_buffer pdu, std::chrono::system_clock:
     return;
   }
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   // Unpack header
   pdcp_data_pdu_header hdr = {};
@@ -339,20 +339,20 @@ void pdcp_entity_rx::apply_security(pdcp_rx_pdu_info&& pdu_info)
     auto handle_failure =
         [this, sec_err = result.buf.error(), count = result.count, token = std::move(pdu_info.token)]() {
           switch (sec_err) {
-            case srsran::security::security_error::integrity_failure:
+            case ocudu::security::security_error::integrity_failure:
               logger.log_warning("Integrity failed, dropping PDU. count={}", count);
               metrics.add_integrity_failed_pdus(1);
               upper_cn.on_integrity_failure();
               break;
-            case srsran::security::security_error::ciphering_failure:
+            case ocudu::security::security_error::ciphering_failure:
               logger.log_warning("Deciphering failed, dropping PDU. count={}", count);
               upper_cn.on_protocol_failure();
               break;
-            case srsran::security::security_error::buffer_failure:
+            case ocudu::security::security_error::buffer_failure:
               logger.log_error("Buffer error when decrypting and verifying integrity, dropping PDU. count={}", count);
               upper_cn.on_protocol_failure();
               break;
-            case srsran::security::security_error::engine_failure:
+            case ocudu::security::security_error::engine_failure:
               logger.log_error("Engine error when decrypting and verifying integrity, dropping PDU. count={}", count);
               upper_cn.on_protocol_failure();
               break;
@@ -453,7 +453,7 @@ void pdcp_entity_rx::apply_reordering(pdcp_rx_pdu_info pdu_info)
   }
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 }
 
 void pdcp_entity_rx::handle_control_pdu(byte_buffer_chain pdu)
@@ -463,7 +463,7 @@ void pdcp_entity_rx::handle_control_pdu(byte_buffer_chain pdu)
 
   // Assert control PDU
   pdcp_dc_field dc = pdcp_pdu_get_dc(hdr_byte);
-  srsran_assert(dc == pdcp_dc_field::control, "Invalid D/C field in control PDU. dc={}", dc);
+  ocudu_assert(dc == pdcp_dc_field::control, "Invalid D/C field in control PDU. dc={}", dc);
 
   // Switch control PDU type (CPT)
   pdcp_control_pdu_header control_hdr = {};
@@ -576,13 +576,13 @@ security::security_result pdcp_entity_rx::apply_deciphering_and_integrity_check(
   uint32_t worker_idx = execution_context::get_current_worker_index();
 
   if (worker_idx >= max_nof_crypto_workers) {
-    srsran_assertion_failure("Worker index exceeds number of crypto workers. worker_idx={} max_nof_crypto_workers={}",
-                             worker_idx,
-                             max_nof_crypto_workers);
+    ocudu_assertion_failure("Worker index exceeds number of crypto workers. worker_idx={} max_nof_crypto_workers={}",
+                            worker_idx,
+                            max_nof_crypto_workers);
     logger.log_error("Worker index exceeds number of crypto workers. worker_idx={} max_nof_crypto_workers={}",
                      worker_idx,
                      max_nof_crypto_workers);
-    return {.buf = make_unexpected(srsran::security::security_error::engine_failure), .count = count};
+    return {.buf = make_unexpected(ocudu::security::security_error::engine_failure), .count = count};
   }
   logger.log_debug("Using sec_engine with worker_idx={}. count={} pdu_len={}", worker_idx, count, buf.length());
 
@@ -592,7 +592,7 @@ security::security_result pdcp_entity_rx::apply_deciphering_and_integrity_check(
     if (is_srb()) {
       if (buf.length() <= security::sec_mac_len) {
         logger.log_warning("Failed to trim MAC-I from PDU. count={}", count);
-        return {.buf = make_unexpected(srsran::security::security_error::buffer_failure), .count = count};
+        return {.buf = make_unexpected(ocudu::security::security_error::buffer_failure), .count = count};
       }
       buf.trim_tail(security::sec_mac_len);
     }
@@ -620,12 +620,12 @@ void pdcp_entity_rx::configure_security(security::sec_128_as_config sec_cfg,
                                         security::integrity_enabled integrity_enabled_,
                                         security::ciphering_enabled ciphering_enabled_)
 {
-  srsran_assert((is_srb() && sec_cfg.domain == security::sec_domain::rrc) ||
-                    (!is_srb() && sec_cfg.domain == security::sec_domain::up),
-                "Invalid sec_domain={} for {} in {}",
-                sec_cfg.domain,
-                rb_type,
-                rb_id);
+  ocudu_assert((is_srb() && sec_cfg.domain == security::sec_domain::rrc) ||
+                   (!is_srb() && sec_cfg.domain == security::sec_domain::up),
+               "Invalid sec_domain={} for {} in {}",
+               sec_cfg.domain,
+               rb_type,
+               rb_id);
   // The 'NULL' integrity protection algorithm (nia0) is used only for SRBs and for the UE in limited service mode,
   // see TS 33.501 [11] and when used for SRBs, integrity protection is disabled for DRBs. In case the ′NULL'
   // integrity protection algorithm is used, 'NULL' ciphering algorithm is also used.
@@ -652,7 +652,7 @@ void pdcp_entity_rx::configure_security(security::sec_128_as_config sec_cfg,
       return;
     }
   } else {
-    srsran_assert(!is_srb(), "Integrity protection cannot be disabled for SRBs.");
+    ocudu_assert(!is_srb(), "Integrity protection cannot be disabled for SRBs.");
   }
   integrity_enabled = integrity_enabled_;
 
@@ -715,7 +715,7 @@ void pdcp_entity_rx::handle_t_reordering_expire()
   deliver_all_consecutive_counts();
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   if (st.rx_deliv < st.rx_next) {
     if (cfg.t_reordering == pdcp_t_reordering::ms0) {

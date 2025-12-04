@@ -11,9 +11,9 @@
 #pragma once
 
 #include "configuration_procedure.h"
-#include "srsran/fapi_adaptor/phy/p5/phy_fapi_p5_sector_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p5/phy_fapi_p5_sector_adaptor.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi_adaptor {
 
 /// \brief PHY-FAPI P5 sector operation request adaptor.
@@ -25,7 +25,7 @@ class phy_fapi_p5_sector_operation_request_adaptor : public phy_fapi_p5_sector_a
   fapi::configuration_procedure gateway;
 
 public:
-  explicit phy_fapi_p5_sector_operation_request_adaptor(srslog::basic_logger& logger) : gateway(logger) {}
+  explicit phy_fapi_p5_sector_operation_request_adaptor(ocudulog::basic_logger& logger) : gateway(logger) {}
 
   // See interface for documentation.
   fapi::config_message_gateway& get_config_message_gateway() override;
@@ -41,4 +41,4 @@ public:
 };
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/memory_pool/fixed_size_memory_block_pool.h"
-#include "srsran/support/memory_pool/unsync_fixed_size_memory_block_pool.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/memory_pool/fixed_size_memory_block_pool.h"
+#include "ocudu/support/memory_pool/unsync_fixed_size_memory_block_pool.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 TEST(fixed_memory_block_pool_test, correct_instantiation)
 {
@@ -138,7 +138,7 @@ TEST(unsync_fixed_memory_block_pool_test, number_of_alloc_blocks_matches_pool_si
 
 int main(int argc, char** argv)
 {
-  srslog::fetch_basic_logger("ALL").set_level(srslog::basic_levels::debug);
+  ocudulog::fetch_basic_logger("ALL").set_level(ocudulog::basic_levels::debug);
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

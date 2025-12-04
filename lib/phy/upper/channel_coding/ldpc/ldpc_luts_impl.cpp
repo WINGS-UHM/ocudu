@@ -9,12 +9,12 @@
  */
 
 /// \file
-/// \brief Lookup tables for srsran::ldpc_impl -- definitions.
+/// \brief Lookup tables for ocudu::ldpc_impl -- definitions.
 
 // File outline:
 //    static constexpr std::array<uint8_t, 385> LSindex{...} -- 385 lines
-//    static constexpr std::array<BG_matrix_t, srsran::ldpc::nof_lifting_indices> BG1_matrices{...} -- 2224 lines
-//    static constexpr std::array<BG_matrix_t, srsran::ldpc::nof_lifting_indices> BG2_matrices{...} -- 1696 lines
+//    static constexpr std::array<BG_matrix_t, ocudu::ldpc::nof_lifting_indices> BG1_matrices{...} -- 2224 lines
+//    static constexpr std::array<BG_matrix_t, ocudu::ldpc::nof_lifting_indices> BG2_matrices{...} -- 1696 lines
 //    static const BG_edge_matrix_t BG1_edge_matrix{...} -- 89 lines
 //    static const BG_edge_matrix_t BG2_edge_matrix{...} -- 43 lines
 //    BG_matrix_t get_graph(ldpc_base_graph_type bg, lifting_size_t ls) {...}
@@ -22,11 +22,11 @@
 //    const BG_edge_matrix_t* get_edge_matrix(ldpc_base_graph_type bg)
 #include "ldpc_luts_impl.h"
 #include "ldpc_graph_impl.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <array>
 #include <cstdint>
 
-using namespace srsran::ldpc;
+using namespace ocudu::ldpc;
 
 namespace {
 
@@ -4508,10 +4508,10 @@ static const BG_adjacency_matrix_t BG2_adjacency_matrix = {
      {2, 10, 13, 50, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE},
      {1, 5, 11, 51, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE, NO_EDGE}}};
 
-BG_matrix_t srsran::ldpc::get_graph(ldpc_base_graph_type bg, lifting_size_t ls)
+BG_matrix_t ocudu::ldpc::get_graph(ldpc_base_graph_type bg, lifting_size_t ls)
 {
   int ls_index = LSindex[ls].index;
-  srsran_assert(ls_index != VOID_LIFTSIZE, "Invalid ls_index value '{}'", ls_index);
+  ocudu_assert(ls_index != VOID_LIFTSIZE, "Invalid ls_index value '{}'", ls_index);
 
   BG_matrix_t graph_matrix = (bg == ldpc_base_graph_type::BG1) ? BG1_matrices[ls_index] : BG2_matrices[ls_index];
 
@@ -4533,17 +4533,17 @@ BG_matrix_t srsran::ldpc::get_graph(ldpc_base_graph_type bg, lifting_size_t ls)
   return graph_matrix;
 }
 
-uint8_t srsran::ldpc::get_lifting_index(lifting_size_t ls)
+uint8_t ocudu::ldpc::get_lifting_index(lifting_size_t ls)
 {
   return LSindex[ls].index;
 }
 
-uint8_t srsran::ldpc::get_lifting_size_position(lifting_size_t ls)
+uint8_t ocudu::ldpc::get_lifting_size_position(lifting_size_t ls)
 {
   return LSindex[ls].position;
 }
 
-const BG_adjacency_matrix_t* srsran::ldpc::get_adjacency_matrix(ldpc_base_graph_type bg)
+const BG_adjacency_matrix_t* ocudu::ldpc::get_adjacency_matrix(ldpc_base_graph_type bg)
 {
   if (bg == ldpc_base_graph_type::BG1) {
     return &BG1_adjacency_matrix;
@@ -4551,6 +4551,6 @@ const BG_adjacency_matrix_t* srsran::ldpc::get_adjacency_matrix(ldpc_base_graph_
   if (bg == ldpc_base_graph_type::BG2) {
     return &BG2_adjacency_matrix;
   }
-  srsran_assert(false, "Invalid base graph");
+  ocudu_assert(false, "Invalid base graph");
   return {};
 }

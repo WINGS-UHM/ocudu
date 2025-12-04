@@ -1,0 +1,24 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/security/security.h"
+
+namespace ocudu {
+namespace ocucp {
+
+struct security_manager_config {
+  security::preferred_integrity_algorithms int_algo_pref_list; ///< Integrity protection algorithms preference list
+  security::preferred_ciphering_algorithms enc_algo_pref_list; ///< Encryption algorithms preference list
+};
+
+} // namespace ocucp
+} // namespace ocudu

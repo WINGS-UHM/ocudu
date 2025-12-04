@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/upper/sequence_generators/sequence_generator_factories.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
 #include <gtest/gtest.h>
 #include <random>
 
 static std::mt19937 rgen(0);
 
-using namespace srsran;
+using namespace ocudu;
 
 #define Nc 1600
 
@@ -106,7 +106,7 @@ private:
       c_char[n]  = c[n] ? -1 : +1;
     }
 
-    srsvec::bit_pack(c_packed, c);
+    ocuduvec::bit_pack(c_packed, c);
   }
 };
 

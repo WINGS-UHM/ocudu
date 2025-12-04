@@ -12,12 +12,12 @@
 #include "../policy/scheduler_policy_factory.h"
 #include "../support/pusch/pusch_td_resource_indices.h"
 #include "../ue_scheduling/ue_cell_grid_allocator.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_, ue_repository& ues_) :
-  cell_cfg(cell_cfg_), logger(srslog::fetch_basic_logger("SCHED")), ues(ues_)
+  cell_cfg(cell_cfg_), logger(ocudulog::fetch_basic_logger("SCHED")), ues(ues_)
 {
   // Create a number of slices equal to the number of configured RRM Policy members + 1 (default SRB slice) + 1 (default
   // DRB slice).

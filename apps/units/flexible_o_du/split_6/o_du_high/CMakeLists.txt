@@ -13,12 +13,12 @@ set(SOURCES
         split6_o_du_unit_cli11_schema.cpp
         split6_o_du_unit_config_validator.cpp)
 
-add_library(srsran_split6_plugin STATIC split6_plugin_dummy.cpp)
+add_library(ocudu_split6_plugin STATIC split6_plugin_dummy.cpp)
 
-add_library(srsran_flexible_o_du_split_6 STATIC ${SOURCES})
-target_include_directories(srsran_flexible_o_du_split_6 PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srsran_flexible_o_du_split_6
-                                                    srsran_o_du
-                                                    srsran_o_du_high_unit_helpers
-                                                    srsran_split6_plugin
-                                                    srsran_metrics_json_generators)
+add_library(ocudu_flexible_o_du_split_6 STATIC ${SOURCES})
+target_include_directories(ocudu_flexible_o_du_split_6 PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_flexible_o_du_split_6
+                                                    ocudu_o_du
+                                                    ocudu_o_du_high_unit_helpers
+                                                    ocudu_split6_plugin
+                                                    ocudu_metrics_json_generators)

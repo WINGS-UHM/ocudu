@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace srsran {
+namespace ocudu {
 
 struct split6_flexible_o_du_low_metrics;
 
@@ -24,4 +24,4 @@ public:
   virtual void on_new_metrics(const split6_flexible_o_du_low_metrics& metrics) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

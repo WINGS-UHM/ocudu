@@ -11,9 +11,9 @@
 #include "du_high_config_yaml_writer.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "du_high_config.h"
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_du_high_metrics_layers_section(YAML::Node node, const du_high_unit_metrics_layer_config& config)
 {
@@ -46,12 +46,12 @@ static void fill_du_high_pcap_section(YAML::Node node, const du_high_unit_pcap_c
 
 static void fill_du_high_log_section(YAML::Node node, const du_high_unit_logger_config& config)
 {
-  node["mac_level"]                        = srslog::basic_level_to_string(config.mac_level);
-  node["rlc_level"]                        = srslog::basic_level_to_string(config.rlc_level);
-  node["f1ap_level"]                       = srslog::basic_level_to_string(config.f1ap_level);
-  node["f1u_level"]                        = srslog::basic_level_to_string(config.f1u_level);
-  node["gtpu_level"]                       = srslog::basic_level_to_string(config.gtpu_level);
-  node["du_level"]                         = srslog::basic_level_to_string(config.du_level);
+  node["mac_level"]                        = ocudulog::basic_level_to_string(config.mac_level);
+  node["rlc_level"]                        = ocudulog::basic_level_to_string(config.rlc_level);
+  node["f1ap_level"]                       = ocudulog::basic_level_to_string(config.f1ap_level);
+  node["f1u_level"]                        = ocudulog::basic_level_to_string(config.f1u_level);
+  node["gtpu_level"]                       = ocudulog::basic_level_to_string(config.gtpu_level);
+  node["du_level"]                         = ocudulog::basic_level_to_string(config.du_level);
   node["hex_max_size"]                     = config.hex_max_size;
   node["broadcast_enabled"]                = config.broadcast_enabled;
   node["high_latency_diagnostics_enabled"] = config.high_latency_diagnostics_enabled;
@@ -309,7 +309,7 @@ static std::string to_string(pdsch_mcs_table table)
     case pdsch_mcs_table::qam256:
       return "qam256";
     default:
-      srsran_assert(0, "Invalid PDSCH MCS table");
+      ocudu_assert(0, "Invalid PDSCH MCS table");
       break;
   }
   return {};
@@ -328,7 +328,7 @@ static std::string to_string(dc_offset_t dc_offset)
     case dc_offset_t::undetermined:
       return "undetermined";
     default:
-      srsran_assert(0, "Invalid PDSCH MCS table");
+      ocudu_assert(0, "Invalid PDSCH MCS table");
       break;
   }
   return {};
@@ -381,7 +381,7 @@ static std::string to_string(pusch_mcs_table table)
     case pusch_mcs_table::qam256:
       return "qam256";
     default:
-      srsran_assert(0, "Invalid PDSCH MCS table");
+      ocudu_assert(0, "Invalid PDSCH MCS table");
       break;
   }
   return {};
@@ -449,7 +449,7 @@ static std::string to_string(max_pucch_code_rate code_rate)
     case max_pucch_code_rate::dot_80:
       return "dot80";
     default:
-      srsran_assert(0, "Invalid PUCCH code rate");
+      ocudu_assert(0, "Invalid PUCCH code rate");
       break;
   }
   return {};
@@ -569,7 +569,7 @@ static std::string to_string(pcch_config::nof_pf_per_drx_cycle cycle)
     case pcch_config::nof_pf_per_drx_cycle::oneSixteethT:
       return "oneSixteethT";
     default:
-      srsran_assert(0, "Invalid PCCH config");
+      ocudu_assert(0, "Invalid PCCH config");
       break;
   }
   return {};
@@ -851,7 +851,7 @@ static YAML::Node build_du_high_testmode_section(const du_high_unit_test_mode_co
   return node;
 }
 
-void srsran::fill_du_high_config_in_yaml_schema(YAML::Node& node, const du_high_unit_config& config)
+void ocudu::fill_du_high_config_in_yaml_schema(YAML::Node& node, const du_high_unit_config& config)
 {
   node["gnb_id"]            = config.gnb_id.id;
   node["gnb_id_bit_length"] = static_cast<unsigned>(config.gnb_id.bit_length);

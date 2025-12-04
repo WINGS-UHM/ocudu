@@ -8,19 +8,19 @@
  *
  */
 
-#include "srsran/ran/uci/uci_part2_size_calculator.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/uci/uci_part2_size_calculator.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned extract_parameter(unsigned offset, unsigned width, const uci_payload_type& payload)
 {
   // Verify the payload read range is valid.
-  srsran_assert(offset + width <= payload.size(),
-                "The offset (i.e., {}) plus the width (i.e., {}) exceeds the payload size (i.e., {}).",
-                offset,
-                width,
-                payload.size());
+  ocudu_assert(offset + width <= payload.size(),
+               "The offset (i.e., {}) plus the width (i.e., {}) exceeds the payload size (i.e., {}).",
+               offset,
+               width,
+               payload.size());
 
   // Ignore for zero width.
   if (width == 0) {
@@ -39,7 +39,7 @@ static unsigned extract_parameter(unsigned offset, unsigned width, const uci_pay
   return static_cast<unsigned>(param);
 }
 
-unsigned srsran::uci_part2_get_size(const uci_payload_type& part1, const uci_part2_size_description& descr)
+unsigned ocudu::uci_part2_get_size(const uci_payload_type& part1, const uci_part2_size_description& descr)
 {
   unsigned result = 0;
 
@@ -60,13 +60,13 @@ unsigned srsran::uci_part2_get_size(const uci_payload_type& part1, const uci_par
     }
 
     // Verify the map size is according to the index bit width.
-    srsran_assert(entry.map.size() == (1U << index_bitwidth),
-                  "Invalid map size (i.e., {}), expected {} entries.",
-                  entry.map.size(),
-                  (1U << index_bitwidth));
+    ocudu_assert(entry.map.size() == (1U << index_bitwidth),
+                 "Invalid map size (i.e., {}), expected {} entries.",
+                 entry.map.size(),
+                 (1U << index_bitwidth));
 
     // Verify that the index is within the map size.
-    srsran_assert(
+    ocudu_assert(
         index < entry.map.size(), "Index value (i.e., {}) exceeds the map size (i.e., {}).", index, entry.map.size());
 
     // Add the Part 2 size corresponding to this entry.

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/support/resource_usage/power_consumption.h"
+#include "ocudu/support/resource_usage/power_consumption.h"
 
-namespace srsran {
+namespace ocudu {
 namespace resource_usage_utils {
 
 /// Class responsible for reading Run Time Average Power Limiting (RAPL) interface MSRs (model-specific registers)
@@ -49,7 +49,7 @@ private:
 };
 
 /// Creates RAPL MSR reader if it is supported by the system.
-std::unique_ptr<energy_consumption_reader> build_rapl_msr_reader(srslog::basic_logger& logger);
+std::unique_ptr<energy_consumption_reader> build_rapl_msr_reader(ocudulog::basic_logger& logger);
 
 } // namespace resource_usage_utils
-} // namespace srsran
+} // namespace ocudu

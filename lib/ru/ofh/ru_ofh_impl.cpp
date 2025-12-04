@@ -9,11 +9,11 @@
  */
 
 #include "ru_ofh_impl.h"
-#include "srsran/ofh/receiver/ofh_receiver.h"
-#include "srsran/ofh/transmitter/ofh_transmitter.h"
-#include "srsran/ru/ru_uplink_plane.h"
+#include "ocudu/ofh/receiver/ofh_receiver.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter.h"
+#include "ocudu/ru/ru_uplink_plane.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 ru_ofh_impl::ru_ofh_impl(const ru_ofh_impl_config& config, ru_ofh_impl_dependencies&& dependencies) :
   timing_notifier(config.nof_slot_offset_du_ru, config.nof_symbols_per_slot, config.scs, *dependencies.timing_notifier),
@@ -23,7 +23,7 @@ ru_ofh_impl::ru_ofh_impl(const ru_ofh_impl_config& config, ru_ofh_impl_dependenc
   controller(*dependencies.logger),
   metrics_collector(ofh_timing_mngr->get_metrics_collector())
 {
-  srsran_assert(ofh_timing_mngr, "Invalid Open Fronthaul timing manager");
+  ocudu_assert(ofh_timing_mngr, "Invalid Open Fronthaul timing manager");
 }
 
 ru_downlink_plane_handler& ru_ofh_impl::get_downlink_plane_handler()
@@ -43,7 +43,7 @@ ru_metrics_collector* ru_ofh_impl::get_metrics_collector()
 
 void ru_ofh_impl::set_ofh_sectors(std::vector<std::unique_ptr<ofh::sector>> ofh_sectors)
 {
-  srsran_assert(!ofh_sectors.empty(), "Invalid OFH sectors");
+  ocudu_assert(!ofh_sectors.empty(), "Invalid OFH sectors");
 
   sectors = std::move(ofh_sectors);
 

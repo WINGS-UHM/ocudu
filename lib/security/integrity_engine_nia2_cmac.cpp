@@ -10,9 +10,9 @@
 
 #include "integrity_engine_nia2_cmac.h"
 #include "mbedtls/cmac.h"
-#include "srsran/security/security.h"
+#include "ocudu/security/security.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace security;
 
 #ifdef MBEDTLS_CMAC_C
@@ -20,11 +20,11 @@ using namespace security;
 integrity_engine_nia2_cmac::integrity_engine_nia2_cmac(sec_128_key        k_128_int_,
                                                        uint8_t            bearer_id_,
                                                        security_direction direction_) :
-  k_128_int(k_128_int_), bearer_id(bearer_id_), direction(direction_), logger(srslog::fetch_basic_logger("SEC"))
+  k_128_int(k_128_int_), bearer_id(bearer_id_), direction(direction_), logger(ocudulog::fetch_basic_logger("SEC"))
 {
   cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
   if (cipher_info == nullptr) {
-    srsran_assertion_failure("Failure in mbedtls_cipher_info_from_type");
+    ocudu_assertion_failure("Failure in mbedtls_cipher_info_from_type");
     return;
   }
   mbedtls_cipher_init(&ctx);
@@ -32,13 +32,13 @@ integrity_engine_nia2_cmac::integrity_engine_nia2_cmac(sec_128_key        k_128_
   int ret;
   ret = mbedtls_cipher_setup(&ctx, cipher_info);
   if (ret != 0) {
-    srsran_assertion_failure("Failure in mbedtls_cipher_setup");
+    ocudu_assertion_failure("Failure in mbedtls_cipher_setup");
     return;
   }
 
   ret = mbedtls_cipher_cmac_starts(&ctx, k_128_int.data(), 128);
   if (ret != 0) {
-    srsran_assertion_failure("Failure in mbedtls_cipher_cmac_starts");
+    ocudu_assertion_failure("Failure in mbedtls_cipher_cmac_starts");
     return;
   }
 }

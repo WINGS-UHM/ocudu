@@ -12,13 +12,13 @@
 
 #include "apps/services/metrics/metrics_config.h"
 #include "o_du_low_unit_factory_config.h"
-#include "srsran/du/du_low/o_du_low.h"
+#include "ocudu/du/du_low/o_du_low.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// O-RAN DU low unit.
 struct o_du_low_unit {
-  std::unique_ptr<srs_du::o_du_low>         o_du_lo;
+  std::unique_ptr<odu::o_du_low>            o_du_lo;
   std::vector<app_services::metrics_config> metrics;
 };
 
@@ -34,4 +34,4 @@ public:
   o_du_low_unit create(const o_du_low_unit_config& params, const o_du_low_unit_dependencies& dependencies);
 };
 
-} // namespace srsran
+} // namespace ocudu

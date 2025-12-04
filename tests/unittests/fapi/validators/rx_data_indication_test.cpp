@@ -10,9 +10,9 @@
 
 #include "../message_builder_helpers.h"
 #include "helpers.h"
-#include "srsran/fapi/message_validators.h"
+#include "ocudu/fapi/message_validators.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 using namespace unittest;
 
@@ -29,7 +29,7 @@ TEST_P(validate_rx_data_indication_field, WithValue)
                std::get<1>(params),
                build_valid_rx_data_indication,
                validate_rx_data_indication,
-               srsran::fapi::message_type_id::rx_data_indication);
+               ocudu::fapi::message_type_id::rx_data_indication);
 }
 
 INSTANTIATE_TEST_SUITE_P(sfn,

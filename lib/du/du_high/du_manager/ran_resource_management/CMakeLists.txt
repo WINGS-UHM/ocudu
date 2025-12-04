@@ -20,6 +20,6 @@ add_library(du_resource_manager
 target_link_libraries(
         du_resource_manager
         du_manager_converters
-        srsran_du_config_validators
+        ocudu_du_config_validators
         mac_configuration_helpers
         sched_config)

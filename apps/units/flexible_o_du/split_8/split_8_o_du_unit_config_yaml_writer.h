@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct split_8_o_du_unit_config;
 
 /// Fills the given node with the split 8 O-RAN DU configuration values.
 void fill_split_8_o_du_unit_config_in_yaml_schema(YAML::Node& node, const split_8_o_du_unit_config& config);
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/support/executors/unique_thread.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/support/executors/unique_thread.h"
+#include "ocudu/support/test_utils.h"
 #include "fmt/std.h"
 #include <mutex>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 void test_uninit_unique_thread()
 {
@@ -64,7 +64,7 @@ void test_init_unique_thread_prio()
 {
   test_delimit_logger delimit{"Initialized unique thread with priority"};
 
-  unique_thread t("T1", srsran::os_thread_realtime_priority::max(), []() { print_this_thread_priority(); });
+  unique_thread t("T1", ocudu::os_thread_realtime_priority::max(), []() { print_this_thread_priority(); });
 }
 
 int main()

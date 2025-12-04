@@ -10,11 +10,11 @@
 
 #include "pdcch_processor_impl.h"
 #include "pdcch_processor_validator_impl.h"
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/support/math/math_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace pdcch_constants;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills msg with the error message.
@@ -71,7 +71,7 @@ void pdcch_processor_impl::process(resource_grid_writer& grid, const pdcch_proce
 
   // Assert PDU.
   [[maybe_unused]] std::string msg;
-  srsran_assert(handle_validation(msg, pdcch_processor_validator_impl().is_valid(pdu)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pdcch_processor_validator_impl().is_valid(pdu)), "{}", msg);
 
   // Generate RB mask.
   crb_bitmap rb_mask = compute_rb_mask(coreset, dci);

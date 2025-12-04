@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/base_message.h"
-#include "srsran/fapi/messages/dl_pdcch_pdu.h"
+#include "ocudu/fapi/messages/base_message.h"
+#include "ocudu/fapi/messages/dl_pdcch_pdu.h"
 
-namespace srsran {
+namespace ocudu {
 namespace fapi {
 
 struct validator_report;
@@ -22,4 +22,4 @@ struct validator_report;
 bool validate_dl_pdcch_pdu(message_type_id msg_type, const dl_pdcch_pdu& pdu, validator_report& report);
 
 } // namespace fapi
-} // namespace srsran
+} // namespace ocudu

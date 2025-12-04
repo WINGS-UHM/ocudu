@@ -10,10 +10,10 @@
 
 #include "du_srs_resource_manager.h"
 #include "du_ue_resource_config.h"
-#include "srsran/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 // Helper that computes the SRS bandwidth parameter \f$C_{SRS}\f$ based on the number of UL RBs.
 static std::optional<unsigned> compute_srs_bw_param(unsigned nof_ul_rbs)
@@ -32,7 +32,7 @@ static std::optional<unsigned> compute_srs_bw_param(unsigned nof_ul_rbs)
     auto srs_params = srs_configuration_get(c_srs, b_srs_0);
 
     if (not srs_params.has_value()) {
-      srsran_assertion_failure("C_SRS is not compatible with the current BW configuration");
+      ocudu_assertion_failure("C_SRS is not compatible with the current BW configuration");
       return std::nullopt;
     }
 
@@ -61,8 +61,8 @@ static unsigned compute_freq_shift(unsigned c_srs, unsigned nof_ul_rbs)
   // bandwidth of the SRS resources.
   constexpr uint8_t                b_srs_0    = 0;
   std::optional<srs_configuration> srs_params = srs_configuration_get(c_srs, b_srs_0);
-  srsran_sanity_check(srs_params.has_value() and nof_ul_rbs >= srs_params.value().m_srs,
-                      "The SRS configuration is not valid");
+  ocudu_sanity_check(srs_params.has_value() and nof_ul_rbs >= srs_params.value().m_srs,
+                     "The SRS configuration is not valid");
 
   return (nof_ul_rbs - srs_params.value().m_srs) / 2;
 }
@@ -88,9 +88,9 @@ static bool is_partially_ul_slot(unsigned offset, const std::optional<tdd_ul_dl_
 // Helper that updates the starting SRS config with user-defined parameters.
 static srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
 {
-  srsran_assert(default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
-                    default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
-                "DU cell config is not valid");
+  ocudu_assert(default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
+                   default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
+               "DU cell config is not valid");
 
   // If the DU is not configured for periodic SRS, we don't need to update the SRS configuration.
   if (not default_cell_cfg.srs_cfg.srs_period.has_value()) {
@@ -99,8 +99,8 @@ static srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
 
   auto srs_cfg = default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
 
-  srsran_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
-                "The SRS resource list and the SRS resource set list are expected to have a single element");
+  ocudu_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
+               "The SRS resource list and the SRS resource set list are expected to have a single element");
 
   srs_config::srs_resource& res = srs_cfg.srs_res_list.back();
   res.res_type                  = srs_resource_type::periodic;
@@ -134,11 +134,11 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
 
     std::optional<unsigned> c_srs =
         compute_srs_bw_param(cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()).value();
-    srsran_assert(c_srs.has_value(), "SRS parameters didn't provide a valid C_SRS value");
+    ocudu_assert(c_srs.has_value(), "SRS parameters didn't provide a valid C_SRS value");
     cell.srs_common_params.c_srs = c_srs.value();
     std::optional<unsigned> freq_shift =
         compute_freq_shift(c_srs.value(), cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
-    srsran_assert(freq_shift.has_value(), "SRS parameters didn't provide a valid freq_shift value");
+    ocudu_assert(freq_shift.has_value(), "SRS parameters didn't provide a valid freq_shift value");
     cell.srs_common_params.freq_shift = freq_shift.value();
     cell.srs_common_params.p0         = cell.cell_cfg.srs_cfg.p0;
 
@@ -200,9 +200,9 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
   for (auto& cell_cfg_ded : cell_grp_cfg.cells) {
     const auto& ue_du_cell = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
 
-    srsran_assert(cell_cfg_ded.serv_cell_cfg.ul_config.has_value() and
-                      not cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value(),
-                  "UE UL config should be non-empty but with an empty SRS config");
+    ocudu_assert(cell_cfg_ded.serv_cell_cfg.ul_config.has_value() and
+                     not cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value(),
+                 "UE UL config should be non-empty but with an empty SRS config");
 
     cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
 
@@ -248,10 +248,10 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
 
     // Find the best resource ID and offset for this UE, according to the class policy.
     auto srs_res_id_offset = ue_du_cell.find_optimal_ue_srs_resource();
-    srsran_assert(srs_res_id_offset != free_srs_list.end(), "No SRS resource returned from a non-emtpy set");
+    ocudu_assert(srs_res_id_offset != free_srs_list.end(), "No SRS resource returned from a non-emtpy set");
 
     const auto& du_res_it = ue_du_cell.get_du_srs_res_cfg(srs_res_id_offset->first);
-    srsran_assert(du_res_it != ue_du_cell.cell_srs_res_list.end(), "The provided cell-ID is invalid");
+    ocudu_assert(du_res_it != ue_du_cell.cell_srs_res_list.end(), "The provided cell-ID is invalid");
 
     const auto& du_res = *du_res_it;
 
@@ -261,9 +261,9 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
     // NOTE: given that there is only 1 SRS resource per UE, we can assume that the SRS resource ID is 0.
     only_ue_srs_res.id.cell_res_id = du_res.cell_res_id;
     only_ue_srs_res.id.ue_res_id   = static_cast<srs_config::srs_res_id>(0U);
-    srsran_assert(ue_du_cell.cell_cfg.ul_carrier.nof_ant == 1 or ue_du_cell.cell_cfg.ul_carrier.nof_ant == 2 or
-                      ue_du_cell.cell_cfg.ul_carrier.nof_ant == 4,
-                  "The number of UL antenna ports is not valid");
+    ocudu_assert(ue_du_cell.cell_cfg.ul_carrier.nof_ant == 1 or ue_du_cell.cell_cfg.ul_carrier.nof_ant == 2 or
+                     ue_du_cell.cell_cfg.ul_carrier.nof_ant == 4,
+                 "The number of UL antenna ports is not valid");
     only_ue_srs_res.nof_ports                    = srs_config::srs_resource::nof_srs_ports::port1;
     only_ue_srs_res.tx_comb.size                 = ue_du_cell.cell_cfg.srs_cfg.tx_comb;
     only_ue_srs_res.tx_comb.tx_comb_offset       = du_res.tx_comb_offset.to_uint();
@@ -368,8 +368,8 @@ void du_srs_policy_max_ul_rate::dealloc_resources(cell_group_config& cell_grp_cf
       free_srs_list.emplace_back(srs_res.id.cell_res_id, offset_to_deallocate);
 
       // Update the used_not_full slot vector.gnb
-      srsran_assert(ue_du_cell.slot_resource_cnt[offset_to_deallocate] != 0,
-                    "The slot resource counter is expected to be non-zero");
+      ocudu_assert(ue_du_cell.slot_resource_cnt[offset_to_deallocate] != 0,
+                   "The slot resource counter is expected to be non-zero");
       --ue_du_cell.slot_resource_cnt[offset_to_deallocate];
     }
 

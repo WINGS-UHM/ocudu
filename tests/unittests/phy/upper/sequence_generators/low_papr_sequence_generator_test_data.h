@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 15-03-2024 (seed 0):
 //   + "srsLowPAPRSequenceUnittest.m"
 
-#include "srsran/phy/upper/sequence_generators/low_papr_sequence_generator.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_context {
   unsigned u;
@@ -154,4 +154,4 @@ static const std::vector<test_case_t> low_papr_sequence_generator_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

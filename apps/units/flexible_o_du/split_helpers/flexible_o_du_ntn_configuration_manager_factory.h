@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ntn/ntn_configuration_manager.h"
-#include "srsran/ntn/ntn_configuration_manager_config.h"
+#include "ocudu/ntn/ntn_configuration_manager.h"
+#include "ocudu/ntn/ntn_configuration_manager_config.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 class timer_manager;
@@ -22,10 +22,10 @@ class ru_controller;
 struct application_unit_commands;
 struct ntn_config;
 
-namespace srs_du {
+namespace odu {
 class du_configurator;
 class du_manager_time_mapper_accessor;
-} // namespace srs_du
+} // namespace odu
 
 /// NTN Configuration Manager factory interface.
 /// \param ntn_cfg  NTN Configuration Manager config.
@@ -37,10 +37,10 @@ class du_manager_time_mapper_accessor;
 /// \return True on success.
 std::unique_ptr<srs_ntn::ntn_configuration_manager>
 create_ntn_configuration_manager(const srs_ntn::ntn_configuration_manager_config& ntn_cfg,
-                                 srs_du::du_configurator&                         du_cfgtr,
-                                 srs_du::du_manager_time_mapper_accessor&         du_time_mapper_accessor,
+                                 odu::du_configurator&                            du_cfgtr,
+                                 odu::du_manager_time_mapper_accessor&            du_time_mapper_accessor,
                                  ru_controller&                                   ru_ctrl,
                                  timer_manager&                                   timers,
                                  task_executor&                                   timer_exec);
 
-} // namespace srsran
+} // namespace ocudu

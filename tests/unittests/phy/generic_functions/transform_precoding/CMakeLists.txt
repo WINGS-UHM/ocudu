@@ -13,10 +13,10 @@ if (USE_PHY_TESTVECTORS)
 
     target_link_libraries(
             transform_precoder_vectortest
-            srsran_transform_precoding
-            srsran_dft
-            srslog
-            srsvec
+            ocudu_transform_precoding
+            ocudu_dft
+            ocudulog
+            ocuduvec
             gtest
             gtest_main)
 

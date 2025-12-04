@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/cu_cp/du_processor_context.h"
-#include "srsran/f1ap/cu_cp/du_setup_notifier.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
-#include "srsran/ran/gnb_du_id.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/cu_cp/du_processor_context.h"
+#include "ocudu/f1ap/cu_cp/du_setup_notifier.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/ran/gnb_du_id.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Current configuration of the DU being managed by the CU-CP.
 struct du_configuration_context {
@@ -54,7 +54,7 @@ public:
   /// Getter for the current DU configuration.
   const du_configuration_context& get_context() const
   {
-    srsran_assert(ctxt != nullptr, "bad access to DU configuration context");
+    ocudu_assert(ctxt != nullptr, "bad access to DU configuration context");
     return *ctxt;
   }
 
@@ -71,5 +71,5 @@ protected:
   const du_configuration_context* ctxt = nullptr;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

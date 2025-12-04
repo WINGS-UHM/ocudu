@@ -9,4 +9,4 @@
 set_directory_properties(PROPERTIES LABELS "ofh")
 
 add_executable(ofh_compression_benchmark ofh_compression_benchmark.cpp)
-target_link_libraries(ofh_compression_benchmark srslog srsran_ofh_compression)
+target_link_libraries(ofh_compression_benchmark ocudulog ocudu_ofh_compression)

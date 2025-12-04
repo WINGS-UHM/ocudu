@@ -13,18 +13,18 @@
 #include "../../resource_request_pool.h"
 #include "pdxch_baseband_modulator.h"
 #include "pdxch_processor_modulator_notifier.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller.h"
-#include "srsran/phy/lower/modulation/ofdm_modulator.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
-#include "srsran/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
-#include "srsran/phy/lower/processors/lower_phy_center_freq_controller.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
+#include "ocudu/phy/lower/modulation/ofdm_modulator.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_baseband.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_notifier.h"
+#include "ocudu/phy/lower/processors/downlink/pdxch/pdxch_processor_request_handler.h"
+#include "ocudu/phy/lower/processors/lower_phy_center_freq_controller.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Implements a PDxCH baseband processor.
 ///
@@ -54,7 +54,7 @@ public:
                        std::unique_ptr<amplitude_controller>  amplitude_control,
                        task_executor&                         executor,
                        const configuration&                   config) :
-    logger(srslog::fetch_basic_logger("PHY")),
+    logger(ocudulog::fetch_basic_logger("PHY")),
     bb_buffers(buffer_request_pool::request_array_size + max_slot_modulation_concurrency + 1,
                config.nof_tx_ports,
                config.srate.to_kHz()),
@@ -124,7 +124,7 @@ private:
   void on_modulation_completion(pdxch_processor_baseband::slot_result result, resource_grid_context context) override;
 
   /// Physical layer logger. Used for logging errors when the number of buffers are exhausted or a modulator is busy.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Set to true when upper layers request to stop. The PDxCH processor does not accept more calls
   std::atomic<bool> stopped = false;
   /// Physical channel baseband processor event notifier.
@@ -141,4 +141,4 @@ private:
   buffer_request_pool requests;
 };
 
-} // namespace srsran
+} // namespace ocudu

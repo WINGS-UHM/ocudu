@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_sdr_unit_config;
 
 /// Fills the given node with the SDR RU configuration values.
 void fill_ru_sdr_config_in_yaml_schema(YAML::Node& node, const ru_sdr_unit_config& config);
 
-} // namespace srsran
+} // namespace ocudu

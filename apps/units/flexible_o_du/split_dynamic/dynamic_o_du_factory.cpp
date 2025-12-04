@@ -13,9 +13,9 @@
 #include "apps/units/flexible_o_du/split_7_2/helpers/ru_ofh_factories.h"
 #include "apps/units/flexible_o_du/split_8/helpers/ru_sdr_factories.h"
 #include "dynamic_o_du_translators.h"
-#include "srsran/ru/dummy/ru_dummy_factory.h"
+#include "ocudu/ru/dummy/ru_dummy_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static flexible_o_du_unit_config::ru_config
 generate_ru_config(const std::variant<ru_sdr_unit_config, ru_ofh_unit_parsed_config, ru_dummy_unit_config>& ru_cfg)
@@ -48,7 +48,7 @@ static std::unique_ptr<radio_unit> create_dummy_radio_unit(const ru_dummy_unit_c
                                                            const flexible_o_du_ru_dependencies& ru_dependencies)
 {
   ru_dummy_dependencies dependencies{
-      .logger          = srslog::fetch_basic_logger("RU", true),
+      .logger          = ocudulog::fetch_basic_logger("RU", true),
       .executor        = &ru_dependencies.workers.get_dummy_ru_executor_mapper().common_executor(),
       .symbol_notifier = ru_dependencies.symbol_notifier,
       .timing_notifier = ru_dependencies.timing_notifier,

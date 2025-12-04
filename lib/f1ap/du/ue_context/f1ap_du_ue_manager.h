@@ -11,12 +11,12 @@
 #pragma once
 
 #include "f1ap_du_ue.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
 #include <mutex>
 #include <unordered_map>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Stores the list of UE contexts currently registered in the F1AP-DU.
 class f1ap_du_ue_manager
@@ -35,8 +35,8 @@ public:
 
   f1ap_du_ue& add_ue(du_ue_index_t ue_index)
   {
-    srsran_sanity_check(f1ap_msg_notifier != nullptr, "Creating a UE before a connection to the CU-CP is established");
-    srsran_assert(not ues.contains(ue_index), "Duplicate ueId={} detected", fmt::underlying(ue_index));
+    ocudu_sanity_check(f1ap_msg_notifier != nullptr, "Creating a UE before a connection to the CU-CP is established");
+    ocudu_assert(not ues.contains(ue_index), "Duplicate ueId={} detected", fmt::underlying(ue_index));
 
     gnb_du_ue_f1ap_id_t f1ap_id = static_cast<gnb_du_ue_f1ap_id_t>(next_gnb_f1ap_du_ue_id++);
     ues.emplace(ue_index,
@@ -123,5 +123,5 @@ private:
   std::unordered_map<gnb_du_ue_f1ap_id_t, du_ue_index_t> f1ap_ue_id_to_du_ue_id_map;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

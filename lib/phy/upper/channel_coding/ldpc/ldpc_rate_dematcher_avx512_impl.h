@@ -12,7 +12,7 @@
 
 #include "ldpc_rate_dematcher_impl.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief LDPC Rate dematcher specialized with AVX512 instruction set.
 ///
@@ -38,4 +38,4 @@ protected:
   void deinterleave_qam256(span<log_likelihood_ratio> out, span<const log_likelihood_ratio> in) const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -11,12 +11,12 @@
 #pragma once
 
 #include "apps/helpers/network/udp_appconfig.h"
-#include "srsran/gtpu/gtpu_config.h"
-#include "srsran/ran/qos/five_qi.h"
-#include "srsran/ran/s_nssai.h"
+#include "ocudu/gtpu/gtpu_config.h"
+#include "ocudu/ran/qos/five_qi.h"
+#include "ocudu/ran/s_nssai.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// F1-U sockets configuration.
 struct f1u_socket_appconfig {
@@ -39,4 +39,4 @@ struct f1u_sockets_appconfig {
   std::vector<f1u_socket_appconfig> f1u_socket_cfg;
 };
 
-} // namespace srsran
+} // namespace ocudu

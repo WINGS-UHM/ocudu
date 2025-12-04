@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../ue_context/ngap_ue_context.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/ngap/ngap_nas.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/ngap/ngap_nas.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ngap_dl_nas_message_transfer_procedure
 {
@@ -41,5 +41,5 @@ private:
   ngap_ue_logger&                              logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "polar_interleaver_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 const std::array<uint8_t, polar_interleaver_impl::K_MAX_IL> polar_interleaver_impl::pattern = {
     0,   2,   4,   7,   9,   14,  19,  20,  24,  25,  26,  28,  31,  34,  42,  45,  49,  50,  51,  53,  54,
@@ -26,7 +26,7 @@ void polar_interleaver_impl::interleave(span<uint8_t>               out,
                                         span<const uint8_t>         in,
                                         polar_interleaver_direction direction)
 {
-  srsran_assert(in.size() == out.size(), "Input and output span sizes must be identical");
+  ocudu_assert(in.size() == out.size(), "Input and output span sizes must be identical");
   unsigned K = in.size();
 
   uint32_t k = 0;

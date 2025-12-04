@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/lower/lower_phy_rx_symbol_context.h"
-#include "srsran/phy/lower/lower_phy_rx_symbol_notifier.h"
-#include "srsran/ru/ru_uplink_plane.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_context.h"
+#include "ocudu/phy/lower/lower_phy_rx_symbol_notifier.h"
+#include "ocudu/ru/ru_uplink_plane.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a lower physical layer to Radio Unit receive symbol adapter.
 class ru_lower_phy_rx_symbol_adapter : public lower_phy_rx_symbol_notifier
@@ -45,4 +45,4 @@ private:
   ru_uplink_plane_rx_symbol_notifier& rx_symbol_handler;
 };
 
-} // namespace srsran
+} // namespace ocudu

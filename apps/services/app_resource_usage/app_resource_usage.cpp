@@ -14,18 +14,18 @@
 #include "apps/services/app_resource_usage/metrics/app_resource_usage_metrics_consumer.h"
 #include "apps/services/app_resource_usage/metrics/app_resource_usage_metrics_producer.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 using namespace resource_usage_utils;
 
 app_resource_usage::app_resource_usage(std::unique_ptr<energy_consumption_reader> energy_reader_) :
   energy_reader(std::move(energy_reader_))
 {
-  srsran_assert(energy_reader, "Invalid energy consumption reader passed");
+  ocudu_assert(energy_reader, "Invalid energy consumption reader passed");
 
   auto cpu_snapshot = cpu_usage_now(rusage_measurement_type::PROCESS);
   if (!cpu_snapshot) {
-    srslog::fetch_basic_logger("METRICS").warning(
+    ocudulog::fetch_basic_logger("METRICS").warning(
         "Application resource usage service failed to query current resource usage, errno={}", cpu_snapshot.error());
   } else {
     last_snapshot->cpu_usage    = cpu_snapshot.value();
@@ -37,7 +37,7 @@ resource_usage_metrics app_resource_usage::get_new_metrics()
 {
   auto current_cpu_snapshot = cpu_usage_now(rusage_measurement_type::PROCESS);
   if (!current_cpu_snapshot) {
-    srslog::fetch_basic_logger("METRICS").warning(
+    ocudulog::fetch_basic_logger("METRICS").warning(
         "Application resource usage service failed to query current resource usage, errno={}",
         current_cpu_snapshot.error());
     return {};
@@ -106,7 +106,7 @@ energy_snapshot app_resource_usage::energy_usage_now()
 app_resource_usage_service
 app_services::build_app_resource_usage_service(app_services::metrics_notifier&  metrics_notifier,
                                                const app_resource_usage_config& config,
-                                               srslog::basic_logger&            logger)
+                                               ocudulog::basic_logger&          logger)
 {
   app_resource_usage_service app_res_usage;
   if (!config.enable_app_usage) {

@@ -19,5 +19,5 @@ set(SOURCES
         f1ap_du_positioning_procedures.cpp
 )
 
-add_library(srsran_f1ap_du_procedures STATIC ${SOURCES})
-target_link_libraries(srsran_f1ap_du_procedures srsran_f1ap_common srsran_f1ap_du_helpers f1ap_asn1)
+add_library(ocudu_f1ap_du_procedures STATIC ${SOURCES})
+target_link_libraries(ocudu_f1ap_du_procedures ocudu_f1ap_common ocudu_f1ap_du_helpers f1ap_asn1)

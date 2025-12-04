@@ -12,7 +12,7 @@
 
 #include "ofh_uplane_message_builder_impl.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class iq_compressor;
@@ -22,7 +22,7 @@ class network_order_binary_serializer;
 class ofh_uplane_message_builder_static_compression_impl : public uplane_message_builder_impl
 {
 public:
-  ofh_uplane_message_builder_static_compression_impl(srslog::basic_logger& logger_, iq_compressor& compressor_) :
+  ofh_uplane_message_builder_static_compression_impl(ocudulog::basic_logger& logger_, iq_compressor& compressor_) :
     uplane_message_builder_impl(logger_, compressor_)
   {
   }
@@ -37,4 +37,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

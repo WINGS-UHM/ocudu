@@ -8,13 +8,13 @@
  *
  */
 
-#include "srsran/phy/support/rb_allocation.h"
-#include "srsran/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/phy/support/rb_allocation.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-rb_allocation srsran::rb_allocation::make_type0(const vrb_bitmap&                               vrb_bitmap,
-                                                const std::optional<vrb_to_prb::configuration>& vrb_to_prb_config)
+rb_allocation ocudu::rb_allocation::make_type0(const vrb_bitmap&                               vrb_bitmap,
+                                               const std::optional<vrb_to_prb::configuration>& vrb_to_prb_config)
 {
   rb_allocation result;
 
@@ -26,9 +26,9 @@ rb_allocation srsran::rb_allocation::make_type0(const vrb_bitmap&               
   return result;
 }
 
-rb_allocation srsran::rb_allocation::make_type1(unsigned                                        rb_start,
-                                                unsigned                                        rb_count,
-                                                const std::optional<vrb_to_prb::configuration>& vrb_to_prb_config)
+rb_allocation ocudu::rb_allocation::make_type1(unsigned                                        rb_start,
+                                               unsigned                                        rb_count,
+                                               const std::optional<vrb_to_prb::configuration>& vrb_to_prb_config)
 {
   rb_allocation result;
 
@@ -41,8 +41,8 @@ rb_allocation srsran::rb_allocation::make_type1(unsigned                        
   return result;
 }
 
-rb_allocation srsran::rb_allocation::make_custom(std::initializer_list<const unsigned>           vrb_indexes,
-                                                 const std::optional<vrb_to_prb::configuration>& vrb_to_prb_config)
+rb_allocation ocudu::rb_allocation::make_custom(std::initializer_list<const unsigned>           vrb_indexes,
+                                                const std::optional<vrb_to_prb::configuration>& vrb_to_prb_config)
 {
   rb_allocation result;
 
@@ -63,11 +63,11 @@ rb_allocation srsran::rb_allocation::make_custom(std::initializer_list<const uns
 
 crb_bitmap rb_allocation::get_crb_mask(unsigned bwp_start_rb, unsigned bwp_size_rb) const
 {
-  srsran_assert(is_bwp_valid(bwp_start_rb, bwp_size_rb),
-                "Invalid BWP configuration {}:{} for a VRB mask of size {}.",
-                bwp_start_rb,
-                bwp_size_rb,
-                vrb_mask.size());
+  ocudu_assert(is_bwp_valid(bwp_start_rb, bwp_size_rb),
+               "Invalid BWP configuration {}:{} for a VRB mask of size {}.",
+               bwp_start_rb,
+               bwp_size_rb,
+               vrb_mask.size());
 
   if (vrb_to_prb_config.is_interleaved()) {
     vrb_to_prb::interleaved_mapping map(vrb_to_prb_config);
@@ -79,11 +79,11 @@ crb_bitmap rb_allocation::get_crb_mask(unsigned bwp_start_rb, unsigned bwp_size_
 
 static_vector<uint16_t, MAX_NOF_PRBS> rb_allocation::get_crb_indices(unsigned bwp_start_rb, unsigned bwp_size_rb) const
 {
-  srsran_assert(is_bwp_valid(bwp_start_rb, bwp_size_rb),
-                "Invalid BWP configuration {}:{} for a VRB mask of size {}.",
-                bwp_start_rb,
-                bwp_size_rb,
-                vrb_mask.size());
+  ocudu_assert(is_bwp_valid(bwp_start_rb, bwp_size_rb),
+               "Invalid BWP configuration {}:{} for a VRB mask of size {}.",
+               bwp_start_rb,
+               bwp_size_rb,
+               vrb_mask.size());
 
   if (vrb_to_prb_config.is_interleaved()) {
     vrb_to_prb::interleaved_mapping map(vrb_to_prb_config);

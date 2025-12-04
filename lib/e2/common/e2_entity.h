@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/e2/e2_agent_dependencies.h"
-#include "srsran/e2/e2ap_configuration.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/e2/subscription/e2_subscription.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/e2/e2_agent_dependencies.h"
+#include "ocudu/e2/e2ap_configuration.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/e2/subscription/e2_subscription.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Wrapper for the E2 interface that puts function calls into its own task executor
 class e2_entity final : public e2_agent
@@ -32,7 +32,7 @@ public:
   void on_e2_disconnection() override;
 
 private:
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
   const e2ap_configuration cfg;
 
   // Handler for E2AP tasks.
@@ -45,4 +45,4 @@ private:
   std::vector<std::unique_ptr<e2sm_handler>> e2sm_handlers;
 };
 
-} // namespace srsran
+} // namespace ocudu

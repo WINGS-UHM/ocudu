@@ -13,7 +13,7 @@
 #include "du_ran_resource_manager.h"
 #include "du_ue_resource_config.h"
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 /// Handler of allocation of RA preambles for Contention-free Random Access (CFRA).
 class ra_resource_manager
@@ -36,4 +36,4 @@ private:
   std::vector<cell_ra_context> cells;
 };
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

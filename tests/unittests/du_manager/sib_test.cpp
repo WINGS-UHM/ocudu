@@ -9,13 +9,13 @@
  */
 
 #include "lib/du/du_high/du_manager/converters/asn1_sys_info_packer.h"
-#include "srsran/asn1/rrc_nr/sys_info.h"
-#include "srsran/ran/sib/system_info_config.h"
+#include "ocudu/asn1/rrc_nr/sys_info.h"
+#include "ocudu/ran/sib/system_info_config.h"
 #include <gtest/gtest.h>
 #include <string>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 TEST(srs_sib19_test, make_asn1_rrc_cell_sib19_buffer)
 {
@@ -42,8 +42,8 @@ TEST(srs_sib19_test, make_asn1_rrc_cell_sib19_buffer)
   // Decode the buffer to verify its contents
   asn1::cbit_ref            bref(buf);
   asn1::rrc_nr::sib19_r17_s sib19_decoded;
-  asn1::SRSASN_CODE         ret = sib19_decoded.unpack(bref);
-  EXPECT_EQ(ret, asn1::SRSASN_SUCCESS);
+  asn1::OCUDUASN_CODE       ret = sib19_decoded.unpack(bref);
+  EXPECT_EQ(ret, asn1::OCUDUASN_SUCCESS);
 
   // Check that the decoded SIB19 matches the SIB19 configuration used in the test
   EXPECT_TRUE(sib19_decoded.ntn_cfg_r17_present);

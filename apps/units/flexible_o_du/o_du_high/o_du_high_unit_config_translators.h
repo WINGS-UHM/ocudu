@@ -15,7 +15,7 @@
 #include "fapi/fapi_config_translator.h"
 #include "o_du_high_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Fills the O-RAN DU high worker manager parameters of the given worker manager configuration.
 inline void fill_o_du_high_worker_manager_config(worker_manager_config&       config,
@@ -27,4 +27,4 @@ inline void fill_o_du_high_worker_manager_config(worker_manager_config&       co
   fill_o_du_high_e2_worker_manager_config(config, unit_cfg.e2_cfg);
 }
 
-} // namespace srsran
+} // namespace ocudu

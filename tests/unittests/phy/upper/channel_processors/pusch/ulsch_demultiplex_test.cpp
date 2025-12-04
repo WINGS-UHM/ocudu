@@ -10,13 +10,13 @@
 
 #include "pusch_decoder_buffer_test_doubles.h"
 #include "ulsch_demultiplex_test_data.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const ulsch_demultiplex::configuration& config)
 {
@@ -53,12 +53,12 @@ std::ostream& operator<<(std::ostream& os, span<const uint16_t> data)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-using namespace srsran;
+using namespace ocudu;
 
 template <>
-struct fmt::formatter<srsran::ulsch_demultiplex::configuration> : ostream_formatter {};
+struct fmt::formatter<ocudu::ulsch_demultiplex::configuration> : ostream_formatter {};
 
 namespace {
 class UlschDemultiplexFixture : public ::testing::TestWithParam<test_case_t>
@@ -98,7 +98,7 @@ TEST_P(UlschDemultiplexFixture, AllFromVector)
 
   // Pack scrambling sequence.
   dynamic_bit_buffer scrambling_seq(unpacked_scrambling_seq.size());
-  srsvec::bit_pack(scrambling_seq, unpacked_scrambling_seq);
+  ocuduvec::bit_pack(scrambling_seq, unpacked_scrambling_seq);
 
   // Load SCH Data output.
   std::vector<log_likelihood_ratio> expected_sch_data = test_case.output_ulsch.read();

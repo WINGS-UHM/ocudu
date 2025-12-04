@@ -10,11 +10,11 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srsran::srs_du;
+using namespace ocudu;
+using namespace ocudu::odu;
 
 class f1ap_du_dl_rrc_message_transfer_test : public f1ap_du_test
 {

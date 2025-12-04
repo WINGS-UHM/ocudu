@@ -13,7 +13,7 @@
 #include "../ofh_uplane_rx_symbol_notifier_test_doubles.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace ofh::testing;
 
@@ -36,7 +36,7 @@ TEST(ofh_data_flow_uplane_rx_symbol_notifier, empty_context_does_not_notify)
 {
   auto                                notifier = std::make_shared<uplane_rx_symbol_notifier_spy>();
   auto                                repo     = std::make_shared<uplink_context_repository>(1);
-  uplane_rx_symbol_data_flow_notifier sender(srslog::fetch_basic_logger("TEST"), repo, notifier);
+  uplane_rx_symbol_data_flow_notifier sender(ocudulog::fetch_basic_logger("TEST"), repo, notifier);
   slot_point                          slot(0, 0, 1);
   unsigned                            symbol = 0;
 
@@ -51,12 +51,12 @@ TEST(ofh_data_flow_uplane_rx_symbol_notifier, unwritten_grid_does_not_notify)
 {
   auto                                notifier = std::make_shared<uplane_rx_symbol_notifier_spy>();
   auto                                repo     = std::make_shared<uplink_context_repository>(1);
-  uplane_rx_symbol_data_flow_notifier sender(srslog::fetch_basic_logger("TEST"), repo, notifier);
+  uplane_rx_symbol_data_flow_notifier sender(ocudulog::fetch_basic_logger("TEST"), repo, notifier);
   slot_point                          slot(0, 0, 1);
   unsigned                            symbol = 0;
   unsigned                            sector = 0;
 
-  repo->add({slot, sector}, get_resource_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({slot, sector}, get_resource_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   sender.notify_received_symbol(slot, symbol);
 
@@ -69,13 +69,13 @@ TEST(ofh_data_flow_uplane_rx_symbol_notifier, completed_resource_grid_triggers_n
 {
   auto                                notifier = std::make_shared<uplane_rx_symbol_notifier_spy>();
   auto                                repo     = std::make_shared<uplink_context_repository>(1);
-  uplane_rx_symbol_data_flow_notifier sender(srslog::fetch_basic_logger("TEST"), repo, notifier);
+  uplane_rx_symbol_data_flow_notifier sender(ocudulog::fetch_basic_logger("TEST"), repo, notifier);
   slot_point                          slot(0, 0, 1);
   unsigned                            symbol = 0;
   unsigned                            sector = 0;
 
   std::vector<cbf16_t> samples(nof_prb * NOF_SUBCARRIERS_PER_RB);
-  repo->add({slot, sector}, get_resource_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({slot, sector}, get_resource_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
   ASSERT_FALSE(repo->get(slot, symbol).empty());
 
@@ -98,13 +98,13 @@ TEST(ofh_data_flow_uplane_rx_symbol_notifier, uncompleted_port_does_not_notify)
 {
   auto                                notifier = std::make_shared<uplane_rx_symbol_notifier_spy>();
   auto                                repo     = std::make_shared<uplink_context_repository>(1);
-  uplane_rx_symbol_data_flow_notifier sender(srslog::fetch_basic_logger("TEST"), repo, notifier);
+  uplane_rx_symbol_data_flow_notifier sender(ocudulog::fetch_basic_logger("TEST"), repo, notifier);
   slot_point                          slot(0, 0, 1);
   unsigned                            symbol = 0;
   unsigned                            sector = 0;
 
   std::vector<cbf16_t> samples(nof_prb * NOF_SUBCARRIERS_PER_RB);
-  repo->add({slot, sector}, get_resource_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({slot, sector}, get_resource_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
 
   // Fill the grid.
@@ -121,13 +121,13 @@ TEST(ofh_data_flow_uplane_rx_symbol_notifier, uncompleted_prbs_does_not_notify)
 {
   auto                                notifier = std::make_shared<uplane_rx_symbol_notifier_spy>();
   auto                                repo     = std::make_shared<uplink_context_repository>(1);
-  uplane_rx_symbol_data_flow_notifier sender(srslog::fetch_basic_logger("TEST"), repo, notifier);
+  uplane_rx_symbol_data_flow_notifier sender(ocudulog::fetch_basic_logger("TEST"), repo, notifier);
   slot_point                          slot(0, 0, 1);
   unsigned                            symbol = 0;
   unsigned                            sector = 0;
 
   std::vector<cbf16_t> samples(nof_prb * NOF_SUBCARRIERS_PER_RB);
-  repo->add({slot, sector}, get_resource_grid(), symbol_range, srslog::fetch_basic_logger("TEST"));
+  repo->add({slot, sector}, get_resource_grid(), symbol_range, ocudulog::fetch_basic_logger("TEST"));
   repo->process_pending_contexts();
 
   // Fill the grid.

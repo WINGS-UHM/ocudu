@@ -6,28 +6,28 @@
 # the distribution.
 #
 
-add_executable(srscucp
+add_executable(ocucp
         cu_cp.cpp
         cu_cp_appconfig_cli11_schema.cpp
 )
 
-install(TARGETS srscucp
+install(TARGETS ocucp
         RUNTIME)
 
-target_link_libraries(srscucp PRIVATE
-        srsran_app_helpers
-        srsran_app_services
-        srsran_e1_gateway
-        srsran_e2
-        srsran_f1c_gateway
-        srsran_ngap
-        srsran_o_cu_cp_app_unit
-        srsran_pcap
-        srsran_support
-        srsran_versioning
+target_link_libraries(ocucp PRIVATE
+        ocudu_app_helpers
+        ocudu_app_services
+        ocudu_e1_gateway
+        ocudu_e2
+        ocudu_f1c_gateway
+        ocudu_ngap
+        ocudu_o_cu_cp_app_unit
+        ocudu_pcap
+        ocudu_support
+        ocudu_versioning
 )
 
-add_backward(srscucp)
+add_backward(ocucp)
 
-target_include_directories(srscucp PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/external)
-notify_binary_target(srscucp)
+target_include_directories(ocucp PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/external)
+notify_binary_target(ocucp)

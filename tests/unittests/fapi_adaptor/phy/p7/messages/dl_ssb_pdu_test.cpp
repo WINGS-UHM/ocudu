@@ -9,14 +9,14 @@
  */
 
 #include "ssb.h"
-#include "srsran/fapi/message_builders.h"
-#include "srsran/ran/ssb/pbch_mib_pack.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/compare.h"
+#include "ocudu/fapi/message_builders.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ran/ssb/pbch_mib_pack.h"
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 static std::mt19937 gen(0);
@@ -130,10 +130,10 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               ASSERT_EQ(pdu.subcarrier_offset.to_uint(), ssb_subcarrier_offset);
               ASSERT_EQ(pdu.offset_to_pointA.to_uint(), offset_pointA);
               ASSERT_EQ(pdu.pattern_case, pattern_case);
-              ASSERT_TRUE(srsvec::equal(pdu.ports, std::vector<uint8_t>{0}));
+              ASSERT_TRUE(ocuduvec::equal(pdu.ports, std::vector<uint8_t>{0}));
 
               std::array<uint8_t, ssb_processor::MIB_PAYLOAD_SIZE> dest;
-              srsvec::bit_unpack(dest, mib_payload, dest.size());
+              ocuduvec::bit_unpack(dest, mib_payload, dest.size());
               ASSERT_EQ(pdu.mib_payload, dest);
             }
           }

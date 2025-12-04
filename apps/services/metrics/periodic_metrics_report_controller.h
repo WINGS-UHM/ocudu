@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "include/srsran/support/srsran_assert.h"
-#include "include/srsran/support/timers.h"
+#include "include/ocudu/support/ocudu_assert.h"
+#include "include/ocudu/support/timers.h"
 #include "metrics_producer.h"
-#include "srsran/support/executors/execute_until_success.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/support/executors/execute_until_success.h"
+#include "ocudu/support/synchronization/sync_event.h"
 
-namespace srsran {
+namespace ocudu {
 namespace app_services {
 
 /// This controller class uses unique timer and triggers new metrics generation by the registered producers based on a
@@ -35,7 +35,7 @@ public:
     report_period(report_period_),
     producers(std::move(producers_))
   {
-    srsran_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
+    ocudu_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
     timer.set(report_period, [this](timer_id_t tid) { report_metrics(); });
   }
 
@@ -72,7 +72,7 @@ private:
   {
     auto token = stop_manager.get_token();
     // Do not rearm the timer and process metrics if stop was requested.
-    if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+    if (OCUDU_UNLIKELY(token.is_stop_requested())) {
       return;
     }
 
@@ -99,4 +99,4 @@ private:
 };
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

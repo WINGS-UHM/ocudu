@@ -16,17 +16,17 @@
 #include "pusch_demodulator_test_doubles.h"
 #include "pusch_processor_result_test_doubles.h"
 #include "ulsch_demultiplex_test_doubles.h"
-#include "srsran/phy/upper/channel_processors/pusch/factories.h"
-#include "srsran/ran/pusch/ulsch_info.h"
-#include "srsran/ran/sch/sch_dmrs_power.h"
-#include "srsran/srsvec/compare.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/sch/sch_dmrs_power.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 std::ostream& operator<<(std::ostream& os, subcarrier_spacing value)
 {
   fmt::print(os, "{}", to_string(value));
@@ -59,10 +59,10 @@ std::ostream& operator<<(std::ostream& os, uci_status value)
 
 static bool operator==(span<const log_likelihood_ratio> left, span<const log_likelihood_ratio> right)
 {
-  return srsvec::equal(left, right);
+  return ocuduvec::equal(left, right);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace {
 
@@ -82,7 +82,8 @@ protected:
     std::string filename(log_filename);
 
     // Set up logging.
-    srslog::sink* log_sink = (filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(filename);
+    ocudulog::sink* log_sink =
+        (filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(filename);
 
     if (log_sink == nullptr) {
       report_error("Could not create application main log sink.\n");
@@ -114,15 +115,15 @@ protected:
         create_pusch_processor_factory_sw(proc_factory_config);
 
     // Initialise logging.
-    srslog::set_default_sink(*log_sink);
-    srslog::init();
+    ocudulog::set_default_sink(*log_sink);
+    ocudulog::init();
 
-    srslog::basic_logger& debug_logger = srslog::fetch_basic_logger(debug_logger_id, false);
-    debug_logger.set_level(srslog::basic_levels::debug);
+    ocudulog::basic_logger& debug_logger = ocudulog::fetch_basic_logger(debug_logger_id, false);
+    debug_logger.set_level(ocudulog::basic_levels::debug);
     debug_logger.set_hex_dump_max_size(log_max_hex_dump);
 
-    srslog::basic_logger& info_logger = srslog::fetch_basic_logger(info_logger_id, false);
-    info_logger.set_level(srslog::basic_levels::info);
+    ocudulog::basic_logger& info_logger = ocudulog::fetch_basic_logger(info_logger_id, false);
+    info_logger.set_level(ocudulog::basic_levels::info);
     info_logger.set_hex_dump_max_size(log_max_hex_dump);
 
     // Create actual PUSCH processors.
@@ -218,7 +219,7 @@ protected:
   void TearDown() override
   {
     // Make sure the log is flushed before the next test starts.
-    srslog::flush();
+    ocudulog::flush();
   }
 
   static constexpr const char* log_filename     = "/dev/null";

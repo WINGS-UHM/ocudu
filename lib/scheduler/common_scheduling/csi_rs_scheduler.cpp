@@ -9,9 +9,9 @@
  */
 
 #include "csi_rs_scheduler.h"
-#include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
+#include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void fill_csi_rs_info_res_map(csi_rs_info& csi_rs, const csi_rs_resource_mapping& res_map)
 {
@@ -19,7 +19,7 @@ static void fill_csi_rs_info_res_map(csi_rs_info& csi_rs, const csi_rs_resource_
   csi_rs.freq_domain = res_map.fd_alloc;
   csi_rs.row         = csi_rs::get_csi_rs_resource_mapping_row_number(
       res_map.nof_ports, res_map.freq_density, res_map.cdm, res_map.fd_alloc);
-  srsran_assert(csi_rs.row > 0, "The CSI-RS configuration resulted in an invalid row of Table 7.4.1.5.3-1, TS 38.211");
+  ocudu_assert(csi_rs.row > 0, "The CSI-RS configuration resulted in an invalid row of Table 7.4.1.5.3-1, TS 38.211");
 
   csi_rs.symbol0      = res_map.first_ofdm_symbol_in_td;
   csi_rs.symbol1      = res_map.first_ofdm_symbol_in_td2.has_value() ? *res_map.first_ofdm_symbol_in_td2 : 2;

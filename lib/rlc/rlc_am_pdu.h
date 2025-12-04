@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/rlc/rlc_config.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/rlc/rlc_config.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 #include "fmt/format.h"
 
-namespace srsran {
+namespace ocudu {
 
 const uint32_t INVALID_RLC_SN         = 0xffffffff; ///< Reserved number representing an invalid RLC sequence number
 const uint32_t RETX_COUNT_NOT_STARTED = 0xffffffff; ///< Reserved number representing that RETX has not started
@@ -41,8 +41,8 @@ constexpr size_t rlc_am_pdu_header_min_size(rlc_am_sn_size sn_size)
     case rlc_am_sn_size::size18bits:
       return rlc_am_pdu_header_min_size_18bit;
   }
-  srsran_assertion_failure("Cannot determine RLC AM PDU header minimum size: unsupported sn_size={}.",
-                           to_number(sn_size));
+  ocudu_assertion_failure("Cannot determine RLC AM PDU header minimum size: unsupported sn_size={}.",
+                          to_number(sn_size));
   return rlc_am_pdu_header_min_size_12bit;
 }
 constexpr size_t rlc_am_pdu_header_max_size(rlc_am_sn_size sn_size)
@@ -52,8 +52,8 @@ constexpr size_t rlc_am_pdu_header_max_size(rlc_am_sn_size sn_size)
     case rlc_am_sn_size::size18bits:
       return rlc_am_pdu_header_min_size(sn_size) + rlc_am_pdu_header_so_size;
   }
-  srsran_assertion_failure("Cannot determine RLC AM PDU header maximum size: unsupported sn_size={}.",
-                           to_number(sn_size));
+  ocudu_assertion_failure("Cannot determine RLC AM PDU header maximum size: unsupported sn_size={}.",
+                          to_number(sn_size));
   return rlc_am_pdu_header_min_size_12bit + rlc_am_pdu_header_so_size;
 }
 
@@ -182,7 +182,7 @@ rlc_am_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_am_sn_size sn
 {
   byte_buffer_reader pdu_reader = pdu;
   if (pdu_reader.length() <= rlc_am_pdu_header_min_size(sn_size)) {
-    srslog::fetch_basic_logger("RLC").warning(
+    ocudulog::fetch_basic_logger("RLC").warning(
         "AMD PDU too small. pdu_len={} hdr_len={}", pdu.length(), rlc_am_pdu_header_min_size(sn_size));
     return false;
   }
@@ -198,7 +198,7 @@ rlc_am_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_am_sn_size sn
     header->sn = (*pdu_reader & 0x0fU) << 8U; // first 4 bits SN
     ++pdu_reader;
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SN.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SN.");
       return false;
     }
     header->sn |= (*pdu_reader & 0xffU); // last 8 bits SN
@@ -206,25 +206,25 @@ rlc_am_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_am_sn_size sn
   } else if (sn_size == rlc_am_sn_size::size18bits) {
     // sanity check
     if ((*pdu_reader & 0x0cU) != 0) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, reserved bits are set.");
       return false;
     }
     header->sn = (*pdu_reader & 0x03U) << 16U; // first 4 bits SN
     ++pdu_reader;
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing center byte of SN.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing center byte of SN.");
       return false;
     }
     header->sn |= (*pdu_reader & 0xffU) << 8U; // bit 2-10 of SN
     ++pdu_reader;
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SN.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SN.");
       return false;
     }
     header->sn |= (*pdu_reader & 0xffU); // last 8 bits SN
     ++pdu_reader;
   } else {
-    srslog::fetch_basic_logger("RLC").error("Unsupported sn_size={}.", to_number(sn_size));
+    ocudulog::fetch_basic_logger("RLC").error("Unsupported sn_size={}.", to_number(sn_size));
     return false;
   }
 
@@ -232,13 +232,13 @@ rlc_am_read_data_pdu_header(const byte_buffer_view& pdu, const rlc_am_sn_size sn
   if (header->si == rlc_si_field::last_segment || header->si == rlc_si_field::middle_segment) {
     // read SO
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing upper byte of SO.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing upper byte of SO.");
       return false;
     }
     header->so = (*pdu_reader & 0xffU) << 8U;
     ++pdu_reader;
     if (pdu_reader.empty()) {
-      srslog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SO.");
+      ocudulog::fetch_basic_logger("RLC").error("Malformed PDU, missing lower byte of SO.");
       return false;
     }
     header->so |= (*pdu_reader & 0xffU);
@@ -282,12 +282,12 @@ inline size_t rlc_am_write_data_pdu_header(span<uint8_t> buf, const rlc_am_pdu_h
   return std::distance(buf.begin(), buf_it);
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 namespace fmt {
 
 template <>
-struct formatter<srsran::rlc_am_pdu_header> {
+struct formatter<ocudu::rlc_am_pdu_header> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -295,9 +295,9 @@ struct formatter<srsran::rlc_am_pdu_header> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_am_pdu_header& hdr, FormatContext& ctx) const
+  auto format(const ocudu::rlc_am_pdu_header& hdr, FormatContext& ctx) const
   {
-    if (hdr.si == srsran::rlc_si_field::full_sdu || hdr.si == srsran::rlc_si_field::first_segment) {
+    if (hdr.si == ocudu::rlc_si_field::full_sdu || hdr.si == ocudu::rlc_si_field::first_segment) {
       // Header of full SDU or first SDU segment has no SO.
       return format_to(ctx.out(), "dc={} p={} si={} sn={}", hdr.dc, hdr.p, hdr.si, hdr.sn);
     }
@@ -306,7 +306,7 @@ struct formatter<srsran::rlc_am_pdu_header> {
 };
 
 template <>
-struct formatter<srsran::rlc_am_status_nack> {
+struct formatter<ocudu::rlc_am_status_nack> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -314,7 +314,7 @@ struct formatter<srsran::rlc_am_status_nack> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_am_status_nack& nack, FormatContext& ctx) const
+  auto format(const ocudu::rlc_am_status_nack& nack, FormatContext& ctx) const
   {
     if (nack.has_nack_range) {
       if (nack.has_so) {
@@ -330,7 +330,7 @@ struct formatter<srsran::rlc_am_status_nack> {
 };
 
 template <>
-struct formatter<srsran::rlc_am_status_pdu> {
+struct formatter<ocudu::rlc_am_status_pdu> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -338,7 +338,7 @@ struct formatter<srsran::rlc_am_status_pdu> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::rlc_am_status_pdu& status, FormatContext& ctx) const
+  auto format(const ocudu::rlc_am_status_pdu& status, FormatContext& ctx) const
   {
     memory_buffer buffer;
     format_to(std::back_inserter(buffer), "ack_sn={} n_nack={}", status.ack_sn, status.get_nacks().size());
@@ -349,7 +349,7 @@ struct formatter<srsran::rlc_am_status_pdu> {
       }
     }
 
-    return format_to(ctx.out(), "{}", srsran::to_c_str(buffer));
+    return format_to(ctx.out(), "{}", ocudu::to_c_str(buffer));
   }
 };
 

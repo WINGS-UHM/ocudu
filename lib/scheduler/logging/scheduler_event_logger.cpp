@@ -9,17 +9,17 @@
  */
 
 #include "scheduler_event_logger.h"
-#include "srsran/ran/csi_report/csi_report_formatters.h"
-#include "srsran/ran/pusch/pusch_tpmi_formatter.h"
-#include "srsran/support/format/fmt_to_c_str.h"
+#include "ocudu/ran/csi_report/csi_report_formatters.h"
+#include "ocudu/ran/pusch/pusch_tpmi_formatter.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 #include "fmt/std.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 scheduler_event_logger::scheduler_event_logger(du_cell_index_t cell_index_, pci_t pci_) :
   cell_index(cell_index_),
   pci(pci_),
-  logger(srslog::fetch_basic_logger("SCHED")),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
   mode(logger.debug.enabled() ? mode_t::debug : (logger.info.enabled() ? mode_t::info : mode_t::none))
 {
   if (mode == debug) {

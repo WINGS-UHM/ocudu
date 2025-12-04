@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
+#include "ocudu/adt/span.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class data_flow_message_decoding_metrics_collector;
@@ -32,4 +32,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

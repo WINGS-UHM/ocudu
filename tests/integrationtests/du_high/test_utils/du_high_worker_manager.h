@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <array>
 
-namespace srsran {
+namespace ocudu {
 
 struct du_high_worker_manager {
   static const uint32_t task_worker_queue_size = 10000;
@@ -34,13 +34,13 @@ struct du_high_worker_manager {
       std::array<concurrent_queue_params, 2>{
           concurrent_queue_params{concurrent_queue_policy::lockfree_mpmc, task_worker_queue_size},
           concurrent_queue_params{concurrent_queue_policy::lockfree_mpmc, task_worker_queue_size}}};
-  priority_task_worker_pool_executor               high_prio_exec{enqueue_priority::max, worker_pool};
-  priority_task_worker_pool_executor               low_prio_exec{enqueue_priority::max - 1, worker_pool};
-  std::unique_ptr<srs_du::du_high_executor_mapper> exec_mapper;
-  std::unique_ptr<task_executor>                   time_exec;
+  priority_task_worker_pool_executor            high_prio_exec{enqueue_priority::max, worker_pool};
+  priority_task_worker_pool_executor            low_prio_exec{enqueue_priority::max - 1, worker_pool};
+  std::unique_ptr<odu::du_high_executor_mapper> exec_mapper;
+  std::unique_ptr<task_executor>                time_exec;
 
 private:
   sync_event ev;
 };
 
-} // namespace srsran
+} // namespace ocudu

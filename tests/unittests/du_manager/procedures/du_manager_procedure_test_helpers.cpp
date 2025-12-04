@@ -11,14 +11,14 @@
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_configuration_procedure.h"
 #include "lib/du/du_high/du_manager/procedures/ue_creation_procedure.h"
-#include "srsran/mac/config/mac_config_helpers.h"
-#include "srsran/rlc/rlc_srb_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/rlc/rlc_srb_config_factory.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
-ul_ccch_indication_message srsran::srs_du::create_test_ul_ccch_message(rnti_t rnti)
+ul_ccch_indication_message ocudu::odu::create_test_ul_ccch_message(rnti_t rnti)
 {
   ul_ccch_indication_message ul_ccch_msg;
   ul_ccch_msg.cell_index = to_du_cell_index(0);
@@ -53,7 +53,7 @@ du_ue& du_manager_proc_tester::create_ue(du_ue_index_t ue_index)
 
   lazy_task_launcher<void> launcher{t};
 
-  srsran_assert(launcher.ready(), "The UE creation procedure should have completed by now");
+  ocudu_assert(launcher.ready(), "The UE creation procedure should have completed by now");
 
   return ue_mng.ues[ue_index];
 }
@@ -100,8 +100,8 @@ f1ap_ue_context_update_response du_manager_proc_tester::configure_ue(const f1ap_
     new_drb.f1u         = {};
   }
   for (const f1ap_drb_to_modify& drb : req.drbs_to_mod) {
-    srsran_assert(cell_res_alloc.next_context_update_result.drbs.contains(drb.drb_id),
-                  "reestablishment context should have created DRB");
+    ocudu_assert(cell_res_alloc.next_context_update_result.drbs.contains(drb.drb_id),
+                 "reestablishment context should have created DRB");
   }
   for (drb_id_t drb_id : req.drbs_to_rem) {
     if (cell_res_alloc.next_context_update_result.drbs.contains(drb_id)) {
@@ -112,7 +112,7 @@ f1ap_ue_context_update_response du_manager_proc_tester::configure_ue(const f1ap_
   // Run Procedure.
   async_task<f1ap_ue_context_update_response>         t = launch_async<ue_configuration_procedure>(req, ue_mng, params);
   lazy_task_launcher<f1ap_ue_context_update_response> launcher{t};
-  srsran_assert(launcher.ready(), "The UE creation procedure should have completed by now");
+  ocudu_assert(launcher.ready(), "The UE creation procedure should have completed by now");
 
   return t.get();
 }

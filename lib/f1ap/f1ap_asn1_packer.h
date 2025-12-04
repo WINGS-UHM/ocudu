@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/f1ap/du/f1ap_du.h"
-#include "srsran/gateways/sctp_network_gateway.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <cstdio>
 
-namespace srsran {
+namespace ocudu {
 
 class f1ap_asn1_packer : public f1ap_message_handler
 {
@@ -28,9 +28,9 @@ public:
   void handle_message(const f1ap_message& msg) override;
 
 private:
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
   sctp_network_gateway_data_handler& gw;
   f1ap_message_handler&              f1ap;
 };
 
-} // namespace srsran
+} // namespace ocudu

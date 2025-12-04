@@ -9,10 +9,10 @@
  */
 
 #include "pdcp_tx_window.h"
-#include "srsran/pdcp/pdcp_config.h"
+#include "ocudu/pdcp/pdcp_config.h"
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcp_tx_window::pdcp_tx_window(pdcp_rb_type       rb_type_,
                                pdcp_rlc_mode      rlc_mode_,

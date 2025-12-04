@@ -9,25 +9,25 @@
  */
 
 #include "ulsch_demultiplex_impl.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/ran/dmrs.h"
-#include "srsran/ran/pusch/pusch_constants.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned get_ulsch_demultiplex_l1(const symbol_slot_mask& dmrs_symbol_mask)
 {
   // Find first OFDM symbol that contains DM-RS.
   int first_symbol_dmrs = dmrs_symbol_mask.find_lowest(true);
-  srsran_assert(first_symbol_dmrs >= 0, "No DM-RS symbol found.");
+  ocudu_assert(first_symbol_dmrs >= 0, "No DM-RS symbol found.");
 
   // Find first OFDM symbol that does not contain DM-RS after the first OFDM symbol that contains DM-RS.
   int first_symbol_without_dmrs =
       dmrs_symbol_mask.find_lowest(static_cast<size_t>(first_symbol_dmrs), dmrs_symbol_mask.size(), false);
-  srsran_assert(first_symbol_without_dmrs >= 0, "No DM-RS symbol found.");
+  ocudu_assert(first_symbol_without_dmrs >= 0, "No DM-RS symbol found.");
 
   return static_cast<unsigned>(first_symbol_without_dmrs);
 }
@@ -36,7 +36,7 @@ static unsigned get_ulsch_demultiplex_l1_csi(const symbol_slot_mask& dmrs_symbol
 {
   // Find first OFDM symbol that does not contain DM-RS.
   int first_symbol_without_dmrs = dmrs_symbol_mask.find_lowest(false);
-  srsran_assert(first_symbol_without_dmrs >= 0, "No DM-RS symbol found.");
+  ocudu_assert(first_symbol_without_dmrs >= 0, "No DM-RS symbol found.");
 
   return static_cast<unsigned>(first_symbol_without_dmrs);
 }
@@ -47,11 +47,11 @@ get_ulsch_demultiplex_nof_re_prb_dmrs(dmrs_type dmrs_, unsigned nof_cdm_groups_w
   dmrs_config_type dmrs = (dmrs_ == dmrs_type::TYPE1) ? dmrs_config_type::type1 : dmrs_config_type::type2;
 
   // Check whether the number of CDM groups without data is valid.
-  srsran_assert(nof_cdm_groups_without_data >= 1 &&
-                    nof_cdm_groups_without_data <= get_max_nof_cdm_groups_without_data(dmrs),
-                "The number of CDM groups without data (i.e., {}) exceeds the maximum (i.e., {}).",
-                nof_cdm_groups_without_data,
-                get_max_nof_cdm_groups_without_data(dmrs));
+  ocudu_assert(nof_cdm_groups_without_data >= 1 &&
+                   nof_cdm_groups_without_data <= get_max_nof_cdm_groups_without_data(dmrs),
+               "The number of CDM groups without data (i.e., {}) exceeds the maximum (i.e., {}).",
+               nof_cdm_groups_without_data,
+               get_max_nof_cdm_groups_without_data(dmrs));
 
   // Count number of RE used for DM-RS.
   unsigned nof_re_dmrs_per_rb = nof_cdm_groups_without_data * get_nof_re_per_prb(dmrs);
@@ -68,7 +68,7 @@ re_set_select(const ulsch_demultiplex_impl::re_set_type& re_set, unsigned d, uns
   for (unsigned count = 0, startpos = 0, d_count = 0; count != m_re_count;) {
     // Find next available position.
     int found = re_set.find_lowest(startpos, re_set.size());
-    srsran_assert(found >= 0, "It must always find a true.");
+    ocudu_assert(found >= 0, "It must always find a true.");
 
     if (d_count % d == 0) {
       result.set(found);
@@ -98,8 +98,8 @@ static void on_uci_placeholder_1bit(pusch_decoder_buffer&            buffer,
 {
   unsigned modulation_order = get_bits_per_symbol(modulation);
   unsigned block_size       = data.size();
-  srsran_assert(block_size % modulation_order == 0, "Input size and modulation order are not concistent.");
-  srsran_assert(scrambling_seq.size() >= block_size + scrambling_seq_offset, "Scrambling sequence size is invalid.");
+  ocudu_assert(block_size % modulation_order == 0, "Input size and modulation order are not concistent.");
+  ocudu_assert(scrambling_seq.size() >= block_size + scrambling_seq_offset, "Scrambling sequence size is invalid.");
 
   unsigned nof_symbols = block_size / modulation_order;
 
@@ -145,8 +145,8 @@ static void on_uci_placeholder_2bit(pusch_decoder_buffer&            buffer,
 {
   unsigned modulation_order = get_bits_per_symbol(modulation);
   unsigned block_size       = data.size();
-  srsran_assert(block_size % modulation_order == 0, "Input size and modulation order are not consistent.");
-  srsran_assert(scrambling_seq.size() >= block_size + scrambling_seq_offset, "Scrambling sequence size is invalid.");
+  ocudu_assert(block_size % modulation_order == 0, "Input size and modulation order are not consistent.");
+  ocudu_assert(scrambling_seq.size() >= block_size + scrambling_seq_offset, "Scrambling sequence size is invalid.");
 
   unsigned nof_symbols = block_size / modulation_order;
 
@@ -254,7 +254,7 @@ span<log_likelihood_ratio> ulsch_demultiplex_impl::get_next_block_view(unsigned 
 void ulsch_demultiplex_impl::on_new_block(span<const log_likelihood_ratio> new_data,
                                           const bit_buffer&                new_scrambling_seq)
 {
-  srsran_assert(new_data.size() == new_scrambling_seq.size(), "Demodulated and descrambled data sizes must be equal.");
+  ocudu_assert(new_data.size() == new_scrambling_seq.size(), "Demodulated and descrambled data sizes must be equal.");
 
   // New scrambling sequence read offset.
   unsigned new_scrambling_seq_offset = 0;
@@ -273,11 +273,11 @@ void ulsch_demultiplex_impl::on_new_block(span<const log_likelihood_ratio> new_d
 
     // Copy new data (if necessary) at the end of the buffer.
     if (data_block.data() != new_data.data()) {
-      srsvec::copy(data_block, new_data.first(block_size));
+      ocuduvec::copy(data_block, new_data.first(block_size));
     }
 
     // Append scrambling sequence.
-    srsvec::copy_offset(
+    ocuduvec::copy_offset(
         temp_scrambling_seq_ofdm_symbol, softbit_count, new_scrambling_seq, new_scrambling_seq_offset, block_size);
 
     // Increment count of soft bits for the current OFDM symbol.
@@ -308,9 +308,9 @@ void ulsch_demultiplex_impl::on_new_block(span<const log_likelihood_ratio> new_d
 
 void ulsch_demultiplex_impl::on_end_codeword()
 {
-  srsran_assert(harq_ack == nullptr, "Not all HARQ-ACK bits have been processed.");
-  srsran_assert(csi_part1 == nullptr, "Not all CSI Part 1 bits have been processed.");
-  srsran_assert(csi_part2 == nullptr, "Not all CSI Part 2 bits have been processed.");
+  ocudu_assert(harq_ack == nullptr, "Not all HARQ-ACK bits have been processed.");
+  ocudu_assert(csi_part1 == nullptr, "Not all CSI Part 1 bits have been processed.");
+  ocudu_assert(csi_part2 == nullptr, "Not all CSI Part 2 bits have been processed.");
 
   sch_data->on_end_softbits();
   sch_data = nullptr;
@@ -467,7 +467,7 @@ void ulsch_demultiplex_impl::demux_current_ofdm_symbol()
 
   // Demultiplex HARQ-ACK.
   if (harq_ack_re_set.any()) {
-    srsran_assert(harq_ack != nullptr, "Invalid HARQ-ACK decoder buffer.");
+    ocudu_assert(harq_ack != nullptr, "Invalid HARQ-ACK decoder buffer.");
 
     // Extract each of the HARQ-ACK bits.
     harq_ack_re_set.for_each(0, harq_ack_re_set.size(), [this, &data, &scrambling_seq](unsigned i_re) {
@@ -478,14 +478,14 @@ void ulsch_demultiplex_impl::demux_current_ofdm_symbol()
       // Handle HARQ-ACK placeholders for 1 bit.
       if (config.nof_harq_ack_bits == 1) {
         on_uci_placeholder_1bit(*harq_ack, re_data, scrambling_seq, offset, config.modulation);
-        srsvec::zero(re_data);
+        ocuduvec::zero(re_data);
         return;
       }
 
       // Handle HARQ-ACK placeholders for 2 bits.
       if (config.nof_harq_ack_bits == 2) {
         on_uci_placeholder_2bit(*harq_ack, re_data, scrambling_seq, offset, config.modulation);
-        srsvec::zero(re_data);
+        ocuduvec::zero(re_data);
         return;
       }
 
@@ -501,7 +501,7 @@ void ulsch_demultiplex_impl::demux_current_ofdm_symbol()
 
   // Demultiplex CSI Part 1.
   if (csi_part1_re_set.any()) {
-    srsran_assert(csi_part1 != nullptr, "Invalid CSI Part 1 decoder buffer.");
+    ocudu_assert(csi_part1 != nullptr, "Invalid CSI Part 1 decoder buffer.");
 
     // Extract each of the CSI Part 1 bits.
     csi_part1_re_set.for_each(0, csi_part1_re_set.size(), [this, &data, &scrambling_seq](unsigned i_re) {
@@ -533,7 +533,7 @@ void ulsch_demultiplex_impl::demux_current_ofdm_symbol()
 
   // Demultiplex CSI Part 2.
   if (csi_part2_re_set.any()) {
-    srsran_assert(csi_part2 != nullptr, "Invalid CSI Part 2 decoder buffer.");
+    ocudu_assert(csi_part2 != nullptr, "Invalid CSI Part 2 decoder buffer.");
 
     // Extract each of the CSI Part 2 bits.
     csi_part2_re_set.for_each(0, csi_part2_re_set.size(), [this, &data, &scrambling_seq](unsigned i_re) {
@@ -565,7 +565,7 @@ void ulsch_demultiplex_impl::demux_current_ofdm_symbol()
 
   // Demultiplex SCH data.
   if (ulsch_re_set.any()) {
-    srsran_assert(sch_data != nullptr, "Invalid SCH data decoder buffer.");
+    ocudu_assert(sch_data != nullptr, "Invalid SCH data decoder buffer.");
 
     // Extract each of the UL-SCH data.
     ulsch_re_set.for_each(0, ulsch_re_set.size(), [this, &data](unsigned i_re) {

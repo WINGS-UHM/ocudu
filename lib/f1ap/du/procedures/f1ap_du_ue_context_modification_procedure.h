@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../ue_context/f1ap_du_ue.h"
-#include "srsran/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 struct f1ap_du_context;
 
@@ -44,8 +44,8 @@ private:
 
   f1ap_ue_context_update_response du_response;
 
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

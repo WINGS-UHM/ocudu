@@ -9,11 +9,11 @@
  */
 
 #include "lower_phy_baseband_processor.h"
-#include "srsran/adt/interval.h"
-#include "srsran/instrumentation/traces/ru_traces.h"
-#include "srsran/ran/slot_point.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/instrumentation/traces/ru_traces.h"
+#include "ocudu/ran/slot_point.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 lower_phy_baseband_processor::lower_phy_baseband_processor(const lower_phy_baseband_processor_configuration& config,
                                                            const lower_phy_baseband_processor_dependencies&  deps) :
@@ -37,13 +37,13 @@ lower_phy_baseband_processor::lower_phy_baseband_processor(const lower_phy_baseb
 {
   static constexpr interval<float> system_time_throttling_range(0, 1);
 
-  srsran_assert(rx_buffer_size, "Invalid buffer size.");
-  srsran_assert(system_time_throttling_range.contains(config.system_time_throttling),
-                "System time throttling (i.e., {}) is out of the range {}.",
-                config.system_time_throttling,
-                system_time_throttling_range);
-  srsran_assert(config.nof_rx_ports != 0, "Invalid number of receive ports.");
-  srsran_assert(config.nof_tx_ports != 0, "Invalid number of transmit ports.");
+  ocudu_assert(rx_buffer_size, "Invalid buffer size.");
+  ocudu_assert(system_time_throttling_range.contains(config.system_time_throttling),
+               "System time throttling (i.e., {}) is out of the range {}.",
+               config.system_time_throttling,
+               system_time_throttling_range);
+  ocudu_assert(config.nof_rx_ports != 0, "Invalid number of receive ports.");
+  ocudu_assert(config.nof_tx_ports != 0, "Invalid number of transmit ports.");
 
   // Create queue of receive buffers.
   while (!rx_buffers.full()) {
@@ -120,7 +120,7 @@ void lower_phy_baseband_processor::dl_process(baseband_gateway_timestamp timesta
   // Process downlink buffer.
   downlink_processor_baseband::processing_result result =
       downlink_processor.process(apply_timestamp_sfn0_ref(timestamp));
-  srsran_assert(result.buffer, "The buffer must be valid.");
+  ocudu_assert(result.buffer, "The buffer must be valid.");
 
   // Set transmission timestamp.
   result.metadata.ts = timestamp + tx_time_offset;

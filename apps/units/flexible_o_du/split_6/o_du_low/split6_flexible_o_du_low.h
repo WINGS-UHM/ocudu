@@ -12,11 +12,11 @@
 
 #include "fapi_adaptor/phy_fapi_p5_sector_operation_request_adaptor.h"
 #include "split6_flexible_o_du_low_session_manager.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/fapi_adaptor/mac/p5/mac_fapi_p5_sector_adaptor.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/fapi_adaptor/mac/p5/mac_fapi_p5_sector_adaptor.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// Split 6 flexible O-DU low dependencies.
 struct split6_flexible_o_du_low_dependencies {
@@ -48,4 +48,4 @@ private:
   std::unique_ptr<fapi_adaptor::phy_fapi_p5_sector_operation_request_adaptor> phy_p5_adaptor;
 };
 
-} // namespace srsran
+} // namespace ocudu

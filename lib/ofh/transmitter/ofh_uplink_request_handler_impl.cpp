@@ -11,14 +11,14 @@
 #include "ofh_uplink_request_handler_impl.h"
 #include "../support/logger_utils.h"
 #include "helpers.h"
-#include "srsran/ofh/ofh_error_notifier.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_frequency_mapping.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
-#include "srsran/ran/resource_block.h"
+#include "ocudu/ofh/ofh_error_notifier.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_frequency_mapping.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/resource_block.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 /// Determines and returns Open Fronthaul filter index type given the PRACH preamble info and associated context.
@@ -75,11 +75,11 @@ uplink_request_handler_impl::uplink_request_handler_impl(const uplink_request_ha
   metrics_collector(data_flow->get_metrics_collector(), window_checker),
   enable_log_warnings_for_lates(config.enable_log_warnings_for_lates)
 {
-  srsran_assert(ul_slot_repo, "Invalid uplink repository");
-  srsran_assert(ul_prach_repo, "Invalid PRACH repository");
-  srsran_assert(notifier_symbol_repo, "Invalid notified uplink grid symbol repository");
-  srsran_assert(data_flow, "Invalid data flow");
-  srsran_assert(frame_pool, "Invalid frame pool");
+  ocudu_assert(ul_slot_repo, "Invalid uplink repository");
+  ocudu_assert(ul_prach_repo, "Invalid PRACH repository");
+  ocudu_assert(notifier_symbol_repo, "Invalid notified uplink grid symbol repository");
+  ocudu_assert(data_flow, "Invalid data flow");
+  ocudu_assert(frame_pool, "Invalid frame pool");
 }
 
 /// \brief Determine PRACH start symbol index.
@@ -111,13 +111,13 @@ static unsigned get_prach_start_symbol(const prach_buffer_context& context)
 
 void uplink_request_handler_impl::handle_prach_occasion(const prach_buffer_context& context, shared_prach_buffer buffer)
 {
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Registering PRACH context entry for slot '{}' and sector#{}", context.slot, context.sector);
   }
 
   metrics_collector.update_cp_ul_lates(frame_pool->clear_slot(context.slot, context.sector));
 
-  if (SRSRAN_UNLIKELY(window_checker.is_late(context.slot))) {
+  if (OCUDU_UNLIKELY(window_checker.is_late(context.slot))) {
     log_conditional_warning(
         logger,
         enable_log_warnings_for_lates,
@@ -137,7 +137,7 @@ void uplink_request_handler_impl::handle_prach_occasion(const prach_buffer_conte
   // Store the context in the repository.
   if (is_short_preamble(context.format)) {
     ul_prach_repo->add(context, std::move(buffer), logger, std::nullopt);
-    if (SRSRAN_UNLIKELY(context.nof_td_occasions > 1)) {
+    if (OCUDU_UNLIKELY(context.nof_td_occasions > 1)) {
       logger.info("Sector#{}: PRACH with multiple time-domain occasions is configured, however only the first occasion "
                   "will be used in slot '{}'",
                   context.sector,
@@ -192,13 +192,13 @@ void uplink_request_handler_impl::handle_prach_occasion(const prach_buffer_conte
 void uplink_request_handler_impl::handle_new_uplink_slot(const resource_grid_context& context,
                                                          const shared_resource_grid&  grid)
 {
-  if (SRSRAN_UNLIKELY(logger.debug.enabled())) {
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Registering UL context entry for slot '{}' and sector#{}", context.slot, context.sector);
   }
 
   metrics_collector.update_cp_ul_lates(frame_pool->clear_slot(context.slot, context.sector));
 
-  if (SRSRAN_UNLIKELY(window_checker.is_late(context.slot))) {
+  if (OCUDU_UNLIKELY(window_checker.is_late(context.slot))) {
     log_conditional_warning(
         logger,
         enable_log_warnings_for_lates,

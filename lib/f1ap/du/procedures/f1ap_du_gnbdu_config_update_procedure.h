@@ -11,12 +11,12 @@
 #pragma once
 
 #include "f1ap_du_event_manager.h"
-#include "srsran/f1ap/du/f1ap_du_connection_manager.h"
-#include "srsran/f1ap/f1ap_message_notifier.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// DU config update procedure for the gNB-DU as per TS 38.473, 8.2.4.
 class f1ap_du_gnbdu_config_update_procedure
@@ -38,10 +38,10 @@ private:
   const gnbdu_config_update_request request;
   f1ap_message_notifier&            cu_notif;
   f1ap_event_manager&               ev_mng;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   f1ap_transaction transaction;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

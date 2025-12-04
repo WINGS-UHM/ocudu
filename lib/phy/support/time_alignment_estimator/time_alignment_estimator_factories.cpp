@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/support/time_alignment_estimator/time_alignment_estimator_factories.h"
+#include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator_factories.h"
 #include "time_alignment_estimator_dft_impl.h"
-#include "srsran/phy/generic_functions/dft_processor.h"
-#include "srsran/phy/generic_functions/generic_functions_factories.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/phy/generic_functions/dft_processor.h"
+#include "ocudu/phy/generic_functions/generic_functions_factories.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -25,7 +25,7 @@ public:
   time_alignment_estimator_dft_factory(std::shared_ptr<dft_processor_factory> dft_proc_factory_) :
     dft_proc_factory(std::move(dft_proc_factory_))
   {
-    srsran_assert(dft_proc_factory, "Invalid DFT processor factory.");
+    ocudu_assert(dft_proc_factory, "Invalid DFT processor factory.");
   }
 
   std::unique_ptr<time_alignment_estimator> create() override
@@ -52,7 +52,7 @@ private:
 } // namespace
 
 std::shared_ptr<time_alignment_estimator_factory>
-srsran::create_time_alignment_estimator_dft_factory(std::shared_ptr<dft_processor_factory> dft_proc_factory)
+ocudu::create_time_alignment_estimator_dft_factory(std::shared_ptr<dft_processor_factory> dft_proc_factory)
 {
   return std::make_shared<time_alignment_estimator_dft_factory>(std::move(dft_proc_factory));
 }

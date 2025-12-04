@@ -11,17 +11,17 @@ set(SOURCES
   rohc_support.cpp
 )
 
-add_library(srsran_rohc STATIC ${SOURCES})
+add_library(ocudu_rohc STATIC ${SOURCES})
 
-set(SRSGNB_ROHC_DEFINITIONS "")
-set(SRSGNB_ROHC_LIBRARIES "")
+set(OCUDU_ROHC_DEFINITIONS "")
+set(OCUDU_ROHC_LIBRARIES "")
 
 if(ROHC_FOUND)
   add_subdirectory(rohc_lib)
-  list(APPEND SRSGNB_ROHC_DEFINITIONS -DENABLE_ROHC_LIB)
-  list(APPEND SRSGNB_ROHC_LIBRARIES srsran_rohc_lib)
+  list(APPEND OCUDU_ROHC_DEFINITIONS -DENABLE_ROHC_LIB)
+  list(APPEND OCUDU_ROHC_LIBRARIES ocudu_rohc_lib)
 endif()
 
-add_definitions(${SRSGNB_ROHC_DEFINITIONS})
+add_definitions(${OCUDU_ROHC_DEFINITIONS})
 
-target_link_libraries(srsran_rohc ${SRSGNB_ROHC_LIBRARIES})
+target_link_libraries(ocudu_rohc ${OCUDU_ROHC_LIBRARIES})

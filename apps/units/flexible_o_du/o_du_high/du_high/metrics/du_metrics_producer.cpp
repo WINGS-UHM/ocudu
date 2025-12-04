@@ -11,9 +11,9 @@
 #include "du_metrics_producer.h"
 #include "du_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-void du_metrics_producer_impl::on_new_metric_report(const srs_du::du_metrics_report& report)
+void du_metrics_producer_impl::on_new_metric_report(const odu::du_metrics_report& report)
 {
   notifier.on_new_metric(du_metrics_impl(report));
 }

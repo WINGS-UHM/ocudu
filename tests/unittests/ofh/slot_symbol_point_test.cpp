@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ofh/timing/slot_symbol_point.h"
+#include "ocudu/ofh/timing/slot_symbol_point.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 TEST(slot_symbol_point_test, basic_construction_and_getters_should_pass)

@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../support/pdcch/pdcch_mapping.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/scheduler/result/pdcch_info.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/scheduler/result/pdcch_info.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_slot_resource_allocator;
 class cell_configuration;
@@ -72,4 +72,4 @@ private:
   std::vector<tree_node> dfs_tree, saved_dfs_tree;
 };
 
-} // namespace srsran
+} // namespace ocudu

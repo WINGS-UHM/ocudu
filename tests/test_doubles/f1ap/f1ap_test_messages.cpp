@@ -12,19 +12,19 @@
 #include "../lib/f1ap/asn1_helpers.h"
 #include "../pdcp/pdcp_pdu_generator.h"
 #include "../rrc/rrc_packed_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/ran/positioning/positioning_ids.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/positioning/positioning_ids.h"
+#include "ocudu/support/test_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::f1ap;
 
-f1ap_message srsran::test_helpers::generate_f1ap_reset_message(
+f1ap_message ocudu::test_helpers::generate_f1ap_reset_message(
     const std::vector<std::pair<std::optional<gnb_du_ue_f1ap_id_t>, std::optional<gnb_cu_ue_f1ap_id_t>>>& ues_to_reset)
 {
   f1ap_message msg;
@@ -63,7 +63,7 @@ static byte_buffer generate_rrc_container(uint32_t pdcp_sn, unsigned pdu_len)
       pdcp_sn_size::size12bits, true, pdcp_sn, pdu_len, test_rgen::uniform_int<uint8_t>());
 }
 
-gnb_du_served_cells_item_s srsran::test_helpers::generate_served_cells_item(const served_cell_item_info& info)
+gnb_du_served_cells_item_s ocudu::test_helpers::generate_served_cells_item(const served_cell_item_info& info)
 {
   gnb_du_served_cells_item_s served_cells_item;
   served_cells_item.served_cell_info.nr_cgi.plmn_id = info.plmn_id.to_bytes();
@@ -97,8 +97,8 @@ gnb_du_served_cells_item_s srsran::test_helpers::generate_served_cells_item(cons
   return served_cells_item;
 }
 
-f1ap_message srsran::test_helpers::generate_f1_setup_request(gnb_du_id_t                               gnb_du_id,
-                                                             const std::vector<served_cell_item_info>& cells)
+f1ap_message ocudu::test_helpers::generate_f1_setup_request(gnb_du_id_t                               gnb_du_id,
+                                                            const std::vector<served_cell_item_info>& cells)
 {
   f1ap_message msg;
   msg.pdu.set_init_msg();
@@ -108,7 +108,7 @@ f1ap_message srsran::test_helpers::generate_f1_setup_request(gnb_du_id_t        
   setup_req->transaction_id      = 99;
   setup_req->gnb_du_id           = (uint64_t)gnb_du_id;
   setup_req->gnb_du_name_present = true;
-  setup_req->gnb_du_name.from_string("srsDU");
+  setup_req->gnb_du_name.from_string("OCUDU DU");
   setup_req->gnb_du_rrc_version.latest_rrc_version.from_number(1);
   setup_req->gnb_du_served_cells_list_present = true;
   setup_req->gnb_du_served_cells_list.resize(cells.size());
@@ -120,12 +120,12 @@ f1ap_message srsran::test_helpers::generate_f1_setup_request(gnb_du_id_t        
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_f1_setup_response(const f1ap_message& f1_setup_request, bool activate_cells)
+f1ap_message ocudu::test_helpers::generate_f1_setup_response(const f1ap_message& f1_setup_request, bool activate_cells)
 {
-  srsran_assert(f1_setup_request.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Expected F1 setup request");
-  srsran_assert(f1_setup_request.pdu.init_msg().value.type().value ==
-                    f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request,
-                "Expected F1 setup request");
+  ocudu_assert(f1_setup_request.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Expected F1 setup request");
+  ocudu_assert(f1_setup_request.pdu.init_msg().value.type().value ==
+                   f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request,
+               "Expected F1 setup request");
   auto& req = f1_setup_request.pdu.init_msg().value.f1_setup_request();
 
   f1ap_message resp;
@@ -134,7 +134,7 @@ f1ap_message srsran::test_helpers::generate_f1_setup_response(const f1ap_message
 
   f1_setup_resp->transaction_id      = req->transaction_id;
   f1_setup_resp->gnb_cu_name_present = true;
-  f1_setup_resp->gnb_cu_name.from_string("srscu");
+  f1_setup_resp->gnb_cu_name.from_string("ocu");
   f1_setup_resp->gnb_cu_rrc_version.latest_rrc_version.from_number(2);
 
   f1_setup_resp->cells_to_be_activ_list_present = activate_cells;
@@ -153,12 +153,12 @@ f1ap_message srsran::test_helpers::generate_f1_setup_response(const f1ap_message
   return resp;
 }
 
-f1ap_message srsran::test_helpers::generate_f1_setup_failure(const f1ap_message& f1_setup_request)
+f1ap_message ocudu::test_helpers::generate_f1_setup_failure(const f1ap_message& f1_setup_request)
 {
-  srsran_assert(f1_setup_request.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Expected F1 setup request");
-  srsran_assert(f1_setup_request.pdu.init_msg().value.type().value ==
-                    f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request,
-                "Expected F1 setup request");
+  ocudu_assert(f1_setup_request.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Expected F1 setup request");
+  ocudu_assert(f1_setup_request.pdu.init_msg().value.type().value ==
+                   f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request,
+               "Expected F1 setup request");
   auto& req = f1_setup_request.pdu.init_msg().value.f1_setup_request();
 
   f1ap_message resp;
@@ -173,7 +173,7 @@ f1ap_message srsran::test_helpers::generate_f1_setup_failure(const f1ap_message&
 }
 
 f1ap_message
-srsran::test_helpers::generate_gnb_du_configuration_update_acknowledge(const f1ap_message& gnb_du_config_update)
+ocudu::test_helpers::generate_gnb_du_configuration_update_acknowledge(const f1ap_message& gnb_du_config_update)
 {
   const gnb_du_cfg_upd_s& req = gnb_du_config_update.pdu.init_msg().value.gnb_du_cfg_upd();
 
@@ -186,8 +186,7 @@ srsran::test_helpers::generate_gnb_du_configuration_update_acknowledge(const f1a
   return msg;
 }
 
-f1ap_message
-srsran::test_helpers::generate_gnb_du_configuration_update_failure(const f1ap_message& gnb_du_config_update)
+f1ap_message ocudu::test_helpers::generate_gnb_du_configuration_update_failure(const f1ap_message& gnb_du_config_update)
 {
   const gnb_du_cfg_upd_s& req = gnb_du_config_update.pdu.init_msg().value.gnb_du_cfg_upd();
 
@@ -201,9 +200,9 @@ srsran::test_helpers::generate_gnb_du_configuration_update_failure(const f1ap_me
 }
 
 f1ap_message
-srsran::test_helpers::generate_gnb_cu_configuration_update_request(unsigned                        transaction_id,
-                                                                   span<const nr_cell_global_id_t> cgis_to_activate,
-                                                                   span<const nr_cell_global_id_t> cgis_to_deactivate)
+ocudu::test_helpers::generate_gnb_cu_configuration_update_request(unsigned                        transaction_id,
+                                                                  span<const nr_cell_global_id_t> cgis_to_activate,
+                                                                  span<const nr_cell_global_id_t> cgis_to_deactivate)
 {
   f1ap_message msg;
 
@@ -228,7 +227,7 @@ srsran::test_helpers::generate_gnb_cu_configuration_update_request(unsigned     
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_gnb_cu_configuration_update_acknowledgement(
+f1ap_message ocudu::test_helpers::generate_gnb_cu_configuration_update_acknowledgement(
     const std::vector<f1ap_cell_failed_to_activate>& cells_failed_to_activate)
 {
   f1ap_message gnb_cu_configuration_update_ack = {};
@@ -251,7 +250,7 @@ f1ap_message srsran::test_helpers::generate_gnb_cu_configuration_update_acknowle
   return gnb_cu_configuration_update_ack;
 }
 
-f1ap_message srsran::test_helpers::generate_gnb_cu_configuration_update_failure()
+f1ap_message ocudu::test_helpers::generate_gnb_cu_configuration_update_failure()
 {
   f1ap_message gnb_cu_configuration_update_failure = {};
 
@@ -266,7 +265,7 @@ f1ap_message srsran::test_helpers::generate_gnb_cu_configuration_update_failure(
   return gnb_cu_configuration_update_failure;
 }
 
-f1ap_message srsran::test_helpers::generate_f1_removal_request(unsigned transaction_id)
+f1ap_message ocudu::test_helpers::generate_f1_removal_request(unsigned transaction_id)
 {
   f1ap_message req;
   req.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_F1_REMOVAL);
@@ -279,12 +278,12 @@ f1ap_message srsran::test_helpers::generate_f1_removal_request(unsigned transact
   return req;
 }
 
-f1ap_message srsran::test_helpers::generate_f1_removal_response(const f1ap_message& f1_removal_request)
+f1ap_message ocudu::test_helpers::generate_f1_removal_response(const f1ap_message& f1_removal_request)
 {
-  srsran_assert(f1_removal_request.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Expected F1 removal request");
-  srsran_assert(f1_removal_request.pdu.init_msg().value.type().value ==
-                    f1ap_elem_procs_o::init_msg_c::types_opts::f1_removal_request,
-                "Expected F1 removal request");
+  ocudu_assert(f1_removal_request.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Expected F1 removal request");
+  ocudu_assert(f1_removal_request.pdu.init_msg().value.type().value ==
+                   f1ap_elem_procs_o::init_msg_c::types_opts::f1_removal_request,
+               "Expected F1 removal request");
 
   f1ap_message resp;
   resp.pdu.set_successful_outcome().load_info_obj(ASN1_F1AP_ID_F1_REMOVAL);
@@ -325,11 +324,11 @@ static drbs_to_be_setup_item_s generate_drb_am_setup_item(drb_id_t drbid)
   return drb;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_setup_request(gnb_cu_ue_f1ap_id_t                cu_ue_id,
-                                                                     std::optional<gnb_du_ue_f1ap_id_t> du_ue_id,
-                                                                     uint32_t                     rrc_container_pdcp_sn,
-                                                                     const std::vector<drb_id_t>& drbs_to_setup,
-                                                                     nr_cell_global_id_t          nr_cgi)
+f1ap_message ocudu::test_helpers::generate_ue_context_setup_request(gnb_cu_ue_f1ap_id_t                cu_ue_id,
+                                                                    std::optional<gnb_du_ue_f1ap_id_t> du_ue_id,
+                                                                    uint32_t                     rrc_container_pdcp_sn,
+                                                                    const std::vector<drb_id_t>& drbs_to_setup,
+                                                                    nr_cell_global_id_t          nr_cgi)
 {
   using namespace asn1::f1ap;
   f1ap_message msg;
@@ -372,10 +371,10 @@ f1ap_message srsran::test_helpers::generate_ue_context_setup_request(gnb_cu_ue_f
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_setup_response(gnb_cu_ue_f1ap_id_t   cu_ue_id,
-                                                                      gnb_du_ue_f1ap_id_t   du_ue_id,
-                                                                      std::optional<rnti_t> crnti,
-                                                                      byte_buffer           cell_group_config)
+f1ap_message ocudu::test_helpers::generate_ue_context_setup_response(gnb_cu_ue_f1ap_id_t   cu_ue_id,
+                                                                     gnb_du_ue_f1ap_id_t   du_ue_id,
+                                                                     std::optional<rnti_t> crnti,
+                                                                     byte_buffer           cell_group_config)
 {
   f1ap_message ue_context_setup_response = {};
 
@@ -396,8 +395,8 @@ f1ap_message srsran::test_helpers::generate_ue_context_setup_response(gnb_cu_ue_
   return ue_context_setup_response;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_setup_failure(gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                     gnb_du_ue_f1ap_id_t du_ue_id)
+f1ap_message ocudu::test_helpers::generate_ue_context_setup_failure(gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                    gnb_du_ue_f1ap_id_t du_ue_id)
 {
   f1ap_message ue_context_setup_failure = {};
 
@@ -414,8 +413,8 @@ f1ap_message srsran::test_helpers::generate_ue_context_setup_failure(gnb_cu_ue_f
   return ue_context_setup_failure;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_release_request(gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                       gnb_du_ue_f1ap_id_t du_ue_id)
+f1ap_message ocudu::test_helpers::generate_ue_context_release_request(gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                      gnb_du_ue_f1ap_id_t du_ue_id)
 {
   f1ap_message msg;
   msg.pdu.set_init_msg();
@@ -430,10 +429,10 @@ f1ap_message srsran::test_helpers::generate_ue_context_release_request(gnb_cu_ue
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_release_command(gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                       gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                       srb_id_t            srb_id,
-                                                                       byte_buffer         rrc_container)
+f1ap_message ocudu::test_helpers::generate_ue_context_release_command(gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                      gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                      srb_id_t            srb_id,
+                                                                      byte_buffer         rrc_container)
 {
   f1ap_message msg;
   msg.pdu.set_init_msg();
@@ -454,12 +453,12 @@ f1ap_message srsran::test_helpers::generate_ue_context_release_command(gnb_cu_ue
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_release_complete(const f1ap_message& ue_ctxt_release_cmd)
+f1ap_message ocudu::test_helpers::generate_ue_context_release_complete(const f1ap_message& ue_ctxt_release_cmd)
 {
-  srsran_assert(ue_ctxt_release_cmd.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Invalid argument message");
-  srsran_assert(ue_ctxt_release_cmd.pdu.init_msg().value.type().value ==
-                    f1ap_elem_procs_o::init_msg_c::types_opts::ue_context_release_cmd,
-                "Invalid argument message");
+  ocudu_assert(ue_ctxt_release_cmd.pdu.type().value == f1ap_pdu_c::types_opts::init_msg, "Invalid argument message");
+  ocudu_assert(ue_ctxt_release_cmd.pdu.init_msg().value.type().value ==
+                   f1ap_elem_procs_o::init_msg_c::types_opts::ue_context_release_cmd,
+               "Invalid argument message");
 
   const ue_context_release_cmd_s& cmd = ue_ctxt_release_cmd.pdu.init_msg().value.ue_context_release_cmd();
 
@@ -467,8 +466,8 @@ f1ap_message srsran::test_helpers::generate_ue_context_release_complete(const f1
                                               int_to_gnb_du_ue_f1ap_id(cmd->gnb_du_ue_f1ap_id));
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_release_complete(gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                        gnb_du_ue_f1ap_id_t du_ue_id)
+f1ap_message ocudu::test_helpers::generate_ue_context_release_complete(gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                       gnb_du_ue_f1ap_id_t du_ue_id)
 {
   f1ap_message ue_ctxt_rel_complete_msg = {};
   ue_ctxt_rel_complete_msg.pdu.set_successful_outcome();
@@ -543,12 +542,12 @@ static asn1::f1ap::drbs_to_be_setup_mod_item_s generate_drb_am_mod_item(drb_id_t
 }
 
 f1ap_message
-srsran::test_helpers::generate_ue_context_modification_request(gnb_du_ue_f1ap_id_t                    du_ue_id,
-                                                               gnb_cu_ue_f1ap_id_t                    cu_ue_id,
-                                                               const std::initializer_list<drb_id_t>& drbs_to_setup,
-                                                               const std::initializer_list<drb_id_t>& drbs_to_mod,
-                                                               const std::initializer_list<drb_id_t>& drbs_to_rem,
-                                                               byte_buffer                            rrc_container)
+ocudu::test_helpers::generate_ue_context_modification_request(gnb_du_ue_f1ap_id_t                    du_ue_id,
+                                                              gnb_cu_ue_f1ap_id_t                    cu_ue_id,
+                                                              const std::initializer_list<drb_id_t>& drbs_to_setup,
+                                                              const std::initializer_list<drb_id_t>& drbs_to_mod,
+                                                              const std::initializer_list<drb_id_t>& drbs_to_rem,
+                                                              byte_buffer                            rrc_container)
 {
   using namespace asn1::f1ap;
   f1ap_message msg;
@@ -592,12 +591,12 @@ srsran::test_helpers::generate_ue_context_modification_request(gnb_du_ue_f1ap_id
 }
 
 f1ap_message
-srsran::test_helpers::generate_ue_context_modification_response(gnb_du_ue_f1ap_id_t          du_ue_id,
-                                                                gnb_cu_ue_f1ap_id_t          cu_ue_id,
-                                                                rnti_t                       crnti,
-                                                                const std::vector<drb_id_t>& drbs_setup_mod_list,
-                                                                const std::vector<drb_id_t>& drbs_modified_list,
-                                                                byte_buffer                  cell_group_config)
+ocudu::test_helpers::generate_ue_context_modification_response(gnb_du_ue_f1ap_id_t          du_ue_id,
+                                                               gnb_cu_ue_f1ap_id_t          cu_ue_id,
+                                                               rnti_t                       crnti,
+                                                               const std::vector<drb_id_t>& drbs_setup_mod_list,
+                                                               const std::vector<drb_id_t>& drbs_modified_list,
+                                                               byte_buffer                  cell_group_config)
 {
   f1ap_message pdu = {};
 
@@ -633,8 +632,8 @@ srsran::test_helpers::generate_ue_context_modification_response(gnb_du_ue_f1ap_i
   return pdu;
 }
 
-f1ap_message srsran::test_helpers::generate_ue_context_modification_failure(gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                            gnb_du_ue_f1ap_id_t du_ue_id)
+f1ap_message ocudu::test_helpers::generate_ue_context_modification_failure(gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                           gnb_du_ue_f1ap_id_t du_ue_id)
 {
   f1ap_message ue_context_modification_failure = {};
 
@@ -652,9 +651,9 @@ f1ap_message srsran::test_helpers::generate_ue_context_modification_failure(gnb_
 }
 
 f1ap_message
-srsran::test_helpers::generate_init_ul_rrc_message_transfer_without_du_to_cu_container(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                                       rnti_t              crnti,
-                                                                                       plmn_identity       plmn_id)
+ocudu::test_helpers::generate_init_ul_rrc_message_transfer_without_du_to_cu_container(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                                      rnti_t              crnti,
+                                                                                      plmn_identity       plmn_id)
 {
   f1ap_message init_ul_rrc_msg = generate_init_ul_rrc_message_transfer(du_ue_id, crnti, plmn_id);
   init_ul_rrc_msg.pdu.init_msg().value.init_ul_rrc_msg_transfer()->du_to_cu_rrc_container_present = false;
@@ -662,11 +661,11 @@ srsran::test_helpers::generate_init_ul_rrc_message_transfer_without_du_to_cu_con
   return init_ul_rrc_msg;
 }
 
-f1ap_message srsran::test_helpers::generate_init_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                         rnti_t              crnti,
-                                                                         plmn_identity       plmn_id,
-                                                                         byte_buffer         cell_group_cfg,
-                                                                         byte_buffer         rrc_container)
+f1ap_message ocudu::test_helpers::generate_init_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                        rnti_t              crnti,
+                                                                        plmn_identity       plmn_id,
+                                                                        byte_buffer         cell_group_cfg,
+                                                                        byte_buffer         rrc_container)
 {
   f1ap_message init_ul_rrc_msg;
 
@@ -703,10 +702,10 @@ f1ap_message srsran::test_helpers::generate_init_ul_rrc_message_transfer(gnb_du_
   return init_ul_rrc_msg;
 }
 
-f1ap_message srsran::test_helpers::generate_dl_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                    gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                    srb_id_t            srb_id,
-                                                                    byte_buffer         rrc_container)
+f1ap_message ocudu::test_helpers::generate_dl_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                   gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                   srb_id_t            srb_id,
+                                                                   byte_buffer         rrc_container)
 {
   f1ap_message msg;
 
@@ -721,10 +720,10 @@ f1ap_message srsran::test_helpers::generate_dl_rrc_message_transfer(gnb_du_ue_f1
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                    gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                    srb_id_t            srb_id,
-                                                                    byte_buffer         rrc_container)
+f1ap_message ocudu::test_helpers::generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                   gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                   srb_id_t            srb_id,
+                                                                   byte_buffer         rrc_container)
 {
   f1ap_message msg;
 
@@ -739,11 +738,11 @@ f1ap_message srsran::test_helpers::generate_ul_rrc_message_transfer(gnb_du_ue_f1
   return msg;
 }
 
-f1ap_message srsran::test_helpers::generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                    gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                                                    srb_id_t            srb_id,
-                                                                    uint32_t            pdcp_sn,
-                                                                    byte_buffer         ul_dcch_msg)
+f1ap_message ocudu::test_helpers::generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                   gnb_cu_ue_f1ap_id_t cu_ue_id,
+                                                                   srb_id_t            srb_id,
+                                                                   uint32_t            pdcp_sn,
+                                                                   byte_buffer         ul_dcch_msg)
 {
   // > Prepend PDCP header and append MAC.
   std::array<uint8_t, 2> pdcp_header{static_cast<uint8_t>((pdcp_sn >> 8U) & 0x0fU),
@@ -756,13 +755,13 @@ f1ap_message srsran::test_helpers::generate_ul_rrc_message_transfer(gnb_du_ue_f1
   return generate_ul_rrc_message_transfer(du_ue_id, cu_ue_id, srb_id, std::move(ul_dcch_msg));
 }
 
-byte_buffer srsran::test_helpers::create_dl_dcch_rrc_container(uint32_t                              pdcp_sn,
-                                                               const std::initializer_list<uint8_t>& dl_dcch_msg)
+byte_buffer ocudu::test_helpers::create_dl_dcch_rrc_container(uint32_t                              pdcp_sn,
+                                                              const std::initializer_list<uint8_t>& dl_dcch_msg)
 {
   return create_dl_dcch_rrc_container(pdcp_sn, byte_buffer::create(dl_dcch_msg).value());
 }
 
-byte_buffer srsran::test_helpers::create_dl_dcch_rrc_container(uint32_t pdcp_sn, const byte_buffer& dl_dcch_msg)
+byte_buffer ocudu::test_helpers::create_dl_dcch_rrc_container(uint32_t pdcp_sn, const byte_buffer& dl_dcch_msg)
 {
   byte_buffer container;
 
@@ -779,7 +778,7 @@ byte_buffer srsran::test_helpers::create_dl_dcch_rrc_container(uint32_t pdcp_sn,
   return container;
 }
 
-byte_buffer srsran::test_helpers::extract_dl_dcch_msg(const byte_buffer& rrc_container)
+byte_buffer ocudu::test_helpers::extract_dl_dcch_msg(const byte_buffer& rrc_container)
 {
   byte_buffer pdu = rrc_container.deep_copy().value();
   report_fatal_error_if_not(pdu.length() >= 7, "Invalid RRC container");
@@ -793,9 +792,9 @@ byte_buffer srsran::test_helpers::extract_dl_dcch_msg(const byte_buffer& rrc_con
   return pdu;
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-f1ap_message srsran::test_helpers::generate_positioning_measurement_request(
+f1ap_message ocudu::test_helpers::generate_positioning_measurement_request(
     std::vector<trp_id_t>                                trp_ids,
     lmf_meas_id_t                                        lmf_meas_id,
     ran_meas_id_t                                        ran_meas_id,
@@ -806,52 +805,52 @@ f1ap_message srsran::test_helpers::generate_positioning_measurement_request(
   return {};
 }
 
-f1ap_message srsran::test_helpers::generate_positioning_measurement_response(lmf_meas_id_t                lmf_meas_id,
-                                                                             ran_meas_id_t                ran_meas_id,
-                                                                             const std::vector<trp_id_t>& trp_ids,
-                                                                             unsigned transaction_id)
+f1ap_message ocudu::test_helpers::generate_positioning_measurement_response(lmf_meas_id_t                lmf_meas_id,
+                                                                            ran_meas_id_t                ran_meas_id,
+                                                                            const std::vector<trp_id_t>& trp_ids,
+                                                                            unsigned                     transaction_id)
 {
   return {};
 }
 
-f1ap_message srsran::test_helpers::generate_positioning_measurement_failure(lmf_meas_id_t lmf_meas_id,
-                                                                            ran_meas_id_t ran_meas_id)
+f1ap_message ocudu::test_helpers::generate_positioning_measurement_failure(lmf_meas_id_t lmf_meas_id,
+                                                                           ran_meas_id_t ran_meas_id)
 {
   return {};
 }
 
-f1ap_message srsran::test_helpers::generate_trp_information_response(const trp_id_t& trp_id)
+f1ap_message ocudu::test_helpers::generate_trp_information_response(const trp_id_t& trp_id)
 {
   return {};
 }
 
-f1ap_message srsran::test_helpers::generate_trp_information_failure()
+f1ap_message ocudu::test_helpers::generate_trp_information_failure()
 {
   return {};
 }
 
-f1ap_message srsran::test_helpers::generate_positioning_information_response(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                             gnb_cu_ue_f1ap_id_t cu_ue_id)
-{
-  return {};
-}
-
-f1ap_message srsran::test_helpers::generate_positioning_information_failure(gnb_du_ue_f1ap_id_t du_ue_id,
+f1ap_message ocudu::test_helpers::generate_positioning_information_response(gnb_du_ue_f1ap_id_t du_ue_id,
                                                                             gnb_cu_ue_f1ap_id_t cu_ue_id)
 {
   return {};
 }
 
-f1ap_message srsran::test_helpers::generate_positioning_activation_response(gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                            gnb_cu_ue_f1ap_id_t cu_ue_id)
-{
-  return {};
-}
-
-f1ap_message srsran::test_helpers::generate_positioning_activation_failure(gnb_du_ue_f1ap_id_t du_ue_id,
+f1ap_message ocudu::test_helpers::generate_positioning_information_failure(gnb_du_ue_f1ap_id_t du_ue_id,
                                                                            gnb_cu_ue_f1ap_id_t cu_ue_id)
 {
   return {};
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+f1ap_message ocudu::test_helpers::generate_positioning_activation_response(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                           gnb_cu_ue_f1ap_id_t cu_ue_id)
+{
+  return {};
+}
+
+f1ap_message ocudu::test_helpers::generate_positioning_activation_failure(gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                          gnb_cu_ue_f1ap_id_t cu_ue_id)
+{
+  return {};
+}
+
+#endif // OCUDU_HAS_ENTERPRISE

@@ -9,12 +9,12 @@
  */
 
 #include "ngap_test_helpers.h"
-#include "srsran/ngap/ngap_setup.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 /// Test the ng setup procedure timeout
 TEST_F(ngap_test, when_ng_setup_procedure_times_out_then_amf_not_connected)

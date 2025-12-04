@@ -17,19 +17,19 @@
 #include "ofh_data_flow_uplane_downlink_task_dispatcher.h"
 #include "ofh_transmitter_impl.h"
 #include "ofh_uplane_fragment_size_calculator.h"
-#include "srsran/ofh/compression/compression_factory.h"
-#include "srsran/ofh/compression/iq_compressor.h"
-#include "srsran/ofh/ecpri/ecpri_factories.h"
-#include "srsran/ofh/ethernet/ethernet_factories.h"
-#include "srsran/ofh/serdes/ofh_serdes_factories.h"
+#include "ocudu/ofh/compression/compression_factory.h"
+#include "ocudu/ofh/compression/iq_compressor.h"
+#include "ocudu/ofh/ecpri/ecpri_factories.h"
+#include "ocudu/ofh/ethernet/ethernet_factories.h"
+#include "ocudu/ofh/serdes/ofh_serdes_factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 static std::unique_ptr<data_flow_cplane_scheduling_commands>
 create_data_flow_cplane_sched(const transmitter_config&                         tx_config,
                               bool                                              static_compr_header_enabled,
-                              srslog::basic_logger&                             logger,
+                              ocudulog::basic_logger&                           logger,
                               std::shared_ptr<ether::eth_frame_pool>            frame_pool,
                               std::shared_ptr<uplink_cplane_context_repository> ul_cplane_context_repo,
                               std::shared_ptr<uplink_cplane_context_repository> prach_cplane_context_repo)
@@ -75,7 +75,7 @@ create_data_flow_cplane_sched(const transmitter_config&                         
 
 static std::unique_ptr<data_flow_uplane_downlink_data>
 create_data_flow_uplane_data(const transmitter_config&              tx_config,
-                             srslog::basic_logger&                  logger,
+                             ocudulog::basic_logger&                logger,
                              std::shared_ptr<ether::eth_frame_pool> frame_pool)
 {
   frequency_range freq_range =
@@ -121,7 +121,7 @@ create_data_flow_uplane_data(const transmitter_config&              tx_config,
 }
 
 static std::shared_ptr<ether::eth_frame_pool> create_eth_frame_pool(const transmitter_config& tx_config,
-                                                                    srslog::basic_logger&     logger,
+                                                                    ocudulog::basic_logger&   logger,
                                                                     ofh::message_type         type,
                                                                     ofh::data_direction       direction,
                                                                     bool calculate_nof_frames_per_symbol = true)
@@ -168,7 +168,7 @@ static std::shared_ptr<ether::eth_frame_pool> create_eth_frame_pool(const transm
 
 static transmitter_impl_dependencies
 resolve_transmitter_dependencies(const transmitter_config&                               tx_config,
-                                 srslog::basic_logger&                                   logger,
+                                 ocudulog::basic_logger&                                 logger,
                                  task_executor&                                          tx_executor,
                                  task_executor&                                          downlink_executor,
                                  error_notifier&                                         err_notifier,
@@ -228,17 +228,17 @@ resolve_transmitter_dependencies(const transmitter_config&                      
 }
 
 std::unique_ptr<transmitter>
-srsran::ofh::create_transmitter(const transmitter_config&                               transmitter_cfg,
-                                srslog::basic_logger&                                   logger,
-                                task_executor&                                          tx_executor,
-                                task_executor&                                          downlink_executor,
-                                error_notifier&                                         err_notifier,
-                                std::unique_ptr<ether::transmitter>                     eth_transmitter,
-                                std::shared_ptr<prach_context_repository>               prach_context_repo,
-                                std::shared_ptr<uplink_context_repository>              ul_slot_context_repo,
-                                std::shared_ptr<uplink_cplane_context_repository>       ul_cp_context_repo,
-                                std::shared_ptr<uplink_cplane_context_repository>       prach_cp_context_repo,
-                                std::shared_ptr<uplink_notified_grid_symbol_repository> notifier_symbol_repo)
+ocudu::ofh::create_transmitter(const transmitter_config&                               transmitter_cfg,
+                               ocudulog::basic_logger&                                 logger,
+                               task_executor&                                          tx_executor,
+                               task_executor&                                          downlink_executor,
+                               error_notifier&                                         err_notifier,
+                               std::unique_ptr<ether::transmitter>                     eth_transmitter,
+                               std::shared_ptr<prach_context_repository>               prach_context_repo,
+                               std::shared_ptr<uplink_context_repository>              ul_slot_context_repo,
+                               std::shared_ptr<uplink_cplane_context_repository>       ul_cp_context_repo,
+                               std::shared_ptr<uplink_cplane_context_repository>       prach_cp_context_repo,
+                               std::shared_ptr<uplink_notified_grid_symbol_repository> notifier_symbol_repo)
 {
   return std::make_unique<transmitter_impl>(transmitter_cfg,
                                             resolve_transmitter_dependencies(transmitter_cfg,

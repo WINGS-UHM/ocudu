@@ -9,10 +9,10 @@
  */
 
 #include "dmrs_pbch_processor_impl.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/srsvec/conversion.h"
+#include "ocudu/ocuduvec/conversion.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 unsigned dmrs_pbch_processor_impl::c_init(const config_t& config)
 {
@@ -50,7 +50,7 @@ void dmrs_pbch_processor_impl::mapping(const std::array<cf_t, NOF_RE>& r,
   for (unsigned port : args.ports) {
     // Convert symbols to complex BF16.
     std::array<cbf16_t, NOF_RE> symbols_cbf16;
-    srsvec::convert(symbols_cbf16, r);
+    ocuduvec::convert(symbols_cbf16, r);
 
     // Create view with the symbols.
     span<const cbf16_t> symbols = symbols_cbf16;

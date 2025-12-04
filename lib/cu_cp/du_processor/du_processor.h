@@ -12,15 +12,15 @@
 
 #include "du_configuration_handler.h"
 #include "du_metrics_handler.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/cu_cp/cell_meas_manager_config.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/rrc/rrc_du.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/cu_cp/cell_meas_manager_config.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/rrc/rrc_du.h"
 #include <string>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// Forward declared messages.
 struct rrc_ue_creation_message;
@@ -151,5 +151,5 @@ public:
   virtual du_metrics_handler& get_metrics_handler() = 0;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

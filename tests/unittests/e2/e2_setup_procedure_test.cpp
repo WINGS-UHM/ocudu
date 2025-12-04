@@ -11,10 +11,10 @@
 #include "common/e2ap_asn1_packer.h"
 #include "lib/e2/common/e2ap_asn1_utils.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/support/async/async_test_utils.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Test the initial e2ap setup procedure with own task worker
 TEST_F(e2_entity_test, on_start_send_e2ap_setup_request)
@@ -121,7 +121,7 @@ TEST_F(e2_test_setup, e2_sends_correct_kpm_ran_function_definition)
                                              .ran_function_item();
   asn1::cbit_ref                                  bref1(ran_func_added1.ran_function_definition);
   asn1::e2sm::e2sm_kpm_ran_function_description_s ran_func_def = {};
-  if (ran_func_def.unpack(bref1) != asn1::SRSASN_SUCCESS) {
+  if (ran_func_def.unpack(bref1) != asn1::OCUDUASN_SUCCESS) {
     printf("Couldn't unpack E2 PDU");
   }
   // check contents of E2SM-KPM-RANfunction-Description
@@ -168,7 +168,7 @@ TEST_F(e2_test_setup, e2_sends_correct_rc_ran_function_definition)
   asn1::cbit_ref bref1(ran_func_added1.ran_function_definition);
 
   asn1::e2sm::e2sm_rc_ran_function_definition_s ran_func_def = {};
-  if (ran_func_def.unpack(bref1) != asn1::SRSASN_SUCCESS) {
+  if (ran_func_def.unpack(bref1) != asn1::OCUDUASN_SUCCESS) {
     printf("Couldn't unpack E2 PDU");
   }
 

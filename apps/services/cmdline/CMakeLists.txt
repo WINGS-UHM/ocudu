@@ -13,5 +13,5 @@ set(SOURCES
         cmdline_command_dispatcher.cpp
         stdout_metrics_command.cpp)
 
-add_library(srsran_cmdline_app_service STATIC ${SOURCES})
-target_include_directories(srsran_cmdline_app_service PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_cmdline_app_service STATIC ${SOURCES})
+target_include_directories(ocudu_cmdline_app_service PRIVATE ${CMAKE_SOURCE_DIR})

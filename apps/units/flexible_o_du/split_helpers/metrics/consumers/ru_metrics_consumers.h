@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/ofh/ofh_metrics.h"
-#include "srsran/ran/pci.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ofh/ofh_metrics.h"
+#include "ocudu/ran/pci.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_dummy_metrics;
 struct ru_sdr_metrics;
@@ -24,12 +24,12 @@ struct ru_metrics;
 class ru_metrics_consumer_json
 {
 public:
-  ru_metrics_consumer_json(srslog::log_channel&     log_chan_,
+  ru_metrics_consumer_json(ocudulog::log_channel&   log_chan_,
                            span<const pci_t>        pci_sector_map_,
                            std::chrono::nanoseconds symbol_duration_) :
     symbol_duration(symbol_duration_), log_chan(log_chan_), pci_sector_map(pci_sector_map_)
   {
-    srsran_assert(log_chan.enabled(), "JSON log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // Handles the O-RU metrics.
@@ -37,7 +37,7 @@ public:
 
 private:
   const std::chrono::nanoseconds symbol_duration;
-  srslog::log_channel&           log_chan;
+  ocudulog::log_channel&         log_chan;
   span<const pci_t>              pci_sector_map;
 };
 
@@ -45,12 +45,12 @@ private:
 class ru_metrics_consumer_log
 {
 public:
-  ru_metrics_consumer_log(srslog::log_channel&     log_chan_,
+  ru_metrics_consumer_log(ocudulog::log_channel&   log_chan_,
                           span<const pci_t>        pci_sector_map_,
                           std::chrono::nanoseconds symbol_duration_) :
     symbol_duration(symbol_duration_), log_chan(log_chan_), verbose(true), pci_sector_map(pci_sector_map_)
   {
-    srsran_assert(log_chan.enabled(), "JSON log channel is not enabled");
+    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // Handles the O-RU metrics.
@@ -58,7 +58,7 @@ public:
 
 private:
   const std::chrono::nanoseconds symbol_duration;
-  srslog::log_channel&           log_chan;
+  ocudulog::log_channel&         log_chan;
   const bool                     verbose;
   span<const pci_t>              pci_sector_map;
 };
@@ -98,4 +98,4 @@ private:
   span<const pci_t>              pci_sector_map;
 };
 
-} // namespace srsran
+} // namespace ocudu

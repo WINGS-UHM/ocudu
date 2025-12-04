@@ -11,11 +11,11 @@
 #pragma once
 
 #include "math.h"
-#include "srsran/adt/interval.h"
-#include "srsran/ran/sch/sch_mcs.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/interval.h"
+#include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Outer-layer Link Adaptation (OLLA) algorithm, which modifies SNR thresholds used in the selection of MCS
 /// to achieve a specified target BLER.
@@ -36,13 +36,13 @@ public:
     delta_up((1 - target_bler) * snr_inc_step_db / target_bler),
     max_snr_offset(max_snr_offset_db)
   {
-    srsran_assert(target_bler > 0 and target_bler < 0.5, "Invalid target BLER");
+    ocudu_assert(target_bler > 0 and target_bler < 0.5, "Invalid target BLER");
     // See Francisco Blanquez-Casado, Gerardo Gomez, Maria del Carmen Aguayo-Torres and Jose Tomas Entrambasaguas,
     // "eOLLA: an enhanced outer loop link adaptation for cellular networks", EURASIP Journal on Wireless
     // Communications and Networking, 2016.
-    srsran_assert(delta_down < 2 * std::exp(1) * target_bler / 1.03,
-                  "Convergence guarantees of the OLLA algorithm have not been met");
-    srsran_assert(max_snr_offset_db > 0.0f, "Invalid maximum SNR offset");
+    ocudu_assert(delta_down < 2 * std::exp(1) * target_bler / 1.03,
+                 "Convergence guarantees of the OLLA algorithm have not been met");
+    ocudu_assert(max_snr_offset_db > 0.0f, "Invalid maximum SNR offset");
   }
 
   /// \brief Update SNR offset with ACK/CRC feedback.
@@ -73,4 +73,4 @@ private:
   float current_offset = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

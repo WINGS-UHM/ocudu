@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/du/du_high/du_manager/du_configurator.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/du/du_high/du_manager/du_configurator.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class du_cell_manager;
 
@@ -22,5 +22,5 @@ async_task<du_si_pdu_update_response> start_du_mac_si_pdu_update(const du_si_pdu
                                                                  const du_manager_params&        params,
                                                                  du_cell_manager&                cell_mng);
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -9,14 +9,14 @@
  */
 
 #include "f1ap_du_test_messages.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::f1ap;
 
-f1ap_message srsran::generate_f1ap_dl_rrc_message_transfer(srb_id_t srb_id, const byte_buffer& rrc_container)
+f1ap_message ocudu::generate_f1ap_dl_rrc_message_transfer(srb_id_t srb_id, const byte_buffer& rrc_container)
 {
   f1ap_message msg;
 

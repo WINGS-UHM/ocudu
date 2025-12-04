@@ -14,23 +14,23 @@
 #pragma once
 
 #include "../rrc/rrc_packed_test_messages.h"
-#include "srsran/adt/byte_buffer.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/f1ap/common/interface_management.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/f1ap/f1ap_ue_id_types.h"
-#include "srsran/ran/gnb_du_id.h"
-#include "srsran/ran/nr_band.h"
-#include "srsran/ran/nr_cgi.h"
-#include "srsran/ran/pci.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/ran/positioning/positioning_ids.h"
-#include "srsran/ran/rb_id.h"
-#include "srsran/ran/rnti.h"
-#include "srsran/ran/subcarrier_spacing.h"
-#include "srsran/ran/tac.h"
+#include "ocudu/adt/byte_buffer.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/f1ap/common/interface_management.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/gnb_du_id.h"
+#include "ocudu/ran/nr_band.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/positioning/positioning_ids.h"
+#include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rnti.h"
+#include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/ran/tac.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct f1ap_message;
 
@@ -275,4 +275,4 @@ f1ap_message generate_positioning_activation_response(gnb_du_ue_f1ap_id_t du_ue_
 f1ap_message generate_positioning_activation_failure(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
 
 } // namespace test_helpers
-} // namespace srsran
+} // namespace ocudu

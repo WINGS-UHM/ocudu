@@ -9,18 +9,18 @@
 add_subdirectory(du_manager)
 add_subdirectory(test_mode)
 
-add_library(srsran_du_high STATIC
+add_library(ocudu_du_high STATIC
         du_high_impl.cpp
         du_high_factory.cpp
         du_high_clock_controller_factory.cpp
         du_high_executor_mapper.cpp)
-target_link_libraries(srsran_du_high PUBLIC srsran_du_high_adapters)
+target_link_libraries(ocudu_du_high PUBLIC ocudu_du_high_adapters)
 
-add_library(srsran_o_du_high STATIC
+add_library(ocudu_o_du_high STATIC
         o_du_high_factory.cpp
         o_du_high_impl.cpp
         o_du_high_metrics_notifier_proxy.cpp)
-target_link_libraries(srsran_o_du_high PUBLIC srsran_du_config_validators
-                                              srsran_du_high
-                                              srsran_mac_fapi_fastpath_adaptor
-                                              srsran_fapi srsran_e2)
+target_link_libraries(ocudu_o_du_high PUBLIC ocudu_du_config_validators
+                                              ocudu_du_high
+                                              ocudu_mac_fapi_fastpath_adaptor
+                                              ocudu_fapi ocudu_e2)

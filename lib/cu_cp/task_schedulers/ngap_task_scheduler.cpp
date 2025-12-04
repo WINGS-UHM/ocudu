@@ -10,13 +10,13 @@
 
 #include "ngap_task_scheduler.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-ngap_task_scheduler::ngap_task_scheduler(timer_manager&        timers_,
-                                         task_executor&        exec_,
-                                         uint16_t              max_nof_amfs,
-                                         srslog::basic_logger& logger_) :
+ngap_task_scheduler::ngap_task_scheduler(timer_manager&          timers_,
+                                         task_executor&          exec_,
+                                         uint16_t                max_nof_amfs,
+                                         ocudulog::basic_logger& logger_) :
   timers(timers_), exec(exec_), logger(logger_)
 {
   // init du control loops

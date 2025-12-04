@@ -11,11 +11,11 @@
 #pragma once
 
 #include "../../phy_test_utils.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/ran/prach/prach_preamble_information.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class prach_generator_spy : public prach_generator
 {
@@ -55,4 +55,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(prach_generator);
 
-} // namespace srsran
+} // namespace ocudu

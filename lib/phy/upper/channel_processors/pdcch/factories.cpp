@@ -8,7 +8,7 @@
  *
  */
 
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
 #include "logging_pdcch_processor_decorator.h"
 #include "pdcch_encoder_impl.h"
 #include "pdcch_modulator_impl.h"
@@ -16,7 +16,7 @@
 #include "pdcch_processor_pool.h"
 #include "pdcch_processor_validator_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -35,9 +35,9 @@ public:
     prg_factory(std::move(prg_factory_)),
     rg_mapper_factory(std::move(rg_mapper_factory_))
   {
-    srsran_assert(modulator_factory, "Invalid modulator factory.");
-    srsran_assert(prg_factory, "Invalid PRG factory.");
-    srsran_assert(rg_mapper_factory, "Invalid resource grid mapper factory.");
+    ocudu_assert(modulator_factory, "Invalid modulator factory.");
+    ocudu_assert(prg_factory, "Invalid PRG factory.");
+    ocudu_assert(rg_mapper_factory, "Invalid resource grid mapper factory.");
   }
 
   std::unique_ptr<pdcch_modulator> create() override
@@ -58,8 +58,8 @@ public:
                            std::shared_ptr<polar_factory>          polar_code_factory_) :
     crc_factory(std::move(crc_factory_)), polar_code_factory(std::move(polar_code_factory_))
   {
-    srsran_assert(crc_factory, "Invalid CRC calculator factory.");
-    srsran_assert(polar_code_factory, "Invalid Polar code factory.");
+    ocudu_assert(crc_factory, "Invalid CRC calculator factory.");
+    ocudu_assert(polar_code_factory, "Invalid Polar code factory.");
   }
 
   std::unique_ptr<pdcch_encoder> create() override
@@ -88,9 +88,9 @@ public:
     modulator_factory(std::move(modulator_factory_)),
     dmrs_factory(std::move(dmrs_factory_))
   {
-    srsran_assert(encoder_factory, "Invalid encoder factory.");
-    srsran_assert(modulator_factory, "Invalid modulator factory.");
-    srsran_assert(dmrs_factory, "Invalid DM-RS factory.");
+    ocudu_assert(encoder_factory, "Invalid encoder factory.");
+    ocudu_assert(modulator_factory, "Invalid modulator factory.");
+    ocudu_assert(dmrs_factory, "Invalid DM-RS factory.");
   }
 
   std::unique_ptr<pdcch_processor> create() override
@@ -111,8 +111,8 @@ public:
   pdcch_processor_pool_factory(std::shared_ptr<pdcch_processor_factory> factory_, unsigned nof_concurrent_threads_) :
     factory(std::move(factory_)), nof_concurrent_threads(nof_concurrent_threads_)
   {
-    srsran_assert(factory, "Invalid PDCCH processor factory.");
-    srsran_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
+    ocudu_assert(factory, "Invalid PDCCH processor factory.");
+    ocudu_assert(nof_concurrent_threads > 1, "Number of concurrent threads must be greater than one.");
   }
 
   std::unique_ptr<pdcch_processor> create() override
@@ -126,7 +126,7 @@ public:
     return std::make_unique<pdcch_processor_pool>(std::move(processors));
   }
 
-  std::unique_ptr<pdcch_processor> create(srslog::basic_logger& logger, bool enable_logging_broadcast) override
+  std::unique_ptr<pdcch_processor> create(ocudulog::basic_logger& logger, bool enable_logging_broadcast) override
   {
     if (!processors) {
       std::vector<std::unique_ptr<pdcch_processor>> procs(nof_concurrent_threads);
@@ -150,39 +150,39 @@ private:
 } // namespace
 
 std::shared_ptr<pdcch_encoder_factory>
-srsran::create_pdcch_encoder_factory_sw(std::shared_ptr<crc_calculator_factory> crc_factory,
-                                        std::shared_ptr<polar_factory>          encoder_factory)
+ocudu::create_pdcch_encoder_factory_sw(std::shared_ptr<crc_calculator_factory> crc_factory,
+                                       std::shared_ptr<polar_factory>          encoder_factory)
 {
   return std::make_shared<pdcch_encoder_factory_sw>(std::move(crc_factory), std::move(encoder_factory));
 }
 
 std::shared_ptr<pdcch_modulator_factory>
-srsran::create_pdcch_modulator_factory_sw(std::shared_ptr<modulation_mapper_factory>       modulator_factory,
-                                          std::shared_ptr<pseudo_random_generator_factory> prg_factory,
-                                          std::shared_ptr<resource_grid_mapper_factory>    rg_mapper_factory)
+ocudu::create_pdcch_modulator_factory_sw(std::shared_ptr<modulation_mapper_factory>       modulator_factory,
+                                         std::shared_ptr<pseudo_random_generator_factory> prg_factory,
+                                         std::shared_ptr<resource_grid_mapper_factory>    rg_mapper_factory)
 {
   return std::make_shared<pdcch_modulator_factory_sw>(
       std::move(modulator_factory), std::move(prg_factory), rg_mapper_factory);
 }
 
 std::shared_ptr<pdcch_processor_factory>
-srsran::create_pdcch_processor_factory_sw(std::shared_ptr<pdcch_encoder_factory>        encoder_factory,
-                                          std::shared_ptr<pdcch_modulator_factory>      modulator_factory,
-                                          std::shared_ptr<dmrs_pdcch_processor_factory> dmrs_factory)
+ocudu::create_pdcch_processor_factory_sw(std::shared_ptr<pdcch_encoder_factory>        encoder_factory,
+                                         std::shared_ptr<pdcch_modulator_factory>      modulator_factory,
+                                         std::shared_ptr<dmrs_pdcch_processor_factory> dmrs_factory)
 {
   return std::make_shared<pdcch_processor_factory_sw>(
       std::move(encoder_factory), std::move(modulator_factory), std::move(dmrs_factory));
 }
 
 std::shared_ptr<pdcch_processor_factory>
-srsran::create_pdcch_processor_pool_factory(std::shared_ptr<pdcch_processor_factory> processor_factory,
-                                            unsigned                                 nof_concurrent_threads)
+ocudu::create_pdcch_processor_pool_factory(std::shared_ptr<pdcch_processor_factory> processor_factory,
+                                           unsigned                                 nof_concurrent_threads)
 {
   return std::make_shared<pdcch_processor_pool_factory>(processor_factory, nof_concurrent_threads);
 }
 
-std::unique_ptr<pdcch_processor> pdcch_processor_factory::create(srslog::basic_logger& logger,
-                                                                 bool                  enable_logging_broadcast)
+std::unique_ptr<pdcch_processor> pdcch_processor_factory::create(ocudulog::basic_logger& logger,
+                                                                 bool                    enable_logging_broadcast)
 {
   return std::make_unique<logging_pdcch_processor_decorator>(logger, enable_logging_broadcast, create());
 }

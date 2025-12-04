@@ -10,10 +10,10 @@
 
 #include "ul_srs_pdu.h"
 #include "field_checkers.h"
-#include "srsran/fapi/messages/ul_tti_request.h"
-#include "srsran/ran/srs/srs_configuration.h"
+#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/ran/srs/srs_configuration.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks a UL_TTI.request message.

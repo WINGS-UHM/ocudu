@@ -9,11 +9,11 @@
  */
 
 #include "ue_manager_impl.h"
-#include "srsran/cu_cp/cu_cp_configuration.h"
-#include "srsran/cu_cp/security_manager_config.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/security_manager_config.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 void cu_cp_ue::stop()
 {
@@ -236,10 +236,10 @@ cu_cp_ue* ue_manager::set_ue_du_context(ue_index_t      ue_index,
                                         rnti_t          rnti,
                                         du_cell_index_t pcell_index)
 {
-  srsran_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-  srsran_assert(pci != INVALID_PCI, "Invalid pci={}", pci);
-  srsran_assert(rnti != rnti_t::INVALID_RNTI, "Invalid rnti={}", rnti);
-  srsran_assert(pcell_index != du_cell_index_t::invalid, "Invalid pcell_index={}", pcell_index);
+  ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
+  ocudu_assert(pci != INVALID_PCI, "Invalid pci={}", pci);
+  ocudu_assert(rnti != rnti_t::INVALID_RNTI, "Invalid rnti={}", rnti);
+  ocudu_assert(pcell_index != du_cell_index_t::invalid, "Invalid pcell_index={}", pcell_index);
 
   // check if ue_index is in db
   if (ues.find(ue_index) == ues.end()) {

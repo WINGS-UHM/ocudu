@@ -16,12 +16,12 @@
 #pragma once
 
 #include "simd_types.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <array>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 /// Number of bytes in an AVX2 register.
 constexpr unsigned AVX2_SIZE_BYTE = 32;
 /// Number of bytes in an AVX512 register.
@@ -68,7 +68,7 @@ public:
   {
     static_assert(sizeof(IntType) == sizeof(storageType),
                   "simd_span can only be created from arrays of 1-byte integer types.");
-    srsran_assert((offset + view_length) * SIMD_SIZE_BYTE <= N, "Cannot take a span longer than the array.");
+    ocudu_assert((offset + view_length) * SIMD_SIZE_BYTE <= N, "Cannot take a span longer than the array.");
   }
 
   /// \brief Constructs a span from a standard array.
@@ -94,7 +94,7 @@ public:
   {
     static_assert(sizeof(IntType) == sizeof(storageType),
                   "simd_span can only be created from arrays of 1-byte integer types.");
-    srsran_assert((offset + view_length) * SIMD_SIZE_BYTE <= vec.size(), "Cannot take a span longer than the array.");
+    ocudu_assert((offset + view_length) * SIMD_SIZE_BYTE <= vec.size(), "Cannot take a span longer than the array.");
   }
 
   /// \brief Constructs a span from a standard vector.
@@ -107,7 +107,7 @@ public:
   {
   }
 
-  /// \brief Constructs an \c simd_span from a \c srsran::span.
+  /// \brief Constructs an \c simd_span from a \c ocudu::span.
   ///
   /// \tparam IntType   Type of the span - must be an integer type of 8 bits.
   /// \param[in] sp     Original span.
@@ -117,21 +117,21 @@ public:
   {
     static_assert(sizeof(IntType) == sizeof(storageType),
                   "simd_span can only be created from arrays of 1-byte integer types.");
-    srsran_assert(view_length * SIMD_SIZE_BYTE <= sp.size(),
-                  "Cannot create an simd_span longer than the original span.");
+    ocudu_assert(view_length * SIMD_SIZE_BYTE <= sp.size(),
+                 "Cannot create an simd_span longer than the original span.");
   }
 
   /// Returns a pointer to the \c pos SIMD register inside the array.
   simdType* data_at(unsigned pos)
   {
-    srsran_assert(pos < view_length, "Index {} out of bound.", pos);
+    ocudu_assert(pos < view_length, "Index {} out of bound.", pos);
     return reinterpret_cast<simdType*>(array_ptr) + pos;
   }
 
   /// Returns a read-only pointer to the \c pos SIMD register inside the array.
   const simdType* data_at(unsigned pos) const
   {
-    srsran_assert(pos < view_length, "Index {} out of bound.", pos);
+    ocudu_assert(pos < view_length, "Index {} out of bound.", pos);
     return reinterpret_cast<const simdType*>(array_ptr) + pos;
   }
 
@@ -139,7 +139,7 @@ public:
   pointer data_at(unsigned pos, unsigned byte)
   {
     unsigned index = pos * SIMD_SIZE_BYTE + byte;
-    srsran_assert(index < view_length * SIMD_SIZE_BYTE, "Index ({}, {}) out of bound.", pos, byte);
+    ocudu_assert(index < view_length * SIMD_SIZE_BYTE, "Index ({}, {}) out of bound.", pos, byte);
     return (array_ptr + index);
   }
 
@@ -147,7 +147,7 @@ public:
   const pointer data_at(unsigned pos, unsigned byte) const
   {
     unsigned index = pos * SIMD_SIZE_BYTE + byte;
-    srsran_assert(index < view_length * SIMD_SIZE_BYTE, "Index ({}, {}) out of bound.", pos, byte);
+    ocudu_assert(index < view_length * SIMD_SIZE_BYTE, "Index ({}, {}) out of bound.", pos, byte);
     return (array_ptr + index);
   }
 
@@ -176,7 +176,7 @@ public:
   span<storageType> plain_span(size_t offset, size_t length) const
   {
     unsigned offset_byte = offset * SIMD_SIZE_BYTE;
-    srsran_assert(offset_byte + length <= view_length * SIMD_SIZE_BYTE, "Size out of bound.");
+    ocudu_assert(offset_byte + length <= view_length * SIMD_SIZE_BYTE, "Size out of bound.");
     return span<storageType>(array_ptr + offset_byte, length);
   }
 
@@ -198,4 +198,4 @@ private:
 
 } // namespace detail
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,10 +9,10 @@
  */
 
 #include "dmrs_pucch_estimator_formats3_4.h"
-#include "srsran/phy/upper/pucch_formats3_4_helpers.h"
-#include "srsran/ran/pucch/pucch_constants.h"
+#include "ocudu/phy/upper/pucch_formats3_4_helpers.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void dmrs_pucch_estimator_formats3_4::generate_sequence(span<cf_t>             sequence,
                                                         const estimate_config& config,

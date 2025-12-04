@@ -9,14 +9,14 @@
  */
 
 #include "sctp_network_gateway_impl.h"
-#include "srsran/gateways/addr_info.h"
-#include "srsran/support/io/sockets.h"
+#include "ocudu/gateways/addr_info.h"
+#include "ocudu/support/io/sockets.h"
 #include <netdb.h>
 #include <netinet/sctp.h>
 #include <sys/socket.h>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 sctp_network_gateway_impl::sctp_network_gateway_impl(const sctp_network_connector_config&   config_,
                                                      sctp_network_gateway_control_notifier& ctrl_notfier_,

@@ -9,34 +9,34 @@
  */
 
 #include "upper_phy_ssb_example.h"
-#include "srsran/phy/support/prach_buffer.h"
-#include "srsran/phy/support/prach_buffer_context.h"
-#include "srsran/phy/support/re_pattern.h"
-#include "srsran/phy/support/resource_grid_mapper.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/phy/upper/channel_processors/channel_processor_factories.h"
-#include "srsran/phy/upper/channel_processors/ssb/factories.h"
-#include "srsran/phy/upper/channel_processors/ssb/ssb_processor.h"
-#include "srsran/phy/upper/sequence_generators/sequence_generator_factories.h"
-#include "srsran/phy/upper/upper_phy_timing_context.h"
-#include "srsran/ran/precoding/precoding_codebooks.h"
-#include "srsran/srsvec/bit.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/phy/support/re_pattern.h"
+#include "ocudu/phy/support/resource_grid_mapper.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
+#include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
+#include "ocudu/phy/upper/upper_phy_timing_context.h"
+#include "ocudu/ran/precoding/precoding_codebooks.h"
 #include <condition_variable>
 #include <mutex>
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
 class upper_phy_example_sw : public upper_phy_ssb_example
 {
 private:
-  srslog::basic_logger&                 logger;
+  ocudulog::basic_logger&               logger;
   std::mutex                            mutex;
   std::condition_variable               cvar_tti_boundary;
   bool                                  tti_boundary = false;
@@ -64,7 +64,7 @@ private:
   static_re_buffer<1, MAX_NRE_PER_SLOT>                                data_symbols;
 
 public:
-  upper_phy_example_sw(srslog::basic_logger&                 logger_,
+  upper_phy_example_sw(ocudulog::basic_logger&               logger_,
                        std::unique_ptr<resource_grid_pool>   dl_rg_pool_,
                        std::unique_ptr<resource_grid_pool>   ul_rg_pool_,
                        std::unique_ptr<ssb_processor>        ssb_,
@@ -96,17 +96,17 @@ public:
     nof_ports(nof_ports_),
     rgen(0)
   {
-    srsran_assert(dl_rg_pool, "Invalid DL RG pool.");
-    srsran_assert(ul_rg_pool, "Invalid UL RG pool.");
-    srsran_assert(ssb, "Invalid SSB processor.");
-    srsran_assert(data_modulator, "Invalid modulation mapper.");
-    srsran_assert(mapper, "Invalid resource grid mapper.");
-    srsran_assert(gateway, "Invalid RG gateway.");
-    srsran_assert(rx_symb_req_notifier, "Invalid receive symbol request notifier.");
-    srsran_assert(ssb_config.period_ms, "SSB period cannot be 0 ms.");
-    srsran_assert(ssb_config.period_ms % 5 == 0, "SSB period ({}) must be multiple of 5 ms.", ssb_config.period_ms);
-    srsran_assert(nof_subcs != 0, "Number of OFDM subcarriers cannot be zero.");
-    srsran_assert(nof_ports_ != 0, "Number of antenna ports cannot be zero.");
+    ocudu_assert(dl_rg_pool, "Invalid DL RG pool.");
+    ocudu_assert(ul_rg_pool, "Invalid UL RG pool.");
+    ocudu_assert(ssb, "Invalid SSB processor.");
+    ocudu_assert(data_modulator, "Invalid modulation mapper.");
+    ocudu_assert(mapper, "Invalid resource grid mapper.");
+    ocudu_assert(gateway, "Invalid RG gateway.");
+    ocudu_assert(rx_symb_req_notifier, "Invalid receive symbol request notifier.");
+    ocudu_assert(ssb_config.period_ms, "SSB period cannot be 0 ms.");
+    ocudu_assert(ssb_config.period_ms % 5 == 0, "SSB period ({}) must be multiple of 5 ms.", ssb_config.period_ms);
+    ocudu_assert(nof_subcs != 0, "Number of OFDM subcarriers cannot be zero.");
+    ocudu_assert(nof_ports_ != 0, "Number of antenna ports cannot be zero.");
 
     std::vector<std::unique_ptr<prach_buffer>> prach_buffers;
     prach_buffers.push_back(create_prach_buffer_short(
@@ -118,7 +118,7 @@ public:
   void handle_tti_boundary(const upper_phy_timing_context& context) override
   {
     std::unique_lock<std::mutex> lock(mutex);
-    srsran_assert(gateway, "Upper PHY is not connected to a gateway.");
+    ocudu_assert(gateway, "Upper PHY is not connected to a gateway.");
 
     // Set logger context.
     logger.set_context(context.slot.sfn(), context.slot.slot_index());
@@ -296,9 +296,9 @@ public:
     }                                                                                                                  \
   } while (false)
 
-std::unique_ptr<upper_phy_ssb_example> srsran::upper_phy_ssb_example::create(const configuration& config)
+std::unique_ptr<upper_phy_ssb_example> ocudu::upper_phy_ssb_example::create(const configuration& config)
 {
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("UpperPHY", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("UpperPHY", false);
   logger.set_level(config.log_level);
 
   std::shared_ptr<crc_calculator_factory> crc_calc_factory = create_crc_calculator_factory_sw("lut");

@@ -12,12 +12,12 @@
 
 #include "apps/services/worker_manager/pcap_executor_mapper.h"
 #include "o_du_high_unit_config.h"
-#include "srsran/pcap/dlt_pcap.h"
-#include "srsran/pcap/mac_pcap.h"
-#include "srsran/pcap/rlc_pcap.h"
-#include "srsran/support/signal_observer.h"
+#include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/pcap/mac_pcap.h"
+#include "ocudu/pcap/rlc_pcap.h"
+#include "ocudu/support/signal_observer.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct flexible_o_du_pcaps {
   // DLT PCAPs
@@ -97,4 +97,4 @@ inline flexible_o_du_pcaps create_o_du_pcaps(const o_du_high_unit_config& config
   return pcaps;
 }
 
-} // namespace srsran
+} // namespace ocudu

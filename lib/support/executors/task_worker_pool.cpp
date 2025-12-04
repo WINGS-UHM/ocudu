@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #include "execution_context_description_setup.h"
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/support/synchronization/sync_event.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -88,7 +88,7 @@ priority_task_worker_pool::priority_task_worker_pool(std::string                
       cpu_masks)
 {
   report_fatal_error_if_not(nof_workers_ > 0, "Number of workers of a thread pool must be greater than 0");
-  srsran_assert(queue_params.size() >= 2, "Number of queues in a prioritized thread pool must be greater than 1");
+  ocudu_assert(queue_params.size() >= 2, "Number of queues in a prioritized thread pool must be greater than 1");
 }
 
 priority_task_worker_pool::~priority_task_worker_pool()
@@ -239,7 +239,7 @@ void task_worker_pool<QueuePolicy>::wait_pending_tasks()
 }
 
 // Explicit specializations of the task_worker_pool.
-template class srsran::task_worker_pool<concurrent_queue_policy::lockfree_mpmc>;
-template class srsran::task_worker_pool<concurrent_queue_policy::locking_mpmc>;
-template class srsran::task_worker_pool<concurrent_queue_policy::moodycamel_lockfree_mpmc>;
-template class srsran::task_worker_pool<concurrent_queue_policy::moodycamel_lockfree_bounded_mpmc>;
+template class ocudu::task_worker_pool<concurrent_queue_policy::lockfree_mpmc>;
+template class ocudu::task_worker_pool<concurrent_queue_policy::locking_mpmc>;
+template class ocudu::task_worker_pool<concurrent_queue_policy::moodycamel_lockfree_mpmc>;
+template class ocudu::task_worker_pool<concurrent_queue_policy::moodycamel_lockfree_bounded_mpmc>;

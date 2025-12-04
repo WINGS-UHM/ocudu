@@ -9,17 +9,17 @@
  */
 
 #include "uplink_request_processor_impl.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/upper/upper_phy_rx_symbol_request_notifier.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/upper/upper_phy_rx_symbol_request_notifier.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 uplink_request_processor_impl::uplink_request_processor_impl(
     upper_phy_rx_symbol_request_notifier&       rx_symbol_request_notifier_,
     std::vector<std::unique_ptr<prach_buffer>>& prach_buffers,
-    srslog::basic_logger&                       logger_) :
+    ocudulog::basic_logger&                     logger_) :
   rx_symbol_request_notifier(rx_symbol_request_notifier_), prach_pool(prach_buffers), logger(logger_)
 {
 }

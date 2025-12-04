@@ -11,7 +11,7 @@
 #include "ue_creation_procedure.h"
 #include "proc_logger.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void mac_ue_create_request_procedure::operator()(coro_context<async_task<mac_ue_create_response>>& ctx)
 {

@@ -9,11 +9,11 @@
  */
 
 #include "bounded_bitset_benchmark_helpers.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/support/benchmark_utils.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/support/benchmark_utils.h"
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 unsigned nof_repetitions = 100000;
 
@@ -43,7 +43,7 @@ static void parse_args(int argc, char** argv)
 std::unique_ptr<benchmarker> bm;
 
 template <unsigned N>
-static void benchmark_bounded_bitset_count(const srsran::bounded_bitset<N>& bitset, std::string description)
+static void benchmark_bounded_bitset_count(const ocudu::bounded_bitset<N>& bitset, std::string description)
 {
   bm->new_measure(description, nof_repetitions, [&bitset]() {
     unsigned count = bitset.count();
@@ -52,7 +52,7 @@ static void benchmark_bounded_bitset_count(const srsran::bounded_bitset<N>& bits
 }
 
 template <unsigned N>
-static void benchmark_bounded_bitset_test(const srsran::bounded_bitset<N>& bitset, std::string description)
+static void benchmark_bounded_bitset_test(const ocudu::bounded_bitset<N>& bitset, std::string description)
 {
   bm->new_measure(description, nof_repetitions, [&bitset]() {
     unsigned count = 0;
@@ -141,7 +141,7 @@ public:
 };
 
 template <unsigned N>
-static void benchmark_bounded_bitset_foreach(const srsran::bounded_bitset<N>& bitset, std::string description)
+static void benchmark_bounded_bitset_foreach(const ocudu::bounded_bitset<N>& bitset, std::string description)
 {
   bm->new_measure(description, nof_repetitions, [&bitset]() {
     unsigned count = 0;
@@ -151,7 +151,7 @@ static void benchmark_bounded_bitset_foreach(const srsran::bounded_bitset<N>& bi
 }
 
 template <unsigned N>
-static void benchmark_bounded_bitset_iterator(const srsran::bounded_bitset<N>& bitset, std::string description)
+static void benchmark_bounded_bitset_iterator(const ocudu::bounded_bitset<N>& bitset, std::string description)
 {
   bm->new_measure(description, nof_repetitions, [&bitset]() {
     unsigned                   count = 0;
@@ -175,7 +175,7 @@ static void benchmark_array_count(const std::array<bool, N>& array, std::string 
 template <unsigned N>
 static void run_benchmark(std::array<bool, N> array, std::string description)
 {
-  srsran::bounded_bitset<N> bitset(array.begin(), array.end());
+  ocudu::bounded_bitset<N> bitset(array.begin(), array.end());
 
   benchmark_bounded_bitset_count<N>(bitset, "bitset:" + description + ":count");
   benchmark_bounded_bitset_test<N>(bitset, "bitset:" + description + ":test");

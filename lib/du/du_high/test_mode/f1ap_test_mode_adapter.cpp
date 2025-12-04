@@ -9,15 +9,15 @@
  */
 
 #include "f1ap_test_mode_adapter.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "srsran/f1ap/du/f1ap_du_factory.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/f1ap/du/f1ap_du_factory.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 
@@ -128,7 +128,7 @@ private:
 
   const du_test_mode_config::test_mode_ue_config& test_ue_cfg;
   f1c_connection_client&                          f1c_client;
-  srslog::basic_logger&                           logger = srslog::fetch_basic_logger("DU-F1");
+  ocudulog::basic_logger&                         logger = ocudulog::fetch_basic_logger("DU-F1");
 
   std::unordered_map<gnb_du_ue_f1ap_id_t, rnti_t> du_ue_to_rnti;
 
@@ -290,13 +290,13 @@ f1ap_test_mode_adapter::handle_du_connection_request(std::unique_ptr<f1ap_messag
   return std::make_unique<f1ap_to_gw_pdu_interceptor>(*this);
 }
 
-std::unique_ptr<f1ap_du> srsran::srs_du::create_du_high_f1ap(f1c_connection_client&      f1c_client_handler,
-                                                             f1ap_du_configurator&       du_mng,
-                                                             task_executor&              ctrl_exec,
-                                                             du_high_ue_executor_mapper& ue_exec_mapper,
-                                                             f1ap_du_paging_notifier&    paging_notifier,
-                                                             timer_manager&              timers,
-                                                             const du_test_mode_config&  test_cfg)
+std::unique_ptr<f1ap_du> ocudu::odu::create_du_high_f1ap(f1c_connection_client&      f1c_client_handler,
+                                                         f1ap_du_configurator&       du_mng,
+                                                         task_executor&              ctrl_exec,
+                                                         du_high_ue_executor_mapper& ue_exec_mapper,
+                                                         f1ap_du_paging_notifier&    paging_notifier,
+                                                         timer_manager&              timers,
+                                                         const du_test_mode_config&  test_cfg)
 {
   if (not test_cfg.test_ue.has_value()) {
     return create_f1ap(f1c_client_handler, du_mng, ctrl_exec, ue_exec_mapper, paging_notifier, timers);

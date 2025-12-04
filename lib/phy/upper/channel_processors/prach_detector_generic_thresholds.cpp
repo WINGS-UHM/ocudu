@@ -9,12 +9,12 @@
  */
 
 #include "prach_detector_generic_thresholds.h"
-#include "srsran/adt/span.h"
-#include "srsran/adt/to_array.h"
-#include "srsran/ran/prach/prach_format_type.h"
-#include "srsran/ran/prach/prach_subcarrier_spacing.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/adt/to_array.h"
+#include "ocudu/ran/prach/prach_format_type.h"
+#include "ocudu/ran/prach/prach_subcarrier_spacing.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace detail;
 
 /// Overloaded less-than comparison operator.
@@ -125,7 +125,7 @@ public:
       return it->threshold_and_margin;
     }
 
-    // todo(david): once all cases are covered, replace this by a srsran_assert.
+    // todo(david): once all cases are covered, replace this by a ocudu_assert.
     if (is_long_preamble(params.format)) {
       return {/* threshold */ 2.0F, /* margin */ 5};
     }
@@ -935,12 +935,12 @@ static const auto all_threshold_and_margins = to_array<threshold_and_margin_find
 
 static const threshold_and_margin_finder threshold_and_margin_table(all_threshold_and_margins);
 
-threshold_and_margin_type srsran::detail::get_threshold_and_margin(const threshold_params& params)
+threshold_and_margin_type ocudu::detail::get_threshold_and_margin(const threshold_params& params)
 {
   return threshold_and_margin_table.get(params);
 }
 
-threshold_flag srsran::detail::get_threshold_flag(const threshold_params& params)
+threshold_flag ocudu::detail::get_threshold_flag(const threshold_params& params)
 {
   return threshold_and_margin_table.check_flag(params);
 }

@@ -12,18 +12,18 @@
 #include "pusch_decoder_buffer_dummy.h"
 #include "pusch_processor_notifier_adaptor.h"
 #include "pusch_processor_validator_impl.h"
-#include "srsran/phy/upper/channel_coding/ldpc/ldpc.h"
-#include "srsran/phy/upper/channel_processors/pusch/formatters.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
-#include "srsran/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/pusch/ulsch_info.h"
-#include "srsran/ran/sch/sch_dmrs_power.h"
-#include "srsran/ran/uci/uci_formatters.h"
-#include "srsran/ran/uci/uci_part2_size_calculator.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
+#include "ocudu/phy/upper/channel_processors/pusch/formatters.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
+#include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/sch/sch_dmrs_power.h"
+#include "ocudu/ran/uci/uci_formatters.h"
+#include "ocudu/ran/uci/uci_part2_size_calculator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \brief Looks at the output of the validator and, if unsuccessful, fills \c msg with the error message.
 ///
@@ -60,7 +60,7 @@ public:
 
   void on_csi_part1(const uci_payload_type& part1) override
   {
-    srsran_assert(notifier != nullptr, "Notifier not connected.");
+    ocudu_assert(notifier != nullptr, "Notifier not connected.");
 
     unsigned nof_csi_part_2_bits = uci_part2_get_size(part1, csi_part2_size);
 
@@ -106,7 +106,7 @@ static pusch_decoder_buffer_dummy decoder_buffer_dummy;
 
 pusch_processor_impl::pusch_processor_impl(configuration& config) :
   estimator_notifier_configurator(*this),
-  logger(srslog::fetch_basic_logger("PHY")),
+  logger(ocudulog::fetch_basic_logger("PHY")),
   dependencies_pool(std::move(config.dependencies_pool)),
   decoder(std::move(config.decoder)),
   dec_nof_iterations(config.dec_nof_iterations),
@@ -114,9 +114,9 @@ pusch_processor_impl::pusch_processor_impl(configuration& config) :
   dec_enable_early_stop(config.dec_enable_early_stop),
   csi_sinr_calc_method(config.csi_sinr_calc_method)
 {
-  srsran_assert(dependencies_pool, "Invalid dependency pool.");
-  srsran_assert(decoder, "Invalid decoder.");
-  srsran_assert(dec_nof_iterations != 0, "The decoder number of iterations must be non-zero.");
+  ocudu_assert(dependencies_pool, "Invalid dependency pool.");
+  ocudu_assert(decoder, "Invalid decoder.");
+  ocudu_assert(dec_nof_iterations != 0, "The decoder number of iterations must be non-zero.");
 }
 
 void pusch_processor_impl::process(span<uint8_t>                    data,
@@ -152,8 +152,7 @@ void pusch_processor_impl::process(span<uint8_t>                    data,
 
   // Assert PDU.
   [[maybe_unused]] std::string msg;
-  srsran_assert(
-      handle_validation(msg, pusch_processor_validator_impl(ch_estimate.capacity()).is_valid(pdu)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pusch_processor_validator_impl(ch_estimate.capacity()).is_valid(pdu)), "{}", msg);
 
   // Get RB mask relative to Point A. It assumes PUSCH is never interleaved.
   crb_bitmap rb_mask = pdu.freq_alloc.get_crb_mask(pdu.bwp_start_rb, pdu.bwp_size_rb);
@@ -163,15 +162,15 @@ void pusch_processor_impl::process(span<uint8_t>                    data,
   unsigned  n_rs_id                     = 0;
   bool      n_scid                      = false;
   unsigned  nof_cdm_groups_without_data = 2;
-  dmrs_type dmrs_type                   = srsran::dmrs_type::TYPE1;
-  if (std::holds_alternative<srsran::pusch_processor::dmrs_configuration>(pdu.dmrs)) {
-    const auto& dmrs_config     = std::get<srsran::pusch_processor::dmrs_configuration>(pdu.dmrs);
+  dmrs_type dmrs_type                   = ocudu::dmrs_type::TYPE1;
+  if (std::holds_alternative<ocudu::pusch_processor::dmrs_configuration>(pdu.dmrs)) {
+    const auto& dmrs_config     = std::get<ocudu::pusch_processor::dmrs_configuration>(pdu.dmrs);
     scrambling_id               = dmrs_config.scrambling_id;
     n_scid                      = dmrs_config.n_scid;
     nof_cdm_groups_without_data = dmrs_config.nof_cdm_groups_without_data;
     dmrs_type                   = dmrs_config.dmrs;
   } else {
-    const auto& dmrs_config    = std::get<srsran::pusch_processor::dmrs_transform_precoding_configuration>(pdu.dmrs);
+    const auto& dmrs_config    = std::get<ocudu::pusch_processor::dmrs_transform_precoding_configuration>(pdu.dmrs);
     enable_transform_precoding = true;
     n_rs_id                    = dmrs_config.n_rs_id;
   }
@@ -354,7 +353,7 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
       dependencies->get_demultiplex().demultiplex(decoder_buffer, harq_ack_buffer, csi_part1_buffer, demux_config);
 
   // Demodulate.
-  bool enable_transform_precoding = !std::holds_alternative<srsran::pusch_processor::dmrs_configuration>(pdu.dmrs);
+  bool enable_transform_precoding = !std::holds_alternative<ocudu::pusch_processor::dmrs_configuration>(pdu.dmrs);
 
   pusch_demodulator::configuration demod_config;
   demod_config.rnti                        = pdu.rnti;

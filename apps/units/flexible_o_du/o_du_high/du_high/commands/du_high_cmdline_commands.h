@@ -13,7 +13,7 @@
 #include "apps/services/cmdline/stdout_metrics_command.h"
 #include "apps/units/flexible_o_du/o_du_high/du_high/metrics/du_metrics_consumers.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Application subcommand to display/hide the DU high metrics in STDOUT.
 class du_high_metrics_subcommand_stdout : public app_services::toggle_stdout_metrics_app_command::metrics_subcommand
@@ -36,4 +36,4 @@ public:
   void disable() override { printer.disable(); }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -14,12 +14,12 @@
 #include "ldpc_decoder_avx2.h"
 #include "avx2_support.h"
 #include "ldpc_graph_impl.h"
-#include "srsran/srsvec/circ_shift.h"
-#include "srsran/srsvec/compare.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/circ_shift.h"
+#include "ocudu/ocuduvec/compare.h"
+#include "ocudu/ocuduvec/copy.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 // AVX2 vectors filled with useful constants.
 static __always_inline __m256i LLR_MAX_epi8()
@@ -61,14 +61,14 @@ void ldpc_decoder_avx2::compute_var_to_check_msgs(span<log_likelihood_ratio>    
                                                   span<const log_likelihood_ratio> this_soft_bits,
                                                   span<const log_likelihood_ratio> this_check_to_var)
 {
-  srsran_srsvec_assert_size(this_check_to_var, this_soft_bits);
-  srsran_srsvec_assert_size(this_check_to_var, this_var_to_check);
+  ocudu_ocuduvec_assert_size(this_check_to_var, this_soft_bits);
+  ocudu_ocuduvec_assert_size(this_check_to_var, this_var_to_check);
 
   // Compute the number of nodes of the lifted graph represented by the spans.
   unsigned avx2_blocks = this_var_to_check.size() / AVX2_SIZE_BYTE;
 
-  srsran_assert(this_var_to_check.size() == avx2_blocks * AVX2_SIZE_BYTE,
-                "The spans do not correspond to an integer number of AVX2 registers.");
+  ocudu_assert(this_var_to_check.size() == avx2_blocks * AVX2_SIZE_BYTE,
+               "The spans do not correspond to an integer number of AVX2 registers.");
 
   mm256::avx2_span       var_to_check_avx2(this_var_to_check, avx2_blocks);
   mm256::avx2_const_span soft_bits_avx2(this_soft_bits, avx2_blocks);
@@ -142,7 +142,7 @@ void ldpc_decoder_avx2::analyze_var_to_check_msgs(span<log_likelihood_ratio>    
   }
 }
 
-void ldpc_decoder_avx2::scale(span<srsran::log_likelihood_ratio> out, span<const srsran::log_likelihood_ratio> in)
+void ldpc_decoder_avx2::scale(span<ocudu::log_likelihood_ratio> out, span<const ocudu::log_likelihood_ratio> in)
 {
   mm256::avx2_const_span in_avx2(in, node_size_avx2);
   mm256::avx2_span       out_avx2(out, node_size_avx2);
@@ -189,7 +189,7 @@ void ldpc_decoder_avx2::compute_check_to_var_msgs(span<log_likelihood_ratio> thi
   }
 
   // Rotate the message back before storing it.
-  srsvec::circ_shift_forward(
+  ocuduvec::circ_shift_forward(
       this_check_to_var.first(lifting_size), span<log_likelihood_ratio>(help_check_to_var).first(lifting_size), shift);
 }
 

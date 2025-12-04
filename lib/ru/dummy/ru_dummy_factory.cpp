@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/ru/dummy/ru_dummy_factory.h"
+#include "ocudu/ru/dummy/ru_dummy_factory.h"
 #include "ru_dummy_impl.h"
-#include "srsran/ru/ru.h"
+#include "ocudu/ru/ru.h"
 #include <memory>
 
-using namespace srsran;
+using namespace ocudu;
 
-std::unique_ptr<radio_unit> srsran::create_dummy_ru(const ru_dummy_configuration& config,
-                                                    ru_dummy_dependencies&        dependencies)
+std::unique_ptr<radio_unit> ocudu::create_dummy_ru(const ru_dummy_configuration& config,
+                                                   ru_dummy_dependencies&        dependencies)
 {
   return std::make_unique<ru_dummy_impl>(config, dependencies);
 }

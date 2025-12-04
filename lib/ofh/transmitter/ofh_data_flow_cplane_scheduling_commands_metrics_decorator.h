@@ -12,10 +12,10 @@
 
 #include "../support/metrics_helpers.h"
 #include "ofh_data_flow_cplane_scheduling_commands.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Metrics decorator class for the Open Fronthaul Control-Plane scheduling and beamforming commands data flow.
@@ -26,7 +26,7 @@ public:
   explicit data_flow_cplane_metrics_decorator(std::unique_ptr<data_flow_cplane_scheduling_commands> data_flow_cplane_) :
     data_flow_cplane(std::move(data_flow_cplane_))
   {
-    srsran_assert(data_flow_cplane, "Invalid data flow");
+    ocudu_assert(data_flow_cplane, "Invalid data flow");
   }
 
   // See interface for documentation.
@@ -108,4 +108,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

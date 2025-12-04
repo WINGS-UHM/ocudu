@@ -14,27 +14,27 @@
 #include "ngu_session_manager.h"
 #include "pdu_session_manager.h"
 #include "pdu_session_manager_impl.h"
-#include "srsran/cu_up/cu_up_types.h"
-#include "srsran/e1ap/cu_up/e1ap_cu_up.h"
-#include "srsran/f1u/cu_up/f1u_gateway.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/support/async/execute_on_blocking.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/cu_up/cu_up_types.h"
+#include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
+#include "ocudu/f1u/cu_up/f1u_gateway.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/support/async/execute_on_blocking.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <map>
 #include <utility>
 
-namespace srsran::srs_cu_up {
+namespace ocudu::ocuup {
 
 constexpr uint16_t UE_TASK_QUEUE_SIZE = 1024;
 
 /// \brief UE context setup configuration
 struct ue_context_cfg {
-  security::sec_as_config                          security_info;
-  activity_notification_level_t                    activity_level;
-  std::optional<std::chrono::seconds>              ue_inactivity_timeout;
-  std::map<five_qi_t, srs_cu_up::cu_up_qos_config> qos;
-  uint64_t                                         ue_dl_aggregate_maximum_bit_rate;
-  cu_up_test_mode_config                           test_mode_config;
+  security::sec_as_config                      security_info;
+  activity_notification_level_t                activity_level;
+  std::optional<std::chrono::seconds>          ue_inactivity_timeout;
+  std::map<five_qi_t, ocuup::cu_up_qos_config> qos;
+  uint64_t                                     ue_dl_aggregate_maximum_bit_rate;
+  cu_up_test_mode_config                       test_mode_config;
 };
 
 struct ue_context_dependencies {
@@ -211,4 +211,4 @@ private:
   }
 };
 
-} // namespace srsran::srs_cu_up
+} // namespace ocudu::ocuup

@@ -19,19 +19,19 @@
 #include "procedures/du_ue_reset_procedure.h"
 #include "procedures/du_ue_ric_configuration_procedure.h"
 #include "procedures/f1c_disconnection_handling_procedure.h"
-#include "srsran/mac/mac_pdu_handler.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/executors/execute_until_success.h"
+#include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/executors/execute_until_success.h"
 #include <condition_variable>
 #include <future>
 #include <thread>
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 du_manager_impl::du_manager_impl(const du_manager_params& params_) :
   params(params_),
-  logger(srslog::fetch_basic_logger("DU-MNG")),
+  logger(ocudulog::fetch_basic_logger("DU-MNG")),
   cell_mng(params),
   cell_res_alloc(params.ran.cells, params.mac.sched_cfg, params.ran.srbs, params.ran.qos, params.test_cfg),
   ue_mng(params, cell_res_alloc),

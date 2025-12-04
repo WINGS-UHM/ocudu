@@ -13,21 +13,21 @@
 #include "apps/helpers/e2/e2_metric_connector_manager.h"
 #include "apps/services/metrics/metrics_config.h"
 #include "apps/units/application_unit_commands.h"
-#include "srsran/du/du.h"
-#include "srsran/ntn/ntn_configuration_manager.h"
+#include "ocudu/du/du.h"
+#include "ocudu/ntn/ntn_configuration_manager.h"
 #include <memory>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 namespace app_services {
 class metrics_notifier;
 } // namespace app_services
 
-namespace srs_du {
+namespace odu {
 class f1u_du_gateway;
 class f1c_connection_client;
-} // namespace srs_du
+} // namespace odu
 
 class e2_connection_client;
 class e2_du_metrics_connector;
@@ -41,7 +41,7 @@ class mac_clock_controller;
 
 /// O-DU unit.
 struct o_du_unit {
-  std::unique_ptr<srs_du::du>               unit;
+  std::unique_ptr<odu::du>                  unit;
   std::vector<app_services::metrics_config> metrics;
   application_unit_commands                 commands;
   std::unique_ptr<e2_metric_connector_manager<e2_du_metrics_connector, e2_du_metrics_notifier, e2_du_metrics_interface>>
@@ -52,8 +52,8 @@ struct o_du_unit {
 /// O-RAN DU unit dependencies.
 struct o_du_unit_dependencies {
   worker_manager*                 workers            = nullptr;
-  srs_du::f1c_connection_client*  f1c_client_handler = nullptr;
-  srs_du::f1u_du_gateway*         f1u_gw             = nullptr;
+  odu::f1c_connection_client*     f1c_client_handler = nullptr;
+  odu::f1u_du_gateway*            f1u_gw             = nullptr;
   mac_clock_controller*           timer_ctrl         = nullptr;
   mac_pcap*                       mac_p              = nullptr;
   rlc_pcap*                       rlc_p              = nullptr;
@@ -61,4 +61,4 @@ struct o_du_unit_dependencies {
   app_services::metrics_notifier* metrics_notifier   = nullptr;
 };
 
-} // namespace srsran
+} // namespace ocudu

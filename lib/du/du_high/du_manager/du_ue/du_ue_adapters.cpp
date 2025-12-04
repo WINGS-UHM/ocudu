@@ -9,13 +9,13 @@
  */
 
 #include "du_ue_adapters.h"
-#include "srsran/f1u/du/f1u_bearer.h"
-#include "srsran/rlc/rlc_rx.h"
-#include "srsran/rlc/rlc_tx.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/f1u/du/f1u_bearer.h"
+#include "ocudu/rlc/rlc_rx.h"
+#include "ocudu/rlc/rlc_tx.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 namespace {
 

@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/f1ap/du/f1c_bearer.h"
-#include "srsran/f1ap/du/f1c_rx_sdu_notifier.h"
-#include "srsran/f1u/du/f1u_gateway.h"
-#include "srsran/f1u/du/f1u_rx_sdu_notifier.h"
-#include "srsran/mac/mac_sdu_handler.h"
-#include "srsran/mac/mac_ue_control_information_handler.h"
-#include "srsran/rlc/rlc_rx.h"
-#include "srsran/rlc/rlc_tx.h"
+#include "ocudu/f1ap/du/f1c_bearer.h"
+#include "ocudu/f1ap/du/f1c_rx_sdu_notifier.h"
+#include "ocudu/f1u/du/f1u_gateway.h"
+#include "ocudu/f1u/du/f1u_rx_sdu_notifier.h"
+#include "ocudu/mac/mac_sdu_handler.h"
+#include "ocudu/mac/mac_ue_control_information_handler.h"
+#include "ocudu/rlc/rlc_rx.h"
+#include "ocudu/rlc/rlc_tx.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 // F1AP
 
@@ -34,7 +34,7 @@ public:
 
   void on_new_sdu(byte_buffer pdu) override
   {
-    srsran_assert(rlc_tx != nullptr, "RLC Tx PDU notifier is disconnected");
+    ocudu_assert(rlc_tx != nullptr, "RLC Tx PDU notifier is disconnected");
 
     rlc_tx->handle_sdu(std::move(pdu), /* is_retx = */ false);
   }
@@ -56,7 +56,7 @@ public:
 
   void on_new_sdu(byte_buffer sdu, bool is_retx) override
   {
-    srsran_assert(rlc_tx != nullptr, "RLC Tx SDU notifier is disconnected");
+    ocudu_assert(rlc_tx != nullptr, "RLC Tx SDU notifier is disconnected");
     rlc_tx->handle_sdu(std::move(sdu), is_retx);
   }
 
@@ -70,19 +70,19 @@ private:
 class f1u_gateway_nru_rx_adapter final : public f1u_du_gateway_bearer_rx_notifier
 {
 public:
-  void connect(srs_du::f1u_rx_pdu_handler& nru_rx_) { nru_rx = &nru_rx_; }
+  void connect(odu::f1u_rx_pdu_handler& nru_rx_) { nru_rx = &nru_rx_; }
 
   /// \brief Stop forwarding SDUs to the RLC layer.
   void disconnect();
 
   void on_new_pdu(nru_dl_message msg) override
   {
-    srsran_assert(nru_rx != nullptr, "NR-U RX PDU notifier is disconnected");
+    ocudu_assert(nru_rx != nullptr, "NR-U RX PDU notifier is disconnected");
     nru_rx->handle_pdu(std::move(msg));
   }
 
 private:
-  srs_du::f1u_rx_pdu_handler* nru_rx = nullptr;
+  odu::f1u_rx_pdu_handler* nru_rx = nullptr;
 };
 
 // RLC
@@ -95,7 +95,7 @@ public:
 
   void on_new_sdu(byte_buffer_chain pdu) override
   {
-    srsran_assert(f1bearer != nullptr, "RLC Rx Bearer notifier is disconnected");
+    ocudu_assert(f1bearer != nullptr, "RLC Rx Bearer notifier is disconnected");
     f1bearer->handle_sdu(std::move(pdu));
   }
 
@@ -112,7 +112,7 @@ public:
 
   void on_new_sdu(byte_buffer_chain sdu) override
   {
-    srsran_assert(f1bearer != nullptr, "RLC Rx bearer notifier is disconnected");
+    ocudu_assert(f1bearer != nullptr, "RLC Rx bearer notifier is disconnected");
     f1bearer->handle_sdu(std::move(sdu));
   }
 
@@ -130,26 +130,26 @@ public:
   void on_transmitted_sdu(uint32_t max_deliv_pdcp_sn, uint32_t desired_buf_size) override
   {
     f1c_bearer* b = bearer.load(std::memory_order_relaxed);
-    srsran_assert(b != nullptr, "RLC to F1-C TX data notifier is disconnected");
+    ocudu_assert(b != nullptr, "RLC to F1-C TX data notifier is disconnected");
     b->handle_transmit_notification(max_deliv_pdcp_sn);
   }
 
   void on_delivered_sdu(uint32_t max_deliv_pdcp_sn) override
   {
     f1c_bearer* b = bearer.load(std::memory_order_relaxed);
-    srsran_assert(b != nullptr, "RLC to F1-C TX data notifier is disconnected");
+    ocudu_assert(b != nullptr, "RLC to F1-C TX data notifier is disconnected");
     b->handle_delivery_notification(max_deliv_pdcp_sn);
   }
 
   void on_retransmitted_sdu(uint32_t max_retx_pdcp_sn) override
   {
-    srsran_assertion_failure("Unexpected call of on_retransmitted_sdu on SRB. max_retx_pdcp_sn={}", max_retx_pdcp_sn);
+    ocudu_assertion_failure("Unexpected call of on_retransmitted_sdu on SRB. max_retx_pdcp_sn={}", max_retx_pdcp_sn);
   }
 
   void on_delivered_retransmitted_sdu(uint32_t max_deliv_retx_pdcp_sn) override
   {
-    srsran_assertion_failure("Unexpected call of on_delivered_retransmitted_sdu on SRB. max_deliv_retx_pdcp_sn={}",
-                             max_deliv_retx_pdcp_sn);
+    ocudu_assertion_failure("Unexpected call of on_delivered_retransmitted_sdu on SRB. max_deliv_retx_pdcp_sn={}",
+                            max_deliv_retx_pdcp_sn);
   }
 
 private:
@@ -169,28 +169,28 @@ public:
   void on_transmitted_sdu(uint32_t max_deliv_pdcp_sn, uint32_t desired_buf_size) override
   {
     f1u_tx_delivery_handler* h = handler.load(std::memory_order_relaxed);
-    srsran_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
+    ocudu_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
     h->handle_transmit_notification(max_deliv_pdcp_sn, desired_buf_size);
   }
 
   void on_delivered_sdu(uint32_t max_deliv_pdcp_sn) override
   {
     f1u_tx_delivery_handler* h = handler.load(std::memory_order_relaxed);
-    srsran_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
+    ocudu_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
     h->handle_delivery_notification(max_deliv_pdcp_sn);
   }
 
   void on_retransmitted_sdu(uint32_t max_retx_pdcp_sn) override
   {
     f1u_tx_delivery_handler* h = handler.load(std::memory_order_relaxed);
-    srsran_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
+    ocudu_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
     h->handle_retransmit_notification(max_retx_pdcp_sn);
   }
 
   void on_delivered_retransmitted_sdu(uint32_t max_deliv_retx_pdcp_sn) override
   {
     f1u_tx_delivery_handler* h = handler.load(std::memory_order_relaxed);
-    srsran_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
+    ocudu_assert(h != nullptr, "RLC to F1-U TX data notifier is disconnected");
     h->handle_delivery_retransmitted_notification(max_deliv_retx_pdcp_sn);
   }
 
@@ -220,8 +220,8 @@ class rlc_tx_mac_buffer_state_updater : public rlc_tx_lower_layer_notifier
 public:
   void connect(du_ue_index_t ue_index_, lcid_t lcid_, mac_ue_control_information_handler& mac_)
   {
-    srsran_assert(ue_index_ != INVALID_DU_UE_INDEX, "Invalid UE index");
-    srsran_assert(lcid_ != INVALID_LCID, "Invalid UE index");
+    ocudu_assert(ue_index_ != INVALID_DU_UE_INDEX, "Invalid UE index");
+    ocudu_assert(lcid_ != INVALID_LCID, "Invalid UE index");
     ue_index = ue_index_;
     lcid     = lcid_;
     mac      = &mac_;
@@ -237,13 +237,13 @@ public:
 
   void on_buffer_state_update(const rlc_buffer_state& rlc_bs) override
   {
-    srsran_assert(mac != nullptr, "RLC Tx Buffer State notifier is disconnected");
+    ocudu_assert(mac != nullptr, "RLC Tx Buffer State notifier is disconnected");
     mac_dl_buffer_state_indication_message bs{};
     bs.ue_index = ue_index;
     bs.lcid     = lcid;
     bs.bs       = rlc_bs.pending_bytes;
     // TODO: set hol_toa
-    if (SRSRAN_UNLIKELY(not connected.load(std::memory_order_relaxed))) {
+    if (OCUDU_UNLIKELY(not connected.load(std::memory_order_relaxed))) {
       // Discard.
       bs.bs = 0;
     }
@@ -268,7 +268,7 @@ public:
 
   void on_new_sdu(byte_buffer_slice sdu) override
   {
-    srsran_assert(rlc_handler != nullptr, "MAC Rx SDU notifier is disconnected");
+    ocudu_assert(rlc_handler != nullptr, "MAC Rx SDU notifier is disconnected");
     rlc_handler->handle_pdu(std::move(sdu));
   }
 
@@ -285,15 +285,15 @@ public:
 
   size_t on_new_tx_sdu(span<uint8_t> mac_sdu_buf) override
   {
-    srsran_assert(rlc_handler != nullptr, "MAC Rx SDU notifier is disconnected");
-    return SRSRAN_LIKELY(connected.load(std::memory_order_relaxed)) ? rlc_handler->pull_pdu(mac_sdu_buf) : 0;
+    ocudu_assert(rlc_handler != nullptr, "MAC Rx SDU notifier is disconnected");
+    return OCUDU_LIKELY(connected.load(std::memory_order_relaxed)) ? rlc_handler->pull_pdu(mac_sdu_buf) : 0;
   }
 
   rlc_buffer_state on_buffer_state_update() override
   {
-    srsran_assert(rlc_handler != nullptr, "MAC Rx SDU notifier is disconnected");
-    return SRSRAN_LIKELY(connected.load(std::memory_order_relaxed)) ? rlc_handler->get_buffer_state()
-                                                                    : rlc_buffer_state{};
+    ocudu_assert(rlc_handler != nullptr, "MAC Rx SDU notifier is disconnected");
+    return OCUDU_LIKELY(connected.load(std::memory_order_relaxed)) ? rlc_handler->get_buffer_state()
+                                                                   : rlc_buffer_state{};
   }
 
 private:
@@ -301,5 +301,5 @@ private:
   rlc_tx_lower_layer_interface* rlc_handler = nullptr;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

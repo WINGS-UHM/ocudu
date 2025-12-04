@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../../phy_test_utils.h"
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller.h"
-#include "srsran/phy/lower/amplitude_controller/amplitude_controller_factories.h"
-#include "srsran/srsvec/copy.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
+#include "ocudu/phy/lower/amplitude_controller/amplitude_controller_factories.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class amplitude_controller_spy : public amplitude_controller
 {
@@ -51,7 +51,7 @@ public:
       span<cf_t> random_samples     = random_data_view.subspan(random_data_index, nof_copied_samples);
       span<cf_t> out_samples        = output.subspan(output.size() - remaining, nof_copied_samples);
 
-      srsvec::copy(out_samples, random_samples);
+      ocuduvec::copy(out_samples, random_samples);
 
       // Update remaining samples and buffer index.
       remaining -= nof_copied_samples;
@@ -76,4 +76,4 @@ private:
 
 PHY_SPY_FACTORY_TEMPLATE(amplitude_controller);
 
-} // namespace srsran
+} // namespace ocudu

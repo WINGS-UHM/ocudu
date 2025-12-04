@@ -16,15 +16,15 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "srsran/adt/noop_functor.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/adt/noop_functor.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <ostream>
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 
@@ -54,9 +54,9 @@ protected:
     ev_logger(to_du_cell_index(0), cell_cfg.pci),
     metrics_hdlr(cell_cfg, std::nullopt)
   {
-    mac_logger.set_level(srslog::basic_levels::debug);
-    test_logger.set_level(srslog::basic_levels::info);
-    srslog::init();
+    mac_logger.set_level(ocudulog::basic_levels::debug);
+    test_logger.set_level(ocudulog::basic_levels::info);
+    ocudulog::init();
 
     const auto& dl_lst = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     for (const auto& pdsch : dl_lst) {
@@ -82,7 +82,7 @@ protected:
     for (unsigned i = 0; i != max_k_value; ++i) {
       run_slot();
     }
-    srslog::flush();
+    ocudulog::flush();
   }
 
   void run_slot()
@@ -105,18 +105,18 @@ protected:
   {
     cell_config_builder_params builder_params{};
     builder_params.scs_common = t_params.scs;
-    if (dplx_mode == srsran::duplex_mode::TDD) {
+    if (dplx_mode == ocudu::duplex_mode::TDD) {
       builder_params.dl_f_ref_arfcn = 520000;
       builder_params.band           = nr_band::n41;
     }
-    if (t_params.scs == srsran::subcarrier_spacing::kHz30) {
-      builder_params.channel_bw_mhz = srsran::bs_channel_bandwidth::MHz20;
+    if (t_params.scs == ocudu::subcarrier_spacing::kHz30) {
+      builder_params.channel_bw_mhz = ocudu::bs_channel_bandwidth::MHz20;
     }
 
     sched_cell_configuration_request_message req =
         sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
 
-    if (dplx_mode == srsran::duplex_mode::TDD and t_params.tdd_config.has_value()) {
+    if (dplx_mode == ocudu::duplex_mode::TDD and t_params.tdd_config.has_value()) {
       req.tdd_ul_dl_cfg_common = t_params.tdd_config;
     }
 
@@ -425,9 +425,9 @@ protected:
 
   slot_point result_slot_tx() const { return res_grid[0].slot; }
 
-  test_params           params;
-  srslog::basic_logger& mac_logger  = srslog::fetch_basic_logger("SCHED", true);
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  test_params             params;
+  ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   scheduler_expert_config             sched_cfg{config_helpers::make_default_scheduler_expert_config()};
   cell_configuration                  cell_cfg;

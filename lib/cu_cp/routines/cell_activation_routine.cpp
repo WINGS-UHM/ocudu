@@ -10,21 +10,21 @@
 
 #include "cell_activation_routine.h"
 #include "../du_processor/du_processor_repository.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_configuration_update.h"
-#include "srsran/ran/cause/ngap_cause.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/support/async/async_timer.h"
-#include "srsran/support/async/coroutine.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/coroutine.h"
 #include "fmt/ranges.h"
 
-using namespace srsran;
-using namespace srsran::srs_cu_cp;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 using namespace asn1::rrc_nr;
 
 cell_activation_routine::cell_activation_routine(const cu_cp_configuration&        cu_cp_cfg_,
                                                  const std::vector<plmn_identity>& plmns_,
                                                  du_processor_repository&          du_db_,
-                                                 srslog::basic_logger&             logger_) :
+                                                 ocudulog::basic_logger&           logger_) :
   cu_cp_cfg(cu_cp_cfg_), plmns(plmns_), du_db(du_db_), logger(logger_)
 {
 }

@@ -12,14 +12,14 @@
 #include "lib/e1ap/cu_cp/e1ap_cu_cp_asn1_helpers.h"
 #include "lib/f1ap/cu_cp/f1ap_asn1_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/f1ap/f1ap_message.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/f1ap/f1ap_message.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-cu_cp_ue_context_release_command srsran::srs_cu_cp::generate_ue_context_release_command(ue_index_t   ue_index,
-                                                                                        ngap_cause_t cause)
+cu_cp_ue_context_release_command ocudu::ocucp::generate_ue_context_release_command(ue_index_t   ue_index,
+                                                                                   ngap_cause_t cause)
 {
   cu_cp_ue_context_release_command ue_context_release_command = {};
   ue_context_release_command.ue_index                         = ue_index;
@@ -27,10 +27,9 @@ cu_cp_ue_context_release_command srsran::srs_cu_cp::generate_ue_context_release_
   return ue_context_release_command;
 }
 
-cu_cp_pdu_session_resource_setup_request
-srsran::srs_cu_cp::generate_pdu_session_resource_setup(ue_index_t ue_index,
-                                                       unsigned   num_pdu_sessions,
-                                                       unsigned   num_qos_flows)
+cu_cp_pdu_session_resource_setup_request ocudu::ocucp::generate_pdu_session_resource_setup(ue_index_t ue_index,
+                                                                                           unsigned   num_pdu_sessions,
+                                                                                           unsigned   num_qos_flows)
 {
   cu_cp_pdu_session_resource_setup_request req;
   req.ue_index = ue_index;
@@ -74,7 +73,7 @@ srsran::srs_cu_cp::generate_pdu_session_resource_setup(ue_index_t ue_index,
 }
 
 cu_cp_pdu_session_resource_setup_request
-srsran::srs_cu_cp::generate_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_id_t psi, qos_flow_id_t qfi)
+ocudu::ocucp::generate_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_id_t psi, qos_flow_id_t qfi)
 {
   cu_cp_pdu_session_resource_setup_request req;
   req.ue_index = ue_index;
@@ -111,8 +110,8 @@ srsran::srs_cu_cp::generate_pdu_session_resource_setup(ue_index_t ue_index, pdu_
   return req;
 }
 
-cu_cp_pdu_session_resource_release_command
-srsran::srs_cu_cp::generate_pdu_session_resource_release(ue_index_t ue_index, pdu_session_id_t psi)
+cu_cp_pdu_session_resource_release_command ocudu::ocucp::generate_pdu_session_resource_release(ue_index_t ue_index,
+                                                                                               pdu_session_id_t psi)
 {
   cu_cp_pdu_session_resource_release_command cmd;
 
@@ -129,7 +128,7 @@ srsran::srs_cu_cp::generate_pdu_session_resource_release(ue_index_t ue_index, pd
 }
 
 cu_cp_pdu_session_resource_modify_request
-srsran::srs_cu_cp::generate_pdu_session_resource_modification(ue_index_t ue_index, unsigned psi, unsigned qfi)
+ocudu::ocucp::generate_pdu_session_resource_modification(ue_index_t ue_index, unsigned psi, unsigned qfi)
 {
   cu_cp_pdu_session_resource_modify_request request;
   request.ue_index = ue_index;
@@ -156,7 +155,7 @@ srsran::srs_cu_cp::generate_pdu_session_resource_modification(ue_index_t ue_inde
 }
 
 cu_cp_pdu_session_resource_modify_request
-srsran::srs_cu_cp::generate_pdu_session_resource_modification_with_qos_flow_removal(qos_flow_id_t flow_id)
+ocudu::ocucp::generate_pdu_session_resource_modification_with_qos_flow_removal(qos_flow_id_t flow_id)
 {
   cu_cp_pdu_session_resource_modify_request request;
   request.ue_index = uint_to_ue_index(0);
@@ -179,8 +178,8 @@ srsran::srs_cu_cp::generate_pdu_session_resource_modification_with_qos_flow_remo
 }
 
 e1ap_bearer_context_setup_response
-srsran::srs_cu_cp::generate_e1ap_bearer_context_setup_response(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
-                                                               gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
+ocudu::ocucp::generate_e1ap_bearer_context_setup_response(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
+                                                          gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
 {
   e1ap_bearer_context_setup_response resp;
 
@@ -192,8 +191,8 @@ srsran::srs_cu_cp::generate_e1ap_bearer_context_setup_response(gnb_cu_cp_ue_e1ap
 }
 
 e1ap_bearer_context_modification_response
-srsran::srs_cu_cp::generate_e1ap_bearer_context_modification_response(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
-                                                                      gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
+ocudu::ocucp::generate_e1ap_bearer_context_modification_response(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
+                                                                 gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
 {
   e1ap_bearer_context_modification_response resp;
 

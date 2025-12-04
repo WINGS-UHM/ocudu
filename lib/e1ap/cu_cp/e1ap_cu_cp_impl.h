@@ -12,14 +12,14 @@
 
 #include "procedures/e1ap_transaction_manager.h"
 #include "ue_context/e1ap_cu_cp_ue_context.h"
-#include "srsran/asn1/e1ap/e1ap.h"
-#include "srsran/e1ap/cu_cp/e1ap_configuration.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/asn1/e1ap/e1ap.h"
+#include "ocudu/e1ap/cu_cp/e1ap_configuration.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <memory>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class e1ap_event_manager;
 
@@ -111,7 +111,7 @@ private:
 
   const e1ap_configuration e1ap_cfg;
   cu_up_index_t            cu_up_index;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 
   // Notifiers and handlers.
   e1ap_message_notifier_with_logging pdu_notifier;
@@ -136,5 +136,5 @@ private:
   bool e1ap_stopping = false;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

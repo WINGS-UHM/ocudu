@@ -11,9 +11,9 @@
 #include "o_cu_cp_e2_config_cli11_schema.h"
 #include "apps/helpers/e2/e2_cli11_schema.h"
 #include "o_cu_cp_e2_config.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void configure_cli11_pcap_args(CLI::App& app, o_cu_cp_e2_pcap_config& pcap_params)
 {
@@ -21,7 +21,7 @@ static void configure_cli11_pcap_args(CLI::App& app, o_cu_cp_e2_pcap_config& pca
   add_option(app, "--e2ap_enable", pcap_params.enabled, "Enable E2AP packet capture")->always_capture_default();
 }
 
-void srsran::configure_cli11_with_o_cu_cp_e2_config_schema(CLI::App& app, o_cu_cp_e2_config& unit_cfg)
+void ocudu::configure_cli11_with_o_cu_cp_e2_config_schema(CLI::App& app, o_cu_cp_e2_config& unit_cfg)
 {
   // PCAP section.
   CLI::App* pcap_subcmd = add_subcommand(app, "pcap", "PCAP configuration")->configurable();
@@ -31,7 +31,7 @@ void srsran::configure_cli11_with_o_cu_cp_e2_config_schema(CLI::App& app, o_cu_c
   configure_cli11_with_e2_config_schema(app, unit_cfg.base_config, "--enable_cu_cp_e2", "Enable CU E2 agent");
 }
 
-void srsran::autoderive_o_cu_cp_e2_parameters_after_parsing(o_cu_cp_e2_config& unit_cfg)
+void ocudu::autoderive_o_cu_cp_e2_parameters_after_parsing(o_cu_cp_e2_config& unit_cfg)
 {
   // If CU CP E2 agent is disabled do not enable e2ap pcap for it.
   unit_cfg.pcaps.enabled = unit_cfg.base_config.enable_unit_e2 && unit_cfg.pcaps.enabled;

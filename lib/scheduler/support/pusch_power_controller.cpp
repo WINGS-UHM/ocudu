@@ -10,9 +10,9 @@
 
 #include "pusch_power_controller.h"
 #include "../config/ue_configuration.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    ue_cell_cfg,
                                                const ue_channel_state_manager& ch_state_manager) :
@@ -29,7 +29,7 @@ pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    u
     return tpc_adjust_prohibit_time_ms << to_numerology_value(
                ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs);
   }()),
-  logger(srslog::fetch_basic_logger("SCHED"))
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   // Save the PUSCH power control configuration.
   reconfigure(ue_cell_cfg);
@@ -66,7 +66,7 @@ void pusch_power_controller::update_pusch_pw_ctrl_state(slot_point slot_rx, unsi
   pusch_pw_ctrl_grid[grid_idx] = {slot_rx, nof_prbs, latest_f_cl_pw_control};
 }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
 void pusch_power_controller::handle_phr(const cell_ph_report& phr, slot_point slot_rx)
 {
@@ -78,15 +78,15 @@ void pusch_power_controller::handle_phr(const cell_ph_report& phr, slot_point sl
 
 unsigned pusch_power_controller::adapt_pusch_prbs_to_phr(unsigned nof_prbs) const
 {
-  // Dummy function. This feature is only available in the SRSRAN 5G Enterprise version.
+  // Dummy function. This feature is only available in the OCUDU 5G Enterprise version.
   return nof_prbs;
 }
 
 uint8_t pusch_power_controller::compute_tpc_command(slot_point pusch_slot)
 {
-  // Dummy function. This feature is only available in the SRSRAN 5G Enterprise version.
+  // Dummy function. This feature is only available in the OCUDU 5G Enterprise version.
   static constexpr uint8_t default_tpc = 1;
   return default_tpc;
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

@@ -9,7 +9,7 @@
 # ASN1 utils
 add_library(asn1_utils STATIC asn1_utils.cpp)
 target_compile_options(asn1_utils PRIVATE -fno-exceptions)
-target_link_libraries(asn1_utils srslog srsran_support)
+target_link_libraries(asn1_utils ocudulog ocudu_support)
 
 # RRC NR ASN1
 add_subdirectory(rrc_nr)

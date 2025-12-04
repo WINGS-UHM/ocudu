@@ -10,20 +10,20 @@
 
 #pragma once
 
-#include "srsran/adt/span.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_adaptor.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 #include <memory>
 
 namespace CLI {
 class App;
 } // namespace CLI
 
-namespace srsran {
+namespace ocudu {
 
 struct o_du_unit_dependencies;
 struct worker_manager_config;
 
-namespace srs_du {
+namespace odu {
 struct du_high_configuration;
 }
 
@@ -46,7 +46,7 @@ public:
 
   /// Creates and returns a vector of fapi adaptors, each of them representing a cell.
   virtual std::unique_ptr<fapi_adaptor::phy_fapi_adaptor>
-  create_fapi_adaptor(const srs_du::du_high_configuration& du_high_cfg, const o_du_unit_dependencies& dependencies) = 0;
+  create_fapi_adaptor(const odu::du_high_configuration& du_high_cfg, const o_du_unit_dependencies& dependencies) = 0;
 
   /// Fills the given worker manager split 6 configuration.
   virtual void fill_worker_manager_config(worker_manager_config& config) = 0;
@@ -55,4 +55,4 @@ public:
 /// Creates the split 6 plugin.
 std::unique_ptr<split6_plugin> create_split6_plugin(std::string_view app_name);
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,13 +9,13 @@
  */
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/upper/signal_processors/srs/formatters.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "srsran/phy/upper/signal_processors/srs/srs_estimator_factory.h"
+#include "ocudu/phy/upper/signal_processors/srs/formatters.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
+#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_factory.h"
 #include "fmt/ostream.h"
 #include "gtest/gtest.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 namespace {
 

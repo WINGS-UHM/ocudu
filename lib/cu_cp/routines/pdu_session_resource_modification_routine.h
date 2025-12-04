@@ -13,12 +13,12 @@
 #include "../cu_cp_impl_interface.h"
 #include "../du_processor/du_processor.h"
 #include "../up_resource_manager/up_resource_manager_impl.h"
-#include "srsran/cu_cp/ue_task_scheduler.h"
-#include "srsran/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/cu_cp/ue_task_scheduler.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Handles the modification of an existing PDU session resources.
 /// TODO Add seqdiag
@@ -32,7 +32,7 @@ public:
                                             cu_cp_rrc_ue_interface&                          cu_cp_notifier_,
                                             ue_task_scheduler&                               ue_task_sched_,
                                             up_resource_manager&                             up_resource_mng_,
-                                            srslog::basic_logger&                            logger_);
+                                            ocudulog::basic_logger&                          logger_);
 
   void operator()(coro_context<async_task<cu_cp_pdu_session_resource_modify_response>>& ctx);
 
@@ -55,7 +55,7 @@ private:
   cu_cp_rrc_ue_interface&      cu_cp_notifier;       // to trigger UE release at CU-CP
   ue_task_scheduler&           ue_task_sched;        // to schedule UE release request
   up_resource_manager&         up_resource_mng;      // to get RRC DRB config
-  srslog::basic_logger&        logger;
+  ocudulog::basic_logger&      logger;
 
   // (sub-)routine requests
   e1ap_bearer_context_modification_request bearer_context_modification_request;
@@ -70,5 +70,5 @@ private:
   bool rrc_reconfig_result = false;          // the final UE reconfiguration
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

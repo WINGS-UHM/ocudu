@@ -13,10 +13,10 @@
 #include "../du_cell_manager.h"
 #include "../du_ue/du_ue_manager.h"
 #include "procedure_logger.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Procedure used to interrupt all the DU activity.
 class du_stop_procedure
@@ -40,5 +40,5 @@ private:
   std::vector<du_ue_index_t> ues_to_stop;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/cu_up/cu_up_state.h"
-#include "srsran/e1ap/common/e1ap_types.h"
-#include "srsran/ran/cause/e1ap_cause.h"
-#include "srsran/ran/cu_types.h"
-#include "srsran/ran/up_transport_layer_info.h"
+#include "ocudu/cu_up/cu_up_state.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
+#include "ocudu/ran/cause/e1ap_cause.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 
-namespace srsran {
+namespace ocudu {
 
-namespace srs_cu_up {
+namespace ocuup {
 
 // Result when creating a new QoS flow
 struct qos_flow_setup_result {
@@ -78,6 +78,6 @@ public:
   virtual pdu_session_state_t             get_pdu_session_state()                                              = 0;
 };
 
-} // namespace srs_cu_up
+} // namespace ocuup
 
-} // namespace srsran
+} // namespace ocudu

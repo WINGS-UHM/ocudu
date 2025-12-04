@@ -12,9 +12,9 @@
 
 #include "split_7_2_o_du_unit_config.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Validates the given split 7.2 O-RAN DU unit configuration. Returns true on success, false otherwise.
 bool validate_split_7_2_o_du_unit_config(const split_7_2_o_du_unit_config& config);
 
-} // namespace srsran
+} // namespace ocudu

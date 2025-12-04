@@ -11,11 +11,11 @@
 #include "executor_metrics_config_cli11_schema.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "executor_metrics_config.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/ran/slot_point_extended.h"
-#include "srsran/support/cli11_utils.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
+#include "ocudu/support/cli11_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 static void configure_cli11_metrics_args(CLI::App& app, executor_metrics_config& config)
@@ -36,8 +36,8 @@ static void configure_cli11_metrics_args(CLI::App& app, executor_metrics_config&
       ->check(CLI::Range(0U, static_cast<unsigned>(NOF_SUBFRAMES_PER_FRAME * NOF_SFNS * NOF_HYPER_SFNS)));
 }
 
-void srsran::app_services::configure_cli11_with_executor_metrics_appconfig_schema(CLI::App&                app,
-                                                                                  executor_metrics_config& config)
+void ocudu::app_services::configure_cli11_with_executor_metrics_appconfig_schema(CLI::App&                app,
+                                                                                 executor_metrics_config& config)
 {
   CLI::App* metrics_subcmd = add_subcommand(app, "metrics", "Metrics configuration")->configurable();
   configure_cli11_metrics_args(*metrics_subcmd, config);

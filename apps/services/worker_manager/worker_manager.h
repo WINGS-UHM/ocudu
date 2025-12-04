@@ -12,17 +12,17 @@
 
 #include "pcap_executor_mapper.h"
 #include "worker_manager_config.h"
-#include "srsran/cu_cp/cu_cp_executor_mapper.h"
-#include "srsran/cu_up/cu_up_executor_mapper.h"
-#include "srsran/du/du_high/du_high_executor_mapper.h"
-#include "srsran/du/du_low/du_low_executor_mapper.h"
-#include "srsran/ru/dummy/ru_dummy_executor_mapper.h"
-#include "srsran/ru/ofh/ru_ofh_executor_mapper.h"
-#include "srsran/ru/sdr/ru_sdr_executor_mapper.h"
-#include "srsran/support/executors/task_execution_manager.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/cu_cp/cu_cp_executor_mapper.h"
+#include "ocudu/cu_up/cu_up_executor_mapper.h"
+#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/du/du_low/du_low_executor_mapper.h"
+#include "ocudu/ru/dummy/ru_dummy_executor_mapper.h"
+#include "ocudu/ru/ofh/ru_ofh_executor_mapper.h"
+#include "ocudu/ru/sdr/ru_sdr_executor_mapper.h"
+#include "ocudu/support/executors/task_execution_manager.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace app_services {
 class metrics_notifier;
@@ -48,45 +48,45 @@ struct worker_manager {
   task_executor*              split6_exec      = nullptr;
   task_executor*              split6_crtl_exec = nullptr;
 
-  srs_du::du_high_executor_mapper& get_du_high_executor_mapper()
+  odu::du_high_executor_mapper& get_du_high_executor_mapper()
   {
-    srsran_assert(du_high_exec_mapper, "DU High execution mapper is not available.");
+    ocudu_assert(du_high_exec_mapper, "DU High execution mapper is not available.");
     return *du_high_exec_mapper;
   }
 
-  srs_cu_cp::cu_cp_executor_mapper& get_cu_cp_executor_mapper()
+  ocucp::cu_cp_executor_mapper& get_cu_cp_executor_mapper()
   {
-    srsran_assert(cu_cp_exec_mapper, "CU-CP execution mapper is not available.");
+    ocudu_assert(cu_cp_exec_mapper, "CU-CP execution mapper is not available.");
     return *cu_cp_exec_mapper;
   }
 
-  srs_cu_up::cu_up_executor_mapper& get_cu_up_executor_mapper()
+  ocuup::cu_up_executor_mapper& get_cu_up_executor_mapper()
   {
-    srsran_assert(cu_up_exec_mapper, "CU-UP execution mapper is not available.");
+    ocudu_assert(cu_up_exec_mapper, "CU-UP execution mapper is not available.");
     return *cu_up_exec_mapper;
   }
 
-  srs_du::du_low_executor_mapper& get_du_low_executor_mapper()
+  odu::du_low_executor_mapper& get_du_low_executor_mapper()
   {
-    srsran_assert(du_low_exec_mapper, "DU Low execution mapper is not available.");
+    ocudu_assert(du_low_exec_mapper, "DU Low execution mapper is not available.");
     return *du_low_exec_mapper;
   }
 
   ru_dummy_executor_mapper& get_dummy_ru_executor_mapper()
   {
-    srsran_assert(dummy_exec_mapper, "Dummy RU execution mapper is not available.");
+    ocudu_assert(dummy_exec_mapper, "Dummy RU execution mapper is not available.");
     return *dummy_exec_mapper;
   }
 
   ru_sdr_executor_mapper& get_sdr_ru_executor_mapper()
   {
-    srsran_assert(sdr_exec_mapper, "SDR RU execution mapper is not available.");
+    ocudu_assert(sdr_exec_mapper, "SDR RU execution mapper is not available.");
     return *sdr_exec_mapper;
   }
 
   ru_ofh_executor_mapper& get_ofh_ru_executor_mapper()
   {
-    srsran_assert(ofh_exec_mapper, "OFH RU execution mapper is not available.");
+    ocudu_assert(ofh_exec_mapper, "OFH RU execution mapper is not available.");
     return *ofh_exec_mapper;
   }
 
@@ -99,7 +99,7 @@ struct worker_manager {
   task_executor& get_metrics_executor() const { return *metrics_exec; }
 
 private:
-  srslog::basic_logger& app_logger;
+  ocudulog::basic_logger& app_logger;
 
   /// Total number of workers for the general task worker pool. Necessary for providing maximum concurrency level to
   /// the physical layer.
@@ -111,10 +111,10 @@ private:
   task_executor* non_rt_hi_prio_exec     = nullptr;
   task_executor* rt_hi_prio_exec         = nullptr;
 
-  std::unique_ptr<srs_du::du_high_executor_mapper>  du_high_exec_mapper;
-  std::unique_ptr<srs_du::du_low_executor_mapper>   du_low_exec_mapper;
-  std::unique_ptr<srs_cu_cp::cu_cp_executor_mapper> cu_cp_exec_mapper;
-  std::unique_ptr<srs_cu_up::cu_up_executor_mapper> cu_up_exec_mapper;
+  std::unique_ptr<odu::du_high_executor_mapper> du_high_exec_mapper;
+  std::unique_ptr<odu::du_low_executor_mapper>  du_low_exec_mapper;
+  std::unique_ptr<ocucp::cu_cp_executor_mapper> cu_cp_exec_mapper;
+  std::unique_ptr<ocuup::cu_up_executor_mapper> cu_up_exec_mapper;
 
   /// Serialized Executor used for metrics.
   task_executor* metrics_exec = nullptr;
@@ -204,4 +204,4 @@ private:
   void create_split6_executors();
 };
 
-} // namespace srsran
+} // namespace ocudu

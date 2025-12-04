@@ -11,11 +11,11 @@
 #pragma once
 
 #include "ru_dummy_sector.h"
-#include "srsran/adt/span.h"
-#include "srsran/ru/ru_metrics_collector.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ru/ru_metrics_collector.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Dummy RU metrics collector implementation
 class ru_dummy_metrics_collector : public ru_metrics_collector
@@ -29,4 +29,4 @@ public:
   void collect_metrics(ru_metrics& metrics) override;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -16,13 +16,13 @@
 #include "ofh_data_flow_cplane_scheduling_commands.h"
 #include "ofh_tx_window_checker.h"
 #include "ofh_uplink_request_handler_metrics_collector.h"
-#include "srsran/ofh/ethernet/ethernet_frame_pool.h"
-#include "srsran/ofh/serdes/ofh_cplane_message_properties.h"
-#include "srsran/ofh/transmitter/ofh_transmitter_timing_parameters.h"
-#include "srsran/ofh/transmitter/ofh_uplink_request_handler.h"
-#include "srsran/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
+#include "ocudu/ofh/serdes/ofh_cplane_message_properties.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_timing_parameters.h"
+#include "ocudu/ofh/transmitter/ofh_uplink_request_handler.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Uplink request handler implementation configuration.
@@ -52,7 +52,7 @@ struct uplink_request_handler_impl_config {
 /// Uplink request handler implmentation dependencies.
 struct uplink_request_handler_impl_dependencies {
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
   /// Error notifier.
   error_notifier& err_notifier;
   /// Uplink slot context repository.
@@ -87,7 +87,7 @@ public:
   uplink_request_handler_metrics_collector& get_metrics_collector() { return metrics_collector; }
 
 private:
-  srslog::basic_logger&                                   logger;
+  ocudulog::basic_logger&                                 logger;
   const bool                                              is_prach_cp_enabled;
   const cyclic_prefix                                     cp;
   const std::optional<tdd_ul_dl_config_common>            tdd_config;
@@ -105,4 +105,4 @@ private:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -10,19 +10,19 @@
 
 #pragma once
 
-#include "srsran/ran/csi_report/csi_report_data.h"
-#include "srsran/ran/logical_channel/phr_report.h"
-#include "srsran/ran/phy_time_unit.h"
-#include "srsran/ran/pusch/pusch_tpmi_select.h"
-#include "srsran/ran/srs/srs_channel_matrix.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/config/serving_cell_config.h"
-#include "srsran/scheduler/resource_grid_util.h"
-#include "srsran/scheduler/result/pdsch_info.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/math/exponential_averager.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/logical_channel/phr_report.h"
+#include "ocudu/ran/phy_time_unit.h"
+#include "ocudu/ran/pusch/pusch_tpmi_select.h"
+#include "ocudu/ran/srs/srs_channel_matrix.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/resource_grid_util.h"
+#include "ocudu/scheduler/result/pdsch_info.h"
+#include "ocudu/support/math/exponential_averager.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief This classes manages all the information related with the channel state that has been received from the UE
 /// via CSI (e.g. CQI) or via gNB PHY measurements (e.g. UL SINR).
@@ -60,7 +60,7 @@ public:
   /// \brief Fetches the precoding codebook to be used in DL based on reported PMI and the chosen nof layers.
   std::optional<pdsch_precoding_info> get_precoding(unsigned chosen_nof_layers, unsigned nof_rbs) const
   {
-    srsran_assert(chosen_nof_layers <= nof_dl_ports, "Invalid number of layers chosen");
+    ocudu_assert(chosen_nof_layers <= nof_dl_ports, "Invalid number of layers chosen");
     std::optional<pdsch_precoding_info> precoding_info;
     if (nof_dl_ports <= 1) {
       // In case of 1 DL port, no precoding is used.
@@ -117,4 +117,4 @@ private:
   std::optional<pusch_tpmi_select_info> last_pusch_tpmi_select_info;
 };
 
-} // namespace srsran
+} // namespace ocudu

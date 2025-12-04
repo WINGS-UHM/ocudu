@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void test_table_13_1()
 {
@@ -278,7 +278,7 @@ static void test_table_13_5()
   // 17 applies, i.e., n79 or n104).
   for (unsigned config_index = 0; config_index != 16; ++config_index) {
     pdcch_type0_css_coreset_description description = pdcch_type0_css_coreset_get(
-        srsran::nr_band::n79, subcarrier_spacing::kHz30, subcarrier_spacing::kHz15, config_index, 0);
+        ocudu::nr_band::n79, subcarrier_spacing::kHz30, subcarrier_spacing::kHz15, config_index, 0);
 
     // Assert pattern.
     if (config_index < 9) {

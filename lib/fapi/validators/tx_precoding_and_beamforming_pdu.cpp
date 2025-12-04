@@ -11,7 +11,7 @@
 #include "tx_precoding_and_beamforming_pdu.h"
 #include "field_checkers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 
 /// This validator checks a DL_TTI.request message.
@@ -45,9 +45,9 @@ validate_nof_beam_indexes_per_prg(unsigned value, unsigned expected, validator_r
   return validate_field_eq(expected, value, "Number of beam indexes", msg_type, pdu_type, report);
 }
 
-bool srsran::fapi::validate_tx_precoding_and_beamforming_pdu(const tx_precoding_and_beamforming_pdu& pdu,
-                                                             validator_report&                       report,
-                                                             dl_pdu_type                             pdu_type)
+bool ocudu::fapi::validate_tx_precoding_and_beamforming_pdu(const tx_precoding_and_beamforming_pdu& pdu,
+                                                            validator_report&                       report,
+                                                            dl_pdu_type                             pdu_type)
 {
   bool result = true;
 

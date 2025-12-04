@@ -11,5 +11,5 @@ set(SOURCES
         buffer_pool_config_yaml_writer.cpp
         metrics/buffer_pool_metrics_builder.cpp)
 
-add_library(srsran_buffer_pool_app_service STATIC ${SOURCES})
-target_include_directories(srsran_buffer_pool_app_service PRIVATE ${CMAKE_SOURCE_DIR})
+add_library(ocudu_buffer_pool_app_service STATIC ${SOURCES})
+target_include_directories(ocudu_buffer_pool_app_service PRIVATE ${CMAKE_SOURCE_DIR})

@@ -10,15 +10,15 @@
 
 #include "inter_cu_handover_execution_target_routine.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
 
-async_task<void> srsran::srs_cu_cp::start_inter_cu_handover_execution_target_routine(cu_cp_ue*                    ue,
-                                                                                     e1ap_bearer_context_manager& e1ap,
-                                                                                     ngap_interface&              ngap,
-                                                                                     srslog::basic_logger& logger)
+async_task<void> ocudu::ocucp::start_inter_cu_handover_execution_target_routine(cu_cp_ue*                    ue,
+                                                                                e1ap_bearer_context_manager& e1ap,
+                                                                                ngap_interface&              ngap,
+                                                                                ocudulog::basic_logger&      logger)
 {
   logger.error("Inter-CU handover execution target routine failed. Cause: Inter-CU handover not supported");
 
@@ -29,4 +29,4 @@ async_task<void> srsran::srs_cu_cp::start_inter_cu_handover_execution_target_rou
   return launch_async(std::move(err_function));
 }
 
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE

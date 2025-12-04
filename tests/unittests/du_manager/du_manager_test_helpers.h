@@ -11,19 +11,19 @@
 #pragma once
 
 #include "lib/du/du_high/du_manager/ran_resource_management/du_ran_resource_manager.h"
-#include "srsran/du/du_high/du_manager/du_manager_params.h"
-#include "srsran/gtpu/gtpu_teid_pool.h"
-#include "srsran/mac/mac_cell_manager.h"
-#include "srsran/mac/mac_manager.h"
-#include "srsran/mac/mac_paging_information_handler.h"
-#include "srsran/mac/mac_positioning_measurement_handler.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
+#include "ocudu/mac/mac_cell_manager.h"
+#include "ocudu/mac/mac_manager.h"
+#include "ocudu/mac/mac_paging_information_handler.h"
+#include "ocudu/mac/mac_positioning_measurement_handler.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <map>
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 class dummy_teid_pool final : public gtpu_teid_pool
 {
@@ -187,11 +187,11 @@ public:
 class f1u_gw_bearer_dummy : public f1u_du_gateway_bearer
 {
 public:
-  srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx;
+  odu::f1u_du_gateway_bearer_rx_notifier& du_rx;
 
   std::optional<nru_ul_message> last_sdu;
 
-  f1u_gw_bearer_dummy(srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx_) : du_rx(du_rx_) {}
+  f1u_gw_bearer_dummy(odu::f1u_du_gateway_bearer_rx_notifier& du_rx_) : du_rx(du_rx_) {}
 
   void stop() override {}
 
@@ -208,16 +208,16 @@ class f1u_gateway_dummy : public f1u_du_gateway
 public:
   bool next_bearer_is_created = true;
 
-  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                   ue_index,
-                                                          drb_id_t                                   drb_id,
-                                                          s_nssai_t                                  s_nssai,
-                                                          five_qi_t                                  five_qi,
-                                                          srs_du::f1u_config                         config,
-                                                          const gtpu_teid_t&                         dl_teid,
-                                                          const up_transport_layer_info&             ul_up_tnl_info,
-                                                          srs_du::f1u_du_gateway_bearer_rx_notifier& du_rx,
-                                                          timer_factory                              timers,
-                                                          task_executor& ue_executor) override
+  std::unique_ptr<f1u_du_gateway_bearer> create_du_bearer(uint32_t                                ue_index,
+                                                          drb_id_t                                drb_id,
+                                                          s_nssai_t                               s_nssai,
+                                                          five_qi_t                               five_qi,
+                                                          odu::f1u_config                         config,
+                                                          const gtpu_teid_t&                      dl_teid,
+                                                          const up_transport_layer_info&          ul_up_tnl_info,
+                                                          odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
+                                                          timer_factory                           timers,
+                                                          task_executor&                          ue_executor) override
   {
     if (next_bearer_is_created and f1u_bearers.count(dl_teid) == 0) {
       auto f1u_bearer = std::make_unique<f1u_gw_bearer_dummy>(du_rx);
@@ -232,8 +232,8 @@ public:
   {
     auto bearer_it = f1u_bearers.find(dl_tnl_info.gtp_teid);
     if (bearer_it == f1u_bearers.end()) {
-      srslog::fetch_basic_logger("TEST").warning("Could not find DL-TEID at DU to remove. DL-TEID={}",
-                                                 dl_tnl_info.gtp_teid);
+      ocudulog::fetch_basic_logger("TEST").warning("Could not find DL-TEID at DU to remove. DL-TEID={}",
+                                                   dl_tnl_info.gtp_teid);
       return;
     }
     f1u_bearers.erase(bearer_it);
@@ -405,8 +405,8 @@ public:
   null_rlc_pcap                          rlc_pcap;
   du_manager_params                      params;
   dummy_ue_resource_configurator_factory cell_res_alloc;
-  srslog::basic_logger&                  logger;
+  ocudulog::basic_logger&                logger;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

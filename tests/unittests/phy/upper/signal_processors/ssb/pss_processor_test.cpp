@@ -9,11 +9,11 @@
  */
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "srsran/phy/constants.h"
-#include "srsran/phy/upper/signal_processors/ssb/factories.h"
+#include "ocudu/phy/constants.h"
+#include "ocudu/phy/upper/signal_processors/ssb/factories.h"
 #include <random>
 
-using namespace srsran;
+using namespace ocudu;
 
 static const float  repetitions = 10;
 static std::mt19937 rgen(0);

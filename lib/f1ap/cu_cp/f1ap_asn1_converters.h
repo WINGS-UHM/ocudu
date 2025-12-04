@@ -11,18 +11,18 @@
 #pragma once
 
 #include "../asn1_helpers.h"
-#include "srsran/asn1/f1ap/common.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
-#include "srsran/ran/cause/f1ap_cause.h"
-#include "srsran/ran/nr_cgi.h"
+#include "ocudu/asn1/f1ap/common.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
+#include "ocudu/ran/cause/f1ap_cause.h"
+#include "ocudu/ran/nr_cgi.h"
 #include <string>
 #include <variant>
 #include <vector>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Convert \c f1ap_cell_ul_cfg to F1AP ASN.1.
 /// \param[in] cell_ul_cfg The common type cell ul cfg.
@@ -288,5 +288,5 @@ inline f1ap_srbs_setup_mod_item asn1_to_f1ap_srbs_setup_mod_item(const template_
   return srbs_setup_mod_item;
 }
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -13,10 +13,10 @@
 // This file was generated using the following MATLAB class on 14-09-2023 (seed 0):
 //   + "srsModulationMapperUnittest.m"
 
-#include "srsran/phy/upper/channel_modulation/modulation_mapper.h"
-#include "srsran/support/file_vector.h"
+#include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
+#include "ocudu/support/file_vector.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct test_case_t {
   std::size_t          nsymbols;
@@ -40,4 +40,4 @@ static const std::vector<test_case_t> modulation_mapper_test_data = {
     // clang-format on
 };
 
-} // namespace srsran
+} // namespace ocudu

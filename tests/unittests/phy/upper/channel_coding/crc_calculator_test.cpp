@@ -8,14 +8,14 @@
  *
  */
 
-#include "srsran/phy/upper/channel_coding/channel_coding_factories.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <getopt.h>
 #include <random>
 
 static std::mt19937 rgen(0);
 
-using namespace srsran;
+using namespace ocudu;
 
 crc_calculator_checksum_t crc_generic_calculator_byte(span<const uint8_t> data, unsigned poly, unsigned order)
 {
@@ -45,7 +45,7 @@ crc_calculator_checksum_t crc_generic_calculator_byte(span<const uint8_t> data, 
   return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
 }
 
-crc_calculator_checksum_t crc_generic_calculator_bit(const srsran::span<uint8_t>& data, unsigned poly, unsigned order)
+crc_calculator_checksum_t crc_generic_calculator_bit(const ocudu::span<uint8_t>& data, unsigned poly, unsigned order)
 {
   uint64_t highbit   = 1U << order;
   uint64_t remainder = 0;

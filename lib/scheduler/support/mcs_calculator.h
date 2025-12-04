@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/ran/pdsch/pdsch_mcs.h"
-#include "srsran/ran/pusch/pusch_mcs.h"
-#include "srsran/ran/sch/sch_mcs.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
+#include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/sch/sch_mcs.h"
 #include <optional>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Performs CQI to MCS mapping - for DL.
 ///
@@ -40,4 +40,4 @@ inline sch_mcs_index get_max_mcs_ul(pusch_mcs_table mcs_table, bool transform_pr
   return ((mcs_table == pusch_mcs_table::qam256) or transform_precoding) ? 27 : 28;
 }
 
-} // namespace srsran
+} // namespace ocudu

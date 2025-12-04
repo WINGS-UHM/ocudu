@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/lower/modulation/modulation_factories.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/phy/lower/modulation/modulation_factories.h"
+#include "ocudu/support/ocudu_test.h"
 #include <random>
 
-namespace srsran {
+namespace ocudu {
 
 class ofdm_symbol_modulator_spy : public ofdm_symbol_modulator
 {
@@ -62,7 +62,7 @@ public:
     // Prepare output.
     entry.output.resize(output.size());
     std::generate(entry.output.begin(), entry.output.end(), [this]() { return cf_t(dist(rgen), dist(rgen)); });
-    srsvec::copy(output, entry.output);
+    ocuduvec::copy(output, entry.output);
   }
 
   void clear_modulate_entries() { modulate_entries.clear(); }
@@ -93,4 +93,4 @@ public:
   std::vector<ofdm_symbol_modulator_spy*>& get_modulators() { return modulators; }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,7 +10,7 @@
 
 #include "rlc_rx_um_entity.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_rx_um_entity::rlc_rx_um_entity(gnb_du_id_t                       gnb_du_id,
                                    du_ue_index_t                     ue_index,
@@ -32,7 +32,7 @@ rlc_rx_um_entity::rlc_rx_um_entity(gnb_du_id_t                       gnb_du_id,
   metrics.metrics_set_mode(rlc_mode::um_bidir);
 
   // check reassembly_timer
-  srsran_assert(reassembly_timer.is_valid(), "Cannot create RLC RX UM: reassembly_timer not configured.");
+  ocudu_assert(reassembly_timer.is_valid(), "Cannot create RLC RX UM: reassembly_timer not configured.");
 
   // configure reassembly_timer
   if (cfg.t_reassembly > 0) {
@@ -97,7 +97,7 @@ void rlc_rx_um_entity::handle_pdu(byte_buffer_slice buf)
   handle_segment_data_sdu(header, std::move(payload));
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   // 5.2.2.2.3 Actions when an UMD PDU is placed in the reception buffer
   /*
@@ -495,7 +495,7 @@ void rlc_rx_um_entity::on_expired_reassembly_timer()
         "Started reassembly_timer for sn={}, updated rx_timer_trigger={}.", st.rx_next_reassembly, st.rx_timer_trigger);
   }
 
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 }
 
 // TS 38.322 v16.2.0 Sec 5.2.2.2.1

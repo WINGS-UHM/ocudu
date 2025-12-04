@@ -10,33 +10,33 @@
 
 #include "lib/du/du_high/du_manager/du_ue/du_ue_manager.h"
 #include "tests/unittests/du_manager/du_manager_test_helpers.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/mac/mac_pdu_handler.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/test_utils.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 /// \file
 /// \brief In this file, we unit test the interaction between DU UE procedures in the DU UE Manager. For unit tests
 /// addressing the specific details of each DU UE manager procedure, please check procedures/ directory.
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 class du_ue_manager_tester : public ::testing::Test
 {
 protected:
   du_ue_manager_tester()
   {
-    srslog::fetch_basic_logger("DU-MNG").set_level(srslog::basic_levels::debug);
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("DU-MNG").set_level(ocudulog::basic_levels::debug);
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     // By default F1AP creates two F1-C bearers.
     f1ap_dummy.next_ue_create_response.result = true;
     f1ap_dummy.next_ue_create_response.f1c_bearers_added.resize(2);
   }
-  ~du_ue_manager_tester() override { srslog::flush(); }
+  ~du_ue_manager_tester() override { ocudulog::flush(); }
 
   ul_ccch_indication_message create_ul_ccch_message(rnti_t rnti)
   {
@@ -81,11 +81,11 @@ protected:
 
   du_ue_index_t get_last_ue_index() const
   {
-    srsran_assert(f1ap_dummy.last_ue_create.has_value(), "No UE creation request was provided");
+    ocudu_assert(f1ap_dummy.last_ue_create.has_value(), "No UE creation request was provided");
     return f1ap_dummy.last_ue_create.value().ue_index;
   }
 
-  srslog::basic_logger&      test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&    test_logger = ocudulog::fetch_basic_logger("TEST");
   timer_manager              timers;
   manual_task_worker         worker{128};
   dummy_ue_executor_mapper   ue_execs{worker};
@@ -98,7 +98,7 @@ protected:
   null_rlc_pcap                          rlc_pcap;
   dummy_ue_resource_configurator_factory cell_res_alloc;
 
-  du_manager_params params{{"srsgnb", (gnb_du_id_t)1, 1, cells},
+  du_manager_params params{{"ocudu", (gnb_du_id_t)1, 1, cells},
                            {timers, worker, ue_execs, cell_execs},
                            {f1ap_dummy, f1ap_dummy, f1ap_dummy},
                            {f1u_dummy},

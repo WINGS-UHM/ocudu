@@ -6,7 +6,7 @@
 # the distribution.
 #
 
-add_library(srsran_ran
+add_library(ocudu_ran
         cause/ngap_cause_converters.cpp
         cause/f1ap_cause_converters.cpp
         cause/e1ap_cause_converters.cpp
@@ -54,6 +54,6 @@ add_library(srsran_ran
         ssb/ssb_mapping.cpp
         tdd_ul_dl_config.cpp
         drx_config.cpp)
-target_link_libraries(srsran_ran srslog)
+target_link_libraries(ocudu_ran ocudulog)
 
-add_to_exported_libs(srsran_ran)
+add_to_exported_libs(ocudu_ran)

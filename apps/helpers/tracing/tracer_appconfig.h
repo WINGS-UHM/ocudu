@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// Configuration of the tracing service.
 struct tracer_appconfig {
@@ -24,4 +24,4 @@ struct tracer_appconfig {
   unsigned nof_tracing_events_after_severe = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

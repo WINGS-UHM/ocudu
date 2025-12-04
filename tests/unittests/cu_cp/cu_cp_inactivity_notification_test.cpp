@@ -12,12 +12,12 @@
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
-#include "srsran/e1ap/common/e1ap_message.h"
-#include "srsran/ngap/ngap_message.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
+#include "ocudu/ngap/ngap_message.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 class cu_cp_inactivity_notification_test : public cu_cp_test_environment, public ::testing::Test
 {
@@ -163,8 +163,8 @@ TEST_F(cu_cp_inactivity_notification_test,
   ASSERT_TRUE(send_bearer_context_inactivity_notification(inactivity_notification));
 
   // check that the UE Context Release Request was not sent to the AMF
-  srsran_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
-                "UE Context Release for unsupported inactivity message was sent to AMF");
+  ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
+               "UE Context Release for unsupported inactivity message was sent to AMF");
 }
 
 TEST_F(cu_cp_inactivity_notification_test,

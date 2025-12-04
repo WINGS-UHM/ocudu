@@ -12,7 +12,7 @@
 #include "../message_builder_helpers.h"
 #include "helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi;
 using namespace unittest;
 
@@ -28,7 +28,7 @@ TEST_P(validate_pdsch_pdu_field, WithValue)
                std::get<1>(params),
                build_valid_dl_pdsch_pdu,
                validate_dl_pdsch_pdu,
-               srsran::fapi::message_type_id::dl_tti_request,
+               ocudu::fapi::message_type_id::dl_tti_request,
                dl_pdu_type::PDSCH);
 }
 
@@ -220,7 +220,7 @@ INSTANTIATE_TEST_SUITE_P(rb_size,
                          testing::Combine(testing::Values(pdu_field_data<dl_pdsch_pdu>{
                                               "RB Size",
                                               [](dl_pdsch_pdu& pdu, int value) {
-                                                pdu.resource_alloc = srsran::fapi::resource_allocation_type::type_1;
+                                                pdu.resource_alloc = ocudu::fapi::resource_allocation_type::type_1;
                                                 pdu.rb_size        = value;
                                               }}),
                                           testing::Values(test_case_data{0, false},
@@ -234,7 +234,7 @@ INSTANTIATE_TEST_SUITE_P(rb_start,
                          testing::Combine(testing::Values(pdu_field_data<dl_pdsch_pdu>{
                                               "RB Start",
                                               [](dl_pdsch_pdu& pdu, int value) {
-                                                pdu.resource_alloc = srsran::fapi::resource_allocation_type::type_1;
+                                                pdu.resource_alloc = ocudu::fapi::resource_allocation_type::type_1;
                                                 pdu.rb_start       = value;
                                               }}),
                                           testing::Values(test_case_data{0, true},
@@ -336,7 +336,7 @@ INSTANTIATE_TEST_SUITE_P(coreset_start,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.coreset_start_point = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::non_interleaved_common_ss;
+                                                    ocudu::fapi::pdsch_trans_type::non_interleaved_common_ss;
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{135, true},
@@ -350,7 +350,7 @@ INSTANTIATE_TEST_SUITE_P(coreset_start_1,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.coreset_start_point = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::non_interleaved_other;
+                                                    ocudu::fapi::pdsch_trans_type::non_interleaved_other;
                                               }}),
                                           testing::Values(test_case_data{0, true}, test_case_data{275, true})));
 
@@ -361,7 +361,7 @@ INSTANTIATE_TEST_SUITE_P(coreset_start_2,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.coreset_start_point = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::interleaved_common_type0_coreset0;
+                                                    ocudu::fapi::pdsch_trans_type::interleaved_common_type0_coreset0;
                                               }}),
                                           testing::Values(test_case_data{0, true}, test_case_data{275, true})));
 
@@ -373,7 +373,7 @@ INSTANTIATE_TEST_SUITE_P(
                          [](dl_pdsch_pdu& pdu, int value) {
                            pdu.pdsch_maintenance_v3.coreset_start_point = value;
                            pdu.pdsch_maintenance_v3.trans_type =
-                               srsran::fapi::pdsch_trans_type::interleaved_common_any_coreset0_present;
+                               ocudu::fapi::pdsch_trans_type::interleaved_common_any_coreset0_present;
                          }}),
                      testing::Values(test_case_data{0, true},
                                      test_case_data{135, true},
@@ -388,7 +388,7 @@ INSTANTIATE_TEST_SUITE_P(
                          [](dl_pdsch_pdu& pdu, int value) {
                            pdu.pdsch_maintenance_v3.coreset_start_point = value;
                            pdu.pdsch_maintenance_v3.trans_type =
-                               srsran::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
+                               ocudu::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
                          }}),
                      testing::Values(test_case_data{0, true},
                                      test_case_data{135, true},
@@ -402,7 +402,7 @@ INSTANTIATE_TEST_SUITE_P(coreset_start_5,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.coreset_start_point = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::interleaved_other;
+                                                    ocudu::fapi::pdsch_trans_type::interleaved_other;
                                               }}),
                                           testing::Values(test_case_data{0, true}, test_case_data{275, true})));
 
@@ -413,7 +413,7 @@ INSTANTIATE_TEST_SUITE_P(initial_dl_bwp_0,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.initial_dl_bwp_size = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::non_interleaved_common_ss;
+                                                    ocudu::fapi::pdsch_trans_type::non_interleaved_common_ss;
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{135, true},
@@ -427,7 +427,7 @@ INSTANTIATE_TEST_SUITE_P(initial_dl_bwp_1,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.initial_dl_bwp_size = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::non_interleaved_other;
+                                                    ocudu::fapi::pdsch_trans_type::non_interleaved_other;
                                               }}),
                                           testing::Values(test_case_data{0, true}, test_case_data{275, true})));
 
@@ -438,7 +438,7 @@ INSTANTIATE_TEST_SUITE_P(initial_dl_bwp_2,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.initial_dl_bwp_size = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::interleaved_common_type0_coreset0;
+                                                    ocudu::fapi::pdsch_trans_type::interleaved_common_type0_coreset0;
                                               }}),
                                           testing::Values(test_case_data{0, true}, test_case_data{275, true})));
 
@@ -450,7 +450,7 @@ INSTANTIATE_TEST_SUITE_P(
                          [](dl_pdsch_pdu& pdu, int value) {
                            pdu.pdsch_maintenance_v3.initial_dl_bwp_size = value;
                            pdu.pdsch_maintenance_v3.trans_type =
-                               srsran::fapi::pdsch_trans_type::interleaved_common_any_coreset0_present;
+                               ocudu::fapi::pdsch_trans_type::interleaved_common_any_coreset0_present;
                          }}),
                      testing::Values(test_case_data{0, true},
                                      test_case_data{135, true},
@@ -465,7 +465,7 @@ INSTANTIATE_TEST_SUITE_P(
                          [](dl_pdsch_pdu& pdu, int value) {
                            pdu.pdsch_maintenance_v3.initial_dl_bwp_size = value;
                            pdu.pdsch_maintenance_v3.trans_type =
-                               srsran::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
+                               ocudu::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
                          }}),
                      testing::Values(test_case_data{0, true},
                                      test_case_data{135, true},
@@ -479,7 +479,7 @@ INSTANTIATE_TEST_SUITE_P(initial_dl_bwp_5,
                                               [](dl_pdsch_pdu& pdu, int value) {
                                                 pdu.pdsch_maintenance_v3.initial_dl_bwp_size = value;
                                                 pdu.pdsch_maintenance_v3.trans_type =
-                                                    srsran::fapi::pdsch_trans_type::interleaved_other;
+                                                    ocudu::fapi::pdsch_trans_type::interleaved_other;
                                               }}),
                                           testing::Values(test_case_data{0, true}, test_case_data{275, true})));
 

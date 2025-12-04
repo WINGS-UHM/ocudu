@@ -11,9 +11,9 @@
 #include "split6_o_du_low_unit_config_validator.h"
 #include "apps/units/flexible_o_du/o_du_low/du_low_config_validator.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-bool srsran::validate_split6_o_du_low_unit_config(const split6_o_du_low_unit_config& config)
+bool ocudu::validate_split6_o_du_low_unit_config(const split6_o_du_low_unit_config& config)
 {
   if (auto* ru = std::get_if<ru_sdr_unit_config>(&config.ru_cfg)) {
     if (ru->device_driver == "zmq") {

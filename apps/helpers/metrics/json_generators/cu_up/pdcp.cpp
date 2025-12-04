@@ -10,11 +10,11 @@
 
 #include "pdcp.h"
 #include "helpers.h"
-#include "srsran/pdcp/pdcp_entity.h"
-#include "srsran/pdcp/pdcp_rx_metrics.h"
-#include "srsran/pdcp/pdcp_tx_metrics.h"
+#include "ocudu/pdcp/pdcp_entity.h"
+#include "ocudu/pdcp/pdcp_rx_metrics.h"
+#include "ocudu/pdcp/pdcp_tx_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
@@ -64,11 +64,11 @@ static nlohmann::json generate_pdcp_rx(const pdcp_rx_metrics_container& metrics,
   return json;
 }
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const pdcp_tx_metrics_container& tx,
-                                                              const pdcp_rx_metrics_container& rx,
-                                                              double                           tx_cpu_usage,
-                                                              double                           rx_cpu_usage,
-                                                              timer_duration                   metrics_period)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const pdcp_tx_metrics_container& tx,
+                                                             const pdcp_rx_metrics_container& rx,
+                                                             double                           tx_cpu_usage,
+                                                             double                           rx_cpu_usage,
+                                                             timer_duration                   metrics_period)
 {
   nlohmann::json json;
 
@@ -82,12 +82,12 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const pdcp_tx_metr
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const pdcp_tx_metrics_container& tx,
-                                                                  const pdcp_rx_metrics_container& rx,
-                                                                  double                           tx_cpu_usage,
-                                                                  double                           rx_cpu_usage,
-                                                                  timer_duration                   metrics_period,
-                                                                  int                              indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const pdcp_tx_metrics_container& tx,
+                                                                 const pdcp_rx_metrics_container& rx,
+                                                                 double                           tx_cpu_usage,
+                                                                 double                           rx_cpu_usage,
+                                                                 timer_duration                   metrics_period,
+                                                                 int                              indent)
 {
   return generate(tx, rx, tx_cpu_usage, rx_cpu_usage, metrics_period).dump(indent);
 }

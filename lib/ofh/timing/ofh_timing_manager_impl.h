@@ -11,9 +11,9 @@
 #pragma once
 
 #include "realtime_timing_worker.h"
-#include "srsran/ofh/timing/ofh_timing_manager.h"
+#include "ocudu/ofh/timing/ofh_timing_manager.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 class timing_manager_impl : public timing_manager
@@ -21,7 +21,7 @@ class timing_manager_impl : public timing_manager
   realtime_timing_worker worker;
 
 public:
-  timing_manager_impl(srslog::basic_logger& logger, task_executor& executor, const realtime_worker_cfg& config) :
+  timing_manager_impl(ocudulog::basic_logger& logger, task_executor& executor, const realtime_worker_cfg& config) :
     worker(logger, executor, config)
   {
   }
@@ -37,4 +37,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

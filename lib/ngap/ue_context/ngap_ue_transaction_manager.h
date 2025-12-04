@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/asn1/ngap/ngap_pdu_contents.h"
-#include "srsran/support/async/protocol_transaction_manager.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ngap_ue_transaction_manager
 {
@@ -40,5 +40,5 @@ public:
   protocol_transaction_event_source<asn1::ngap::dl_ran_status_transfer_s> dl_ran_status_transfer_outcome;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

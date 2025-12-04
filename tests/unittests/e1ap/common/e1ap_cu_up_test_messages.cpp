@@ -9,24 +9,24 @@
  */
 
 #include "e1ap_cu_up_test_messages.h"
-#include "srsran/asn1/e1ap/e1ap_pdu_contents.h"
-#include "srsran/e1ap/common/e1ap_message.h"
+#include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
+#include "ocudu/e1ap/common/e1ap_message.h"
 
-using namespace srsran;
-using namespace srs_cu_up;
+using namespace ocudu;
+using namespace ocuup;
 using namespace asn1::e1ap;
 
-cu_up_e1_setup_request srsran::srs_cu_up::generate_cu_up_e1_setup_request()
+cu_up_e1_setup_request ocudu::ocuup::generate_cu_up_e1_setup_request()
 {
   cu_up_e1_setup_request request_msg = {};
   request_msg.gnb_cu_up_id           = 1;
-  request_msg.gnb_cu_up_name         = "srsCU-CP";
+  request_msg.gnb_cu_up_name         = "OCUDU CU-CP";
   request_msg.cn_support             = cu_up_cn_support_t::c_5gc;
 
   return request_msg;
 }
 
-e1ap_message srsran::srs_cu_up::generate_cu_up_e1_setup_response(unsigned transaction_id)
+e1ap_message ocudu::ocuup::generate_cu_up_e1_setup_response(unsigned transaction_id)
 {
   e1ap_message e1_setup_response = {};
   e1_setup_response.pdu.set_successful_outcome();
@@ -36,12 +36,12 @@ e1ap_message srsran::srs_cu_up::generate_cu_up_e1_setup_response(unsigned transa
 
   setup_res->transaction_id         = transaction_id;
   setup_res->gnb_cu_cp_name_present = true;
-  setup_res->gnb_cu_cp_name.from_string("srsCU-CP");
+  setup_res->gnb_cu_cp_name.from_string("OCUDU CU-CP");
 
   return e1_setup_response;
 }
 
-e1ap_message srsran::srs_cu_up::generate_bearer_context_setup_request(unsigned cu_cp_ue_e1ap_id)
+e1ap_message ocudu::ocuup::generate_bearer_context_setup_request(unsigned cu_cp_ue_e1ap_id)
 {
   e1ap_message bearer_context_setup_request = {};
 
@@ -123,7 +123,7 @@ e1ap_message srsran::srs_cu_up::generate_bearer_context_setup_request(unsigned c
   return bearer_context_setup_request;
 }
 
-e1ap_message srsran::srs_cu_up::generate_invalid_bearer_context_setup_request(unsigned cu_cp_ue_e1ap_id)
+e1ap_message ocudu::ocuup::generate_invalid_bearer_context_setup_request(unsigned cu_cp_ue_e1ap_id)
 {
   e1ap_message bearer_context_setup_request = {};
 
@@ -144,8 +144,7 @@ e1ap_message srsran::srs_cu_up::generate_invalid_bearer_context_setup_request(un
   return bearer_context_setup_request;
 }
 
-e1ap_message
-srsran::srs_cu_up::generate_invalid_bearer_context_setup_request_inactivity_timer(unsigned cu_cp_ue_e1ap_id)
+e1ap_message ocudu::ocuup::generate_invalid_bearer_context_setup_request_inactivity_timer(unsigned cu_cp_ue_e1ap_id)
 {
   e1ap_message bearer_context_setup_request = {};
   bearer_context_setup_request              = generate_bearer_context_setup_request(cu_cp_ue_e1ap_id);
@@ -155,8 +154,8 @@ srsran::srs_cu_up::generate_invalid_bearer_context_setup_request_inactivity_time
   return bearer_context_setup_request;
 }
 
-e1ap_message srsran::srs_cu_up::generate_bearer_context_modification_request(unsigned cu_cp_ue_e1ap_id,
-                                                                             unsigned cu_up_ue_e1ap_id)
+e1ap_message ocudu::ocuup::generate_bearer_context_modification_request(unsigned cu_cp_ue_e1ap_id,
+                                                                        unsigned cu_up_ue_e1ap_id)
 {
   e1ap_message bearer_context_modification_request = {};
 
@@ -193,8 +192,8 @@ e1ap_message srsran::srs_cu_up::generate_bearer_context_modification_request(uns
   return bearer_context_modification_request;
 }
 
-e1ap_message srsran::srs_cu_up::generate_invalid_bearer_context_modification_request(unsigned cu_cp_ue_e1ap_id,
-                                                                                     unsigned cu_up_ue_e1ap_id)
+e1ap_message ocudu::ocuup::generate_invalid_bearer_context_modification_request(unsigned cu_cp_ue_e1ap_id,
+                                                                                unsigned cu_up_ue_e1ap_id)
 {
   e1ap_message bearer_context_modification_request = {};
 
@@ -211,8 +210,7 @@ e1ap_message srsran::srs_cu_up::generate_invalid_bearer_context_modification_req
   return bearer_context_modification_request;
 }
 
-e1ap_message srsran::srs_cu_up::generate_bearer_context_release_command(unsigned cu_cp_ue_e1ap_id,
-                                                                        unsigned cu_up_ue_e1ap_id)
+e1ap_message ocudu::ocuup::generate_bearer_context_release_command(unsigned cu_cp_ue_e1ap_id, unsigned cu_up_ue_e1ap_id)
 {
   e1ap_message bearer_context_release_command = {};
 
@@ -227,8 +225,7 @@ e1ap_message srsran::srs_cu_up::generate_bearer_context_release_command(unsigned
   return bearer_context_release_command;
 }
 
-e1ap_message
-srsran::srs_cu_up::generate_e1_reset(std::vector<std::pair<gnb_cu_cp_ue_e1ap_id_t, gnb_cu_up_ue_e1ap_id_t>> ues)
+e1ap_message ocudu::ocuup::generate_e1_reset(std::vector<std::pair<gnb_cu_cp_ue_e1ap_id_t, gnb_cu_up_ue_e1ap_id_t>> ues)
 {
   e1ap_message msg = {};
 

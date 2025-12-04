@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/support/executors/unique_thread.h"
+#include "ocudu/support/executors/unique_thread.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Types of CPU affinity masks.
 enum class sched_affinity_mask_types { ru, main, last };
@@ -35,7 +35,7 @@ inline std::string to_string(sched_affinity_mask_policy policy)
     case sched_affinity_mask_policy::round_robin:
       return "round-robin";
     default:
-      srsran_assert(0, "Invalid affinity mask policy");
+      ocudu_assert(0, "Invalid affinity mask policy");
       break;
   }
   return {};
@@ -139,7 +139,7 @@ public:
     cpu_masks(to_unsigned(sched_affinity_mask_types::last))
   {
     for (const auto& entry : entries) {
-      srsran_assert(entry.type != sched_affinity_mask_types::last, "Invalid type '{}'", to_unsigned(entry.type));
+      ocudu_assert(entry.type != sched_affinity_mask_types::last, "Invalid type '{}'", to_unsigned(entry.type));
       switch (entry.pinning_policy) {
         case sched_affinity_mask_policy::round_robin:
           cpu_masks[to_unsigned(entry.type)] = std::make_unique<affinity_entry_rr>(entry.mask);
@@ -156,8 +156,8 @@ public:
   /// Calculate and returns the affinity mask for the given type.
   os_sched_affinity_bitmask calcute_affinity_mask(sched_affinity_mask_types type) const
   {
-    srsran_assert(type != sched_affinity_mask_types::last, "Invalid type '{}'", to_unsigned(type));
-    srsran_assert(cpu_masks[to_unsigned(type)], "Invalid manager for type '{}'", to_unsigned(type));
+    ocudu_assert(type != sched_affinity_mask_types::last, "Invalid type '{}'", to_unsigned(type));
+    ocudu_assert(cpu_masks[to_unsigned(type)], "Invalid manager for type '{}'", to_unsigned(type));
 
     return cpu_masks[to_unsigned(type)]->calculate_mask();
   }
@@ -166,4 +166,4 @@ private:
   std::vector<std::unique_ptr<affinity_entry>> cpu_masks;
 };
 
-} // namespace srsran
+} // namespace ocudu

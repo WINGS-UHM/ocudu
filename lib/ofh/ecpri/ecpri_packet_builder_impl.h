@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/ecpri/ecpri_packet_builder.h"
+#include "ocudu/ofh/ecpri/ecpri_packet_builder.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ecpri {
 
 /// eCPRI packet builder implementation.
@@ -30,4 +30,4 @@ public:
 };
 
 } // namespace ecpri
-} // namespace srsran
+} // namespace ocudu

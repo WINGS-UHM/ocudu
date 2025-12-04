@@ -9,15 +9,15 @@
  */
 
 #include "downlink_processor_baseband_impl.h"
-#include "srsran/gateways/baseband/buffer/baseband_gateway_buffer_writer_view.h"
-#include "srsran/instrumentation/traces/ru_traces.h"
-#include "srsran/phy/lower/lower_phy_baseband_metrics.h"
-#include "srsran/phy/lower/lower_phy_timing_context.h"
-#include "srsran/srsvec/dot_prod.h"
-#include "srsran/srsvec/zero.h"
-#include <srsran/srsvec/conversion.h>
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer_view.h"
+#include "ocudu/instrumentation/traces/ru_traces.h"
+#include "ocudu/ocuduvec/dot_prod.h"
+#include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
+#include "ocudu/phy/lower/lower_phy_timing_context.h"
+#include <ocudu/ocuduvec/conversion.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 downlink_processor_baseband_impl::downlink_processor_baseband_impl(
     pdxch_processor_baseband&                        pdxch_proc_baseband_,
@@ -55,19 +55,19 @@ static void fill_zeros(baseband_gateway_buffer_writer& buffer, const baseband_ga
   // If discontinuous mode is disabled, fill the non-processed regions with zeros and report full buffer metadata.
   if (md.is_empty) {
     for (unsigned i_channel = 0, i_channel_end = buffer.get_nof_channels(); i_channel != i_channel_end; ++i_channel) {
-      srsvec::zero(buffer.get_channel_buffer(i_channel));
+      ocuduvec::zero(buffer.get_channel_buffer(i_channel));
     }
     return;
   }
 
   if (md.tx_start.has_value()) {
     for (unsigned i_channel = 0, i_channel_end = buffer.get_nof_channels(); i_channel != i_channel_end; ++i_channel) {
-      srsvec::zero(buffer.get_channel_buffer(i_channel).first(*md.tx_start));
+      ocuduvec::zero(buffer.get_channel_buffer(i_channel).first(*md.tx_start));
     }
   }
   if (md.tx_end.has_value()) {
     for (unsigned i_channel = 0, i_channel_end = buffer.get_nof_channels(); i_channel != i_channel_end; ++i_channel) {
-      srsvec::zero(buffer.get_channel_buffer(i_channel).last(buffer.get_nof_samples() - *md.tx_end));
+      ocuduvec::zero(buffer.get_channel_buffer(i_channel).last(buffer.get_nof_samples() - *md.tx_end));
     }
   }
 }
@@ -76,13 +76,13 @@ static void fill_zeros(baseband_gateway_buffer_writer& buffer, const baseband_ga
 static void fill_buffer_from_tail(baseband_gateway_buffer_writer&       destination,
                                   const baseband_gateway_buffer_reader& source)
 {
-  srsran_assert((destination.get_nof_samples() <= source.get_nof_samples()) &&
-                    (destination.get_nof_channels() == source.get_nof_channels()),
-                "Unmatch buffer dimensions.");
+  ocudu_assert((destination.get_nof_samples() <= source.get_nof_samples()) &&
+                   (destination.get_nof_channels() == source.get_nof_channels()),
+               "Unmatch buffer dimensions.");
   unsigned nof_samples = destination.get_nof_samples();
   for (unsigned i_channel = 0, i_channel_end = destination.get_nof_channels(); i_channel != i_channel_end;
        ++i_channel) {
-    srsvec::copy(destination[i_channel], source[i_channel].last(nof_samples));
+    ocuduvec::copy(destination[i_channel], source[i_channel].last(nof_samples));
   }
 }
 
@@ -137,7 +137,7 @@ downlink_processor_baseband_impl::process(baseband_gateway_timestamp timestamp)
   // previous.
   pdxch_processor_baseband::slot_result pdxch_baseband_result;
   if (!previous_slot.has_value() || (*previous_slot != slot)) {
-    srsran_assert(notifier != nullptr, "Timing notifier is not connected.");
+    ocudu_assert(notifier != nullptr, "Timing notifier is not connected.");
     trace_point tp = ru_tracer.now();
     notifier->on_tti_boundary(
         lower_phy_timing_context{.slot       = slot + nof_slot_tti_in_advance,
@@ -161,13 +161,13 @@ downlink_processor_baseband_impl::process(baseband_gateway_timestamp timestamp)
       span<ci16_t> channel_buffer = pdxch_baseband_result.buffer->get_writer().get_channel_buffer(i_port);
       span<cf_t>   cf_buf         = cf_buffer.get_view({i_port}).first(channel_buffer.size());
 
-      srsvec::convert(cf_buf, channel_buffer, scaling_factor_ci16_to_cf);
+      ocuduvec::convert(cf_buf, channel_buffer, scaling_factor_ci16_to_cf);
       cfo_processor.process(cf_buf);
-      srsvec::convert(channel_buffer, cf_buf, scaling_factor_cf_to_ci16);
+      ocuduvec::convert(channel_buffer, cf_buf, scaling_factor_cf_to_ci16);
     }
 
     // Notify metrics.
-    srsran_assert(notifier != nullptr, "Timing notifier is not connected.");
+    ocudu_assert(notifier != nullptr, "Timing notifier is not connected.");
     notifier->on_new_metrics(pdxch_baseband_result.metrics);
   }
 

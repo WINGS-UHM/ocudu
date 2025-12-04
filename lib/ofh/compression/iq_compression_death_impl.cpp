@@ -9,9 +9,9 @@
  */
 
 #include "iq_compression_death_impl.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/support/error_handling.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 void iq_compression_death_impl::compress(span<uint8_t>                buffer,

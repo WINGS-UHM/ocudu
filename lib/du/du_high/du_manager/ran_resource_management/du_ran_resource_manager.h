@@ -12,10 +12,10 @@
 
 #include "du_ue_resource_config.h"
 #include "ue_capability_summary.h"
-#include "srsran/f1ap/du/f1ap_du_ue_context_update.h"
+#include "ocudu/f1ap/du/f1ap_du_ue_context_update.h"
 
-namespace srsran {
-namespace srs_du {
+namespace ocudu {
+namespace odu {
 
 /// \brief Outcome report of an DU UE Resource allocation request.
 struct du_ue_resource_update_response {
@@ -115,5 +115,5 @@ public:
   create_ue_resource_configurator(du_ue_index_t ue_index, du_cell_index_t pcell_index, bool has_tc_rnti) = 0;
 };
 
-} // namespace srs_du
-} // namespace srsran
+} // namespace odu
+} // namespace ocudu

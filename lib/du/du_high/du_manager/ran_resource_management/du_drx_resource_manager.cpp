@@ -10,11 +10,11 @@
 
 #include "du_drx_resource_manager.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 /// Pool of DRX start offsets, optimized for an equal distribution of offsets across UEs.
-class srsran::srs_du::drx_offset_pool
+class ocudu::odu::drx_offset_pool
 {
 public:
   drx_offset_pool(span<const du_cell_config> cells)
@@ -47,9 +47,9 @@ public:
 
   void deallocate(du_cell_index_t cell_idx, std::chrono::milliseconds offset)
   {
-    srsran_assert(offset_count[cell_idx].count(offset) > 0 and offset_count[cell_idx].at(offset) > 0,
-                  "invalid offset {}",
-                  offset.count());
+    ocudu_assert(offset_count[cell_idx].count(offset) > 0 and offset_count[cell_idx].at(offset) > 0,
+                 "invalid offset {}",
+                 offset.count());
     offset_count[cell_idx].at(offset)--;
   }
 

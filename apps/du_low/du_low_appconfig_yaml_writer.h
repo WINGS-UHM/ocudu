@@ -12,11 +12,11 @@
 
 #include <yaml-cpp/yaml.h>
 
-namespace srsran {
+namespace ocudu {
 
 struct du_low_appconfig;
 
 /// Fills the given node with the DU low application configuration values.
 void fill_du_low_appconfig_in_yaml_schema(YAML::Node& node, const du_low_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

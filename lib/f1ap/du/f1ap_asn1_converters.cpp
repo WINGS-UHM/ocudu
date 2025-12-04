@@ -9,13 +9,13 @@
  */
 
 #include "f1ap_asn1_converters.h"
-#include "srsran/asn1/f1ap/f1ap_ies.h"
-#include "srsran/ran/band_helper.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
+#include "ocudu/ran/band_helper.h"
 
 using namespace asn1::f1ap;
 
-served_cell_info_s srsran::srs_du::make_asn1_served_cell_info(const du_served_cell_info& served_cell,
-                                                              span<const s_nssai_t>      slices)
+served_cell_info_s ocudu::odu::make_asn1_served_cell_info(const du_served_cell_info& served_cell,
+                                                          span<const s_nssai_t>      slices)
 {
   served_cell_info_s f1ap_cell{};
 
@@ -40,7 +40,7 @@ served_cell_info_s srsran::srs_du::make_asn1_served_cell_info(const du_served_ce
     tdd.tx_bw.nr_scs.value = (nr_scs_opts::options)to_numerology_value(served_cell.scs_common);
 
     bool res = asn1::number_to_enum(tdd.tx_bw.nr_nrb, nof_crbs);
-    srsran_assert(res, "Invalid number of CRBs for DL carrier BW");
+    ocudu_assert(res, "Invalid number of CRBs for DL carrier BW");
   } else {
     fdd_info_s& fdd              = f1ap_cell.nr_mode_info.set_fdd();
     fdd.dl_nr_freq_info.nr_arfcn = band_helper::freq_to_nr_arfcn(absolute_freq_point_a);
@@ -56,12 +56,12 @@ served_cell_info_s srsran::srs_du::make_asn1_served_cell_info(const du_served_ce
     unsigned nof_dl_crbs      = band_helper::get_n_rbs_from_bw(
         MHz_to_bs_channel_bandwidth(served_cell.dl_carrier.carrier_bw_mhz), served_cell.scs_common, freq_range);
     bool res = asn1::number_to_enum(fdd.dl_tx_bw.nr_nrb, nof_dl_crbs);
-    srsran_assert(res, "Invalid number of CRBs for DL carrier BW");
+    ocudu_assert(res, "Invalid number of CRBs for DL carrier BW");
     fdd.ul_tx_bw.nr_scs.value = (nr_scs_opts::options)to_numerology_value(served_cell.scs_common);
     unsigned nof_ul_crbs      = band_helper::get_n_rbs_from_bw(
         MHz_to_bs_channel_bandwidth(served_cell.ul_carrier->carrier_bw_mhz), served_cell.scs_common, freq_range);
     res = asn1::number_to_enum(fdd.ul_tx_bw.nr_nrb, nof_ul_crbs);
-    srsran_assert(res, "Invalid number of CRBs for DL carrier BW");
+    ocudu_assert(res, "Invalid number of CRBs for DL carrier BW");
   }
   f1ap_cell.meas_timing_cfg = served_cell.packed_meas_time_cfg.copy();
 

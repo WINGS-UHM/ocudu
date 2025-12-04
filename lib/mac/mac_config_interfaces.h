@@ -11,10 +11,10 @@
 #pragma once
 
 #include "mac_dl/mac_dl_configurator.h"
-#include "srsran/mac/mac.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/mac/mac.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
+namespace ocudu {
 
 class mac_ul_configurator
 {
@@ -73,4 +73,4 @@ public:
   virtual void remove_ue(du_ue_index_t ue_index) = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

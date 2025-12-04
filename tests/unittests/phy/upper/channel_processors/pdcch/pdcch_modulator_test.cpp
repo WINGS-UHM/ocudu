@@ -9,10 +9,10 @@
  */
 
 #include "pdcch_modulator_test_data.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/phy/upper/channel_processors/pdcch/factories.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/factories.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 int main()
 {

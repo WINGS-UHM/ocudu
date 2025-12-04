@@ -13,11 +13,11 @@
 #include "apps/helpers/metrics/json_generators/o_du_high.h"
 #include "du_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void du_metrics_consumer_stdout::handle_metric(const app_services::metrics_set& metric)
 {
-  const srs_du::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
+  const odu::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
 
   if (!print_metrics.load(std::memory_order_relaxed)) {
     return;
@@ -32,7 +32,7 @@ void du_metrics_consumer_stdout::handle_metric(const app_services::metrics_set& 
 
 void du_metrics_consumer_json::handle_metric(const app_services::metrics_set& metric)
 {
-  const srs_du::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
+  const odu::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
 
   if (!report.mac) {
     return;
@@ -46,7 +46,7 @@ void du_metrics_consumer_json::handle_metric(const app_services::metrics_set& me
 
 void du_metrics_consumer_log::handle_metric(const app_services::metrics_set& metric)
 {
-  const srs_du::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
+  const odu::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
 
   if (!report.mac) {
     return;
@@ -57,7 +57,7 @@ void du_metrics_consumer_log::handle_metric(const app_services::metrics_set& met
 
 void du_metrics_consumer_e2::handle_metric(const app_services::metrics_set& metric)
 {
-  const srs_du::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
+  const odu::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
 
   if (!report.mac) {
     return;

@@ -8,23 +8,23 @@
  *
  */
 
-#include "srsran/scheduler/config/serving_cell_config_factory.h"
-#include "srsran/ran/duplex_mode.h"
-#include "srsran/ran/pdcch/pdcch_candidates.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "srsran/ran/pdcch/pdcch_type0_css_occasions.h"
-#include "srsran/ran/pdcch/search_space.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/prach/prach_helper.h"
-#include "srsran/ran/pucch/pucch_info.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/ran/duplex_mode.h"
+#include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
+#include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 #include <algorithm>
 #include <set>
 #include <vector>
 
-using namespace srsran;
-using namespace srsran::config_helpers;
+using namespace ocudu;
+using namespace ocudu::config_helpers;
 
 cell_config_builder_params_extended::cell_config_builder_params_extended(const cell_config_builder_params& source) :
   cell_config_builder_params(source)
@@ -75,7 +75,7 @@ cell_config_builder_params_extended::cell_config_builder_params_extended(const c
   // Compute and store final SSB position based on (selected) values.
   ssb_arfcn = band_helper::get_ssb_arfcn(
       dl_f_ref_arfcn, *band, cell_nof_crbs, scs_common, ssb_scs, offset_to_point_a.value(), k_ssb.value());
-  srsran_assert(ssb_arfcn.has_value(), "Unable to derive SSB location correctly");
+  ocudu_assert(ssb_arfcn.has_value(), "Unable to derive SSB location correctly");
 }
 
 static carrier_configuration make_default_carrier_configuration(const cell_config_builder_params_extended& params,
@@ -92,15 +92,15 @@ static carrier_configuration make_default_carrier_configuration(const cell_confi
     cfg.nof_ant     = 1;
   }
   const min_channel_bandwidth min_channel_bw = band_helper::get_min_channel_bw(cfg.band, params.scs_common);
-  srsran_assert(cfg.carrier_bw_mhz >= min_channel_bandwidth_to_MHz(min_channel_bw),
-                "Carrier BW {}Mhz must be greater than or equal to minimum channel BW {}Mhz",
-                cfg.carrier_bw_mhz,
-                min_channel_bandwidth_to_MHz(min_channel_bw));
+  ocudu_assert(cfg.carrier_bw_mhz >= min_channel_bandwidth_to_MHz(min_channel_bw),
+               "Carrier BW {}Mhz must be greater than or equal to minimum channel BW {}Mhz",
+               cfg.carrier_bw_mhz,
+               min_channel_bandwidth_to_MHz(min_channel_bw));
   return cfg;
 }
 
-static_vector<uint8_t, 8> srsran::config_helpers::generate_k1_candidates(const tdd_ul_dl_config_common& tdd_cfg,
-                                                                         uint8_t                        min_k1)
+static_vector<uint8_t, 8> ocudu::config_helpers::generate_k1_candidates(const tdd_ul_dl_config_common& tdd_cfg,
+                                                                        uint8_t                        min_k1)
 {
   static constexpr unsigned MAX_K1_CANDIDATES = 8;
   const unsigned            tdd_period        = nof_slots_per_tdd_period(tdd_cfg);
@@ -138,19 +138,19 @@ static_vector<uint8_t, 8> srsran::config_helpers::generate_k1_candidates(const t
 }
 
 carrier_configuration
-srsran::config_helpers::make_default_dl_carrier_configuration(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_dl_carrier_configuration(const cell_config_builder_params_extended& params)
 {
   return make_default_carrier_configuration(params, true);
 }
 
 carrier_configuration
-srsran::config_helpers::make_default_ul_carrier_configuration(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_ul_carrier_configuration(const cell_config_builder_params_extended& params)
 {
   return make_default_carrier_configuration(params, false);
 }
 
 coreset_configuration
-srsran::config_helpers::make_default_coreset_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_params_extended& params)
 {
   coreset_configuration cfg{};
   cfg.id = to_coreset_id(1);
@@ -170,7 +170,7 @@ srsran::config_helpers::make_default_coreset_config(const cell_config_builder_pa
 /// Generates a default CORESET#0 configuration. The default CORESET#0 table index value used is equal to 6.
 /// \remark See TS 38.213, Table 13-1.
 coreset_configuration
-srsran::config_helpers::make_default_coreset0_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_coreset0_config(const cell_config_builder_params_extended& params)
 {
   coreset_configuration cfg{};
   cfg.id                                         = to_coreset_id(0);
@@ -196,14 +196,14 @@ srsran::config_helpers::make_default_coreset0_config(const cell_config_builder_p
 }
 
 search_space_configuration
-srsran::config_helpers::make_default_search_space_zero_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_search_space_zero_config(const cell_config_builder_params_extended& params)
 {
   return search_space_configuration{
       *params.band, params.scs_common, params.ssb_scs, *params.coreset0_index, params.search_space0_index};
 }
 
 search_space_configuration
-srsran::config_helpers::make_default_common_search_space_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_common_search_space_config(const cell_config_builder_params_extended& params)
 {
   search_space_configuration::monitoring_symbols_within_slot_t monitoring_symbols_within_slot(
       NOF_OFDM_SYM_PER_SLOT_NORMAL_CP);
@@ -220,7 +220,7 @@ srsran::config_helpers::make_default_common_search_space_config(const cell_confi
 }
 
 search_space_configuration
-srsran::config_helpers::make_default_ue_search_space_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_ue_search_space_config(const cell_config_builder_params_extended& params)
 {
   search_space_configuration cfg = make_default_common_search_space_config(params);
   cfg.set_non_ss0_coreset_id(to_coreset_id(1));
@@ -229,7 +229,7 @@ srsran::config_helpers::make_default_ue_search_space_config(const cell_config_bu
   return cfg;
 }
 
-bwp_configuration srsran::config_helpers::make_default_init_bwp(const cell_config_builder_params_extended& params)
+bwp_configuration ocudu::config_helpers::make_default_init_bwp(const cell_config_builder_params_extended& params)
 {
   bwp_configuration cfg{};
   cfg.scs  = params.scs_common;
@@ -238,8 +238,7 @@ bwp_configuration srsran::config_helpers::make_default_init_bwp(const cell_confi
   return cfg;
 }
 
-dl_config_common
-srsran::config_helpers::make_default_dl_config_common(const cell_config_builder_params_extended& params)
+dl_config_common ocudu::config_helpers::make_default_dl_config_common(const cell_config_builder_params_extended& params)
 {
   dl_config_common cfg{};
 
@@ -287,7 +286,7 @@ srsran::config_helpers::make_default_dl_config_common(const cell_config_builder_
 }
 
 std::vector<pusch_time_domain_resource_allocation>
-srsran::config_helpers::generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k2)
+ocudu::config_helpers::generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k2)
 {
   static const unsigned SYMBOLS_PER_SLOT = get_nsymb_per_slot(cp);
 
@@ -328,8 +327,7 @@ srsran::config_helpers::generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl
   return result;
 }
 
-ul_config_common
-srsran::config_helpers::make_default_ul_config_common(const cell_config_builder_params_extended& params)
+ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell_config_builder_params_extended& params)
 {
   ul_config_common cfg{};
   // This is the ARFCN of the UL f_ref, as per TS 38.104, Section 5.4.2.1.
@@ -354,7 +352,7 @@ srsran::config_helpers::make_default_ul_config_common(const cell_config_builder_
         params.scs_common,
         cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.zero_correlation_zone_config,
         *params.tdd_ul_dl_cfg_common);
-    srsran_assert(idx_found.has_value(), "Unable to find a PRACH config index for the given TDD pattern");
+    ocudu_assert(idx_found.has_value(), "Unable to find a PRACH config index for the given TDD pattern");
     cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index = idx_found.value();
   }
 
@@ -406,7 +404,7 @@ srsran::config_helpers::make_default_ul_config_common(const cell_config_builder_
   return cfg;
 }
 
-ssb_configuration srsran::config_helpers::make_default_ssb_config(const cell_config_builder_params_extended& params)
+ssb_configuration ocudu::config_helpers::make_default_ssb_config(const cell_config_builder_params_extended& params)
 {
   ssb_configuration cfg{};
 
@@ -426,7 +424,7 @@ ssb_configuration srsran::config_helpers::make_default_ssb_config(const cell_con
   return cfg;
 }
 
-pusch_config srsran::config_helpers::make_default_pusch_config(const cell_config_builder_params_extended& params)
+pusch_config ocudu::config_helpers::make_default_pusch_config(const cell_config_builder_params_extended& params)
 {
   // Default PUSCH transmission scheme is codebook with at maximum one layer. It assumes the UE Capability parameter
   // pusch-TransCoherence is nonCoherent.
@@ -476,7 +474,7 @@ pusch_config srsran::config_helpers::make_default_pusch_config(const cell_config
   return cfg;
 }
 
-srs_config srsran::config_helpers::make_default_srs_config(const cell_config_builder_params_extended& params)
+srs_config ocudu::config_helpers::make_default_srs_config(const cell_config_builder_params_extended& params)
 {
   srs_config cfg{};
 
@@ -519,7 +517,7 @@ srs_config srsran::config_helpers::make_default_srs_config(const cell_config_bui
   return cfg;
 }
 
-uplink_config srsran::config_helpers::make_default_ue_uplink_config(const cell_config_builder_params_extended& params)
+uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_config_builder_params_extended& params)
 {
   // > UL Config.
   uplink_config ul_config{};
@@ -712,7 +710,7 @@ uplink_config srsran::config_helpers::make_default_ue_uplink_config(const cell_c
   return ul_config;
 }
 
-pdsch_serving_cell_config srsran::config_helpers::make_default_pdsch_serving_cell_config()
+pdsch_serving_cell_config ocudu::config_helpers::make_default_pdsch_serving_cell_config()
 {
   pdsch_serving_cell_config serv_cell;
   serv_cell.nof_harq_proc   = pdsch_serving_cell_config::nof_harq_proc_for_pdsch::n16;
@@ -756,7 +754,7 @@ static csi_helper::csi_builder_params make_default_csi_builder_params(const cell
   return csi_params;
 }
 
-pdsch_config srsran::config_helpers::make_default_pdsch_config(const cell_config_builder_params_extended& params)
+pdsch_config ocudu::config_helpers::make_default_pdsch_config(const cell_config_builder_params_extended& params)
 {
   pdsch_config pdsch_cfg;
   pdsch_cfg.pdsch_mapping_type_a_dmrs.emplace();
@@ -791,7 +789,7 @@ pdsch_config srsran::config_helpers::make_default_pdsch_config(const cell_config
   return pdsch_cfg;
 }
 
-pdcch_config srsran::config_helpers::make_ue_dedicated_pdcch_config(const cell_config_builder_params_extended& params)
+pdcch_config ocudu::config_helpers::make_ue_dedicated_pdcch_config(const cell_config_builder_params_extended& params)
 {
   pdcch_config pdcch_cfg{};
   // >> Add CORESET#1.
@@ -809,7 +807,7 @@ pdcch_config srsran::config_helpers::make_ue_dedicated_pdcch_config(const cell_c
   return pdcch_cfg;
 }
 
-csi_meas_config srsran::config_helpers::make_csi_meas_config(const cell_config_builder_params_extended& params)
+csi_meas_config ocudu::config_helpers::make_csi_meas_config(const cell_config_builder_params_extended& params)
 {
   // Parameters used to generate list of CSI resources.
   const csi_helper::csi_builder_params csi_params = make_default_csi_builder_params(params);
@@ -819,7 +817,7 @@ csi_meas_config srsran::config_helpers::make_csi_meas_config(const cell_config_b
 }
 
 serving_cell_config
-srsran::config_helpers::create_default_initial_ue_serving_cell_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::create_default_initial_ue_serving_cell_config(const cell_config_builder_params_extended& params)
 {
   serving_cell_config serv_cell;
   serv_cell.cell_index = to_du_cell_index(0);
@@ -846,7 +844,7 @@ srsran::config_helpers::create_default_initial_ue_serving_cell_config(const cell
 }
 
 cell_config_dedicated
-srsran::config_helpers::create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_extended& params)
 {
   cell_config_dedicated cfg;
   cfg.serv_cell_idx = to_serv_cell_index(0);
@@ -854,8 +852,8 @@ srsran::config_helpers::create_default_initial_ue_spcell_cell_config(const cell_
   return cfg;
 }
 
-uint8_t srsran::config_helpers::compute_max_nof_candidates(aggregation_level            aggr_lvl,
-                                                           const coreset_configuration& cs_cfg)
+uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level            aggr_lvl,
+                                                          const coreset_configuration& cs_cfg)
 {
   // 1 REG = 1 RB and 1 symbol.
   // 1 CCE = 6 {PRB, symbol}. e.g. 3 PRBs over 2 symbols or 6 PRBs over 1 symbol, etc.
@@ -871,10 +869,10 @@ uint8_t srsran::config_helpers::compute_max_nof_candidates(aggregation_level    
 }
 
 std::vector<pdsch_time_domain_resource_allocation>
-srsran::config_helpers::make_pdsch_time_domain_resource(uint8_t                                       ss0_idx,
-                                                        const pdcch_config_common&                    common_pdcch_cfg,
-                                                        const std::optional<pdcch_config>&            ded_pdcch_cfg,
-                                                        const std::optional<tdd_ul_dl_config_common>& tdd_cfg)
+ocudu::config_helpers::make_pdsch_time_domain_resource(uint8_t                                       ss0_idx,
+                                                       const pdcch_config_common&                    common_pdcch_cfg,
+                                                       const std::optional<pdcch_config>&            ded_pdcch_cfg,
+                                                       const std::optional<tdd_ul_dl_config_common>& tdd_cfg)
 {
   const std::optional<coreset_configuration> coreset0                                = common_pdcch_cfg.coreset0;
   const std::optional<coreset_configuration> common_coreset                          = common_pdcch_cfg.common_coreset;
@@ -995,7 +993,7 @@ srsran::config_helpers::make_pdsch_time_domain_resource(uint8_t                 
   return result;
 }
 
-ue_timers_and_constants_config srsran::config_helpers::make_default_ue_timers_and_constants_config()
+ue_timers_and_constants_config ocudu::config_helpers::make_default_ue_timers_and_constants_config()
 {
   ue_timers_and_constants_config config;
   config.t300 = std::chrono::milliseconds(1000);

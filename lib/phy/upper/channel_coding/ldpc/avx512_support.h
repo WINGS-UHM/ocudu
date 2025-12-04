@@ -17,14 +17,14 @@
 
 #include "avx2_support.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace detail {
 
 template <typename simdWrapper, typename storageType>
 simd512_type simd_span<simdWrapper, storageType>::get_at(help_type<simd512_wrapper> /**/, unsigned pos) const
 {
-  srsran_assert(pos < view_length, "Index {} out of bound.", pos);
+  ocudu_assert(pos < view_length, "Index {} out of bound.", pos);
   return _mm512_loadu_si512(reinterpret_cast<const __m512i*>(array_ptr) + pos);
 }
 
@@ -32,7 +32,7 @@ template <typename simdWrapper, typename storageType>
 void simd_span<simdWrapper, storageType>::set_at(unsigned pos, simd512_type val)
 {
   static_assert(SIMD_SIZE_BYTE == AVX512_SIZE_BYTE, "Cannot set an AVX2 vector with an AVX512 vector.");
-  srsran_assert(pos < view_length, "Index {} out of bound.", pos);
+  ocudu_assert(pos < view_length, "Index {} out of bound.", pos);
   _mm512_storeu_si512(reinterpret_cast<__m512i*>(array_ptr) + pos, val);
 }
 
@@ -52,8 +52,8 @@ using avx512_const_span = detail::simd_span<detail::simd512_wrapper, const int8_
 /// \return    Vector of packed 8-bit integers with the scaling result.
 inline __m512i scale_epi8(__m512i a, float sf, uint8_t max)
 {
-  srsran_assert((sf > 0) && (sf <= 1), "Scaling factor out of range.");
-  srsran_assert(max < 127, "Parameter max out of range.");
+  ocudu_assert((sf > 0) && (sf <= 1), "Scaling factor out of range.");
+  ocudu_assert(max < 127, "Parameter max out of range.");
 
   if (sf >= .9999) {
     return a;
@@ -95,4 +95,4 @@ inline __m512i scale_epi8(__m512i a, float sf, uint8_t max)
 }
 
 } // namespace mm512
-} // namespace srsran
+} // namespace ocudu

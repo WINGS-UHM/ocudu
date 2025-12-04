@@ -15,16 +15,16 @@
 #include "lib/cu_cp/cu_up_processor/cu_up_processor.h"
 #include "lib/cu_cp/du_processor/du_processor.h"
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
-#include "srsran/asn1/f1ap/f1ap.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/support/async/async_task.h"
-#include "srsran/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <cstdint>
 #include <list>
 #include <variant>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 /// \brief Generate DU-to-CU RRC Container with CellGroupConfig.
 byte_buffer generate_container_with_cell_group_config();
@@ -109,7 +109,7 @@ public:
   }
 
 private:
-  srslog::basic_logger&     logger              = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&   logger              = ocudulog::fetch_basic_logger("TEST");
   ue_manager*               ue_mng              = nullptr;
   cu_cp_du_event_handler*   cu_cp_handler       = nullptr;
   cu_cp_ue_removal_handler* ue_removal_handler  = nullptr;
@@ -151,7 +151,7 @@ public:
   unsigned last_transaction_id = 99999;
 
 private:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 class dummy_cu_cp_ue_removal_handler : public cu_cp_ue_removal_handler
@@ -188,7 +188,7 @@ public:
   void remove_ue_context(ue_index_t ue_index) override { logger.info("ue={}: Removing UE", ue_index); }
 
 private:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 // Configuration struct to parameterize the modification outcome
@@ -380,7 +380,7 @@ public:
   std::optional<e1ap_bearer_context_modification_request> second_e1ap_request;
 
 private:
-  srslog::basic_logger&                   logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                 logger = ocudulog::fetch_basic_logger("TEST");
   std::optional<bearer_context_outcome_t> first_e1ap_response;
   std::optional<bearer_context_outcome_t> second_e1ap_response;
 };
@@ -417,8 +417,8 @@ public:
   void set_ue_context_release_request_outcome(bool outcome_) { release_request_outcome = outcome_; }
 
 private:
-  bool                  release_request_outcome = true;
-  srslog::basic_logger& logger                  = srslog::fetch_basic_logger("TEST");
+  bool                    release_request_outcome = true;
+  ocudulog::basic_logger& logger                  = ocudulog::fetch_basic_logger("TEST");
 };
 
 struct ue_context_outcome_t {
@@ -513,9 +513,9 @@ private:
     target.drbs_to_be_released_list  = source.drbs_to_be_released_list;
   }
 
-  srslog::basic_logger& logger                   = srslog::fetch_basic_logger("TEST");
-  bool                  ue_context_setup_outcome = false;
-  ue_context_outcome_t  ue_context_modification_outcome;
+  ocudulog::basic_logger& logger                   = ocudulog::fetch_basic_logger("TEST");
+  bool                    ue_context_setup_outcome = false;
+  ue_context_outcome_t    ue_context_modification_outcome;
 
   f1ap_ue_context_modification_request ue_context_modification_request;
 };
@@ -535,7 +535,7 @@ public:
   cu_up_index_t last_cu_up_index_to_remove;
 
 private:
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 struct dummy_ue_task_scheduler : public ue_task_scheduler {
@@ -615,8 +615,8 @@ public:
 
 private:
   rrc_ue_reestablishment_context_response reest_context = {};
-  srslog::basic_logger&                   logger        = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger&                 logger        = ocudulog::fetch_basic_logger("TEST");
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

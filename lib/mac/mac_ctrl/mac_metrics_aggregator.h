@@ -12,12 +12,12 @@
 
 #include "../mac_dl/mac_dl_configurator.h"
 #include "mac_config.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/adt/slotted_array.h"
-#include "srsran/support/timers.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/adt/slotted_array.h"
+#include "ocudu/support/timers.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 struct cell_metric_report_config {
   /// \brief Period of the metric report.
@@ -39,7 +39,7 @@ public:
   mac_metrics_aggregator(const mac_control_config::metrics_config& cfg,
                          task_executor&                            ctrl_exec_,
                          timer_manager&                            timers_,
-                         srslog::basic_logger&                     logger_);
+                         ocudulog::basic_logger&                   logger_);
   ~mac_metrics_aggregator();
 
   cell_metric_report_config add_cell(du_cell_index_t            cell_index,
@@ -73,7 +73,7 @@ private:
   mac_control_config::metrics_config cfg;
   task_executor&                     ctrl_exec;
   timer_manager&                     timers;
-  srslog::basic_logger&              logger;
+  ocudulog::basic_logger&            logger;
 
   /// Metric handlers for configured cells.
   slotted_id_table<du_cell_index_t, std::unique_ptr<cell_metric_handler>, MAX_CELLS_PER_DU> cells;
@@ -95,4 +95,4 @@ private:
   unique_timer aggr_timer;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -12,10 +12,10 @@
 
 #include "app_resource_usage_config.h"
 #include "apps/services/metrics/metrics_config.h"
-#include "srsran/support/resource_usage/power_consumption.h"
-#include "srsran/support/resource_usage/resource_usage_utils.h"
+#include "ocudu/support/resource_usage/power_consumption.h"
+#include "ocudu/support/resource_usage/resource_usage_utils.h"
 
-namespace srsran {
+namespace ocudu {
 
 namespace app_helpers {
 struct metrics_config;
@@ -66,7 +66,7 @@ struct app_resource_usage_service {
 /// Builds application resource usage service and related metrics.
 app_resource_usage_service build_app_resource_usage_service(app_services::metrics_notifier&  metrics_notifier,
                                                             const app_resource_usage_config& config,
-                                                            srslog::basic_logger&            logger);
+                                                            ocudulog::basic_logger&          logger);
 
 } // namespace app_services
-} // namespace srsran
+} // namespace ocudu

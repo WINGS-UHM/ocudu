@@ -12,9 +12,9 @@
 
 #include "lower_phy_sector_metrics_collector.h"
 #include "lower_phy_sector_timing_handler.h"
-#include "srsran/phy/lower/lower_phy.h"
+#include "ocudu/phy/lower/lower_phy.h"
 
-namespace srsran {
+namespace ocudu {
 
 class lower_phy_cfo_controller;
 class lower_phy_center_freq_controller;
@@ -52,7 +52,7 @@ public:
   /// Sets the lower PHY of this sector to the given one.
   void set_lower_phy(std::unique_ptr<lower_phy> phy)
   {
-    srsran_assert(phy, "Invalid lower PHY");
+    ocudu_assert(phy, "Invalid lower PHY");
     lower_phy = std::move(phy);
   }
 
@@ -68,4 +68,4 @@ private:
   std::unique_ptr<lower_phy>         lower_phy;
 };
 
-} // namespace srsran
+} // namespace ocudu

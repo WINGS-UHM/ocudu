@@ -9,23 +9,23 @@
  */
 
 #include "uci_test_utils.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/scheduler/config/csi_helper.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-pucch_info srsran::build_pucch_info(const bwp_configuration* bwp_cfg,
-                                    unsigned                 pci,
-                                    pucch_format             format,
-                                    prb_interval             prbs,
-                                    prb_interval             second_hop_prbs,
-                                    ofdm_symbol_range        symbols,
-                                    uint8_t                  initial_cyclic_shift,
-                                    sr_nof_bits              sr_bits,
-                                    unsigned                 harq_ack_nof_bits,
-                                    uint8_t                  time_domain_occ)
+pucch_info ocudu::build_pucch_info(const bwp_configuration* bwp_cfg,
+                                   unsigned                 pci,
+                                   pucch_format             format,
+                                   prb_interval             prbs,
+                                   prb_interval             second_hop_prbs,
+                                   ofdm_symbol_range        symbols,
+                                   uint8_t                  initial_cyclic_shift,
+                                   sr_nof_bits              sr_bits,
+                                   unsigned                 harq_ack_nof_bits,
+                                   uint8_t                  time_domain_occ)
 {
   pucch_info pucch_test{.crnti = to_rnti(0x4601), .bwp_cfg = bwp_cfg};
 
@@ -62,7 +62,7 @@ pucch_info srsran::build_pucch_info(const bwp_configuration* bwp_cfg,
   return pucch_test;
 }
 
-bool srsran::pucch_info_match(const pucch_info& expected, const pucch_info& test)
+bool ocudu::pucch_info_match(const pucch_info& expected, const pucch_info& test)
 {
   bool is_equal =
       expected.crnti == test.crnti && *expected.bwp_cfg == *test.bwp_cfg && expected.format() == test.format();
@@ -191,7 +191,7 @@ test_bench::test_bench(const test_bench_params& params,
           f4_params.occ_supported = true;
         } break;
         default:
-          srsran_assertion_failure("Invalid PUCCH Format for Set Id 1 (valid values are 2, 3 or 4)");
+          ocudu_assertion_failure("Invalid PUCCH Format for Set Id 1 (valid values are 2, 3 or 4)");
       }
 
       cell_pucch_resources = config_helpers::build_pucch_resource_list(
@@ -224,8 +224,8 @@ test_bench::test_bench(const test_bench_params& params,
   uci_sched{cell_cfg, uci_alloc, ues},
   sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
 {
-  srsran_assert(not(params.cfg_for_mimo_4x4 and params.no_csi),
-                "The configuration with no CSI is not supported for 4x4 MIMO.");
+  ocudu_assert(not(params.cfg_for_mimo_4x4 and params.no_csi),
+               "The configuration with no CSI is not supported for 4x4 MIMO.");
 
   cell_config_builder_params cfg_params{};
   cfg_params.csi_rs_enabled                = true;
@@ -234,12 +234,12 @@ test_bench::test_bench(const test_bench_params& params,
   sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request(cfg_params);
   ue_req.ue_index                          = main_ue_idx;
 
-  srsran_assert(
-      ue_req.cfg.cells.has_value() and not ue_req.cfg.cells->empty() and
-          ue_req.cfg.cells->back().serv_cell_cfg.ul_config.has_value() and
-          ue_req.cfg.cells->back().serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value() and
-          ue_req.cfg.cells->back().serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->sr_res_list.size() == 1,
-      "sched_ue_creation_request_message initialization is not complete.");
+  ocudu_assert(ue_req.cfg.cells.has_value() and not ue_req.cfg.cells->empty() and
+                   ue_req.cfg.cells->back().serv_cell_cfg.ul_config.has_value() and
+                   ue_req.cfg.cells->back().serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value() and
+                   ue_req.cfg.cells->back().serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->sr_res_list.size() ==
+                       1,
+               "sched_ue_creation_request_message initialization is not complete.");
 
   // Add custom PUCCH config from this test file.
   ue_req.cfg.cells->back().serv_cell_cfg.ul_config = test_helpers::make_test_ue_uplink_config(cfg_params);
@@ -276,14 +276,14 @@ test_bench::test_bench(const test_bench_params& params,
         f4_params.occ_supported = true;
       } break;
       default:
-        srsran_assertion_failure("Invalid PUCCH Format for Set Id 1 (valid values are 2, 3 or 4)");
+        ocudu_assertion_failure("Invalid PUCCH Format for Set Id 1 (valid values are 2, 3 or 4)");
     }
     pucch_builder.setup(
         cell_cfg.ul_cfg_common.init_ul_bwp, params.is_tdd ? cell_cfg.tdd_cfg_common : std::nullopt, pucch_params);
     // This function is called so that the PUCCH resource list is generated again with the new parameters.
     bool new_ue_added = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().back().serv_cell_cfg);
     if (not new_ue_added) {
-      srsran_terminate("UE PUCCH configuration couldn't be built");
+      ocudu_terminate("UE PUCCH configuration couldn't be built");
     }
   }
 
@@ -313,7 +313,7 @@ test_bench::test_bench(const test_bench_params& params,
     const auto& res_f2 = std::find_if(pucch_cfg.pucch_res_list.begin(),
                                       pucch_cfg.pucch_res_list.end(),
                                       [](const auto& pucch) { return pucch.format == pucch_format::FORMAT_2; });
-    srsran_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH format 2 not found");
+    ocudu_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH format 2 not found");
     const auto& res_f2_cfg = std::get<pucch_format_2_3_cfg>(res_f2->format_params);
     pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
         get_pucch_format2_max_payload(res_f2_cfg.nof_prbs,
@@ -336,7 +336,7 @@ test_bench::test_bench(const test_bench_params& params,
     const auto& res_f2                                 = std::find_if(pucch_cfg.pucch_res_list.begin(),
                                       pucch_cfg.pucch_res_list.end(),
                                       [](const auto& pucch) { return pucch.format == pucch_format::FORMAT_2; });
-    srsran_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH format 2 not found");
+    ocudu_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH format 2 not found");
     const auto& res_f2_cfg = std::get<pucch_format_2_3_cfg>(res_f2->format_params);
     pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
         get_pucch_format2_max_payload(res_f2_cfg.nof_prbs,
@@ -362,7 +362,7 @@ const ue& test_bench::get_main_ue() const
 
 const ue& test_bench::get_ue(du_ue_index_t ue_idx) const
 {
-  srsran_assert(ues.contains(ue_idx), "User not found");
+  ocudu_assert(ues.contains(ue_idx), "User not found");
   return ues[ue_idx];
 }
 
@@ -374,9 +374,9 @@ void test_bench::add_ue()
 
   ue_req.crnti = to_rnti(static_cast<std::underlying_type_t<rnti_t>>(last_allocated_rnti) + 1);
 
-  srsran_assert(formats == pucch_formats::f1_and_f2 or
-                    pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().back().serv_cell_cfg),
-                "UE PUCCH configuration couldn't be built");
+  ocudu_assert(formats == pucch_formats::f1_and_f2 or
+                   pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().back().serv_cell_cfg),
+               "UE PUCCH configuration couldn't be built");
 
   ue_ded_cfgs.push_back(
       std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));

@@ -13,12 +13,12 @@
 #include "apps/services/metrics/metrics_consumer.h"
 #include "apps/services/metrics/metrics_properties.h"
 #include "apps/services/metrics/metrics_set.h"
-#include "srsran/adt/span.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/support/executors/metrics/executor_metrics.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/executors/metrics/executor_metrics.h"
+#include "ocudu/support/executors/task_executor.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Executors metrics properties implementation.
 class executor_metrics_properties_impl : public app_services::metrics_properties
@@ -41,4 +41,4 @@ public:
   const executor_metrics& get_metrics() const { return metrics; }
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -10,27 +10,27 @@
 
 #include "../../../lib/ofh/ethernet/ethernet_rx_buffer_pool.h"
 #include "helpers.h"
-#include "srsran/adt/bounded_bitset.h"
-#include "srsran/adt/circular_map.h"
-#include "srsran/ofh/ecpri/ecpri_constants.h"
-#include "srsran/ofh/ethernet/ethernet_controller.h"
-#include "srsran/ofh/ethernet/ethernet_frame_notifier.h"
-#include "srsran/ofh/ethernet/ethernet_receiver.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_metrics_collector.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter.h"
-#include "srsran/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_writer.h"
-#include "srsran/phy/support/shared_resource_grid.h"
-#include "srsran/phy/support/support_factories.h"
-#include "srsran/ru/ofh/ru_ofh_factory.h"
-#include "srsran/ru/ru_controller.h"
-#include "srsran/ru/ru_downlink_plane.h"
-#include "srsran/ru/ru_error_notifier.h"
-#include "srsran/ru/ru_timing_notifier.h"
-#include "srsran/ru/ru_uplink_plane.h"
-#include "srsran/support/executors/task_execution_manager.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/adt/circular_map.h"
+#include "ocudu/ofh/ecpri/ecpri_constants.h"
+#include "ocudu/ofh/ethernet/ethernet_controller.h"
+#include "ocudu/ofh/ethernet/ethernet_frame_notifier.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_metrics_collector.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter.h"
+#include "ocudu/ofh/ethernet/ethernet_transmitter_metrics_collector.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
+#include "ocudu/phy/support/support_factories.h"
+#include "ocudu/ru/ofh/ru_ofh_factory.h"
+#include "ocudu/ru/ru_controller.h"
+#include "ocudu/ru/ru_downlink_plane.h"
+#include "ocudu/ru/ru_error_notifier.h"
+#include "ocudu/ru/ru_timing_notifier.h"
+#include "ocudu/ru/ru_uplink_plane.h"
+#include "ocudu/support/executors/task_execution_manager.h"
+#include "ocudu/support/executors/task_executor.h"
 #include "fmt/std.h"
 #include <arpa/inet.h>
 #include <getopt.h>
@@ -41,7 +41,7 @@
 #include <random>
 #include <sys/ioctl.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 using namespace std::chrono_literals;
 
@@ -78,26 +78,26 @@ namespace {
 
 /// User-defined test parameters.
 struct test_parameters {
-  bool                  silent                              = false;
-  srslog::basic_levels  log_level                           = srslog::basic_levels::warning;
-  std::string           log_filename                        = "stdout";
-  bool                  is_prach_control_plane_enabled      = true;
-  bool                  ignore_ecpri_payload_size_field     = false;
-  std::string           data_compr_method                   = "bfp";
-  unsigned              data_bitwidth                       = 9;
-  std::string           prach_compr_method                  = "bfp";
-  unsigned              prach_bitwidth                      = 9;
-  bool                  is_downlink_static_comp_hdr_enabled = false;
-  bool                  is_uplink_static_comp_hdr_enabled   = false;
-  bool                  is_downlink_parallelized            = true;
-  units::bytes          mtu                                 = units::bytes(9000);
-  std::vector<unsigned> prach_port_id                       = {4, 5};
-  std::vector<unsigned> dl_port_id                          = {0, 1, 2, 3};
-  std::vector<unsigned> ul_port_id                          = {0, 1};
-  bs_channel_bandwidth  bw                                  = srsran::bs_channel_bandwidth::MHz20;
-  subcarrier_spacing    scs                                 = subcarrier_spacing::kHz30;
-  std::string           tdd_pattern_str                     = "7d2u";
-  bool                  use_loopback_receiver               = false;
+  bool                   silent                              = false;
+  ocudulog::basic_levels log_level                           = ocudulog::basic_levels::warning;
+  std::string            log_filename                        = "stdout";
+  bool                   is_prach_control_plane_enabled      = true;
+  bool                   ignore_ecpri_payload_size_field     = false;
+  std::string            data_compr_method                   = "bfp";
+  unsigned               data_bitwidth                       = 9;
+  std::string            prach_compr_method                  = "bfp";
+  unsigned               prach_bitwidth                      = 9;
+  bool                   is_downlink_static_comp_hdr_enabled = false;
+  bool                   is_uplink_static_comp_hdr_enabled   = false;
+  bool                   is_downlink_parallelized            = true;
+  units::bytes           mtu                                 = units::bytes(9000);
+  std::vector<unsigned>  prach_port_id                       = {4, 5};
+  std::vector<unsigned>  dl_port_id                          = {0, 1, 2, 3};
+  std::vector<unsigned>  ul_port_id                          = {0, 1};
+  bs_channel_bandwidth   bw                                  = ocudu::bs_channel_bandwidth::MHz20;
+  subcarrier_spacing     scs                                 = subcarrier_spacing::kHz30;
+  std::string            tdd_pattern_str                     = "7d2u";
+  bool                   use_loopback_receiver               = false;
 };
 
 /// Dummy Radio Unit error notifier.
@@ -243,8 +243,8 @@ static void parse_args(int argc, char** argv)
         test_params.silent = (!test_params.silent);
         break;
       case 'v': {
-        auto value            = srslog::str_to_basic_level(std::string(optarg));
-        test_params.log_level = value.has_value() ? value.value() : srslog::basic_levels::none;
+        auto value            = ocudulog::str_to_basic_level(std::string(optarg));
+        test_params.log_level = value.has_value() ? value.value() : ocudulog::basic_levels::none;
         break;
       }
       case 'f':
@@ -277,7 +277,7 @@ dummy_frame_notifier dummy_notifier;
 class test_ether_receiver : public ether::receiver, public ether::receiver_operation_controller
 {
 public:
-  test_ether_receiver(srslog::basic_logger& logger_) : logger(logger_), notifier(dummy_notifier) {}
+  test_ether_receiver(ocudulog::basic_logger& logger_) : logger(logger_), notifier(dummy_notifier) {}
   virtual ~test_ether_receiver() = default;
 
   receiver_operation_controller& get_operation_controller() override { return *this; }
@@ -303,7 +303,7 @@ public:
   virtual void push_new_data(span<const uint8_t> frame) = 0;
 
 protected:
-  srslog::basic_logger&                         logger;
+  ocudulog::basic_logger&                       logger;
   std::reference_wrapper<ether::frame_notifier> notifier;
   std::atomic<bool>                             is_running{false};
   std::atomic<bool>                             stop_requested{false};
@@ -314,7 +314,7 @@ protected:
 class dummy_eth_receiver : public test_ether_receiver
 {
 public:
-  dummy_eth_receiver(srslog::basic_logger& logger_, ether::ethernet_rx_buffer_pool& pool) :
+  dummy_eth_receiver(ocudulog::basic_logger& logger_, ether::ethernet_rx_buffer_pool& pool) :
     test_ether_receiver(logger_), buffer_pool(pool)
   {
   }
@@ -348,7 +348,7 @@ private:
 class lo_eth_receiver : public test_ether_receiver
 {
 public:
-  lo_eth_receiver(srslog::basic_logger& logger_) : test_ether_receiver(logger_) { init_loopback_connection(); }
+  lo_eth_receiver(ocudulog::basic_logger& logger_) : test_ether_receiver(logger_) { init_loopback_connection(); }
 
   // See interface for documentation.
   void push_new_data(span<const uint8_t> frame) override
@@ -398,7 +398,7 @@ public:
                             const shared_resource_grid&        grid,
                             bool                               is_valid) override
   {
-    srsran_assert(grid, "Invalid grid.");
+    ocudu_assert(grid, "Invalid grid.");
   }
 
   // See interface for documentation.
@@ -443,11 +443,11 @@ class test_ru_emulator
 
 public:
   /// Constructor.
-  test_ru_emulator(srslog::basic_logger& logger_,
-                   task_executor&        executor_,
-                   test_ether_receiver&  receiver_,
-                   ru_compression_params compr_params_,
-                   unsigned              nof_prb_) :
+  test_ru_emulator(ocudulog::basic_logger& logger_,
+                   task_executor&          executor_,
+                   test_ether_receiver&    receiver_,
+                   ru_compression_params   compr_params_,
+                   unsigned                nof_prb_) :
     logger(logger_), executor(executor_), receiver(receiver_), compr_params(compr_params_), nof_prb(nof_prb_)
   {
     ul_eaxc.assign(test_params.ul_port_id.begin(), test_params.ul_port_id.end());
@@ -626,7 +626,7 @@ private:
   }
 
 private:
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
   task_executor&              executor;
   test_ether_receiver&        receiver;
   const ru_compression_params compr_params;
@@ -642,7 +642,7 @@ private:
 class test_du_emulator
 {
 public:
-  test_du_emulator(srslog::basic_logger&      logger_,
+  test_du_emulator(ocudulog::basic_logger&    logger_,
                    task_executor&             executor_,
                    resource_grid_pool&        dl_rg_pool_,
                    resource_grid_pool&        ul_rg_pool_,
@@ -687,7 +687,7 @@ private:
       bool       is_dl_slot = (slot_id < tdd_pattern.nof_dl_slots);
       bool       is_ul_slot = (slot_id >= tdd_pattern.dl_ul_tx_period_nof_slots - tdd_pattern.nof_ul_slots);
 
-      srsran_assert(!(is_dl_slot & is_ul_slot), "Invalid slot type: both DL and UL can not be set simultaneously");
+      ocudu_assert(!(is_dl_slot & is_ul_slot), "Invalid slot type: both DL and UL can not be set simultaneously");
 
       int alloc_attempts = rg_alloc_max_attempts;
       // Push downlink data.
@@ -743,7 +743,7 @@ private:
     test_finished.store(true, std::memory_order_relaxed);
   }
 
-  srslog::basic_logger&      logger;
+  ocudulog::basic_logger&    logger;
   resource_grid_pool&        dl_rg_pool;
   resource_grid_pool&        ul_rg_pool;
   task_executor&             executor;
@@ -785,7 +785,7 @@ public:
         continue;
       }
       // For UL message ask the RU emulator to send UP packets to the loopback interface.
-      srsran_assert(ru_emulator != nullptr, "RU emulator uninitialized");
+      ocudu_assert(ru_emulator != nullptr, "RU emulator uninitialized");
       slot_point slot = peek_slot_point(frame);
       if (slot != sent_ul_slot) {
         ru_emulator->send_uplink_data(slot);
@@ -804,7 +804,7 @@ private:
     unsigned seq_id = message[24];
     unsigned eaxc   = (unsigned(message[22]) << 8u | message[23]);
 
-    srsran_assert(eaxc < MAX_SUPPORTED_EAXC_ID_VALUE, "Invalid eAxC={} detected", eaxc);
+    ocudu_assert(eaxc < MAX_SUPPORTED_EAXC_ID_VALUE, "Invalid eAxC={} detected", eaxc);
 
     if (!seq_counter_initialized.test(eaxc)) {
       seq_counter_initialized.set(eaxc);
@@ -1044,7 +1044,7 @@ static ru_ofh_configuration generate_ru_config()
   return ru_cfg;
 }
 
-static ru_ofh_dependencies generate_ru_dependencies(srslog::basic_logger&               logger,
+static ru_ofh_dependencies generate_ru_dependencies(ocudulog::basic_logger&             logger,
                                                     worker_manager&                     workers,
                                                     ru_timing_notifier*                 timing_notifier,
                                                     ru_uplink_plane_rx_symbol_notifier* rx_symbol_notifier,
@@ -1123,17 +1123,18 @@ int main(int argc, char** argv)
   parse_args(argc, argv);
 
   // Set up logging.
-  srslog::sink* log_sink = (test_params.log_filename == "stdout") ? srslog::create_stdout_sink()
-                                                                  : srslog::create_file_sink(test_params.log_filename);
+  ocudulog::sink* log_sink = (test_params.log_filename == "stdout")
+                                 ? ocudulog::create_stdout_sink()
+                                 : ocudulog::create_file_sink(test_params.log_filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("OFH_TEST", false);
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("OFH_TEST", false);
   logger.set_level(test_params.log_level);
-  srslog::fetch_basic_logger("PHY").set_level(srslog::basic_levels::error);
+  ocudulog::fetch_basic_logger("PHY").set_level(ocudulog::basic_levels::error);
 
   unsigned nof_prb = get_max_Nprb(bs_channel_bandwidth_to_MHz(test_params.bw), test_params.scs, frequency_range::FR1);
 
@@ -1202,7 +1203,7 @@ int main(int argc, char** argv)
   fmt::print("RU stopped successfully.\n");
 
   workers.stop();
-  srslog::flush();
+  ocudulog::flush();
 
   fmt::print("Test finished, nof_missing_dl_packets={}, nof_malformed_packets={}\n",
              nof_missing_dl_packets,

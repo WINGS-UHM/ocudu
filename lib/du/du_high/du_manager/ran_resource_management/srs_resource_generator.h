@@ -12,7 +12,7 @@
 
 #include "du_ue_resource_config.h"
 
-namespace srsran::srs_du {
+namespace ocudu::odu {
 
 /// Contains the parameters for the SRS resources of a cell.
 struct du_srs_resource {
@@ -38,4 +38,4 @@ struct du_srs_resource {
 /// \return List of orthogonal SRS resources.
 std::vector<du_srs_resource> generate_cell_srs_list(const du_cell_config& du_cell_cfg);
 
-} // namespace srsran::srs_du
+} // namespace ocudu::odu

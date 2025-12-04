@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/support/config/validator_helpers.h"
+#include "ocudu/support/config/validator_helpers.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 enum class id_type { MAX_ID_TYPE_VALUE = 1000 };
 

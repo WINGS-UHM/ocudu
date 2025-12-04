@@ -12,11 +12,11 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct logger_appconfig;
 
 /// Configures the given CLI11 application with the logger application configuration schema.
 void configure_cli11_with_logger_appconfig_schema(CLI::App& app, logger_appconfig& config);
 
-} // namespace srsran
+} // namespace ocudu

@@ -8,11 +8,11 @@
  *
  */
 
-#include "srsran/support/synchronization/sync_event.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <gtest/gtest.h>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 class sync_event_test : public ::testing::Test
 {

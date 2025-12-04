@@ -8,15 +8,15 @@
  *
  */
 
-#include "srsran/support/executors/task_execution_manager.h"
-#include "srsran/support/executors/executor_tracer.h"
-#include "srsran/support/executors/priority_task_worker.h"
-#include "srsran/support/executors/strand_executor.h"
-#include "srsran/support/executors/task_worker.h"
-#include "srsran/support/executors/task_worker_pool.h"
+#include "ocudu/support/executors/task_execution_manager.h"
+#include "ocudu/support/executors/executor_tracer.h"
+#include "ocudu/support/executors/priority_task_worker.h"
+#include "ocudu/support/executors/strand_executor.h"
+#include "ocudu/support/executors/task_worker.h"
+#include "ocudu/support/executors/task_worker_pool.h"
 #include <map>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// Helper to convert execution_config_helper::task_queue into concurrent_queue_params.
 static std::vector<concurrent_queue_params> convert_to_qparams(span<const execution_config_helper::task_queue> queues)
@@ -130,7 +130,7 @@ protected:
   // List of execution contexts.
   std::map<std::string, std::unique_ptr<task_executor>> executor_list;
 
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("ALL");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("ALL");
 };
 
 /* /////////////////////////////////////////////////////////////////////////////////////////////// */
@@ -179,7 +179,7 @@ private:
 } // namespace
 
 std::unique_ptr<task_execution_context>
-srsran::create_execution_context(const execution_config_helper::single_worker& params)
+ocudu::create_execution_context(const execution_config_helper::single_worker& params)
 {
   switch (params.queue.policy) {
     case concurrent_queue_policy::locking_mpsc:
@@ -191,7 +191,7 @@ srsran::create_execution_context(const execution_config_helper::single_worker& p
                                    concurrent_queue_wait_policy::condition_variable>::create(params.name, params);
     case concurrent_queue_policy::locking_mpmc:
       if (params.wait_sleep_time.has_value()) {
-        srslog::fetch_basic_logger("ALL").error("Wait sleep time not supported for locking_mpmc queue policy");
+        ocudulog::fetch_basic_logger("ALL").error("Wait sleep time not supported for locking_mpmc queue policy");
         return nullptr;
       }
       return single_worker_context<concurrent_queue_policy::locking_mpmc,
@@ -199,7 +199,7 @@ srsran::create_execution_context(const execution_config_helper::single_worker& p
       break;
     case concurrent_queue_policy::lockfree_spsc: {
       if (not params.wait_sleep_time.has_value()) {
-        srslog::fetch_basic_logger("ALL").error("Wait sleep time is required for lockfree_spsc queue policy");
+        ocudulog::fetch_basic_logger("ALL").error("Wait sleep time is required for lockfree_spsc queue policy");
         return nullptr;
       }
       return single_worker_context<concurrent_queue_policy::lockfree_spsc, concurrent_queue_wait_policy::sleep>::create(
@@ -207,14 +207,14 @@ srsran::create_execution_context(const execution_config_helper::single_worker& p
     } break;
     case concurrent_queue_policy::lockfree_mpmc: {
       if (not params.wait_sleep_time.has_value()) {
-        srslog::fetch_basic_logger("ALL").error("Wait sleep time is required for lockfree_mpmc queue policy");
+        ocudulog::fetch_basic_logger("ALL").error("Wait sleep time is required for lockfree_mpmc queue policy");
         return nullptr;
       }
       return single_worker_context<concurrent_queue_policy::lockfree_mpmc, concurrent_queue_wait_policy::sleep>::create(
           params.name, params);
     } break;
     default:
-      srslog::fetch_basic_logger("ALL").error("Unknown queue policy");
+      ocudulog::fetch_basic_logger("ALL").error("Unknown queue policy");
       break;
   }
   return nullptr;
@@ -315,7 +315,7 @@ private:
 } // namespace
 
 std::unique_ptr<task_execution_context>
-srsran::create_execution_context(const execution_config_helper::worker_pool& params)
+ocudu::create_execution_context(const execution_config_helper::worker_pool& params)
 {
   report_error_if_not(params.queues.size() > 0, "Invalid number of prioritized queues {}", params.queues.size());
 
@@ -332,7 +332,7 @@ srsran::create_execution_context(const execution_config_helper::worker_pool& par
     default:
       break;
   }
-  srslog::fetch_basic_logger("ALL").error("Only MPMC queue policies are supported for worker pools");
+  ocudulog::fetch_basic_logger("ALL").error("Only MPMC queue policies are supported for worker pools");
   return nullptr;
 }
 
@@ -368,14 +368,14 @@ private:
 } // namespace
 
 std::unique_ptr<task_execution_context>
-srsran::create_execution_context(const execution_config_helper::priority_multiqueue_worker& params)
+ocudu::create_execution_context(const execution_config_helper::priority_multiqueue_worker& params)
 {
   return priority_multiqueue_worker_context::create(params);
 }
 
 /* /////////////////////////////////////////////////////////////////////////////////////////////// */
 
-task_execution_manager::task_execution_manager() : logger(srslog::fetch_basic_logger("ALL")) {}
+task_execution_manager::task_execution_manager() : logger(ocudulog::fetch_basic_logger("ALL")) {}
 
 void task_execution_manager::stop()
 {

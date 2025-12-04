@@ -13,7 +13,7 @@
 #include <optional>
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 /// UDP specific configuration of an UDP gateway.
 struct udp_appconfig {
@@ -35,4 +35,4 @@ struct udp_appconfig {
   std::string ext_addr = "auto";
 };
 
-} // namespace srsran
+} // namespace ocudu

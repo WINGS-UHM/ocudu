@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_e1_handler.h"
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/support/executors/task_executor.h"
+#include "ocudu/cu_cp/cu_cp_e1_handler.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <condition_variable>
 #include <map>
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class cu_up_processor_repository;
 class common_task_scheduler;
@@ -53,7 +53,7 @@ private:
   cu_up_processor_repository& cu_ups;
   task_executor&              cu_cp_exec;
   common_task_scheduler&      common_task_sched;
-  srslog::basic_logger&       logger;
+  ocudulog::basic_logger&     logger;
 
   std::map<cu_up_index_t, std::shared_ptr<shared_cu_up_connection_context>> cu_up_connections;
   std::atomic<unsigned>                                                     cu_up_count{0};
@@ -64,5 +64,5 @@ private:
   bool                    stop_completed = false;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

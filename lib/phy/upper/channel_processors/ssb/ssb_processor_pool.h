@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/ssb/ssb_processor.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/memory_pool/bounded_object_pool.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Concurrent SSB processor pool.
 ///
@@ -27,9 +27,9 @@ public:
 
   /// Creates a SSB processor pool from a list of processors. Ownership is transferred to the pool.
   explicit ssb_processor_pool(std::shared_ptr<ssb_processor_pool_type> processors_) :
-    logger(srslog::fetch_basic_logger("PHY")), processors(std::move(processors_))
+    logger(ocudulog::fetch_basic_logger("PHY")), processors(std::move(processors_))
   {
-    srsran_assert(processors, "Invalid processor pool.");
+    ocudu_assert(processors, "Invalid processor pool.");
   }
 
   // See interface for documentation.
@@ -44,8 +44,8 @@ public:
   }
 
 private:
-  srslog::basic_logger&                    logger;
+  ocudulog::basic_logger&                  logger;
   std::shared_ptr<ssb_processor_pool_type> processors;
 };
 
-} // namespace srsran
+} // namespace ocudu

@@ -9,17 +9,17 @@
  */
 
 #include "split6_flexible_o_du_low_session.h"
-#include "srsran/du/du_low/du_low.h"
-#include "srsran/du/du_operation_controller.h"
-#include "srsran/fapi_adaptor/mac/p7/mac_fapi_p7_sector_adaptor.h"
-#include "srsran/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
-#include "srsran/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
-#include "srsran/phy/upper/upper_phy.h"
-#include "srsran/ru/ru_controller.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/du/du_low/du_low.h"
+#include "ocudu/du/du_operation_controller.h"
+#include "ocudu/fapi_adaptor/mac/p7/mac_fapi_p7_sector_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_sector_fastpath_adaptor.h"
+#include "ocudu/phy/upper/upper_phy.h"
+#include "ocudu/ru/ru_controller.h"
+#include "ocudu/support/ocudu_assert.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 split6_flexible_o_du_low_session::~split6_flexible_o_du_low_session()
 {
@@ -32,13 +32,13 @@ split6_flexible_o_du_low_session::~split6_flexible_o_du_low_session()
 
 void split6_flexible_o_du_low_session::set_dependencies(
     std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> slot_msg_adaptor,
-    std::unique_ptr<srs_du::o_du_low>                         du,
+    std::unique_ptr<odu::o_du_low>                            du,
     std::unique_ptr<radio_unit>                               radio,
     unique_timer                                              timer)
 {
-  srsran_assert(slot_msg_adaptor, "Invalid FAPI slot message adaptor");
-  srsran_assert(du, "Invalid O-DU low");
-  srsran_assert(radio, "Invalid Radio Unit");
+  ocudu_assert(slot_msg_adaptor, "Invalid FAPI slot message adaptor");
+  ocudu_assert(du, "Invalid O-DU low");
+  ocudu_assert(radio, "Invalid Radio Unit");
 
   mac_p7_adaptor = std::move(slot_msg_adaptor);
   odu_low        = std::move(du);

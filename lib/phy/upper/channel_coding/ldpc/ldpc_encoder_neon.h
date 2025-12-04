@@ -15,7 +15,7 @@
 
 #include "ldpc_encoder_impl.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief LDPC encoder implementation based on NEON intrinsics.
 /// \warning Instantiating an object of this class entails a heap memory allocation.
@@ -91,4 +91,4 @@ private:
   unsigned node_size_neon = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

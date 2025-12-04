@@ -14,14 +14,14 @@
 #include "../cell/resource_grid.h"
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
 #include "../support/prbs_calculator.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/resource_allocation/rb_bitmap.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
-#include "srsran/scheduler/scheduler_feedback_handler.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/resource_allocation/rb_bitmap.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 
-namespace srsran {
+namespace ocudu {
 
 class scheduler_event_logger;
 class cell_metrics_handler;
@@ -164,7 +164,7 @@ private:
   cell_metrics_handler&             metrics_hdlr;
 
   // Derived from args.
-  srslog::basic_logger& logger = srslog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("SCHED");
   /// RA window size in number of slots.
   const unsigned ra_win_nof_slots;
   crb_interval   ra_crb_lims;
@@ -212,4 +212,4 @@ private:
   crb_bitmap pucch_crbs;
 };
 
-} // namespace srsran
+} // namespace ocudu

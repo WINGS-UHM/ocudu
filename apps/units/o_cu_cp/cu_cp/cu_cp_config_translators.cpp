@@ -11,16 +11,16 @@
 #include "cu_cp_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "cu_cp_unit_config.h"
-#include "srsran/cu_cp/cu_cp_configuration_helpers.h"
-#include "srsran/ran/plmn_identity.h"
-#include "srsran/rlc/rlc_config.h"
+#include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/rlc/rlc_config.h"
 #include <sstream>
 
-using namespace srsran;
+using namespace ocudu;
 
-static std::map<five_qi_t, srs_cu_cp::cu_cp_qos_config> generate_cu_cp_qos_config(const cu_cp_unit_config& config)
+static std::map<five_qi_t, ocucp::cu_cp_qos_config> generate_cu_cp_qos_config(const cu_cp_unit_config& config)
 {
-  std::map<five_qi_t, srs_cu_cp::cu_cp_qos_config> out_cfg = {};
+  std::map<five_qi_t, ocucp::cu_cp_qos_config> out_cfg = {};
   if (config.qos_cfg.empty()) {
     out_cfg = config_helpers::make_default_cu_cp_qos_config_list();
     return out_cfg;
@@ -164,22 +164,22 @@ generate_preferred_ciphering_algorithms_list(const cu_cp_unit_config& config)
   return algo_list;
 }
 
-static srs_cu_cp::rrc_ssb_mtc generate_rrc_ssb_mtc(unsigned period, unsigned offset, unsigned duration)
+static ocucp::rrc_ssb_mtc generate_rrc_ssb_mtc(unsigned period, unsigned offset, unsigned duration)
 {
-  srs_cu_cp::rrc_ssb_mtc ssb_mtc;
-  ssb_mtc.periodicity_and_offset.periodicity = (srs_cu_cp::rrc_periodicity_and_offset::periodicity_t)period;
+  ocucp::rrc_ssb_mtc ssb_mtc;
+  ssb_mtc.periodicity_and_offset.periodicity = (ocucp::rrc_periodicity_and_offset::periodicity_t)period;
   ssb_mtc.periodicity_and_offset.offset      = offset;
   ssb_mtc.dur                                = duration;
 
   return ssb_mtc;
 }
 
-static srs_cu_cp::rrc_periodical_report_cfg
+static ocucp::rrc_periodical_report_cfg
 generate_cu_cp_periodical_report_config(const cu_cp_unit_report_config& report_cfg_item)
 {
-  srs_cu_cp::rrc_periodical_report_cfg periodical;
+  ocucp::rrc_periodical_report_cfg periodical;
 
-  periodical.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  periodical.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   periodical.report_interv          = report_cfg_item.report_interval_ms;
   periodical.report_amount          = -1;
   periodical.report_quant_cell.rsrp = true;
@@ -187,7 +187,7 @@ generate_cu_cp_periodical_report_config(const cu_cp_unit_report_config& report_c
   periodical.report_quant_cell.sinr = true;
   periodical.max_report_cells       = 4;
 
-  srs_cu_cp::rrc_meas_report_quant report_quant_rs_idxes;
+  ocucp::rrc_meas_report_quant report_quant_rs_idxes;
   report_quant_rs_idxes.rsrp       = true;
   report_quant_rs_idxes.rsrq       = true;
   report_quant_rs_idxes.sinr       = true;
@@ -202,31 +202,31 @@ generate_cu_cp_periodical_report_config(const cu_cp_unit_report_config& report_c
   return periodical;
 }
 
-static srs_cu_cp::rrc_event_trigger_cfg
+static ocucp::rrc_event_trigger_cfg
 generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& report_cfg_item)
 {
-  srs_cu_cp::rrc_event_trigger_cfg event_trigger_cfg;
+  ocucp::rrc_event_trigger_cfg event_trigger_cfg;
 
   {
-    srs_cu_cp::rrc_event_id event_id;
+    ocucp::rrc_event_id event_id;
 
     if (report_cfg_item.event_triggered_report_type.value() == "a1") {
-      event_id.id = srs_cu_cp::rrc_event_id::event_id_t::a1;
+      event_id.id = ocucp::rrc_event_id::event_id_t::a1;
     }
     if (report_cfg_item.event_triggered_report_type.value() == "a2") {
-      event_id.id = srs_cu_cp::rrc_event_id::event_id_t::a2;
+      event_id.id = ocucp::rrc_event_id::event_id_t::a2;
     }
     if (report_cfg_item.event_triggered_report_type.value() == "a3") {
-      event_id.id = srs_cu_cp::rrc_event_id::event_id_t::a3;
+      event_id.id = ocucp::rrc_event_id::event_id_t::a3;
     }
     if (report_cfg_item.event_triggered_report_type.value() == "a4") {
-      event_id.id = srs_cu_cp::rrc_event_id::event_id_t::a4;
+      event_id.id = ocucp::rrc_event_id::event_id_t::a4;
     }
     if (report_cfg_item.event_triggered_report_type.value() == "a5") {
-      event_id.id = srs_cu_cp::rrc_event_id::event_id_t::a5;
+      event_id.id = ocucp::rrc_event_id::event_id_t::a5;
     }
     if (report_cfg_item.event_triggered_report_type.value() == "a6") {
-      event_id.id = srs_cu_cp::rrc_event_id::event_id_t::a6;
+      event_id.id = ocucp::rrc_event_id::event_id_t::a6;
     }
 
     event_id.meas_trigger_quant_thres_or_offset.emplace();
@@ -301,7 +301,7 @@ generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& repor
     event_trigger_cfg.event_id = event_id;
   }
 
-  event_trigger_cfg.rs_type                = srs_cu_cp::rrc_nr_rs_type::ssb;
+  event_trigger_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   event_trigger_cfg.report_interv          = report_cfg_item.report_interval_ms;
   event_trigger_cfg.report_amount          = -1;
   event_trigger_cfg.report_quant_cell.rsrp = true;
@@ -309,7 +309,7 @@ generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& repor
   event_trigger_cfg.report_quant_cell.sinr = true;
   event_trigger_cfg.max_report_cells       = 4;
 
-  srs_cu_cp::rrc_meas_report_quant report_quant_rs_idxes;
+  ocucp::rrc_meas_report_quant report_quant_rs_idxes;
   report_quant_rs_idxes.rsrp              = true;
   report_quant_rs_idxes.rsrq              = true;
   report_quant_rs_idxes.sinr              = true;
@@ -318,13 +318,13 @@ generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& repor
   return event_trigger_cfg;
 }
 
-srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_config& cu_cfg)
+ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config& cu_cfg)
 {
-  srs_cu_cp::cu_cp_configuration out_cfg = config_helpers::make_default_cu_cp_config();
-  out_cfg.admission.max_nof_dus          = cu_cfg.max_nof_dus;
-  out_cfg.admission.max_nof_cu_ups       = cu_cfg.max_nof_cu_ups;
-  out_cfg.admission.max_nof_ues          = cu_cfg.max_nof_ues;
-  out_cfg.admission.max_nof_drbs_per_ue  = cu_cfg.max_nof_drbs_per_ue;
+  ocucp::cu_cp_configuration out_cfg    = config_helpers::make_default_cu_cp_config();
+  out_cfg.admission.max_nof_dus         = cu_cfg.max_nof_dus;
+  out_cfg.admission.max_nof_cu_ups      = cu_cfg.max_nof_cu_ups;
+  out_cfg.admission.max_nof_ues         = cu_cfg.max_nof_ues;
+  out_cfg.admission.max_nof_drbs_per_ue = cu_cfg.max_nof_drbs_per_ue;
 
   out_cfg.node.gnb_id        = cu_cfg.gnb_id;
   out_cfg.node.ran_node_name = cu_cfg.ran_node_name;
@@ -333,12 +333,12 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
   out_cfg.ngap.no_core                     = cu_cfg.amf_config.no_core;
 
   {
-    std::vector<srs_cu_cp::supported_tracking_area> supported_tas;
+    std::vector<ocucp::supported_tracking_area> supported_tas;
     for (const auto& supported_ta : cu_cfg.amf_config.amf.supported_tas) {
-      std::vector<srs_cu_cp::plmn_item> plmn_list;
+      std::vector<ocucp::plmn_item> plmn_list;
       for (const auto& plmn_item : supported_ta.plmn_list) {
         expected<plmn_identity> plmn = plmn_identity::parse(plmn_item.plmn_id);
-        srsran_assert(plmn.has_value(), "Invalid PLMN: {}", plmn_item.plmn_id);
+        ocudu_assert(plmn.has_value(), "Invalid PLMN: {}", plmn_item.plmn_id);
         plmn_list.push_back({plmn.value(), {}});
         for (const auto& elem : plmn_item.tai_slice_support_list) {
           plmn_list.back().slice_support_list.push_back(
@@ -347,17 +347,17 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
       }
       supported_tas.push_back({supported_ta.tac, plmn_list});
     }
-    out_cfg.ngap.ngaps.push_back(srs_cu_cp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
+    out_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
   }
 
-#ifndef SRSRAN_HAS_ENTERPRISE
+#ifndef OCUDU_HAS_ENTERPRISE
   for (const auto& cfg : cu_cfg.extra_amfs) {
-    std::vector<srs_cu_cp::supported_tracking_area> supported_tas;
+    std::vector<ocucp::supported_tracking_area> supported_tas;
     for (const auto& supported_ta : cfg.supported_tas) {
-      std::vector<srs_cu_cp::plmn_item> plmn_list;
+      std::vector<ocucp::plmn_item> plmn_list;
       for (const auto& plmn_item : supported_ta.plmn_list) {
         expected<plmn_identity> plmn = plmn_identity::parse(plmn_item.plmn_id);
-        srsran_assert(plmn.has_value(), "Invalid PLMN: {}", plmn_item.plmn_id);
+        ocudu_assert(plmn.has_value(), "Invalid PLMN: {}", plmn_item.plmn_id);
         plmn_list.push_back({plmn.value(), {}});
         for (const auto& elem : plmn_item.tai_slice_support_list) {
           plmn_list.back().slice_support_list.push_back(
@@ -366,13 +366,13 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
       }
       supported_tas.push_back({supported_ta.tac, plmn_list});
     }
-    out_cfg.ngap.ngaps.push_back(srs_cu_cp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
+    out_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
   }
 #else
   if (!cu_cfg.extra_amfs.empty()) {
     report_error("Invalid CU-CP configuration. \"extra_amfs\" parameter is only supported in Enterprise version.\n");
   }
-#endif // SRSRAN_HAS_ENTERPRISE
+#endif // OCUDU_HAS_ENTERPRISE
 
   out_cfg.rrc.force_reestablishment_fallback = cu_cfg.rrc_config.force_reestablishment_fallback;
   out_cfg.rrc.rrc_procedure_guard_time_ms    = std::chrono::milliseconds{cu_cfg.rrc_config.rrc_procedure_guard_time_ms};
@@ -416,12 +416,11 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
 
   // Convert appconfig's cell list into cell manager type.
   for (const auto& app_cfg_item : cu_cfg.mobility_config.cells) {
-    nr_cell_identity            nci = nr_cell_identity::create(app_cfg_item.nr_cell_id).value();
-    srs_cu_cp::cell_meas_config meas_cfg_item;
+    nr_cell_identity        nci = nr_cell_identity::create(app_cfg_item.nr_cell_id).value();
+    ocucp::cell_meas_config meas_cfg_item;
     meas_cfg_item.serving_cell_cfg.nci = nci;
     if (app_cfg_item.periodic_report_cfg_id.has_value()) {
-      meas_cfg_item.periodic_report_cfg_id =
-          srs_cu_cp::uint_to_report_cfg_id(app_cfg_item.periodic_report_cfg_id.value());
+      meas_cfg_item.periodic_report_cfg_id = ocucp::uint_to_report_cfg_id(app_cfg_item.periodic_report_cfg_id.value());
     }
 
     meas_cfg_item.serving_cell_cfg.gnb_id_bit_length = app_cfg_item.gnb_id_bit_length.value();
@@ -440,10 +439,10 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
     }
 
     for (const auto& ncell : app_cfg_item.ncells) {
-      srs_cu_cp::neighbor_cell_meas_config ncell_meas_cfg;
+      ocucp::neighbor_cell_meas_config ncell_meas_cfg;
       ncell_meas_cfg.nci = nr_cell_identity::create(ncell.nr_cell_id).value();
       for (const auto& report_id : ncell.report_cfg_ids) {
-        ncell_meas_cfg.report_cfg_ids.push_back(srs_cu_cp::uint_to_report_cfg_id(report_id));
+        ncell_meas_cfg.report_cfg_ids.push_back(ocucp::uint_to_report_cfg_id(report_id));
       }
 
       meas_cfg_item.ncells.push_back(ncell_meas_cfg);
@@ -455,7 +454,7 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
 
   // Convert report config.
   for (const auto& report_cfg_item : cu_cfg.mobility_config.report_configs) {
-    srs_cu_cp::rrc_report_cfg_nr report_cfg;
+    ocucp::rrc_report_cfg_nr report_cfg;
 
     if (report_cfg_item.report_type == "periodical") {
       report_cfg = generate_cu_cp_periodical_report_config(report_cfg_item);
@@ -465,7 +464,7 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
 
     // Store config.
     out_cfg.mobility.meas_manager_config
-        .report_config_ids[srs_cu_cp::uint_to_report_cfg_id(report_cfg_item.report_cfg_id)] = report_cfg;
+        .report_config_ids[ocucp::uint_to_report_cfg_id(report_cfg_item.report_cfg_id)] = report_cfg;
   }
 
   if (!config_helpers::is_valid_configuration(out_cfg)) {
@@ -475,14 +474,14 @@ srs_cu_cp::cu_cp_configuration srsran::generate_cu_cp_config(const cu_cp_unit_co
   return out_cfg;
 }
 
-srs_cu_cp::n2_connection_client_config srsran::generate_n2_client_config(bool                              no_core,
-                                                                         const cu_cp_unit_amf_config_item& amf_cfg,
-                                                                         dlt_pcap&                         pcap_writer,
-                                                                         io_broker&                        broker,
-                                                                         task_executor& io_rx_executor)
+ocucp::n2_connection_client_config ocudu::generate_n2_client_config(bool                              no_core,
+                                                                    const cu_cp_unit_amf_config_item& amf_cfg,
+                                                                    dlt_pcap&                         pcap_writer,
+                                                                    io_broker&                        broker,
+                                                                    task_executor&                    io_rx_executor)
 {
-  using no_core_mode_t = srs_cu_cp::n2_connection_client_config::no_core;
-  using network_mode_t = srs_cu_cp::n2_connection_client_config::network;
+  using no_core_mode_t = ocucp::n2_connection_client_config::no_core;
+  using network_mode_t = ocucp::n2_connection_client_config::network;
   using ngap_mode_t    = std::variant<no_core_mode_t, network_mode_t>;
 
   ngap_mode_t mode = no_core ? ngap_mode_t{no_core_mode_t{}} : ngap_mode_t{network_mode_t{broker, io_rx_executor}};
@@ -516,10 +515,10 @@ srs_cu_cp::n2_connection_client_config srsran::generate_n2_client_config(bool   
     nw_mode.nodelay = amf_cfg.sctp_nodelay;
   }
 
-  return srs_cu_cp::n2_connection_client_config{pcap_writer, mode};
+  return ocucp::n2_connection_client_config{pcap_writer, mode};
 }
 
-void srsran::fill_cu_cp_worker_manager_config(worker_manager_config& config, const cu_cp_unit_config& unit_cfg)
+void ocudu::fill_cu_cp_worker_manager_config(worker_manager_config& config, const cu_cp_unit_config& unit_cfg)
 {
   // CU-CP executors are needed.
   config.cu_cp_cfg.emplace();

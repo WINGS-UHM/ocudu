@@ -10,7 +10,7 @@
 
 #include "ngap_metrics_consumers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ngap_metrics_consumer_log::handle_metric(const std::vector<ngap_info>&      report,
                                               const mobility_management_metrics& mobility_metrics)

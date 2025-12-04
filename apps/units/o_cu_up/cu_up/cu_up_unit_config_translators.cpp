@@ -11,16 +11,16 @@
 #include "cu_up_unit_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "cu_up_unit_config.h"
-#include "srsran/cu_up/cu_up_configuration_helpers.h"
+#include "ocudu/cu_up/cu_up_configuration_helpers.h"
 
-using namespace srsran;
+using namespace ocudu;
 
-srs_cu_up::cu_up_config srsran::generate_cu_up_config(const cu_up_unit_config& config)
+ocuup::cu_up_config ocudu::generate_cu_up_config(const cu_up_unit_config& config)
 {
-  srs_cu_up::cu_up_config out_cfg;
+  ocuup::cu_up_config out_cfg;
   out_cfg.gnb_id     = config.gnb_id;
   out_cfg.cu_up_id   = config.gnb_cu_up_id;
-  out_cfg.cu_up_name = fmt::format("srs_cu_up_{}", fmt::underlying(config.gnb_cu_up_id));
+  out_cfg.cu_up_name = fmt::format("ocuup_{}", fmt::underlying(config.gnb_cu_up_id));
 
   out_cfg.statistics_report_period = std::chrono::seconds{config.metrics.cu_up_report_period};
 
@@ -50,10 +50,9 @@ srs_cu_up::cu_up_config srsran::generate_cu_up_config(const cu_up_unit_config& c
   return out_cfg;
 }
 
-std::map<five_qi_t, srs_cu_up::cu_up_qos_config>
-srsran::generate_cu_up_qos_config(const cu_up_unit_config& cu_up_config)
+std::map<five_qi_t, ocuup::cu_up_qos_config> ocudu::generate_cu_up_qos_config(const cu_up_unit_config& cu_up_config)
 {
-  std::map<five_qi_t, srs_cu_up::cu_up_qos_config> out_cfg = {};
+  std::map<five_qi_t, ocuup::cu_up_qos_config> out_cfg = {};
   if (cu_up_config.qos_cfg.empty()) {
     out_cfg = config_helpers::make_default_cu_up_qos_config_list(
         cu_up_config.warn_on_drop,
@@ -75,16 +74,16 @@ srsran::generate_cu_up_qos_config(const cu_up_unit_config& cu_up_config)
     out_pdcp_custom.tx.test_mode    = cu_up_config.test_mode_cfg.enabled;
 
     // Convert F1-U config
-    srs_cu_up::f1u_config& f1u_cfg = out_cfg[qos.five_qi].f1u_cfg;
-    f1u_cfg.warn_on_drop           = cu_up_config.warn_on_drop;
-    f1u_cfg.dl_t_notif_timer       = std::chrono::milliseconds(qos.f1u_cu_up.t_notify);
-    f1u_cfg.queue_size             = qos.f1u_cu_up.queue_size;
-    f1u_cfg.batch_size             = qos.f1u_cu_up.batch_size;
+    ocuup::f1u_config& f1u_cfg = out_cfg[qos.five_qi].f1u_cfg;
+    f1u_cfg.warn_on_drop       = cu_up_config.warn_on_drop;
+    f1u_cfg.dl_t_notif_timer   = std::chrono::milliseconds(qos.f1u_cu_up.t_notify);
+    f1u_cfg.queue_size         = qos.f1u_cu_up.queue_size;
+    f1u_cfg.batch_size         = qos.f1u_cu_up.batch_size;
   }
   return out_cfg;
 }
 
-void srsran::fill_cu_up_worker_manager_config(worker_manager_config& config, const cu_up_unit_config& unit_cfg)
+void ocudu::fill_cu_up_worker_manager_config(worker_manager_config& config, const cu_up_unit_config& unit_cfg)
 {
   config.cu_up_cfg = worker_manager_config::cu_up_config{};
 

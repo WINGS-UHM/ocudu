@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/ru/ru_uplink_plane.h"
+#include "ocudu/ru/ru_uplink_plane.h"
 #include <algorithm>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class task_executor;
 class shared_resource_grid;
@@ -32,8 +32,8 @@ public:
   explicit ru_uplink_plane_handler_proxy(std::vector<ofh::uplink_request_handler*> sectors_) :
     sectors(std::move(sectors_))
   {
-    srsran_assert(std::all_of(sectors.begin(), sectors.end(), [](const auto& elem) { return elem != nullptr; }),
-                  "Invalid sector");
+    ocudu_assert(std::all_of(sectors.begin(), sectors.end(), [](const auto& elem) { return elem != nullptr; }),
+                 "Invalid sector");
   }
 
   // See interface for documentation.
@@ -46,4 +46,4 @@ private:
   std::vector<ofh::uplink_request_handler*> sectors;
 };
 
-} // namespace srsran
+} // namespace ocudu

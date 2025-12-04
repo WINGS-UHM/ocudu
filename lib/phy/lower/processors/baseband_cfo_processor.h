@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "srsran/adt/complex.h"
-#include "srsran/adt/expected.h"
-#include "srsran/adt/ring_buffer.h"
-#include "srsran/adt/span.h"
-#include "srsran/phy/lower/processors/lower_phy_cfo_controller.h"
-#include "srsran/phy/lower/sampling_rate.h"
-#include "srsran/srsvec/prod.h"
-#include "srsran/support/math/math_utils.h"
+#include "ocudu/adt/complex.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/adt/ring_buffer.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocuduvec/prod.h"
+#include "ocudu/phy/lower/processors/lower_phy_cfo_controller.h"
+#include "ocudu/phy/lower/sampling_rate.h"
+#include "ocudu/support/math/math_utils.h"
 #include <chrono>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Baseband carrier frequency offset processor.
 ///
@@ -91,7 +91,7 @@ public:
     float initial_phase = TWOPI * current_cfo * static_cast<float>(sample_offset);
 
     // Apply CFO.
-    srsvec::prod_cexp(buffer, buffer, current_cfo, initial_phase);
+    ocuduvec::prod_cexp(buffer, buffer, current_cfo, initial_phase);
   }
 
 private:
@@ -116,4 +116,4 @@ private:
   float cfo_drift_hz_s = 0.0;
 };
 
-} // namespace srsran
+} // namespace ocudu

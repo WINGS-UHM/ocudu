@@ -9,9 +9,9 @@
  */
 
 #include "tests/unittests/ran/sch/tbs_calculator_test_data.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static unsigned expected_tbs_calculator_table_find_smallest_not_less_than(unsigned nof_info_prime)
 {

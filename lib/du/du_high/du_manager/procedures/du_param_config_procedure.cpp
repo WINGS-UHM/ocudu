@@ -10,11 +10,11 @@
 
 #include "du_param_config_procedure.h"
 #include "../converters/f1ap_configuration_helpers.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/async/async_no_op_task.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
-using namespace srsran;
-using namespace srs_du;
+using namespace ocudu;
+using namespace odu;
 
 static error_type<std::string> validate_du_param_config_request(const du_param_config_request& req)
 {
@@ -56,7 +56,7 @@ du_param_config_procedure::du_param_config_procedure(const du_param_config_reque
   du_params(du_params_),
   du_cells(du_cells_),
   req_validation_outcome(validate_du_param_config_request(request)),
-  logger(srslog::fetch_basic_logger("DU-MNG"))
+  logger(ocudulog::fetch_basic_logger("DU-MNG"))
 {
 }
 

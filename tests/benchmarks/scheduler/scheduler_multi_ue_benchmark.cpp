@@ -12,16 +12,16 @@
 #include "scheduler_test_doubles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
-#include "srsran/adt/circular_array.h"
-#include "srsran/du/du_cell_config_helpers.h"
-#include "srsran/scheduler/config/sched_cell_config_helpers.h"
-#include "srsran/scheduler/result/sched_result.h"
-#include "srsran/scheduler/scheduler_factory.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/benchmark_utils.h"
+#include "ocudu/adt/circular_array.h"
+#include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/scheduler/scheduler_factory.h"
+#include "ocudu/support/benchmark_utils.h"
 #include <getopt.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 struct bench_params {
   unsigned nof_repetitions        = 100;
@@ -77,7 +77,7 @@ public:
                            const cell_config_builder_params& builder_params_) :
     expert_cfg(expert_cfg_),
     builder_params(builder_params_),
-    logger(srslog::fetch_basic_logger("SCHED")),
+    logger(ocudulog::fetch_basic_logger("SCHED")),
     sch(create_scheduler(scheduler_config{expert_cfg, cfg_notif})),
     next_sl_tx(builder_params.scs_common, 0)
   {
@@ -112,11 +112,11 @@ public:
     auto& pcell = (*ue_cfg_msg.cfg.cells)[0];
 
     // Generate PUCCH resources for the UE.
-    srs_du::cell_group_config cell_group;
+    odu::cell_group_config cell_group;
     cell_group.cells.emplace(0);
     cell_group.cells[0].serv_cell_cfg = pcell.serv_cell_cfg;
     bool success                      = pucch_res_mng->alloc_resources(cell_group);
-    srsran_assert(success, "Failed to allocate resources for UE={}", ue_count);
+    ocudu_assert(success, "Failed to allocate resources for UE={}", ue_count);
     pcell.serv_cell_cfg = cell_group.cells[0].serv_cell_cfg;
 
     sch->handle_ue_creation_request(ue_cfg_msg);
@@ -227,13 +227,13 @@ private:
   const unsigned dl_pipeline_delay = 4;
   const unsigned uci_process_delay = 2;
 
-  sched_cfg_dummy_notifier                         cfg_notif;
-  sched_dummy_metric_notifier                      metric_notif;
-  scheduler_expert_config                          expert_cfg;
-  cell_config_builder_params                       builder_params;
-  std::vector<srs_du::du_cell_config>              du_cell_cfgs;
-  srslog::basic_logger&                            logger;
-  std::optional<srs_du::du_pucch_resource_manager> pucch_res_mng;
+  sched_cfg_dummy_notifier                      cfg_notif;
+  sched_dummy_metric_notifier                   metric_notif;
+  scheduler_expert_config                       expert_cfg;
+  cell_config_builder_params                    builder_params;
+  std::vector<odu::du_cell_config>              du_cell_cfgs;
+  ocudulog::basic_logger&                       logger;
+  std::optional<odu::du_pucch_resource_manager> pucch_res_mng;
 
   std::unique_ptr<mac_scheduler> sch;
 
@@ -281,13 +281,13 @@ void benchmark_tdd(benchmarker& bm, const bench_params& params)
 
 int main(int argc, char** argv)
 {
-  srslog::init();
+  ocudulog::init();
 
   bench_params params{};
   parse_args(argc, argv, params);
 
-  srslog::fetch_basic_logger("SCHED", true)
-      .set_level(params.debug ? srslog::basic_levels::debug : srslog::basic_levels::warning);
+  ocudulog::fetch_basic_logger("SCHED", true)
+      .set_level(params.debug ? ocudulog::basic_levels::debug : ocudulog::basic_levels::warning);
 
   std::unique_ptr<benchmarker> bm = std::make_unique<benchmarker>("scheduler", params.nof_repetitions);
 

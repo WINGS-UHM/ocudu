@@ -1,0 +1,85 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/ocudulog/logger.h"
+
+namespace ocudu {
+
+/// Class discovering the CPU architecture of the underlying hardware.
+class cpu_architecture_info
+{
+  /// Aggregates CPU information.
+  struct cpu_description {
+    /// Set of CPUs as returned by the OS.
+    ::cpu_set_t cpuset;
+    /// Total number of CPUs.
+    size_t nof_cpus;
+    /// Number of available CPUs.
+    size_t nof_available_cpus;
+    /// Highest index of the available CPU.
+    size_t max_cpu_id;
+    /// List of CPUs that the application is allowed to use.
+    bounded_bitset<1024> allowed_cpus;
+    /// Number of NUMA nodes.
+    size_t nof_numa_nodes;
+    /// List of CPUs pertaining to each NUMA node.
+    std::vector<bounded_bitset<1024>> node_cpus;
+    /// Lists of logical CPUs belonging to each physical CPU.
+    std::vector<bounded_bitset<1024>> logical_cpu_lists;
+  };
+
+  /// Discovers CPU architecture at the application start-up.
+  static cpu_description discover_cpu_architecture();
+
+  /// Stores the CPU description.
+  const cpu_description cpu_desc{discover_cpu_architecture()};
+
+  /// Default constructor.
+  cpu_architecture_info() = default;
+
+public:
+  cpu_architecture_info(const cpu_architecture_info& other) = delete;
+  cpu_architecture_info(cpu_architecture_info&& other)      = delete;
+  void operator=(const cpu_architecture_info& other)        = delete;
+  void operator=(cpu_architecture_info&& other)             = delete;
+
+  /// Returns reference to a static instance of this class.
+  static cpu_architecture_info& get()
+  {
+    /// Singleton object.
+    static cpu_architecture_info cpu_info;
+    return cpu_info;
+  }
+
+  /// Get total number of CPUs discovered in the given host.
+  /// Note in virtualized environments the number of CPUs available to the application may be smaller.
+  /// See \c get_host_nof_available_cpus.
+  size_t get_host_total_nof_cpus() const { return cpu_desc.nof_cpus; }
+
+  /// Get the number of CPUs available to the application.
+  size_t get_host_nof_available_cpus() const { return cpu_desc.nof_available_cpus; }
+
+  /// Get available CPUs as a cpu_set_t structure.
+  ::cpu_set_t get_available_cpuset() const { return cpu_desc.cpuset; }
+
+  /// Prints discovered CPU information.
+  void print_cpu_info(ocudulog::basic_logger& logger) const;
+
+  /// Returns CPUs of the given NUMA node.
+  bounded_bitset<1024> get_node_cpu_mask(unsigned node_id) const;
+
+  /// Run calling thread and its children and allocate memory on the given NUMA node.
+  bool run_on_numa_node(unsigned node_id) const;
+};
+
+} // namespace ocudu

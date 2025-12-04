@@ -8,9 +8,9 @@
  *
  */
 
-#include "srsran/ran/pdcch/cce_to_prb_mapping.h"
+#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 // Describes a REG index list of unsigned 16 bit indicating the REG index.
 using reg_index_list = static_vector<uint16_t, pdcch_constants::MAX_NOF_RB_PDCCH>;
@@ -46,12 +46,12 @@ static reg_index_list cce_to_reg_mapping_interleaved(unsigned N_rb_coreset,
   unsigned n_shift       = shift_index;
 
   // Validate parameters.
-  srsran_assert(N_reg_coreset > 0 && (N_reg_coreset % (L * R) == 0) && (L % N_symb_coreset == 0),
-                "Invalid CORESET configuration N_reg_coreset={}, al={}, R={}, Nsymb_coreset={}.",
-                N_reg_coreset,
-                L,
-                R,
-                N_symb_coreset);
+  ocudu_assert(N_reg_coreset > 0 && (N_reg_coreset % (L * R) == 0) && (L % N_symb_coreset == 0),
+               "Invalid CORESET configuration N_reg_coreset={}, al={}, R={}, Nsymb_coreset={}.",
+               N_reg_coreset,
+               L,
+               R,
+               N_symb_coreset);
 
   // Number of REG bundles in a CCE.
   unsigned nof_reg_bundle_in_cce = pdcch_constants::NOF_REG_PER_CCE / L;
@@ -137,12 +137,12 @@ static prb_index_list reg_to_prb_mapping_other(unsigned              N_bwp_start
   return result;
 }
 
-prb_index_list srsran::cce_to_prb_mapping_coreset0(unsigned N_coreset0_start,
-                                                   unsigned N_coreset0_size,
-                                                   unsigned N_symb_coreset,
-                                                   pci_t    N_id_cell,
-                                                   unsigned aggregation_level,
-                                                   unsigned cce_index)
+prb_index_list ocudu::cce_to_prb_mapping_coreset0(unsigned N_coreset0_start,
+                                                  unsigned N_coreset0_size,
+                                                  unsigned N_symb_coreset,
+                                                  pci_t    N_id_cell,
+                                                  unsigned aggregation_level,
+                                                  unsigned cce_index)
 {
   // Calculate the REG indexes.
   reg_index_list reg_indexes =
@@ -151,11 +151,11 @@ prb_index_list srsran::cce_to_prb_mapping_coreset0(unsigned N_coreset0_start,
   return reg_to_prb_mapping_coreset0(N_coreset0_start, N_coreset0_size, N_symb_coreset, reg_indexes);
 }
 
-prb_index_list srsran::cce_to_prb_mapping_non_interleaved(unsigned                    N_bwp_start,
-                                                          const freq_resource_bitmap& freq_resources,
-                                                          unsigned                    N_symb_coreset,
-                                                          unsigned                    aggregation_level,
-                                                          unsigned                    cce_index)
+prb_index_list ocudu::cce_to_prb_mapping_non_interleaved(unsigned                    N_bwp_start,
+                                                         const freq_resource_bitmap& freq_resources,
+                                                         unsigned                    N_symb_coreset,
+                                                         unsigned                    aggregation_level,
+                                                         unsigned                    cce_index)
 {
   // Calculate the REG indexes.
   reg_index_list reg_indexes = cce_to_reg_mapping_non_interleaved(aggregation_level, cce_index);
@@ -164,14 +164,14 @@ prb_index_list srsran::cce_to_prb_mapping_non_interleaved(unsigned              
   return reg_to_prb_mapping_other(N_bwp_start, freq_resources, N_symb_coreset, reg_indexes);
 }
 
-prb_index_list srsran::cce_to_prb_mapping_interleaved(unsigned                    N_bwp_start,
-                                                      const freq_resource_bitmap& freq_resources,
-                                                      unsigned                    N_symb_coreset,
-                                                      unsigned                    reg_bundle_size,
-                                                      unsigned                    interleaver_size,
-                                                      unsigned                    shift_index,
-                                                      unsigned                    aggregation_level,
-                                                      unsigned                    cce_index)
+prb_index_list ocudu::cce_to_prb_mapping_interleaved(unsigned                    N_bwp_start,
+                                                     const freq_resource_bitmap& freq_resources,
+                                                     unsigned                    N_symb_coreset,
+                                                     unsigned                    reg_bundle_size,
+                                                     unsigned                    interleaver_size,
+                                                     unsigned                    shift_index,
+                                                     unsigned                    aggregation_level,
+                                                     unsigned                    cce_index)
 {
   // Calculate the REG indexes.
   reg_index_list reg_indexes = cce_to_reg_mapping_interleaved(freq_resources.count() * 6,

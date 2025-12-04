@@ -12,10 +12,10 @@
 
 #include "../e1ap_cu_up_connection_handler.h"
 #include "e1ap_cu_up_event_manager.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_up {
+namespace ocudu {
+namespace ocuup {
 
 /// This coroutines handles the E1AP CU UP release procedure as per TS 38.483, 8.2.7.2.2.
 class e1ap_cu_up_release_procedure
@@ -24,7 +24,7 @@ public:
   e1ap_cu_up_release_procedure(e1ap_cu_up_connection_handler& cu_up_conn_handler_,
                                e1ap_message_notifier&         tx_pdu_notifier_,
                                e1ap_event_manager&            ev_mng_,
-                               srslog::basic_logger&          logger_);
+                               ocudulog::basic_logger&        logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -38,10 +38,10 @@ private:
   e1ap_cu_up_connection_handler& cu_up_conn_handler;
   e1ap_message_notifier&         cu_notifier;
   e1ap_event_manager&            ev_mng;
-  srslog::basic_logger&          logger;
+  ocudulog::basic_logger&        logger;
 
   e1ap_transaction transaction;
 };
 
-} // namespace srs_cu_up
-} // namespace srsran
+} // namespace ocuup
+} // namespace ocudu

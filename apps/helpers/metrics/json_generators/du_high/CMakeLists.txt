@@ -11,5 +11,5 @@ set(SOURCES
         rlc.cpp
         scheduler.cpp)
 
-add_library(srsran_du_high_metrics_json_generators_helpers STATIC ${SOURCES})
-target_include_directories(srsran_du_high_metrics_json_generators_helpers PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/apps/helpers/metrics)
+add_library(ocudu_du_high_metrics_json_generators_helpers STATIC ${SOURCES})
+target_include_directories(ocudu_du_high_metrics_json_generators_helpers PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/apps/helpers/metrics)

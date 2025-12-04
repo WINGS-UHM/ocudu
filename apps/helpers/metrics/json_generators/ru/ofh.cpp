@@ -11,13 +11,13 @@
 #include "ofh.h"
 #include "apps/helpers/metrics/helpers.h"
 #include "helpers.h"
-#include "srsran/ofh/ofh_metrics.h"
+#include "ocudu/ofh/ofh_metrics.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 void to_json(nlohmann::json& json, const closed_rx_window_metrics& metrics)
@@ -33,7 +33,7 @@ void to_json(nlohmann::json& json, const timing_metrics& metrics)
 }
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu
 
 static nlohmann::json generate_received_messages(const ofh::received_messages_metrics& metrics,
                                                  std::chrono::nanoseconds              symbol_duration)
@@ -192,9 +192,9 @@ generate_ofh_cell(const ofh::sector_metrics& metrics, pci_t pci, std::chrono::na
   return json;
 }
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const ofh::metrics&      metrics,
-                                                              span<const pci_t>        pci_sector_map,
-                                                              std::chrono::nanoseconds symbol_duration)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const ofh::metrics&      metrics,
+                                                             span<const pci_t>        pci_sector_map,
+                                                             std::chrono::nanoseconds symbol_duration)
 {
   nlohmann::json json;
 
@@ -205,20 +205,20 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const ofh::metrics
   auto& cells_ofh          = json_ofh["cells"];
 
   for (const auto& cell : metrics.sectors) {
-    srsran_assert(cell.sector_id < pci_sector_map.size(),
-                  "Sector id '{}' out of range of the pci-sector mapper. Size of the mapper is '{}' ",
-                  cell.sector_id,
-                  pci_sector_map.size());
+    ocudu_assert(cell.sector_id < pci_sector_map.size(),
+                 "Sector id '{}' out of range of the pci-sector mapper. Size of the mapper is '{}' ",
+                 cell.sector_id,
+                 pci_sector_map.size());
     cells_ofh.emplace_back(generate_ofh_cell(cell, pci_sector_map[cell.sector_id], symbol_duration));
   }
 
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const ofh::metrics&      metrics,
-                                                                  span<const pci_t>        pci_sector_map,
-                                                                  std::chrono::nanoseconds symbol_duration,
-                                                                  int                      indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const ofh::metrics&      metrics,
+                                                                 span<const pci_t>        pci_sector_map,
+                                                                 std::chrono::nanoseconds symbol_duration,
+                                                                 int                      indent)
 {
   return generate(metrics, pci_sector_map, symbol_duration).dump(indent);
 }

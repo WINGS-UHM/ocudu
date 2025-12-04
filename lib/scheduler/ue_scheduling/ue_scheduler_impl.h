@@ -21,10 +21,10 @@
 #include "ue_event_manager.h"
 #include "ue_fallback_scheduler.h"
 #include "ue_scheduler.h"
-#include "srsran/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include <mutex>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Interface of data scheduler that is used to allocate UE DL and UL grants in a given slot.
 /// The data_scheduler object will be common to all cells and slots.
@@ -103,7 +103,7 @@ private:
   };
 
   const scheduler_ue_expert_config& expert_cfg;
-  srslog::basic_logger&             logger;
+  ocudulog::basic_logger&           logger;
 
   // List of cells of the UE scheduler.
   slotted_array<cell_context, MAX_NOF_DU_CELLS> cells;
@@ -121,4 +121,4 @@ private:
   slot_point last_sl_ind;
 };
 
-} // namespace srsran
+} // namespace ocudu

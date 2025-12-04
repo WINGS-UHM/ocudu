@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/uci/uci_part2_size_calculator.h"
+#include "ocudu/ran/uci/uci_part2_size_calculator.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 // Fixed size.
 TEST(uci_part2_size_calculator, fix_size)

@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
-#include "srsran/support/resource_usage/scoped_resource_usage.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
+#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 #include <memory>
 
-namespace srsran {
+namespace ocudu {
 
 /// PUSCH channel estimator metric decorator.
 class phy_metrics_pusch_channel_estimator_decorator : public dmrs_pusch_estimator
@@ -27,7 +27,7 @@ public:
                                                 pusch_channel_estimator_metric_notifier& metrics_notifier_) :
     base(std::move(base_)), metrics_notifier(metrics_notifier_)
   {
-    srsran_assert(base, "Invalid estimator.");
+    ocudu_assert(base, "Invalid estimator.");
   }
 
   // See interface for documentation.
@@ -51,4 +51,4 @@ private:
   pusch_channel_estimator_metric_notifier& metrics_notifier;
 };
 
-} // namespace srsran
+} // namespace ocudu

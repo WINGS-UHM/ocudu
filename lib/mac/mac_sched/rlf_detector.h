@@ -10,15 +10,15 @@
 
 #pragma once
 
-#include "srsran/mac/mac_config.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/mac/mac_config.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <array>
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief Metrics used as reference to detect/trigger RLF.
 struct rlf_metrics {
@@ -34,7 +34,7 @@ class rlf_detector
 
 public:
   rlf_detector(const mac_expert_config& expert_cfg, task_executor& ctrl_exec_) :
-    ctrl_exec(ctrl_exec_), logger(srslog::fetch_basic_logger("MAC"))
+    ctrl_exec(ctrl_exec_), logger(ocudulog::fetch_basic_logger("MAC"))
   {
     max_consecutive_kos.resize(expert_cfg.configs.size());
     for (auto mac_cfg_it = expert_cfg.configs.begin(); mac_cfg_it != expert_cfg.configs.end(); ++mac_cfg_it) {
@@ -47,7 +47,7 @@ public:
 
   void add_ue(du_ue_index_t ue_index, mac_ue_radio_link_notifier& notifier)
   {
-    srsran_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
 
     // Reset UE counters. As they are not under use, we can use relaxed memory ordering.
     ues[ue_index].ko_counters[0].store(0, std::memory_order_relaxed);
@@ -60,7 +60,7 @@ public:
 
   void rem_ue(du_ue_index_t ue_index, du_cell_index_t cell_index)
   {
-    srsran_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
 
     // We store max+1, meaning that no NOK will reach counter==max, and trigger the notifier.
     auto& cell = max_consecutive_kos[cell_index];
@@ -108,7 +108,7 @@ public:
 private:
   void handle_event(du_cell_index_t cell_index, du_ue_index_t ue_index, event_index_t ev_index, bool valid)
   {
-    srsran_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", ue_index);
+    ocudu_assert(ue_index < MAX_NOF_DU_UES, "Invalid ue_index={}", ue_index);
     auto& u          = ues[ue_index];
     auto& ko_counter = u.ko_counters[(size_t)ev_index];
 
@@ -158,7 +158,7 @@ private:
   // DL for index 0, UL for index 1, CSI for index 2 in each cell.
   static_vector<rlf_metrics, MAX_NOF_DU_CELLS> max_consecutive_kos;
   task_executor&                               ctrl_exec;
-  srslog::basic_logger&                        logger;
+  ocudulog::basic_logger&                      logger;
 
   struct ue_context {
     // DL for index 0, UL for index 1, CSI for index 2.
@@ -169,4 +169,4 @@ private:
   std::array<ue_context, MAX_NOF_DU_UES> ues;
 };
 
-} // namespace srsran
+} // namespace ocudu

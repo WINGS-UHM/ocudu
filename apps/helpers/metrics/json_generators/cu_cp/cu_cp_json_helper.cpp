@@ -10,14 +10,14 @@
 
 #include "cu_cp_json_helper.h"
 #include "helpers.h"
-#include "srsran/ran/gnb_du_id.h"
+#include "ocudu/ran/gnb_du_id.h"
 #include "fmt/format.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_helpers;
 using namespace json_generators;
 
-namespace srsran {
+namespace ocudu {
 
 struct cu_cp_rrc_metrics_json {
   std::vector<cu_cp_metrics_report::du_info> dus;
@@ -74,7 +74,7 @@ void to_json(nlohmann::json& json, const ngap_info& metrics)
   paging_json["nof_cn_initiated_paging_requests"] = metrics.metrics.nof_cn_initiated_paging_requests;
 }
 
-void to_json(nlohmann::json& json, const srsran::cu_cp_ngap_metrics_json& metrics)
+void to_json(nlohmann::json& json, const ocudu::cu_cp_ngap_metrics_json& metrics)
 {
   // NGAP metrics.
   json["ngap"]                                 = metrics.ngaps;
@@ -92,7 +92,7 @@ void to_json(nlohmann::json& json, const rrc_connection_establishment_counter_wi
   }
 }
 
-void to_json(nlohmann::json& json, const srsran::cu_cp_metrics_report::du_info& metrics)
+void to_json(nlohmann::json& json, const ocudu::cu_cp_metrics_report::du_info& metrics)
 {
   // RRC-DU metrics.
   json["gnb_du_id"]                          = metrics.id;
@@ -123,9 +123,9 @@ void to_json(nlohmann::json& json, const cu_cp_rrc_metrics_json& metrics)
   json["nof_successful_handover_executions"] = metrics.mobility.nof_successful_handover_executions;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
-nlohmann::json srsran::app_helpers::json_generators::generate(const cu_cp_metrics_report& report)
+nlohmann::json ocudu::app_helpers::json_generators::generate(const cu_cp_metrics_report& report)
 {
   cu_cp_rrc_metrics_json  rrc_metrics  = {report.dus, report.mobility};
   cu_cp_ngap_metrics_json ngap_metrics = {report.ngaps, report.mobility};
@@ -142,7 +142,7 @@ nlohmann::json srsran::app_helpers::json_generators::generate(const cu_cp_metric
   return json;
 }
 
-std::string srsran::app_helpers::json_generators::generate_string(const cu_cp_metrics_report& report, int indent)
+std::string ocudu::app_helpers::json_generators::generate_string(const cu_cp_metrics_report& report, int indent)
 {
   return generate(report).dump(indent);
 }

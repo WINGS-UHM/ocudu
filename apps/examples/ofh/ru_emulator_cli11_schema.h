@@ -12,11 +12,11 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct ru_emulator_appconfig;
 
 /// Configures the given CLI11 application with the RU emulator application configuration schema.
 void configure_cli11_with_ru_emulator_appconfig_schema(CLI::App& app, ru_emulator_appconfig& ru_emu_parsed_cfg);
 
-} // namespace srsran
+} // namespace ocudu

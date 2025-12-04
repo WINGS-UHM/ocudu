@@ -10,16 +10,16 @@
 
 #pragma once
 
-#include "srsran/adt/bit_buffer.h"
-#include "srsran/adt/mpmc_queue.h"
-#include "srsran/adt/span.h"
-#include "srsran/phy/upper/log_likelihood_ratio.h"
-#include "srsran/support/math/math_utils.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/adt/bit_buffer.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <cstdint>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Manages a codeblock buffer pool.
 class rx_buffer_codeblock_pool
@@ -89,7 +89,7 @@ public:
   /// \return A view to the codeblock soft-bit buffer.
   span<log_likelihood_ratio> get_soft_bits(unsigned cb_id)
   {
-    srsran_assert(cb_id < entries.size(), "Codeblock index ({}) is out of range ({}).", cb_id, entries.size());
+    ocudu_assert(cb_id < entries.size(), "Codeblock index ({}) is out of range ({}).", cb_id, entries.size());
     return entries[cb_id].soft_bits;
   }
 
@@ -98,9 +98,9 @@ public:
   /// \return A view to the codeblock data-bit buffer.
   bit_buffer& get_data_bits(unsigned cb_id)
   {
-    srsran_assert(cb_id < entries.size(), "Codeblock index ({}) is out of range ({}).", cb_id, entries.size());
+    ocudu_assert(cb_id < entries.size(), "Codeblock index ({}) is out of range ({}).", cb_id, entries.size());
     return entries[cb_id].data_bits;
   }
 };
 
-} // namespace srsran
+} // namespace ocudu

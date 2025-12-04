@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "srsran/cu_cp/cu_cp_types.h"
-#include "srsran/srslog/logger.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ocudulog/logger.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class du_processor_repository;
 struct cu_cp_paging_message;
@@ -32,8 +32,8 @@ private:
   bool handle_du_paging_message(du_index_t du_index, const cu_cp_paging_message& msg);
 
   du_processor_repository& dus;
-  srslog::basic_logger&    logger;
+  ocudulog::basic_logger&  logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

@@ -11,17 +11,17 @@
 #pragma once
 
 #include "ue_capability_summary.h"
-#include "srsran/adt/span.h"
-#include "srsran/support/format/delimited_formatter.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/support/format/delimited_formatter.h"
 #include <fmt/format.h>
 
 namespace fmt {
 
-/// \brief Custom formatter for \c srsran::srs_du::ue_capability_summary::supported_band.
+/// \brief Custom formatter for \c ocudu::odu::ue_capability_summary::supported_band.
 template <>
-struct formatter<srsran::srs_du::ue_capability_summary::supported_band> {
+struct formatter<ocudu::odu::ue_capability_summary::supported_band> {
   /// Helper used to parse formatting options and format fields.
-  srsran::delimited_formatter helper;
+  ocudu::delimited_formatter helper;
 
   /// Default constructor.
   formatter() = default;
@@ -33,10 +33,10 @@ struct formatter<srsran::srs_du::ue_capability_summary::supported_band> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::srs_du::ue_capability_summary::supported_band& params, FormatContext& ctx) const
+  auto format(const ocudu::odu::ue_capability_summary::supported_band& params, FormatContext& ctx) const
   {
     helper.format_always(ctx, "pusch_qam256_supported={}", params.pusch_qam256_supported);
-    helper.format_always(ctx, "pusch_tx_coherence={}", srsran::to_string(params.pusch_tx_coherence));
+    helper.format_always(ctx, "pusch_tx_coherence={}", ocudu::to_string(params.pusch_tx_coherence));
     helper.format_always(ctx, "pusch_max_rank={}", params.pusch_max_rank);
     helper.format_always(ctx, "nof_srs_tx_ports={}", params.nof_srs_tx_ports);
     helper.format_always(ctx, "max_dl_harq_process_num={}", params.max_dl_harq_process_num);
@@ -48,11 +48,11 @@ struct formatter<srsran::srs_du::ue_capability_summary::supported_band> {
   }
 };
 
-/// \brief Custom formatter for \c srsran::srs_du::ue_capability_summary.
+/// \brief Custom formatter for \c ocudu::odu::ue_capability_summary.
 template <>
-struct formatter<srsran::srs_du::ue_capability_summary> {
+struct formatter<ocudu::odu::ue_capability_summary> {
   /// Helper used to parse formatting options and format fields.
-  srsran::delimited_formatter helper;
+  ocudu::delimited_formatter helper;
 
   /// Default constructor.
   formatter() = default;
@@ -64,7 +64,7 @@ struct formatter<srsran::srs_du::ue_capability_summary> {
   }
 
   template <typename FormatContext>
-  auto format(const srsran::srs_du::ue_capability_summary& params, FormatContext& ctx) const
+  auto format(const ocudu::odu::ue_capability_summary& params, FormatContext& ctx) const
   {
     helper.format_always(ctx, "pdsch_qam256_supported={}", params.pdsch_qam256_supported);
     helper.format_always(ctx, "pdsch_qam64lowse_supported={}", params.pdsch_qam64lowse_supported);

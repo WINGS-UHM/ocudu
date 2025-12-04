@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/fapi/messages/dl_tti_request.h"
+#include "ocudu/fapi/messages/dl_tti_request.h"
 
-namespace srsran {
+namespace ocudu {
 
 struct prs_generator_configuration;
 
@@ -34,4 +34,4 @@ void convert_prs_fapi_to_phy(prs_generator_configuration&       generator_config
                              const precoding_matrix_repository& pm_repo);
 
 } // namespace fapi_adaptor
-} // namespace srsran
+} // namespace ocudu

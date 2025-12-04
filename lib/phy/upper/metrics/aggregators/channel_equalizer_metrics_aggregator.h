@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "srsran/phy/metrics/phy_metrics_notifiers.h"
-#include "srsran/phy/metrics/phy_metrics_reports.h"
-#include "srsran/ran/pusch/pusch_constants.h"
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
+#include "ocudu/phy/metrics/phy_metrics_reports.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 #include <atomic>
 
-namespace srsran {
+namespace ocudu {
 
 /// Channel equalizer metrics aggregator.
 class channel_equalizer_metrics_aggregator : public channel_equalizer_metric_notifier
@@ -86,4 +86,4 @@ private:
   std::array<metrics_per_layer, pusch_constants::MAX_NOF_LAYERS> metrics_collection;
 };
 
-} // namespace srsran
+} // namespace ocudu

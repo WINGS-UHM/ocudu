@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/qos/five_qi_qos_mapping.h"
+#include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include <unordered_map>
 
-using namespace srsran;
+using namespace ocudu;
 
 using qos_chars = standardized_qos_characteristics;
 using flow_type = qos_flow_resource_type;
@@ -68,7 +68,7 @@ static const std::unordered_map<five_qi_t, qos_chars> five_qi_to_qos_mapping = {
     // clang-format on
 };
 
-const qos_chars* srsran::get_5qi_to_qos_characteristics_mapping(five_qi_t five_qi)
+const qos_chars* ocudu::get_5qi_to_qos_characteristics_mapping(five_qi_t five_qi)
 {
   const auto qos_char = five_qi_to_qos_mapping.find(five_qi);
   return qos_char != five_qi_to_qos_mapping.end() ? &qos_char->second : nullptr;

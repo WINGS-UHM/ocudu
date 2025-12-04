@@ -12,7 +12,7 @@
 
 #include "CLI/CLI11.hpp"
 
-namespace srsran {
+namespace ocudu {
 
 struct e2_config;
 
@@ -27,4 +27,4 @@ void configure_cli11_with_e2_config_schema(CLI::App&          app,
                                            const std::string& option_name,
                                            const std::string& option_description);
 
-} // namespace srsran
+} // namespace ocudu

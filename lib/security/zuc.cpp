@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/security/zuc.h"
+#include "ocudu/security/zuc.h"
 
-using namespace srsran;
-using namespace srsran::security;
+using namespace ocudu;
+using namespace ocudu::security;
 
 /// Adapted from ETSI/SAGE specifications:
 /// "Specification of the 3GPP Confidentiality
@@ -191,7 +191,7 @@ static u32 F(zuc_state_t* state)
 
 /* initialize */
 
-void srsran::security::zuc_initialize(zuc_state_t* state, const u8* k, u8* iv)
+void ocudu::security::zuc_initialize(zuc_state_t* state, const u8* k, u8* iv)
 {
   u32 w, nCount;
 
@@ -225,7 +225,7 @@ void srsran::security::zuc_initialize(zuc_state_t* state, const u8* k, u8* iv)
   }
 }
 
-void srsran::security::zuc_generate_keystream(zuc_state_t* state, int key_stream_len, u32* p_keystream)
+void ocudu::security::zuc_generate_keystream(zuc_state_t* state, int key_stream_len, u32* p_keystream)
 {
   int i;
   {

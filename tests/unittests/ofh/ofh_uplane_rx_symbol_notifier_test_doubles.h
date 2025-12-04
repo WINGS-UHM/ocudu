@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ofh/ofh_uplane_rx_symbol_notifier.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 namespace testing {
 
@@ -45,4 +45,4 @@ public:
 
 } // namespace testing
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

@@ -10,14 +10,14 @@
 
 #include "ldpc_encoder_neon.h"
 #include "neon_support.h"
-#include "srsran/srsvec/binary.h"
-#include "srsran/srsvec/bit.h"
-#include "srsran/srsvec/circ_shift.h"
-#include "srsran/srsvec/copy.h"
-#include "srsran/srsvec/zero.h"
+#include "ocudu/ocuduvec/binary.h"
+#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocuduvec/circ_shift.h"
+#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/zero.h"
 
-using namespace srsran;
-using namespace srsran::ldpc;
+using namespace ocudu;
+using namespace ocudu::ldpc;
 
 /// Maximum number of NEON vectors needed to represent a BG node.
 static constexpr unsigned MAX_NODE_SIZE_NEON = divide_ceil(ldpc::MAX_LIFTING_SIZE, NEON_SIZE_BYTE);
@@ -121,13 +121,13 @@ void ldpc_encoder_neon::load_input(const bit_buffer& in)
 
   span<uint8_t> codeblock = span<uint8_t>(codeblock_buffer).first((bg_K + bg_hr_parity_nodes) * node_size_byte);
   for (unsigned i_node = 0; i_node != bg_K; ++i_node) {
-    srsvec::bit_unpack(codeblock.first(lifting_size), in, i_node * lifting_size);
+    ocuduvec::bit_unpack(codeblock.first(lifting_size), in, i_node * lifting_size);
     codeblock = codeblock.last(codeblock.size() - lifting_size);
 
-    srsvec::zero(codeblock.first(tail_bytes));
+    ocuduvec::zero(codeblock.first(tail_bytes));
     codeblock = codeblock.last(codeblock.size() - tail_bytes);
   }
-  srsvec::zero(codeblock);
+  ocuduvec::zero(codeblock);
 }
 
 // Computes the XOR logical operation (modulo-2 sum) between the contents of "in0" and "in1". The result is stored in
@@ -180,10 +180,10 @@ void ldpc_encoder_neon::systematic_bits_inner()
       span<int8_t> plain_auxiliary = auxiliary.plain_span(i_aux, node_size_byte);
 
       if (k == row[0]) {
-        srsvec::circ_shift_backward(
+        ocuduvec::circ_shift_backward(
             plain_auxiliary.first(lifting_size), codeblock.plain_span(i_blk, lifting_size), node_shift);
       } else {
-        srsvec::circ_shift_backward(blk.first(lifting_size), codeblock.plain_span(i_blk, lifting_size), node_shift);
+        ocuduvec::circ_shift_backward(blk.first(lifting_size), codeblock.plain_span(i_blk, lifting_size), node_shift);
         fast_xor<int8_t>(plain_auxiliary, blk, plain_auxiliary);
       }
     }
@@ -214,7 +214,7 @@ void ldpc_encoder_neon::high_rate_bg1_i6_inner()
     rotated_node.set_at(j, tmp);
   }
 
-  srsvec::circ_shift_forward(
+  ocuduvec::circ_shift_forward(
       codeblock.plain_span(skip0, lifting_size), rotated_node.plain_span(0, lifting_size), 105 % lifting_size);
 
   for (unsigned j = 0; j != NODE_SIZE_NEON_PH; ++j) {
@@ -253,7 +253,7 @@ void ldpc_encoder_neon::high_rate_bg1_other_inner()
     codeblock.set_at(skip0 + j, block0);
   }
 
-  srsvec::circ_shift_backward(rotated_node.plain_span(0, lifting_size), codeblock.plain_span(skip0, lifting_size), 1);
+  ocuduvec::circ_shift_backward(rotated_node.plain_span(0, lifting_size), codeblock.plain_span(skip0, lifting_size), 1);
 
   for (unsigned j = 0; j != NODE_SIZE_NEON_PH; ++j) {
     int8x16_t rotated_j = rotated_node.get_at(j);
@@ -291,7 +291,7 @@ void ldpc_encoder_neon::high_rate_bg2_i3_7_inner()
     codeblock.set_at(skip0 + j, block0);
   }
 
-  srsvec::circ_shift_backward(rotated_node.plain_span(0, lifting_size), codeblock.plain_span(skip0, lifting_size), 1);
+  ocuduvec::circ_shift_backward(rotated_node.plain_span(0, lifting_size), codeblock.plain_span(skip0, lifting_size), 1);
 
   for (unsigned j = 0; j != NODE_SIZE_NEON_PH; ++j) {
     int8x16_t rotated_j = rotated_node.get_at(j);
@@ -329,7 +329,7 @@ void ldpc_encoder_neon::high_rate_bg2_other_inner()
     rotated_node.set_at(j, rotated_j);
   }
 
-  srsvec::circ_shift_forward(codeblock.plain_span(skip0, lifting_size), rotated_node.plain_span(0, lifting_size), 1);
+  ocuduvec::circ_shift_forward(codeblock.plain_span(skip0, lifting_size), rotated_node.plain_span(0, lifting_size), 1);
 
   for (unsigned j = 0; j != NODE_SIZE_NEON_PH; ++j) {
     int8x16_t block_0 = codeblock.get_at(skip0 + j);
@@ -352,7 +352,7 @@ void ldpc_encoder_neon::ext_region_inner(span<uint8_t> out_node, unsigned m) con
   const ldpc::BG_adjacency_row_t& row = current_graph->get_adjacency_row(m);
 
   // Zero node.
-  srsvec::zero(out_node);
+  ocuduvec::zero(out_node);
 
   // Process each of the nodes.
   for (uint16_t k : row) {
@@ -372,7 +372,7 @@ void ldpc_encoder_neon::ext_region_inner(span<uint8_t> out_node, unsigned m) con
 
     // The first time, the node is copied; afterwards combined.
     if (k == row[0]) {
-      srsvec::circ_shift_backward(out_node, codeblock_node, node_shift);
+      ocuduvec::circ_shift_backward(out_node, codeblock_node, node_shift);
     } else {
       fast_xor<uint8_t>(out_node.first(lifting_size - node_shift),
                         out_node.first(lifting_size - node_shift),
@@ -401,11 +401,11 @@ void ldpc_encoder_neon::ext_region_inner(span<uint8_t> out_node, unsigned m) con
 
 void ldpc_encoder_neon::write_codeblock(span<uint8_t> out, unsigned offset) const
 {
-  srsran_assert(out.size() + offset <= bg_N_short * lifting_size,
-                "The output size (i.e., {}) plus the offset (i.e., {}) exceeds the codeblock length (i.e., {}).",
-                out.size(),
-                offset,
-                bg_N_short * lifting_size);
+  ocudu_assert(out.size() + offset <= bg_N_short * lifting_size,
+               "The output size (i.e., {}) plus the offset (i.e., {}) exceeds the codeblock length (i.e., {}).",
+               out.size(),
+               offset,
+               bg_N_short * lifting_size);
 
   // Calculate the node size in bytes, considering SIMD alignment.
   unsigned            node_size_byte = node_size_neon * NEON_SIZE_BYTE;
@@ -430,7 +430,7 @@ void ldpc_encoder_neon::write_codeblock(span<uint8_t> out, unsigned offset) cons
 
     // Check if it is operating in the extended region.
     if (i_node < bg_hr_parity_nodes + bg_K) {
-      srsvec::copy(out.first(count), codeblock.subspan(offset, count));
+      ocuduvec::copy(out.first(count), codeblock.subspan(offset, count));
     } else {
       // Detect if the extended region can be done directly on the output.
       bool inplace = ((offset == 0) && (count == lifting_size));
@@ -449,7 +449,7 @@ void ldpc_encoder_neon::write_codeblock(span<uint8_t> out, unsigned offset) cons
 
       // Copy data if temporal buffer was used.
       if (!inplace) {
-        srsvec::copy(out.first(count), node_view.subspan(offset, count));
+        ocuduvec::copy(out.first(count), node_view.subspan(offset, count));
       }
     }
 
@@ -463,5 +463,5 @@ void ldpc_encoder_neon::write_codeblock(span<uint8_t> out, unsigned offset) cons
     offset = 0;
   }
 
-  srsran_assert(out.empty(), "Not all the output was writen.");
+  ocudu_assert(out.empty(), "Not all the output was writen.");
 }

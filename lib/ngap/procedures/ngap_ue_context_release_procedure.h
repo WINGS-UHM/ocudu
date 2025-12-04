@@ -12,11 +12,11 @@
 
 #include "../ngap_error_indication_helper.h"
 #include "../ue_context/ngap_ue_context.h"
-#include "srsran/ngap/ngap.h"
-#include "srsran/support/async/async_task.h"
+#include "ocudu/ngap/ngap.h"
+#include "ocudu/support/async/async_task.h"
 
-namespace srsran {
-namespace srs_cu_cp {
+namespace ocudu {
+namespace ocucp {
 
 class ngap_ue_context_release_procedure
 {
@@ -46,5 +46,5 @@ private:
   ngap_ue_logger                                              logger;
 };
 
-} // namespace srs_cu_cp
-} // namespace srsran
+} // namespace ocucp
+} // namespace ocudu

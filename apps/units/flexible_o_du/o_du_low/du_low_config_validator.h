@@ -11,10 +11,10 @@
 #pragma once
 
 #include "du_low_config.h"
-#include "srsran/ran/prach/prach_format_type.h"
-#include "srsran/ran/prach/prach_subcarrier_spacing.h"
+#include "ocudu/ran/prach/prach_format_type.h"
+#include "ocudu/ran/prach/prach_subcarrier_spacing.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// DU low PRACH configuration for validation.
 struct du_low_prach_validation_config {
@@ -34,4 +34,4 @@ struct du_low_prach_validation_config {
 bool validate_du_low_config(const du_low_unit_config&                  config,
                             span<const du_low_prach_validation_config> prach_cells_config);
 
-} // namespace srsran
+} // namespace ocudu

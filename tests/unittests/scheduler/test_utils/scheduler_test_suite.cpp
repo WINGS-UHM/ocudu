@@ -16,22 +16,22 @@
 #include "lib/scheduler/support/sched_result_helpers.h"
 #include "scheduler_output_test_helpers.h"
 #include "tests/test_doubles/scheduler/scheduler_test_message_validators.h"
-#include "srsran/adt/static_vector.h"
-#include "srsran/ran/band_helper.h"
-#include "srsran/ran/pdcch/dci_packing.h"
-#include "srsran/ran/prach/prach_configuration.h"
-#include "srsran/ran/pucch/pucch_constants.h"
-#include "srsran/ran/resource_allocation/ofdm_symbol_range.h"
-#include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
-#include "srsran/scheduler/result/pucch_format.h"
-#include "srsran/support/error_handling.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdcch/dci_packing.h"
+#include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
+#include "ocudu/scheduler/result/pucch_format.h"
+#include "ocudu/support/error_handling.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-void srsran::assert_tdd_pattern_consistency(const cell_configuration& cell_cfg,
-                                            slot_point                sl_tx,
-                                            const sched_result&       result)
+void ocudu::assert_tdd_pattern_consistency(const cell_configuration& cell_cfg,
+                                           slot_point                sl_tx,
+                                           const sched_result&       result)
 {
   if (not cell_cfg.tdd_cfg_common.has_value()) {
     return;
@@ -97,9 +97,9 @@ void srsran::assert_tdd_pattern_consistency(const cell_configuration& cell_cfg,
   }
 }
 
-void srsran::assert_pdcch_pdsch_common_consistency(const cell_configuration&   cell_cfg,
-                                                   const pdcch_dl_information& pdcch,
-                                                   const pdsch_information&    pdsch)
+void ocudu::assert_pdcch_pdsch_common_consistency(const cell_configuration&   cell_cfg,
+                                                  const pdcch_dl_information& pdcch,
+                                                  const pdsch_information&    pdsch)
 {
   ASSERT_EQ(pdcch.ctx.rnti, pdsch.rnti);
   ASSERT_TRUE(*pdcch.ctx.bwp_cfg == *pdsch.bwp_cfg);
@@ -148,7 +148,7 @@ void srsran::assert_pdcch_pdsch_common_consistency(const cell_configuration&   c
       ASSERT_EQ(N_rb_dl_bwp, cs_zero_crbs.length());
     } break;
     default:
-      srsran_terminate("DCI type not supported");
+      ocudu_terminate("DCI type not supported");
   }
   ofdm_symbol_range symbols =
       cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[time_assignment].symbols;
@@ -159,8 +159,8 @@ void srsran::assert_pdcch_pdsch_common_consistency(const cell_configuration&   c
   ASSERT_EQ(pdsch_freq_resource, freq_assignment) << "DCI frequency resource does not match PDSCH PRBs";
 }
 
-void srsran::assert_pdcch_pdsch_common_consistency(const cell_configuration&      cell_cfg,
-                                                   const cell_resource_allocator& cell_res_grid)
+void ocudu::assert_pdcch_pdsch_common_consistency(const cell_configuration&      cell_cfg,
+                                                  const cell_resource_allocator& cell_res_grid)
 {
   span<const pdcch_dl_information> pdcchs = cell_res_grid[0].result.dl.dl_pdcchs;
   for (const pdcch_dl_information& pdcch : pdcchs) {
@@ -224,7 +224,7 @@ void srsran::assert_pdcch_pdsch_common_consistency(const cell_configuration&    
         linked_pdsch = &it->pdsch_cfg;
       } break;
       default:
-        srsran_terminate("DCI type not supported");
+        ocudu_terminate("DCI type not supported");
     }
     if (linked_pdsch) {
       assert_pdcch_pdsch_common_consistency(cell_cfg, pdcch, *linked_pdsch);
@@ -232,7 +232,7 @@ void srsran::assert_pdcch_pdsch_common_consistency(const cell_configuration&    
   }
 }
 
-void srsran::test_pdsch_sib_consistency(const cell_configuration& cell_cfg, span<const sib_information> sibs)
+void ocudu::test_pdsch_sib_consistency(const cell_configuration& cell_cfg, span<const sib_information> sibs)
 {
   bool has_coreset0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value();
   if (not has_coreset0) {
@@ -264,7 +264,7 @@ void srsran::test_pdsch_sib_consistency(const cell_configuration& cell_cfg, span
   }
 }
 
-void srsran::test_pdsch_rar_consistency(const cell_configuration& cell_cfg, span<const rar_information> rars)
+void ocudu::test_pdsch_rar_consistency(const cell_configuration& cell_cfg, span<const rar_information> rars)
 {
   std::set<rnti_t>                  ra_rntis;
   const search_space_configuration& ss_cfg =
@@ -294,13 +294,13 @@ void srsran::test_pdsch_rar_consistency(const cell_configuration& cell_cfg, span
   }
 }
 
-void srsran::test_pdsch_ue_consistency(const cell_configuration& cell_cfg, span<const dl_msg_alloc> grants)
+void ocudu::test_pdsch_ue_consistency(const cell_configuration& cell_cfg, span<const dl_msg_alloc> grants)
 {
   ASSERT_TRUE(
       test_helper::is_valid_dl_msg_alloc_list(grants, cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0));
 }
 
-void srsran::test_pusch_ue_consistency(const cell_configuration& cell_cfg, span<const ul_sched_info> grants)
+void ocudu::test_pusch_ue_consistency(const cell_configuration& cell_cfg, span<const ul_sched_info> grants)
 {
   ASSERT_LE(grants.size(), cell_cfg.expert_cfg.ue.max_puschs_per_slot);
 
@@ -309,7 +309,7 @@ void srsran::test_pusch_ue_consistency(const cell_configuration& cell_cfg, span<
   }
 }
 
-void srsran::test_pucch_consistency(const cell_configuration& cell_cfg, span<const pucch_info> pucchs)
+void ocudu::test_pucch_consistency(const cell_configuration& cell_cfg, span<const pucch_info> pucchs)
 {
   ASSERT_LE(pucchs.size(), cell_cfg.expert_cfg.ue.max_pucchs_per_slot);
 
@@ -526,7 +526,7 @@ void assert_rar_grant_msg3_pusch_consistency(const cell_configuration&      cell
   }
 }
 
-void srsran::test_dl_resource_grid_collisions(const cell_configuration& cell_cfg, const dl_sched_result& result)
+void ocudu::test_dl_resource_grid_collisions(const cell_configuration& cell_cfg, const dl_sched_result& result)
 {
   cell_slot_resource_grid grid(cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list);
 
@@ -539,7 +539,7 @@ void srsran::test_dl_resource_grid_collisions(const cell_configuration& cell_cfg
   }
 }
 
-void srsran::test_prach_opportunity_validity(const cell_configuration& cell_cfg, span<const prach_occasion_info> prachs)
+void ocudu::test_prach_opportunity_validity(const cell_configuration& cell_cfg, span<const prach_occasion_info> prachs)
 {
   if (prachs.empty()) {
     return;
@@ -562,7 +562,7 @@ void srsran::test_prach_opportunity_validity(const cell_configuration& cell_cfg,
   }
 }
 
-void srsran::test_ul_resource_grid_collisions(const cell_configuration& cell_cfg, const ul_sched_result& result)
+void ocudu::test_ul_resource_grid_collisions(const cell_configuration& cell_cfg, const ul_sched_result& result)
 {
   cell_slot_resource_grid      grid(cell_cfg.ul_cfg_common.freq_info_ul.scs_carrier_list);
   std::vector<test_grant_info> ul_grants = get_ul_grants(cell_cfg, result);
@@ -583,7 +583,7 @@ void srsran::test_ul_resource_grid_collisions(const cell_configuration& cell_cfg
   }
 }
 
-void srsran::test_ul_consistency(const cell_configuration& cell_cfg, const ul_sched_result& result)
+void ocudu::test_ul_consistency(const cell_configuration& cell_cfg, const ul_sched_result& result)
 {
   // Check that UL grant limits are respected.
   ASSERT_LE(result.pucchs.size() + result.puschs.size(), cell_cfg.expert_cfg.ue.max_ul_grants_per_slot);
@@ -594,7 +594,7 @@ void srsran::test_ul_consistency(const cell_configuration& cell_cfg, const ul_sc
   ASSERT_NO_FATAL_FAILURE(test_ul_resource_grid_collisions(cell_cfg, result));
 }
 
-void srsran::test_dl_consistency(const cell_configuration& cell_cfg, slot_point sl_tx, const dl_sched_result& result)
+void ocudu::test_dl_consistency(const cell_configuration& cell_cfg, slot_point sl_tx, const dl_sched_result& result)
 {
   ASSERT_NO_FATAL_FAILURE(test_pdsch_sib_consistency(cell_cfg, result.bc.sibs));
   ASSERT_NO_FATAL_FAILURE(test_pdsch_rar_consistency(cell_cfg, result.rar_grants));
@@ -603,9 +603,9 @@ void srsran::test_dl_consistency(const cell_configuration& cell_cfg, slot_point 
   ASSERT_NO_FATAL_FAILURE(test_dl_resource_grid_collisions(cell_cfg, result));
 }
 
-void srsran::test_scheduler_result_consistency(const cell_configuration& cell_cfg,
-                                               slot_point                sl_tx,
-                                               const sched_result&       result)
+void ocudu::test_scheduler_result_consistency(const cell_configuration& cell_cfg,
+                                              slot_point                sl_tx,
+                                              const sched_result&       result)
 {
   ASSERT_TRUE(result.success);
   ASSERT_NO_FATAL_FAILURE(assert_tdd_pattern_consistency(cell_cfg, sl_tx, result));
@@ -614,12 +614,12 @@ void srsran::test_scheduler_result_consistency(const cell_configuration& cell_cf
 }
 
 /// \brief Verifies that the cell resource grid PRBs and symbols was filled with the allocated PDSCHs.
-void srsran::assert_dl_resource_grid_filled(const cell_configuration&      cell_cfg,
-                                            const cell_resource_allocator& cell_res_grid)
+void ocudu::assert_dl_resource_grid_filled(const cell_configuration&      cell_cfg,
+                                           const cell_resource_allocator& cell_res_grid)
 {
   std::vector<test_grant_info> dl_grants = get_dl_grants(cell_cfg, cell_res_grid[0].result.dl);
   for (const test_grant_info& test_grant : dl_grants) {
-    if (test_grant.type != srsran::test_grant_info::DL_PDCCH and test_grant.type != srsran::test_grant_info::UL_PDCCH) {
+    if (test_grant.type != ocudu::test_grant_info::DL_PDCCH and test_grant.type != ocudu::test_grant_info::UL_PDCCH) {
       ASSERT_TRUE(cell_res_grid[0].dl_res_grid.all_set(test_grant.grant))
           << fmt::format("The allocation with rnti={}, type={}, crbs={} was not registered in the cell resource grid",
                          test_grant.rnti,
@@ -630,10 +630,10 @@ void srsran::assert_dl_resource_grid_filled(const cell_configuration&      cell_
 }
 
 /// \brief Verifies that the cell resource grid PRBs and symbols was filled with the allocated PUCCHs.
-bool srsran::assert_ul_resource_grid_filled(const cell_configuration&      cell_cfg,
-                                            const cell_resource_allocator& cell_res_grid,
-                                            unsigned                       tx_delay,
-                                            bool                           expect_grants)
+bool ocudu::assert_ul_resource_grid_filled(const cell_configuration&      cell_cfg,
+                                           const cell_resource_allocator& cell_res_grid,
+                                           unsigned                       tx_delay,
+                                           bool                           expect_grants)
 {
   // The function get_ul_grants() returns 2 test_grant_info per pucch_info if intra_slot_freq_hopping is enabled.
   std::vector<test_grant_info> ul_grants = get_ul_grants(cell_cfg, cell_res_grid[tx_delay].result.ul);
@@ -641,7 +641,7 @@ bool srsran::assert_ul_resource_grid_filled(const cell_configuration&      cell_
     return false;
   }
   for (const test_grant_info& test_grant : ul_grants) {
-    if (test_grant.type == srsran::test_grant_info::UE_UL || test_grant.type == srsran::test_grant_info::PUCCH) {
+    if (test_grant.type == ocudu::test_grant_info::UE_UL || test_grant.type == ocudu::test_grant_info::PUCCH) {
       if (not cell_res_grid[tx_delay].ul_res_grid.all_set(test_grant.grant)) {
         return false;
       }
@@ -650,13 +650,13 @@ bool srsran::assert_ul_resource_grid_filled(const cell_configuration&      cell_
   return true;
 }
 
-bool srsran::test_res_grid_has_re_set(const cell_resource_allocator& cell_res_grid, grant_info grant, unsigned tx_delay)
+bool ocudu::test_res_grid_has_re_set(const cell_resource_allocator& cell_res_grid, grant_info grant, unsigned tx_delay)
 {
   return cell_res_grid[tx_delay].ul_res_grid.all_set(grant);
 }
 
-void srsran::test_scheduler_result_consistency(const cell_configuration&      cell_cfg,
-                                               const cell_resource_allocator& cell_res_grid)
+void ocudu::test_scheduler_result_consistency(const cell_configuration&      cell_cfg,
+                                              const cell_resource_allocator& cell_res_grid)
 {
   ASSERT_NO_FATAL_FAILURE(test_scheduler_result_consistency(cell_cfg, cell_res_grid[0].slot, cell_res_grid[0].result));
   assert_pdcch_pdsch_common_consistency(cell_cfg, cell_res_grid);

@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/ru/ru_uplink_plane.h"
+#include "ocudu/ru/ru_uplink_plane.h"
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 class lower_phy_uplink_request_handler;
 class shared_resource_grid;
@@ -37,4 +37,4 @@ private:
   std::vector<lower_phy_uplink_request_handler*> handlers;
 };
 
-} // namespace srsran
+} // namespace ocudu

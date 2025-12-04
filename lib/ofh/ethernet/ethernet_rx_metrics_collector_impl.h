@@ -11,10 +11,10 @@
 #pragma once
 
 #include "../support/metrics_helpers.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_metrics.h"
-#include "srsran/ofh/ethernet/ethernet_receiver_metrics_collector.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_metrics.h"
+#include "ocudu/ofh/ethernet/ethernet_receiver_metrics_collector.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ether {
 
 /// Open Fronthaul Ethernet receiver metrics collector implementation.
@@ -89,4 +89,4 @@ private:
 };
 
 } // namespace ether
-} // namespace srsran
+} // namespace ocudu

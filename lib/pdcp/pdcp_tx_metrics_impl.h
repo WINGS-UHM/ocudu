@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/pdcp/pdcp_tx_metrics.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/pdcp/pdcp_tx_metrics.h"
+#include "ocudu/support/ocudu_assert.h"
 
-namespace srsran {
+namespace ocudu {
 
 class pdcp_tx_metrics
 {
@@ -61,7 +61,7 @@ public:
 
   pdcp_tx_metrics_container get_metrics()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -72,7 +72,7 @@ public:
 
   pdcp_tx_metrics_container get_metrics_and_reset()
   {
-    srsran_assert(enabled, "Trying to get metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to get metrics, but metrics are disabled.");
     if (not enabled) {
       return {};
     }
@@ -108,7 +108,7 @@ public:
 
   void reset_metrics()
   {
-    srsran_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
+    ocudu_assert(enabled, "Trying to reset metrics, but metrics are disabled.");
     if (not enabled) {
       return;
     }
@@ -123,4 +123,4 @@ public:
 private:
   std::atomic<uint32_t> sum_crypto_processing_latency_ns = 0;
 };
-} // namespace srsran
+} // namespace ocudu

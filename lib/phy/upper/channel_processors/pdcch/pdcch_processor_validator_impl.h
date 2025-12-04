@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/phy/upper/channel_processors/pdcch/pdcch_processor.h"
-#include "srsran/ran/pdcch/pdcch_constants.h"
+#include "ocudu/phy/upper/channel_processors/pdcch/pdcch_processor.h"
+#include "ocudu/ran/pdcch/pdcch_constants.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a parameter validator for \ref pdcch_processor_impl.
 class pdcch_processor_validator_impl : public pdcch_pdu_validator
@@ -23,4 +23,4 @@ public:
   error_type<std::string> is_valid(const pdcch_processor::pdu_t& pdu) const override;
 };
 
-} // namespace srsran
+} // namespace ocudu

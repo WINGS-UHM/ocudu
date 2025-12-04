@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "srsran/mac/mac_cell_result.h"
-#include "srsran/scheduler/result/sched_result.h"
+#include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/scheduler/result/sched_result.h"
 
-namespace srsran {
+namespace ocudu {
 namespace unittests {
 
 /// Helper struct to manage the pointer life cycle of a SIB PDU.
@@ -145,4 +145,4 @@ mac_ul_sched_result_test_helper build_valid_mac_ul_sched_result();
 mac_ul_sched_result_test_helper build_valid_mac_ul_sched_result_with_all_supported_pdus();
 
 } // namespace unittests
-} // namespace srsran
+} // namespace ocudu

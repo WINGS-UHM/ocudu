@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "srsran/ofh/receiver/ofh_sequence_id_checker.h"
+#include "ocudu/ofh/receiver/ofh_sequence_id_checker.h"
 
-namespace srsran {
+namespace ocudu {
 namespace ofh {
 
 /// Open Fronthaul sequence identifier checker dummy implementation.
@@ -24,4 +24,4 @@ public:
 };
 
 } // namespace ofh
-} // namespace srsran
+} // namespace ocudu

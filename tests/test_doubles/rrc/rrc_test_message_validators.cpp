@@ -9,16 +9,16 @@
  */
 
 #include "rrc_test_message_validators.h"
-#include "srsran/asn1/rrc_nr/cell_group_config.h"
+#include "ocudu/asn1/rrc_nr/cell_group_config.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace asn1::rrc_nr;
 
 #define TRUE_OR_RETURN(cond)                                                                                           \
   if (not(cond))                                                                                                       \
     return false;
 
-bool srsran::test_helpers::is_valid_rrc_setup(const asn1::rrc_nr::dl_ccch_msg_s& msg)
+bool ocudu::test_helpers::is_valid_rrc_setup(const asn1::rrc_nr::dl_ccch_msg_s& msg)
 {
   TRUE_OR_RETURN(msg.msg.type().value == asn1::rrc_nr::dl_ccch_msg_type_c::types_opts::c1);
   TRUE_OR_RETURN(msg.msg.c1().type().value == asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_setup);
@@ -27,15 +27,15 @@ bool srsran::test_helpers::is_valid_rrc_setup(const asn1::rrc_nr::dl_ccch_msg_s&
   return true;
 }
 
-bool srsran::test_helpers::is_valid_rrc_setup(const byte_buffer& dl_ccch_msg)
+bool ocudu::test_helpers::is_valid_rrc_setup(const byte_buffer& dl_ccch_msg)
 {
   asn1::cbit_ref              bref{dl_ccch_msg};
   asn1::rrc_nr::dl_ccch_msg_s ccch;
-  TRUE_OR_RETURN(ccch.unpack(bref) == asn1::SRSASN_SUCCESS);
+  TRUE_OR_RETURN(ccch.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_setup(ccch);
 }
 
-bool srsran::test_helpers::is_valid_rrc_reestablishment(const asn1::rrc_nr::dl_dcch_msg_s& msg)
+bool ocudu::test_helpers::is_valid_rrc_reestablishment(const asn1::rrc_nr::dl_dcch_msg_s& msg)
 {
   TRUE_OR_RETURN(msg.msg.type().value == asn1::rrc_nr::dl_dcch_msg_type_c::types_opts::c1);
   TRUE_OR_RETURN(msg.msg.c1().type().value == asn1::rrc_nr::dl_dcch_msg_type_c::c1_c_::types_opts::rrc_reest);
@@ -44,15 +44,15 @@ bool srsran::test_helpers::is_valid_rrc_reestablishment(const asn1::rrc_nr::dl_d
   return true;
 }
 
-bool srsran::test_helpers::is_valid_rrc_reestablishment(const byte_buffer& dl_dcch_msg)
+bool ocudu::test_helpers::is_valid_rrc_reestablishment(const byte_buffer& dl_dcch_msg)
 {
   asn1::cbit_ref              bref{dl_dcch_msg};
   asn1::rrc_nr::dl_dcch_msg_s dcch;
-  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::SRSASN_SUCCESS);
+  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_reestablishment(dcch);
 }
 
-bool srsran::test_helpers::is_valid_rrc_security_mode_command(const asn1::rrc_nr::dl_dcch_msg_s& msg)
+bool ocudu::test_helpers::is_valid_rrc_security_mode_command(const asn1::rrc_nr::dl_dcch_msg_s& msg)
 {
   TRUE_OR_RETURN(msg.msg.type().value == asn1::rrc_nr::dl_dcch_msg_type_c::types_opts::c1);
   TRUE_OR_RETURN(msg.msg.c1().type().value == asn1::rrc_nr::dl_dcch_msg_type_c::c1_c_::types_opts::security_mode_cmd);
@@ -61,15 +61,15 @@ bool srsran::test_helpers::is_valid_rrc_security_mode_command(const asn1::rrc_nr
   return true;
 }
 
-bool srsran::test_helpers::is_valid_rrc_security_mode_command(const byte_buffer& dl_dcch_msg)
+bool ocudu::test_helpers::is_valid_rrc_security_mode_command(const byte_buffer& dl_dcch_msg)
 {
   asn1::cbit_ref              bref{dl_dcch_msg};
   asn1::rrc_nr::dl_dcch_msg_s dcch;
-  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::SRSASN_SUCCESS);
+  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_security_mode_command(dcch);
 }
 
-bool srsran::test_helpers::is_valid_rrc_ue_capability_enquiry(const asn1::rrc_nr::dl_dcch_msg_s& msg)
+bool ocudu::test_helpers::is_valid_rrc_ue_capability_enquiry(const asn1::rrc_nr::dl_dcch_msg_s& msg)
 {
   TRUE_OR_RETURN(msg.msg.type().value == asn1::rrc_nr::dl_dcch_msg_type_c::types_opts::c1);
   TRUE_OR_RETURN(msg.msg.c1().type().value == asn1::rrc_nr::dl_dcch_msg_type_c::c1_c_::types_opts::ue_cap_enquiry);
@@ -78,15 +78,15 @@ bool srsran::test_helpers::is_valid_rrc_ue_capability_enquiry(const asn1::rrc_nr
   return true;
 }
 
-bool srsran::test_helpers::is_valid_rrc_ue_capability_enquiry(const byte_buffer& dl_dcch_msg)
+bool ocudu::test_helpers::is_valid_rrc_ue_capability_enquiry(const byte_buffer& dl_dcch_msg)
 {
   asn1::cbit_ref              bref{dl_dcch_msg};
   asn1::rrc_nr::dl_dcch_msg_s dcch;
-  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::SRSASN_SUCCESS);
+  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_ue_capability_enquiry(dcch);
 }
 
-bool srsran::test_helpers::is_valid_rrc_reconfiguration(
+bool ocudu::test_helpers::is_valid_rrc_reconfiguration(
     const asn1::rrc_nr::dl_dcch_msg_s&          msg,
     bool                                        contains_nas_pdu,
     const std::optional<std::vector<srb_id_t>>& expected_srbs_to_add_mod,
@@ -151,7 +151,7 @@ bool srsran::test_helpers::is_valid_rrc_reconfiguration(
         msg.msg.c1().rrc_recfg().crit_exts.rrc_recfg().non_crit_ext.master_cell_group.copy();
     asn1::cbit_ref                 bref{master_cell_group};
     asn1::rrc_nr::cell_group_cfg_s cell_group_cfg;
-    TRUE_OR_RETURN(cell_group_cfg.unpack(bref) == asn1::SRSASN_SUCCESS);
+    TRUE_OR_RETURN(cell_group_cfg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
 
     TRUE_OR_RETURN(cell_group_cfg.sp_cell_cfg_present);
     TRUE_OR_RETURN(cell_group_cfg.sp_cell_cfg.recfg_with_sync_present);
@@ -180,7 +180,7 @@ bool srsran::test_helpers::is_valid_rrc_reconfiguration(
   return true;
 }
 
-bool srsran::test_helpers::is_valid_rrc_reconfiguration(
+bool ocudu::test_helpers::is_valid_rrc_reconfiguration(
     const byte_buffer&                          dl_dcch_msg,
     bool                                        contains_nas_pdu,
     const std::optional<std::vector<srb_id_t>>& expected_srbs_to_add_mod,
@@ -190,7 +190,7 @@ bool srsran::test_helpers::is_valid_rrc_reconfiguration(
 {
   asn1::cbit_ref              bref{dl_dcch_msg};
   asn1::rrc_nr::dl_dcch_msg_s dcch;
-  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::SRSASN_SUCCESS);
+  TRUE_OR_RETURN(dcch.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_reconfiguration(dcch,
                                       contains_nas_pdu,
                                       expected_srbs_to_add_mod,
@@ -199,7 +199,7 @@ bool srsran::test_helpers::is_valid_rrc_reconfiguration(
                                       serving_cell_mo);
 }
 
-bool srsran::test_helpers::is_valid_rrc_handover_preparation_info(const asn1::rrc_nr::ho_prep_info_s& ho_prep_info)
+bool ocudu::test_helpers::is_valid_rrc_handover_preparation_info(const asn1::rrc_nr::ho_prep_info_s& ho_prep_info)
 {
   TRUE_OR_RETURN(ho_prep_info.crit_exts.type().value == asn1::rrc_nr::ho_prep_info_s::crit_exts_c_::types_opts::c1);
   TRUE_OR_RETURN(ho_prep_info.crit_exts.c1().type().value ==
@@ -209,10 +209,10 @@ bool srsran::test_helpers::is_valid_rrc_handover_preparation_info(const asn1::rr
   return true;
 }
 
-bool srsran::test_helpers::is_valid_rrc_handover_preparation_info(const byte_buffer& ho_prep_info)
+bool ocudu::test_helpers::is_valid_rrc_handover_preparation_info(const byte_buffer& ho_prep_info)
 {
   asn1::cbit_ref               bref{ho_prep_info};
   asn1::rrc_nr::ho_prep_info_s msg;
-  TRUE_OR_RETURN(msg.unpack(bref) == asn1::SRSASN_SUCCESS);
+  TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_handover_preparation_info(msg);
 }

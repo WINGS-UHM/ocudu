@@ -11,13 +11,13 @@
 #include "ofh_downlink_handler_impl.h"
 #include "../support/logger_utils.h"
 #include "helpers.h"
-#include "srsran/instrumentation/traces/ofh_traces.h"
-#include "srsran/ofh/ofh_error_notifier.h"
-#include "srsran/phy/support/resource_grid_context.h"
-#include "srsran/phy/support/resource_grid_reader.h"
-#include "srsran/phy/support/shared_resource_grid.h"
+#include "ocudu/instrumentation/traces/ofh_traces.h"
+#include "ocudu/ofh/ofh_error_notifier.h"
+#include "ocudu/phy/support/resource_grid_context.h"
+#include "ocudu/phy/support/resource_grid_reader.h"
+#include "ocudu/phy/support/shared_resource_grid.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace ofh;
 
 downlink_handler_impl::downlink_handler_impl(const downlink_handler_impl_config&  config,
@@ -40,10 +40,10 @@ downlink_handler_impl::downlink_handler_impl(const downlink_handler_impl_config&
   metrics_collector(*data_flow_cplane, *data_flow_uplane, window_checker),
   enable_log_warnings_for_lates(config.enable_log_warnings_for_lates)
 {
-  srsran_assert(data_flow_cplane, "Invalid Control-Plane data flow");
-  srsran_assert(data_flow_uplane, "Invalid User-Plane data flow");
-  srsran_assert(frame_pool_dl_cp, "Invalid downlink Control-Plane frame pool");
-  srsran_assert(frame_pool_dl_up, "Invalid downlink User-Plane frame pool");
+  ocudu_assert(data_flow_cplane, "Invalid Control-Plane data flow");
+  ocudu_assert(data_flow_uplane, "Invalid User-Plane data flow");
+  ocudu_assert(frame_pool_dl_cp, "Invalid downlink Control-Plane frame pool");
+  ocudu_assert(frame_pool_dl_up, "Invalid downlink User-Plane frame pool");
 }
 
 void downlink_handler_impl::start()
@@ -68,15 +68,15 @@ void downlink_handler_impl::stop()
 void downlink_handler_impl::handle_dl_data(const resource_grid_context& context, const shared_resource_grid& grid)
 {
   auto token = stop_control.get_token();
-  if (SRSRAN_UNLIKELY(token.is_stop_requested())) {
+  if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
   }
 
   const resource_grid_reader& reader = grid.get_reader();
-  srsran_assert(reader.get_nof_ports() <= dl_eaxc.size(),
-                "Number of RU ports is '{}' and must be equal or greater than the number of cell ports which is '{}'",
-                dl_eaxc.size(),
-                reader.get_nof_ports());
+  ocudu_assert(reader.get_nof_ports() <= dl_eaxc.size(),
+               "Number of RU ports is '{}' and must be equal or greater than the number of cell ports which is '{}'",
+               dl_eaxc.size(),
+               reader.get_nof_ports());
 
   trace_point tp = ofh_tracer.now();
 

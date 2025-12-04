@@ -12,7 +12,7 @@
 
 #include "rlc_am_pdu.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Provides access to status functions of the RLC RX AM entity.
 /// The RLC TX AM entity uses this class to
@@ -62,4 +62,4 @@ public:
   virtual void on_status_report_changed() = 0;
 };
 
-} // namespace srsran
+} // namespace ocudu

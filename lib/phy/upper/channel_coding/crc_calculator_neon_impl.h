@@ -11,9 +11,9 @@
 #pragma once
 
 #include "crc_calculator_lut_impl.h"
-#include "srsran/phy/upper/channel_coding/crc_calculator.h"
+#include "ocudu/phy/upper/channel_coding/crc_calculator.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// \brief CRC calculator implementation based on the \e vmull_p64 instruction.
 ///
@@ -47,4 +47,4 @@ private:
   crc_calculator_lut_impl crc_calc_lut;
 };
 
-} // namespace srsran
+} // namespace ocudu

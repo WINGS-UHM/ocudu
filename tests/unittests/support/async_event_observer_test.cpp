@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/support/async/async_event_source.h"
-#include "srsran/support/async/eager_async_task.h"
-#include "srsran/support/executors/manual_task_worker.h"
+#include "ocudu/support/async/async_event_source.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
 class async_single_event_observer_test : public ::testing::Test
 {

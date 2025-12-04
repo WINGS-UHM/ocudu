@@ -9,15 +9,15 @@
  */
 
 #include "rlc_tx_am_entity.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/instrumentation/traces/du_traces.h"
-#include "srsran/pdcp/pdcp_sn_util.h"
-#include "srsran/ran/pdsch/pdsch_constants.h"
-#include "srsran/support/rtsan.h"
-#include "srsran/support/srsran_assert.h"
-#include "srsran/support/tracing/event_tracing.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/ran/pdsch/pdsch_constants.h"
+#include "ocudu/support/ocudu_assert.h"
+#include "ocudu/support/rtsan.h"
+#include "ocudu/support/tracing/event_tracing.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 rlc_tx_am_entity::rlc_tx_am_entity(gnb_du_id_t                          gnb_du_id,
                                    du_ue_index_t                        ue_index,
@@ -59,21 +59,21 @@ rlc_tx_am_entity::rlc_tx_am_entity(gnb_du_id_t                          gnb_du_i
   metrics_low.metrics_set_mode(rlc_mode::am);
 
   // check PDCP SN length
-  srsran_assert(config.pdcp_sn_len == pdcp_sn_size::size12bits || config.pdcp_sn_len == pdcp_sn_size::size18bits,
-                "Cannot create RLC TX AM, unsupported pdcp_sn_len={}. du={} ue={} {}",
-                config.pdcp_sn_len,
-                fmt::underlying(gnb_du_id),
-                fmt::underlying(ue_index),
-                rb_id_);
+  ocudu_assert(config.pdcp_sn_len == pdcp_sn_size::size12bits || config.pdcp_sn_len == pdcp_sn_size::size18bits,
+               "Cannot create RLC TX AM, unsupported pdcp_sn_len={}. du={} ue={} {}",
+               config.pdcp_sn_len,
+               fmt::underlying(gnb_du_id),
+               fmt::underlying(ue_index),
+               rb_id_);
 
   // check timer t_poll_retransmission timer
-  srsran_assert(poll_retransmit_timer.is_valid(), "Cannot create RLC TX AM, timers not configured.");
+  ocudu_assert(poll_retransmit_timer.is_valid(), "Cannot create RLC TX AM, timers not configured.");
 
   //  configure t_poll_retransmission timer
   if (cfg.t_poll_retx > 0) {
     poll_retransmit_timer.set(
         std::chrono::milliseconds(cfg.t_poll_retx),
-        [this](timer_id_t tid) noexcept SRSRAN_RTSAN_NONBLOCKING { on_expired_poll_retransmit_timer(); });
+        [this](timer_id_t tid) noexcept OCUDU_RTSAN_NONBLOCKING { on_expired_poll_retransmit_timer(); });
   }
 
   logger.log_info("RLC AM configured. {}", cfg);
@@ -90,7 +90,7 @@ void rlc_tx_am_entity::handle_sdu(byte_buffer sdu_buf, bool is_retx)
   sdu.pdcp_sn = get_pdcp_sn(sdu.buf, cfg.pdcp_sn_len, rb_id.is_srb(), logger.get_basic_logger());
 
   // Sanity check for PDCP ReTx in SRBs
-  if (SRSRAN_UNLIKELY(rb_id.is_srb() && sdu.is_retx)) {
+  if (OCUDU_UNLIKELY(rb_id.is_srb() && sdu.is_retx)) {
     logger.log_error("Ignored unexpected PDCP retransmission flag in SRB RLC AM SDU");
     sdu.is_retx = false;
   }
@@ -130,7 +130,7 @@ void rlc_tx_am_entity::discard_sdu(uint32_t pdcp_sn)
 }
 
 // TS 38.322 v16.2.0 Sec. 5.2.3.1
-size_t rlc_tx_am_entity::pull_pdu(span<uint8_t> rlc_pdu_buf) noexcept SRSRAN_RTSAN_NONBLOCKING
+size_t rlc_tx_am_entity::pull_pdu(span<uint8_t> rlc_pdu_buf) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   std::chrono::time_point<std::chrono::steady_clock> pull_begin;
   if (metrics_low.is_enabled()) {
@@ -169,7 +169,7 @@ size_t rlc_tx_am_entity::pull_pdu(span<uint8_t> rlc_pdu_buf) noexcept SRSRAN_RTS
     logger.log_info(rlc_pdu_buf.data(), pdu_len, "TX status PDU. pdu_len={} grant_len={}", pdu_len, grant_len);
 
     // Log state
-    log_state(srslog::basic_levels::debug);
+    log_state(ocudulog::basic_levels::debug);
 
     // Write PCAP
     pcap.push_pdu(pcap_context, rlc_pdu_buf.subspan(0, pdu_len));
@@ -320,7 +320,7 @@ size_t rlc_tx_am_entity::build_new_pdu(span<uint8_t> rlc_pdu_buf)
   metrics_low.metrics_add_pdus_no_segmentation(1, pdu_len);
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   return pdu_len;
 }
@@ -384,7 +384,7 @@ size_t rlc_tx_am_entity::build_first_sdu_segment(span<uint8_t> rlc_pdu_buf, rlc_
   metrics_low.metrics_add_pdus_with_segmentation_am(1, pdu_len);
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   return pdu_len;
 }
@@ -483,7 +483,7 @@ size_t rlc_tx_am_entity::build_continued_sdu_segment(span<uint8_t> rlc_pdu_buf, 
   metrics_low.metrics_add_pdus_with_segmentation_am(1, pdu_len);
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   return pdu_len;
 }
@@ -596,10 +596,10 @@ size_t rlc_tx_am_entity::build_retx_pdu(span<uint8_t> rlc_pdu_buf)
     logger.log_error("Could not pack RLC header. hdr={}", hdr);
     return 0;
   }
-  srsran_assert(header_len == expected_hdr_len,
-                "RETX header_len={} differs from expected_hdr_len={}",
-                header_len,
-                expected_hdr_len);
+  ocudu_assert(header_len == expected_hdr_len,
+               "RETX header_len={} differs from expected_hdr_len={}",
+               header_len,
+               expected_hdr_len);
 
   // Assemble PDU
   size_t payload_len = copy_segments(byte_buffer_view{sdu_info.sdu, hdr.so, retx_payload_len},
@@ -623,7 +623,7 @@ size_t rlc_tx_am_entity::build_retx_pdu(span<uint8_t> rlc_pdu_buf)
   metrics_low.metrics_add_retx_pdus(1, pdu_len);
 
   // Log state
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
 
   return pdu_len;
 }
@@ -637,7 +637,7 @@ void rlc_tx_am_entity::on_status_pdu(rlc_am_status_pdu status)
   }
 }
 
-void rlc_tx_am_entity::handle_status_pdu(rlc_am_status_pdu status) noexcept SRSRAN_RTSAN_NONBLOCKING
+void rlc_tx_am_entity::handle_status_pdu(rlc_am_status_pdu status) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   trace_point status_tp = l2_tracer.now();
   auto        t_start   = std::chrono::steady_clock::now();
@@ -984,7 +984,7 @@ void rlc_tx_am_entity::handle_changed_buffer_state()
   }
 }
 
-void rlc_tx_am_entity::update_mac_buffer_state(bool force_notify) noexcept SRSRAN_RTSAN_NONBLOCKING
+void rlc_tx_am_entity::update_mac_buffer_state(bool force_notify) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   pending_buffer_state.clear(std::memory_order_seq_cst);
   rlc_buffer_state bs = get_buffer_state();
@@ -1131,7 +1131,7 @@ uint8_t rlc_tx_am_entity::get_polling_bit(uint32_t sn, bool is_retx, uint32_t pa
   return poll;
 }
 
-void rlc_tx_am_entity::on_expired_poll_retransmit_timer() noexcept SRSRAN_RTSAN_NONBLOCKING
+void rlc_tx_am_entity::on_expired_poll_retransmit_timer() noexcept OCUDU_RTSAN_NONBLOCKING
 {
   std::chrono::time_point<std::chrono::steady_clock> t_start;
   if (metrics_low.is_enabled()) {
@@ -1148,7 +1148,7 @@ void rlc_tx_am_entity::on_expired_poll_retransmit_timer() noexcept SRSRAN_RTSAN_
 
   // t-PollRetransmit
   logger.log_info("Poll retransmit timer expired after {}ms.", poll_retransmit_timer.duration().count());
-  log_state(srslog::basic_levels::debug);
+  log_state(ocudulog::basic_levels::debug);
   /*
    * - if both the transmission buffer and the retransmission buffer are empty
    *   (excluding transmitted RLC SDU or RLC SDU segment awaiting acknowledgements); or

@@ -11,16 +11,16 @@
 #include "f1_setup_procedure.h"
 #include "../f1ap_asn1_converters.h"
 #include "asn1_helpers.h"
-#include "srsran/adt/expected.h"
-#include "srsran/asn1/f1ap/f1ap_pdu_contents.h"
-#include "srsran/f1ap/cu_cp/du_setup_notifier.h"
-#include "srsran/f1ap/cu_cp/f1ap_du_context.h"
-#include "srsran/f1ap/f1ap_message.h"
-#include "srsran/ran/bcd_helper.h"
-#include "srsran/ran/cause/f1ap_cause.h"
+#include "ocudu/adt/expected.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/f1ap/cu_cp/du_setup_notifier.h"
+#include "ocudu/f1ap/cu_cp/f1ap_du_context.h"
+#include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/bcd_helper.h"
+#include "ocudu/ran/cause/f1ap_cause.h"
 
-using namespace srsran;
-using namespace srs_cu_cp;
+using namespace ocudu;
+using namespace ocucp;
 
 static error_type<std::pair<asn1::f1ap::cause_c, std::string>>
 validate_f1_setup_request(const asn1::f1ap::f1_setup_request_s& request)
@@ -37,7 +37,7 @@ validate_f1_setup_request(const asn1::f1ap::f1_setup_request_s& request)
   return {};
 }
 
-du_setup_request srsran::srs_cu_cp::create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1_request)
+du_setup_request ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1_request)
 {
   du_setup_request request;
 
@@ -88,7 +88,7 @@ du_setup_request srsran::srs_cu_cp::create_du_setup_request(const asn1::f1ap::f1
 
         served_cell.gnb_du_sys_info = gnb_du_sys_info;
       } else {
-        srslog::fetch_basic_logger("CU-CP-F1").error("gNB DU system information must be present for NG-RAN.");
+        ocudulog::fetch_basic_logger("CU-CP-F1").error("gNB DU system information must be present for NG-RAN.");
       }
 
       request.gnb_du_served_cells_list.push_back(served_cell);
@@ -156,11 +156,11 @@ static f1ap_message create_f1_setup_reject(const asn1::f1ap::f1_setup_request_s&
   return f1ap_msg;
 }
 
-void srsran::srs_cu_cp::handle_f1_setup_procedure(const asn1::f1ap::f1_setup_request_s& request,
-                                                  f1ap_du_context&                      du_ctxt,
-                                                  f1ap_message_notifier&                pdu_notifier,
-                                                  du_setup_notifier&                    du_setup_notif,
-                                                  srslog::basic_logger&                 logger)
+void ocudu::ocucp::handle_f1_setup_procedure(const asn1::f1ap::f1_setup_request_s& request,
+                                             f1ap_du_context&                      du_ctxt,
+                                             f1ap_message_notifier&                pdu_notifier,
+                                             du_setup_notifier&                    du_setup_notif,
+                                             ocudulog::basic_logger&               logger)
 {
   // Message content validation.
   auto msgerr = validate_f1_setup_request(request);

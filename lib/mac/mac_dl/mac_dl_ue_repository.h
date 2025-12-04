@@ -11,12 +11,12 @@
 #pragma once
 
 #include "../rnti_value_table.h"
-#include "srsran/mac/mac_config.h"
-#include "srsran/mac/mac_ue_configurator.h"
-#include "srsran/ran/du_types.h"
-#include "srsran/ran/du_ue_list.h"
+#include "ocudu/mac/mac_config.h"
+#include "ocudu/mac/mac_ue_configurator.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/du_ue_list.h"
 
-namespace srsran {
+namespace ocudu {
 
 /// Array of bytes used to store the UE Contention Resolution Id.
 constexpr size_t UE_CON_RES_ID_LEN = 6;
@@ -141,4 +141,4 @@ private:
   du_ue_list<mac_dl_ue_context> ue_db;
 };
 
-} // namespace srsran
+} // namespace ocudu

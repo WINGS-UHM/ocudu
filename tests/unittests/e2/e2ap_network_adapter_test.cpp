@@ -12,16 +12,16 @@
 #include "dummy_ric.h"
 #include "lib/e2/common/e2_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
-#include "srsran/e2/e2ap_configuration_helpers.h"
-#include "srsran/e2/e2sm/e2sm_manager.h"
-#include "srsran/e2/gateways/e2_connection_client.h"
-#include "srsran/e2/gateways/e2_network_client_factory.h"
-#include "srsran/gateways/sctp_network_server_factory.h"
-#include "srsran/support/async/async_test_utils.h"
-#include "srsran/support/executors/inline_task_executor.h"
-#include "srsran/support/executors/manual_task_worker.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/timers.h"
+#include "ocudu/e2/e2ap_configuration_helpers.h"
+#include "ocudu/e2/e2sm/e2sm_manager.h"
+#include "ocudu/e2/gateways/e2_connection_client.h"
+#include "ocudu/e2/gateways/e2_network_client_factory.h"
+#include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/executors/inline_task_executor.h"
+#include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/timers.h"
 #include <chrono>
 #include <condition_variable>
 #include <gtest/gtest.h>
@@ -29,7 +29,7 @@
 #include <mutex>
 #include <utility>
 
-using namespace srsran;
+using namespace ocudu;
 
 class e2ap_network_adapter_test : public ::testing::Test
 {
@@ -42,8 +42,8 @@ protected:
 
   void SetUp() override
   {
-    srslog::fetch_basic_logger("TEST").set_level(srslog::basic_levels::debug);
-    srslog::init();
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
 
     ric_broker   = create_io_broker(io_broker_type::epoll);
     agent_broker = create_io_broker(io_broker_type::epoll);
@@ -80,7 +80,7 @@ protected:
 
     pcap      = std::make_unique<dummy_e2ap_pcap>();
     e2_client = create_e2_gateway_client(
-        e2_sctp_gateway_config{e2agent_config, *agent_broker, rx_executor, *pcap, srslog::fetch_basic_logger("E2")});
+        e2_sctp_gateway_config{e2agent_config, *agent_broker, rx_executor, *pcap, ocudulog::fetch_basic_logger("E2")});
     e2_client_wrapper = std::make_unique<e2_connection_client_wrapper>(*e2_client);
     du_metrics        = std::make_unique<dummy_e2_du_metrics>();
     du_meas_provider  = std::make_unique<dummy_e2sm_kpm_du_meas_provider>();
@@ -91,7 +91,7 @@ protected:
     e2_subscription_mngr = std::make_unique<e2_subscription_manager_impl>(*e2sm_mngr);
     factory              = timer_factory{timers, task_exec};
     e2agent_notifier     = std::make_unique<dummy_e2_agent_mng>();
-    e2ap                 = std::make_unique<e2_impl>(srslog::fetch_basic_logger("E2"),
+    e2ap                 = std::make_unique<e2_impl>(ocudulog::fetch_basic_logger("E2"),
                                      cfg,
                                      *e2agent_notifier,
                                      factory,
@@ -104,7 +104,7 @@ protected:
   void TearDown() override
   {
     // flush logger after each test
-    srslog::flush();
+    ocudulog::flush();
   }
 
   class e2_msg_notifier_wrapper : public e2_message_notifier
@@ -178,7 +178,7 @@ protected:
   class e2_sniffer : public e2_message_notifier
   {
   public:
-    e2_sniffer(e2ap_network_adapter_test& parent_) : logger(srslog::fetch_basic_logger("E2")) {}
+    e2_sniffer(e2ap_network_adapter_test& parent_) : logger(ocudulog::fetch_basic_logger("E2")) {}
 
     /// E2 message handler functions.
     void on_new_message(const e2_message& msg) override
@@ -203,7 +203,7 @@ protected:
     }
 
   private:
-    srslog::basic_logger&   logger;
+    ocudulog::basic_logger& logger;
     std::mutex              rx_mutex;
     std::condition_variable rx_cvar;
     std::list<e2_message>   e2_msg_queue;
@@ -239,7 +239,7 @@ protected:
   std::unique_ptr<e2sm_interface>               e2sm_iface;
   std::unique_ptr<e2_interface>                 e2ap;
 
-  srslog::basic_logger& test_logger = srslog::fetch_basic_logger("TEST");
+  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful e2 setup procedure

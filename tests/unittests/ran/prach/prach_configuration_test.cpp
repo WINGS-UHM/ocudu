@@ -9,13 +9,13 @@
  */
 
 #include "prach_configuration_test_data.h"
-#include "srsran/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/prach_configuration.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
-using namespace srsran;
+using namespace ocudu;
 
-namespace srsran {
+namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, test_case_t tc)
 {
@@ -23,7 +23,7 @@ std::ostream& operator<<(std::ostream& os, test_case_t tc)
   return os;
 }
 
-} // namespace srsran
+} // namespace ocudu
 
 class PrachConfiguration : public testing::TestWithParam<test_case_t>
 {};

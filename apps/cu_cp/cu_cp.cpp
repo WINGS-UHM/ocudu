@@ -25,29 +25,29 @@
 #include "apps/units/o_cu_cp/o_cu_cp_unit_config.h"
 #include "apps/units/o_cu_cp/pcap_factory.h"
 #include "cu_cp_appconfig.h"
-#include "srsran/adt/scope_exit.h"
-#include "srsran/cu_cp/cu_cp_operation_controller.h"
-#include "srsran/e1ap/gateways/e1_network_server_factory.h"
-#include "srsran/e2/e2ap_config_translators.h"
-#include "srsran/f1ap/gateways/f1c_network_server_factory.h"
-#include "srsran/support/backtrace.h"
-#include "srsran/support/config_parsers.h"
-#include "srsran/support/cpu_features.h"
-#include "srsran/support/error_handling.h"
-#include "srsran/support/io/io_broker.h"
-#include "srsran/support/io/io_broker_factory.h"
-#include "srsran/support/io/io_timer_source.h"
-#include "srsran/support/signal_handling.h"
-#include "srsran/support/signal_observer.h"
-#include "srsran/support/sysinfo.h"
-#include "srsran/support/timers.h"
-#include "srsran/support/tracing/event_tracing.h"
-#include "srsran/support/versioning/build_info.h"
-#include "srsran/support/versioning/version.h"
+#include "ocudu/adt/scope_exit.h"
+#include "ocudu/cu_cp/cu_cp_operation_controller.h"
+#include "ocudu/e1ap/gateways/e1_network_server_factory.h"
+#include "ocudu/e2/e2ap_config_translators.h"
+#include "ocudu/f1ap/gateways/f1c_network_server_factory.h"
+#include "ocudu/support/backtrace.h"
+#include "ocudu/support/config_parsers.h"
+#include "ocudu/support/cpu_features.h"
+#include "ocudu/support/error_handling.h"
+#include "ocudu/support/io/io_broker.h"
+#include "ocudu/support/io/io_broker_factory.h"
+#include "ocudu/support/io/io_timer_source.h"
+#include "ocudu/support/signal_handling.h"
+#include "ocudu/support/signal_observer.h"
+#include "ocudu/support/sysinfo.h"
+#include "ocudu/support/timers.h"
+#include "ocudu/support/tracing/event_tracing.h"
+#include "ocudu/support/versioning/build_info.h"
+#include "ocudu/support/versioning/version.h"
 #include <atomic>
 #include <thread>
 
-using namespace srsran;
+using namespace ocudu;
 
 /// \file
 /// \brief Application of a Central Unit Control Plane (CU-CP).
@@ -67,8 +67,8 @@ static constexpr unsigned MAX_CONFIG_FILES = 10;
 static void populate_cli11_generic_args(CLI::App& app)
 {
   fmt::memory_buffer buffer;
-  format_to(std::back_inserter(buffer), "srsRAN 5G CU-CP version {} ({})", get_version(), get_build_hash());
-  app.set_version_flag("-v,--version", srsran::to_c_str(buffer));
+  format_to(std::back_inserter(buffer), "OCUDU 5G CU-CP version {} ({})", get_version(), get_build_hash());
+  app.set_version_flag("-v,--version", ocudu::to_c_str(buffer));
   app.set_config("-c,", config_file, "Read config from file", false)->expected(1, MAX_CONFIG_FILES);
 }
 
@@ -84,25 +84,26 @@ static signal_dispatcher cleanup_signal_dispatcher;
 static void cleanup_signal_handler(int signal)
 {
   cleanup_signal_dispatcher.notify_signal(signal);
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 /// Function to call when an error is reported by the application.
 static void app_error_report_handler()
 {
-  srslog::fetch_basic_logger("APP").error("Emergency flush of the logger");
-  srslog::flush();
+  ocudulog::fetch_basic_logger("APP").error("Emergency flush of the logger");
+  ocudulog::flush();
 }
 
 static void initialize_log(const std::string& filename)
 {
-  srslog::sink* log_sink = (filename == "stdout") ? srslog::create_stdout_sink() : srslog::create_file_sink(filename);
+  ocudulog::sink* log_sink =
+      (filename == "stdout") ? ocudulog::create_stdout_sink() : ocudulog::create_file_sink(filename);
   if (log_sink == nullptr) {
     report_error("Could not create application main log sink.\n");
   }
-  srslog::set_default_sink(*log_sink);
-  srslog::init();
+  ocudulog::set_default_sink(*log_sink);
+  ocudulog::init();
 }
 
 static void register_app_logs(const cu_cp_appconfig& cu_cp_cfg, o_cu_cp_application_unit& cu_cp_app_unit)
@@ -110,24 +111,24 @@ static void register_app_logs(const cu_cp_appconfig& cu_cp_cfg, o_cu_cp_applicat
   const logger_appconfig& log_cfg = cu_cp_cfg.log_cfg;
   // Set log-level of app and all non-layer specific components to app level.
   for (const auto& id : {"ALL", "SCTP-GW", "IO-EPOLL", "PCAP", "ASN1"}) {
-    auto& logger = srslog::fetch_basic_logger(id, false);
+    auto& logger = ocudulog::fetch_basic_logger(id, false);
     logger.set_level(log_cfg.lib_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& app_logger = srslog::fetch_basic_logger("CU-CP", false);
-  app_logger.set_level(srslog::basic_levels::info);
+  auto& app_logger = ocudulog::fetch_basic_logger("CU-CP", false);
+  app_logger.set_level(ocudulog::basic_levels::info);
   app_services::application_message_banners::log_build_info(app_logger);
   app_logger.set_level(log_cfg.all_level);
   app_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
   {
-    auto& logger = srslog::fetch_basic_logger("APP", false);
+    auto& logger = ocudulog::fetch_basic_logger("APP", false);
     logger.set_level(log_cfg.all_level);
     logger.set_hex_dump_max_size(log_cfg.hex_max_size);
   }
 
-  auto& config_logger = srslog::fetch_basic_logger("CONFIG", false);
+  auto& config_logger = ocudulog::fetch_basic_logger("CONFIG", false);
   config_logger.set_level(log_cfg.config_level);
   config_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
@@ -167,7 +168,7 @@ int main(int argc, char** argv)
   enable_backtrace();
 
   // Setup and configure config parsing.
-  CLI::App app("srsCU-CP application");
+  CLI::App app("OCUDU CU-CP application");
   app.config_formatter(create_yaml_config_parser());
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.
@@ -200,12 +201,12 @@ int main(int argc, char** argv)
 
   // Set up logging.
   initialize_log(cu_cp_cfg.log_cfg.filename);
-  auto log_flusher = make_scope_exit([]() { srslog::flush(); });
+  auto log_flusher = make_scope_exit([]() { ocudulog::flush(); });
   register_app_logs(cu_cp_cfg, *o_cu_cp_app_unit);
 
   // Check the metrics and metrics consumers.
-  srslog::basic_logger& cu_cp_logger = srslog::fetch_basic_logger("CU-CP");
-  bool                  metrics_enabled =
+  ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP");
+  bool                    metrics_enabled =
       o_cu_cp_app_unit->are_metrics_enabled() || cu_cp_cfg.metrics_cfg.rusage_config.enable_app_usage;
 
   if (!metrics_enabled && cu_cp_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg.enabled()) {
@@ -291,7 +292,7 @@ int main(int argc, char** argv)
   f1c_sctp_cfg.ppid                        = F1AP_PPID;
   f1c_cu_sctp_gateway_config f1c_server_cfg(
       {f1c_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().f1c_rx_executor(), *cu_cp_dlt_pcaps.f1ap});
-  std::unique_ptr<srs_cu_cp::f1c_connection_server> cu_f1c_gw = srsran::create_f1c_gateway_server(f1c_server_cfg);
+  std::unique_ptr<ocucp::f1c_connection_server> cu_f1c_gw = ocudu::create_f1c_gateway_server(f1c_server_cfg);
 
   // Instantiate E1 GW
   // > Create E1 config
@@ -301,7 +302,7 @@ int main(int argc, char** argv)
   e1_sctp_cfg.bind_port    = E1AP_PORT;
   e1_sctp_cfg.ppid         = E1AP_PPID;
   // > Create E1 gateway
-  std::unique_ptr<srs_cu_cp::e1_connection_server> e1_gw = create_e1_gateway_server(e1_cu_cp_sctp_gateway_config{
+  std::unique_ptr<ocucp::e1_connection_server> e1_gw = create_e1_gateway_server(e1_cu_cp_sctp_gateway_config{
       e1_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().e1_rx_executor(), *cu_cp_dlt_pcaps.e1ap});
 
   // Instantiate E2AP client gateway.
@@ -333,8 +334,8 @@ int main(int argc, char** argv)
   o_cucp_deps.metrics_notifier = &metrics_notifier_forwarder;
 
   // Create O-CU-CP.
-  auto                o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
-  srs_cu_cp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
+  auto            o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
+  ocucp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
 
   if (std::unique_ptr<app_services::cmdline_command> cmd = app_services::create_stdout_metrics_app_command(
           {{o_cucp_unit.commands.cmdline.metrics_subcommands}}, false)) {
@@ -366,7 +367,7 @@ int main(int argc, char** argv)
   cu_f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
 
   app_services::metrics_manager metrics_mngr(
-      srslog::fetch_basic_logger("CU"),
+      ocudulog::fetch_basic_logger("CU"),
       workers.get_metrics_executor(),
       metrics_configs,
       app_timers,

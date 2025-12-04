@@ -11,12 +11,12 @@
 #include "cmdline_command_dispatcher.h"
 #include "cmdline_command_dispatcher_utils.h"
 #include "stdout_metrics_command.h"
-#include "srsran/srslog/srslog.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <csignal>
 #include <fcntl.h>
 #include <unistd.h>
 
-using namespace srsran;
+using namespace ocudu;
 using namespace app_services;
 
 namespace {
@@ -81,7 +81,7 @@ public:
 cmdline_command_dispatcher::cmdline_command_dispatcher(io_broker&                             io_broker,
                                                        task_executor&                         executor,
                                                        span<std::unique_ptr<cmdline_command>> commands_) :
-  logger(srslog::fetch_basic_logger("APP"))
+  logger(ocudulog::fetch_basic_logger("APP"))
 {
   // Add the sleep command.
   {
@@ -184,7 +184,7 @@ void cmdline_command_dispatcher::handle_command(const std::string& command)
   std::vector<std::string> arg_list;
   string_parse_list(command, ' ', arg_list);
 
-  srsran_assert(!arg_list.empty(), "Parsing empty command argument list");
+  ocudu_assert(!arg_list.empty(), "Parsing empty command argument list");
 
   if (auto cmd = commands.find(arg_list.front()); cmd != commands.end()) {
     cmd->second->execute(span<const std::string>(arg_list).last(arg_list.size() - 1));

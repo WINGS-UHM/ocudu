@@ -8,10 +8,10 @@
  *
  */
 
-#include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
-#include "srsran/support/srsran_test.h"
+#include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
+#include "ocudu/support/ocudu_test.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 static void test_ra_frequency_type1()
 {

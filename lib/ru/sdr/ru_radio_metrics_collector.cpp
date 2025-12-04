@@ -10,7 +10,7 @@
 
 #include "ru_radio_metrics_collector.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_radio_metrics_collector::on_radio_rt_event(const event_description& description)
 {

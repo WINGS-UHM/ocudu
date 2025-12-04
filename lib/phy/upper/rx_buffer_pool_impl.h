@@ -12,16 +12,16 @@
 
 #include "rx_buffer_codeblock_pool.h"
 #include "rx_buffer_impl.h"
-#include "srsran/phy/upper/rx_buffer_pool.h"
-#include "srsran/phy/upper/unique_rx_buffer.h"
-#include "srsran/ran/slot_point.h"
-#include "srsran/srslog/logger.h"
-#include "srsran/srslog/srslog.h"
-#include "srsran/support/srsran_assert.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/phy/upper/rx_buffer_pool.h"
+#include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
 #include <vector>
 
-namespace srsran {
+namespace ocudu {
 
 /// Implements a PUSCH rate matcher buffer pool.
 class rx_buffer_pool_impl : public rx_buffer_pool_controller, private rx_buffer_pool
@@ -47,7 +47,7 @@ private:
   /// Indicates the lifetime of a buffer reservation as a number of slots.
   unsigned expire_timeout_slots;
   /// Logger.
-  srslog::basic_logger& logger;
+  ocudulog::basic_logger& logger;
 
   // See interface for documentation.
   unique_rx_buffer reserve(slot_point slot, trx_buffer_identifier id, unsigned nof_codeblocks, bool new_data) override;
@@ -64,15 +64,15 @@ public:
     identifiers(config.nof_buffers, trx_buffer_identifier::invalid()),
     expirations(config.nof_buffers, null_expiration),
     expire_timeout_slots(config.expire_timeout_slots),
-    logger(srslog::fetch_basic_logger("PHY", true))
+    logger(ocudulog::fetch_basic_logger("PHY", true))
   {
   }
 
   // See rx_buffer_pool_controller interface for documentation.
   ~rx_buffer_pool_impl() override
   {
-    srsran_assert(std::none_of(buffers.begin(), buffers.end(), [](const auto& buffer) { return buffer.is_locked(); }),
-                  "A buffer is still locked.");
+    ocudu_assert(std::none_of(buffers.begin(), buffers.end(), [](const auto& buffer) { return buffer.is_locked(); }),
+                 "A buffer is still locked.");
   }
 
   // See rx_buffer_pool_controller interface for documentation.
@@ -82,4 +82,4 @@ public:
   void stop() override;
 };
 
-} // namespace srsran
+} // namespace ocudu

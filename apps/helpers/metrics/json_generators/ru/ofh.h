@@ -11,11 +11,11 @@
 #pragma once
 
 #include "external/nlohmann/json.hpp"
-#include "srsran/adt/span.h"
-#include "srsran/ran/pci.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ran/pci.h"
 #include <string>
 
-namespace srsran {
+namespace ocudu {
 
 namespace ofh {
 struct metrics;
@@ -36,4 +36,4 @@ std::string generate_string(const ofh::metrics&      metrics,
 
 } // namespace json_generators
 } // namespace app_helpers
-} // namespace srsran
+} // namespace ocudu

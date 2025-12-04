@@ -8,12 +8,12 @@
  *
  */
 
-#include "srsran/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "uci_part2_mapper_functions.h"
-#include "srsran/ran/csi_report/csi_report_on_pusch_helpers.h"
-#include "srsran/ran/csi_report/csi_report_on_puxch_utils.h"
+#include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_puxch_utils.h"
 
-using namespace srsran;
+using namespace ocudu;
 using namespace fapi_adaptor;
 
 /// Adds a new entry in the specified position resizing the container if needed.
@@ -28,10 +28,10 @@ static auto add_map_entry(T& container, unsigned index) -> typename T::reference
 }
 
 std::pair<std::unique_ptr<uci_part2_correspondence_mapper>, std::unique_ptr<uci_part2_correspondence_repository>>
-srsran::fapi_adaptor::generate_uci_part2_correspondence(unsigned nof_csi_rs_resources)
+ocudu::fapi_adaptor::generate_uci_part2_correspondence(unsigned nof_csi_rs_resources)
 {
-  srsran_assert(nof_csi_rs_resources && nof_csi_rs_resources <= MAX_NUM_CSI_RESOURCES,
-                "Unsupported number of CSI-RS resources");
+  ocudu_assert(nof_csi_rs_resources && nof_csi_rs_resources <= MAX_NUM_CSI_RESOURCES,
+               "Unsupported number of CSI-RS resources");
 
   unsigned map_index = 0;
   std::vector<static_vector<uci_part2_correspondence_information, uci_part2_size_description::max_nof_entries>>

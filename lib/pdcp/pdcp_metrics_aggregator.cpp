@@ -9,9 +9,9 @@
  */
 
 #include "pdcp_metrics_aggregator.h"
-#include "srsran/pdcp/pdcp_entity.h"
+#include "ocudu/pdcp/pdcp_entity.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 pdcp_metrics_aggregator::pdcp_metrics_aggregator(uint32_t               ue_index_,
                                                  rb_id_t                rb_id_,

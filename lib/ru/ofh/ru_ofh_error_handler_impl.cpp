@@ -10,7 +10,7 @@
 
 #include "ru_ofh_error_handler_impl.h"
 
-using namespace srsran;
+using namespace ocudu;
 
 void ru_ofh_error_handler_impl::on_late_downlink_message(const ofh::error_context& context)
 {

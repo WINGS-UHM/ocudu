@@ -20,6 +20,61 @@ using namespace ocudu;
 // imprecision.
 static constexpr unsigned MAX_PF_COEFF = 10;
 
+ue_history_system::ue_history_system()
+{
+  ue_db.reserve(MAX_NOF_DU_UES);
+  ue_row_ids.reserve(MAX_NOF_DU_UES);
+}
+
+void ue_history_system::add_ue(du_ue_index_t ue_index)
+{
+  if (ue_row_ids.size() <= ue_index) {
+    ue_row_ids.resize(ue_index + 1, soa::row_id{std::numeric_limits<uint32_t>::max()});
+  }
+  auto row_id          = ue_db.insert(0.0, 0.0, 0, 0);
+  ue_row_ids[ue_index] = row_id;
+}
+
+void ue_history_system::rem_ue(du_ue_index_t ue_index)
+{
+  auto row_id = ue_row_ids[ue_index];
+  ue_db.erase(row_id);
+  ue_row_ids[ue_index] = soa::row_id{std::numeric_limits<uint32_t>::max()};
+}
+
+void ue_history_system::slot_indication(slot_point slot_tx)
+{
+  // Compute DL and UL average rates for all UEs.
+  span<double> dl_rate    = ue_db.column<component::dl_avg>().to_span();
+  span<double> dl_samples = ue_db.column<component::accum_dl_samples>().to_span();
+  for (size_t i = 0, sz = dl_rate.size(); i != sz; ++i) {
+    dl_rate[i] = dl_rate[i] * (1.0 - exp_avg_alpha) + exp_avg_alpha * dl_samples[i];
+  }
+  std::fill(dl_samples.begin(), dl_samples.end(), 0.0);
+  span<double> ul_rate    = ue_db.column<component::ul_avg>().to_span();
+  span<double> ul_samples = ue_db.column<component::accum_ul_samples>().to_span();
+  for (size_t i = 0, sz = ul_rate.size(); i != sz; ++i) {
+    ul_rate[i] = ul_rate[i] * (1.0 - exp_avg_alpha) + exp_avg_alpha * ul_samples[i];
+  }
+  std::fill(ul_samples.begin(), ul_samples.end(), 0.0);
+}
+
+void ue_history_system::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
+{
+  for (const dl_msg_alloc& grant : dl_grants) {
+    soa::row_id r = ue_row_ids[grant.context.ue_index];
+    ue_db.at<component::accum_dl_samples>(r) += grant.pdsch_cfg.codewords[0].tb_size_bytes;
+  }
+}
+
+void ue_history_system::save_ul_newtx_grants(span<const ul_sched_info> ul_grants)
+{
+  for (const ul_sched_info& grant : ul_grants) {
+    soa::row_id r = ue_row_ids[grant.context.ue_index];
+    ue_db.at<component::accum_ul_samples>(r) += grant.pusch_cfg.tb_size_bytes;
+  }
+}
+
 scheduler_time_qos::scheduler_time_qos(const scheduler_ue_expert_config& expert_cfg_, du_cell_index_t cell_index_) :
   params(std::get<time_qos_scheduler_config>(expert_cfg_.policy_cfg)), cell_index(cell_index_)
 {
@@ -28,19 +83,19 @@ scheduler_time_qos::scheduler_time_qos(const scheduler_ue_expert_config& expert_
 void scheduler_time_qos::add_ue(du_ue_index_t ue_index)
 {
   ocudu_assert(not ue_history_db.contains(ue_index), "UE was already added to this slice");
+  history.add_ue(ue_index);
   ue_history_db.emplace(ue_index, ue_ctxt{ue_index, cell_index, this});
 }
 
 void scheduler_time_qos::rem_ue(du_ue_index_t ue_index)
 {
+  history.rem_ue(ue_index);
   ue_history_db.erase(ue_index);
 }
 
 void scheduler_time_qos::slot_indication(slot_point slot_tx)
 {
-  for (auto& uectxt : ue_history_db) {
-    uectxt.slot_indication(slot_tx);
-  }
+  history.slot_indication(slot_tx);
 }
 
 void scheduler_time_qos::compute_ue_dl_priorities(slot_point               pdcch_slot,
@@ -74,17 +129,13 @@ void scheduler_time_qos::compute_ue_ul_priorities(slot_point               pdcch
 void scheduler_time_qos::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
 {
   // Save result of DL grants in UE history.
-  for (const dl_msg_alloc& grant : dl_grants) {
-    ue_history_db[grant.context.ue_index].save_dl_alloc(grant.pdsch_cfg.codewords[0].tb_size_bytes);
-  }
+  history.save_dl_newtx_grants(dl_grants);
 }
 
 void scheduler_time_qos::save_ul_newtx_grants(span<const ul_sched_info> ul_grants)
 {
   // Save result of UL grants in UE history.
-  for (const ul_sched_info& grant : ul_grants) {
-    ue_history_db[grant.context.ue_index].save_ul_alloc(grant.pusch_cfg.tb_size_bytes);
-  }
+  history.save_ul_newtx_grants(ul_grants);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -253,25 +304,8 @@ static double compute_ul_qos_weights(const slice_ue&                  u,
 scheduler_time_qos::ue_ctxt::ue_ctxt(du_ue_index_t             ue_index_,
                                      du_cell_index_t           cell_index_,
                                      const scheduler_time_qos* parent_) :
-  ue_index(ue_index_),
-  cell_index(cell_index_),
-  parent(parent_),
-  dl_bytes_per_slot(parent->exp_avg_alpha),
-  ul_bytes_per_slot(parent->exp_avg_alpha)
+  ue_index(ue_index_), cell_index(cell_index_), parent(parent_)
 {
-}
-
-void scheduler_time_qos::ue_ctxt::slot_indication(slot_point slot_tx)
-{
-  // Process previous slot allocated bytes and compute average.
-
-  // Compute average rate of the UE.
-  dl_bytes_per_slot.push(dl_sum_alloc_bytes);
-  ul_bytes_per_slot.push(ul_sum_alloc_bytes);
-
-  // Flush allocated bytes for the current slot.
-  dl_sum_alloc_bytes = 0;
-  ul_sum_alloc_bytes = 0;
 }
 
 void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot)
@@ -305,7 +339,7 @@ void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u, slot_point 
   // Calculate DL PF priority.
   // NOTE: Estimated instantaneous DL rate is calculated assuming entire BWP CRBs are allocated to UE.
   const double estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, mcs.value(), ss_info.dl_crb_lims.length());
-  const double current_total_avg_rate = average_dl_bytes_per_slot();
+  const double current_total_avg_rate = parent->history[u.ue_index()].dl_avg_rate();
   dl_prio = compute_dl_qos_weights(u, estimated_rate, current_total_avg_rate, pdcch_slot, parent->params);
 }
 
@@ -360,18 +394,8 @@ void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u, slot_point 
   // Calculate UL PF priority.
   // NOTE: Estimated instantaneous UL rate is calculated assuming entire BWP CRBs are allocated to UE.
   const double estimated_rate   = ue_cc.get_estimated_ul_rate(pusch_cfg, mcs.value(), ss_info.ul_crb_lims.length());
-  const double current_avg_rate = average_ul_bytes_per_slot();
+  const double current_avg_rate = parent->history[u.ue_index()].ul_avg_rate();
 
   // Compute LC weight function.
   ul_prio = compute_ul_qos_weights(u, estimated_rate, current_avg_rate, parent->params);
-}
-
-void scheduler_time_qos::ue_ctxt::save_dl_alloc(uint32_t total_alloc_bytes)
-{
-  dl_sum_alloc_bytes += total_alloc_bytes;
-}
-
-void scheduler_time_qos::ue_ctxt::save_ul_alloc(unsigned alloc_bytes)
-{
-  ul_sum_alloc_bytes += alloc_bytes;
 }

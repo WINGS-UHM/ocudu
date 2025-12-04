@@ -12,10 +12,67 @@
 
 #include "scheduler_policy.h"
 #include "ocudu/adt/slotted_array.h"
+#include "ocudu/adt/soa_table.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/support/math/exponential_averager.h"
 
 namespace ocudu {
+
+class ue_history_system
+{
+  constexpr static soa::row_id invalid_row_id = soa::row_id{std::numeric_limits<uint32_t>::max()};
+
+public:
+  class ue_history
+  {
+    ue_history(const ue_history_system& parent_, soa::row_id rid_) : parent(&parent_), rid(rid_) {}
+
+  public:
+    ue_history() = default;
+
+    /// Returns average DL rate expressed in bytes per slot of the UE.
+    double dl_avg_rate() const { return parent->ue_db.at<component::dl_avg>(rid); }
+    /// Returns average UL rate expressed in bytes per slot of the UE.
+    double ul_avg_rate() const { return parent->ue_db.at<component::ul_avg>(rid); }
+
+  private:
+    friend class ue_history_system;
+
+    const ue_history_system* parent = nullptr;
+    soa::row_id              rid    = invalid_row_id;
+  };
+
+  ue_history_system();
+
+  void add_ue(du_ue_index_t ue_index);
+  void rem_ue(du_ue_index_t ue_index);
+
+  /// Called once per slot to notify UE contexts about new slot indication.
+  void slot_indication(slot_point slot_tx);
+
+  void save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants);
+  void save_ul_newtx_grants(span<const ul_sched_info> ul_grants);
+
+  ue_history operator[](du_ue_index_t ue_index) const { return {*this, ue_row_ids[ue_index]}; }
+
+private:
+  /// Coefficient used to compute exponential moving average.
+  static constexpr double exp_avg_alpha = 0.01;
+
+  enum class component {
+    // Average DL rate expressed in bytes per slot experienced by UE.
+    dl_avg,
+    // Average UL rate expressed in bytes per slot experienced by UE.
+    ul_avg,
+    // Sum of DL bytes allocated for a given slot, before it is taken into account in the average rate computation.
+    accum_dl_samples,
+    // Sum of UL bytes allocated for a given slot, before it is taken into account in the average rate computation.
+    accum_ul_samples
+  };
+  soa::table<component, double, double, double, double> ue_db;
+
+  std::vector<soa::row_id> ue_row_ids;
+};
 
 /// Time-domain QoS-aware scheduler policy.
 class scheduler_time_qos final : public scheduler_policy
@@ -55,20 +112,10 @@ private:
   struct ue_ctxt {
     ue_ctxt(du_ue_index_t ue_index_, du_cell_index_t cell_index_, const scheduler_time_qos* parent_);
 
-    /// Returns average DL rate expressed in bytes per slot of the UE.
-    [[nodiscard]] double average_dl_bytes_per_slot() const { return dl_bytes_per_slot.get_average_value(); }
-    /// Returns average UL rate expressed in bytes per slot of the UE.
-    [[nodiscard]] double average_ul_bytes_per_slot() const { return ul_bytes_per_slot.get_average_value(); }
-
-    /// Called once per slot to notify UE context about new slot indication.
-    void slot_indication(slot_point slot_tx);
     /// Computes the priority of the UE to be scheduled in DL based on the QoS and proportional fair metric.
     void compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot);
     /// Computes the priority of the UE to be scheduled in UL based on the proportional fair metric.
     void compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot);
-
-    void save_dl_alloc(uint32_t total_alloc_bytes);
-    void save_ul_alloc(unsigned alloc_bytes);
 
     const du_ue_index_t       ue_index;
     const du_cell_index_t     cell_index;
@@ -78,17 +125,9 @@ private:
     double dl_prio = forbid_prio;
     /// UL priority value of the UE.
     double ul_prio = forbid_prio;
-
-  private:
-    // Sum of DL bytes allocated for a given slot, before it is taken into account in the average rate computation.
-    unsigned dl_sum_alloc_bytes = 0;
-    // Sum of UL bytes allocated for a given slot, before it is taken into account in the average rate computation.
-    unsigned ul_sum_alloc_bytes = 0;
-    // Average DL rate expressed in bytes per slot experienced by UE.
-    exp_average_fast_start<double> dl_bytes_per_slot;
-    // Average UL rate expressed in bytes per slot experienced by UE.
-    exp_average_fast_start<double> ul_bytes_per_slot;
   };
+
+  ue_history_system history;
 
   slotted_id_table<du_ue_index_t, ue_ctxt, MAX_NOF_DU_UES> ue_history_db;
 

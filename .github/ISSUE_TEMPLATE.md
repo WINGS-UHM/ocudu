@@ -1,6 +1,6 @@
 <!--
 Before filing an issue, search for solutions here:
-- OCUDU Project discussions page (https://github.com/ocudu/OCUDU_Project/discussions)
+- OCUDU discussions page (https://github.com/ocudu/ocudu/discussions)
 -->
 
 ## Issue Description ##

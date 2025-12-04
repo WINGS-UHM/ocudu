@@ -49,16 +49,25 @@ public:
 
   virtual void rem_ue(du_ue_index_t ue_index) = 0;
 
-  /// Compute UE candidate priorities for DL scheduling.
+  /// \brief Notify scheduler about new slot indication.
   ///
+  /// This function is called on every slot, even if the respective slice has not been scheduled.
+  virtual void slot_indication(slot_point slot_tx) = 0;
+
+  /// \brief Compute UE candidate priorities for DL scheduling.
+  ///
+  /// This function is only called in DL slots and only when there are UE candidates with new HARQ transmissions to be
+  /// scheduled.
   /// \param[in] pdcch_slot PDCCH slot.
   /// \param[in] pdsch_slot PDSCH slot.
   /// \param[in] ue_candidates UE candidates with new HARQ transmissions to be scheduled.
   virtual void
   compute_ue_dl_priorities(slot_point pdcch_slot, slot_point pdsch_slot, span<ue_newtx_candidate> ue_candidates) = 0;
 
-  /// Compute UE candidate priorities for UL scheduling.
+  /// \brief Compute UE candidate priorities for UL scheduling.
   ///
+  /// This function is only called in UL slots and only when there are UE candidates with new HARQ transmissions to be
+  /// scheduled.
   /// \param[in] pdcch_slot PDCCH slot.
   /// \param[in] pusch_slot PUSCH slot.
   /// \param[in] ue_candidates UE candidates with new HARQ transmissions to be scheduled.

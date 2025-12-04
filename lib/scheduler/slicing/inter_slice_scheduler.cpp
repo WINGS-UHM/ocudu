@@ -89,6 +89,7 @@ void inter_slice_scheduler::slot_indication(slot_point slot_tx, const cell_resou
     ++current_slot;
     for (auto& slice : slices) {
       slice.inst.slot_indication(current_slot);
+      slice.policy->slot_indication(current_slot);
     }
 
     // Reset remaining dedicated RBs for the last slot.

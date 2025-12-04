@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ocudu/support/ocudu_assert.h"
+#include <cmath>
 
 namespace ocudu {
 

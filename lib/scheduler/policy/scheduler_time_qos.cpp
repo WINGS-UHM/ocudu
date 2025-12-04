@@ -20,9 +20,6 @@ using namespace ocudu;
 // imprecision.
 static constexpr unsigned MAX_PF_COEFF = 10;
 
-// [Implementation-defined] Maximum number of slots skipped between scheduling opportunities.
-static constexpr unsigned MAX_SLOT_SKIPPED = 20;
-
 scheduler_time_qos::scheduler_time_qos(const scheduler_ue_expert_config& expert_cfg_, du_cell_index_t cell_index_) :
   params(std::get<time_qos_scheduler_config>(expert_cfg_.policy_cfg)), cell_index(cell_index_)
 {
@@ -39,17 +36,23 @@ void scheduler_time_qos::rem_ue(du_ue_index_t ue_index)
   ue_history_db.erase(ue_index);
 }
 
+void scheduler_time_qos::slot_indication(slot_point slot_tx)
+{
+  for (auto& uectxt : ue_history_db) {
+    uectxt.slot_indication(slot_tx);
+  }
+}
+
 void scheduler_time_qos::compute_ue_dl_priorities(slot_point               pdcch_slot,
                                                   slot_point               pdsch_slot,
                                                   span<ue_newtx_candidate> ue_candidates)
 {
-  unsigned nof_slots_elapsed = std::min(last_pdsch_slot.valid() ? pdsch_slot - last_pdsch_slot : 1U, MAX_SLOT_SKIPPED);
-  last_pdsch_slot            = pdsch_slot;
+  last_pdsch_slot = pdsch_slot;
 
   // Compute UE candidate priorities.
   for (auto& u : ue_candidates) {
     ue_ctxt& uectxt = ue_history_db[u.ue->ue_index()];
-    uectxt.compute_dl_prio(*u.ue, pdcch_slot, pdsch_slot, nof_slots_elapsed);
+    uectxt.compute_dl_prio(*u.ue, pdcch_slot, pdsch_slot);
     u.priority = uectxt.dl_prio;
   }
 }
@@ -58,13 +61,12 @@ void scheduler_time_qos::compute_ue_ul_priorities(slot_point               pdcch
                                                   slot_point               pusch_slot,
                                                   span<ue_newtx_candidate> ue_candidates)
 {
-  unsigned nof_slots_elapsed = std::min(last_pusch_slot.valid() ? pusch_slot - last_pusch_slot : 1U, MAX_SLOT_SKIPPED);
-  last_pusch_slot            = pusch_slot;
+  last_pusch_slot = pusch_slot;
 
   // Compute UE candidate priorities.
   for (auto& u : ue_candidates) {
     ue_ctxt& uectxt = ue_history_db[u.ue->ue_index()];
-    uectxt.compute_ul_prio(*u.ue, pdcch_slot, pusch_slot, nof_slots_elapsed);
+    uectxt.compute_ul_prio(*u.ue, pdcch_slot, pusch_slot);
     u.priority = uectxt.ul_prio;
   }
 }
@@ -73,7 +75,7 @@ void scheduler_time_qos::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants
 {
   // Save result of DL grants in UE history.
   for (const dl_msg_alloc& grant : dl_grants) {
-    ue_history_db[grant.context.ue_index].save_dl_alloc(grant.pdsch_cfg.codewords[0].tb_size_bytes, grant.tb_list[0]);
+    ue_history_db[grant.context.ue_index].save_dl_alloc(grant.pdsch_cfg.codewords[0].tb_size_bytes);
   }
 }
 
@@ -254,20 +256,27 @@ scheduler_time_qos::ue_ctxt::ue_ctxt(du_ue_index_t             ue_index_,
   ue_index(ue_index_),
   cell_index(cell_index_),
   parent(parent_),
-  total_dl_avg_rate_(parent->exp_avg_alpha),
-  total_ul_avg_rate_(parent->exp_avg_alpha)
+  dl_bytes_per_slot(parent->exp_avg_alpha),
+  ul_bytes_per_slot(parent->exp_avg_alpha)
 {
 }
 
-void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u,
-                                                  slot_point      pdcch_slot,
-                                                  slot_point      pdsch_slot,
-                                                  unsigned        nof_slots_elapsed)
+void scheduler_time_qos::ue_ctxt::slot_indication(slot_point slot_tx)
+{
+  // Process previous slot allocated bytes and compute average.
+
+  // Compute average rate of the UE.
+  dl_bytes_per_slot.push(dl_sum_alloc_bytes);
+  ul_bytes_per_slot.push(ul_sum_alloc_bytes);
+
+  // Flush allocated bytes for the current slot.
+  dl_sum_alloc_bytes = 0;
+  ul_sum_alloc_bytes = 0;
+}
+
+void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot)
 {
   dl_prio = forbid_prio;
-
-  // Process previous slot allocated bytes and compute average.
-  compute_dl_avg_rate(u, nof_slots_elapsed);
 
   const ue_cell& ue_cc = u.get_cc();
 
@@ -296,19 +305,13 @@ void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u,
   // Calculate DL PF priority.
   // NOTE: Estimated instantaneous DL rate is calculated assuming entire BWP CRBs are allocated to UE.
   const double estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, mcs.value(), ss_info.dl_crb_lims.length());
-  const double current_total_avg_rate = total_dl_avg_rate();
+  const double current_total_avg_rate = average_dl_bytes_per_slot();
   dl_prio = compute_dl_qos_weights(u, estimated_rate, current_total_avg_rate, pdcch_slot, parent->params);
 }
 
-void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u,
-                                                  slot_point      pdcch_slot,
-                                                  slot_point      pusch_slot,
-                                                  unsigned        nof_slots_elapsed)
+void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot)
 {
   ul_prio = forbid_prio;
-
-  // Process bytes allocated in previous slot and compute average.
-  compute_ul_avg_rate(u, nof_slots_elapsed);
 
   const ue_cell& ue_cc = u.get_cc();
   ocudu_sanity_check(not ue_cc.is_in_fallback_mode() and ue_cc.is_pusch_enabled(pdcch_slot, pusch_slot) and
@@ -357,49 +360,18 @@ void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u,
   // Calculate UL PF priority.
   // NOTE: Estimated instantaneous UL rate is calculated assuming entire BWP CRBs are allocated to UE.
   const double estimated_rate   = ue_cc.get_estimated_ul_rate(pusch_cfg, mcs.value(), ss_info.ul_crb_lims.length());
-  const double current_avg_rate = total_ul_avg_rate();
+  const double current_avg_rate = average_ul_bytes_per_slot();
 
   // Compute LC weight function.
   ul_prio = compute_ul_qos_weights(u, estimated_rate, current_avg_rate, parent->params);
 }
 
-void scheduler_time_qos::ue_ctxt::compute_dl_avg_rate(const slice_ue& u, unsigned nof_slots_elapsed)
-{
-  // In case more than one slot elapsed.
-  if (nof_slots_elapsed > 1) {
-    total_dl_avg_rate_.push_zeros(nof_slots_elapsed - 1);
-  }
-
-  // Compute DL average rate of the UE.
-  total_dl_avg_rate_.push(dl_sum_alloc_bytes);
-
-  // Flush allocated bytes for the current slot.
-  dl_sum_alloc_bytes = 0;
-}
-
-void scheduler_time_qos::ue_ctxt::compute_ul_avg_rate(const slice_ue& u, unsigned nof_slots_elapsed)
-{
-  // In case more than one slot elapsed.
-  if (nof_slots_elapsed > 1) {
-    total_ul_avg_rate_.push_zeros(nof_slots_elapsed - 1);
-  }
-
-  // Compute UL average rate of the UE.
-  total_ul_avg_rate_.push(ul_sum_alloc_bytes);
-
-  // Flush allocated bytes for the current slot.
-  ul_sum_alloc_bytes = 0;
-}
-
-void scheduler_time_qos::ue_ctxt::save_dl_alloc(uint32_t total_alloc_bytes, const dl_msg_tb_info& tb_info)
+void scheduler_time_qos::ue_ctxt::save_dl_alloc(uint32_t total_alloc_bytes)
 {
   dl_sum_alloc_bytes += total_alloc_bytes;
 }
 
 void scheduler_time_qos::ue_ctxt::save_ul_alloc(unsigned alloc_bytes)
 {
-  if (alloc_bytes == 0) {
-    return;
-  }
   ul_sum_alloc_bytes += alloc_bytes;
 }

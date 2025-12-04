@@ -41,7 +41,7 @@ jobs:
           # --> gnb
           # AMD AVX2
           - TAGNAME: release_avx2
-            REPOSITORY: ocudu-project
+            REPOSITORY: ocudu
             MARCH: x86-64-v3
             PLATFORM: amd64
             UHD_VERSION: "4.7.0.0"
@@ -50,7 +50,7 @@ jobs:
             CONTEXT: ./
             ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
           - TAGNAME: release_with_debug_avx2
-            REPOSITORY: ocudu-project
+            REPOSITORY: ocudu
             EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
             MARCH: x86-64-v3
             PLATFORM: amd64
@@ -61,7 +61,7 @@ jobs:
             ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
           # AMD AVX512
           - TAGNAME: release_avx512
-            REPOSITORY: ocudu-project
+            REPOSITORY: ocudu
             MARCH: x86-64-v4
             PLATFORM: amd64
             UHD_VERSION: "4.7.0.0"
@@ -70,7 +70,7 @@ jobs:
             CONTEXT: ./
             ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
           - TAGNAME: release_with_debug_avx512
-            REPOSITORY: ocudu-project
+            REPOSITORY: ocudu
             EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
             MARCH: x86-64-v4
             PLATFORM: amd64

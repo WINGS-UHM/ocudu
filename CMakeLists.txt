@@ -296,7 +296,7 @@ sbom_generate(
     PROJECT      "OCUDU 5G CU DU"
     SUPPLIER     "Software Radio Systems Ltd"
     SUPPLIER_URL "https://srs.io"
-    DOWNLOAD_URL "https://github.com/ocudu/OCUDU_Project.git"
+    DOWNLOAD_URL "https://github.com/ocudu/ocudu.git"
     LICENSE      "LicenseRef-OCUDU"
 )
 

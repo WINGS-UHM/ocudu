@@ -30,14 +30,14 @@ include:
     FORCE_DEBUG_INFO: "" # Empty for cmake default
     MARCH: "" # Empty for cmake default
     MTUNE: "" # Empty for cmake default
-    SRS_TARGET: "" # Empty for cmake default
+    OCUDU_TARGET: "" # Empty for cmake default
     # CACHE
     CCACHE_MAXSIZE: 3G
     # TEST
     TEST_MODE: "default"
     TEST_EXECUTION_TIMEOUT: 0
     # CI
-    OCUDUDIR: ${CI_PROJECT_DIR}
+    OCUDU_DIR: ${CI_PROJECT_DIR}
     INFRASTRUCTURE_TAG: amd64-avx2
     TRANSFER_METER_FREQUENCY: 5s
     ARTIFACT_COMPRESSION_LEVEL: slowest
@@ -109,7 +109,7 @@ include:
     - |
       echo "INFRASTRUCTURE_TAG=${INFRASTRUCTURE_TAG}"
       echo "OS=${OS}"
-      echo "SRS_TARGET=${SRS_TARGET}"
+      echo "OCUDU_TARGET=${OCUDU_TARGET}"
       echo "COMPILER=${COMPILER}"
       echo "UHD_VERSION=${UHD_VERSION}"
       echo "DPDK_VERSION=${DPDK_VERSION}"
@@ -118,12 +118,12 @@ include:
     - |
       build_ocudu() {
         set -x
-        builder.sh -m "-j${KUBERNETES_CPU_REQUEST} ${SRS_TARGET}" ${BUILD_CMD} ${OCUDUDIR}
+        builder.sh -m "-j${KUBERNETES_CPU_REQUEST} ${OCUDU_TARGET}" ${BUILD_CMD} ${OCUDU_DIR}
         { set +x; } 2>/dev/null
       }
     - |
       launch_tests_ocudu() {
-        cd ${OCUDUDIR}/build
+        cd ${OCUDU_DIR}/build
         echo "Using LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
         set -x
         ctest -j${KUBERNETES_CPU_REQUEST} --schedule-random --output-on-failure --output-junit xunit.xml $CTEST_ARGS

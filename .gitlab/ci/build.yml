@@ -550,8 +550,6 @@ smoke release update cache:
   extends: .smoke release
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   retry: 2
   interruptible: false
   cache:
@@ -561,8 +559,6 @@ smoke relwithdeb update cache:
   extends: .smoke relwithdeb
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   retry: 2
   interruptible: false
   cache:
@@ -572,8 +568,6 @@ smoke tsan update cache:
   extends: .smoke tsan
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   interruptible: false
   retry: 2
   cache:
@@ -583,8 +577,6 @@ smoke archlinux update cache:
   extends: .smoke archlinux
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   retry: 2
   interruptible: false
   cache:
@@ -594,8 +586,6 @@ smoke dpdk update cache:
   extends: .smoke dpdk
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   retry: 2
   interruptible: false
   cache:
@@ -605,8 +595,6 @@ smoke valgrind update cache:
   extends: .smoke valgrind
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   interruptible: false
   retry: 2
   cache:
@@ -616,8 +604,6 @@ smoke avx512 update cache:
   extends: .smoke avx512
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   interruptible: false
   retry: 2
   cache:
@@ -627,8 +613,6 @@ smoke arm update cache:
   extends: .smoke arm
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   retry: 2
   interruptible: false
   cache:
@@ -638,8 +622,6 @@ smoke arm neon update cache:
   extends: .smoke arm neon
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   retry: 2
   interruptible: false
   cache:
@@ -649,8 +631,6 @@ smoke asan:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   variables:
     OS: ubuntu-24.04
     COMPILER: clang
@@ -664,8 +644,6 @@ smoke rtsan:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   variables:
     OS: ubuntu-24.04-rtsan
     COMPILER: clang
@@ -684,7 +662,7 @@ export on amd64:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 75 minutes
+      start_in: 30 minutes
   interruptible: false
   variables:
     COMPILER: gcc
@@ -713,7 +691,7 @@ ubuntu-25.04 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 300 minutes
+      start_in: 60 minutes
   interruptible: false
   variables:
     OS: ubuntu-25.04
@@ -728,7 +706,7 @@ ubuntu-25.10 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 105 minutes
+      start_in: 60 minutes
   interruptible: false
   variables:
     OS: ubuntu-25.10
@@ -743,7 +721,7 @@ ubuntu-24.04 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 135 minutes
+      start_in: 90 minutes
   interruptible: false
   variables:
     OS: ubuntu-24.04
@@ -761,7 +739,7 @@ ubuntu-24.04 amd64 avx512:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 165 minutes
+      start_in: 90 minutes
   interruptible: false
   variables:
     OS: ubuntu-24.04
@@ -779,7 +757,7 @@ ubuntu-22.04 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 195 minutes
+      start_in: 90 minutes
   interruptible: false
   variables:
     OS: ubuntu-22.04
@@ -796,7 +774,7 @@ ubuntu-24.04 arm neon:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 75 minutes
+      start_in: 30 minutes
   interruptible: false
   variables:
     OS: ubuntu-24.04
@@ -816,7 +794,7 @@ ubuntu dpdk:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 260 minutes
+      start_in: 120 minutes
   interruptible: false
   variables:
     ENABLE_UHD: "False"
@@ -847,7 +825,7 @@ ubsan avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 45 minutes
+      start_in: 120 minutes
   variables:
     OS: ubuntu-25.04
     COMPILER: gcc

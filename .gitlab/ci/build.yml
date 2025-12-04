@@ -540,22 +540,9 @@ intermediate commits clean:
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
 
-
 #################
 # Build Nightly #
 #################
-
-check builders ubuntu versions:
-  extends: .check image exists for all supported ubuntu versions
-  stage: static
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 15 minutes
-  variables:
-    VERSIONS_TO_IGNORE: "20.04"
-  script:
-    - check_if_image_exists ${CI_REGISTRY_IMAGE}/builder-ubuntu- :${DOCKER_BUILDER_VERSION}
 
 # Update cache for MR jobs
 
@@ -1017,6 +1004,18 @@ debian 13 amd64 avx512:
 ##########
 # Weekly #
 ##########
+
+check builders ubuntu versions:
+  extends: .check image exists for all supported ubuntu versions
+  stage: static
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+      when: delayed
+      start_in: 15 minutes
+  variables:
+    VERSIONS_TO_IGNORE: "20.04"
+  script:
+    - check_if_image_exists ${CI_REGISTRY_IMAGE}/builder-ubuntu- :${DOCKER_BUILDER_VERSION}
 
 # Sanitizers
 

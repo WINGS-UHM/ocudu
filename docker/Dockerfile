@@ -13,7 +13,7 @@
 # DPDK_VERSION          DPDK version number
 # MARCH                 gcc/clang compatible arch
 # NUM_JOBS              Number or empty for all
-# EXTRA_CMAKE_ARGS      Extra flags for OCUDU Project
+# EXTRA_CMAKE_ARGS      Extra flags for OCUDU
 
 ARG OS_VERSION=24.04
 ARG UHD_VERSION=4.7.0.0
@@ -67,7 +67,7 @@ COPY --from=builder-rohc /opt/rohc /opt/rohc
 RUN /src/docker/scripts/build_uhd.sh "${UHD_VERSION}" ${MARCH} ${NUM_JOBS} && \
     /src/docker/scripts/build_dpdk.sh "${DPDK_VERSION}" ${MARCH} ${NUM_JOBS}
 
-# Compile OCUDU Project and install it in the OS
+# Compile OCUDU and install it in the OS
 ARG COMPILER=gcc
 ARG EXTRA_CMAKE_ARGS=""
 ENV ROHC_DIR=/opt/rohc

@@ -1,4 +1,4 @@
-# OCUDU Project Multi-Container Solution
+# OCUDU Multi-Container Solution
 
 This folder contains multiple docker compose configurations for different deployment scenarios:
 

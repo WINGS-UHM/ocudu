@@ -8,7 +8,7 @@ list all available configuration sections, subsection and fields.
 
 ## Usage
 
-The OCUDU Project gNB can be configured via one or multiple configuration files and/or via 
+The OCUDU gNB can be configured via one or multiple configuration files and/or via 
 the command line. When multiple configuration files are specified, their content gets combined 
 by the gNB application. In case there are repeated parameters across configuration files, the 
 parameter values of the last file are selected. Similarly, the parameters passed via command 

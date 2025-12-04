@@ -73,7 +73,7 @@ private:
                                           const std::optional<asn1::e2sm::cgi_c>       cell_global_id,
                                           std::vector<asn1::e2sm::meas_record_item_c>& items);
 
-  typedef metric_meas_getter_func_t(e2sm_kpm_du_meas_provider_impl::* metric_meas_getter_func_ptr);
+  typedef metric_meas_getter_func_t(e2sm_kpm_du_meas_provider_impl::*metric_meas_getter_func_ptr);
 
   struct e2sm_kpm_supported_metric_t {
     uint32_t                    supported_labels;

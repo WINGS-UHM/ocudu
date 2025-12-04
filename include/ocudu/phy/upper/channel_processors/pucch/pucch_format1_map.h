@@ -48,8 +48,8 @@ public:
     /// Indirection operator.
     obj_t operator*() const
     {
-      auto& tmp                    = map_iterator::operator*();
-      unsigned                  ix = tmp.first;
+      auto&    tmp = map_iterator::operator*();
+      unsigned ix  = tmp.first;
       return {.initial_cyclic_shift = ix % nof_initial_cyclic_shifts,
               .time_domain_occ      = ix / nof_initial_cyclic_shifts,
               .value                = tmp.second};

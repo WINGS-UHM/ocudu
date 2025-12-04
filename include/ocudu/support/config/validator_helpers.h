@@ -57,7 +57,7 @@ bool has_unique_ids(const Range& r, const IdentifierGetter& id_get)
 /// \param[in] id_field Member pointer used to get ID of elements of provided \c Range.
 /// \return True if all elements in the range have a unique identifier.
 template <typename Range, typename ValueType = typename Range::value_type, typename IdType>
-bool has_unique_ids(const Range& r, IdType ValueType::* id_field)
+bool has_unique_ids(const Range& r, IdType ValueType::*id_field)
 {
   return has_unique_ids(r, [id_field](const auto& e) { return e.*id_field; });
 }
@@ -83,10 +83,8 @@ template <typename RangeSet,
           typename ValueType    = typename Range::value_type,
           typename IdType,
           typename IdList>
-std::optional<IdType> find_disconnected_id(const RangeSet& set,
-                                           const Range&    r,
-                                           IdList SetValueType::* id_set_list,
-                                           IdType ValueType::* idfield)
+std::optional<IdType>
+find_disconnected_id(const RangeSet& set, const Range& r, IdList SetValueType::*id_set_list, IdType ValueType::*idfield)
 {
   for (const auto& es : set) {
     for (const auto& id : es.*id_set_list) {

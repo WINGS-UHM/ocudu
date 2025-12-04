@@ -101,8 +101,9 @@ private:
 
 /// \brief Runs an async_task in the respective task scheduler of a list of UEs.
 template <typename AsyncTaskFactory>
-auto await_all_ues(du_ue_manager& ue_mng, span<const du_ue_index_t> ues_to_update, AsyncTaskFactory ue_task_factory)
-    -> async_task<void>
+auto await_all_ues(du_ue_manager&            ue_mng,
+                   span<const du_ue_index_t> ues_to_update,
+                   AsyncTaskFactory          ue_task_factory) -> async_task<void>
 {
   return launch_async<detail::await_all_ues_impl<AsyncTaskFactory>>(ue_mng, ues_to_update, std::move(ue_task_factory));
 }

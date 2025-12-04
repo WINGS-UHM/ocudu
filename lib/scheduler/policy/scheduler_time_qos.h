@@ -23,6 +23,7 @@ class ue_history_system
   constexpr static soa::row_id invalid_row_id = soa::row_id{std::numeric_limits<uint32_t>::max()};
 
 public:
+  /// Traffic history for a single UE.
   class ue_history
   {
     ue_history(const ue_history_system& parent_, soa::row_id rid_) : parent(&parent_), rid(rid_) {}
@@ -30,9 +31,15 @@ public:
   public:
     ue_history() = default;
 
-    /// Returns average DL rate expressed in bytes per slot of the UE.
+    /// \brief Returns the UE average DL rate expressed in bytes per "effective" slice slot opportunity.
+    ///
+    /// "Effective" slice slot opportunity corresponds to a slot when the corresponding slice is eligible for DL
+    /// scheduling. So, in practice, we are ignoring TDD UL slots or non-scheduled slices in the computation.
     double dl_avg_rate() const { return parent->ue_db.at<component::dl_avg>(rid); }
-    /// Returns average UL rate expressed in bytes per slot of the UE.
+    /// \brief Returns the UE average UL rate expressed in bytes per "effective" slice slot opportunity.
+    ///
+    /// "Effective" slice slot opportunity corresponds to a slot when the corresponding slice is eligible for UL
+    /// scheduling. So, in practice, we are ignoring TDD DL slots or non-scheduled slices in the computation.
     double ul_avg_rate() const { return parent->ue_db.at<component::ul_avg>(rid); }
 
   private:
@@ -47,9 +54,7 @@ public:
   void add_ue(du_ue_index_t ue_index);
   void rem_ue(du_ue_index_t ue_index);
 
-  /// Called once per slot to notify UE contexts about new slot indication.
-  void slot_indication(slot_point slot_tx);
-
+  /// Called to save DL and UL newTx grants allocated to UEs in the given slot.
   void save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants);
   void save_ul_newtx_grants(span<const ul_sched_info> ul_grants);
 
@@ -69,7 +74,7 @@ private:
     // Sum of UL bytes allocated for a given slot, before it is taken into account in the average rate computation.
     accum_ul_samples
   };
-  soa::table<component, double, double, double, double> ue_db;
+  soa::table<component, float, float, float, float> ue_db;
 
   std::vector<soa::row_id> ue_row_ids;
 };
@@ -83,8 +88,6 @@ public:
   void add_ue(du_ue_index_t ue_index) override;
 
   void rem_ue(du_ue_index_t ue_index) override;
-
-  void slot_indication(slot_point slot_tx) override;
 
   void compute_ue_dl_priorities(slot_point               pdcch_slot,
                                 slot_point               pdsch_slot,

@@ -24,8 +24,6 @@ public:
 
   void rem_ue(du_ue_index_t ue_index) override {}
 
-  void slot_indication(slot_point slot_tx) override {}
-
   void compute_ue_dl_priorities(slot_point               pdcch_slot,
                                 slot_point               pdsch_slot,
                                 span<ue_newtx_candidate> ue_candidates) override;

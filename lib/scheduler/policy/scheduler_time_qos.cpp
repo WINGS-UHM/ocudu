@@ -31,7 +31,7 @@ void ue_history_system::add_ue(du_ue_index_t ue_index)
   if (ue_row_ids.size() <= ue_index) {
     ue_row_ids.resize(ue_index + 1, soa::row_id{std::numeric_limits<uint32_t>::max()});
   }
-  auto row_id          = ue_db.insert(0.0, 0.0, 0, 0);
+  auto row_id          = ue_db.insert(0.0, 0.0, 0.0, 0.0);
   ue_row_ids[ue_index] = row_id;
 }
 
@@ -42,37 +42,43 @@ void ue_history_system::rem_ue(du_ue_index_t ue_index)
   ue_row_ids[ue_index] = soa::row_id{std::numeric_limits<uint32_t>::max()};
 }
 
-void ue_history_system::slot_indication(slot_point slot_tx)
-{
-  // Compute DL and UL average rates for all UEs.
-  span<double> dl_rate    = ue_db.column<component::dl_avg>().to_span();
-  span<double> dl_samples = ue_db.column<component::accum_dl_samples>().to_span();
-  for (size_t i = 0, sz = dl_rate.size(); i != sz; ++i) {
-    dl_rate[i] = dl_rate[i] * (1.0 - exp_avg_alpha) + exp_avg_alpha * dl_samples[i];
-  }
-  std::fill(dl_samples.begin(), dl_samples.end(), 0.0);
-  span<double> ul_rate    = ue_db.column<component::ul_avg>().to_span();
-  span<double> ul_samples = ue_db.column<component::accum_ul_samples>().to_span();
-  for (size_t i = 0, sz = ul_rate.size(); i != sz; ++i) {
-    ul_rate[i] = ul_rate[i] * (1.0 - exp_avg_alpha) + exp_avg_alpha * ul_samples[i];
-  }
-  std::fill(ul_samples.begin(), ul_samples.end(), 0.0);
-}
-
 void ue_history_system::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
 {
+  if (dl_grants.empty()) {
+    // Ignore slots with no grants in the statistics, as they don't add any differentiation between UEs.
+    return;
+  }
+
+  // Compute DL average rates for all UEs.
   for (const dl_msg_alloc& grant : dl_grants) {
     soa::row_id r = ue_row_ids[grant.context.ue_index];
     ue_db.at<component::accum_dl_samples>(r) += grant.pdsch_cfg.codewords[0].tb_size_bytes;
   }
+  span<float> dl_rate    = ue_db.column<component::dl_avg>().to_span();
+  span<float> dl_samples = ue_db.column<component::accum_dl_samples>().to_span();
+  for (size_t i = 0, sz = dl_rate.size(); i != sz; ++i) {
+    dl_rate[i] = (1.0 - exp_avg_alpha) * dl_rate[i] + exp_avg_alpha * dl_samples[i];
+  }
+  std::fill(dl_samples.begin(), dl_samples.end(), 0.0);
 }
 
 void ue_history_system::save_ul_newtx_grants(span<const ul_sched_info> ul_grants)
 {
+  if (ul_grants.empty()) {
+    // Ignore slots with no grants in the statistics, as they don't add any differentiation between UEs.
+    return;
+  }
+
   for (const ul_sched_info& grant : ul_grants) {
     soa::row_id r = ue_row_ids[grant.context.ue_index];
     ue_db.at<component::accum_ul_samples>(r) += grant.pusch_cfg.tb_size_bytes;
   }
+  span<float> ul_rate    = ue_db.column<component::ul_avg>().to_span();
+  span<float> ul_samples = ue_db.column<component::accum_ul_samples>().to_span();
+  for (size_t i = 0, sz = ul_rate.size(); i != sz; ++i) {
+    ul_rate[i] = (1.0 - exp_avg_alpha) * ul_rate[i] + exp_avg_alpha * ul_samples[i];
+  }
+  std::fill(ul_samples.begin(), ul_samples.end(), 0.0);
 }
 
 scheduler_time_qos::scheduler_time_qos(const scheduler_ue_expert_config& expert_cfg_, du_cell_index_t cell_index_) :
@@ -91,11 +97,6 @@ void scheduler_time_qos::rem_ue(du_ue_index_t ue_index)
 {
   history.rem_ue(ue_index);
   ue_history_db.erase(ue_index);
-}
-
-void scheduler_time_qos::slot_indication(slot_point slot_tx)
-{
-  history.slot_indication(slot_tx);
 }
 
 void scheduler_time_qos::compute_ue_dl_priorities(slot_point               pdcch_slot,

@@ -49,11 +49,6 @@ public:
 
   virtual void rem_ue(du_ue_index_t ue_index) = 0;
 
-  /// \brief Notify scheduler about new slot indication.
-  ///
-  /// This function is called on every slot, even if the respective slice has not been scheduled.
-  virtual void slot_indication(slot_point slot_tx) = 0;
-
   /// \brief Compute UE candidate priorities for DL scheduling.
   ///
   /// This function is only called in DL slots and only when there are UE candidates with new HARQ transmissions to be

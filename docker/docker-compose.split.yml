@@ -41,7 +41,7 @@ services:
       interval: 3s
       timeout: 1s
       retries: 60
-    command: srscucp -c /cu_cp_config.yml -c /cu_cp_compose_config.yml
+    command: ocucp -c /cu_cp_config.yml -c /cu_cp_compose_config.yml
 
   cu-up:
     container_name: ocudu_cu_up
@@ -61,7 +61,7 @@ services:
     configs:
       - cu_up_config.yml
       - cu_up_compose_config.yml
-    command: srscuup -c /cu_up_config.yml -c /cu_up_compose_config.yml
+    command: ocuup -c /cu_up_config.yml -c /cu_up_compose_config.yml
 
   du:
     container_name: ocudu_du

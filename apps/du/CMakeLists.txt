@@ -47,8 +47,8 @@ set(EXTENSIONS du_split_6 du_split_7_2 du_split_8)
 set(LIBRARIES ocudu_flexible_o_du_split_6 ocudu_flexible_o_du_split_7_2 ocudu_flexible_o_du_split_8)
 
 foreach (NAME LIB IN ZIP_LISTS EXTENSIONS LIBRARIES)
-    # Prepend srs to the target name to make it consistent with the dynamic one.
-    set(TARGET "srs${NAME}")
+    # Prepend "o" to the target name to make it consistent with the dynamic one.
+    set(TARGET "o${NAME}")
     add_executable(${TARGET} du.cpp)
     add_backward(${TARGET})
     target_include_directories(${TARGET} PRIVATE ${CMAKE_SOURCE_DIR})

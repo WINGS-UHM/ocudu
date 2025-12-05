@@ -24,9 +24,9 @@ ue::ue(const ue_configuration&       cfg,
   cell_cfg_common(cfg.pcell_cfg().cell_cfg_common),
   ue_ded_cfg(&cfg),
   lc_ch_mgr(std::move(lch_repo)),
-  ta_mgr(&ta_mgr_),
-  drx(&drx_ctrl),
-  cells(&ue_cells_),
+  ta_mgr(ta_mgr_),
+  drx(drx_ctrl),
+  cells(ue_cells_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
 }
@@ -34,8 +34,8 @@ ue::ue(const ue_configuration&       cfg,
 void ue::slot_indication(slot_point sl_tx)
 {
   last_sl_tx = sl_tx;
-  ta_mgr->slot_indication(sl_tx);
-  drx->slot_indication(sl_tx);
+  ta_mgr.slot_indication(sl_tx);
+  drx.slot_indication(sl_tx);
 }
 
 void ue::deactivate()
@@ -46,7 +46,7 @@ void ue::deactivate()
   lc_ch_mgr.deactivate();
 
   // Cancel HARQ retransmissions in all UE cells.
-  for (auto& cell : cells->du_cells) {
+  for (auto& cell : cells.du_cells) {
     cell->deactivate();
   }
 }
@@ -70,7 +70,7 @@ void ue::handle_dl_buffer_state_indication(lcid_t lcid, unsigned bs, slot_point 
   // tiny grant. To avoid this, we make the pessimization that every HARQ contains one RLC header due to segmentation.
   static constexpr unsigned RLC_AM_HEADER_SIZE_ESTIM = 4;
   for (unsigned c = 0, ce = nof_cells(); c != ce; ++c) {
-    auto& ue_cc = *cells->ue_cells[c];
+    auto& ue_cc = *cells.ue_cells[c];
 
     if (last_sl_tx.valid() and ue_cc.harqs.last_pdsch_slot().valid() and ue_cc.harqs.last_pdsch_slot() > last_sl_tx) {
       unsigned rem_harqs = ue_cc.harqs.nof_dl_harqs() - ue_cc.harqs.nof_empty_dl_harqs();
@@ -103,7 +103,7 @@ unsigned ue::pending_ul_newtx_bytes() const
   unsigned pending_bytes = lc_ch_mgr.ul_pending_bytes();
 
   // Subtract the bytes already allocated in UL HARQs.
-  for (const ue_cell* ue_cc : cells->ue_cells) {
+  for (const ue_cell* ue_cc : cells.ue_cells) {
     if (pending_bytes == 0) {
       break;
     }

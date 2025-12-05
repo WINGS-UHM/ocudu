@@ -50,24 +50,24 @@ public:
 
   void deactivate();
 
-  ue_cell*       find_cell(du_cell_index_t cell_index) { return cells->du_cells[cell_index]; }
-  const ue_cell* find_cell(du_cell_index_t cell_index) const { return cells->du_cells[cell_index]; }
+  ue_cell*       find_cell(du_cell_index_t cell_index) { return cells.du_cells[cell_index]; }
+  const ue_cell* find_cell(du_cell_index_t cell_index) const { return cells.du_cells[cell_index]; }
 
   /// \brief Fetch UE cell based on UE-specific cell identifier. E.g. PCell corresponds to ue_cell_index==0.
-  ue_cell&       get_cell(ue_cell_index_t ue_cell_index) { return *cells->ue_cells[ue_cell_index]; }
-  const ue_cell& get_cell(ue_cell_index_t ue_cell_index) const { return *cells->ue_cells[ue_cell_index]; }
+  ue_cell&       get_cell(ue_cell_index_t ue_cell_index) { return *cells.ue_cells[ue_cell_index]; }
+  const ue_cell& get_cell(ue_cell_index_t ue_cell_index) const { return *cells.ue_cells[ue_cell_index]; }
 
   /// \brief Fetch UE PCell.
-  ue_cell&       get_pcell() { return *cells->ue_cells[0]; }
-  const ue_cell& get_pcell() const { return *cells->ue_cells[0]; }
+  ue_cell&       get_pcell() { return *cells.ue_cells[0]; }
+  const ue_cell& get_pcell() const { return *cells.ue_cells[0]; }
 
   /// \brief Number of cells configured for the UE.
-  unsigned nof_cells() const { return cells->ue_cells.size(); }
+  unsigned nof_cells() const { return cells.ue_cells.size(); }
 
   /// \brief Returns dedicated configuration for the UE.
   const ue_configuration* ue_cfg_dedicated() const { return ue_ded_cfg; }
 
-  bool is_ca_enabled() const { return cells->ue_cells.size() > 1; }
+  bool is_ca_enabled() const { return cells.ue_cells.size() > 1; }
 
   void activate_cells(bounded_bitset<MAX_NOF_DU_CELLS> activ_bitmap) {}
 
@@ -81,7 +81,7 @@ public:
   void handle_ul_n_ta_update_indication(du_cell_index_t cell_index, float ul_sinr, phy_time_unit n_ta_diff)
   {
     const ue_cell* ue_cc = find_cell(cell_index);
-    ta_mgr->handle_ul_n_ta_update_indication(ue_cc->cfg().tag_id(), n_ta_diff.to_Tc(), ul_sinr);
+    ta_mgr.handle_ul_n_ta_update_indication(ue_cc->cfg().tag_id(), n_ta_diff.to_Tc(), ul_sinr);
   }
 
   /// \brief Handles MAC CE indication.
@@ -103,7 +103,7 @@ public:
   unsigned pending_ul_newtx_bytes() const;
 
   /// \brief Retrieves UE DRX controller.
-  ue_drx_controller& drx_controller() { return *drx; }
+  ue_drx_controller& drx_controller() { return drx; }
 
   /// Retrieve UE logical channel manager.
   const ue_logical_channel_repository& logical_channels() const { return lc_ch_mgr; }
@@ -119,11 +119,11 @@ private:
   /// UE Logical Channel Manager.
   ue_logical_channel_repository lc_ch_mgr;
   /// UE Timing Advance Manager.
-  ta_manager* ta_mgr = nullptr;
+  ta_manager& ta_mgr;
   /// Controller of DRX active timer.
-  ue_drx_controller* drx = nullptr;
+  ue_drx_controller& drx;
   /// Configured cells for the UE.
-  const ue_cell_lookup*   cells = nullptr;
+  const ue_cell_lookup&   cells;
   ocudulog::basic_logger& logger;
 
   slot_point last_sl_tx;

@@ -36,6 +36,7 @@ protected:
     ue_config_update_event  ev     = cfg_mng.add_ue(ue_req);
     const ue_configuration& ue_cfg = ev.next_config();
     ue_db.add_ue(ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx);
+    ev.notify_completion();
   }
 
   pdsch_config_params get_pdsch_cfg_params(const ue_cell&                               ue_cc,

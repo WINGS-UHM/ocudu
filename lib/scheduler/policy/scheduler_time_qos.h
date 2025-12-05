@@ -18,7 +18,8 @@
 
 namespace ocudu {
 
-class ue_history_system
+/// Contains information about a UE past traffic history.
+class ue_history_repository
 {
   constexpr static soa::row_id invalid_row_id = soa::row_id{std::numeric_limits<uint32_t>::max()};
 
@@ -26,7 +27,7 @@ public:
   /// Traffic history for a single UE.
   class ue_history
   {
-    ue_history(const ue_history_system& parent_, soa::row_id rid_) : parent(&parent_), rid(rid_) {}
+    ue_history(const ue_history_repository& parent_, soa::row_id rid_) : parent(&parent_), rid(rid_) {}
 
   public:
     ue_history() = default;
@@ -43,13 +44,13 @@ public:
     double ul_avg_rate() const { return parent->ue_db.at<component::ul_avg>(rid); }
 
   private:
-    friend class ue_history_system;
+    friend class ue_history_repository;
 
-    const ue_history_system* parent = nullptr;
-    soa::row_id              rid    = invalid_row_id;
+    const ue_history_repository* parent = nullptr;
+    soa::row_id                  rid    = invalid_row_id;
   };
 
-  ue_history_system();
+  ue_history_repository();
 
   void add_ue(du_ue_index_t ue_index);
   void rem_ue(du_ue_index_t ue_index);
@@ -69,21 +70,24 @@ private:
     dl_avg,
     // Average UL rate expressed in bytes per slot experienced by UE.
     ul_avg,
-    // Sum of DL bytes allocated for a given slot, before it is taken into account in the average rate computation.
-    accum_dl_samples,
-    // Sum of UL bytes allocated for a given slot, before it is taken into account in the average rate computation.
-    accum_ul_samples
   };
-  soa::table<component, float, float, float, float> ue_db;
 
+  /// \brief Table holding historical traffic information for all UEs.
+  /// We use SoA for better vectorization when updating average rates.
+  soa::table<component, float, float> ue_db;
+
+  /// Mapping of UE index to SoA table row IDs.
   std::vector<soa::row_id> ue_row_ids;
+
+  /// Internal buffer to store last DL samples before updating average rates.
+  std::vector<float> last_samples_buffer;
 };
 
 /// Time-domain QoS-aware scheduler policy.
 class scheduler_time_qos final : public scheduler_policy
 {
 public:
-  scheduler_time_qos(const scheduler_ue_expert_config& expert_cfg_, du_cell_index_t cell_index);
+  scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_, du_cell_index_t cell_index);
 
   void add_ue(du_ue_index_t ue_index) override;
 
@@ -105,34 +109,17 @@ private:
   // Value used to flag that the UE cannot be allocated in a given slot.
   static constexpr double forbid_prio = std::numeric_limits<double>::lowest();
 
+  /// Computes the priority of the UE to be scheduled in DL based on the QoS and proportional fair metric.
+  [[nodiscard]] ue_sched_priority compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot);
+
+  /// Computes the priority of the UE to be scheduled in UL based on the proportional fair metric.
+  [[nodiscard]] ue_sched_priority compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot);
+
   // Policy parameters.
   const time_qos_scheduler_config params;
-  const du_cell_index_t           cell_index;
-  /// Coefficient used to compute exponential moving average.
-  const double exp_avg_alpha = 0.01;
 
-  /// Holds the information needed to compute priority of a UE in a priority queue.
-  struct ue_ctxt {
-    ue_ctxt(du_ue_index_t ue_index_, du_cell_index_t cell_index_, const scheduler_time_qos* parent_);
-
-    /// Computes the priority of the UE to be scheduled in DL based on the QoS and proportional fair metric.
-    void compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot);
-    /// Computes the priority of the UE to be scheduled in UL based on the proportional fair metric.
-    void compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot);
-
-    const du_ue_index_t       ue_index;
-    const du_cell_index_t     cell_index;
-    const scheduler_time_qos* parent;
-
-    /// DL priority value of the UE.
-    double dl_prio = forbid_prio;
-    /// UL priority value of the UE.
-    double ul_prio = forbid_prio;
-  };
-
-  ue_history_system history;
-
-  slotted_id_table<du_ue_index_t, ue_ctxt, MAX_NOF_DU_UES> ue_history_db;
+  /// Holds historical traffic information for UEs of this slice.
+  ue_history_repository ue_history_db;
 
   slot_point last_pdsch_slot;
   slot_point last_pusch_slot;

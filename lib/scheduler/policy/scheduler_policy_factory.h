@@ -11,14 +11,13 @@
 #pragma once
 
 #include "scheduler_policy.h"
+#include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include <memory>
 
 namespace ocudu {
 
-struct scheduler_ue_expert_config;
-
 /// Creatre intra-cell, intra-slice scheduler policy.
-std::unique_ptr<scheduler_policy> create_scheduler_strategy(const scheduler_ue_expert_config& expert_cfg_,
-                                                            du_cell_index_t                   cell_index);
+std::unique_ptr<scheduler_policy> create_scheduler_strategy(const scheduler_policy_config& policy_cfg,
+                                                            du_cell_index_t                cell_index);
 
 } // namespace ocudu

@@ -18,7 +18,7 @@ namespace ocudu {
 class scheduler_time_rr : public scheduler_policy
 {
 public:
-  scheduler_time_rr(const scheduler_ue_expert_config& expert_cfg_);
+  scheduler_time_rr() = default;
 
   void add_ue(du_ue_index_t ue_index) override {}
 
@@ -37,8 +37,6 @@ public:
   void save_ul_newtx_grants(span<const ul_sched_info> ul_grants) override;
 
 private:
-  const scheduler_ue_expert_config expert_cfg;
-
   // Tables to keep track of UE priorities.
   std::array<unsigned, MAX_NOF_DU_UES> ue_last_dl_alloc_count{};
   std::array<unsigned, MAX_NOF_DU_UES> ue_last_ul_alloc_count{};

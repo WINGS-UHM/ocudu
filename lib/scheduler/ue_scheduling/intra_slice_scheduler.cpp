@@ -239,7 +239,7 @@ static std::pair<unsigned, unsigned> get_max_grants_and_rb_grant_size(span<const
   unsigned ues_to_alloc = max_ue_grants_to_alloc;
 
   // [Implementation-defined] We use the same searchSpace config to determine the number of RBs available.
-  const ue_cell_configuration& ue_cfg  = ue_candidates[0].ue_cc->cfg();
+  const ue_cell_configuration& ue_cfg  = ue_candidates[0].ue->get_cc().cfg();
   const search_space_id        ss_id   = ue_cfg.init_bwp().dl_ded.value()->pdcch_cfg->search_spaces.back().get_id();
   const auto*                  ss_info = ue_cfg.find_search_space(ss_id);
   if (ss_info == nullptr) {
@@ -464,10 +464,9 @@ unsigned intra_slice_scheduler::schedule_dl_newtx_candidates(dl_ran_slice_candid
       // The PUCCH is likely saturated and there is no space for new PUCCHs.
       // As a heuristic, we only allocate DL grants to UEs which already have a PUCCH or a PUSCH in a future slot that
       // can likely accommodate more HARQ-ACK bits.
-      if (not(ue_candidate.ue_cc->harqs.last_ack_slot().valid() and
-              ue_candidate.ue_cc->harqs.last_ack_slot() > pdsch_slot) and
-          not(ue_candidate.ue_cc->harqs.last_pusch_slot().valid() and
-              ue_candidate.ue_cc->harqs.last_pusch_slot() > pdsch_slot)) {
+      const auto& harqs = ue_candidate.ue->get_cc().harqs;
+      if (not(harqs.last_ack_slot().valid() and harqs.last_ack_slot() > pdsch_slot) and
+          not(harqs.last_pusch_slot().valid() and harqs.last_pusch_slot() > pdsch_slot)) {
         continue;
       }
     }
@@ -721,7 +720,7 @@ std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_dl_candida
     return std::nullopt;
   }
 
-  return ue_newtx_candidate{&u, &ue_cc, pending_bytes, forbid_sched_priority};
+  return ue_newtx_candidate{&u, forbid_sched_priority, pending_bytes};
 }
 std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_ul_candidate(const slice_ue& u) const
 {
@@ -752,7 +751,7 @@ std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_ul_candida
     return std::nullopt;
   }
 
-  return ue_newtx_candidate{&u, &ue_cc, pending_bytes, forbid_sched_priority};
+  return ue_newtx_candidate{&u, forbid_sched_priority, pending_bytes};
 }
 
 unsigned intra_slice_scheduler::max_pdschs_to_alloc(const dl_ran_slice_candidate& slice) const

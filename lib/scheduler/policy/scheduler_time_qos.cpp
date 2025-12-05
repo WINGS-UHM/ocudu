@@ -20,29 +20,34 @@ using namespace ocudu;
 // imprecision.
 static constexpr unsigned MAX_PF_COEFF = 10;
 
-ue_history_system::ue_history_system()
+ue_history_repository::ue_history_repository()
 {
   ue_db.reserve(MAX_NOF_DU_UES);
   ue_row_ids.reserve(MAX_NOF_DU_UES);
+  last_samples_buffer.resize(MAX_NOF_DU_UES, 0);
 }
 
-void ue_history_system::add_ue(du_ue_index_t ue_index)
+void ue_history_repository::add_ue(du_ue_index_t ue_index)
 {
+  ocudu_assert(ue_row_ids.size() <= ue_index or ue_row_ids[ue_index] == invalid_row_id,
+               "UE was already added to the history repository");
   if (ue_row_ids.size() <= ue_index) {
     ue_row_ids.resize(ue_index + 1, soa::row_id{std::numeric_limits<uint32_t>::max()});
   }
-  auto row_id          = ue_db.insert(0.0, 0.0, 0.0, 0.0);
+  auto row_id          = ue_db.insert(0.0, 0.0);
   ue_row_ids[ue_index] = row_id;
 }
 
-void ue_history_system::rem_ue(du_ue_index_t ue_index)
+void ue_history_repository::rem_ue(du_ue_index_t ue_index)
 {
+  ocudu_assert(ue_row_ids.size() > ue_index and ue_row_ids[ue_index] != invalid_row_id,
+               "UE was not added to the history repository");
   auto row_id = ue_row_ids[ue_index];
   ue_db.erase(row_id);
   ue_row_ids[ue_index] = soa::row_id{std::numeric_limits<uint32_t>::max()};
 }
 
-void ue_history_system::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
+void ue_history_repository::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
 {
   if (dl_grants.empty()) {
     // Ignore slots with no grants in the statistics, as they don't add any differentiation between UEs.
@@ -50,53 +55,51 @@ void ue_history_system::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
   }
 
   // Compute DL average rates for all UEs.
+  span<float> dl_rate = ue_db.column<component::dl_avg>().to_span();
+  std::fill(last_samples_buffer.begin(), last_samples_buffer.begin() + dl_rate.size(), 0.0f);
   for (const dl_msg_alloc& grant : dl_grants) {
-    soa::row_id r = ue_row_ids[grant.context.ue_index];
-    ue_db.at<component::accum_dl_samples>(r) += grant.pdsch_cfg.codewords[0].tb_size_bytes;
+    unsigned offset = ue_db.get_offset(ue_row_ids[grant.context.ue_index]);
+    last_samples_buffer[offset] += grant.pdsch_cfg.codewords[0].tb_size_bytes;
   }
-  span<float> dl_rate    = ue_db.column<component::dl_avg>().to_span();
-  span<float> dl_samples = ue_db.column<component::accum_dl_samples>().to_span();
-  for (size_t i = 0, sz = dl_rate.size(); i != sz; ++i) {
-    dl_rate[i] = (1.0 - exp_avg_alpha) * dl_rate[i] + exp_avg_alpha * dl_samples[i];
+  auto sample_it = last_samples_buffer.begin();
+  for (auto rate_it = dl_rate.begin(), end_it = dl_rate.end(); rate_it != end_it; ++rate_it, ++sample_it) {
+    *rate_it = (1.0 - exp_avg_alpha) * (*rate_it) + exp_avg_alpha * (*sample_it);
   }
-  std::fill(dl_samples.begin(), dl_samples.end(), 0.0);
 }
 
-void ue_history_system::save_ul_newtx_grants(span<const ul_sched_info> ul_grants)
+void ue_history_repository::save_ul_newtx_grants(span<const ul_sched_info> ul_grants)
 {
   if (ul_grants.empty()) {
     // Ignore slots with no grants in the statistics, as they don't add any differentiation between UEs.
     return;
   }
 
+  // Compute UL average rates for all UEs.
+  span<float> ul_rate = ue_db.column<component::ul_avg>().to_span();
+  std::fill(last_samples_buffer.begin(), last_samples_buffer.begin() + ul_rate.size(), 0.0f);
   for (const ul_sched_info& grant : ul_grants) {
-    soa::row_id r = ue_row_ids[grant.context.ue_index];
-    ue_db.at<component::accum_ul_samples>(r) += grant.pusch_cfg.tb_size_bytes;
+    unsigned offset = ue_db.get_offset(ue_row_ids[grant.context.ue_index]);
+    last_samples_buffer[offset] += grant.pusch_cfg.tb_size_bytes;
   }
-  span<float> ul_rate    = ue_db.column<component::ul_avg>().to_span();
-  span<float> ul_samples = ue_db.column<component::accum_ul_samples>().to_span();
-  for (size_t i = 0, sz = ul_rate.size(); i != sz; ++i) {
-    ul_rate[i] = (1.0 - exp_avg_alpha) * ul_rate[i] + exp_avg_alpha * ul_samples[i];
+  auto sample_it = last_samples_buffer.begin();
+  for (auto rate_it = ul_rate.begin(), end_it = ul_rate.end(); rate_it != end_it; ++rate_it, ++sample_it) {
+    *rate_it = (1.0 - exp_avg_alpha) * (*rate_it) + exp_avg_alpha * (*sample_it);
   }
-  std::fill(ul_samples.begin(), ul_samples.end(), 0.0);
 }
 
-scheduler_time_qos::scheduler_time_qos(const scheduler_ue_expert_config& expert_cfg_, du_cell_index_t cell_index_) :
-  params(std::get<time_qos_scheduler_config>(expert_cfg_.policy_cfg)), cell_index(cell_index_)
+scheduler_time_qos::scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_, du_cell_index_t cell_index_) :
+  params(policy_cfg_)
 {
 }
 
 void scheduler_time_qos::add_ue(du_ue_index_t ue_index)
 {
-  ocudu_assert(not ue_history_db.contains(ue_index), "UE was already added to this slice");
-  history.add_ue(ue_index);
-  ue_history_db.emplace(ue_index, ue_ctxt{ue_index, cell_index, this});
+  ue_history_db.add_ue(ue_index);
 }
 
 void scheduler_time_qos::rem_ue(du_ue_index_t ue_index)
 {
-  history.rem_ue(ue_index);
-  ue_history_db.erase(ue_index);
+  ue_history_db.rem_ue(ue_index);
 }
 
 void scheduler_time_qos::compute_ue_dl_priorities(slot_point               pdcch_slot,
@@ -107,9 +110,7 @@ void scheduler_time_qos::compute_ue_dl_priorities(slot_point               pdcch
 
   // Compute UE candidate priorities.
   for (auto& u : ue_candidates) {
-    ue_ctxt& uectxt = ue_history_db[u.ue->ue_index()];
-    uectxt.compute_dl_prio(*u.ue, pdcch_slot, pdsch_slot);
-    u.priority = uectxt.dl_prio;
+    u.priority = compute_dl_prio(*u.ue, pdcch_slot, pdsch_slot);
   }
 }
 
@@ -121,22 +122,20 @@ void scheduler_time_qos::compute_ue_ul_priorities(slot_point               pdcch
 
   // Compute UE candidate priorities.
   for (auto& u : ue_candidates) {
-    ue_ctxt& uectxt = ue_history_db[u.ue->ue_index()];
-    uectxt.compute_ul_prio(*u.ue, pdcch_slot, pusch_slot);
-    u.priority = uectxt.ul_prio;
+    u.priority = compute_ul_prio(*u.ue, pdcch_slot, pusch_slot);
   }
 }
 
 void scheduler_time_qos::save_dl_newtx_grants(span<const dl_msg_alloc> dl_grants)
 {
   // Save result of DL grants in UE history.
-  history.save_dl_newtx_grants(dl_grants);
+  ue_history_db.save_dl_newtx_grants(dl_grants);
 }
 
 void scheduler_time_qos::save_ul_newtx_grants(span<const ul_sched_info> ul_grants)
 {
   // Save result of UL grants in UE history.
-  history.save_ul_newtx_grants(ul_grants);
+  ue_history_db.save_ul_newtx_grants(ul_grants);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,19 +301,12 @@ static double compute_ul_qos_weights(const slice_ue&                  u,
   return combine_qos_metrics(pf_weight, gbr_weight, prio_weight, 1.0, policy_params);
 }
 
-scheduler_time_qos::ue_ctxt::ue_ctxt(du_ue_index_t             ue_index_,
-                                     du_cell_index_t           cell_index_,
-                                     const scheduler_time_qos* parent_) :
-  ue_index(ue_index_), cell_index(cell_index_), parent(parent_)
+ue_sched_priority scheduler_time_qos::compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot)
 {
-}
+  double dl_prio = forbid_prio;
 
-void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot)
-{
-  dl_prio = forbid_prio;
-
-  const ue_cell& ue_cc = u.get_cc();
-
+  const auto&         ue_cc    = u.get_cc();
+  const du_ue_index_t ue_index = u.ue_index();
   // This should be ensured at this point.
   ocudu_sanity_check(ue_cc.is_pdsch_enabled(pdcch_slot, pdsch_slot) and ue_cc.harqs.has_empty_dl_harqs() and
                          u.has_pending_dl_newtx_bytes(),
@@ -334,20 +326,20 @@ void scheduler_time_qos::ue_ctxt::compute_dl_prio(const slice_ue& u, slot_point 
   auto mcs = ue_cc.link_adaptation_controller().calculate_dl_mcs(pdsch_cfg.mcs_table);
   if (not mcs.has_value()) {
     // CQI is either 0 or above 15, which means no DL.
-    return;
+    return dl_prio;
   }
 
-  // Calculate DL PF priority.
+  // Calculate DL QoS-aware priority.
   // NOTE: Estimated instantaneous DL rate is calculated assuming entire BWP CRBs are allocated to UE.
   const double estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, mcs.value(), ss_info.dl_crb_lims.length());
-  const double current_total_avg_rate = parent->history[u.ue_index()].dl_avg_rate();
-  dl_prio = compute_dl_qos_weights(u, estimated_rate, current_total_avg_rate, pdcch_slot, parent->params);
+  const double current_total_avg_rate = ue_history_db[ue_index].dl_avg_rate();
+  dl_prio = compute_dl_qos_weights(u, estimated_rate, current_total_avg_rate, pdcch_slot, params);
+
+  return dl_prio;
 }
 
-void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot)
+ue_sched_priority scheduler_time_qos::compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot)
 {
-  ul_prio = forbid_prio;
-
   const ue_cell& ue_cc = u.get_cc();
   ocudu_sanity_check(not ue_cc.is_in_fallback_mode() and ue_cc.is_pusch_enabled(pdcch_slot, pusch_slot) and
                          ue_cc.harqs.has_empty_ul_harqs() and u.pending_ul_newtx_bytes() > 0,
@@ -395,8 +387,8 @@ void scheduler_time_qos::ue_ctxt::compute_ul_prio(const slice_ue& u, slot_point 
   // Calculate UL PF priority.
   // NOTE: Estimated instantaneous UL rate is calculated assuming entire BWP CRBs are allocated to UE.
   const double estimated_rate   = ue_cc.get_estimated_ul_rate(pusch_cfg, mcs.value(), ss_info.ul_crb_lims.length());
-  const double current_avg_rate = parent->history[u.ue_index()].ul_avg_rate();
+  const double current_avg_rate = ue_history_db[u.ue_index()].ul_avg_rate();
 
   // Compute LC weight function.
-  ul_prio = compute_ul_qos_weights(u, estimated_rate, current_avg_rate, parent->params);
+  return compute_ul_qos_weights(u, estimated_rate, current_avg_rate, params);
 }

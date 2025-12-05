@@ -31,20 +31,21 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
   const unsigned cell_max_rbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
 
   // Create RAN slice instances.
-  // Default SRB slice.
+  // > Default SRB slice.
   // NOTE: We set \c min_prb for default SRB slice to maximum nof. PRBs of a UE carrier to give maximum priority to this
   // slice.
+  // TODO: Once test mode does not depend on SRB1, use a more suitable policy for SRBs.
   slices.emplace_back(
       SRB_RAN_SLICE_ID,
       cell_cfg,
       slice_rrm_policy_config{.rbs = {cell_max_rbs, cell_max_rbs}, .priority = slice_rrm_policy_config::max_priority},
-      create_scheduler_strategy(cell_cfg.expert_cfg.ue, cell_cfg.cell_index),
+      create_scheduler_strategy(cell_cfg.expert_cfg.ue.policy_cfg, cell_cfg.cell_index),
       ues);
-  // Default DRB slice.
+  // > Default DRB slice.
   slices.emplace_back(DEFAULT_DRB_RAN_SLICE_ID,
                       cell_cfg,
                       slice_rrm_policy_config{.rbs = {0, cell_max_rbs}},
-                      create_scheduler_strategy(cell_cfg.expert_cfg.ue, cell_cfg.cell_index),
+                      create_scheduler_strategy(cell_cfg.expert_cfg.ue.policy_cfg, cell_cfg.cell_index),
                       ues);
   // NOTE: RAN slice IDs 0 and 1 are reserved for default SRB and default DRB slice respectively.
   ran_slice_id_t id_count{2};
@@ -56,15 +57,9 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
                              std::min(rrm_adjusted.rbs.min(), cell_max_rbs),
                              std::min(rrm_adjusted.rbs.max(), cell_max_rbs)};
     rrm_adjusted.priority = std::min(rrm.priority, slice_rrm_policy_config::max_priority);
-    // Set policy scheduler based on slice configuration.
-    scheduler_ue_expert_config slice_scheduler_ue_expert_cfg{cell_cfg.expert_cfg.ue};
-    slice_scheduler_ue_expert_cfg.policy_cfg = rrm.policy_sched_cfg;
-    // Create custom RAN slice.
-    slices.emplace_back(id_count,
-                        cell_cfg,
-                        rrm_adjusted,
-                        create_scheduler_strategy(slice_scheduler_ue_expert_cfg, cell_cfg.cell_index),
-                        ues);
+    // Create custom RAN slice based on the RRM policy.
+    slices.emplace_back(
+        id_count, cell_cfg, rrm_adjusted, create_scheduler_strategy(rrm.policy_sched_cfg, cell_cfg.cell_index), ues);
     ++id_count;
   }
 

@@ -330,6 +330,13 @@ public:
     return std::get<std::vector<ColumnType>>(columns)[index_map[rid.value()]];
   }
 
+  /// Get the internal offset of the row with given row_id.
+  unsigned get_offset(row_id rid) const
+  {
+    ocudu_assert(has_row_id(rid), "Invalid row_id");
+    return index_map[rid.value()];
+  }
+
   template <typename... Vals>
   row_id insert(Vals&&... vals)
   {

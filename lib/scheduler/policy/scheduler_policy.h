@@ -33,9 +33,8 @@ const ue_sched_priority max_sched_priority = std::numeric_limits<ue_sched_priori
 /// UE candidate for DL or UL scheduling.
 struct ue_newtx_candidate {
   const slice_ue*   ue;
-  const ue_cell*    ue_cc;
-  unsigned          pending_bytes;
   ue_sched_priority priority;
+  unsigned          pending_bytes;
 };
 
 /// Interface of data scheduler that is used to allocate UE DL and UL grants in a given slot

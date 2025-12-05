@@ -414,6 +414,7 @@ public:
         for (unsigned i = 0, sl_nw = sliced.nof_words_(); i != sl_nw; ++i) {
           sliced.buffer[i] = (buffer[i + start_word] << start_mod) & left_mask;
           if (i + start_word + 1 < nwords) {
+            ocudu_assume(i < sliced.buffer.size());
             sliced.buffer[i] |= (buffer[i + start_word + 1] & right_mask) >> (bits_per_word - start_mod);
           }
         }

@@ -1275,9 +1275,9 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
   odu::du_ue_resource_config dest_cfg{src_cfg};
 
   // 1. Make a RLM config that uses SSB resources.
-  uint8_t                                  L_max   = 4U;
-  constexpr std::array<uint8_t, NOF_BEAMS> ssb_ids = {0};
-  rlm_helper::rlm_builder_params rlm_params(rlm_resource_type::ssb, L_max, static_cast<uint64_t>(0b1) << 63U, ssb_ids);
+  uint8_t                                      L_max   = 4U;
+  constexpr std::array<uint8_t, NOF_SSB_BEAMS> ssb_ids = {0};
+  rlm_helper::rlm_builder_params rlm_params(rlm_resource_type::ssb, L_max, ssb_bitmap_t(0b1000, L_max), ssb_ids);
 
   dest_cfg.cell_group.cells[0].serv_cell_cfg.init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
       rlm_params, dest_cfg.cell_group.cells.begin()->serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list));
@@ -1312,7 +1312,7 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
 
   // 3. Make a RLM config that uses both SSB and CSI-RS resources.
   rlm_params = rlm_helper::rlm_builder_params(
-      rlm_resource_type::ssb_and_csi_rs, L_max, static_cast<uint64_t>(0b1) << 63U, ssb_ids);
+      rlm_resource_type::ssb_and_csi_rs, L_max, ssb_bitmap_t(0b10000000, L_max), ssb_ids);
 
   // Set the DEST (with SSB config) configuration as the new SRC.
   src_cfg = dest_cfg;

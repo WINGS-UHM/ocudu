@@ -12,6 +12,7 @@
 #include "asn1_csi_meas_config_helpers.h"
 #include "ocudu/asn1/asn1_diff_utils.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/support/error_handling.h"
 
 using namespace ocudu;
@@ -1573,10 +1574,10 @@ calculate_pucch_config_diff(asn1::rrc_nr::pucch_cfg_s& out, const pucch_config& 
       dest.pucch_res_list,
       [](const pucch_resource& res) { return make_asn1_rrc_pucch_resource(res); },
       [](const pucch_resource& res) {
-        // NOTE: For safety, we use an ID composed of both UE and cell PUCCH resource IDs. We cannot compare only by
-        // using the UE PUCCH resource ID. This is because the UE PUCCH resource ID always uses index {0 , ...,
-        // max_UE_PUCCH_resources - 1}; therefore, even if we changed the configuration, this index wouldn't change and
-        // the function would not detect the change of configuration.
+        // NOTE: For safety, we use an ID composed of both UE and cell PUCCH resource IDs. We cannot compare
+        // only by using the UE PUCCH resource ID. This is because the UE PUCCH resource ID always uses index {0
+        // , ..., max_UE_PUCCH_resources - 1}; therefore, even if we changed the configuration, this index
+        // wouldn't change and the function would not detect the change of configuration.
         return (static_cast<uint64_t>(res.res_id.ue_res_id) << 32U) + static_cast<uint64_t>(res.res_id.cell_res_id);
       });
 
@@ -3348,17 +3349,17 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   // As per \c ssb-PositionsInBurst, in \c ServingCellConfigCommon, TS 38.331, the length of \c ssb-PositionsInBurst
   // needs to be set according to TS 38.213, Section 4.1.
   out.sp_cell_cfg_common.ssb_positions_in_burst_present = true;
-  const uint8_t l_max                                   = band_helper::get_ssb_l_max(
-      du_cell_cfg.dl_carrier.band, du_cell_cfg.ssb_cfg.scs, static_cast<uint32_t>(du_cell_cfg.dl_carrier.arfcn_f_ref));
+  const uint8_t l_max                                   = du_cell_cfg.ssb_cfg.ssb_bitmap.get_L_max();
   ocudu_assert(l_max == 4U or l_max == 8U or l_max == 64U, "L_max value {} not valid", l_max);
   if (l_max == 4U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_short_bitmap().from_number(
-        static_cast<uint64_t>(du_cell_cfg.ssb_cfg.ssb_bitmap) >> static_cast<uint64_t>(60U));
+        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
   } else if (l_max == 8U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_medium_bitmap().from_number(
-        static_cast<uint64_t>(du_cell_cfg.ssb_cfg.ssb_bitmap) >> static_cast<uint64_t>(56U));
+        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
   } else {
-    out.sp_cell_cfg_common.ssb_positions_in_burst.set_long_bitmap().from_number(du_cell_cfg.ssb_cfg.ssb_bitmap);
+    out.sp_cell_cfg_common.ssb_positions_in_burst.set_long_bitmap().from_number(
+        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
   }
 
   out.sp_cell_cfg_common.ssb_periodicity_serving_cell_present = true;

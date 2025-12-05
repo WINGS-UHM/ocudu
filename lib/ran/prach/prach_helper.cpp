@@ -21,9 +21,9 @@ error_type<std::string>
 ocudu::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequency_range fr, duplex_mode mode)
 {
   // Supported PRACH Configuration Index values for FDD in FR1, as per TS38.211 Table 6.3.3.2-2.
-  static constexpr auto fr1_tdd_intervals = to_array<interval<uint8_t>>({{0, 87}, {145, 169}});
+  static constexpr auto fr1_tdd_intervals = to_array<interval<uint8_t>>({{0, 87}, {110, 133}, {145, 210}});
   // Supported PRACH Configuration Index values for TDD in FR1, as per TS38.211 Table 6.3.3.2-3.
-  static constexpr auto fr1_fdd_intervals = to_array<interval<uint8_t>>({{0, 108}, {198, 219}});
+  static constexpr auto fr1_fdd_intervals = to_array<interval<uint8_t>>({{0, 108}, {147, 167}, {198, 255}});
   // Supported PRACH Configuration Index values for TDD in FR2, as per TS38.211 Table 6.3.3.2-4.
   static constexpr auto fr2_tdd_intervals = to_array<interval<uint8_t>>({{112, 144}});
 

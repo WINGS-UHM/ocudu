@@ -23,7 +23,7 @@ uint8_t ocudu::ssb_get_L_max(subcarrier_spacing ssb_scs, unsigned dl_arfcn, std:
   // MAC Cell config.
   const nr_band gnb_band = band.value_or(band_helper::get_band_from_dl_arfcn(dl_arfcn));
   ocudu_assert(gnb_band != nr_band::invalid, "Invalid NR band index");
-  ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(gnb_band, ssb_scs);
+  const ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(gnb_band, ssb_scs);
 
   // Flag indicating whether cell is on paired spectrum (FDD) or unpaired (TDD, SDL, SUL).
   bool paired_spectrum = band_helper::is_paired_spectrum(gnb_band);

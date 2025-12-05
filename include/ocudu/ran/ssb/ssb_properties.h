@@ -32,7 +32,7 @@ enum class ssb_pss_to_sss_epre { dB_0, dB_3 };
 /// Labels for the different SS/PBCH block patterns defined in TS38.213 Section 4.1.
 enum class ssb_pattern_case {
   /// Case A - 15 kHz SCS, FR1: index pattern \f$\{2, 8\} + 14\cdot n\f$.
-  A,
+  A = 0,
   /// Case B - 30 kHz SCS, FR1: index pattern \f$\{4, 8, 16, 20\} + 28\cdot n\f$.
   B,
   /// Case C - 30 kHz SCS, FR1: index pattern \f$\{2, 8\} + 14\cdot n\f$.

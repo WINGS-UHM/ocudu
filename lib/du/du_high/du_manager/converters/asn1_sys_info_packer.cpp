@@ -247,35 +247,33 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
 
   // SSB params.
   if (frequency_range::FR2 == band_helper::get_freq_range(du_cfg.dl_carrier.band)) {
-    // Populate FR2 SSB params based on TS38.331 section 6.3.2 IE "ServingCellConfigCommonSIB".
-    uint8_t group_presence = 0;
-    uint8_t in_one_group   = 0;
+    // Populate FR2 SSB params based on TS 38.331 section 6.3.2 IE "ServingCellConfigCommonSIB".
+    constexpr unsigned nof_bits_group = 8U;
 
-    for (int i = 7; i >= 0; --i) {
-      uint8_t ssb_group = (du_cfg.ssb_cfg.ssb_bitmap >> (8 * i)) & 255;
-      if (ssb_group > 0) {
-        group_presence |= (1 << i);
-
-        if (in_one_group != ssb_group && i < 7) {
-          report_fatal_error("Invalid FR2 SIB1 SSB params. The pattern of transmitted SS/PBCH blocks must be the same "
-                             "for all groups.");
-        }
-        in_one_group = ssb_group;
-      }
+    // We assume the SSB bitmap has been checked in the validator.
+    for (size_t i = 0; i != nof_bits_group; ++i) {
+      const bool i_th_ssb_group_has_non_zero_elems =
+          du_cfg.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
+      cell.ssb_positions_in_burst.group_presence.set(i, i_th_ssb_group_has_non_zero_elems);
     }
 
-    cell.ssb_positions_in_burst.in_one_group.from_number(in_one_group);
-    cell.ssb_positions_in_burst.group_presence.from_number(group_presence);
+    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.ssb_cfg.ssb_bitmap.extract(0U, 8U));
     cell.ssb_positions_in_burst.group_presence_present = true;
   } else {
-    cell.ssb_positions_in_burst.in_one_group.from_number(static_cast<uint64_t>(du_cfg.ssb_cfg.ssb_bitmap) >>
-                                                         static_cast<uint64_t>(56U));
+    // As per \c inOneGroup, \c ssb-PositionsInBurst, \c ServingCellConfigCommonSIB, TS 38.331, maximum number of
+    // SS/PBCH blocks per half frame (i.e., L_max) equals to 4, only 4 left-most bits are valid; if L_max = 8, then all
+    // 8 bits are valid.
+    ocudu_assert(du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
+                 "For FR1, only L_max = 4 and 8 are supported");
+    cell.ssb_positions_in_burst.in_one_group.from_number(
+        du_cfg.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.ssb_cfg.ssb_bitmap.get_L_max())
+        << (8U - du_cfg.ssb_cfg.ssb_bitmap.get_L_max()));
   }
 
   asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.ssb_cfg.ssb_period));
   cell.ss_pbch_block_pwr = du_cfg.ssb_cfg.ssb_block_power;
 
-  n_ta_offset ta_offset = band_helper::get_ta_offset(du_cfg.dl_carrier.band);
+  const n_ta_offset ta_offset = band_helper::get_ta_offset(du_cfg.dl_carrier.band);
   switch (ta_offset) {
     case n_ta_offset::n0:
       cell.n_timing_advance_offset_present = true;
@@ -845,7 +843,8 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
                               "segmented message.");
           auto it = std::find_if(
               sibs.begin(), sibs.end(), [sib_id](const sib_info& sib) { return get_sib_info_type(sib) == sib_id; });
-          ocudu_assert(it != sibs.end(), "SIB{} in SIB mapping info has no defined config", (unsigned)sib_id);
+          ocudu_assert(
+              it != sibs.end(), "SIB{} in SIB mapping info has no defined config", static_cast<unsigned>(sib_id));
 
           // Obtain the SIB and make sure it does not hold a segmented message.
           auto sib = make_asn1_rrc_sib_item(*it);
@@ -863,7 +862,8 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
         sib_type sib_id = si_sched.sib_mapping_info.front();
         auto     it     = std::find_if(
             sibs.begin(), sibs.end(), [sib_id](const sib_info& sib) { return get_sib_info_type(sib) == sib_id; });
-        ocudu_assert(it != sibs.end(), "SIB{} in SIB mapping info has no defined config", (unsigned)sib_id);
+        ocudu_assert(
+            it != sibs.end(), "SIB{} in SIB mapping info has no defined config", static_cast<unsigned>(sib_id));
 
         // Buffer to hold the packed message. It may be necessary to store multiple SI messages (one for each segment).
         bcch_dl_sch_payload_type packed_sib;

@@ -52,7 +52,7 @@ ocudu::rlm_helper::make_radio_link_monitoring_config(const rlm_builder_params&  
   // beam currently supported.
   unsigned rlm_rs_idx = 0U;
   if (params.resource_type == rlm_resource_type::ssb or params.resource_type == rlm_resource_type::ssb_and_csi_rs) {
-    ocudu_assert(params.ssb_params.value().ssb_bitmap == static_cast<uint64_t>(0b1) << 63U, "Invalid SSB bitmap");
+    ocudu_assert(params.ssb_params.value().ssb_bitmap.test(0U), "Invalid SSB bitmap");
     auto& rlm_rs  = rlm_cfg.rlm_resources.emplace_back();
     rlm_rs.res_id = to_rlm_res_id(rlm_rs_idx++);
     // [Implementation-defined] This is the only supported option at the moment.

@@ -57,7 +57,7 @@ private:
                        crb_interval                  sib1_crbs_grant,
                        unsigned                      time_resource,
                        const dmrs_information&       dmrs_info,
-                       unsigned                      tbs);
+                       unsigned                      tbs) const;
 
   void handle_pending_sib1_update();
 
@@ -76,6 +76,8 @@ private:
   std::chrono::milliseconds sib1_rtx_period;
   /// The SIB1 payload is in bytes.
   units::bytes sib1_payload_size;
+  /// Max number of SSB beams.
+  const uint8_t L_max;
   /// Current SIB version.
   unsigned current_version = 0;
 

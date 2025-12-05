@@ -362,9 +362,9 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
         fmt::underlying(ssb_cfg.scs), fmt::underlying(subcarrier_spacing::kHz120), "SSB SCS must be 120kHz for FR2.");
   }
 
-  CHECK_EQ(ssb_cfg.ssb_bitmap,
-           static_cast<uint64_t>(1U) << static_cast<uint64_t>(63U),
-           "Multiple beams not supported for SSB.");
+  // TODO: remove this when multiple beams are supported.
+  CHECK_TRUE(ssb_cfg.ssb_bitmap.test(0) and ssb_cfg.ssb_bitmap.none(1U, ssb_cfg.ssb_bitmap.get_L_max()),
+             "Multiple beams not supported for SSB.");
 
   // Checks that SSB does not get located outside the band.
   if (cell_cfg.scs_common == subcarrier_spacing::kHz15) {
@@ -405,34 +405,50 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
                offset_p_A_upper_bound);
   }
 
-  ssb_pattern_case ssb_case   = band_helper::get_ssb_pattern(cell_cfg.dl_carrier.band, ssb_cfg.scs);
-  uint8_t          ssb_bitmap = static_cast<uint64_t>(ssb_cfg.ssb_bitmap) << static_cast<uint64_t>(56U);
-  bool             is_paired  = band_helper::is_paired_spectrum(cell_cfg.dl_carrier.band);
-  uint8_t          L_max      = ssb_get_L_max(ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
-  double           cutoff_freq_mhz_case_a_b_c = band_helper::nr_arfcn_to_freq(cell_cfg.dl_carrier.arfcn_f_ref) / 1e6;
-  double cutoff_freq_mhz_case_c_unpaired      = band_helper::nr_arfcn_to_freq(cell_cfg.dl_carrier.arfcn_f_ref) / 1e6;
+  ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(cell_cfg.dl_carrier.band, ssb_cfg.scs);
+  const uint8_t    L_max    = ssb_get_L_max(ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
+  CHECK_TRUE(ssb_cfg.ssb_bitmap.get_L_max() == L_max, "Mismatch between SSB bitmap size and L_max");
+
+  // (Only for Lmax = 64) It is assumed in \c inOneGroup, \c ssb-PositionsInBurst, \c ServingCellConfigCommonSIB,
+  // TS 38.331 that, if a group of 8-bit bitmaps [n, n+8), with n=0, 8, 16, ...56 has non-zero bits, then these 8
+  // bits are common to all non-zero 8-bit bitmaps starting with n=0, 8, 16, ...56.
+  if (L_max == 64) {
+    constexpr uint8_t      nof_groups_and_bits_per_gr = 8U;
+    std::optional<uint8_t> first_non_zero_group;
+    for (uint8_t group_idx = 0; group_idx != nof_groups_and_bits_per_gr; ++group_idx) {
+      const uint8_t group_8_bits = ssb_cfg.ssb_bitmap.extract(nof_groups_and_bits_per_gr * group_idx,
+                                                              nof_groups_and_bits_per_gr * (group_idx + 1));
+      if (group_8_bits != 0U and not first_non_zero_group.has_value()) {
+        first_non_zero_group.emplace(group_8_bits);
+      }
+      CHECK_TRUE(group_8_bits == 0U or group_8_bits == first_non_zero_group.value(),
+                 "Invalid SSB bitmap for L_max = 64");
+    }
+  }
 
   // Check whether the SSB beam bitmap and L_max are compatible with SSB case and DL band.
-  if (ssb_case == ssb_pattern_case::C and not is_paired) {
-    if (cell_cfg.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED) {
-      CHECK_EQ(L_max, 4, "For SSB case C and frequency <= {}MHz, L_max must be 4", cutoff_freq_mhz_case_c_unpaired);
-      CHECK_TRUE((ssb_bitmap & 0b00001111) == 0,
-                 "For SSB case C and frequency <= {}MHz, only the 4 MSBs of SSB bitmap can be set",
-                 cutoff_freq_mhz_case_c_unpaired);
-    } else {
-      CHECK_EQ(L_max, 8, "For SSB case C and frequency > {}MHz, L_max must be 8", cutoff_freq_mhz_case_c_unpaired);
-    }
+  if (ssb_case <= ssb_pattern_case::C) {
+    double     cutoff_freq_mhz_case_a_b_c      = band_helper::nr_arfcn_to_freq(CUTOFF_FREQ_ARFCN_CASE_A_B_C) / 1e6;
+    double     cutoff_freq_mhz_case_c_unpaired = band_helper::nr_arfcn_to_freq(CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED) / 1e6;
+    const bool ssb_case_c_unpaired =
+        ssb_case == ssb_pattern_case::C and not band_helper::is_paired_spectrum(cell_cfg.dl_carrier.band);
+
+    const bool    frequency_above_cutoff = ssb_case_c_unpaired
+                                               ? cell_cfg.dl_carrier.arfcn_f_ref > CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED
+                                               : cell_cfg.dl_carrier.arfcn_f_ref > CUTOFF_FREQ_ARFCN_CASE_A_B_C;
+    const uint8_t expected_L_max         = frequency_above_cutoff ? 8U : 4U;
+
+    CHECK_EQ(L_max,
+             expected_L_max,
+             "For SSB case {} and frequency {} {}MHz, L_max must be {}",
+             ssb_case_c_unpaired ? "C (unpaired)" : "A, B, C (paired)",
+             frequency_above_cutoff ? ">" : "<=",
+             ssb_case_c_unpaired ? cutoff_freq_mhz_case_c_unpaired : cutoff_freq_mhz_case_a_b_c,
+             expected_L_max);
   } else if (ssb_case == ssb_pattern_case::D) {
     CHECK_EQ(L_max, 64, "For SSB case D L_max must be 64");
   } else {
-    if (cell_cfg.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_A_B_C) {
-      CHECK_EQ(L_max, 4, "For SSB case A and B and frequency <= {}MHz, L_max must be 4", cutoff_freq_mhz_case_a_b_c);
-      CHECK_TRUE((ssb_bitmap & 0b00001111) == 0,
-                 "For SSB case C and frequency <= {}MHz, only the 4 MSBs of SSB bitmap can be set",
-                 cutoff_freq_mhz_case_a_b_c);
-    } else {
-      CHECK_EQ(L_max, 8, "For SSB case A and B and frequency > {}MHz, L_max must be 8", cutoff_freq_mhz_case_a_b_c);
-    }
+    CHECK_TRUE(false, "SSB case E not supported")
   }
 
   return {};

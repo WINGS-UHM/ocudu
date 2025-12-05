@@ -19,6 +19,7 @@
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_builder_params.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
@@ -417,9 +418,14 @@ ssb_configuration ocudu::config_helpers::make_default_ssb_config(const cell_conf
   cfg.ssb_period        = ssb_periodicity::ms10;
   cfg.k_ssb             = *params.k_ssb;
 
-  static constexpr unsigned beam_index = 63;
-  cfg.ssb_bitmap                       = static_cast<uint64_t>(1) << beam_index;
-  cfg.beam_ids[beam_index]             = 0;
+  // Set SSB idx 0 to 1.
+  cfg.ssb_bitmap.set(0);
+  cfg.ssb_bitmap.set_L_max(
+      ssb_get_L_max(params.ssb_scs,
+                    params.dl_f_ref_arfcn,
+                    params.band.value_or(band_helper::get_band_from_dl_arfcn(params.dl_f_ref_arfcn))));
+  // Set SSB beam ID 0 (corresponding to SSB idx 0) to 0.
+  cfg.beam_ids = {0};
 
   // The values we assign to these parameters are implementation-defined.
   cfg.ssb_block_power = -16;

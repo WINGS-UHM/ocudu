@@ -16,9 +16,9 @@
 #include "../support/pdsch/pdsch_resource_allocation.h"
 #include "../support/prbs_calculator.h"
 #include "../support/sch_pdu_builder.h"
-#include "../support/ssb_helpers.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/sib/sib_configuration.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 
 using namespace ocudu;
 
@@ -35,14 +35,16 @@ sib1_scheduler::sib1_scheduler(const cell_configuration& cfg_,
   pdcch_sched{pdcch_sch},
   coreset0{cell_cfg.coreset0},
   searchspace0{cell_cfg.searchspace0},
-  sib1_payload_size{sib1_payload_size_}
+  sib1_payload_size{sib1_payload_size_},
+  L_max(cfg_.ssb_cfg.ssb_bitmap.get_L_max())
 {
   // Compute derived SIB1 parameters.
   sib1_rtx_period = std::chrono::milliseconds{std::max(ssb_periodicity_to_value(cfg_.ssb_cfg.ssb_period),
                                                        sib1_rtx_periodicity_to_value(expert_cfg.sib1_retx_period))};
 
-  for (size_t i_ssb = 0; i_ssb < MAX_NUM_BEAMS; i_ssb++) {
-    if (not is_nth_ssb_beam_active(cell_cfg.ssb_cfg.ssb_bitmap, i_ssb)) {
+  // Only the first L_max SSB beams can be used.
+  for (size_t i_ssb = 0; i_ssb != L_max; ++i_ssb) {
+    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(i_ssb)) {
       continue;
     }
     // NOTE:
@@ -86,9 +88,9 @@ void sib1_scheduler::run_slot(cell_slot_resource_allocator& res_grid)
   const unsigned sib1_newtx_period_slots = sib1_newtx_period.count() * sl_point.nof_slots_per_subframe();
 
   // For each beam, check if the SIB1 needs to be allocated in this slot.
-  for (unsigned ssb_idx = 0; ssb_idx < MAX_NUM_BEAMS; ssb_idx++) {
+  for (unsigned ssb_idx = 0; ssb_idx != L_max; ++ssb_idx) {
     // Do not schedule the SIB1 for the SSB indices that are not used.
-    if (not is_nth_ssb_beam_active(cell_cfg.ssb_cfg.ssb_bitmap, ssb_idx)) {
+    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
       continue;
     }
 
@@ -148,11 +150,11 @@ bool sib1_scheduler::allocate_sib1(cell_slot_resource_allocator& res_grid, unsig
 {
   const auto& pdsch_td_res_alloc_list =
       get_si_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
-  const ofdm_symbol_range sib1_ofdm_symbols = pdsch_td_res_alloc_list[time_resource].symbols;
-  const unsigned          nof_symb_sh       = sib1_ofdm_symbols.length();
-  static const unsigned   nof_layers        = 1;
+  const ofdm_symbol_range   sib1_ofdm_symbols = pdsch_td_res_alloc_list[time_resource].symbols;
+  const unsigned            nof_symb_sh       = sib1_ofdm_symbols.length();
+  static constexpr unsigned nof_layers        = 1;
   // As per Section 5.1.3.2, TS 38.214, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by SI-RNTI.
-  static const unsigned nof_oh_prb = 0;
+  static constexpr unsigned nof_oh_prb = 0;
 
   // Generate dmrs information to be passed to (i) the fnc that computes number of RE used for DMRS per RB and (ii) to
   // the fnc that fills the DCI.
@@ -206,10 +208,10 @@ void sib1_scheduler::fill_sib1_grant(cell_slot_resource_allocator& res_grid,
                                      crb_interval                  sib1_crbs_grant,
                                      unsigned                      time_resource,
                                      const dmrs_information&       dmrs_info,
-                                     unsigned                      tbs)
+                                     unsigned                      tbs) const
 {
   // System information indicator for SIB1, in DCI 1_0. Refer to Section 7.3.1.2.1 and Table 7.3.1.2.1-2, TS 38.212.
-  static const unsigned sib1_si_indicator = 0;
+  static constexpr unsigned sib1_si_indicator = 0;
 
   // Add DCI to list to dl_pdcch.
   ocudu_assert(res_grid.result.dl.dl_pdcchs.size() > 0, "No DL PDCCH grant found in the DL sched results.");

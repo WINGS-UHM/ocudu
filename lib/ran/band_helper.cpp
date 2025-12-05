@@ -953,29 +953,6 @@ ssb_pattern_case ocudu::band_helper::get_ssb_pattern(nr_band band, subcarrier_sp
   return ssb_pattern_case::invalid;
 }
 
-uint8_t ocudu::band_helper::get_ssb_l_max(nr_band band, subcarrier_spacing scs, uint32_t nr_arfcn)
-{
-  // As per TS 38.213, Section 4.1.
-  switch (get_ssb_pattern(band, scs)) {
-    case ssb_pattern_case::A:
-    case ssb_pattern_case::C: {
-      const uint32_t ssb_cut_off_freq =
-          is_paired_spectrum(band) ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
-      return (nr_arfcn <= ssb_cut_off_freq) ? 4U : 8U;
-    }
-    case ssb_pattern_case::B: {
-      return 8U;
-    }
-    case ssb_pattern_case::D:
-    case ssb_pattern_case::E: {
-      return 64U;
-    }
-    default:
-      report_fatal_error("SSB pattern case is invalid");
-      return 0U;
-  }
-}
-
 subcarrier_spacing ocudu::band_helper::get_most_suitable_ssb_scs(nr_band band, subcarrier_spacing scs_common)
 {
   subcarrier_spacing lowest_scs = subcarrier_spacing::invalid;

@@ -47,20 +47,20 @@ public:
   /// \param[out] slot_allocator Slot allocator object with SSB grants and DL PRBs.
   ///
   /// \remark This function only works for FR1, or L_max = 4 or 8.
-  void schedule_ssb(cell_slot_resource_allocator& slot_allocator);
+  void schedule_ssb(cell_slot_resource_allocator& slot_allocator) const;
 
   /// Called when cell is deactivated.
   void stop();
 
 private:
   /// \brief Perform allocation for case A and C (both paired and unpaired spectrum) - TS 38.213, Section 4.1.
-  void ssb_alloc_case_A_C(ssb_information_list& ssb_list, uint32_t freq_arfcn_cut_off, slot_point sl_point_mod);
+  void ssb_alloc_case_A_C(ssb_information_list& ssb_list, uint32_t freq_arfcn_cut_off, slot_point sl_point_mod) const;
 
   /// \brief Perform SSB allocation for case B (both paired and unpaired spectrum) - TS 38.213, Section 4.1.
-  void ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point sl_point_mod);
+  void ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point sl_point_mod) const;
 
   /// \brief Perform SSB allocation for case D for FR2 120kHz SCS - TS 38.213, Section 4.1.
-  void ssb_alloc_case_D(ssb_information_list& ssb_list, slot_point sl_point_mod);
+  void ssb_alloc_case_D(ssb_information_list& ssb_list, slot_point sl_point_mod) const;
 
   static void fill_ssb_parameters(ssb_information_list& ssb_list,
                                   ssb_offset_to_pointA  offset_to_point_A,

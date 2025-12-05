@@ -11,7 +11,6 @@ add_executable(ue_scheduler_test
         ue_configuration_test.cpp
         ue_grid_allocator_test.cpp
         ue_link_adaptation_controller_test.cpp
-        ta_manager_test.cpp
         ue_harq_link_adaptation_test.cpp)
 target_link_libraries(ue_scheduler_test
         ocudu_sched

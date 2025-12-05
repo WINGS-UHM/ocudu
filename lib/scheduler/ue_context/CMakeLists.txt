@@ -8,7 +8,6 @@
 
 set(SOURCES
         logical_channel_system.cpp
-        ta_manager.cpp
         ta_management_system.cpp
         ue_channel_state_manager.cpp
         ue_link_adaptation_controller.cpp

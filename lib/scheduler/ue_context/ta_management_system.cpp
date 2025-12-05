@@ -18,7 +18,8 @@ using namespace ocudu;
 ta_management_system::ta_management_system(const scheduler_ta_control_config& ta_cfg_) :
   ta_cfg(ta_cfg_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
-  // Note: The window size needs to be strictly larger than the measurement period to avoid ambiguity.
+  // Note: The window size needs to be strictly larger than the measurement period to avoid ambiguity. 4 is an
+  // arbitrary value.
   // TODO: Use power of 2 size for faster mod.
   time_wheel(ta_cfg.ta_cmd_offset_threshold >= 0 ? ta_cfg.measurement_period + 4 : 0)
 {
@@ -164,8 +165,11 @@ int64_t ta_management_system::compute_avg_n_ta_difference(const tag_measurement&
 }
 
 /// \brief Determines whether a sample is an outlier based on Welford's algorithm.
-static bool is_outlier(double sample, double mean, double sq_mean, double thres = 1.75)
+static bool is_outlier(double sample, double mean, double sq_mean)
 {
+  /// [Implementation-defined] Z-score threshold for outlier detection.
+  constexpr static double thres = 1.75;
+
   double var = sq_mean - mean * mean;
   // small numerical errors can lead to negative variance.
   var            = var < 0.0 ? 0.0 : var;

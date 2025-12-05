@@ -279,7 +279,7 @@ include:
 .combinations: &basic_combinations
   COMPILER: [gcc, clang]
   CMAKE_BUILD_TYPE: [Release, RelWithDebInfo, Debug]
-  ASSERT_LEVEL: [MINIMAL, NORMAL, PARANOID]
+  ASSERT_LEVEL: [NONE, NORMAL, PARANOID]
 
 ######
 # MR #

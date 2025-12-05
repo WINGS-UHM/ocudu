@@ -15,10 +15,26 @@
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/support/rate_limiting/token_bucket.h"
 #include "ocudu/support/rate_limiting/token_bucket_config.h"
+#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 
 using namespace ocudu;
+
+static ocudu::log_sink_spy& test_spy = []() -> ocudu::log_sink_spy& {
+  if (!ocudulog::install_custom_sink(
+          ocudu::log_sink_spy::name(),
+          std::unique_ptr<ocudu::log_sink_spy>(new ocudu::log_sink_spy(ocudulog::get_default_log_formatter())))) {
+    report_fatal_error("Unable to create logger spy");
+  }
+  auto* spy = static_cast<ocudu::log_sink_spy*>(ocudulog::find_sink(ocudu::log_sink_spy::name()));
+  if (spy == nullptr) {
+    report_fatal_error("Unable to create logger spy");
+  }
+
+  ocudulog::fetch_basic_logger("GTPU", *spy, true);
+  return *spy;
+}();
 
 class gtpu_pdu_generator
 {
@@ -125,7 +141,7 @@ public:
   sockaddr_storage last_addr = {};
 };
 
-/// Fixture class for GTP-U tunnel NG-U Rx tests
+/// Fixture base class for GTP-U tunnel NG-U Rx tests
 class gtpu_tunnel_ngu_rx_test : public ::testing::Test
 {
 public:
@@ -141,6 +157,9 @@ protected:
     ocudulog::init();
     logger.set_level(ocudulog::basic_levels::debug);
 
+    // reset log spy
+    test_spy.reset_counters();
+
     // init GTP-U logger
     gtpu_logger.set_level(ocudulog::basic_levels::debug);
     gtpu_logger.set_hex_dump_max_size(100);
@@ -153,7 +172,7 @@ protected:
     ocudulog::flush();
   }
 
-  void create_gtpu_rx_entity()
+  void create_gtpu_rx_entity(bool warn_on_drop)
   {
     uint64_t            ue_ambr = 1000000000;
     token_bucket_config ue_ambr_cfg =
@@ -165,7 +184,7 @@ protected:
     rx_cfg.local_teid                                        = local_teid;
     rx_cfg.ue_ambr_limiter                                   = ue_ambr_limiter.get();
     rx_cfg.t_reordering                                      = std::chrono::milliseconds{10};
-    rx_cfg.warn_on_drop                                      = false;
+    rx_cfg.warn_on_drop                                      = warn_on_drop;
 
     rx = std::make_unique<gtpu_tunnel_ngu_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower, timers);
   }
@@ -204,17 +223,37 @@ protected:
   gtpu_teid_t local_teid{0x1};
 };
 
-/// \brief Test correct creation of Rx entity
-TEST_F(gtpu_tunnel_ngu_rx_test, entity_creation)
+/// Fixture class for GTP-U tunnel NG-U Rx tests (different configs)
+class gtpu_tunnel_ngu_rx_test_cfg : public gtpu_tunnel_ngu_rx_test, public ::testing::WithParamInterface<bool>
 {
-  create_gtpu_rx_entity();
+public:
+  gtpu_tunnel_ngu_rx_test_cfg() {}
+};
+
+/// Fixture class for GTP-U tunnel NG-U Rx tests (different configs, different start SN)
+class gtpu_tunnel_ngu_rx_test_cfg_sn : public gtpu_tunnel_ngu_rx_test,
+                                       public ::testing::WithParamInterface<std::tuple<bool, uint16_t>>
+{
+public:
+  gtpu_tunnel_ngu_rx_test_cfg_sn() {}
+};
+
+/// \brief Test correct creation of Rx entity
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg, entity_creation)
+{
+  create_gtpu_rx_entity(false);
   ASSERT_NE(rx, nullptr);
+
+  // No warnings or errors during construction
+  EXPECT_EQ(test_spy.get_warning_counter(), 0);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test reception of PDUs with no SN
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_no_sn)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_no_sn)
 {
-  create_gtpu_rx_entity();
+  bool warn_on_drop = std::get<bool>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -229,12 +268,18 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_no_sn)
     EXPECT_EQ(rx_lower.rx_qfis[i], qos_flow_id_t::min);
     EXPECT_EQ(rx_lower.rx_sdus[i], sdu);
   }
+
+  // No warnings or errors
+  EXPECT_EQ(test_spy.get_warning_counter(), 0);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test in-order reception of PDUs
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_in_order)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_in_order)
 {
-  create_gtpu_rx_entity();
+  bool     warn_on_drop = std::get<bool>(GetParam());
+  uint16_t start_sn     = std::get<uint16_t>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -242,19 +287,27 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_in_order)
   for (unsigned i = 0; i < 3; i++) {
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x11));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, i);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + i);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
     EXPECT_EQ(rx_lower.rx_qfis[i], qos_flow_id_t::min);
     EXPECT_EQ(rx_lower.rx_sdus[i], sdu);
   }
+
+  // Check warnings or errors
+  unsigned warnings = warn_on_drop && start_sn != 0 ? 1 : 0;
+  EXPECT_EQ(test_spy.get_warning_counter(), warnings);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test out-of-order reception of PDUs
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_out_of_order)
 {
-  create_gtpu_rx_entity();
+  bool     warn_on_drop = std::get<bool>(GetParam());
+  uint16_t start_sn     = std::get<uint16_t>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -262,7 +315,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
   { // SN = 0
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x0));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 0);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 0);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -275,7 +329,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
   { // SN = 2
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x2));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 2);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 2);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -287,7 +342,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
   { // SN = 4
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x4));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 4);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 4);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -298,7 +354,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
   { // SN = 1
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x1));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 1);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 1);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -310,7 +367,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
   { // SN = 3
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x3));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 3);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 3);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -318,14 +376,21 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order)
     EXPECT_EQ(rx_lower.rx_sdus.size(), 5);
     EXPECT_EQ(rx_lower.rx_qfis.size(), 5); // all was received
   }
+
+  // Check warnings or errors
+  unsigned warnings = warn_on_drop && start_sn != 0 ? 1 : 0;
+  EXPECT_EQ(test_spy.get_warning_counter(), warnings);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test out-of-order reception of PDUs
 /// When there are two holes and they gets filled out-of-order
 /// t-Reordering is stopped correctly
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_out_of_order_two_holes)
 {
-  create_gtpu_rx_entity();
+  bool     warn_on_drop = std::get<bool>(GetParam());
+  uint16_t start_sn     = std::get<uint16_t>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -333,7 +398,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
   { // SN = 0
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x0));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 0);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 0);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -346,7 +412,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
   { // SN = 2
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x2));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 2);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 2);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -358,7 +425,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
   { // SN = 4
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x4));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 4);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 4);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -369,7 +437,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
   { // SN = 3
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x3));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 3);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 3);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -381,7 +450,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
   { // SN = 1
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x1));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 1);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 1);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -389,12 +459,19 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_out_of_order_two_holes)
     EXPECT_EQ(rx_lower.rx_sdus.size(), 5);
     EXPECT_EQ(rx_lower.rx_qfis.size(), 5); // all PDUs were delivered.
   }
+
+  // Check warnings or errors
+  unsigned warnings = warn_on_drop && start_sn != 0 ? 1 : 0;
+  EXPECT_EQ(test_spy.get_warning_counter(), warnings);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test t-Reordering expiration
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_expiration)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_t_reordering_expiration)
 {
-  create_gtpu_rx_entity();
+  bool     warn_on_drop = std::get<bool>(GetParam());
+  uint16_t start_sn     = std::get<uint16_t>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -402,7 +479,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_expiration)
   { // SN = 0
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x0));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 0);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 0);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -415,7 +493,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_expiration)
   { // SN = 2
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x2));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 2);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 2);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -426,7 +505,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_expiration)
   { // SN = 4
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x4));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 4);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 4);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -447,21 +527,29 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_expiration)
   { // SN = 1
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x1));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 1);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 1);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
     EXPECT_EQ(rx_lower.rx_sdus.size(), 4);
     EXPECT_EQ(rx_lower.rx_qfis.size(), 4); // all was received
   }
+
+  // Check warnings or errors
+  unsigned warnings = 1 + (warn_on_drop ? 2 : 0) + (warn_on_drop && start_sn != 0 ? 1 : 0);
+  EXPECT_EQ(test_spy.get_warning_counter(), warnings);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test t-Reordering expiration
 /// When there are two holes and the second one gets filled before
 /// t-Reordering expires, timer is not restarted.
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_two_holes)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_t_reordering_two_holes)
 {
-  create_gtpu_rx_entity();
+  bool     warn_on_drop = std::get<bool>(GetParam());
+  uint16_t start_sn     = std::get<uint16_t>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -469,7 +557,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_two_holes)
   { // SN = 0
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x0));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 0);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 0);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -482,7 +571,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_two_holes)
   { // SN = 2
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x2));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 2);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 2);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -493,7 +583,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_two_holes)
   { // SN = 4
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x4));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 4);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 4);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -504,7 +595,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_two_holes)
   { // SN = 3
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x3));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 3);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 3);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
@@ -521,19 +613,27 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_t_reordering_two_holes)
   { // SN = 1
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x1));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 1);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 1);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
     EXPECT_EQ(rx_lower.rx_sdus.size(), 5);
     EXPECT_EQ(rx_lower.rx_qfis.size(), 5); // all was received
   }
+
+  // Check warnings or errors
+  unsigned warnings = (warn_on_drop ? 2 : 1) + (warn_on_drop && start_sn != 0 ? 1 : 0);
+  EXPECT_EQ(test_spy.get_warning_counter(), warnings);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
 /// \brief Test in-order reception of PDUs
-TEST_F(gtpu_tunnel_ngu_rx_test, rx_stop)
+TEST_P(gtpu_tunnel_ngu_rx_test_cfg_sn, rx_stop)
 {
-  create_gtpu_rx_entity();
+  bool     warn_on_drop = std::get<bool>(GetParam());
+  uint16_t start_sn     = std::get<uint16_t>(GetParam());
+  create_gtpu_rx_entity(warn_on_drop);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;
@@ -541,7 +641,8 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_stop)
   for (unsigned i = 0; i < 3; i++) {
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x11));
-    byte_buffer pdu = pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, i);
+    byte_buffer pdu =
+        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + i);
     gtpu_tunnel_base_rx* rx_base = rx.get();
     if (i != 1) {
       rx_base->handle_pdu(std::move(pdu), src_addr);
@@ -563,15 +664,51 @@ TEST_F(gtpu_tunnel_ngu_rx_test, rx_stop)
   {
     byte_buffer sdu;
     EXPECT_TRUE(sdu.append(0x11));
-    byte_buffer pdu =
-        pdu_generator.create_gtpu_pdu(sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, 1); // push missing pdu
+    byte_buffer pdu = pdu_generator.create_gtpu_pdu(
+        sdu.deep_copy().value(), local_teid, qos_flow_id_t::min, start_sn + 1); // push missing pdu
     gtpu_tunnel_base_rx* rx_base = rx.get();
     rx_base->handle_pdu(std::move(pdu), src_addr);
 
     EXPECT_TRUE(rx_lower.rx_qfis.empty());
     EXPECT_TRUE(rx_lower.rx_sdus.empty());
   }
+
+  // Check warnings or errors
+  unsigned warnings = warn_on_drop && start_sn != 0 ? 1 : 0;
+  EXPECT_EQ(test_spy.get_warning_counter(), warnings);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
+
+///////////////////////////////////////////////////////////////////
+// Finally, instantiate all testcases for each supported SN size //
+///////////////////////////////////////////////////////////////////
+std::string cfg_test_param_info_to_string(const ::testing::TestParamInfo<bool>& info)
+{
+  fmt::memory_buffer buffer;
+  fmt::format_to(std::back_inserter(buffer), "warn_on_drop_{}", info.param);
+  return fmt::to_string(buffer);
+}
+
+std::string cfg_sn_test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<bool, uint16_t>>& info)
+{
+  fmt::memory_buffer buffer;
+  fmt::format_to(std::back_inserter(buffer),
+                 "warn_on_drop_{}_start_sn_{}",
+                 std::get<bool>(info.param),
+                 std::get<uint16_t>(info.param));
+  return fmt::to_string(buffer);
+}
+
+INSTANTIATE_TEST_SUITE_P(ngu_rx_cfg,
+                         gtpu_tunnel_ngu_rx_test_cfg,
+                         ::testing::Values(false, true),
+                         cfg_test_param_info_to_string);
+
+INSTANTIATE_TEST_SUITE_P(ngu_rx_cfg_sn,
+                         gtpu_tunnel_ngu_rx_test_cfg_sn,
+                         ::testing::Combine(::testing::Values(false, true),
+                                            ::testing::Values(0, 1, 17000, 33000, 65535)),
+                         cfg_sn_test_param_info_to_string);
 
 int main(int argc, char** argv)
 {

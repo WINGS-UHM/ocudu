@@ -16,20 +16,19 @@
 using namespace ocudu;
 
 ta_management_system::ta_management_system(const scheduler_ta_control_config& ta_cfg_) :
-  ta_cfg(ta_cfg_), logger(ocudulog::fetch_basic_logger("SCHED"))
+  ta_cfg(ta_cfg_),
+  logger(ocudulog::fetch_basic_logger("SCHED")),
+  // Note: The window size needs to be strictly larger than the measurement period to avoid ambiguity.
+  // TODO: Use power of 2 size for faster mod.
+  time_wheel(ta_cfg.ta_cmd_offset_threshold >= 0 ? ta_cfg.measurement_period + 4 : 0)
 {
-  ocudu_assert(ta_cfg.measurement_period > 0, "Invalid measurement period");
   if (ta_cfg.ta_cmd_offset_threshold < 0) {
     // TA management disabled.
     return;
   }
+  ocudu_assert(ta_cfg.measurement_period > 0, "Invalid measurement period");
 
   ues.reserve(MAX_NOF_DU_UES);
-
-  // Resize time wheel.
-  // Note: The window size needs to be strictly larger than the measurement period to avoid ambiguity.
-  // TODO: Use power of 2 size for faster mod.
-  time_wheel.resize(ta_cfg.measurement_period + 4);
 }
 
 ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_tag_id,
@@ -53,8 +52,9 @@ void ta_management_system::rem_ue(soa::row_id ue_id)
   // Remove UE from the wheel if present.
   auto& ue_node = ues.at<ue_component::wheel_next_node>(ue_id);
   if (ue_node.wheel_meas_pos.has_value()) {
-    auto&       wheel_head = time_wheel[ue_node.wheel_meas_pos.value() % time_wheel.size()].head;
+    auto&       wheel_head = time_wheel[ue_node.wheel_meas_pos.value()].head;
     soa::row_id node       = wheel_head;
+    // Iterate through linked list to find and remove UE.
     for (soa::row_id prev = invalid_row_id; node != invalid_row_id;) {
       if (node == ue_id) {
         if (prev == invalid_row_id) {
@@ -79,7 +79,7 @@ void ta_management_system::rem_ue(soa::row_id ue_id)
 void ta_management_system::slot_indication(slot_point sl_tx)
 {
   // Select a time wheel position based on the current index.
-  auto& wheel_head = time_wheel[next_wheel_index % time_wheel.size()].head;
+  auto& wheel_head = time_wheel[next_wheel_index].head;
   ++next_wheel_index;
 
   // Consider that all UEs in the wheel slot have completed their measurements.
@@ -150,7 +150,7 @@ void ta_management_system::update_tags(soa::row_id ue_id, span<const time_alignm
   }
 }
 
-unsigned ta_management_system::compute_new_t_a(int64_t n_ta_diff, subcarrier_spacing ul_scs)
+unsigned ta_management_system::compute_new_t_a(int64_t n_ta_diff, subcarrier_spacing ul_scs) const
 {
   const float ta_offset = static_cast<float>(ta_cmd_offset_zero) - ta_cfg.target;
   return static_cast<unsigned>(std::round(
@@ -166,8 +166,9 @@ int64_t ta_management_system::compute_avg_n_ta_difference(const tag_measurement&
 /// \brief Determines whether a sample is an outlier based on Welford's algorithm.
 static bool is_outlier(double sample, double mean, double sq_mean, double thres = 1.75)
 {
-  double var     = sq_mean - mean * mean;
-  var            = var < 0.0 ? 0.0 : var; // small numerical errors can lead to negative variance
+  double var = sq_mean - mean * mean;
+  // small numerical errors can lead to negative variance.
+  var            = var < 0.0 ? 0.0 : var;
   double std_dev = std::sqrt(var);
 
   if (std_dev == 0) {
@@ -215,7 +216,7 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   constexpr static unsigned min_samples_for_outlier_detection = 10;
   if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
     // Note: for small number of samples, outlier detection is not performed.
-    tag_meas.count_until_outlier_detection++;
+    ++tag_meas.count_until_outlier_detection;
   } else if (is_outlier(n_ta_diff_,
                         tag_meas.n_ta_diff_averager.get_average_value(),
                         tag_meas.n_ta_diff_sq_averager.get_average_value())) {
@@ -227,7 +228,7 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   tag_meas.n_ta_diff_averager.push(n_ta_diff_);
   tag_meas.n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
   tag_meas.window_sum_samples += n_ta_diff_;
-  tag_meas.window_count_samples++;
+  ++tag_meas.window_count_samples;
   tag_meas.last_t_a = compute_new_t_a(compute_avg_n_ta_difference(tag_meas), u.ul_scs);
 
   // If UE has already pending TA CMDs, no need to add it again to the time wheel.
@@ -250,7 +251,7 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   if (new_t_a_passed) {
     // When the new TA command passes the threshold and the UE is not already in the time wheel, we add it.
     // For that reason, we push this UE to the time wheel.
-    unsigned offset        = (ue_node.meas_start_time.value() + ta_cfg.measurement_period) % time_wheel.size();
+    unsigned offset        = (ue_node.meas_start_time.value() + ta_cfg.measurement_period);
     ue_node.wheel_meas_pos = offset;
     auto& wheel_head       = time_wheel[offset].head;
     ue_node.next           = wheel_head;

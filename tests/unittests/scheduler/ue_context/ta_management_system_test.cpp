@@ -18,8 +18,9 @@ using namespace ocudu;
 
 TEST(inactive_ta_management_system_test, add_ue_returns_inactive_manager)
 {
-  scheduler_expert_config expert_cfg               = config_helpers::make_default_scheduler_expert_config();
-  expert_cfg.ue.ta_control.ta_cmd_offset_threshold = -1; // Disable TA management.
+  scheduler_expert_config expert_cfg = config_helpers::make_default_scheduler_expert_config();
+  // Disable TA management.
+  expert_cfg.ue.ta_control.ta_cmd_offset_threshold = -1;
   ta_management_system ta_sys(expert_cfg.ue.ta_control);
 
   ue_logical_channel_repository ue_lc_chs;

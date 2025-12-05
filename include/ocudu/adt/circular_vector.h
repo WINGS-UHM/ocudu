@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/adt/static_vector.h"
 #include <vector>
 
 namespace ocudu {

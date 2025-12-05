@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/adt/circular_vector.h"
 #include "ocudu/adt/soa_table.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/slot_point.h"
@@ -43,6 +44,7 @@ public:
 
 private:
   friend class ue_ta_manager;
+  /// Decay factor for N_TA difference exponential averaging.
   static constexpr double n_ta_diff_avg_decay = 0.01;
   /// TA command offset for a zero value.
   static constexpr int ta_cmd_offset_zero = 31;
@@ -58,7 +60,7 @@ private:
     exp_average_fast_start<double> n_ta_diff_sq_averager{n_ta_diff_avg_decay};
     /// Number of samples collected until outlier detection is enabled.
     uint32_t count_until_outlier_detection = 0;
-    /// Time count at which forbid period. If absent, forbid period is not active.
+    /// Time count at which forbid period started. If absent, forbid period is not active.
     std::optional<unsigned> forbid_period_start;
     /// Number of samples within the current measurement window.
     uint32_t window_count_samples = 0;
@@ -110,7 +112,7 @@ private:
 
   /// \brief Computes new Timing Advance Command value (T_A) as per TS 38.213, clause 4.2.
   /// \return Timing Advance Command value. Values [0,...,63].
-  unsigned compute_new_t_a(int64_t n_ta_diff, subcarrier_spacing ul_scs);
+  unsigned compute_new_t_a(int64_t n_ta_diff, subcarrier_spacing ul_scs) const;
 
   void update_tags(soa::row_id ue_id, span<const time_alignment_group::id_t> tag_ids);
 
@@ -122,8 +124,8 @@ private:
 
   /// \brief Time wheel for UEs.
   /// Each entry index corresponds to a slot offset within a window of size prohibit+measurement period.
-  /// In each entry, a linked list of UE row IDs is stored, which are scheduled to complete their measurement.
-  std::vector<time_wheel_slot> time_wheel;
+  /// Each entry points to a linked list of UE row IDs, which are scheduled to complete their measurement.
+  circular_vector<time_wheel_slot> time_wheel;
 
   /// Current index in the time wheel.
   unsigned next_wheel_index = 0;

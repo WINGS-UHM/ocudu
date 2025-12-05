@@ -91,20 +91,21 @@ void intra_slice_scheduler::slice_ue_group_scheduler::fill_ue_candidate_group(
   // Build list of candidates, starting from the UE group offset.
   unsigned                             count                = 0;
   unsigned                             last_candidate_count = 0;
-  const unsigned                       group_size  = std::min(nof_ues, parent->expert_cfg.pre_policy_rr_ue_group_size);
-  auto                                 start_ue_it = slice_ues.lower_bound(to_du_ue_index(group_offset));
+  const unsigned                       group_size = std::min(nof_ues, parent->expert_cfg.pre_policy_rr_ue_group_size);
   const bounded_bitset<MAX_NOF_DU_UES> ues_with_data = slice_ues.get_ues_with_pending_newtx_data(is_dl);
-  for (auto ue_it = start_ue_it; count != nof_ues; ++ue_it) {
-    ++count;
-    if (ue_it == slice_ues.end()) {
+  for (unsigned sz = ues_with_data.size(), ueidx = group_offset % sz; count != sz; ++ueidx, ++count) {
+    if (ueidx == sz) {
       // wrap-around.
-      ue_it = slice_ues.begin();
+      ueidx = 0;
     }
-    if (not ues_with_data.test(ue_it->ue_index())) {
+    if (not ues_with_data.test(ueidx)) {
       // No pending data for this UE in this slice.
       continue;
     }
 
+    auto ue_it = slice_ues.lower_bound(to_du_ue_index(ueidx));
+    ocudu_assert(ue_it != slice_ues.end() and ue_it->ue_index() == to_du_ue_index(ueidx),
+                  "Invalid ue index in slice UE repository");
     std::optional<ue_newtx_candidate> ue_candidate =
         is_dl ? parent->create_newtx_dl_candidate(*ue_it) : parent->create_newtx_ul_candidate(*ue_it);
     if (ue_candidate.has_value()) {

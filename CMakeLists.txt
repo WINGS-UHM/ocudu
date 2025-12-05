@@ -92,7 +92,7 @@ set_property(CACHE LINKER PROPERTY STRINGS default bfd lld mold)
 
 # Set assertion level options and default value.
 set(ASSERT_LEVEL "AUTO" CACHE STRING "Assertion paranoia level")
-set_property(CACHE ASSERT_LEVEL PROPERTY STRINGS AUTO MINIMAL NORMAL PARANOID)
+set_property(CACHE ASSERT_LEVEL PROPERTY STRINGS AUTO NONE NORMAL PARANOID)
 
 # Set maximum time to wait for a clean exit.
 set(EXIT_TIMEOUT "AUTO" CACHE STRING "Timer to wait for a clean exit")
@@ -106,7 +106,7 @@ if (ENABLE_WERROR)
         if (HAS_STRINGOP_OVERFLOW)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=stringop-overflow")
         endif()
-        if (ASSERT_LEVEL STREQUAL "MINIMAL")
+        if (ASSERT_LEVEL STREQUAL "NONE")
             check_cxx_compiler_flag("-Warray-bounds" HAS_ARRAY_BOUNDS)
             if (HAS_ARRAY_BOUNDS)
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=array-bounds")
@@ -266,7 +266,7 @@ if(NOT LINKER STREQUAL "default")
     endif ()
 endif ()
 
-if(NOT ASSERT_LEVEL STREQUAL "MINIMAL")
+if(NOT ASSERT_LEVEL STREQUAL "NONE")
     # asserts are enabled.
     add_definitions(-DASSERTS_ENABLED)
     if((ASSERT_LEVEL STREQUAL "PARANOID") OR

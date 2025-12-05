@@ -174,13 +174,12 @@ headers:
       when: manual
       allow_failure: true
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  before_script:
+  script:
     - |
       check_headers() {
         .gitlab/ci/static/update_headers.sh
         .gitlab/ci/static/is-pristine-repo.sh
       }
-  script:
     - check_headers
 
 code-format:

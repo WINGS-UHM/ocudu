@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/support/engineering_notation.h"
-#include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/timers.h"
 #include "fmt/format.h"
 #include "fmt/std.h"

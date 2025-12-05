@@ -10,6 +10,7 @@
 
 #include "rlc_tx_metrics_test.h"
 #include "ocudu/rlc/rlc_tx_metrics.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 

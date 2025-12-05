@@ -48,6 +48,7 @@
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/support/benchmark_utils.h"
+#include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/io/io_broker_factory.h"
 #include "ocudu/support/rtsan.h"
 #include "ocudu/support/test_utils.h"

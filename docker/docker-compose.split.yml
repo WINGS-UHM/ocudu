@@ -18,7 +18,7 @@ services:
       args:
         OS_VERSION: "24.04"
     networks: {}
-    entrypoint: [ "true" ]
+    entrypoint: ["true"]
 
   cu-cp:
     container_name: ocudu_cu_cp
@@ -37,7 +37,11 @@ services:
       - cu_cp_config.yml
       - cu_cp_compose_config.yml
     healthcheck:
-      test: [ "CMD-SHELL", "for p in 38462 38472; do ss -l -H -A sctp \"sport = :$p\" | grep -q . || exit 1; done; exit 0" ]
+      test:
+        [
+          "CMD-SHELL",
+          'for p in 38462 38472; do ss -l -H -A sctp "sport = :$p" | grep -q . || exit 1; done; exit 0',
+        ]
       interval: 3s
       timeout: 1s
       retries: 60

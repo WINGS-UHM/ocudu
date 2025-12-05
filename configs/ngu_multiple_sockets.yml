@@ -1,17 +1,22 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
 
 cu_up:
   ngu:
     socket:
-      - 
-        bind_addr: 127.0.3.1  # Address that the NG-U socket will bind to.
+      - bind_addr: 127.0.3.1 # Address that the NG-U socket will bind to.
         udp:
-          max_rx_msgs: 256    # Maximum packets read from the socket in a single syscall.
+          max_rx_msgs: 256 # Maximum packets read from the socket in a single syscall.
           pool_threshold: 0.9 # Pool occupancy threshold, after which packets are dropped.
-          #dscp: 3             # Differentiated Services Code Point.
+          # dscp: 3             # Differentiated Services Code Point.
 
-      - 
-        bind_addr: 127.0.3.2  # Address that the NG-U socket will bind to.
+      - bind_addr: 127.0.3.2 # Address that the NG-U socket will bind to.
         udp:
-          max_rx_msgs: 256    # maximum packets read from the socket in a single syscall.
+          max_rx_msgs: 256 # maximum packets read from the socket in a single syscall.
           pool_threshold: 0.9 # Pool occupancy threshold, after which packets are dropped.
-          #dscp: 4             # Differentiated Services Code Point.
+          # dscp: 4             # Differentiated Services Code Point.

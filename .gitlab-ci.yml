@@ -41,8 +41,8 @@ workflow:
     - if: $CI_MERGE_REQUEST_IID
       variables:
         ON_MR: "true"
-      # Why $CI_MERGE_REQUEST_IID instead of $CI_PIPELINE_SOURCE == "merge_request_event" ?
-      # Child pipelines in a MR have CI_PIPELINE_SOURCE = parent_pipeline
+    # Why $CI_MERGE_REQUEST_IID instead of $CI_PIPELINE_SOURCE == "merge_request_event" ?
+    # Child pipelines in a MR have CI_PIPELINE_SOURCE = parent_pipeline
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables:
         ON_DEFAULT_BRANCH: "true"

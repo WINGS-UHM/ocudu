@@ -1,11 +1,18 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
 # SRB example configurations for Signaling Radio Bearers (SRBs) 1 and 2
 
-# This is a supplementary configuration to modify the MAC, RLC and PDCP configuration 
+# This is a supplementary configuration to modify the MAC, RLC and PDCP configuration
 # on a per SRB basis.
 
 srbs:
-  -
-    srb_id: 1
+  - srb_id: 1
     rlc:
       tx:
         sn: 12

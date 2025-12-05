@@ -9,7 +9,7 @@
 apiVersion: 1
 
 providers:
-  - name: 'dashboards'
+  - name: "dashboards"
     orgId: 1
     type: file
     updateIntervalSeconds: 30

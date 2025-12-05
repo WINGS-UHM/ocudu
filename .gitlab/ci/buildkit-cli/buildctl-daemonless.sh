@@ -1,4 +1,12 @@
 #!/bin/sh
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
 # buildctl-daemonless.sh spawns ephemeral buildkitd for executing buildctl.
 #
 # Usage: buildctl-daemonless.sh build ...

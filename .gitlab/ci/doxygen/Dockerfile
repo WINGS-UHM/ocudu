@@ -1,26 +1,34 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
 ARG OS_VERSION=22.04
 
 FROM ubuntu:$OS_VERSION AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    g++ \
-    python3 \
-    make \
-    cmake \
-    flex \
-    bison \
-    git ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+  g++ \
+  python3 \
+  make \
+  cmake \
+  flex \
+  bison \
+  git ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
 ARG DOXYGEN_VERSION=Release_1_9_8
 RUN git clone --depth 1 --branch ${DOXYGEN_VERSION} https://github.com/doxygen/doxygen.git doxygen \
-    && cd doxygen \
-    && mkdir build \
-    && cd build \
-    && cmake -G "Unix Makefiles" .. \
-    && make -j $(nproc) \
-    && make install
+  && cd doxygen \
+  && mkdir build \
+  && cd build \
+  && cmake -G "Unix Makefiles" .. \
+  && make -j $(nproc) \
+  && make install
 
 FROM ubuntu:$OS_VERSION
 

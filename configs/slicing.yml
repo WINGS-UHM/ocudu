@@ -1,14 +1,20 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
 # Network slicing example configuration
 
-# This is a supplementary configuration to enable slicing support. This file will be passed to the gNB along with the base configuration 
-# at start-up. The following command may be used to run the gNB with this configuration file: 
+# This is a supplementary configuration to enable slicing support. This file will be passed to the gNB along with the base configuration
+# at start-up. The following command may be used to run the gNB with this configuration file:
 #   sudo ./gnb -c gnb_ru_ran550_tdd_n78_100mhz_2x2.yml -c slicing.yml
 
 cell_cfg:
   slicing:
-    -
-      sst: 1
+    - sst: 1
       sd: 1
-    -
-      sst: 2
+    - sst: 2
       sd: 42

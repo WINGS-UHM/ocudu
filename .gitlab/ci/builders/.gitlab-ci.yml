@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2025 Software Radio Systems Limited
+# Copyright 2021-2025 Software Radio Systems Limited
 #
 # By using this file, you agree to the terms and conditions set
 # forth in the LICENSE file which can be found at the top level of
@@ -180,7 +180,7 @@ ubuntu-rohc-builder arm64:
     - |
       download_from_registry() {
         DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends curl apt-transport-https ca-certificates xz-utils
-        
+
         cd ${CI_PROJECT_DIR}
         http_code=$(curl -w "%{http_code}" --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/uhd/ubuntu-${os_version}-${arch_name}-${uhd_version}/uhd.tar.gz" -o output.tar.gz)
         if [[ $http_code == "200" ]]; then
@@ -273,7 +273,7 @@ ubuntu-uhd-builder arm64:
     - |
       download_from_registry() {
         DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends curl apt-transport-https ca-certificates xz-utils
-        
+
         cd ${CI_PROJECT_DIR}
         http_code=$(curl -w "%{http_code}" --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dpdk/ubuntu-${os_version}-${arch_name}-${dpdk_version}${extra_arch_name}/dpdk.tar.gz" -o output.tar.gz)
         if [[ $http_code == "200" ]]; then
@@ -288,7 +288,7 @@ ubuntu-uhd-builder arm64:
     - |
       build_dpdk() {
         unset PIP_EXTRA_INDEX_URL
-        unset PIP_INDEX_URL        
+        unset PIP_INDEX_URL
         docker/scripts/install_dpdk_dependencies.sh build
         docker/scripts/build_dpdk.sh ${dpdk_version} ${target_arch} ${KUBERNETES_CPU_REQUEST}
         mkdir -p ${CI_PROJECT_DIR}/.gitlab/ci/builders/dpdk

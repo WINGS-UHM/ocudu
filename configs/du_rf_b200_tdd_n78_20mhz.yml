@@ -1,3 +1,11 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
 # Example config for a DU with one 20MHz TDD cell using a USRP as RF frontend.
 f1ap:
   cu_cp_addr: 127.0.10.1
@@ -5,14 +13,13 @@ f1ap:
 
 f1u:
   socket:
-    -
-      bind_addr: 127.0.10.2
+    - bind_addr: 127.0.10.2
 
 ru_sdr:
   device_driver: uhd
   device_args: type=b200,num_recv_frames=64,num_send_frames=64
   srate: 23.04
-  otw_format: sc12  
+  otw_format: sc12
   tx_gain: 80
   rx_gain: 40
 

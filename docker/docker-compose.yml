@@ -25,7 +25,7 @@ services:
     #  - "2152:2152/udp"
     command: 5gc -c open5gs-5gc.yml
     healthcheck:
-      test: [ "CMD-SHELL", "nc -z 127.0.0.20 7777" ]
+      test: ["CMD-SHELL", "nc -z 127.0.0.20 7777"]
       interval: 3s
       timeout: 1s
       retries: 60

@@ -35,13 +35,14 @@ public:
   /// \brief Handles Timing Advance adaptation related tasks at slot indication.
   void slot_indication(slot_point sl_tx);
 
+  /// Number of active UEs in the TA management system.
+  unsigned nof_active_ues() const { return static_cast<unsigned>(ues.size()); }
+
 private:
   friend class ue_ta_manager;
 
   /// State of the Timing Advance manager.
   enum class state_t : uint8_t {
-    /// Waiting for start order to perform measurements.
-    idle,
     /// Performing measurements.
     measure,
     /// Prohibit state.
@@ -56,11 +57,10 @@ private:
   struct ue_ta_context {
     ue_logical_channel_repository* lc_ch_mgr = nullptr;
     /// State of the Timing Advance manager.
-    state_t state = state_t::idle;
-    /// Starting point of the measurement interval.
-    slot_point meas_start_time;
-    /// Starting point of the prohibit interval.
-    slot_point prohibit_start_time;
+    state_t state = state_t::prohibit;
+    /// Starting point of the measurement/prohibit interval (depending on state).
+    /// \remark In case state == prohibit and not \c start_time.valid(), prohibit period has duration 0.
+    slot_point start_time;
     /// List of N_TA update (N_TA_new - N_TA_old value in T_C units) measurements maintained per Timing Advance Group.
     /// The array index corresponds to TAG ID. And, the corresponding array value (i.e. vector) holds N_TA update
     /// measurements for that TAG ID.
@@ -91,9 +91,10 @@ private:
   enum class ue_component { context };
   soa::table<ue_component, ue_ta_context> ues;
 
-  /// UEs in idle state.
-  std::vector<soa::row_id> idle_ues;
+  /// UEs in prohibit state.
   std::vector<soa::row_id> prohibit_ues;
+
+  /// UEs in measurement state.
   std::vector<soa::row_id> meas_ues;
 };
 
@@ -113,21 +114,23 @@ public:
   ue_ta_manager& operator=(const ue_ta_manager&) = delete;
   ue_ta_manager& operator=(ue_ta_manager&& other) noexcept
   {
+    reset();
     parent = std::exchange(other.parent, nullptr);
     ue_id  = std::exchange(other.ue_id, ta_management_system::invalid_row_id);
     return *this;
   }
-  ~ue_ta_manager() { reset(); }
+  ~ue_ta_manager();
 
   /// \brief Resets the TA manager, disabling TA management for the UE.
   void reset();
 
   /// Whether the TA management is active for the UE.
-  bool active() const { return parent != nullptr; }
+  bool active() const { return ue_id != ta_management_system::invalid_row_id; }
 
   /// \brief Updates the list of configured TAG IDs for the UE.
   void update_tags(span<const time_alignment_group::id_t> tag_ids)
   {
+    ocudu_sanity_check(parent != nullptr, "TA manager is not in valid state");
     if (active()) {
       parent->update_tags(ue_id, tag_ids);
     }
@@ -136,6 +139,7 @@ public:
   /// \brief Handles N_TA update indication.
   void handle_ul_n_ta_update_indication(time_alignment_group::id_t tag_id, int64_t n_ta_diff_, float ul_sinr)
   {
+    ocudu_sanity_check(parent != nullptr, "TA manager is not in valid state");
     if (active()) {
       parent->handle_ul_n_ta_update_indication(ue_id, tag_id, n_ta_diff_, ul_sinr);
     }

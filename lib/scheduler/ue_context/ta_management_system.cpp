@@ -23,7 +23,6 @@ ta_management_system::ta_management_system(const scheduler_ta_control_config& ta
 {
   if (ta_cfg.ta_cmd_offset_threshold >= 0) {
     ues.reserve(MAX_NOF_DU_UES);
-    idle_ues.reserve(MAX_NOF_DU_UES);
     prohibit_ues.reserve(MAX_NOF_DU_UES);
     meas_ues.reserve(MAX_NOF_DU_UES);
   }
@@ -41,8 +40,8 @@ ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_
   auto row_id = ues.insert(ue_ta_context{&lc_ch_mgr});
   update_tags(row_id, std::array<time_alignment_group::id_t, 1>{pcell_tag_id});
 
-  // Set initial state to idle.
-  idle_ues.push_back(row_id);
+  // Set initial state to prohibit with undefined start time.
+  prohibit_ues.push_back(row_id);
 
   return ue_ta_manager{*this, row_id};
 }
@@ -50,45 +49,25 @@ ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_
 void ta_management_system::rem_ue(soa::row_id ue_id)
 {
   ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-  switch (u.state) {
-    case state_t::idle:
-      idle_ues.erase(std::remove(idle_ues.begin(), idle_ues.end(), ue_id), idle_ues.end());
-      break;
-    case state_t::prohibit:
-      prohibit_ues.erase(std::remove(prohibit_ues.begin(), prohibit_ues.end(), ue_id), prohibit_ues.end());
-      break;
-    case state_t::measure:
-      meas_ues.erase(std::remove(meas_ues.begin(), meas_ues.end(), ue_id), meas_ues.end());
-      break;
-    default:
-      report_fatal_error("Invalid UE TA manager state");
+  if (u.state == state_t::prohibit) {
+    prohibit_ues.erase(std::remove(prohibit_ues.begin(), prohibit_ues.end(), ue_id), prohibit_ues.end());
+  } else {
+    meas_ues.erase(std::remove(meas_ues.begin(), meas_ues.end(), ue_id), meas_ues.end());
   }
   ues.erase(ue_id);
 }
 
 void ta_management_system::slot_indication(slot_point sl_tx)
 {
-  // Update the measurement start time.
-  // NOTE: When the state is idle, it denotes the start of measurement window. And when the measurement time reaches the
-  // threshold only then I change the state back to idle (until then the state will be in measure)
-  for (soa::row_id ue_id : idle_ues) {
-    ue_ta_context& u = ues.at<ue_component::context>(ue_id);
-    ocudu_sanity_check(u.state == state_t::idle, "UE TA manager in invalid state");
-
-    u.meas_start_time = sl_tx;
-    u.state           = state_t::measure;
-    meas_ues.push_back(ue_id);
-  }
-  idle_ues.clear();
-
   // Update UEs in prohibit state, if needed.
   auto exit_prohibit = [this, sl_tx](soa::row_id ue_id) {
     ue_ta_context& u = ues.at<ue_component::context>(ue_id);
     ocudu_sanity_check(u.state == state_t::prohibit, "UE TA manager in invalid state");
 
-    if ((sl_tx - u.prohibit_start_time) > static_cast<int>(ta_cfg.measurement_prohibit_period)) {
-      u.meas_start_time = sl_tx;
-      u.state           = state_t::measure;
+    if (not u.start_time.valid() or (sl_tx - u.start_time) > static_cast<int>(ta_cfg.measurement_prohibit_period)) {
+      // Move UE to measurement state.
+      u.start_time = sl_tx;
+      u.state      = state_t::measure;
       meas_ues.push_back(ue_id);
       return true;
     }
@@ -102,7 +81,7 @@ void ta_management_system::slot_indication(slot_point sl_tx)
     ocudu_sanity_check(u.state == state_t::measure, "UE TA manager in invalid state");
 
     // Early return if measurement interval is short.
-    if ((sl_tx - u.meas_start_time) < static_cast<int>(ta_cfg.measurement_period)) {
+    if ((sl_tx - u.start_time) < static_cast<int>(ta_cfg.measurement_period)) {
       return false;
     }
 
@@ -135,16 +114,11 @@ void ta_management_system::slot_indication(slot_point sl_tx)
       u.n_ta_reports[tag_idx].samples.clear();
     }
 
-    if (ta_cmd_sent and ta_cfg.measurement_prohibit_period > 0) {
-      // Set TA manager state to prohibit state.
-      u.state               = state_t::prohibit;
-      u.prohibit_start_time = sl_tx;
-      prohibit_ues.push_back(ue_id);
-    } else {
-      // Set TA manager state to idle.
-      u.state = state_t::idle;
-      idle_ues.push_back(ue_id);
-    }
+    // Add UE to prohibit list.
+    // Note: If no TA CMD was sent, UE goes to prohibit list of duration 0.
+    u.state      = state_t::prohibit;
+    u.start_time = ta_cmd_sent and ta_cfg.measurement_prohibit_period > 0 ? sl_tx : slot_point{};
+    prohibit_ues.push_back(ue_id);
     return true;
   };
   meas_ues.erase(std::remove_if(meas_ues.begin(), meas_ues.end(), exit_measure), meas_ues.end());
@@ -229,9 +203,14 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   }
 }
 
+ue_ta_manager::~ue_ta_manager()
+{
+  reset();
+}
+
 void ue_ta_manager::reset()
 {
-  if (parent != nullptr) {
+  if (parent != nullptr and active()) {
     parent->rem_ue(ue_id);
     parent = nullptr;
   }

@@ -16,6 +16,22 @@
 
 using namespace ocudu;
 
+TEST(inactive_ta_management_system_test, add_ue_returns_inactive_manager)
+{
+  scheduler_expert_config expert_cfg               = config_helpers::make_default_scheduler_expert_config();
+  expert_cfg.ue.ta_control.ta_cmd_offset_threshold = -1; // Disable TA management.
+  ta_management_system ta_sys(expert_cfg.ue.ta_control, subcarrier_spacing::kHz15);
+
+  ue_logical_channel_repository ue_lc_chs;
+  ue_ta_manager                 ta_mgr = ta_sys.add_ue(time_alignment_group::id_t{0}, ue_lc_chs);
+
+  ASSERT_FALSE(ta_mgr.active()) << "TA manager should be inactive when TA management is disabled";
+  auto ta_mgr_moved = std::move(ta_mgr);
+  ASSERT_FALSE(ta_mgr_moved.active());
+  ASSERT_FALSE(ta_mgr.active());
+  ASSERT_EQ(ta_sys.nof_active_ues(), 0U);
+}
+
 class base_ta_management_system_test
 {
 protected:
@@ -88,6 +104,25 @@ protected:
   ue_logical_channel_repository ue_lc_chs;
   ue_ta_manager                 ta_mgr;
 };
+
+TEST_F(single_ue_ta_manager_test, ue_ta_manager_lifetime)
+{
+  ASSERT_EQ(ta_sys.nof_active_ues(), 1U);
+  ASSERT_TRUE(ta_mgr.active());
+
+  auto ta_mgr_moved = std::move(ta_mgr);
+  ASSERT_EQ(ta_sys.nof_active_ues(), 1U);
+  ASSERT_TRUE(ta_mgr_moved.active());
+  ASSERT_FALSE(ta_mgr.active());
+
+  ta_mgr = std::move(ta_mgr_moved);
+  ASSERT_EQ(ta_sys.nof_active_ues(), 1U);
+  ASSERT_TRUE(ta_mgr.active());
+  ASSERT_FALSE(ta_mgr_moved.active());
+
+  ta_mgr.reset();
+  ASSERT_EQ(ta_sys.nof_active_ues(), 0U);
+}
 
 TEST_F(single_ue_ta_manager_test, ta_cmd_is_not_triggered_when_no_ul_n_ta_update_indication_are_reported)
 {

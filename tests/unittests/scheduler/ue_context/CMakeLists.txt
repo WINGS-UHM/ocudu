@@ -6,7 +6,10 @@
 # the distribution.
 #
 
-add_executable(sched_ue_context_test ue_drx_controller_test.cpp logical_channel_system_test.cpp)
+add_executable(sched_ue_context_test
+        ue_drx_controller_test.cpp
+        logical_channel_system_test.cpp
+        ta_management_system_test.cpp)
 target_link_libraries(sched_ue_context_test
         sched_ue_context
         ocudu_support

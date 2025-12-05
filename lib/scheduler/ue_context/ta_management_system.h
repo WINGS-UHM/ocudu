@@ -126,15 +126,19 @@ public:
   bool active() const { return parent != nullptr; }
 
   /// \brief Updates the list of configured TAG IDs for the UE.
-  void update_tags(span<const time_alignment_group::id_t> tag_ids) { parent->update_tags(ue_id, tag_ids); }
+  void update_tags(span<const time_alignment_group::id_t> tag_ids)
+  {
+    if (active()) {
+      parent->update_tags(ue_id, tag_ids);
+    }
+  }
 
   /// \brief Handles N_TA update indication.
   void handle_ul_n_ta_update_indication(time_alignment_group::id_t tag_id, int64_t n_ta_diff_, float ul_sinr)
   {
-    if (not active()) {
-      return;
+    if (active()) {
+      parent->handle_ul_n_ta_update_indication(ue_id, tag_id, n_ta_diff_, ul_sinr);
     }
-    parent->handle_ul_n_ta_update_indication(ue_id, tag_id, n_ta_diff_, ul_sinr);
   }
 
 private:

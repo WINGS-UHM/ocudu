@@ -42,7 +42,8 @@ protected:
       auto req               = test_cfg.get_default_cell_config_request();
       req.rrm_policy_members = rrm_policy_members;
       return *test_cfg.add_cell(req);
-    }())
+    }()),
+    ues(cell_cfg.expert_cfg.ue)
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();

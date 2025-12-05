@@ -46,7 +46,8 @@ protected:
           params.band           = nr_band::n41;
           return params;
         }(),
-        scheduler_expert_config{})
+        expert_cfg),
+    ue_db(expert_cfg.ue)
   {
     ocudulog::init();
 
@@ -94,6 +95,7 @@ protected:
   }
 
   ocudulog::basic_logger&                           logger = ocudulog::fetch_basic_logger("TEST");
+  const scheduler_expert_config                     expert_cfg;
   test_helpers::test_sched_config_manager           test_cfg;
   ue_repository                                     ue_db;
   std::vector<std::unique_ptr<slice_ue_repository>> slices;

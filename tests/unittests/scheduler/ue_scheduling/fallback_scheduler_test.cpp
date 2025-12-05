@@ -96,6 +96,7 @@ struct test_bench {
     sched_cfg{std::move(sched_cfg_)},
     builder_params{builder_params_},
     cell_cfg{*[&]() { return cfg_mng.add_cell(cell_req); }()},
+    ue_db(cell_cfg.expert_cfg.ue),
     ue_cell_db(ue_db.add_cell(cell_cfg, nullptr)),
     fallback_sched(expert_cfg, cell_cfg, pdcch_sch, pucch_alloc, uci_alloc, ue_db),
     csi_rs_sched(cell_cfg)

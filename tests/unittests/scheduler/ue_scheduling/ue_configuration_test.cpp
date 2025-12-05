@@ -28,7 +28,7 @@ protected:
   cell_common_configuration_list                 cell_cfg_db;
   du_cell_group_config_pool                      cfg_pool;
   std::vector<std::unique_ptr<ue_configuration>> ue_cfg_pool;
-  ue_repository                                  ue_db;
+  ue_repository                                  ue_db{sched_cfg.ue};
 
   ue& add_ue(const sched_ue_creation_request_message& ue_req)
   {

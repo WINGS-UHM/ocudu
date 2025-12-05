@@ -32,9 +32,9 @@ ta_management_system::ta_management_system(const scheduler_ta_control_config& ta
   ues.reserve(MAX_NOF_DU_UES);
 }
 
-ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_tag_id,
-                                           subcarrier_spacing             ul_scs,
-                                           ue_logical_channel_repository& lc_ch_mgr)
+ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t         pcell_tag_id,
+                                           subcarrier_spacing                 ul_scs,
+                                           ue_logical_channel_repository_view lc_ch_mgr)
 {
   if (ta_cfg.ta_cmd_offset_threshold < 0) {
     // TA management disabled for this UE.
@@ -42,7 +42,7 @@ ue_ta_manager ta_management_system::add_ue(time_alignment_group::id_t     pcell_
   }
 
   // Create UE context.
-  auto row_id = ues.insert(ue_ta_context{ul_scs, &lc_ch_mgr}, wheel_list_node{});
+  auto row_id = ues.insert(ue_ta_context{ul_scs, std::move(lc_ch_mgr)}, wheel_list_node{});
   update_tags(row_id, std::array<time_alignment_group::id_t, 1>{pcell_tag_id});
 
   return ue_ta_manager{*this, row_id};
@@ -114,7 +114,7 @@ void ta_management_system::handle_ue_ta_cmds(ue_ta_context& u)
       // Send Timing Advance Command to UE.
       const time_alignment_group::id_t tag_id = ta_meas.tag_id;
       const unsigned                   ta_cmd = std::max(0, ta_meas.last_t_a);
-      if (u.lc_ch_mgr->handle_mac_ce_indication(
+      if (u.lc_ch_mgr.handle_mac_ce_indication(
               {.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = ta_cmd_ce_payload{tag_id, ta_cmd}})) {
         ta_cmd_sent = true;
       } else {

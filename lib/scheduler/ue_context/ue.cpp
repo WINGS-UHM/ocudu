@@ -16,7 +16,7 @@ using namespace ocudu;
 ue::ue(const ue_configuration&       cfg,
        ue_logical_channel_repository lch_repo,
        ue_drx_controller&            drx_ctrl,
-       ta_manager&                   ta_mgr_,
+       ue_ta_manager                 ta_mgr_,
        const ue_cell_lookup&         ue_cells_) :
   ue_index(cfg.ue_index),
   crnti(cfg.crnti),
@@ -24,7 +24,7 @@ ue::ue(const ue_configuration&       cfg,
   cell_cfg_common(cfg.pcell_cfg().cell_cfg_common),
   ue_ded_cfg(&cfg),
   lc_ch_mgr(std::move(lch_repo)),
-  ta_mgr(ta_mgr_),
+  ta_mgr(std::move(ta_mgr_)),
   drx(drx_ctrl),
   cells(ue_cells_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
@@ -34,7 +34,6 @@ ue::ue(const ue_configuration&       cfg,
 void ue::slot_indication(slot_point sl_tx)
 {
   last_sl_tx = sl_tx;
-  ta_mgr.slot_indication(sl_tx);
   drx.slot_indication(sl_tx);
 }
 

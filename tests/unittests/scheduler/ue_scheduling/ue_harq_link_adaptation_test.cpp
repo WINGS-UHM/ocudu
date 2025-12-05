@@ -23,7 +23,7 @@ using namespace ocudu;
 class ue_harq_link_adaptation_test : public ::testing::Test
 {
 protected:
-  ue_harq_link_adaptation_test() : logger(ocudulog::fetch_basic_logger("SCHED", true))
+  ue_harq_link_adaptation_test() : logger(ocudulog::fetch_basic_logger("SCHED", true)), ues(sched_cfg.ue)
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();

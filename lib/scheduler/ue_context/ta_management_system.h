@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "logical_channel_system.h"
 #include "ocudu/adt/circular_vector.h"
 #include "ocudu/adt/soa_table.h"
 #include "ocudu/ocudulog/logger.h"
@@ -20,7 +21,6 @@
 
 namespace ocudu {
 
-class ue_logical_channel_repository;
 class ue_ta_manager;
 
 class ta_management_system
@@ -33,8 +33,9 @@ public:
   explicit ta_management_system(const scheduler_ta_control_config& ta_cfg_);
 
   /// \brief Adds a new UE to the TA management system.
-  ue_ta_manager
-  add_ue(time_alignment_group::id_t pcell_tag_id, subcarrier_spacing ul_scs, ue_logical_channel_repository& lc_ch_mgr_);
+  ue_ta_manager add_ue(time_alignment_group::id_t         pcell_tag_id,
+                       subcarrier_spacing                 ul_scs,
+                       ue_logical_channel_repository_view lc_ch_mgr_);
 
   /// \brief Handles Timing Advance adaptation related tasks at slot indication.
   void slot_indication(slot_point sl_tx);
@@ -74,7 +75,7 @@ private:
     /// Uplink subcarrier spacing of the UE.
     subcarrier_spacing ul_scs;
     /// Logical channel manager for the UE.
-    ue_logical_channel_repository* lc_ch_mgr = nullptr;
+    ue_logical_channel_repository_view lc_ch_mgr;
     /// List of N_TA update (N_TA_new - N_TA_old value in T_C units) measurements maintained per Timing Advance Group.
     /// The array index corresponds to TAG ID. And, the corresponding array value (i.e. vector) holds N_TA update
     /// measurements for that TAG ID.

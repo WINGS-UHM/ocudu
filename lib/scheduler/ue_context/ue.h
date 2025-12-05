@@ -11,7 +11,7 @@
 #pragma once
 
 #include "logical_channel_system.h"
-#include "ta_manager.h"
+#include "ta_management_system.h"
 #include "ue_cell.h"
 #include "ue_drx_controller.h"
 #include "ocudu/ran/du_types.h"
@@ -36,7 +36,7 @@ public:
   ue(const ue_configuration&       cfg_,
      ue_logical_channel_repository dl_lch_repo,
      ue_drx_controller&            drx_ctrl,
-     ta_manager&                   ta_mgr_,
+     ue_ta_manager                 ta_mgr_,
      const ue_cell_lookup&         ue_cells);
   ue(const ue&)            = delete;
   ue(ue&&)                 = delete;
@@ -119,7 +119,7 @@ private:
   /// UE Logical Channel Manager.
   ue_logical_channel_repository lc_ch_mgr;
   /// UE Timing Advance Manager.
-  ta_manager& ta_mgr;
+  ue_ta_manager ta_mgr;
   /// Controller of DRX active timer.
   ue_drx_controller& drx;
   /// Configured cells for the UE.

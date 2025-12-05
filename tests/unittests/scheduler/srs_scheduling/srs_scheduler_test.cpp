@@ -161,6 +161,7 @@ public:
       cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(expert_cfg, cell_req));
       return *cell_cfg_list[to_du_cell_index(0)];
     }()},
+    ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     srs_sched(cell_cfg, ues),
     current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}

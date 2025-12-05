@@ -14,7 +14,7 @@
 using namespace ocudu;
 
 ue_scheduler_impl::ue_scheduler_impl(const scheduler_ue_expert_config& expert_cfg_) :
-  expert_cfg(expert_cfg_), logger(ocudulog::fetch_basic_logger("SCHED")), event_mng(ue_db)
+  expert_cfg(expert_cfg_), logger(ocudulog::fetch_basic_logger("SCHED")), ue_db(expert_cfg), event_mng(ue_db)
 {
 }
 

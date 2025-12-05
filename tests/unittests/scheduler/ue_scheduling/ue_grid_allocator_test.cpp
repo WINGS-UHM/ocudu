@@ -48,6 +48,7 @@ protected:
       ocudu_assert(cfg != nullptr, "Cell configuration failed");
       return cfg;
     }()),
+    ues(sched_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     slice_ues(ran_slice_id_t{0}, to_du_cell_index(0), ues),
     alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, res_grid, logger),

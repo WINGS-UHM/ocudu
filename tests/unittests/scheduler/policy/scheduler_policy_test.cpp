@@ -57,6 +57,7 @@ protected:
           .get();
     }()),
     cell_metrics(cell_cfg, cell_cfg_req.metrics),
+    ues(cell_cfg.expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, &cell_metrics)),
     slice_sched(cell_cfg, ues),
     intra_slice_sched(cell_cfg.expert_cfg.ue, ues, pdcch_alloc, uci_alloc, res_grid, cell_metrics, logger)

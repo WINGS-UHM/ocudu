@@ -27,7 +27,8 @@ protected:
     cfg_mng(scheduler_config{expert_cfg, metric_notif}, metrics_handler),
     sched_cfg(sched_config_helper::make_default_sched_cell_configuration_request(builder_params)),
     cell_cfg(*cfg_mng.add_cell(sched_cfg)),
-    serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config())
+    serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config()),
+    ue_db(expert_cfg.ue)
   {
     ue_db.add_cell(cell_cfg, nullptr);
 
@@ -76,14 +77,12 @@ protected:
                                             pusch_td_cfg,
                                             uci_bits_overallocation,
                                             is_csi_report_slot);
-        break;
       case dci_ul_rnti_config_type::c_rnti_f0_1:
         return get_pusch_config_f0_1_c_rnti(ue_cc.cfg(),
                                             pusch_td_cfg,
                                             ue_cc.channel_state_manager().get_nof_ul_layers(),
                                             uci_bits_overallocation,
                                             is_csi_report_slot);
-        break;
       default:
         report_fatal_error("Unsupported PDCCH DCI UL format");
     }

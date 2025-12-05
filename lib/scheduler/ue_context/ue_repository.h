@@ -12,6 +12,7 @@
 
 #include "../config/sched_config_manager.h"
 #include "logical_channel_system.h"
+#include "ta_management_system.h"
 #include "ue.h"
 #include "ue_cell_repository.h"
 #include "ue_drx_controller.h"
@@ -29,7 +30,7 @@ public:
   using iterator       = ue_list::iterator;
   using const_iterator = ue_list::const_iterator;
 
-  explicit ue_repository();
+  explicit ue_repository(const scheduler_ue_expert_config& cfg);
   ~ue_repository();
 
   /// \brief Mark start of new slot and update UEs states.
@@ -99,7 +100,7 @@ private:
   slotted_id_table<du_ue_index_t, ue_drx_controller, MAX_NOF_DU_UES, false> ue_drx_controllers;
 
   /// UE Timing Advance Manager.
-  slotted_id_table<du_ue_index_t, ta_manager, MAX_NOF_DU_UES, false> ta_managers;
+  ta_management_system ta_mgr_sys;
 
   /// Lookup of UE cells per UE.
   slotted_id_table<du_ue_index_t, ue_cell_lookup, MAX_NOF_DU_UES, false> ue_cell_lookups;

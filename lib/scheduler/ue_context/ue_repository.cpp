@@ -14,7 +14,8 @@
 
 using namespace ocudu;
 
-ue_repository::ue_repository() : logger(ocudulog::fetch_basic_logger("SCHED"))
+ue_repository::ue_repository(const scheduler_ue_expert_config& cfg) :
+  logger(ocudulog::fetch_basic_logger("SCHED")), ta_mgr_sys(cfg.ta_control)
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
 }
@@ -99,6 +100,7 @@ void ue_repository::slot_indication(slot_point sl_tx)
 
   // Update state of existing UEs.
   lc_ch_sys.slot_indication();
+  ta_mgr_sys.slot_indication(sl_tx);
   for (auto& u : ues) {
     u.slot_indication(sl_tx);
   }
@@ -136,11 +138,8 @@ void ue_repository::add_ue(const ue_configuration&   ue_cfg,
                              ue_lc_mng.view(),
                              ul_ccch_slot_rx,
                              logger);
-  ta_managers.emplace(ue_index,
-                      pcell_cmn.expert_cfg.ue.ta_control,
-                      pcell_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs,
-                      ue_cfg.pcell_cfg().tag_id(),
-                      ue_lc_mng.view());
+  auto ue_ta_mgr = ta_mgr_sys.add_ue(
+      ue_cfg.pcell_cfg().tag_id(), pcell_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs, ue_lc_mng.view());
 
   // Setup UE cells.
   ue_cell_lookups.emplace(ue_index);
@@ -160,7 +159,7 @@ void ue_repository::add_ue(const ue_configuration&   ue_cfg,
   }
 
   // Add UE in the repository.
-  ues.emplace(ue_index, ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], ta_managers[ue_index], cell_lookup);
+  ues.emplace(ue_index, ue_cfg, std::move(ue_lc_mng), ue_drx_controllers[ue_index], std::move(ue_ta_mgr), cell_lookup);
 
   // Update RNTI -> UE index lookup.
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(rnti, ue_index));
@@ -286,7 +285,6 @@ void ue_repository::rem_ue(const ue& u)
 
   // Remove UE components.
   ue_drx_controllers.erase(ue_idx);
-  ta_managers.erase(ue_idx);
 
   // Remove UE from RNTI->UE lookup.
   auto it = rnti_to_ue_index_lookup.find(crnti);

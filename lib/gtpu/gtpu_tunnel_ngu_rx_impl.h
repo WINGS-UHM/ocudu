@@ -14,7 +14,6 @@
 #include "ocudu/gtpu/gtpu_config.h"
 #include "ocudu/gtpu/gtpu_tunnel_ngu_rx.h"
 #include "ocudu/psup/psup_packing.h"
-#include "ocudu/ran/cu_types.h"
 #include "ocudu/support/sdu_window.h"
 #include "ocudu/support/timers.h"
 
@@ -33,6 +32,10 @@ struct gtpu_rx_state {
   /// RX_REORD indicates the SN value following the SN value associated with the GTP-U PDU which
   /// triggered t-Reordering.
   uint16_t rx_reord;
+
+  /// \brief gtpu_rx_state Creates a GTP-U RX state initialized to a given value.
+  /// \param init_sn Initial sequence number expected to be seen first.
+  gtpu_rx_state(uint16_t init_sn = 0) : rx_next(init_sn), rx_deliv(init_sn), rx_reord(init_sn) {}
 };
 
 struct gtpu_rx_sdu_info {
@@ -76,9 +79,9 @@ public:
   /*
    * Testing Helpers
    */
-  void          set_state(gtpu_rx_state st_) { st = st_; }
-  gtpu_rx_state get_state() { return st; }
-  bool          is_reordering_timer_running() { return reordering_timer.is_running(); }
+  void                         set_state(std::optional<gtpu_rx_state> rx_state_) { rx_state = rx_state_; }
+  std::optional<gtpu_rx_state> get_state() { return rx_state; }
+  bool                         is_reordering_timer_running() { return reordering_timer.is_running(); }
 
 protected:
   // domain-specific PDU handler
@@ -138,7 +141,7 @@ protected:
       return;
     }
 
-    logger.log_debug(pdu.buf.begin(), pdu.buf.end(), "RX PDU. pdu_len={} {}", pdu_len, st);
+    logger.log_debug(pdu.buf.begin(), pdu.buf.end(), "RX PDU. pdu_len={} rx_state=[{}]", pdu_len, rx_state);
 
     if (!pdu.hdr.flags.seq_number || config.t_reordering.count() == 0) {
       // Forward this SDU straight away.
@@ -151,8 +154,21 @@ protected:
     uint16_t    sn     = pdu.hdr.seq_number;
     byte_buffer rx_sdu = gtpu_extract_msg(std::move(pdu)); // header is invalidated after extraction
 
+    // Initialize rx_state if this is the first SN we received.
+    if (!rx_state.has_value()) {
+      if (sn != 0) {
+        if (!config.warn_on_drop) {
+          logger.log_info("Initialized rx_state to non-zero value. sn={}", sn);
+        } else {
+          logger.log_warning("Initialized rx_state to non-zero value. sn={}", sn);
+        }
+      }
+      rx_state = gtpu_rx_state(sn);
+    }
+    auto& st = *rx_state;
+
     // Check out-of-window
-    if (!inside_rx_window(sn)) {
+    if (!inside_rx_window(sn, st)) {
       if (nof_log_sn_out_of_window++ < max_nof_log_sn_out_of_window) {
         logger.log_warning("SN falls out of Rx window. sn={} pdu_len={} {} reordering_timer_running={}",
                            sn,
@@ -170,7 +186,7 @@ protected:
     }
 
     // Check late SN
-    if (rx_mod_base(sn) < rx_mod_base(st.rx_deliv)) {
+    if (rx_mod_base(sn, st) < rx_mod_base(st.rx_deliv, st)) {
       logger.log_debug("Out-of-order after timeout or duplicate. sn={} pdu_len={} {}", sn, pdu_len, st);
       gtpu_rx_sdu_info rx_sdu_info = {std::move(rx_sdu), pdu_session_info.qos_flow_id, sn};
       deliver_sdu(rx_sdu_info);
@@ -189,17 +205,17 @@ protected:
     rx_sdu_info.sn                = sn;
 
     // Update RX_NEXT
-    if (rx_mod_base(sn) >= rx_mod_base(st.rx_next)) {
+    if (rx_mod_base(sn, st) >= rx_mod_base(st.rx_next, st)) {
       st.rx_next = sn + 1;
     }
 
-    if (rx_mod_base(sn) == rx_mod_base(st.rx_deliv)) {
+    if (rx_mod_base(sn, st) == rx_mod_base(st.rx_deliv, st)) {
       // Deliver all consecutive SDUs in ascending order of associated SN
       deliver_all_consecutive_sdus();
     }
 
     // Stop re-ordering timer if we advanced the window past RX_REORD
-    if (reordering_timer.is_running() and (not inside_rx_window(st.rx_reord))) {
+    if (reordering_timer.is_running() and (not inside_rx_window(st.rx_reord, st))) {
       reordering_timer.stop();
       logger.log_debug("Stopped t-Reordering. {}", st);
     }
@@ -207,7 +223,7 @@ protected:
     if (config.t_reordering.count() == 0) {
       st.rx_reord = st.rx_next;
       handle_t_reordering_expire();
-    } else if (!reordering_timer.is_running() and rx_mod_base(st.rx_deliv) < rx_mod_base(st.rx_next)) {
+    } else if (!reordering_timer.is_running() and rx_mod_base(st.rx_deliv, st) < rx_mod_base(st.rx_next, st)) {
       st.rx_reord = st.rx_next;
       reordering_timer.run();
       logger.log_debug("Started t-Reordering. {}", st);
@@ -230,6 +246,12 @@ protected:
 
   void deliver_all_consecutive_sdus()
   {
+    if (!rx_state.has_value()) {
+      logger.log_error("Invalid state to deliver consecutive SDUs. rx_state=[{}]", rx_state);
+      return;
+    }
+    auto& st = *rx_state;
+
     while (st.rx_deliv != st.rx_next && rx_window.has_sn(st.rx_deliv)) {
       gtpu_rx_sdu_info& sdu_info = rx_window[st.rx_deliv];
       deliver_sdu(sdu_info);
@@ -242,12 +264,18 @@ protected:
 
   void handle_t_reordering_expire()
   {
+    if (!rx_state.has_value()) {
+      logger.log_error("Invalid state to handle expired t_reordering. rx_state=[{}]", rx_state);
+      return;
+    }
+    auto& st = *rx_state;
+
     // Check if timer has been restarted by the PDU handling routine between expiration and execution of this handler.
     if (reordering_timer.is_running()) {
       logger.log_info("reordering timer has been already restarted. Skipping outdated event. {}", st);
       return;
     }
-    if (not inside_rx_window(st.rx_reord)) {
+    if (not inside_rx_window(st.rx_reord, st)) {
       logger.log_info("rx_reord is outside RX window. Skipping outdated event. {}", st);
       return;
     }
@@ -265,7 +293,7 @@ protected:
 
     deliver_all_consecutive_sdus();
 
-    if (rx_mod_base(st.rx_deliv) < rx_mod_base(st.rx_next)) {
+    if (rx_mod_base(st.rx_deliv, st) < rx_mod_base(st.rx_next, st)) {
       if (config.t_reordering.count() == 0) {
         logger.log_error("reordering timer expired after 0ms and rx_deliv < rx_next. {}", st);
         return;
@@ -285,7 +313,9 @@ private:
   gtpu_tunnel_ngu_config::gtpu_tunnel_ngu_rx_config config;
 
   /// Rx state
-  gtpu_rx_state st = {};
+  ///
+  /// The state is optional and is initialized upon first receptions of a sequence number
+  std::optional<gtpu_rx_state> rx_state;
 
   /// Rx window
   sdu_window<gtpu_rx_sdu_info, gtpu_tunnel_logger> rx_window;
@@ -304,11 +334,13 @@ private:
     void operator()(timer_id_t timer_id)
     {
       if (not parent->config.warn_on_drop) {
-        parent->logger.log_info(
-            "reordering timer expired after {}ms. {}", parent->config.t_reordering.count(), parent->st);
+        parent->logger.log_info("reordering timer expired after {}ms. rx_state=[{}]",
+                                parent->config.t_reordering.count(),
+                                parent->rx_state);
       } else {
-        parent->logger.log_warning(
-            "reordering timer expired after {}ms. {}", parent->config.t_reordering.count(), parent->st);
+        parent->logger.log_warning("reordering timer expired after {}ms. rx_state=[{}]",
+                                   parent->config.t_reordering.count(),
+                                   parent->rx_state);
       }
       parent->handle_t_reordering_expire();
     }
@@ -317,22 +349,28 @@ private:
     gtpu_tunnel_ngu_rx_impl* parent;
   };
 
-  /// \brief Helper function for arithmetic comparisons of state variables or SN values
+  /// \brief Helper function for arithmetic comparisons of state variables or SN values.
   ///
   /// When performing arithmetic comparisons of state variables or SN values, a modulus base shall be used.
-  /// This is adapted from RLC AM, TS 38.322 Sec. 7.1
+  /// This is adapted from RLC AM, TS 38.322 Sec. 7.1.
   ///
   /// \param sn The sequence number to be rebased from RX_Deliv, as this is the lower-edge of the window.
-  /// \return The rebased value of sn
-  constexpr uint16_t rx_mod_base(uint16_t sn) const { return (sn - st.rx_deliv) % gtpu_sn_mod; }
+  /// \param st The state of the RX entity.
+  /// \return The rebased value of sn.
+  constexpr uint16_t rx_mod_base(uint16_t sn, const gtpu_rx_state& st) const
+  {
+    return (sn - st.rx_deliv) % gtpu_sn_mod;
+  }
 
-  /// Checks whether a sequence number is inside the current Rx window
-  /// \param sn The sequence number to be checked
-  /// \return True if sn is inside the Rx window, false otherwise
-  constexpr bool inside_rx_window(uint16_t sn) const
+  /// Checks whether a sequence number is inside the current Rx window.
+  ///
+  /// \param sn The sequence number to be checked.
+  /// \param st The state of the RX entity.
+  /// \return True if sn is inside the Rx window, false otherwise.
+  constexpr bool inside_rx_window(uint16_t sn, const gtpu_rx_state& st) const
   {
     // RX_Deliv <= SN < RX_Deliv + Window_Size
-    return rx_mod_base(sn) < gtpu_rx_window_size;
+    return rx_mod_base(sn, st) < gtpu_rx_window_size;
   }
 
   // Log helper for throttling

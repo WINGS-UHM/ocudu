@@ -160,7 +160,7 @@ trigger doxygen image:
   before_script:
     - |
       DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid apt-get update && apt-get install -y --no-install-recommends \
-        clang-format git colordiff apt-transport-https ca-certificates gawk
+        clang-format git colordiff apt-transport-https ca-certificates gawk yamllint
   artifacts:
     paths:
       - $CPP_SRC_DIR/ci.patch
@@ -193,6 +193,7 @@ code-format:
       }
     - cd $CPP_SRC_DIR
     - check_code_format
+    - yamllint -f colored -c .yamllint .
 
 full-code-format:
   extends: .static
@@ -400,7 +401,7 @@ unit coverage:
     - |
       download_from_registry() {
         apk add curl
-        
+
         cd ${CI_PROJECT_DIR}
         http_code=$(curl -w "%{http_code}" --header "JOB-TOKEN: $CI_JOB_TOKEN" "${PACKAGE_URL}" -o output.tar.gz)
         if [[ $http_code == "200" ]]; then

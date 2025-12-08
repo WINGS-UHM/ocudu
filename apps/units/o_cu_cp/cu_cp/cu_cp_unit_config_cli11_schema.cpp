@@ -432,21 +432,20 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
 
   // AMF parameters.
   app.add_option_function<std::vector<std::string>>(
-         "--extra_amfs",
-         [&cu_cp_params](const std::vector<std::string>& values) {
-           cu_cp_params.extra_amfs.resize(values.size());
+      "--extra_amfs",
+      [&cu_cp_params](const std::vector<std::string>& values) {
+        cu_cp_params.extra_amfs.resize(values.size());
 
-           for (unsigned i = 0, e = values.size(); i != e; ++i) {
-             CLI::App subapp("CU-CP AMF list");
-             subapp.config_formatter(create_yaml_config_parser());
-             subapp.allow_config_extras(CLI::config_extras_mode::error);
-             configure_cli11_amf_item_args(subapp, cu_cp_params.extra_amfs[i]);
-             std::istringstream ss(values[i]);
-             subapp.parse_from_stream(ss);
-           }
-         },
-         "Sets the list of extra AMFs for the CU-CP to connect to")
-      ->group("");
+        for (unsigned i = 0, e = values.size(); i != e; ++i) {
+          CLI::App subapp("CU-CP AMF list");
+          subapp.config_formatter(create_yaml_config_parser());
+          subapp.allow_config_extras(CLI::config_extras_mode::error);
+          configure_cli11_amf_item_args(subapp, cu_cp_params.extra_amfs[i]);
+          std::istringstream ss(values[i]);
+          subapp.parse_from_stream(ss);
+        }
+      },
+      "Sets the list of extra AMFs for the CU-CP to connect to");
 
   CLI::App* mobility_subcmd = app.add_subcommand("mobility", "Mobility configuration");
   configure_cli11_mobility_args(*mobility_subcmd, cu_cp_params.mobility_config);

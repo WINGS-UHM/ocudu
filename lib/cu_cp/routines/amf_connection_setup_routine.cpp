@@ -16,24 +16,19 @@
 using namespace ocudu;
 using namespace ocucp;
 
-#ifndef OCUDU_HAS_ENTERPRISE
-
 async_task<bool>
 ocudu::ocucp::start_amf_connection_setup(ngap_repository&                                    ngap_db,
                                          std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected)
 {
-  amfs_connected.emplace(ngap_db.get_ngaps().begin()->first, false);
-  return launch_async<amf_connection_setup_routine>(ngap_db, amfs_connected.begin()->second);
+  return launch_async<amf_connection_setup_routine>(ngap_db, amfs_connected);
 }
 
-#endif // OCUDU_HAS_ENTERPRISE
-
-amf_connection_setup_routine::amf_connection_setup_routine(ngap_repository&   ngap_db_,
-                                                           std::atomic<bool>& amf_connected_) :
+amf_connection_setup_routine::amf_connection_setup_routine(
+    ngap_repository&                                    ngap_db_,
+    std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected_) :
   ngap_db(ngap_db_),
-  amf_connected(amf_connected_),
-  amf_index(ngap_db_.get_ngaps().begin()->first),
-  ngap(ngap_db_.get_ngaps().begin()->second),
+  amfs_connected(amfs_connected_),
+  ngaps(ngap_db_.get_ngaps()),
   logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
@@ -42,27 +37,37 @@ void amf_connection_setup_routine::operator()(coro_context<async_task<bool>>& ct
 {
   CORO_BEGIN(ctx);
 
-  if (not ngap->handle_amf_tnl_connection_request()) {
-    CORO_EARLY_RETURN(false);
-  }
+  // TODO: Use when_all.
+  for (ngap_it = ngaps.begin(); ngap_it != ngaps.end(); ngap_it++) {
+    amf_index = ngap_it->first;
+    ngap      = ngap_it->second;
 
-  // Initiate NG Setup.
-  CORO_AWAIT_VALUE(result_msg, ngap->handle_ng_setup_request(/*max_setup_retries*/ 1));
+    if (not ngap->handle_amf_tnl_connection_request()) {
+      CORO_EARLY_RETURN(false);
+    }
 
-  success = std::holds_alternative<ngap_ng_setup_response>(result_msg);
+    // Initiate NG Setup.
+    CORO_AWAIT_VALUE(result_msg, ngap->handle_ng_setup_request(/*max_setup_retries*/ 1));
 
-  // Handle result of NG setup.
-  handle_connection_setup_result();
+    success = std::holds_alternative<ngap_ng_setup_response>(result_msg);
 
-  if (success) {
-    // Update PLMN lookups in NGAP repository after successful NGSetup.
-    ngap_db.update_plmn_lookup(amf_index);
+    // Handle result of NG setup.
+    handle_connection_setup_result();
 
-    logger.info("Connected to AMF. Supported PLMNs: {}",
-                fmt::format("{}", fmt::join(ngap->get_ngap_context().get_supported_plmns(), " ")));
-  } else {
-    logger.error("Failed to connect to AMF");
-    CORO_EARLY_RETURN(false);
+    if (success) {
+      // Update PLMN lookups in NGAP repository after successful NGSetup.
+      ngap_db.update_plmn_lookup(amf_index);
+
+      std::string plmn_list;
+      for (const auto& plmn : ngap->get_ngap_context().get_supported_plmns()) {
+        plmn_list += plmn.to_string() + " ";
+      }
+
+      logger.info("Connected to AMF. Supported PLMNs: {}", plmn_list);
+    } else {
+      logger.error("Failed to connect to AMF");
+      CORO_EARLY_RETURN(false);
+    }
   }
 
   CORO_RETURN(success);
@@ -71,5 +76,5 @@ void amf_connection_setup_routine::operator()(coro_context<async_task<bool>>& ct
 void amf_connection_setup_routine::handle_connection_setup_result()
 {
   // Update AMF connection handler state.
-  amf_connected = success;
+  amfs_connected.emplace(amf_index, success);
 }

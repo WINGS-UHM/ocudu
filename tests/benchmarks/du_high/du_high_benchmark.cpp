@@ -612,17 +612,17 @@ public:
     dependencies.rlc_p       = &rlc_pcap;
 
     // Increase nof. PUCCH resources to accommodate more UEs.
-    cfg.ran.cells[0].pucch_cfg.nof_cell_sr_resources    = 30;
-    cfg.ran.cells[0].pucch_cfg.nof_cell_csi_resources   = 30;
+    cfg.ran.cells[0].pucch_cfg.nof_cell_sr_resources    = 80;
+    cfg.ran.cells[0].pucch_cfg.nof_cell_csi_resources   = 80;
     cfg.ran.cells[0].pucch_cfg.res_set_1_size           = 8;
     cfg.ran.cells[0].pucch_cfg.res_set_0_size           = 8;
-    cfg.ran.cells[0].pucch_cfg.nof_cell_res_set_configs = 4;
+    cfg.ran.cells[0].pucch_cfg.nof_cell_res_set_configs = 2;
     auto& f1_params                             = cfg.ran.cells[0].pucch_cfg.f0_or_f1_params.emplace<pucch_f1_params>();
-    f1_params.nof_cyc_shifts                    = pucch_nof_cyclic_shifts::six;
+    f1_params.nof_cyc_shifts                    = pucch_nof_cyclic_shifts::twelve;
     f1_params.occ_supported                     = true;
-    cfg.ran.sched_cfg.ue.max_pucchs_per_slot    = 61;
-    cfg.ran.sched_cfg.ue.max_puschs_per_slot    = 61;
-    cfg.ran.sched_cfg.ue.max_ul_grants_per_slot = 64;
+    cfg.ran.sched_cfg.ue.max_pucchs_per_slot    = 120;
+    cfg.ran.sched_cfg.ue.max_puschs_per_slot    = 120;
+    cfg.ran.sched_cfg.ue.max_ul_grants_per_slot = 128;
 
     du_hi = std::make_unique<du_high_impl>(cfg, dependencies);
 

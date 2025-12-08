@@ -83,6 +83,7 @@ private:
     bounded_bitset<MAX_NOF_DU_UES> pending_dl_ues;
     /// Bitset of UE indexes for UEs with pending newTx UL data for this RAN slice.
     bounded_bitset<MAX_NOF_DU_UES> pending_ul_ues;
+    /// Bitset of (UE, LCID) pairs with have pending data
   };
 
   /// Context of a single pending CE.
@@ -300,6 +301,9 @@ private:
 
   /// Bitset of UEs with pending SRs.
   bounded_bitset<MAX_NOF_DU_UES> ues_with_pending_sr;
+
+  /// Bitset of (UE, LCID) pairs with pending newTx DL data.
+  bounded_bitset<MAX_NOF_DU_UES * MAX_NOF_RB_LCIDS> pending_dl_ue_lcids;
 
   /// List of bitsets of UEs with pending newTx DL data per RAN slice.
   flat_map<ran_slice_id_t, ran_slice_context> slices;
@@ -524,7 +528,10 @@ public:
   }
 
   /// \brief Checks whether a logical channel has pending data.
-  bool has_pending_bytes(lcid_t lcid) const { return logical_channel_system::has_pending_bytes(get_ue_row(), lcid); }
+  bool has_pending_bytes(lcid_t lcid) const
+  {
+    return parent->pending_dl_ue_lcids.test(ue_index * MAX_NOF_RB_LCIDS + lcid);
+  }
 
   /// \brief Checks whether a logical channel has pending data.
   bool has_pending_bytes(lcg_id_t lcgid) const

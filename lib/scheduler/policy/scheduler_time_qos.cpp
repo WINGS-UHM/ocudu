@@ -281,7 +281,7 @@ static double compute_dl_qos_weights(const slice_ue&                  u,
   double                    delay_weight            = 0;
   if (policy_params.gbr_enabled or policy_params.priority_enabled or policy_params.pdb_enabled) {
     for (logical_channel_config_ptr lc : *u.logical_channels()) {
-      if (not u.contains(lc->lcid) or not lc->qos.has_value() or u.pending_dl_newtx_bytes(lc->lcid) == 0) {
+      if (not lc->qos.has_value() or not u.contains(lc->lcid) or u.pending_dl_newtx_bytes(lc->lcid) == 0) {
         // LC is not part of the slice, No QoS config was provided for this LC or there is no pending data for this LC
         continue;
       }

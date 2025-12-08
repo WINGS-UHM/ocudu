@@ -74,6 +74,7 @@ ue_logical_channel_repository logical_channel_system::create_ue(du_ue_index_t   
     configured_ues.resize(ue_index + 1);
     ues_with_pending_ces.resize(ue_index + 1);
     ues_with_pending_sr.resize(ue_index + 1);
+    pending_dl_ue_lcids.resize((ue_index + 1) * MAX_NOF_RB_LCIDS);
     for (auto it = slices.begin(); it != slices.end(); ++it) {
       it->second.pending_dl_ues.resize(ue_index + 1);
       it->second.pending_ul_ues.resize(ue_index + 1);
@@ -204,6 +205,7 @@ void logical_channel_system::remove_ue(soa::row_id ue_rid)
     configured_ues.resize(new_size);
     ues_with_pending_ces.resize(new_size);
     ues_with_pending_sr.resize(new_size);
+    pending_dl_ue_lcids.resize(new_size * MAX_NOF_RB_LCIDS);
     for (auto it = slices.begin(), it_end = slices.end(); it != it_end; ++it) {
       it->second.pending_dl_ues.resize(new_size);
       it->second.pending_ul_ues.resize(new_size);
@@ -366,6 +368,9 @@ void logical_channel_system::deactivate(soa::row_id ue_rid)
 
   // Reset any pending SR.
   ues_with_pending_sr.reset(ue_idx);
+
+  // Reset pending DL LCIDs.
+  pending_dl_ue_lcids.fill(ue_idx * MAX_NOF_RB_LCIDS, (ue_idx + 1) * MAX_NOF_RB_LCIDS, false);
 
   // Deactivate (not erase) all bearers.
   for (const auto& [lcid, ch_ctx] : ue_ch.channels) {
@@ -550,6 +555,11 @@ void logical_channel_system::handle_dl_buffer_status_indication(soa::row_id ue_r
     auto  prev_buf_st = ch_ctx.buf_st;
     ch_ctx.buf_st     = std::min(buffer_status, max_buffer_status);
     ch_ctx.hol_toa    = hol_toa;
+    if ((prev_buf_st > 0) != (ch_ctx.buf_st > 0)) {
+      // Update pending DL LCID bitmap.
+      auto& ue_cfg = u.at<ue_config_context>();
+      pending_dl_ue_lcids.set(ue_cfg.ue_index * MAX_NOF_RB_LCIDS + lcid, ch_ctx.buf_st > 0);
+    }
     on_single_channel_buf_st_update(u, ch_ctx.active, ch_ctx.slice_id, ch_ctx.buf_st, prev_buf_st);
   }
 }
@@ -775,6 +785,11 @@ logical_channel_system::allocate_mac_sdu(soa::row_id ue_rid, dl_msg_lc_info& sub
   }
   auto prev_buf_st = ch_ctx.buf_st;
   ch_ctx.buf_st    = new_buf_st;
+  if ((prev_buf_st > 0) != (new_buf_st > 0)) {
+    // Update pending DL LCID bitmap.
+    auto& ue_cfg = u.at<ue_config_context>();
+    pending_dl_ue_lcids.set(ue_cfg.ue_index * MAX_NOF_RB_LCIDS + lcid, new_buf_st > 0);
+  }
   on_single_channel_buf_st_update(u, ch_ctx.active, ch_ctx.slice_id, new_buf_st, prev_buf_st);
   if (ch_ctx.qos_row.has_value()) {
     // In case of QoS tracking is activated, set the last scheduled bytes.

@@ -10,7 +10,6 @@
 
 #include "scheduler_time_qos.h"
 #include "../slicing/slice_ue_repository.h"
-#include "../support/csi_report_helpers.h"
 #include "../support/dmrs_helpers.h"
 #include "../ue_scheduling/grant_params_selector.h"
 #include <algorithm>
@@ -89,25 +88,39 @@ void ue_history_repository::save_ul_newtx_grants(span<const ul_sched_info> ul_gr
 }
 
 rate_estimator::rate_estimator(const cell_configuration& cell_cfg) :
-  tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
-              .nof_oh_prb       = 0,
-              .tb_scaling_field = 1,
-              .n_prb            = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()}
+  dl_tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
+                 .nof_oh_prb       = 0,
+                 .tb_scaling_field = 1,
+                 .n_prb            = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()},
+  ul_tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
+                 .nof_oh_prb       = 0,
+                 .tb_scaling_field = 1,
+                 .n_prb            = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()}
 {
-  const unsigned max_nof_layers = cell_cfg.dl_carrier.nof_ant;
-
-  dmrs_rbs_per_nof_layers.resize(max_nof_layers);
-  for (unsigned nof_layers = 1; nof_layers <= max_nof_layers; ++nof_layers) {
+  dl_dmrs_rbs_per_nof_layers.resize(cell_cfg.dl_carrier.nof_ant);
+  for (unsigned nof_layers = 1, max_layers = dl_dmrs_rbs_per_nof_layers.size(); nof_layers <= max_layers;
+       ++nof_layers) {
     const pdsch_time_domain_resource_allocation pdsch_td_cfg{
         0, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
     const dmrs_downlink_config dmrs_cfg{};
     auto                       dmrs = make_dmrs_info_dedicated(
-        pdsch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, cell_cfg.dl_carrier.nof_ant, false);
-    dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
+        pdsch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
+    dl_dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
+  }
+
+  ul_dmrs_rbs_per_nof_layers.resize(cell_cfg.ul_carrier.nof_ant);
+  for (unsigned nof_layers = 1, max_layers = ul_dmrs_rbs_per_nof_layers.size(); nof_layers <= max_layers;
+       ++nof_layers) {
+    const pusch_time_domain_resource_allocation pusch_td_cfg{
+        2, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
+    const dmrs_uplink_config dmrs_cfg{};
+    auto                     dmrs = make_dmrs_info_dedicated(
+        pusch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
+    ul_dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
   }
 }
 
-unsigned rate_estimator::estimate_max_tbs(const ue_cell& ue_cc) const
+unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
 {
   static constexpr unsigned        NOF_BITS_PER_BYTE = 8U;
   static constexpr pdsch_mcs_table ref_mcs_table     = pdsch_mcs_table::qam256;
@@ -121,13 +134,37 @@ unsigned rate_estimator::estimate_max_tbs(const ue_cell& ue_cc) const
   const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_dl_layers();
   const sch_mcs_description mcs_info   = pdsch_mcs_get_config(ref_mcs_table, mcs.value());
   const unsigned            tbs_bits =
-      tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = tbs_cfg_ref.nof_symb_sh,
-                                                            .nof_dmrs_prb     = dmrs_rbs_per_nof_layers[nof_layers - 1],
-                                                            .nof_oh_prb       = tbs_cfg_ref.nof_oh_prb,
-                                                            .mcs_descr        = mcs_info,
-                                                            .nof_layers       = nof_layers,
-                                                            .tb_scaling_field = tbs_cfg_ref.tb_scaling_field,
-                                                            .n_prb            = tbs_cfg_ref.n_prb});
+      tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh  = dl_tbs_cfg_ref.nof_symb_sh,
+                                                            .nof_dmrs_prb = dl_dmrs_rbs_per_nof_layers[nof_layers - 1],
+                                                            .nof_oh_prb   = dl_tbs_cfg_ref.nof_oh_prb,
+                                                            .mcs_descr    = mcs_info,
+                                                            .nof_layers   = nof_layers,
+                                                            .tb_scaling_field = dl_tbs_cfg_ref.tb_scaling_field,
+                                                            .n_prb            = dl_tbs_cfg_ref.n_prb});
+  return tbs_bits / NOF_BITS_PER_BYTE;
+}
+
+unsigned rate_estimator::estimate_max_ul_tbs(const ue_cell& ue_cc) const
+{
+  static constexpr pusch_mcs_table ref_mcs_table          = pusch_mcs_table::qam256;
+  static constexpr bool            use_transform_precoder = false;
+  static constexpr unsigned        NOF_BITS_PER_BYTE      = 8U;
+
+  const sch_mcs_index mcs = ue_cc.link_adaptation_controller().calculate_ul_mcs(ref_mcs_table, false);
+
+  const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_ul_layers();
+  const sch_mcs_description mcs_info   = pusch_mcs_get_config(ref_mcs_table, mcs, use_transform_precoder, false);
+
+  unsigned tbs_bits =
+      tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh  = ul_tbs_cfg_ref.nof_symb_sh,
+                                                            .nof_dmrs_prb = ul_dmrs_rbs_per_nof_layers[nof_layers - 1],
+                                                            .nof_oh_prb   = ul_tbs_cfg_ref.nof_oh_prb,
+                                                            .mcs_descr    = mcs_info,
+                                                            .nof_layers   = nof_layers,
+                                                            .tb_scaling_field = ul_tbs_cfg_ref.tb_scaling_field,
+                                                            .n_prb            = ul_tbs_cfg_ref.n_prb});
+
+  // Return the estimated throughput, considering that the number of bytes is for a slot.
   return tbs_bits / NOF_BITS_PER_BYTE;
 }
 
@@ -348,8 +385,6 @@ static double compute_ul_qos_weights(const slice_ue&                  u,
 
 ue_sched_priority scheduler_time_qos::compute_dl_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pdsch_slot)
 {
-  double dl_prio = forbid_prio;
-
   const auto&         ue_cc    = u.get_cc();
   const du_ue_index_t ue_index = u.ue_index();
   // This should be ensured at this point.
@@ -359,15 +394,14 @@ ue_sched_priority scheduler_time_qos::compute_dl_prio(const slice_ue& u, slot_po
 
   // Calculate DL QoS-aware priority.
   // NOTE: Estimated instantaneous DL rate is calculated assuming entire BWP CRBs are allocated to UE.
-  const unsigned estimated_max_tbs = rate_estim.estimate_max_tbs(ue_cc);
+  const unsigned estimated_max_tbs = rate_estim.estimate_max_dl_tbs(ue_cc);
   if (estimated_max_tbs == 0) {
     // No DL rate can be achieved.
-    return dl_prio;
+    return forbid_prio;
   }
-  const double current_total_avg_rate = ue_history_db[ue_index].dl_avg_rate();
-  dl_prio = compute_dl_qos_weights(u, estimated_max_tbs, current_total_avg_rate, pdcch_slot, params);
 
-  return dl_prio;
+  const double current_total_avg_rate = ue_history_db[ue_index].dl_avg_rate();
+  return compute_dl_qos_weights(u, estimated_max_tbs, current_total_avg_rate, pdcch_slot, params);
 }
 
 ue_sched_priority scheduler_time_qos::compute_ul_prio(const slice_ue& u, slot_point pdcch_slot, slot_point pusch_slot)
@@ -377,50 +411,14 @@ ue_sched_priority scheduler_time_qos::compute_ul_prio(const slice_ue& u, slot_po
                          ue_cc.harqs.has_empty_ul_harqs() and u.pending_ul_newtx_bytes() > 0,
                      "UE UL candidate in invalid state");
 
-  // [Implementation-defined] We consider only the SearchSpace defined in UE dedicated configuration.
-  const search_space_id ue_ded_ss_id = to_search_space_id(2);
-  const auto&           ss_info      = ue_cc.cfg().search_space(ue_ded_ss_id);
-
-  span<const pusch_time_domain_resource_allocation> pusch_td_res_list = ss_info.pusch_time_domain_list;
-  // [Implementation-defined] We pick the first element since PUSCH time domain resource list is sorted in descending
-  // order of nof. PUSCH symbols. And, we want to calculate estimate of instantaneous achievable rate with maximum
-  // nof. PUSCH symbols.
-  const pusch_time_domain_resource_allocation& pusch_td_cfg = pusch_td_res_list.front();
-  // [Implementation-defined] We assume nof. HARQ ACK bits is zero at PUSCH slot as a simplification in calculating
-  // estimated instantaneous achievable rate.
-  constexpr unsigned nof_harq_ack_bits  = 0;
-  const bool         is_csi_report_slot = ue_cc.cfg().csi_meas_cfg() != nullptr and
-                                  csi_helper::is_csi_reporting_slot(*ue_cc.cfg().csi_meas_cfg(), pusch_slot);
-
-  pusch_config_params pusch_cfg;
-  switch (ss_info.get_ul_dci_format()) {
-    case dci_ul_format::f0_0:
-      pusch_cfg = get_pusch_config_f0_0_c_rnti(ue_cc.cfg().cell_cfg_common,
-                                               &ue_cc.cfg(),
-                                               ue_cc.cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp,
-                                               pusch_td_cfg,
-                                               nof_harq_ack_bits,
-                                               is_csi_report_slot);
-      break;
-    case dci_ul_format::f0_1:
-      pusch_cfg = get_pusch_config_f0_1_c_rnti(ue_cc.cfg(),
-                                               pusch_td_cfg,
-                                               ue_cc.channel_state_manager().get_nof_ul_layers(),
-                                               nof_harq_ack_bits,
-                                               is_csi_report_slot);
-      break;
-    default:
-      report_fatal_error("Unsupported PDCCH DCI UL format");
-  }
-
-  sch_mcs_index mcs =
-      ue_cc.link_adaptation_controller().calculate_ul_mcs(pusch_cfg.mcs_table, pusch_cfg.use_transform_precoder);
-
   // Calculate UL PF priority.
   // NOTE: Estimated instantaneous UL rate is calculated assuming entire BWP CRBs are allocated to UE.
-  const double estimated_rate   = ue_cc.get_estimated_ul_rate(pusch_cfg, mcs.value(), ss_info.ul_crb_lims.length());
+  const unsigned estimated_max_tbs = rate_estim.estimate_max_ul_tbs(ue_cc);
+  if (estimated_max_tbs == 0) {
+    return forbid_prio;
+  }
   const double current_avg_rate = ue_history_db[u.ue_index()].ul_avg_rate();
 
   // Compute LC weight function.
-  return compute_ul_qos_weights(u, estimated_rate, current_avg_rate, params);
+  return compute_ul_qos_weights(u, estimated_max_tbs, current_avg_rate, params);
 }

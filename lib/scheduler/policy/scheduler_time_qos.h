@@ -14,7 +14,6 @@
 #include "ocudu/adt/soa_table.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
-#include "ocudu/support/math/exponential_averager.h"
 
 namespace ocudu {
 
@@ -94,17 +93,22 @@ class rate_estimator
 public:
   explicit rate_estimator(const cell_configuration& cell_cfg);
 
-  /// Estimate maximum transport block size for the given UE.
-  unsigned estimate_max_tbs(const ue_cell& ue_cc) const;
+  /// Estimate maximum DL transport block size, in bytes, for the given UE.
+  unsigned estimate_max_dl_tbs(const ue_cell& ue_cc) const;
+
+  /// Estimate maximum UL transport block size, in bytes, for the given UE.
+  unsigned estimate_max_ul_tbs(const ue_cell& ue_cc) const;
 
 private:
   static constexpr size_t MAX_NOF_LAYERS = 4;
 
   /// Cached reference to TBS calculator configuration.
-  const tbs_calculator_configuration tbs_cfg_ref;
+  const tbs_calculator_configuration dl_tbs_cfg_ref;
+  const tbs_calculator_configuration ul_tbs_cfg_ref;
 
   /// Number of DMRS resource blocks per number of layers.
-  static_vector<uint8_t, MAX_NOF_LAYERS> dmrs_rbs_per_nof_layers;
+  static_vector<uint8_t, MAX_NOF_LAYERS> dl_dmrs_rbs_per_nof_layers;
+  static_vector<uint8_t, MAX_NOF_LAYERS> ul_dmrs_rbs_per_nof_layers;
 };
 
 /// Time-domain QoS-aware scheduler policy.

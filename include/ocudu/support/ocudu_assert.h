@@ -71,7 +71,7 @@ template <typename... Args>
 /// \brief Helper macro that asserts condition is true. If false, it logs the remaining macro args, flushes the log,
 /// prints the backtrace (if it was activated) and closes the application.
 #define OCUDU_ALWAYS_ASSERT__(condition, fmtstr, ...)                                                                  \
-  (void)((condition) || (OCUDU_ASSERT_FAILURE__((#condition), fmtstr, ##__VA_ARGS__), 0))
+  (void)(OCUDU_LIKELY(condition) || (OCUDU_ASSERT_FAILURE__((#condition), fmtstr, ##__VA_ARGS__), 0))
 
 /// Same as "OCUDU_ALWAYS_ASSERT__" but it is only active when "enable_check" flag is defined
 #define OCUDU_ALWAYS_ASSERT_IFDEF__(enable_check, condition, fmtstr, ...)                                              \

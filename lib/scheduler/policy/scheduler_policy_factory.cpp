@@ -15,13 +15,13 @@
 using namespace ocudu;
 
 std::unique_ptr<scheduler_policy> ocudu::create_scheduler_strategy(const scheduler_policy_config& policy_cfg,
-                                                                   du_cell_index_t                cell_index)
+                                                                   const cell_configuration&      cell_cfg)
 {
   if (std::holds_alternative<time_rr_scheduler_config>(policy_cfg)) {
     return std::make_unique<scheduler_time_rr>();
   }
   if (std::holds_alternative<time_qos_scheduler_config>(policy_cfg)) {
-    return std::make_unique<scheduler_time_qos>(std::get<time_qos_scheduler_config>(policy_cfg), cell_index);
+    return std::make_unique<scheduler_time_qos>(std::get<time_qos_scheduler_config>(policy_cfg), cell_cfg);
   }
   return nullptr;
 }

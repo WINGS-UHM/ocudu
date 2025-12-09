@@ -39,13 +39,13 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
       SRB_RAN_SLICE_ID,
       cell_cfg,
       slice_rrm_policy_config{.rbs = {cell_max_rbs, cell_max_rbs}, .priority = slice_rrm_policy_config::max_priority},
-      create_scheduler_strategy(cell_cfg.expert_cfg.ue.policy_cfg, cell_cfg.cell_index),
+      create_scheduler_strategy(cell_cfg.expert_cfg.ue.policy_cfg, cell_cfg),
       ues);
   // > Default DRB slice.
   slices.emplace_back(DEFAULT_DRB_RAN_SLICE_ID,
                       cell_cfg,
                       slice_rrm_policy_config{.rbs = {0, cell_max_rbs}},
-                      create_scheduler_strategy(cell_cfg.expert_cfg.ue.policy_cfg, cell_cfg.cell_index),
+                      create_scheduler_strategy(cell_cfg.expert_cfg.ue.policy_cfg, cell_cfg),
                       ues);
   // NOTE: RAN slice IDs 0 and 1 are reserved for default SRB and default DRB slice respectively.
   ran_slice_id_t id_count{2};
@@ -59,7 +59,7 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
     rrm_adjusted.priority = std::min(rrm.priority, slice_rrm_policy_config::max_priority);
     // Create custom RAN slice based on the RRM policy.
     slices.emplace_back(
-        id_count, cell_cfg, rrm_adjusted, create_scheduler_strategy(rrm.policy_sched_cfg, cell_cfg.cell_index), ues);
+        id_count, cell_cfg, rrm_adjusted, create_scheduler_strategy(rrm.policy_sched_cfg, cell_cfg), ues);
     ++id_count;
   }
 

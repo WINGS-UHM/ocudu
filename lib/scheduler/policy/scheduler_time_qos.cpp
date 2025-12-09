@@ -11,6 +11,7 @@
 #include "scheduler_time_qos.h"
 #include "../slicing/slice_ue_repository.h"
 #include "../support/csi_report_helpers.h"
+#include "../support/dmrs_helpers.h"
 #include "../ue_scheduling/grant_params_selector.h"
 #include <algorithm>
 
@@ -87,8 +88,52 @@ void ue_history_repository::save_ul_newtx_grants(span<const ul_sched_info> ul_gr
   }
 }
 
-scheduler_time_qos::scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_, du_cell_index_t cell_index_) :
-  params(policy_cfg_)
+rate_estimator::rate_estimator(const cell_configuration& cell_cfg) :
+  tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
+              .nof_oh_prb       = 0,
+              .tb_scaling_field = 1,
+              .n_prb            = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()}
+{
+  const unsigned max_nof_layers = cell_cfg.dl_carrier.nof_ant;
+
+  dmrs_rbs_per_nof_layers.resize(max_nof_layers);
+  for (unsigned nof_layers = 1; nof_layers <= max_nof_layers; ++nof_layers) {
+    const pdsch_time_domain_resource_allocation pdsch_td_cfg{
+        0, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
+    const dmrs_downlink_config dmrs_cfg{};
+    auto                       dmrs = make_dmrs_info_dedicated(
+        pdsch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, cell_cfg.dl_carrier.nof_ant, false);
+    dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
+  }
+}
+
+unsigned rate_estimator::estimate_max_tbs(const ue_cell& ue_cc) const
+{
+  static constexpr unsigned        NOF_BITS_PER_BYTE = 8U;
+  static constexpr pdsch_mcs_table ref_mcs_table     = pdsch_mcs_table::qam256;
+
+  auto mcs = ue_cc.link_adaptation_controller().calculate_dl_mcs(ref_mcs_table);
+  if (not mcs.has_value()) {
+    // CQI is either 0 or above 15, which means no DL.
+    return 0;
+  }
+
+  const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_dl_layers();
+  const sch_mcs_description mcs_info   = pdsch_mcs_get_config(ref_mcs_table, mcs.value());
+  const unsigned            tbs_bits =
+      tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = tbs_cfg_ref.nof_symb_sh,
+                                                            .nof_dmrs_prb     = dmrs_rbs_per_nof_layers[nof_layers - 1],
+                                                            .nof_oh_prb       = tbs_cfg_ref.nof_oh_prb,
+                                                            .mcs_descr        = mcs_info,
+                                                            .nof_layers       = nof_layers,
+                                                            .tb_scaling_field = tbs_cfg_ref.tb_scaling_field,
+                                                            .n_prb            = tbs_cfg_ref.n_prb});
+  return tbs_bits / NOF_BITS_PER_BYTE;
+}
+
+scheduler_time_qos::scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_,
+                                       const cell_configuration&        cell_cfg) :
+  params(policy_cfg_), rate_estim(cell_cfg)
 {
 }
 
@@ -312,28 +357,15 @@ ue_sched_priority scheduler_time_qos::compute_dl_prio(const slice_ue& u, slot_po
                          u.has_pending_dl_newtx_bytes(),
                      "Invalid DL UE candidate state");
 
-  // [Implementation-defined] We consider only the SearchSpace defined in UE dedicated configuration.
-  const search_space_id ue_ded_ss_id = to_search_space_id(2);
-  const auto&           ss_info      = ue_cc.cfg().search_space(ue_ded_ss_id);
-
-  // [Implementation-defined] We pick the first element since PDSCH time domain resource list is sorted in descending
-  // order of nof. PDSCH symbols. And, we want to calculate estimate of instantaneous achievable rate with maximum
-  // nof. PDSCH symbols.
-  uint8_t                    pdsch_time_res_index = 0;
-  const pdsch_config_params& pdsch_cfg =
-      ss_info.get_pdsch_config(pdsch_time_res_index, ue_cc.channel_state_manager().get_nof_dl_layers());
-
-  auto mcs = ue_cc.link_adaptation_controller().calculate_dl_mcs(pdsch_cfg.mcs_table);
-  if (not mcs.has_value()) {
-    // CQI is either 0 or above 15, which means no DL.
-    return dl_prio;
-  }
-
   // Calculate DL QoS-aware priority.
   // NOTE: Estimated instantaneous DL rate is calculated assuming entire BWP CRBs are allocated to UE.
-  const double estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, mcs.value(), ss_info.dl_crb_lims.length());
+  const unsigned estimated_max_tbs = rate_estim.estimate_max_tbs(ue_cc);
+  if (estimated_max_tbs == 0) {
+    // No DL rate can be achieved.
+    return dl_prio;
+  }
   const double current_total_avg_rate = ue_history_db[ue_index].dl_avg_rate();
-  dl_prio = compute_dl_qos_weights(u, estimated_rate, current_total_avg_rate, pdcch_slot, params);
+  dl_prio = compute_dl_qos_weights(u, estimated_max_tbs, current_total_avg_rate, pdcch_slot, params);
 
   return dl_prio;
 }

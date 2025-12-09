@@ -11,12 +11,14 @@
 #pragma once
 
 #include "scheduler_policy.h"
-#include "ocudu/adt/slotted_array.h"
 #include "ocudu/adt/soa_table.h"
+#include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/support/math/exponential_averager.h"
 
 namespace ocudu {
+
+class cell_configuration;
 
 /// Contains information about a UE past traffic history.
 class ue_history_repository
@@ -83,11 +85,33 @@ private:
   std::vector<float> last_samples_buffer;
 };
 
+/// \brief Class used to estimate maximum transport block sizes for a UE in a given cell, given the current channel
+/// conditions.
+///
+/// The result is then used in the proportional fair weight computation.
+class rate_estimator
+{
+public:
+  explicit rate_estimator(const cell_configuration& cell_cfg);
+
+  /// Estimate maximum transport block size for the given UE.
+  unsigned estimate_max_tbs(const ue_cell& ue_cc) const;
+
+private:
+  static constexpr size_t MAX_NOF_LAYERS = 4;
+
+  /// Cached reference to TBS calculator configuration.
+  const tbs_calculator_configuration tbs_cfg_ref;
+
+  /// Number of DMRS resource blocks per number of layers.
+  static_vector<uint8_t, MAX_NOF_LAYERS> dmrs_rbs_per_nof_layers;
+};
+
 /// Time-domain QoS-aware scheduler policy.
 class scheduler_time_qos final : public scheduler_policy
 {
 public:
-  scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_, du_cell_index_t cell_index);
+  scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_, const cell_configuration& cell_cfg);
 
   void add_ue(du_ue_index_t ue_index) override;
 
@@ -117,6 +141,9 @@ private:
 
   // Policy parameters.
   const time_qos_scheduler_config params;
+
+  /// Rate estimator instance.
+  rate_estimator rate_estim;
 
   /// Holds historical traffic information for UEs of this slice.
   ue_history_repository ue_history_db;

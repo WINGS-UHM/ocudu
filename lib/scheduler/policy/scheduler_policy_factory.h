@@ -16,8 +16,10 @@
 
 namespace ocudu {
 
+class cell_configuration;
+
 /// Creatre intra-cell, intra-slice scheduler policy.
 std::unique_ptr<scheduler_policy> create_scheduler_strategy(const scheduler_policy_config& policy_cfg,
-                                                            du_cell_index_t                cell_index);
+                                                            const cell_configuration&      cell_cfg);
 
 } // namespace ocudu

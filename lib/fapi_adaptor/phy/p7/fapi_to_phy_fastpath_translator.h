@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "ocudu/fapi/error_message_notifier.h"
-#include "ocudu/fapi/messages/config_request_tlvs.h"
-#include "ocudu/fapi/messages/dl_tti_request.h"
-#include "ocudu/fapi/messages/tx_data_request.h"
-#include "ocudu/fapi/messages/ul_dci_request.h"
-#include "ocudu/fapi/messages/ul_tti_request.h"
-#include "ocudu/fapi/slot_last_message_notifier.h"
-#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/p5/config_request_tlvs.h"
+#include "ocudu/fapi/p7/messages/dl_tti_request.h"
+#include "ocudu/fapi/p7/messages/tx_data_request.h"
+#include "ocudu/fapi/p7/messages/ul_dci_request.h"
+#include "ocudu/fapi/p7/messages/ul_tti_request.h"
+#include "ocudu/fapi/p7/slot_last_message_notifier.h"
+#include "ocudu/fapi/p7/slot_message_gateway.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_repository.h"
 #include "ocudu/ocudulog/logger.h"

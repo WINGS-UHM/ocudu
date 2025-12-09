@@ -10,8 +10,8 @@
 
 #include "split6_plugin_dummy.h"
 #include "ocudu/du/du_high/du_high_configuration.h"
-#include "ocudu/fapi/slot_last_message_notifier.h"
-#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi/p7/slot_last_message_notifier.h"
+#include "ocudu/fapi/p7/slot_message_gateway.h"
 #include "ocudu/fapi_adaptor/phy/p7/phy_fapi_p7_sector_adaptor.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 

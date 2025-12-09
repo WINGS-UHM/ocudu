@@ -9,7 +9,7 @@
  */
 
 #include "fapi_to_mac_error_msg_fastpath_translator.h"
-#include "ocudu/fapi/messages/error_indication.h"
+#include "ocudu/fapi/common/error_indication.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/mac/mac_cell_timing_context.h"
 

@@ -9,7 +9,7 @@
  */
 
 #include "phy_to_fapi_error_event_fastpath_translator.h"
-#include "ocudu/fapi/message_builders.h"
+#include "ocudu/fapi/common/error_indication_message_builder.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;

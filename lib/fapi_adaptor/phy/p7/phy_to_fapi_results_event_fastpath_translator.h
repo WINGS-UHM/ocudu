@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/slot_data_message_notifier.h"
+#include "ocudu/fapi/p7/slot_data_message_notifier.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
 

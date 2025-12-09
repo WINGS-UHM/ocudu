@@ -9,9 +9,19 @@
  */
 
 #include "phy_to_fapi_results_event_fastpath_translator.h"
-#include "ocudu/fapi/message_builders.h"
-#include "ocudu/fapi/message_validators.h"
+#include "ocudu/fapi/p7/builders/crc_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/rach_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/rx_data_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/srs_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/uci_indication_message_builder.h"
+#include "ocudu/fapi/p7/validators/crc_indication_message_validator.h"
+#include "ocudu/fapi/p7/validators/rach_indication_message_validator.h"
+#include "ocudu/fapi/p7/validators/rx_data_indication_message_validator.h"
+#include "ocudu/fapi/p7/validators/srs_indication_message_validator.h"
+#include "ocudu/fapi/p7/validators/uci_indication_message_validator.h"
+#include "ocudu/fapi/validator_report_logger.h"
 #include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/units.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;

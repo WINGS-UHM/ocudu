@@ -9,7 +9,7 @@
  */
 
 #include "phy_fapi_p7_sector_fastpath_adaptor_impl.h"
-#include "ocudu/fapi/slot_last_message_notifier.h"
+#include "ocudu/fapi/p7/slot_last_message_notifier.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;

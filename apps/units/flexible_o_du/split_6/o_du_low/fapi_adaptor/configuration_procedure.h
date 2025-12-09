@@ -12,7 +12,7 @@
 
 #include "ocudu/fapi/cell_config.h"
 #include "ocudu/fapi/cell_operation_request_notifier.h"
-#include "ocudu/fapi/config_message_gateway.h"
+#include "ocudu/fapi/p5/config_message_gateway.h"
 #include "ocudu/ocudulog/logger.h"
 
 namespace ocudu {

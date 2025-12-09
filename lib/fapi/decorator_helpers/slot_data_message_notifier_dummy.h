@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/slot_data_message_notifier.h"
+#include "ocudu/fapi/p7/slot_data_message_notifier.h"
 
 namespace ocudu {
 namespace fapi {

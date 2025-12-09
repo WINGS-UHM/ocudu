@@ -10,8 +10,8 @@
 
 #include "message_bufferer_slot_time_notifier_decorator.h"
 #include "message_bufferer_slot_gateway_task_dispatcher.h"
-#include "ocudu/fapi/message_builders.h"
-#include "ocudu/fapi/messages/slot_indication.h"
+#include "ocudu/fapi/p7/builders/slot_indication_message_builder.h"
+#include "ocudu/fapi/p7/messages/slot_indication.h"
 #include "ocudu/ran/slot_point.h"
 
 using namespace ocudu;

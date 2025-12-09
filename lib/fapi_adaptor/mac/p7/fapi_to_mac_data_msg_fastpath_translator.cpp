@@ -9,11 +9,11 @@
  */
 
 #include "fapi_to_mac_data_msg_fastpath_translator.h"
-#include "ocudu/fapi/messages/crc_indication.h"
-#include "ocudu/fapi/messages/rach_indication.h"
-#include "ocudu/fapi/messages/rx_data_indication.h"
-#include "ocudu/fapi/messages/srs_indication.h"
-#include "ocudu/fapi/messages/uci_indication.h"
+#include "ocudu/fapi/p7/messages/crc_indication.h"
+#include "ocudu/fapi/p7/messages/rach_indication.h"
+#include "ocudu/fapi/p7/messages/rx_data_indication.h"
+#include "ocudu/fapi/p7/messages/srs_indication.h"
+#include "ocudu/fapi/p7/messages/uci_indication.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
 using namespace ocudu;

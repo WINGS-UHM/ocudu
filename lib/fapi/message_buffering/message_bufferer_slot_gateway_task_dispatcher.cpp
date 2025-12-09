@@ -9,10 +9,10 @@
  */
 
 #include "message_bufferer_slot_gateway_task_dispatcher.h"
-#include "ocudu/fapi/messages/dl_tti_request.h"
-#include "ocudu/fapi/messages/tx_data_request.h"
-#include "ocudu/fapi/messages/ul_dci_request.h"
-#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/p7/messages/dl_tti_request.h"
+#include "ocudu/fapi/p7/messages/tx_data_request.h"
+#include "ocudu/fapi/p7/messages/ul_dci_request.h"
+#include "ocudu/fapi/p7/messages/ul_tti_request.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/executors/task_executor.h"
 #include "ocudu/support/rtsan.h"

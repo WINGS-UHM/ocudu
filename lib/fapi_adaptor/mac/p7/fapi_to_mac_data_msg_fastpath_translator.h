@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/slot_data_message_notifier.h"
+#include "ocudu/fapi/p7/slot_data_message_notifier.h"
 #include "ocudu/mac/mac_cell_control_information_handler.h"
 #include "ocudu/mac/mac_cell_rach_handler.h"
 #include "ocudu/mac/mac_pdu_handler.h"

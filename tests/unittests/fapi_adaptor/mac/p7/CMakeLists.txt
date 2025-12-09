@@ -8,7 +8,7 @@
 
 set_directory_properties(PROPERTIES LABELS "fapi_adaptor")
 
-add_subdirectory(messages)
+add_subdirectory(pdu_translators)
 
 add_executable(fapi_to_mac_data_msg_fastpath_translator_test fapi_to_mac_data_msg_fastpath_translator_test.cpp)
 target_include_directories(fapi_to_mac_data_msg_fastpath_translator_test PRIVATE ${CMAKE_SOURCE_DIR}/lib/fapi_adaptor/mac/p7)

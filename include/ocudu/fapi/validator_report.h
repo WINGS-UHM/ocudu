@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/fapi/messages/base_message.h"
+#include "ocudu/fapi/common/base_message.h"
 #include <optional>
 
 namespace ocudu {

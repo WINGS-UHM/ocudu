@@ -21,7 +21,6 @@ namespace fapi {
 class slot_message_gateway;
 class slot_last_message_notifier;
 struct fapi_cell_config;
-class config_message_gateway;
 } // namespace fapi
 
 struct worker_manager;

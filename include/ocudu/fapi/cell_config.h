@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "messages/config_request_tlvs.h"
+#include "ocudu/fapi/p5/config_request_tlvs.h"
 #include <any>
 
 namespace ocudu {

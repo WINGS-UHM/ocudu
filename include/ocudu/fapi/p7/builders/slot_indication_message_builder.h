@@ -1,0 +1,38 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/fapi/p7/messages/slot_indication.h"
+
+namespace ocudu {
+namespace fapi {
+
+// :TODO: Review the builders documentation so it matches the UCI builder.
+
+/// Builds and returns a slot.indication message with the given parameters, as per SCF-222 v4.0 section 3.4.1 in table
+/// Slot indication message body.
+inline slot_indication_message
+build_slot_indication_message(unsigned                                           sfn,
+                              unsigned                                           slot,
+                              std::chrono::time_point<std::chrono::system_clock> time_point)
+{
+  slot_indication_message msg;
+  msg.message_type = message_type_id::slot_indication;
+
+  msg.sfn        = sfn;
+  msg.slot       = slot;
+  msg.time_point = time_point;
+
+  return msg;
+}
+
+} // namespace fapi
+} // namespace ocudu

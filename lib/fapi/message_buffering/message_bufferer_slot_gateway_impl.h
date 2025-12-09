@@ -11,11 +11,11 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/fapi/messages/dl_tti_request.h"
-#include "ocudu/fapi/messages/tx_data_request.h"
-#include "ocudu/fapi/messages/ul_dci_request.h"
-#include "ocudu/fapi/messages/ul_tti_request.h"
-#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi/p7/messages/dl_tti_request.h"
+#include "ocudu/fapi/p7/messages/tx_data_request.h"
+#include "ocudu/fapi/p7/messages/ul_dci_request.h"
+#include "ocudu/fapi/p7/messages/ul_tti_request.h"
+#include "ocudu/fapi/p7/slot_message_gateway.h"
 #include "ocudu/ocudulog/logger.h"
 #include <atomic>
 

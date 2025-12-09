@@ -12,7 +12,7 @@
 #include "o_du_low_impl.h"
 #include "ocudu/du/du_low/du_low_factory.h"
 #include "ocudu/du/du_low/o_du_low_config.h"
-#include "ocudu/fapi/messages/config_request_tlvs.h"
+#include "ocudu/fapi/p5/config_request_tlvs.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor_factory.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"

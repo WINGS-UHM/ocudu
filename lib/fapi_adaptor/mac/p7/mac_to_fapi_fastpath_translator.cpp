@@ -9,16 +9,24 @@
  */
 
 #include "mac_to_fapi_fastpath_translator.h"
-#include "messages/pdcch.h"
-#include "messages/pdsch.h"
-#include "messages/prach.h"
-#include "messages/pucch.h"
-#include "messages/pusch.h"
-#include "messages/srs.h"
-#include "messages/ssb.h"
-#include "ocudu/fapi/message_validators.h"
-#include "ocudu/fapi/slot_last_message_notifier.h"
-#include "ocudu/fapi/slot_message_gateway.h"
+#include "pdu_translators/pdcch.h"
+#include "pdu_translators/pdsch.h"
+#include "pdu_translators/prach.h"
+#include "pdu_translators/pucch.h"
+#include "pdu_translators/pusch.h"
+#include "pdu_translators/srs.h"
+#include "pdu_translators/ssb.h"
+#include "ocudu/fapi/p7/builders/dl_tti_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/tx_data_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/ul_dci_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/ul_tti_request_message_builder.h"
+#include "ocudu/fapi/p7/slot_last_message_notifier.h"
+#include "ocudu/fapi/p7/slot_message_gateway.h"
+#include "ocudu/fapi/p7/validators/dl_tti_request_message_validator.h"
+#include "ocudu/fapi/p7/validators/tx_data_request_message_validator.h"
+#include "ocudu/fapi/p7/validators/ul_dci_request_message_validator.h"
+#include "ocudu/fapi/p7/validators/ul_tti_request_message_validator.h"
+#include "ocudu/fapi/validator_report_logger.h"
 #include "ocudu/ran/bwp/bwp_configuration.h"
 #include "ocudu/scheduler/result/sched_result.h"
 
@@ -272,8 +280,8 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
                    !dl_data.paging_pdus.empty(),
                "Received a mac_dl_data_result object with zero payloads");
 
-  fapi::tx_data_request_message msg;
-  fapi::tx_data_request_builder builder(msg);
+  fapi::tx_data_request_message         msg;
+  fapi::tx_data_request_message_builder builder(msg);
 
   builder.set_basic_parameters(dl_data.slot.sfn(), dl_data.slot.slot_index());
 

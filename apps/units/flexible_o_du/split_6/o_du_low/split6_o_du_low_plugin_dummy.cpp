@@ -9,10 +9,10 @@
  */
 
 #include "split6_o_du_low_plugin_dummy.h"
-#include "ocudu/fapi/config_message_notifier.h"
-#include "ocudu/fapi/error_message_notifier.h"
-#include "ocudu/fapi/slot_data_message_notifier.h"
-#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/p5/config_message_notifier.h"
+#include "ocudu/fapi/p7/slot_data_message_notifier.h"
+#include "ocudu/fapi/p7/slot_time_message_notifier.h"
 #include "ocudu/fapi_adaptor/mac/operation_controller.h"
 
 using namespace ocudu;

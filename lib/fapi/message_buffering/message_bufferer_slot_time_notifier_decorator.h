@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/fapi/p7/slot_time_message_notifier.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>
 #include <functional>

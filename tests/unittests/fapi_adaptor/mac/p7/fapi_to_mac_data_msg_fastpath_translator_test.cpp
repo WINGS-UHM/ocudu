@@ -9,7 +9,7 @@
  */
 
 #include "fapi_to_mac_data_msg_fastpath_translator.h"
-#include "ocudu/fapi/messages/rach_indication.h"
+#include "ocudu/fapi/p7/messages/rach_indication.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;

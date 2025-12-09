@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/slot_message_gateway.h"
+#include "ocudu/fapi/p7/slot_message_gateway.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
 namespace ocudu {

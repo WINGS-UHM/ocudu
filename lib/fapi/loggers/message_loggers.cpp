@@ -9,17 +9,17 @@
  */
 
 #include "message_loggers.h"
-#include "ocudu/fapi/messages/crc_indication.h"
-#include "ocudu/fapi/messages/dl_tti_request.h"
-#include "ocudu/fapi/messages/error_indication.h"
-#include "ocudu/fapi/messages/rach_indication.h"
-#include "ocudu/fapi/messages/rx_data_indication.h"
-#include "ocudu/fapi/messages/slot_indication.h"
-#include "ocudu/fapi/messages/srs_indication.h"
-#include "ocudu/fapi/messages/tx_data_request.h"
-#include "ocudu/fapi/messages/uci_indication.h"
-#include "ocudu/fapi/messages/ul_dci_request.h"
-#include "ocudu/fapi/messages/ul_tti_request.h"
+#include "ocudu/fapi/common/error_indication.h"
+#include "ocudu/fapi/p7/messages/crc_indication.h"
+#include "ocudu/fapi/p7/messages/dl_tti_request.h"
+#include "ocudu/fapi/p7/messages/rach_indication.h"
+#include "ocudu/fapi/p7/messages/rx_data_indication.h"
+#include "ocudu/fapi/p7/messages/slot_indication.h"
+#include "ocudu/fapi/p7/messages/srs_indication.h"
+#include "ocudu/fapi/p7/messages/tx_data_request.h"
+#include "ocudu/fapi/p7/messages/uci_indication.h"
+#include "ocudu/fapi/p7/messages/ul_dci_request.h"
+#include "ocudu/fapi/p7/messages/ul_tti_request.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 
 using namespace ocudu;

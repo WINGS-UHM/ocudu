@@ -11,7 +11,7 @@
 #pragma once
 
 #include "message_bufferer_slot_gateway_impl.h"
-#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/fapi/p7/slot_time_message_notifier.h"
 
 namespace ocudu {
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/error_message_notifier.h"
+#include "ocudu/fapi/common/error_message_notifier.h"
 
 namespace ocudu {
 namespace fapi {

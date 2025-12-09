@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/slot_time_message_notifier.h"
+#include "ocudu/fapi/p7/slot_time_message_notifier.h"
 #include "ocudu/phy/upper/upper_phy_timing_handler.h"
 #include "ocudu/phy/upper/upper_phy_timing_notifier.h"
 

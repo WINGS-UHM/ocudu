@@ -9,11 +9,13 @@
 add_subdirectory(decorator_helpers)
 add_subdirectory(message_buffering)
 add_subdirectory(loggers)
-add_subdirectory(validators)
+add_subdirectory(common)
+add_subdirectory(p7)
+add_subdirectory(validators_helpers)
 
 add_library(ocudu_fapi_decorators STATIC decorator_factory.cpp)
 target_link_libraries(ocudu_fapi_decorators PRIVATE ocudu_fapi_message_buffering ocudu_fapi_loggers)
 target_include_directories(ocudu_fapi_decorators PRIVATE ${CMAKE_SOURCE_DIR}/lib/fapi)
 
 add_library(ocudu_fapi INTERFACE)
-target_link_libraries(ocudu_fapi INTERFACE ocudu_fapi_decorators ocudu_fapi_validators)
+target_link_libraries(ocudu_fapi INTERFACE ocudu_fapi_decorators ocudu_fapi_common_validators ocudu_fapi_p7_validators)

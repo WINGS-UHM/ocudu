@@ -9,7 +9,7 @@
  */
 
 #include "fapi_to_mac_time_msg_fastpath_translator.h"
-#include "ocudu/fapi/messages/slot_indication.h"
+#include "ocudu/fapi/p7/messages/slot_indication.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/mac/mac_cell_timing_context.h"
 

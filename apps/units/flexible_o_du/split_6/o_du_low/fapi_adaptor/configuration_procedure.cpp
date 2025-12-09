@@ -9,10 +9,10 @@
  */
 
 #include "configuration_procedure.h"
-#include "ocudu/fapi/config_message_notifier.h"
-#include "ocudu/fapi/error_message_notifier.h"
-#include "ocudu/fapi/messages/config_messages.h"
-#include "ocudu/fapi/messages/error_indication.h"
+#include "ocudu/fapi/common/error_indication.h"
+#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/p5/config_message_notifier.h"
+#include "ocudu/fapi/p5/config_messages.h"
 
 using namespace ocudu;
 using namespace fapi;

@@ -13,6 +13,7 @@
 #include "ocudu/f1u/du/f1u_bearer.h"
 #include "ocudu/f1u/du/f1u_config.h"
 #include "ocudu/f1u/du/f1u_tx_pdu_notifier.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
 #include "ocudu/ran/gnb_du_id.h"
 #include "ocudu/ran/qos/five_qi.h"
 #include "ocudu/ran/rb_id.h"
@@ -21,7 +22,6 @@
 #include "ocudu/support/timers.h"
 
 namespace ocudu::odu {
-
 /// This class provides a notifier for the RX bearer
 /// inside the DU F1-U gateway. This provides an adapter
 /// to the NR-U bearer to pass SDUs into.
@@ -60,6 +60,7 @@ public:
                                                                   five_qi_t                      five_qi,
                                                                   odu::f1u_config                config,
                                                                   const gtpu_teid_t&             dl_up_tnl_info,
+                                                                  gtpu_teid_pool&                dl_teid_pool,
                                                                   const up_transport_layer_info& ul_up_tnl_info,
                                                                   odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
                                                                   timer_factory                           timers,

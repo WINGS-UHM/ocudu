@@ -45,6 +45,7 @@
 #include "ocudu/du/du_high/du_metrics_notifier.h"
 #include "ocudu/du/du_high/du_qos_config_helpers.h"
 #include "ocudu/f1u/du/f1u_gateway.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
 #include "ocudu/mac/mac_cell_timing_context.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
@@ -420,6 +421,7 @@ public:
                                                           five_qi_t                               five_qi,
                                                           odu::f1u_config                         config,
                                                           const gtpu_teid_t&                      dl_teid,
+                                                          gtpu_teid_pool&                         dl_teid_pool,
                                                           const up_transport_layer_info&          ul_up_tnl_info,
                                                           odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
                                                           timer_factory                           timers,

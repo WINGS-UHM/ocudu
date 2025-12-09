@@ -47,7 +47,7 @@ public:
   [[nodiscard]] bool release_teid(gtpu_teid_t teid) override
   {
     if (not teid_pool.try_push(teid)) {
-      logger.warning("Failed to release TEID. teid_pool_size={}, teid={}", teid_pool.size(), teid);
+      logger.warning("Failed to release TEID. teid_pool_size={} teid={}", teid_pool.size(), teid);
       return false;
     }
     return true;

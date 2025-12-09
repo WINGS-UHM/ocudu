@@ -16,6 +16,7 @@
 #include "ocudu/f1u/split_connector/f1u_session_manager.h"
 #include "ocudu/gtpu/gtpu_demux.h"
 #include "ocudu/gtpu/gtpu_gateway.h"
+#include "ocudu/gtpu/gtpu_teid_pool.h"
 #include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
 #include "ocudu/gtpu/gtpu_tunnel_nru.h"
 #include "ocudu/gtpu/gtpu_tunnel_nru_factory.h"
@@ -25,7 +26,6 @@
 #include <unordered_map>
 
 namespace ocudu::odu {
-
 class gtpu_tx_udp_gw_adapter : public gtpu_tunnel_common_tx_upper_layer_notifier
 {
 public:
@@ -98,6 +98,7 @@ public:
   f1u_split_gateway_du_bearer(uint32_t                                ue_index,
                               drb_id_t                                drb_id,
                               const up_transport_layer_info&          dl_tnl_info_,
+                              gtpu_teid_pool&                         dl_teid_pool_,
                               odu::f1u_du_gateway_bearer_rx_notifier& du_rx_,
                               const up_transport_layer_info&          ul_up_tnl_info_,
                               gtpu_tnl_pdu_session&                   udp_session_,
@@ -107,6 +108,7 @@ public:
     logger("DU-F1-U", {ue_index, drb_id, dl_tnl_info_}),
     disconnector(disconnector_),
     dl_tnl_info(dl_tnl_info_),
+    dl_teid_pool(dl_teid_pool_),
     ul_tnl_info(ul_up_tnl_info_),
     udp_session(udp_session_),
     du_rx(du_rx_)
@@ -129,7 +131,16 @@ public:
 
   ~f1u_split_gateway_du_bearer() override { stop(); }
 
-  void stop() override { disconnector.remove_du_bearer(dl_tnl_info); }
+  void stop() override
+  {
+    if (not stopped) {
+      disconnector.remove_du_bearer(dl_tnl_info);
+      if (!dl_teid_pool.release_teid(dl_tnl_info.gtp_teid)) {
+        logger.log_warning("Failed to release DL GTP-TEID. teid={}", dl_tnl_info.gtp_teid);
+      }
+    }
+    stopped = true;
+  }
 
   expected<std::string> get_bind_address() const override;
 
@@ -159,11 +170,13 @@ private:
   f1u_bearer_logger                logger;
   f1u_bearer_disconnector&         disconnector;
   up_transport_layer_info          dl_tnl_info;
+  gtpu_teid_pool&                  dl_teid_pool;
   up_transport_layer_info          ul_tnl_info;
   std::unique_ptr<gtpu_tunnel_nru> tunnel;
   gtpu_tnl_pdu_session&            udp_session;
 
 public:
+  bool stopped = false;
   /// Holds notifier that will point to NR-U bearer on the DL path
   f1u_du_gateway_bearer_rx_notifier& du_rx;
 };
@@ -195,6 +208,7 @@ public:
                                                           five_qi_t                               five_qi,
                                                           odu::f1u_config                         config,
                                                           const gtpu_teid_t&                      dl_teid,
+                                                          gtpu_teid_pool&                         dl_teid_pool,
                                                           const up_transport_layer_info&          ul_up_tnl_info,
                                                           odu::f1u_du_gateway_bearer_rx_notifier& du_rx,
                                                           timer_factory                           timers,

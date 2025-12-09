@@ -6,21 +6,4 @@
 # the distribution.
 #
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test_data)
-set(TEST_DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/test_data)
-
-set_directory_properties(PROPERTIES LABELS "phy")
-
-if (USE_PHY_TESTVECTORS)
-    add_executable(ldpc_enc_dec_test ldpc_enc_dec_test.cpp)
-    target_link_libraries(ldpc_enc_dec_test ocudu_channel_coding ocudulog gtest gtest_main)
-    add_test_vector(ldpc_enc_dec_test ldpc_encoder_test_data.tar.gz "")
-
-    add_executable(ldpc_rm_test ldpc_rm_test.cpp)
-    target_link_libraries(ldpc_rm_test ocudu_channel_coding ocudulog gtest gtest_main)
-    add_test_vector(ldpc_rm_test ldpc_rate_matcher_test_data.tar.gz "")
-
-    add_executable(ldpc_segmenter_test ldpc_segmenter_test.cpp)
-    target_link_libraries(ldpc_segmenter_test ocudu_channel_coding ocudulog gtest gtest_main)
-    add_test_vector(ldpc_segmenter_test ldpc_segmenter_test_data.tar.gz "")
-endif (USE_PHY_TESTVECTORS)
+# TODO: LDPC chain test

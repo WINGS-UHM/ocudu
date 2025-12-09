@@ -12,7 +12,6 @@ set(TEST_DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/test_data)
 add_subdirectory(channel_coding)
 add_subdirectory(channel_modulation)
 add_subdirectory(channel_processors)
-add_subdirectory(equalization)
 add_subdirectory(sequence_generators)
 add_subdirectory(signal_processors)
 

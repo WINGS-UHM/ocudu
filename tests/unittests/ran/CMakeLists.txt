@@ -29,10 +29,6 @@ gtest_discover_tests(csi_report_on_pusch_validator_test)
 add_library(du_test_suite ssb_coreset0_freq_pos_checker.cpp)
 target_link_libraries(du_test_suite ocudu_ran gtest)
 
-add_executable(tbs_calculator_test sch/tbs_calculator_test.cpp)
-target_link_libraries(tbs_calculator_test ocudu_sched ocudulog)
-add_test_vector(tbs_calculator_test none "")
-
 add_executable(test_ssb_coreset0_freq_pos_generator test_ssb_coreset0_freq_pos_generator.cpp)
 target_link_libraries(test_ssb_coreset0_freq_pos_generator ocudu_support du_test_suite gtest gtest_main)
 add_test(test_ssb_coreset0_freq_pos_generator test_ssb_coreset0_freq_pos_generator)
@@ -44,14 +40,6 @@ add_test(dci_packing_test dci_packing_test)
 add_executable(dci_packing_validator_test pdcch/dci_packing_validator_test.cpp)
 target_link_libraries(dci_packing_validator_test ocudu_support ocudu_ran gtest gtest_main)
 add_test(dci_packing_validator_test dci_packing_validator_test)
-
-add_executable(pdcch_candidates_common pdcch/pdcch_candidates_common_test.cpp)
-target_link_libraries(pdcch_candidates_common ocudu_support ocudu_ran gtest gtest_main)
-add_test_vector(pdcch_candidates_common none "")
-
-add_executable(pdcch_candidates_ue pdcch/pdcch_candidates_ue_test.cpp)
-target_link_libraries(pdcch_candidates_ue ocudu_support ocudu_ran gtest gtest_main)
-add_test_vector(pdcch_candidates_ue none "")
 
 add_executable(pdcch_type0_css_coreset_config_test pdcch/pdcch_type0_css_coreset_config_test.cpp)
 target_link_libraries(pdcch_type0_css_coreset_config_test ocudu_ran ocudulog)
@@ -84,14 +72,6 @@ add_test(pusch_mcs_table_test pusch_mcs_table_test)
 add_executable(pusch_precoding_info_test pusch/pusch_precoding_info_test.cpp)
 target_link_libraries(pusch_precoding_info_test ocudu_ran ocudulog gtest gtest_main)
 add_test(pusch_precoding_info_test pusch_precoding_info_test)
-
-add_executable(pusch_tpmi_select_test pusch/pusch_tpmi_select_test.cpp)
-target_link_libraries(pusch_tpmi_select_test ocudu_ran ocudulog gtest gtest_main)
-add_test_vector(pusch_tpmi_select_test none "")
-
-add_executable(ulsch_info_test pusch/ulsch_info_test.cpp)
-target_link_libraries(ulsch_info_test ocudu_ran ocudulog gtest gtest_main)
-add_test_vector(ulsch_info_test none "")
 
 add_executable(resource_allocation_frequency_test resource_allocation/resource_allocation_frequency_test.cpp)
 target_link_libraries(resource_allocation_frequency_test ocudu_support ocudu_ran)

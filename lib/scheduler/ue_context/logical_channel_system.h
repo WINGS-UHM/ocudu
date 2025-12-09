@@ -18,11 +18,118 @@
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/support/math/moving_averager.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
 class ue_logical_channel_repository;
 struct ul_bsr_indication_message;
+
+namespace logical_channel_system_utils {
+
+/// Helper class to map (UE, LCID) pairs to logical channel fields.
+class logical_channel_mapper
+{
+  static constexpr uint16_t       invalid_row_id   = std::numeric_limits<uint16_t>::max();
+  static constexpr ran_slice_id_t invalid_slice_id = ran_slice_id_t{std::numeric_limits<uint8_t>::max()};
+
+public:
+  logical_channel_mapper();
+
+  void slot_indication();
+
+  soa::row_id add_lc(du_ue_index_t ue_index, lcid_t lcid);
+  void        rem_lc(du_ue_index_t ue_index, lcid_t lcid);
+  void        register_lc_slice(soa::row_id rid, ran_slice_id_t dl_slice_id);
+  void        deregister_lc_slice(soa::row_id lc_rid);
+  void        enable_qos_tracking(soa::row_id lc_rid, unsigned window_size_slots);
+  void        disable_qos_tracking(soa::row_id lc_rid);
+  void        activate(soa::row_id rid) { fields.at<column_type::active>(rid) = 1; }
+  void        deactivate(soa::row_id rid);
+
+  /// Whether the given (UE, LCID) pair is registered.
+  bool contains(du_ue_index_t ue_index, lcid_t lcid) const
+  {
+    const size_t index = get_index(ue_index, lcid);
+    return index < lookup_ue_lcid_to_row_id.size() and lookup_ue_lcid_to_row_id[index] != invalid_row_id;
+  }
+  soa::row_id get_row_id(du_ue_index_t ue_index, lcid_t lcid) const
+  {
+    return soa::row_id{lookup_ue_lcid_to_row_id[get_index(ue_index, lcid)]};
+  }
+  std::optional<soa::row_id> find_row_id(du_ue_index_t ue_index, lcid_t lcid) const
+  {
+    const size_t index = get_index(ue_index, lcid);
+    if (index >= lookup_ue_lcid_to_row_id.size() or lookup_ue_lcid_to_row_id[index] == invalid_row_id) {
+      return std::nullopt;
+    }
+    return soa::row_id{lookup_ue_lcid_to_row_id[index]};
+  }
+
+  bool                        active(soa::row_id lc_rid) const { return fields.at<column_type::active>(lc_rid) != 0; }
+  std::optional<soa::row_id>& qos_row(soa::row_id lc_rid) { return fields.at<column_type::qos_row>(lc_rid); }
+  const std::optional<soa::row_id>& qos_row(soa::row_id lc_rid) const
+  {
+    return fields.at<column_type::qos_row>(lc_rid);
+  }
+  unsigned*           last_sched_bytes(soa::row_id lc_rid);
+  double              avg_dl_bits_per_slot(soa::row_id lc_rid) const;
+  slot_point&         hol_toa(soa::row_id lc_rid) { return fields.at<column_type::hol_toa>(lc_rid); }
+  units::bytes&       dl_buf_st(soa::row_id lc_rid) { return fields.at<column_type::dl_buf_st>(lc_rid); }
+  const units::bytes& dl_buf_st(soa::row_id lc_rid) const { return fields.at<column_type::dl_buf_st>(lc_rid); }
+
+  /// Returns the RAN DL Slice ID associated with the given LC, or std::nullopt if none is associated.
+  std::optional<ran_slice_id_t> dl_slice_id(soa::row_id lc_rid) const
+  {
+    const ran_slice_id_t slice_id = fields.at<column_type::dl_slice_id>(lc_rid);
+    if (slice_id == invalid_slice_id) {
+      return std::nullopt;
+    }
+    return slice_id;
+  }
+  std::optional<ran_slice_id_t> dl_slice_id(du_ue_index_t ue_index, lcid_t lcid) const
+  {
+    return dl_slice_id(get_row_id(ue_index, lcid));
+  }
+
+private:
+  /// QoS context relative to a single logical channel of a UE, which has QoS enabled.
+  struct qos_context {
+    /// Over-the-air DL Bytes-per-slot average for this logical channel.
+    moving_averager<unsigned> dl_avg_bytes_per_slot;
+    /// Current slot DL sched bytes.
+    unsigned dl_last_sched_bytes = 0;
+  };
+
+  size_t get_index(du_ue_index_t ue_index, lcid_t lcid) const
+  {
+    return static_cast<size_t>(ue_index) * MAX_NOF_RB_LCIDS + static_cast<size_t>(lcid);
+  }
+
+  /// Mapping from (UE, LCID) to RAN slice ID for DRBs.
+  std::vector<uint16_t> lookup_ue_lcid_to_row_id;
+
+  enum class qos_column_id { context };
+  /// Table holding QoS contexts for logical channels with QoS tracking enabled.
+  soa::table<qos_column_id, qos_context> qos_channels;
+
+  /// Table mapping from row ID to DL slice ID.
+  enum class column_type {
+    /// Whether the configured logical channel is currently active.
+    active,
+    /// DL Buffer status of this logical channel.
+    dl_buf_st,
+    /// Slice associated with this channel.
+    dl_slice_id,
+    /// In case QoS statistics are being tracked, holds the row in the \c qos_channels table.
+    qos_row,
+    /// Head-of-line (HOL) time-of-arrival
+    hol_toa
+  };
+  soa::table<column_type, uint8_t, units::bytes, ran_slice_id_t, std::optional<soa::row_id>, slot_point> fields;
+};
+
+} // namespace logical_channel_system_utils
 
 /// System responsible for handling the logical channel configuration and buffer occupancy status of UEs.
 class logical_channel_system
@@ -83,7 +190,6 @@ private:
     bounded_bitset<MAX_NOF_DU_UES> pending_dl_ues;
     /// Bitset of UE indexes for UEs with pending newTx UL data for this RAN slice.
     bounded_bitset<MAX_NOF_DU_UES> pending_ul_ues;
-    /// Bitset of (UE, LCID) pairs with have pending data
   };
 
   /// Context of a single pending CE.
@@ -106,22 +212,6 @@ private:
     unsigned sched_bytes_accum = 0;
     /// Over-the-air UL Bytes-per-slot average for this logical channel.
     moving_averager<unsigned> ul_avg_bytes_per_slot;
-  };
-  /// Context of a single logical channel of a UE.
-  struct dl_logical_channel_context {
-    /// Whether the configured logical channel is currently active.
-    bool active = false;
-    /// DL Buffer status of this logical channel.
-    unsigned buf_st = 0;
-    /// Head-of-line (HOL) time-of-arrival
-    slot_point hol_toa;
-    /// In case QoS statistics are being tracked, holds the row in the \c qos_channels table.
-    std::optional<soa::row_id> qos_row;
-    /// Slice associated with this channel.
-    std::optional<ran_slice_id_t> slice_id;
-
-    // Note: clang 18.1.3 std::is_constructible_v<channel_context> return false without this.
-    dl_logical_channel_context() noexcept = default;
   };
   /// Context of a single UL logical channel group of a UE.
   struct ul_logical_channel_group_context {
@@ -152,8 +242,8 @@ private:
     /// List of active logical channel IDs sorted in decreasing order of priority. i.e. first element has the highest
     /// priority.
     static_vector<lcid_t, MAX_NOF_RB_LCIDS> sorted_channels;
-    /// Context of channels currently configured. The index of the array matches the LCID.
-    static_flat_map<lcid_t, dl_logical_channel_context, MAX_NOF_RB_LCIDS> channels;
+    /// Context of channels currently configured.
+    static_flat_map<lcid_t, soa::row_id, MAX_NOF_RB_LCIDS> channels;
   };
   /// UE context relative to its UL channel management.
   struct ue_ul_channel_context {
@@ -218,16 +308,6 @@ private:
   }
 
   // Helper inlined methods
-  static const dl_logical_channel_context* find_ch_ctx(const const_ue_row& ue_row, lcid_t lcid)
-  {
-    auto& ue_ch = ue_row.at<ue_channel_context>();
-    return ue_ch.channels.contains(lcid) ? &ue_ch.channels.at(lcid) : nullptr;
-  }
-  static const dl_logical_channel_context* find_active_ch_ctx(const const_ue_row& ue_row, lcid_t lcid)
-  {
-    auto* ch_ctx = find_ch_ctx(ue_row, lcid);
-    return ch_ctx != nullptr and ch_ctx->active ? ch_ctx : nullptr;
-  }
   static const ul_logical_channel_group_context* find_active_lcg_ctx(const const_ue_row& ue_row, lcg_id_t lcgid)
   {
     auto* ch_ctx = find_ch_ctx(ue_row, lcgid);
@@ -238,21 +318,18 @@ private:
     auto& ue_ch = ue_row.at<ue_ul_channel_context>();
     return ue_ch.lcgs.contains(lcgid) ? &ue_ch.lcgs.at(lcgid) : nullptr;
   }
-  static bool has_pending_bytes(const const_ue_row& ue_row, lcid_t lcid)
-  {
-    auto* ch_ctx = find_active_ch_ctx(ue_row, lcid);
-    return ch_ctx != nullptr and ch_ctx->buf_st > 0;
-  }
   static bool has_pending_bytes(const const_ue_row& ue_row, lcg_id_t lcgid)
   {
     auto* ch_ctx = find_active_lcg_ctx(ue_row, lcgid);
     return ch_ctx != nullptr and ch_ctx->buf_st > 0;
   }
-  static unsigned pending_bytes(const const_ue_row& ue_row, lcid_t lcid)
+  unsigned pending_bytes(soa::row_id lc_rid) const
   {
     // Note: DL buffer occupancy report already accounts for at least one RLC header.
-    const auto* ch_ctx = find_active_ch_ctx(ue_row, lcid);
-    return ch_ctx != nullptr ? get_mac_sdu_required_bytes(ch_ctx->buf_st) : 0;
+    if (lc_mapper.active(lc_rid)) {
+      return get_mac_sdu_required_bytes(lc_mapper.dl_buf_st(lc_rid).value());
+    }
+    return 0;
   }
   static unsigned pending_bytes(const const_ue_row& ue_row, lcg_id_t lcgid)
   {
@@ -305,6 +382,9 @@ private:
   /// Bitset of (UE, LCID) pairs with pending newTx DL data.
   bounded_bitset<MAX_NOF_DU_UES * MAX_NOF_RB_LCIDS> pending_dl_ue_lcids;
 
+  /// Table of Logical Channel fields.
+  logical_channel_system_utils::logical_channel_mapper lc_mapper;
+
   /// List of bitsets of UEs with pending newTx DL data per RAN slice.
   flat_map<ran_slice_id_t, ran_slice_context> slices;
 
@@ -314,7 +394,6 @@ private:
 
   /// Logical channels tracking bit-rates for QoS
   enum class qos_column_id { context };
-  soa::table<qos_column_id, qos_context>     qos_channels;
   soa::table<qos_column_id, lcg_qos_context> qos_lcgs;
 
   /// List of UE contexts.
@@ -364,7 +443,6 @@ class ue_logical_channel_repository : private ue_logical_channel_repository_view
   using ue_ul_context         = logical_channel_system::ue_ul_context;
   using ue_channel_context    = logical_channel_system::ue_channel_context;
   using ue_ul_channel_context = logical_channel_system::ue_ul_channel_context;
-  using channel_context       = logical_channel_system::dl_logical_channel_context;
   using ue_row                = logical_channel_system::ue_row;
   using const_ue_row          = logical_channel_system::const_ue_row;
 
@@ -439,8 +517,7 @@ public:
   /// Get the RAN slice ID associated with a logical channel.
   std::optional<ran_slice_id_t> get_slice_id(lcid_t lcid) const
   {
-    const auto* ch = logical_channel_system::find_ch_ctx(get_ue_row(), lcid);
-    return ch != nullptr ? ch->slice_id : std::nullopt;
+    return parent->lc_mapper.dl_slice_id(ue_index, lcid);
   }
 
   /// Get the RAN slice ID associated with a logical channel group.
@@ -453,7 +530,8 @@ public:
   /// \brief Verifies if logical channel is activated for DL.
   [[nodiscard]] bool is_active(lcid_t lcid) const
   {
-    return logical_channel_system::find_active_ch_ctx(get_ue_row(), lcid) != nullptr;
+    auto lc = parent->lc_mapper.find_row_id(ue_index, lcid);
+    return lc.has_value() and parent->lc_mapper.active(*lc);
   }
 
   /// \brief Verifies if logical channel group is activated for UL.
@@ -477,8 +555,12 @@ public:
       return true;
     }
     const auto& chs_ctx = u.at<ue_channel_context>();
-    return std::any_of(chs_ctx.sorted_channels.begin(), chs_ctx.sorted_channels.end(), [&chs_ctx](lcid_t lcid) {
-      return lcid != LCID_SRB0 and chs_ctx.channels.at(lcid).active and chs_ctx.channels.at(lcid).buf_st > 0;
+    return std::any_of(chs_ctx.sorted_channels.begin(), chs_ctx.sorted_channels.end(), [this](lcid_t lcid) {
+      if (lcid == LCID_SRB0) {
+        return false;
+      }
+      auto lc_rid = parent->lc_mapper.get_row_id(ue_index, lcid);
+      return parent->lc_mapper.active(lc_rid) and parent->lc_mapper.dl_buf_st(lc_rid).value() > 0;
     });
   }
 
@@ -615,7 +697,11 @@ public:
   unsigned pending_con_res_ce_bytes() const { return logical_channel_system::pending_con_res_ce_bytes(get_ue_row()); }
 
   /// \brief Last DL buffer status for given LCID (MAC subheader included).
-  unsigned pending_bytes(lcid_t lcid) const { return logical_channel_system::pending_bytes(get_ue_row(), lcid); }
+  unsigned pending_bytes(lcid_t lcid) const
+  {
+    auto rid = parent->lc_mapper.find_row_id(ue_index, lcid);
+    return rid.has_value() ? parent->pending_bytes(*rid) : 0;
+  }
 
   /// \brief Last UL buffer status for given LCG-ID (MAC subheader included).
   unsigned pending_bytes(lcg_id_t lcgid) const { return logical_channel_system::pending_bytes(get_ue_row(), lcgid); }
@@ -628,8 +714,7 @@ public:
 
   slot_point hol_toa(lcid_t lcid) const
   {
-    const channel_context* ch_ctx = logical_channel_system::find_ch_ctx(get_ue_row(), lcid);
-    return ch_ctx != nullptr and ch_ctx->active ? ch_ctx->hol_toa : slot_point{};
+    return parent->lc_mapper.hol_toa(parent->lc_mapper.get_row_id(ue_index, lcid));
   }
 
   /// \brief Update DL buffer status for a given LCID.

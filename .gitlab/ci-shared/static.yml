@@ -1,0 +1,82 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
+include:
+  - local: .gitlab/ci/static/version.yml
+
+.static:
+  image: ${OCUDU_REGISTRY_URI}/static:${DOCKER_STATIC_VERSION}
+  stage: static
+  rules:
+    - if: $ON_MR
+  needs: []
+  variables:
+    CPP_SRC_DIR: $CI_PROJECT_DIR
+    GIT_DEPTH: 0
+  artifacts:
+    paths:
+      - $CPP_SRC_DIR/ci.patch
+    when: on_failure
+
+.headers:
+  extends: .static
+  script:
+    - |
+      check_headers() {
+        update_headers.sh
+        is-pristine-repo.sh
+      }
+    - check_headers
+
+.code-format:
+  extends: .static
+  script:
+    - |
+      check_code_format() {
+        run-clang-format-diff.sh $CI_MERGE_REQUEST_DIFF_BASE_SHA
+        hex2lowercase.sh
+        is-pristine-repo.sh
+      }
+    - cd $CPP_SRC_DIR
+    - check_code_format
+    - |
+      cd $CI_PROJECT_DIR
+      if [ -f .yamllint ]; then
+        yamllint -f colored -c .yamllint .
+      fi
+
+.full-code-format:
+  extends: .static
+  script:
+    - |
+      full_code_format() {
+        FILE_EXTENSION_REGEX='.*\.(cpp|cc|c\+\+|cxx|c|cl|h|hh|hpp)$'
+        files=$(find . | grep -E "${FILE_EXTENSION_REGEX}" | tr '\n' ' ')
+        clang-format -style=file -i ${files}
+        hex2lowercase.sh
+        is-pristine-repo.sh
+      }
+    - cd $CPP_SRC_DIR
+    - full_code_format
+
+.include-guards:
+  extends: .static
+  variables:
+    AUTOCORRECTION: 1
+    PRAGMA: 1
+    TARGET_BRANCH: origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+  script:
+    - |
+      include-guards-check() {
+        EXIT_CODE=0
+        include-guards-check.sh || EXIT_CODE=$?
+        is-pristine-repo.sh || EXIT_CODE=$?
+        exit $EXIT_CODE
+      }
+    - cd $CPP_SRC_DIR
+    - include-guards-check

@@ -8,6 +8,7 @@
 
 include:
   - local: .gitlab/ci-shared/workflow.yml
+  - local: .gitlab/ci-shared/static.yml
   - local: .gitlab/ci/build.yml
 
 stages:
@@ -77,7 +78,7 @@ trigger docker:
       optional: true
       artifacts: false
 
-trigger doxygen image:
+trigger doxygen:
   stage: ci
   rules:
     - if: $ON_MR
@@ -92,98 +93,70 @@ trigger doxygen image:
       optional: true
       artifacts: false
 
+trigger static:
+  stage: ci
+  rules:
+    - if: $ON_MR
+      changes:
+        paths:
+          - .gitlab/ci/static/**/*
+  trigger:
+    include: .gitlab/ci/static/.gitlab-ci.yml
+    strategy: depend
+  needs:
+    - job: trigger buildkit
+      optional: true
+      artifacts: false
+
 ################################################################################
 ## Static
 ################################################################################
-.static:
-  image: ubuntu:24.04
-  stage: static
-  rules:
-    - if: $ON_MR
-  needs: []
-  variables:
-    CPP_SRC_DIR: $CI_PROJECT_DIR
-    GIT_DEPTH: 0
-  before_script:
-    - |
-      DEBIAN_FRONTEND=noninteractive TZ=Europe/Madrid apt-get update && apt-get install -y --no-install-recommends \
-        clang-format git colordiff apt-transport-https ca-certificates gawk yamllint
-  artifacts:
-    paths:
-      - $CPP_SRC_DIR/ci.patch
-    when: on_failure
-
 headers:
-  extends: .static
-  stage: static
+  extends: .headers
   rules:
     - if: $ON_MR
       when: manual
       allow_failure: true
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  script:
-    - |
-      check_headers() {
-        .gitlab/ci/static/update_headers.sh
-        .gitlab/ci/static/is-pristine-repo.sh
-      }
-    - check_headers
+  needs:
+    - job: trigger static
+      optional: true
+      artifacts: false
 
 code-format:
-  extends: .static
-  script:
-    - |
-      check_code_format() {
-        .gitlab/ci/static/run-clang-format-diff.sh $CI_MERGE_REQUEST_DIFF_BASE_SHA
-        .gitlab/ci/static/hex2lowercase.sh
-        .gitlab/ci/static/is-pristine-repo.sh
-      }
-    - cd $CPP_SRC_DIR
-    - check_code_format
-    - yamllint -f colored -c .yamllint .
+  extends: .code-format
+  rules:
+    - if: $ON_MR
+  needs:
+    - job: trigger static
+      optional: true
+      artifacts: false
 
 full-code-format:
-  extends: .static
+  extends: .full-code-format
   rules:
     - if: $ON_MR
       changes:
         - .clang-format
-  script:
-    - |
-      full_code_format() {
-        FILE_EXTENSION_REGEX='.*\.(cpp|cc|c\+\+|cxx|c|cl|h|hh|hpp)$'
-        files=$(find . | grep -E "${FILE_EXTENSION_REGEX}" | tr '\n' ' ')
-        clang-format -style=file -i ${files}
-        .gitlab/ci/static/hex2lowercase.sh
-        .gitlab/ci/static/is-pristine-repo.sh
-      }
-    - cd $CPP_SRC_DIR
-    - full_code_format
+  needs:
+    - job: trigger static
+      optional: true
+      artifacts: false
 
 include-guards:
-  extends: .static
-  variables:
-    AUTOCORRECTION: 1
-    PRAGMA: 1
-    TARGET_BRANCH: origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-    INPUT_PATH: "."
-    INPUT_IGNORE: "/bundled/"
-  script:
-    - |
-      include-guards-check() {
-        EXIT_CODE=0
-        .gitlab/ci/static/include-guards-check.sh || EXIT_CODE=$?
-        .gitlab/ci/static/is-pristine-repo.sh || EXIT_CODE=$?
-        exit $EXIT_CODE
-      }
-    - cd $CPP_SRC_DIR
-    - include-guards-check
+  extends: .include-guards
+  rules:
+    - if: $ON_MR
   parallel:
     matrix:
       - INPUT_PATH: "include/ocudu"
         INPUT_IGNORE: "/bundled/"
       - INPUT_PATH: "."
         INPUT_IGNORE: "^\\(include\\|docs\\|external\\)/.*"
+  needs:
+    - job: trigger static
+      optional: true
+      artifacts: false
 
 .codechecker:
   image: ${CI_REGISTRY_IMAGE}/codechecker:${DOCKER_BUILDER_VERSION}

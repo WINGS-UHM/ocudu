@@ -1,0 +1,50 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
+include:
+  - local: .gitlab/ci-shared/docker.yml
+  - local: .gitlab/ci-shared/version_check.yml
+  - local: .gitlab/ci/static/version.yml
+
+stages:
+  - ci
+  - publish
+
+builder version increased:
+  stage: ci
+  extends: .version increased
+  rules:
+    - if: $ON_MR
+  variables:
+    FILE_PATH: .gitlab/ci/static/version.yml
+    VARIABLE_NAME: DOCKER_STATIC_VERSION
+
+build-and-publish:
+  stage: publish
+  extends: .docker-builder
+  tags:
+    - $PLATFORM
+  rules:
+    - if: $ON_MR
+  variables: &image_variables
+    NAME: static
+    CONTEXT: .gitlab/ci/static
+    VERSION: ${DOCKER_STATIC_VERSION}
+    MULTI_ARCH_BUILD: "true"
+    MODE: publish
+  parallel:
+    matrix:
+      - PLATFORM: ["arm64", "amd64"]
+
+docker manifest:
+  extends: .docker manifest
+  variables:
+    <<: *image_variables
+  needs:
+    - job: build-and-publish
+      optional: false

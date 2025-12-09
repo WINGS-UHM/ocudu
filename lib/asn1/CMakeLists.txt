@@ -35,6 +35,11 @@ add_library(ngap_asn1 STATIC ngap/common.cpp ngap/ngap_ies.cpp ngap/ngap_pdu_con
 target_compile_options(ngap_asn1 PRIVATE -Os -fno-exceptions)
 target_link_libraries(ngap_asn1 asn1_utils)
 
+# NRPPA ASN1
+add_library(nrppa_asn1 STATIC nrppa/common.cpp nrppa/nrppa_ies.cpp nrppa/nrppa_pdu_contents.cpp nrppa/nrppa.cpp)
+target_compile_options(nrppa_asn1 PRIVATE -Os -fno-exceptions)
+target_link_libraries(nrppa_asn1 asn1_utils)
+
 # XnAP ASN1
 add_library(xnap_asn1 STATIC xnap/common.cpp xnap/xnap_ies.cpp xnap/xnap_pdu_contents.cpp xnap/xnap.cpp)
 target_compile_options(xnap_asn1 PRIVATE -Os -fno-exceptions)

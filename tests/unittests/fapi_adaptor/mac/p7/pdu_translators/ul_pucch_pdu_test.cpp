@@ -83,7 +83,7 @@ TEST(mac_fapi_ul_pucch_format2_pdu_conversor_test, ul_pucch_format2_pdu_valid_sh
   const pucch_format_2& f2 = std::get<pucch_format_2>(mac_pdu.format_params);
   ASSERT_EQ(static_cast<unsigned>(f2.max_code_rate), fapi_pdu.pucch_maintenance_v3.max_code_rate);
   ASSERT_EQ(f2.n_id_0_scrambling, fapi_pdu.nid0_pucch_dmrs_scrambling);
-  ASSERT_EQ(f2.n_id_scambling, fapi_pdu.nid_pucch_scrambling);
+  ASSERT_EQ(f2.n_id_scrambling, fapi_pdu.nid_pucch_scrambling);
   ASSERT_EQ(static_cast<unsigned>(mac_pdu.uci_bits.sr_bits), fapi_pdu.sr_bit_len);
   ASSERT_EQ(mac_pdu.uci_bits.harq_ack_nof_bits, fapi_pdu.bit_len_harq);
   ASSERT_EQ(mac_pdu.uci_bits.csi_part1_nof_bits, fapi_pdu.csi_part1_bit_length);

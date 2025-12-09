@@ -14,19 +14,17 @@
 
 #include "lib/scheduler/config/cell_configuration.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/scheduler/scheduler_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 
-class uci_sched_tester : public ::testing::Test
+class sched_uci_indication_test : public ::testing::Test
 {
 protected:
-  uci_sched_tester() : sched(create_scheduler(scheduler_config{sched_cfg, notif}))
+  sched_uci_indication_test() : sched(create_scheduler(scheduler_config{sched_cfg, notif}))
   {
     add_cell();
     add_ue();
@@ -102,12 +100,9 @@ protected:
 
   bool ue_pdsch_scheduled() const
   {
-    for (const auto& pdsch : last_sched_res->dl.ue_grants) {
-      if (pdsch.pdsch_cfg.rnti == ue_rnti) {
-        return true;
-      }
-    }
-    return false;
+    return std::any_of(last_sched_res->dl.ue_grants.begin(),
+                       last_sched_res->dl.ue_grants.end(),
+                       [ue_rnti = ue_rnti](const auto& pdsch) { return pdsch.pdsch_cfg.rnti == ue_rnti; });
   }
 
   bool ue_pusch_scheduled() const
@@ -139,7 +134,7 @@ protected:
   const sched_result* last_sched_res = nullptr;
 };
 
-TEST_F(uci_sched_tester, no_retx_after_harq_ack)
+TEST_F(sched_uci_indication_test, no_retx_after_harq_ack)
 {
   static constexpr unsigned MAX_COUNT = 16;
   notify_dl_buffer_status(LCID_SRB1, 100);
@@ -163,7 +158,7 @@ TEST_F(uci_sched_tester, no_retx_after_harq_ack)
   }
 }
 
-TEST_F(uci_sched_tester, pusch_scheduled_after_sr_indication)
+TEST_F(sched_uci_indication_test, pusch_scheduled_after_sr_indication)
 {
   // Maximum delay between the SR indication being forwarded to the scheduler and the scheduler generating an UL grant.
   static constexpr unsigned MAX_UL_GRANT_DELAY = 8;
@@ -182,7 +177,7 @@ TEST_F(uci_sched_tester, pusch_scheduled_after_sr_indication)
   ASSERT_TRUE(pusch_found);
 }
 
-TEST_F(uci_sched_tester, uci_ind_on_pusch)
+TEST_F(sched_uci_indication_test, uci_ind_on_pusch)
 {
   static constexpr unsigned MAX_COUNT = 16;
   // SR request.

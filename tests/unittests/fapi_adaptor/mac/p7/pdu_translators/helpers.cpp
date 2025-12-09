@@ -662,7 +662,7 @@ pucch_info_test_helper ocudu::unittests::build_valid_pucch_format_2_pdu()
   pucch.uci_bits.harq_ack_nof_bits  = 100;
   pucch.uci_bits.sr_bits            = sr_nof_bits::one;
   format_2.n_id_0_scrambling        = 256;
-  format_2.n_id_scambling           = 382;
+  format_2.n_id_scrambling          = 382;
 
   return helper;
 }

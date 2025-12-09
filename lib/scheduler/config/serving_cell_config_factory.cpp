@@ -16,9 +16,13 @@
 #include "ocudu/ran/pdcch/search_space.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -521,137 +525,63 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
 {
   // > UL Config.
   uplink_config ul_config{};
-  ul_config.init_ul_bwp.pucch_cfg.emplace();
 
   // >> PUCCH.
-  auto& pucch_cfg = ul_config.init_ul_bwp.pucch_cfg.value();
+  auto& pucch_cfg = ul_config.init_ul_bwp.pucch_cfg.emplace();
 
-  // PUCCH Resource Set ID 0. This is for PUCCH Format 1 only (Format 0 not yet supported), used for HARQ-ACK only.
-  auto& pucch_res_set_0            = pucch_cfg.pucch_res_set.emplace_back();
-  pucch_res_set_0.pucch_res_set_id = pucch_res_set_idx::set_0;
-  pucch_res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{0, 0});
-  pucch_res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{1, 1});
-  pucch_res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{2, 2});
+  // Get the default PUCCH cell resource list.
+  pucch_builder_params builder_params{};
+  const auto cell_pucch_res_list = config_helpers::build_pucch_resource_list(builder_params, params.cell_nof_crbs);
 
-  // PUCCH Resource Set ID 1. This is for PUCCH Format 2 only and used for HARQ-ACK + optionally SR and/or CSI.
-  auto& pucch_res_set_1            = pucch_cfg.pucch_res_set.emplace_back();
-  pucch_res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{3, 3});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{4, 4});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{5, 5});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{6, 6});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{7, 7});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{8, 8});
-
-  // PUCCH resource format 1, for HARQ-ACK.
-  // >>> PUCCH resource 0.
-  pucch_resource res_basic{.res_id           = pucch_res_id_t{0, 0},
-                           .starting_prb     = params.cell_nof_crbs - 1,
-                           .nof_symbols      = 14,
-                           .starting_sym_idx = 0,
-                           .format           = pucch_format::FORMAT_1};
-  res_basic.format_params.emplace<pucch_format_1_cfg>(
-      pucch_format_1_cfg{.initial_cyclic_shift = 0, .time_domain_occ = 0});
-  pucch_cfg.pucch_res_list.push_back(res_basic);
-  // >>> PUCCH resource 1.
+  // >>> Resource Set ID 0.
   {
-    pucch_cfg.pucch_res_list.push_back(res_basic);
-    pucch_resource& res1 = pucch_cfg.pucch_res_list.back();
-    res1.res_id          = pucch_res_id_t{1, 1};
-    res1.starting_prb    = 1;
-  }
-  // >>> PUCCH resource 2.
-  {
-    pucch_cfg.pucch_res_list.push_back(res_basic);
-    pucch_resource& res2 = pucch_cfg.pucch_res_list.back();
-    res2.res_id          = pucch_res_id_t{2, 2};
-    res2.starting_prb    = params.cell_nof_crbs - 2;
+    auto& res_set_0            = pucch_cfg.pucch_res_set.emplace_back();
+    res_set_0.pucch_res_set_id = pucch_res_set_idx::set_0;
+    for (unsigned r_pucch = 0; r_pucch != builder_params.res_set_0_size; ++r_pucch) {
+      auto& res            = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[r_pucch]);
+      res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+      res_set_0.pucch_res_id_list.push_back(res.res_id);
+    }
   }
 
-  // PUCCH resource format 2, for HARQ-ACK + optionally SR and/or CSI.
-  // >>> PUCCH resource 3.
-  pucch_resource res_basic_f2{
-      .starting_prb = 2, .nof_symbols = 2, .starting_sym_idx = 0, .format = pucch_format::FORMAT_2};
-  res_basic_f2.res_id = pucch_res_id_t{3, 3};
-  res_basic_f2.format_params.emplace<pucch_format_2_3_cfg>(pucch_format_2_3_cfg{.nof_prbs = 1});
-  pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-  // >>> PUCCH resource 4.
+  // >>> SR Resource.
   {
-    pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-    pucch_resource& res4  = pucch_cfg.pucch_res_list.back();
-    res4.res_id           = pucch_res_id_t{4, 4};
-    res4.starting_sym_idx = 2;
-  }
-  // >>> PUCCH resource 5.
-  {
-    pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-    pucch_resource& res5  = pucch_cfg.pucch_res_list.back();
-    res5.res_id           = pucch_res_id_t{5, 5};
-    res5.starting_sym_idx = 4;
-  }
-  // >>> PUCCH resource 6.
-  {
-    pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-    pucch_resource& res6  = pucch_cfg.pucch_res_list.back();
-    res6.res_id           = pucch_res_id_t{6, 6};
-    res6.starting_sym_idx = 6;
-  }
-  // >>> PUCCH resource 7.
-  {
-    pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-    pucch_resource& res7  = pucch_cfg.pucch_res_list.back();
-    res7.res_id           = pucch_res_id_t{7, 7};
-    res7.starting_sym_idx = 8;
-  }
-  // >>> PUCCH resource 8.
-  {
-    pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-    pucch_resource& res8  = pucch_cfg.pucch_res_list.back();
-    res8.res_id           = pucch_res_id_t{8, 8};
-    res8.starting_sym_idx = 10;
+    static constexpr unsigned default_sr_period_ms = 40;
+    const unsigned            sr_period = get_nof_slots_per_subframe(params.scs_common) * default_sr_period_ms;
+    const unsigned            sr_offset =
+        params.tdd_ul_dl_cfg_common.has_value() ? find_next_tdd_full_ul_slot(*params.tdd_ul_dl_cfg_common).value() : 0;
+    auto& sr_res = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[builder_params.res_set_0_size.value()]);
+    sr_res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+    pucch_cfg.sr_res_list.push_back(scheduling_request_resource_config{.sr_res_id = 1,
+                                                                       .sr_id     = uint_to_sched_req_id(0),
+                                                                       .period = static_cast<sr_periodicity>(sr_period),
+                                                                       .offset = sr_offset,
+                                                                       .pucch_res_id = sr_res.res_id});
   }
 
-  // PUCCH resource format 2, for CSI and optionally for SR.
-  // >>> PUCCH resource 9.
+  // >>> Resource Set ID 1.
   {
-    pucch_cfg.pucch_res_list.push_back(res_basic_f2);
-    pucch_resource& res9  = pucch_cfg.pucch_res_list.back();
-    res9.res_id           = pucch_res_id_t{9, 9};
-    res9.starting_sym_idx = 12;
+    auto& res_set_1            = pucch_cfg.pucch_res_set.emplace_back();
+    res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
+    const unsigned res_set_0_cell_res_offset =
+        builder_params.res_set_0_size.value() * builder_params.nof_cell_res_set_configs +
+        builder_params.nof_cell_sr_resources;
+    for (unsigned r_pucch = 0; r_pucch != builder_params.res_set_1_size; ++r_pucch) {
+      auto& res = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[res_set_0_cell_res_offset + r_pucch]);
+      res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+      res_set_1.pucch_res_id_list.push_back(res.res_id);
+    }
   }
 
-  // PUCCH resource format 1, for SR only.
-  // >>> PUCCH resource 10.
+  // >>> CSI resource.
   {
-    pucch_cfg.pucch_res_list.push_back(res_basic);
-    pucch_resource& res10 = pucch_cfg.pucch_res_list.back();
-    res10.res_id          = pucch_res_id_t{10, 10};
-    res10.starting_prb    = 0;
-    res10.second_hop_prb  = params.cell_nof_crbs - 1;
+    const unsigned csi_cell_res_offset =
+        builder_params.res_set_0_size.value() * builder_params.nof_cell_res_set_configs +
+        builder_params.nof_cell_sr_resources +
+        builder_params.res_set_1_size.value() * builder_params.nof_cell_res_set_configs;
+    auto& res            = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[csi_cell_res_offset]);
+    res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
   }
-
-  pucch_cfg.pucch_res_list.push_back(res_basic);
-  // >>> PUCCH resource 11.
-  {
-    pucch_resource& res11 = pucch_cfg.pucch_res_list.back();
-    res11.res_id          = pucch_res_id_t{11, 11};
-    res11.starting_prb    = params.cell_nof_crbs - 3;
-  }
-
-  // TODO: add more PUCCH resources.
-
-  // >>> SR Resources.
-  // Use 40msec SR period by default.
-  const unsigned                sr_period = get_nof_slots_per_subframe(params.scs_common) * 40;
-  const std::optional<unsigned> sr_offset =
-      params.tdd_ul_dl_cfg_common.has_value() ? find_next_tdd_full_ul_slot(params.tdd_ul_dl_cfg_common.value()) : 0;
-  const unsigned sr_res_id = static_cast<unsigned>(pucch_cfg.pucch_res_list.size()) - 1U;
-  pucch_cfg.sr_res_list.push_back(
-      scheduling_request_resource_config{.sr_res_id    = 1,
-                                         .sr_id        = uint_to_sched_req_id(0),
-                                         .period       = static_cast<sr_periodicity>(sr_period),
-                                         .offset       = *sr_offset,
-                                         .pucch_res_id = pucch_res_id_t{sr_res_id, sr_res_id}});
 
   pucch_cfg.format_1_common_param.emplace();
   pucch_cfg.format_2_common_param.emplace(
@@ -678,14 +608,18 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
   // Compute the max UCI payload per format.
   // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part
   // of the payload).
-  static constexpr unsigned pucch_f1_max_harq_payload                        = 2U;
-  pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = pucch_f1_max_harq_payload;
-  const auto& res_f2 = std::get<pucch_format_2_3_cfg>(res_basic_f2.format_params);
-  pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
-      get_pucch_format2_max_payload(res_f2.nof_prbs,
-                                    res_basic_f2.nof_symbols,
-                                    to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
-  pucch_cfg.set_1_format = pucch_format::FORMAT_2;
+  {
+    static constexpr unsigned pucch_f1_max_harq_payload                        = 2U;
+    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = pucch_f1_max_harq_payload;
+
+    const pucch_resource& res_f2        = pucch_cfg.pucch_res_list.back();
+    const auto&           res_f2_params = std::get<pucch_format_2_3_cfg>(res_f2.format_params);
+    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
+        get_pucch_format2_max_payload(res_f2_params.nof_prbs,
+                                      res_f2.nof_symbols,
+                                      to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
+    pucch_cfg.set_1_format = pucch_format::FORMAT_2;
+  }
 
   // Add the PUCCH power configuration.
   auto& pucch_pw_ctrl          = pucch_cfg.pucch_pw_control.emplace();

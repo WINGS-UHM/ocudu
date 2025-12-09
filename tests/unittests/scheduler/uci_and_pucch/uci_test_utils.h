@@ -14,234 +14,31 @@
 #include "lib/scheduler/pucch_scheduling/pucch_allocator_impl.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/uci_scheduling/uci_scheduler_impl.h"
+#include "lib/scheduler/ue_context/ue.h"
+#include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
-#include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
-#include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "ocudu/ran/pucch/pucch_info.h"
-#include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
-#include <gtest/gtest.h>
+#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/scheduler/config/pucch_builder_params.h"
 
 namespace ocudu {
 
 namespace test_helpers {
 
-/// Guardbands at the edges of the spectrum for dedicated PUCCH resources, to avoid collisions with common resources.
-constexpr unsigned common_pucch_res_guardband = 4;
+pucch_info make_common_pucch_info(const bwp_configuration* bwp_cfg,
+                                  unsigned                 pci,
+                                  pucch_format             format,
+                                  prb_interval             prbs,
+                                  prb_interval             second_hop_prbs,
+                                  ofdm_symbol_range        symbols,
+                                  uint8_t                  initial_cyclic_shift,
+                                  uint8_t                  time_domain_occ);
 
-/// Creates a set of dedicated PUCCH resources for a cell, using Formats 1 and 2, given the extended parameters.
-inline std::vector<pucch_resource>
-make_test_cell_dedicated_pucch_resources(const config_helpers::cell_config_builder_params_extended& params)
-{
-  std::vector<pucch_resource> cell_res_list;
-
-  unsigned nof_rbs = params.cell_nof_crbs;
-
-  // PUCCH resource format 1, for HARQ-ACK.
-  // >>> PUCCH resource 0.
-  pucch_resource res_basic{.res_id           = pucch_res_id_t{0, 0},
-                           .starting_prb     = nof_rbs - common_pucch_res_guardband - 1,
-                           .nof_symbols      = 14,
-                           .starting_sym_idx = 0,
-                           .format           = pucch_format::FORMAT_1};
-  res_basic.format_params.emplace<pucch_format_1_cfg>(
-      pucch_format_1_cfg{.initial_cyclic_shift = 0, .time_domain_occ = 0});
-  cell_res_list.push_back(res_basic);
-
-  // >>> PUCCH resource 1.
-  {
-    auto& res1        = cell_res_list.emplace_back(res_basic);
-    res1.res_id       = pucch_res_id_t{1, 1};
-    res1.starting_prb = common_pucch_res_guardband + 1;
-    res1.second_hop_prb.emplace(nof_rbs - res1.starting_prb - 1);
-  }
-
-  // >>> PUCCH resource 2.
-  {
-    auto& res2  = cell_res_list.emplace_back(res_basic);
-    res2.res_id = pucch_res_id_t{2, 2};
-    res2.second_hop_prb.emplace(common_pucch_res_guardband + 1);
-    res2.starting_prb = nof_rbs - res2.second_hop_prb.value() - common_pucch_res_guardband - 1;
-  }
-
-  // PUCCH resource format 2, for HARQ-ACK and CSI.
-  // >>> PUCCH resource 3.
-  pucch_resource res_basic_f2{.starting_prb     = common_pucch_res_guardband + 2,
-                              .nof_symbols      = 2,
-                              .starting_sym_idx = 0,
-                              .format           = pucch_format::FORMAT_2};
-  res_basic_f2.res_id = pucch_res_id_t{3, 3};
-  res_basic_f2.format_params.emplace<pucch_format_2_3_cfg>(pucch_format_2_3_cfg{.nof_prbs = 1});
-  cell_res_list.push_back(res_basic_f2);
-
-  // >>> PUCCH resource 4.
-  {
-    auto& res4            = cell_res_list.emplace_back(res_basic_f2);
-    res4.res_id           = pucch_res_id_t{4, 4};
-    res4.starting_sym_idx = 2;
-  }
-
-  // >>> PUCCH resource 5.
-  {
-    auto& res5            = cell_res_list.emplace_back(res_basic_f2);
-    res5.res_id           = pucch_res_id_t{5, 5};
-    res5.starting_sym_idx = 4;
-  }
-
-  // >>> PUCCH resource 6.
-  {
-    auto& res6            = cell_res_list.emplace_back(res_basic_f2);
-    res6.res_id           = pucch_res_id_t{6, 6};
-    res6.starting_sym_idx = 6;
-  }
-
-  // >>> PUCCH resource 7.
-  {
-    auto& res7            = cell_res_list.emplace_back(res_basic_f2);
-    res7.res_id           = pucch_res_id_t{7, 7};
-    res7.starting_sym_idx = 8;
-  }
-
-  // >>> PUCCH resource 8.
-  {
-    auto& res8            = cell_res_list.emplace_back(res_basic_f2);
-    res8.res_id           = pucch_res_id_t{8, 8};
-    res8.starting_sym_idx = 10;
-  }
-
-  // >>> PUCCH resource 9.
-  {
-    auto& res9            = cell_res_list.emplace_back(res_basic_f2);
-    res9.res_id           = pucch_res_id_t{9, 9};
-    res9.starting_sym_idx = 12;
-  }
-
-  // >>> PUCCH resource 10.
-  {
-    auto& res10        = cell_res_list.emplace_back(res_basic);
-    res10.res_id       = pucch_res_id_t{10, 10};
-    res10.starting_prb = common_pucch_res_guardband;
-  }
-
-  // >>> PUCCH resource 11.
-  // This resource will be used for SR.
-  {
-    auto& res11        = cell_res_list.emplace_back(res_basic);
-    res11.res_id       = pucch_res_id_t{11, 11};
-    res11.starting_prb = nof_rbs - common_pucch_res_guardband - 3;
-  }
-
-  // TODO: add more PUCCH resources.
-  return cell_res_list;
-}
-
-/// Creates a test uplink configuration using Formats 1 and 2, given the extended parameters.
-inline uplink_config make_test_ue_uplink_config(const config_helpers::cell_config_builder_params_extended& params)
-{
-  // > UL Config.
-  uplink_config ul_config{};
-  ul_config.init_ul_bwp.pucch_cfg.emplace();
-
-  // >> PUCCH.
-  auto& pucch_cfg = ul_config.init_ul_bwp.pucch_cfg.value();
-  // PUCCH Resource Set ID 0.
-  auto& pucch_res_set_0            = pucch_cfg.pucch_res_set.emplace_back();
-  pucch_res_set_0.pucch_res_set_id = pucch_res_set_idx::set_0;
-  pucch_res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{0, 0});
-  pucch_res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{1, 1});
-  pucch_res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{2, 2});
-
-  auto& pucch_res_set_1            = pucch_cfg.pucch_res_set.emplace_back();
-  pucch_res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{3, 3});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{4, 4});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{5, 5});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{6, 6});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{7, 7});
-  pucch_res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{8, 8});
-
-  for (auto& res : make_test_cell_dedicated_pucch_resources(params)) {
-    pucch_cfg.pucch_res_list.push_back(res);
-  }
-
-  // >>> SR Resource.
-  const unsigned pucch_sr_res_id = pucch_cfg.pucch_res_list.size() - 1;
-  pucch_cfg.sr_res_list.push_back(
-      scheduling_request_resource_config{.sr_res_id    = 1,
-                                         .sr_id        = uint_to_sched_req_id(0),
-                                         .period       = sr_periodicity::sl_40,
-                                         .offset       = 0,
-                                         .pucch_res_id = pucch_res_id_t{pucch_sr_res_id, pucch_sr_res_id}});
-
-  pucch_cfg.format_1_common_param.emplace();
-  pucch_cfg.format_2_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_pucch_code_rate::dot_25, .simultaneous_harq_ack_csi = true});
-  pucch_cfg.format_3_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_pucch_code_rate::dot_25, .simultaneous_harq_ack_csi = true});
-  pucch_cfg.format_4_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_pucch_code_rate::dot_25, .simultaneous_harq_ack_csi = true});
-
-  // >>> dl-DataToUl-Ack
-  // TS38.213, 9.1.2.1 - "If a UE is provided dl-DataToUL-ACK, the UE does not expect to be indicated by DCI format 1_0
-  // a slot timing value for transmission of HARQ-ACK information that does not belong to the intersection of the set
-  // of slot timing values {1, 2, 3, 4, 5, 6, 7, 8} and the set of slot timing values provided by dl-DataToUL-ACK for
-  // the active DL BWP of a corresponding serving cell.
-  // Inactive for format1_0."
-  // Note2: Only k1 >= 4 supported.
-  nr_band band =
-      params.band.has_value() ? params.band.value() : band_helper::get_band_from_dl_arfcn(params.dl_f_ref_arfcn);
-  if (band_helper::get_duplex_mode(band) == duplex_mode::FDD) {
-    pucch_cfg.dl_data_to_ul_ack = {params.min_k1};
-  } else {
-    // TDD
-    pucch_cfg.dl_data_to_ul_ack = config_helpers::generate_k1_candidates(params.tdd_ul_dl_cfg_common.value());
-  }
-
-  // > PUSCH config.
-  ul_config.init_ul_bwp.pusch_cfg.emplace(make_default_pusch_config(params));
-  if (band_helper::get_duplex_mode(band) == duplex_mode::TDD) {
-    ul_config.init_ul_bwp.pusch_cfg->pusch_td_alloc_list =
-        config_helpers::generate_k2_candidates(cyclic_prefix::NORMAL, params.tdd_ul_dl_cfg_common.value());
-  }
-
-  // Compute the max UCI payload per format.
-  const auto& res_basic_f2 = std::find_if(pucch_cfg.pucch_res_list.begin(),
-                                          pucch_cfg.pucch_res_list.end(),
-                                          [](const auto& pucch) { return pucch.format == pucch_format::FORMAT_2; });
-  ocudu_assert(res_basic_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH F2 resource not found");
-
-  pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = 2U;
-  const auto& res_f2 = std::get<pucch_format_2_3_cfg>(res_basic_f2->format_params);
-  pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
-      get_pucch_format2_max_payload(res_f2.nof_prbs,
-                                    res_basic_f2->nof_symbols,
-                                    to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
-  pucch_cfg.set_1_format = pucch_format::FORMAT_2;
-
-  // > SRS config.
-  ul_config.init_ul_bwp.srs_cfg.emplace(make_default_srs_config(params));
-
-  return ul_config;
-}
+pucch_info make_ded_pucch_info(const cell_configuration& cell_cfg,
+                               const pucch_resource&     res,
+                               pucch_uci_bits            uci_bits,
+                               max_pucch_code_rate       max_code_rate);
 
 } // namespace test_helpers
-
-////////////    Builder of PUCCH scheduler output     ////////////
-
-// Builds the PUCCH scheduler output for test.
-pucch_info build_pucch_info(const bwp_configuration* bwp_cfg,
-                            unsigned                 pci,
-                            pucch_format             format,
-                            prb_interval             prbs,
-                            prb_interval             second_hop_prbs,
-                            ofdm_symbol_range        symbols,
-                            uint8_t                  initial_cyclic_shift,
-                            sr_nof_bits              sr_bits,
-                            unsigned                 harq_ack_nof_bits,
-                            uint8_t                  time_domain_occ);
-
-bool pucch_info_match(const pucch_info& expected, const pucch_info& test);
 
 // Wrapper for std::find_if() to find a PUCCH PDU in a vector of PUCCH PDUs.
 template <typename F>
@@ -250,101 +47,73 @@ bool find_pucch_pdu(const static_vector<pucch_info, MAX_PUCCH_PDUS_PER_SLOT>& pu
   return std::find_if(pucch_pdus.begin(), pucch_pdus.end(), func) != pucch_pdus.end();
 }
 
-// Makes a default DCI for PUCCH test purposes but some given parameters.
-inline pdcch_dl_information make_default_dci(unsigned n_cces, const coreset_configuration* coreset_cfg_)
-{
-  pdcch_dl_information dci{};
-  dci.ctx.cces.ncce   = n_cces;
-  dci.ctx.coreset_cfg = coreset_cfg_;
-  return dci;
-}
-
-inline sched_cell_configuration_request_message
-make_custom_sched_cell_configuration_request(unsigned pucch_res_common, bool is_tdd = false, unsigned nof_dl_ports = 1)
-{
-  subcarrier_spacing                     scs = is_tdd ? subcarrier_spacing::kHz30 : subcarrier_spacing::kHz15;
-  std::optional<tdd_ul_dl_config_common> tdd_cfg;
-  if (is_tdd) {
-    tdd_cfg = {scs, {10, 6, 8, 3, 0}, std::nullopt};
-  }
-  sched_cell_configuration_request_message req = sched_config_helper::make_default_sched_cell_configuration_request(
-      cell_config_builder_params{.scs_common           = is_tdd ? subcarrier_spacing::kHz30 : subcarrier_spacing::kHz15,
-                                 .channel_bw_mhz       = bs_channel_bandwidth::MHz10,
-                                 .dl_f_ref_arfcn       = is_tdd ? 520000U : 365000U,
-                                 .nof_dl_ports         = nof_dl_ports,
-                                 .tdd_ul_dl_cfg_common = tdd_cfg});
-  req.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = pucch_res_common;
-  return req;
-}
-
-/////////        TEST BENCH for PUCCH scheduler        /////////
+bool pucch_info_match(const pucch_info& expected, const pucch_info& test);
 
 struct test_bench_params {
-  unsigned               pucch_res_common      = 11;
-  unsigned               n_cces                = 0;
-  sr_periodicity         period                = sr_periodicity::sl_40;
-  unsigned               offset                = 0;
-  csi_report_periodicity csi_period            = csi_report_periodicity::slots320;
-  unsigned               csi_offset            = 9;
-  bool                   is_tdd                = false;
-  bool                   pucch_f2_f3_more_prbs = false;
-  bool                   cfg_for_mimo_4x4      = false;
-  pucch_formats          formats               = pucch_formats::f1_and_f2;
-  bool                   no_csi                = false;
-  max_pucch_code_rate    max_c_rate            = max_pucch_code_rate::dot_25;
+  pucch_builder_params                  pucch_ded_params{};
+  max_pucch_code_rate                   max_code_rate = max_pucch_code_rate::dot_25;
+  std::optional<unsigned>               pucch_res_common;
+  unsigned                              n_cces                 = 0;
+  unsigned                              max_pucchs_per_slot    = 32U;
+  unsigned                              max_ul_grants_per_slot = 32U;
+  unsigned                              nof_ul_dl_ports        = 1U;
+  bool                                  tdd                    = false;
+  sr_periodicity                        sr_period              = sr_periodicity::sl_40;
+  unsigned                              sr_offset              = 0;
+  std::optional<csi_report_periodicity> csi_period             = csi_report_periodicity::slots320;
+  unsigned                              csi_offset             = 9;
 };
 
-// Test bench with all that is needed for the PUCCH.
 class test_bench
 {
 public:
-  explicit test_bench(const test_bench_params& params                  = {},
-                      unsigned                 max_pucchs_per_slot_    = 32U,
-                      unsigned                 max_ul_grants_per_slot_ = 32U);
+  explicit test_bench(const test_bench_params& params);
 
-  // Return the main UE, which has RNTI 0x4601.
+  /// Return the main UE.
   const ue& get_main_ue() const;
+  /// Return the UE with the given DU UE index.
   const ue& get_ue(du_ue_index_t ue_idx) const;
 
-  // Add an extra UE, whose RNTI will have RNTI +1 with respect to the last_allocated_rnti.
+  /// Add an extra UE, whose RNTI will have RNTI +1 with respect to the last_allocated_rnti.
   void add_ue();
 
+  /// Indicate the slot to the components under test.
   void slot_indication(slot_point slot_tx);
 
+  /// Fill the whole UL resource grid for the given slot.
   void fill_all_grid(slot_point slot_tx);
 
-  scheduler_expert_config                        expert_cfg;
-  sched_cfg_dummy_notifier                       mac_notif;
-  du_cell_group_config_pool                      cfg_pool;
-  cell_common_configuration_list                 cell_cfg_list{};
-  const cell_configuration&                      cell_cfg;
-  std::vector<std::unique_ptr<ue_configuration>> ue_ded_cfgs;
+  // Parameters.
+  const test_bench_params params;
 
-  cell_resource_allocator res_grid{cell_cfg};
-  pdcch_dl_information    dci_info;
-  const unsigned          k0;
-  const unsigned          k1{4};
-  const unsigned          max_pucchs_per_slot;
-  const unsigned          max_ul_grants_per_slot;
-  du_ue_index_t           main_ue_idx{MIN_DU_UE_INDEX};
-  ue_repository           ues;
-  ue_cell_repository&     ue_cell_db;
-  bool                    pucch_f2_f3_more_prbs;
-  const pucch_formats     formats;
+  // Configuration dependencies.
+  du_cell_group_config_pool      cfg_pool;
+  cell_common_configuration_list cell_cfg_list{};
+  const scheduler_expert_config  expert_cfg;
+  ue_repository                  ues;
+  const cell_configuration&      cell_cfg;
 
-  // last_allocated_rnti keeps track of the last RNTI allocated.
-  rnti_t                        last_allocated_rnti;
-  du_ue_index_t                 last_allocated_ue_idx;
-  pucch_allocator_impl          pucch_alloc;
-  uci_allocator_impl            uci_alloc;
-  uci_scheduler_impl            uci_sched;
-  slot_point                    sl_tx;
+  // Other dependencies.
   pucch_res_builder_test_helper pucch_builder;
+  cell_resource_allocator       res_grid;
   ocudulog::basic_logger&       mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
   ocudulog::basic_logger&       test_logger = ocudulog::fetch_basic_logger("TEST");
 
-  // Scheduler creation request message used to create the main UE.
-  sched_ue_creation_request_message ue_req_main;
+  // Constants.
+  const unsigned                 k0;
+  const pdcch_dl_information     dci_info;
+  static constexpr du_ue_index_t main_ue_idx{MIN_DU_UE_INDEX};
+
+  // Components under test.
+  pucch_allocator_impl pucch_alloc;
+  uci_allocator_impl   uci_alloc;
+  uci_scheduler_impl   uci_sched;
+
+  // Helper variables.
+  std::vector<std::unique_ptr<ue_configuration>> ue_ded_cfgs;
+  rnti_t                                         last_added_ue_rnti;
+  du_ue_index_t                                  last_added_ue_idx;
+  slot_point                                     sl_tx;
 };
 
 } // namespace ocudu

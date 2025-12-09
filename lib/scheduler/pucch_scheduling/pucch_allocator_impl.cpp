@@ -932,6 +932,13 @@ pucch_allocator_impl::multiplex_and_allocate_pucch(cell_slot_resource_allocator&
     return std::nullopt;
   }
 
+  if (grants_to_tx.harq_resource.has_value()) {
+    if (grants_to_tx.harq_resource->bits.get_total_bits() >
+        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(grants_to_tx.harq_resource->format)) {
+      alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
+      return std::nullopt;
+    }
+  }
   // Reserve the resources needed for the multiplexed grants.
   if (grants_to_tx.sr_resource.has_value()) {
     const auto* sr_res = guard.reserve_sr_resource();
@@ -941,6 +948,11 @@ pucch_allocator_impl::multiplex_and_allocate_pucch(cell_slot_resource_allocator&
     }
   }
   if (grants_to_tx.csi_resource.has_value()) {
+    if (grants_to_tx.csi_resource->bits.get_total_bits() >
+        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(grants_to_tx.csi_resource->format)) {
+      alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
+      return std::nullopt;
+    }
     const auto* csi_res = guard.reserve_csi_resource();
     if (csi_res == nullptr) {
       alloc_ctx.log_skipped_alloc(logger.error, "CSI resource not available after multiplexing");
@@ -1197,61 +1209,37 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
       current_grants.pucch_grants.sr_resource.value().bits.harq_ack_nof_bits = new_bits.harq_ack_nof_bits;
     }
   }
-  // If the HARQ PDU uses F2, there can be 1 HARQ PDU + an optional CSI (F2). In any case, we only need to update the
-  // HARQ-ACK bits in the HARQ-ACK PDU.
-  else if (existing_pdus.harq_pdu->format() == pucch_format::FORMAT_2) {
+  // If the HARQ PDU uses F2/F3/F4, there can be 1 HARQ PDU + an optional CSI (F2/F3/F4).
+  // In any case, we only need to update the HARQ-ACK bits in the HARQ-ACK PDU.
+  else {
     if (current_grants.pucch_grants.get_uci_bits().get_total_bits() >=
-        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(pucch_format::FORMAT_2)) {
+        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(existing_pdus.harq_pdu->format())) {
       alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
       return std::nullopt;
     }
     const pucch_resource* harq_res = guard.reserve_harq_set_1_resource_by_res_indicator(
         current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
     ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
-    const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_2_common_param;
-    existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
-                                       current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
-                                       current_grants.pucch_grants.harq_resource.value().bits.csi_part1_nof_bits,
-                                       *harq_res,
-                                       common_params);
-    current_grants.pucch_grants.harq_resource.value().bits.harq_ack_nof_bits = new_bits.harq_ack_nof_bits;
-  }
-  // If the HARQ PDU uses F3, there can be 1 HARQ PDU + an optional CSI (F3). In any case, we only need to update
-  // the HARQ-ACK bits in the HARQ-ACK PDU.
-  else if (existing_pdus.harq_pdu->format() == pucch_format::FORMAT_3) {
-    if (current_grants.pucch_grants.get_uci_bits().get_total_bits() >=
-        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(pucch_format::FORMAT_3)) {
-      alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
-      return std::nullopt;
+
+    const std::optional<pucch_common_all_formats>* common_params;
+    switch (existing_pdus.harq_pdu->format()) {
+      case pucch_format::FORMAT_2:
+        common_params = &ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_2_common_param;
+        break;
+      case pucch_format::FORMAT_3:
+        common_params = &ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_3_common_param;
+        break;
+      case pucch_format::FORMAT_4:
+        common_params = &ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_4_common_param;
+        break;
+      default:
+        ocudu_assertion_failure("Invalid PUCCH Format");
     }
-    const pucch_resource* harq_res = guard.reserve_harq_set_1_resource_by_res_indicator(
-        current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
-    const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_3_common_param;
     existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.csi_part1_nof_bits,
                                        *harq_res,
-                                       common_params);
-    current_grants.pucch_grants.harq_resource.value().bits.harq_ack_nof_bits = new_bits.harq_ack_nof_bits;
-  }
-  // If the HARQ PDU uses F4, there can be 1 HARQ PDU + an optional CSI (F4). In any case, we only need to update
-  // the HARQ-ACK bits in the HARQ-ACK PDU.
-  else if (existing_pdus.harq_pdu->format() == pucch_format::FORMAT_4) {
-    if (current_grants.pucch_grants.get_uci_bits().get_total_bits() >=
-        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(pucch_format::FORMAT_4)) {
-      alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
-      return std::nullopt;
-    }
-    const pucch_resource* harq_res = guard.reserve_harq_set_1_resource_by_res_indicator(
-        current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind);
-    ocudu_assert(harq_res != nullptr, "rnti={}: PUCCH expected resource not available", current_grants.rnti);
-    const auto& common_params = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().format_4_common_param;
-    existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
-                                       current_grants.pucch_grants.harq_resource.value().bits.sr_bits,
-                                       current_grants.pucch_grants.harq_resource.value().bits.csi_part1_nof_bits,
-                                       *harq_res,
-                                       common_params);
+                                       *common_params);
     current_grants.pucch_grants.harq_resource.value().bits.harq_ack_nof_bits = new_bits.harq_ack_nof_bits;
   }
   alloc_ctx.log_pdu_alloc(logger.debug, harq_pdu, "HARQ-ACK", true);
@@ -1908,10 +1896,10 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
       auto& format_2 = pucch_pdu.format_params.emplace<pucch_format_2>();
 
       // \f$n_{ID}\f$ as per Section 6.3.2.5.1 and 6.3.2.6.1, TS 38.211.
-      const auto& init_ul_bwp = ue_cell_cfg.init_bwp().ul_ded.value();
-      format_2.n_id_scambling = init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.has_value()
-                                    ? init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.value()
-                                    : cell_cfg.pci;
+      const auto& init_ul_bwp  = ue_cell_cfg.init_bwp().ul_ded.value();
+      format_2.n_id_scrambling = init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.has_value()
+                                     ? init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.value()
+                                     : cell_cfg.pci;
       // \f$N_{ID}^0\f$ as per TS 38.211, Section 6.4.1.3.2.1.
       format_2.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.pci);
       format_2.max_code_rate     = init_ul_bwp.pucch_cfg.value().format_2_common_param.value().max_c_rate;

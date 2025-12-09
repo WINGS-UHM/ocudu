@@ -101,7 +101,7 @@ static void fill_format2_parameters(fapi::ul_pucch_pdu_builder& builder, const p
   builder.set_common_parameters(mac_pdu.format(), pucch_repetition, use_pi_to_bpsk);
 
   // Scrambling.
-  builder.set_scrambling_parameters(f2.n_id_scambling);
+  builder.set_scrambling_parameters(f2.n_id_scrambling);
   builder.set_dmrs_scrambling(f2.n_id_0_scrambling);
 
   // Max coding rate.

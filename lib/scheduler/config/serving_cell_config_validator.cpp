@@ -144,9 +144,10 @@ validator_result config_validators::validate_pdsch_cfg(const serving_cell_config
   return {};
 }
 
-validator_result config_validators::validate_pucch_cfg(const serving_cell_config& ue_cell_cfg,
-                                                       const pucch_config_common& pucch_cfg_common,
-                                                       unsigned                   nof_dl_antennas)
+validator_result config_validators::validate_pucch_cfg(const serving_cell_config&         ue_cell_cfg,
+                                                       const std::vector<pucch_resource>& cell_pucch_res_list,
+                                                       const pucch_config_common&         pucch_cfg_common,
+                                                       unsigned                           nof_dl_antennas)
 {
   VERIFY(ue_cell_cfg.ul_config.has_value() and ue_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value(),
          "Missing configuration for uplinkConfig or pucch-Config in spCellConfig");
@@ -189,8 +190,8 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
   VERIFY(pucch_cfg.pucch_res_set[0].pucch_res_id_list.size() <= pucch_cfg.pucch_res_set[1].pucch_res_id_list.size(),
          "PUCCH resource set 1's size should be greater or equal to PUCCH resource set 0's size");
 
-  // Verify each resource format matches the corresponding parameters.
-  for (auto res : pucch_cfg.pucch_res_list) {
+  for (const auto& res : pucch_cfg.pucch_res_list) {
+    // Verify each resource format matches the corresponding parameters.
     const bool format_match_format_params =
         (res.format == pucch_format::FORMAT_0 and std::holds_alternative<pucch_format_0_cfg>(res.format_params)) or
         (res.format == pucch_format::FORMAT_1 and std::holds_alternative<pucch_format_1_cfg>(res.format_params)) or
@@ -198,7 +199,26 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
         (res.format == pucch_format::FORMAT_3 and std::holds_alternative<pucch_format_2_3_cfg>(res.format_params)) or
         (res.format == pucch_format::FORMAT_4 and std::holds_alternative<pucch_format_4_cfg>(res.format_params));
     VERIFY(format_match_format_params,
-           "PUCCH cell res id={} format does not match the PUCCH format parameters",
+           "PUCCH resource with cell_res_id={} format does not match the PUCCH format parameters",
+           res.res_id.cell_res_id);
+
+    static constexpr unsigned invalid_cell_res_id = std::numeric_limits<unsigned>::max();
+    if (res.res_id.cell_res_id == invalid_cell_res_id) {
+      // This is a special case for resources that do not exist in the cell resource list, but only in the UE dedicated
+      // configuration (when using PUCCH Formats 0 and 2).
+      continue;
+    }
+
+    // Verify that each PUCCH resource matches the corresponding cell resource.
+    VERIFY(res.res_id.cell_res_id < cell_pucch_res_list.size(),
+           "PUCCH resource with cell_res_id={} does not exist in the cell configuration",
+           res.res_id.cell_res_id);
+
+    const auto& cell_res = cell_pucch_res_list[res.res_id.cell_res_id];
+    VERIFY(res.starting_prb == cell_res.starting_prb and res.second_hop_prb == cell_res.second_hop_prb and
+               res.nof_symbols == cell_res.nof_symbols and res.starting_sym_idx == cell_res.starting_sym_idx and
+               res.format == cell_res.format and res.format_params == cell_res.format_params,
+           "PUCCH resource with cell_res_id={} does not match the corresponding cell resource",
            res.res_id.cell_res_id);
   }
 

@@ -406,7 +406,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pucch_cfg_conversion)
   dest_pucch_cfg.pucch_res_set.erase(dest_pucch_cfg.pucch_res_set.begin());
 
   // >>> PUCCH resource 2.
-  pucch_resource res_basic{.res_id           = pucch_res_id_t{12, 12},
+  pucch_resource res_basic{.res_id           = pucch_res_id_t{14, 14},
                            .starting_prb     = 40,
                            .second_hop_prb   = 50,
                            .nof_symbols      = 1,
@@ -471,7 +471,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pucch_cfg_conversion)
 
     ASSERT_EQ(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp.pucch_cfg.setup().res_to_add_mod_list.size(), 1);
     auto& pucch_res1 = rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp.pucch_cfg.setup().res_to_add_mod_list[0];
-    ASSERT_EQ(pucch_res1.pucch_res_id, 12);
+    ASSERT_EQ(pucch_res1.pucch_res_id, 14);
     ASSERT_EQ(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp.pucch_cfg.setup().res_to_release_list.size(), 1);
 
     ASSERT_EQ(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp.pucch_cfg.setup().sched_request_res_to_add_mod_list.size(), 1);

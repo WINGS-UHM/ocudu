@@ -72,7 +72,7 @@ struct pucch_format_1 {
 /// Scheduler output for PUCCH Format 2.
 struct pucch_format_2 {
   /// \f$n_{ID}\f$ as per Section 6.3.2.5.1 and 6.3.2.6.1, TS 38.211.
-  uint16_t n_id_scambling;
+  uint16_t n_id_scrambling;
   /// \f$N_{ID}^0\f$ as per TS 38.211, Section 6.4.1.3.2.1.
   uint16_t            n_id_0_scrambling;
   max_pucch_code_rate max_code_rate;

@@ -16,6 +16,3 @@ add_library(scheduler_test_suite
         scheduler_output_test_helpers.cpp
         scheduler_test_simulator.cpp)
 target_link_libraries(scheduler_test_suite ocudu_sched scheduler_test_utils gtest)
-
-add_library(uci_test_utils ../uci_and_pucch/uci_test_utils.cpp)
-target_link_libraries(uci_test_utils ocudulog mac_configuration_helpers sched_config)

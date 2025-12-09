@@ -1187,7 +1187,7 @@ bool config_helpers::ue_pucch_config_builder(
     pucch_res_set_0.pucch_res_id_list.emplace_back(sr_pucch_res_id);
   }
 
-  // Add Resource Set ID 0 resources for HARQ-ACK.
+  // Add Resource Set ID 1 resources for HARQ-ACK.
   for (unsigned r_pucch = 0; r_pucch != nof_ue_pucch_f2_f3_f4_res_harq.to_uint(); ++r_pucch) {
     const auto& cell_res = cell_res_list[set_1_cell_idx_offset + r_pucch];
 

@@ -9,6 +9,7 @@
  */
 
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/pucch_builder_params.h"
 
 using namespace ocudu;
 using namespace csi_helper;
@@ -88,7 +89,8 @@ static bool is_csi_slot_offset_valid(unsigned                       slot_offset,
   // TODO: this is true for SSB pattern 1000 or 10000000.
   static constexpr unsigned SSB_SLOT = 0U;
   // TODO: import sib1_period from expert config and SIB1_OFFSET from SIB1 config.
-  static constexpr unsigned SIB1_PERIOD_MS = 160, SIB1_OFFSET = 1;
+  static constexpr unsigned SIB1_PERIOD_MS = 160;
+  static constexpr unsigned SIB1_OFFSET    = 1;
 
   const unsigned ssb_period_slots  = ssb_period_ms * get_nof_slots_per_subframe(tdd_cfg.ref_scs);
   const unsigned sib1_period_slots = SIB1_PERIOD_MS * get_nof_slots_per_subframe(tdd_cfg.ref_scs);
@@ -339,7 +341,7 @@ fill_tracking_nzp_csi_rs_resource(span<nzp_csi_rs_resource> tracking_csi_rs,
                                   const csi_builder_params& params,
                                   nzp_csi_rs_res_id_t       first_csi_res_id = static_cast<nzp_csi_rs_res_id_t>(1))
 {
-  static size_t NOF_TRACKING_RESOURCES = 4;
+  static constexpr size_t NOF_TRACKING_RESOURCES = 4;
 
   ocudu_assert(tracking_csi_rs.size() == NOF_TRACKING_RESOURCES, "Invalid tracking CSI-RS resource list size");
   ocudu_assert(params.tracking_csi_slot_offset + 1 < csi_resource_periodicity_to_uint(params.csi_rs_period),
@@ -503,13 +505,25 @@ static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_
   reps[0].csi_im_res_for_interference = static_cast<csi_res_config_id_t>(1);
 
   // Set Report Config.
-  csi_report_config::periodic_or_semi_persistent_report_on_pucch report_cfg_type{};
-  report_cfg_type.report_type = csi_report_config::periodic_or_semi_persistent_report_on_pucch::report_type_t::periodic;
-  report_cfg_type.report_slot_period = convert_csi_resource_period_to_report_period(params.csi_rs_period);
-  report_cfg_type.report_slot_offset = params.csi_report_slot_offset;
-  report_cfg_type.pucch_csi_res_list = {
-      csi_report_config::pucch_csi_resource{.ul_bwp = to_bwp_id(0), .pucch_res_id = pucch_res_id_t{9, 9}}};
-  reps[0].report_cfg_type = report_cfg_type;
+  {
+    csi_report_config::periodic_or_semi_persistent_report_on_pucch report_cfg_type{};
+    report_cfg_type.report_type =
+        csi_report_config::periodic_or_semi_persistent_report_on_pucch::report_type_t::periodic;
+    report_cfg_type.report_slot_period = convert_csi_resource_period_to_report_period(params.csi_rs_period);
+    report_cfg_type.report_slot_offset = params.csi_report_slot_offset;
+    pucch_builder_params pucch_builder_params{};
+    const unsigned       cell_res_id =
+        ((pucch_builder_params.res_set_0_size.value() + pucch_builder_params.res_set_1_size.value()) *
+         pucch_builder_params.nof_cell_res_set_configs) +
+        pucch_builder_params.nof_cell_sr_resources;
+
+    static constexpr unsigned nof_ue_sr_resources = 1U;
+    const unsigned            ue_res_id =
+        pucch_builder_params.res_set_0_size.value() + nof_ue_sr_resources + pucch_builder_params.res_set_1_size.value();
+    report_cfg_type.pucch_csi_res_list = {csi_report_config::pucch_csi_resource{
+        .ul_bwp = to_bwp_id(0), .pucch_res_id = pucch_res_id_t{cell_res_id, ue_res_id}}};
+    reps[0].report_cfg_type            = report_cfg_type;
+  }
 
   reps[0].report_qty_type = csi_report_config::report_quantity_type_t::cri_ri_pmi_cqi;
 

@@ -15,41 +15,31 @@
 
 using namespace ocudu;
 
-class test_pucch_f2_alloc_several_prbs : public ::testing::Test, public pucch_allocator_base_tester
+class pucch_alloc_multiple_rbs_test : public ::testing::Test, public pucch_allocator_base_test
 {
 public:
-  test_pucch_f2_alloc_several_prbs() : pucch_allocator_base_tester(test_bench_params{.pucch_f2_f3_more_prbs = true})
+  pucch_alloc_multiple_rbs_test() :
+    pucch_allocator_base_test(
+        test_bench_params{.pucch_ded_params = {.f2_or_f3_or_f4_params = pucch_f2_params{.max_nof_rbs = 3U}}})
   {
-    // This PUCCH grant will be for 5 HARQ bits, which fit in 1 PRB.
-    auto& format2_harq               = pucch_expected_harq_only.format_params.emplace<pucch_format_2>();
-    pucch_expected_harq_only.crnti   = to_rnti(0x4601);
-    pucch_expected_harq_only.bwp_cfg = &t_bench.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
-    pucch_expected_harq_only.resources.prbs =
-        prb_interval::start_and_len(test_helpers::common_pucch_res_guardband + 2, 1);
-    pucch_expected_harq_only.resources.second_hop_prbs = prb_interval{0, 0};
-    pucch_expected_harq_only.resources.symbols         = ofdm_symbol_range{0, 2};
+    static constexpr auto max_code_rate = max_pucch_code_rate::dot_25;
 
-    format2_harq.max_code_rate     = max_pucch_code_rate::dot_25;
-    format2_harq.n_id_scambling    = t_bench.cell_cfg.pci;
-    format2_harq.n_id_0_scrambling = t_bench.cell_cfg.pci;
+    // This PUCCH grant will be for 5 HARQ bits, which fit in 1 PRB.
+    pucch_expected_harq_only = test_helpers::make_ded_pucch_info(
+        t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[8], {.harq_ack_nof_bits = 5U}, max_code_rate);
+    pucch_expected_harq_only.resources.prbs.resize(1);
+
+    // This PUCCH grant will be for 4 CSI bits only, which are encoded in the maximum number of PRBs.
+    pucch_expected_csi_only = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                                                t_bench.cell_cfg.ded_pucch_resources[14],
+                                                                {.csi_part1_nof_bits = default_csi_part1_bits},
+                                                                max_code_rate);
+    pucch_expected_csi_only.resources.prbs.resize(3);
 
     // This PUCCH grant will be for 5 HARQ bits + 4 CSI bits, which fit in 2 PRBs.
     pucch_expected_harq_csi = pucch_expected_harq_only;
-    pucch_expected_harq_csi.resources.prbs =
-        prb_interval::start_and_len(test_helpers::common_pucch_res_guardband + 2, 2);
-
-    // This PUCCH grant will be for 4 CSI bits only, which are encoded in the maximum number of PRBs.
-    auto& format2_csi               = pucch_expected_csi_only.format_params.emplace<pucch_format_2>();
-    pucch_expected_csi_only.crnti   = to_rnti(0x4601);
-    pucch_expected_csi_only.bwp_cfg = &t_bench.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
-    pucch_expected_csi_only.resources.prbs =
-        prb_interval::start_and_len(test_helpers::common_pucch_res_guardband + 2, 3);
-    pucch_expected_csi_only.resources.second_hop_prbs = prb_interval{0, 0};
-    pucch_expected_csi_only.resources.symbols         = ofdm_symbol_range{12, 14};
-
-    format2_csi.max_code_rate     = max_pucch_code_rate::dot_25;
-    format2_csi.n_id_scambling    = t_bench.cell_cfg.pci;
-    format2_csi.n_id_0_scrambling = t_bench.cell_cfg.pci;
+    pucch_expected_harq_csi.resources.prbs.resize(2);
+    pucch_expected_harq_csi.uci_bits.csi_part1_nof_bits = default_csi_part1_bits;
   }
 
 protected:
@@ -57,172 +47,151 @@ protected:
   pucch_info pucch_expected_harq_only;
   pucch_info pucch_expected_harq_csi;
   pucch_info pucch_expected_csi_only;
+
+  static constexpr unsigned default_csi_part1_bits = 4U;
 };
 
 ///////   Test PUCCH Format 2 PRB configuration.    ///////
 
-TEST_F(test_pucch_f2_alloc_several_prbs, test_prb_allocation_csi_only)
+TEST_F(pucch_alloc_multiple_rbs_test, test_prb_allocation_csi_only)
 {
-  pucch_expected_csi_only.uci_bits.harq_ack_nof_bits  = 0;
-  pucch_expected_csi_only.uci_bits.sr_bits            = sr_nof_bits::no_sr;
-  pucch_expected_csi_only.uci_bits.csi_part1_nof_bits = 4;
+  alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
 
-  add_csi_grant();
-
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
   // Expect 1 PUCCH grant with CSI.
-  ASSERT_EQ(1, slot_grid.result.ul.pucchs.size());
-  ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [&expected = pucch_expected_csi_only](const auto& pdu) {
-    return pucch_info_match(expected, pdu);
-  }));
-  ASSERT_TRUE(slot_grid.result.ul.pucchs[0].csi_rep_cfg.has_value());
+  ASSERT_EQ(1U, default_slot_grid.result.ul.pucchs.size());
+  ASSERT_TRUE(
+      find_pucch_pdu(default_slot_grid.result.ul.pucchs, [&expected = pucch_expected_csi_only](const auto& pdu) {
+        return pucch_info_match(expected, pdu) and pdu.csi_rep_cfg.has_value();
+      }));
 }
 
-TEST_F(test_pucch_f2_alloc_several_prbs, test_prb_allocation_csi_sr)
+TEST_F(pucch_alloc_multiple_rbs_test, test_prb_allocation_csi_sr)
 {
-  pucch_expected_csi_only.uci_bits.harq_ack_nof_bits  = 0;
-  pucch_expected_csi_only.uci_bits.sr_bits            = sr_nof_bits::one;
-  pucch_expected_csi_only.uci_bits.csi_part1_nof_bits = 4;
+  pucch_expected_csi_only.uci_bits.sr_bits = sr_nof_bits::one;
 
-  add_sr_grant();
-  add_csi_grant();
+  alloc_sr_opportunity(t_bench.get_main_ue());
+  alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
 
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
-  // Expect 1 PUCCH grant with CSI.
-  ASSERT_EQ(1, slot_grid.result.ul.pucchs.size());
-  ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [&expected = pucch_expected_csi_only](const auto& pdu) {
-    return pucch_info_match(expected, pdu);
-  }));
-  ASSERT_TRUE(slot_grid.result.ul.pucchs[0].csi_rep_cfg.has_value());
+  ASSERT_EQ(1U, default_slot_grid.result.ul.pucchs.size());
+  ASSERT_TRUE(
+      find_pucch_pdu(default_slot_grid.result.ul.pucchs, [&expected = pucch_expected_csi_only](const auto& pdu) {
+        return pucch_info_match(expected, pdu) and pdu.csi_rep_cfg.has_value();
+      }));
 }
 
-TEST_F(test_pucch_f2_alloc_several_prbs, test_prb_allocation_harq_only)
+TEST_F(pucch_alloc_multiple_rbs_test, test_prb_allocation_harq_only)
 {
-  pucch_expected_harq_only.uci_bits.harq_ack_nof_bits  = 5;
-  pucch_expected_harq_only.uci_bits.sr_bits            = sr_nof_bits::no_sr;
-  pucch_expected_harq_only.uci_bits.csi_part1_nof_bits = 0;
+  for (unsigned i = 0; i != 5; ++i) {
+    alloc_ded_harq_ack(t_bench.get_main_ue());
+  }
 
-  add_harq_grant();
-  add_harq_grant();
-  add_harq_grant();
-  add_harq_grant();
-  add_harq_grant();
-
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
-  // Expect 1 PUCCH grant with CSI.
-  ASSERT_EQ(1, slot_grid.result.ul.pucchs.size());
-  ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [&expected = pucch_expected_harq_only](const auto& pdu) {
-    return pucch_info_match(expected, pdu);
-  }));
+  ASSERT_EQ(1U, default_slot_grid.result.ul.pucchs.size());
+  ASSERT_TRUE(
+      find_pucch_pdu(default_slot_grid.result.ul.pucchs, [&expected = pucch_expected_harq_only](const auto& pdu) {
+        return pucch_info_match(expected, pdu);
+      }));
 }
 
-TEST_F(test_pucch_f2_alloc_several_prbs, test_prb_allocation_harq_csi_only)
+TEST_F(pucch_alloc_multiple_rbs_test, test_prb_allocation_harq_csi_only)
 {
   // We don't know a-priori whether CSI and HARQ will be multilplexed within the same resource; we need to consider both
   // possibilities, (i) 2 separate PUCCH resources HARQ + CSI, and (ii) 1 PUCCH resource with both HARQ and CSI.
-  pucch_expected_harq_only.uci_bits.harq_ack_nof_bits  = 5;
-  pucch_expected_harq_only.uci_bits.sr_bits            = sr_nof_bits::no_sr;
-  pucch_expected_harq_only.uci_bits.csi_part1_nof_bits = 0;
+  alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
+  for (unsigned i = 0; i != 5; ++i) {
+    alloc_ded_harq_ack(t_bench.get_main_ue());
+  }
 
-  pucch_expected_csi_only.uci_bits.harq_ack_nof_bits  = 0;
-  pucch_expected_csi_only.uci_bits.sr_bits            = sr_nof_bits::no_sr;
-  pucch_expected_csi_only.uci_bits.csi_part1_nof_bits = 4;
-
-  pucch_expected_harq_csi.uci_bits.harq_ack_nof_bits  = 5;
-  pucch_expected_harq_csi.uci_bits.sr_bits            = sr_nof_bits::no_sr;
-  pucch_expected_harq_csi.uci_bits.csi_part1_nof_bits = 4;
-
-  add_csi_grant();
-  add_harq_grant();
-  add_harq_grant();
-  add_harq_grant();
-  add_harq_grant();
-  add_harq_grant();
-
-  const auto& pucch_pdus = t_bench.res_grid[t_bench.k0 + t_bench.k1].result.ul.pucchs;
-  ASSERT_TRUE(find_pucch_pdu(pucch_pdus,
-                             [&expected = pucch_expected_harq_only](const auto& pdu) {
-                               return pucch_info_match(expected, pdu);
-                             }) or
-              find_pucch_pdu(
-                  pucch_pdus,
-                  [&expected = pucch_expected_csi_only](const auto& pdu) { return pucch_info_match(expected, pdu); }) or
-              find_pucch_pdu(pucch_pdus, [&expected = pucch_expected_harq_csi](const auto& pdu) {
-                return pucch_info_match(expected, pdu);
-              }));
+  ASSERT_TRUE(
+      find_pucch_pdu(
+          default_slot_grid.result.ul.pucchs,
+          [&expected = pucch_expected_harq_only](const auto& pdu) { return pucch_info_match(expected, pdu); }) or
+      find_pucch_pdu(
+          default_slot_grid.result.ul.pucchs,
+          [&expected = pucch_expected_csi_only](const auto& pdu) { return pucch_info_match(expected, pdu); }) or
+      find_pucch_pdu(default_slot_grid.result.ul.pucchs, [&expected = pucch_expected_harq_csi](const auto& pdu) {
+        return pucch_info_match(expected, pdu);
+      }));
 }
 
 ///////   Test UL grants reached and PUCCH fails.    ///////
 
-class test_pucch_allocator_ded_resources_reached_ul_grants : public ::testing::Test, public pucch_allocator_base_tester
+class pucch_alloc_reach_ul_grant_limits_test : public ::testing::Test, public pucch_allocator_base_test
 {
 public:
-  test_pucch_allocator_ded_resources_reached_ul_grants() :
-    pucch_allocator_base_tester(test_bench_params{.pucch_res_common = 11, .n_cces = 1}, 3U, 6U)
+  pucch_alloc_reach_ul_grant_limits_test() :
+    pucch_allocator_base_test(
+        test_bench_params{.pucch_res_common = 11, .n_cces = 1, .max_pucchs_per_slot = 3U, .max_ul_grants_per_slot = 6U})
   {
   }
+
+protected:
+  static constexpr unsigned default_csi_part1_bits = 4U;
 };
 
-TEST_F(test_pucch_allocator_ded_resources_reached_ul_grants, test_max_pucch_allocation_reached)
+TEST_F(pucch_alloc_reach_ul_grant_limits_test, test_max_pucch_allocation_reached)
 {
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
+  alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
+  ASSERT_EQ(1U, default_slot_grid.result.ul.pucchs.size());
 
-  add_csi_grant();
-  ASSERT_EQ(1, slot_grid.result.ul.pucchs.size());
+  t_bench.add_ue();
+  alloc_ded_harq_ack(t_bench.get_ue(t_bench.last_added_ue_idx));
+  ASSERT_EQ(2U, default_slot_grid.result.ul.pucchs.size());
 
-  add_ue_with_harq_grant();
-  ASSERT_EQ(2, slot_grid.result.ul.pucchs.size());
+  t_bench.add_ue();
+  alloc_ded_harq_ack(t_bench.get_ue(t_bench.last_added_ue_idx));
+  ASSERT_EQ(3U, default_slot_grid.result.ul.pucchs.size());
 
-  add_ue_with_harq_grant();
-  ASSERT_EQ(3, slot_grid.result.ul.pucchs.size());
-
-  add_ue_with_harq_grant();
-  ASSERT_EQ(3, slot_grid.result.ul.pucchs.size());
+  t_bench.add_ue();
+  alloc_ded_harq_ack(t_bench.get_ue(t_bench.last_added_ue_idx));
+  ASSERT_EQ(3U, default_slot_grid.result.ul.pucchs.size());
 }
 
-TEST_F(test_pucch_allocator_ded_resources_reached_ul_grants, test_max_ul_allocations_reached)
+TEST_F(pucch_alloc_reach_ul_grant_limits_test, test_max_ul_allocations_reached)
 {
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
+  auto& slot_grid = t_bench.res_grid[t_bench.k0 + default_k1];
 
   slot_grid.result.ul.puschs.emplace_back();
   slot_grid.result.ul.puschs.emplace_back();
   slot_grid.result.ul.puschs.emplace_back();
 
-  add_csi_grant();
-  ASSERT_EQ(1, slot_grid.result.ul.pucchs.size());
+  alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
+  ASSERT_EQ(1U, slot_grid.result.ul.pucchs.size());
 
-  add_ue_with_harq_grant();
-  ASSERT_EQ(2, slot_grid.result.ul.pucchs.size());
+  t_bench.add_ue();
+  alloc_ded_harq_ack(t_bench.get_ue(t_bench.last_added_ue_idx));
+  ASSERT_EQ(2U, slot_grid.result.ul.pucchs.size());
 
-  add_ue_with_harq_grant();
-  ASSERT_EQ(3, slot_grid.result.ul.pucchs.size());
+  t_bench.add_ue();
+  alloc_ded_harq_ack(t_bench.get_ue(t_bench.last_added_ue_idx));
+  ASSERT_EQ(3U, slot_grid.result.ul.pucchs.size());
 
-  add_ue_with_harq_grant();
-  ASSERT_EQ(3, slot_grid.result.ul.pucchs.size());
+  t_bench.add_ue();
+  alloc_ded_harq_ack(t_bench.get_ue(t_bench.last_added_ue_idx));
+  ASSERT_EQ(3U, slot_grid.result.ul.pucchs.size());
 }
 
-TEST_F(test_pucch_allocator_ded_resources_reached_ul_grants, test_sr_max_ul_allocations_reached)
+TEST_F(pucch_alloc_reach_ul_grant_limits_test, test_sr_max_ul_allocations_reached)
 {
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
+  auto& slot_grid = t_bench.res_grid[t_bench.k0 + default_k1];
 
   for (unsigned n = 0; n != 6U; ++n) {
     slot_grid.result.ul.puschs.emplace_back();
   }
 
-  add_sr_grant();
-  ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
+  alloc_sr_opportunity(t_bench.get_main_ue());
+  ASSERT_EQ(0U, slot_grid.result.ul.pucchs.size());
 }
 
-TEST_F(test_pucch_allocator_ded_resources_reached_ul_grants, test_csi_max_ul_allocations_reached)
+TEST_F(pucch_alloc_reach_ul_grant_limits_test, test_csi_max_ul_allocations_reached)
 {
-  auto& slot_grid = t_bench.res_grid[t_bench.k0 + t_bench.k1];
+  auto& slot_grid = t_bench.res_grid[t_bench.k0 + default_k1];
 
   for (unsigned n = 0; n != 6U; ++n) {
     slot_grid.result.ul.puschs.emplace_back();
   }
 
-  add_csi_grant();
-  ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
+  alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
+  ASSERT_EQ(0U, slot_grid.result.ul.pucchs.size());
 }
 
 int main(int argc, char** argv)

@@ -30,7 +30,7 @@ variables:
   id_tokens:
     SIGSTORE_ID_TOKEN: # Used by Cosign to get certificate from Fulcio
       aud: sigstore
-  image: ${CI_REGISTRY_IMAGE}/buildkit-cli:$BUILDKIT_CLI_VERSION
+  image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION
   script:
     - |
       check_if_image_exists() {
@@ -115,7 +115,7 @@ variables:
 
 .docker manifest:
   stage: publish
-  image: ${CI_REGISTRY_IMAGE}/buildkit-cli:$BUILDKIT_CLI_VERSION
+  image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION
   tags:
     - untagged
   rules:
@@ -139,7 +139,7 @@ variables:
 
 .docker copy:
   stage: publish
-  image: ${CI_REGISTRY_IMAGE}/buildkit-cli:$BUILDKIT_CLI_VERSION
+  image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION
   tags:
     - amd64
   rules:

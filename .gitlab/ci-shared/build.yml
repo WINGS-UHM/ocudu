@@ -10,7 +10,7 @@ include:
   - local: .gitlab/ci/builders/version.yml
 
 .build_and_unit_template:
-  image: ${CI_REGISTRY_IMAGE}/builder-${OS}:${DOCKER_BUILDER_VERSION}
+  image: ${OCUDU_REGISTRY_URI}/builder-${OS}:${DOCKER_BUILDER_VERSION}
   variables:
     OS: "ubuntu-24.04"
     COMPILER: "gcc"

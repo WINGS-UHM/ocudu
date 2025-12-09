@@ -1,0 +1,38 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
+.version increased:
+  stage: ci
+  image:
+    name: alpine/git:v2.49.1
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    FILE_PATH: ""
+    VARIABLE_NAME: ""
+  script:
+    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 20
+    - NEW_VERSION=$(cat $FILE_PATH | grep $VARIABLE_NAME | cut -d'"' -f2)
+    - export NEW_VERSION
+    - |
+      git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
+      if [ ! $(cat $FILE_PATH | grep $VARIABLE_NAME) ]; then
+          exit 0
+      fi
+    - OLD_VERSION=$(cat $FILE_PATH | grep $VARIABLE_NAME | cut -d'"' -f2)
+    - export OLD_VERSION
+    - |
+      echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
+    - |
+      if [ "$NEW_VERSION" = "$OLD_VERSION" ]; then
+          echo "ERROR: Version not changed."
+          exit 1
+      elif [ "$OLD_VERSION" \> "$NEW_VERSION" ]; then
+          echo "ERROR: Version decreased."
+          exit 1
+      fi
+      echo "Version increased correctly."

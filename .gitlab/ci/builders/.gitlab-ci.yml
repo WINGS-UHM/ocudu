@@ -10,6 +10,7 @@ include:
   - local: .gitlab/ci/builders/version.yml
   - local: .gitlab/ci-shared/python.yml
   - local: .gitlab/ci-shared/docker.yml
+  - local: .gitlab/ci-shared/version_check.yml
 
 ################################################################################
 # Stages
@@ -37,36 +38,16 @@ tox python in builder:
 
 builder version increased:
   stage: ci
-  image: alpine:3.16.0
+  extends: .version increased
   rules:
     - if: $ON_MR
       changes:
         paths:
           - .gitlab/ci/builders/**/*
           - docker/scripts/**/*
-  script:
-    - apk add git git-lfs
-    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 20
-    - NEW_VERSION=$(cat .gitlab/ci/builders/version.yml | grep DOCKER_BUILDER_VERSION | cut -d'"' -f2)
-    - export NEW_VERSION
-    - |
-      git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
-      if [ ! $(cat .gitlab/ci/builders/version.yml | grep DOCKER_BUILDER_VERSION) ]; then
-          exit 0
-      fi
-    - OLD_VERSION=$(cat .gitlab/ci/builders/version.yml | grep DOCKER_BUILDER_VERSION | cut -d'"' -f2)
-    - export OLD_VERSION
-    - |
-      echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
-    - |
-      if [ "$NEW_VERSION" = "$OLD_VERSION" ]; then
-          echo "ERROR: Version not changed."
-          exit 1
-      elif [ "$OLD_VERSION" \> "$NEW_VERSION" ]; then
-          echo "ERROR: Version decreased."
-          exit 1
-      fi
-      echo "Version increased correctly."
+  variables:
+    FILE_PATH: .gitlab/ci/builders/version.yml
+    VARIABLE_NAME: DOCKER_BUILDER_VERSION
 
 ################################################################################
 # ROHC builder

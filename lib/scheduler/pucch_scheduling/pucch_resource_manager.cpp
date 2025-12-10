@@ -80,7 +80,6 @@ bool pucch_resource_manager::reserve_harq_common_resource(cell_slot_resource_gri
                                                           size_t                   r_pucch)
 
 {
-  ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
   return collision_manager.alloc_common(ul_res_grid, sl, r_pucch).has_value();
 }
 
@@ -88,7 +87,6 @@ void pucch_resource_manager::release_harq_common_resource(cell_slot_resource_gri
                                                           slot_point               sl,
                                                           size_t                   r_pucch)
 {
-  ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
   collision_manager.free_common(ul_res_grid, sl, r_pucch);
 }
 
@@ -561,8 +559,8 @@ void pucch_resource_manager::ue_reservation_guard::rollback()
                      rnti);
 
         // Release the resource.
-        ctx.ues_using_pucch_res[res.cell_res_id.value()] = rnti_t::INVALID_RNTI;
-        parent->collision_manager.free_ded(ul_res_grid, sl, res.cell_res_id.value());
+        ctx.ues_using_pucch_res[*res.cell_res_id] = rnti_t::INVALID_RNTI;
+        parent->collision_manager.free_ded(ul_res_grid, sl, *res.cell_res_id);
       }
     }
   }

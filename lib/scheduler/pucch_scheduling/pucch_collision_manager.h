@@ -78,22 +78,39 @@ struct resource_info {
 class pucch_collision_manager
 {
 public:
-  /// Bounded integer representing a common PUCCH resource index (r_pucch).
-  using r_pucch_t = bounded_integer<unsigned, 0, 15>;
+  /// Maximum number of common PUCCH resources managed by the collision manager.
+  static constexpr unsigned nof_common_res = pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES;
+  /// Maximum number of PUCCH resources managed by the collision manager (common + dedicated).
+  static constexpr unsigned max_nof_cell_resources = nof_common_res + pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES;
+
+  class res_idx_t
+  {
+  public:
+    unsigned value() const { return idx; }
+
+  private:
+    friend class pucch_collision_manager;
+    explicit res_idx_t(unsigned idx_) : idx(idx_) {}
+    unsigned idx;
+  };
 
   pucch_collision_manager(const cell_configuration& cell_cfg);
 
   void slot_indication(slot_point sl_tx);
   void stop();
 
-  /// Check if two dedicated PUCCH resources collide.
-  bool check_ded_to_ded_collision(unsigned cell_res_id1, unsigned cell_res_id2) const;
+  /// Get the internal index of the common PUCCH resource inside the collision manager.
+  static res_idx_t get_common_idx(unsigned r_pucch);
 
-  /// Check if a common PUCCH resource collides with a dedicated PUCCH resource.
-  bool check_common_to_ded_collision(r_pucch_t r_pucch, unsigned cell_res_id) const;
+  /// Get the internal index of the dedicated PUCCH resource inside the collision manager.
+  res_idx_t get_ded_idx(unsigned cell_res_id) const;
 
-  /// Return the number of multiplexing regions defined in the cell configuration.
-  unsigned nof_mux_regions() const { return mux_matrix.size(); }
+  /// Return a bitset indicating which resources collide with the given resource index.
+  const bounded_bitset<max_nof_cell_resources>& get_collision_row(res_idx_t res_idx) const;
+
+  /// Return a bitset representing the multiplexing region of the given resource index, or nullptr if the resource is
+  /// not multiplexed with any other resource in the cell.
+  const bounded_bitset<max_nof_cell_resources>* get_mux_row(res_idx_t res_idx) const;
 
   /// Reasons for a PUCCH allocation failure.
   enum class alloc_failure_reason {
@@ -102,26 +119,31 @@ public:
   };
   using alloc_result_t = error_type<alloc_failure_reason>;
 
+  /// \brief Allocate the PUCCH resource indexed by \ref res_idx at the given slot.
+  /// \return Success if the allocation was successful, otherwise an error indicating the reason of failure.
+  alloc_result_t alloc(cell_slot_resource_grid& ul_res_grid, slot_point sl, res_idx_t res_idx);
+
   /// \brief Allocate a common PUCCH resource at a given slot.
   /// \return Success if the allocation was successful, otherwise an error indicating the reason of failure.
-  alloc_result_t alloc_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, r_pucch_t r_pucch);
+  alloc_result_t alloc_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned r_pucch);
 
   /// \brief Allocate a dedicated PUCCH resource at a given slot.
   /// \return Success if the allocation was successful, otherwise an error indicating the reason of failure.
   alloc_result_t alloc_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id);
 
-  /// Free a common PUCCH resource at a given slot.
-  void free_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, r_pucch_t r_pucch);
+  /// \brief Free the PUCCH resource indexed by \c res_idx at the given slot.
+  /// \return True if the resource was successfully freed, false if the resource was not allocated.
+  bool free(cell_slot_resource_grid& ul_res_grid, slot_point sl, res_idx_t res_idx);
 
-  /// Free a dedicated PUCCH resource at a given slot.
-  void free_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id);
+  /// Free a common PUCCH resource at the given slot.
+  /// \return True if the resource was successfully freed, false if the resource was not allocated.
+  bool free_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned r_pucch);
+
+  /// Free a dedicated PUCCH resource at the given slot.
+  /// \return True if the resource was successfully freed, false if the resource was not allocated.
+  bool free_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id);
 
 private:
-  /// Maximum number of common PUCCH resources managed by the collision manager.
-  static constexpr unsigned nof_common_res = pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES;
-  /// Maximum number of PUCCH resources managed by the collision manager (common + dedicated).
-  static constexpr unsigned max_nof_cell_resources = nof_common_res + pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES;
-
   /// \brief List of all PUCCH resources (common + dedicated) in the cell configuration.
   using cell_resources_t = static_vector<detail::resource_info, max_nof_cell_resources>;
   /// \brief Collision matrix indicating which resources collide with each other.
@@ -171,12 +193,6 @@ private:
 
   /// Compute the multiplexing matrix for all PUCCH resources in the cell configuration.
   static mux_regions_matrix_t compute_mux_regions(span<const detail::resource_info> resources);
-
-  /// Allocate the PUCCH resource at \ref res_idx at a given slot.
-  alloc_result_t alloc_resource(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx);
-
-  /// Free the PUCCH resource at \ref res_idx at a given slot.
-  void free_resource(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx);
 };
 
 } // namespace ocudu

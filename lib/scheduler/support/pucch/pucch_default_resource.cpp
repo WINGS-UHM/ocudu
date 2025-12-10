@@ -37,7 +37,7 @@ unsigned ocudu::get_pucch_default_cyclic_shift(unsigned r_pucch, unsigned nof_cs
   ocudu_assert(r_pucch < 16, "The PUCCH resource index {} exceeds the maximum allowed {}.", r_pucch, 16);
   ocudu_assert(nof_cs > 0, "The number of cyclic shift must be greater than zero.");
   unsigned result = r_pucch % nof_cs;
-  if (r_pucch > 8) {
+  if (r_pucch / 8 == 1) {
     result = (r_pucch - 8) % nof_cs;
   }
   return result;

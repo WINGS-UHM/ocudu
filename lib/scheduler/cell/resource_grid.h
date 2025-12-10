@@ -145,6 +145,12 @@ public:
   /// \return true if all symbols and CRBs  of the provided range are set. False otherwise.
   bool all_set(ofdm_symbol_range symbols, crb_interval crbs) const;
 
+  bool operator==(const carrier_subslot_resource_grid& other) const
+  {
+    return carrier_cfg == other.carrier_cfg and slot_rbs == other.slot_rbs;
+  }
+  bool operator!=(const carrier_subslot_resource_grid& other) const { return not(*this == other); }
+
 private:
   /// Represents a matrix of symbol index x carrier RB index. The matrix dimensions get scaled based on the number
   /// of carrier RBs. RB index=0 corresponds to the carrier offset. Resources in the bitset are represented in the

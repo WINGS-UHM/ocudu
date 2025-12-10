@@ -15,6 +15,10 @@
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
@@ -28,6 +32,22 @@ static cell_configuration make_test_cell_configuration(const std::vector<pucch_r
   sched_req.ded_pucch_resources = ded_res;
   sched_req.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common = pucch_resource_common;
   return cell_configuration{expert_cfg, sched_req};
+}
+
+TEST(pucch_collision_manager_test, common_resources_dont_collide_with_each_other)
+{
+  static constexpr unsigned nof_common_res_sets = 16;
+  static constexpr unsigned nof_common_res      = pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES;
+  for (unsigned pucch_resource_common = 0; pucch_resource_common != nof_common_res_sets; ++pucch_resource_common) {
+    const auto              cell_cfg = make_test_cell_configuration({}, pucch_resource_common);
+    pucch_collision_manager col_manager(cell_cfg);
+
+    for (unsigned r_pucch = 0; r_pucch != nof_common_res; ++r_pucch) {
+      const auto& row = col_manager.get_collision_row(col_manager.get_common_idx(r_pucch));
+      ASSERT_EQ(1U, row.count());
+      ASSERT_TRUE(row.test(r_pucch));
+    }
+  }
 }
 
 // For reference, these are the common PUCCH resources with the default configuration:
@@ -51,23 +71,6 @@ static cell_configuration make_test_cell_configuration(const std::vector<pucch_r
 // | 14      | F1     | 0              | [48, 49) [0, 7)  | [3, 4) [7, 14)   |
 // | 15      | F1     | 6              | [48, 49) [0, 7)  | [3, 4) [7, 14)   |
 // |---------|--------|----------------|------------------|------------------|
-TEST(pucch_collision_manager_test, common_resources_dont_collide_with_each_other)
-{
-  const auto              cell_cfg = make_test_cell_configuration();
-  pucch_collision_manager col_manager(cell_cfg);
-  cell_slot_resource_grid ul_res_grid(cell_cfg.ul_cfg_common.freq_info_ul.scs_carrier_list);
-
-  slot_point sl(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, 0);
-  col_manager.slot_indication(sl);
-  for (unsigned r_pucch = 0; r_pucch < pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES; ++r_pucch) {
-    auto res = col_manager.alloc_common(ul_res_grid, sl, r_pucch);
-    ASSERT_TRUE(res.has_value());
-    res = col_manager.alloc_common(ul_res_grid, sl, r_pucch);
-    ASSERT_FALSE(res.has_value());
-    ASSERT_EQ(res.error(), pucch_collision_manager::alloc_failure_reason::PUCCH_COLLISION);
-  }
-}
-
 TEST(pucch_collision_manager_test, resources_of_different_formats_collide_if_they_overlap_in_time_freq)
 {
   const auto              cell_cfg = make_test_cell_configuration({
@@ -83,19 +86,24 @@ TEST(pucch_collision_manager_test, resources_of_different_formats_collide_if_the
   });
   pucch_collision_manager col_manager(cell_cfg);
 
-  // Common Res 2..7 and 10..15 don't overlap with the dedicated resources in time/freq, so they don't collide.
+  // These common resources don't collide with the dedicated resource because:
+  //  - No overlap in time/freq.
   for (unsigned r_pucch = 2; r_pucch != 8; ++r_pucch) {
-    ASSERT_FALSE(col_manager.check_common_to_ded_collision(r_pucch, 0));
+    ASSERT_EQ(1U, col_manager.get_collision_row(col_manager.get_common_idx(r_pucch)).count());
   }
   for (unsigned r_pucch = 10; r_pucch != 16; ++r_pucch) {
-    ASSERT_FALSE(col_manager.check_common_to_ded_collision(r_pucch, 0));
+    ASSERT_EQ(1U, col_manager.get_collision_row(col_manager.get_common_idx(r_pucch)).count());
   }
 
-  // Common Res 0, 1, 8, and 9 overlap with the dedicated resource in time/freq, so they collide.
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(0, 0));
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(1, 0));
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(8, 0));
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(9, 0));
+  // These common resources do collide with the dedicated resource because:
+  //  - Overlap in time/freq.
+  //  - Different formats.
+  const auto ded_idx = col_manager.get_ded_idx(0);
+  for (unsigned r_pucch : {0, 1, 8, 9}) {
+    const auto& row = col_manager.get_collision_row(col_manager.get_common_idx(r_pucch));
+    ASSERT_EQ(2U, row.count());
+    ASSERT_TRUE(row.test(ded_idx.value()));
+  }
 }
 
 TEST(pucch_collision_manager_test, multiplexed_resources_collide_if_different_time_freq_grants)
@@ -113,47 +121,48 @@ TEST(pucch_collision_manager_test, multiplexed_resources_collide_if_different_ti
   });
   pucch_collision_manager col_manager(cell_cfg);
 
-  // Common Res 2..7 and 10..15 don't overlap with the dedicated resources in time/freq, so they don't collide.
+  // These common resources don't collide with the dedicated resource because:
+  //  - No overlap in time/freq.
   for (unsigned r_pucch = 2; r_pucch != 8; ++r_pucch) {
-    ASSERT_FALSE(col_manager.check_common_to_ded_collision(r_pucch, 0));
+    ASSERT_EQ(1U, col_manager.get_collision_row(col_manager.get_common_idx(r_pucch)).count());
   }
   for (unsigned r_pucch = 10; r_pucch != 16; ++r_pucch) {
-    ASSERT_FALSE(col_manager.check_common_to_ded_collision(r_pucch, 0));
+    ASSERT_EQ(1U, col_manager.get_collision_row(col_manager.get_common_idx(r_pucch)).count());
   }
 
-  // Test the collisions between Dedicated Res 0 and the common resources that overlap in time/freq.
-  // Common Res 0 overlaps in time/freq and has the same mux index.
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(0, 0));
-  // Common Res 9 overlaps in time/freq for the second hop, and even though they have the same format and different mux
-  // indices, the time/freq grants are not equal, so they collide.
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(1, 0));
-  // Common Res 8 overlaps in time/freq and has the same mux index.
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(8, 0));
-  // Common Res 9 overlaps in time/freq for the second hop, and even though they have the same format and different mux
-  // indices, the time/freq grants are not equal, so they collide.
-  ASSERT_TRUE(col_manager.check_common_to_ded_collision(9, 0));
+  // These common resources do collide with the dedicated resource because:
+  //  - Overlap in time/freq.
+  //  - Different time/freq grants.
+  const auto ded_idx = col_manager.get_ded_idx(0);
+  for (unsigned r_pucch : {0, 1, 8, 9}) {
+    const auto& row = col_manager.get_collision_row(col_manager.get_common_idx(r_pucch));
+    ASSERT_EQ(2U, row.count());
+    ASSERT_TRUE(row.test(ded_idx.value()));
+  }
 }
 
 TEST(pucch_collision_manager_test, f0_multiplexed_resources_dont_collide)
 {
   std::vector<pucch_resource> ded_res_list;
-  for (uint8_t i = 0; i != pucch_constants::format0_initial_cyclic_shift_range.stop(); ++i) {
+  for (uint8_t ics = 0; ics != pucch_constants::format0_initial_cyclic_shift_range.stop(); ++ics) {
     ded_res_list.push_back(pucch_resource{
-        .res_id           = {i, i},
+        .res_id           = {ics, ics},
         .starting_prb     = 0,
         .second_hop_prb   = std::nullopt,
         .nof_symbols      = 2,
         .starting_sym_idx = 0,
         .format           = pucch_format::FORMAT_0,
-        .format_params    = pucch_format_0_cfg{.initial_cyclic_shift = i},
+        .format_params    = pucch_format_0_cfg{.initial_cyclic_shift = ics},
     });
   }
   const auto              cell_cfg = make_test_cell_configuration(ded_res_list);
   pucch_collision_manager col_manager(cell_cfg);
 
+  // Check that no dedicated resources collide with each other.
   for (unsigned i = 0; i != ded_res_list.size(); ++i) {
+    const auto& row = col_manager.get_collision_row(col_manager.get_ded_idx(i));
     for (unsigned j = i + 1; j != ded_res_list.size(); ++j) {
-      ASSERT_FALSE(col_manager.check_ded_to_ded_collision(i, j));
+      ASSERT_FALSE(row.test(col_manager.get_ded_idx(j).value()));
     }
   }
 }
@@ -161,8 +170,8 @@ TEST(pucch_collision_manager_test, f0_multiplexed_resources_dont_collide)
 TEST(pucch_collision_manager_test, f1_multiplexed_resources_dont_collide)
 {
   std::vector<pucch_resource> ded_res_list;
-  for (uint8_t i = 0; i != pucch_constants::format1_initial_cyclic_shift_range.stop(); ++i) {
-    for (uint8_t j = 0; j != pucch_constants::format1_time_domain_occ_range.stop(); ++j) {
+  for (uint8_t ics = 0; ics != pucch_constants::format1_initial_cyclic_shift_range.stop(); ++ics) {
+    for (uint8_t occ = 0; occ != pucch_constants::format1_time_domain_occ_range.stop(); ++occ) {
       ded_res_list.push_back(pucch_resource{
           .res_id           = {static_cast<unsigned>(ded_res_list.size()), static_cast<unsigned>(ded_res_list.size())},
           .starting_prb     = 0,
@@ -170,16 +179,18 @@ TEST(pucch_collision_manager_test, f1_multiplexed_resources_dont_collide)
           .nof_symbols      = 14,
           .starting_sym_idx = 0,
           .format           = pucch_format::FORMAT_1,
-          .format_params    = pucch_format_1_cfg{.initial_cyclic_shift = i, .time_domain_occ = j},
+          .format_params    = pucch_format_1_cfg{.initial_cyclic_shift = ics, .time_domain_occ = occ},
       });
     }
   }
   const auto              cell_cfg = make_test_cell_configuration(ded_res_list);
   pucch_collision_manager col_manager(cell_cfg);
 
+  // Check that no dedicated resources collide with each other.
   for (unsigned i = 0; i != ded_res_list.size(); ++i) {
+    const auto& row = col_manager.get_collision_row(col_manager.get_ded_idx(i));
     for (unsigned j = i + 1; j != ded_res_list.size(); ++j) {
-      ASSERT_FALSE(col_manager.check_ded_to_ded_collision(i, j));
+      ASSERT_FALSE(row.test(col_manager.get_ded_idx(j).value()));
     }
   }
 }
@@ -187,53 +198,70 @@ TEST(pucch_collision_manager_test, f1_multiplexed_resources_dont_collide)
 TEST(pucch_collision_manager_test, f4_multiplexed_resources_dont_collide)
 {
   std::vector<pucch_resource> ded_res_list;
-  for (unsigned i = 0; i != 4; ++i) {
+  for (unsigned occ = 0; occ != 4; ++occ) {
     ded_res_list.push_back(pucch_resource{
-        .res_id           = {i, i},
+        .res_id           = {occ, occ},
         .starting_prb     = 0,
         .second_hop_prb   = std::nullopt,
         .nof_symbols      = 14,
         .starting_sym_idx = 0,
         .format           = pucch_format::FORMAT_4,
         .format_params =
-            pucch_format_4_cfg{.occ_length = pucch_f4_occ_len::n4, .occ_index = static_cast<pucch_f4_occ_idx>(i)},
+            pucch_format_4_cfg{.occ_length = pucch_f4_occ_len::n4, .occ_index = static_cast<pucch_f4_occ_idx>(occ)},
     });
   }
   const auto              cell_cfg = make_test_cell_configuration(ded_res_list);
   pucch_collision_manager col_manager(cell_cfg);
 
+  // Check that no dedicated resources collide with each other.
   for (unsigned i = 0; i != ded_res_list.size(); ++i) {
+    const auto& row = col_manager.get_collision_row(col_manager.get_ded_idx(i));
     for (unsigned j = i + 1; j != ded_res_list.size(); ++j) {
-      ASSERT_FALSE(col_manager.check_ded_to_ded_collision(i, j));
+      ASSERT_FALSE(row.test(col_manager.get_ded_idx(j).value()));
     }
   }
 }
 
 TEST(pucch_collision_manager_test, check_mux_regions_count_for_common_resources)
 {
-  static constexpr std::array<unsigned, 16> nof_expected_mux_regions = {
-      8, // 2 CS
-      6, // 3 CS, resources distributed in regions as 3-3-2-3-3-2
-      6, // 3 CS, resources distributed in regions as 3-3-2-3-3-2
-      8, // 2 CS
-      4, // 4 CS
-      4, // 4 CS
-      4, // 4 CS
-      8, // 2 CS
-      4, // 4 CS
-      4, // 4 CS
-      4, // 4 CS
-      8, // 2 CS
-      4, // 4 CS
-      4, // 4 CS
-      4, // 4 CS
-      4, // 4 CS
+  // Return the sizes of the expected mux regions according to the number of CS available for a given common resource.
+  auto expected_regions_from_number_of_cs = [](unsigned nof_cs) -> std::vector<unsigned> {
+    switch (nof_cs) {
+      case 2:
+        return {2, 2, 2, 2, 2, 2, 2, 2};
+      case 3:
+        return {3, 3, 2, 3, 3, 2};
+      case 4:
+        return {4, 4, 4, 4};
+      default:
+        ocudu_assertion_failure("Unexpected number of cyclic shifts for common PUCCH resources");
+        return {};
+    }
   };
+
+  static constexpr std::array<unsigned, 16> pucch_common_res_nof_cs{2, 3, 3, 2, 4, 4, 4, 2, 4, 4, 4, 2, 4, 4, 4, 4};
+
   for (unsigned pucch_resource_common = 0; pucch_resource_common != 16; ++pucch_resource_common) {
     const auto              cell_cfg = make_test_cell_configuration({}, pucch_resource_common);
     pucch_collision_manager col_manager(cell_cfg);
 
-    ASSERT_EQ(nof_expected_mux_regions[pucch_resource_common], col_manager.nof_mux_regions());
+    const unsigned nof_cs           = pucch_common_res_nof_cs[pucch_resource_common];
+    const auto     expected_regions = expected_regions_from_number_of_cs(nof_cs);
+
+    unsigned r_pucch = 0;
+    for (unsigned region_size : expected_regions) {
+      // Get the mux row for the first resource in the region.
+      const auto* row = col_manager.get_mux_row(col_manager.get_common_idx(r_pucch));
+      ASSERT_NE(nullptr, row);
+      ASSERT_EQ(region_size, row->count());
+
+      // Check that all resources in the region map to the same mux row.
+      for (unsigned i = 1; i != region_size; ++i) {
+        ASSERT_EQ(row, col_manager.get_mux_row(col_manager.get_common_idx(r_pucch + i)));
+      }
+
+      r_pucch += region_size;
+    }
   }
 }
 
@@ -278,6 +306,226 @@ TEST(pucch_collision_manager_test, handles_max_dedicated_resources_with_unique_r
   cell_cfg.ded_pucch_resources = ded_res_list;
   pucch_collision_manager col_manager(cell_cfg);
 
-  // Only the multiplexing regions of the common resources should be present.
-  EXPECT_EQ(8U, col_manager.nof_mux_regions());
+  // None of the dedicated resources should be part of a multiplexing region.
+  for (unsigned cell_res_id = 0; cell_res_id != ded_res_list.size(); ++cell_res_id) {
+    const auto* const row = col_manager.get_mux_row(col_manager.get_ded_idx(cell_res_id));
+    ASSERT_EQ(nullptr, row);
+  }
+}
+
+class pucch_collision_manager_rg_test : public ::testing::Test
+{
+protected:
+  pucch_collision_manager_rg_test() :
+    // Dedicated resource needed for testing PUCCH-to-PUCCH collisions.
+    ded_res({
+        .res_id           = {0, 0},
+        .starting_prb     = 0,
+        .second_hop_prb   = std::nullopt,
+        .nof_symbols      = 14,
+        .starting_sym_idx = 0,
+        .format           = pucch_format::FORMAT_1,
+        .format_params    = pucch_format_1_cfg{.initial_cyclic_shift = 0, .time_domain_occ = 0},
+    }),
+    cell_cfg(make_test_cell_configuration({ded_res})),
+    common_grants({
+        make_common_grants(0, 51),
+        make_common_grants(0, 51),
+        make_common_grants(1, 50),
+        make_common_grants(1, 50),
+        make_common_grants(2, 49),
+        make_common_grants(2, 49),
+        make_common_grants(3, 48),
+        make_common_grants(3, 48),
+        make_common_grants(51, 0),
+        make_common_grants(51, 0),
+        make_common_grants(50, 1),
+        make_common_grants(50, 1),
+        make_common_grants(49, 2),
+        make_common_grants(49, 2),
+        make_common_grants(48, 3),
+        make_common_grants(48, 3),
+    }),
+    ded_grant(grant_info(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                         ofdm_symbol_range::start_and_len(0, 14),
+                         crb_interval::start_and_len(0, 1))),
+    col_manager(cell_cfg),
+    slot_alloc(cell_cfg),
+    sl(0, 0)
+  {
+    col_manager.slot_indication(sl);
+    slot_alloc.slot_indication(sl);
+  }
+
+  void run_slot()
+  {
+    ++sl;
+    col_manager.slot_indication(sl);
+    slot_alloc.slot_indication(sl);
+  }
+
+  const pucch_resource                                    ded_res;
+  const cell_configuration                                cell_cfg;
+  const std::array<std::pair<grant_info, grant_info>, 16> common_grants;
+  const grant_info                                        ded_grant;
+
+  pucch_collision_manager      col_manager;
+  cell_slot_resource_allocator slot_alloc;
+  slot_point                   sl;
+
+private:
+  // Helper to compute common resource grants.
+  std::pair<grant_info, grant_info> make_common_grants(unsigned first_hop_crb, unsigned second_hop_crb) const
+  {
+    return {grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                       ofdm_symbol_range::start_and_len(0, 7),
+                       crb_interval::start_and_len(first_hop_crb, 1)},
+            grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                       ofdm_symbol_range::start_and_len(7, 7),
+                       crb_interval::start_and_len(second_hop_crb, 1)}};
+  }
+};
+
+static void check_rg_has_expected_grants(const cell_slot_resource_grid& ul_res_grid,
+                                         const std::vector<grant_info>& expected_grants)
+{
+  cell_slot_resource_grid expected_rg = ul_res_grid;
+  expected_rg.clear();
+
+  for (const auto& grant : expected_grants) {
+    ASSERT_TRUE(ul_res_grid.all_set(grant));
+    expected_rg.fill(grant);
+  }
+
+  for (subcarrier_spacing scs : expected_rg.active_scs()) {
+    ASSERT_EQ(ul_res_grid.get_carrier_res_grid(scs), expected_rg.get_carrier_res_grid(scs));
+  }
+}
+
+TEST_F(pucch_collision_manager_rg_test, alloc_fills_grants_in_ul_res_grid)
+{
+  // Allocate all common resources one by one.
+  std::vector<grant_info> expected_grants;
+  for (unsigned r_pucch = 0; r_pucch != pucch_collision_manager::nof_common_res; ++r_pucch) {
+    ASSERT_TRUE(col_manager.alloc_common(slot_alloc.ul_res_grid, sl, r_pucch).has_value());
+
+    // Check that only the expected grants were written to the resource grid.
+    expected_grants.push_back(common_grants[r_pucch].first);
+    expected_grants.push_back(common_grants[r_pucch].second);
+    check_rg_has_expected_grants(slot_alloc.ul_res_grid, expected_grants);
+  }
+
+  // Advance to the next slot.
+  run_slot();
+
+  // Allocate the dedicated resource.
+  ASSERT_TRUE(col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).has_value());
+
+  // Check that only the expected grants were written to the resource grid.
+  check_rg_has_expected_grants(slot_alloc.ul_res_grid, {ded_grant});
+}
+
+TEST_F(pucch_collision_manager_rg_test, alloc_fails_if_ul_res_grid_occupied)
+{
+  // Helper to test UL grant collision.
+  auto expect_ul_grant_collision = [&](grant_info grant, auto allocator) {
+    // Fill the resource grid with the conflicting grant.
+    slot_alloc.ul_res_grid.fill(grant);
+
+    // Try the allocation. It should fail with an UL grant collision.
+    auto res = allocator();
+    ASSERT_FALSE(res.has_value());
+    ASSERT_EQ(pucch_collision_manager::alloc_failure_reason::UL_GRANT_COLLISION, res.error());
+
+    // Check that the resource grid was not modified.
+    check_rg_has_expected_grants(slot_alloc.ul_res_grid, {grant});
+
+    // Clear the resource grid.
+    slot_alloc.ul_res_grid.clear(grant);
+  };
+
+  // Simulate UL grant collision when allocating common PUCCH resources.
+  for (unsigned r_pucch = 0; r_pucch != pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES; ++r_pucch) {
+    // Simulate a collision with the first hop.
+    expect_ul_grant_collision(common_grants[r_pucch].first,
+                              [&]() { return col_manager.alloc_common(slot_alloc.ul_res_grid, sl, r_pucch); });
+
+    // Simulate a collision with the second hop.
+    expect_ul_grant_collision(common_grants[r_pucch].second,
+                              [&]() { return col_manager.alloc_common(slot_alloc.ul_res_grid, sl, r_pucch); });
+  }
+
+  // Simulate UL grant collision when allocating the dedicated PUCCH resource.
+  expect_ul_grant_collision(ded_grant, [&]() { return col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0); });
+}
+
+TEST_F(pucch_collision_manager_rg_test, alloc_fails_if_pucch_collision)
+{
+  // Note: Common Res 0 collides with the dedicated resource for the tested configuration.
+
+  // First common, then dedicated.
+  ASSERT_TRUE(col_manager.alloc_common(slot_alloc.ul_res_grid, sl, 0).has_value());
+  ASSERT_FALSE(col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).has_value());
+  ASSERT_EQ(pucch_collision_manager::alloc_failure_reason::PUCCH_COLLISION,
+            col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).error());
+
+  // Advance to the next slot.
+  run_slot();
+
+  // First dedicated, then common.
+  ASSERT_TRUE(col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).has_value());
+  ASSERT_FALSE(col_manager.alloc_common(slot_alloc.ul_res_grid, sl, 0).has_value());
+  ASSERT_EQ(pucch_collision_manager::alloc_failure_reason::PUCCH_COLLISION,
+            col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).error());
+}
+
+TEST_F(pucch_collision_manager_rg_test, free_clears_grants_in_ul_res_grid)
+{
+  // Allocate and free all common resources one by one.
+  for (unsigned r_pucch = 0; r_pucch != pucch_collision_manager::nof_common_res; ++r_pucch) {
+    ASSERT_TRUE(col_manager.alloc_common(slot_alloc.ul_res_grid, sl, r_pucch).has_value());
+    ASSERT_TRUE(col_manager.free_common(slot_alloc.ul_res_grid, sl, r_pucch));
+
+    check_rg_has_expected_grants(slot_alloc.ul_res_grid, {});
+  }
+
+  // Allocate and free the dedicated resource.
+  ASSERT_TRUE(col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).has_value());
+  ASSERT_TRUE(col_manager.free_ded(slot_alloc.ul_res_grid, sl, 0));
+
+  check_rg_has_expected_grants(slot_alloc.ul_res_grid, {});
+}
+
+TEST_F(pucch_collision_manager_rg_test, free_doesnt_clear_grants_if_resource_is_being_muxed)
+{
+  // Note: Common Res 0 and 1 are multiplexed together for the tested configuration.
+  ASSERT_TRUE(col_manager.alloc_common(slot_alloc.ul_res_grid, sl, 0).has_value());
+  ASSERT_TRUE(col_manager.alloc_common(slot_alloc.ul_res_grid, sl, 1).has_value());
+
+  // Note: the grants are the same for both resources.
+  const std::vector<grant_info> expected_grants{
+      common_grants[0].first,
+      common_grants[0].second,
+  };
+  check_rg_has_expected_grants(slot_alloc.ul_res_grid, expected_grants);
+
+  // Free the first resource. Grants should remain because the second resource is still allocated.
+  ASSERT_TRUE(col_manager.free_common(slot_alloc.ul_res_grid, sl, 0));
+  check_rg_has_expected_grants(slot_alloc.ul_res_grid, expected_grants);
+
+  // Free the second resource. Grants should be cleared now.
+  ASSERT_TRUE(col_manager.free_common(slot_alloc.ul_res_grid, sl, 1));
+  check_rg_has_expected_grants(slot_alloc.ul_res_grid, {});
+}
+
+TEST_F(pucch_collision_manager_rg_test, free_doesnt_clear_grants_if_resource_was_not_allocated)
+{
+  // Simulate a non-PUCCH grant over the dedicated resource grant.
+  slot_alloc.ul_res_grid.fill(ded_grant);
+
+  // Try to free the dedicated resource. It should return false and not clear the grant.
+  ASSERT_FALSE(col_manager.free_ded(slot_alloc.ul_res_grid, sl, 0));
+
+  // Check that the resource grid was not modified.
+  check_rg_has_expected_grants(slot_alloc.ul_res_grid, {ded_grant});
 }

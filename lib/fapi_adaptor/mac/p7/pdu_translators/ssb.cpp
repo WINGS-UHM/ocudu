@@ -63,13 +63,14 @@ void ocudu::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& buil
                                                   const dl_ssb_pdu&         mac_pdu,
                                                   slot_point                slot)
 {
-  builder.set_basic_parameters(mac_pdu.pci,
-                               convert_to_beta_pss_profile_nr(mac_pdu.pss_to_sss_epre),
-                               mac_pdu.ssb_index,
-                               mac_pdu.subcarrier_offset.value(),
-                               mac_pdu.offset_to_pointA);
-
-  builder.set_maintenance_v3_basic_parameters(mac_pdu.ssb_case, mac_pdu.scs, mac_pdu.L_max);
+  builder.set_carrier_parameters(mac_pdu.scs)
+      .set_cell_parameters(mac_pdu.pci)
+      .set_power_parameters(convert_to_beta_pss_profile_nr(mac_pdu.pss_to_sss_epre))
+      .set_ssb_parameters(ssb_id_t(mac_pdu.ssb_index),
+                          mac_pdu.subcarrier_offset.value(),
+                          mac_pdu.offset_to_pointA,
+                          mac_pdu.ssb_case,
+                          mac_pdu.L_max);
 
   builder.set_bch_payload_phy_timing_info(generate_bch_payload(mac_pdu, slot.sfn(), slot.is_odd_hrf(), slot.scs()) >>
                                           8);

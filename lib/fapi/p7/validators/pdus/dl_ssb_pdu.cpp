@@ -51,12 +51,13 @@ static bool validate_block_index(unsigned value, validator_report& report)
 }
 
 /// Validates the subcarrier offset property of the SSB PDU, as per SCF-222 v4.0 section 3.4.2.4.
-static bool validate_subcarrier_offset(unsigned value, validator_report& report)
+static bool validate_subcarrier_offset(ssb_subcarrier_offset value, validator_report& report)
 {
   static constexpr unsigned MIN_VALUE = 0;
   static constexpr unsigned MAX_VALUE = 31;
 
-  return validate_field(MIN_VALUE, MAX_VALUE, value, "Subcarrier offset", msg_type, pdu_type, report);
+  return validate_field(
+      MIN_VALUE, MAX_VALUE, static_cast<unsigned>(value.value()), "Subcarrier offset", msg_type, pdu_type, report);
 }
 
 /// Validates the offset point A property of the SSB PDU, as per SCF-222 v4.0 section 3.4.2.4.
@@ -66,16 +67,6 @@ static bool validate_offset_point_A(unsigned value, validator_report& report)
   static constexpr unsigned MAX_VALUE = 2199;
 
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Offset point A", msg_type, pdu_type, report);
-}
-
-/// Validates the DMRS type A position property of the SSB PDU, as per SCF-222 v4.0 section 3.4.2.4 in table PHY
-/// MIB.
-static bool validate_dmrs_type_a_position(unsigned value, validator_report& report)
-{
-  static constexpr unsigned MIN_VALUE = 0;
-  static constexpr unsigned MAX_VALUE = 1;
-
-  return validate_field(MIN_VALUE, MAX_VALUE, value, "DMRS type A position", msg_type, pdu_type, report);
 }
 
 /// Validates the case property of the SSB PDU, as per SCF-222 v4.0 section 3.4.2.4 in table SSB/PBCH PDU maintenance
@@ -117,22 +108,13 @@ bool ocudu::fapi::validate_dl_ssb_pdu(const dl_ssb_pdu& pdu, validator_report& r
   result &= validate_phy_cell_id(pdu.phys_cell_id, report);
   result &= validate_beta_pss_profile_nr(static_cast<unsigned>(pdu.beta_pss_profile_nr), report);
   result &= validate_block_index(pdu.ssb_block_index, report);
-  result &= validate_subcarrier_offset(pdu.ssb_subcarrier_offset, report);
+  result &= validate_subcarrier_offset(pdu.subcarrier_offset, report);
   result &= validate_offset_point_A(pdu.ssb_offset_pointA.value(), report);
-  // NOTE: BCH payload property will not be validated.
-  if (pdu.bch_payload_flag == bch_payload_type::phy_full) {
-    result &= validate_dmrs_type_a_position(
-        static_cast<std::underlying_type_t<fapi::dmrs_typeA_pos>>(pdu.bch_payload.phy_mib_pdu.dmrs_typeA_position),
-        report);
-    // NOTE: PDCCH config SIB1 property uses the whole range and will not be validated.
-    // NOTE: Cell barred property uses the whole range and will not be validated.
-    // NOTE: Intra freq reselection property uses the whole range and will not be validated.
-  }
 
   // NOTE: SSB PDU index property will not be validated, as its range is not defined.
-  result &= validate_case(static_cast<unsigned>(pdu.ssb_maintenance_v3.case_type), report);
-  result &= validate_subcarrier_spacing(static_cast<unsigned>(pdu.ssb_maintenance_v3.scs), report);
-  result &= validate_L_max(pdu.ssb_maintenance_v3.L_max, report);
+  result &= validate_case(static_cast<unsigned>(pdu.case_type), report);
+  result &= validate_subcarrier_spacing(static_cast<unsigned>(pdu.scs), report);
+  result &= validate_L_max(pdu.L_max, report);
 
   return result;
 }

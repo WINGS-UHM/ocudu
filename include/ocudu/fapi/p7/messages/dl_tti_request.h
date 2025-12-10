@@ -25,7 +25,6 @@ namespace fapi {
 /// Common downlink PDU information.
 struct dl_tti_request_pdu {
   dl_pdu_type pdu_type;
-  uint16_t    pdu_size;
 
   // :TODO: add these fields in a std::variant.
   dl_pdcch_pdu  pdcch_pdu;
@@ -44,7 +43,6 @@ struct dl_tti_request : public base_message {
 
   slot_point                                              slot;
   std::array<uint16_t, MAX_NUM_DL_TYPES>                  num_pdus_of_each_type = {};
-  uint16_t                                                num_groups;
   static_vector<dl_tti_request_pdu, MAX_DL_PDUS_PER_SLOT> pdus;
   //: TODO: groups array
   //: TODO: top level rate match patterns

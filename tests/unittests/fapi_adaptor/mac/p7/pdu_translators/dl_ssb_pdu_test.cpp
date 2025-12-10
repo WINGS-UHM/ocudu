@@ -46,16 +46,12 @@ TEST(mac_fapi_ssb_pdu_conversor_test, valid_pdu_should_pass)
   ASSERT_EQ(pdu.pci, fapi_pdu.phys_cell_id);
   ASSERT_EQ(static_cast<unsigned>(pdu.pss_to_sss_epre), static_cast<unsigned>(fapi_pdu.beta_pss_profile_nr));
   ASSERT_EQ(pdu.ssb_index, fapi_pdu.ssb_block_index);
-  ASSERT_EQ(pdu.subcarrier_offset.value(), fapi_pdu.ssb_subcarrier_offset);
+  ASSERT_EQ(pdu.subcarrier_offset, fapi_pdu.subcarrier_offset);
   ASSERT_EQ(pdu.offset_to_pointA.value(), fapi_pdu.ssb_offset_pointA.value());
-
-  // Maintenance v3 parameters.
-  ASSERT_EQ(static_cast<unsigned>(pdu.ssb_case), static_cast<unsigned>(fapi_pdu.ssb_maintenance_v3.case_type));
-  ASSERT_EQ(pdu.L_max, fapi_pdu.ssb_maintenance_v3.L_max);
-  ASSERT_EQ(static_cast<unsigned>(pdu.scs), static_cast<unsigned>(fapi_pdu.ssb_maintenance_v3.scs));
+  ASSERT_EQ(static_cast<unsigned>(pdu.ssb_case), static_cast<unsigned>(fapi_pdu.case_type));
+  ASSERT_EQ(pdu.L_max, fapi_pdu.L_max);
+  ASSERT_EQ(static_cast<unsigned>(pdu.scs), static_cast<unsigned>(fapi_pdu.scs));
 
   // MIB.
-  ASSERT_EQ(fapi::bch_payload_type::phy_timing_info, fapi_pdu.bch_payload_flag);
-  ASSERT_EQ(generate_bch_payload(pdu, slot.sfn(), slot.is_odd_hrf(), slot.scs()) >> 8,
-            fapi_pdu.bch_payload.bch_payload);
+  ASSERT_EQ(generate_bch_payload(pdu, slot.sfn(), slot.is_odd_hrf(), slot.scs()) >> 8, fapi_pdu.bch_payload);
 }

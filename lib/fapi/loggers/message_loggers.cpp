@@ -110,12 +110,17 @@ static void log_pdcch_pdu(const dl_pdcch_pdu& pdu, fmt::memory_buffer& buffer)
 
 static void log_ssb_pdu(const dl_ssb_pdu& pdu, fmt::memory_buffer& buffer)
 {
-  fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- SSB pointA={} L_max={} pci={} k_SSB={}",
-                 pdu.ssb_offset_pointA.value(),
-                 pdu.ssb_maintenance_v3.L_max,
-                 pdu.phys_cell_id,
-                 pdu.ssb_subcarrier_offset);
+  fmt::format_to(
+      std::back_inserter(buffer),
+      "\n\t- SSB pci={} beta_pss_profile={} ssb_block_index={} k_SSB={} pointA={} ssb_pattern_case={} scs={} L_max={}",
+      pdu.phys_cell_id,
+      static_cast<uint8_t>(pdu.beta_pss_profile_nr),
+      static_cast<uint8_t>(pdu.ssb_block_index),
+      pdu.subcarrier_offset.value(),
+      pdu.ssb_offset_pointA.value(),
+      static_cast<uint8_t>(pdu.case_type),
+      to_string(pdu.scs),
+      pdu.L_max);
 }
 
 static void log_pdsch_pdu(const dl_pdsch_pdu& pdu, fmt::memory_buffer& buffer)

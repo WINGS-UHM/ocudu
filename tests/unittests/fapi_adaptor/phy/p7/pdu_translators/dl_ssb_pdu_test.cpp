@@ -9,7 +9,7 @@
  */
 
 #include "ssb.h"
-#include "ocudu/fapi/p7/builders/dl_tti_request_builder.h"
+#include "ocudu/fapi/p7/builders/dl_ssb_pdu_builder.h"
 #include "ocudu/ocuduvec/bit.h"
 #include "ocudu/ocuduvec/compare.h"
 #include "ocudu/ran/ssb/pbch_mib_pack.h"
@@ -21,20 +21,20 @@ using namespace fapi_adaptor;
 
 static std::mt19937 gen(0);
 
-static uint32_t generate_bch_payload(unsigned            ssb_subcarrier_offset,
-                                     dmrs_typeA_position dmrs_type_a_position,
-                                     uint8_t             pdcch_config_sib1,
-                                     bool                cell_barred,
-                                     bool                intra_freq_reselection,
-                                     uint32_t            sfn,
-                                     bool                hrf,
-                                     subcarrier_spacing  scs_common)
+static uint32_t generate_bch_payload(ssb_subcarrier_offset subcarrier_offset,
+                                     dmrs_typeA_position   dmrs_type_a_position,
+                                     uint8_t               pdcch_config_sib1,
+                                     bool                  cell_barred,
+                                     bool                  intra_freq_reselection,
+                                     uint32_t              sfn,
+                                     bool                  hrf,
+                                     subcarrier_spacing    scs_common)
 {
   // Prepare message parameters.
   pbch_mib_message msg = {.sfn                   = sfn,
                           .hrf                   = hrf,
                           .scs_common            = scs_common,
-                          .subcarrier_offset     = ssb_subcarrier_offset,
+                          .subcarrier_offset     = subcarrier_offset,
                           .dmrs_typeA_pos        = dmrs_type_a_position,
                           .pdcch_config_sib1     = pdcch_config_sib1,
                           .cell_barred           = cell_barred,
@@ -80,20 +80,23 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               slot_point slot(
                   static_cast<uint32_t>(scs), sfn_dist(gen), slot_dist(gen) % (10 << static_cast<uint32_t>(scs)));
 
-              unsigned            sfn                    = slot.sfn();
-              unsigned            pci                    = pci_dist(gen);
-              unsigned            ssb_subcarrier_offset  = subcarrier_offset_dist(gen);
-              unsigned            offset_pointA          = offset_pointA_dist(gen);
-              dmrs_typeA_position dmrs_type_a_position   = static_cast<dmrs_typeA_position>(dmrs_type_A_dist(gen));
-              uint8_t             pdcch_config_sib1      = eight_bit_dist(gen);
-              bool                cell_barred            = binary_dist(gen);
-              bool                intra_freq_reselection = binary_dist(gen);
+              unsigned              sfn                    = slot.sfn();
+              unsigned              pci                    = pci_dist(gen);
+              ssb_subcarrier_offset subcarrier_offset      = subcarrier_offset_dist(gen);
+              unsigned              offset_pointA          = offset_pointA_dist(gen);
+              dmrs_typeA_position   dmrs_type_a_position   = static_cast<dmrs_typeA_position>(dmrs_type_A_dist(gen));
+              uint8_t               pdcch_config_sib1      = eight_bit_dist(gen);
+              bool                  cell_barred            = binary_dist(gen);
+              bool                  intra_freq_reselection = binary_dist(gen);
 
-              fapi::dl_tti_request         msg;
-              fapi::dl_tti_request_builder builder(msg);
-              builder.set_basic_parameters(slot, 0);
-              auto     ssb_builder = builder.add_ssb_pdu(pci, beta_pss, ssb_idx, ssb_subcarrier_offset, offset_pointA);
-              uint32_t mib_payload = generate_bch_payload(ssb_subcarrier_offset,
+              fapi::dl_ssb_pdu         ssb_pdu;
+              fapi::dl_ssb_pdu_builder builder(ssb_pdu);
+              builder.set_carrier_parameters(scs)
+                  .set_cell_parameters(pci)
+                  .set_power_parameters(beta_pss)
+                  .set_ssb_parameters(ssb_id_t(ssb_idx), subcarrier_offset, offset_pointA, pattern_case, lmax);
+
+              uint32_t mib_payload = generate_bch_payload(subcarrier_offset,
                                                           dmrs_type_a_position,
                                                           pdcch_config_sib1,
                                                           cell_barred,
@@ -102,14 +105,13 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
                                                           slot.is_odd_hrf(),
                                                           slot.scs()) >>
                                      8;
-              ssb_builder.set_bch_payload_phy_timing_info(mib_payload);
-              ssb_builder.set_maintenance_v3_basic_parameters(pattern_case, scs, lmax);
+              builder.set_bch_payload_phy_timing_info(mib_payload);
 
               // PHY processor PDU.
               ssb_processor::pdu_t pdu;
 
               // Conversion block.
-              convert_ssb_fapi_to_phy(pdu, msg.pdus[0].ssb_pdu, msg.slot, common_scs);
+              convert_ssb_fapi_to_phy(pdu, ssb_pdu, slot, common_scs);
 
               // Assert contents.
               ASSERT_EQ(pdu.slot.sfn(), sfn);
@@ -127,7 +129,7 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               }
               ASSERT_EQ(pdu.ssb_idx, ssb_idx);
               ASSERT_EQ(pdu.L_max, lmax);
-              ASSERT_EQ(pdu.subcarrier_offset.value(), ssb_subcarrier_offset);
+              ASSERT_EQ(pdu.subcarrier_offset, subcarrier_offset);
               ASSERT_EQ(pdu.offset_to_pointA.value(), offset_pointA);
               ASSERT_EQ(pdu.pattern_case, pattern_case);
               ASSERT_TRUE(ocuduvec::equal(pdu.ports, std::vector<uint8_t>{0}));

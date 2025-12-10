@@ -26,7 +26,6 @@ error_type<validator_report> ocudu::fapi::validate_dl_tti_request(const dl_tti_r
   validator_report report(msg.slot);
 
   bool success = true;
-  success &= validate_num_groups(msg.num_groups, message_type_id::dl_tti_request, report);
 
   // Validate each PDU.
   for (const auto& pdu : msg.pdus) {

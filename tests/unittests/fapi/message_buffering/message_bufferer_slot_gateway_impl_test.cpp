@@ -63,29 +63,14 @@ static bool operator==(const dl_csi_rs_pdu& lhs, const dl_csi_rs_pdu& rhs)
   return lhs.freq_domain == rhs.freq_domain && lhs.precoding_and_beamforming == rhs.precoding_and_beamforming;
 }
 
-static bool operator==(const dl_ssb_phy_mib_pdu& lhs, const dl_ssb_phy_mib_pdu& rhs)
-{
-  return lhs.dmrs_typeA_position == rhs.dmrs_typeA_position && lhs.pdcch_config_sib1 == rhs.pdcch_config_sib1 &&
-         lhs.cell_barred == rhs.cell_barred && lhs.intrafreq_reselection == rhs.intrafreq_reselection;
-}
-
 static bool operator==(const dl_ssb_pdu& lhs, const dl_ssb_pdu& rhs)
 {
-  if (!(lhs.precoding_and_beamforming == rhs.precoding_and_beamforming &&
-        lhs.bch_payload_flag == rhs.bch_payload_flag)) {
-    return false;
-  }
-
-  if (lhs.bch_payload_flag == bch_payload_type::phy_full) {
-    return lhs.bch_payload.phy_mib_pdu == rhs.bch_payload.phy_mib_pdu;
-  }
-
-  return lhs.bch_payload.bch_payload == rhs.bch_payload.bch_payload;
+  return lhs.bch_payload == rhs.bch_payload;
 }
 
 static bool operator==(const dl_tti_request_pdu& lhs, const dl_tti_request_pdu& rhs)
 {
-  if (!(lhs.pdu_type == rhs.pdu_type && lhs.pdu_size == rhs.pdu_size)) {
+  if (lhs.pdu_type != rhs.pdu_type) {
     return false;
   }
 
@@ -111,8 +96,7 @@ static bool operator==(const dl_tti_request_pdu& lhs, const dl_tti_request_pdu& 
 
 static bool operator==(const dl_tti_request& lhs, const dl_tti_request& rhs)
 {
-  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
-         lhs.num_groups == rhs.num_groups && lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type && lhs.pdus == rhs.pdus;
 }
 
 static bool operator==(const ul_prach_pdu& lhs, const ul_prach_pdu& rhs)

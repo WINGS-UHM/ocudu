@@ -57,9 +57,11 @@ INSTANTIATE_TEST_SUITE_P(pss,
 
 INSTANTIATE_TEST_SUITE_P(pbch_block_index,
                          validate_ssb_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{
-                                              "SS/PBCH block index",
-                                              [](dl_ssb_pdu& pdu, int value) { pdu.ssb_block_index = value; }}),
+                         testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{"SS/PBCH block index",
+                                                                                     [](dl_ssb_pdu& pdu, int value) {
+                                                                                       pdu.ssb_block_index =
+                                                                                           ssb_id_t(value);
+                                                                                     }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{32, true},
                                                           test_case_data{63, true},
@@ -69,11 +71,8 @@ INSTANTIATE_TEST_SUITE_P(k_ssb,
                          validate_ssb_pdu_field,
                          testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{
                                               "Subcarrier offset",
-                                              [](dl_ssb_pdu& pdu, int value) { pdu.ssb_subcarrier_offset = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{16, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{32, false})));
+                                              [](dl_ssb_pdu& pdu, int value) { pdu.subcarrier_offset = value; }}),
+                                          testing::Values(test_case_data{0, true}, test_case_data{16, true})));
 
 INSTANTIATE_TEST_SUITE_P(
     offset_pointA,
@@ -88,7 +87,7 @@ INSTANTIATE_TEST_SUITE_P(ssb_case,
                          testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{
                                               "SSB Case type",
                                               [](dl_ssb_pdu& pdu, int value) {
-                                                pdu.ssb_maintenance_v3.case_type = static_cast<ssb_pattern_case>(value);
+                                                pdu.case_type = static_cast<ssb_pattern_case>(value);
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{2, true},
@@ -100,7 +99,7 @@ INSTANTIATE_TEST_SUITE_P(scs,
                          testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{
                                               "Subcarrier spacing",
                                               [](dl_ssb_pdu& pdu, int value) {
-                                                pdu.ssb_maintenance_v3.scs = static_cast<subcarrier_spacing>(value);
+                                                pdu.scs = static_cast<subcarrier_spacing>(value);
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{2, true},
@@ -109,11 +108,9 @@ INSTANTIATE_TEST_SUITE_P(scs,
 
 INSTANTIATE_TEST_SUITE_P(L_max,
                          validate_ssb_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{"L_max",
-                                                                                     [](dl_ssb_pdu& pdu, int value) {
-                                                                                       pdu.ssb_maintenance_v3.L_max =
-                                                                                           value;
-                                                                                     }}),
+                         testing::Combine(testing::Values(pdu_field_data<dl_ssb_pdu>{
+                                              "L_max",
+                                              [](dl_ssb_pdu& pdu, int value) { pdu.L_max = value; }}),
                                           testing::Values(test_case_data{3, false},
                                                           test_case_data{4, true},
                                                           test_case_data{5, false},
@@ -142,7 +139,7 @@ TEST(validate_ssb_pdu, invalid_pdu_fails)
 
   // Force 3 errors.
   pdu.phys_cell_id    = 2000;
-  pdu.ssb_block_index = 100;
+  pdu.ssb_block_index = ssb_id_t::MAX_NOF_SSB_RESOURCES;
 
   validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_dl_ssb_pdu(pdu, report));

@@ -31,10 +31,9 @@ public:
   /// Sets the DL_TTI.request basic parameters and returns a reference to the builder.
   /// \note nPDUs and nPDUsOfEachType properties are filled by the add_*_pdu() functions.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.2 in table DL_TTI.request message body.
-  dl_tti_request_builder& set_basic_parameters(slot_point slot, uint16_t n_groups)
+  dl_tti_request_builder& set_basic_parameters(slot_point slot)
   {
-    msg.slot       = slot;
-    msg.num_groups = n_groups;
+    msg.slot = slot;
 
     return *this;
   }
@@ -126,34 +125,14 @@ public:
     return builder;
   }
 
-  /// Adds a SSB PDU to the message, fills its basic parameters using the given arguments and returns a SSB PDU builder.
-  dl_ssb_pdu_builder add_ssb_pdu(pci_t                 phys_cell_id,
-                                 beta_pss_profile_type beta_pss_profile_nr,
-                                 uint8_t               ssb_block_index,
-                                 uint8_t               ssb_subcarrier_offset,
-                                 ssb_offset_to_pointA  ssb_offset_pointA)
-  {
-    dl_ssb_pdu_builder builder = add_ssb_pdu();
-
-    // Fill the PDU basic parameters.
-    builder.set_basic_parameters(
-        phys_cell_id, beta_pss_profile_nr, ssb_block_index, ssb_subcarrier_offset, ssb_offset_pointA);
-
-    return builder;
-  }
-
   /// Adds a SSB PDU to the message and returns a SSB PDU builder.
   dl_ssb_pdu_builder add_ssb_pdu()
   {
     // Add a new PDU.
     dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
 
-    // Fill the SSB PDU index value. The index value will be the index of the PDU in the array of SSB PDUs.
-    dl_ssb_maintenance_v3& info        = pdu.ssb_pdu.ssb_maintenance_v3;
-    auto&                  num_ssb_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::SSB)];
-    info.ssb_pdu_index                 = num_ssb_pdu;
-
     // Increase the number of SSB PDUs in the request.
+    auto& num_ssb_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::SSB)];
     ++num_ssb_pdu;
 
     pdu.pdu_type = dl_pdu_type::SSB;

@@ -98,14 +98,14 @@ static pci_t generate_pci()
   return dist(gen);
 }
 
-static unsigned generate_block_index()
+static ssb_id_t generate_block_index()
 {
   std::uniform_int_distribution<unsigned> dist(0, 63);
 
-  return dist(gen);
+  return ssb_id_t(dist(gen));
 }
 
-static unsigned generate_subcarrier_offset()
+static ssb_subcarrier_offset generate_subcarrier_offset()
 {
   std::uniform_int_distribution<unsigned> dist(0, 23);
 
@@ -136,18 +136,15 @@ dl_ssb_pdu unittest::build_valid_dl_ssb_pdu()
 {
   dl_ssb_pdu pdu;
 
-  pdu.phys_cell_id                     = generate_pci();
-  pdu.beta_pss_profile_nr              = beta_pss_profile_type::dB_0;
-  pdu.ssb_block_index                  = generate_block_index();
-  pdu.ssb_subcarrier_offset            = generate_subcarrier_offset();
-  pdu.ssb_offset_pointA                = generate_offset_point_A();
-  pdu.bch_payload_flag                 = bch_payload_type::phy_timing_info;
-  pdu.bch_payload.bch_payload          = 0;
-  pdu.ssb_maintenance_v3.ssb_pdu_index = 0;
-  pdu.ssb_maintenance_v3.case_type     = generate_case_pattern();
-  pdu.ssb_maintenance_v3.scs           = subcarrier_spacing::kHz240;
-  pdu.ssb_maintenance_v3.L_max         = 4;
-  pdu.precoding_and_beamforming        = build_valid_tx_precoding_and_beamforming_pdu();
+  pdu.phys_cell_id        = generate_pci();
+  pdu.beta_pss_profile_nr = beta_pss_profile_type::dB_0;
+  pdu.ssb_block_index     = generate_block_index();
+  pdu.subcarrier_offset   = generate_subcarrier_offset();
+  pdu.ssb_offset_pointA   = generate_offset_point_A();
+  pdu.bch_payload         = 0;
+  pdu.case_type           = generate_case_pattern();
+  pdu.scs                 = subcarrier_spacing::kHz240;
+  pdu.L_max               = 4;
 
   return pdu;
 }
@@ -309,7 +306,6 @@ dl_tti_request unittest::build_valid_dl_tti_request()
   unsigned sfn        = 4U;
   auto     slot_index = 0U;
   msg.slot            = slot_point(scs, sfn, slot_index);
-  msg.num_groups      = 0;
 
   // Manually add the SSB PDU to reuse the functions above.
   msg.pdus.emplace_back();

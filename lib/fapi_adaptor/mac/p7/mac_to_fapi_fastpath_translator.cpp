@@ -221,9 +221,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
   fapi::dl_tti_request         msg;
   fapi::dl_tti_request_builder builder(msg);
 
-  // This FAPI implementation does not support PDU groups.
-  const unsigned num_pdu_groups = 0;
-  builder.set_basic_parameters(dl_res.slot, num_pdu_groups);
+  builder.set_basic_parameters(dl_res.slot);
 
   // Add PDCCH PDUs to the DL_TTI.request message.
   add_pdcch_pdus_to_builder(builder,

@@ -66,15 +66,6 @@ INSTANTIATE_TEST_SUITE_P(
                                                                     }}),
                      testing::Values(test_case_data{0, true}, test_case_data{80, true}, test_case_data{159, true})));
 
-INSTANTIATE_TEST_SUITE_P(nof_pdu_grps,
-                         validate_dl_tti_request_field,
-                         testing::Combine(testing::Values(pdu_field_data<dl_tti_request>{
-                                              "Number of PDU groups",
-                                              [](dl_tti_request& msg, int value) { msg.num_groups = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{1902, true},
-                                                          test_case_data{3823, false})));
-
 /// Tests that a valid UL_TTI.request message validates correctly.
 TEST(validate_dl_tti_request, valid_request_passes)
 {

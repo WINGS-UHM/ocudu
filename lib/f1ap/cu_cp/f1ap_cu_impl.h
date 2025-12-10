@@ -18,12 +18,9 @@
 #include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
 #include "ocudu/f1ap/cu_cp/f1ap_nrppa_msg_handling.h"
 #include "ocudu/f1ap/f1ap_message_notifier.h"
-#include "ocudu/ran/positioning/trp_information_exchange.h"
 #include "ocudu/support/executors/task_executor.h"
-#include <memory>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class f1ap_cu_impl final : public f1ap_cu
 {
@@ -163,5 +160,4 @@ private:
   unsigned current_transaction_id = 0;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

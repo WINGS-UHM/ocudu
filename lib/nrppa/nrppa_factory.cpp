@@ -8,13 +8,10 @@
  *
  */
 
-#include "nrppa_dummy_impl.h"
 #include "ocudu/nrppa/nrppa_factory.h"
+#include "nrppa_impl.h"
 
 /// Notice this would be the only place were we include concrete class implementation files.
-
-using namespace ocudu;
-using namespace ocucp;
 
 using namespace ocudu;
 using namespace ocucp;
@@ -23,8 +20,6 @@ std::unique_ptr<nrppa_interface> ocudu::ocucp::create_nrppa(const cu_cp_configur
                                                             nrppa_cu_cp_notifier&      cu_cp_notifier,
                                                             common_task_scheduler&     common_task_sched)
 {
-  (void)&cfg;
-  (void)&cu_cp_notifier;
-  auto nrppa = std::make_unique<nrppa_dummy_impl>();
+  auto nrppa = std::make_unique<nrppa_impl>(cfg, cu_cp_notifier, common_task_sched);
   return nrppa;
 }

@@ -22,6 +22,7 @@
 #include "routines/pdu_session_resource_modification_routine.h"
 #include "routines/pdu_session_resource_release_routine.h"
 #include "routines/pdu_session_resource_setup_routine.h"
+#include "routines/positioning/trp_information_exchange_routine.h"
 #include "routines/reestablishment_context_modification_routine.h"
 #include "routines/ue_amf_context_release_request_routine.h"
 #include "routines/ue_context_release_routine.h"
@@ -177,17 +178,12 @@ bool cu_cp_impl::amfs_are_connected()
   return true;
 }
 
-#ifndef OCUDU_HAS_ENTERPRISE
-
-std::unique_ptr<ocudu::ocucp::nrppa_interface>
-cu_cp_impl::create_nrppa_entity(const cu_cp_configuration& cu_cp_cfg,
-                                nrppa_cu_cp_notifier&      cu_cp_notif,
-                                common_task_scheduler&     common_task_sched_)
+std::unique_ptr<nrppa_interface> cu_cp_impl::create_nrppa_entity(const cu_cp_configuration& cu_cp_cfg,
+                                                                 nrppa_cu_cp_notifier&      cu_cp_notif,
+                                                                 common_task_scheduler&     common_task_sched_)
 {
   return create_nrppa(cu_cp_cfg, cu_cp_notif, common_task_sched_);
 }
-
-#endif // OCUDU_HAS_ENTERPRISE
 
 void cu_cp_impl::handle_bearer_context_release_request(const cu_cp_bearer_context_release_request& msg)
 {
@@ -815,40 +811,70 @@ ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_i
   return ue_index;
 }
 
-#ifndef OCUDU_HAS_ENTERPRISE
-
 void cu_cp_impl::handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu)
 {
-  logger.info("DL UE associated NRPPa messages are not supported");
+  nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, ue_index);
 }
 
 void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu)
 {
-  logger.info("DL non UE associated NRPPa messages are not supported");
+  nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, amf_index);
 }
 
 nrppa_cu_cp_ue_notifier* cu_cp_impl::handle_new_nrppa_ue(ue_index_t ue_index)
 {
-  return nullptr;
+  auto* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr) {
+    return nullptr;
+  }
+  return &ue->get_nrppa_cu_cp_ue_notifier();
 }
 
 void cu_cp_impl::handle_ul_nrppa_pdu(const byte_buffer&                    nrppa_pdu,
                                      std::variant<ue_index_t, amf_index_t> ue_or_amf_index)
 {
-  logger.info("UL NRPPa messages are not supported");
+  if (std::holds_alternative<ue_index_t>(ue_or_amf_index)) {
+    ue_index_t ue_index = std::get<ue_index_t>(ue_or_amf_index);
+
+    if (ue_mng.find_du_ue(ue_index) == nullptr) {
+      logger.warning("UE index={} got removed", ue_index);
+      return;
+    }
+
+    auto* ue = ue_mng.find_du_ue(ue_index);
+
+    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+    if (ngap == nullptr) {
+      logger.warning("NGAP not found for PLMN={}", ue->get_ue_context().plmn);
+      return;
+    }
+
+    // Forward the NRPPa message to the NGAP.
+    ngap->handle_ul_ue_associated_nrppa_transport(ue_index, nrppa_pdu);
+  } else {
+    amf_index_t amf_index = std::get<amf_index_t>(ue_or_amf_index);
+
+    // Forward the NRPPa message to the NGAP.
+    common_task_sched.schedule_async_task(
+        launch_async([this, amf_index, nrppa_pdu](coro_context<async_task<void>>& ctx) {
+          CORO_BEGIN(ctx);
+
+          if (ngap_db.find_ngap(amf_index) == nullptr) {
+            logger.warning("NGAP not found for AMF index={}", amf_index);
+            CORO_EARLY_RETURN();
+          }
+
+          CORO_AWAIT(ngap_db.find_ngap(amf_index)->handle_ul_non_ue_associated_nrppa_transport(nrppa_pdu));
+          CORO_RETURN();
+        }));
+  }
 }
 
 async_task<trp_information_cu_cp_response_t>
 cu_cp_impl::handle_trp_information_request(const trp_information_request_t& request)
 {
-  logger.info("TRP information requests are not supported");
-  return launch_async([](coro_context<async_task<trp_information_cu_cp_response_t>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN(trp_information_cu_cp_response_t{});
-  });
+  return launch_async<trp_information_exchange_routine>(request, du_db, nrppa_f1ap_ev_notifiers);
 }
-
-#endif // OCUDU_HAS_ENTERPRISE
 
 void cu_cp_impl::handle_n2_disconnection(amf_index_t amf_index)
 {

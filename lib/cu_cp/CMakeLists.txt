@@ -29,6 +29,7 @@ set(SOURCES
         du_processor/du_processor_repository.cpp
         metrics_handler/metrics_handler_impl.cpp
         ngap_repository.cpp
+        paging/paging_message_handler.cpp
         routines/amf_connection_loss_routine.cpp
         routines/amf_connection_setup_routine.cpp
         routines/amf_connection_removal_routine.cpp
@@ -40,8 +41,8 @@ set(SOURCES
         routines/pdu_session_resource_setup_routine.cpp
         routines/pdu_session_resource_release_routine.cpp
         routines/pdu_session_resource_modification_routine.cpp
-        routines/ue_context_release_routine.cpp
         routines/reestablishment_context_modification_routine.cpp
+        routines/ue_context_release_routine.cpp
         routines/ue_removal_routine.cpp
         routines/ue_transaction_info_release_routine.cpp
         routines/ue_amf_context_release_request_routine.cpp
@@ -52,11 +53,11 @@ set(SOURCES
         routines/mobility/inter_cu_handover_target_routine.cpp
         routines/mobility/inter_cu_handover_execution_target_routine.cpp
         routines/mobility/handover_reconfiguration_routine.cpp
+        routines/positioning/trp_information_exchange_routine.cpp
         task_schedulers/ngap_task_scheduler.cpp
         ue_manager/cu_cp_ue_impl.cpp
         ue_manager/ue_manager_impl.cpp
         ue_manager/ue_task_scheduler_impl.cpp
-        paging/paging_message_handler.cpp
 )
 
 add_library(ocudu_cu_cp STATIC ${SOURCES})

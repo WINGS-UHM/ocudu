@@ -15,15 +15,19 @@
 #include "log_helpers.h"
 #include "procedures/f1_removal_procedure.h"
 #include "procedures/f1_setup_procedure.h"
+#include "procedures/f1ap_positioning_activation_procedure.h"
+#include "procedures/f1ap_positioning_information_exchange_procedure.h"
+#include "procedures/f1ap_positioning_measurement_procedure.h"
 #include "procedures/f1ap_stop_procedure.h"
+#include "procedures/f1ap_trp_information_exchange_procedure.h"
 #include "procedures/gnb_cu_configuration_update_procedure.h"
 #include "procedures/ue_context_modification_procedure.h"
 #include "procedures/ue_context_release_procedure.h"
 #include "procedures/ue_context_setup_procedure.h"
+#include "ocudu/adt/expected.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/f1ap_message.h"
-#include "ocudu/ran/positioning/measurement_information.h"
 
 using namespace ocudu;
 using namespace ocucp;
@@ -169,53 +173,59 @@ void f1ap_cu_impl::remove_ue_context(ue_index_t ue_index)
   ue_ctxt_list.remove_ue(ue_index);
 }
 
-#ifndef OCUDU_HAS_ENTERPRISE
-
 async_task<expected<trp_information_response_t, trp_information_failure_t>>
 f1ap_cu_impl::handle_trp_information_request(const trp_information_request_t& request)
 {
-  logger.info("TRP information requests are not supported");
-  return launch_async(
-      [](coro_context<async_task<expected<trp_information_response_t, trp_information_failure_t>>>& ctx) {
-        CORO_BEGIN(ctx);
-        CORO_RETURN(make_unexpected(trp_information_failure_t{}));
-      });
+  logger.info("Handling TRP information request");
+  return launch_async<f1ap_trp_information_exchange_procedure>(cfg, request, ev_mng, tx_pdu_notifier, logger);
 }
 
 async_task<expected<positioning_information_response_t, positioning_information_failure_t>>
 f1ap_cu_impl::handle_positioning_information_request(const positioning_information_request_t& request)
 {
-  logger.info("Positioning information requests are not supported");
-  return launch_async(
-      [](coro_context<async_task<expected<positioning_information_response_t, positioning_information_failure_t>>>&
-             ctx) {
-        CORO_BEGIN(ctx);
-        CORO_RETURN(make_unexpected(positioning_information_failure_t{}));
-      });
+  logger.info("Handling positioning information request");
+
+  if (!ue_ctxt_list.contains(request.ue_index)) {
+    logger.warning("ue={}: Dropping \"UEPositioningInformationRequest\". UE context does not exist", request.ue_index);
+
+    return launch_async(
+        [](coro_context<async_task<expected<positioning_information_response_t, positioning_information_failure_t>>>&
+               ctx) mutable {
+          CORO_BEGIN(ctx);
+          CORO_RETURN(make_unexpected(positioning_information_failure_t{}));
+        });
+  }
+
+  return launch_async<f1ap_positioning_information_exchange_procedure>(
+      cfg, request, ue_ctxt_list[request.ue_index], tx_pdu_notifier, logger);
 }
 
 async_task<expected<positioning_activation_response_t, positioning_activation_failure_t>>
 f1ap_cu_impl::handle_positioning_activation_request(const positioning_activation_request_t& request)
 {
-  logger.info("Positioning activation requests are not supported");
-  return launch_async(
-      [](coro_context<async_task<expected<positioning_activation_response_t, positioning_activation_failure_t>>>& ctx) {
-        CORO_BEGIN(ctx);
-        CORO_RETURN(make_unexpected(positioning_activation_failure_t{}));
-      });
+  if (!ue_ctxt_list.contains(request.ue_index)) {
+    logger.warning("ue={}: Dropping \"UEPositioningActivationRequest\". UE context does not exist", request.ue_index);
+
+    return launch_async(
+        [](coro_context<async_task<expected<positioning_activation_response_t, positioning_activation_failure_t>>>&
+               ctx) mutable {
+          CORO_BEGIN(ctx);
+          CORO_RETURN(make_unexpected(positioning_activation_failure_t{}));
+        });
+  }
+
+  f1ap_ue_context& ue_ctxt = ue_ctxt_list[request.ue_index];
+  ue_ctxt.logger.log_info("Handling positioning activation request");
+
+  return launch_async<f1ap_positioning_activation_procedure>(cfg, request, ue_ctxt, tx_pdu_notifier, logger);
 }
 
 async_task<expected<measurement_response_t, measurement_failure_t>>
 f1ap_cu_impl::handle_positioning_measurement_request(const measurement_request_t& request)
 {
-  logger.info("Positioning measurement requests are not supported");
-  return launch_async([](coro_context<async_task<expected<measurement_response_t, measurement_failure_t>>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN(make_unexpected(measurement_failure_t{}));
-  });
+  logger.info("Handling positioning measurement request");
+  return launch_async<f1ap_positioning_measurement_procedure>(cfg, request, ev_mng, tx_pdu_notifier, logger);
 }
-
-#endif // OCUDU_HAS_ENTERPRISE
 
 async_task<f1ap_gnb_cu_configuration_update_response>
 f1ap_cu_impl::handle_gnb_cu_configuration_update(const f1ap_gnb_cu_configuration_update& request)
@@ -563,7 +573,7 @@ void f1ap_cu_impl::handle_unsuccessful_outcome(const asn1::f1ap::unsuccessful_ou
   }
 }
 
-void f1ap_cu_impl::log_pdu(bool is_rx, const f1ap_message& msg)
+void f1ap_cu_impl::log_pdu(bool is_rx, const f1ap_message& pdu)
 {
   using namespace asn1::f1ap;
 
@@ -574,14 +584,14 @@ void f1ap_cu_impl::log_pdu(bool is_rx, const f1ap_message& msg)
   // In case of F1 Setup, the gNB-DU-Id might not be set yet.
   gnb_du_id_t du_id = du_ctxt.gnb_du_id;
   if (du_id == gnb_du_id_t::invalid) {
-    if (msg.pdu.type().value == f1ap_pdu_c::types_opts::init_msg and
-        msg.pdu.init_msg().value.type().value == f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request) {
-      du_id = int_to_gnb_du_id(msg.pdu.init_msg().value.f1_setup_request()->gnb_du_id);
+    if (pdu.pdu.type().value == f1ap_pdu_c::types_opts::init_msg and
+        pdu.pdu.init_msg().value.type().value == f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request) {
+      du_id = int_to_gnb_du_id(pdu.pdu.init_msg().value.f1_setup_request()->gnb_du_id);
     }
   }
 
   // Fetch UE index.
-  auto                      cu_ue_id = get_gnb_cu_ue_f1ap_id(msg.pdu);
+  auto                      cu_ue_id = get_gnb_cu_ue_f1ap_id(pdu.pdu);
   std::optional<ue_index_t> ue_idx;
   if (cu_ue_id.has_value()) {
     const auto* ue_ptr = ue_ctxt_list.find(cu_ue_id.value());
@@ -591,7 +601,7 @@ void f1ap_cu_impl::log_pdu(bool is_rx, const f1ap_message& msg)
   }
 
   // Log PDU.
-  log_f1ap_pdu(logger, is_rx, du_id, ue_idx, msg, cfg.json_log_enabled);
+  log_f1ap_pdu(logger, is_rx, du_id, ue_idx, pdu, cfg.json_log_enabled);
 }
 
 void f1ap_cu_impl::tx_pdu_notifier_with_logging::on_new_message(const f1ap_message& msg)

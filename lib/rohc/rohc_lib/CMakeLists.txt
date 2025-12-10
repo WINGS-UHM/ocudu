@@ -12,4 +12,4 @@ set(SOURCES
 
 add_library(ocudu_rohc_lib STATIC ${SOURCES})
 target_include_directories(ocudu_rohc_lib PUBLIC ${ROHC_INCLUDE_DIRS})
-target_link_libraries(ocudu_rohc_lib ${ROHC_LIBRARIES})
+target_link_libraries(ocudu_rohc_lib ocudu_support ${ROHC_LIBRARIES})

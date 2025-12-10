@@ -47,11 +47,12 @@ class pdcp_tx_test_frame : public pdcp_rx_status_provider,
                            public pdcp_tx_upper_control_notifier
 {
 public:
-  std::queue<byte_buffer> pdu_queue             = {};
-  std::queue<byte_buffer> retx_queue            = {};
+  std::queue<byte_buffer> pdu_queue;
+  std::queue<byte_buffer> retx_queue;
   uint32_t                nof_max_count_reached = 0;
   uint32_t                nof_protocol_failure  = 0;
-  std::queue<uint32_t>    sdu_discard_queue     = {};
+  uint32_t                nof_resume_required   = 0;
+  std::queue<uint32_t>    sdu_discard_queue;
 
   // PDCP RX status provider
   byte_buffer compile_status_report() final
@@ -77,6 +78,7 @@ public:
   // PDCP TX upper layer control notifier
   void on_max_count_reached() final { nof_max_count_reached++; }
   void on_protocol_failure() final { nof_protocol_failure++; }
+  void on_resume_required() final { nof_resume_required++; }
 
   // PDCP TX lower layer data notifier
   void on_new_pdu(byte_buffer pdu, bool is_retx) final

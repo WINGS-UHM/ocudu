@@ -26,19 +26,20 @@ static constexpr std::array<uint8_t, 16> k_128_enc =
 namespace {
 
 /// Mocking class of the surrounding layers invoked by the PDCP.
-class pdcp_tx_gen_frame : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
+class pdcp_tx_gen_frame final : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
 {
 public:
   /// PDCP TX upper layer control notifier
-  void on_max_count_reached() final {}
-  void on_protocol_failure() final {}
+  void on_max_count_reached() override {}
+  void on_protocol_failure() override {}
+  void on_resume_required() override {}
 
   /// PDCP TX lower layer data notifier
   void on_new_pdu(byte_buffer pdu, bool is_retx) final
   {
     pdu_list.push_back(byte_buffer_chain::create(std::move(pdu)).value());
   }
-  void                           on_discard_pdu(uint32_t pdcp_sn) final {}
+  void                           on_discard_pdu(uint32_t pdcp_sn) override {}
   std::vector<byte_buffer_chain> pdu_list;
 };
 

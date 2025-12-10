@@ -22,7 +22,7 @@ const std::array<uint8_t, 16> k_128_enc =
     {0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x30, 0x31};
 
 /// Mocking class of the surrounding layers invoked by the PDCP.
-class pdcp_tx_gen_frame : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
+class pdcp_tx_gen_frame final : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
 {
 public:
   uint32_t num_pdus              = 0;
@@ -31,12 +31,13 @@ public:
   uint32_t num_max_count_reached = 0;
 
   /// PDCP TX upper layer control notifier
-  void on_max_count_reached() final { num_max_count_reached++; }
-  void on_protocol_failure() final { num_protocol_failures++; }
+  void on_max_count_reached() override { num_max_count_reached++; }
+  void on_protocol_failure() override { num_protocol_failures++; }
+  void on_resume_required() override {}
 
   /// PDCP TX lower layer data notifier
-  void on_new_pdu(byte_buffer pdu, bool is_retx) final { num_pdus++; }
-  void on_discard_pdu(uint32_t pdcp_sn) final { num_discards++; }
+  void on_new_pdu(byte_buffer pdu, bool is_retx) override { num_pdus++; }
+  void on_discard_pdu(uint32_t pdcp_sn) override { num_discards++; }
 };
 
 struct bench_params {

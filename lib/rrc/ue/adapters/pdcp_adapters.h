@@ -103,6 +103,11 @@ public:
     cause = cause_protocol_t::unspecified;
   }
 
+  void on_resume_required() override
+  {
+    ocudulog::fetch_basic_logger("PDCP").error("Unsupported request for SRB resume");
+  }
+
   ngap_cause_t get_failure_cause() { return cause; }
 
 private:

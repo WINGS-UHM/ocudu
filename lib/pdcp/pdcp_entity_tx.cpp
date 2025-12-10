@@ -159,6 +159,43 @@ void pdcp_entity_tx::end_buffering()
   }
 }
 
+void pdcp_entity_tx::suspend()
+{
+  if (suspended) {
+    logger.log_error("PDCP entity received a suspend request, but it is already suspended");
+    return;
+  }
+
+  if (not buffering) {
+    logger.log_error("PDCP entity received a suspend request, but it is not buffering");
+    return;
+  }
+
+  st = {0, 0, 0, 0, 0};
+  tx_window.clear(); // discard all SDUs
+  if (cfg.discard_timer.has_value()) {
+    discard_timer.stop();
+  }
+
+  suspended = true;
+}
+
+void pdcp_entity_tx::resume()
+{
+  if (not suspended) {
+    logger.log_error("PDCP entity received a resume request, but it was not suspended");
+    return;
+  }
+
+  if (not buffering) {
+    logger.log_error("PDCP entity received a resume request, but it is not buffering");
+    return;
+  }
+
+  suspended        = false;
+  resume_requested = false;
+}
+
 manual_event_flag& pdcp_entity_tx::crypto_awaitable()
 {
   return token_mngr.get_awaitable();
@@ -183,6 +220,12 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
     }
     metrics.add_lost_sdus(1);
     return;
+  }
+
+  if (suspended && not resume_requested) {
+    logger.log_debug("Activity detected while suspended. Requesting resume.");
+    resume_requested = true;
+    upper_cn.on_resume_required();
   }
 
   if (buffering) {

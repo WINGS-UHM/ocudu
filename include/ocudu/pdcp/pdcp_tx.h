@@ -195,5 +195,6 @@ public:
 
   virtual void on_protocol_failure()  = 0;
   virtual void on_max_count_reached() = 0;
+  virtual void on_resume_required()   = 0;
 };
 } // namespace ocudu

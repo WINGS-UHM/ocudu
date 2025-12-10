@@ -21,26 +21,27 @@
 using namespace ocudu;
 
 struct pdcp_gen_helper_args {
-  std::string sn_size = {};
+  std::string sn_size;
   uint32_t    count   = {};
   unsigned    algo    = 1;
   unsigned    rb_type = 0;
 };
 
 /// Mocking class of the surrounding layers invoked by the PDCP.
-class pdcp_tx_gen_frame : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
+class pdcp_tx_gen_frame final : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
 {
 public:
-  std::queue<byte_buffer> pdu_queue   = {};
-  std::queue<byte_buffer> retx_queue  = {};
+  std::queue<byte_buffer> pdu_queue;
+  std::queue<byte_buffer> retx_queue;
   uint32_t                pdu_counter = 0;
 
   /// PDCP TX upper layer control notifier
-  void on_max_count_reached() final {}
-  void on_protocol_failure() final {}
+  void on_max_count_reached() override {}
+  void on_protocol_failure() override {}
+  void on_resume_required() override {}
 
   /// PDCP TX lower layer data notifier
-  void on_new_pdu(byte_buffer pdu, bool is_retx) final
+  void on_new_pdu(byte_buffer pdu, bool is_retx) override
   {
     if (is_retx) {
       retx_queue.push(std::move(pdu));
@@ -49,10 +50,10 @@ public:
     }
   }
 
-  void on_discard_pdu(uint32_t pdcp_sn) final {}
+  void on_discard_pdu(uint32_t pdcp_sn) override {}
 };
 
-bool parse_args(pdcp_gen_helper_args& args, int argc, char* argv[])
+static bool parse_args(pdcp_gen_helper_args& args, int argc, char* argv[])
 {
   static const struct option long_options[] = {{"help", no_argument, nullptr, 'h'},
                                                {"sn_size", required_argument, nullptr, 's'},

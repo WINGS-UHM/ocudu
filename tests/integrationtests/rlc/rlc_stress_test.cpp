@@ -190,7 +190,7 @@ void stress_stack::push_pdus(std::vector<byte_buffer_chain> list_pdus)
   }
 }
 
-void stress_test(const stress_test_args& args)
+static void stress_test(const stress_test_args& args)
 {
   auto& log_stack = ocudulog::fetch_basic_logger("STACK", false);
 

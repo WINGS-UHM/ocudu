@@ -36,6 +36,8 @@ public:
     for (const auto& lc : new_cfg) {
       lc_chs.push_back(lc_ch_pool.create(lc));
     }
+
+    // Sort by LCID.
     std::sort(
         lc_chs.begin(), lc_chs.end(), [](const logical_channel_config_ptr& lhs, const logical_channel_config_ptr& rhs) {
           return lhs->lcid < rhs->lcid;

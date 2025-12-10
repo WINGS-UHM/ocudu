@@ -279,7 +279,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, deactivate_ue)
   assert_ue_lch_valid(ue_lchs);
   ue_lchs.deactivate();
   ASSERT_EQ(this->lch_system.nof_ues(), 1);
-  ASSERT_EQ(ue_lchs.cfg().size(), 3);
+  ASSERT_EQ(ue_lchs.cfg().size(), 0);
   ASSERT_TRUE(not ue_lchs.is_active(LCID_SRB0) and not ue_lchs.is_active(LCID_SRB1) and
               not ue_lchs.is_active(lcid_t::LCID_MIN_DRB));
   ASSERT_FALSE(ue_lchs.has_pending_bytes(lcid));

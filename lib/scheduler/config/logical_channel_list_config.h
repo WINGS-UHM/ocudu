@@ -28,6 +28,7 @@ public:
   using iterator       = std::vector<config_ptr<logical_channel_config>>::iterator;
   using const_iterator = std::vector<config_ptr<logical_channel_config>>::const_iterator;
 
+  logical_channel_config_list() = default;
   logical_channel_config_list(std::vector<config_ptr<logical_channel_config>> lc_list_) : lc_list(std::move(lc_list_))
   {
     if (lc_list.empty()) {
@@ -37,6 +38,11 @@ public:
                                       lc_list.end(),
                                       [](const auto& lhs, const auto& rhs) { return lhs->lcid < rhs->lcid; }),
                        "Configured logical channels must be sorted by LCID.");
+    ocudu_sanity_check(std::adjacent_find(lc_list.begin(),
+                                          lc_list.end(),
+                                          [](const auto& lhs, const auto& rhs) { return lhs->lcid == rhs->lcid; }) ==
+                           lc_list.end(),
+                       "Configured logical channels must have unique LCIDs.");
 
     // Build lookup LCID -> LC configuration.
     lcid_t max_lcid = lc_list.back()->lcid;

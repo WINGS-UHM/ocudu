@@ -24,6 +24,8 @@ class config_ptr
 {
 public:
   config_ptr() = default;
+  /// Construct using pooled object reference.
+  explicit config_ptr(const T& obj_) : obj(&obj_) {}
 
   /// If a configuration object is stored.
   bool has_value() const { return obj != nullptr; }
@@ -42,9 +44,6 @@ public:
 
 private:
   friend class config_object_pool<T>;
-
-  // Private constructor to prevent creation of config_ptr<T> from an object that is not managed by a pool.
-  config_ptr(const T& obj_) : obj(&obj_) {}
 
   const T* obj = nullptr;
 };

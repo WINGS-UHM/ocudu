@@ -17,7 +17,7 @@
 #include "ocudu/mac/mac_pdu_format.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
-#include "ocudu/support/math/moving_averager.h"
+#include "ocudu/support/math/exponential_averager.h"
 #include "ocudu/support/units.h"
 
 namespace ocudu {
@@ -92,6 +92,8 @@ public:
     }
     return std::nullopt;
   }
+
+  /// Find row ID for the given (UE, LCG-ID) pair. Returns std::nullopt if not found.
   std::optional<soa::row_id> find_row_id(du_ue_index_t ue_index, lcg_id_t lcgid) const
   {
     if (const auto ridx = get_row_id_entry(ue_index, lcgid); ridx != invalid_row_id) {
@@ -150,11 +152,11 @@ public:
 
 private:
   /// QoS context relative to a single logical channel of a UE, which has QoS enabled.
-  struct qos_context {
+  struct lc_qos_context {
     /// Current slot DL sched bytes.
     unsigned dl_last_sched_bytes = 0;
     /// Over-the-air DL Bytes-per-slot average for this logical channel.
-    moving_averager<unsigned> dl_avg_bytes_per_slot;
+    exp_average_fast_start<float> dl_avg_bytes_per_slot;
   };
   /// QoS context relative to a single logical channel group (LCG) of a UE, which has QoS enabled.
   struct lcg_qos_context {
@@ -163,7 +165,7 @@ private:
     /// Sched bytes since last BSR.
     unsigned sched_bytes_accum = 0;
     /// Over-the-air UL Bytes-per-slot average for this logical channel.
-    moving_averager<unsigned> ul_avg_bytes_per_slot;
+    exp_average_fast_start<float> ul_avg_bytes_per_slot;
   };
 
   /// Provides the mapping between (UE, LCID) and row IDs.
@@ -203,7 +205,7 @@ private:
 
   enum class qos_column_id { context };
   /// Table holding QoS contexts for logical channels with QoS tracking enabled.
-  soa::table<qos_column_id, qos_context>     qos_channels;
+  soa::table<qos_column_id, lc_qos_context>  qos_channels;
   soa::table<qos_column_id, lcg_qos_context> qos_lcgs;
 
   /// Table mapping from row ID to DL Logical Channel (LC).
@@ -299,15 +301,6 @@ private:
     mac_ce_info                info;
     std::optional<soa::row_id> next_ue_ce;
   };
-  /// QoS context relative to a single logical channel group of a UE, which has QoS enabled.
-  struct lcg_qos_context {
-    /// Last slot UL sched bytes.
-    unsigned ul_last_sched_bytes = 0;
-    /// Sched bytes since last BSR.
-    unsigned sched_bytes_accum = 0;
-    /// Over-the-air UL Bytes-per-slot average for this logical channel.
-    moving_averager<unsigned> ul_avg_bytes_per_slot;
-  };
   /// UE context relative to its configuration.
   struct ue_config_context {
     /// DU UE index of this UE.
@@ -317,8 +310,8 @@ private:
     /// List of UE-dedicated logical channel configurations.
     logical_channel_config_list_ptr channel_configs;
   };
-  /// UE context relative to its channel management.
-  struct ue_channel_context {
+  /// UE context relative to its DL channel management.
+  struct ue_dl_channel_context {
     /// Currently enqueued CEs for this UE.
     std::optional<soa::row_id> pending_ces;
     /// List of active logical channel IDs sorted in decreasing order of priority. i.e. first element has the highest
@@ -349,8 +342,8 @@ private:
     static_flat_map<ran_slice_id_t, unsigned, MAX_RAN_SLICES_PER_UE> pending_bytes_per_slice;
   };
   enum class ue_column_id { config, context, ul_context, channel };
-  using ue_table =
-      soa::table<ue_column_id, ue_config_context, ue_context, ue_ul_context, ue_channel_context, ue_ul_channel_context>;
+  using ue_table = soa::
+      table<ue_column_id, ue_config_context, ue_context, ue_ul_context, ue_dl_channel_context, ue_ul_channel_context>;
   using ue_row       = soa::row_view<ue_table>;
   using const_ue_row = soa::row_view<const ue_table>;
 
@@ -368,7 +361,7 @@ private:
 
   void
   handle_dl_buffer_status_indication(soa::row_id ue_row_id, lcid_t lcid, unsigned buffer_status, slot_point hol_toa);
-  bool handle_mac_ce_indication(soa::row_id ue_row_id, const mac_ce_info& ce);
+  void handle_mac_ce_indication(soa::row_id ue_row_id, const mac_ce_info& ce);
   void handle_bsr_indication(soa::row_id ue_row_id, const ul_bsr_indication_message& bsr);
 
   unsigned allocate_mac_sdu(soa::row_id ue_rid, dl_msg_lc_info& subpdu, lcid_t lcid, unsigned rem_bytes);
@@ -400,16 +393,6 @@ private:
     // Note: TS38.321, 6.1.3.1 - The size of the RLC and MAC headers are not considered in the buffer size computation.
     return get_mac_sdu_required_bytes(add_upper_layer_header_bytes(lcgid, lc_mapper.ul_buf_st(lcg_rid).value()));
   }
-  unsigned        total_dl_pending_bytes(const const_ue_row& ue_row) const;
-  static unsigned pending_con_res_ce_bytes(const const_ue_row& ue_row)
-  {
-    static const auto ce_size = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce();
-    return ue_row.at<ue_context>().pending_con_res_id ? FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + ce_size : 0;
-  }
-  static unsigned pending_ce_bytes(const const_ue_row& ue_row)
-  {
-    return pending_con_res_ce_bytes(ue_row) + ue_row.at<ue_context>().pending_ce_bytes;
-  }
 
   /// Helper method to update the pending bytes for a given RAN slice when a lc associated with a slice is updated.
   void on_single_channel_buf_st_update(ue_row&                              u,
@@ -433,9 +416,6 @@ private:
 
   /// Bitset of UEs with pending SRs.
   bounded_bitset<MAX_NOF_DU_UES> ues_with_pending_sr;
-
-  /// Bitset of (UE, LCID) pairs with pending newTx DL data.
-  bounded_bitset<MAX_NOF_DU_UES * MAX_NOF_RB_LCIDS> pending_dl_ue_lcids;
 
   /// Table of Logical Channel fields.
   logical_channel_system_utils::logical_channel_mapper lc_mapper;
@@ -466,8 +446,7 @@ public:
   [[nodiscard]] bool has_pending_sr() const { return parent->ues_with_pending_sr.test(ue_index); }
 
   /// \brief Enqueue new MAC CE to be scheduled.
-  /// \return True if the MAC CE was enqueued successfully, false if the queue was full.
-  [[nodiscard]] bool handle_mac_ce_indication(const mac_ce_info& ce);
+  void handle_mac_ce_indication(const mac_ce_info& ce);
 
 private:
   friend class ue_logical_channel_repository;
@@ -492,7 +471,7 @@ class ue_logical_channel_repository : private ue_logical_channel_repository_view
   using ue_config_context     = logical_channel_system::ue_config_context;
   using ue_context            = logical_channel_system::ue_context;
   using ue_ul_context         = logical_channel_system::ue_ul_context;
-  using ue_channel_context    = logical_channel_system::ue_channel_context;
+  using ue_channel_context    = logical_channel_system::ue_dl_channel_context;
   using ue_ul_channel_context = logical_channel_system::ue_ul_channel_context;
   using ue_row                = logical_channel_system::ue_row;
   using const_ue_row          = logical_channel_system::const_ue_row;
@@ -586,10 +565,13 @@ public:
   }
 
   /// \brief Verifies if logical channel is activated for DL.
-  [[nodiscard]] bool is_active(lcid_t lcid) const { return parent->lc_mapper.find_row_id(ue_index, lcid).has_value(); }
+  [[nodiscard]] bool is_configured(lcid_t lcid) const
+  {
+    return parent->lc_mapper.find_row_id(ue_index, lcid).has_value();
+  }
 
   /// \brief Verifies if logical channel group is activated for UL.
-  [[nodiscard]] bool is_active(lcg_id_t lcgid) const
+  [[nodiscard]] bool is_configured(lcg_id_t lcgid) const
   {
     return parent->lc_mapper.find_row_id(ue_index, lcgid).has_value();
   }
@@ -663,19 +645,17 @@ public:
   }
 
   /// \brief Checks whether a logical channel has pending data.
-  bool has_pending_bytes(lcid_t lcid) const
+  [[nodiscard]] bool has_pending_bytes(lcid_t lcid) const
   {
-    return parent->pending_dl_ue_lcids.test(ue_index * MAX_NOF_RB_LCIDS + lcid);
+    auto it = parent->lc_mapper.find_row_id(ue_index, lcid);
+    return it.has_value() and parent->lc_mapper.dl_buf_st(*it).value() > 0;
   }
 
   /// \brief Checks whether a logical channel has pending data.
   [[nodiscard]] bool has_pending_bytes(lcg_id_t lcgid) const
   {
     auto it = parent->lc_mapper.find_row_id(ue_index, lcgid);
-    if (it != std::nullopt) {
-      return parent->lc_mapper.ul_buf_st(*it).value() > 0;
-    }
-    return false;
+    return it.has_value() and parent->lc_mapper.ul_buf_st(*it).value() > 0;
   }
 
   /// \brief Checks whether a ConRes CE is pending for transmission.
@@ -688,8 +668,8 @@ public:
   }
 
   /// \brief Calculates total number of DL bytes, including MAC header overhead, and without taking into account
-  /// the UE state.
-  unsigned total_dl_pending_bytes() const { return parent->total_dl_pending_bytes(get_ue_row()); }
+  /// the UE state (same result if fallback or not fallback).
+  unsigned total_dl_pending_bytes() const;
 
   /// \brief Calculates number of DL pending bytes, including MAC header overhead, and taking UE state into account.
   unsigned dl_pending_bytes() const;
@@ -748,10 +728,19 @@ public:
   }
 
   /// \brief Returns the UE pending CEs' bytes to be scheduled, if any.
-  unsigned pending_ce_bytes() const { return logical_channel_system::pending_ce_bytes(get_ue_row()); }
+  unsigned pending_ce_bytes() const
+  {
+    auto u = get_ue_row();
+    return pending_con_res_ce_bytes() + u.at<ue_context>().pending_ce_bytes;
+  }
 
   /// \brief Checks whether UE has pending UE Contention Resolution Identity CE to be scheduled.
-  unsigned pending_con_res_ce_bytes() const { return logical_channel_system::pending_con_res_ce_bytes(get_ue_row()); }
+  unsigned pending_con_res_ce_bytes() const
+  {
+    static const auto ce_size = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce();
+    auto              u       = get_ue_row();
+    return u.at<ue_context>().pending_con_res_id ? FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + ce_size : 0;
+  }
 
   /// \brief Last DL buffer status for given LCID (MAC subheader included).
   unsigned pending_bytes(lcid_t lcid) const
@@ -773,6 +762,7 @@ public:
   /// \brief Average UL bit rate, in bps, for a given LCG-ID.
   double average_ul_bit_rate(lcg_id_t lcgid) const;
 
+  /// \brief Returns the HOL time-of-arrival for a given LCID.
   slot_point hol_toa(lcid_t lcid) const
   {
     return parent->lc_mapper.hol_toa(parent->lc_mapper.get_row_id(ue_index, lcid));

@@ -114,14 +114,9 @@ void ta_management_system::handle_ue_ta_cmds(ue_ta_context& u)
       // Send Timing Advance Command to UE.
       const time_alignment_group::id_t tag_id = ta_meas.tag_id;
       const unsigned                   ta_cmd = std::max(0, ta_meas.last_t_a);
-      if (u.lc_ch_mgr.handle_mac_ce_indication(
-              {.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = ta_cmd_ce_payload{tag_id, ta_cmd}})) {
-        ta_cmd_sent = true;
-      } else {
-        // Queueing the TA CMD indication failed. Will try again in the future.
-        logger.warning("Dropped TA command, queue is full.");
-        break;
-      }
+      u.lc_ch_mgr.handle_mac_ce_indication(
+          {.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = ta_cmd_ce_payload{tag_id, ta_cmd}});
+      ta_cmd_sent = true;
     }
 
     // Reset stored measurements within the measurement window.

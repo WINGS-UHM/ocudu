@@ -29,7 +29,7 @@ public:
   exp_average_fast_start(T alpha_val_) : exp_average_fast_start(alpha_val_, 1.0 / alpha_val_) {}
   exp_average_fast_start(T alpha_val_, unsigned start_size) : alpha_value(alpha_val_), start_count_size(start_size)
   {
-    ocudu_assert(alpha_value < 1, "Alpha must be less than 1");
+    ocudu_assert(alpha_value > 0 and alpha_value < 1, "Alpha must be less than 1");
     ocudu_assert(start_size > 0, "Start size must be greater than 0");
   }
 
@@ -72,6 +72,12 @@ public:
 
   /// Get the current average value.
   T get_average_value() const { return average; }
+
+  void set_alpha(T alpha_val)
+  {
+    ocudu_assert(alpha_val > 0 and alpha_val < 1, "Alpha must be less than 1");
+    alpha_value = alpha_val;
+  }
 
   /// Get the forgetting coefficient being used.
   T get_alpha() const { return alpha_value; }

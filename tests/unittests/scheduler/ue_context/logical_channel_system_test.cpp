@@ -85,7 +85,7 @@ static void assert_ue_lch_valid(const ue_logical_channel_repository& u)
   EXPECT_LE(sorted_channels.size(), u.cfg().size());
   for (auto& lc : u.cfg().logical_channels()) {
     EXPECT_EQ(std::find(sorted_channels.begin(), sorted_channels.end(), lc->lcid) != sorted_channels.end(),
-              u.is_active(lc->lcid));
+              u.is_configured(lc->lcid));
   }
   unsigned ces     = u.pending_ce_bytes();
   unsigned buffers = 0;
@@ -119,7 +119,7 @@ static void assert_ue_lch_valid(const ue_logical_channel_repository& u)
   std::map<ran_slice_id_t, unsigned> ul_slice_bytes;
   unsigned                           total_lcg_bytes = 0;
   for (auto& lc : u.cfg().logical_channels()) {
-    EXPECT_TRUE(u.is_active(lc->lc_group) or not u.has_pending_bytes(lc->lc_group))
+    EXPECT_TRUE(u.is_configured(lc->lc_group) or not u.has_pending_bytes(lc->lc_group))
         << "If LCG is inactive, no pending data";
     EXPECT_EQ(u.pending_bytes(lc->lc_group) > 0, u.has_pending_bytes(lc->lc_group));
     if (lcg_bytes.count(lc->lc_group) == 0) {
@@ -198,8 +198,8 @@ TEST_F(single_ue_dl_logical_channel_system_test, no_pending_data)
   ASSERT_EQ(this->lch_system.nof_ues(), 1);
 
   ASSERT_EQ(ue_lchs.cfg().size(), 3);
-  ASSERT_TRUE(ue_lchs.is_active(LCID_SRB0) and ue_lchs.is_active(LCID_SRB1) and
-              ue_lchs.is_active(lcid_t::LCID_MIN_DRB));
+  ASSERT_TRUE(ue_lchs.is_configured(LCID_SRB0) and ue_lchs.is_configured(LCID_SRB1) and
+              ue_lchs.is_configured(lcid_t::LCID_MIN_DRB));
   ASSERT_EQ(ue_lchs.dl_pending_bytes(), 0);
   ASSERT_EQ(ue_lchs.total_dl_pending_bytes(), 0);
   ASSERT_FALSE(ue_lchs.has_pending_bytes(lcid_t::LCID_SRB0));
@@ -272,16 +272,16 @@ TEST_F(single_ue_dl_logical_channel_system_test, deactivate_ue)
   ue_lchs.handle_dl_buffer_status_indication(lcid, buf_st);
 
   ASSERT_EQ(ue_lchs.cfg().size(), 3);
-  ASSERT_TRUE(ue_lchs.is_active(LCID_SRB0) and ue_lchs.is_active(LCID_SRB1) and
-              ue_lchs.is_active(lcid_t::LCID_MIN_DRB));
+  ASSERT_TRUE(ue_lchs.is_configured(LCID_SRB0) and ue_lchs.is_configured(LCID_SRB1) and
+              ue_lchs.is_configured(lcid_t::LCID_MIN_DRB));
   ASSERT_TRUE(ue_lchs.has_pending_bytes(lcid));
   ASSERT_TRUE(ue_lchs.has_dl_pending_bytes());
   assert_ue_lch_valid(ue_lchs);
   ue_lchs.deactivate();
   ASSERT_EQ(this->lch_system.nof_ues(), 1);
   ASSERT_EQ(ue_lchs.cfg().size(), 0);
-  ASSERT_TRUE(not ue_lchs.is_active(LCID_SRB0) and not ue_lchs.is_active(LCID_SRB1) and
-              not ue_lchs.is_active(lcid_t::LCID_MIN_DRB));
+  ASSERT_TRUE(not ue_lchs.is_configured(LCID_SRB0) and not ue_lchs.is_configured(LCID_SRB1) and
+              not ue_lchs.is_configured(lcid_t::LCID_MIN_DRB));
   ASSERT_FALSE(ue_lchs.has_pending_bytes(lcid));
   ASSERT_FALSE(ue_lchs.has_dl_pending_bytes());
 }
@@ -305,7 +305,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, total_pending_bytes_equal_sum_o
 TEST_F(single_ue_dl_logical_channel_system_test, mac_ce_indication_updates_tx_pending_bytes)
 {
   const unsigned dummy_ce_payload = 0;
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = dummy_ce_payload}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = dummy_ce_payload});
 
   ASSERT_TRUE(ue_lchs.has_dl_pending_bytes());
   ASSERT_TRUE(ue_lchs.has_pending_ces());
@@ -324,7 +324,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, no_mac_subpdus_scheduled_if_no_
 TEST_F(single_ue_dl_logical_channel_system_test, mac_ce_is_scheduled_if_tb_has_space)
 {
   lcid_dl_sch_t ce_lcid = get_random_dl_mac_ce();
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
   const unsigned mac_ce_required_bytes = lcid_dl_sch_t{ce_lcid}.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE;
   const unsigned tb_size               = test_rgen::uniform_int<unsigned>(0, 50);
 
@@ -352,8 +352,8 @@ TEST_F(single_ue_dl_logical_channel_system_test, mac_ce_is_scheduled_if_tb_has_s
 TEST_F(single_ue_dl_logical_channel_system_test, multiple_mac_ces_are_scheduled_if_tb_has_space)
 {
   lcid_dl_sch_t ce_lcid = lcid_dl_sch_t::DRX_CMD;
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid}));
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
   const unsigned mac_ce_required_bytes = lcid_dl_sch_t{ce_lcid}.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE;
   ASSERT_EQ(ue_lchs.pending_ce_bytes(), 2 * mac_ce_required_bytes);
 
@@ -421,7 +421,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, mac_sdu_is_scheduled_if_tb_has_
 TEST_F(single_ue_dl_logical_channel_system_test, check_scheduling_of_ue_con_res_id_mac_ce)
 {
   lcid_dl_sch_t ce_lcid = lcid_dl_sch_t::UE_CON_RES_ID;
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
   unsigned mac_ce_required_bytes = lcid_dl_sch_t{ce_lcid}.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE;
   unsigned tb_size               = 10;
 
@@ -437,7 +437,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, check_scheduling_of_ue_con_res_
 TEST_F(single_ue_dl_logical_channel_system_test, pending_ue_con_res_id_ce_bytes_does_not_include_other_mac_ce)
 {
   lcid_dl_sch_t ce_lcid = lcid_dl_sch_t::LONG_DRX_CMD;
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
   ASSERT_EQ(ue_lchs.pending_con_res_ce_bytes(), 0);
   ASSERT_TRUE(ue_lchs.has_pending_ces());
 }
@@ -447,7 +447,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, assign_leftover_bytes_to_sdu_if
   const unsigned tb_size = 309;
 
   lcid_dl_sch_t ce_lcid = lcid_dl_sch_t::UE_CON_RES_ID;
-  ASSERT_TRUE(ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
   ue_lchs.handle_dl_buffer_status_indication(LCID_SRB0, 295);
   ue_lchs.handle_dl_buffer_status_indication(LCID_SRB1, 10000);
 
@@ -481,14 +481,12 @@ TEST_F(single_ue_dl_logical_channel_system_test,
 TEST_F(single_ue_dl_logical_channel_system_test, ta_cmd_mac_ce_gets_updated_if_already_in_pending_ces_queue)
 {
   const auto first_ta_cmd_ce_payload = ta_cmd_ce_payload{.tag_id = time_alignment_group::id_t{0}, .ta_cmd = 29};
-  ASSERT_TRUE(
-      ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = first_ta_cmd_ce_payload}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = first_ta_cmd_ce_payload});
   ASSERT_TRUE(ue_lchs.has_dl_pending_bytes());
   ASSERT_TRUE(ue_lchs.has_pending_ces());
 
   const auto second_ta_cmd_ce_payload = ta_cmd_ce_payload{.tag_id = time_alignment_group::id_t{0}, .ta_cmd = 33};
-  ASSERT_TRUE(
-      ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = second_ta_cmd_ce_payload}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = second_ta_cmd_ce_payload});
   ASSERT_TRUE(ue_lchs.has_dl_pending_bytes());
   ASSERT_TRUE(ue_lchs.has_pending_ces());
 
@@ -608,8 +606,7 @@ TEST_F(single_ue_dl_logical_channel_system_test,
 
   // CE is pending. SRB slice should be the selected slice to send it.
   const auto second_ta_cmd_ce_payload = ta_cmd_ce_payload{.tag_id = time_alignment_group::id_t{0}, .ta_cmd = 33};
-  ASSERT_TRUE(
-      ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = second_ta_cmd_ce_payload}));
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::TA_CMD, .ce_payload = second_ta_cmd_ce_payload});
   ASSERT_TRUE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{0}));
   ASSERT_FALSE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{1}));
 
@@ -737,8 +734,8 @@ TEST_F(single_ue_ul_logical_channel_system_test, no_pending_data)
 {
   ASSERT_EQ(this->lch_system.nof_ues(), 1);
   ASSERT_EQ(ue_lchs.cfg().size(), 3);
-  ASSERT_TRUE(ue_lchs.is_active(uint_to_lcg_id(0)) and ue_lchs.is_active(uint_to_lcg_id(1)) and
-              ue_lchs.is_active(uint_to_lcg_id(2)));
+  ASSERT_TRUE(ue_lchs.is_configured(uint_to_lcg_id(0)) and ue_lchs.is_configured(uint_to_lcg_id(1)) and
+              ue_lchs.is_configured(uint_to_lcg_id(2)));
   ASSERT_EQ(ue_lchs.ul_pending_bytes(), 0);
   for (auto& [lcid, lcgid] : lcids) {
     ASSERT_EQ(ue_lchs.pending_bytes(lcgid), 0);

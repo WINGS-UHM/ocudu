@@ -18,7 +18,7 @@
 
 namespace ocudu {
 
-namespace srs_ntn {
+namespace ocudu_ntn {
 
 /// NTN Config update message to be received over a websocket interface.
 struct ntn_config_update_info {
@@ -47,5 +47,5 @@ public:
   virtual bool handle_ntn_config_update(const ntn_config_update_info& req) = 0;
 };
 
-} // namespace srs_ntn
+} // namespace ocudu_ntn
 } // namespace ocudu

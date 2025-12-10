@@ -45,8 +45,8 @@ struct o_du_unit {
   std::vector<app_services::metrics_config> metrics;
   application_unit_commands                 commands;
   std::unique_ptr<e2_metric_connector_manager<e2_du_metrics_connector, e2_du_metrics_notifier, e2_du_metrics_interface>>
-                                                      e2_metric_connectors;
-  std::unique_ptr<srs_ntn::ntn_configuration_manager> ntn_configurator_manager;
+                                                        e2_metric_connectors;
+  std::unique_ptr<ocudu_ntn::ntn_configuration_manager> ntn_configurator_manager;
 };
 
 /// O-RAN DU unit dependencies.

@@ -13,7 +13,7 @@
 #include "ocudu/ran/ntn.h"
 
 namespace ocudu {
-namespace srs_ntn {
+namespace ocudu_ntn {
 
 /// NTN Cell configuration.
 struct ntn_cell_config {
@@ -36,5 +36,5 @@ struct ntn_configuration_manager_config {
   std::vector<ntn_cell_config> cells;
 };
 
-} // namespace srs_ntn
+} // namespace ocudu_ntn
 } // namespace ocudu

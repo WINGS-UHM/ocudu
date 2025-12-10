@@ -14,8 +14,8 @@ using namespace ocudu;
 
 #ifndef OCUDU_HAS_ENTERPRISE_NTN
 
-void ocudu::add_ntn_config_update_remote_command(application_unit_commands&          commands,
-                                                 srs_ntn::ntn_configuration_manager& ntn_manager)
+void ocudu::add_ntn_config_update_remote_command(application_unit_commands&            commands,
+                                                 ocudu_ntn::ntn_configuration_manager& ntn_manager)
 {
 }
 

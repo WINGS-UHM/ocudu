@@ -35,12 +35,12 @@ class du_manager_time_mapper_accessor;
 /// \param timers   Timers for the update task.
 /// \param timer_exec Task executor for the periodic SIB19 update task.
 /// \return True on success.
-std::unique_ptr<srs_ntn::ntn_configuration_manager>
-create_ntn_configuration_manager(const srs_ntn::ntn_configuration_manager_config& ntn_cfg,
-                                 odu::du_configurator&                            du_cfgtr,
-                                 odu::du_manager_time_mapper_accessor&            du_time_mapper_accessor,
-                                 ru_controller&                                   ru_ctrl,
-                                 timer_manager&                                   timers,
-                                 task_executor&                                   timer_exec);
+std::unique_ptr<ocudu_ntn::ntn_configuration_manager>
+create_ntn_configuration_manager(const ocudu_ntn::ntn_configuration_manager_config& ntn_cfg,
+                                 odu::du_configurator&                              du_cfgtr,
+                                 odu::du_manager_time_mapper_accessor&              du_time_mapper_accessor,
+                                 ru_controller&                                     ru_ctrl,
+                                 timer_manager&                                     timers,
+                                 task_executor&                                     timer_exec);
 
 } // namespace ocudu

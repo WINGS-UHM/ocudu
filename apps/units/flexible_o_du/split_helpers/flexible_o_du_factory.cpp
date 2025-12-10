@@ -150,10 +150,10 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
   return out_cfg;
 }
 
-static srs_ntn::ntn_configuration_manager_config
+static ocudu_ntn::ntn_configuration_manager_config
 generate_ntn_configuration_manager_config(const gnb_id_t& gnb_id, span<const du_high_unit_cell_config> du_hi_cells)
 {
-  srs_ntn::ntn_configuration_manager_config out_cfg = {};
+  ocudu_ntn::ntn_configuration_manager_config out_cfg = {};
   for (const auto& cell : du_hi_cells) {
     const auto& cell_cfg = cell.cell;
     if (cell_cfg.ntn_cfg.has_value()) {
@@ -328,7 +328,7 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
   }
 
   // Create the NTN Configuration Manager if at least one NTN cell is present.
-  srs_ntn::ntn_configuration_manager_config ntn_manager_config =
+  ocudu_ntn::ntn_configuration_manager_config ntn_manager_config =
       generate_ntn_configuration_manager_config(du_hi.gnb_id, du_hi.cells_cfg);
 
   if (not ntn_manager_config.cells.empty()) {

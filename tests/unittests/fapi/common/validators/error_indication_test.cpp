@@ -21,31 +21,28 @@ class validate_error_indication_field
 {};
 TEST_P(validate_error_indication_field, WithValue)
 {
-  auto params = GetParam();
+  auto params   = GetParam();
+  auto property = std::get<0>(params).property;
+  auto value    = std::get<1>(params).value;
+
+  if (property == "Expected SFN" && value >= 1024) {
+    const char* expected_regex = R"((.*)Invalid SFN(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, value, 0), expected_regex);
+    return;
+  }
+
+  if (property == "Expected slot" && value >= 160) {
+    const char* expected_regex = R"((.*)Slot index(.*) exceeds maximum number of slots(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, 0, value), expected_regex);
+    return;
+  }
+
   execute_test(std::get<0>(params),
                std::get<1>(params),
                build_valid_error_indication,
                validate_error_indication,
                ocudu::fapi::message_type_id::error_indication);
 }
-INSTANTIATE_TEST_SUITE_P(SFN,
-                         validate_error_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
-                                              "sfn",
-                                              [](error_indication& msg, int value) { msg.sfn = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{522, true},
-                                                          test_case_data{1023, true},
-                                                          test_case_data{1024, false})));
-INSTANTIATE_TEST_SUITE_P(slot,
-                         validate_error_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
-                                              "slot",
-                                              [](error_indication& msg, int value) { msg.slot = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{80, true},
-                                                          test_case_data{159, true},
-                                                          test_case_data{160, false})));
 INSTANTIATE_TEST_SUITE_P(MessageID,
                          validate_error_indication_field,
                          testing::Combine(testing::Values(pdu_field_data<error_indication>{
@@ -73,77 +70,41 @@ INSTANTIATE_TEST_SUITE_P(ErrorCodeID,
                                               "Error code",
                                               [](error_indication& msg, int value) {
                                                 msg.error_code = static_cast<error_code_id>(value);
+
+                                                if (msg.error_code == error_code_id::msg_ok) {
+                                                  msg.expected_slot = std::nullopt;
+                                                }
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{8, true},
                                                           test_case_data{0xc, true},
                                                           test_case_data{0xd, false})));
-INSTANTIATE_TEST_SUITE_P(ExpectedSFN,
-                         validate_error_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
-                                              "Expected SFN",
-                                              [](error_indication& msg, int value) {
-                                                msg.error_code    = error_code_id::out_of_sync;
-                                                msg.expected_sfn  = value;
-                                                msg.expected_slot = 0;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{522, true},
-                                                          test_case_data{1023, true},
-                                                          test_case_data{1024, false})));
-INSTANTIATE_TEST_SUITE_P(ExpectedSFNNoValue,
-                         validate_error_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
-                                              "Expected SFN",
-                                              [](error_indication& msg, int value) {
-                                                msg.error_code    = error_code_id::msg_bch_missing;
-                                                msg.expected_sfn  = value;
-                                                msg.expected_slot = std::numeric_limits<uint16_t>::max();
-                                              }}),
-                                          testing::Values(test_case_data{0, false},
-                                                          test_case_data{32768, false},
-                                                          test_case_data{65535, true})));
-INSTANTIATE_TEST_SUITE_P(ExpectedSlot,
-                         validate_error_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
-                                              "Expected slot",
-                                              [](error_indication& msg, int value) {
-                                                msg.error_code    = error_code_id::out_of_sync;
-                                                msg.expected_slot = value;
-                                                msg.expected_sfn  = 0;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{80, true},
-                                                          test_case_data{159, true},
-                                                          test_case_data{160, false})));
-INSTANTIATE_TEST_SUITE_P(ExpectedSlotNoValue,
-                         validate_error_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
-                                              "Expected slot",
-                                              [](error_indication& msg, int value) {
-                                                msg.error_code    = error_code_id::msg_bch_missing;
-                                                msg.expected_slot = value;
-                                                msg.expected_sfn  = std::numeric_limits<uint16_t>::max();
-                                              }}),
-                                          testing::Values(test_case_data{0, false},
-                                                          test_case_data{32768, false},
-                                                          test_case_data{65535, true})));
+INSTANTIATE_TEST_SUITE_P(
+    ExpectedSFN,
+    validate_error_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<error_indication>{"Expected SFN",
+                                                                      [](error_indication& msg, int value) {
+                                                                        msg.error_code = error_code_id::out_of_sync;
+
+                                                                        msg.expected_slot = slot_point(
+                                                                            subcarrier_spacing::kHz240, value, 0);
+                                                                      }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{522, true}, test_case_data{1023, true})));
+INSTANTIATE_TEST_SUITE_P(
+    ExpectedSlot,
+    validate_error_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<error_indication>{"Expected slot",
+                                                                      [](error_indication& msg, int value) {
+                                                                        msg.error_code    = error_code_id::out_of_sync;
+                                                                        msg.expected_slot = slot_point(
+                                                                            subcarrier_spacing::kHz240, 0, value);
+                                                                      }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{80, true}, test_case_data{159, true})));
 TEST(validate_error_indication, valid_message_passes)
 {
   const auto& msg    = build_valid_error_indication();
   const auto& result = validate_error_indication(msg);
   ASSERT_TRUE(result);
-}
-TEST(validate_error_indication, invalid_message_fails)
-{
-  auto msg           = build_valid_error_indication();
-  msg.expected_sfn   = 3;
-  msg.expected_slot  = 2;
-  const auto& result = validate_error_indication(msg);
-  ASSERT_FALSE(result);
-  const auto& report = result.error();
-  // Check that the 2 errors are reported.
-  ASSERT_EQ(report.reports.size(), 2U);
 }
 TEST(validate_out_of_sync_error_indication, valid_message_passes)
 {
@@ -151,37 +112,37 @@ TEST(validate_out_of_sync_error_indication, valid_message_passes)
   const auto& result = validate_error_indication(msg);
   ASSERT_TRUE(result);
 }
+
+#ifdef ASSERTS_ENABLED
 TEST(validate_invalid_sfn_error_indication, valid_message_passes)
 {
-  const auto& msg    = build_valid_invalid_sfn_error_indication();
-  const auto& result = validate_error_indication(msg);
-  ASSERT_TRUE(result);
+  const char* expected_regex = R"((.*)Invalid SFN(.*))";
+  ASSERT_DEATH(build_valid_invalid_sfn_error_indication(), expected_regex);
 }
-TEST(validate_msg_error_indication, valid_message_passes)
-{
-  const auto& msg    = build_valid_msg_error_indication();
-  const auto& result = validate_error_indication(msg);
-  ASSERT_TRUE(result);
-}
-TEST(validate_tx_err_error_indication, valid_message_passes)
-{
-  const auto& msg    = build_valid_tx_err_error_indication();
-  const auto& result = validate_error_indication(msg);
-  ASSERT_TRUE(result);
-}
-TEST(validate_ul_dci_err_error_indication, valid_message_passes)
-{
-  const auto& msg    = build_valid_ul_dci_err_error_indication();
-  const auto& result = validate_error_indication(msg);
-  ASSERT_TRUE(result);
-}
+
 TEST(validate_out_of_sync_error_indication, invalid_message_fails)
 {
-  auto msg           = build_valid_out_of_sync_error_indication();
-  msg.error_code     = error_code_id::msg_tx_err;
-  const auto& result = validate_error_indication(msg);
-  ASSERT_FALSE(result);
-  const auto& report = result.error();
-  // Check that the 2 errors are reported.
-  ASSERT_EQ(report.reports.size(), 2U);
+  const char* expected_regex = R"((.*)Invalid SFN(.*))";
+  ASSERT_DEATH(build_valid_tx_err_error_indication(), expected_regex);
 }
+
+INSTANTIATE_TEST_SUITE_P(ExpectedInvalidSFN,
+                         validate_error_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
+                                              "Expected SFN",
+                                              [](error_indication& msg, int value) {
+                                                msg.error_code = error_code_id::out_of_sync;
+
+                                                msg.expected_slot = slot_point(subcarrier_spacing::kHz240, value, 0);
+                                              }}),
+                                          testing::Values(test_case_data{1024, false})));
+INSTANTIATE_TEST_SUITE_P(ExpectedInvalidSlot,
+                         validate_error_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<error_indication>{
+                                              "Expected slot",
+                                              [](error_indication& msg, int value) {
+                                                msg.error_code    = error_code_id::out_of_sync;
+                                                msg.expected_slot = slot_point(subcarrier_spacing::kHz240, 0, value);
+                                              }}),
+                                          testing::Values(test_case_data{160, false})));
+#endif

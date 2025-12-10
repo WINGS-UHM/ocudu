@@ -18,11 +18,10 @@ using namespace unittest;
 
 static void check_context_parameters(const ul_pucch_context&   context,
                                      const fapi::ul_pucch_pdu& fapi_pdu,
-                                     unsigned                  sfn,
-                                     unsigned                  slot,
+                                     slot_point                slot,
                                      pucch_format              format)
 {
-  ASSERT_EQ(slot_point(to_numerology_value(fapi_pdu.scs), sfn, slot), context.slot);
+  ASSERT_EQ(slot, context.slot);
   ASSERT_EQ(fapi_pdu.rnti, context.rnti);
   ASSERT_EQ(fapi_pdu.format_type, context.format);
 }
@@ -38,12 +37,14 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
 {
   fapi::ul_pucch_pdu fapi_pdu = build_valid_ul_pucch_f1_pdu();
 
+  auto     scs             = to_numerology_value(fapi_pdu.scs);
   unsigned sfn             = 1U;
-  unsigned slot            = 2U;
+  unsigned slot_index      = 2U;
+  auto     slot            = slot_point(scs, sfn, slot_index);
   unsigned nof_rx_antennas = 1U;
 
   uplink_pdu_slot_repository::pucch_pdu pdu;
-  convert_pucch_fapi_to_phy(pdu, fapi_pdu, sfn, slot, nof_rx_antennas);
+  convert_pucch_fapi_to_phy(pdu, fapi_pdu, slot, nof_rx_antennas);
 
   // Format 1 custom parameters.
   const auto& phy_pdu = std::get<pucch_processor::format1_configuration>(pdu.config);
@@ -53,7 +54,7 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
   ASSERT_EQ(fapi_pdu.initial_cyclic_shift, phy_pdu.initial_cyclic_shift);
 
   // Common parameters.
-  ASSERT_EQ(slot_point(to_numerology_value(fapi_pdu.scs), sfn, slot), phy_pdu.slot);
+  ASSERT_EQ(slot, phy_pdu.slot);
   ASSERT_EQ(fapi_pdu.bwp_start, phy_pdu.bwp_start_rb);
   ASSERT_EQ(fapi_pdu.bwp_size, phy_pdu.bwp_size_rb);
   ASSERT_EQ(fapi_pdu.cp, phy_pdu.cp);
@@ -72,7 +73,7 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
   }
 
   // Context parameters.
-  check_context_parameters(pdu.context, fapi_pdu, sfn, slot, pucch_format::FORMAT_1);
+  check_context_parameters(pdu.context, fapi_pdu, slot, pucch_format::FORMAT_1);
 
   // Context Format 0 or Format 1 parameters.
   check_context_f0_or_f1_parameters(pdu.context, fapi_pdu);

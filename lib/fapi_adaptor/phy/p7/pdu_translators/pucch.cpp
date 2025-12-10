@@ -194,13 +194,12 @@ static void fill_pucch_format_0_1_context(ul_pucch_context& context, const fapi:
 
 void ocudu::fapi_adaptor::convert_pucch_fapi_to_phy(uplink_pdu_slot_repository::pucch_pdu& pdu,
                                                     const fapi::ul_pucch_pdu&              fapi_pdu,
-                                                    uint16_t                               sfn,
-                                                    uint16_t                               slot,
+                                                    slot_point                             slot,
                                                     uint16_t                               num_rx_ant)
 {
   // Fill main context fields.
   ul_pucch_context& context = pdu.context;
-  context.slot              = slot_point(fapi_pdu.scs, sfn, slot);
+  context.slot              = slot;
   context.rnti              = fapi_pdu.rnti;
   context.format            = fapi_pdu.format_type;
   // Format specific context fields.
@@ -211,23 +210,23 @@ void ocudu::fapi_adaptor::convert_pucch_fapi_to_phy(uplink_pdu_slot_repository::
   switch (context.format) {
     case pucch_format::FORMAT_0: {
       auto& format0 = pdu.config.emplace<pucch_processor::format0_configuration>();
-      fill_format0_parameters(format0, fapi_pdu, slot_point(fapi_pdu.scs, sfn, slot), num_rx_ant);
+      fill_format0_parameters(format0, fapi_pdu, slot, num_rx_ant);
     } break;
     case pucch_format::FORMAT_1: {
       auto& format1 = pdu.config.emplace<pucch_processor::format1_configuration>();
-      fill_format1_parameters(format1, fapi_pdu, slot_point(fapi_pdu.scs, sfn, slot), num_rx_ant);
+      fill_format1_parameters(format1, fapi_pdu, slot, num_rx_ant);
     } break;
     case pucch_format::FORMAT_2: {
       auto& format2 = pdu.config.emplace<pucch_processor::format2_configuration>();
-      fill_format2_parameters(format2, fapi_pdu, slot_point(fapi_pdu.scs, sfn, slot), num_rx_ant);
+      fill_format2_parameters(format2, fapi_pdu, slot, num_rx_ant);
     } break;
     case pucch_format::FORMAT_3: {
       auto& format3 = pdu.config.emplace<pucch_processor::format3_configuration>();
-      fill_format3_parameters(format3, fapi_pdu, slot_point(fapi_pdu.scs, sfn, slot), num_rx_ant);
+      fill_format3_parameters(format3, fapi_pdu, slot, num_rx_ant);
     } break;
     case pucch_format::FORMAT_4: {
       auto& format4 = pdu.config.emplace<pucch_processor::format4_configuration>();
-      fill_format4_parameters(format4, fapi_pdu, slot_point(fapi_pdu.scs, sfn, slot), num_rx_ant);
+      fill_format4_parameters(format4, fapi_pdu, slot, num_rx_ant);
     } break;
     default:
       ocudu_assert(0, "Unsupported PUCCH format {}", fmt::underlying(context.format));

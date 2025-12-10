@@ -25,8 +25,7 @@ namespace fapi_adaptor {
 /// \param[in] scs_common Parameter subCarrierSpacingCommon as per TS38.331, Section 6.2.2 \c MIB message.
 void convert_ssb_fapi_to_phy(ssb_processor::pdu_t&   proc_pdu,
                              const fapi::dl_ssb_pdu& fapi_pdu,
-                             uint16_t                sfn,
-                             uint16_t                slot,
+                             slot_point              slot,
                              subcarrier_spacing      scs_common);
 
 } // namespace fapi_adaptor

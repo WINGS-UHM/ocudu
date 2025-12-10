@@ -116,9 +116,8 @@ public:
 
   /// Sets the basic parameters of the RACH.indication message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_builder& set_basic_parameters(uint16_t sfn, uint16_t slot)
+  rach_indication_builder& set_basic_parameters(slot_point slot)
   {
-    msg.sfn  = sfn;
     msg.slot = slot;
 
     return *this;

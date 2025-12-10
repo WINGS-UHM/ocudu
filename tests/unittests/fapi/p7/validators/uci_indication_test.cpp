@@ -232,7 +232,7 @@ TEST(validate_uci_pusch_pdu_field, valid_pdu_passes)
 {
   auto pdu = build_valid_uci_pusch_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(slot_point{subcarrier_spacing::kHz30, 0, 0});
   ASSERT_TRUE(validate_uci_pusch_pdu(pdu, report));
   // Assert no reports were generated.
   ASSERT_TRUE(report.reports.empty());
@@ -247,7 +247,7 @@ TEST(validate_uci_pusch_pdu_field, invalid_pdu_fails)
   pdu.rssi                     = -16801;
   pdu.harq.detection_status    = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(6);
 
-  validator_report report(0, 0);
+  validator_report report(slot_point{subcarrier_spacing::kHz30, 0, 0});
   ASSERT_FALSE(validate_uci_pusch_pdu(pdu, report));
   // Assert no reports were generated.
   ASSERT_EQ(report.reports.size(), 3u);
@@ -404,7 +404,7 @@ TEST(validate_uci_pucch_format01_pdu, valid_pdu_passes)
 {
   auto pdu = build_valid_uci_pucch_format01_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(slot_point{subcarrier_spacing::kHz30, 0, 0});
   ASSERT_TRUE(validate_uci_pucch_format01_pdu(pdu, report));
   // Assert no reports were generated.
   ASSERT_TRUE(report.reports.empty());
@@ -419,7 +419,7 @@ TEST(validate_uci_pucch_format01_pdu, invalid_pdu_fails)
   pdu.harq.harq_values.back()    = static_cast<uci_pucch_f0_or_f1_harq_values>(3);
   pdu.sr.sr_confidence_level     = 2;
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   ASSERT_FALSE(validate_uci_pucch_format01_pdu(pdu, report));
   // Assert no reports were generated.
   ASSERT_EQ(report.reports.size(), 3u);
@@ -618,7 +618,7 @@ TEST(validate_uci_pucch_format234_pdu, valid_pdu_passes)
 {
   auto pdu = build_valid_uci_pucch_format234_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   ASSERT_TRUE(validate_uci_pucch_format234_pdu(pdu, report));
   // Assert no reports were generated.
   ASSERT_TRUE(report.reports.empty());
@@ -634,7 +634,7 @@ TEST(validate_uci_pucch_format234_pdu, invalid_pdu_fails)
   pdu.csi_part1.detection_status = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(6);
   pdu.sr.sr_bitlen               = 1707;
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   ASSERT_FALSE(validate_uci_pucch_format234_pdu(pdu, report));
   // Assert no reports were generated.
   ASSERT_EQ(report.reports.size(), 4u);
@@ -647,7 +647,21 @@ class validate_uci_indication_field
 
 TEST_P(validate_uci_indication_field, WithValue)
 {
-  auto params = GetParam();
+  auto params   = GetParam();
+  auto property = std::get<0>(params).property;
+  auto value    = std::get<1>(params).value;
+
+  if (property == "sfn" && value >= 1024) {
+    const char* expected_regex = R"((.*)Invalid SFN(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, value, 0), expected_regex);
+    return;
+  }
+
+  if (property == "slot" && value >= 160) {
+    const char* expected_regex = R"((.*)Slot index(.*) exceeds maximum number of slots(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, 0, value), expected_regex);
+    return;
+  }
 
   execute_test(std::get<0>(params),
                std::get<1>(params),
@@ -656,25 +670,25 @@ TEST_P(validate_uci_indication_field, WithValue)
                ocudu::fapi::message_type_id::uci_indication);
 }
 
-INSTANTIATE_TEST_SUITE_P(SFN,
-                         validate_uci_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_indication>{
-                                              "sfn",
-                                              [](uci_indication& msg, int value) { msg.sfn = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{522, true},
-                                                          test_case_data{1023, true},
-                                                          test_case_data{1024, false})));
+INSTANTIATE_TEST_SUITE_P(
+    SFN,
+    validate_uci_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<uci_indication>{"sfn",
+                                                                    [](uci_indication& msg, int value) {
+                                                                      msg.slot = slot_point(
+                                                                          subcarrier_spacing::kHz240, value, 0);
+                                                                    }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{522, true}, test_case_data{1023, true})));
 
-INSTANTIATE_TEST_SUITE_P(slot,
-                         validate_uci_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_indication>{
-                                              "slot",
-                                              [](uci_indication& msg, int value) { msg.slot = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{80, true},
-                                                          test_case_data{159, true},
-                                                          test_case_data{160, false})));
+INSTANTIATE_TEST_SUITE_P(
+    slot,
+    validate_uci_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<uci_indication>{"slot",
+                                                                    [](uci_indication& msg, int value) {
+                                                                      msg.slot = slot_point(
+                                                                          subcarrier_spacing::kHz240, 0, value);
+                                                                    }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{80, true}, test_case_data{159, true})));
 
 TEST(validate_uci_indication, valid_indication_passes)
 {
@@ -689,12 +703,35 @@ TEST(validate_uci_indication, invalid_indication_fails)
   auto msg = build_valid_uci_indication();
 
   // Add 3 errors.
-  msg.sfn                    = 1024;
+  auto     scs               = subcarrier_spacing::kHz240;
+  unsigned sfn               = 100U;
+  auto     slot_index        = 0U;
+  msg.slot                   = slot_point(scs, sfn, slot_index);
   msg.pdus[0].pusch_pdu.rssi = 1281;
 
   const auto& result = validate_uci_indication(msg);
   ASSERT_FALSE(result);
   // Assert no reports were generated.
   const auto& report = result.error();
-  ASSERT_EQ(report.reports.size(), 2u);
+  ASSERT_EQ(report.reports.size(), 1u);
 }
+
+#ifdef ASSERTS_ENABLED
+INSTANTIATE_TEST_SUITE_P(invalid_SFN,
+                         validate_uci_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<uci_indication>{
+                                              "sfn",
+                                              [](uci_indication& msg, int value) {
+                                                msg.slot = slot_point(subcarrier_spacing::kHz240, value, 0);
+                                              }}),
+                                          testing::Values(test_case_data{1024, false})));
+
+INSTANTIATE_TEST_SUITE_P(invalid_slot,
+                         validate_uci_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<uci_indication>{
+                                              "slot",
+                                              [](uci_indication& msg, int value) {
+                                                msg.slot = slot_point(subcarrier_spacing::kHz240, 0, value);
+                                              }}),
+                                          testing::Values(test_case_data{160, false})));
+#endif

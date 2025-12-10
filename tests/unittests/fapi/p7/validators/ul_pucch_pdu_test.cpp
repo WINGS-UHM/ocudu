@@ -709,7 +709,7 @@ TEST_P(validate_pucch_pdu, valid_pdu_passes)
 {
   auto             params = GetParam();
   const auto&      pdu    = std::get<0>(params)();
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   ASSERT_TRUE(validate_ul_pucch_pdu(pdu, report));
   ASSERT_TRUE(report.reports.empty());
 }
@@ -718,7 +718,7 @@ TEST_P(validate_pucch_pdu, invalid_pdu_fails)
 {
   auto             params = GetParam();
   auto             pdu    = std::get<0>(params)();
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   // Add 4 errors.
   pdu.start_symbol_index = 20;
   pdu.prb_size           = 30;

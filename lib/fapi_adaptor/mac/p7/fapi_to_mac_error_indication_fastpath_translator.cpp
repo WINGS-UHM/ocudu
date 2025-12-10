@@ -33,8 +33,8 @@ public:
 static mac_cell_slot_handler_dummy mac_dummy_handler;
 
 fapi_to_mac_error_indication_fastpath_translator::fapi_to_mac_error_indication_fastpath_translator(
-    subcarrier_spacing scs_) :
-  scs(scs_), mac_slot_handler(&mac_dummy_handler)
+    ocudulog::basic_logger& logger_) :
+  mac_slot_handler(&mac_dummy_handler), logger(logger_)
 {
 }
 
@@ -79,6 +79,10 @@ static mac_cell_slot_handler::error_event to_error_event(fapi::error_code_id cod
 
 void fapi_to_mac_error_indication_fastpath_translator::on_error_indication(const fapi::error_indication& msg)
 {
-  mac_slot_handler->handle_error_indication(slot_point(to_numerology_value(scs), msg.sfn, msg.slot),
-                                            to_error_event(msg.error_code, msg.message_id));
+  if (!msg.slot) {
+    logger.warning("Invalid slot point when receiving an error indication.");
+    return;
+  }
+
+  mac_slot_handler->handle_error_indication(msg.slot.value(), to_error_event(msg.error_code, msg.message_id));
 }

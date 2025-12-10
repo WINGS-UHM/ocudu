@@ -75,7 +75,7 @@ TEST(validate_tx_precoding_and_beamforming_pdu, valid_pdu_passes)
 {
   tx_precoding_and_beamforming_pdu pdu = build_valid_tx_precoding_and_beamforming_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(slot_point{subcarrier_spacing::kHz30, 0, 0});
   EXPECT_TRUE(validate_tx_precoding_and_beamforming_pdu(pdu, report, ocudu::fapi::dl_pdu_type::CSI_RS));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
@@ -89,7 +89,7 @@ TEST(validate_tx_precoding_and_beamforming_pdu, invalid_pdu_should_fails)
   pdu.prgs.clear();
   pdu.prg_size = 0;
 
-  validator_report report(0, 0);
+  validator_report report(slot_point{subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_tx_precoding_and_beamforming_pdu(pdu, report, ocudu::fapi::dl_pdu_type::CSI_RS));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 2u);

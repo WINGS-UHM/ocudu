@@ -27,7 +27,6 @@ message_bufferer_slot_gateway_task_dispatcher::message_bufferer_slot_gateway_tas
     fapi::p7_requests_gateway& p7_gateway,
     task_executor&             executor_) :
   sector_id(sector_id_),
-  scs(scs_),
   logger(ocudulog::fetch_basic_logger("FAPI")),
   executor(executor_),
   message_bufferer_gateway(sector_id, l2_nof_slots_ahead, scs_, p7_gateway)
@@ -38,9 +37,7 @@ void message_bufferer_slot_gateway_task_dispatcher::send_dl_tti_request(const dl
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_dl_tti_request(msg); })) {
-    logger.warning("Sector#{}: Failed to cache DL_TTI.request message for slot '{}'",
-                   sector_id,
-                   slot_point(scs, msg.sfn, msg.slot));
+    logger.warning("Sector#{}: Failed to cache DL_TTI.request message for slot '{}'", sector_id, msg.slot);
   }
 }
 
@@ -48,9 +45,7 @@ void message_bufferer_slot_gateway_task_dispatcher::send_ul_tti_request(const ul
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_ul_tti_request(msg); })) {
-    logger.warning("Sector#{}: Failed to cache UL_TTI.request message for slot '{}'",
-                   sector_id,
-                   slot_point(scs, msg.sfn, msg.slot));
+    logger.warning("Sector#{}: Failed to cache UL_TTI.request message for slot '{}'", sector_id, msg.slot);
   }
 }
 
@@ -58,9 +53,7 @@ void message_bufferer_slot_gateway_task_dispatcher::send_ul_dci_request(const ul
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_ul_dci_request(msg); })) {
-    logger.warning("Sector#{}: Failed to cache UL_DCI.request message for slot '{}'",
-                   sector_id,
-                   slot_point(scs, msg.sfn, msg.slot));
+    logger.warning("Sector#{}: Failed to cache UL_DCI.request message for slot '{}'", sector_id, msg.slot);
   }
 }
 
@@ -68,9 +61,7 @@ void message_bufferer_slot_gateway_task_dispatcher::send_tx_data_request(const t
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_tx_data_request(msg); })) {
-    logger.warning("Sector#{}: Failed to cache TX_Data.request message for slot '{}'",
-                   sector_id,
-                   slot_point(scs, msg.sfn, msg.slot));
+    logger.warning("Sector#{}: Failed to cache TX_Data.request message for slot '{}'", sector_id, msg.slot);
   }
 }
 

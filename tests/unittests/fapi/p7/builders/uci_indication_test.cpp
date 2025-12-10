@@ -323,12 +323,13 @@ TEST(uci_indication_builder, valid_basic_parameters_passes)
   uci_indication         msg;
   uci_indication_builder builder(msg);
 
-  unsigned sfn  = 13;
-  unsigned slot = 14;
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 13;
+  unsigned slot_index = 14;
+  auto     slot       = slot_point(scs, sfn, slot_index);
 
-  builder.set_basic_parameters(sfn, slot);
+  builder.set_basic_parameters(slot);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
 }
 

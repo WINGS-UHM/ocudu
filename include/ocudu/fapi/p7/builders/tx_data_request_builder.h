@@ -25,9 +25,8 @@ public:
 
   /// Sets the Tx_Data.request basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.6 in table Tx_Data.request message body.
-  tx_data_request_builder& set_basic_parameters(uint16_t sfn, uint16_t slot)
+  tx_data_request_builder& set_basic_parameters(slot_point slot)
   {
-    msg.sfn  = sfn;
     msg.slot = slot;
 
     // NOTE: Set to 0 temporarily.

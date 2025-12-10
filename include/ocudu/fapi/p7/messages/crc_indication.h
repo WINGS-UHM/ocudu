@@ -13,6 +13,7 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {
@@ -41,8 +42,7 @@ struct crc_indication : public base_message {
   /// Maximum number of supported CRCs in this message.
   static constexpr unsigned MAX_NUM_CRCS_PER_SLOT = 32;
 
-  uint16_t                                          sfn;
-  uint16_t                                          slot;
+  slot_point                                        slot;
   static_vector<crc_ind_pdu, MAX_NUM_CRCS_PER_SLOT> pdus;
 };
 

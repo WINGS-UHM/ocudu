@@ -33,16 +33,14 @@ public:
 static mac_cell_slot_handler_dummy mac_dummy_handler;
 
 fapi_to_mac_slot_indication_fastpath_translator::fapi_to_mac_slot_indication_fastpath_translator(
-    subcarrier_spacing     scs_,
     mac_cell_slot_handler& fapi_slot_handler_) :
-  scs(scs_), fapi_slot_handler(fapi_slot_handler_), mac_slot_handler(&mac_dummy_handler)
+  fapi_slot_handler(fapi_slot_handler_), mac_slot_handler(&mac_dummy_handler)
 {
 }
 
 void fapi_to_mac_slot_indication_fastpath_translator::on_slot_indication(const fapi::slot_indication& msg)
 {
-  mac_cell_timing_context context{.sl_tx      = slot_point(to_numerology_value(scs), msg.sfn, msg.slot),
-                                  .time_point = msg.time_point};
+  mac_cell_timing_context context{.sl_tx = msg.slot, .time_point = msg.time_point};
   fapi_slot_handler.handle_slot_indication(context);
   mac_slot_handler->handle_slot_indication(context);
 }

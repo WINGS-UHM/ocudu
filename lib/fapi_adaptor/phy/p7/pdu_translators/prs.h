@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/fapi/p7/messages/dl_prs_pdu.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 
@@ -29,8 +30,7 @@ class precoding_matrix_repository;
 /// \param[in] pm_repo Precoding weight matrix repository.
 void convert_prs_fapi_to_phy(prs_generator_configuration&       generator_config,
                              const fapi::dl_prs_pdu&            fapi_pdu,
-                             uint16_t                           sfn,
-                             uint16_t                           slot,
+                             slot_point                         slot,
                              const precoding_matrix_repository& pm_repo);
 
 } // namespace fapi_adaptor

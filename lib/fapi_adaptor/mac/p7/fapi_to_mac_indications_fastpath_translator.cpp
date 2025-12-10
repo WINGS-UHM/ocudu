@@ -93,9 +93,7 @@ static std::optional<float> convert_fapi_to_mac_rsrp(uint16_t fapi_rsrp)
   return std::nullopt;
 }
 
-fapi_to_mac_indications_fastpath_translator::fapi_to_mac_indications_fastpath_translator(subcarrier_spacing scs_,
-                                                                                         unsigned sector_id_) :
-  scs(scs_),
+fapi_to_mac_indications_fastpath_translator::fapi_to_mac_indications_fastpath_translator(unsigned sector_id_) :
   sector_id(sector_id_),
   rach_handler(&dummy_mac_rach_handler),
   pdu_handler(&dummy_pdu_handler),
@@ -106,7 +104,7 @@ fapi_to_mac_indications_fastpath_translator::fapi_to_mac_indications_fastpath_tr
 void fapi_to_mac_indications_fastpath_translator::on_rx_data_indication(const fapi::rx_data_indication& msg)
 {
   mac_rx_data_indication indication;
-  indication.sl_rx      = slot_point(scs, msg.sfn, msg.slot);
+  indication.sl_rx      = msg.slot;
   indication.cell_index = to_du_cell_index(sector_id);
   for (const auto& fapi_pdu : msg.pdus) {
     // PDUs that were not successfully decoded have zero length.
@@ -136,7 +134,7 @@ void fapi_to_mac_indications_fastpath_translator::on_rx_data_indication(const fa
 void fapi_to_mac_indications_fastpath_translator::on_crc_indication(const fapi::crc_indication& msg)
 {
   mac_crc_indication_message indication;
-  indication.sl_rx = slot_point(scs, msg.sfn, msg.slot);
+  indication.sl_rx = msg.slot;
 
   for (const auto& fapi_pdu : msg.pdus) {
     mac_crc_pdu& pdu = indication.crcs.emplace_back();
@@ -273,7 +271,7 @@ static void convert_fapi_to_mac_pucch_f2_f3_f4_uci_ind(mac_uci_pdu::pucch_f2_or_
 void fapi_to_mac_indications_fastpath_translator::on_uci_indication(const fapi::uci_indication& msg)
 {
   mac_uci_indication_message mac_msg;
-  mac_msg.sl_rx = slot_point(scs, msg.sfn, msg.slot);
+  mac_msg.sl_rx = msg.slot;
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {
       case fapi::uci_pdu_type::PUSCH: {
@@ -309,7 +307,7 @@ void fapi_to_mac_indications_fastpath_translator::on_uci_indication(const fapi::
 void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::srs_indication& msg)
 {
   mac_srs_indication_message mac_msg;
-  mac_msg.sl_rx = slot_point(scs, msg.sfn, msg.slot);
+  mac_msg.sl_rx = msg.slot;
 
   for (const auto& pdu : msg.pdus) {
     mac_srs_pdu& mac_pdu        = mac_msg.srss.emplace_back();
@@ -364,7 +362,7 @@ static std::optional<float> convert_fapi_to_mac_preamble_power_dB(uint32_t fapi_
 void fapi_to_mac_indications_fastpath_translator::on_rach_indication(const fapi::rach_indication& msg)
 {
   mac_rach_indication indication;
-  indication.slot_rx = slot_point(scs, msg.sfn, msg.slot);
+  indication.slot_rx = msg.slot;
   for (const auto& pdu : msg.pdus) {
     mac_rach_indication::rach_occasion& occas = indication.occasions.emplace_back();
     occas.frequency_index                     = pdu.ra_index;

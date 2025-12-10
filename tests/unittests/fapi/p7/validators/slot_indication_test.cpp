@@ -23,7 +23,21 @@ class validate_slot_indication_field
 
 TEST_P(validate_slot_indication_field, WithValue)
 {
-  auto params = GetParam();
+  auto params   = GetParam();
+  auto property = std::get<0>(params).property;
+  auto value    = std::get<1>(params).value;
+
+  if (property == "sfn" && value >= 1024) {
+    const char* expected_regex = R"((.*)Invalid SFN(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, value, 0), expected_regex);
+    return;
+  }
+
+  if (property == "slot" && value >= 160) {
+    const char* expected_regex = R"((.*)Slot index(.*) exceeds maximum number of slots(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, 0, value), expected_regex);
+    return;
+  }
 
   execute_test(std::get<0>(params),
                std::get<1>(params),
@@ -32,25 +46,25 @@ TEST_P(validate_slot_indication_field, WithValue)
                ocudu::fapi::message_type_id::slot_indication);
 }
 
-INSTANTIATE_TEST_SUITE_P(SFN,
-                         validate_slot_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<slot_indication>{
-                                              "sfn",
-                                              [](slot_indication& msg, int value) { msg.sfn = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{522, true},
-                                                          test_case_data{1023, true},
-                                                          test_case_data{1024, false})));
+INSTANTIATE_TEST_SUITE_P(
+    SFN,
+    validate_slot_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<slot_indication>{"sfn",
+                                                                     [](slot_indication& msg, int value) {
+                                                                       msg.slot = slot_point(
+                                                                           subcarrier_spacing::kHz240, value, 0);
+                                                                     }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{522, true}, test_case_data{1023, true})));
 
-INSTANTIATE_TEST_SUITE_P(slot,
-                         validate_slot_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<slot_indication>{
-                                              "slot",
-                                              [](slot_indication& msg, int value) { msg.slot = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{80, true},
-                                                          test_case_data{159, true},
-                                                          test_case_data{160, false})));
+INSTANTIATE_TEST_SUITE_P(
+    slot,
+    validate_slot_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<slot_indication>{"slot",
+                                                                     [](slot_indication& msg, int value) {
+                                                                       msg.slot = slot_point(
+                                                                           subcarrier_spacing::kHz240, 0, value);
+                                                                     }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{80, true}, test_case_data{159, true})));
 
 TEST(validate_slot_indication, valid_message_passes)
 {
@@ -61,18 +75,22 @@ TEST(validate_slot_indication, valid_message_passes)
   ASSERT_TRUE(result);
 }
 
-TEST(validate_slot_indication, invalid_message_fails)
-{
-  auto msg = build_valid_slot_indication();
+#ifdef ASSERTS_ENABLED
+INSTANTIATE_TEST_SUITE_P(invalidSFN,
+                         validate_slot_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<slot_indication>{
+                                              "sfn",
+                                              [](slot_indication& msg, int value) {
+                                                msg.slot = slot_point(subcarrier_spacing::kHz240, value, 0);
+                                              }}),
+                                          testing::Values(test_case_data{1024, false})));
 
-  msg.slot = 160U;
-  msg.sfn  = 1024U;
-
-  const auto& result = validate_slot_indication(msg);
-
-  ASSERT_FALSE(result);
-
-  const auto& report = result.error();
-  // Check that the 2 errors are reported.
-  ASSERT_EQ(report.reports.size(), 2U);
-}
+INSTANTIATE_TEST_SUITE_P(invalid_slot,
+                         validate_slot_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<slot_indication>{
+                                              "slot",
+                                              [](slot_indication& msg, int value) {
+                                                msg.slot = slot_point(subcarrier_spacing::kHz240, 0, value);
+                                              }}),
+                                          testing::Values(test_case_data{160, false})));
+#endif

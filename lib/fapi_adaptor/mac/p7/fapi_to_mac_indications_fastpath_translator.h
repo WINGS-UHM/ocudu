@@ -25,7 +25,7 @@ namespace fapi_adaptor {
 class fapi_to_mac_indications_fastpath_translator : public fapi::p7_indications_notifier
 {
 public:
-  fapi_to_mac_indications_fastpath_translator(subcarrier_spacing scs_, unsigned sector_id_);
+  explicit fapi_to_mac_indications_fastpath_translator(unsigned sector_id_);
 
   // See interface for documentation.
   void on_rx_data_indication(const fapi::rx_data_indication& msg) override;
@@ -52,7 +52,6 @@ public:
   void set_cell_crc_handler(mac_cell_control_information_handler& handler);
 
 private:
-  const subcarrier_spacing              scs;
   const unsigned                        sector_id;
   mac_cell_rach_handler*                rach_handler;
   mac_pdu_handler*                      pdu_handler;

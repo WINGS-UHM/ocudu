@@ -324,7 +324,7 @@ TEST(validate_pdcch_pdu, valid_pdu_passes)
 {
   dl_pdcch_pdu pdu = build_valid_dl_pdcch_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_TRUE(validate_dl_pdcch_pdu(message_type_id::dl_tti_request, pdu, report));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
@@ -340,7 +340,7 @@ TEST(validate_pdcch_pdu, invalid_pdu_fails)
   pdu.reg_bundle_size  = 8;
   pdu.dl_dci[0].rnti   = to_rnti(0);
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_dl_pdcch_pdu(message_type_id::dl_tti_request, pdu, report));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 3u);

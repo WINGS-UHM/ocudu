@@ -39,15 +39,14 @@ static float convert_to_beta_pss(const fapi::dl_ssb_pdu& fapi_pdu)
 
 void ocudu::fapi_adaptor::convert_ssb_fapi_to_phy(ssb_processor::pdu_t&   proc_pdu,
                                                   const fapi::dl_ssb_pdu& fapi_pdu,
-                                                  uint16_t                sfn,
-                                                  uint16_t                slot,
+                                                  slot_point              slot,
                                                   subcarrier_spacing      scs_common)
 {
   ocudu_assert(scs_common != subcarrier_spacing::kHz240, "Invalid value for common subcarrier spacing");
   ocudu_assert(fapi_pdu.ssb_maintenance_v3.scs != subcarrier_spacing::kHz60,
                "Invalid value for SSB subcarrier spacing");
 
-  proc_pdu.slot              = slot_point(fapi_pdu.ssb_maintenance_v3.scs, sfn, slot);
+  proc_pdu.slot              = slot;
   proc_pdu.phys_cell_id      = fapi_pdu.phys_cell_id;
   proc_pdu.beta_pss          = convert_to_beta_pss(fapi_pdu);
   proc_pdu.ssb_idx           = fapi_pdu.ssb_block_index;

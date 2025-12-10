@@ -164,7 +164,9 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                                           fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present}) {
                     for (auto ldpc_graph : {ldpc_base_graph_type::BG1, ldpc_base_graph_type::BG2}) {
                       unsigned     sfn                      = sfn_dist(gen);
-                      unsigned     slot                     = slot_dist(gen);
+                      unsigned     slot_index               = slot_dist(gen);
+                      auto         scs                      = subcarrier_spacing::kHz240;
+                      slot_point   slot                     = slot_point(scs, sfn, slot_index);
                       rnti_t       rnti                     = to_rnti(rnti_dist(gen));
                       unsigned     bwp_size                 = bwp_size_dist(gen);
                       unsigned     bwp_start                = bwp_start_dist(gen);
@@ -190,7 +192,7 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                       builder.set_basic_parameters(rnti);
 
                       // Always work with the biggest numerology.
-                      builder.set_bwp_parameters(bwp_size, bwp_start, subcarrier_spacing::kHz240, cyclic_p);
+                      builder.set_bwp_parameters(bwp_size, bwp_start, scs, cyclic_p);
                       builder.set_codeword_information_parameters(nid_pdsch, 0, 0, ref_point);
                       builder.set_dmrs_parameters(dl_dmrs_symbol,
                                                   config_type,
@@ -228,11 +230,10 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                       builder.get_tx_precoding_and_beamforming_pdu_builder().add_prg(0, {}).set_basic_parameters(51, 0);
 
                       pdsch_processor::pdu_t proc_pdu;
-                      convert_pdsch_fapi_to_phy(proc_pdu, pdu, sfn, slot, {}, pm_repo);
+                      convert_pdsch_fapi_to_phy(proc_pdu, pdu, slot, {}, pm_repo);
 
                       // Test basic parameters.
-                      ASSERT_EQ(sfn, proc_pdu.slot.sfn());
-                      ASSERT_EQ(slot, proc_pdu.slot.slot_index());
+                      ASSERT_EQ(slot, proc_pdu.slot);
                       ASSERT_EQ(static_cast<unsigned>(cyclic_p), static_cast<unsigned>(proc_pdu.cp.value));
 
                       ASSERT_EQ(to_value(rnti), proc_pdu.rnti);

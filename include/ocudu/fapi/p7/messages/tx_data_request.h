@@ -12,6 +12,7 @@
 
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/slot_point.h"
 #include "ocudu/support/shared_transport_block.h"
 
 namespace ocudu {
@@ -33,8 +34,7 @@ struct tx_data_req_pdu {
 
 /// Transmission request message.
 struct tx_data_request : public base_message {
-  uint16_t                                                sfn;
-  uint16_t                                                slot;
+  slot_point                                              slot;
   uint16_t                                                control_length;
   static_vector<tx_data_req_pdu, MAX_PDSCH_PDUS_PER_SLOT> pdus;
 };

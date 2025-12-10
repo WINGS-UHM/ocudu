@@ -34,8 +34,7 @@ struct ul_dci_request : public base_message {
   /// [Implementation-defined] Maximum number of supported UCI PDUs in this message.
   static constexpr unsigned MAX_NUM_UL_DCI_PDUS = 128;
 
-  uint16_t                                       sfn;
-  uint16_t                                       slot;
+  slot_point                                     slot;
   std::array<uint16_t, MAX_NUM_DL_TYPES>         num_pdus_of_each_type;
   static_vector<ul_dci_pdu, MAX_NUM_UL_DCI_PDUS> pdus;
   // Vendor specific parameters.

@@ -19,9 +19,11 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   srs_indication         msg;
   srs_indication_builder builder(msg);
 
-  unsigned sfn  = 13;
-  unsigned slot = 12;
-  builder.set_basic_parameters(sfn, slot);
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 13;
+  unsigned slot_index = 12;
+  auto     slot       = slot_point(scs, sfn, slot_index);
+  builder.set_basic_parameters(slot);
 
   unsigned handle      = 14;
   rnti_t   rnti        = to_rnti(3);
@@ -37,7 +39,6 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   srs_channel_matrix  matrix(values, 2, 2);
   pdu_builder.set_codebook_report_matrix(matrix);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(1, msg.pdus.size());
 
@@ -58,9 +59,11 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
   srs_indication         msg;
   srs_indication_builder builder(msg);
 
-  unsigned sfn  = 13;
-  unsigned slot = 12;
-  builder.set_basic_parameters(sfn, slot);
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 13;
+  unsigned slot_index = 12;
+  auto     slot       = slot_point(scs, sfn, slot_index);
+  builder.set_basic_parameters(slot);
 
   unsigned handle      = 14;
   rnti_t   rnti        = to_rnti(3);
@@ -78,7 +81,6 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
 
   pdu_builder.set_positioning_report_parameters(ul_relative_toa, gnb_rx_tx_difference, ul_aoa, rsrp);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(1, msg.pdus.size());
 

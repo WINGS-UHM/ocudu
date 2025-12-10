@@ -16,15 +16,16 @@ using namespace fapi;
 
 TEST(ul_tti_request_builder, valid_basic_parameters_passes)
 {
-  unsigned slot = 13;
-  unsigned sfn  = 599;
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 599;
+  unsigned slot_index = 13;
+  auto     slot       = slot_point(scs, sfn, slot_index);
 
   ul_tti_request         msg;
   ul_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(sfn, slot);
+  builder.set_basic_parameters(slot);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_TRUE(msg.pdus.empty());
 }

@@ -23,12 +23,16 @@ void ocudu::fapi::log_validator_report(const validator_report& report,
 {
   fmt::memory_buffer str_buffer;
   fmt::format_to(std::back_inserter(str_buffer),
-                 "Sector#{}: Detected {} error(s) in message type '{}' in slot={}.{}:\n",
+                 "Sector#{}: Detected {} error(s) in message type '{}'",
                  sector_id,
                  report.reports.size(),
-                 get_message_type_string(report.reports.front().message_type),
-                 report.sfn,
-                 report.slot);
+                 get_message_type_string(report.reports.front().message_type));
+
+  if (report.slot && report.slot->valid()) {
+    fmt::format_to(std::back_inserter(str_buffer), " in slot={}\n", report.slot.value());
+  } else {
+    fmt::format_to(std::back_inserter(str_buffer), " in slot=n/a\n");
+  }
 
   for (const auto& error : report.reports) {
     // Basic + PDU + Range log.

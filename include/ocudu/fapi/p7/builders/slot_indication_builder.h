@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/fapi/p7/messages/slot_indication.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {
@@ -19,13 +20,12 @@ namespace fapi {
 
 /// Builds and returns a slot.indication message with the given parameters, as per SCF-222 v4.0 section 3.4.1 in table
 /// Slot indication message body.
-inline slot_indication
-build_slot_indication(unsigned sfn, unsigned slot, std::chrono::time_point<std::chrono::system_clock> time_point)
+inline slot_indication build_slot_indication(slot_point                                         slot,
+                                             std::chrono::time_point<std::chrono::system_clock> time_point)
 {
   slot_indication msg;
   msg.message_type = message_type_id::slot_indication;
 
-  msg.sfn        = sfn;
   msg.slot       = slot;
   msg.time_point = time_point;
 

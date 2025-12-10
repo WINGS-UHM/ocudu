@@ -45,14 +45,11 @@ static bool validate_pdu_value(const uint8_t* value, validator_report& report)
 
 error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_data_indication& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  validator_report report(msg.slot);
 
   static constexpr message_type_id msg_id = message_type_id::rx_data_indication;
 
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, msg_id, report);
-  success &= validate_slot(msg.slot, msg_id, report);
   // NOTE: Control length property will not be validated.
 
   for (const auto& pdu : msg.pdus) {

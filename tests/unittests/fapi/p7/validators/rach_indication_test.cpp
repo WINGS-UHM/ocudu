@@ -23,7 +23,21 @@ class validate_rach_indication_field
 
 TEST_P(validate_rach_indication_field, with_value)
 {
-  auto params = GetParam();
+  auto params   = GetParam();
+  auto property = std::get<0>(params).property;
+  auto value    = std::get<1>(params).value;
+
+  if (property == "sfn" && value >= 1024) {
+    const char* expected_regex = R"((.*)Invalid SFN(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, value, 0), expected_regex);
+    return;
+  }
+
+  if (property == "slot" && value >= 160) {
+    const char* expected_regex = R"((.*)Slot index(.*) exceeds maximum number of slots(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, 0, value), expected_regex);
+    return;
+  }
 
   execute_test(std::get<0>(params),
                std::get<1>(params),
@@ -32,25 +46,25 @@ TEST_P(validate_rach_indication_field, with_value)
                ocudu::fapi::message_type_id::rach_indication);
 }
 
-INSTANTIATE_TEST_SUITE_P(sfn,
-                         validate_rach_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rach_indication>{
-                                              "sfn",
-                                              [](rach_indication& pdu, int value) { pdu.sfn = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{512, true},
-                                                          test_case_data{1023, true},
-                                                          test_case_data{1024, false})));
+INSTANTIATE_TEST_SUITE_P(
+    sfn,
+    validate_rach_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<rach_indication>{"sfn",
+                                                                     [](rach_indication& pdu, int value) {
+                                                                       pdu.slot = slot_point(
+                                                                           subcarrier_spacing::kHz240, value, 0);
+                                                                     }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{512, true}, test_case_data{1023, true})));
 
-INSTANTIATE_TEST_SUITE_P(slot,
-                         validate_rach_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rach_indication>{
-                                              "slot",
-                                              [](rach_indication& pdu, int value) { pdu.slot = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{80, true},
-                                                          test_case_data{159, true},
-                                                          test_case_data{160, false})));
+INSTANTIATE_TEST_SUITE_P(
+    slot,
+    validate_rach_indication_field,
+    testing::Combine(testing::Values(pdu_field_data<rach_indication>{"slot",
+                                                                     [](rach_indication& pdu, int value) {
+                                                                       pdu.slot = slot_point(
+                                                                           subcarrier_spacing::kHz240, 0, value);
+                                                                     }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{80, true}, test_case_data{159, true})));
 
 INSTANTIATE_TEST_SUITE_P(symbol_index,
                          validate_rach_indication_field,
@@ -195,3 +209,23 @@ TEST(validate_rach_indication, invalid_indication_fails)
   // Check that the 3 errors are reported.
   ASSERT_EQ(report.reports.size(), 3U);
 }
+
+#ifdef ASSERTS_ENABLED
+INSTANTIATE_TEST_SUITE_P(invalid_sfn,
+                         validate_rach_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<rach_indication>{
+                                              "sfn",
+                                              [](rach_indication& pdu, int value) {
+                                                pdu.slot = slot_point(subcarrier_spacing::kHz240, value, 0);
+                                              }}),
+                                          testing::Values(test_case_data{1024, false})));
+
+INSTANTIATE_TEST_SUITE_P(invalid_slot,
+                         validate_rach_indication_field,
+                         testing::Combine(testing::Values(pdu_field_data<rach_indication>{
+                                              "slot",
+                                              [](rach_indication& pdu, int value) {
+                                                pdu.slot = slot_point(subcarrier_spacing::kHz240, 0, value);
+                                              }}),
+                                          testing::Values(test_case_data{160, false})));
+#endif

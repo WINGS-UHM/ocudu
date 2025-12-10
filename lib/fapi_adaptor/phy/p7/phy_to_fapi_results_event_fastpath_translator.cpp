@@ -85,7 +85,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
   fapi::rach_indication         msg;
   fapi::rach_indication_builder builder(msg);
 
-  builder.set_basic_parameters(slot.sfn(), slot.slot_index());
+  builder.set_basic_parameters(slot);
 
   // NOTE: Currently not managing handle.
   static constexpr unsigned handle = 0U;
@@ -195,7 +195,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
   fapi::uci_indication         msg;
   fapi::uci_indication_builder builder(msg);
 
-  builder.set_basic_parameters(result.slot.sfn(), result.slot.slot_index());
+  builder.set_basic_parameters(result.slot);
 
   // Do not manage handle.
   static constexpr unsigned   handle      = 0;
@@ -268,7 +268,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
   fapi::crc_indication         msg;
   fapi::crc_indication_builder builder(msg);
 
-  builder.set_basic_parameters(result.slot.sfn(), result.slot.slot_index());
+  builder.set_basic_parameters(result.slot);
 
   // Handle is not supported for now.
   unsigned handle = 0;
@@ -333,7 +333,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
 
   // Uplink CP/UP plane separation is not supported for now.
   unsigned control_length = 0;
-  builder.set_basic_parameters(result.slot.sfn(), result.slot.slot_index(), control_length);
+  builder.set_basic_parameters(result.slot, control_length);
 
   // Handle is not supported for now.
   unsigned handle = 0;
@@ -540,7 +540,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_pucch_results(const u
   fapi::uci_indication_builder builder(msg);
 
   const ul_pucch_context& context = result.context;
-  builder.set_basic_parameters(context.slot.sfn(), context.slot.slot_index());
+  builder.set_basic_parameters(context.slot);
 
   switch (context.format) {
     case pucch_format::FORMAT_0:
@@ -571,7 +571,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
   fapi::srs_indication_builder builder(msg);
 
   const ul_srs_context& context = result.context;
-  builder.set_basic_parameters(context.slot.sfn(), context.slot.slot_index());
+  builder.set_basic_parameters(context.slot);
 
   if (context.is_normalized_channel_iq_matrix_report_requested) {
     // Do not use the handle for now.

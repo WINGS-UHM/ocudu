@@ -16,16 +16,17 @@ using namespace fapi;
 
 TEST(rx_data_indication_builder, valid_basic_parameters_passes)
 {
+  auto     scs            = subcarrier_spacing::kHz240;
   unsigned sfn            = 600;
-  unsigned slot           = 40;
+  unsigned slot_index     = 40;
+  auto     slot           = slot_point(scs, sfn, slot_index);
   unsigned control_length = 119;
 
   rx_data_indication         msg;
   rx_data_indication_builder builder(msg);
 
-  builder.set_basic_parameters(sfn, slot, control_length);
+  builder.set_basic_parameters(slot, control_length);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(control_length, msg.control_length);
 }

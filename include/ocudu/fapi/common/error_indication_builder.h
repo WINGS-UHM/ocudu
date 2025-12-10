@@ -19,18 +19,14 @@ namespace fapi {
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
 /// \note This builder is used to build any error code id but OUT_OF_SYNC error.
-inline error_indication
-build_error_indication(uint16_t sfn, uint16_t slot, message_type_id msg_id, error_code_id error_id)
+inline error_indication build_error_indication(slot_point slot, message_type_id msg_id, error_code_id error_id)
 {
   error_indication msg;
 
-  msg.message_type  = message_type_id::error_indication;
-  msg.sfn           = sfn;
-  msg.slot          = slot;
-  msg.message_id    = msg_id;
-  msg.error_code    = error_id;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type = message_type_id::error_indication;
+  msg.slot         = slot;
+  msg.message_id   = msg_id;
+  msg.error_code   = error_id;
 
   return msg;
 }
@@ -38,20 +34,15 @@ build_error_indication(uint16_t sfn, uint16_t slot, message_type_id msg_id, erro
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
 /// \note This builder is used to build only an OUT_OF_SYNC error code.
-inline error_indication build_out_of_sync_error_indication(uint16_t        sfn,
-                                                           uint16_t        slot,
-                                                           message_type_id msg_id,
-                                                           uint16_t        expected_sfn,
-                                                           uint16_t        expected_slot)
+inline error_indication
+build_out_of_sync_error_indication(slot_point slot, message_type_id msg_id, slot_point expected_slot)
 {
   error_indication msg;
 
   msg.message_type  = message_type_id::error_indication;
-  msg.sfn           = sfn;
   msg.slot          = slot;
   msg.message_id    = msg_id;
   msg.error_code    = error_code_id::out_of_sync;
-  msg.expected_sfn  = expected_sfn;
   msg.expected_slot = expected_slot;
 
   return msg;
@@ -60,20 +51,15 @@ inline error_indication build_out_of_sync_error_indication(uint16_t        sfn,
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
 /// \note This builder is used to build only an MSG_INVALID_SFN error code.
-inline error_indication build_invalid_sfn_error_indication(uint16_t        sfn,
-                                                           uint16_t        slot,
-                                                           message_type_id msg_id,
-                                                           uint16_t        expected_sfn,
-                                                           uint16_t        expected_slot)
+inline error_indication
+build_invalid_sfn_error_indication(slot_point slot, message_type_id msg_id, slot_point expected_slot)
 {
   error_indication msg;
 
   msg.message_type  = message_type_id::error_indication;
-  msg.sfn           = sfn;
   msg.slot          = slot;
   msg.message_id    = msg_id;
   msg.error_code    = error_code_id::msg_invalid_sfn;
-  msg.expected_sfn  = expected_sfn;
   msg.expected_slot = expected_slot;
 
   return msg;
@@ -82,17 +68,14 @@ inline error_indication build_invalid_sfn_error_indication(uint16_t        sfn,
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
 /// \note This builder is used to build only a MSG_SLOT_ERR error code.
-inline error_indication build_msg_error_indication(uint16_t sfn, uint16_t slot, message_type_id msg_id)
+inline error_indication build_msg_error_indication(slot_point slot, message_type_id msg_id)
 {
   error_indication msg;
 
-  msg.message_type  = message_type_id::error_indication;
-  msg.sfn           = sfn;
-  msg.slot          = slot;
-  msg.message_id    = msg_id;
-  msg.error_code    = error_code_id::msg_slot_err;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type = message_type_id::error_indication;
+  msg.slot         = slot;
+  msg.message_id   = msg_id;
+  msg.error_code   = error_code_id::msg_slot_err;
 
   return msg;
 }
@@ -100,17 +83,14 @@ inline error_indication build_msg_error_indication(uint16_t sfn, uint16_t slot, 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
 /// \note This builder is used to build only a MSG_TX_ERR error code.
-inline error_indication build_msg_tx_error_indication(uint16_t sfn, uint16_t slot)
+inline error_indication build_msg_tx_error_indication(slot_point slot)
 {
   error_indication msg;
 
-  msg.message_type  = message_type_id::error_indication;
-  msg.sfn           = sfn;
-  msg.slot          = slot;
-  msg.message_id    = message_type_id::tx_data_request;
-  msg.error_code    = error_code_id::msg_tx_err;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type = message_type_id::error_indication;
+  msg.slot         = slot;
+  msg.message_id   = message_type_id::tx_data_request;
+  msg.error_code   = error_code_id::msg_tx_err;
 
   return msg;
 }
@@ -118,17 +98,14 @@ inline error_indication build_msg_tx_error_indication(uint16_t sfn, uint16_t slo
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
 /// \note This builder is used to build only a MSG_UL_DCI_ERR error code.
-inline error_indication build_msg_ul_dci_error_indication(uint16_t sfn, uint16_t slot)
+inline error_indication build_msg_ul_dci_error_indication(slot_point slot)
 {
   error_indication msg;
 
-  msg.message_type  = message_type_id::error_indication;
-  msg.sfn           = sfn;
-  msg.slot          = slot;
-  msg.message_id    = message_type_id::ul_dci_request;
-  msg.error_code    = error_code_id::msg_ul_dci_err;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type = message_type_id::error_indication;
+  msg.slot         = slot;
+  msg.message_id   = message_type_id::ul_dci_request;
+  msg.error_code   = error_code_id::msg_ul_dci_err;
 
   return msg;
 }

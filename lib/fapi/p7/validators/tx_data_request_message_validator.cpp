@@ -37,12 +37,9 @@ static bool validate_pdu_payload(const shared_transport_block& buffer, validator
 
 error_type<validator_report> ocudu::fapi::validate_tx_data_request(const tx_data_request& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  validator_report report(msg.slot);
 
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, message_type_id::tx_data_request, report);
-  success &= validate_slot(msg.slot, message_type_id::tx_data_request, report);
 
   for (const auto& pdu : msg.pdus) {
     success &= validate_pdu_cw_index(pdu.cw_index, report);

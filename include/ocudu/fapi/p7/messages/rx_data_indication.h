@@ -13,6 +13,7 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {
@@ -36,8 +37,7 @@ struct rx_data_indication : public base_message {
   /// Maximum number of supported UCI PDUs in this message.
   static constexpr unsigned MAX_NUM_ULSCH_PDUS_PER_SLOT = 64;
 
-  uint16_t                                                           sfn;
-  uint16_t                                                           slot;
+  slot_point                                                         slot;
   uint16_t                                                           control_length;
   static_vector<rx_data_indication_pdu, MAX_NUM_ULSCH_PDUS_PER_SLOT> pdus;
 };

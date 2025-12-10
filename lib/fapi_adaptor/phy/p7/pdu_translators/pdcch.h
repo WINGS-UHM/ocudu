@@ -22,14 +22,12 @@ class precoding_matrix_repository;
 ///
 /// \param[out] proc_pdu PDCCH processor PDU.
 /// \param[in] fapi_pdu FAPI PDU received that contains all the CSI-RS parameters.
-/// \param[in] sfn SFN when the FAPI PDU was received.
 /// \param[in] slot Slot when the FAPI PDU was received.
 /// \param[in] i_dci DCI index.
 /// \param[in] pm_repo Precoding matrix repository.
 void convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&            proc_pdu,
                                const fapi::dl_pdcch_pdu&          fapi_pdu,
-                               uint16_t                           sfn,
-                               uint16_t                           slot,
+                               slot_point                         slot,
                                uint16_t                           i_dci,
                                const precoding_matrix_repository& pm_repo);
 

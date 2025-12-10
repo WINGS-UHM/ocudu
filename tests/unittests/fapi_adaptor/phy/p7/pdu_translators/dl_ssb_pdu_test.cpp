@@ -91,7 +91,7 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
 
               fapi::dl_tti_request         msg;
               fapi::dl_tti_request_builder builder(msg);
-              builder.set_basic_parameters(slot.sfn(), slot.slot_index(), 0);
+              builder.set_basic_parameters(slot, 0);
               auto     ssb_builder = builder.add_ssb_pdu(pci, beta_pss, ssb_idx, ssb_subcarrier_offset, offset_pointA);
               uint32_t mib_payload = generate_bch_payload(ssb_subcarrier_offset,
                                                           dmrs_type_a_position,
@@ -109,7 +109,7 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               ssb_processor::pdu_t pdu;
 
               // Conversion block.
-              convert_ssb_fapi_to_phy(pdu, msg.pdus[0].ssb_pdu, msg.sfn, msg.slot, common_scs);
+              convert_ssb_fapi_to_phy(pdu, msg.pdus[0].ssb_pdu, msg.slot, common_scs);
 
               // Assert contents.
               ASSERT_EQ(pdu.slot.sfn(), sfn);

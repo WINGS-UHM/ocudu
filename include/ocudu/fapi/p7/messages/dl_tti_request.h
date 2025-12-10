@@ -42,8 +42,7 @@ struct dl_tti_request : public base_message {
   /// Maximum supported number of DL PDU types in this release.
   static constexpr unsigned MAX_NUM_DL_TYPES = 6;
 
-  uint16_t                                                sfn;
-  uint16_t                                                slot;
+  slot_point                                              slot;
   std::array<uint16_t, MAX_NUM_DL_TYPES>                  num_pdus_of_each_type = {};
   uint16_t                                                num_groups;
   static_vector<dl_tti_request_pdu, MAX_DL_PDUS_PER_SLOT> pdus;

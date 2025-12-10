@@ -50,8 +50,10 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
                                   coreset_configuration::precoder_granularity_type::all_contiguous_rbs}) {
               for (int power_nr = -8; power_nr != -7; ++power_nr) {
                 for (int power = -33; power != 3; power += 3) {
+                  auto     scs                = subcarrier_spacing::kHz240;
                   unsigned sfn                = sfn_dist(gen);
-                  unsigned slot               = slot_dist(gen);
+                  unsigned slot_index         = slot_dist(gen);
+                  auto     slot               = slot_point(scs, sfn, slot_index);
                   unsigned bwp_size           = bwp_size_dist(gen);
                   unsigned bwp_start          = bwp_start_dist(gen);
                   unsigned start_symbol_index = start_symbol_index_dist(gen);
@@ -71,7 +73,7 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
                                                       0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1};
 
                   // Always work with the biggest numerology.
-                  builder.set_bwp_parameters(bwp_size, bwp_start, subcarrier_spacing::kHz240, cp);
+                  builder.set_bwp_parameters(bwp_size, bwp_start, scs, cp);
                   builder.set_coreset_parameters(start_symbol_index,
                                                  duration_symbol,
                                                  freq_domain,
@@ -98,11 +100,10 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
 
                   pdcch_processor::pdu_t proc_pdu;
 
-                  convert_pdcch_fapi_to_phy(proc_pdu, pdu, sfn, slot, 0, pm_repo);
+                  convert_pdcch_fapi_to_phy(proc_pdu, pdu, slot, 0, pm_repo);
 
                   // Test basic parameters.
-                  ASSERT_EQ(sfn, proc_pdu.slot.sfn());
-                  ASSERT_EQ(slot, proc_pdu.slot.slot_index());
+                  ASSERT_EQ(slot, proc_pdu.slot);
                   ASSERT_EQ(cp, proc_pdu.cp.value);
 
                   // Test coreset parameters.

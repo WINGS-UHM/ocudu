@@ -21,7 +21,6 @@ generate_fapi_to_phy_translator_config(const phy_fapi_p7_sector_fastpath_adaptor
   return {.sector_id                     = config.sector_id,
           .nof_slots_request_headroom    = config.nof_slots_request_headroom,
           .allow_request_on_empty_ul_tti = config.allow_request_on_empty_ul_tti,
-          .scs                           = config.scs,
           .scs_common                    = config.scs_common,
           .prach_cfg                     = config.prach_cfg,
           .carrier_cfg                   = config.carrier_cfg,

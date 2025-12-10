@@ -46,8 +46,6 @@ struct fapi_to_phy_fastpath_translator_config {
   unsigned nof_slots_request_headroom;
   /// Allows to request uplink on empty UL_TTI.request.
   bool allow_request_on_empty_ul_tti;
-  /// Subcarrier spacing as per TS38.211 Section 4.2.
-  subcarrier_spacing scs;
   /// Common subcarrier spacing as per TS38.331 Section 6.2.2.
   subcarrier_spacing scs_common;
   /// RACH configuration.
@@ -235,16 +233,13 @@ private:
   bool is_message_in_time(const T& msg) const;
 
   /// Returns this adaptor current slot.
-  slot_point get_current_slot() const
-  {
-    return slot_point(scs, current_slot_count_val.load(std::memory_order_relaxed));
-  }
+  slot_point get_current_slot() const { return current_slot_point.load(std::memory_order_relaxed); }
 
   /// Updates this adaptor current slot to the given value.
   void update_current_slot(slot_point slot)
   {
     // Update the atomic variable that holds the slot point.
-    current_slot_count_val.store(slot.system_slot(), std::memory_order_relaxed);
+    current_slot_point.store(slot, std::memory_order_relaxed);
   }
 
 private:
@@ -265,7 +260,7 @@ private:
   /// Uplink slot PDU repository.
   uplink_pdu_slot_repository_pool& ul_pdu_repository;
   /// Current slot count value.
-  std::atomic<uint32_t> current_slot_count_val;
+  std::atomic<slot_point> current_slot_point;
   /// Slot controller manager.
   slot_based_upper_phy_controller_manager slot_controller_mngr;
   /// Precoding matrix repository.
@@ -274,8 +269,6 @@ private:
   std::unique_ptr<uci_part2_correspondence_repository> part2_repo;
   /// Error indication notifier.
   fapi::error_indication_notifier* error_notifier = nullptr;
-  /// Subcarrier spacing as per TS38.211 Section 4.2.
-  const subcarrier_spacing scs;
   /// Common subcarrier spacing as per TS38.331 Section 6.2.2.
   const subcarrier_spacing scs_common;
   /// RACH configuration.
@@ -286,6 +279,8 @@ private:
   const static_vector<uint8_t, MAX_PORTS> prach_ports;
   /// PDSCH PDU repository.
   pdsch_pdu_repository pdsch_repository;
+
+  static_assert(std::atomic<decltype(current_slot_point)>::is_always_lock_free);
 };
 
 } // namespace fapi_adaptor

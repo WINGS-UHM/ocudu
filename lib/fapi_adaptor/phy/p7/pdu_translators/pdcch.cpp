@@ -101,12 +101,11 @@ static void fill_coreset(pdcch_processor::coreset_description& coreset, const fa
 
 void ocudu::fapi_adaptor::convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&            proc_pdu,
                                                     const fapi::dl_pdcch_pdu&          fapi_pdu,
-                                                    uint16_t                           sfn,
-                                                    uint16_t                           slot,
+                                                    slot_point                         slot,
                                                     uint16_t                           i_dci,
                                                     const precoding_matrix_repository& pm_repo)
 {
-  proc_pdu.slot = slot_point(fapi_pdu.scs, sfn, slot);
+  proc_pdu.slot = slot;
   proc_pdu.cp   = fapi_pdu.cp;
 
   fill_coreset(proc_pdu.coreset, fapi_pdu);

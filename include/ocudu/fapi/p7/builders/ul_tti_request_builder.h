@@ -32,9 +32,8 @@ public:
 
   /// Sets the UL_TTI.request basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3 in table UL_TTI,request message body.
-  ul_tti_request_builder& set_basic_parameters(uint16_t sfn, uint16_t slot)
+  ul_tti_request_builder& set_basic_parameters(slot_point slot)
   {
-    msg.sfn  = sfn;
     msg.slot = slot;
 
     // NOTE: number of PDU groups set to 0, because groups are not enabled in this FAPI message at the moment.

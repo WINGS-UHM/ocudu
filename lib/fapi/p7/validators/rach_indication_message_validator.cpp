@@ -119,12 +119,9 @@ static bool validate_preamble_power(unsigned value, validator_report& report)
 
 error_type<validator_report> ocudu::fapi::validate_rach_indication(const rach_indication& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  validator_report report(msg.slot);
 
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, message_type_id::rach_indication, report);
-  success &= validate_slot(msg.slot, message_type_id::rach_indication, report);
 
   for (const auto& pdu : msg.pdus) {
     success &= validate_symbol_index(pdu.symbol_index, report);

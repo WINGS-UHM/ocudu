@@ -90,9 +90,8 @@ public:
 
   /// \brief Sets the \e SRS.indication basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.10 in table SRS.indication message body.
-  srs_indication_builder& set_basic_parameters(uint16_t sfn, uint16_t slot)
+  srs_indication_builder& set_basic_parameters(slot_point slot)
   {
-    msg.sfn            = sfn;
     msg.slot           = slot;
     msg.control_length = 0;
 

@@ -33,10 +33,7 @@ class mac_rach_indication_fixture : public testing::TestWithParam<float>
   fapi_to_mac_indications_fastpath_translator translator;
 
 protected:
-  mac_rach_indication_fixture() : translator(subcarrier_spacing::kHz15, 0)
-  {
-    translator.set_cell_rach_handler(rach_handler);
-  }
+  mac_rach_indication_fixture() : translator(0) { translator.set_cell_rach_handler(rach_handler); }
 
   void test_pdu()
   {
@@ -66,8 +63,8 @@ private:
   fapi::rach_indication build_message()
   {
     fapi::rach_indication fapi_msg;
-    fapi_msg.sfn  = sfn;
-    fapi_msg.slot = slot;
+    auto                  scs = subcarrier_spacing::kHz30;
+    fapi_msg.slot             = slot_point(scs, sfn, slot);
 
     fapi_msg.pdus.emplace_back();
     fapi_msg.num_pdu = fapi_msg.pdus.size();

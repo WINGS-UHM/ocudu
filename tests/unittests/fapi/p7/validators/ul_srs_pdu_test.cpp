@@ -356,7 +356,7 @@ INSTANTIATE_TEST_SUITE_P(t_offset,
 /// Valid PDU should pass.
 TEST(validate_srs_pdu, valid_pdu_passes)
 {
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   const auto&      pdu = build_valid_ul_srs_pdu();
   EXPECT_TRUE(validate_ul_srs_pdu(pdu, report));
   // Assert no reports were generated.
@@ -366,7 +366,7 @@ TEST(validate_srs_pdu, valid_pdu_passes)
 /// Add 4 errors and check that validation fails with 3 errors.
 TEST(validate_srs_pdu, invalid_pdu_fails)
 {
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   auto             pdu = build_valid_ul_srs_pdu();
 
   // Add 4 errors.

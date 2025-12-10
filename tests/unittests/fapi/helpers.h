@@ -13,6 +13,7 @@
 #include "ocudu/adt/expected.h"
 #include "ocudu/fapi/p7/messages/dl_tti_request.h"
 #include "ocudu/fapi/validator_report.h"
+#include "ocudu/ran/slot_point.h"
 #include <gtest/gtest.h>
 
 namespace unittest {
@@ -96,7 +97,7 @@ private:
   }
 
 protected:
-  validator_report report = {0, 0};
+  validator_report report = {ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0}};
 };
 
 using fapi_error = ocudu::error_type<validator_report>;

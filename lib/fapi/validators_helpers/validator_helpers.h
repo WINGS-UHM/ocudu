@@ -25,15 +25,6 @@ inline bool validate_sfn(unsigned value, message_type_id msg_type, validator_rep
   return validate_field(MIN_VALUE, MAX_VALUE, value, "sfn", msg_type, report);
 }
 
-/// Validates the slot property of a message.
-inline bool validate_slot(unsigned value, message_type_id msg_type, validator_report& report)
-{
-  static constexpr unsigned MIN_VALUE = 0;
-  static constexpr unsigned MAX_VALUE = 159;
-
-  return validate_field(MIN_VALUE, MAX_VALUE, value, "slot", msg_type, report);
-}
-
 inline void log_range_report(fmt::memory_buffer& buffer, const validator_report::error_report& report)
 {
   fmt::format_to(std::back_inserter(buffer),

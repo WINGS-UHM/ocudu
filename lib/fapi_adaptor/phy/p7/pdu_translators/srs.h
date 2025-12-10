@@ -21,8 +21,7 @@ void convert_srs_fapi_to_phy(uplink_pdu_slot_repository::srs_pdu& pdu,
                              const fapi::ul_srs_pdu&              fapi_pdu,
                              unsigned                             sector_id_,
                              unsigned                             nof_rx_antennas,
-                             uint16_t                             sfn,
-                             uint16_t                             slot);
+                             slot_point                           slot);
 
 } // namespace fapi_adaptor
 } // namespace ocudu

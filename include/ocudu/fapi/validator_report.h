@@ -12,6 +12,7 @@
 
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
+#include "ocudu/ran/slot_point.h"
 #include <optional>
 
 namespace ocudu {
@@ -55,7 +56,7 @@ struct validator_report {
     }
   };
 
-  validator_report(uint16_t sfn_, uint16_t slot_) : sfn(sfn_), slot(slot_) {}
+  validator_report(slot_point slot_) : slot(slot_) {}
 
   /// Appends an error report.
   void append(int32_t                     value,
@@ -97,8 +98,7 @@ struct validator_report {
     }
   }
 
-  uint16_t                                     sfn;
-  uint16_t                                     slot;
+  std::optional<slot_point>                    slot;
   static_vector<error_report, MAX_NUM_REPORTS> reports;
   unsigned                                     nof_errors = 0;
 };

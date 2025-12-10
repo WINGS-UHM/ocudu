@@ -31,9 +31,8 @@ public:
   /// Sets the DL_TTI.request basic parameters and returns a reference to the builder.
   /// \note nPDUs and nPDUsOfEachType properties are filled by the add_*_pdu() functions.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.2 in table DL_TTI.request message body.
-  dl_tti_request_builder& set_basic_parameters(uint16_t sfn, uint16_t slot, uint16_t n_groups)
+  dl_tti_request_builder& set_basic_parameters(slot_point slot, uint16_t n_groups)
   {
-    msg.sfn        = sfn;
     msg.slot       = slot;
     msg.num_groups = n_groups;
 

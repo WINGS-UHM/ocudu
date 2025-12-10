@@ -23,12 +23,9 @@ using namespace fapi;
 
 error_type<validator_report> ocudu::fapi::validate_dl_tti_request(const dl_tti_request& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  validator_report report(msg.slot);
 
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, message_type_id::dl_tti_request, report);
-  success &= validate_slot(msg.slot, message_type_id::dl_tti_request, report);
   success &= validate_num_groups(msg.num_groups, message_type_id::dl_tti_request, report);
 
   // Validate each PDU.

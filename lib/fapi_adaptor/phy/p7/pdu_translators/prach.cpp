@@ -19,9 +19,7 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
                                                     const rach_config_common&   prach_cfg,
                                                     const fapi::carrier_config& carrier_cfg,
                                                     span<const uint8_t>         ports,
-                                                    unsigned                    sfn,
-                                                    unsigned                    slot,
-                                                    subcarrier_spacing          scs,
+                                                    slot_point                  slot,
                                                     unsigned                    sector_id)
 {
   ocudu_assert(fapi_pdu.maintenance_v3.prach_config_scope == fapi::prach_config_scope_type::phy_context,
@@ -30,7 +28,7 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
                "Only PRACH resource configuration index 0 supported.");
   ocudu_assert(fapi_pdu.index_fd_ra == 0, "Only one FD occasion supported.");
 
-  context.slot                 = slot_point(scs, sfn, slot);
+  context.slot                 = slot;
   context.sector               = sector_id;
   context.format               = fapi_pdu.prach_format;
   context.nof_td_occasions     = fapi_pdu.num_prach_ocas;
@@ -39,7 +37,7 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
   context.start_preamble_index = fapi_pdu.maintenance_v3.start_preamble_index;
   context.nof_preamble_indices = fapi_pdu.maintenance_v3.num_preamble_indices;
 
-  context.pusch_scs       = scs;
+  context.pusch_scs       = slot.scs();
   context.restricted_set  = prach_cfg.restricted_set;
   context.nof_prb_ul_grid = carrier_cfg.ul_grid_size[to_numerology_value(context.pusch_scs)];
 

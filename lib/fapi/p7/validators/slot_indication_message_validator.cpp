@@ -17,19 +17,5 @@ using namespace fapi;
 
 error_type<validator_report> ocudu::fapi::validate_slot_indication(const slot_indication& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
-
-  static constexpr message_type_id msg_id = message_type_id::slot_indication;
-
-  // Validate the SFN and slot.
-  bool success = true;
-  success &= validate_sfn(msg.sfn, msg_id, report);
-  success &= validate_slot(msg.slot, msg_id, report);
-
-  // Build the result.
-  if (!success) {
-    return make_unexpected(std::move(report));
-  }
-
   return {};
 }

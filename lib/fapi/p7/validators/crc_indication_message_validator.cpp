@@ -32,12 +32,9 @@ static bool validate_rsrp(unsigned value, validator_report& report)
 
 error_type<validator_report> ocudu::fapi::validate_crc_indication(const crc_indication& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  validator_report report(msg.slot);
 
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, message_type_id::crc_indication, report);
-  success &= validate_slot(msg.slot, message_type_id::crc_indication, report);
 
   // Validate each PDU.
   for (const auto& pdu : msg.pdus) {

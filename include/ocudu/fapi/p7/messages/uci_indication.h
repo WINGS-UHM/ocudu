@@ -15,6 +15,7 @@
 #include "ocudu/fapi/p7/messages/uci_pucch_pdu_format_2_3_4.h"
 #include "ocudu/fapi/p7/messages/uci_pusch_pdu.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {
@@ -32,8 +33,7 @@ struct uci_indication_pdu {
 
 /// UCI indication message.
 struct uci_indication : public base_message {
-  uint16_t                                                    sfn;
-  uint16_t                                                    slot;
+  slot_point                                                  slot;
   static_vector<uci_indication_pdu, MAX_UCI_PDUS_PER_UCI_IND> pdus;
 };
 

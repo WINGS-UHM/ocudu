@@ -26,11 +26,10 @@ static float translate_amplitude(fapi::power_control_offset_ss power)
 
 void ocudu::fapi_adaptor::convert_csi_rs_fapi_to_phy(nzp_csi_rs_generator::config_t& proc_pdu,
                                                      const fapi::dl_csi_rs_pdu&      fapi_pdu,
-                                                     uint16_t                        sfn,
-                                                     uint16_t                        slot,
+                                                     slot_point                      slot,
                                                      uint16_t                        cell_bandwidth_prb)
 {
-  proc_pdu.slot = slot_point(fapi_pdu.scs, sfn, slot);
+  proc_pdu.slot = slot;
   proc_pdu.cp   = fapi_pdu.cp;
 
   proc_pdu.start_rb = fapi_pdu.start_rb;

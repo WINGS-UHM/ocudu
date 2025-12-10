@@ -785,6 +785,8 @@ mac_dl_data_result_test_helper ocudu::unittests::build_valid_mac_data_result()
 {
   mac_dl_data_result_test_helper result;
 
+  result.result.slot = slot_point(subcarrier_spacing::kHz240, 0, 0);
+
   result.result.si_pdus.push_back({1, shared_transport_block(result.data)});
 
   return result;
@@ -793,6 +795,8 @@ mac_dl_data_result_test_helper ocudu::unittests::build_valid_mac_data_result()
 mac_dl_data_result_test_helper unittests::build_valid_mac_data_result_with_all_supported_pdu()
 {
   mac_dl_data_result_test_helper result;
+
+  result.result.slot = slot_point(subcarrier_spacing::kHz240, 0, 0);
 
   for (unsigned i = 0; i != MAX_SI_PDUS_PER_SLOT; ++i) {
     result.result.si_pdus.push_back({1, shared_transport_block(result.data)});

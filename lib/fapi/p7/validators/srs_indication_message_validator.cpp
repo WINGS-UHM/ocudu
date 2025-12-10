@@ -100,12 +100,9 @@ static bool validate_srs_rsrp(float value, validator_report& report)
 
 error_type<validator_report> ocudu::fapi::validate_srs_indication(const srs_indication& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  validator_report report(msg.slot);
 
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, message_type_id::srs_indication, report);
-  success &= validate_slot(msg.slot, message_type_id::srs_indication, report);
   // NOTE: Control length property will not be validated.
 
   for (const auto& pdu : msg.pdus) {

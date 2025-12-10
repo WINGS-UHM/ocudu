@@ -35,9 +35,7 @@ void convert_prach_fapi_to_phy(prach_buffer_context&       context,
                                const rach_config_common&   prach_cfg,
                                const fapi::carrier_config& carrier_cfg,
                                span<const uint8_t>         ports,
-                               unsigned                    sfn,
-                               unsigned                    slot,
-                               subcarrier_spacing          scs,
+                               slot_point                  slot,
                                unsigned                    sector_id);
 
 } // namespace fapi_adaptor

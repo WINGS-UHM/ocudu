@@ -16,6 +16,7 @@
 #include "ocudu/ran/prach/prach_format_type.h"
 #include "ocudu/ran/prach/prach_subcarrier_spacing.h"
 #include "ocudu/ran/prach/restricted_set_config.h"
+#include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/ssb/ssb_properties.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <array>
@@ -29,8 +30,7 @@ struct phy_config {
   uint16_t               profile_id;
   std::array<uint8_t, 6> indication_instances_per_slot;
   std::array<uint8_t, 4> request_instances_per_slot;
-  uint16_t               sfn;
-  uint8_t                slot;
+  slot_point             slot;
   subcarrier_spacing     scs;
   cyclic_prefix          cp;
 };

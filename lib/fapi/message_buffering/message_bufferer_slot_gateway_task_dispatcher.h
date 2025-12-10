@@ -49,7 +49,6 @@ public:
 
 private:
   const unsigned                     sector_id;
-  const subcarrier_spacing           scs;
   ocudulog::basic_logger&            logger;
   task_executor&                     executor;
   message_bufferer_slot_gateway_impl message_bufferer_gateway;

@@ -12,6 +12,7 @@
 
 #include "ocudu/adt/span.h"
 #include "ocudu/fapi/p7/messages/rx_data_indication.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {
@@ -28,9 +29,8 @@ public:
 
   /// Sets the Rx_Data.indication basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
-  rx_data_indication_builder& set_basic_parameters(uint16_t sfn, uint16_t slot, uint16_t control_length)
+  rx_data_indication_builder& set_basic_parameters(slot_point slot, uint16_t control_length)
   {
-    msg.sfn            = sfn;
     msg.slot           = slot;
     msg.control_length = control_length;
 

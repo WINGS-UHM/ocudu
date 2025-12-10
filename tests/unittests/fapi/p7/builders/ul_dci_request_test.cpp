@@ -19,11 +19,13 @@ TEST(ul_dci_request_builder, valid_basic_parameters_passes)
   ul_dci_request         msg;
   ul_dci_request_builder builder(msg);
 
-  unsigned sfn      = 16;
-  unsigned slot     = 18;
-  unsigned nof_dcis = 0;
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 16;
+  unsigned slot_index = 18;
+  auto     slot       = slot_point(scs, sfn, slot_index);
+  unsigned nof_dcis   = 0;
 
-  builder.set_basic_parameters(sfn, slot);
+  builder.set_basic_parameters(slot);
 
   for (unsigned i = 0, e = 10; i != e; ++i) {
     unsigned dci = i;
@@ -36,6 +38,5 @@ TEST(ul_dci_request_builder, valid_basic_parameters_passes)
     ASSERT_EQ(nof_dcis, msg.num_pdus_of_each_type[ul_dci_request::DCI_INDEX]);
   }
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
 }

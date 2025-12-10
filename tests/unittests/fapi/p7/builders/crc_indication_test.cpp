@@ -20,10 +20,12 @@ TEST(crc_indication_builder, valid_indication_passes)
     crc_indication         msg;
     crc_indication_builder builder(msg);
 
-    unsigned slot = 15;
-    unsigned sfn  = 100;
+    auto     scs        = subcarrier_spacing::kHz30;
+    unsigned sfn        = 100;
+    unsigned slot_index = 15;
+    auto     slot       = slot_point(scs, sfn, slot_index);
 
-    builder.set_basic_parameters(sfn, slot);
+    builder.set_basic_parameters(slot);
 
     uint32_t                                                      handle = 34U;
     rnti_t                                                        rnti   = to_rnti(10);
@@ -63,7 +65,6 @@ TEST(crc_indication_builder, valid_indication_passes)
                     rsrp_dB,
                     use_dB);
 
-    ASSERT_EQ(sfn, msg.sfn);
     ASSERT_EQ(slot, msg.slot);
 
     const crc_ind_pdu& pdu = msg.pdus.back();
@@ -89,10 +90,12 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
   crc_indication         msg;
   crc_indication_builder builder(msg);
 
-  unsigned slot = 15;
-  unsigned sfn  = 100;
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 100;
+  unsigned slot_index = 15;
+  auto     slot       = slot_point(scs, sfn, slot_index);
 
-  builder.set_basic_parameters(sfn, slot);
+  builder.set_basic_parameters(slot);
 
   uint32_t                                                      handle = 34U;
   rnti_t                                                        rnti   = to_rnti(10);
@@ -121,7 +124,6 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
                   rssi_dB,
                   rsrp_dB);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
 
   const crc_ind_pdu& pdu = msg.pdus.back();

@@ -52,7 +52,7 @@ TEST(FapiPhyUlPrachPduAdaptorTest, valid_pdu_pass)
   std::iota(prach_rx_ports.begin(), prach_rx_ports.end(), 0);
 
   prach_buffer_context context;
-  convert_prach_fapi_to_phy(context, fapi_pdu, prach, carrier_cfg, prach_rx_ports, sfn, slot_id, scs_common, sector);
+  convert_prach_fapi_to_phy(context, fapi_pdu, prach, carrier_cfg, prach_rx_ports, slot, sector);
 
   ASSERT_EQ(static_cast<unsigned>(fapi_pdu.prach_format), static_cast<unsigned>(context.format));
   ASSERT_EQ(fapi_pdu.prach_start_symbol, context.start_symbol);

@@ -35,9 +35,9 @@ mac_fapi_p7_sector_fastpath_adaptor_impl::mac_fapi_p7_sector_fastpath_adaptor_im
     mac_fapi_p7_sector_fastpath_adaptor_impl_dependencies dependencies) :
   mac_translator(generate_translator_config(config),
                  generate_translator_dependencies(std::move(dependencies.base_dependencies))),
-  fapi_data_translator(config.scs, config.sector_id),
-  fapi_time_translator(config.scs, dependencies.slot_handler),
-  fapi_error_translator(config.scs)
+  fapi_data_translator(config.sector_id),
+  fapi_time_translator(dependencies.slot_handler),
+  fapi_error_translator(ocudulog::fetch_basic_logger("FAPI"))
 {
 }
 

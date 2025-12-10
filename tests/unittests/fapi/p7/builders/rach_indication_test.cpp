@@ -19,18 +19,20 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
   rach_indication         msg;
   rach_indication_builder builder(msg);
 
-  unsigned             slot    = 12;
-  unsigned             sfn     = 13;
-  unsigned             handle  = 14;
-  unsigned             symb_id = 3;
-  unsigned             slot_id = 45;
-  unsigned             ra_id_d = 4;
-  unsigned             index   = 32;
+  auto                 scs        = subcarrier_spacing::kHz30;
+  unsigned             sfn        = 13;
+  unsigned             slot_index = 12;
+  auto                 slot       = slot_point(scs, sfn, slot_index);
+  unsigned             handle     = 14;
+  unsigned             symb_id    = 3;
+  unsigned             slot_id    = 45;
+  unsigned             ra_id_d    = 4;
+  unsigned             index      = 32;
   std::optional<float> rssi;
   std::optional<float> rsrp = 0;
   std::optional<float> snr  = 10;
 
-  builder.set_basic_parameters(sfn, slot);
+  builder.set_basic_parameters(slot);
   auto pdu_builder = builder.add_pdu(handle, symb_id, slot_id, ra_id_d, rssi, rsrp, snr);
 
   std::optional<unsigned> timing         = 0;
@@ -40,7 +42,6 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
 
   pdu_builder.add_preamble(index, timing, timing_ns, preamble_power, preamble_snr);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(1, msg.pdus.size());
 

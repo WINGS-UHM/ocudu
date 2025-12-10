@@ -158,7 +158,7 @@ INSTANTIATE_TEST_SUITE_P(num_preamble_indices,
 
 TEST(validate_ul_prach_pdu, valid_pdu_passes)
 {
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   const auto&      pdu = build_valid_ul_prach_pdu();
   ASSERT_TRUE(validate_ul_prach_pdu(pdu, report));
   ASSERT_TRUE(report.reports.empty());
@@ -166,7 +166,7 @@ TEST(validate_ul_prach_pdu, valid_pdu_passes)
 
 TEST(validate_ul_prach_pdu, invalid_pdu_fails)
 {
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   auto             pdu = build_valid_ul_prach_pdu();
 
   // Add 6 errors.

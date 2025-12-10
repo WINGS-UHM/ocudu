@@ -23,7 +23,21 @@ class validate_crc_message_field
 
 TEST_P(validate_crc_message_field, WithValue)
 {
-  auto params = GetParam();
+  auto params   = GetParam();
+  auto property = std::get<0>(params).property;
+  auto value    = std::get<1>(params).value;
+
+  if (property == "sfn" && value >= 1024) {
+    const char* expected_regex = R"((.*)Invalid SFN(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, value, 0), expected_regex);
+    return;
+  }
+
+  if (property == "slot" && value >= 160) {
+    const char* expected_regex = R"((.*)Slot index(.*) exceeds maximum number of slots(.*))";
+    ASSERT_DEATH(slot_point(subcarrier_spacing::kHz240, 0, value), expected_regex);
+    return;
+  }
 
   execute_test(std::get<0>(params),
                std::get<1>(params),
@@ -32,25 +46,25 @@ TEST_P(validate_crc_message_field, WithValue)
                ocudu::fapi::message_type_id::crc_indication);
 }
 
-INSTANTIATE_TEST_SUITE_P(SFN,
-                         validate_crc_message_field,
-                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
-                                              "sfn",
-                                              [](crc_indication& msg, int value) { msg.sfn = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{522, true},
-                                                          test_case_data{1023, true},
-                                                          test_case_data{1024, false})));
+INSTANTIATE_TEST_SUITE_P(
+    SFN,
+    validate_crc_message_field,
+    testing::Combine(testing::Values(pdu_field_data<crc_indication>{"sfn",
+                                                                    [](crc_indication& msg, int value) {
+                                                                      msg.slot = slot_point(
+                                                                          subcarrier_spacing::kHz240, value, 0);
+                                                                    }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{522, true}, test_case_data{1023, true})));
 
-INSTANTIATE_TEST_SUITE_P(slot,
-                         validate_crc_message_field,
-                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
-                                              "slot",
-                                              [](crc_indication& msg, int value) { msg.slot = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{80, true},
-                                                          test_case_data{159, true},
-                                                          test_case_data{160, false})));
+INSTANTIATE_TEST_SUITE_P(
+    slot,
+    validate_crc_message_field,
+    testing::Combine(testing::Values(pdu_field_data<crc_indication>{"slot",
+                                                                    [](crc_indication& msg, int value) {
+                                                                      msg.slot = slot_point(
+                                                                          subcarrier_spacing::kHz240, 0, value);
+                                                                    }}),
+                     testing::Values(test_case_data{0, true}, test_case_data{80, true}, test_case_data{159, true})));
 
 INSTANTIATE_TEST_SUITE_P(
     RNTI,
@@ -155,7 +169,7 @@ TEST(validate_crc_indication, invalid_message_fails)
   crc_indication msg = build_valid_crc_indication();
 
   // Force 3 errors.
-  msg.slot                                  = 1025;
+  msg.slot                                  = slot_point(subcarrier_spacing::kHz240, 0, 100);
   msg.pdus.front().rsrp                     = 10000;
   msg.pdus.front().timing_advance_offset_ns = -30000;
 
@@ -163,5 +177,25 @@ TEST(validate_crc_indication, invalid_message_fails)
 
   ASSERT_FALSE(result);
   // Assert 3 reports were generated.
-  ASSERT_EQ(result.error().reports.size(), 3u);
+  ASSERT_EQ(result.error().reports.size(), 2u);
 }
+
+#ifdef ASSERTS_ENABLED
+INSTANTIATE_TEST_SUITE_P(invalid_SFN,
+                         validate_crc_message_field,
+                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
+                                              "sfn",
+                                              [](crc_indication& msg, int value) {
+                                                msg.slot = slot_point(subcarrier_spacing::kHz240, value, 0);
+                                              }}),
+                                          testing::Values(test_case_data{1024, false})));
+
+INSTANTIATE_TEST_SUITE_P(invalid_slot,
+                         validate_crc_message_field,
+                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
+                                              "slot",
+                                              [](crc_indication& msg, int value) {
+                                                msg.slot = slot_point(subcarrier_spacing::kHz240, 0, value);
+                                              }}),
+                                          testing::Values(test_case_data{160, false})));
+#endif

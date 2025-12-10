@@ -41,6 +41,5 @@ void phy_to_fapi_time_event_fastpath_translator::on_tti_boundary(const upper_phy
   translator.handle_new_slot(context.slot);
 
   // Delivering the slot.indication message must always be the last step.
-  slot_indication_notifier->on_slot_indication(
-      fapi::build_slot_indication(context.slot.sfn(), context.slot.slot_index(), context.time_point));
+  slot_indication_notifier->on_slot_indication(fapi::build_slot_indication(context.slot, context.time_point));
 }

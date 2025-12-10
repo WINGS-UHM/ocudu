@@ -25,8 +25,10 @@ TEST(fapi_phy_ul_pusch_adaptor_test, valid_pdu_pass)
 {
   fapi::ul_pusch_pdu fapi_pdu = build_valid_ul_pusch_pdu();
 
-  unsigned sfn  = 1U;
-  unsigned slot = 2U;
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 1U;
+  unsigned slot_index = 2U;
+  auto     slot       = slot_point(scs, sfn, slot_index);
 
   std::uniform_int_distribution<unsigned> nof_antenna_ports_dist(1, 4);
   unsigned                                nof_antenna_ports = nof_antenna_ports_dist(rgen);
@@ -35,13 +37,12 @@ TEST(fapi_phy_ul_pusch_adaptor_test, valid_pdu_pass)
   uplink_pdu_slot_repository::pusch_pdu pdu;
   convert_pusch_fapi_to_phy(pdu,
                             fapi_pdu,
-                            sfn,
                             slot,
                             nof_antenna_ports,
                             *std::get<std::unique_ptr<uci_part2_correspondence_repository>>(uci_part2_tools));
 
   const pusch_processor::pdu_t& phy_pdu = pdu.pdu;
-  ASSERT_EQ(slot_point(to_numerology_value(fapi_pdu.scs), sfn, slot), phy_pdu.slot);
+  ASSERT_EQ(slot, phy_pdu.slot);
   ASSERT_EQ(fapi_pdu.start_symbol_index, phy_pdu.start_symbol_index);
   ASSERT_EQ(fapi_pdu.nr_of_symbols, phy_pdu.nof_symbols);
   ASSERT_EQ(to_value(fapi_pdu.rnti), phy_pdu.rnti);

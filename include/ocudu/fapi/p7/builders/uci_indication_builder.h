@@ -30,9 +30,8 @@ public:
 
   /// \brief Sets the \e UCI.indication basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9 in table UCI.indication message body.
-  uci_indication_builder& set_basic_parameters(uint16_t sfn, uint16_t slot)
+  uci_indication_builder& set_basic_parameters(slot_point slot)
   {
-    msg.sfn  = sfn;
     msg.slot = slot;
 
     return *this;

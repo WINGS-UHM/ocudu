@@ -111,7 +111,7 @@ static bool operator==(const dl_tti_request_pdu& lhs, const dl_tti_request_pdu& 
 
 static bool operator==(const dl_tti_request& lhs, const dl_tti_request& rhs)
 {
-  return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
+  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
          lhs.num_groups == rhs.num_groups && lhs.pdus == rhs.pdus;
 }
 
@@ -180,7 +180,7 @@ static bool operator==(const ul_tti_request_pdu& lhs, const ul_tti_request_pdu& 
 
 static bool operator==(const ul_tti_request& lhs, const ul_tti_request& rhs)
 {
-  return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
+  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
          lhs.num_groups == rhs.num_groups && lhs.pdus == rhs.pdus;
 }
 
@@ -191,8 +191,7 @@ static bool operator==(const ul_dci_pdu& lhs, const ul_dci_pdu& rhs)
 
 static bool operator==(const ul_dci_request& lhs, const ul_dci_request& rhs)
 {
-  return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
-         lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type && lhs.pdus == rhs.pdus;
 }
 
 static bool operator==(const tx_data_req_pdu& lhs, const tx_data_req_pdu& rhs)
@@ -202,7 +201,7 @@ static bool operator==(const tx_data_req_pdu& lhs, const tx_data_req_pdu& rhs)
 
 static bool operator==(const tx_data_request& lhs, const tx_data_request& rhs)
 {
-  return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.control_length == rhs.control_length && lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.control_length == rhs.control_length && lhs.pdus == rhs.pdus;
 }
 
 } // namespace fapi
@@ -276,7 +275,7 @@ TEST(bufferer_slot_gateway_impl_test, dl_tti_request_from_same_slot_is_transmitt
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
   const dl_tti_request& msg  = unittest::build_valid_dl_tti_request();
-  slot_point            slot = slot_point(scs, msg.sfn, msg.slot);
+  slot_point            slot = msg.slot;
   bufferer->update_current_slot(slot);
   ASSERT_FALSE(spy.has_dl_tti_request_message_been_received());
 
@@ -304,14 +303,10 @@ TEST(bufferer_slot_gateway_impl_test, cached_slot_is_sended_when_the_current_slo
 
   slot_point first_message_slot = current_slot + 1;
 
-  dl_tti_msg.sfn   = first_message_slot.sfn();
-  dl_tti_msg.slot  = first_message_slot.slot_index();
-  ul_tti_msg.sfn   = first_message_slot.sfn();
-  ul_tti_msg.slot  = first_message_slot.slot_index();
-  ul_dci_msg.sfn   = first_message_slot.sfn();
-  ul_dci_msg.slot  = first_message_slot.slot_index();
-  tx_data_msg.sfn  = first_message_slot.sfn();
-  tx_data_msg.slot = first_message_slot.slot_index();
+  dl_tti_msg.slot  = first_message_slot;
+  ul_tti_msg.slot  = first_message_slot;
+  ul_dci_msg.slot  = first_message_slot;
+  tx_data_msg.slot = first_message_slot;
 
   bufferer->update_current_slot(current_slot);
   bufferer->forward_cached_messages(current_slot);
@@ -340,14 +335,10 @@ TEST(bufferer_slot_gateway_impl_test, cached_slot_is_sended_when_the_current_slo
 
   // Second slot.
   slot_point second_message_slot = current_slot + 2;
-  dl_tti_msg.sfn                 = second_message_slot.sfn();
-  dl_tti_msg.slot                = second_message_slot.slot_index();
-  ul_tti_msg.sfn                 = second_message_slot.sfn();
-  ul_tti_msg.slot                = second_message_slot.slot_index();
-  ul_dci_msg.sfn                 = second_message_slot.sfn();
-  ul_dci_msg.slot                = second_message_slot.slot_index();
-  tx_data_msg.sfn                = second_message_slot.sfn();
-  tx_data_msg.slot               = second_message_slot.slot_index();
+  dl_tti_msg.slot                = second_message_slot;
+  ul_tti_msg.slot                = second_message_slot;
+  ul_dci_msg.slot                = second_message_slot;
+  tx_data_msg.slot               = second_message_slot;
 
   bufferer->handle_dl_tti_request(dl_tti_msg);
   bufferer->handle_ul_tti_request(ul_tti_msg);
@@ -377,8 +368,7 @@ TEST(bufferer_slot_gateway_impl_test, older_slots_than_supported_delay_are_sende
   dl_tti_request msg      = unittest::build_valid_dl_tti_request();
   slot_point     msg_slot = current_slot - 1;
 
-  msg.sfn  = msg_slot.sfn();
-  msg.slot = msg_slot.slot_index();
+  msg.slot = msg_slot;
 
   bufferer->update_current_slot(current_slot);
   bufferer->handle_dl_tti_request(msg);
@@ -402,8 +392,7 @@ TEST(bufferer_slot_gateway_impl_test, message_with_slot_bigger_than_delay_deads)
   dl_tti_request msg      = unittest::build_valid_dl_tti_request();
   slot_point     msg_slot = current_slot + l2_nof_slots_ahead + 1;
 
-  msg.sfn  = msg_slot.sfn();
-  msg.slot = msg_slot.slot_index();
+  msg.slot = msg_slot;
 
   bufferer->update_current_slot(current_slot);
   bufferer->forward_cached_messages(current_slot);
@@ -424,8 +413,7 @@ TEST(bufferer_slot_gateway_impl_test, all_cached_slot_is_sended_when_the_current
   dl_tti_request dl_tti_msg = unittest::build_valid_dl_tti_request();
 
   slot_point first_message_slot = current_slot + 1;
-  dl_tti_msg.sfn                = first_message_slot.sfn();
-  dl_tti_msg.slot               = first_message_slot.slot_index();
+  dl_tti_msg.slot               = first_message_slot;
 
   bufferer->update_current_slot(current_slot);
   bufferer->forward_cached_messages(current_slot);
@@ -433,8 +421,7 @@ TEST(bufferer_slot_gateway_impl_test, all_cached_slot_is_sended_when_the_current
 
   // Second slot.
   slot_point second_message_slot = current_slot + 2;
-  dl_tti_msg.sfn                 = second_message_slot.sfn();
-  dl_tti_msg.slot                = second_message_slot.slot_index();
+  dl_tti_msg.slot                = second_message_slot;
 
   bufferer->handle_dl_tti_request(dl_tti_msg);
 
@@ -446,16 +433,14 @@ TEST(bufferer_slot_gateway_impl_test, all_cached_slot_is_sended_when_the_current
   bufferer->update_current_slot(first_message_slot);
   bufferer->forward_cached_messages(first_message_slot);
 
-  dl_tti_msg.sfn  = first_message_slot.sfn();
-  dl_tti_msg.slot = first_message_slot.slot_index();
+  dl_tti_msg.slot = first_message_slot;
   ASSERT_EQ(dl_tti_msg, spy.get_dl_tti_request());
 
   // Send the second slot.
   bufferer->update_current_slot(second_message_slot);
   bufferer->forward_cached_messages(second_message_slot);
 
-  dl_tti_msg.sfn  = second_message_slot.sfn();
-  dl_tti_msg.slot = second_message_slot.slot_index();
+  dl_tti_msg.slot = second_message_slot;
   ASSERT_EQ(dl_tti_msg, spy.get_dl_tti_request());
 }
 
@@ -492,8 +477,7 @@ TEST(bufferer_slot_gateway_impl_test, sended_messages_are_removed_from_the_pool)
   dl_tti_request dl_tti_msg = unittest::build_valid_dl_tti_request();
 
   slot_point first_message_slot = current_slot + 1;
-  dl_tti_msg.sfn                = first_message_slot.sfn();
-  dl_tti_msg.slot               = first_message_slot.slot_index();
+  dl_tti_msg.slot               = first_message_slot;
 
   bufferer->update_current_slot(current_slot);
   bufferer->forward_cached_messages(current_slot);
@@ -501,8 +485,7 @@ TEST(bufferer_slot_gateway_impl_test, sended_messages_are_removed_from_the_pool)
 
   // Second slot.
   slot_point second_message_slot = current_slot + 2;
-  dl_tti_msg.sfn                 = second_message_slot.sfn();
-  dl_tti_msg.slot                = second_message_slot.slot_index();
+  dl_tti_msg.slot                = second_message_slot;
 
   bufferer->handle_dl_tti_request(dl_tti_msg);
 
@@ -512,16 +495,14 @@ TEST(bufferer_slot_gateway_impl_test, sended_messages_are_removed_from_the_pool)
   bufferer->update_current_slot(first_message_slot);
   bufferer->forward_cached_messages(first_message_slot);
 
-  dl_tti_msg.sfn  = first_message_slot.sfn();
-  dl_tti_msg.slot = first_message_slot.slot_index();
+  dl_tti_msg.slot = first_message_slot;
   ASSERT_EQ(dl_tti_msg, spy.get_dl_tti_request());
 
   // Send the second slot.
   bufferer->update_current_slot(second_message_slot);
   bufferer->forward_cached_messages(second_message_slot);
 
-  dl_tti_msg.sfn  = second_message_slot.sfn();
-  dl_tti_msg.slot = second_message_slot.slot_index();
+  dl_tti_msg.slot = second_message_slot;
   ASSERT_EQ(dl_tti_msg, spy.get_dl_tti_request());
 
   // Reset the bools.

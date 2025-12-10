@@ -16,16 +16,17 @@ using namespace fapi;
 
 TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
 {
-  unsigned slot     = 13;
-  unsigned sfn      = 599;
-  unsigned n_groups = 2;
+  auto     scs        = subcarrier_spacing::kHz30;
+  unsigned sfn        = 599;
+  unsigned slot_index = 13;
+  auto     slot       = slot_point(scs, sfn, slot_index);
+  unsigned n_groups   = 2;
 
   dl_tti_request         msg;
   dl_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(sfn, slot, n_groups);
+  builder.set_basic_parameters(slot, n_groups);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(n_groups, msg.num_groups);
   ASSERT_TRUE(msg.pdus.empty());

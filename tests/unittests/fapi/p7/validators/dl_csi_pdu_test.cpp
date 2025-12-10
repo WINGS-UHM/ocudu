@@ -186,7 +186,7 @@ TEST(validate_csi_pdu, valid_pdu_passes)
 {
   dl_csi_rs_pdu pdu = build_valid_dl_csi_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_TRUE(validate_dl_csi_pdu(pdu, report));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
@@ -202,7 +202,7 @@ TEST(validate_csi_pdu, invalid_pdu_fails)
   pdu.symb_L1 = 100;
   pdu.row     = 128;
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_dl_csi_pdu(pdu, report));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 3u);

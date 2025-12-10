@@ -13,6 +13,7 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {
@@ -47,8 +48,7 @@ struct rach_indication : public base_message {
   /// Maximum number of supported measurement PDUs in this message.
   static constexpr unsigned MAX_NUM_RACH_PDUS = 64;
 
-  uint16_t                                              sfn;
-  uint16_t                                              slot;
+  slot_point                                            slot;
   uint8_t                                               num_pdu;
   static_vector<rach_indication_pdu, MAX_NUM_RACH_PDUS> pdus;
 };

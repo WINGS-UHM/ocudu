@@ -129,7 +129,7 @@ TEST(validate_ssb_pdu, valid_pdu_passes)
 {
   dl_ssb_pdu pdu = build_valid_dl_ssb_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_TRUE(validate_dl_ssb_pdu(pdu, report));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
@@ -144,7 +144,7 @@ TEST(validate_ssb_pdu, invalid_pdu_fails)
   pdu.phys_cell_id    = 2000;
   pdu.ssb_block_index = 100;
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_dl_ssb_pdu(pdu, report));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 2u);
@@ -158,7 +158,7 @@ TEST(validate_ssb_pdu_death, invalid_point_A_death_test)
       {
         dl_ssb_pdu pdu        = build_valid_dl_ssb_pdu();
         pdu.ssb_offset_pointA = 2200;
-        validator_report report(0, 0);
+        validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
         validate_dl_ssb_pdu(pdu, report);
       },
       ".*");

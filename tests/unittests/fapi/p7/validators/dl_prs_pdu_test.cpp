@@ -192,7 +192,7 @@ TEST(validate_prs_pdu, valid_pdu_passes)
 {
   dl_prs_pdu pdu = build_valid_dl_prs_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_TRUE(validate_dl_prs_pdu(pdu, report));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
@@ -208,7 +208,7 @@ TEST(validate_prs_pdu, invalid_pdu_fails)
   pdu.num_symbols = static_cast<prs_num_symbols>(7);
   pdu.num_rbs     = 5;
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_dl_prs_pdu(pdu, report));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 3u);

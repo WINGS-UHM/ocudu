@@ -12,18 +12,18 @@
 
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/common/error_code.h"
+#include "ocudu/ran/slot_point.h"
+#include <optional>
 
 namespace ocudu {
 namespace fapi {
 
 /// Encodes the error indication message.
 struct error_indication : public base_message {
-  uint16_t        sfn;
-  uint16_t        slot;
-  message_type_id message_id;
-  error_code_id   error_code;
-  uint16_t        expected_sfn;
-  uint16_t        expected_slot;
+  std::optional<slot_point> slot;
+  message_type_id           message_id;
+  error_code_id             error_code;
+  std::optional<slot_point> expected_slot;
 };
 
 } // namespace fapi

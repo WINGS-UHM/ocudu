@@ -40,8 +40,7 @@ struct ul_tti_request : public base_message {
   /// Maximum number of supported UL PDU types in this release.
   static constexpr unsigned MAX_NUM_UL_TYPES = 6;
 
-  uint16_t                                                sfn;
-  uint16_t                                                slot;
+  slot_point                                              slot;
   std::array<uint16_t, MAX_NUM_UL_TYPES>                  num_pdus_of_each_type;
   uint16_t                                                num_groups;
   static_vector<ul_tti_request_pdu, MAX_UL_PDUS_PER_SLOT> pdus;

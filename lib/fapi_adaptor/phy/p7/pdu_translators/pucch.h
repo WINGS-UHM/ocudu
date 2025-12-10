@@ -20,8 +20,7 @@ namespace fapi_adaptor {
 /// number of reception antennas.
 void convert_pucch_fapi_to_phy(uplink_pdu_slot_repository::pucch_pdu& pdu,
                                const fapi::ul_pucch_pdu&              fapi_pdu,
-                               uint16_t                               sfn,
-                               uint16_t                               slot,
+                               slot_point                             slot,
                                uint16_t                               num_rx_ant);
 
 } // namespace fapi_adaptor

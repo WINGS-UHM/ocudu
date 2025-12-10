@@ -223,7 +223,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
 
   // This FAPI implementation does not support PDU groups.
   const unsigned num_pdu_groups = 0;
-  builder.set_basic_parameters(dl_res.slot.sfn(), dl_res.slot.slot_index(), num_pdu_groups);
+  builder.set_basic_parameters(dl_res.slot, num_pdu_groups);
 
   // Add PDCCH PDUs to the DL_TTI.request message.
   add_pdcch_pdus_to_builder(builder,
@@ -287,7 +287,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
   fapi::tx_data_request         msg;
   fapi::tx_data_request_builder builder(msg);
 
-  builder.set_basic_parameters(dl_data.slot.sfn(), dl_data.slot.slot_index());
+  builder.set_basic_parameters(dl_data.slot);
 
   // Make sure PDUs are added to the builder in the same order as for the DL_TTI.request message.
   unsigned fapi_index = 0;
@@ -365,8 +365,7 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
   fapi::ul_tti_request         msg;
   fapi::ul_tti_request_builder builder(msg);
 
-  // :TODO: Should we check here the numerology matches incoming slot and configured numerology for cell?
-  builder.set_basic_parameters(ul_res.slot.sfn(), ul_res.slot.slot_index());
+  builder.set_basic_parameters(ul_res.slot);
 
   // Add PRACH PDUs to the UL_TTI.request message.
   for (const auto& pdu : ul_res.ul_res->prachs) {
@@ -422,7 +421,7 @@ void mac_to_fapi_fastpath_translator::handle_ul_dci_request(span<const pdcch_ul_
   fapi::ul_dci_request         msg;
   fapi::ul_dci_request_builder builder(msg);
 
-  builder.set_basic_parameters(slot.sfn(), slot.slot_index());
+  builder.set_basic_parameters(slot);
   add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs);
 
   // Validate the UL_DCI.request message.

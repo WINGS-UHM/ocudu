@@ -528,7 +528,7 @@ TEST(validate_pdsch_pdu, valid_pdu_passes)
 {
   dl_pdsch_pdu pdu = build_valid_dl_pdsch_pdu();
 
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_TRUE(validate_dl_pdsch_pdu(pdu, report));
   // Assert no reports were generated.
   EXPECT_TRUE(report.reports.empty());
@@ -542,7 +542,7 @@ TEST(validate_pdsch_pdu, invalid_pdu_fails)
   // Force 3 errors.
   pdu.bwp_size             = 2690;
   pdu.cws[0].qam_mod_order = 1;
-  validator_report report(0, 0);
+  validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   EXPECT_FALSE(validate_dl_pdsch_pdu(pdu, report));
   // Assert 3 reports were generated.
   EXPECT_EQ(report.reports.size(), 2u);

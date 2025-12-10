@@ -229,7 +229,7 @@ protected:
   error_indication_notifier_spy          error_notifier_spy;
   manual_task_worker                     worker;
   fapi_to_phy_fastpath_translator_config config =
-      {sector_id, headroom_in_slots, false, scs, scs, prach_cfg, carrier_cfg, {0}};
+      {sector_id, headroom_in_slots, false, scs, prach_cfg, carrier_cfg, {0}};
   fapi_to_phy_fastpath_translator_dependencies dependencies = {
       ocudulog::fetch_basic_logger("FAPI"),
       dl_processor_pool,
@@ -263,8 +263,7 @@ TEST_F(fapi_to_phy_translator_fixture, downlink_processor_is_configured_on_new_d
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
   fapi::dl_tti_request msg;
-  msg.sfn  = slot.sfn();
-  msg.slot = slot.slot_index();
+  msg.slot = slot;
   // Add a PDU to the message.
   msg.pdus.emplace_back();
 
@@ -279,7 +278,7 @@ TEST_F(fapi_to_phy_translator_fixture, downlink_processor_is_configured_on_new_d
 TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_is_processed)
 {
   fapi::dl_tti_request msg = build_valid_dl_tti_request();
-  slot_point           msg_slot(scs, msg.sfn, msg.slot);
+  slot_point           msg_slot(msg.slot);
 
   ASSERT_FALSE(dl_processor_pool.processor(msg_slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
@@ -306,7 +305,7 @@ TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_is_processed)
 TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_within_allowed_delay_is_processed)
 {
   const fapi::dl_tti_request& msg = build_valid_dl_tti_request();
-  slot_point                  msg_slot(scs, msg.sfn, msg.slot);
+  slot_point                  msg_slot(msg.slot);
 
   ASSERT_FALSE(dl_processor_pool.processor(msg_slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
@@ -335,8 +334,7 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_sends_previous
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
   fapi::dl_tti_request msg;
-  msg.sfn  = slot.sfn();
-  msg.slot = slot.slot_index();
+  msg.slot = slot;
   // Add a pdu to the message.
   msg.pdus.emplace_back();
 
@@ -369,8 +367,7 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_from_a_slot_de
   translator.handle_new_slot(current_slot);
 
   fapi::dl_tti_request msg;
-  msg.sfn  = current_slot.sfn();
-  msg.slot = current_slot.slot_index();
+  msg.slot = current_slot;
 
   // Increase the slots.
   for (unsigned i = 0, e = headroom_in_slots + 1; i != e; ++i) {
@@ -386,10 +383,8 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_from_a_slot_de
   const fapi::error_indication& error_msg = error_notifier_spy.get_message();
   ASSERT_EQ(error_msg.message_id, fapi::message_type_id::dl_tti_request);
   ASSERT_EQ(error_msg.error_code, fapi::error_code_id::out_of_sync);
-  ASSERT_EQ(error_msg.sfn, slot.sfn());
-  ASSERT_EQ(error_msg.slot, slot.slot_index());
-  ASSERT_EQ(error_msg.expected_sfn, current_slot.sfn());
-  ASSERT_EQ(error_msg.expected_slot, current_slot.slot_index());
+  ASSERT_EQ(error_msg.slot, slot);
+  ASSERT_EQ(error_msg.expected_slot, current_slot);
 }
 
 TEST_F(fapi_to_phy_translator_fixture, message_received_is_sended_when_a_message_for_the_next_slot_is_received)
@@ -398,8 +393,7 @@ TEST_F(fapi_to_phy_translator_fixture, message_received_is_sended_when_a_message
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
   fapi::dl_tti_request msg;
-  msg.sfn  = slot.sfn();
-  msg.slot = slot.slot_index();
+  msg.slot = slot;
   // Add a PDU to the message.
   msg.pdus.emplace_back();
 
@@ -430,8 +424,7 @@ TEST_F(fapi_to_phy_translator_fixture,
        empty_ul_tti_does_not_generate_request_when_allow_request_on_empty_slot_is_disabled)
 {
   fapi::ul_tti_request msg;
-  msg.sfn  = slot.sfn();
-  msg.slot = slot.slot_index();
+  msg.slot = slot;
 
   translator.handle_new_slot(slot);
   translator.send_ul_tti_request(msg);
@@ -442,7 +435,7 @@ TEST_F(fapi_to_phy_translator_fixture,
 TEST_F(fapi_to_phy_translator_fixture, empty_ul_tti_generates_request_when_allow_request_on_empty_slot_is_enabled)
 {
   fapi_to_phy_fastpath_translator translator_allow(
-      {sector_id, headroom_in_slots, true, scs, scs, prach_cfg, carrier_cfg, {0}},
+      {sector_id, headroom_in_slots, true, scs, prach_cfg, carrier_cfg, {0}},
       {ocudulog::fetch_basic_logger("FAPI"),
        dl_processor_pool,
        rg_pool,
@@ -455,8 +448,7 @@ TEST_F(fapi_to_phy_translator_fixture, empty_ul_tti_generates_request_when_allow
            std::get<std::unique_ptr<uci_part2_correspondence_repository>>(generate_uci_part2_correspondence(1)))});
 
   fapi::ul_tti_request msg;
-  msg.sfn  = slot.sfn();
-  msg.slot = slot.slot_index();
+  msg.slot = slot;
 
   translator_allow.handle_new_slot(slot);
   translator_allow.send_ul_tti_request(msg);

@@ -29,15 +29,13 @@ void ocudu::fapi::log_error_indication(const error_indication& msg, unsigned sec
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer),
-                 "Sector#{}: Error.indication slot={}.{} error_code={} msg_id={}",
+                 "Sector#{}: Error.indication slot={} error_code={} msg_id={}",
                  sector_id,
-                 msg.sfn,
-                 msg.slot,
+                 *msg.slot,
                  fmt::underlying(msg.error_code),
                  fmt::underlying(msg.message_id));
-  if (msg.error_code == error_code_id::out_of_sync) {
-    fmt::format_to(
-        std::back_inserter(buffer), " expected_sfn={} expected_slot={}", msg.expected_sfn, msg.expected_slot);
+  if (msg.error_code == error_code_id::out_of_sync && msg.expected_slot) {
+    fmt::format_to(std::back_inserter(buffer), " expected_slot={}", *msg.expected_slot);
   }
 
   logger.debug("{}", to_c_str(buffer));
@@ -58,7 +56,7 @@ static float to_crc_ul_rsrp(unsigned rsrp)
 void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: CRC.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: CRC.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer),
@@ -157,7 +155,7 @@ static void log_prs_pdu(const dl_prs_pdu& pdu, fmt::memory_buffer& buffer)
 void ocudu::fapi::log_dl_tti_request(const dl_tti_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: DL_TTI.request slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: DL_TTI.request slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {
@@ -203,7 +201,7 @@ static float to_rach_preamble_snr_dB(int fapi_snr)
 void ocudu::fapi::log_rach_indication(const rach_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: RACH.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: RACH.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer), "\n\t- PRACH symb_idx={} slot_idx={}", pdu.symbol_index, pdu.slot_index);
@@ -236,7 +234,7 @@ void ocudu::fapi::log_rx_data_indication(const rx_data_indication& msg,
                                          ocudulog::basic_logger&   logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: Rx_Data.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: Rx_Data.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(
@@ -248,7 +246,7 @@ void ocudu::fapi::log_rx_data_indication(const rx_data_indication& msg,
 
 void ocudu::fapi::log_tx_data_request(const tx_data_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
-  logger.debug("Sector#{}: Tx_Data.request slot={}.{} nof_pdus={}", sector_id, msg.sfn, msg.slot, msg.pdus.size());
+  logger.debug("Sector#{}: Tx_Data.request slot={} nof_pdus={}", sector_id, msg.slot, msg.pdus.size());
 }
 
 /// Converts the given FAPI UCI SINR to dB as per SCF-222 v4.0 section 3.4.9.
@@ -362,7 +360,7 @@ static void log_uci_pusch_pdu(const uci_pusch_pdu& pdu, fmt::memory_buffer& buff
 void ocudu::fapi::log_uci_indication(const uci_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: UCI.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: UCI.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {
@@ -384,7 +382,7 @@ void ocudu::fapi::log_uci_indication(const uci_indication& msg, unsigned sector_
 void ocudu::fapi::log_srs_indication(const srs_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: SRS.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: SRS.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer), "\n\t-  rnti={}", pdu.rnti);
@@ -492,7 +490,7 @@ static void log_srs_pdu(const ul_srs_pdu& pdu, fmt::memory_buffer& buffer)
 void ocudu::fapi::log_ul_tti_request(const ul_tti_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_TTI.request slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_TTI.request slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {
@@ -518,14 +516,14 @@ void ocudu::fapi::log_ul_tti_request(const ul_tti_request& msg, unsigned sector_
 
 void ocudu::fapi::log_slot_indication(const slot_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
-  logger.set_context(msg.sfn, msg.slot);
+  logger.set_context(msg.slot.sfn(), msg.slot.slot_index());
   logger.debug("Sector#{}: Slot.indication time_point={}", sector_id, msg.time_point.time_since_epoch().count());
 }
 
 void ocudu::fapi::log_ul_dci_request(const ul_dci_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_DCI.request slot={}.{}", sector_id, msg.sfn, msg.slot);
+  fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_DCI.request slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {

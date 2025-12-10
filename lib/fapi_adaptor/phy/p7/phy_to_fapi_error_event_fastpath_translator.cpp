@@ -32,14 +32,14 @@ phy_to_fapi_error_event_fastpath_translator::phy_to_fapi_error_event_fastpath_tr
 
 void phy_to_fapi_error_event_fastpath_translator::on_late_downlink_message(ocudu::slot_point dl_frame_slot)
 {
-  error_notifier->on_error_indication(fapi::build_msg_error_indication(
-      dl_frame_slot.sfn(), dl_frame_slot.slot_index(), fapi::message_type_id::dl_tti_request));
+  error_notifier->on_error_indication(
+      fapi::build_msg_error_indication(dl_frame_slot, fapi::message_type_id::dl_tti_request));
 }
 
 void phy_to_fapi_error_event_fastpath_translator::on_late_uplink_message(ocudu::slot_point ul_frame_slot)
 {
-  error_notifier->on_error_indication(fapi::build_msg_error_indication(
-      ul_frame_slot.sfn(), ul_frame_slot.slot_index(), fapi::message_type_id::ul_tti_request));
+  error_notifier->on_error_indication(
+      fapi::build_msg_error_indication(ul_frame_slot, fapi::message_type_id::ul_tti_request));
 }
 
 void phy_to_fapi_error_event_fastpath_translator::on_late_prach_message(slot_point prach_msg_slot)

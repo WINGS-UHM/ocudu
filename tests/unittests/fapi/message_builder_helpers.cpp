@@ -261,7 +261,7 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
 {
   dl_prs_pdu pdu;
 
-  pdu.scs              = subcarrier_spacing::kHz30;
+  pdu.scs              = subcarrier_spacing::kHz240;
   pdu.cp               = cyclic_prefix::NORMAL;
   pdu.nid_prs          = 1;
   pdu.pdu_index        = 0;
@@ -313,9 +313,11 @@ dl_tti_request unittest::build_valid_dl_tti_request()
   dl_tti_request msg;
   msg.message_type = message_type_id::dl_tti_request;
 
-  msg.sfn        = 4;
-  msg.slot       = 0;
-  msg.num_groups = 0;
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = 4U;
+  auto     slot_index = 0U;
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.num_groups      = 0;
 
   // Manually add the SSB PDU to reuse the functions above.
   msg.pdus.emplace_back();
@@ -345,8 +347,10 @@ ul_dci_request unittest::build_valid_ul_dci_request()
   ul_dci_request msg;
   msg.message_type = message_type_id::ul_dci_request;
 
-  msg.slot = generate_slot();
-  msg.sfn  = generate_sfn();
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
 
   msg.num_pdus_of_each_type.fill(0);
 
@@ -363,8 +367,10 @@ slot_indication unittest::build_valid_slot_indication()
   slot_indication msg;
   msg.message_type = message_type_id::slot_indication;
 
-  msg.slot = generate_slot();
-  msg.sfn  = generate_sfn();
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
 
   return msg;
 }
@@ -372,13 +378,17 @@ slot_indication unittest::build_valid_slot_indication()
 error_indication unittest::build_valid_error_indication()
 {
   error_indication msg;
-  msg.message_type  = message_type_id::error_indication;
-  msg.slot          = generate_slot();
-  msg.sfn           = generate_sfn();
-  msg.message_id    = message_type_id::tx_data_request;
-  msg.error_code    = error_code_id::msg_invalid_config;
-  msg.expected_sfn  = std::numeric_limits<uint16_t>::max();
-  msg.expected_slot = std::numeric_limits<uint16_t>::max();
+  msg.message_type             = message_type_id::error_indication;
+  auto     scs                 = subcarrier_spacing::kHz240;
+  unsigned sfn                 = generate_sfn();
+  auto     slot_index          = generate_slot();
+  msg.slot                     = slot_point(scs, sfn, slot_index);
+  msg.message_id               = message_type_id::tx_data_request;
+  msg.error_code               = error_code_id::msg_invalid_config;
+  auto     expected_scs        = subcarrier_spacing::kHz240;
+  unsigned expected_sfn        = generate_sfn();
+  auto     expected_slot_index = generate_slot();
+  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
 
   return msg;
 }
@@ -386,13 +396,17 @@ error_indication unittest::build_valid_error_indication()
 error_indication unittest::build_valid_out_of_sync_error_indication()
 {
   error_indication msg;
-  msg.message_type  = message_type_id::error_indication;
-  msg.slot          = generate_slot();
-  msg.sfn           = generate_sfn();
-  msg.message_id    = message_type_id::tx_data_request;
-  msg.error_code    = error_code_id::out_of_sync;
-  msg.expected_sfn  = generate_sfn();
-  msg.expected_slot = generate_slot();
+  msg.message_type             = message_type_id::error_indication;
+  auto     scs                 = subcarrier_spacing::kHz240;
+  unsigned sfn                 = generate_sfn();
+  auto     slot_index          = generate_slot();
+  msg.slot                     = slot_point(scs, sfn, slot_index);
+  msg.message_id               = message_type_id::tx_data_request;
+  msg.error_code               = error_code_id::out_of_sync;
+  auto     expected_scs        = subcarrier_spacing::kHz240;
+  unsigned expected_sfn        = generate_sfn();
+  auto     expected_slot_index = generate_slot();
+  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
 
   return msg;
 }
@@ -400,14 +414,17 @@ error_indication unittest::build_valid_out_of_sync_error_indication()
 error_indication unittest::build_valid_invalid_sfn_error_indication()
 {
   error_indication msg;
-  msg.message_type = message_type_id::error_indication;
-  msg.slot         = generate_slot();
-  msg.sfn          = generate_sfn();
-
-  msg.message_id    = message_type_id::ul_dci_request;
-  msg.error_code    = error_code_id::msg_invalid_sfn;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type             = message_type_id::error_indication;
+  auto     scs                 = subcarrier_spacing::kHz240;
+  unsigned sfn                 = generate_sfn();
+  auto     slot_index          = generate_slot();
+  msg.slot                     = slot_point(scs, sfn, slot_index);
+  msg.message_id               = message_type_id::ul_dci_request;
+  msg.error_code               = error_code_id::msg_invalid_sfn;
+  auto     expected_scs        = subcarrier_spacing::kHz240;
+  unsigned expected_sfn        = std::numeric_limits<uint16_t>::max();
+  auto     expected_slot_index = std::numeric_limits<uint16_t>::max();
+  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
 
   return msg;
 }
@@ -415,13 +432,13 @@ error_indication unittest::build_valid_invalid_sfn_error_indication()
 error_indication unittest::build_valid_msg_error_indication()
 {
   error_indication msg;
-  msg.message_type  = message_type_id::error_indication;
-  msg.slot          = generate_slot();
-  msg.sfn           = generate_sfn();
-  msg.message_id    = message_type_id::dl_tti_request;
-  msg.error_code    = error_code_id::msg_slot_err;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type    = message_type_id::error_indication;
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.message_id      = message_type_id::dl_tti_request;
+  msg.error_code      = error_code_id::msg_slot_err;
 
   return msg;
 }
@@ -429,13 +446,17 @@ error_indication unittest::build_valid_msg_error_indication()
 error_indication unittest::build_valid_tx_err_error_indication()
 {
   error_indication msg;
-  msg.message_type  = message_type_id::error_indication;
-  msg.slot          = generate_slot();
-  msg.sfn           = generate_sfn();
-  msg.message_id    = message_type_id::tx_data_request;
-  msg.error_code    = error_code_id::msg_tx_err;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type             = message_type_id::error_indication;
+  auto     scs                 = subcarrier_spacing::kHz240;
+  unsigned sfn                 = generate_sfn();
+  auto     slot_index          = generate_slot();
+  msg.slot                     = slot_point(scs, sfn, slot_index);
+  msg.message_id               = message_type_id::tx_data_request;
+  msg.error_code               = error_code_id::msg_tx_err;
+  auto     expected_scs        = subcarrier_spacing::kHz240;
+  unsigned expected_sfn        = std::numeric_limits<uint16_t>::max();
+  auto     expected_slot_index = std::numeric_limits<uint16_t>::max();
+  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
 
   return msg;
 }
@@ -443,13 +464,13 @@ error_indication unittest::build_valid_tx_err_error_indication()
 error_indication unittest::build_valid_ul_dci_err_error_indication()
 {
   error_indication msg;
-  msg.message_type  = message_type_id::error_indication;
-  msg.slot          = generate_slot();
-  msg.sfn           = generate_sfn();
-  msg.message_id    = message_type_id::ul_dci_request;
-  msg.error_code    = error_code_id::msg_ul_dci_err;
-  msg.expected_sfn  = std::numeric_limits<decltype(error_indication::expected_sfn)>::max();
-  msg.expected_slot = std::numeric_limits<decltype(error_indication::expected_slot)>::max();
+  msg.message_type    = message_type_id::error_indication;
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.message_id      = message_type_id::ul_dci_request;
+  msg.error_code      = error_code_id::msg_ul_dci_err;
 
   return msg;
 }
@@ -459,9 +480,11 @@ rx_data_indication unittest::build_valid_rx_data_indication()
   rx_data_indication msg;
   msg.message_type = message_type_id::rx_data_indication;
 
-  msg.sfn            = generate_sfn();
-  msg.slot           = generate_slot();
-  msg.control_length = 0;
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.control_length  = 0;
 
   msg.pdus.emplace_back();
   auto& pdu      = msg.pdus.back();
@@ -734,8 +757,10 @@ uci_indication unittest::build_valid_uci_indication()
   uci_indication msg;
   msg.message_type = message_type_id::uci_indication;
 
-  msg.sfn  = sfn_dist(gen);
-  msg.slot = slot_dist(gen);
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = sfn_dist(gen);
+  auto     slot_index = slot_dist(gen);
+  msg.slot            = slot_point(scs, sfn, slot_index);
 
   // Add one PDU of each type.
   msg.pdus.emplace_back();
@@ -1108,7 +1133,7 @@ ul_srs_pdu unittest::build_valid_ul_srs_pdu()
   pdu.handle                    = 8;
   pdu.bwp_size                  = 230;
   pdu.bwp_start                 = 10;
-  pdu.scs                       = subcarrier_spacing::kHz30;
+  pdu.scs                       = subcarrier_spacing::kHz240;
   pdu.cp                        = cyclic_prefix::NORMAL;
   pdu.num_ant_ports             = 2;
   pdu.num_symbols               = 1;
@@ -1137,9 +1162,11 @@ ul_tti_request unittest::build_valid_ul_tti_request()
   ul_tti_request msg;
   msg.message_type = message_type_id::ul_tti_request;
 
-  msg.slot       = generate_slot();
-  msg.sfn        = generate_sfn();
-  msg.num_groups = 2000;
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.num_groups      = 2000;
   msg.num_pdus_of_each_type.fill(1);
 
   {
@@ -1194,8 +1221,10 @@ rach_indication unittest::build_valid_rach_indication()
   rach_indication msg;
   msg.message_type = message_type_id::rach_indication;
 
-  msg.slot = generate_slot();
-  msg.sfn  = generate_sfn();
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
 
   msg.pdus.emplace_back();
   rach_indication_pdu& pdu = msg.pdus.back();
@@ -1225,9 +1254,11 @@ tx_data_request unittest::build_valid_tx_data_request()
   tx_data_request msg;
   msg.message_type = message_type_id::tx_data_request;
 
-  msg.sfn            = generate_sfn();
-  msg.slot           = generate_slot();
-  msg.control_length = generate_uint16();
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.control_length  = generate_uint16();
 
   // NOTE: Set to 0 temporarily.
   msg.control_length = 0U;
@@ -1249,8 +1280,7 @@ ocudu::fapi::crc_indication unittest::build_valid_crc_indication()
   crc_indication msg;
   msg.message_type = message_type_id::crc_indication;
 
-  msg.sfn  = 238;
-  msg.slot = 3;
+  msg.slot = slot_point(subcarrier_spacing::kHz240, 238, 3);
   msg.pdus.emplace_back();
   crc_ind_pdu& pdu             = msg.pdus.front();
   pdu.rnti                     = to_rnti(34);
@@ -1283,9 +1313,11 @@ srs_indication unittest::build_valid_srs_indication()
   srs_indication msg;
   msg.message_type = message_type_id::srs_indication;
 
-  msg.sfn            = generate_sfn();
-  msg.slot           = generate_slot();
-  msg.control_length = 0;
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = generate_sfn();
+  auto     slot_index = generate_slot();
+  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.control_length  = 0;
 
   msg.pdus.emplace_back();
   auto& pdu                             = msg.pdus.back();

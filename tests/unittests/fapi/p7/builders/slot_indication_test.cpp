@@ -16,13 +16,14 @@ using namespace fapi;
 
 TEST(slot_indication_builder, valid_basic_parameters_passes)
 {
+  auto                                               scs        = subcarrier_spacing::kHz30;
   unsigned                                           sfn        = 419;
-  unsigned                                           slot       = 12;
+  unsigned                                           slot_index = 12;
+  auto                                               slot       = slot_point(scs, sfn, slot_index);
   std::chrono::time_point<std::chrono::system_clock> time_point = std::chrono::system_clock::now();
 
-  const auto& msg = build_slot_indication(sfn, slot, time_point);
+  const auto& msg = build_slot_indication(slot, time_point);
 
-  ASSERT_EQ(sfn, msg.sfn);
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(time_point, msg.time_point);
 }

@@ -15,6 +15,24 @@
 using namespace ocudu;
 using namespace fapi;
 
+/// Validates the slot property of a message.
+inline bool validate_slot(std::optional<slot_point> slot, validator_report& report)
+{
+  // If the slot is an std::nullopt, then it is valid.
+  if (!slot) {
+    return true;
+  }
+
+  // If the slot is valid, stop cheking.
+  if (slot->valid()) {
+    return true;
+  }
+
+  report.append(static_cast<int>(slot->slot_index()), "Slot", message_type_id::error_indication);
+
+  return false;
+}
+
 /// Validates the message id property of the ERROR.indication PDU, as per SCF-222 v4.0 section 3.3.6.1 in table
 /// ERROR.indication message body.
 static bool validate_message_id(unsigned value, validator_report& report)
@@ -58,59 +76,45 @@ static bool validate_error_code(unsigned value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Error code", message_type_id::error_indication, report);
 }
 
-/// Validates the expected SFN property of the ERROR.indication PDU, as per SCF-222 v4.0 section 3.3.6.1 in table
+/// Validates the expected slot property of the ERROR.indication PDU, as per SCF-222 v4.0 section 3.3.6.1 in table
 /// ERROR.indication message body.
-static bool validate_expected_sfn(unsigned value, error_code_id error_id, validator_report& report)
+static bool validate_expected_slot(std::optional<slot_point> slot, error_code_id error_code, validator_report& report)
 {
-  static constexpr unsigned MAX_VALUE = 1023U;
-  static constexpr unsigned UNUSED    = std::numeric_limits<uint16_t>::max();
+  auto add_to_report_and_return_false = [&report, &slot]() {
+    report.append(static_cast<int>(slot->slot_index()), "Expected slot", message_type_id::error_indication);
+    return false;
+  };
 
-  if (error_id == error_code_id::out_of_sync && value <= MAX_VALUE) {
+  // If there is no error, the expected slot should be std::nullotp.
+  if (error_code == error_code_id::msg_ok) {
+    if (!slot) {
+      return true;
+    }
+
+    return add_to_report_and_return_false();
+  }
+
+  // If there is error, the expected slot should not be std::nullotp and should be valid.
+  if (!slot) {
+    return add_to_report_and_return_false();
+  }
+
+  if (slot->valid()) {
     return true;
   }
 
-  if (error_id != error_code_id::out_of_sync && value == UNUSED) {
-    return true;
-  }
-
-  report.append(static_cast<int>(value), "Expected SFN", message_type_id::error_indication);
-
-  return false;
-}
-
-/// Validates the expected SFN property of the ERROR.indication PDU, as per SCF-222 v4.0 section 3.3.6.1 in table
-/// ERROR.indication message body.
-static bool validate_expected_slot(unsigned value, error_code_id error_id, validator_report& report)
-{
-  static constexpr unsigned MAX_VALUE = 159U;
-  static constexpr unsigned UNUSED    = std::numeric_limits<uint16_t>::max();
-
-  if (error_id == error_code_id::out_of_sync && value <= MAX_VALUE) {
-    return true;
-  }
-
-  if (error_id != error_code_id::out_of_sync && value == UNUSED) {
-    return true;
-  }
-
-  report.append(static_cast<int>(value), "Expected slot", message_type_id::error_indication);
-
-  return false;
+  return add_to_report_and_return_false();
 }
 
 error_type<validator_report> ocudu::fapi::validate_error_indication(const error_indication& msg)
 {
-  validator_report report(msg.sfn, msg.slot);
+  auto             slot = msg.slot ? msg.slot.value() : slot_point();
+  validator_report report(slot);
 
-  static constexpr message_type_id msg_id = message_type_id::error_indication;
-
-  // Validate the SFN and slot.
   bool success = true;
-  success &= validate_sfn(msg.sfn, msg_id, report);
-  success &= validate_slot(msg.slot, msg_id, report);
+  success &= validate_slot(slot, report);
   success &= validate_message_id(static_cast<unsigned>(msg.message_id), report);
   success &= validate_error_code(static_cast<unsigned>(msg.error_code), report);
-  success &= validate_expected_sfn(msg.expected_sfn, msg.error_code, report);
   success &= validate_expected_slot(msg.expected_slot, msg.error_code, report);
 
   // Build the result.

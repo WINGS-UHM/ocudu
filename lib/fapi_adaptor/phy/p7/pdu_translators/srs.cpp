@@ -17,12 +17,11 @@ void ocudu::fapi_adaptor::convert_srs_fapi_to_phy(uplink_pdu_slot_repository::sr
                                                   const fapi::ul_srs_pdu&              fapi_pdu,
                                                   unsigned                             sector_id,
                                                   unsigned                             nof_rx_antennas,
-                                                  uint16_t                             sfn,
-                                                  uint16_t                             slot)
+                                                  slot_point                           slot)
 {
   // Fill main context fields.
   ul_srs_context& context = pdu.context;
-  context.slot            = slot_point(fapi_pdu.scs, sfn, slot);
+  context.slot            = slot;
   context.rnti            = fapi_pdu.rnti;
   context.is_normalized_channel_iq_matrix_report_requested =
       fapi_pdu.srs_params_v4.report_type.test(to_value(fapi::srs_report_type::normalized_channel_iq_matrix));
@@ -31,7 +30,7 @@ void ocudu::fapi_adaptor::convert_srs_fapi_to_phy(uplink_pdu_slot_repository::sr
 
   // Fill SRS resource configuration.
   pdu.config.context = srs_context(sector_id, fapi_pdu.rnti);
-  pdu.config.slot    = slot_point(fapi_pdu.scs, sfn, slot);
+  pdu.config.slot    = slot;
   pdu.config.resource.nof_antenna_ports =
       static_cast<srs_resource_configuration::one_two_four_enum>(fapi_pdu.num_ant_ports);
   pdu.config.resource.nof_symbols  = static_cast<srs_resource_configuration::one_two_four_enum>(fapi_pdu.num_symbols);

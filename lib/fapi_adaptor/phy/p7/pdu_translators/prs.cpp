@@ -17,11 +17,10 @@ using namespace fapi_adaptor;
 
 void ocudu::fapi_adaptor::convert_prs_fapi_to_phy(prs_generator_configuration&       generator_config,
                                                   const fapi::dl_prs_pdu&            fapi_pdu,
-                                                  uint16_t                           sfn,
-                                                  uint16_t                           slot,
+                                                  slot_point                         slot,
                                                   const precoding_matrix_repository& pm_repo)
 {
-  generator_config.slot            = slot_point(fapi_pdu.scs, sfn, slot);
+  generator_config.slot            = slot;
   generator_config.cp              = fapi_pdu.cp;
   generator_config.n_id_prs        = fapi_pdu.nid_prs;
   generator_config.comb_size       = fapi_pdu.comb_size;

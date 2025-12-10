@@ -1,0 +1,155 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "nrppa_ue_ids.h"
+#include "ocudu/ran/cause/nrppa_cause.h"
+#include "ocudu/ran/crit_diagnostics.h"
+#include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/pci.h"
+#include "ocudu/ran/positioning/common.h"
+#include "ocudu/ran/tac.h"
+#include <optional>
+#include <variant>
+#include <vector>
+
+namespace ocudu {
+namespace ocucp {
+
+enum class nrppa_meas_quantities_value {
+  cell_id,
+  angle_of_arrival,
+  timing_advance_type1,
+  timing_advance_type2,
+  rsrp,
+  rsrq
+};
+
+struct nrppa_meas_quantities_item {
+  nrppa_meas_quantities_value meas_quantities_value;
+};
+
+struct nrppa_e_cid_meas_initiation_request {
+  lmf_ue_meas_id_t                        lmf_ue_meas_id;
+  report_characteristics_t                report_characteristics;
+  std::optional<meas_periodicity_t>       meas_periodicity;
+  std::vector<nrppa_meas_quantities_item> meas_quantities;
+};
+
+struct nrppa_result_ss_rsrp_per_ssb_item {
+  uint8_t ssb_idx;
+  uint8_t value_ss_rsrp;
+};
+
+struct nrppa_result_ss_rsrp_item {
+  pci_t                                          nr_pci;
+  uint32_t                                       nr_arfcn;
+  std::optional<nr_cell_global_id_t>             cgi_nr;
+  std::optional<uint8_t>                         value_ss_rsrp_cell;
+  std::vector<nrppa_result_ss_rsrp_per_ssb_item> ss_rsrp_per_ssb;
+};
+
+struct nrppa_result_ss_rsrq_per_ssb_item {
+  uint8_t ssb_idx;
+  uint8_t value_ss_rsrq;
+};
+
+struct nrppa_result_ss_rsrq_item {
+  pci_t                                          nr_pci;
+  uint32_t                                       nr_arfcn;
+  std::optional<nr_cell_global_id_t>             cgi_nr;
+  std::optional<uint8_t>                         value_ss_rsrq_cell;
+  std::vector<nrppa_result_ss_rsrq_per_ssb_item> ss_rsrq_per_ssb;
+};
+
+struct nrppa_result_csi_rsrp_per_csi_rs_item {
+  uint8_t csi_rs_idx;
+  uint8_t value_csi_rsrp;
+};
+
+struct nrppa_result_csi_rsrp_item {
+  pci_t                                              nr_pci;
+  uint32_t                                           nr_arfcn;
+  std::optional<nr_cell_global_id_t>                 cgi_nr;
+  std::optional<uint8_t>                             value_csi_rsrp_cell;
+  std::vector<nrppa_result_csi_rsrp_per_csi_rs_item> csi_rsrp_per_csi_rs;
+};
+
+struct nrppa_result_csi_rsrq_per_csi_rs_item {
+  uint8_t csi_rs_idx;
+  uint8_t value_csi_rsrq;
+};
+
+struct nrppa_result_csi_rsrq_item {
+  pci_t                                              nr_pci;
+  uint32_t                                           nr_arfcn;
+  std::optional<nr_cell_global_id_t>                 cgi_nr;
+  std::optional<uint8_t>                             value_csi_rsrq_cell;
+  std::vector<nrppa_result_csi_rsrq_per_csi_rs_item> csi_rsrq_per_csi_rs;
+};
+
+struct nrppa_ul_aoa {
+  uint16_t                                azimuth_aoa;
+  std::optional<uint16_t>                 zenith_aoa;
+  std::optional<lcs_to_gcs_translation_t> lcs_to_gcs_translation;
+};
+
+enum class nrppa_nr_tadv : uint16_t { min = 0, max = 7690 };
+
+using nrppa_measured_results_value = std::variant<std::vector<nrppa_result_ss_rsrp_item>,
+                                                  std::vector<nrppa_result_ss_rsrq_item>,
+                                                  std::vector<nrppa_result_csi_rsrp_item>,
+                                                  std::vector<nrppa_result_csi_rsrq_item>,
+                                                  nrppa_ul_aoa,
+                                                  nrppa_nr_tadv>;
+
+struct nrppa_e_cid_meas_result {
+  nr_cell_global_id_t                           serving_cell_id;
+  tac_t                                         serving_cell_tac;
+  std::optional<ng_ran_access_point_position_t> ng_ran_access_point_position;
+  std::vector<nrppa_measured_results_value>     measured_results;
+};
+
+struct nrppa_e_cid_meas_initiation_response {
+  lmf_ue_meas_id_t lmf_ue_meas_id;
+  ran_ue_meas_id_t ran_ue_meas_id;
+  // The Measured Results IE shall be included in the E-CID Measurement Result IE of the E-CID MEASUREMENT INITIATION
+  // RESPONSE message when the Report Characteristics IE is set to "OnDemand" and measurement results other than the
+  // "Cell-ID" have been requested, see TS 38.455.
+  std::optional<nrppa_e_cid_meas_result> e_cid_meas_result;
+  std::optional<crit_diagnostics_t>      crit_diagnostics;
+};
+
+struct nrppa_e_cid_meas_initiation_failure {
+  lmf_ue_meas_id_t                  lmf_ue_meas_id;
+  nrppa_cause_t                     cause;
+  std::optional<crit_diagnostics_t> crit_diagnostics;
+};
+
+struct nrppa_e_cid_meas_failure_indication {
+  lmf_ue_meas_id_t lmf_ue_meas_id;
+  ran_ue_meas_id_t ran_ue_meas_id;
+  nrppa_cause_t    cause;
+};
+
+struct nrppa_e_cid_meas_report {
+  lmf_ue_meas_id_t        lmf_ue_meas_id;
+  ran_ue_meas_id_t        ran_ue_meas_id;
+  nrppa_e_cid_meas_result e_cid_meas_result;
+};
+
+struct nrppa_e_cid_meas_termination_command {
+  lmf_ue_meas_id_t lmf_ue_meas_id;
+  ran_ue_meas_id_t ran_ue_meas_id;
+};
+
+} // namespace ocucp
+} // namespace ocudu

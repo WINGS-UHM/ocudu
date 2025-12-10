@@ -84,10 +84,10 @@ private:
   std::vector<float> last_samples_buffer;
 };
 
-/// \brief Class used to estimate maximum transport block sizes for a UE in a given cell, given the current channel
-/// conditions.
+/// \brief Class used to estimate maximum transport block sizes for a UE in a given cell (assuming all RBs are used),
+/// given the current channel conditions (e.g. MCS and RI).
 ///
-/// The result is then used in the proportional fair weight computation.
+/// The result is used in the proportional fair weight computation.
 class rate_estimator
 {
 public:

@@ -11,11 +11,13 @@
 #include "f1ap_du_impl.h"
 #include "../f1ap_asn1_utils.h"
 #include "asn1_helpers.h"
+#include "du/procedures/f1ap_du_positioning_information_exchange_procedure.h"
+#include "du/procedures/f1ap_du_positioning_measurement_procedure.h"
+#include "du/procedures/f1ap_du_trp_information_exchange_procedure.h"
 #include "f1ap_du_connection_handler.h"
 #include "log_helpers.h"
 #include "procedures/f1ap_du_gnbdu_config_update_procedure.h"
 #include "procedures/f1ap_du_initiated_reset_procedure.h"
-#include "procedures/f1ap_du_positioning_procedures.h"
 #include "procedures/f1ap_du_removal_procedure.h"
 #include "procedures/f1ap_du_reset_procedure.h"
 #include "procedures/f1ap_du_setup_procedure.h"
@@ -592,12 +594,14 @@ void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
 
 void f1ap_du_impl::handle_positioning_measurement_request(const positioning_meas_request_s& msg)
 {
-  du_mng.schedule_async_task(start_positioning_measurement_procedure(msg, du_mng, *tx_pdu_notifier));
+  du_mng.schedule_async_task(
+      launch_async<f1ap_du_positioning_measurement_procedure>(msg, du_mng.get_positioning_handler(), *tx_pdu_notifier));
 }
 
 void f1ap_du_impl::handle_trp_information_request(const trp_info_request_s& msg)
 {
-  du_mng.schedule_async_task(start_trp_information_exchange_procedure(msg, du_mng, *tx_pdu_notifier));
+  du_mng.schedule_async_task(launch_async<f1ap_du_trp_information_exchange_procedure>(
+      msg, du_mng.get_positioning_handler(), *tx_pdu_notifier));
 }
 
 void f1ap_du_impl::handle_positioning_information_request(const asn1::f1ap::positioning_info_request_s& msg)
@@ -612,7 +616,8 @@ void f1ap_du_impl::handle_positioning_information_request(const asn1::f1ap::posi
   }
 
   du_mng.get_ue_handler(ue->context.ue_index)
-      .schedule_async_task(start_positioning_exchange_procedure(msg, du_mng, *ue));
+      .schedule_async_task(
+          launch_async<f1ap_du_positioning_information_exchange_procedure>(msg, du_mng.get_positioning_handler(), *ue));
 }
 
 std::optional<gnb_cu_ue_f1ap_id_t> f1ap_du_impl::get_gnb_cu_ue_f1ap_id(const du_ue_index_t& ue_index) const

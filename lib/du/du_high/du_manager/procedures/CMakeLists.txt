@@ -19,7 +19,8 @@ set(SOURCES
         du_ue_reset_procedure.cpp
         cu_configuration_procedure.cpp
         f1c_disconnection_handling_procedure.cpp
+        du_positioning_measurement_procedure.cpp
+        du_ue_positioning_info_procedure.cpp
 )
 add_library(ocudu_du_manager_procedures STATIC ${SOURCES})
 target_link_libraries(ocudu_du_manager_procedures sched_config ocudu_ran mac_configuration_helpers du_ue ocudu_du_manager)
-

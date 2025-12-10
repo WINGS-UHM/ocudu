@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/asn1/f1ap/f1ap_pdu_items.h"
+#include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
 #include "ocudu/f1ap/ue_context_management_configs.h"
 #include "ocudu/pdcp/pdcp_sn_size.h"
 #include "ocudu/ran/nr_cgi.h"
@@ -90,5 +91,11 @@ f1ap_drb_failed_to_setupmod make_drb_failed_to_setupmod(const asn1::f1ap::drbs_f
 f1ap_drb_failed_to_setupmod
 make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_setup_mod_item_s& asn1_type);
 f1ap_drb_failed_to_setupmod make_drb_failed_to_setupmod(const asn1::f1ap::drbs_failed_to_be_modified_item_s& asn1_type);
+
+/// Convert F1AP TRP info to ASN.1.
+asn1::f1ap::trp_info_s trp_info_to_asn1(const odu::du_trp_info& trp);
+
+/// Convert F1AP SRS configuration from ASN.1.
+std::vector<odu::srs_carrier> from_asn1(const asn1::f1ap::srs_configuration_s& asn1cfg);
 
 } // namespace ocudu

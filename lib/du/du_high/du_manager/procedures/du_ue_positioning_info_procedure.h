@@ -1,0 +1,38 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "../du_cell_manager.h"
+#include "../du_ue/du_ue_manager.h"
+#include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
+#include "ocudu/support/async/async_task.h"
+
+namespace ocudu::odu {
+
+class du_ue_positioning_info_procedure
+{
+public:
+  du_ue_positioning_info_procedure(const du_positioning_info_request& req_,
+                                   du_cell_manager&                   du_cells_,
+                                   du_ue_manager&                     ue_mng_);
+
+  void operator()(coro_context<async_task<du_positioning_info_response>>& ctx);
+
+private:
+  du_positioning_info_response create_response(bool success);
+
+  const du_positioning_info_request req;
+  du_cell_manager&                  du_cells;
+  du_ue_manager&                    ue_mng;
+  du_ue&                            ue;
+};
+
+} // namespace ocudu::odu

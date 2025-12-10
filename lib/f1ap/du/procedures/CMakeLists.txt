@@ -16,7 +16,9 @@ set(SOURCES
         f1ap_du_reset_procedure.cpp
         f1ap_du_initiated_reset_procedure.cpp
         f1ap_du_gnbdu_config_update_procedure.cpp
-        f1ap_du_positioning_procedures.cpp
+        f1ap_du_positioning_information_exchange_procedure.cpp
+        f1ap_du_trp_information_exchange_procedure.cpp
+        f1ap_du_positioning_measurement_procedure.cpp
 )
 
 add_library(ocudu_f1ap_du_procedures STATIC ${SOURCES})

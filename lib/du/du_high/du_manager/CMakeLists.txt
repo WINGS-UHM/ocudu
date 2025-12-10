@@ -18,6 +18,7 @@ set(SOURCES
         du_manager_impl.cpp
         du_positioning_handler_factory.cpp
         du_metrics_aggregator_impl.cpp
+        du_positioning_manager_impl.cpp
 )
 
 add_library(ocudu_du_manager STATIC ${SOURCES})

@@ -251,7 +251,7 @@ static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_
       case fapi::dl_pdu_type::SSB: {
         ssb_processor::pdu_t& ssb_pdu = pdus.ssb.emplace_back();
         convert_ssb_fapi_to_phy(ssb_pdu, pdu.ssb_pdu, msg.slot, scs_common);
-        error_type<std::string> phy_ssb_validator = dl_pdu_validator.is_valid(ssb_pdu);
+        error_type<std::string> phy_ssb_validator = dl_pdu_validator.is_valid(ssb_pdu, cell_bandwidth_prb);
         if (!phy_ssb_validator.has_value()) {
           logger.warning("Sector#{}: Skipping DL_TTI.request: SSB PDU flagged as invalid by the Upper PHY with the "
                          "following error\n    {}",

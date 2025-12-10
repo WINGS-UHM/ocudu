@@ -44,6 +44,13 @@ public:
     /// \sa ssb_subcarrier_offset for more details.
     ssb_subcarrier_offset subcarrier_offset;
     /// \brief Start of the SS/PBCH block relative to Point A in PRB.
+    ///
+    /// The lowest subcarrier of the resource grid overlaps with the lowest subcarrier of the configured bandwidth. It
+    /// might not coincide with the parameter \e absoluteFrequencyPointA in the IE \e FrequencyInfoDL. If the parameter
+    /// \e offsetToCarrier in the IE \e SCS-SpecificCarrier in TS38.331 Section 6.3.2 is non-zero, the offset to Point A
+    /// shall be adjusted accordingly with \e offsetToCarrier so that Point A aligns with the start of the resource
+    /// grid.
+    ///
     /// \sa ssb_offset_to_pointA for more details.
     ssb_offset_to_pointA offset_to_pointA;
     /// SS/PBCH pattern case.
@@ -72,8 +79,10 @@ public:
   virtual ~ssb_pdu_validator() = default;
 
   /// \brief Validates SSB processor configuration parameters.
+  /// \param[in] pdu SS/PBCH Block PDU to be validated.
+  /// \param[in] cell_bandwith_prbs Carrier bandwidth in PRBs based on common subcarrier spacing.
   /// \return A success if the parameters contained in \c pdu are supported, an error message otherwise.
-  virtual error_type<std::string> is_valid(const ssb_processor::pdu_t& pdu) const = 0;
+  virtual error_type<std::string> is_valid(const ssb_processor::pdu_t& pdu, unsigned cell_bandwith_prbs) const = 0;
 };
 
 } // namespace ocudu

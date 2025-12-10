@@ -29,36 +29,39 @@ namespace ocudu {
 /// \return the first OFDM symbol index in a half-frame
 inline unsigned ssb_get_l_first(ssb_pattern_case pattern_case, unsigned ssb_idx)
 {
-  // Case A - 15 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes of { 2 , 8 } + 14 ⋅ n . For
-  // carrier frequencies smaller than or equal to 3 GHz, n = 0 , 1 . For carrier frequencies within FR1 larger than 3
-  // GHz, n = 0 , 1 , 2 , 3 .
+  // Case A - 15 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes of { 2, 8 } + 14 * n. For
+  // carrier frequencies smaller than or equal to 3 GHz, n = 0, 1 . For carrier frequencies within FR1 larger than 3
+  // GHz, n = 0, 1, 2, 3.
   if (pattern_case == ssb_pattern_case::A) {
     constexpr std::array<unsigned, 2> first_symbols = {2, 8};
+    ocudu_assert(ssb_idx < first_symbols.size() * 4, "SSB index out of range.");
     return first_symbols[ssb_idx % first_symbols.size()] + 14 * (ssb_idx / first_symbols.size());
   }
 
-  // Case B - 30 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes { 4 , 8 , 16 , 20 } + 28 ⋅ n .
-  // For carrier frequencies smaller than or equal to 3 GHz, n = 0 . For carrier frequencies within FR1 larger than 3
-  // GHz, n = 0 , 1 .
+  // Case B - 30 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes { 4, 8, 16, 20 } + 28 * n.
+  // For carrier frequencies smaller than or equal to 3 GHz, n = 0. For carrier frequencies within FR1 larger than 3
+  // GHz, n = 0, 1.
   if (pattern_case == ssb_pattern_case::B) {
     constexpr std::array<unsigned, 4> first_symbols = {4, 8, 16, 20};
+    ocudu_assert(ssb_idx < first_symbols.size() * 2, "SSB index out of range.");
     return first_symbols[ssb_idx % first_symbols.size()] + 28 * (ssb_idx / first_symbols.size());
   }
 
-  // Case C - 30 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes { 2 , 8 } + 14 ⋅ n .
+  // Case C - 30 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes { 2, 8 } + 14 * n.
   // - For paired spectrum operation
-  // For carrier frequencies smaller than or equal to 3 GHz, n = 0 , 1 . For carrier frequencies within FR1 larger
-  // than 3 GHz, n = 0 , 1 , 2 , 3 .
+  // For carrier frequencies smaller than or equal to 3 GHz, n = 0, 1 . For carrier frequencies within FR1 larger than 3
+  // GHz, n = 0, 1, 2, 3.
   // - For unpaired spectrum operation
-  // For carrier frequencies smaller than 1.88 GHz, n = 0 , 1 . For carrier frequencies within FR1 equal to or
-  // larger than 1.88 GHz, n = 0 , 1 , 2 , 3 .
+  // For carrier frequencies smaller than 1.88 GHz, n = 0, 1 . For carrier frequencies within FR1 equal to or larger
+  // than 1.88 GHz, n = 0, 1, 2, 3.
   if (pattern_case == ssb_pattern_case::C) {
     constexpr std::array<unsigned, 2> first_symbols = {2, 8};
+    ocudu_assert(ssb_idx < first_symbols.size() * 4, "SSB index out of range.");
     return first_symbols[ssb_idx % first_symbols.size()] + 14 * (ssb_idx / first_symbols.size());
   }
 
-  // Case D - 120 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes { 4 , 8 , 16 , 20 } + 28 ⋅ n .
-  // For carrier frequencies within FR2, n = 0 , 1 , 2 , 3 , 5 , 6 , 7 , 8 , 10 , 11 , 12 , 13 , 15 , 16 , 17 , 18 .
+  // Case D - 120 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes { 4, 8, 16, 20 } + 28 * n.
+  // For carrier frequencies within FR2, n = 0  1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18.
   if (pattern_case == ssb_pattern_case::D) {
     constexpr std::array<unsigned, 4>  first_symbols = {4, 8, 16, 20};
     constexpr std::array<unsigned, 16> n             = {0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18};
@@ -67,11 +70,10 @@ inline unsigned ssb_get_l_first(ssb_pattern_case pattern_case, unsigned ssb_idx)
   }
 
   // Case E - 240 kHz SCS: the first symbols of the candidate SS/PBCH blocks have indexes
-  //{ 8 , 12 , 16 , 20 , 32 , 36 , 40 , 44 } + 56 ⋅ n . For carrier frequencies within FR2, n = 0 , 1 , 2 , 3 , 5 , 6 ,
-  // 7 , 8 .
+  // { 8, 12, 16, 20, 32, 36, 40, 44 } + 56 * n. For carrier frequencies within FR2, n = 0, 1, 2, 3, 5, 6, 7, 8.
   if (pattern_case == ssb_pattern_case::E) {
-    constexpr std::array<unsigned, 8>  first_symbols = {8, 12, 16, 20, 32, 36, 40, 44};
-    constexpr std::array<unsigned, 16> n             = {0, 1, 2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 15, 16, 17, 18};
+    constexpr std::array<unsigned, 8> first_symbols = {8, 12, 16, 20, 32, 36, 40, 44};
+    constexpr std::array<unsigned, 8> n             = {0, 1, 2, 3, 5, 6, 7, 8};
     ocudu_assert(ssb_idx < first_symbols.size() * n.size(), "SSB index out of range.");
     return first_symbols[ssb_idx % first_symbols.size()] + 56 * n[ssb_idx / first_symbols.size()];
   }

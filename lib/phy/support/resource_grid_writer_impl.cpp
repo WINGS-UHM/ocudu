@@ -40,7 +40,7 @@ span<const cf_t> resource_grid_writer_impl::put(unsigned                        
   interval<unsigned, false> l_range(0, get_nof_symbols());
   interval<unsigned, true>  mask_size_range(1, get_nof_subc());
   interval<unsigned, false> port_range(0, get_nof_ports());
-  ocudu_assert(l_range.contains(l), "Symbol index (i.e., {}) is out of the range {}.", l_range, l_range);
+  ocudu_assert(l_range.contains(l), "Symbol index (i.e., {}) is out of the range {}.", l, l_range);
   ocudu_assert(
       mask_size_range.contains(mask.size()), "Mask size (i.e., {}) is out of range {}.", mask.size(), mask_size_range);
   ocudu_assert(port_range.contains(port), "Port identifier (i.e., {}) is out of range {}.", port, port_range);

@@ -29,7 +29,7 @@ int main()
   std::uniform_int_distribution<unsigned> pci_dist(0, phys_cell_id::NOF_NID - 1);
   std::uniform_int_distribution<unsigned> bit_dist(0, 1);
   std::uniform_int_distribution<unsigned> port_dist(0, 63);
-  std::uniform_int_distribution<unsigned> offset_to_pointA_dist(0, 2199);
+  std::uniform_int_distribution<unsigned> offset_to_pointA_dist(0, 191);
   std::uniform_int_distribution<unsigned> ssb_subcarrier_offset_dist(0, 11);
 
   resource_grid_writer_spy grid(MAX_PORTS, MAX_NSYMB_PER_SLOT, MAX_RB);
@@ -53,6 +53,9 @@ int main()
 
   std::unique_ptr<ssb_processor> pbch = ssb_proc_factory->create();
   TESTASSERT(pbch);
+
+  std::unique_ptr<ssb_pdu_validator> pbch_validator = ssb_proc_factory->create_validator();
+  TESTASSERT(pbch_validator);
 
   pbch_encoder_spy*        encoder   = encoder_factory_spy->get_entries().front();
   pbch_modulator_spy*      modulator = modulator_factory_spy->get_entries().front();
@@ -90,7 +93,13 @@ int main()
 
           // Iterate over all possible SS/PBCH block candidates.
           for (unsigned ssb_idx = 0; ssb_idx < L_max; ++ssb_idx) {
-            ssb_offset_to_pointA  offset_pointA     = offset_to_pointA_dist(rgen);
+            ssb_offset_to_pointA offset_pointA = offset_to_pointA_dist(rgen);
+
+            // Make even the offset to PointA if common SCS is 30 or 120 kHz.
+            if ((common_scs == subcarrier_spacing::kHz30) || (common_scs == subcarrier_spacing::kHz120)) {
+              offset_pointA = ssb_offset_to_pointA(2 * (offset_pointA.value() / 2));
+            }
+
             ssb_subcarrier_offset subcarrier_offset = ssb_subcarrier_offset_dist(rgen);
 
             // Round the SS/PBCH block subcarrier offset to avoid incompatible subcarrier offsets.
@@ -136,6 +145,9 @@ int main()
               dmrs->reset();
               pss->reset();
               sss->reset();
+
+              error_type<std::string> is_valid = pbch_validator->is_valid(pdu, MAX_RB);
+              TESTASSERT(is_valid.has_value(), "{}", is_valid.error());
 
               // Process PDU.
               pbch->process(grid, pdu);

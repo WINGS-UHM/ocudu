@@ -32,8 +32,16 @@ class base_scheduler_tdd_tester : public scheduler_test_simulator
 {
 protected:
   base_scheduler_tdd_tester(const tdd_test_params& testparams) :
-    scheduler_test_simulator(
-        scheduler_test_sim_config{.max_scs = testparams.tdd_cfg.ref_scs, .auto_uci = true, .auto_crc = true})
+    scheduler_test_simulator(scheduler_test_sim_config{.sched_cfg =
+                                                           []() {
+                                                             auto expert_cfg =
+                                                                 config_helpers::make_default_scheduler_expert_config();
+                                                             expert_cfg.ra.nof_prach_guardbands_rbs = 0;
+                                                             return expert_cfg;
+                                                           }(),
+                                                       .max_scs  = testparams.tdd_cfg.ref_scs,
+                                                       .auto_uci = true,
+                                                       .auto_crc = true})
   {
     ocudu_assert(testparams.tdd_cfg.ref_scs == subcarrier_spacing::kHz30, "Only 30kHz SCS is supported in this test");
     params                      = cell_config_builder_profiles::create(duplex_mode::TDD);

@@ -165,6 +165,8 @@ public:
     const pucch_resource* reserve_harq_resource_by_res_indicator(unsigned d_pri, pucch_res_set_idx res_set_idx);
 
     bool release_harq_resource(pucch_res_set_idx res_set_idx);
+
+    const pucch_resource* get_res_by_id(pucch_res_id_t res_id) const;
   };
 
 private:

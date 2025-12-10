@@ -647,10 +647,11 @@ TEST_P(pucch_alloc_ded_resources_test, if_ded_common_alloc_fails_no_harq_grants_
   auto pri = alloc_common_and_ded_harq_ack(t_bench.get_main_ue());
   ASSERT_FALSE(pri.has_value());
 
-  remove_ue_uci_from_pucch(t_bench.get_ue(to_du_ue_index(1)));
+  remove_ue_uci_from_pucch(t_bench.get_ue(to_du_ue_index(2)));
 
   pri = alloc_common_and_ded_harq_ack(t_bench.get_main_ue());
   ASSERT_TRUE(pri.has_value());
+  ASSERT_EQ(1U, pri);
 }
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_fails_when_existing_common_harq_ack)

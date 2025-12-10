@@ -161,7 +161,7 @@ void pucch_collision_manager::slot_indication(slot_point sl_tx)
   ocudu_sanity_check(not last_sl_ind.valid() or sl_tx == last_sl_ind + 1, "Detected a skipped slot");
 
   // Clear previous slot context.
-  slots_ctx[(sl_tx - 1).to_uint()].current_state.reset();
+  slots_ctx[(sl_tx - 1).count()].current_state.reset();
   // Update last slot indication.
   last_sl_ind = sl_tx;
 }
@@ -218,7 +218,7 @@ pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point 
   ocudu_sanity_check(sl < last_sl_ind + cell_resource_allocator::RING_ALLOCATOR_SIZE,
                      "PUCCH resource ring-buffer accessed too far into the future");
 
-  auto& ctx = slots_ctx[sl.to_uint()];
+  auto& ctx = slots_ctx[sl.count()];
 
   // Check for PUCCH-to-other UL grant collisions using the resource grids.
   const auto& res = resources[res_idx.value()];
@@ -265,7 +265,7 @@ bool pucch_collision_manager::free(cell_slot_resource_grid& ul_res_grid, slot_po
   ocudu_sanity_check(sl < last_sl_ind + cell_resource_allocator::RING_ALLOCATOR_SIZE,
                      "PUCCH resource ring-buffer accessed too far into the future");
 
-  auto& ctx = slots_ctx[sl.to_uint()];
+  auto& ctx = slots_ctx[sl.count()];
   if (not ctx.current_state.test(res_idx.value())) {
     // Resource was not allocated.
     return false;

@@ -721,6 +721,7 @@ pucch_allocator_impl::find_common_and_ded_harq_res_available(cell_slot_resource_
     ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
 
     // Look for an available PUCCH common resource.
+    // TODO: allow collisions between common and dedicated resources for the same UE, since it will never send both.
     if (not resource_manager.reserve_harq_common_resource(
             pucch_slot_alloc.ul_res_grid, pucch_slot_alloc.slot, r_pucch)) {
       continue;

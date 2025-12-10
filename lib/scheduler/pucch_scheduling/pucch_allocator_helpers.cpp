@@ -9,7 +9,6 @@
  */
 
 #include "pucch_allocator_helpers.h"
-#include "../support/sched_result_helpers.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 
@@ -39,71 +38,6 @@ unsigned ocudu::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, u
   return cell_pci;
 }
 
-bool ocudu::check_ul_collisions(span<const grant_info>    grants,
-                                const ul_sched_result&    result,
-                                const cell_configuration& cell_cfg,
-                                bool                      is_common)
-{
-  if (is_common and not result.srss.empty()) {
-    // [Implementation defined] Since we configure SRS to occupy the whole band, common PUCCH resources will
-    // always collide with SRS grants.
-    // TODO: refine this check once we restrict SRS to not collide with common PUCCH resources.
-    return true;
-  }
-
-  for (const auto& pusch : result.puschs) {
-    const grant_info pusch_grant = get_pusch_grant_info(pusch);
-    for (const auto& grant : grants) {
-      if (pusch_grant.overlaps(grant)) {
-        return true;
-      }
-    }
-  }
-
-  auto prach_grants = get_prach_grant_info(cell_cfg, result.prachs);
-  for (const auto& prach : prach_grants) {
-    for (const auto& grant : grants) {
-      if (prach.overlaps(grant)) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-void ocudu::mark_pucch_in_resource_grid(cell_slot_resource_allocator&    pucch_slot_alloc,
-                                        const grant_info&                first_hop_grant,
-                                        const std::optional<grant_info>& second_hop_grant,
-                                        const crb_interval&              ul_bwp_crbs,
-                                        const scheduler_expert_config&   expert_cfg)
-{
-  const unsigned guard_rbs = expert_cfg.ue.min_pucch_pusch_prb_distance;
-
-  if (guard_rbs == 0) {
-    pucch_slot_alloc.ul_res_grid.fill(first_hop_grant);
-    if (second_hop_grant.has_value()) {
-      pucch_slot_alloc.ul_res_grid.fill(second_hop_grant.value());
-    }
-    return;
-  }
-
-  // Add guard band to the allocated grid resources to minimize cross PUCCH-PUSCH interference.
-  auto     grant_extended = first_hop_grant;
-  unsigned start          = first_hop_grant.crbs.start() >= guard_rbs ? first_hop_grant.crbs.start() - guard_rbs : 0;
-  grant_extended.crbs     = {start, first_hop_grant.crbs.stop() + guard_rbs};
-  grant_extended.crbs.intersect(ul_bwp_crbs);
-  pucch_slot_alloc.ul_res_grid.fill(grant_extended);
-
-  if (second_hop_grant.has_value()) {
-    start               = second_hop_grant->crbs.start() >= guard_rbs ? second_hop_grant->crbs.start() - guard_rbs : 0;
-    grant_extended      = *second_hop_grant;
-    grant_extended.crbs = {start, second_hop_grant->crbs.stop() + guard_rbs};
-    grant_extended.crbs.intersect(ul_bwp_crbs);
-    pucch_slot_alloc.ul_res_grid.fill(grant_extended);
-  }
-}
-
 std::pair<grant_info, std::optional<grant_info>>
 ocudu::pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp, const pucch_resource& pucch_res)
 {
@@ -126,18 +60,6 @@ ocudu::pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp, const 
   ofdm_symbol_range symbols{pucch_res.starting_sym_idx, pucch_res.starting_sym_idx + pucch_res.nof_symbols};
   crb_interval      crbs = prb_to_crb(init_ul_bwp, {pucch_res.starting_prb, pucch_res.starting_prb + nof_prbs});
   return {grant_info{init_ul_bwp.scs, symbols, crbs}, std::nullopt};
-}
-
-void ocudu::mark_pucch_in_resource_grid(cell_slot_resource_allocator& pucch_slot_alloc,
-                                        const pucch_resource&         pucch_res,
-                                        const ue_cell_configuration&  ue_cell_cfg)
-{
-  const auto& init_ul_bwp = ue_cell_cfg.init_bwp().ul_common.value()->generic_params;
-  const auto  grants      = pucch_resource_to_grant_info(init_ul_bwp, pucch_res);
-
-  // Fill Slot grid.
-  mark_pucch_in_resource_grid(
-      pucch_slot_alloc, grants.first, grants.second, init_ul_bwp.crbs, ue_cell_cfg.cell_cfg_common.expert_cfg);
 }
 
 // Checks if a PUCCH PDU is for SR.

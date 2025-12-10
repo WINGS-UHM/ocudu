@@ -97,6 +97,11 @@ public:
   /// \param crbs List of CRBs, where CRB=0 corresponds to the CRB closest to pointA.
   void fill(ofdm_symbol_range symbols, span<const uint16_t> crb_list);
 
+  /// Clears allocated symbol x CRB range in the carrier resource grid.
+  /// \param symbols OFDM symbol interval of the allocation. Interval must fall within [0, 14).
+  /// \param crbs CRB interval, where CRB=0 corresponds to the CRB closest to pointA.
+  void clear(ofdm_symbol_range symbols, crb_interval crbs);
+
   /// Clears allocated symbol x CRB list in the carrier resource grid.
   /// \param symbols OFDM symbol interval of the allocation. Interval must fall within [0, 14).
   /// \param crbs List of CRBs, where CRB=0 corresponds to the CRB closest to pointA.
@@ -105,8 +110,11 @@ public:
   /// Checks whether the provided symbol x CRB range collides with any other allocation in the carrier resource grid.
   /// \param symbols OFDM symbol interval of the allocation. Interval must fall within [0, 14).
   /// \param crbs CRB interval, where CRB=0 corresponds to the CRB closest to pointA.
+  /// \param ignore_rg Resource grid of grants to ignore during collision checking.
   /// \return true if a collision was detected. False otherwise.
-  bool collides(ofdm_symbol_range symbols, crb_interval crbs) const;
+  bool collides(ofdm_symbol_range                    symbols,
+                crb_interval                         crbs,
+                const carrier_subslot_resource_grid* ignore_rg = nullptr) const;
 
   /// Checks whether the provided symbol x CRB list collides with any other allocation in the carrier resource grid.
   /// \param symbols OFDM symbol interval of the allocation. Interval must fall within [0, 14).
@@ -163,22 +171,44 @@ public:
   /// Reset the resource grid to empty.
   void clear();
 
-  /// Allocates the symbol x RB range in the cell resource grid.
-  /// \param prbs PRB interval of the allocation. PRB=0 corresponds to the first PRB of the BWP.
-  /// \param symbols OFDM symbol interval of the allocation.
+  /// Allocates a grant.
+  /// \param grant contains the symbol x RB range to be allocated.
   void fill(grant_info grant);
+
+  /// Allocates a list of CRBs for a given symbol range.
+  /// \param scs Subcarrier spacing of the allocation.
+  /// \param symbols OFDM symbol interval of the allocation.
+  /// \param crbs list of CRBs to be allocated.
   void fill(subcarrier_spacing scs, ofdm_symbol_range ofdm_symbols, span<const uint16_t> crbs);
 
-  /// Clears allocated symbol x RB range in the cell resource grid.
+  /// Clears an allocated grant.
+  /// \param grant contains the symbol x RB range we want to check.
+  void clear(grant_info grant);
+
+  /// Clears a list of CRBs for a given symbol range.
+  /// param scs Subcarrier spacing of the allocation.
   /// \param symbols OFDM symbol interval of the allocation.
-  /// \param prbs PRB interval of the allocation. PRB=0 corresponds to the first PRB of the BWP.
+  /// \param crbs list of CRBs to be cleared.
   void clear(subcarrier_spacing scs, ofdm_symbol_range ofdm_symbols, span<const uint16_t> crbs);
 
-  /// Checks whether the provided symbol x RB range collides with any other allocation in the cell resource grid.
-  /// \param grant contains the symbol x RB range whose available we want to check.
+  /// Checks whether a given grant collides with any other allocation.
+  /// \param grant contains the symbol x RB range we want to check.
+  /// \param ignore_rg Resource grid of grants to ignore during collision checking.
+  /// \return true if at least one symbol x RB of the grant is currently occupied in the resource grid.
+  bool collides(grant_info grant, const cell_slot_resource_grid* ignore_rg = nullptr) const;
+
+  /// Checks whether a given symbol x RB range collides with any other allocation.
+  /// \param scs Subcarrier spacing of the allocation.
+  /// \param ofdm_symbols OFDM symbol interval of the allocation.
+  /// \param crbs CRB interval of the allocation.
   /// \return true if at least one symbol x RB of grant is currently occupied in the resource grid.
-  bool collides(grant_info grant) const;
   bool collides(subcarrier_spacing scs, ofdm_symbol_range ofdm_symbols, crb_interval crbs) const;
+
+  /// Checks whether a list of CRBs for a given symbol range collides with any other allocation.
+  /// \param scs Subcarrier spacing of the allocation.
+  /// \param ofdm_symbols OFDM symbol interval of the allocation.
+  /// \param crbs List of CRBs to be checked.
+  /// \return true if at least one symbol x RB of grant is currently occupied in the resource grid.
   bool collides(subcarrier_spacing scs, ofdm_symbol_range ofdm_symbols, span<const uint16_t> crbs) const;
 
   /// \brief Calculates a bitmap where each bit set to one represents a CRB that is occupied or unavailable.

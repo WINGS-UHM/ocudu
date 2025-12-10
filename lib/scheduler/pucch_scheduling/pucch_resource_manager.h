@@ -48,11 +48,11 @@ public:
 
   void stop();
 
-  /// Returns true if the common PUCCH resource indexed by r_pucch is available at the given slot.
-  bool is_harq_common_resource_available(slot_point sl, size_t r_pucch);
+  /// \brief Reserve the common PUCCH resource indexed by r_pucch, if available.
+  bool reserve_harq_common_resource(cell_slot_resource_grid& ul_res_grid, slot_point sl, size_t r_pucch);
 
-  /// Set the common PUCCH resource indexed by r_pucch at the given slot as currently "not available".
-  void reserve_harq_common_resource(slot_point sl, size_t r_pucch);
+  /// \brief Release the common PUCCH resource indexed by r_pucch from being allocated to a given UE.
+  void release_harq_common_resource(cell_slot_resource_grid& ul_res_grid, slot_point sl, size_t r_pucch);
 
   /// \brief RAII helper class that manages the reservation of dedicated PUCCH resources for a given UE at a given slot.
   /// The reservation is temporary until \c commit() is called, which makes the reservation permanent.
@@ -63,16 +63,18 @@ public:
     /// \brief RAII helper class that manages the reservation of dedicated PUCCH resources for a given UE.
     /// The reservation is temporary until \c commit() is called, which makes the reservation permanent.
     /// \remark If \c commit() is not called before the destructor is invoked, all reservations are cancelled.
-    ue_reservation_guard(pucch_resource_manager*      parent_,
-                         rnti_t                       rnti_,
-                         slot_point                   sl_,
-                         const ue_cell_configuration& ue_cfg_);
+    ue_reservation_guard(pucch_resource_manager*       parent_,
+                         cell_slot_resource_allocator& slot_alloc_,
+                         rnti_t                        rnti_,
+                         const ue_cell_configuration&  ue_cfg_);
+
+    ~ue_reservation_guard();
+
     // Disable copy and move semantics.
     ue_reservation_guard(const ue_reservation_guard&)                = delete;
     ue_reservation_guard& operator=(const ue_reservation_guard&)     = delete;
     ue_reservation_guard(ue_reservation_guard&&) noexcept            = delete;
     ue_reservation_guard& operator=(ue_reservation_guard&&) noexcept = delete;
-    ~ue_reservation_guard();
 
     rnti_t                       get_rnti() const { return rnti; }
     slot_point                   get_slot() const { return sl; }
@@ -148,6 +150,7 @@ public:
       std::optional<unsigned> cell_res_id;
     };
     pucch_resource_manager*      parent;
+    cell_slot_resource_grid&     ul_res_grid;
     const rnti_t                 rnti;
     const slot_point             sl;
     const ue_cell_configuration& ue_cfg;

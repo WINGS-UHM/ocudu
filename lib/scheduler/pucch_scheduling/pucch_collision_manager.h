@@ -104,17 +104,17 @@ public:
 
   /// \brief Allocate a common PUCCH resource at a given slot.
   /// \return Success if the allocation was successful, otherwise an error indicating the reason of failure.
-  alloc_result_t alloc_common(slot_point sl, r_pucch_t r_pucch);
+  alloc_result_t alloc_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, r_pucch_t r_pucch);
 
   /// \brief Allocate a dedicated PUCCH resource at a given slot.
   /// \return Success if the allocation was successful, otherwise an error indicating the reason of failure.
-  alloc_result_t alloc_ded(slot_point sl, unsigned cell_res_id);
+  alloc_result_t alloc_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id);
 
   /// Free a common PUCCH resource at a given slot.
-  void free_common(slot_point sl, r_pucch_t r_pucch);
+  void free_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, r_pucch_t r_pucch);
 
   /// Free a dedicated PUCCH resource at a given slot.
-  void free_ded(slot_point sl, unsigned cell_res_id);
+  void free_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id);
 
 private:
   /// Maximum number of common PUCCH resources managed by the collision manager.
@@ -144,6 +144,17 @@ private:
     /// Bitset representing the current usage state of all PUCCH resources (common and dedicated) in this slot.
     ///  - S[i] = 1 if resource i is in use, 0 otherwise.
     bounded_bitset<max_nof_cell_resources> current_state;
+    /// Resource grid that keeps track of the time-frequency grants of PUCCH resources in this slot.
+    cell_slot_resource_grid pucch_res_grid;
+
+    /// Default constructor needed by circular_array.
+    slot_context() : pucch_res_grid({}) {}
+
+    slot_context(const cell_configuration& cell_cfg) :
+      current_state(nof_common_res + cell_cfg.ded_pucch_resources.size()),
+      pucch_res_grid(cell_cfg.ul_cfg_common.freq_info_ul.scs_carrier_list)
+    {
+    }
   };
 
   // Ring buffer of slot contexts to keep track of PUCCH resource usage in recent slots.
@@ -162,10 +173,10 @@ private:
   static mux_regions_matrix_t compute_mux_regions(span<const detail::resource_info> resources);
 
   /// Allocate the PUCCH resource at \ref res_idx at a given slot.
-  alloc_result_t alloc_resource(slot_point sl, unsigned res_idx);
+  alloc_result_t alloc_resource(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx);
 
   /// Free the PUCCH resource at \ref res_idx at a given slot.
-  void free_resource(slot_point sl, unsigned res_idx);
+  void free_resource(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx);
 };
 
 } // namespace ocudu

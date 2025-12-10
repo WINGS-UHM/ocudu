@@ -62,6 +62,10 @@ public:
     pucch_expected_res_set_1 = test_helpers::make_ded_pucch_info(
         t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[5], {.harq_ack_nof_bits = 3U}, max_code_rate);
 
+    // Set the expected Resource Set ID 1 HARQ grant to the first resource in Resource Set ID 1.
+    pucch_expected_res_set_1_with_common = test_helpers::make_ded_pucch_info(
+        t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[6], {.harq_ack_nof_bits = 3U}, max_code_rate);
+
     // Set the expected HARQ CSI grant to the CSI resource.
     pucch_expected_csi = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
                                                            t_bench.cell_cfg.ded_pucch_resources[11],
@@ -82,6 +86,7 @@ protected:
   pucch_info pucch_expected_res_set_0_with_common;
   pucch_info pucch_expected_res_set_0_with_common_and_sr;
   pucch_info pucch_expected_res_set_1;
+  pucch_info pucch_expected_res_set_1_with_common;
   pucch_info pucch_expected_csi;
 };
 
@@ -534,9 +539,8 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_common_and_ded_harq_ack_with_existi
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_common_and_ded_harq_ack_with_existing_csi_succeeds)
 {
-  pucch_expected_res_set_1.uci_bits.harq_ack_nof_bits  = 1U;
-  pucch_expected_res_set_1.uci_bits.sr_bits            = sr_nof_bits::no_sr;
-  pucch_expected_res_set_1.uci_bits.csi_part1_nof_bits = 4U;
+  pucch_expected_res_set_1_with_common.uci_bits.harq_ack_nof_bits  = 1U;
+  pucch_expected_res_set_1_with_common.uci_bits.csi_part1_nof_bits = 4U;
 
   alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
 
@@ -546,7 +550,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_common_and_ded_harq_ack_with_existi
   const auto& pucch_pdus = default_slot_grid.result.ul.pucchs;
   ASSERT_EQ(2, pucch_pdus.size());
   // PUCCH dedicated resource for HARQ-ACK.
-  ASSERT_TRUE(find_pucch_pdu(pucch_pdus, [&expected = pucch_expected_res_set_1](const pucch_info& pdu) {
+  ASSERT_TRUE(find_pucch_pdu(pucch_pdus, [&expected = pucch_expected_res_set_1_with_common](const pucch_info& pdu) {
     return pucch_info_match(expected, pdu);
   }));
   // PUCCH common resource.

@@ -225,25 +225,16 @@ TEST_F(pucch_alloc_common_harq_multiple_alloc_test, test_on_full_grid)
 {
   t_bench.pucch_alloc.alloc_common_harq_ack(
       t_bench.res_grid, t_bench.get_main_ue().crnti, t_bench.k0, default_k1, t_bench.dci_info);
-
   ASSERT_FALSE(t_bench.res_grid[t_bench.k0 + default_k1].result.ul.pucchs.empty());
-  const pucch_info& pucch_pdu_benchmark = t_bench.res_grid[t_bench.k0 + default_k1].result.ul.pucchs.back();
 
-  // Increase the slot; this is to verify the PUCCH allocation over a full grid yields the same PUCCH PDU as over an
-  // empty one.
+  // Increase the slot to  try the allocation in a different slot.
   t_bench.slot_indication(++t_bench.sl_tx);
 
-  // Fill the entire grid and verify the PUCCH gets allocated anyway.
+  // Fill the entire grid and verify the PUCCH doesn't get allocated.
   t_bench.fill_all_grid(t_bench.sl_tx + default_k1);
 
-  const std::optional<unsigned> pucch_res_indicator_1 = t_bench.pucch_alloc.alloc_common_harq_ack(
+  auto pri = t_bench.pucch_alloc.alloc_common_harq_ack(
       t_bench.res_grid, t_bench.get_main_ue().crnti, t_bench.k0, default_k1, t_bench.dci_info);
-  ASSERT_TRUE(pucch_res_indicator_1.has_value());
-
-  ASSERT_FALSE(t_bench.res_grid[t_bench.k0 + default_k1].result.ul.pucchs.empty());
-
-  ASSERT_EQ(0, pucch_res_indicator_1.value());
-  ASSERT_TRUE(
-      find_pucch_pdu(t_bench.res_grid[t_bench.k0 + default_k1].result.ul.pucchs,
-                     [&expected = pucch_pdu_benchmark](const auto& pdu) { return pucch_info_match(expected, pdu); }));
+  ASSERT_FALSE(pri.has_value());
+  ASSERT_TRUE(t_bench.res_grid[t_bench.k0 + default_k1].result.ul.pucchs.empty());
 }

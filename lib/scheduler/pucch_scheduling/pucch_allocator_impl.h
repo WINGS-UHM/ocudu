@@ -179,18 +179,19 @@ private:
   ///////////////  Main private functions   //////////////
 
   // Allocates the PUCCH (common) resource for HARQ-(N)-ACK.
-  std::optional<pucch_res_alloc_cfg> alloc_pucch_common_res_harq(const cell_slot_resource_allocator& pucch_alloc,
-                                                                 const dci_context_information&      dci_info);
+  std::optional<pucch_res_alloc_cfg> alloc_pucch_common_res_harq(cell_slot_resource_allocator&  pucch_slot_alloc,
+                                                                 const dci_context_information& dci_info);
 
   void compute_pucch_common_params_and_alloc(cell_slot_resource_allocator& pucch_alloc,
                                              rnti_t                        rnti,
                                              pucch_common_params           pucch_params);
 
-  std::optional<pucch_common_params> find_common_and_ded_harq_res_available(cell_slot_resource_allocator& pucch_alloc,
-                                                                            ue_grants&                   current_grants,
-                                                                            const ue_cell_configuration& ue_cell_cfg,
-                                                                            const dci_context_information& dci_info,
-                                                                            const alloc_context&           alloc_ctx);
+  std::optional<pucch_common_params>
+  find_common_and_ded_harq_res_available(cell_slot_resource_allocator&  pucch_slot_alloc,
+                                         ue_grants&                     current_grants,
+                                         const ue_cell_configuration&   ue_cell_cfg,
+                                         const dci_context_information& dci_info,
+                                         const alloc_context&           alloc_ctx);
 
   // Helper that allocates a NEW PUCCH HARQ grant (Format 0 or 1).
   std::optional<unsigned> allocate_harq_grant(cell_slot_resource_allocator& pucch_slot_alloc,
@@ -214,14 +215,12 @@ private:
   // Note: If \c common_grants is set, it means that the function is called while allocating common and dedicated
   // resources together. In this case, the allocation will fail if the multiplexed resources collide with it or with any
   // other UL grant.
-  std::optional<unsigned>
-  multiplex_and_allocate_pucch(cell_slot_resource_allocator&                    pucch_slot_alloc,
-                               const pucch_uci_bits&                            new_bits,
-                               ue_grants&                                       current_grants,
-                               const ue_cell_configuration&                     ue_cell_cfg,
-                               std::optional<uint8_t>                           preserve_res_indicator,
-                               const alloc_context&                             alloc_ctx,
-                               std::optional<std::pair<grant_info, grant_info>> common_grants = std::nullopt);
+  std::optional<unsigned> multiplex_and_allocate_pucch(cell_slot_resource_allocator& pucch_slot_alloc,
+                                                       const pucch_uci_bits&         new_bits,
+                                                       ue_grants&                    current_grants,
+                                                       const ue_cell_configuration&  ue_cell_cfg,
+                                                       std::optional<uint8_t>        preserve_res_indicator,
+                                                       const alloc_context&          alloc_ctx);
 
   // Computes which resources are expected to be sent, depending on the UCI bits to be sent, before any multiplexing.
   std::optional<pucch_grant_list> get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_reservation_guard& guard,

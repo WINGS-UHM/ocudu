@@ -75,33 +75,30 @@ void pucch_resource_manager::stop()
   collision_manager.stop();
 }
 
-bool pucch_resource_manager::is_harq_common_resource_available(slot_point sl, size_t r_pucch)
+bool pucch_resource_manager::reserve_harq_common_resource(cell_slot_resource_grid& ul_res_grid,
+                                                          slot_point               sl,
+                                                          size_t                   r_pucch)
+
 {
   ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
-  // TODO: Remove this method and use collision_manager.alloc_common directly once it checks for UL grant collisions
-  // correctly.
-  auto res = collision_manager.alloc_common(sl, r_pucch);
-  if (res.has_value()) {
-    // Allocation was successful, free the resource and return true.
-    collision_manager.free_common(sl, r_pucch);
-    return true;
-  }
-  return false;
+  return collision_manager.alloc_common(ul_res_grid, sl, r_pucch).has_value();
 }
 
-void pucch_resource_manager::reserve_harq_common_resource(slot_point sl, size_t r_pucch)
+void pucch_resource_manager::release_harq_common_resource(cell_slot_resource_grid& ul_res_grid,
+                                                          slot_point               sl,
+                                                          size_t                   r_pucch)
 {
   ocudu_assert(r_pucch < 16, "r_PUCCH must be less than 16");
-  collision_manager.alloc_common(sl, r_pucch);
+  collision_manager.free_common(ul_res_grid, sl, r_pucch);
 }
 
 /////////////   UE Reservation Guard   /////////////
 
-pucch_resource_manager::ue_reservation_guard::ue_reservation_guard(pucch_resource_manager*      parent_,
-                                                                   rnti_t                       rnti_,
-                                                                   slot_point                   sl_,
-                                                                   const ue_cell_configuration& ue_cfg_) :
-  parent(parent_), rnti(rnti_), sl(sl_), ue_cfg(ue_cfg_)
+pucch_resource_manager::ue_reservation_guard::ue_reservation_guard(pucch_resource_manager*       parent_,
+                                                                   cell_slot_resource_allocator& slot_alloc,
+                                                                   rnti_t                        rnti_,
+                                                                   const ue_cell_configuration&  ue_cfg_) :
+  parent(parent_), ul_res_grid(slot_alloc.ul_res_grid), rnti(rnti_), sl(slot_alloc.slot), ue_cfg(ue_cfg_)
 {
   ocudu_sanity_check(parent != nullptr, "PUCCH Resource Manager pointer cannot be null");
   ocudu_sanity_check(sl < parent->last_sl_ind + RES_MANAGER_RING_BUFFER_SIZE,
@@ -175,7 +172,7 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_sr_r
   // the resource had already been allocated, just return it.
   if (res_rnti != rnti) {
     // Check for collisions.
-    if (not parent->collision_manager.alloc_ded(sl, cell_res_id).has_value()) {
+    if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, cell_res_id).has_value()) {
       return nullptr;
     }
     res_rnti                                                     = rnti;
@@ -221,7 +218,7 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_csi_
   // the resource had already been allocated, just return it.
   if (res_rnti != rnti) {
     // Check for collisions.
-    if (not parent->collision_manager.alloc_ded(sl, cell_res_id).has_value()) {
+    if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, cell_res_id).has_value()) {
       return nullptr;
     }
     res_rnti                                                      = rnti;
@@ -309,7 +306,7 @@ bool pucch_resource_manager::ue_reservation_guard::release_sr_resource()
 
   // Release the resource.
   ctx.ues_using_pucch_res[cell_res_id] = rnti_t::INVALID_RNTI;
-  parent->collision_manager.free_ded(sl, cell_res_id);
+  parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
   reservations[static_cast<unsigned>(resource_usage_type::sr)].cell_res_id = std::nullopt;
   return true;
 }
@@ -336,7 +333,7 @@ bool pucch_resource_manager::ue_reservation_guard::release_csi_resource()
 
   // Release the resource.
   ctx.ues_using_pucch_res[cell_res_id] = rnti_t::INVALID_RNTI;
-  parent->collision_manager.free_ded(sl, cell_res_id);
+  parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
   reservations[static_cast<unsigned>(resource_usage_type::csi)].cell_res_id = std::nullopt;
   return true;
 }
@@ -384,7 +381,8 @@ pucch_resource_manager::ue_reservation_guard::reserve_next_harq_res_available(pu
                    "PUCCH resource index from PUCCH resource set exceeds the size of the cell resource array");
       auto& res_rnti = ctx.ues_using_pucch_res[cell_res_id];
 
-      if (res_rnti == rnti_t::INVALID_RNTI and parent->collision_manager.alloc_ded(sl, cell_res_id).has_value()) {
+      if (res_rnti == rnti_t::INVALID_RNTI and
+          parent->collision_manager.alloc_ded(ul_res_grid, sl, cell_res_id).has_value()) {
         ctx.ues_using_pucch_res[cell_res_id] = rnti;
         unsigned usage_type_idx              = res_set_idx == pucch_res_set_idx::set_0
                                                    ? static_cast<unsigned>(resource_usage_type::harq_set_0)
@@ -478,7 +476,7 @@ pucch_resource_manager::ue_reservation_guard::reserve_harq_resource_by_res_indic
   }
 
   // Allocate the resource to this RNTI.
-  if (not parent->collision_manager.alloc_ded(sl, cell_res_id).has_value()) {
+  if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, cell_res_id).has_value()) {
     return nullptr;
   }
   res_rnti                     = rnti;
@@ -517,7 +515,7 @@ bool pucch_resource_manager::ue_reservation_guard::release_harq_resource(pucch_r
     if (res_rnti == rnti) {
       // Release the resource.
       res_rnti = rnti_t::INVALID_RNTI;
-      parent->collision_manager.free_ded(sl, cell_res_id);
+      parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
       unsigned usage_type_idx                  = res_set_idx == pucch_res_set_idx::set_0
                                                      ? static_cast<unsigned>(resource_usage_type::harq_set_0)
                                                      : static_cast<unsigned>(resource_usage_type::harq_set_1);
@@ -541,7 +539,7 @@ void pucch_resource_manager::ue_reservation_guard::commit()
         reservations[static_cast<unsigned>(resource_usage_type::harq_set_0)].cell_res_id.value();
     auto& ctx                            = parent->slots_ctx[sl.to_uint()];
     ctx.ues_using_pucch_res[cell_res_id] = rnti_t::INVALID_RNTI;
-    parent->collision_manager.free_ded(sl, cell_res_id);
+    parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
     reservations[static_cast<unsigned>(resource_usage_type::harq_set_0)].cell_res_id = std::nullopt;
   }
 
@@ -564,7 +562,7 @@ void pucch_resource_manager::ue_reservation_guard::rollback()
 
         // Release the resource.
         ctx.ues_using_pucch_res[res.cell_res_id.value()] = rnti_t::INVALID_RNTI;
-        parent->collision_manager.free_ded(sl, res.cell_res_id.value());
+        parent->collision_manager.free_ded(ul_res_grid, sl, res.cell_res_id.value());
       }
     }
   }

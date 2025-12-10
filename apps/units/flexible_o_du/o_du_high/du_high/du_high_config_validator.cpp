@@ -1048,6 +1048,7 @@ static bool validate_cell_sib_config(const du_high_unit_base_cell_config& cell_c
 
   std::vector<uint8_t>  sibs_included;
   std::vector<unsigned> si_window_positions;
+  unsigned              n_sched_info_list_messages = 0;
   for (const auto& si_msg : sib_cfg.si_sched_info) {
     for (const uint8_t sib_it : si_msg.sib_mapping_info) {
       // si-WindowPosition-r17 is part of release 17 specification only. See TS 38.331, V17.0.0, \c SchedulingInfo2-r17.
@@ -1062,8 +1063,17 @@ static bool validate_cell_sib_config(const du_high_unit_base_cell_config& cell_c
     }
     if (si_msg.si_window_position.has_value()) {
       si_window_positions.push_back(si_msg.si_window_position.value());
+    } else {
+      if (si_window_positions.size() > 0) {
+        fmt::print(
+            "Invalid SIB ordering in si_sched_info: SIBs using schedulingInfoList (SIB IDs < 15) must precede SIBs "
+            "using schedulingInfoList2 (SIB IDs >= 15).\n");
+        return false;
+      }
+      n_sched_info_list_messages++;
     }
   }
+
   std::sort(sibs_included.begin(), sibs_included.end());
   // Check if there are repeated SIBs in the SI messages.
   const auto duplicate_it = std::adjacent_find(sibs_included.begin(), sibs_included.end());
@@ -1089,6 +1099,50 @@ static bool validate_cell_sib_config(const du_high_unit_base_cell_config& cell_c
                  si_window_positions[i],
                  si_window_positions[i + 1]);
       return false;
+    }
+  }
+
+  // SI messages scheduled by schedulingInfoList and/or posSchedulingInfoList do not overlap
+  // with SI messages scheduled by schedulingInfoList2. See TS38.331 \c si-WindowPosition.
+  if (si_window_positions.size() > 0 && (si_window_positions[0] <= n_sched_info_list_messages)) {
+    fmt::print("Any SI element in schedulingInfoList2 must be scheduled after any SI "
+               "in schedulingInfoList ({}<={})\n",
+               si_window_positions[0],
+               n_sched_info_list_messages);
+    return false;
+  }
+
+  auto si_messages_collide_pred = [](unsigned pos_a, unsigned per_a, unsigned pos_b, unsigned per_b) -> bool {
+    if (pos_a == pos_b)
+      return true;
+    unsigned g    = std::gcd(per_a, per_b);
+    unsigned diff = (pos_a > pos_b) ? (pos_a - pos_b) : (pos_b - pos_a);
+    return (diff % g) == 0;
+  };
+
+  if (sib_cfg.si_sched_info.size() > 1) {
+    for (unsigned i = 0, e = sib_cfg.si_sched_info.size(); i + 1 != e; ++i) {
+      const auto& si_i = sib_cfg.si_sched_info[i];
+
+      // siSchedulingInfoList2 SI's \c si-WindowPosition is 1-indexed, so should be SIs from siSchedulingInfoList
+      const unsigned pos_i = si_i.si_window_position.value_or(i + 1);
+      const unsigned per_i = si_i.si_period_rf;
+
+      for (unsigned j = i + 1; j != e; ++j) {
+        const auto&    si_j  = sib_cfg.si_sched_info[j];
+        const unsigned pos_j = si_j.si_window_position.value_or(j + 1);
+        const unsigned per_j = si_j.si_period_rf;
+
+        if (si_messages_collide_pred(pos_i, per_i, pos_j, per_j)) {
+          fmt::print("SI element at window {} with si-periodicity {} "
+                     "will collide with SI element at window {} with si-periodicity {}\n",
+                     pos_i,
+                     per_i,
+                     pos_j,
+                     per_j);
+          return false;
+        }
+      }
     }
   }
 

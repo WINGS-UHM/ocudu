@@ -25,7 +25,7 @@ across many experiments in different bands as follows:
 
 ## Full list of configuration options
 
-Look [here](https://docs.ocudu.com/projects/project/en/latest/user_manuals/source/config_ref.html) for
+Look [here](https://docs.srsran.com/projects/project/en/latest/user_manuals/source/config_ref.html) for
 the main configuration reference. We update this list regularly and aim to always keep it up-to-date
 with the actual code.
 

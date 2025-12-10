@@ -349,12 +349,52 @@ bool ocudu::test_helpers::is_valid_f1_reset_ack(const f1ap_message& req, const f
   return true;
 }
 
-#ifndef OCUDU_HAS_ENTERPRISE
-
 bool test_helpers::is_valid_positioning_information_response(const f1ap_message& msg)
 {
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::successful_outcome);
+  TRUE_OR_RETURN(msg.pdu.successful_outcome().value.type().value ==
+                 f1ap_elem_procs_o::successful_outcome_c::types_opts::positioning_info_resp);
+  TRUE_OR_RETURN(is_packable(msg));
   return true;
 }
+
+bool test_helpers::is_valid_f1ap_trp_information_response(const f1ap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::successful_outcome);
+  TRUE_OR_RETURN(msg.pdu.successful_outcome().value.type().value ==
+                 f1ap_elem_procs_o::successful_outcome_c::types_opts::trp_info_resp);
+  TRUE_OR_RETURN(is_packable(msg));
+  return true;
+}
+
+bool test_helpers::is_valid_f1ap_positioning_information_response(const f1ap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::successful_outcome);
+  TRUE_OR_RETURN(msg.pdu.successful_outcome().value.type().value ==
+                 f1ap_elem_procs_o::successful_outcome_c::types_opts::positioning_info_resp);
+  TRUE_OR_RETURN(is_packable(msg));
+  return true;
+}
+
+bool test_helpers::is_valid_f1ap_positioning_measurement_response(const f1ap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::successful_outcome);
+  TRUE_OR_RETURN(msg.pdu.successful_outcome().value.type().value ==
+                 f1ap_elem_procs_o::successful_outcome_c::types_opts::positioning_meas_resp);
+  TRUE_OR_RETURN(is_packable(msg));
+  return true;
+}
+
+bool test_helpers::is_valid_f1ap_positioning_measurement_failure(const f1ap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::unsuccessful_outcome);
+  TRUE_OR_RETURN(msg.pdu.unsuccessful_outcome().value.type().value ==
+                 f1ap_elem_procs_o::unsuccessful_outcome_c::types_opts::positioning_meas_fail);
+  TRUE_OR_RETURN(is_packable(msg));
+  return true;
+}
+
+#ifndef OCUDU_HAS_ENTERPRISE
 
 bool test_helpers::is_valid_f1ap_trp_information_request(const f1ap_message& msg)
 {
@@ -372,16 +412,6 @@ bool test_helpers::is_valid_f1ap_positioning_activation_request(const f1ap_messa
 }
 
 bool test_helpers::is_valid_f1ap_positioning_measurement_request(const f1ap_message& msg)
-{
-  return true;
-}
-
-bool test_helpers::is_valid_f1ap_positioning_measurement_response(const f1ap_message& msg)
-{
-  return true;
-}
-
-bool test_helpers::is_valid_f1ap_positioning_measurement_failure(const f1ap_message& msg)
 {
   return true;
 }

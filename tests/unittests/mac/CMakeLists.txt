@@ -28,6 +28,7 @@ add_executable(mac_test
         mac_metrics_test.cpp
         mac_config_helpers_test.cpp
         slot_point_time_mapper_test.cpp
+        mac_positioning_handler_test.cpp
 )
 target_link_libraries(mac_test
         ocudu_pcap

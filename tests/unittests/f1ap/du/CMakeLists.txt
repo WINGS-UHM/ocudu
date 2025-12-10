@@ -26,6 +26,9 @@ set(SOURCES f1ap_du_setup_procedure_test.cpp
             f1ap_du_ul_rrc_message_transfer_test.cpp
             f1ap_du_gnbdu_config_update_test.cpp
             f1ap_du_gnbcu_config_update_test.cpp
+            f1ap_du_positioning_exchange_procedure_test.cpp
+            f1ap_du_trp_information_exchange_procedure_test.cpp
+            f1ap_du_positioning_measurement_procedure_test.cpp
 )
 
 add_executable(f1ap_du_test ${SOURCES})

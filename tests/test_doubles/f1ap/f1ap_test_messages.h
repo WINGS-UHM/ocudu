@@ -205,50 +205,9 @@ byte_buffer create_dl_dcch_rrc_container(uint32_t pdcp_sn, const byte_buffer& dl
 /// \brief Remove PDCP header from DL-DCCH message.
 byte_buffer extract_dl_dcch_msg(const byte_buffer& rrc_container);
 
-/// \brief Generates dummy F1AP TRP INFORMATION REQUEST message.
+/// \brief Generates dummy F1AP TRP INFORMATION REQUEST message, sent by the CU to the DU, as per
+/// TS 38.473 section 8.13.8.2.
 f1ap_message generate_trp_information_request();
-
-/// \brief Generates dummy F1AP TRP INFORMATION RESPONSE message.
-f1ap_message generate_trp_information_response(const std::vector<trp_id_t>& trp_ids);
-
-/// \brief Generates dummy F1AP TRP INFORMATION FAILURE message.
-f1ap_message generate_trp_information_failure();
-
-/// \brief Generates dummy F1AP POSITIONING INFORMATION REQUEST message.
-f1ap_message generate_positioning_information_request(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
-
-/// \brief Generates dummy F1AP POSITIONING INFORMATION RESPONSE message.
-f1ap_message generate_positioning_information_response(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
-
-/// \brief Generates dummy F1AP POSITIONING INFORMATION FAILURE message.
-f1ap_message generate_positioning_information_failure(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
-
-/// \brief Generates dummy F1AP POSITIONING ACTIVATION RESPONSE message.
-f1ap_message generate_positioning_activation_response(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
-
-/// \brief Generates dummy F1AP POSITIONING ACTIVATION FAILURE message.
-f1ap_message generate_positioning_activation_failure(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
-
-/// \brief Generates dummy F1AP POSITIONING MEASUREMENT REQUEST message.
-f1ap_message
-generate_positioning_measurement_request(std::vector<trp_id_t>                                trp_ids,
-                                         lmf_meas_id_t                                        lmf_meas_id,
-                                         ran_meas_id_t                                        ran_meas_id,
-                                         std::vector<asn1::f1ap::pos_meas_type_opts::options> pos_meas_type_list =
-                                             {asn1::f1ap::pos_meas_type_opts::options::ul_rtoa},
-                                         subcarrier_spacing scs        = subcarrier_spacing::kHz15,
-                                         unsigned           srs_offset = 0U);
-
-/// \brief Generates dummy F1AP POSITIONING MEASUREMENT RESPONSE message, sent by the DU to the CU, as per
-/// TS 38.473 section 8.13.3.2.
-f1ap_message generate_positioning_measurement_response(lmf_meas_id_t                lmf_meas_id,
-                                                       ran_meas_id_t                ran_meas_id,
-                                                       const std::vector<trp_id_t>& trp_ids,
-                                                       unsigned                     transaction_id = 1);
-
-/// \brief Generates dummy F1AP POSITIONING MEASUREMENT FAILURE message, sent by the DU to the CU, as per
-/// TS 38.473 section 8.13.3.3.
-f1ap_message generate_positioning_measurement_failure(lmf_meas_id_t lmf_meas_id, ran_meas_id_t ran_meas_id);
 
 /// \brief Generates dummy F1AP TRP INFORMATION RESPONSE message, sent by the DU to the CU, as per
 /// TS 38.473 section 8.13.8.2.
@@ -257,6 +216,10 @@ f1ap_message generate_trp_information_response(const trp_id_t& trp_id);
 /// \brief Generates dummy F1AP TRP INFORMATION FAILURE message, sent by the DU to the CU, as per
 /// TS 38.473 section 8.13.8.3.
 f1ap_message generate_trp_information_failure();
+
+/// \brief Generates dummy F1AP POSITIONING INFORMATION REQUEST message, sent by the CU to the DU, as per
+/// TS 38.473 section 8.13.9.2.
+f1ap_message generate_positioning_information_request(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
 
 /// \brief Generates dummy F1AP POSITIONING INFORMATION RESPONSE message, sent by the DU to the CU, as per
 /// TS 38.473 section 8.13.9.2.
@@ -273,6 +236,28 @@ f1ap_message generate_positioning_activation_response(gnb_du_ue_f1ap_id_t du_ue_
 /// \brief Generates dummy F1AP POSITIONING ACTIVATION FAILURE message, sent by the DU to the CU, as per
 /// TS 38.473 section 8.13.10.3.
 f1ap_message generate_positioning_activation_failure(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id);
+
+/// \brief Generates dummy F1AP POSITIONING MEASUREMENT REQUEST message, sent by the CU to the DU, as per
+/// TS 38.473 section 8.13.3.2.
+f1ap_message
+generate_positioning_measurement_request(const std::vector<trp_id_t>& trp_ids,
+                                         lmf_meas_id_t                lmf_meas_id,
+                                         ran_meas_id_t                ran_meas_id,
+                                         const std::vector<asn1::f1ap::pos_meas_type_opts::options>&
+                                             pos_meas_type_list = {asn1::f1ap::pos_meas_type_opts::options::ul_rtoa},
+                                         subcarrier_spacing scs = subcarrier_spacing::kHz15,
+                                         unsigned           srs_offset = 0U);
+
+/// \brief Generates dummy F1AP POSITIONING MEASUREMENT RESPONSE message, sent by the DU to the CU, as per
+/// TS 38.473 section 8.13.3.2.
+f1ap_message generate_positioning_measurement_response(lmf_meas_id_t                lmf_meas_id,
+                                                       ran_meas_id_t                ran_meas_id,
+                                                       const std::vector<trp_id_t>& trp_ids,
+                                                       unsigned                     transaction_id = 1);
+
+/// \brief Generates dummy F1AP POSITIONING MEASUREMENT FAILURE message, sent by the DU to the CU, as per
+/// TS 38.473 section 8.13.3.3.
+f1ap_message generate_positioning_measurement_failure(lmf_meas_id_t lmf_meas_id, ran_meas_id_t ran_meas_id);
 
 } // namespace test_helpers
 } // namespace ocudu

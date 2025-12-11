@@ -27,14 +27,16 @@ struct ngap_ue_ids {
 };
 
 struct ngap_ue_context {
-  ngap_ue_ids             ue_ids;
-  ngap_cu_cp_ue_notifier* ue = nullptr;
-  guami_t                 serving_guami;
-  uint64_t                aggregate_maximum_bit_rate_dl = 0;
-  uint64_t                aggregate_maximum_bit_rate_ul = 0;
-  unique_timer            request_pdu_session_timer;
-  bool                    release_requested = false;
-  bool                    release_scheduled = false;
+  ngap_ue_ids                                 ue_ids;
+  ngap_cu_cp_ue_notifier*                     ue = nullptr;
+  guami_t                                     serving_guami;
+  uint64_t                                    aggregate_maximum_bit_rate_dl = 0;
+  uint64_t                                    aggregate_maximum_bit_rate_ul = 0;
+  unique_timer                                request_pdu_session_timer;
+  bool                                        release_requested = false;
+  bool                                        release_scheduled = false;
+  ngap_rrc_inactive_transition_report_request rrc_inactive_transition_report_request =
+      ngap_rrc_inactive_transition_report_request::cancel_report;
   byte_buffer last_pdu_session_resource_modify_request; // To check if a received modify request is a duplicate
   ngap_ue_transaction_manager ev_mng;
   ngap_ue_logger              logger;

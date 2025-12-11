@@ -471,6 +471,11 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
   // Store serving PLMN.
   ue_ctxt.serving_guami = init_ctxt_setup_req.guami;
 
+  // Store RRC inactive transition report request if present.
+  if (init_ctxt_setup_req.rrc_inactive_transition_report_request.has_value()) {
+    ue_ctxt.rrc_inactive_transition_report_request = init_ctxt_setup_req.rrc_inactive_transition_report_request.value();
+  }
+
   // Store UE Aggregate Maximum Bitrate if it is set.
   if (init_ctxt_setup_req.ue_aggr_max_bit_rate.has_value()) {
     ue_ctxt.aggregate_maximum_bit_rate_dl = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_dl;
@@ -1299,6 +1304,15 @@ ngap_impl::handle_rrc_inactive_transition_report_required(const ngap_rrc_inactiv
   }
 
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+
+  if (ue_ctxt.rrc_inactive_transition_report_request !=
+      ngap_rrc_inactive_transition_report_request::subsequent_state_transition_report) {
+    logger.debug("ue={}: Ignoring RRCInactiveTransitionReport. Cause: Report was not requested", ue_index);
+    return launch_async([](coro_context<async_task<bool>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(true);
+    });
+  }
 
   if (ue_ctxt.release_requested or ue_ctxt.release_scheduled) {
     ue_ctxt.logger.log_debug("Ignoring RRCInactiveTransitionReport. Cause: Release {} already pending",

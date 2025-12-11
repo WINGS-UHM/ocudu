@@ -499,9 +499,9 @@ TEST_F(ngap_ue_context_management_procedure_test,
 
 /// Test RRC Inactive Transition Report.
 TEST_F(ngap_ue_context_management_procedure_test,
-       when_rrc_inactive_transition_report_transmission_is_requested_then_report_is_sent)
+       when_rrc_inactive_transition_report_transmission_is_not_requested_then_report_is_not_sent)
 {
-  // Test preamble
+  // Test preamble.
   ue_index_t ue_index = this->start_procedure();
 
   // Trigger RRC Inactive Transition Report transmission.
@@ -516,10 +516,10 @@ TEST_F(ngap_ue_context_management_procedure_test,
   async_task<bool>         t = ngap->handle_rrc_inactive_transition_report_required(report);
   lazy_task_launcher<bool> t_launcher(t);
 
-  // Status: should have succeeded already
+  // Status: should have succeeded already.
   ASSERT_TRUE(t.ready());
 
-  // Procedure should have succeeded.
+  // Procedure should not have succeeded.
   ASSERT_TRUE(t.get());
-  ASSERT_TRUE(was_rrc_inactive_transition_report_sent());
+  ASSERT_FALSE(was_rrc_inactive_transition_report_sent());
 }

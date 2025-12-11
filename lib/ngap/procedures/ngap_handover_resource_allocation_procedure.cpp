@@ -49,6 +49,11 @@ void ngap_handover_resource_allocation_procedure::operator()(coro_context<async_
       ngap_ue_context& ue_ctxt = ue_ctxt_list[response.ue_index];
       ue_ctxt_list.update_amf_ue_id(ue_ctxt.ue_ids.ran_ue_id, amf_ue_id);
 
+      // Store RRC inactive transition report request if present.
+      if (request.rrc_inactive_transition_report_request.has_value()) {
+        ue_ctxt.rrc_inactive_transition_report_request = request.rrc_inactive_transition_report_request.value();
+      }
+
       if (send_handover_request_ack(ue_ctxt.ue_ids.ue_index, ue_ctxt.ue_ids.ran_ue_id)) {
         logger.debug("ue={}: \"{}\" finished successfully", response.ue_index, name());
       } else {

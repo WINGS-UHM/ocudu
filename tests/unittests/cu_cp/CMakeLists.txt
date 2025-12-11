@@ -31,32 +31,35 @@ target_link_libraries(cu_cp_test_helpers
         ocudu_cu_cp
         ocudu_support
         ocudulog
-        f1ap_test_helpers
-        f1ap_test_doubles
         e1ap_test_helpers
         e1ap_test_doubles
-        rrc_ue_test_helpers
+        f1ap_test_helpers
+        f1ap_test_doubles
         ngap_test_helpers
         ngap_test_doubles
+        nrppa_test_doubles
+        rrc_ue_test_helpers
         f1ap_asn1
         ngap_asn1
+        nrppa_asn1
         e1ap_asn1 ocudu_e2)
 
 
 add_executable(cu_cp_test
                cu_cp_connectivity_test.cpp
-               cu_cp_setup_test.cpp
-               cu_cp_reestablishment_test.cpp
-               cu_cp_initial_context_setup_test.cpp
-               cu_cp_ue_context_release_test.cpp
-               cu_cp_pdu_session_resource_setup_test.cpp
-               cu_cp_pdu_session_resource_release_test.cpp
-               cu_cp_pdu_session_resource_modify_test.cpp
-               cu_cp_paging_test.cpp
                cu_cp_inactivity_notification_test.cpp
+               cu_cp_initial_context_setup_test.cpp
                cu_cp_inter_du_handover_test.cpp
                cu_cp_intra_du_handover_test.cpp
                cu_cp_mocn_test.cpp
+               cu_cp_nrppa_test.cpp
+               cu_cp_paging_test.cpp
+               cu_cp_pdu_session_resource_setup_test.cpp
+               cu_cp_pdu_session_resource_release_test.cpp
+               cu_cp_pdu_session_resource_modify_test.cpp
+               cu_cp_reestablishment_test.cpp
+               cu_cp_setup_test.cpp
+               cu_cp_ue_context_release_test.cpp
                )
 set_target_properties(cu_cp_test PROPERTIES UNITY_BUILD ON)
 target_link_libraries(cu_cp_test

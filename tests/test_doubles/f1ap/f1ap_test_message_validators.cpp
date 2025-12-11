@@ -47,7 +47,7 @@ bool ocudu::test_helpers::is_gnb_du_config_update_valid(const f1ap_message&     
   TRUE_OR_RETURN(upd_req->served_cells_to_modify_list_present == not req.cells_to_mod.empty());
   TRUE_OR_RETURN(upd_req->served_cells_to_modify_list.size() == req.cells_to_mod.size());
   for (unsigned i = 0, e = req.cells_to_mod.size(); i != e; ++i) {
-    auto& asn1cell = upd_req->served_cells_to_modify_list[i]->served_cells_to_modify_item();
+    const auto& asn1cell = upd_req->served_cells_to_modify_list[i]->served_cells_to_modify_item();
     if (req.cells_to_mod[i].du_sys_info.has_value()) {
       TRUE_OR_RETURN(asn1cell.gnb_du_sys_info_present);
       TRUE_OR_RETURN(asn1cell.gnb_du_sys_info.mib_msg == req.cells_to_mod[i].du_sys_info->packed_mib);
@@ -261,7 +261,7 @@ bool ocudu::test_helpers::is_valid_ue_context_modification_response(const f1ap_m
   TRUE_OR_RETURN(mod_req->drbs_to_be_modified_list.size() ==
                  mod_resp->drbs_modified_list.size() + mod_resp->drbs_failed_to_be_modified_list.size());
   for (const auto& drb : mod_resp->drbs_setup_mod_list) {
-    auto drb_req_it = std::find_if(
+    const auto* drb_req_it = std::find_if(
         mod_req->drbs_to_be_setup_mod_list.begin(), mod_req->drbs_to_be_setup_mod_list.end(), [&drb](const auto& e) {
           return drb->drbs_setup_mod_item().drb_id == e->drbs_to_be_setup_mod_item().drb_id;
         });
@@ -394,29 +394,40 @@ bool test_helpers::is_valid_f1ap_positioning_measurement_failure(const f1ap_mess
   return true;
 }
 
-#ifndef OCUDU_HAS_ENTERPRISE
-
 bool test_helpers::is_valid_f1ap_trp_information_request(const f1ap_message& msg)
 {
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().value.type().value == f1ap_elem_procs_o::init_msg_c::types_opts::trp_info_request);
+  TRUE_OR_RETURN(is_packable(msg));
   return true;
 }
 
 bool test_helpers::is_valid_f1ap_positioning_information_request(const f1ap_message& msg)
 {
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().value.type().value ==
+                 f1ap_elem_procs_o::init_msg_c::types_opts::positioning_info_request);
+  TRUE_OR_RETURN(is_packable(msg));
   return true;
 }
 
 bool test_helpers::is_valid_f1ap_positioning_activation_request(const f1ap_message& msg)
 {
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().value.type().value ==
+                 f1ap_elem_procs_o::init_msg_c::types_opts::positioning_activation_request);
+  TRUE_OR_RETURN(is_packable(msg));
   return true;
 }
 
 bool test_helpers::is_valid_f1ap_positioning_measurement_request(const f1ap_message& msg)
 {
+  TRUE_OR_RETURN(msg.pdu.type().value == f1ap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().value.type().value ==
+                 f1ap_elem_procs_o::init_msg_c::types_opts::positioning_meas_request);
+  TRUE_OR_RETURN(is_packable(msg));
   return true;
 }
-
-#endif // OCUDU_HAS_ENTERPRISE
 
 bool test_helpers::is_valid_gnb_cu_configuration_update(const f1ap_message& msg)
 {

@@ -74,11 +74,11 @@ f1ap_message generate_f1_setup_failure(const f1ap_message& f1_setup_request);
 
 /// \brief Generates dummy GNB-DU CONFIGURATION UPDATE ACKNOWLEDGE message based on the request, sent by the CU to the
 /// DU, as per TS 38.473, 8.2.4.2.
-f1ap_message generate_gnb_du_configuration_update_acknowledge(const f1ap_message& gnb_du_config_request);
+f1ap_message generate_gnb_du_configuration_update_acknowledge(const f1ap_message& gnb_du_config_update);
 
 /// \brief Generates dummy GNB-DU CONFIGURATION UPDATE FAILURE message based on the request, sent by the CU to the DU,
 /// as per TS 38.473, 8.2.4.3.
-f1ap_message generate_gnb_du_configuration_update_failure(const f1ap_message& gnb_du_config_request);
+f1ap_message generate_gnb_du_configuration_update_failure(const f1ap_message& gnb_du_config_update);
 
 /// \brief Generates dummy GNB-CU CONFIGURATION UPDATE REQUEST message, sent by the CU to the DU, as per
 /// TS 38.473, 8.2.5.1.
@@ -211,7 +211,7 @@ f1ap_message generate_trp_information_request();
 
 /// \brief Generates dummy F1AP TRP INFORMATION RESPONSE message, sent by the DU to the CU, as per
 /// TS 38.473 section 8.13.8.2.
-f1ap_message generate_trp_information_response(const trp_id_t& trp_id);
+f1ap_message generate_trp_information_response(const std::vector<trp_id_t>& trp_ids);
 
 /// \brief Generates dummy F1AP TRP INFORMATION FAILURE message, sent by the DU to the CU, as per
 /// TS 38.473 section 8.13.8.3.

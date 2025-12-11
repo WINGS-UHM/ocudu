@@ -90,10 +90,13 @@ void ta_management_system::slot_indication(slot_point sl_tx)
     handle_ue_ta_cmds(u);
 
     // Remove UE from the wheel linked list and reset its wheel state.
-    auto& ue_node = ues.at<ue_component::wheel_next_node>(ue_id);
-    ue_id         = ue_node.next;
-    ue_node       = {};
+    wheel_list_node& ue_node = ues.at<ue_component::wheel_next_node>(ue_id);
+    ue_id                    = ue_node.next;
+    ue_node                  = {};
   }
+
+  // Reset wheel slot head.
+  wheel_head = invalid_row_id;
 }
 
 void ta_management_system::handle_ue_ta_cmds(ue_ta_context& u)

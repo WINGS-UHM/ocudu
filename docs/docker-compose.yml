@@ -1,0 +1,27 @@
+#
+# Copyright 2021-2025 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
+services:
+  doxygen:
+    image: ${CI_REGISTRY_IMAGE}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
+    build:
+      context: ../.gitlab/ci/doxygen
+      dockerfile: Dockerfile
+      args:
+        DOXYGEN_VERSION: ${DOXYGEN_VERSION}
+        PLANTUML_VERSION: ${PLANTUML_VERSION}
+    volumes:
+      - ../:/workdir
+    command: >
+      sh -c "
+      rm -Rf build_doxygen &&
+      mkdir build_doxygen &&
+      cd build_doxygen &&
+      cmake -DENABLE_UHD=False -DBUILD_TESTING=False .. &&
+      make -j $$(nproc) doxygen
+      "

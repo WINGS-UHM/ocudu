@@ -32,6 +32,8 @@ pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    u
   }()),
   logger(logger_)
 {
+  (void)logger;
+
   // Save the PUSCH power control configuration.
   reconfigure(ue_cell_cfg);
 

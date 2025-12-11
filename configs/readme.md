@@ -8,20 +8,21 @@ list all available configuration sections, subsection and fields.
 
 ## Usage
 
-The OCUDU gNB can be configured via one or multiple configuration files and/or via 
-the command line. When multiple configuration files are specified, their content gets combined 
-by the gNB application. In case there are repeated parameters across configuration files, the 
-parameter values of the last file are selected. Similarly, the parameters passed via command 
-line overwrite the parameters specified via configuration files. If the value of a parameter is 
-not specified by neither the configuration files nor through the command line, a default value 
+The OCUDU gNB can be configured via one or multiple configuration files and/or via
+the command line. When multiple configuration files are specified, their content gets combined
+by the gNB application. In case there are repeated parameters across configuration files, the
+parameter values of the last file are selected. Similarly, the parameters passed via command
+line overwrite the parameters specified via configuration files. If the value of a parameter is
+not specified by neither the configuration files nor through the command line, a default value
 is selected by the application.
 
-The capability to overlay parameters via multiple configuration files and through the command line 
-is useful to minimize config duplication. For example users can share the same QoS configuration 
-across many experiments in different bands as follows: 
+The capability to overlay parameters via multiple configuration files and through the command line
+is useful to minimize config duplication. For example users can share the same QoS configuration
+across many experiments in different bands as follows:
 
-  sudo ./gnb -c qos.yml -c gnb_ru_ran550_tdd_n78_20mhz.yml
-
+```bash
+sudo ./gnb -c qos.yml -c gnb_ru_ran550_tdd_n78_20mhz.yml
+```
 
 ## Full list of configuration options
 

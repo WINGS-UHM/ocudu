@@ -1,13 +1,16 @@
+# Open5GS Container
+
 This is a all-in-one Docker container for Open5GS. At build, the container will use the specified version of the open5gs repository (default v2.6.6
-). To run the latest tag of the open5gs repository (<https://github.com/open5gs/open5gs/tags>), line 51 and 52 in .Dockerfile
-```
+). To run the latest tag of the open5gs repository ([https://github.com/open5gs/open5gs/tags](https://github.com/open5gs/open5gs/tags)), line 51 and 52 in .Dockerfile
+
+```Dockerfile
 # get latest open5gs tag (must be stored in a file, because docker does not allow to use the return value directly)
 # RUN git ls-remote --tags https://github.com/open5gs/open5gs | sort -t '/' -k 3 -V | awk -F/ '{ print $3 }' | awk '!/\^\{\}/' | tail -n 1 > ./open5gsversion
 ```
+
 must be uncommented.
 
-
-# Container Parameters
+## Container Parameters
 
 In [open5gs.env](open5gs.env) the following parameters can be set:
 
@@ -40,11 +43,11 @@ ue02,001010123456790,00112233445566778899aabbccddef00,opc,63bfa50ee6523365ff14c1
 ue03,001010123456791,00112233445566778899aabbccddef01,opc,63bfa50ee6523365ff14c1f45f88737d,9001,9,10.45.3.2
 ```
 
-# Open5GS Parameters
+## Open5GS Parameters
 
 Open5GS can be setup using [open5gs-5gc.yml](open5gs-5gc.yml).
 
-# Usage
+## Usage
 
 Create a Docker network to assign a specified IP to the Open5GS conainer (here: 10.53.1.2):
 

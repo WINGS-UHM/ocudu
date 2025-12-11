@@ -100,7 +100,7 @@ remote_control:
 
 ### Customizations
 
-- Default docker compose uses `configs/gnb_rf_b200_tdd_n78_20mhz.yml` config file. You can change it by setting the variable `${GNB_CONFIG_PATH}` in the shell, in the `docker compose up` command line or using the existing env-file `.env`. More info about how to do it in docker documentation here: <https://docs.docker.com/compose/environment-variables/set-environment-variables/>
+- Default docker compose uses `configs/gnb_rf_b200_tdd_n78_20mhz.yml` config file. You can change it by setting the variable `${GNB_CONFIG_PATH}` in the shell, in the `docker compose up` command line or using the existing env-file `.env`. More info about how to do it in docker documentation here: [https://docs.docker.com/compose/environment-variables/set-environment-variables/](https://docs.docker.com/compose/environment-variables/set-environment-variables/)
 
 F.e.:
 
@@ -124,7 +124,7 @@ networks:
     external: true
 ```
 
-More info here: <https://docs.docker.com/compose/networking/>
+More info here: [https://docs.docker.com/compose/networking/](https://docs.docker.com/compose/networking/)
 
 ### Open5GS Container Parameters
 
@@ -144,7 +144,7 @@ The following parameters can be set:
 - UE_IP_BASE: Defines the IP base used for connected UEs (here: 10.45.0).
 - DEBUG (default: false): This can be set to true to run Open5GS in debug mode.
 
-For more info, please check it's own [README.md](open5gs/README.md).
+For more info, please check its own [README.md](open5gs/README.md).
 
 ### Open5GS Container Applications
 
@@ -177,7 +177,7 @@ Change the environment variables define in `.env` that are used to setup and dep
 └── ...
 ```
 
-You can access grafana in <http://localhost:3300>. By default, you'll be in view mode without needing to log in. If you want to modify anything, you need to log in using following credentials:
+You can access grafana in [http://localhost:3300](http://localhost:3300). By default, you'll be in view mode without needing to log in. If you want to modify anything, you need to log in using following credentials:
 
 - username: `admin`
 - password: `admin`

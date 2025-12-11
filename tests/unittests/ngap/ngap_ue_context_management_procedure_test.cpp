@@ -523,3 +523,46 @@ TEST_F(ngap_ue_context_management_procedure_test,
   ASSERT_TRUE(t.get());
   ASSERT_FALSE(was_rrc_inactive_transition_report_sent());
 }
+
+TEST_F(ngap_ue_context_management_procedure_test,
+       when_rrc_inactive_transition_report_transmission_is_requested_then_report_is_sent)
+{
+  // Test preamble.
+  ue_index_t ue_index = this->start_procedure();
+
+  auto& ue = test_ues.at(ue_index);
+
+  // Inject Initial Context Setup Request with RRC Inactive Transition Report Request.
+  ngap_message init_context_setup_request =
+      generate_valid_initial_context_setup_request_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
+  init_context_setup_request.pdu.init_msg()
+      .value.init_context_setup_request()
+      ->rrc_inactive_transition_report_request_present = true;
+  init_context_setup_request.pdu.init_msg().value.init_context_setup_request()->rrc_inactive_transition_report_request =
+      asn1::ngap::rrc_inactive_transition_report_request_e::options::subsequent_state_transition_report;
+  ngap->handle_message(init_context_setup_request);
+
+  // Check that AMF notifier was called with right type.
+  ASSERT_TRUE(was_initial_context_setup_response_sent());
+
+  ASSERT_TRUE(was_ue_added());
+
+  // Trigger RRC Inactive Transition Report transmission.
+  ngap_rrc_inactive_transition_report report;
+  report.ue_index                          = ue_index;
+  report.rrc_state                         = ngap_rrc_inactive_transition_report::ngap_rrc_state::inactive;
+  report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
+  report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+  report.user_location_info.tai.plmn_id    = plmn_identity::test_value();
+  report.user_location_info.tai.tac        = 7;
+
+  async_task<bool>         t = ngap->handle_rrc_inactive_transition_report_required(report);
+  lazy_task_launcher<bool> t_launcher(t);
+
+  // Status: should have succeeded already.
+  ASSERT_TRUE(t.ready());
+
+  // Procedure should have succeeded.
+  ASSERT_TRUE(t.get());
+  ASSERT_TRUE(was_rrc_inactive_transition_report_sent());
+}

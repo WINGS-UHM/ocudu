@@ -10,7 +10,8 @@ add_executable(sched_ue_context_test
         ue_drx_controller_test.cpp
         ue_repository_test.cpp
         logical_channel_system_test.cpp
-        ta_management_system_test.cpp)
+        ta_management_system_test.cpp
+        pucch_power_control_test.cpp)
 target_link_libraries(sched_ue_context_test
         sched_cell
         sched_support

@@ -17,11 +17,6 @@ target_link_libraries(rohc_factory_test ocudu_rohc ocudu_support ocudulog gtest 
 gtest_discover_tests(rohc_factory_test)
 
 if(ROHC_FOUND)
-  add_executable(rohc_lib_engine_test rohc_lib_engine_test.cpp)
-  target_include_directories(rohc_lib_engine_test PRIVATE ${CMAKE_SOURCE_DIR})
-  target_link_libraries(rohc_lib_engine_test ocudu_rohc ocudu_support ocudulog gtest gtest_main)
-  gtest_discover_tests(rohc_lib_engine_test)
-
   add_executable(rohc_lib_compressor_decompressor_test rohc_lib_compressor_decompressor_test.cpp)
   target_include_directories(rohc_lib_compressor_decompressor_test PRIVATE ${CMAKE_SOURCE_DIR})
   target_link_libraries(rohc_lib_compressor_decompressor_test ocudu_rohc ocudu_support ocudulog gtest gtest_main)

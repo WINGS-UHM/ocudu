@@ -7,7 +7,8 @@
 #
 
 set(SOURCES
-  rohc_lib_engine.cpp
+  rohc_lib_compressor.cpp
+  rohc_lib_decompressor.cpp
 )
 
 add_library(ocudu_rohc_lib STATIC ${SOURCES})

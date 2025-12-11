@@ -14,19 +14,6 @@
 
 namespace ocudu::rohc {
 
-class rohc_engine
-{
-public:
-  virtual ~rohc_engine() = default;
-};
-
-class rohc_compressor
-{
-public:
-  virtual ~rohc_compressor()                       = default;
-  virtual byte_buffer compress(byte_buffer packet) = 0;
-};
-
 struct rohc_decromp_result {
   /// The decompressed packet. Empty in case of feedback-only or error.
   byte_buffer decomp_packet;

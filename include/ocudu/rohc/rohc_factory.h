@@ -10,11 +10,14 @@
 
 #pragma once
 
-#include "ocudu/rohc/rohc_engine.h"
+#include "ocudu/rohc/rohc_compressor.h"
+#include "ocudu/rohc/rohc_config.h"
+#include "ocudu/rohc/rohc_decompressor.h"
 #include <memory>
 
 namespace ocudu::rohc {
 
-std::unique_ptr<rohc_engine> create_rohc_engine();
+std::unique_ptr<rohc_compressor>   create_rohc_compressor(const rohc_config& cfg);
+std::unique_ptr<rohc_decompressor> create_rohc_decompressor(const rohc_config& cfg);
 
 } // namespace ocudu::rohc

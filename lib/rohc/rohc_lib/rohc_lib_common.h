@@ -10,59 +10,12 @@
 
 #pragma once
 
-#include "ocudu/ocudulog/logger.h"
 #include "ocudu/rohc/rohc_config.h"
-#include "ocudu/rohc/rohc_engine.h"
 #include <rohc/rohc.h>
 #include <rohc/rohc_comp.h>
 #include <rohc/rohc_decomp.h>
 
 namespace ocudu::rohc {
-
-class rohc_lib_engine : public rohc_engine
-{
-public:
-  rohc_lib_engine();
-  ~rohc_lib_engine() = default;
-
-private:
-  ocudulog::basic_logger& logger;
-};
-
-class rohc_lib_compressor : public rohc_compressor
-{
-public:
-  rohc_lib_compressor(rohc_config cfg_);
-  ~rohc_lib_compressor();
-  virtual byte_buffer compress(byte_buffer packet) override;
-
-private:
-  ocudulog::basic_logger& logger;
-
-  rohc_config cfg;
-  rohc_comp*  compressor = nullptr;
-
-  std::vector<uint8_t> input_packet_buf;
-  std::vector<uint8_t> output_packet_buf;
-};
-
-class rohc_lib_decompressor : public rohc_decompressor
-{
-public:
-  rohc_lib_decompressor(rohc_config cfg);
-  ~rohc_lib_decompressor();
-  virtual rohc_decromp_result decompress(byte_buffer packet) override;
-
-private:
-  ocudulog::basic_logger& logger;
-
-  rohc_config  cfg;
-  rohc_decomp* decompressor = nullptr;
-
-  std::vector<uint8_t> input_packet_buf;
-  std::vector<uint8_t> output_packet_buf;
-  std::vector<uint8_t> output_feedback_buf;
-};
 
 static constexpr rohc_cid_type_t rohc_lib_get_cid_type(uint16_t max_cid)
 {

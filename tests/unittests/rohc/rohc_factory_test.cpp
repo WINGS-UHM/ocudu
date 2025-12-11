@@ -42,13 +42,23 @@ protected:
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 };
 
-TEST_F(rohc_factory_test, create_rohc_engine_when_supported)
+TEST_F(rohc_factory_test, create_rohc_compressor_when_supported)
 {
-  std::unique_ptr<rohc_engine> engine = create_rohc_engine();
+  std::unique_ptr<rohc_compressor> comp = create_rohc_compressor(rohc_config{});
   if (rohc_supported()) {
-    EXPECT_NE(engine, nullptr);
+    EXPECT_NE(comp, nullptr);
   } else {
-    EXPECT_EQ(engine, nullptr);
+    EXPECT_EQ(comp, nullptr);
+  }
+}
+
+TEST_F(rohc_factory_test, create_rohc_decompressor_when_supported)
+{
+  std::unique_ptr<rohc_decompressor> decomp = create_rohc_decompressor(rohc_config{});
+  if (rohc_supported()) {
+    EXPECT_NE(decomp, nullptr);
+  } else {
+    EXPECT_EQ(decomp, nullptr);
   }
 }
 

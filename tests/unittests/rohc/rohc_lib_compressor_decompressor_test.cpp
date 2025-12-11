@@ -8,7 +8,8 @@
  *
  */
 
-#include "lib/rohc/rohc_lib/rohc_lib_engine.h"
+#include "lib/rohc/rohc_lib/rohc_lib_compressor.h"
+#include "lib/rohc/rohc_lib/rohc_lib_decompressor.h"
 #include "rohc_test_pdus.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/test_utils.h"

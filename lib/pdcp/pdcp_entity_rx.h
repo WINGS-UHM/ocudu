@@ -170,6 +170,7 @@ public:
   void          set_state(pdcp_rx_state st_) { st = st_; }
   pdcp_rx_state get_state() const { return st; }
   bool          is_reordering_timer_running() const { return reordering_timer.is_running(); }
+  uint32_t      nof_pdus_in_window() const { return rx_window.size(); }
 
 private:
   pdcp_bearer_logger   logger;

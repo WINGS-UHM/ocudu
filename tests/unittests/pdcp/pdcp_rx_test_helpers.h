@@ -17,11 +17,21 @@
 #include "ocudu/pdcp/pdcp_entity.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/support/executors/task_worker_pool.h"
+#include "ocudu/support/test_utils.h"
 #include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 #include <queue>
 
 namespace ocudu {
+
+/// Helper class to verify the state of the PDCP entity when the order of the PDU's crypto processing
+/// is non-deterministic.
+inline void assert_pdcp_state(const pdcp_rx_state& st, const pdcp_rx_state& exp_st)
+{
+  FLUSH_AND_ASSERT_EQ(st.rx_next, exp_st.rx_next);
+  FLUSH_AND_ASSERT_EQ(st.rx_reord, exp_st.rx_reord);
+  FLUSH_AND_ASSERT_EQ(st.rx_deliv, exp_st.rx_deliv);
+}
 
 class mock_pdcp_metrics_notifier : public pdcp_metrics_notifier
 {
@@ -42,6 +52,7 @@ public:
   uint32_t                      integrity_fail_counter = 0;
   uint32_t                      nof_max_count_reached  = 0;
   uint32_t                      nof_protocol_failure   = 0;
+  uint32_t                      nof_resume_required    = 0;
   std::queue<byte_buffer_chain> status_report_queue;
 
   /// PDCP TX status handler

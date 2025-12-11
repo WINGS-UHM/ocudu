@@ -49,6 +49,7 @@ add_executable(cu_cp_test
                cu_cp_connectivity_test.cpp
                cu_cp_inactivity_notification_test.cpp
                cu_cp_initial_context_setup_test.cpp
+               cu_cp_inter_cu_handover_test.cpp
                cu_cp_inter_du_handover_test.cpp
                cu_cp_intra_du_handover_test.cpp
                cu_cp_mocn_test.cpp

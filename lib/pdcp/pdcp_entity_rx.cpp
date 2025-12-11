@@ -162,7 +162,8 @@ bool pdcp_entity_rx::suspend()
 
   reordering_timer.stop();
   deliver_all_sdus();
-  st = {0, 0, 0};
+  st        = {0, 0, 0};
+  suspended = true;
   return true;
 }
 
@@ -193,6 +194,12 @@ void pdcp_entity_rx::handle_pdu(byte_buffer_chain buf)
   if (stopped) {
     logger.log_info("Dropping PDU. Entity is stopped");
     return;
+  }
+
+  if (suspended && not resume_requested) {
+    logger.log_debug("Activity detected while suspended. Requesting resume");
+    resume_requested = true;
+    upper_cn.on_resume_required();
   }
 
   if (buffering) {

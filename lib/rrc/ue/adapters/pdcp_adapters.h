@@ -45,6 +45,11 @@ public:
     cause = cause_protocol_t::unspecified;
   }
 
+  void on_resume_required() override
+  {
+    ocudulog::fetch_basic_logger("PDCP").error("Unsupported request for SRB resume from PDCP Rx");
+  }
+
   std::variant<std::vector<byte_buffer>, ngap_cause_t> pop_result()
   {
     if (cause.has_value()) {
@@ -105,7 +110,7 @@ public:
 
   void on_resume_required() override
   {
-    ocudulog::fetch_basic_logger("PDCP").error("Unsupported request for SRB resume");
+    ocudulog::fetch_basic_logger("PDCP").error("Unsupported request for SRB resume from PDCP Tx");
   }
 
   ngap_cause_t get_failure_cause() { return cause; }

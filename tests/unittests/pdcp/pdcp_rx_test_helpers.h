@@ -69,6 +69,7 @@ public:
   void on_integrity_failure() override { integrity_fail_counter++; }
   void on_protocol_failure() override { nof_protocol_failure++; }
   void on_max_count_reached() override { nof_max_count_reached++; }
+  void on_resume_required() override { nof_resume_required++; }
 };
 
 /// Fixture class for PDCP tests

@@ -72,6 +72,11 @@ public:
     cu_up_mngr->handle_pdcp_max_count_reached(ue_index);
   }
 
+  void on_resume_required() override
+  {
+    // TODO notify CU-UP manager of resume required.
+  }
+
   cu_up_manager_pdcp_interface* cu_up_mngr = nullptr;
   ue_index_t                    ue_index   = INVALID_UE_INDEX;
 };

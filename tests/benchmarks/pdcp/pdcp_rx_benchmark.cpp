@@ -65,6 +65,7 @@ public:
   void on_integrity_failure() override { num_integrity_failures++; }
   void on_protocol_failure() override { num_protocol_failures++; }
   void on_max_count_reached() override { num_max_count_reached++; }
+  void on_resume_required() override {}
 };
 
 struct bench_params {

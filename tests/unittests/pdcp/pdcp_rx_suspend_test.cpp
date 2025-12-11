@@ -82,7 +82,10 @@ TEST_P(pdcp_rx_suspend_test, when_suspend_called_state_is_reset)
   FLUSH_AND_ASSERT_EQ(1, pdcp_rx->nof_pdus_in_window());
   pdcp_rx->begin_buffering();
   pdcp_rx->suspend();
+
+  // The window should be clear and out-of-order PDUs delivered.
   FLUSH_AND_ASSERT_EQ(0, pdcp_rx->nof_pdus_in_window());
+  FLUSH_AND_ASSERT_EQ(1, test_frame->sdu_counter);
 
   // Check the state is reset.
   pdcp_rx_state exp_st{0, 0, 0};
@@ -107,7 +110,13 @@ TEST_P(pdcp_rx_suspend_test, when_suspend_called_state_is_reset)
   pdcp_rx->resume();
   pdcp_rx->end_buffering();
 
-  FLUSH_AND_ASSERT_EQ(2, pdcp_rx->nof_pdus_in_window());
+  wait_pending_crypto();
+  worker.run_pending_tasks();
+
+  // The window should be clear and in-of-order PDUs delivered.
+  // Resume required should only be requested once.
+  FLUSH_AND_ASSERT_EQ(0, pdcp_rx->nof_pdus_in_window());
+  FLUSH_AND_ASSERT_EQ(3, test_frame->sdu_counter);
   FLUSH_AND_ASSERT_EQ(1, test_frame->nof_resume_required);
 
   EXPECT_EQ(test_spy.get_warning_counter(), 0);

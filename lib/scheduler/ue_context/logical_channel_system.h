@@ -51,10 +51,14 @@ public:
   void rem_lcg(du_ue_index_t ue_index, lcg_id_t lcgid);
 
   /// Associate RAN Slice ID with the given LC.
-  void register_lc_slice(soa::row_id rid, ran_slice_id_t slice_id);
+  /// \param[in] lc_rid Row ID of the logical channel.
+  /// \param[in] slice_id RAN Slice ID to associate.
+  void register_lc_slice(soa::row_id lc_rid, ran_slice_id_t slice_id);
 
   /// Associate RAN Slice ID with the given LCG.
-  void register_lcg_slice(soa::row_id rid, ran_slice_id_t slice_id);
+  /// \param[in] lcg_rid Row ID of the logical channel group.
+  /// \param[in] slice_id RAN Slice ID to associate.
+  void register_lcg_slice(soa::row_id lcg_rid, ran_slice_id_t slice_id);
 
   /// Deregister RAN Slice association from the given LC.
   void deregister_lc_slice(soa::row_id lc_rid);
@@ -153,29 +157,29 @@ public:
 private:
   /// QoS context relative to a single logical channel of a UE, which has QoS enabled.
   struct lc_qos_context {
-    /// Current slot DL sched bytes.
+    /// Sum of scheduled DL bytes for this LC and for the current slot.
     unsigned dl_last_sched_bytes = 0;
     /// Over-the-air DL Bytes-per-slot average for this logical channel.
     exp_average_fast_start<float> dl_avg_bytes_per_slot;
   };
   /// QoS context relative to a single logical channel group (LCG) of a UE, which has QoS enabled.
   struct lcg_qos_context {
-    /// Last slot UL sched bytes.
+    /// Sum of scheduled UL bytes for this LCG and for the current slot.
     unsigned ul_last_sched_bytes = 0;
-    /// Sched bytes since last BSR.
+    /// Scheduled UL bytes for this LCG since the last received BSR.
     unsigned sched_bytes_accum = 0;
     /// Over-the-air UL Bytes-per-slot average for this logical channel.
     exp_average_fast_start<float> ul_avg_bytes_per_slot;
   };
 
   /// Provides the mapping between (UE, LCID) and row IDs.
-  size_t get_index(du_ue_index_t ue_index, lcid_t lcid) const
+  static size_t get_index(du_ue_index_t ue_index, lcid_t lcid)
   {
     return static_cast<size_t>(ue_index) * MAX_NOF_RB_LCIDS + static_cast<size_t>(lcid);
   }
 
   /// Provides the mapping between (UE, LCG-ID) and row IDs.
-  size_t get_index(du_ue_index_t ue_index, lcg_id_t lcgid) const
+  static size_t get_index(du_ue_index_t ue_index, lcg_id_t lcgid)
   {
     return static_cast<size_t>(ue_index) * MAX_NOF_LCGS + static_cast<size_t>(lcgid);
   }
@@ -664,15 +668,15 @@ public:
   /// \brief Checks whether a logical channel has pending data.
   [[nodiscard]] bool has_pending_bytes(lcid_t lcid) const
   {
-    auto it = parent->lc_mapper.find_row_id(ue_index, lcid);
-    return it.has_value() and parent->lc_mapper.dl_buf_st(*it).value() > 0;
+    const auto lc_rid = parent->lc_mapper.find_row_id(ue_index, lcid);
+    return lc_rid.has_value() and parent->lc_mapper.dl_buf_st(*lc_rid).value() > 0;
   }
 
   /// \brief Checks whether a logical channel has pending data.
   [[nodiscard]] bool has_pending_bytes(lcg_id_t lcgid) const
   {
-    auto it = parent->lc_mapper.find_row_id(ue_index, lcgid);
-    return it.has_value() and parent->lc_mapper.ul_buf_st(*it).value() > 0;
+    const auto lcg_rid = parent->lc_mapper.find_row_id(ue_index, lcgid);
+    return lcg_rid.has_value() and parent->lc_mapper.ul_buf_st(*lcg_rid).value() > 0;
   }
 
   /// \brief Checks whether a ConRes CE is pending for transmission.

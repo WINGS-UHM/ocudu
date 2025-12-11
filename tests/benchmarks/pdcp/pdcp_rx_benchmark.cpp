@@ -29,12 +29,12 @@ namespace {
 class pdcp_tx_gen_frame final : public pdcp_tx_lower_notifier, public pdcp_tx_upper_control_notifier
 {
 public:
-  /// PDCP TX upper layer control notifier
+  /// PDCP TX upper layer control notifier.
   void on_max_count_reached() override {}
   void on_protocol_failure() override {}
   void on_resume_required() override {}
 
-  /// PDCP TX lower layer data notifier
+  /// PDCP TX lower layer data notifier.
   void on_new_pdu(byte_buffer pdu, bool is_retx) final
   {
     pdu_list.push_back(byte_buffer_chain::create(std::move(pdu)).value());

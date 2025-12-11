@@ -223,7 +223,7 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
   }
 
   if (suspended && not resume_requested) {
-    logger.log_debug("Activity detected while suspended. Requesting resume.");
+    logger.log_debug("Activity detected while suspended. Requesting resume");
     resume_requested = true;
     upper_cn.on_resume_required();
   }

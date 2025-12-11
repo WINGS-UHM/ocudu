@@ -141,7 +141,7 @@ public:
   /// The PDCP entity is assumed to be buffering when this is called.
   void resume();
 
-  /// \brief Get the TX count for status transfer
+  /// \brief Get the TX count for status transfer.
   pdcp_count_info get_count() const override
   {
     pdcp_count_info count_info;

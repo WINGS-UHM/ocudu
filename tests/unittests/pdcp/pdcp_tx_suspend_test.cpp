@@ -21,7 +21,7 @@ TEST_P(pdcp_tx_suspend_test, when_suspend_called_state_is_reset)
 {
   init(GetParam(), pdcp_rb_type::drb);
 
-  // Set state of PDCP entiy
+  // Set state of PDCP entity.
   pdcp_tx_state st = {0, 0, 0, 0, 0};
   pdcp_tx->set_state(st);
   pdcp_tx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::off);
@@ -40,7 +40,7 @@ TEST_P(pdcp_tx_suspend_test, when_suspend_called_state_is_reset)
   pdcp_tx->suspend();
   FLUSH_AND_ASSERT_EQ(0, pdcp_tx->nof_pdus_in_window());
 
-  // Check the state is reset
+  // Check the state is reset.
   pdcp_tx_state exp_st{0, 0, 0, 0, 0};
   assert_pdcp_state_with_reordering(pdcp_tx->get_state(), exp_st);
 

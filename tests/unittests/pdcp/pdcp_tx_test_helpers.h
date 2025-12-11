@@ -54,7 +54,7 @@ public:
   uint32_t                nof_resume_required   = 0;
   std::queue<uint32_t>    sdu_discard_queue;
 
-  // PDCP RX status provider
+  // PDCP RX status provider.
   byte_buffer compile_status_report() final
   {
     // Build status report dummy to be picked by the TX entity
@@ -80,7 +80,7 @@ public:
   void on_protocol_failure() final { nof_protocol_failure++; }
   void on_resume_required() final { nof_resume_required++; }
 
-  // PDCP TX lower layer data notifier
+  // PDCP TX lower layer data notifier.
   void on_new_pdu(byte_buffer pdu, bool is_retx) final
   {
     if (is_retx) {

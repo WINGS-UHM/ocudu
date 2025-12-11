@@ -30,12 +30,12 @@ public:
   uint32_t num_protocol_failures = 0;
   uint32_t num_max_count_reached = 0;
 
-  /// PDCP TX upper layer control notifier
+  /// PDCP TX upper layer control notifier.
   void on_max_count_reached() override { num_max_count_reached++; }
   void on_protocol_failure() override { num_protocol_failures++; }
   void on_resume_required() override {}
 
-  /// PDCP TX lower layer data notifier
+  /// PDCP TX lower layer data notifier.
   void on_new_pdu(byte_buffer pdu, bool is_retx) override { num_pdus++; }
   void on_discard_pdu(uint32_t pdcp_sn) override { num_discards++; }
 };

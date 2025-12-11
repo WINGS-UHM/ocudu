@@ -35,12 +35,12 @@ public:
   std::queue<byte_buffer> retx_queue;
   uint32_t                pdu_counter = 0;
 
-  /// PDCP TX upper layer control notifier
+  /// PDCP TX upper layer control notifier.
   void on_max_count_reached() override {}
   void on_protocol_failure() override {}
   void on_resume_required() override {}
 
-  /// PDCP TX lower layer data notifier
+  /// PDCP TX lower layer data notifier.
   void on_new_pdu(byte_buffer pdu, bool is_retx) override
   {
     if (is_retx) {

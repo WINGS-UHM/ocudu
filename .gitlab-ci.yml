@@ -405,7 +405,7 @@ pages:
       make -j $(nproc) doxygen
       cd ..
     - mkdir public/doxygen
-    - rsync -a build/docs/html/ public/doxygen/
+    - rsync -a build/docs/doxygen/html/ public/doxygen/
     - |
       # Remove bigger file if size is bigger than 900MB
       while [ $(du -s public | awk '{print $1}') -gt 921600 ]; do
@@ -415,12 +415,6 @@ pages:
         rm -f "$file_to_remove"
       done
   after_script:
-    - |
-      if [ $CI_JOB_STATUS = "failed" ]; then
-        mkdir -p public
-        mv docs/fail.html public/index.html
-      fi
-    - mv docs/*.png public/
     - sed -i 's/commit_hash/'$CI_COMMIT_SHA'/' public/index.html
   needs:
     - job: unit coverage dev

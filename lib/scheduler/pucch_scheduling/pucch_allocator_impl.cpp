@@ -302,18 +302,21 @@ std::optional<unsigned> pucch_allocator_impl::alloc_ded_harq_ack(cell_resource_a
       return std::nullopt;
     }
 
-    const pucch_uci_bits current_uci_bits = existing_ue_grants->pucch_grants.get_uci_bits();
-    pucch_uci_bits       new_bits         = current_uci_bits;
+    const pucch_uci_bits current_bits = existing_ue_grants->pucch_grants.get_uci_bits();
+    pucch_uci_bits       new_bits     = current_bits;
     ++new_bits.harq_ack_nof_bits;
 
-    // As per TS 38.213, Section 9.2.1, we can infer that, when the HARQ-ACK bit count changes from 1 to 2, or when it
-    // changes from 3 to more than 3, the PUCCH resource for the HARQ-ACK is the same as the previous one; this means
-    // that the multiplexing would yield the same result as in the last UE's allocation; in this case, we skip the
-    // multiplexing. Refer to paragraph "If the UE transmits O_UCI UCI information bits, that include HARQ-ACK
-    // information bits, the UE determines a PUCCH resource set to be ...".
-    const bool is_multiplexing_needed =
-        not((current_uci_bits.harq_ack_nof_bits == 1U and new_bits.harq_ack_nof_bits == 2U) or
-            (current_uci_bits.harq_ack_nof_bits == 3U and new_bits.harq_ack_nof_bits > 3U));
+    // From TS 38.213, Section 9.2.1:
+    // > "If the UE transmits O_UCI UCI information bits, that include HARQ-ACK information bits, the UE determines a
+    //    PUCCH resource set to be ..."
+    // We can infer that we only need to run the multiplexing algorithm in the following cases:
+    // - the first allocated HARQ-ACK bit (to multiplex the new HARQ-ACK resource with the existing grants)
+    // - the third allocated HARQ-ACK bit (to promote from Resource Set ID 0 to Resource Set ID 1)
+    // In all other cases, the multiplexing algorithm would yield the same result as in the previous allocation of this
+    // UE, so we skip it.
+    // \remark This function is always called to allocate an additional HARQ-ACK bit at a time, therefore we don't need
+    // to check current_bits.harq_ack_nof_bits.
+    const bool is_multiplexing_needed = new_bits.harq_ack_nof_bits == 1U or new_bits.harq_ack_nof_bits == 3U;
 
     std::optional<unsigned> pucch_res_ind =
         is_multiplexing_needed
@@ -932,13 +935,6 @@ pucch_allocator_impl::multiplex_and_allocate_pucch(cell_slot_resource_allocator&
     return std::nullopt;
   }
 
-  if (grants_to_tx.harq_resource.has_value()) {
-    if (grants_to_tx.harq_resource->bits.get_total_bits() >
-        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(grants_to_tx.harq_resource->format)) {
-      alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
-      return std::nullopt;
-    }
-  }
   // Reserve the resources needed for the multiplexed grants.
   if (grants_to_tx.sr_resource.has_value()) {
     const auto* sr_res = guard.reserve_sr_resource();
@@ -948,11 +944,6 @@ pucch_allocator_impl::multiplex_and_allocate_pucch(cell_slot_resource_allocator&
     }
   }
   if (grants_to_tx.csi_resource.has_value()) {
-    if (grants_to_tx.csi_resource->bits.get_total_bits() >
-        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(grants_to_tx.csi_resource->format)) {
-      alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
-      return std::nullopt;
-    }
     const auto* csi_res = guard.reserve_csi_resource();
     if (csi_res == nullptr) {
       alloc_ctx.log_skipped_alloc(logger.error, "CSI resource not available after multiplexing");

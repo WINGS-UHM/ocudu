@@ -48,7 +48,7 @@ public:
     pucch_expected_sr = test_helpers::make_ded_pucch_info(
         t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[3], {.sr_bits = sr_nof_bits::one}, max_code_rate);
 
-    // Set the expected HARQ F1 grant to the first resource in Resource Set ID 0.
+    // Set the expected Resource Set ID 0 HARQ-ACK grant to the first resource in Resource Set ID 0.
     pucch_expected_res_set_0 = test_helpers::make_ded_pucch_info(
         t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[0], {.harq_ack_nof_bits = 1U}, max_code_rate);
 
@@ -58,7 +58,7 @@ public:
     pucch_expected_res_set_0_with_common_and_sr = test_helpers::make_ded_pucch_info(
         t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[2], {.harq_ack_nof_bits = 1U}, max_code_rate);
 
-    // Set the expected Resource Set ID 1 HARQ grant to the first resource in Resource Set ID 1.
+    // Set the expected Resource Set ID 1 HARQ-ACK grant to the first resource in Resource Set ID 1.
     pucch_expected_res_set_1 = test_helpers::make_ded_pucch_info(
         t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[5], {.harq_ack_nof_bits = 3U}, max_code_rate);
 
@@ -175,7 +175,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_csi_opportunity_fails_when_existing
   ASSERT_EQ(1U, default_slot_grid.result.ul.pucchs.size());
 }
 
-///////  Test HARQ-ACK allocation on ded. resources  - Format 1   ///////
+///////  Test HARQ-ACK allocation on ded. resources  - Resource Set ID 0   ///////
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_succeeds)
 {
@@ -307,7 +307,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_with_existing_sr_succe
   ASSERT_FALSE(pri.has_value());
 }
 
-///////  Test HARQ-ACK allocation on ded. resources - Format 1  - Multi UEs ///////
+///////  Test HARQ-ACK allocation on ded. resources - Resource Set ID 0  - Multi UEs ///////
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_succeeds_until_no_free_res_set_0_resources)
 {
@@ -328,7 +328,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_succeeds_until_no_free
   ASSERT_EQ(res_set_0_size, default_slot_grid.result.ul.pucchs.size());
 }
 
-///////  Test HARQ-ACK allocation on ded. resources - Format 2   ///////
+///////  Test HARQ-ACK allocation on ded. resources - Resource Set ID 1   ///////
 
 TEST_P(pucch_alloc_ded_resources_test,
        alloc_ded_harq_ack_res_set_0_with_existing_csi_succeeds_and_grants_are_multiplexed_on_res_set_1_resource)
@@ -659,7 +659,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_fails_when_existing_co
   ASSERT_FALSE(pri.has_value());
 }
 
-///////  Test HARQ-ACK allocation on ded. resources - Format 2  - Multi UEs ///////
+///////  Test HARQ-ACK allocation on ded. resources - Resource Set ID 1  - Multi UEs ///////
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_succeeds_until_no_free_res_set_1_resources)
 {
@@ -708,7 +708,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_res_set_1_over_csi_fro
 TEST_P(pucch_alloc_ded_resources_test,
        alloc_ded_harq_ack_res_set_1_with_existing_sr_succeeds_until_no_free_res_set_1_resources)
 {
-  // Allocate an HARQ-ACK grant with Format 2 for 6 UEs.
+  // Allocate an HARQ-ACK grant from Resource Set ID 1 for 6 UEs.
   const unsigned res_set_1_size = t_bench.params.pucch_ded_params.res_set_1_size.value();
   for (unsigned i = 0; i < res_set_1_size - 1; ++i) {
     t_bench.add_ue();
@@ -850,15 +850,16 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   // grants are removed from the scheduler output.
 
   // Allocate:
-  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 1 (Format 1).
-  // - 1 PUCCH common with 1 HARQ-ACK bit to UE 0 (Format 1).
-  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 2 (Format 1).
+  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 1.
+  // - 1 PUCCH common with 1 HARQ-ACK bit to UE 0.
+  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 2.
   // The scheduler output should have 3 PUCCH resources.
-  // - 1 PUCCH ded F1    - RNTI = UE1 - HARQ-BITS = 1.
-  // - 1 PUCCH common F1 - RNTI = UE0 - HARQ-BITS = 1.
-  // - 1 PUCCH ded F1    - RNTI = UE2 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 0 - RNTI = UE1 - HARQ-BITS = 1.
+  // - 1 PUCCH common HARQ-ACK   - RNTI = UE0 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 0 - RNTI = UE2 - HARQ-BITS = 1.
   auto pri_ue1 = t_bench.pucch_alloc.alloc_ded_harq_ack(
       t_bench.res_grid, t_bench.get_ue(ue1_idx).crnti, t_bench.get_ue(ue1_idx).get_pcell().cfg(), t_bench.k0, k1);
+
   ASSERT_TRUE(pri_ue1.has_value());
   ASSERT_EQ(0U, pri_ue1.value());
   ASSERT_EQ(1U, slot_grid.result.ul.pucchs.size());
@@ -894,11 +895,11 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   }));
 
   // Advance by 1 slot. Allocate:
-  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 1 (Format 1).
+  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 1 (Resource Set ID 0).
   // The scheduler output should have 3 PUCCH resources.
-  // - 1 PUCCH ded F1    - RNTI = UE1 - HARQ-BITS = 2.
-  // - 1 PUCCH common F1 - RNTI = UE0 - HARQ-BITS = 1.
-  // - 1 PUCCH ded F1    - RNTI = UE2 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 0 - RNTI = UE1 - HARQ-BITS = 2.
+  // - 1 PUCCH common HARQ-ACK   - RNTI = UE0 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 0 - RNTI = UE2 - HARQ-BITS = 1.
   t_bench.slot_indication(++t_bench.sl_tx);
   // t_bench.sl_tx = 1; k0 = 0; k1 = 4  =>  t_bench.sl_tx + k0 + k1 = 5.
   --k1;
@@ -921,12 +922,12 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   }));
 
   // Advance by 1 slot. Allocate:
-  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 1 (Convert to Format 2).
+  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 1 (Convert to Resource Set ID 1).
   // NOTE: This change the other in which the PUCCH grants are stored in the scheduler output.
   // The scheduler output should have 3 PUCCH resources.
-  // - 1 PUCCH common F1 - RNTI = UE0 - HARQ-BITS = 1.
-  // - 1 PUCCH ded F1    - RNTI = UE2 - HARQ-BITS = 1.
-  // - 1 PUCCH ded F2    - RNTI = UE1 - HARQ-BITS = 3.
+  // - 1 PUCCH common HARQ-ACK   - RNTI = UE0 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 0 - RNTI = UE2 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 1 - RNTI = UE1 - HARQ-BITS = 3.
   t_bench.slot_indication(++t_bench.sl_tx);
   --k1;
   ASSERT_EQ(pucch_slot, slot_grid.slot);
@@ -951,12 +952,12 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   }));
 
   // Advance by 1 slot. Allocate:
-  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 2 (Multiplex on existing Format 1).
+  // - 1 PUCCH ded with 1 HARQ-ACK bit to UE 2 (Multiplex on existing Resource Set ID 0).
   // NOTE: This change the other in which the PUCCH grants are stored in the scheduler output.
   // The scheduler output should have 3 PUCCH resources.
-  // - 1 PUCCH common F1 - RNTI = UE0 - HARQ-BITS = 1.
-  // - 1 PUCCH ded F1    - RNTI = UE2 - HARQ-BITS = 2.
-  // - 1 PUCCH ded F2    - RNTI = UE1 - HARQ-BITS = 3.
+  // - 1 PUCCH common HARQ-ACK   - RNTI = UE0 - HARQ-BITS = 1.
+  // - 1 PUCCH Resource Set ID 0 - RNTI = UE2 - HARQ-BITS = 2.
+  // - 1 PUCCH Resource Set ID 1 - RNTI = UE1 - HARQ-BITS = 3.
   t_bench.slot_indication(++t_bench.sl_tx);
   --k1;
   ASSERT_EQ(pucch_slot, slot_grid.slot);

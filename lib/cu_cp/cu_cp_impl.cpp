@@ -721,7 +721,7 @@ cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
                "ue={}: could not find a CU-UP to serve the UE",
                request.ue_index);
 
-  return start_inter_cu_handover_target_routine(
+  return launch_async<inter_cu_handover_target_routine>(
       request,
       cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
       du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
@@ -754,7 +754,8 @@ void cu_cp_impl::handle_n2_handover_execution(ue_index_t ue_index)
   }
   e1ap_bearer_context_manager& e1ap = cu_up->get_e1ap_bearer_context_manager();
 
-  ue->get_task_sched().schedule_async_task(start_inter_cu_handover_execution_target_routine(ue, e1ap, *ngap, logger));
+  ue->get_task_sched().schedule_async_task(
+      launch_async<inter_cu_handover_execution_target_routine>(ue, e1ap, *ngap, logger));
 }
 
 void cu_cp_impl::handle_transmission_of_handover_required()
@@ -784,7 +785,7 @@ async_task<bool> cu_cp_impl::handle_new_handover_command(ue_index_t ue_index, by
       CORO_RETURN(false);
     });
   }
-  return start_inter_cu_handover_source_routine(
+  return launch_async<inter_cu_handover_source_routine>(
       ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), logger);
 }
 

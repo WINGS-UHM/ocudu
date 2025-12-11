@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-ARG DOXYGEN_VERSION=Release_1_9_8
+ARG DOXYGEN_VERSION
 RUN git clone --depth 1 --branch ${DOXYGEN_VERSION} https://github.com/doxygen/doxygen.git doxygen \
   && cd doxygen \
   && mkdir build \
@@ -35,9 +35,10 @@ FROM ubuntu:$OS_VERSION
 RUN TZ=Europe/Madrid && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
   graphviz default-jdk python3-pip fontconfig curl \
+  rsync gcc g++ make cmake pkg-config libmbedtls-dev libyaml-cpp-dev libsctp-dev \
   && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ARG PLANTUML_VERSION=1.2023.7
+ARG PLANTUML_VERSION
 ENV PLANTUML_INSTALL_DIR=/opt/plantuml
 
 COPY --from=builder /doxygen/build/bin/doxygen /usr/local/bin/

@@ -1,0 +1,3 @@
+variables:
+  DOXYGEN_VERSION: "Release_1_9_8"
+  PLANTUML_VERSION: "1.2023.7"

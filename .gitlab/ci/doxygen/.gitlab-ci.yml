@@ -8,6 +8,7 @@
 
 include:
   - local: .gitlab/ci-shared/docker.yml
+  - local: .gitlab/ci/doxygen/version.yml
 
 stages:
   - publish
@@ -20,6 +21,6 @@ build-and-publish:
   variables:
     NAME: doxygen
     CONTEXT: .gitlab/ci/doxygen
-    VERSION: "1.9.8-1.2023.7"
-    BUILD_ARGS: DOXYGEN_VERSION=Release_1_9_8;PLANTUML_VERSION=1.2023.7
+    VERSION: "${DOXYGEN_VERSION}-${PLANTUML_VERSION}"
+    BUILD_ARGS: DOXYGEN_VERSION=${DOXYGEN_VERSION};PLANTUML_VERSION=${PLANTUML_VERSION}
     MODE: publish

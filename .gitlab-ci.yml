@@ -9,6 +9,7 @@
 include:
   - local: .gitlab/ci-shared/workflow.yml
   - local: .gitlab/ci-shared/static.yml
+  - local: .gitlab/ci/doxygen/version.yml
   - local: .gitlab/ci/build.yml
 
 stages:
@@ -385,23 +386,24 @@ unit coverage dev:
 
 pages:
   stage: documentation
+  environment:
+    name: pages
+    url: https://ocudu.gitlab.io/ocudu
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: always # Even if previous stages/required jobs fail
       allow_failure: true
-  image: ${CI_REGISTRY_IMAGE}/doxygen:1.9.8-1.2023.7
+  image: ${CI_REGISTRY_IMAGE}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
   script:
     - mkdir public
     - mv coverage_html public/
     - mv codechecker*html public/
     - mv docs/index.html public/index.html
-    - docker/scripts/install_dependencies.sh
-    - apt-get update && apt-get install -y --no-install-recommends rsync
     - |
       rm -Rf build
       mkdir build
       cd build || exit
-      cmake ..
+      cmake -DENABLE_UHD=False -DBUILD_TESTING=False ..
       make -j $(nproc) doxygen
       cd ..
     - mkdir public/doxygen

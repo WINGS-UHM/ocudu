@@ -148,6 +148,41 @@ void pdcp_entity_rx::end_buffering()
   }
 }
 
+bool pdcp_entity_rx::suspend()
+{
+  if (suspended) {
+    logger.log_error("PDCP entity received a suspend request, but it is already suspended");
+    return false;
+  }
+
+  if (not buffering) {
+    logger.log_error("PDCP entity received a suspend request, but it is not buffering");
+    return false;
+  }
+
+  reordering_timer.stop();
+  deliver_all_sdus();
+  st = {0, 0, 0};
+  return true;
+}
+
+bool pdcp_entity_rx::resume()
+{
+  if (not suspended) {
+    logger.log_error("PDCP entity received a resume request, but it was not suspended");
+    return false;
+  }
+
+  if (not buffering) {
+    logger.log_error("PDCP entity received a resume request, but it is not buffering");
+    return false;
+  }
+
+  suspended        = false;
+  resume_requested = false;
+  return true;
+}
+
 manual_event_flag& pdcp_entity_rx::crypto_awaitable()
 {
   return token_mngr.get_awaitable();

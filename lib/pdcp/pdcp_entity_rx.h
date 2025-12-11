@@ -99,6 +99,16 @@ public:
   /// \brief Ends the PDCP the buffering of SDUs and flushes the current buffer.
   void end_buffering() override;
 
+  /// \brief Suspends the PDCP TX entity, as per TS 38.323, section 5.1.4.
+  /// The PDCP entity is assumed to be buffering when this is called.
+  /// \returns Returns false if already suspended or other failure. True otherwise.
+  bool suspend();
+
+  /// \brief Resumes the PDCP TX entity, as per TS 38.323, section 5.1.4.
+  /// The PDCP entity is assumed to be buffering when this is called.
+  /// \returns Returns false if already active or other failure. True otherwise.
+  bool resume();
+
   /// \brief Get the RX count for status transfer
   pdcp_count_info get_count() const override
   {
@@ -186,7 +196,9 @@ private:
   /// when destroying DRB.
   pdcp_crypto_token_manager token_mngr;
 
-  bool                           buffering = false;
+  bool                           buffering        = false;
+  bool                           suspended        = false;
+  bool                           resume_requested = false;
   ring_buffer<byte_buffer_chain> pdu_buffer{2048};
 
   // Handling of different PDU types

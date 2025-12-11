@@ -253,7 +253,8 @@ ue_logical_channel_repository logical_channel_system::create_ue(du_ue_index_t   
   const soa::row_id ue_rid =
       ues.insert(ue_config_context{ue_index, get_nof_slots_per_subframe(scs_common), empty_lc_cfg_list_ptr},
                  ue_context{starts_in_fallback},
-                 ue_ul_context{},
+                 ue_dl_slice_context{},
+                 ue_ul_slice_context{},
                  ue_dl_channel_context{},
                  ue_ul_channel_context{});
   if (configured_ues.size() <= ue_index) {
@@ -323,10 +324,12 @@ void ue_logical_channel_repository::set_fallback_state(bool enter_fallback)
 
   // Update pending newTx data for all UE slices.
   auto  ueidx     = u.at<ue_config_context>().ue_index;
-  auto& ue_ul_ctx = u.at<ue_ul_context>();
+  auto& ue_dl_ctx = u.at<ue_dl_slice_context>();
+  auto& ue_ul_ctx = u.at<ue_ul_slice_context>();
   if (ue_ctx.fallback_state) {
     // Entering fallback mode, clear all pending data in slices.
-    for (auto it = ue_ctx.pending_bytes_per_slice.begin(), it_end = ue_ctx.pending_bytes_per_slice.end(); it != it_end;
+    for (auto it = ue_dl_ctx.pending_bytes_per_slice.begin(), it_end = ue_dl_ctx.pending_bytes_per_slice.end();
+         it != it_end;
          ++it) {
       if (it->second > 0) {
         it->second = 0;
@@ -344,7 +347,7 @@ void ue_logical_channel_repository::set_fallback_state(bool enter_fallback)
     }
   } else {
     // Exiting fallback mode, recompute pending data in slices.
-    const auto& ue_ch = u.at<ue_channel_context>();
+    const auto& ue_ch = u.at<ue_dl_channel_context>();
     for (const auto& [lcid, lc_rid] : ue_ch.channels) {
       parent->on_single_channel_buf_st_update(
           u, parent->lc_mapper.dl_slice_id(lc_rid), parent->lc_mapper.dl_buf_st(lc_rid).value(), 0);
@@ -499,11 +502,11 @@ void logical_channel_system::deactivate(soa::row_id ue_rid)
 
 void logical_channel_system::set_lcid_ran_slice(soa::row_id ue_rid, lcid_t lcid, ran_slice_id_t slice_id)
 {
-  auto        u      = ues.row(ue_rid);
-  auto&       ue_ch  = u.at<ue_dl_channel_context>();
-  ue_context& ue_ctx = u.at<ue_context>();
+  auto  u     = ues.row(ue_rid);
+  auto& ue_ch = u.at<ue_dl_channel_context>();
   ocudu_assert(ue_ch.channels.contains(lcid), "LCID not configured");
 
+  // Fetch current slice ID for the LCID.
   const soa::row_id lc_rid    = ue_ch.channels.at(lcid);
   auto              cur_slice = lc_mapper.dl_slice_id(lc_rid);
   if (cur_slice == slice_id) {
@@ -515,8 +518,9 @@ void logical_channel_system::set_lcid_ran_slice(soa::row_id ue_rid, lcid_t lcid,
   deregister_lc_ran_slice(ue_rid, lcid);
 
   // If slice does not exist yet for the UE, create it.
-  auto slice_it = ue_ctx.pending_bytes_per_slice.find(slice_id);
-  if (slice_it == ue_ctx.pending_bytes_per_slice.end()) {
+  ue_dl_slice_context& ue_dl_ctx = u.at<ue_dl_slice_context>();
+  auto                 slice_it  = ue_dl_ctx.pending_bytes_per_slice.find(slice_id);
+  if (slice_it == ue_dl_ctx.pending_bytes_per_slice.end()) {
     // New slice, add to the list.
     auto data_slice_it = slices.find(slice_id);
     if (data_slice_it == slices.end()) {
@@ -525,7 +529,7 @@ void logical_channel_system::set_lcid_ran_slice(soa::row_id ue_rid, lcid_t lcid,
                      ran_slice_context{bounded_bitset<MAX_NOF_DU_UES>(configured_ues.size()),
                                        bounded_bitset<MAX_NOF_DU_UES>(configured_ues.size())});
     }
-    ue_ctx.pending_bytes_per_slice.emplace(slice_id, 0);
+    ue_dl_ctx.pending_bytes_per_slice.emplace(slice_id, 0);
   }
 
   // Add LCID to new slice.
@@ -539,7 +543,7 @@ void logical_channel_system::set_lcg_ran_slice(soa::row_id ue_rid, lcg_id_t lcgi
 {
   auto  u      = ues.row(ue_rid);
   auto& ue_ch  = u.at<ue_ul_channel_context>();
-  auto& ue_ctx = u.at<ue_ul_context>();
+  auto& ue_ctx = u.at<ue_ul_slice_context>();
   ocudu_assert(ue_ch.lcgs.contains(lcgid), "LCG-ID not configured");
 
   soa::row_id lcg_rid   = ue_ch.lcgs.at(lcgid);
@@ -594,8 +598,8 @@ void logical_channel_system::deregister_lc_ran_slice(soa::row_id ue_rid, lcid_t 
             return lc_mapper.dl_slice_id(p.second) == slid;
           })) {
         // No other LC is still attached to the slice for this UE. Remove slice from UE.
-        auto& ue_ctxt = u.at<ue_context>();
-        ue_ctxt.pending_bytes_per_slice.erase(*prev_slice_id);
+        auto& ue_dl_ctxt = u.at<ue_dl_slice_context>();
+        ue_dl_ctxt.pending_bytes_per_slice.erase(*prev_slice_id);
       }
     }
   }
@@ -624,7 +628,7 @@ void logical_channel_system::deregister_lcg_ran_slice(soa::row_id ue_rid, lcg_id
           return lc_mapper.ul_slice_id(ch.second) == slid;
         })) {
       // No other LC is still attached to the slice for this UE. Remove slice from UE.
-      auto& ue_ctxt = u.at<ue_ul_context>();
+      auto& ue_ctxt = u.at<ue_ul_slice_context>();
       ue_ctxt.pending_bytes_per_slice.erase(*prev_slice_id);
     }
   }
@@ -673,7 +677,8 @@ void logical_channel_system::on_single_channel_buf_st_update(ue_row&            
   }
 
   // In case this logical channel has a RAN slice associated, (differentially) update the pending bytes for the slice.
-  auto&      slice_pending_bytes     = ue_ctx.pending_bytes_per_slice.find(*slice_id)->second;
+  auto&      ue_dl_ctx               = u.at<ue_dl_slice_context>();
+  auto&      slice_pending_bytes     = ue_dl_ctx.pending_bytes_per_slice.find(*slice_id)->second;
   const auto prev_buf_st_incl_subhdr = get_mac_sdu_required_bytes(prev_buf_st);
   const auto new_buf_st_incl_subhdr  = get_mac_sdu_required_bytes(new_buf_st);
   ocudu_sanity_check(slice_pending_bytes + new_buf_st_incl_subhdr >= prev_buf_st_incl_subhdr,
@@ -699,7 +704,7 @@ void logical_channel_system::on_single_lcg_buf_st_update(ue_row&                
     // fallback.
     return;
   }
-  auto& ue_ctx = u.at<ue_ul_context>();
+  auto& ue_ctx = u.at<ue_ul_slice_context>();
 
   // In case this logical channel has a RAN slice associated, (differentially) update the pending bytes for the slice.
   auto&      slice_pending_bytes     = ue_ctx.pending_bytes_per_slice.find(*slice_id)->second;
@@ -748,8 +753,12 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
     ue_ch_ctx.pending_ces = ce_rid;
   }
   // Update sum of pending CE bytes.
-  ue_ctx.pending_ce_bytes += ce.ce_lcid.is_var_len_ce() ? get_mac_sdu_required_bytes(ce.ce_lcid.sizeof_ce())
-                                                        : FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + ce.ce_lcid.sizeof_ce();
+  unsigned                  new_ce_bytes         = ue_ctx.pending_ce_bytes + (ce.ce_lcid.is_var_len_ce()
+                                                                                  ? get_mac_sdu_required_bytes(ce.ce_lcid.sizeof_ce())
+                                                                                  : FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + ce.ce_lcid.sizeof_ce());
+  constexpr static unsigned MAX_PENDING_CE_BYTES = 1U << 14U;
+  ocudu_assert(new_ce_bytes <= MAX_PENDING_CE_BYTES, "Exceeded maximum pending CE bytes per UE");
+  ue_ctx.pending_ce_bytes = new_ce_bytes;
   ues_with_pending_ces.set(u.at<ue_config_context>().ue_index, true);
 }
 
@@ -1006,7 +1015,7 @@ unsigned ue_logical_channel_repository::dl_pending_bytes() const
     return pending_con_res_ce_bytes() + pending_bytes(LCID_SRB0) + pending_bytes(LCID_SRB1);
   }
   unsigned bytes = pending_ce_bytes();
-  auto&    ue_ch = u.at<ue_channel_context>();
+  auto&    ue_ch = u.at<ue_dl_channel_context>();
   for (auto [lcid, lc_rid] : ue_ch.channels) {
     if (lcid != LCID_SRB0) {
       bytes += parent->dl_pending_bytes(lc_rid);

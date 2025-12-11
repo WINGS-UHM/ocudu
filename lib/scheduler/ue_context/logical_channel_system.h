@@ -298,7 +298,9 @@ private:
 
   /// Context of a single pending CE.
   struct mac_ce_context {
-    mac_ce_info                info;
+    /// Information relative to the MAC CE to be scheduled.
+    mac_ce_info info;
+    /// Next CE node in the linked list.
     std::optional<soa::row_id> next_ue_ce;
   };
   /// UE context relative to its configuration.
@@ -328,22 +330,35 @@ private:
   /// UE context relative to its DL state.
   struct ue_context {
     /// Whether the UE is in fallback (no DRB tx).
-    bool fallback_state{false};
+    bool fallback_state : 1;
     /// Whether a CON RES CE needs to be sent.
-    bool pending_con_res_id{false};
+    bool pending_con_res_id : 1;
     /// Cached sum of pending CE bytes for this UE, excluding CON RES CE.
-    uint32_t pending_ce_bytes{0};
+    uint16_t pending_ce_bytes : 14;
+
+    explicit ue_context(bool fallback = false) :
+      fallback_state(fallback), pending_con_res_id(false), pending_ce_bytes(0)
+    {
+    }
+  };
+  /// Context relative to a UE DL slice state.
+  struct ue_dl_slice_context {
     /// Mapping of RAN slice ID to the pending bytes of that slice, excluding any CE.
     static_flat_map<ran_slice_id_t, unsigned, MAX_RAN_SLICES_PER_UE> pending_bytes_per_slice;
   };
-  // UE context relative to its UL state.
-  struct ue_ul_context {
+  /// Context relative to a UE UL slice state.
+  struct ue_ul_slice_context {
     /// Mapping of RAN slice ID to the pending bytes of that slice, excluding SRs.
     static_flat_map<ran_slice_id_t, unsigned, MAX_RAN_SLICES_PER_UE> pending_bytes_per_slice;
   };
-  enum class ue_column_id { config, context, ul_context, channel };
-  using ue_table = soa::
-      table<ue_column_id, ue_config_context, ue_context, ue_ul_context, ue_dl_channel_context, ue_ul_channel_context>;
+  enum class ue_field { config, context, dl_slice, ul_slice, dl_channel, ul_channel };
+  using ue_table     = soa::table<ue_field,
+                                  ue_config_context,
+                                  ue_context,
+                                  ue_dl_slice_context,
+                                  ue_ul_slice_context,
+                                  ue_dl_channel_context,
+                                  ue_ul_channel_context>;
   using ue_row       = soa::row_view<ue_table>;
   using const_ue_row = soa::row_view<const ue_table>;
 
@@ -442,6 +457,8 @@ public:
 
   ue_logical_channel_repository_view() = default;
 
+  bool valid() const { return parent != nullptr; }
+
   /// \brief Checks whether a SR indication handling is pending.
   [[nodiscard]] bool has_pending_sr() const { return parent->ues_with_pending_sr.test(ue_index); }
 
@@ -470,8 +487,9 @@ class ue_logical_channel_repository : private ue_logical_channel_repository_view
   using mac_ce_info           = logical_channel_system::mac_ce_info;
   using ue_config_context     = logical_channel_system::ue_config_context;
   using ue_context            = logical_channel_system::ue_context;
-  using ue_ul_context         = logical_channel_system::ue_ul_context;
-  using ue_channel_context    = logical_channel_system::ue_dl_channel_context;
+  using ue_dl_slice_context   = logical_channel_system::ue_dl_slice_context;
+  using ue_ul_slice_context   = logical_channel_system::ue_ul_slice_context;
+  using ue_dl_channel_context = logical_channel_system::ue_dl_channel_context;
   using ue_ul_channel_context = logical_channel_system::ue_ul_channel_context;
   using ue_row                = logical_channel_system::ue_row;
   using const_ue_row          = logical_channel_system::const_ue_row;
@@ -485,6 +503,7 @@ public:
   // inherited methods
   using ue_logical_channel_repository_view::handle_mac_ce_indication;
   using ue_logical_channel_repository_view::has_pending_sr;
+  using ue_logical_channel_repository_view::valid;
 
   ue_logical_channel_repository()                                     = default;
   ue_logical_channel_repository(const ue_logical_channel_repository&) = delete;
@@ -511,8 +530,6 @@ public:
       parent = nullptr;
     }
   }
-
-  bool valid() const { return parent != nullptr; }
 
   /// Current list of of logical channel configurations for the given UE.
   const logical_channel_config_list& cfg() const { return *get_ue_row().at<ue_config_context>().channel_configs; }
@@ -541,7 +558,7 @@ public:
   /// Determines whether a RAN slice has at least one bearer associated with it.
   [[nodiscard]] bool has_slice(ran_slice_id_t slice_id) const
   {
-    return get_ue_row().at<ue_context>().pending_bytes_per_slice.contains(slice_id);
+    return get_ue_row().at<ue_dl_slice_context>().pending_bytes_per_slice.contains(slice_id);
   }
 
   /// Get the RAN slice ID associated with a logical channel.
@@ -590,7 +607,7 @@ public:
     if (has_pending_ces()) {
       return true;
     }
-    const auto& chs_ctx = u.at<ue_channel_context>();
+    const auto& chs_ctx = u.at<ue_dl_channel_context>();
     return std::any_of(chs_ctx.channels.begin(), chs_ctx.channels.end(), [this](const auto& p) {
       if (p.first == LCID_SRB0) {
         return false;
@@ -680,12 +697,14 @@ public:
   /// Calculates the number of DL pending bytes, including MAC header overhead, for a RAN slice.
   unsigned dl_pending_bytes(ran_slice_id_t slice_id) const
   {
-    const auto& ue_ctx = get_ue_row().at<ue_context>();
+    const auto  u      = get_ue_row();
+    const auto& ue_ctx = u.at<ue_context>();
     if (ue_ctx.fallback_state) {
       return 0;
     }
-    auto slice_it = ue_ctx.pending_bytes_per_slice.find(slice_id);
-    if (slice_it == ue_ctx.pending_bytes_per_slice.end()) {
+    const auto& ue_dl_ctx = u.at<ue_dl_slice_context>();
+    auto        slice_it  = ue_dl_ctx.pending_bytes_per_slice.find(slice_id);
+    if (slice_it == ue_dl_ctx.pending_bytes_per_slice.end()) {
       return 0;
     }
 
@@ -701,8 +720,8 @@ public:
         // bytes iff the UE has no pending data on the remaining, non-selected bearers.
         // This is to avoid the situation where a UE, for instance, has DRB data to transmit, but the CE is allocated in
         // the SRB slice instead.
-        if (std::all_of(ue_ctx.pending_bytes_per_slice.begin(),
-                        ue_ctx.pending_bytes_per_slice.end(),
+        if (std::all_of(ue_dl_ctx.pending_bytes_per_slice.begin(),
+                        ue_dl_ctx.pending_bytes_per_slice.end(),
                         [](const auto& elem) { return elem.second == 0; })) {
           return ce_bytes;
         }
@@ -719,7 +738,7 @@ public:
     if (get_ue_row().at<ue_context>().fallback_state) {
       return 0;
     }
-    const auto& ue_ul_ctx = get_ue_row().at<ue_ul_context>();
+    const auto& ue_ul_ctx = get_ue_row().at<ue_ul_slice_context>();
     auto        slice_it  = ue_ul_ctx.pending_bytes_per_slice.find(slice_id);
     if (slice_it == ue_ul_ctx.pending_bytes_per_slice.end()) {
       return 0;
@@ -804,7 +823,7 @@ public:
   /// \brief Returns a list of LCIDs sorted based on decreasing order of priority.
   span<const lcid_t> get_prioritized_logical_channels() const
   {
-    return get_ue_row().at<ue_channel_context>().sorted_channels;
+    return get_ue_row().at<ue_dl_channel_context>().sorted_channels;
   }
 
   ue_logical_channel_repository_view view() const

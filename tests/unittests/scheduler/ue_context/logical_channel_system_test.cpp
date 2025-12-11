@@ -79,38 +79,54 @@ TEST(mac_ce_size_test, derivation_of_mac_ce_size)
 static void assert_ue_lch_valid(const ue_logical_channel_repository& u)
 {
   // Test DL logical channel consistency.
-  EXPECT_TRUE(u.has_dl_pending_bytes() == (u.dl_pending_bytes() > 0));
-  EXPECT_TRUE(u.has_pending_ces() == (u.pending_ce_bytes() > 0));
+  // > Consistency between sorted channels and UE configuration.
   auto sorted_channels = u.get_prioritized_logical_channels();
   EXPECT_LE(sorted_channels.size(), u.cfg().size());
   for (auto& lc : u.cfg().logical_channels()) {
     EXPECT_EQ(std::find(sorted_channels.begin(), sorted_channels.end(), lc->lcid) != sorted_channels.end(),
               u.is_configured(lc->lcid));
   }
-  unsigned ces     = u.pending_ce_bytes();
-  unsigned buffers = 0;
+  // > Consistency between has...bytes() and pending...bytes() methods.
+  EXPECT_TRUE(u.has_dl_pending_bytes() == (u.dl_pending_bytes() > 0));
+  EXPECT_TRUE(u.has_pending_ces() == (u.pending_ce_bytes() > 0));
+  EXPECT_TRUE(u.is_con_res_id_pending() == (u.pending_con_res_ce_bytes() > 0));
+  unsigned ces              = u.pending_ce_bytes();
+  unsigned total_lcid_bytes = 0;
   for (lcid_t lcid : sorted_channels) {
     EXPECT_TRUE(u.has_pending_bytes(lcid) == (u.pending_bytes(lcid) > 0));
-    buffers += u.pending_bytes(lcid);
+    total_lcid_bytes += u.pending_bytes(lcid);
   }
-  EXPECT_EQ(buffers + ces, u.total_dl_pending_bytes());
+  // > Consistency between total_dl_pending_bytes(), dl_pending_bytes() and dl_pending_bytes(lcid).
+  EXPECT_EQ(total_lcid_bytes + ces, u.total_dl_pending_bytes())
+      << "total_dl_pending_bytes() must be equal to the sum of all LCID pending bytes plus CE bytes, independently of "
+         "UE state";
+  if (u.is_in_fallback_state()) {
+    ASSERT_EQ(u.dl_pending_bytes(),
+              u.pending_bytes(LCID_SRB0) + u.pending_bytes(LCID_SRB1) + u.pending_con_res_ce_bytes())
+        << "In fallback, only ConRes, SRB0 and SRB1 are considered";
+  } else {
+    ASSERT_EQ(u.dl_pending_bytes(), total_lcid_bytes + ces - u.pending_bytes(LCID_SRB0));
+  }
+  // > Consistency between dl_pending_bytes(slice_id) and pending_bytes(lcid).
   std::map<ran_slice_id_t, unsigned> slice_bytes;
-  unsigned                           total_pending = 0;
+  unsigned                           total_slice_bytes = 0;
   for (lcid_t lcid : sorted_channels) {
     if (u.get_slice_id(lcid).has_value()) {
       slice_bytes.insert(std::pair<ran_slice_id_t, unsigned>(u.get_slice_id(lcid).value(), 0));
       slice_bytes.at(u.get_slice_id(lcid).value()) += u.pending_bytes(lcid);
-      total_pending += u.pending_bytes(lcid);
+      total_slice_bytes += u.pending_bytes(lcid);
     }
   }
   if (not u.is_in_fallback_state()) {
-    ASSERT_LE(total_pending, u.total_dl_pending_bytes());
+    ASSERT_LE(total_slice_bytes, u.total_dl_pending_bytes());
     for (auto& [slice_id, bytes] : slice_bytes) {
       EXPECT_GE(u.dl_pending_bytes(slice_id), bytes);
       EXPECT_LE(u.dl_pending_bytes(slice_id), bytes + ces);
     }
   } else {
-    ASSERT_EQ(total_pending, u.pending_bytes(LCID_SRB0) + u.pending_bytes(LCID_SRB1) + u.pending_con_res_ce_bytes());
+    for (auto& [slice_id, bytes] : slice_bytes) {
+      EXPECT_EQ(u.dl_pending_bytes(slice_id), 0);
+    }
   }
 
   // Test UL logical channel consistency.
@@ -138,12 +154,21 @@ static void assert_ue_lch_valid(const ue_logical_channel_repository& u)
     }
   } else {
     EXPECT_EQ(u.ul_pending_bytes(), u.pending_bytes(uint_to_lcg_id(0U)));
+    for (auto& [slice_id, bytes] : slice_bytes) {
+      EXPECT_EQ(u.ul_pending_bytes(slice_id), 0);
+    }
   }
 }
 
 class logical_channel_system_test
 {
 protected:
+  ~logical_channel_system_test()
+  {
+    EXPECT_EQ(lch_system.nof_logical_channels(), 0);
+    EXPECT_EQ(lch_system.nof_ues(), 0);
+  }
+
   logical_channel_config_list_ptr create_empty_config()
   {
     return cfg_pool.create(std::vector<logical_channel_config>{});
@@ -512,14 +537,24 @@ TEST_F(single_ue_dl_logical_channel_system_test,
   ASSERT_FALSE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{1}));
 
   const unsigned srb1_bytes = 10000, drb1_bytes = 20000, drb2_bytes = 50;
+  const unsigned slice0_bytes = get_mac_sdu_required_bytes(srb1_bytes);
+  const unsigned slice1_bytes = get_mac_sdu_required_bytes(drb1_bytes) + get_mac_sdu_required_bytes(drb2_bytes);
   ue_lchs.handle_dl_buffer_status_indication(LCID_SRB1, srb1_bytes);
   ue_lchs.handle_dl_buffer_status_indication(LCID_MIN_DRB, drb1_bytes);
   ue_lchs.handle_dl_buffer_status_indication(uint_to_lcid(LCID_MIN_DRB + 1), drb2_bytes);
   ASSERT_TRUE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{0}));
-  ASSERT_EQ(ue_lchs.dl_pending_bytes(ran_slice_id_t{0}), get_mac_sdu_required_bytes(srb1_bytes));
+  ASSERT_EQ(ue_lchs.dl_pending_bytes(ran_slice_id_t{0}), slice0_bytes);
   ASSERT_TRUE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{1}));
-  ASSERT_EQ(ue_lchs.dl_pending_bytes(ran_slice_id_t{1}),
-            get_mac_sdu_required_bytes(drb1_bytes) + get_mac_sdu_required_bytes(drb2_bytes));
+  ASSERT_EQ(ue_lchs.dl_pending_bytes(ran_slice_id_t{1}), slice1_bytes);
+  assert_ue_lch_valid(ue_lchs);
+
+  // Fallback disables pending data per slice.
+  ue_lchs.set_fallback_state(true);
+  ASSERT_FALSE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{0}));
+  ASSERT_FALSE(ue_lchs.has_pending_dl_bytes(ran_slice_id_t{1}));
+  ue_lchs.set_fallback_state(false);
+  ASSERT_EQ(ue_lchs.dl_pending_bytes(ran_slice_id_t{0}), slice0_bytes);
+  ASSERT_EQ(ue_lchs.dl_pending_bytes(ran_slice_id_t{1}), slice1_bytes);
 
   // Remove SRB1 from slice.
   ue_lchs.reset_lcid_ran_slice(LCID_SRB1);
@@ -548,16 +583,19 @@ TEST_F(single_ue_dl_logical_channel_system_test, all_ues_with_pending_data_provi
   ues_with_data = this->lch_system.get_ues_with_dl_pending_data(ran_slice_id_t{1});
   ASSERT_EQ(ues_with_data.count(), 1);
   ASSERT_TRUE(ues_with_data.test(0));
+  assert_ue_lch_valid(ue_lchs);
 
   // Fallback disables pending data.
   ue_lchs.set_fallback_state(true);
   ASSERT_EQ(this->lch_system.get_ues_with_dl_pending_data(ran_slice_id_t{1}).count(), 0);
+  assert_ue_lch_valid(ue_lchs);
 
   // Disable fallback enables pending data.
   ue_lchs.set_fallback_state(false);
   ues_with_data = this->lch_system.get_ues_with_dl_pending_data(ran_slice_id_t{1});
   ASSERT_EQ(ues_with_data.count(), 1);
   ASSERT_TRUE(ues_with_data.test(0));
+  assert_ue_lch_valid(ue_lchs);
 
   // Deregister slice removes pending data.
   ue_lchs.reset_lcid_ran_slice(LCID_MIN_DRB);
@@ -913,16 +951,19 @@ TEST_F(single_ue_ul_logical_channel_system_test, all_ues_with_pending_data_provi
   ues_with_data = this->lch_system.get_ues_with_ul_pending_data(ran_slice_id_t{1});
   ASSERT_EQ(ues_with_data.count(), 1);
   ASSERT_TRUE(ues_with_data.test(0));
+  assert_ue_lch_valid(ue_lchs);
 
   // Fallback disables pending data.
   ue_lchs.set_fallback_state(true);
   ASSERT_EQ(this->lch_system.get_ues_with_ul_pending_data(ran_slice_id_t{1}).count(), 0);
+  assert_ue_lch_valid(ue_lchs);
 
   // Disable fallback enables pending data.
   ue_lchs.set_fallback_state(false);
   ues_with_data = this->lch_system.get_ues_with_ul_pending_data(ran_slice_id_t{1});
   ASSERT_EQ(ues_with_data.count(), 1);
   ASSERT_TRUE(ues_with_data.test(0));
+  assert_ue_lch_valid(ue_lchs);
 
   // Deregister slice removes pending data.
   ue_lchs.reset_lcg_ran_slice(uint_to_lcg_id(2));

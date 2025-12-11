@@ -159,7 +159,7 @@ public:
   void reset();
 
   /// Whether the TA management is active for the UE.
-  bool active() const { return ue_id != ta_management_system::invalid_row_id; }
+  bool active() const { return parent != nullptr and ue_id != ta_management_system::invalid_row_id; }
 
   /// \brief Updates the list of configured TAG IDs for the UE.
   void update_tags(span<const time_alignment_group::id_t> tag_ids)

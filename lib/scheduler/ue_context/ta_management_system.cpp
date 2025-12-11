@@ -263,8 +263,9 @@ ue_ta_manager::~ue_ta_manager()
 
 void ue_ta_manager::reset()
 {
-  if (parent != nullptr and active()) {
+  if (active()) {
     parent->rem_ue(ue_id);
     parent = nullptr;
+    ue_id  = ta_management_system::invalid_row_id;
   }
 }

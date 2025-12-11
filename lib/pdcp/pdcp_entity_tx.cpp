@@ -159,16 +159,16 @@ void pdcp_entity_tx::end_buffering()
   }
 }
 
-void pdcp_entity_tx::suspend()
+bool pdcp_entity_tx::suspend()
 {
   if (suspended) {
     logger.log_error("PDCP entity received a suspend request, but it is already suspended");
-    return;
+    return false;
   }
 
   if (not buffering) {
     logger.log_error("PDCP entity received a suspend request, but it is not buffering");
-    return;
+    return false;
   }
 
   st = {0, 0, 0, 0, 0};
@@ -178,22 +178,24 @@ void pdcp_entity_tx::suspend()
   }
 
   suspended = true;
+  return true;
 }
 
-void pdcp_entity_tx::resume()
+bool pdcp_entity_tx::resume()
 {
   if (not suspended) {
     logger.log_error("PDCP entity received a resume request, but it was not suspended");
-    return;
+    return false;
   }
 
   if (not buffering) {
     logger.log_error("PDCP entity received a resume request, but it is not buffering");
-    return;
+    return false;
   }
 
   suspended        = false;
   resume_requested = false;
+  return true;
 }
 
 manual_event_flag& pdcp_entity_tx::crypto_awaitable()

@@ -14,7 +14,8 @@
 
 using namespace ocudu;
 
-pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_cell_cfg) :
+pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_cell_cfg,
+                                               ocudulog::basic_logger&      logger_) :
   rnti(ue_cell_cfg.crnti),
   cl_pw_control_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_pucch_cl_pw_control),
   pucch_f0_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f0_sinr_target_dB),
@@ -26,7 +27,7 @@ pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_c
   }()),
   pucch_f0_f1_sinr_dB(alpha_ema_sinr),
   pucch_f2_f3_f4_sinr_dB(alpha_ema_sinr),
-  logger(ocudulog::fetch_basic_logger("SCHED"))
+  logger(logger_)
 {
   // Save the PUCCH power control configuration.
   reconfigure(ue_cell_cfg);

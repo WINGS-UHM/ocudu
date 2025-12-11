@@ -15,7 +15,8 @@
 using namespace ocudu;
 
 pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    ue_cell_cfg,
-                                               const ue_channel_state_manager& ch_state_manager) :
+                                               const ue_channel_state_manager& ch_state_manager,
+                                               ocudulog::basic_logger&         logger_) :
   rnti(ue_cell_cfg.crnti),
   cl_pw_control_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_pusch_cl_pw_control),
   phr_bw_adaptation_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_phr_bw_adaptation),
@@ -29,7 +30,7 @@ pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    u
     return tpc_adjust_prohibit_time_ms << to_numerology_value(
                ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs);
   }()),
-  logger(ocudulog::fetch_basic_logger("SCHED"))
+  logger(logger_)
 {
   // Save the PUSCH power control configuration.
   reconfigure(ue_cell_cfg);

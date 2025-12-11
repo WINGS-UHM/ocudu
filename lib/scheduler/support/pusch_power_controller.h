@@ -12,15 +12,20 @@
 
 #include "../ue_context/ue_channel_state_manager.h"
 #include "ocudu/adt/circular_array.h"
+#include "ocudu/ocudulog/logger.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 
 namespace ocudu {
 
 class ue_cell_configuration;
 
+/// Power controller for the PUSCH of a UE.
 class pusch_power_controller
 {
 public:
-  pusch_power_controller(const ue_cell_configuration& ue_cell_cfg_, const ue_channel_state_manager& ch_state_manager);
+  pusch_power_controller(const ue_cell_configuration&    ue_cell_cfg_,
+                         const ue_channel_state_manager& ch_state_manager,
+                         ocudulog::basic_logger&         logger_);
 
   /// Save the PUSCH power control configuration.
   void reconfigure(const ue_cell_configuration& ue_cell_cfg);

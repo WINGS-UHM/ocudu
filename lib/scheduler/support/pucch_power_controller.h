@@ -26,7 +26,7 @@ class ue_cell_configuration;
 class pucch_power_controller
 {
 public:
-  pucch_power_controller(const ue_cell_configuration& ue_cell_cfg_);
+  pucch_power_controller(const ue_cell_configuration& ue_cell_cfg_, ocudulog::basic_logger& logger_);
 
   /// Save the PUCCH power control configuration.
   void reconfigure(const ue_cell_configuration& ue_cell_cfg);

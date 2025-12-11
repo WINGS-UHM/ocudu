@@ -70,8 +70,8 @@ ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
   // Create UE cell components.
   channel_states.emplace(ue_cfg.ue_index, ue_cell_cfg.cell_cfg_common.expert_cfg.ue, ue_cell_cfg.get_nof_dl_ports());
   ue_mcs_calculators.emplace(ue_cfg.ue_index, ue_cell_cfg.cell_cfg_common, channel_states[ue_cfg.ue_index]);
-  pusch_pwr_controllers.emplace(ue_cfg.ue_index, ue_cell_cfg, channel_states[ue_cfg.ue_index]);
-  pucch_pwr_controllers.emplace(ue_cfg.ue_index, ue_cell_cfg);
+  pusch_pwr_controllers.emplace(ue_cfg.ue_index, ue_cell_cfg, channel_states[ue_cfg.ue_index], logger);
+  pucch_pwr_controllers.emplace(ue_cfg.ue_index, ue_cell_cfg, logger);
 
   // Add UE in the repository.
   ues.emplace(ue_cfg.ue_index,

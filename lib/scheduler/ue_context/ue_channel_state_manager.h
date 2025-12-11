@@ -10,15 +10,12 @@
 
 #pragma once
 
-#include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/csi_report/csi_report_data.h"
 #include "ocudu/ran/logical_channel/phr_report.h"
-#include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/pusch/pusch_tpmi_select.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
-#include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/support/math/exponential_averager.h"
 

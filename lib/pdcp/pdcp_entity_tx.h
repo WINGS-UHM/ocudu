@@ -23,6 +23,7 @@
 #include "ocudu/adt/ring_buffer.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_tx.h"
+#include "ocudu/rohc/rohc_compressor.h"
 #include "ocudu/security/security.h"
 #include "ocudu/security/security_engine.h"
 #include "ocudu/support/timers.h"
@@ -257,6 +258,8 @@ private:
   /// Id used to identify out of date PDUs after a retransmission.
   uint16_t retransmit_id = 0;
 
+  std::unique_ptr<rohc::rohc_compressor> rohc_comp;
+
   using sec_engine_vec = std::vector<std::unique_ptr<security::security_engine_tx>>;
   sec_engine_vec sec_engine_pool;
 
@@ -288,6 +291,11 @@ private:
 
   /// Apply ciphering and integrity protection to the payload
   security::security_result apply_ciphering_and_integrity_protection(byte_buffer buf, uint32_t count);
+
+  /// \brief Compresses the header of the SDU if ROHC is applicable. Pass-through otherwise.
+  /// \param buf InOut SDU for header compression.
+  /// \return true if compression resulted in a data SDU for further processing.
+  bool apply_header_compression(byte_buffer& buf);
 
   uint32_t notification_count_estimation(uint32_t notification_sn) const;
 

@@ -12,6 +12,7 @@
 #include "../security/security_engine_impl.h"
 #include "ocudu/instrumentation/traces/tracy_profiler.h"
 #include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/rohc/rohc_factory.h"
 #include "ocudu/rohc/rohc_support.h"
 #include "ocudu/support/bit_encoding.h"
 #include "ocudu/support/executors/execution_context_description.h"
@@ -103,6 +104,14 @@ pdcp_entity_tx::pdcp_entity_tx(uint32_t                        ue_index,
   for (uint32_t i = 0; i < max_nof_crypto_workers; i++) {
     std::unique_ptr<security::security_engine_impl> null_engine;
     sec_engine_pool.push_back(std::move(null_engine));
+  }
+
+  // Create ROHC compressor if needed
+  if (cfg.header_compression.has_value() && cfg.header_compression->rohc_type == rohc::rohc_type_t::rohc) {
+    rohc_comp = rohc::create_rohc_compressor(*cfg.header_compression);
+    if (rohc_comp == nullptr) {
+      logger.log_error("Failed to create ROHC compressor. {}", cfg);
+    }
   }
 }
 
@@ -332,8 +341,11 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
   tx_window.add_sdu(std::move(sdu_info), buf.length());
   logger.log_debug("Added to tx window. count={} discard_timer={}", st.tx_next, cfg.discard_timer);
 
-  // Perform header compression
-  // TODO
+  // Perform header compression if required.
+  if (!apply_header_compression(buf)) {
+    // Compression failed.
+    return;
+  }
 
   // Prepare header
   pdcp_data_pdu_header hdr = {};
@@ -341,7 +353,7 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
 
   // Pack header
   if (not write_data_pdu_header(buf, hdr)) {
-    logger.log_error("Could not append PDU header, dropping SDU and notifying RRC. count={}", st.tx_next);
+    logger.log_error("Could not append PDU header, dropping SDU and notifying RRC. count={} {}", st.tx_next, st);
     metrics.add_lost_sdus(1);
     upper_cn.on_protocol_failure();
     return;
@@ -683,6 +695,22 @@ security::security_result pdcp_entity_tx::apply_ciphering_and_integrity_protecti
   return {std::move(result.buf.value())};
 }
 
+bool pdcp_entity_tx::apply_header_compression(byte_buffer& buf)
+{
+  if (rohc_comp == nullptr) {
+    return true;
+  }
+  // TODO: skip SDAP header if present
+  buf = rohc_comp->compress(std::move(buf));
+  if (buf.empty()) {
+    logger.log_error("Header compression failed, dropping SDU and notifying RRC. {}", st);
+    metrics.add_lost_sdus(1);
+    upper_cn.on_protocol_failure();
+    return false;
+  }
+  return true;
+}
+
 /*
  * Security configuration
  */
@@ -819,14 +847,18 @@ void pdcp_entity_tx::retransmit_all_pdus()
       if (not exp_buf_copy.has_value()) {
         logger.log_error(
             "Could not deep copy SDU for retransmission, dropping SDU and notifying RRC. count={} {}", count, st);
+        metrics.add_lost_sdus(1);
         upper_cn.on_protocol_failure();
         return;
       }
 
       byte_buffer buf = std::move(exp_buf_copy.value());
 
-      // Perform header compression if required
-      // (TODO)
+      // Perform header compression if required.
+      if (!apply_header_compression(buf)) {
+        // Compression failed.
+        return;
+      }
 
       // Prepare header
       pdcp_data_pdu_header hdr = {};
@@ -835,6 +867,7 @@ void pdcp_entity_tx::retransmit_all_pdus()
       // Pack header
       if (not write_data_pdu_header(buf, hdr)) {
         logger.log_error("Could not append PDU header, dropping SDU and notifying RRC. count={} {}", count, st);
+        metrics.add_lost_sdus(1);
         upper_cn.on_protocol_failure();
         return;
       }
@@ -849,6 +882,7 @@ void pdcp_entity_tx::retransmit_all_pdus()
       auto fn = [this, buf_info = std::move(buf_info)]() mutable { apply_security(std::move(buf_info)); };
       if (not crypto_executor.execute(std::move(fn))) {
         logger.log_warning("Dropped PDU, crypto executor queue is full. st={}", st);
+        metrics.add_lost_sdus(1);
       }
     }
   }

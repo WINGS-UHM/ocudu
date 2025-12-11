@@ -22,6 +22,7 @@
 #include "ocudu/adt/ring_buffer.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_rx.h"
+#include "ocudu/rohc/rohc_decompressor.h"
 #include "ocudu/security/security_engine.h"
 #include "ocudu/support/sdu_window.h"
 #include "ocudu/support/timers.h"
@@ -177,6 +178,8 @@ private:
   const pdcp_rx_config cfg;
   bool                 stopped = false;
 
+  std::unique_ptr<rohc::rohc_decompressor> rohc_decomp;
+
   using sec_engine_vec = std::vector<std::unique_ptr<security::security_engine_rx>>;
   sec_engine_vec sec_engine_pool;
 
@@ -225,6 +228,11 @@ private:
 
   /// Apply deciphering and integrity check to the PDU
   security::security_result apply_deciphering_and_integrity_check(byte_buffer buf, uint32_t count);
+
+  /// \brief Decompresses the header of the SDU if ROHC is applicable. Pass-through otherwise.
+  /// \param buf InOut SDU for header decompression.
+  /// \return true if decompression resulted in a data SDU for passing to upper layers.
+  bool apply_header_decompression(byte_buffer& buf);
 
   /*
    * Notifiers and handlers

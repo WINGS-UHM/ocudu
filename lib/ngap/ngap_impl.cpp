@@ -816,12 +816,12 @@ void ngap_impl::handle_handover_request(const asn1::ngap::ho_request_s& msg)
 
   if (!cu_cp_notifier.schedule_async_task(
           ho_request.ue_index,
-          start_ngap_handover_resource_allocation(ho_request,
-                                                  uint_to_amf_ue_id(msg->amf_ue_ngap_id),
-                                                  ue_ctxt_list,
-                                                  cu_cp_notifier,
-                                                  tx_pdu_notifier,
-                                                  logger))) {
+          launch_async<ngap_handover_resource_allocation_procedure>(ho_request,
+                                                                    uint_to_amf_ue_id(msg->amf_ue_ngap_id),
+                                                                    ue_ctxt_list,
+                                                                    cu_cp_notifier,
+                                                                    tx_pdu_notifier,
+                                                                    logger))) {
     logger.debug("Couldn't schedule handover resource allocation procedure");
     send_handover_failure(msg->amf_ue_ngap_id);
     return;
@@ -892,8 +892,8 @@ async_task<expected<ngap_dl_ran_status_transfer>> ngap_impl::handle_dl_ran_statu
   }
 
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
-  return start_ngap_dl_status_transfer_procedure(
-      ue_index, ue_ctxt.ev_mng, timer_factory{timers, ctrl_exec}, ue_ctxt.logger);
+  return launch_async<ngap_dl_ran_status_transfer_procedure>(
+      ue_ctxt.ev_mng, timer_factory{timers, ctrl_exec}, ue_ctxt.logger);
 }
 
 void ngap_impl::handle_dl_ue_associated_nrppa_transport(const asn1::ngap::dl_ue_associated_nrppa_transport_s& msg)
@@ -1176,15 +1176,15 @@ ngap_impl::handle_handover_preparation_request(const ngap_handover_preparation_r
 
   ue_ctxt.logger.log_info("Starting HO preparation");
 
-  return start_ngap_handover_preparation(msg,
-                                         ue_ctxt.serving_guami.plmn,
-                                         ue_ctxt.ue_ids,
-                                         tx_pdu_notifier,
-                                         ue->get_ngap_rrc_ue_notifier(),
-                                         cu_cp_notifier,
-                                         ue_ctxt.ev_mng,
-                                         timer_factory{timers, ctrl_exec},
-                                         ue_ctxt.logger);
+  return launch_async<ngap_handover_preparation_procedure>(msg,
+                                                           ue_ctxt.serving_guami.plmn,
+                                                           ue_ctxt.ue_ids,
+                                                           tx_pdu_notifier,
+                                                           ue->get_ngap_rrc_ue_notifier(),
+                                                           cu_cp_notifier,
+                                                           ue_ctxt.ev_mng,
+                                                           timer_factory{timers, ctrl_exec},
+                                                           ue_ctxt.logger);
 }
 
 void ngap_impl::handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t           ue_index,

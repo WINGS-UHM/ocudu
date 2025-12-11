@@ -29,9 +29,7 @@
 #include <string>
 #include <vector>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Fills ASN.1 NGSetupRequest struct.
 /// \param[out] asn1_request The NGSetupRequest ASN.1 struct to fill.
@@ -462,6 +460,12 @@ inline bool fill_ngap_initial_context_setup_request(ngap_init_context_setup_requ
   // Fill NAS-PDU.
   if (asn1_request->nas_pdu_present) {
     request.nas_pdu = asn1_request->nas_pdu.copy();
+  }
+
+  // Fill RRC Inactive Transition Report Request.
+  if (asn1_request->rrc_inactive_transition_report_request_present) {
+    request.rrc_inactive_transition_report_request =
+        asn1_to_rrc_inactive_transition_report_request(asn1_request->rrc_inactive_transition_report_request);
   }
 
   // Fill UE radio capabilities for paging.
@@ -1002,7 +1006,11 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
 
   // TODO: Add Location report request type.
 
-  // TODO: Add RRC inactive transition report request.
+  // Fill RRC Inactive Transition Report Request.
+  if (asn1_request->rrc_inactive_transition_report_request_present) {
+    request.rrc_inactive_transition_report_request =
+        asn1_to_rrc_inactive_transition_report_request(asn1_request->rrc_inactive_transition_report_request);
+  }
 
   // Fill GUAMI.
   request.guami = asn1_to_guami(asn1_request->guami);
@@ -1149,5 +1157,4 @@ inline void fill_asn1_rrc_inactive_transition_report(asn1::ngap::rrc_inactive_tr
   user_loc_info_nr       = cu_cp_user_location_info_to_asn1(report.user_location_info);
 }
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

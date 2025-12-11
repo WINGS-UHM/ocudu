@@ -15,8 +15,7 @@
 #include "ocudu/ran/crit_diagnostics.h"
 #include "ocudu/security/security.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct ngap_init_context_setup_request {
   ue_index_t                               ue_index = ue_index_t::invalid;
@@ -34,8 +33,8 @@ struct ngap_init_context_setup_request {
   std::optional<uint64_t>    masked_imeisv;
   std::optional<byte_buffer> nas_pdu;
   // TODO: Add optional emergency_fallback_ind
-  // TODO: Add optional rrc_inactive_transition_report_request
-  std::optional<cu_cp_ue_radio_cap_for_paging> ue_radio_cap_for_paging;
+  std::optional<ngap_rrc_inactive_transition_report_request> rrc_inactive_transition_report_request;
+  std::optional<cu_cp_ue_radio_cap_for_paging>               ue_radio_cap_for_paging;
   // TODO: Add optional redirection_voice_fallback
   // TODO: Add optional location_report_request_type
   // TODO: Add optional cn_assisted_ran_tuning
@@ -53,5 +52,4 @@ struct ngap_init_context_setup_response {
   std::optional<crit_diagnostics_t>                                              crit_diagnostics;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

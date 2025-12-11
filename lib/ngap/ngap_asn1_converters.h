@@ -21,8 +21,7 @@
 #include "ocudu/ran/up_transport_layer_info.h"
 #include <variant>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 // Helper to create PDU from NGAP message.
 template <class T>
@@ -969,5 +968,17 @@ inline asn1::ngap::pdu_session_type_e pdu_session_type_to_asn1(const pdu_session
   }
 }
 
-} // namespace ocucp
-} // namespace ocudu
+inline ngap_rrc_inactive_transition_report_request asn1_to_rrc_inactive_transition_report_request(
+    const asn1::ngap::rrc_inactive_transition_report_request_e& asn1_rrc_inactive_transition_report_request)
+{
+  switch (asn1_rrc_inactive_transition_report_request) {
+    case asn1::ngap::rrc_inactive_transition_report_request_opts::options::subsequent_state_transition_report:
+      return ngap_rrc_inactive_transition_report_request::subsequent_state_transition_report;
+    case asn1::ngap::rrc_inactive_transition_report_request_opts::options::single_rrc_connected_state_report:
+      return ngap_rrc_inactive_transition_report_request::single_rrc_connected_state_report;
+    default:
+      return ngap_rrc_inactive_transition_report_request::cancel_report;
+  }
+}
+
+} // namespace ocudu::ocucp

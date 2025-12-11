@@ -11,10 +11,8 @@
 #pragma once
 
 #include "ocudu/ran/plmn_identity.h"
-#include <limits>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief AMF_UE_ID (non ASN1 type of AMF_UE_NGAP_ID) used to identify the UE in the AMF.
 /// \remark See TS 38.413 Section 9.3.3.1: AMF_UE_NGAP_ID valid values: (0..2^40-1)
@@ -46,5 +44,13 @@ struct ngap_ue_aggr_max_bit_rate {
   uint64_t ue_aggr_max_bit_rate_ul;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+enum class ngap_rrc_inactive_transition_report_request : uint8_t {
+  // Send RRC Inactive Transition Reports when the UE enters or leaves RRC_INACTIVE state.
+  subsequent_state_transition_report = 0,
+  // Send one single RRC Inactive Transition Report when UE transitions from RRC_INACTIVE to RRC_IDLE.
+  single_rrc_connected_state_report,
+  // Stop sending RRC Inactive Transition Reports.
+  cancel_report
+};
+
+} // namespace ocudu::ocucp

@@ -13,11 +13,9 @@
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/security/security.h"
-#include "ocudu/support/async/async_task.h"
 #include <map>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct ngap_ue_source_handover_context {
   std::map<pdu_session_id_t, std::vector<qos_flow_id_t>> pdu_sessions;
@@ -103,8 +101,8 @@ struct ngap_handover_request {
   ngap_source_ngran_node_to_target_ngran_node_transparent_container source_to_target_transparent_container;
   // TODO: Add optional mob_restrict_list
   // TODO: Add optional location_report_request_type
-  // TODO: Add optional rrc_inactive_transition_report_request
-  guami_t guami;
+  std::optional<ngap_rrc_inactive_transition_report_request> rrc_inactive_transition_report_request;
+  guami_t                                                    guami;
   // TODO: Add optional redirection_voice_fallback
   // TODO: Add optional cn_assisted_ran_tuning
 };
@@ -181,5 +179,4 @@ struct ngap_dl_ran_status_transfer {
   slotted_id_vector<drb_id_t, ngap_drbs_subject_to_status_transfer_item> drbs_subject_to_status_transfer_list;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

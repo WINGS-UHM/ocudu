@@ -44,7 +44,7 @@ public:
   float get_pusch_snr() const { return pusch_snr_db; }
 
   /// \brief Get average PUSCH SNR in dB.
-  float get_pusch_average_sinr() const { return average_pusch_sinr_dB.get_average_value(); }
+  float get_pusch_average_sinr() const { return average_pusch_sinr_dB.average(); }
 
   csi_report_wideband_cqi_type get_wideband_cqi() const { return wideband_cqi; }
 

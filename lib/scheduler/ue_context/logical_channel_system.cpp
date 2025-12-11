@@ -211,7 +211,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::ul_sched_bytes_a
 double logical_channel_system_utils::logical_channel_mapper::avg_dl_bits_per_slot(soa::row_id lc_rid) const
 {
   if (auto& qos_row_opt = dl_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return qos_channels.row(*qos_row_opt).at<lc_qos_context>().dl_avg_bytes_per_slot.get_average_value() * 8U;
+    return qos_channels.row(*qos_row_opt).at<lc_qos_context>().dl_avg_bytes_per_slot.average() * 8U;
   }
   return 0.0;
 }
@@ -219,7 +219,7 @@ double logical_channel_system_utils::logical_channel_mapper::avg_dl_bits_per_slo
 double logical_channel_system_utils::logical_channel_mapper::avg_ul_bits_per_slot(soa::row_id lcg_rid) const
 {
   if (auto& qos_row_opt = ul_qos_row(lcg_rid); qos_row_opt.has_value()) {
-    return qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().ul_avg_bytes_per_slot.get_average_value() * 8U;
+    return qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().ul_avg_bytes_per_slot.average() * 8U;
   }
   return 0.0;
 }

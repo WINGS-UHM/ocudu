@@ -216,9 +216,7 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
     // Note: for small number of samples, outlier detection is not performed.
     ++tag_meas.count_until_outlier_detection;
-  } else if (is_outlier(n_ta_diff_,
-                        tag_meas.n_ta_diff_averager.get_average_value(),
-                        tag_meas.n_ta_diff_sq_averager.get_average_value())) {
+  } else if (is_outlier(n_ta_diff_, tag_meas.n_ta_diff_averager.average(), tag_meas.n_ta_diff_sq_averager.average())) {
     // Outlier detected, discard measurement.
     return;
   }

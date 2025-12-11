@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/adt/tensor.h"
 #include "ocudu/support/file_vector.h"
 
 namespace ocudu {

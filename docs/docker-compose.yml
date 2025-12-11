@@ -17,11 +17,37 @@ services:
         PLANTUML_VERSION: ${PLANTUML_VERSION}
     volumes:
       - ../:/workdir
+    user: "${UID}:${GID}"
+    environment:
+      DOXYGEN_TARGET: ${DOXYGEN_TARGET:-doxygen}
     command: >
       sh -c "
       rm -Rf build_doxygen &&
       mkdir build_doxygen &&
       cd build_doxygen &&
       cmake -DENABLE_UHD=False -DBUILD_TESTING=False .. &&
-      make -j $$(nproc) doxygen
+      make -j $$(nproc) $$DOXYGEN_TARGET
+      "
+
+  docusaurus:
+    image: node:20
+    working_dir: /workdir/docs/docusaurus
+    volumes:
+      - ../:/workdir
+      - ../build_doxygen/docs/doxygen/html:/workdir/docs/docusaurus/static/doxygen:ro
+    ports:
+      - "3000:3000"
+    stop_grace_period: 1s
+    user: "${UID}:${GID}"
+    environment:
+      CI_COMMIT_SHORT_SHA: local
+    depends_on:
+      doxygen:
+        condition: service_completed_successfully
+    command: >
+      sh -c "
+      echo 'Starting Docusaurus server...' &&
+      npm install &&
+      npm run clear &&
+      npm run start -- --host 0.0.0.0
       "

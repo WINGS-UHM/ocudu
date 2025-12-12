@@ -277,3 +277,47 @@ TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_not_created)
   // check that the UE has not been added
   ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues);
 }
+
+/// Test inactive and i-rnti handling.
+TEST_F(ue_manager_test, when_ue_is_set_inactive_then_i_rnti_returned)
+{
+  du_index_t             du_index    = du_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
+  ue_index_t             ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  auto* ue = ue_mng.find_ue(ue_index);
+
+  dummy_rrc_ue rrc_ue;
+  ue->set_rrc_ue(rrc_ue);
+
+  std::optional<i_rntis_t> i_rntis = ue_mng.set_inactive(ue->get_ue_index());
+  ASSERT_TRUE(i_rntis.has_value());
+
+  // Check that the UE has not been removed.
+  ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), 1U);
+}
+
+TEST_F(ue_manager_test, when_ue_is_set_inactive_then_its_found_by_i_rnti)
+{
+  du_index_t             du_index    = du_index_t::min;
+  rnti_t                 rnti        = to_rnti(0x4601);
+  ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
+  ue_index_t             ue_index    = ue_mng.add_ue(du_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index);
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  auto* ue = ue_mng.find_ue(ue_index);
+
+  dummy_rrc_ue rrc_ue;
+  ue->set_rrc_ue(rrc_ue);
+
+  std::optional<i_rntis_t> i_rntis = ue_mng.set_inactive(ue->get_ue_index());
+  ASSERT_TRUE(i_rntis.has_value());
+  ASSERT_TRUE(i_rntis->short_i_rnti.value() < i_rntis->short_i_rnti.max());
+  ASSERT_TRUE(i_rntis->full_i_rnti.value() < i_rntis->full_i_rnti.max());
+
+  // Find by full-i-rnti.
+  ASSERT_NE(ue_mng.get_ue_index(i_rntis->full_i_rnti), ue_index_t::invalid);
+
+  // Find by short-i-rnti.
+  ASSERT_NE(ue_mng.get_ue_index(i_rntis->short_i_rnti), ue_index_t::invalid);
+}

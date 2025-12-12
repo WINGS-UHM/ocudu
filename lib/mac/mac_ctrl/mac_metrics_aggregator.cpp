@@ -348,10 +348,12 @@ void mac_metrics_aggregator::try_send_new_report()
   }
 
   if (ring_elem.start_slot != next_report_start_slot) {
-    // Invalid ring slot.
-    logger.warning("Discarding metric report for slot={}. Cause: Expected report for slot={}",
-                   ring_elem.start_slot,
-                   next_report_start_slot);
+    // Invalid ring slot. We produce a warning and attempt to resync.
+    logger.warning(
+        "Metric reports may have been discarded. Cause: Received a metric report for slot={} when slot={} was expected",
+        ring_elem.start_slot,
+        next_report_start_slot);
+    next_report_start_slot = ring_elem.start_slot;
     return;
   }
 

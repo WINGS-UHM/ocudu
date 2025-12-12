@@ -19,14 +19,13 @@
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/security_manager_config.h"
 #include "ocudu/cu_cp/ue_configuration.h"
+#include "ocudu/ran/i_rnti.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <set>
 #include <unordered_map>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ue_manager : public ue_metrics_handler
 {
@@ -59,6 +58,23 @@ public:
   /// \param[in] pci The PCI of the cell the UE is/was connected to.
   /// \param[in] c_rnti The RNTI of the UE.
   ue_index_t get_ue_index(pci_t pci, rnti_t c_rnti);
+
+  /// \brief Get the UE index of the UE.
+  /// \param[in] full_i_rnti The Full-I-RNTI of the UE.
+  ue_index_t get_ue_index(full_i_rnti_t full_i_rnti);
+
+  /// \brief Get the UE index of the UE.
+  /// \param[in] short_i_rnti The Short-I-RNTI of the UE.
+  ue_index_t get_ue_index(short_i_rnti_t short_i_rnti);
+
+  /// \brief Set the UE with the given UE index to inactive state.
+  /// \param[in] ue_index Index of the UE to be set to inactive.
+  /// \return The Full- and Short-I-RNTI assigned to the UE for resumption, or std::nullopt if not applicable.
+  std::optional<i_rntis_t> set_inactive(ue_index_t ue_index);
+
+  /// \brief Set the UE with the given UE index to active state.
+  /// \param[in] ue_index Index of the UE to be set to active.
+  void set_active(ue_index_t ue_index);
 
   /// \brief Get the CU-CP UE configuration stored in the UE manager.
   /// \return The CU-CP UE configuration.
@@ -156,20 +172,49 @@ public:
 
 protected:
   ue_index_t next_ue_index = ue_index_t::min;
+  i_rntis_t  next_i_rntis;
 
 private:
   /// \brief Get the next available UE index.
   /// \return The UE index.
   ue_index_t allocate_ue_index();
 
-  inline void increase_next_ue_index()
+  void increase_next_ue_index()
   {
     if (next_ue_index == ue_index_t::max) {
-      // reset cu ue f1ap id counter
+      // Reset cu ue f1ap id counter.
       next_ue_index = ue_index_t::min;
     } else {
-      // increase cu ue f1ap id counter
+      // Increase cu ue f1ap id counter.
       next_ue_index = uint_to_ue_index(ue_index_to_uint(next_ue_index) + 1);
+    }
+  }
+
+  /// \brief Get the next available Full- and Short-I-RNTI.
+  /// \return The Full- and Short-I-RNTI if available, std::nullopt otherwise.
+  std::optional<i_rntis_t> allocate_i_rntis();
+
+  void increase_full_i_rnti(full_i_rnti_t& full_i_rnti) const
+  {
+    if (full_i_rnti.value() == full_i_rnti.max()) {
+      // Reset Full-I-RNTI counter.
+      full_i_rnti = full_i_rnti_t{cu_cp_config.node.gnb_id.id, 0, ue_config.nof_i_rnti_ue_bits};
+    } else {
+      // Increase Full-I-RNTI counter.
+      uint32_t next_ue_id = (full_i_rnti.value() - (cu_cp_config.node.gnb_id.id >> ue_config.nof_i_rnti_ue_bits)) + 1;
+      full_i_rnti         = full_i_rnti_t{cu_cp_config.node.gnb_id.id, next_ue_id, ue_config.nof_i_rnti_ue_bits};
+    }
+  }
+
+  void increase_short_i_rnti(short_i_rnti_t& short_i_rnti) const
+  {
+    if (short_i_rnti.value() == short_i_rnti.max()) {
+      // Reset Short-I-RNTI counter.
+      short_i_rnti = short_i_rnti_t{cu_cp_config.node.gnb_id.id, 0, ue_config.nof_i_rnti_ue_bits};
+    } else {
+      // Increase Short-I-RNTI counter.
+      uint32_t next_ue_id = (short_i_rnti.value() - (cu_cp_config.node.gnb_id.id >> ue_config.nof_i_rnti_ue_bits)) + 1;
+      short_i_rnti        = short_i_rnti_t{cu_cp_config.node.gnb_id.id, next_ue_id, ue_config.nof_i_rnti_ue_bits};
     }
   }
 
@@ -186,11 +231,12 @@ private:
   // Container of UE contexts handled by the CU-CP.
   std::unordered_map<ue_index_t, cu_cp_ue> ues;
 
-  // ue index lookups
-  std::map<std::tuple<pci_t, rnti_t>, ue_index_t> pci_rnti_to_ue_index; // ue_indexes indexed by pci and rnti
+  // UE index lookups.
+  std::map<std::tuple<pci_t, rnti_t>, ue_index_t> pci_rnti_to_ue_index;     // ue_indexes indexed by pci and rnti
+  std::map<short_i_rnti_t, ue_index_t>            short_i_rnti_to_ue_index; // ue_indexes indexed by short_i_rnti
+  std::map<full_i_rnti_t, ue_index_t>             full_i_rnti_to_ue_index;  // ue_indexes indexed by full_i_rnti
 
   std::set<plmn_identity> blocked_plmns;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -21,6 +21,8 @@ void cu_cp_ue::stop()
 }
 
 ue_manager::ue_manager(const cu_cp_configuration& cu_cp_cfg) :
+  next_i_rntis({short_i_rnti_t{cu_cp_cfg.node.gnb_id.id, 0, cu_cp_cfg.ue.nof_i_rnti_ue_bits},
+                full_i_rnti_t{cu_cp_cfg.node.gnb_id.id, 0, cu_cp_cfg.ue.nof_i_rnti_ue_bits}}),
   cu_cp_config(cu_cp_cfg),
   ue_config(cu_cp_cfg.ue),
   up_config(up_resource_manager_cfg{cu_cp_cfg.bearers.drb_config, cu_cp_cfg.admission.max_nof_drbs_per_ue}),
@@ -86,7 +88,7 @@ ue_index_t ue_manager::add_ue(du_index_t                     du_index,
   // Create a dedicated task scheduler for the UE.
   ue_task_scheduler_impl ue_sched = ue_task_scheds.create_ue_task_sched(new_ue_index);
 
-  // Create UE object
+  // Create UE object.
   ues.emplace(std::piecewise_construct,
               std::forward_as_tuple(new_ue_index),
               std::forward_as_tuple(new_ue_index,
@@ -129,7 +131,7 @@ void ue_manager::remove_ue(ue_index_t ue_index)
     return;
   }
 
-  // remove UE from lookups
+  // Remove UE from lookups.
   pci_t pci = ues.at(ue_index).get_pci();
   if (pci != INVALID_PCI) {
     rnti_t c_rnti = ues.at(ue_index).get_c_rnti();
@@ -142,7 +144,7 @@ void ue_manager::remove_ue(ue_index_t ue_index)
     logger.debug("ue={}: PCI not found", ue_index);
   }
 
-  // Remove CU-CP UE from database
+  // Remove CU-CP UE from database.
   ues.erase(ue_index);
 
   logger.debug("ue={}: Removed", ue_index);
@@ -210,7 +212,80 @@ ue_index_t ue_manager::get_ue_index(pci_t pci, rnti_t rnti)
   return ue_index_t::invalid;
 }
 
-// common
+ue_index_t ue_manager::get_ue_index(full_i_rnti_t full_i_rnti)
+{
+  if (full_i_rnti_to_ue_index.find(full_i_rnti) != full_i_rnti_to_ue_index.end()) {
+    return full_i_rnti_to_ue_index.at(full_i_rnti);
+  }
+  logger.debug("UE index for {} not found", full_i_rnti);
+  return ue_index_t::invalid;
+}
+
+ue_index_t ue_manager::get_ue_index(short_i_rnti_t short_i_rnti)
+{
+  if (short_i_rnti_to_ue_index.find(short_i_rnti) != short_i_rnti_to_ue_index.end()) {
+    return short_i_rnti_to_ue_index.at(short_i_rnti);
+  }
+  logger.debug("UE index for {} not found", short_i_rnti);
+  return ue_index_t::invalid;
+}
+
+std::optional<i_rntis_t> ue_manager::set_inactive(ue_index_t ue_index)
+{
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Can't set inactive UE with invalid UE index");
+    return std::nullopt;
+  }
+
+  if (ues.find(ue_index) == ues.end()) {
+    logger.warning("ue={}: Set inactive called for inexistent UE", ue_index);
+    return std::nullopt;
+  }
+
+  std::optional<i_rntis_t> i_rntis = allocate_i_rntis();
+  if (!i_rntis.has_value()) {
+    logger.warning("ue={}: Could not allocate I-RNTIs for inactive UE", ue_index);
+    return std::nullopt;
+  }
+
+  // Add I-RNTIs to lookups.
+  full_i_rnti_to_ue_index.emplace(i_rntis->full_i_rnti, ue_index);
+  short_i_rnti_to_ue_index.emplace(i_rntis->short_i_rnti, ue_index);
+
+  return i_rntis;
+}
+
+void ue_manager::set_active(ue_index_t ue_index)
+{
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Can't set active UE with invalid UE index");
+    return;
+  }
+
+  if (ues.find(ue_index) == ues.end()) {
+    logger.warning("ue={}: Set active called for inexistent UE", ue_index);
+    return;
+  }
+
+  // Remove Full-I-RNTI from lookup.
+  for (auto it = full_i_rnti_to_ue_index.begin(); it != full_i_rnti_to_ue_index.end();) {
+    if (it->second == ue_index) {
+      it = full_i_rnti_to_ue_index.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  // Remove Short-I-RNTI from lookup.
+  for (auto it = short_i_rnti_to_ue_index.begin(); it != short_i_rnti_to_ue_index.end();) {
+    if (it->second == ue_index) {
+      it = short_i_rnti_to_ue_index.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+// Common.
 
 cu_cp_ue* ue_manager::find_ue(ue_index_t ue_index)
 {
@@ -228,7 +303,7 @@ ue_task_scheduler* ue_manager::find_ue_task_scheduler(ue_index_t ue_index)
   return nullptr;
 }
 
-// du processor
+// DU processor.
 
 cu_cp_ue* ue_manager::set_ue_du_context(ue_index_t      ue_index,
                                         gnb_du_id_t     du_id,
@@ -236,18 +311,30 @@ cu_cp_ue* ue_manager::set_ue_du_context(ue_index_t      ue_index,
                                         rnti_t          rnti,
                                         du_cell_index_t pcell_index)
 {
-  ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", ue_index);
-  ocudu_assert(pci != INVALID_PCI, "Invalid pci={}", pci);
-  ocudu_assert(rnti != rnti_t::INVALID_RNTI, "Invalid rnti={}", rnti);
-  ocudu_assert(pcell_index != du_cell_index_t::invalid, "Invalid pcell_index={}", pcell_index);
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Invalid ue_index={}", ue_index);
+    return nullptr;
+  }
+  if (pci == INVALID_PCI) {
+    logger.warning("Invalid pci={}", pci);
+    return nullptr;
+  }
+  if (rnti == rnti_t::INVALID_RNTI) {
+    logger.warning("Invalid rnti={}", rnti);
+    return nullptr;
+  }
+  if (pcell_index == du_cell_index_t::invalid) {
+    logger.warning("Invalid pcell_index={}", pcell_index);
+    return nullptr;
+  }
 
-  // check if ue_index is in db
+  // Check if ue_index is in db.
   if (ues.find(ue_index) == ues.end()) {
     logger.warning("ue={}: UE not found", ue_index);
     return nullptr;
   }
 
-  // check if the UE is already present
+  // Check if the UE is already present.
   if (get_ue_index(pci, rnti) != ue_index_t::invalid) {
     logger.warning("UE with pci={} and rnti={} already exists", pci, rnti);
     return nullptr;
@@ -280,7 +367,7 @@ cu_cp_ue* ue_manager::find_du_ue(ue_index_t ue_index)
 size_t ue_manager::get_nof_du_ues(du_index_t du_index)
 {
   unsigned ue_count = 0;
-  // Count UEs connected to the DU
+  // Count UEs connected to the DU.
   for (const auto& ue : ues) {
     if (ue.second.get_du_index() == du_index) {
       ue_count++;
@@ -317,16 +404,16 @@ std::vector<cu_cp_metrics_report::ue_info> ue_manager::handle_ue_metrics_report_
   return report;
 }
 
-// private functions
+// Private functions.
 
 ue_index_t ue_manager::allocate_ue_index()
 {
-  // return invalid when no UE index is available
+  // Return invalid when no UE index is available.
   if (ues.size() == max_nof_ues) {
     return ue_index_t::invalid;
   }
 
-  // Check if the next_ue_index is available
+  // Check if the next_ue_index is available.
   if (ues.find(next_ue_index) == ues.end()) {
     ue_index_t ret = next_ue_index;
     // increase the next_ue_index
@@ -335,19 +422,81 @@ ue_index_t ue_manager::allocate_ue_index()
   }
 
   // Find holes in the allocated IDs by iterating over all ids starting with the next_ue_index to find the
-  // available id
+  // available id.
   while (true) {
-    // increase the next_ue_index and try again
+    // Increase the next_ue_index and try again.
     increase_next_ue_index();
 
-    // return the id if it is not already used
+    // Return the id if it is not already used.
     if (ues.find(next_ue_index) == ues.end()) {
       ue_index_t ret = next_ue_index;
-      // increase the next_ue_index
+      // Increase the next_ue_index.
       increase_next_ue_index();
       return ret;
     }
   }
 
   return ue_index_t::invalid;
+}
+
+std::optional<i_rntis_t> ue_manager::allocate_i_rntis()
+{
+  // Return invalid when no UE index is available.
+  if (short_i_rnti_to_ue_index.size() == max_nof_ues or full_i_rnti_to_ue_index.size() == max_nof_ues) {
+    return std::nullopt;
+  }
+
+  std::optional<full_i_rnti_t>  next_full;
+  std::optional<short_i_rnti_t> next_short;
+
+  // Allocate Full-I-RNTI.
+  // Check if the Full-I-RNTI stored in next_i_rntis is available.
+  if (full_i_rnti_to_ue_index.find(next_i_rntis.full_i_rnti) == full_i_rnti_to_ue_index.end()) {
+    next_full = next_i_rntis.full_i_rnti;
+  }
+
+  if (!next_full.has_value()) {
+    // Find holes in the allocated Full-I-RNTI IDs by iterating over all ids starting with the Full-I-RNTI stored in
+    // next_i_rntis to find the available ID.
+    while (true) {
+      // Increase the Full-I-RNTI stored in the next_i_rnti and try again.
+      increase_full_i_rnti(next_i_rntis.full_i_rnti);
+      // Return the id if it is not already used
+      if (full_i_rnti_to_ue_index.find(next_i_rntis.full_i_rnti) == full_i_rnti_to_ue_index.end()) {
+        next_full = next_i_rntis.full_i_rnti;
+        break;
+      }
+    }
+  }
+
+  // Allocate Short-I-RNTI.
+  // Check if the Short-I-RNTI stored in next_i_rntis is available.
+  if (short_i_rnti_to_ue_index.find(next_i_rntis.short_i_rnti) == short_i_rnti_to_ue_index.end()) {
+    next_short = next_i_rntis.short_i_rnti;
+  }
+
+  if (!next_short.has_value()) {
+    // Find holes in the allocated Short-I-RNTI IDs by iterating over all ids starting with the Short-I-RNTI stored in
+    // next_i_rntis to find the available ID.
+    while (true) {
+      // Increase the Short-I-RNTI stored in the next_i_rnti and try again.
+      increase_short_i_rnti(next_i_rntis.short_i_rnti);
+      // Return the id if it is not already used
+      if (short_i_rnti_to_ue_index.find(next_i_rntis.short_i_rnti) == short_i_rnti_to_ue_index.end()) {
+        next_short = next_i_rntis.short_i_rnti;
+        break;
+      }
+    }
+  }
+
+  if (next_full.has_value() && next_short.has_value()) {
+    // Increase the Full-I-RNTI stored in next_i_rntis.
+    increase_full_i_rnti(next_i_rntis.full_i_rnti);
+    // Increase the Short-I-RNTI stored in next_i_rntis.
+    increase_short_i_rnti(next_i_rntis.short_i_rnti);
+
+    return i_rntis_t{next_short.value(), next_full.value()};
+  }
+
+  return std::nullopt;
 }

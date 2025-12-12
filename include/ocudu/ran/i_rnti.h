@@ -30,11 +30,13 @@ public:
   /// \param[in] nof_ue_bits_ Number of bits used for the UE ID.
   constexpr full_i_rnti_t(uint32_t gnb_id_, uint32_t ue_id_, uint8_t nof_ue_bits_)
   {
-    val = static_cast<uint64_t>(gnb_id_ << nof_ue_bits_) + (ue_id_ & ((static_cast<uint16_t>(1) << nof_ue_bits_) - 1));
+    val =
+        (static_cast<uint64_t>(gnb_id_ << nof_ue_bits_) + (ue_id_ & ((static_cast<uint16_t>(1) << nof_ue_bits_) - 1))) &
+        0x3fffffffff;
 
-    max_val = static_cast<uint64_t>(gnb_id_ << nof_ue_bits_) + (static_cast<uint32_t>(1 << nof_ue_bits_) - 1);
-
-    min_val = gnb_id_ << nof_ue_bits_;
+    max_val = (static_cast<uint64_t>(gnb_id_ << nof_ue_bits_) + (static_cast<uint32_t>(1 << nof_ue_bits_) - 1)) &
+              0x3fffffffff;
+    min_val = (gnb_id_ << nof_ue_bits_) & 0x3fffffffff;
   }
 
   /// Returns the maximum Full-I-RNTI value.
@@ -88,7 +90,9 @@ public:
   /// \param[in] nof_ue_bits_ Number of bits used for the UE ID.
   constexpr short_i_rnti_t(uint32_t gnb_id_, uint32_t ue_id_, uint8_t nof_ue_bits_)
   {
-    val = static_cast<uint32_t>(gnb_id_ << nof_ue_bits_) + (ue_id_ & ((static_cast<uint16_t>(1) << nof_ue_bits_) - 1));
+    val =
+        (static_cast<uint32_t>(gnb_id_ << nof_ue_bits_) + (ue_id_ & ((static_cast<uint16_t>(1) << nof_ue_bits_) - 1))) &
+        0x7ffff;
 
     max_val =
         (static_cast<uint32_t>(gnb_id_ << nof_ue_bits_) + (static_cast<uint32_t>(1 << nof_ue_bits_) - 1)) & 0x7ffff;
@@ -112,7 +116,7 @@ public:
     }
 
     auto gnb_id_val = static_cast<uint32_t>(value >> nof_ue_bits_);
-    auto ue_id_val  = static_cast<uint32_t>(value - (gnb_id_val << nof_ue_bits_));
+    auto ue_id_val  = (value - (gnb_id_val << nof_ue_bits_));
     return short_i_rnti_t{gnb_id_val, ue_id_val, nof_ue_bits_};
   }
 
@@ -130,6 +134,12 @@ private:
   uint32_t val     = 0;
   uint32_t max_val = 0;
   uint32_t min_val = 0;
+};
+
+/// \brief Common type for Full- and Short-I-RNTI pair.
+struct i_rntis_t {
+  short_i_rnti_t short_i_rnti;
+  full_i_rnti_t  full_i_rnti;
 };
 
 } // namespace ocudu

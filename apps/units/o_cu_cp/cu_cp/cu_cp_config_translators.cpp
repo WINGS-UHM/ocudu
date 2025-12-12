@@ -350,7 +350,6 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
     out_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
   }
 
-#ifndef OCUDU_HAS_ENTERPRISE
   for (const auto& cfg : cu_cfg.extra_amfs) {
     std::vector<ocucp::supported_tracking_area> supported_tas;
     for (const auto& supported_ta : cfg.supported_tas) {
@@ -368,11 +367,6 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
     }
     out_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
   }
-#else
-  if (!cu_cfg.extra_amfs.empty()) {
-    report_error("Invalid CU-CP configuration. \"extra_amfs\" parameter is only supported in Enterprise version.\n");
-  }
-#endif // OCUDU_HAS_ENTERPRISE
 
   out_cfg.rrc.force_reestablishment_fallback = cu_cfg.rrc_config.force_reestablishment_fallback;
   out_cfg.rrc.rrc_procedure_guard_time_ms    = std::chrono::milliseconds{cu_cfg.rrc_config.rrc_procedure_guard_time_ms};

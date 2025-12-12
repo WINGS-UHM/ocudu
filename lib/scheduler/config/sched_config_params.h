@@ -20,6 +20,7 @@ namespace ocudu {
 struct sched_ue_config_request;
 
 using coreset_config_ptr      = config_ptr<coreset_configuration>;
+using search_space_config_ptr = config_ptr<search_space_configuration>;
 using serving_cell_config_ptr = config_ptr<serving_cell_config>;
 
 /// Configuration of a BWP. It aggregates both the common and dedicated configurations for DL and UL.
@@ -37,7 +38,7 @@ struct bwp_config {
   /// CoreSets associated with this BWP.
   slotted_id_vector<coreset_id, coreset_config_ptr> coresets;
   /// Search Spaces associated with this BWP.
-  slotted_id_vector<search_space_id, search_space_configuration> search_spaces;
+  slotted_id_vector<search_space_id, search_space_config_ptr> search_spaces;
 
   bool operator==(const bwp_config& other) const
   {
@@ -59,7 +60,7 @@ struct ue_cell_res_config {
   slotted_id_vector<coreset_id, coreset_config_ptr> coresets;
   /// Container that maps searchSpaceIds to searchSpace configurations for this BWP.
   /// Note: The ID space of searchSpaceIds is common among the BWPs of a Serving Cell as per TS 38.331.
-  slotted_id_vector<search_space_id, search_space_configuration> search_spaces;
+  slotted_id_vector<search_space_id, search_space_config_ptr> search_spaces;
   /// List of BWPs configured in this cell.
   bwp_config_list bwps;
   /// \brief \c pdsch-ServingCellConfig, used to configure UE specific PDSCH parameters that are common across the UE's

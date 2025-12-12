@@ -179,10 +179,7 @@ private:
   std::array<std::atomic<du_cell_index_t>, MAX_NOF_DU_UES> ue_to_pcell_index;
 
   // Cached UE configurations to be reused.
-  concurrent_queue<std::unique_ptr<ue_configuration>,
-                   concurrent_queue_policy::lockfree_mpmc,
-                   concurrent_queue_wait_policy::non_blocking>
-      ues_to_rem;
+  concurrent_queue<std::unique_ptr<ue_configuration>, concurrent_queue_policy::lockfree_mpmc> ues_to_rem;
 };
 
 } // namespace ocudu

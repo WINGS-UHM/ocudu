@@ -179,12 +179,12 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
     for (unsigned l = 0; l != NOF_AGGREGATION_LEVELS; ++l) {
       const aggregation_level aggr_lvl = aggregation_index_to_level(l);
 
-      for (const search_space_configuration& ss : bwp.search_spaces) {
-        ASSERT_GE(ss.get_nof_candidates()[l],
-                  ue_cfg.search_space(ss.get_id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size())
+      for (const search_space_config_ptr& ss : bwp.search_spaces) {
+        ASSERT_GE(ss->get_nof_candidates()[l],
+                  ue_cfg.search_space(ss->get_id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size())
             << "The generated candidates cannot exceed the number of candidates passed in the SearchSpace config";
 
-        pdcch_candidates_count += ue_cfg.search_space(ss.get_id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size();
+        pdcch_candidates_count += ue_cfg.search_space(ss->get_id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size();
       }
     }
 

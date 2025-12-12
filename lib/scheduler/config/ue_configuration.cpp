@@ -129,9 +129,9 @@ static bool is_dci_format_monitored_in_ue_ss(const ue_cell_configuration& ue_cel
                                       ? search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0
                                       : search_space_configuration::ue_specific_dci_format::f0_1_and_1_1;
   return std::any_of(
-      bwp_search_spaces.begin(), bwp_search_spaces.end(), [dci_format](const search_space_configuration& ss) {
-        return (not ss.is_common_search_space()) and (std::get<search_space_configuration::ue_specific_dci_format>(
-                                                          ss.get_monitored_dci_formats()) == dci_format);
+      bwp_search_spaces.begin(), bwp_search_spaces.end(), [dci_format](const search_space_config_ptr& ss) {
+        return (not ss->is_common_search_space()) and (std::get<search_space_configuration::ue_specific_dci_format>(
+                                                           ss->get_monitored_dci_formats()) == dci_format);
       });
 }
 
@@ -419,7 +419,7 @@ static void remove_ambiguous_pdcch_candidates(slotted_array<search_space_info, M
     // Conditions only apply to candidates with same set of CCES, thus, same aggregation level.
     for (unsigned i = 0; i != NOF_AGGREGATION_LEVELS; ++i) {
       for (auto ss_it = bwp.search_spaces.begin(); ss_it != bwp.search_spaces.end(); ++ss_it) {
-        const search_space_info& ss1            = ss_list[ss_it->get_id()];
+        const search_space_info& ss1            = ss_list[(*ss_it)->get_id()];
         pdcch_candidate_list&    ss_candidates1 = candidates[ss1.cfg->get_id()][slot_index][i];
         if (ss_candidates1.empty()) {
           // shortcut.
@@ -442,7 +442,7 @@ static void remove_ambiguous_pdcch_candidates(slotted_array<search_space_info, M
         auto ss_it2 = ss_it;
         ++ss_it2;
         for (; ss_it2 != bwp.search_spaces.end(); ++ss_it2) {
-          const search_space_info& ss2 = ss_list[ss_it2->get_id()];
+          const search_space_info& ss2 = ss_list[(*ss_it2)->get_id()];
 
           if (ss2.coreset->id != ss1.coreset->id or get_dl_dci_size(ss1) != get_dl_dci_size(ss2)) {
             // Conditions only apply to same CORESET p, same DCI sizes.
@@ -488,9 +488,9 @@ static void apply_pdcch_candidate_monitoring_limits(slotted_array<search_space_i
   for (unsigned slot_index = 0; slot_index != ss_period_lcm; ++slot_index) {
     // Limit number of PDCCH candidates for the slot.
     unsigned candidate_count = 0;
-    for (const search_space_configuration& ss : bwp.search_spaces) {
+    for (const search_space_config_ptr& ss : bwp.search_spaces) {
       for (unsigned i = 0; i != NOF_AGGREGATION_LEVELS; ++i) {
-        pdcch_candidate_list& ss_candidates = candidates[ss.get_id()][slot_index][i];
+        pdcch_candidate_list& ss_candidates = candidates[(*ss).get_id()][slot_index][i];
 
         if (max_pdcch_candidates < candidate_count + ss_candidates.size()) {
           ss_candidates.resize(max_pdcch_candidates - candidate_count);
@@ -562,8 +562,8 @@ static void generate_crnti_monitored_pdcch_candidates(slotted_array<search_space
   unsigned max_slot_periodicity = 0;
   {
     static_vector<unsigned, MAX_NOF_SEARCH_SPACE_PER_BWP> ss_periods;
-    for (const search_space_configuration& ss : bwp_cfg.search_spaces) {
-      ss_periods.push_back(ss.get_monitoring_slot_periodicity());
+    for (const search_space_config_ptr& ss : bwp_cfg.search_spaces) {
+      ss_periods.push_back(ss->get_monitoring_slot_periodicity());
     }
     max_slot_periodicity = lcm<unsigned>(ss_periods.begin(), ss_periods.end());
     max_slot_periodicity = std::lcm(max_slot_periodicity, slots_per_frame);
@@ -572,34 +572,34 @@ static void generate_crnti_monitored_pdcch_candidates(slotted_array<search_space
   frame_pdcch_candidate_list candidates;
 
   // Compute PDCCH candidates for each Search Space, without accounting for special monitoring rules.
-  for (const search_space_configuration& ss : bwp_cfg.search_spaces) {
-    candidates.emplace(ss.get_id());
-    auto& ss_candidates = candidates[ss.get_id()];
+  for (const search_space_config_ptr& ss : bwp_cfg.search_spaces) {
+    candidates.emplace(ss->get_id());
+    auto& ss_candidates = candidates[ss->get_id()];
     ss_candidates.resize(max_slot_periodicity);
 
     for (unsigned slot_count = 0, slot_count_end = ss_candidates.size(); slot_count != slot_count_end; ++slot_count) {
       const slot_point slot_mod{bwp_cfg.dl_common->value().generic_params.scs, slot_count};
 
       // If the SearchSpace is not monitored in this slot, skip its candidate generation.
-      if (not pdcch_helper::is_pdcch_monitoring_active(slot_mod, ss)) {
+      if (not pdcch_helper::is_pdcch_monitoring_active(slot_mod, *ss)) {
         continue;
       }
 
       for (unsigned i = 0; i != NOF_AGGREGATION_LEVELS; ++i) {
         const aggregation_level aggr_lvl = aggregation_index_to_level(i);
 
-        if (ss.is_common_search_space()) {
+        if (ss->is_common_search_space()) {
           ss_candidates[slot_count][i] =
               pdcch_candidates_common_ss_get_lowest_cce(pdcch_candidates_common_ss_configuration{
-                  aggr_lvl, ss.get_nof_candidates()[i], bwp_cfg.coresets[ss.get_coreset_id()]->get_nof_cces()});
+                  aggr_lvl, ss->get_nof_candidates()[i], bwp_cfg.coresets[ss->get_coreset_id()]->get_nof_cces()});
           continue;
         }
 
         ss_candidates[slot_count][i] = pdcch_candidates_ue_ss_get_lowest_cce(
             pdcch_candidates_ue_ss_configuration{aggr_lvl,
-                                                 ss.get_nof_candidates()[i],
-                                                 bwp_cfg.coresets[ss.get_coreset_id()]->get_nof_cces(),
-                                                 ss.get_coreset_id(),
+                                                 ss->get_nof_candidates()[i],
+                                                 bwp_cfg.coresets[ss->get_coreset_id()]->get_nof_cces(),
+                                                 ss->get_coreset_id(),
                                                  crnti,
                                                  slot_mod.slot_index()});
       }
@@ -613,8 +613,8 @@ static void generate_crnti_monitored_pdcch_candidates(slotted_array<search_space
   apply_pdcch_candidate_monitoring_limits(ss_list, candidates, bwp_cfg);
 
   // Save resulting candidates for this slot.
-  for (const search_space_configuration& ss : bwp_cfg.search_spaces) {
-    ss_list[ss.get_id()].update_pdcch_candidates(candidates[ss.get_id()], pci);
+  for (const search_space_config_ptr& ss : bwp_cfg.search_spaces) {
+    ss_list[ss->get_id()].update_pdcch_candidates(candidates[ss->get_id()], pci);
   }
 }
 

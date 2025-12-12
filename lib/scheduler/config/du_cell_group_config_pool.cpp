@@ -68,8 +68,8 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
     bwp_cfg.coresets.emplace(common_coreset.id, coreset_config_pool.create(common_coreset));
     out.coresets.emplace(common_coreset.id, bwp_cfg.coresets[common_coreset.id]);
   }
-  for (const auto& ss : dl_bwp_common.pdcch_common.search_spaces) {
-    bwp_cfg.search_spaces.emplace(ss.get_id(), ss);
+  for (const search_space_configuration& ss : dl_bwp_common.pdcch_common.search_spaces) {
+    bwp_cfg.search_spaces.emplace(ss.get_id(), ss_config_pool.create(ss));
   }
 
   // BWP DL Dedicated
@@ -83,9 +83,9 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
       bwp_cfg.coresets.emplace(cs.id, coreset_config_pool.create(cs));
       out.coresets.emplace(cs.id, bwp_cfg.coresets[cs.id]);
     }
-    for (const auto& ss : dl_bwp_ded.pdcch_cfg->search_spaces) {
-      bwp_cfg.search_spaces.emplace(ss.get_id(), ss);
-      out.search_spaces.emplace(ss.get_id(), ss);
+    for (const search_space_configuration& ss : dl_bwp_ded.pdcch_cfg->search_spaces) {
+      bwp_cfg.search_spaces.emplace(ss.get_id(), ss_config_pool.create(ss));
+      out.search_spaces.emplace(ss.get_id(), bwp_cfg.search_spaces[ss.get_id()]);
     }
   }
 

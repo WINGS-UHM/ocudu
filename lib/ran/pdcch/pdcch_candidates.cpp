@@ -55,11 +55,11 @@ ocudu::pdcch_candidates_common_ss_get_lowest_cce(const pdcch_candidates_common_s
 
 pdcch_candidate_list ocudu::pdcch_candidates_ue_ss_get_lowest_cce(const pdcch_candidates_ue_ss_configuration& config)
 {
-  static const std::array<unsigned, 3> A_p_values = {39827, 39829, 39839};
-  const unsigned                       n_ci       = 0;
+  constexpr static unsigned                D          = 65537;
+  constexpr static std::array<unsigned, 3> A_p_values = {39827, 39829, 39839};
+  constexpr static unsigned                n_ci       = 0;
 
   const unsigned A_p = A_p_values[static_cast<size_t>(config.cs_id) % A_p_values.size()];
-  const unsigned D   = 65537;
   const unsigned Y_p = pdcch_candidates_ue_ss_get_Y_p(A_p, D, to_value(config.rnti), config.slot_index);
 
   return pdcch_candidates_get_lowest_cce(

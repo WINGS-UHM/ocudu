@@ -13,7 +13,6 @@
 #include "cu_cp_unit_config.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 #include "ocudu/ran/plmn_identity.h"
-#include "ocudu/rlc/rlc_config.h"
 #include <sstream>
 
 using namespace ocudu;
@@ -47,6 +46,30 @@ static std::map<five_qi_t, ocucp::cu_cp_qos_config> generate_cu_cp_qos_config(co
       out_pdcp.rlc_mode = pdcp_rlc_mode::am;
     } else {
       report_error("Invalid RLC mode: {}, mode={}\n", qos.five_qi, qos.rlc.mode);
+    }
+
+    // Header compression
+    if (qos.pdcp.rohc.rohc_type != cu_cp_unit_pdcp_rohc_type::none) {
+      out_pdcp.header_compression.emplace(rohc::rohc_config{});
+      auto& rohc_cfg   = *out_pdcp.header_compression;
+      rohc_cfg.max_cid = qos.pdcp.rohc.max_cid;
+      if (qos.pdcp.rohc.rohc_type == cu_cp_unit_pdcp_rohc_type::rohc) {
+        rohc_cfg.rohc_type = rohc::rohc_type_t::rohc;
+        rohc_cfg.profiles.set_profile(rohc::rohc_profile::profile0x0001, qos.pdcp.rohc.profile0x0001)
+            .set_profile(rohc::rohc_profile::profile0x0002, qos.pdcp.rohc.profile0x0002)
+            .set_profile(rohc::rohc_profile::profile0x0003, qos.pdcp.rohc.profile0x0003)
+            .set_profile(rohc::rohc_profile::profile0x0004, qos.pdcp.rohc.profile0x0004)
+            .set_profile(rohc::rohc_profile::profile0x0006, qos.pdcp.rohc.profile0x0006)
+            .set_profile(rohc::rohc_profile::profile0x0101, qos.pdcp.rohc.profile0x0101)
+            .set_profile(rohc::rohc_profile::profile0x0102, qos.pdcp.rohc.profile0x0102)
+            .set_profile(rohc::rohc_profile::profile0x0103, qos.pdcp.rohc.profile0x0103)
+            .set_profile(rohc::rohc_profile::profile0x0104, qos.pdcp.rohc.profile0x0104);
+      } else if (qos.pdcp.rohc.rohc_type == cu_cp_unit_pdcp_rohc_type::uplink_only_rohc) {
+        rohc_cfg.rohc_type = rohc::rohc_type_t::uplink_only_rohc;
+        rohc_cfg.profiles.set_profile(rohc::rohc_profile::profile0x0006, qos.pdcp.rohc.profile0x0006);
+      } else {
+        report_error("Invalid ROHC type: {}, type={}\n", qos.five_qi, to_string(qos.pdcp.rohc.rohc_type));
+      }
     }
 
     out_pdcp.integrity_protection_required = false;

@@ -358,6 +358,26 @@ static void fill_cu_cp_rlc_qos_section(YAML::Node node, const cu_cp_unit_rlc_con
 static void fill_cu_cp_pdcp_qos_section(YAML::Node node, const cu_cp_unit_pdcp_config& config)
 {
   {
+    YAML::Node rohc_node   = node["rohc"];
+    rohc_node["rohc_type"] = to_string(config.rohc.rohc_type);
+    if (config.rohc.rohc_type != cu_cp_unit_pdcp_rohc_type::none) {
+      rohc_node["max_cid"] = config.rohc.max_cid;
+      if (config.rohc.rohc_type == cu_cp_unit_pdcp_rohc_type::rohc) {
+        rohc_node["profile0x0001"] = config.rohc.profile0x0001;
+        rohc_node["profile0x0002"] = config.rohc.profile0x0002;
+        rohc_node["profile0x0003"] = config.rohc.profile0x0003;
+        rohc_node["profile0x0004"] = config.rohc.profile0x0004;
+        rohc_node["profile0x0006"] = config.rohc.profile0x0006;
+        rohc_node["profile0x0101"] = config.rohc.profile0x0101;
+        rohc_node["profile0x0102"] = config.rohc.profile0x0102;
+        rohc_node["profile0x0103"] = config.rohc.profile0x0103;
+        rohc_node["profile0x0104"] = config.rohc.profile0x0104;
+      } else if (config.rohc.rohc_type == cu_cp_unit_pdcp_rohc_type::uplink_only_rohc) {
+        rohc_node["profile0x0006"] = config.rohc.profile0x0006;
+      }
+    }
+  }
+  {
     YAML::Node tx_node                = node["tx"];
     tx_node["sn"]                     = config.tx.sn_field_length;
     tx_node["discard_timer"]          = config.tx.discard_timer;

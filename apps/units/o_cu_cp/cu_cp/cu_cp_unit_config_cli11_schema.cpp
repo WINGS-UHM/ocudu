@@ -545,6 +545,44 @@ static void configure_cli11_rlc_args(CLI::App& app, cu_cp_unit_rlc_config& rlc_p
   configure_cli11_rlc_am_args(*rlc_am_subcmd, rlc_params.am);
 }
 
+static void configure_cli11_pdcp_rohc_args(CLI::App& app, cu_cp_unit_pdcp_rohc_config& pdcp_rohc_params)
+{
+  add_option_function<std::string>(
+      app,
+      "--rohc_type",
+      [&pdcp_rohc_params](const std::string& value) {
+        if (value == "none") {
+          pdcp_rohc_params.rohc_type = cu_cp_unit_pdcp_rohc_type::none;
+        } else if (value == "rohc") {
+          pdcp_rohc_params.rohc_type = cu_cp_unit_pdcp_rohc_type::rohc;
+        } else if (value == "uplink_only_rohc") {
+          pdcp_rohc_params.rohc_type = cu_cp_unit_pdcp_rohc_type::uplink_only_rohc;
+        }
+      },
+      "ROHC type (none/rohc/ul_only_rohc). Values: {none, rohc, ul_only_rohc}. Default: none")
+      ->default_str("none")
+      ->check(CLI::IsMember({"none", "rohc", "uplink_only_rohc"}));
+  add_option(app, "--max_cid", pdcp_rohc_params.max_cid, "Maximum CID")->capture_default_str();
+  add_option(app, "--profile0x0001", pdcp_rohc_params.profile0x0001, "Configure profile0x0001 (ROHCv1 RTP/UDP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0002", pdcp_rohc_params.profile0x0002, "Configure profile0x0002 (ROHCv1 UDP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0003", pdcp_rohc_params.profile0x0003, "Configure profile0x0003 (ROHCv1 ESP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0004", pdcp_rohc_params.profile0x0004, "Configure profile0x0004 (ROHCv1 IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0006", pdcp_rohc_params.profile0x0006, "Configure profile0x0006 (ROHCv1 TCP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0101", pdcp_rohc_params.profile0x0101, "Configure profile0x0101 (ROHCv2 RTP/UDP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0102", pdcp_rohc_params.profile0x0102, "Configure profile0x0102 (ROHCv2 UDP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0103", pdcp_rohc_params.profile0x0103, "Configure profile0x0103 (ROHCv2 ESP/IP)")
+      ->always_capture_default();
+  add_option(app, "--profile0x0104", pdcp_rohc_params.profile0x0104, "Configure profile0x0104 (ROHCv2 IP)")
+      ->always_capture_default();
+}
+
 static void configure_cli11_pdcp_tx_args(CLI::App& app, cu_cp_unit_pdcp_tx_config& pdcp_tx_params)
 {
   add_option(app, "--sn", pdcp_tx_params.sn_field_length, "PDCP TX SN size")->capture_default_str();
@@ -564,11 +602,15 @@ static void configure_cli11_pdcp_rx_args(CLI::App& app, cu_cp_unit_pdcp_rx_confi
 
 static void configure_cli11_pdcp_args(CLI::App& app, cu_cp_unit_pdcp_config& pdcp_params)
 {
+  // Header compression section.
+  CLI::App* pdcp_rohc_subcmd = app.add_subcommand("rohc", "Header compression parameters");
+  configure_cli11_pdcp_rohc_args(*pdcp_rohc_subcmd, pdcp_params.rohc);
+
   // Transmission section.
   CLI::App* pdcp_tx_subcmd = app.add_subcommand("tx", "PDCP TX parameters");
   configure_cli11_pdcp_tx_args(*pdcp_tx_subcmd, pdcp_params.tx);
 
-  /// Reception section.
+  // Reception section.
   CLI::App* pdcp_rx_subcmd = app.add_subcommand("rx", "PDCP RX parameters");
   configure_cli11_pdcp_rx_args(*pdcp_rx_subcmd, pdcp_params.rx);
 }

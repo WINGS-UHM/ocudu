@@ -447,6 +447,8 @@ pdcp_config ocudu::ocucp::set_rrc_pdcp_config(five_qi_t five_qi, const up_resour
                "Could not find PDCP configuration. 5QI {}",
                five_qi);
 
+  // TODO: Consider UE capabilities on ROHC support here.
+
   return cfg.five_qi_config.at(five_qi).pdcp;
 }
 

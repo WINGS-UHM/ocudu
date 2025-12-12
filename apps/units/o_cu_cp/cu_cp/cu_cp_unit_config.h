@@ -227,6 +227,47 @@ struct cu_cp_unit_rlc_config {
   cu_cp_unit_rlc_am_config am;
 };
 
+enum class cu_cp_unit_pdcp_rohc_type { none, rohc, uplink_only_rohc };
+
+inline const char* to_string(cu_cp_unit_pdcp_rohc_type type)
+{
+  switch (type) {
+    case cu_cp_unit_pdcp_rohc_type::none:
+      return "none";
+    case cu_cp_unit_pdcp_rohc_type::rohc:
+      return "rohc";
+    case cu_cp_unit_pdcp_rohc_type::uplink_only_rohc:
+      return "uplink_only_rohc";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+struct cu_cp_unit_pdcp_rohc_config {
+  /// ROHC type.
+  cu_cp_unit_pdcp_rohc_type rohc_type = cu_cp_unit_pdcp_rohc_type::none;
+  /// Maximum CID.
+  uint16_t max_cid = 15;
+  /// Configure profile0x0001 (ROHCv1 RTP/UDP/IP)
+  bool profile0x0001 = false;
+  /// Configure profile0x0002 (ROHCv1 UDP/IP)
+  bool profile0x0002 = false;
+  /// Configure profile0x0003 (ROHCv1 ESP/IP)
+  bool profile0x0003 = false;
+  /// Configure profile0x0004 (ROHCv1 IP)
+  bool profile0x0004 = false;
+  /// Configure profile0x0006 (ROHCv1 TCP/IP)
+  bool profile0x0006 = false;
+  /// Configure profile0x0101 (ROHCv2 RTP/UDP/IP)
+  bool profile0x0101 = false;
+  /// Configure profile0x0102 (ROHCv2 UDP/IP)
+  bool profile0x0102 = false;
+  /// Configure profile0x0103 (ROHCv2 ESP/IP)
+  bool profile0x0103 = false;
+  /// Configure profile0x0104 (ROHCv2 IP)
+  bool profile0x0104 = false;
+};
+
 struct cu_cp_unit_pdcp_rx_config {
   /// Number of bits used for sequence number.
   uint16_t sn_field_length;
@@ -246,8 +287,9 @@ struct cu_cp_unit_pdcp_tx_config {
 };
 
 struct cu_cp_unit_pdcp_config {
-  cu_cp_unit_pdcp_tx_config tx;
-  cu_cp_unit_pdcp_rx_config rx;
+  cu_cp_unit_pdcp_rohc_config rohc;
+  cu_cp_unit_pdcp_tx_config   tx;
+  cu_cp_unit_pdcp_rx_config   rx;
 };
 
 /// QoS configuration.

@@ -341,12 +341,6 @@ void pucch_allocator_impl::alloc_sr_opportunity(cell_slot_resource_allocator& pu
     return;
   }
 
-  // [Implementation-defined] We only allow a max number of PUCCH + PUSCH grants per slot.
-  if (not is_there_space_for_new_pucch_grants(pucch_slot_alloc.result, 1U)) {
-    alloc_ctx.log_skipped_alloc(logger.warning, "max number of UL/PUCCH grants reached");
-    return;
-  }
-
   if (existing_ue_grants != nullptr) {
     // NOTE: This check can be removed in future refactors, it's not required by the SR allocator. At the moment, we
     // schedule the SRs before anything else, therefore we don't expect to find any existing PUCCH grant.
@@ -357,6 +351,12 @@ void pucch_allocator_impl::alloc_sr_opportunity(cell_slot_resource_allocator& pu
       // way around. If the function enters the path, it means it too early to start scheduling the SR.
       alloc_ctx.log_skipped_alloc(logger.info, "existing common PUCCH grant for the same UE");
     }
+    return;
+  }
+
+  // [Implementation-defined] We only allow a max number of PUCCH + PUSCH grants per slot.
+  if (not is_there_space_for_new_pucch_grants(pucch_slot_alloc.result, 1U)) {
+    alloc_ctx.log_skipped_alloc(logger.warning, "max number of UL/PUCCH grants reached");
     return;
   }
 

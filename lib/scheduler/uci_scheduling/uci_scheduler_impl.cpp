@@ -11,7 +11,7 @@
 #include "uci_scheduler_impl.h"
 #include "../cell/resource_grid.h"
 #include "../support/sched_result_helpers.h"
-#include "uci_allocator_impl.h"
+#include "uci_allocator.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
 using namespace ocudu;
@@ -30,14 +30,14 @@ uci_scheduler_impl::uci_scheduler_impl(const cell_configuration& cell_cfg_,
   updated_ues.reserve(MAX_NOF_DU_UES);
 }
 
-void uci_scheduler_impl::run_slot(cell_resource_allocator& cell_alloc)
+void uci_scheduler_impl::run_slot(cell_resource_allocator& res_alloc)
 {
   // Initial allocation: we allocate opportunities all over the grid.
-  schedule_updated_ues_ucis(cell_alloc);
+  schedule_updated_ues_ucis(res_alloc);
 
   // Only allocate in the farthest slot in the grid, as the previous part of the allocation grid has been completed
   // at the first this function was called.
-  schedule_slot_ucis(cell_alloc[cell_alloc.max_ul_slot_alloc_delay]);
+  schedule_slot_ucis(res_alloc[res_alloc.max_ul_slot_alloc_delay]);
 }
 
 void uci_scheduler_impl::stop()
@@ -251,7 +251,7 @@ void uci_scheduler_impl::schedule_slot_ucis(cell_slot_resource_allocator& slot_a
   }
 }
 
-void uci_scheduler_impl::schedule_updated_ues_ucis(cell_resource_allocator& cell_alloc)
+void uci_scheduler_impl::schedule_updated_ues_ucis(cell_resource_allocator& res_alloc)
 {
   // For all UEs whose config has been recently updated, schedule their UCIs up until one slot before the farthest
   // slot in the resource grid.
@@ -265,11 +265,11 @@ void uci_scheduler_impl::schedule_updated_ues_ucis(cell_resource_allocator& cell
     }
 
     // Schedule UCI up to the farthest slot.
-    for (unsigned n = 0; n != cell_alloc.max_ul_slot_alloc_delay; ++n) {
-      auto& slot_ucis = periodic_uci_slot_wheel[(cell_alloc.slot_tx() + n).count() % periodic_uci_slot_wheel.size()];
+    for (unsigned n = 0; n != res_alloc.max_ul_slot_alloc_delay; ++n) {
+      auto& slot_ucis = periodic_uci_slot_wheel[(res_alloc.slot_tx() + n).count() % periodic_uci_slot_wheel.size()];
 
       // Skip UCI scheduling for this UE and slot, if they collide with other resources.
-      if (not has_space_for_uci_pdu(cell_alloc[n].result, rnti, cell_cfg.expert_cfg.ue)) {
+      if (not has_space_for_uci_pdu(res_alloc[n].result, rnti, cell_cfg.expert_cfg.ue)) {
         if (logger.debug.enabled()) {
           // If we want more detailed logs on the skipped allocations.
           for (const periodic_uci_info& uci_info : slot_ucis) {
@@ -277,7 +277,7 @@ void uci_scheduler_impl::schedule_updated_ues_ucis(cell_resource_allocator& cell
               logger.debug("cell={} c-rnti={}: Skipped UCI scheduling for slot={}. Cause: Max PUCCHs has been reached",
                            fmt::underlying(cell_cfg.cell_index),
                            rnti,
-                           cell_alloc[n].slot);
+                           res_alloc[n].slot);
             }
           }
         }
@@ -290,13 +290,21 @@ void uci_scheduler_impl::schedule_updated_ues_ucis(cell_resource_allocator& cell
           // NOTE: Allocating the CSI after the SR helps the PUCCH allocation to compute the number of allocated UCI
           // bits and the corresponding number of PRBs for the PUCCH Format 2 over a PUCCH F2 grant is within PUCCH
           // capacity.
+
           if (uci_info.sr_counter > 0) {
-            uci_alloc.alloc_sr_opportunity(cell_alloc[n], rnti, *ue_cfg);
+            bool existing_grants = std::any_of(res_alloc[n].result.ul.pucchs.begin(),
+                                               res_alloc[n].result.ul.pucchs.end(),
+                                               [rnti](const pucch_info& grant) { return grant.crnti == rnti; });
+            if (not existing_grants) {
+              // Only allocate SR if there are no existing PUCCH grants for this UE in this slot, as the PUCCH allocator
+              // doesn't support multiplexing SR over other UCI.
+              uci_alloc.alloc_sr_opportunity(res_alloc[n], rnti, *ue_cfg);
+            }
           }
 
           // Schedule CSI
           if (uci_info.csi_counter > 0) {
-            uci_alloc.alloc_csi_opportunity(cell_alloc[n], rnti, *ue_cfg);
+            uci_alloc.alloc_csi_opportunity(res_alloc[n], rnti, *ue_cfg);
           }
         }
       }

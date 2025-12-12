@@ -144,15 +144,14 @@ inline std::pair<grant_info, std::optional<grant_info>> get_pucch_grant_info(con
     ofdm_symbol_range second_hop_symbols{pucch.resources.symbols.start() + pucch.resources.symbols.length() / 2,
                                          pucch.resources.symbols.stop()};
 
-    unsigned crb_first_hop  = prb_to_crb(bwp_cfg, pucch.resources.prbs.start());
-    unsigned crb_second_hop = prb_to_crb(bwp_cfg, pucch.resources.second_hop_prbs.start());
-    return {grant_info{bwp_cfg.scs, first_hop_symbols, crb_interval{crb_first_hop, crb_first_hop + 1}},
-            grant_info{bwp_cfg.scs, second_hop_symbols, crb_interval{crb_second_hop, crb_second_hop + 1}}};
+    crb_interval crbs_first_hop  = prb_to_crb(bwp_cfg, pucch.resources.prbs);
+    crb_interval crbs_second_hop = prb_to_crb(bwp_cfg, pucch.resources.prbs);
+    return {grant_info{bwp_cfg.scs, first_hop_symbols, crbs_first_hop},
+            grant_info{bwp_cfg.scs, second_hop_symbols, crbs_second_hop}};
   }
   // No frequency hopping.
-  unsigned crb_first_hop = prb_to_crb(bwp_cfg, pucch.resources.prbs.start());
-  return {grant_info{bwp_cfg.scs, pucch.resources.symbols, crb_interval{crb_first_hop, crb_first_hop + 1}},
-          std::nullopt};
+  crb_interval crbs = prb_to_crb(bwp_cfg, pucch.resources.prbs);
+  return {grant_info{bwp_cfg.scs, pucch.resources.symbols, crbs}, std::nullopt};
 }
 
 } // namespace ocudu

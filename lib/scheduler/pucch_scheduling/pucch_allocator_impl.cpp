@@ -994,7 +994,7 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
     //  - The resource for HARQ-ACK and the resource for SR/CSI do not overlap in symbols
     //  [Implementation-defined] In this case, we force the UE to use a PUCCH resource for HARQ-ACK that is guaranteed
     //  to overlap (in symbols) with the SR or CSI resource.
-    const bool ue_with_f0_sr_and_f2_csi_alloc =
+    const bool f0_and_f2_and_ue_with_sr_or_csi =
         cell_cfg.is_pucch_f0_and_f2() and (new_bits.sr_bits != sr_nof_bits::no_sr or new_bits.csi_part1_nof_bits != 0U);
 
     candidate_resources.harq_resource.emplace(pucch_grant{.type = pucch_grant_type::harq_ack});
@@ -1004,12 +1004,12 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
     // configuration from this resource; (ii) the UE has Format 0 resources, and it needs to transmit HARQ-ACK bits +
     // SR or CSI in the same slot.
     if ((ue_current_grants.pucch_grants.harq_resource.has_value() and
-         ue_current_grants.pucch_grants.harq_resource.value().harq_id.pucch_set_idx == pucch_set_idx) or
-        ue_with_f0_sr_and_f2_csi_alloc) {
+         ue_current_grants.pucch_grants.harq_resource->harq_id.pucch_set_idx == pucch_set_idx) or
+        f0_and_f2_and_ue_with_sr_or_csi) {
       // NOTE: If the UE has Format 0 resources, and it needs to transmit HARQ-ACK bits + SR or CSI in the same slot,
       // use the HARQ-ACK resource that has highest PUCCH resource indicator; the UE's dedicated PUCCH config has been
       // constructed in such a way that this resource overlaps with the SR or CSI resource.
-      const unsigned pucch_res_ind = ue_with_f0_sr_and_f2_csi_alloc
+      const unsigned pucch_res_ind = f0_and_f2_and_ue_with_sr_or_csi
                                          ? get_pucch_resource_ind_f0_sr_csi(new_bits, pucch_cfg)
                                          : ue_current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind;
 
@@ -1017,7 +1017,7 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
                                            ? guard.reserve_harq_set_0_resource_by_res_indicator(pucch_res_ind)
                                            : guard.reserve_harq_set_1_resource_by_res_indicator(pucch_res_ind);
       if (harq_res == nullptr) {
-        if (ue_with_f0_sr_and_f2_csi_alloc) {
+        if (f0_and_f2_and_ue_with_sr_or_csi) {
           ocudu_assertion_failure("rnti={}: PUCCH HARQ-ACK that should be reserved for this UE is not available",
                                   ue_current_grants.rnti);
         } else {
@@ -1849,10 +1849,22 @@ void pucch_allocator_impl::remove_unused_pucch_res(pucch_resource_manager::ue_re
   // Remove the PUCCH resources by evaluating the difference between the previously allocated resources and the
   // current ones.
   if (existing_pucchs.pucch_grants.csi_resource.has_value() and not grants_to_tx.csi_resource.has_value()) {
-    guard.release_csi_resource();
+    // If using Formats 0 and 2 and CSI and HARQ are multiplexed together, the HARQ resource chosen will always be
+    // CSI_F2. This resource is not managed by the collision manager.
+    // In this case, we should NOT release the CSI resource here, to prevent collisions with any other UL grant.
+    // TODO: If using Formats 0 and 2 and HARQ+CSI+SR are all multiplexed together, we should release the CSI resource,
+    // since the UE will use SR_F0 or SR_F2.
+    if (not(cell_cfg.is_pucch_f0_and_f2() and grants_to_tx.harq_resource.has_value())) {
+      guard.release_csi_resource();
+    }
   }
   if (existing_pucchs.pucch_grants.sr_resource.has_value() and not grants_to_tx.sr_resource.has_value()) {
-    guard.release_sr_resource();
+    // If using Formats 0 and 2 and SR and HARQ are multiplexed together, the HARQ resource chosen will be either SR_F0
+    // or SR_F2. These resources are not managed by the collision manager.
+    // In this case, we should NOT release the SR resource here, to prevent collisions with any other UL grant.
+    if (not(cell_cfg.is_pucch_f0_and_f2() and grants_to_tx.harq_resource.has_value())) {
+      guard.release_sr_resource();
+    }
   }
 
   if (existing_pucchs.pucch_grants.harq_resource.has_value() and

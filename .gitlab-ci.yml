@@ -388,46 +388,81 @@ unit coverage dev:
     <<: *unit_coverage_artifacts
     expire_in: 1 day
 
-pages:
+doxygen:
   stage: documentation
-  environment:
-    name: pages
-    url: https://ocudu.gitlab.io/ocudu
+  image: ${CI_REGISTRY_IMAGE}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: always # Even if previous stages/required jobs fail
       allow_failure: true
-  image: ${CI_REGISTRY_IMAGE}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
   script:
-    - mkdir public
-    - mv coverage_html public/
-    - mv codechecker*html public/
-    - mv docs/index.html public/index.html
     - |
-      rm -Rf build
-      mkdir build
-      cd build || exit
+      rm -Rf build_doxygen
+      mkdir build_doxygen
+      cd build_doxygen || exit
       cmake -DENABLE_UHD=False -DBUILD_TESTING=False ..
       make -j $(nproc) doxygen
-      cd ..
-    - mkdir public/doxygen
-    - rsync -a build/docs/doxygen/html/ public/doxygen/
+  artifacts:
+    paths:
+      - build_doxygen/docs/doxygen/html
+    expire_in: 7 days
+  needs:
+    - job: trigger doxygen
+      optional: true
+      artifacts: false
+
+build docusaurus:
+  stage: documentation
+  image: node:20
+  rules:
+    - if: $ON_MR
+      changes:
+        paths:
+          - docs/docusaurus/**/*
+          - "**/*.md"
+      variables:
+        BASE_URL: /-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/
+  script:
+    # Move static HTML reports
+    - mkdir -p docs/docusaurus/static
+    - mv coverage_html docs/docusaurus/static/coverage || true
+    - mv codechecker-cppcheck-html docs/docusaurus/static/cppcheck || true
+    - mv build_doxygen/docs/doxygen/html docs/docusaurus/static/doxygen || true
+    # Build Docusaurus site
+    - cd docs/docusaurus
+    - npm install
+    - npm run build
+    - cd ${CI_PROJECT_DIR}
+    # Move built site to public folder
+    - mv docs/docusaurus/build public
+    # Report link
     - |
-      # Remove bigger file if size is bigger than 900MB
-      while [ $(du -s public | awk '{print $1}') -gt 921600 ]; do
-        file_to_remove=$(find public -type f ! -name "*.html" ! -name "*.js" -exec ls -l {} + | sort -k5 -n -r | awk 'NR==1' | awk '{print $NF}')
-        file_size=$(du -h "$file_to_remove" | awk '{print $1}')
-        echo "Removing file: $file_to_remove (Size: $file_size)"
-        rm -f "$file_to_remove"
-      done
-  after_script:
-    - sed -i 's/commit_hash/'$CI_COMMIT_SHA'/' public/index.html
+      echo "*******************************************************************************************************************************"
+      echo "https://${CI_PROJECT_NAMESPACE_SLUG}.${CI_PAGES_DOMAIN}/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
+      echo "*******************************************************************************************************************************"
+  needs:
+    - job: unit coverage
+      artifacts: true
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 day
+
+pages:
+  extends: build docusaurus
+  environment:
+    name: pages
+    url: https://ocudu.gitlab.io/ocudu
+  variables:
+    BASE_URL: /$CI_PROJECT_NAME/
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+      when: always # Even if previous stages/required jobs fail
+      allow_failure: true
   needs:
     - job: unit coverage dev
       artifacts: true
     - job: cppcheck
       artifacts: true
-  artifacts:
-    paths:
-      - public
-    expire_in: 10 minutes
+    - job: doxygen
+      artifacts: true

@@ -15,7 +15,7 @@ echo "=================="
 
 # for CMake/YML files
 find . -type f -\( -name "CMakeLists.txt" -o -name "*.cmake" -o -name "*.yml" -o -name "*.sh" -o -name "*.py" -o -name "*.toml" -o -name "Dockerfile" -o -name "ocudu_performance" -o -name ".gdbinit" \) \
-    ! -path "*/build/*" ! -path "*/.tox/*" ! -path "*/docker/open5gs/*" ! -name "FindBackward.cmake" ! -name "sbom.cmake" \
+    ! -path "*/build*/*" ! -path "*/.tox/*" ! -path "*/docker/open5gs/*" ! -name "FindBackward.cmake" ! -name "sbom.cmake" ! -path "*/node_modules*/*" \
     -print0 | while IFS= read -r -d '' file; do
 
     # Check header format

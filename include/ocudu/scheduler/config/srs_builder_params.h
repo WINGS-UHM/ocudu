@@ -38,6 +38,13 @@ struct srs_builder_params {
   tx_comb_size tx_comb = tx_comb_size::n4;
   /// Defines the number of symbols per SRS resource.
   srs_nof_symbols nof_symbols = srs_nof_symbols::n1;
+  /// If set, defines the SRS bandwidth in RBs.
+  /// \remark The SRS resources are always placed at the end of the slot.
+  /// Values: {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 52, 56, 60, 64, 72, 76, 80, 88, 96, 104, 112, 120, 128, 132,
+  /// 136, 144, 152, 160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272}.
+  std::optional<unsigned> srs_bw_rbs = std::nullopt;
+  /// Defines the index of SRS starting RB within the BWP.
+  bounded_integer<unsigned, 0, 269> srs_rb_start = 0;
   /// Defines the CS reuse factor for the SRS resources.
   /// \remark With 2 or 4 antenna ports, different cyclic shifts are used by the different antennas. This parameter
   /// defines how many UEs can be multiplexed in the same symbols and RBs by exploiting different cyclic shifts.

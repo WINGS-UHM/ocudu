@@ -55,7 +55,7 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
         const pucch_config_common& pucch_cfg_common = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
         HANDLE_ERROR(validate_pucch_cfg(
             cell.serv_cell_cfg, cell_cfg.ded_pucch_resources, pucch_cfg_common, cell_cfg.dl_carrier.nof_ant));
-        HANDLE_ERROR(validate_srs_cfg(cell.serv_cell_cfg));
+        HANDLE_ERROR(validate_srs_cfg(cell.serv_cell_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs));
       }
 
       HANDLE_ERROR(

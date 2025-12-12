@@ -30,6 +30,7 @@ validator_result validate_pdsch_cfg(const serving_cell_config& ue_cell_cfg);
 
 /// \brief Validates PUCCH Config in \c sched_ue_creation_request_message used to create a UE.
 /// \param[in] ue_cell_cfg UE serving cell configuration to be validated.
+/// \param[in] cell_pucch_res_list Cell PUCCH resource list.
 /// \param[in] pucch_cfg_common PUCCH commmon configuration.
 /// \param[in] nof_dl_antennas Number of antennas used for DL tx.
 /// \return In case an invalid parameter is detected, returns a string containing an error message.
@@ -39,14 +40,16 @@ validator_result validate_pucch_cfg(const serving_cell_config&         ue_cell_c
                                     unsigned                           nof_dl_antennas);
 
 /// \brief Validates PUSCH Config in \c sched_ue_creation_request_message used to create a UE.
-/// \param[in] uplink_config Uplink configuration to be validated.
+/// \param[in] ul_config Uplink configuration to be validated.
+/// \param[in] has_csi determines whether the UE has CSI enabled.
 /// \return In case an invalid parameter is detected, returns a string containing an error message.
 validator_result validate_pusch_cfg(const uplink_config& ul_config, bool has_csi);
 
 /// \brief Validates SRS Config in \c sched_ue_creation_request_message used to create a UE.
 /// \param[in] ue_cell_cfg UE serving cell configuration to be validated.
+/// \param[in] ul_bwp_crbs UL BWP CRB interval.
 /// \return In case an invalid parameter is detected, returns a string containing an error message.
-validator_result validate_srs_cfg(const serving_cell_config& ue_cell_cfg);
+validator_result validate_srs_cfg(const serving_cell_config& ue_cell_cfg, crb_interval ul_bwp_crbs);
 
 /// \brief Validates the NZP-CSI-RS Resource list in \c serving_cell_config passed to a UE.
 validator_result validate_nzp_csi_rs_list(span<const nzp_csi_rs_resource>               nzp_csi_rs_list,

@@ -660,6 +660,7 @@ static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&
 
 static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
                                           subcarrier_spacing             scs_common,
+                                          unsigned                       nof_crbs,
                                           unsigned                       nof_ul_ports)
 {
   if (config.srs_period_ms.has_value()) {
@@ -684,12 +685,29 @@ static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
   }
 
   if (config.nof_symbols > config.max_nof_symbols_per_slot) {
-    fmt::print("The number of symbols per SRS resource ({}) should be less than or equal to the maximum number of "
-               "SRS symbols per slot"
-               "({})\n",
+    fmt::print("The number of symbols per SRS resource ({}) should be less than or equal to the maximum number of SRS "
+               "symbols per slot ({})\n",
                config.nof_symbols,
                config.max_nof_symbols_per_slot);
     return false;
+  }
+
+  if (config.srs_bw_rbs.has_value()) {
+    if (config.srs_bw_rbs.value() > nof_crbs) {
+      fmt::print(
+          "The SRS bandwidth in RBs ({}) should be less than or equal to the maximum number of the carrier CRBs ({})\n",
+          config.srs_bw_rbs.value(),
+          nof_crbs);
+      return false;
+    }
+    if (config.srs_rb_start + config.srs_bw_rbs.value() > nof_crbs) {
+      fmt::print("With the given SRS start RB ({}) and BW in RBs ({}), the SRS would fall outside the carrier CRBs [0, "
+                 "{}). \n",
+                 config.srs_rb_start,
+                 config.srs_bw_rbs.value(),
+                 nof_crbs);
+      return false;
+    }
   }
 
   if (config.tx_comb == 2U) {
@@ -1248,7 +1266,7 @@ static bool validate_base_cell_unit_config(const du_high_unit_base_cell_config& 
     return false;
   }
 
-  if (!validate_srs_cell_unit_config(config.srs_cfg, config.common_scs, config.nof_antennas_ul)) {
+  if (!validate_srs_cell_unit_config(config.srs_cfg, config.common_scs, nof_crbs, config.nof_antennas_ul)) {
     return false;
   }
 

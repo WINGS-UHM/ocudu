@@ -193,7 +193,8 @@ static du_cell_config make_odu_cell_config(const cell_config_builder_params& par
 class du_srs_resource_manager_tester : public ::testing::TestWithParam<srs_params>
 {
 protected:
-  explicit du_srs_resource_manager_tester(cell_config_builder_params params_ = make_cell_cfg_params(GetParam())) :
+  explicit du_srs_resource_manager_tester(
+      const cell_config_builder_params& params_ = make_cell_cfg_params(GetParam())) :
     params(params_),
     cell_cfg_list({make_odu_cell_config(params_, GetParam().test_optimality)}),
     srs_params(cell_cfg_list[0].srs_cfg),
@@ -219,8 +220,7 @@ protected:
     // Reset the SRS config before allocating resources.
     ue.cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.reset();
 
-    bool res = du_srs_res_mng.alloc_resources(ue);
-    if (res) {
+    if (du_srs_res_mng.alloc_resources(ue)) {
       return ue;
     }
     // If the allocation was not possible, remove the UE.
@@ -268,13 +268,13 @@ protected:
   // Helper that computes the C_SRS parameter (see Section 6.4.1.4.3, TS 38.211).
   unsigned compute_c_srs() const
   {
-    // In this test, we only consider the case where B_SRS is 0.
-    const uint8_t b_srs           = 0U;
-    unsigned      candidate_c_srs = 0U;
-    unsigned      candidate_m_srs = 0U;
+    unsigned candidate_c_srs = 0U;
+    unsigned candidate_m_srs = 0U;
     // Spans over Table 6.4.1.4.3-1 in TS 38.211 and find the smallest C_SRS that maximizes m_srs_0 under the
     // constraint of m_SRS <= nof_BW_RBs.
     for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
+      // In this test, we only consider the case where B_SRS is 0.
+      constexpr uint8_t                b_srs   = 0U;
       std::optional<srs_configuration> srs_cfg = srs_configuration_get(c_srs_it, b_srs);
       ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
       if (srs_cfg.value().m_srs <= cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length() and
@@ -535,7 +535,7 @@ protected:
 
   // Check if there is any symbol interval of the same index of the one of the given SRS resource that is not empty, but
   // not full either.
-  bool non_empty_non_full_interval(const srs_config::srs_resource& srs_res)
+  bool non_empty_non_full_interval(const srs_config::srs_resource& srs_res) const
   {
     const unsigned interval_idx = srs_res.res_mapping.start_pos / static_cast<uint8_t>(srs_res.res_mapping.nof_symb);
     for (unsigned n = 0; n != srs_res_tracker.size(); ++n) {

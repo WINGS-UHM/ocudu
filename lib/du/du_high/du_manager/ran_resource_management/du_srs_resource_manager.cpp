@@ -16,20 +16,20 @@ using namespace ocudu;
 using namespace odu;
 
 // Helper that computes the SRS bandwidth parameter \f$C_{SRS}\f$ based on the number of UL RBs.
-static std::optional<unsigned> compute_srs_bw_param(unsigned nof_ul_rbs)
+static std::optional<unsigned> compute_srs_bw_param(unsigned nof_srs_bw_rbs)
 {
   // Iterate over Table 6.4.1.4.3-1, TS 38.211, and find the minimum \f$C_{SRS}\f$ value that maximizes \f$m_{SRS,0}\f$
   // under the constraint \f$m_{SRS,0}\f$ <= UL RBs.
 
   // As per Table 6.4.1.4.3-1, TS 38.211, the maximum value of \f$C_{SRS}\f$ is 63.
   constexpr unsigned max_non_valid_c_srs = 64;
-  // As per Table 6.4.1.4.3-1, TS 38.211, we do not consider frequency hopping.
-  constexpr uint8_t b_srs_0 = 0;
   // Defines the pair of C_SRS and m_SRS values.
   using pair_c_srs_m_srs                          = std::pair<unsigned, unsigned>;
   std::optional<pair_c_srs_m_srs> candidate_c_srs = std::nullopt;
   for (uint8_t c_srs = 0; c_srs != max_non_valid_c_srs; ++c_srs) {
-    auto srs_params = srs_configuration_get(c_srs, b_srs_0);
+    // As per Table 6.4.1.4.3-1, TS 38.211, we do not consider frequency hopping.
+    constexpr uint8_t b_srs_0    = 0;
+    auto              srs_params = srs_configuration_get(c_srs, b_srs_0);
 
     if (not srs_params.has_value()) {
       ocudu_assertion_failure("C_SRS is not compatible with the current BW configuration");
@@ -42,25 +42,25 @@ static std::optional<unsigned> compute_srs_bw_param(unsigned nof_ul_rbs)
     }
     // NOTE: the condition srs_params.value().m_srs > candidate_c_srs->second is used to find the minimum C_SRS value
     // that maximizes m_SRS.
-    else if (srs_params.value().m_srs <= nof_ul_rbs and srs_params.value().m_srs > candidate_c_srs->second) {
+    else if (srs_params.value().m_srs <= nof_srs_bw_rbs and srs_params.value().m_srs > candidate_c_srs->second) {
       candidate_c_srs = pair_c_srs_m_srs{c_srs, srs_params.value().m_srs};
     }
     // If we reach this point, no need to keep looking for a valid C_SRS value.
-    if (srs_params.value().m_srs > nof_ul_rbs) {
+    if (srs_params.value().m_srs > nof_srs_bw_rbs) {
       break;
     }
   }
   return candidate_c_srs.value().first;
 }
 
-// Helper that returns the frequency shift value for the SRS; the value is computed in such a way that the SRS resources
+// Helper that returns the RB start value for the SRS; the value is computed in such a way that the SRS resources
 // are placed at the center of the band.
-static unsigned compute_freq_shift(unsigned c_srs, unsigned nof_ul_rbs)
+static unsigned compute_srs_rb_start(unsigned c_srs, unsigned nof_ul_rbs)
 {
   // As per Section 6.4.1.4.3, the parameter \f$m_{SRS}\f$ = 0 is an index that, along with \f$C_{SRS}\f$, maps to the
   // bandwidth of the SRS resources.
-  constexpr uint8_t                b_srs_0    = 0;
-  std::optional<srs_configuration> srs_params = srs_configuration_get(c_srs, b_srs_0);
+  constexpr uint8_t                      b_srs_0    = 0;
+  const std::optional<srs_configuration> srs_params = srs_configuration_get(c_srs, b_srs_0);
   ocudu_sanity_check(srs_params.has_value() and nof_ul_rbs >= srs_params.value().m_srs,
                      "The SRS configuration is not valid");
 
@@ -132,15 +132,23 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
       continue;
     }
 
-    std::optional<unsigned> c_srs =
-        compute_srs_bw_param(cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()).value();
+    // If the SRS bw is not set an input parameter, then we assume SRS will use the maximum allowed number or RBs.
+    const std::optional<unsigned> c_srs = compute_srs_bw_param(cell.cell_cfg.srs_cfg.srs_bw_rbs.value_or(
+        cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()));
     ocudu_assert(c_srs.has_value(), "SRS parameters didn't provide a valid C_SRS value");
     cell.srs_common_params.c_srs = c_srs.value();
-    std::optional<unsigned> freq_shift =
-        compute_freq_shift(c_srs.value(), cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
-    ocudu_assert(freq_shift.has_value(), "SRS parameters didn't provide a valid freq_shift value");
-    cell.srs_common_params.freq_shift = freq_shift.value();
-    cell.srs_common_params.p0         = cell.cell_cfg.srs_cfg.p0;
+    // Only if the SRS bw is set as an input parameter, then we use the given input parameter for SRS starting RB; else,
+    // we compute it automatically.
+    std::optional<unsigned> srs_rb_start =
+        cell.cell_cfg.srs_cfg.srs_bw_rbs.has_value()
+            ? std::optional<unsigned>{cell.cell_cfg.srs_cfg.srs_rb_start.value()}
+            : compute_srs_rb_start(c_srs.value(), cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+    ocudu_assert(srs_rb_start.has_value(), "SRS parameters didn't provide a valid freq_shift value");
+    // As per TS 38.211, Section 6.4.1.4.3, if \f$n_{shift} >= BWP_RB_start\f$, the reference point for the SRS
+    // subcarriers is the CRB idx 0, else the BWP_RB_start; in here, implicitly define \f$n_{shift} >= BWP_RB_start\f$.
+    cell.srs_common_params.freq_shift =
+        srs_rb_start.value() + cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start();
+    cell.srs_common_params.p0 = cell.cell_cfg.srs_cfg.p0;
 
     // TODO: evaluate whether we need to consider the case of multiple cells.
     cell.cell_srs_res_list = generate_cell_srs_list(cell.cell_cfg);
@@ -310,7 +318,7 @@ du_srs_policy_max_ul_rate::cell_context::find_optimal_ue_srs_resource()
   static constexpr unsigned max_weight         = 100U;
   static constexpr unsigned symbol_weight_base = 10U;
   // We give a discount to the symbol weight if the offset is already used but not full.
-  static const unsigned partial_symb_interval_discount = symbol_weight_base / 2U;
+  static constexpr unsigned partial_symb_interval_discount = symbol_weight_base / 2U;
 
   const auto weight_function = [&](const pair_res_id_offset& srs_res) {
     if (cell_cfg.tdd_ul_dl_cfg_common.has_value() and
@@ -339,12 +347,12 @@ du_srs_policy_max_ul_rate::cell_context::find_optimal_ue_srs_resource()
     return symb_weight - reuse_slot_discount;
   };
 
-  auto optimal_res_it = std::min_element(
-      srs_res_offset_free_list.begin(),
-      srs_res_offset_free_list.end(),
-      [&weight_function](const std::pair<unsigned, unsigned>& lhs, const std::pair<unsigned, unsigned>& rhs) {
-        return weight_function(lhs) < weight_function(rhs);
-      });
+  auto optimal_res_it =
+      std::min_element(srs_res_offset_free_list.begin(),
+                       srs_res_offset_free_list.end(),
+                       [&weight_function](const pair_res_id_offset& lhs, const pair_res_id_offset& rhs) {
+                         return weight_function(lhs) < weight_function(rhs);
+                       });
 
   return optimal_res_it;
 }

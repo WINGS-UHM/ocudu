@@ -9,11 +9,13 @@
  */
 
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
+#include "cell_configuration.h"
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/config/validator_helpers.h"
@@ -471,7 +473,7 @@ validator_result config_validators::validate_pusch_cfg(const uplink_config& ul_c
   return {};
 }
 
-validator_result config_validators::validate_srs_cfg(const serving_cell_config& ue_cell_cfg)
+validator_result config_validators::validate_srs_cfg(const serving_cell_config& ue_cell_cfg, crb_interval ul_bwp_crbs)
 {
   VERIFY(ue_cell_cfg.ul_config.has_value() and ue_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
          "Missing configuration for uplinkConfig or srs-Config in spCellConfig");
@@ -521,6 +523,26 @@ validator_result config_validators::validate_srs_cfg(const serving_cell_config& 
   VERIFY(static_cast<uint8_t>(srs_res.res_mapping.nof_symb) <= srs_res.res_mapping.start_pos + 1,
          "The SRS resource number of symbols and start position should be such that the SRS resource fits within the "
          "slot symbols");
+
+  VERIFY(srs_res.freq_hop.b_srs == 0,
+         "SRS res_id={} invalid configuration: Only B_SRS == 0 is currently supported",
+         fmt::underlying(srs_res.id.ue_res_id));
+  constexpr unsigned                     B_srs_0    = 0;
+  const std::optional<srs_configuration> srs_params = srs_configuration_get(srs_res.freq_hop.c_srs, B_srs_0);
+  VERIFY(srs_params.has_value(),
+         "No valid configuration found for the SRS res_id={}",
+         fmt::underlying(srs_res.id.ue_res_id));
+  // This per-se wouldn't be a problem according to the TS, but we construct the UE configuration with this constraint
+  // to simplify the scheduler implementation.
+  VERIFY(srs_res.freq_domain_shift >= ul_bwp_crbs.start(),
+         "SRS res_id={} invalid configuration: frequency shift smaller than BWP lower RB",
+         fmt::underlying(srs_res.id.ue_res_id));
+  VERIFY(srs_params.value().m_srs <= ul_bwp_crbs.length(),
+         "SRS res_id={} invalid configuration: SRS BW exceeding the BWP number or RBs",
+         fmt::underlying(srs_res.id.ue_res_id));
+  VERIFY(srs_res.freq_domain_shift + srs_params.value().m_srs <= ul_bwp_crbs.stop(),
+         "SRS res_id={} invalid configuration: SRS falls outside the BWP upper RB",
+         fmt::underlying(srs_res.id.ue_res_id));
 
   return {};
 }

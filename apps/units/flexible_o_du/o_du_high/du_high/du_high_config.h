@@ -509,6 +509,13 @@ struct du_high_unit_srs_config {
   /// Defines the number of symbols per SRS resource as per \c nrofSymbols, \c resourceMapping, \c SRS-Resource \c
   /// SRS-Config, TS 38.331. Values: {1, 2, 4}.
   unsigned nof_symbols = 1;
+  /// If set, defines the SRS bandwidth in RBs.
+  /// \remark The SRS resources are always placed at the end of the slot.
+  /// Values: {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 52, 56, 60, 64, 72, 76, 80, 88, 96, 104, 112, 120, 128, 132,
+  /// 136, 144, 152, 160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272}.
+  std::optional<unsigned> srs_bw_rbs = std::nullopt;
+  /// Defines the lowest RB index of the SRS RBs interval.
+  unsigned srs_rb_start = 0;
   /// \c Transmission comb number, \c transmissionComb, \c SRS-Resource \c SRS-Config, TS 38.331. Values: {2, 4}.
   unsigned tx_comb = 4;
   /// Defines the Cyclic Shift (CS) reuse factor for the SRS resources.

@@ -39,23 +39,42 @@ protected:
   base_ta_management_system_test() :
     ul_scs(subcarrier_spacing::kHz30),
     ta_sys(expert_cfg.ue.ta_control),
-    next_sl_tx(to_numerology_value(ul_scs), test_rgen::uniform_int<unsigned>(0, 10239))
+    next_sl_tx(
+        ul_scs,
+        test_rgen::uniform_int<unsigned>(0,
+                                         NOF_SFNS * NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(ul_scs) - 1))
   {
   }
 
   void run_slot()
   {
     next_sl_tx++;
+    lc_ch_sys.slot_indication();
     ta_sys.slot_indication(next_sl_tx);
   }
 
   unsigned add_ue()
   {
-    unsigned ue_index = ues.size();
-    auto&    u        = ues.emplace_back();
-    u.ue_lc_chs       = lc_ch_sys.create_ue(to_du_ue_index(ue_index), ul_scs, false, cfg_pool.create({}));
-    u.ta_mgr          = ta_sys.add_ue(time_alignment_group::id_t{0}, ul_scs, u.ue_lc_chs.view());
+    unsigned ue_index;
+    if (free_list.empty()) {
+      ue_index = ues.size();
+    } else {
+      ue_index = free_list.back();
+      free_list.pop_back();
+    }
+    auto ret = ues.insert(std::make_pair(ue_index, ue_context{}));
+    ocudu_assert(ret.second, "Failed to insert UE in the repository");
+    auto& u     = ret.first->second;
+    u.ue_lc_chs = lc_ch_sys.create_ue(to_du_ue_index(ue_index), ul_scs, false, cfg_pool.create({}));
+    u.ta_mgr    = ta_sys.add_ue(time_alignment_group::id_t{0}, ul_scs, u.ue_lc_chs.view());
     return ue_index;
+  }
+
+  void rem_ue(unsigned ue_index)
+  {
+    ocudu_assert(ues.contains(ue_index), "Invalid UE index");
+    ues.erase(ue_index);
+    free_list.push_back(ue_index);
   }
 
   /// Computes the N_TA update i.e. N_TA_new - N_TA_old value in T_C units, which will result in new TA command
@@ -104,7 +123,8 @@ protected:
 
   slot_point next_sl_tx;
 
-  std::deque<ue_context> ues;
+  flat_map<unsigned, ue_context> ues;
+  std::vector<unsigned>          free_list;
 };
 
 /// Test fixture for the TA management of a single UE.
@@ -114,8 +134,8 @@ protected:
   single_ue_ta_manager_test()
   {
     unsigned offset = add_ue();
-    ue_lc_chs       = &ues[offset].ue_lc_chs;
-    ta_mgr          = &ues[offset].ta_mgr;
+    ue_lc_chs       = &ues.at(offset).ue_lc_chs;
+    ta_mgr          = &ues.at(offset).ta_mgr;
     run_slot();
   }
 
@@ -314,7 +334,7 @@ TEST_F(multi_ue_ta_manager_test, ta_cmd_is_successfully_triggered_for_multiple_u
 
   // Enqueue a UL N_TA update indication of high SINR for all UEs.
   for (unsigned i = 0; i < nof_ues; ++i) {
-    ues[i].ta_mgr.handle_ul_n_ta_update_indication(
+    ues.at(i).ta_mgr.handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
   }
 
@@ -353,13 +373,13 @@ TEST_F(multi_ue_ta_manager_test, ta_cmd_is_successfully_triggered_for_ues_not_re
   const uint8_t new_ta_cmd = 33;
   const float   ul_sinr    = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
   for (unsigned i = 0; i < nof_ues; ++i) {
-    ues[i].ta_mgr.handle_ul_n_ta_update_indication(
+    ues.at(i).ta_mgr.handle_ul_n_ta_update_indication(
         time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
   }
 
   std::vector<unsigned> reset_ues = {2, 7};
   for (unsigned idx : reset_ues) {
-    ues[idx].ta_mgr.reset();
+    ues.at(idx).ta_mgr.reset();
   }
 
   // Ensure MAC CE is allocated for TA command for all non-reset UEs.
@@ -385,4 +405,54 @@ TEST_F(multi_ue_ta_manager_test, ta_cmd_is_successfully_triggered_for_ues_not_re
     }
   }
   ASSERT_EQ(count_ues, nof_ues - reset_ues.size()) << "Not all UEs received TA command";
+}
+
+TEST_F(multi_ue_ta_manager_test, test_random_ue_creation_and_ta_cmd_triggers)
+{
+  const unsigned                        run_nof_slots = 10000;
+  std::uniform_real_distribution<float> randf(0.0f, 1.0f);
+  auto                                  is_triggered = [&randf](float prob) { return randf(test_rgen::get()) < prob; };
+  const uint8_t                         new_ta_cmd   = 33;
+  const float                           ul_sinr = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
+
+  for (unsigned slot = 0; slot < run_nof_slots; ++slot) {
+    ASSERT_EQ(ues.size(), ta_sys.nof_active_ues());
+    // Randomly add UEs.
+    if (is_triggered(0.1)) {
+      add_ue();
+    }
+
+    // Randomly remove UEs.
+    if (not ues.empty() and is_triggered(0.1)) {
+      unsigned ue_to_rem = test_rgen::uniform_int<unsigned>(0, ues.size() - 1);
+      unsigned ue_idx    = ues.keys()[ue_to_rem];
+      rem_ue(ue_idx);
+    }
+
+    // Randomly enqueue UL N_TA update indications for existing UEs.
+    for (auto it = ues.begin(); it != ues.end(); ++it) {
+      if (is_triggered(0.3)) {
+        it->second.ta_mgr.handle_ul_n_ta_update_indication(
+            time_alignment_group::id_t{0}, compute_n_ta_diff_leading_to_new_ta_cmd(new_ta_cmd), ul_sinr);
+      }
+    }
+
+    // Run slot.
+    run_slot();
+
+    // Randomly allocate grants for TA commands.
+    for (auto it = ues.begin(); it != ues.end(); ++it) {
+      if (is_triggered(0.4)) {
+        auto ta_cmd_mac_ce_alloc = fetch_ta_cmd_mac_ce_allocation(it->first);
+        if (ta_cmd_mac_ce_alloc.has_value()) {
+          ASSERT_EQ(ta_cmd_mac_ce_alloc->lcid, lcid_dl_sch_t::TA_CMD)
+              << "TA command is not be triggered for UE " << it->first;
+          ASSERT_TRUE(std::holds_alternative<ta_cmd_ce_payload>(ta_cmd_mac_ce_alloc->ce_payload))
+              << "TA command CE payload is absent for UE " << it->first;
+        }
+      }
+    }
+  }
+
+  ASSERT_EQ(ues.size(), ta_sys.nof_active_ues());
 }

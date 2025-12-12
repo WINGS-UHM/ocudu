@@ -520,6 +520,7 @@ public:
   ue_logical_channel_repository& operator=(const ue_logical_channel_repository&) = delete;
   ue_logical_channel_repository& operator=(ue_logical_channel_repository&& other) noexcept
   {
+    reset();
     parent    = std::exchange(other.parent, nullptr);
     ue_index  = std::exchange(other.ue_index, INVALID_DU_UE_INDEX);
     ue_row_id = other.ue_row_id;

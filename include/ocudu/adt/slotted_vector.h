@@ -19,6 +19,9 @@
 
 namespace ocudu {
 
+template <typename T>
+class slotted_vector;
+
 namespace detail {
 
 /// Iterator implementation for a vector of optional types that automatically skips positions without a value.
@@ -93,6 +96,8 @@ public:
 private:
   template <typename U>
   friend class slotted_vector_iter_impl;
+  template <typename T>
+  friend class slotted_vector;
 
   VectorData*                vec          = nullptr;
   const std::vector<size_t>* index_mapper = nullptr;
@@ -241,7 +246,7 @@ public:
 
   /// Erase object pointed by the given iterator. Iterator must point to valid element.
   /// \param it container iterator
-  void erase(iterator it) noexcept { erase(extract_iterator_index(it)); }
+  void erase(iterator it) noexcept { erase(it.idx); }
 
   /// Clear all elements of the container, while maintaining its capacity.
   void clear() noexcept

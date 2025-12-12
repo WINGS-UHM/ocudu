@@ -438,7 +438,7 @@ static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_m
     for (unsigned i_prb = 0; i_prb != nof_prb; ++i_prb) {
       // Load an entire PRB, deinterleave the data in 3 registers of four 32-bit unsigned integers and select the second
       // NEON register.
-      uint32x4_t data_u32 = vld3q_u32(reinterpret_cast<const unsigned int*>(in.data() + NRE * i_prb)).val[1];
+      uint32x4_t data_u32 = vld3q_u32(reinterpret_cast<const unsigned*>(in.data() + NRE * i_prb)).val[1];
 
       // Convert to single precision.
       float32x4_t data_lo = vreinterpretq_f32_u16(vzip1q_u16(vdupq_n_u16(0), vreinterpretq_u16_u32(data_u32)));
@@ -459,7 +459,7 @@ static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_m
     for (unsigned end = (nof_dmrs / 4) * 4; i_dmrs != end; i_dmrs += 4) {
       // Load 8 consecutive subcarriers, deinterleave the data in 2 registers of four 32-bit unsigned integers and
       // select the first register.
-      uint32x4_t data_u32 = vld2q_u32(reinterpret_cast<const unsigned int*>(in.data() + 2 * i_dmrs + offset)).val[0];
+      uint32x4_t data_u32 = vld2q_u32(reinterpret_cast<const unsigned*>(in.data() + 2 * i_dmrs + offset)).val[0];
 
       // Convert to single precision.
       float32x4_t data_lo = vreinterpretq_f32_u16(vzip1q_u16(vdupq_n_u16(0), vreinterpretq_u16_u32(data_u32)));
@@ -474,7 +474,7 @@ static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_m
       // Load 4 consecutive subcarriers, deinterleave the data in 2 registers of two 32-bit unsigned integers and
       // select the second register.
 
-      uint32x2_t data_u32 = vld2_u32(reinterpret_cast<const unsigned int*>(in.data() + 2 * i_dmrs + offset)).val[0];
+      uint32x2_t data_u32 = vld2_u32(reinterpret_cast<const unsigned*>(in.data() + 2 * i_dmrs + offset)).val[0];
 
       // Convert to single precision.
       float32x2_t data_lo = vreinterpret_f32_u16(vzip1_u16(vdup_n_u16(0), vreinterpret_u16_u32(data_u32)));

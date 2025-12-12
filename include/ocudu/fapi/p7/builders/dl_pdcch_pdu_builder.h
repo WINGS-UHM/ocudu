@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "tx_precoding_and_beamforming_pdu_builder.h"
+#include "ocudu/fapi/p7/builders/tx_precoding_and_beamforming_pdu_builder.h"
 #include "ocudu/fapi/p7/messages/dl_pdcch_pdu.h"
 
 namespace ocudu {

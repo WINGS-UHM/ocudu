@@ -15,7 +15,7 @@
 #include "ocudu/ran/pucch/pucch_uci_bits.h"
 #include <optional>
 
-using namespace ocudu;
+namespace ocudu {
 
 class pucch_allocator_base_test
 {
@@ -69,3 +69,5 @@ protected:
         t_bench.res_grid[t_bench.k0 + default_k1], ue.crnti, ue.get_pcell().cfg());
   }
 };
+
+} // namespace ocudu

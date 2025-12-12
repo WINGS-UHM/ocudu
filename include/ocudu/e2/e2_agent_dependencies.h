@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "e2ap_configuration.h"
-#include "e2sm/e2sm.h"
+#include "ocudu/e2/e2ap_configuration.h"
+#include "ocudu/e2/e2sm/e2sm.h"
 #include "ocudu/support/timers.h"
 #include <vector>
 

@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "executor_metrics_channel.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/executors/detail/task_executor_utils.h"
+#include "ocudu/support/executors/metrics/executor_metrics_channel.h"
 #include "ocudu/support/executors/task_executor.h"
 #include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include "ocudu/support/rtsan.h"

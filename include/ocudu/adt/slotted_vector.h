@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "detail/slotted_array_detail.h"
+#include "ocudu/adt/detail/slotted_array_detail.h"
 #include <vector>
 
 namespace ocudu {

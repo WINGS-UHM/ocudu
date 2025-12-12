@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "../common/interface_management.h"
 #include "ocudu/adt/byte_buffer.h"
+#include "ocudu/f1ap/common/interface_management.h"
 #include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/duplex_mode.h"

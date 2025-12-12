@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "ofh_transmitter_data_flow_metrics.h"
 #include "ocudu/ofh/ethernet/ethernet_transmitter_metrics.h"
+#include "ocudu/ofh/transmitter/ofh_transmitter_data_flow_metrics.h"
 
 namespace ocudu {
 namespace ofh {

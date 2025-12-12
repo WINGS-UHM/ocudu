@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "executor_metrics_channel.h"
-#include "executor_metrics_channel_registry.h"
+#include "ocudu/support/executors/metrics/executor_metrics_channel.h"
+#include "ocudu/support/executors/metrics/executor_metrics_channel_registry.h"
 #include "ocudu/support/synchronization/stop_event.h"
 #include "ocudu/support/timers.h"
 #include <chrono>

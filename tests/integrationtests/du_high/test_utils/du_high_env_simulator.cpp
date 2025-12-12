@@ -800,7 +800,7 @@ async_task<bool> du_high_env_simulator::launch_send_dl_rrc_msg_and_await_ul_rrc_
   ocudu_assert(test_helpers::is_valid_dl_rrc_message_transfer(dl_msg), "Expected F1AP DL RRC Message");
   lcid_t                    dl_lcid   = uint_to_lcid(dl_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->srb_id);
   lcid_t                    ul_lcid   = dl_lcid == LCID_SRB0 ? LCID_SRB1 : dl_lcid;
-  constexpr static unsigned dl_msg_k1 = 4;
+  static constexpr unsigned dl_msg_k1 = 4;
 
   return launch_async([this, &u, dl_msg, dl_lcid, ul_lcid, rlc_ul_sn, i = 0U, ul_msg_rx = unique_function<bool()>{}](
                           coro_context<async_task<bool>>& ctx) mutable {

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "pucch_builder_params.h"
 #include "ocudu/adt/expected.h"
+#include "ocudu/scheduler/config/pucch_builder_params.h"
 
 namespace ocudu {
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "detail/slotted_array_detail.h"
+#include "ocudu/adt/detail/slotted_array_detail.h"
 #include "ocudu/adt/tiny_optional.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <array>

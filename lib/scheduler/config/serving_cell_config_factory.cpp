@@ -836,7 +836,7 @@ ocudu::config_helpers::make_pdsch_time_domain_resource(uint8_t                  
   }
   if (ded_pdcch_cfg.has_value()) {
     for (const coreset_configuration& cs_cfg : ded_pdcch_cfg->coresets) {
-      max_coreset_duration = std::max<unsigned int>(cs_cfg.duration, max_coreset_duration);
+      max_coreset_duration = std::max<unsigned>(cs_cfg.duration, max_coreset_duration);
     }
   }
 

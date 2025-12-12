@@ -756,7 +756,7 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
   unsigned                  new_ce_bytes         = ue_ctx.pending_ce_bytes + (ce.ce_lcid.is_var_len_ce()
                                                                                   ? get_mac_sdu_required_bytes(ce.ce_lcid.sizeof_ce())
                                                                                   : FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + ce.ce_lcid.sizeof_ce());
-  constexpr static unsigned MAX_PENDING_CE_BYTES = 1U << 14U;
+  static constexpr unsigned MAX_PENDING_CE_BYTES = 1U << 14U;
   ocudu_assert(new_ce_bytes <= MAX_PENDING_CE_BYTES, "Exceeded maximum pending CE bytes per UE");
   ue_ctx.pending_ce_bytes = new_ce_bytes;
   ues_with_pending_ces.set(u.at<ue_config_context>().ue_index, true);
@@ -835,7 +835,7 @@ logical_channel_system::allocate_mac_sdu(soa::row_id ue_rid, dl_msg_lc_info& sub
   // - [Implementation-defined] If \c leftover_bytes is less than 5 bytes, as it is unlikely they will be used for
   // another SDU.
   const unsigned            leftover_bytes     = rem_bytes - alloc_bytes;
-  constexpr static unsigned MIN_LEFTOVER_BYTES = 5;
+  static constexpr unsigned MIN_LEFTOVER_BYTES = 5U;
   if (leftover_bytes > 0 and (leftover_bytes <= MIN_LEFTOVER_BYTES)) {
     alloc_bytes += leftover_bytes;
   }

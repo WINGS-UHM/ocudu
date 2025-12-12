@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "mac_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_config.h"
 
 namespace ocudu {

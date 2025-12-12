@@ -47,7 +47,7 @@ enum class rohc_profile : uint8_t {
 };
 
 /// \brief List of all ROHC profiles enumerated in \c rohc_profile.
-constexpr static const rohc_profile all_rohc_profiles[] = {
+static constexpr const rohc_profile all_rohc_profiles[] = {
     rohc_profile::profile0x0001,
     rohc_profile::profile0x0002,
     rohc_profile::profile0x0003,
@@ -137,14 +137,14 @@ private:
 
 /// The maximum size of a ROHC packet. This implementation-specific parameter shall be larger than the maximum supported
 /// PDCP SDU size (see TS 38.323, Sec. 4.3.1) \c pdcp_max_sdu_size and equals the \c network_gateway_udp_max_len.
-constexpr static uint32_t rohc_max_packet_size = 9100;
+static constexpr uint32_t rohc_max_packet_size = 9100;
 
 /// Threshold for CID type. Large CIDs shall be used if maximum CID > 15. Otherwise small CIDs shall be used.
 /// See TS 38.323 Sec. 5.7.3.
-constexpr static uint16_t rohc_cid_type_threshold = 15;
+static constexpr uint16_t rohc_cid_type_threshold = 15;
 
 /// Default maximum CID (Default 15 defined in TS 38.331 Sec. 6.3.2).
-constexpr static uint16_t default_rohc_max_cid = 15;
+static constexpr uint16_t default_rohc_max_cid = 15;
 
 /// Header compression config used by PDCP.
 struct rohc_config {

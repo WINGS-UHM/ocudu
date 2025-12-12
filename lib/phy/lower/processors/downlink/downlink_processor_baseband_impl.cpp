@@ -11,11 +11,11 @@
 #include "downlink_processor_baseband_impl.h"
 #include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer_view.h"
 #include "ocudu/instrumentation/traces/ru_traces.h"
+#include "ocudu/ocuduvec/conversion.h"
 #include "ocudu/ocuduvec/dot_prod.h"
 #include "ocudu/ocuduvec/zero.h"
 #include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
 #include "ocudu/phy/lower/lower_phy_timing_context.h"
-#include <ocudu/ocuduvec/conversion.h>
 
 using namespace ocudu;
 

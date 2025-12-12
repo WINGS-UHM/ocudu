@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "resource_usage_utils.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/resource_usage/resource_usage_utils.h"
 
 namespace ocudu {
 namespace resource_usage_utils {

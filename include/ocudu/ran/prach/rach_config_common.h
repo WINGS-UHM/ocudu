@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "prach_configuration.h"
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/restricted_set_config.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>

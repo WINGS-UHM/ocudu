@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "phy_fapi_fastpath_adaptor.h"
-#include "phy_fapi_fastpath_adaptor_config.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor.h"
+#include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor_config.h"
 
 namespace ocudu {
 namespace fapi_adaptor {

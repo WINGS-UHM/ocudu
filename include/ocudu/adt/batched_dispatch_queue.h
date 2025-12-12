@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "../ocudulog/ocudulog.h"
-#include "../support/executors/task_executor.h"
-#include "mpmc_queue.h"
-#include "span.h"
+#include "ocudu/adt/mpmc_queue.h"
+#include "ocudu/adt/span.h"
+#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/executors/task_executor.h"
 #include <vector>
 
 namespace ocudu {

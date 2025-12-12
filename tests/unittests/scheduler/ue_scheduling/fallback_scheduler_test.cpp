@@ -174,7 +174,7 @@ protected:
 
     const auto& dl_lst = bench->cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     for (const auto& pdsch : dl_lst) {
-      max_k_value = std::max<unsigned int>(pdsch.k0, max_k_value);
+      max_k_value = std::max<unsigned>(pdsch.k0, max_k_value);
     }
     const auto& ul_lst = bench->cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     for (const auto& pusch : ul_lst) {

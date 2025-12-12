@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "nrppa_ue_ids.h"
+#include "ocudu/nrppa/nrppa_ue_ids.h"
 #include "ocudu/ran/cause/nrppa_cause.h"
 #include "ocudu/ran/crit_diagnostics.h"
 #include "ocudu/ran/nr_cgi.h"

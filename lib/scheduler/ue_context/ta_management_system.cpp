@@ -166,7 +166,7 @@ int64_t ta_management_system::compute_avg_n_ta_difference(const tag_measurement&
 static bool is_outlier(double sample, double mean, double sq_mean)
 {
   /// [Implementation-defined] Z-score threshold for outlier detection.
-  constexpr static double thres = 1.75;
+  static constexpr double thres = 1.75;
 
   double var = sq_mean - mean * mean;
   // small numerical errors can lead to negative variance.
@@ -215,7 +215,7 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   }
 
   // Decide whether to filter out outlier using Welford's algorithm and using an exponential average.
-  constexpr static unsigned min_samples_for_outlier_detection = 10;
+  static constexpr unsigned min_samples_for_outlier_detection = 10;
   if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
     // Note: for small number of samples, outlier detection is not performed.
     ++tag_meas.count_until_outlier_detection;

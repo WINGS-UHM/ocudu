@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "executor_metrics.h"
 #include "ocudu/adt/lockfree_triple_buffer.h"
+#include "ocudu/support/executors/metrics/executor_metrics.h"
 #include "ocudu/support/executors/unique_thread.h"
 #include "ocudu/support/tracing/resource_usage.h"
 #include <chrono>

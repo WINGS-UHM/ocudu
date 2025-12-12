@@ -26,8 +26,8 @@ class ue_ta_manager;
 class ta_management_system
 {
   /// Maximum number of TAG measurements supported per UE.
-  constexpr static size_t      MAX_NOF_TAG_MEASUREMENTS = 4;
-  constexpr static soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
+  static constexpr size_t      MAX_NOF_TAG_MEASUREMENTS = 4;
+  static constexpr soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
 public:
   explicit ta_management_system(const scheduler_ta_control_config& ta_cfg_);

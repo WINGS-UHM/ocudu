@@ -22,7 +22,7 @@ class cell_configuration;
 /// Contains information about a UE past traffic history.
 class ue_history_repository
 {
-  constexpr static soa::row_id invalid_row_id = soa::row_id{std::numeric_limits<uint32_t>::max()};
+  static constexpr soa::row_id invalid_row_id = soa::row_id{std::numeric_limits<uint32_t>::max()};
 
 public:
   /// Traffic history for a single UE.

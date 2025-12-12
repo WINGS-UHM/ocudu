@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "f1ap_du_metrics_collector.h"
 #include "ocudu/f1ap/du/f1ap_du_connection_manager.h"
+#include "ocudu/f1ap/du/f1ap_du_metrics_collector.h"
 #include "ocudu/f1ap/du/f1ap_du_ue_config.h"
 #include "ocudu/f1ap/du/f1ap_du_ue_context_update.h"
 #include "ocudu/f1ap/du/f1c_bearer.h"

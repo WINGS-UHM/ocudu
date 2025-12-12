@@ -435,6 +435,14 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
       ->check(CLI::IsMember({32, 64, 128, 256}));
 
   add_option(app,
+             "--t380",
+             cu_cp_params.t380,
+             "RRC inactivity timer T380 in minutes. The timer is started when the UE recveives a RRC Release message "
+             "including a suspend config and is stopped on the reception of RRCResume.")
+      ->capture_default_str()
+      ->check(CLI::IsMember({5, 10, 20, 30, 60, 120, 360, 720}));
+
+  add_option(app,
              "--nof_i_rnti_ue_bits",
              cu_cp_params.nof_i_rnti_ue_bits,
              "Number of bits used for the UE id in short and full I-RNTI")

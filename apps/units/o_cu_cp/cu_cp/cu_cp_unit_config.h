@@ -296,6 +296,8 @@ struct cu_cp_unit_config {
   bool enable_rrc_inactive = false;
   /// RAN Paging cycle for RRC inactive UEs in number of radio frames.
   uint8_t ran_paging_cycle = 32;
+  /// T380 timer value in minutes.
+  int t380 = 10;
   /// Number of bits used for the UE id in short and full I-RNTI.
   uint8_t nof_i_rnti_ue_bits = 13;
   /// PDU session request timeout in seconds (must be larger than T310).

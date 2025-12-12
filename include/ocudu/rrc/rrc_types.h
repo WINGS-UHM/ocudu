@@ -11,17 +11,16 @@
 #pragma once
 
 #include "ocudu/adt/byte_buffer.h"
-#include "ocudu/adt/slotted_array.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/tac.h"
 #include "ocudu/rrc/meas_types.h"
 #include "ocudu/security/security.h"
 #include <string>
 #include <vector>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Arguments for the RRC Reconfiguration procedure.
 
@@ -57,7 +56,7 @@ struct rrc_security_config {
 
 struct rrc_radio_bearer_config {
   /// \brief Returns true if at least one of the optional vectors/fields contains an element.
-  bool contains_values()
+  bool contains_values() const
   {
     return (srb_to_add_mod_list.empty() || drb_to_add_mod_list.empty() || drb_to_release_list.empty() ||
             !security_cfg.has_value());
@@ -110,5 +109,25 @@ struct rrc_ue_capability_transfer_request {
   // Empty for now but should include ratType and capabilityRequestFilter, etc.
 };
 
-} // namespace ocucp
-} // namespace ocudu
+// RAN area code.
+using rac_t = uint16_t;
+
+struct rrc_ran_area_cfg_t {
+  tac_t              tac;
+  std::vector<rac_t> ran_area_code_list;
+};
+
+struct rrc_plmn_ran_area_cfg_t {
+  std::optional<plmn_identity>    plmn_id;
+  std::vector<rrc_ran_area_cfg_t> ran_area;
+};
+
+struct rrc_plmn_ran_area_cell_t {
+  std::optional<plmn_identity>  plmn_id;
+  std::vector<nr_cell_identity> ran_area_cells;
+};
+
+using rrc_ran_notification_area_info_t =
+    std::variant<std::vector<rrc_plmn_ran_area_cell_t>, std::vector<rrc_plmn_ran_area_cfg_t>>;
+
+} // namespace ocudu::ocucp

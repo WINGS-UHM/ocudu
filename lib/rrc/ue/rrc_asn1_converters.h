@@ -11,16 +11,17 @@
 #pragma once
 
 #include "ocudu/asn1/asn1_utils.h"
-#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg_ies.h"
+#include "ocudu/asn1/rrc_nr/radio_bearer_cfg.h"
+#include "ocudu/asn1/rrc_nr/serving_cell.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/ran/cu_types.h"
+#include "ocudu/rrc/rrc_types.h"
 #include "ocudu/security/security.h"
-#include <string>
-#include <vector>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Converts type \c pdcp_discard_timer to an RRC NR ASN.1 type.
 /// \param[in] discard_timer discard timer object.
@@ -111,5 +112,15 @@ establishment_cause_t asn1_to_establishment_cause(const asn1::rrc_nr::establishm
 /// \return asn1_ran_paging_cycle The RRC NR ASN.1 object where the result of the conversion is stored.
 asn1::enumerated<asn1::rrc_nr::paging_cycle_opts> ran_paging_cycle_to_asn1(uint8_t ran_paging_cycle);
 
-} // namespace ocucp
-} // namespace ocudu
+/// \brief Converts type \c plmn_identity to an RRC NR ASN.1 type.
+/// \param[in] plmn plmn identity object.
+/// \return The RRC NR ASN.1 object where the result of the conversion is stored
+asn1::rrc_nr::plmn_id_s plmn_to_asn1(const plmn_identity& plmn);
+
+/// \brief Converts type \c rrc_ran_notification_area_info_t to an RRC NR ASN.1 type.
+/// \param[in] ran_notif_area_info ran notification area info object.
+/// \return The RRC NR ASN.1 object where the result of the conversion is stored
+asn1::rrc_nr::ran_notif_area_info_c
+ran_notification_area_info_to_asn1(const rrc_ran_notification_area_info_t& ran_notif_area_info);
+
+} // namespace ocudu::ocucp

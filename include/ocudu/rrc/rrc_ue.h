@@ -206,9 +206,11 @@ struct rrc_ue_handover_reconfiguration_context {
 };
 
 struct rrc_inactivity_context {
-  i_rntis_t i_rntis;
-  uint8_t   next_hop_chaining_count;
-  uint8_t   ran_paging_cycle;
+  i_rntis_t                        i_rntis;
+  uint8_t                          next_hop_chaining_count;
+  uint8_t                          ran_paging_cycle;
+  rrc_ran_notification_area_info_t ran_notification_area_info;
+  std::chrono::minutes             t380 = std::chrono::minutes(5);
 };
 
 /// Handle control messages.

@@ -10,8 +10,8 @@
 
 #include "lib/rrc/ue/rrc_asn1_converters.h"
 #include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
-#include <cstdint>
 #include <gtest/gtest.h>
 
 using namespace ocudu;

@@ -605,6 +605,15 @@ rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool             
 
         // Set next hop chaining count.
         release.suspend_cfg.next_hop_chaining_count = inactivity_context->next_hop_chaining_count;
+
+        // Set RAN nofication area info.
+        release.suspend_cfg.ran_notif_area_info_present = true;
+        release.suspend_cfg.ran_notif_area_info =
+            ran_notification_area_info_to_asn1(inactivity_context->ran_notification_area_info);
+
+        // Set t380 timer value.
+        release.suspend_cfg.t380_present = true;
+        asn1::number_to_enum(release.suspend_cfg.t380, inactivity_context->t380.count());
       }
 
       // Pack DL CCCH msg.

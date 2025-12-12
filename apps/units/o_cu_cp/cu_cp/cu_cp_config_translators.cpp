@@ -389,6 +389,7 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   out_cfg.ue.inactivity_timer              = std::chrono::seconds{cu_cfg.inactivity_timer};
   out_cfg.ue.request_pdu_session_timeout   = std::chrono::seconds{cu_cfg.request_pdu_session_timeout};
   out_cfg.metrics.statistics_report_period = std::chrono::seconds{cu_cfg.metrics.cu_cp_report_period};
+  out_cfg.ue.t380                          = std::chrono::minutes{cu_cfg.t380};
 
   // RRC inactive.
   out_cfg.ue.enable_rrc_inactive = cu_cfg.enable_rrc_inactive;

@@ -242,9 +242,35 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
                      i_rntis.value().short_i_rnti,
                      i_rntis.value().full_i_rnti);
 
-        rrc_inactivity_context inactivity_ctx{.i_rntis                 = i_rntis.value(),
-                                              .next_hop_chaining_count = ue->get_security_manager().get_ncc(),
-                                              .ran_paging_cycle        = cfg.ue.ran_paging_cycle};
+        du_processor& du_proc = du_db.get_du_processor(ue->get_du_index());
+
+        // Add all local cells to RAN area cells.
+        // Note: Support for configurable ran area cells is left as future work.
+
+        std::map<nr_cell_identity, rrc_cell_info> cell_info_db = du_proc.get_rrc_du_handler().get_cell_info_db();
+
+        // Map PLMN IDs to their cells.
+        std::map<plmn_identity, std::vector<nr_cell_identity>> plmn_to_cells;
+        for (const auto& [cell_id, cell_info] : cell_info_db) {
+          for (const auto& plmn : cell_info.plmn_identity_list) {
+            plmn_to_cells[plmn].push_back(cell_id);
+          }
+        }
+
+        // Fill RAN area cells.
+        std::vector<rrc_plmn_ran_area_cell_t> ran_area_cells;
+        for (const auto& [plmn, cell_ids] : plmn_to_cells) {
+          rrc_plmn_ran_area_cell_t ran_area_cell{};
+          ran_area_cell.plmn_id        = plmn;
+          ran_area_cell.ran_area_cells = cell_ids;
+          ran_area_cells.push_back(ran_area_cell);
+        }
+
+        rrc_inactivity_context inactivity_ctx{.i_rntis                    = i_rntis.value(),
+                                              .next_hop_chaining_count    = ue->get_security_manager().get_ncc(),
+                                              .ran_paging_cycle           = cfg.ue.ran_paging_cycle,
+                                              .ran_notification_area_info = ran_area_cells,
+                                              .t380                       = cfg.ue.t380};
 
         rrc_ue_release_context release_context =
             ue->get_rrc_ue()->get_rrc_ue_release_context(true, std::nullopt, inactivity_ctx);

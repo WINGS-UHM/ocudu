@@ -325,3 +325,77 @@ asn1::enumerated<asn1::rrc_nr::paging_cycle_opts> ocudu::ocucp::ran_paging_cycle
 
   return asn1::rrc_nr::paging_cycle_opts::options::rf256;
 }
+
+asn1::rrc_nr::plmn_id_s ocudu::ocucp::plmn_to_asn1(const plmn_identity& plmn)
+{
+  asn1::rrc_nr::plmn_id_s asn1_plmn;
+
+  asn1_plmn.mcc_present         = true;
+  asn1_plmn.mcc                 = plmn.mcc().to_bytes();
+  static_vector<uint8_t, 3> mnc = plmn.mnc().to_bytes();
+  asn1_plmn.mnc.resize(mnc.size());
+  for (unsigned i = 0, sz = mnc.size(); i != sz; ++i) {
+    asn1_plmn.mnc[i] = mnc[i];
+  }
+
+  return asn1_plmn;
+}
+
+asn1::rrc_nr::ran_notif_area_info_c
+ocudu::ocucp::ran_notification_area_info_to_asn1(const rrc_ran_notification_area_info_t& ran_notification_area_info)
+{
+  asn1::rrc_nr::ran_notif_area_info_c asn1_ran_notification_area_info;
+
+  if (std::holds_alternative<std::vector<rrc_plmn_ran_area_cell_t>>(ran_notification_area_info)) {
+    // Fill PLMN RAN Area Cell List.
+    auto& asn1_cell_list = asn1_ran_notification_area_info.set_cell_list();
+
+    for (const auto& plmn_ran_area_cell : std::get<std::vector<rrc_plmn_ran_area_cell_t>>(ran_notification_area_info)) {
+      asn1::rrc_nr::plmn_ran_area_cell_s asn1_plmn_ran_area_cell;
+      // Fill PLMN Identity.
+      if (plmn_ran_area_cell.plmn_id.has_value()) {
+        asn1_plmn_ran_area_cell.plmn_id_present = true;
+        asn1_plmn_ran_area_cell.plmn_id         = plmn_to_asn1(plmn_ran_area_cell.plmn_id.value());
+      }
+
+      // Fill RAN area cells.
+      for (const auto& ran_area_cell : plmn_ran_area_cell.ran_area_cells) {
+        asn1::fixed_bitstring<36> asn1_ran_area_cell;
+        asn1_plmn_ran_area_cell.ran_area_cells.push_back(asn1_ran_area_cell.from_number(ran_area_cell.value()));
+      }
+
+      asn1_cell_list.push_back(asn1_plmn_ran_area_cell);
+    }
+
+  } else {
+    // Fill RAN area config list.
+    auto& asn1_ran_area_config_list = asn1_ran_notification_area_info.set_ran_area_cfg_list();
+
+    for (const auto& plmn_ran_area_config :
+         std::get<std::vector<rrc_plmn_ran_area_cfg_t>>(ran_notification_area_info)) {
+      asn1::rrc_nr::plmn_ran_area_cfg_s asn1_plmn_ran_area_config;
+
+      // Fill PLMN Identity.
+      if (plmn_ran_area_config.plmn_id.has_value()) {
+        asn1_plmn_ran_area_config.plmn_id_present = true;
+        asn1_plmn_ran_area_config.plmn_id         = plmn_to_asn1(plmn_ran_area_config.plmn_id.value());
+      }
+
+      // Fill RAN area.
+      for (const auto& ran_area : plmn_ran_area_config.ran_area) {
+        asn1::rrc_nr::ran_area_cfg_s asn1_ran_area;
+        asn1_ran_area.tac.from_number(ran_area.tac);
+
+        for (const auto& ran_area_code : ran_area.ran_area_code_list) {
+          asn1_ran_area.ran_area_code_list.push_back(ran_area_code);
+        }
+
+        asn1_plmn_ran_area_config.ran_area.push_back(asn1_ran_area);
+      }
+
+      asn1_ran_area_config_list.push_back(asn1_plmn_ran_area_config);
+    }
+  }
+
+  return asn1_ran_notification_area_info;
+}

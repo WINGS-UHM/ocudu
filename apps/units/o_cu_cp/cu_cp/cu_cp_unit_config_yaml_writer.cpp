@@ -251,6 +251,7 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
   node["inactivity_timer"]            = config.inactivity_timer;
   node["enable_rrc_inactive"]         = config.enable_rrc_inactive;
   node["ran_paging_cycle"]            = config.ran_paging_cycle;
+  node["t380"]                        = config.t380;
   node["nof_i_rnti_ue_bits"]          = config.nof_i_rnti_ue_bits;
   node["request_pdu_session_timeout"] = config.request_pdu_session_timeout;
 

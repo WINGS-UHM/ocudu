@@ -420,6 +420,27 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
       ->capture_default_str()
       ->check(CLI::Range(1, 7200));
 
+  add_option(
+      app,
+      "--enable_rrc_inactive",
+      cu_cp_params.enable_rrc_inactive,
+      "Enable RRC inactive state for UEs based on inactivity timer. When disabled, UEs will be released on inactivity")
+      ->capture_default_str();
+
+  add_option(app,
+             "--ran_paging_cycle",
+             cu_cp_params.ran_paging_cycle,
+             "RAN Paging cycle for RRC inactive UEs in nof. Radio Frames")
+      ->capture_default_str()
+      ->check(CLI::IsMember({32, 64, 128, 256}));
+
+  add_option(app,
+             "--nof_i_rnti_ue_bits",
+             cu_cp_params.nof_i_rnti_ue_bits,
+             "Number of bits used for the UE id in short and full I-RNTI")
+      ->capture_default_str()
+      ->check(CLI::Range(1, 18));
+
   add_option(app,
              "--request_pdu_session_timeout",
              cu_cp_params.request_pdu_session_timeout,

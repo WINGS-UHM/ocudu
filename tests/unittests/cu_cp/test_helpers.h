@@ -702,8 +702,10 @@ public:
     });
   }
 
-  rrc_ue_release_context get_rrc_ue_release_context(bool                                requires_rrc_msg,
-                                                    std::optional<std::chrono::seconds> release_wait_time) override
+  rrc_ue_release_context
+  get_rrc_ue_release_context(bool                                  requires_rrc_msg,
+                             std::optional<std::chrono::seconds>   release_wait_time,
+                             std::optional<rrc_inactivity_context> inactivity_context = std::nullopt) override
   {
     logger.info("Received a new request to get RRC UE release context");
     rrc_ue_release_context release_context;
@@ -760,6 +762,8 @@ public:
   }
 
   static_vector<srb_id_t, MAX_NOF_SRBS> get_srbs() override { return srb_vec; }
+
+  void set_rrc_state(rrc_state state) override {}
 
   rrc_state get_rrc_state() const override { return rrc_state::connected; }
 

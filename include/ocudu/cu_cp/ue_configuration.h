@@ -19,6 +19,10 @@ struct ue_configuration {
   std::chrono::seconds inactivity_timer{7200};
   /// Timeout for requesting a PDU session in seconds, before the UE is released.
   std::chrono::seconds request_pdu_session_timeout = std::chrono::seconds{2};
+  /// When set to false, UEs will not be set to RRC inactive.
+  bool enable_rrc_inactive = false;
+  /// RAN Paging cycle for RRC inactive UEs in number of radio frames.
+  uint8_t ran_paging_cycle = 32;
   /// Number of bits used for UE ID in I-RNTI.
   uint8_t nof_i_rnti_ue_bits = 13;
 };

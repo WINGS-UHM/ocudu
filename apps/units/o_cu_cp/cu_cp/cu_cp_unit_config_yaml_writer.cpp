@@ -249,6 +249,9 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
   node["max_nof_ues"]                 = config.max_nof_ues;
   node["max_nof_drbs_per_ue"]         = static_cast<unsigned>(config.max_nof_drbs_per_ue);
   node["inactivity_timer"]            = config.inactivity_timer;
+  node["enable_rrc_inactive"]         = config.enable_rrc_inactive;
+  node["ran_paging_cycle"]            = config.ran_paging_cycle;
+  node["nof_i_rnti_ue_bits"]          = config.nof_i_rnti_ue_bits;
   node["request_pdu_session_timeout"] = config.request_pdu_session_timeout;
 
   node["amf"] = build_cu_cp_amf_section(config.amf_config);

@@ -385,16 +385,21 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
                  cu_cfg.security_config.confidentiality_protection);
   }
 
-  // Timers
+  // Timers.
   out_cfg.ue.inactivity_timer              = std::chrono::seconds{cu_cfg.inactivity_timer};
   out_cfg.ue.request_pdu_session_timeout   = std::chrono::seconds{cu_cfg.request_pdu_session_timeout};
   out_cfg.metrics.statistics_report_period = std::chrono::seconds{cu_cfg.metrics.cu_cp_report_period};
 
-  // Metrics
+  // RRC inactive.
+  out_cfg.ue.enable_rrc_inactive = cu_cfg.enable_rrc_inactive;
+  out_cfg.ue.ran_paging_cycle    = cu_cfg.ran_paging_cycle;
+  out_cfg.ue.nof_i_rnti_ue_bits  = cu_cfg.nof_i_rnti_ue_bits;
+
+  // Metrics.
   out_cfg.metrics.layers_cfg.enable_ngap = cu_cfg.metrics.layers_cfg.enable_ngap;
   out_cfg.metrics.layers_cfg.enable_rrc  = cu_cfg.metrics.layers_cfg.enable_rrc;
 
-  // Mobility
+  // Mobility.
   out_cfg.mobility.mobility_manager_config.trigger_handover_from_measurements =
       cu_cfg.mobility_config.trigger_handover_from_measurements;
   out_cfg.mobility.mobility_manager_config.enable_ngap_metrics = cu_cfg.metrics.layers_cfg.enable_ngap;

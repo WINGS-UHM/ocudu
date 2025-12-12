@@ -106,5 +106,10 @@ cu_cp_amf_identifier_t asn1_to_amf_identifier(const asn1::fixed_bitstring<24>& a
 /// \return The common establishment cause object where the result of the conversion is stored.
 establishment_cause_t asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause);
 
+/// \brief Converts type \c ran_paging_cycle to an RRC NR ASN.1 type.
+/// \param[in] ran_paging_cycle ran paging cycle object.
+/// \return asn1_ran_paging_cycle The RRC NR ASN.1 object where the result of the conversion is stored.
+asn1::enumerated<asn1::rrc_nr::paging_cycle_opts> ran_paging_cycle_to_asn1(uint8_t ran_paging_cycle);
+
 } // namespace ocucp
 } // namespace ocudu

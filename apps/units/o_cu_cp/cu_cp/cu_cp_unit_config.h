@@ -292,6 +292,12 @@ struct cu_cp_unit_config {
   uint8_t max_nof_drbs_per_ue = 8;
   /// Inactivity timer in seconds.
   int inactivity_timer = 120;
+  /// Enable RRC inactive state.
+  bool enable_rrc_inactive = false;
+  /// RAN Paging cycle for RRC inactive UEs in number of radio frames.
+  uint8_t ran_paging_cycle = 32;
+  /// Number of bits used for the UE id in short and full I-RNTI.
+  uint8_t nof_i_rnti_ue_bits = 13;
   /// PDU session request timeout in seconds (must be larger than T310).
   unsigned request_pdu_session_timeout = 3;
   /// Loggers configuration.

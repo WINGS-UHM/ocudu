@@ -12,10 +12,10 @@
 
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/asn1/rrc_nr/ue_cap.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/cu_cp_ue_messages.h"
+#include "ocudu/ran/i_rnti.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/rrc/rrc_cell_context.h"
@@ -24,18 +24,15 @@
 #include "ocudu/security/security.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace asn1 {
-namespace rrc_nr {
+namespace asn1::rrc_nr {
 
 // ASN.1 forward declarations
 struct dl_ccch_msg_s;
 struct dl_dcch_msg_s;
 
-} // namespace rrc_nr
-} // namespace asn1
+} // namespace asn1::rrc_nr
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// RRC states (3GPP 38.331 v15.5.1 Sec 4.2.1)
 enum class rrc_state { idle = 0, connected, connected_inactive };
@@ -208,6 +205,12 @@ struct rrc_ue_handover_reconfiguration_context {
   byte_buffer rrc_ue_handover_reconfiguration_pdu;
 };
 
+struct rrc_inactivity_context {
+  i_rntis_t i_rntis;
+  uint8_t   next_hop_chaining_count;
+  uint8_t   ran_paging_cycle;
+};
+
 /// Handle control messages.
 class rrc_ue_control_message_handler
 {
@@ -258,8 +261,9 @@ public:
   /// release context, see section 5.3.15 in TS 38.331. Otherwise, a RrcRelease message is contained in the release
   /// context.
   virtual rrc_ue_release_context
-  get_rrc_ue_release_context(bool                                requires_rrc_msg,
-                             std::optional<std::chrono::seconds> release_wait_time = std::nullopt) = 0;
+  get_rrc_ue_release_context(bool                                  requires_rrc_msg,
+                             std::optional<std::chrono::seconds>   release_wait_time  = std::nullopt,
+                             std::optional<rrc_inactivity_context> inactivity_context = std::nullopt) = 0;
 
   /// \brief Retrieve RRC context of a UE to perform mobility (handover, reestablishment).
   /// \return Transfer context including UP context, security, SRBs, HO preparation, etc.
@@ -303,6 +307,10 @@ public:
 
   /// \brief Get all SRBs of the UE.
   virtual static_vector<srb_id_t, MAX_NOF_SRBS> get_srbs() = 0;
+
+  /// \brief Set the RRC connection state of the UE.
+  /// \param[in] state The new RRC state.
+  virtual void set_rrc_state(rrc_state state) = 0;
 
   /// \brief Get the RRC connection state of the UE.
   virtual rrc_state get_rrc_state() const = 0;
@@ -502,6 +510,4 @@ public:
   virtual rrc_ue_context_handler&         get_rrc_ue_context_handler()         = 0;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

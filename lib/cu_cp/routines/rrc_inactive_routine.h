@@ -1,0 +1,62 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "../cu_cp_impl_interface.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/ngap/ngap_rrc_inactive_transition.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/async/async_task.h"
+
+namespace ocudu {
+namespace ocucp {
+
+class rrc_inactive_routine
+{
+public:
+  rrc_inactive_routine(ue_index_t                        ue_index_,
+                       const rrc_ue_release_context&     release_context_,
+                       e1ap_bearer_context_manager&      e1ap_bearer_ctxt_mng_,
+                       f1ap_ue_context_manager&          f1ap_ue_ctxt_mng_,
+                       cu_cp_ue_context_release_handler& ue_context_release_handler_,
+                       ngap_control_message_handler&     ng_control_handler_,
+                       ocudulog::basic_logger&           logger_);
+
+  void operator()(coro_context<async_task<void>>& ctx);
+
+  static const char* name() { return "RRC Inactive Routine"; }
+
+private:
+  const ue_index_t             ue_index;
+  const rrc_ue_release_context release_context;
+
+  e1ap_bearer_context_manager&      e1ap_bearer_ctxt_mng;       // to trigger bearer context modification at CU-UP
+  f1ap_ue_context_manager&          f1ap_ue_ctxt_mng;           // to trigger UE context release at DU
+  cu_cp_ue_context_release_handler& ue_context_release_handler; // to release UE contexts
+  ngap_control_message_handler&     ng_control_handler;         // to notify AMF about RRC Inactive transition
+  ocudulog::basic_logger&           logger;
+
+  // (sub-)routine requests.
+  e1ap_bearer_context_modification_request bearer_context_modification_request;
+  f1ap_ue_context_release_command          du_ue_context_release_command;
+  cu_cp_ue_context_release_command         ue_context_release_command;
+  ngap_rrc_inactive_transition_report      rrc_inactive_transition_report;
+
+  // (sub-)routine results.
+  e1ap_bearer_context_modification_response bearer_context_modification_response;
+  ue_index_t                                released_ue_index;
+  bool                                      ngap_rrc_inactive_report_sent = false;
+};
+
+} // namespace ocucp
+} // namespace ocudu

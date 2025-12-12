@@ -24,6 +24,7 @@
 #include "routines/pdu_session_resource_setup_routine.h"
 #include "routines/positioning/trp_information_exchange_routine.h"
 #include "routines/reestablishment_context_modification_routine.h"
+#include "routines/rrc_inactive_routine.h"
 #include "routines/ue_amf_context_release_request_routine.h"
 #include "routines/ue_context_release_routine.h"
 #include "routines/ue_removal_routine.h"
@@ -225,23 +226,59 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
       return;
     }
 
-    cu_cp_ue_context_release_request req;
-    req.ue_index = msg.ue_index;
-    req.cause    = ngap_cause_radio_network_t::user_inactivity;
+    // TODO: Check UE capabilities for RRC inactive support.
+    if (cfg.ue.enable_rrc_inactive) {
+      // Set UE as inactive.
+      std::optional<i_rntis_t> i_rntis = ue_mng.set_inactive(ue->get_ue_index());
+      if (i_rntis.has_value()) {
+        auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+        if (ngap == nullptr) {
+          logger.warning("NGAP not found for plmn={}", ue->get_ue_context().plmn);
+          return;
+        }
 
-    // Add PDU Session IDs.
-    auto& up_resource_manager            = ue->get_up_resource_manager();
-    req.pdu_session_res_list_cxt_rel_req = up_resource_manager.get_pdu_sessions();
+        logger.debug("ue={}: Set UE as inactive with {} {}",
+                     msg.ue_index,
+                     i_rntis.value().short_i_rnti,
+                     i_rntis.value().full_i_rnti);
 
-    logger.debug("ue={}: Requesting UE context release with cause={}", req.ue_index, req.cause);
+        rrc_inactivity_context inactivity_ctx{.i_rntis                 = i_rntis.value(),
+                                              .next_hop_chaining_count = ue->get_security_manager().get_ncc(),
+                                              .ran_paging_cycle        = cfg.ue.ran_paging_cycle};
 
-    // Schedule on UE task scheduler.
-    ue->get_task_sched().schedule_async_task(launch_async([this, req](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      // Notify NGAP to request a release from the AMF.
-      CORO_AWAIT(handle_ue_context_release(req));
-      CORO_RETURN();
-    }));
+        rrc_ue_release_context release_context =
+            ue->get_rrc_ue()->get_rrc_ue_release_context(true, std::nullopt, inactivity_ctx);
+
+        // Schedule on UE task scheduler.
+        ue->get_task_sched().schedule_async_task(launch_async<rrc_inactive_routine>(
+            ue->get_ue_index(),
+            std::move(release_context),
+            cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
+            du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
+            get_cu_cp_ngap_handler(),
+            ngap->get_ngap_control_message_handler(),
+            logger));
+      }
+    } else {
+      // Inactivity is not possible, so the UE must be released.
+      cu_cp_ue_context_release_request req;
+      req.ue_index = msg.ue_index;
+      req.cause    = ngap_cause_radio_network_t::user_inactivity;
+
+      // Add PDU Session IDs.
+      auto& up_resource_manager            = ue->get_up_resource_manager();
+      req.pdu_session_res_list_cxt_rel_req = up_resource_manager.get_pdu_sessions();
+
+      logger.debug("ue={}: Requesting UE context release with cause={}", req.ue_index, req.cause);
+
+      // Schedule on UE task scheduler.
+      ue->get_task_sched().schedule_async_task(launch_async([this, req](coro_context<async_task<void>>& ctx) mutable {
+        CORO_BEGIN(ctx);
+        // Notify NGAP to request a release from the AMF.
+        CORO_AWAIT(handle_ue_context_release(req));
+        CORO_RETURN();
+      }));
+    }
   } else {
     logger.debug("Inactivity notification level not supported");
   }

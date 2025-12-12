@@ -713,6 +713,19 @@ inline void fill_asn1_bearer_context_modification_request(asn1::e1ap::bearer_con
       }
     }
   }
+
+  // Fill Bearer context status change.
+  if (request.bearer_context_status_change.has_value()) {
+    asn1_request->bearer_context_status_change_present = true;
+    if (request.bearer_context_status_change.value() == e1ap_bearer_context_status_change::suspend) {
+      asn1_request->bearer_context_status_change = asn1::e1ap::bearer_context_status_change_opts::options::suspend;
+    } else if (request.bearer_context_status_change.value() == e1ap_bearer_context_status_change::resume) {
+      asn1_request->bearer_context_status_change = asn1::e1ap::bearer_context_status_change_opts::options::resume;
+    } else {
+      asn1_request->bearer_context_status_change =
+          asn1::e1ap::bearer_context_status_change_opts::options::resumefor_sdt;
+    }
+  }
 }
 
 inline void fill_e1ap_bearer_context_modification_response(

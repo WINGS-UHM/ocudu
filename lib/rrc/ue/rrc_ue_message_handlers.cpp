@@ -550,7 +550,8 @@ async_task<bool> rrc_ue_impl::handle_rrc_ue_capability_transfer_request(const rr
 }
 
 rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool                                requires_rrc_message,
-                                                               std::optional<std::chrono::seconds> release_wait_time)
+                                                               std::optional<std::chrono::seconds> release_wait_time,
+                                                               std::optional<rrc_inactivity_context> inactivity_context)
 {
   // Prepare location info to return.
   rrc_ue_release_context release_context;
@@ -590,6 +591,20 @@ rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool             
         // If wait time is provided, set it.
         release.non_crit_ext.wait_time_present = true;
         release.non_crit_ext.wait_time         = release_wait_time.value().count();
+      }
+      if (inactivity_context.has_value()) {
+        release.suspend_cfg_present = true;
+        // Set Full-I-RNTI.
+        release.suspend_cfg.full_i_rnti.from_number(inactivity_context->i_rntis.full_i_rnti.value());
+
+        // Set Short-I-RNTI.
+        release.suspend_cfg.short_i_rnti.from_number(inactivity_context->i_rntis.short_i_rnti.value());
+
+        // Set RAN paging cycle.
+        release.suspend_cfg.ran_paging_cycle = ran_paging_cycle_to_asn1(inactivity_context->ran_paging_cycle);
+
+        // Set next hop chaining count.
+        release.suspend_cfg.next_hop_chaining_count = inactivity_context->next_hop_chaining_count;
       }
 
       // Pack DL CCCH msg.

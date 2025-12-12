@@ -67,8 +67,9 @@ public:
   bool             store_ue_capabilities(byte_buffer ue_capabilities) override;
   async_task<bool> handle_rrc_ue_capability_transfer_request(const rrc_ue_capability_transfer_request& msg) override;
   rrc_ue_release_context
-                              get_rrc_ue_release_context(bool                                requires_rrc_message,
-                                                         std::optional<std::chrono::seconds> release_wait_time = std::nullopt) override;
+                              get_rrc_ue_release_context(bool                                  requires_rrc_message,
+                                                         std::optional<std::chrono::seconds>   release_wait_time = std::nullopt,
+                                                         std::optional<rrc_inactivity_context> inactivity_context = std::nullopt) override;
   rrc_ue_transfer_context     get_transfer_context() override;
   std::optional<rrc_meas_cfg> generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config) override;
   byte_buffer                 get_packed_meas_config() override;
@@ -79,6 +80,7 @@ public:
   bool                        handle_rrc_handover_preparation_info(byte_buffer pdu) override;
   void                        create_srb(const srb_creation_message& msg) override;
   static_vector<srb_id_t, MAX_NOF_SRBS> get_srbs() override;
+  void                                  set_rrc_state(rrc_state state) override { context.state = state; }
   rrc_state                             get_rrc_state() const override;
   void                                  cancel_handover_reconfiguration_transaction(uint8_t transaction_id) override;
   void                                  cancel_all_transactions() override;

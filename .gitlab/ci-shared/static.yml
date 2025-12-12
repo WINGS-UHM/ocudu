@@ -44,7 +44,7 @@ include:
       }
     - cd $CPP_SRC_DIR
     - check_code_format
-    - |
+    - &yamllint |
       cd $CI_PROJECT_DIR
       if [ -f .yamllint ]; then
         yamllint -f colored -c .yamllint .
@@ -63,6 +63,7 @@ include:
       }
     - cd $CPP_SRC_DIR
     - full_code_format
+    - *yamllint
 
 .include-guards:
   extends: .static

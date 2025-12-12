@@ -186,6 +186,18 @@ public:
 
   bool is_suspended() const { return st == bearer_context_state_t::suspended; }
 
+  void suspend()
+  {
+    ocudu_assert(st != bearer_context_state_t::suspended, "Trying to suspend already suspended bearer context");
+    st = bearer_context_state_t::suspended;
+  }
+
+  void resume()
+  {
+    ocudu_assert(st != bearer_context_state_t::active, "Trying to activate an already active bearer context");
+    st = bearer_context_state_t::active;
+  }
+
 private:
   ue_index_t      index;
   ue_context_cfg  cfg;

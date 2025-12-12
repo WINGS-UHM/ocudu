@@ -42,7 +42,7 @@ void cu_up_bearer_context_modification_routine::operator()(
       ue_ctxt.notify_pdcp_pdu_processing_stopped();
       CORO_AWAIT(ue_ctxt.await_rx_crypto_tasks());
       CORO_AWAIT(ue_ctxt.await_tx_crypto_tasks());
-      // TODO Suspend PDPC entity.
+      ue_ctxt.suspend();
       ue_ctxt.restart_pdcp_pdu_processing();
       ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
     } else {
@@ -50,7 +50,7 @@ void cu_up_bearer_context_modification_routine::operator()(
         CORO_EARLY_RETURN(response);
       }
       ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
-      // TODO Resume PDCP entity.
+      ue_ctxt.resume();
       ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
     }
   }
@@ -75,10 +75,11 @@ void cu_up_bearer_context_modification_routine::operator()(
   }
 
   if (not msg.ng_ran_bearer_context_mod_request.has_value()) {
-    ue_ctxt.get_logger().log_warning("Bearer Context Modification Request does not setup/modify any NR PDU sessions");
+    ue_ctxt.get_logger().log_debug("Bearer Context Modification Request does not setup/modify any NR PDU sessions");
     if (msg.security_info.has_value() and not ue_ctxt.is_suspended()) {
       ue_ctxt.end_pdcp_buffering();
     }
+    response.success = true;
     CORO_EARLY_RETURN(response);
   }
 

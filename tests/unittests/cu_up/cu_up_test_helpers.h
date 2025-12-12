@@ -32,22 +32,22 @@ constexpr auto default_wait_timeout = std::chrono::seconds(3);
 
 namespace ocudu {
 
+class dummy_ue_executor_mapper : public ocuup::ue_executor_mapper
+{
+public:
+  dummy_ue_executor_mapper(task_executor& exec_) : exec(&exec_) {}
+
+  task_executor& ctrl_executor() override { return *exec; }
+  task_executor& ul_pdu_executor() override { return *exec; }
+  task_executor& dl_pdu_executor() override { return *exec; }
+  task_executor& crypto_executor() override { return *exec; }
+
+  task_executor* exec;
+};
+
 /// Dummy CU-UP executor pool used for testing
 class dummy_cu_up_executor_mapper final : public ocuup::cu_up_executor_mapper
 {
-  class dummy_pdu_session_executor_mapper_impl : public ocuup::ue_executor_mapper
-  {
-  public:
-    dummy_pdu_session_executor_mapper_impl(task_executor& exec_) : exec(&exec_) {}
-
-    task_executor& ctrl_executor() override { return *exec; }
-    task_executor& ul_pdu_executor() override { return *exec; }
-    task_executor& dl_pdu_executor() override { return *exec; }
-    task_executor& crypto_executor() override { return *exec; }
-
-    task_executor* exec;
-  };
-
 public:
   dummy_cu_up_executor_mapper(task_executor* test_executor_) : test_executor(test_executor_) {}
 
@@ -67,7 +67,7 @@ public:
 
   std::unique_ptr<ocuup::ue_executor_mapper> create_ue_executor_mapper() override
   {
-    return std::make_unique<dummy_pdu_session_executor_mapper_impl>(*test_executor);
+    return std::make_unique<dummy_ue_executor_mapper>(*test_executor);
   }
 
 private:

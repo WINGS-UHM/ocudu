@@ -29,7 +29,31 @@ void cu_up_bearer_context_modification_routine::operator()(
   ue_ctxt.get_logger().log_debug("Handling BearerContextModificationRequest");
 
   response.ue_index = ue_ctxt.get_index();
-  response.success  = true;
+  response.success  = false;
+
+  if (msg.bearer_context_status_change.has_value()) {
+    // Handle bearer context suspension request.
+    if (*msg.bearer_context_status_change == e1ap_bearer_context_status_change::suspend) {
+      if (ue_ctxt.is_suspended()) {
+        CORO_EARLY_RETURN(response);
+      }
+      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+      ue_ctxt.begin_pdcp_buffering();
+      ue_ctxt.notify_pdcp_pdu_processing_stopped();
+      CORO_AWAIT(ue_ctxt.await_rx_crypto_tasks());
+      CORO_AWAIT(ue_ctxt.await_tx_crypto_tasks());
+      // TODO Suspend PDPC entity.
+      ue_ctxt.restart_pdcp_pdu_processing();
+      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+    } else {
+      if (not ue_ctxt.is_suspended()) {
+        CORO_EARLY_RETURN(response);
+      }
+      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+      // TODO Resume PDCP entity.
+      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+    }
+  }
 
   if (msg.security_info.has_value()) {
     fill_sec_as_config(security_info, msg.security_info.value());
@@ -52,7 +76,7 @@ void cu_up_bearer_context_modification_routine::operator()(
 
   if (not msg.ng_ran_bearer_context_mod_request.has_value()) {
     ue_ctxt.get_logger().log_warning("Bearer Context Modification Request does not setup/modify any NR PDU sessions");
-    if (msg.security_info.has_value()) {
+    if (msg.security_info.has_value() and not ue_ctxt.is_suspended()) {
       ue_ctxt.end_pdcp_buffering();
     }
     CORO_EARLY_RETURN(response);
@@ -88,7 +112,7 @@ void cu_up_bearer_context_modification_routine::operator()(
   }
 
   // End PDCP buffering if it was required due to key changes.
-  if (msg.security_info.has_value()) {
+  if (msg.security_info.has_value() and not ue_ctxt.is_suspended()) {
     ue_ctxt.end_pdcp_buffering();
   }
 

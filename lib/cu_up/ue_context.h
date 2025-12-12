@@ -27,6 +27,8 @@ namespace ocudu::ocuup {
 
 constexpr uint16_t UE_TASK_QUEUE_SIZE = 1024;
 
+enum class bearer_context_state_t { suspended, active };
+
 /// \brief UE context setup configuration
 struct ue_context_cfg {
   security::sec_as_config                      security_info;
@@ -182,6 +184,8 @@ public:
 
   std::unique_ptr<ue_executor_mapper> ue_exec_mapper;
 
+  bool is_suspended() const { return st == bearer_context_state_t::suspended; }
+
 private:
   ue_index_t      index;
   ue_context_cfg  cfg;
@@ -196,6 +200,7 @@ private:
 
   unique_timer ue_inactivity_timer;
 
+  bearer_context_state_t st{bearer_context_state_t::active};
   /// Handle expired UE inactivity timer. This function is called from a timer that is run in UE executor,
   /// therefore it handovers the handling to control executor.
   void on_ue_inactivity_timer_expired()

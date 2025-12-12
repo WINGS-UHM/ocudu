@@ -671,8 +671,8 @@ export on amd64:
     INFRASTRUCTURE_TAG: amd64-avx2
   parallel:
     matrix:
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04, ubuntu-22.04]
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04, ubuntu-22.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
         MARCH: x86-64-v3
 
 export on amd64 avx512:
@@ -681,7 +681,7 @@ export on amd64 avx512:
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
   parallel:
     matrix:
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04, ubuntu-22.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
         MARCH: x86-64-v4
 
 # Build + unit tests combinations
@@ -842,19 +842,6 @@ ubsan avx2:
 ###################
 # Alternative OSs #
 ###################
-archlinux amd64 native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
-  interruptible: false
-  variables:
-    OS: archlinux-latest
-    ENABLE_WERROR: "False"
-    INFRASTRUCTURE_TAG: amd64
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
 archlinux amd64 avx2:
   extends: .build_and_unit
   rules:
@@ -881,21 +868,6 @@ archlinux amd64 avx512:
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
-debian 12 amd64 native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
-      when: delayed
-      start_in: 60 minutes
-  interruptible: false
-  variables:
-    OS: debian-12
-    ENABLE_WERROR: "False"
-    INFRASTRUCTURE_TAG: amd64
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -928,21 +900,6 @@ debian 12 amd64 avx512:
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
-debian 13 amd64 native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
-      when: delayed
-      start_in: 120 minutes
-  interruptible: false
-  variables:
-    OS: debian-13
-    ENABLE_WERROR: "False"
-    INFRASTRUCTURE_TAG: amd64
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1008,38 +965,6 @@ check builders ubuntu versions:
     ASSERT_LEVEL: PARANOID
     CMAKE_BUILD_TYPE: Debug
 
-sanitizers amd64 native:
-  extends: .weekly sanitizers
-  variables:
-    INFRASTRUCTURE_TAG: amd64
-  parallel:
-    matrix:
-      # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
-        SANITIZER: tsan
-        COMPILER: [gcc, clang]
-        ENABLE_TSAN: "True"
-        TEST_MODE: default
-      - OS: [ubuntu-22.04]
-        SANITIZER: asan
-        COMPILER: [gcc, clang]
-        ENABLE_ASAN: "True"
-        TEST_MODE: default
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
-        SANITIZER: asan
-        COMPILER: clang
-        ENABLE_ASAN: "True"
-        TEST_MODE: default
-      # Valgrind doesn't support AVX512 instruction set
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
-        SANITIZER: ubsan
-        COMPILER: [gcc, clang]
-        ENABLE_UBSAN: "True"
-        TEST_MODE: default
-        INFRASTRUCTURE_TAG: amd64-docker
-        KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
-        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
-
 sanitizers amd64 avx2:
   extends: .weekly sanitizers
   variables:
@@ -1048,26 +973,21 @@ sanitizers amd64 avx2:
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: tsan
         COMPILER: [gcc, clang]
         ENABLE_TSAN: "True"
         TEST_MODE: default
-      - OS: ubuntu-22.04
-        SANITIZER: asan
-        COMPILER: [gcc, clang]
-        ENABLE_ASAN: "True"
-        TEST_MODE: default
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: asan
         COMPILER: clang
         ENABLE_ASAN: "True"
         TEST_MODE: default
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: valgrind
         COMPILER: gcc
         TEST_MODE: valgrind
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
@@ -1084,23 +1004,18 @@ sanitizers amd64 avx512:
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: tsan
         COMPILER: [gcc, clang]
         ENABLE_TSAN: "True"
         TEST_MODE: default
-      - OS: ubuntu-22.04
-        SANITIZER: asan
-        COMPILER: [gcc, clang]
-        ENABLE_ASAN: "True"
-        TEST_MODE: default
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: asan
         COMPILER: clang
         ENABLE_ASAN: "True"
         TEST_MODE: default
       # Valgrind doesn't support AVX512 instruction set
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
@@ -1109,33 +1024,29 @@ sanitizers amd64 avx512:
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
         KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
 
-sanitizers arm native:
+sanitizers arm neon:
   extends: .weekly sanitizers
   variables:
     INFRASTRUCTURE_TAG: arm64
+    MARCH: armv8.2-a+crypto+fp16+dotprod
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: tsan
         COMPILER: [gcc, clang]
         ENABLE_TSAN: "True"
         TEST_MODE: default
-      - OS: [ubuntu-22.04]
-        SANITIZER: asan
-        COMPILER: [gcc, clang]
-        ENABLE_ASAN: "True"
-        TEST_MODE: default
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: asan
         COMPILER: clang
         ENABLE_ASAN: "True"
         TEST_MODE: default
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: valgrind
         COMPILER: gcc
         TEST_MODE: valgrind
-      - OS: [ubuntu-25.10, ubuntu-25.04, ubuntu-24.04]
+      - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
@@ -1143,11 +1054,6 @@ sanitizers arm native:
         INFRASTRUCTURE_TAG: arm64-docker
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
         KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
-
-sanitizers arm neon:
-  extends: sanitizers arm native
-  variables:
-    MARCH: armv8.2-a+crypto+fp16+dotprod
 
 # UHD Alternatives
 
@@ -1193,20 +1099,6 @@ gdb pretty printers:
 
 # Build + unit tests combinations
 
-ubuntu-25.04 amd64 native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 430 minutes
-  interruptible: false
-  variables:
-    OS: ubuntu-25.04
-    INFRASTRUCTURE_TAG: amd64
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
 ubuntu-25.04 amd64 avx512:
   extends: .build_and_unit
   rules:
@@ -1218,20 +1110,6 @@ ubuntu-25.04 amd64 avx512:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
-ubuntu-25.04 arm native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 430 minutes
-  interruptible: false
-  variables:
-    OS: ubuntu-25.04
-    INFRASTRUCTURE_TAG: arm64
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1312,7 +1190,7 @@ ubuntu-25.10 arm neon:
 ubuntu-24.04 amd64 native:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 60 minutes
   interruptible: false
@@ -1366,7 +1244,7 @@ ubuntu-24.04 amd64 avx512 TRACE:
 ubuntu-24.04 arm native:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 60 minutes
   interruptible: false
@@ -1380,24 +1258,10 @@ ubuntu-24.04 arm native:
         ENABLE_FFTW: "False"
         ENABLE_ARMPL: "True"
 
-ubuntu-22.04 amd64 native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 120 minutes
-  interruptible: false
-  variables:
-    OS: ubuntu-22.04
-    INFRASTRUCTURE_TAG: amd64
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
 ubuntu-22.04 amd64 avx512:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1409,24 +1273,10 @@ ubuntu-22.04 amd64 avx512:
     matrix:
       - <<: *basic_combinations
 
-ubuntu-22.04 arm native:
-  extends: .build_and_unit
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 120 minutes
-  interruptible: false
-  variables:
-    OS: ubuntu-22.04
-    INFRASTRUCTURE_TAG: arm64
-  parallel:
-    matrix:
-      - <<: *basic_combinations
-
 ubuntu-22.04 arm neon:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 120 minutes
   interruptible: false
@@ -1450,7 +1300,7 @@ ubuntu-22.04 arm neon:
 ubuntu-22.04 amd64 avx2 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 210 minutes
   interruptible: false
@@ -1466,7 +1316,7 @@ ubuntu-22.04 amd64 avx2 dpdk:
 ubuntu-22.04 amd64 avx512 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 240 minutes
   interruptible: false
@@ -1566,7 +1416,7 @@ ubuntu-25.10 amd64 avx512 dpdk:
 ubuntu-25.04 amd64 avx2 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 460 minutes
   interruptible: false
@@ -1582,7 +1432,7 @@ ubuntu-25.04 amd64 avx2 dpdk:
 ubuntu-25.04 amd64 avx512 dpdk:
   extends: .build_and_unit
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 460 minutes
   interruptible: false

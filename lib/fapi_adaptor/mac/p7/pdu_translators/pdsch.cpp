@@ -51,7 +51,7 @@ static void fill_codewords(fapi::dl_pdsch_pdu_builder& builder, span<const pdsch
     fapi::dl_pdsch_codeword_builder cw_builder = builder.add_codeword();
     cw_builder.set_basic_parameters(cw.mcs_descr.target_code_rate,
                                     get_bits_per_symbol(cw.mcs_descr.modulation),
-                                    cw.mcs_index.to_uint(),
+                                    cw.mcs_index.value(),
                                     static_cast<unsigned>(cw.mcs_table),
                                     cw.rv_index,
                                     units::bytes{cw.tb_size_bytes});

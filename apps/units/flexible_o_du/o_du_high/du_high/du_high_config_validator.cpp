@@ -183,7 +183,7 @@ static bool validate_pdcch_unit_config(const du_high_unit_base_cell_config& base
     // NOTE: The CORESET duration of 3 symbols is only permitted if the dmrs-typeA-Position information element has
     // been set to 3. And, we use only pos2 or pos1.
     const pdcch_type0_css_coreset_description desc = ocudu::pdcch_type0_css_coreset_get(
-        band, base_cell.common_scs, base_cell.common_scs, cs0_idx, ssb_coreset0_freq_loc->k_ssb.to_uint());
+        band, base_cell.common_scs, base_cell.common_scs, cs0_idx, ssb_coreset0_freq_loc->k_ssb.value());
     if (desc.pattern != PDCCH_TYPE0_CSS_CORESET_RESERVED.pattern and desc.nof_symb_coreset == 3) {
       fmt::print("CORESET duration of 3 OFDM symbols corresponding to CORESET#0 index={} is not supported\n", cs0_idx);
       return false;

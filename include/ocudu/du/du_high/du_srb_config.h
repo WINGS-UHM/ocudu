@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/mac/mac_lc_config.h"
 #include "ocudu/rlc/rlc_config.h"
 
 namespace ocudu {

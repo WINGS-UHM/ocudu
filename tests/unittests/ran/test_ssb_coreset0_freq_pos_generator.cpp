@@ -18,8 +18,8 @@ using namespace ocudu;
 // Helper that compares the SSB and Coreset0 parameters returned by du_config_generator.
 static bool compare_ssb_freq_location(const ssb_freq_location& lhs, const ssb_freq_location& rhs)
 {
-  const bool result = lhs.is_valid && rhs.is_valid && lhs.k_ssb.to_uint() == rhs.k_ssb.to_uint() &&
-                      lhs.offset_to_point_A.to_uint() == rhs.offset_to_point_A.to_uint();
+  const bool result = lhs.is_valid && rhs.is_valid && lhs.k_ssb.value() == rhs.k_ssb.value() &&
+                      lhs.offset_to_point_A.value() == rhs.offset_to_point_A.value();
   return result;
 }
 
@@ -485,20 +485,18 @@ TEST_P(coreset0_index_generation_test, coreset0_params_are_valid)
 
 using scs_t = subcarrier_spacing;
 
-INSTANTIATE_TEST_SUITE_P(coreset0_index_suite,
-                         coreset0_index_generation_test,
-                         testing::Values( // clang-format off
+INSTANTIATE_TEST_SUITE_P(
+    coreset0_index_suite,
+    coreset0_index_generation_test,
+    testing::Values( // clang-format off
 //            cset_idx0 |  band  | n_rb | scs_common |  scs_ssb   | OffPtA | k_ssb | ssb_symb | ss0_idx | cset0_nof_symb
   cset0_test_params{2,  nr_band::n3, 52, scs_t::kHz15, scs_t::kHz15,   5,      2,      2,         0,       {}},
   cset0_test_params{0,  nr_band::n7, 25, scs_t::kHz15, scs_t::kHz15,   0,      0,      2,         0,       {}},
-  cset0_test_params{12, nr_band::n7, 106, scs_t::kHz15, scs_t::kHz15, 38,      6,      2,         0,       1}
-                                          // clang-format on
-                             ),
-                         [](const ::testing::TestParamInfo<coreset0_index_generation_test::ParamType>& info_) {
-                           return fmt::format("offset_pA_{}_and_kssb_{}",
-                                              info_.param.offset_to_point_A.to_uint(),
-                                              info_.param.k_ssb.to_uint());
-                         });
+  cset0_test_params{12, nr_band::n7, 106, scs_t::kHz15, scs_t::kHz15, 38,      6,      2,         0,       1} // clang-format on
+        ),
+    [](const ::testing::TestParamInfo<coreset0_index_generation_test::ParamType>& info_) {
+      return fmt::format("offset_pA_{}_and_kssb_{}", info_.param.offset_to_point_A.value(), info_.param.k_ssb.value());
+    });
 
 /*
  *      =====    TEST GENERATION OF SSB AND CORESET0 POSITIONS WITHIN THE BAND    =====

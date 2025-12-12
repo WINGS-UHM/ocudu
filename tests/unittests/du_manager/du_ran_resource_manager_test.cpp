@@ -116,23 +116,23 @@ protected:
     const du_cell_config& du_cfg                = cell_cfg_list[0];
     constexpr unsigned    nof_sr_f1_res_per_ue  = 1U;
     constexpr unsigned    nof_csi_f2_res_per_ue = 1U;
-    bool                  pucch_checker = pucch_cfg.pucch_res_list.size() == du_cfg.pucch_cfg.res_set_0_size.to_uint() +
-                                                                du_cfg.pucch_cfg.res_set_1_size.to_uint() +
+    bool                  pucch_checker = pucch_cfg.pucch_res_list.size() == du_cfg.pucch_cfg.res_set_0_size.value() +
+                                                                du_cfg.pucch_cfg.res_set_1_size.value() +
                                                                 nof_sr_f1_res_per_ue + nof_csi_f2_res_per_ue;
 
     // Check whether the SR resource point to the correct one (we give a range where the SR resource is located), each
     // UE can have different values within this range.
     pucch_checker =
         pucch_checker and
-        pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id >= du_cfg.pucch_cfg.res_set_0_size.to_uint() and
+        pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id >= du_cfg.pucch_cfg.res_set_0_size.value() and
         pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id <
-            du_cfg.pucch_cfg.res_set_0_size.to_uint() + du_cfg.pucch_cfg.nof_cell_sr_resources;
+            du_cfg.pucch_cfg.res_set_0_size.value() + du_cfg.pucch_cfg.nof_cell_sr_resources;
 
     // We always put the CSI PUCCH resource at the end of the list.
     if (csi_pucch_res.has_value()) {
-      pucch_checker = pucch_checker and csi_pucch_res.value() >= du_cfg.pucch_cfg.res_set_0_size.to_uint() +
+      pucch_checker = pucch_checker and csi_pucch_res.value() >= du_cfg.pucch_cfg.res_set_0_size.value() +
                                                                      du_cfg.pucch_cfg.nof_cell_sr_resources +
-                                                                     du_cfg.pucch_cfg.res_set_1_size.to_uint();
+                                                                     du_cfg.pucch_cfg.res_set_1_size.value();
     }
 
     return pucch_checker;
@@ -363,8 +363,8 @@ protected:
     const unsigned pucch_res_set_id            = format == pucch_format::FORMAT_1 ? 0U : 1U;
     const auto&    pucch_res_set               = pucch_cfg.pucch_res_set[pucch_res_set_id].pucch_res_id_list;
     const unsigned expected_pucch_res_set_size = format == pucch_format::FORMAT_1
-                                                     ? cell_cfg_list[0].pucch_cfg.res_set_0_size.to_uint()
-                                                     : cell_cfg_list[0].pucch_cfg.res_set_1_size.to_uint();
+                                                     ? cell_cfg_list[0].pucch_cfg.res_set_0_size.value()
+                                                     : cell_cfg_list[0].pucch_cfg.res_set_1_size.value();
     if (expected_pucch_res_set_size != pucch_res_set.size()) {
       return {};
     }
@@ -384,8 +384,8 @@ protected:
   interval<unsigned, true> get_expected_pucch_res_id_interval(unsigned ue_idx, pucch_format format) const
   {
     const unsigned expected_nof_pucch_res = format == pucch_format::FORMAT_1
-                                                ? cell_cfg_list[0].pucch_cfg.res_set_0_size.to_uint()
-                                                : cell_cfg_list[0].pucch_cfg.res_set_1_size.to_uint();
+                                                ? cell_cfg_list[0].pucch_cfg.res_set_0_size.value()
+                                                : cell_cfg_list[0].pucch_cfg.res_set_1_size.value();
 
     if (expected_nof_pucch_res == 0) {
       return interval<unsigned, true>{};
@@ -394,7 +394,7 @@ protected:
     const unsigned nof_harq_cfgs     = cell_cfg_list[0].pucch_cfg.nof_cell_res_set_configs;
     const unsigned f2_res_idx_offset = format == pucch_format::FORMAT_1
                                            ? 0U
-                                           : cell_cfg_list[0].pucch_cfg.res_set_0_size.to_uint() * nof_harq_cfgs +
+                                           : cell_cfg_list[0].pucch_cfg.res_set_0_size.value() * nof_harq_cfgs +
                                                  cell_cfg_list[0].pucch_cfg.nof_cell_sr_resources;
     return {f2_res_idx_offset + (ue_idx % nof_harq_cfgs) * expected_nof_pucch_res,
             f2_res_idx_offset + (ue_idx % nof_harq_cfgs) * expected_nof_pucch_res + expected_nof_pucch_res - 1};
@@ -824,8 +824,8 @@ static du_cell_config make_custom_pucch_odu_cell_config(bool pucch_has_more_res_
   srs_cfg.sequence_id_reuse_factor  = 1U;
   srs_cfg.srs_period.emplace(du_cfg.tdd_ul_dl_cfg_common.has_value() ? srs_periodicity::sl10 : srs_periodicity::sl1);
 
-  pucch_params.max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - srs_cfg.max_nof_symbols.to_uint();
-  f1_params.nof_symbols        = std::min(f1_params.nof_symbols.to_uint(), pucch_params.max_nof_symbols.to_uint());
+  pucch_params.max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - srs_cfg.max_nof_symbols.value();
+  f1_params.nof_symbols        = std::min(f1_params.nof_symbols.value(), pucch_params.max_nof_symbols.value());
 
   return du_cfg;
 }

@@ -26,7 +26,7 @@ slot_point ocudu::precompute_type0_pdcch_css_n0(uint8_t                   search
                                   cell_cfg.ssb_cfg.scs,
                                   scs_common,
                                   coreset0,
-                                  static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.to_uint()));
+                                  static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.value()));
 
   ocudu_assert(coreset0_param.pattern == ssb_coreset0_mplex_pattern::mplx_pattern1,
                "SS/PBCH and CORESET multiplexing pattern not supported.");

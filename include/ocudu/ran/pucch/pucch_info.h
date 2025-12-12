@@ -240,7 +240,7 @@ unsigned get_pucch_format4_max_payload(unsigned         nof_symbols,
 inline unsigned format1_symb_to_spreading_factor(bounded_integer<unsigned, 4, 14> f1_symbols)
 {
   // As per Table 6.3.2.4.1-1, TS 38.211.
-  return f1_symbols.to_uint() / 2;
+  return f1_symbols.value() / 2;
 }
 
 } // namespace ocudu

@@ -56,7 +56,7 @@ ue_cell_grid_allocator::calculate_dl_mcs_tbs(const cell_slot_resource_allocator&
     } else if (pdsch_cfg.mcs_table == pdsch_mcs_table::qam256) {
       max_mcs_with_csi_rs = 24U;
     }
-    adjusted_mcs = static_cast<sch_mcs_index>(std::min(adjusted_mcs.to_uint(), max_mcs_with_csi_rs));
+    adjusted_mcs = static_cast<sch_mcs_index>(std::min(adjusted_mcs.value(), max_mcs_with_csi_rs));
   }
 
   // If it's a new Tx, compute the MCS and TBS.

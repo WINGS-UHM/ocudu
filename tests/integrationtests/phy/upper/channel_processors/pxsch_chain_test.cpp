@@ -50,7 +50,7 @@ namespace ocudu {
 
 std::ostream& operator<<(std::ostream& os, const sch_mcs_index& index)
 {
-  fmt::print(os, "mcs={}", index.to_uint());
+  fmt::print(os, "mcs={}", index.value());
   return os;
 }
 

@@ -878,14 +878,14 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     if (user_srs_cfg.srs_period_ms.has_value()) {
       if (std::holds_alternative<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params)) {
         auto& f1_params       = std::get<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params);
-        f1_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.to_uint(), f1_params.nof_symbols.to_uint());
+        f1_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f1_params.nof_symbols.value());
       }
       if (std::holds_alternative<pucch_f3_params>(du_pucch_cfg.f2_or_f3_or_f4_params)) {
         auto& f3_params       = std::get<pucch_f3_params>(du_pucch_cfg.f2_or_f3_or_f4_params);
-        f3_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.to_uint(), f3_params.nof_symbols.to_uint());
+        f3_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f3_params.nof_symbols.value());
       } else if (std::holds_alternative<pucch_f4_params>(du_pucch_cfg.f2_or_f3_or_f4_params)) {
         auto& f4_params       = std::get<pucch_f4_params>(du_pucch_cfg.f2_or_f3_or_f4_params);
-        f4_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.to_uint(), f4_params.nof_symbols.to_uint());
+        f4_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f4_params.nof_symbols.value());
       }
       // Add extra PUSCH time-domain resources to enable PUSCH on symbols not used by the SRS.
       config_helpers::recompute_pusch_time_domain_resources(

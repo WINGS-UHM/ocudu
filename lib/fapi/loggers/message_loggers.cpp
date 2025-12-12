@@ -99,7 +99,7 @@ static void log_ssb_pdu(const dl_ssb_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
                  "\n\t- SSB pointA={} L_max={} pci={} k_SSB={}",
-                 pdu.ssb_offset_pointA.to_uint(),
+                 pdu.ssb_offset_pointA.value(),
                  pdu.ssb_maintenance_v3.L_max,
                  pdu.phys_cell_id,
                  pdu.ssb_subcarrier_offset);

@@ -97,7 +97,7 @@ static csi_report_data unpack_pusch_csi_cri_ri_li_pmi_cqi(const csi_report_packe
   // RI.
   csi_report_data::ri_type ri =
       csi_report_unpack_ri(csi1_packed.slice(csi1_count, csi1_count + sizes.ri), config.ri_restriction);
-  data.ri.emplace(ri.to_uint());
+  data.ri.emplace(ri.value());
   csi1_count += sizes.ri;
 
   if ((config.quantities == csi_report_quantities::cri_ri_pmi_cqi) ||

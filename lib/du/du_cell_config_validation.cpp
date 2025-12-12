@@ -116,12 +116,11 @@ static check_outcome is_coreset0_params_valid(const du_cell_config& cell_cfg)
                                   cell_cfg.ssb_cfg.scs,
                                   cell_cfg.scs_common,
                                   cell_cfg.coreset0_idx,
-                                  static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.to_uint()));
+                                  static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.value()));
 
   // CRB (with reference to SCScommon carrier) pointed to by offset_to_point_A.
-  unsigned crb_ssb = cell_cfg.scs_common == subcarrier_spacing::kHz15
-                         ? cell_cfg.ssb_cfg.offset_to_point_A.to_uint()
-                         : cell_cfg.ssb_cfg.offset_to_point_A.to_uint() / 2;
+  unsigned crb_ssb = cell_cfg.scs_common == subcarrier_spacing::kHz15 ? cell_cfg.ssb_cfg.offset_to_point_A.value()
+                                                                      : cell_cfg.ssb_cfg.offset_to_point_A.value() / 2;
 
   // Verify that Coreset0 does not start before pointA.
   CHECK_TRUE(static_cast<unsigned>(coreset0_param.offset) <= crb_ssb, "CORESET#0 starts before pointA.");
@@ -369,38 +368,37 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
   // Checks that SSB does not get located outside the band.
   if (cell_cfg.scs_common == subcarrier_spacing::kHz15) {
     // Check if k_SSB is within limits, according to the SCScommon.
-    CHECK_EQ_OR_BELOW(ssb_cfg.k_ssb.to_uint(), 11, "For SCS common 15kHz, k_SSB must be within the range [0, 11].");
+    CHECK_EQ_OR_BELOW(ssb_cfg.k_ssb.value(), 11, "For SCS common 15kHz, k_SSB must be within the range [0, 11].");
 
     // In the following, we assume the SSB is located inside the Transmission Bandwidth Configuration of the specified
     // band. Refer to TS38.104, Section 5.3.1 for the definition of Transmission Bandwidth Configuration.
     // We assume the Initial DL BWP ranges over the whole Transmission Bandwidth Configuration.
-    unsigned nof_crbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
-    unsigned offset_p_A_upper_bound =
-        ssb_cfg.k_ssb.to_uint() > 0 ? nof_crbs - NOF_SSB_PRBS - 1 : nof_crbs - NOF_SSB_PRBS;
+    unsigned nof_crbs               = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
+    unsigned offset_p_A_upper_bound = ssb_cfg.k_ssb.value() > 0 ? nof_crbs - NOF_SSB_PRBS - 1 : nof_crbs - NOF_SSB_PRBS;
     CHECK_EQ_OR_BELOW(
-        ssb_cfg.offset_to_point_A.to_uint(),
+        ssb_cfg.offset_to_point_A.value(),
         offset_p_A_upper_bound,
         "Offset to PointA must be such that the SSB is located inside the Initial DL BWP, i.e, offset_to_point_A <= {}",
         offset_p_A_upper_bound);
 
   } else if (cell_cfg.scs_common == subcarrier_spacing::kHz30) {
     // Check if k_SSB is within limits, according to the SCScommon.
-    CHECK_EQ_OR_BELOW(ssb_cfg.k_ssb.to_uint(), 23, "For SCS common 30kHz, k_SSB must be within the range [0, 23].");
+    CHECK_EQ_OR_BELOW(ssb_cfg.k_ssb.value(), 23, "For SCS common 30kHz, k_SSB must be within the range [0, 23].");
     // Check if k_SSB is an even number, as this is a requirement coming from PHY implementation limitation.
-    CHECK_TRUE(ssb_cfg.k_ssb.to_uint() % 2 == 0, "For SCS common 30kHz, k_SSB must be an even number.");
+    CHECK_TRUE(ssb_cfg.k_ssb.value() % 2 == 0, "For SCS common 30kHz, k_SSB must be an even number.");
 
     // In the following, we assume the SSB is located inside the Transmission Bandwidth Configuration of the specified
     // band. Refer to TS38.104, Section 5.3.1 for the definition of Transmission Bandwidth Configuration.
     // We assume the Initial DL BWP ranges over the whole Transmission Bandwidth Configuration.
     unsigned nof_crbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
     unsigned offset_p_A_upper_bound =
-        ssb_cfg.k_ssb.to_uint() > 0 ? (nof_crbs - NOF_SSB_PRBS - 1) * 2 : (nof_crbs - NOF_SSB_PRBS) * 2;
+        ssb_cfg.k_ssb.value() > 0 ? (nof_crbs - NOF_SSB_PRBS - 1) * 2 : (nof_crbs - NOF_SSB_PRBS) * 2;
     CHECK_EQ_OR_BELOW(
-        ssb_cfg.offset_to_point_A.to_uint(),
+        ssb_cfg.offset_to_point_A.value(),
         offset_p_A_upper_bound,
         "Offset to PointA must be such that the SSB is located inside the Initial DL BWP, i.e, offset_to_point_A <= {}",
         offset_p_A_upper_bound);
-    CHECK_TRUE(ssb_cfg.offset_to_point_A.to_uint() % 2 == 0,
+    CHECK_TRUE(ssb_cfg.offset_to_point_A.value() % 2 == 0,
                "With SCScommon 30kHz, Offset to PointA must be an even number",
                offset_p_A_upper_bound);
   }
@@ -461,10 +459,10 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
     const pusch_config_common& pusch = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value();
     CHECK_TRUE(pusch.msg3_delta_power.valid(),
                "msg3_delta_power{} in pucch_config_common not in range [-6, 8]",
-               pusch.msg3_delta_power.to_int());
-    CHECK_TRUE(pusch.msg3_delta_power.to_int() % 2 == 0,
+               pusch.msg3_delta_power.value());
+    CHECK_TRUE(pusch.msg3_delta_power.value() % 2 == 0,
                "The value set {} for msg3_delta_power must be a multiple of 2",
-               pusch.msg3_delta_power.to_int());
+               pusch.msg3_delta_power.value());
   }
 
   // \ref prach_scheduler for the derivation of this validation.
@@ -778,8 +776,8 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
   HANDLE_ERROR(check_tdd_ul_dl_config(cell_cfg));
   const pucch_builder_params& pucch_cfg = cell_cfg.pucch_cfg;
   HANDLE_ERROR(config_helpers::pucch_parameters_validator(
-      pucch_cfg.res_set_0_size.to_uint() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_sr_resources,
-      pucch_cfg.res_set_1_size.to_uint() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_csi_resources,
+      pucch_cfg.res_set_0_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_sr_resources,
+      pucch_cfg.res_set_1_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_csi_resources,
       pucch_cfg.f0_or_f1_params,
       pucch_cfg.f2_or_f3_or_f4_params,
       cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),

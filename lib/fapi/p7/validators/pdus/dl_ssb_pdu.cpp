@@ -118,7 +118,7 @@ bool ocudu::fapi::validate_dl_ssb_pdu(const dl_ssb_pdu& pdu, validator_report& r
   result &= validate_beta_pss_profile_nr(static_cast<unsigned>(pdu.beta_pss_profile_nr), report);
   result &= validate_block_index(pdu.ssb_block_index, report);
   result &= validate_subcarrier_offset(pdu.ssb_subcarrier_offset, report);
-  result &= validate_offset_point_A(pdu.ssb_offset_pointA.to_uint(), report);
+  result &= validate_offset_point_A(pdu.ssb_offset_pointA.value(), report);
   // NOTE: BCH payload property will not be validated.
   if (pdu.bch_payload_flag == bch_payload_type::phy_full) {
     result &= validate_dmrs_type_a_position(

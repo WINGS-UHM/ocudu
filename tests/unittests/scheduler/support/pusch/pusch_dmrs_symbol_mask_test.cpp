@@ -95,16 +95,16 @@ TEST_P(PuschDmrsSymbolMaskFixture, ANormal)
   // Prepare configuration.
   pusch_dmrs_symbol_mask_mapping_type_A_single_configuration config;
   config.typeA_pos           = typeA_pos;
-  config.last_symbol         = last_symbol.to_uint();
+  config.last_symbol         = last_symbol.value();
   config.additional_position = additional_position;
 
   // Get mask.
   dmrs_symbol_mask mask = pusch_dmrs_symbol_mask_mapping_type_A_single_get(config);
 
   // Get expected symbol position list from table.
-  ASSERT_TRUE(pusch_dmrs_symbol_mask_typeA_single_table.count({last_symbol.to_uint(), additional_position}));
+  ASSERT_TRUE(pusch_dmrs_symbol_mask_typeA_single_table.count({last_symbol.value(), additional_position}));
   static_vector<unsigned, 4> symbol_pos_list =
-      pusch_dmrs_symbol_mask_typeA_single_table.at({last_symbol.to_uint(), additional_position});
+      pusch_dmrs_symbol_mask_typeA_single_table.at({last_symbol.value(), additional_position});
 
   // Convert list to mask.
   dmrs_symbol_mask expected(14);

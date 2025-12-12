@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/f1u/du/f1u_config.h"
-#include "ocudu/mac/mac_lc_config.h"
 #include "ocudu/rlc/rlc_config.h"
 
 namespace ocudu {
@@ -19,8 +18,8 @@ namespace odu {
 
 /// \brief QoS Configuration, i.e. 5QI and the associated RLC configuration for DRBs
 struct du_qos_config {
-  rlc_config      rlc;
-  odu::f1u_config f1u;
+  rlc_config rlc;
+  f1u_config f1u;
 };
 
 } // namespace odu

@@ -45,7 +45,7 @@ bool ue_channel_state_manager::handle_csi_report(const csi_report_data& csi_repo
     if (csi_report.ri.value() > nof_dl_ports) {
       return false;
     }
-    recommended_dl_layers = csi_report.ri.value().to_uint();
+    recommended_dl_layers = csi_report.ri.value().value();
   }
 
   if (csi_report.pmi.has_value()) {

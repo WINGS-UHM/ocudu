@@ -22,7 +22,7 @@ pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    u
   cl_pw_control_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_pusch_cl_pw_control),
   phr_bw_adaptation_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_phr_bw_adaptation),
   p0_nominal_pusch(
-      ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.to_int()),
+      ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value()),
   channel_state_manager(ch_state_manager),
   pusch_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.target_pusch_sinr),
   ref_path_loss_for_target_sinr(

@@ -669,9 +669,9 @@ int main(int argc, char** argv)
   // SSB frequency offset to Point A as a number of RBs.
   ssb_offset_to_pointA ssb_offset_pointA_subc_rb = ssb_offset_pointA_subc_ref / NRE;
   // Round down the offset to Point A to match CRB boundaries.
-  ssb_offset_pointA_subc_rb = (ssb_offset_pointA_subc_rb.to_uint() / ratio_scs_over_ref) * ratio_scs_over_ref;
+  ssb_offset_pointA_subc_rb = (ssb_offset_pointA_subc_rb.value() / ratio_scs_over_ref) * ratio_scs_over_ref;
   // Remainder SSB frequency offset from Point A after rounding.
-  ssb_subcarrier_offset subcarrier_offset = ssb_offset_pointA_subc_ref - ssb_offset_pointA_subc_rb.to_uint() * NRE;
+  ssb_subcarrier_offset subcarrier_offset = ssb_offset_pointA_subc_ref - ssb_offset_pointA_subc_rb.value() * NRE;
 
   upper_phy_ssb_example::configuration upper_phy_sample_config;
   upper_phy_sample_config.log_level                    = log_level;

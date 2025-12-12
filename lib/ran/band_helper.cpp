@@ -1303,7 +1303,7 @@ static unsigned get_max_coreset0_index(nr_band band, subcarrier_spacing scs_comm
 static unsigned get_ssb_crb_0(subcarrier_spacing scs_common, ssb_offset_to_pointA offset_to_point_A)
 {
   unsigned denominator = pow2(to_numerology_value(scs_common) - to_numerology_value(get_ssb_ref_scs(scs_common)));
-  return offset_to_point_A.to_uint() / denominator;
+  return offset_to_point_A.value() / denominator;
 }
 
 /// \brief Computes the CRBs (based on SCS_common) that intersect with the SSB's PRBs.
@@ -1360,7 +1360,7 @@ ocudu::band_helper::get_ssb_coreset0_freq_location(unsigned           dl_arfcn,
           cset0_idx.value(), band, scs_common, scs_ssb, ssb.offset_to_point_A, ssb.k_ssb);
 
       const pdcch_type0_css_coreset_description cset0_desc =
-          pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, *cset0_idx, ssb.k_ssb.to_uint());
+          pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, *cset0_idx, ssb.k_ssb.value());
 
       // If the number of non-intersecting CORESET#0 RBs is the highest so far for the least nof. CORESET#0 RBs and
       // largest CORESET#0 duration less than max_coreset0_duration, save result.
@@ -1416,9 +1416,9 @@ ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(unsigned       
   while (ssb.is_valid) {
     // CRB index where the first SSB's subcarrier is located.
     const unsigned crbs_ssb =
-        scs_common == subcarrier_spacing::kHz15 ? ssb.offset_to_point_A.to_uint() : ssb.offset_to_point_A.to_uint() / 2;
+        scs_common == subcarrier_spacing::kHz15 ? ssb.offset_to_point_A.value() : ssb.offset_to_point_A.value() / 2;
 
-    auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, ssb.k_ssb.to_uint());
+    auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, ssb.k_ssb.value());
     // CORESET#0 must be within cell bandwidth limits.
     if (coreset0_cfg.nof_rb_coreset > n_rbs) {
       break;
@@ -1480,7 +1480,7 @@ std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band          
 
   // CRB index where the first SSB's subcarrier is located.
   const unsigned crbs_ssb =
-      offset_to_point_A.to_uint() / pow2(to_numerology_value(scs_common) - to_numerology_value(scs_ref));
+      offset_to_point_A.value() / pow2(to_numerology_value(scs_common) - to_numerology_value(scs_ref));
 
   // Get the maximum Coreset0 index that can be used for the Tables 13-[1-6], TS 38.213.
   const unsigned max_cset0_idx = get_max_coreset0_index(band, scs_common, scs_ssb);
@@ -1489,7 +1489,7 @@ std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band          
   unsigned                max_nof_avail_rbs = 0;
   std::optional<unsigned> chosen_cset0_idx;
   for (int cset0_idx = static_cast<int>(max_cset0_idx); cset0_idx >= 0; --cset0_idx) {
-    auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.to_uint());
+    auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.value());
     if (max_nof_avail_rbs > coreset0_cfg.nof_rb_coreset) {
       // No point in continuing search for this and lower CORESET#0s.
       break;
@@ -1537,10 +1537,10 @@ unsigned ocudu::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(unsigned 
                                                                        ssb_subcarrier_offset k_ssb)
 {
   // Coreset0 configuration for the provided CORESET#0 index.
-  auto cset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.to_uint());
+  auto cset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.value());
 
   const interval<unsigned> ssb_prbs   = get_ssb_crbs(scs_common, scs_ssb, offset_to_point_A, k_ssb);
-  const unsigned           crb_ssb_0  = get_ssb_crb_0(scs_common, offset_to_point_A.to_uint());
+  const unsigned           crb_ssb_0  = get_ssb_crb_0(scs_common, offset_to_point_A.value());
   interval<unsigned>       cset0_prbs = {crb_ssb_0 - cset0_cfg.offset,
                                          crb_ssb_0 - cset0_cfg.offset + cset0_cfg.nof_rb_coreset};
   return cset0_cfg.nof_rb_coreset - cset0_prbs.intersect(ssb_prbs).length();

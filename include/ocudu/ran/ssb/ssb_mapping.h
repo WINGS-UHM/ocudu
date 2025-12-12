@@ -120,11 +120,11 @@ inline unsigned ssb_get_k_first(frequency_range       fr,
   // Verify the offset to Point A and the subcarrier offset are valid.
   ocudu_assert(offset_to_pointA.valid(),
                "Invalid offset to Point A {} (max {})",
-               offset_to_pointA.to_uint(),
+               offset_to_pointA.value(),
                ssb_offset_to_pointA::max());
   ocudu_assert(subcarrier_offset.is_valid(fr),
                "Invalid subcarrier offset {} for FR{} (max {})",
-               subcarrier_offset.to_uint(),
+               subcarrier_offset.value(),
                fr == frequency_range::FR1 ? 1 : 2,
                ssb_subcarrier_offset::max(fr));
 
@@ -140,9 +140,9 @@ inline unsigned ssb_get_k_first(frequency_range       fr,
   unsigned ssb_scs_kHz = scs_to_khz(ssb_scs);
 
   // Calculate the number of 15kHz subcarriers from point A to the first subcarrier of the SS/PBCH block.
-  unsigned k_first_15kHz = (offset_to_pointA.to_uint() * NRE * pointA_offset_scs_kHz +
-                            subcarrier_offset.to_uint() * subcarrier_offset_scs_kHz) /
-                           15;
+  unsigned k_first_15kHz =
+      (offset_to_pointA.value() * NRE * pointA_offset_scs_kHz + subcarrier_offset.value() * subcarrier_offset_scs_kHz) /
+      15;
 
   // Make sure the above conversion is exact and has no remainder.
   ocudu_assert((k_first_15kHz * 15) % ssb_scs_kHz == 0,
@@ -151,8 +151,8 @@ inline unsigned ssb_get_k_first(frequency_range       fr,
                fr == frequency_range::FR1 ? 1 : 2,
                ssb_scs_kHz,
                scs_to_khz(common_scs),
-               offset_to_pointA.to_uint(),
-               subcarrier_offset.to_uint());
+               offset_to_pointA.value(),
+               subcarrier_offset.value());
 
   // Calculate actual result.
   return (k_first_15kHz * 15) / ssb_scs_kHz;

@@ -127,8 +127,8 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               }
               ASSERT_EQ(pdu.ssb_idx, ssb_idx);
               ASSERT_EQ(pdu.L_max, lmax);
-              ASSERT_EQ(pdu.subcarrier_offset.to_uint(), ssb_subcarrier_offset);
-              ASSERT_EQ(pdu.offset_to_pointA.to_uint(), offset_pointA);
+              ASSERT_EQ(pdu.subcarrier_offset.value(), ssb_subcarrier_offset);
+              ASSERT_EQ(pdu.offset_to_pointA.value(), offset_pointA);
               ASSERT_EQ(pdu.pattern_case, pattern_case);
               ASSERT_TRUE(ocuduvec::equal(pdu.ports, std::vector<uint8_t>{0}));
 

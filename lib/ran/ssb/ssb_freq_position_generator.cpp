@@ -49,9 +49,8 @@ compute_k_ssb(double f_ssb_0_hz, double point_A_hz, ssb_offset_to_pointA offset_
 {
   subcarrier_spacing scs_ref = band_helper::get_ssb_ref_scs(scs_common);
 
-  const double f_crb_ssb_kHz =
-      point_A_hz * band_helper::HZ_TO_KHZ +
-      static_cast<double>(NOF_SUBCARRIERS_PER_RB * scs_to_khz(scs_ref) * offset_to_pA.to_uint());
+  const double f_crb_ssb_kHz = point_A_hz * band_helper::HZ_TO_KHZ +
+                               static_cast<double>(NOF_SUBCARRIERS_PER_RB * scs_to_khz(scs_ref) * offset_to_pA.value());
 
   return static_cast<uint64_t>(f_ssb_0_hz * band_helper::HZ_TO_KHZ - f_crb_ssb_kHz) / scs_to_khz(scs_ref);
 }

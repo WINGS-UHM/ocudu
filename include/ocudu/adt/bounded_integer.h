@@ -49,9 +49,13 @@ public:
   using base_class::base_class;
   using difference_type = std::conditional_t<sizeof(Integer) == sizeof(int64_t), int64_t, int32_t>;
 
-  constexpr bounded_integer() = default;
-  constexpr bounded_integer(bounded_integer_invalid_tag /**/) : base_class(MAX_VALUE + 1) {}
-  constexpr bounded_integer(Integer v) : base_class(v) { assert_bounds(v); }
+  constexpr bounded_integer() noexcept = default;
+  constexpr explicit bounded_integer(bounded_integer_invalid_tag /**/) noexcept : base_class(MAX_VALUE + 1) {}
+  constexpr bounded_integer(Integer v) noexcept : base_class(v) { assert_bounds(v); }
+  constexpr bounded_integer(const bounded_integer& other) noexcept            = default;
+  constexpr bounded_integer(bounded_integer&& other) noexcept                 = default;
+  constexpr bounded_integer& operator=(const bounded_integer& other) noexcept = default;
+  constexpr bounded_integer& operator=(bounded_integer&& other) noexcept      = default;
 
   bounded_integer& operator=(Integer v)
   {
@@ -60,7 +64,10 @@ public:
     return *this;
   }
 
+  /// Get minimum possible value.
   static constexpr Integer min() { return MIN_VALUE; }
+
+  /// Get maximum possible value.
   static constexpr Integer max() { return MAX_VALUE; }
 
   /// Checks whether the value is within the defined boundaries.
@@ -69,20 +76,7 @@ public:
   /// Cast operator to primitive integer type.
   explicit constexpr operator Integer() const { return base_class::value(); }
 
-  /// Returns the underlying value. This method is only enabled if the type is unsigned.
-  template <typename U = Integer, std::enable_if_t<std::is_unsigned<U>::value, int> = 0>
-  constexpr Integer to_uint() const
-  {
-    return base_class::value();
-  }
-
-  /// Returns the underlying value. This method is only enabled if the type is signed.
-  template <typename U = Integer, std::enable_if_t<std::is_signed<U>::value, int> = 0>
-  constexpr Integer to_int() const
-  {
-    return base_class::value();
-  }
-
+  /// Retrieves stored raw integer value.
   constexpr Integer value() const { return base_class::value(); }
 
   bounded_integer& operator++()

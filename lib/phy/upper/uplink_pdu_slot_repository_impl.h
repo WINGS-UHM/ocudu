@@ -127,7 +127,7 @@ public:
   void add_srs_pdu(const srs_pdu& pdu) override
   {
     unsigned end_symbol_index =
-        pdu.config.resource.start_symbol.to_uint() + static_cast<unsigned>(pdu.config.resource.nof_symbols) - 1;
+        pdu.config.resource.start_symbol.value() + static_cast<unsigned>(pdu.config.resource.nof_symbols) - 1;
     ocudu_assert(end_symbol_index < MAX_NSYMB_PER_SLOT, "Invalid end symbol index {}.", end_symbol_index);
     srs_repository[end_symbol_index].push_back(pdu);
     fsm_notifier.increment_pending_pdu_count();

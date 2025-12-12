@@ -197,7 +197,7 @@ private:
   static void fill_li(csi_report_packed& packed, csi_report_data& unpacked, const csi_report_configuration& config)
   {
     unsigned nof_li_bits = 0;
-    unsigned nof_layers  = unpacked.ri.value().to_uint();
+    unsigned nof_layers  = unpacked.ri.value().value();
 
     switch (config.pmi_codebook) {
       case pmi_codebook_type::one:
@@ -248,7 +248,7 @@ private:
 
   static void fill_pmi(csi_report_packed& packed, csi_report_data& unpacked, const csi_report_configuration& config)
   {
-    unsigned ri = unpacked.ri.value().to_uint();
+    unsigned ri = unpacked.ri.value().value();
 
     switch (config.pmi_codebook) {
       case pmi_codebook_type::two: {
@@ -310,7 +310,7 @@ private:
   static void
   fill_wideband_cqi(csi_report_packed& packed, csi_report_data& unpacked, const csi_report_configuration& config)
   {
-    unsigned ri            = unpacked.ri.value().to_uint();
+    unsigned ri            = unpacked.ri.value().value();
     unsigned wideband_cqi1 = rgen() & mask_lsb_ones<unsigned>(4);
     unsigned wideband_cqi2 = rgen() & mask_lsb_ones<unsigned>(4);
 

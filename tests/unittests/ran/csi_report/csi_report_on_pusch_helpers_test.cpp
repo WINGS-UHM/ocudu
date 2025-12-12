@@ -388,7 +388,7 @@ private:
 
   static void fill_li(csi_report_packed& packed, csi_report_data& unpacked, const csi_report_configuration& config)
   {
-    unsigned nof_layers  = unpacked.ri.value().to_uint();
+    unsigned nof_layers  = unpacked.ri.value().value();
     unsigned nof_li_bits = get_li_size(config, nof_layers);
 
     unsigned li = (rgen() & mask_lsb_ones<unsigned>(nof_li_bits));
@@ -401,7 +401,7 @@ private:
 
   static void fill_pmi(csi_report_packed& packed, csi_report_data& unpacked, const csi_report_configuration& config)
   {
-    unsigned ri = unpacked.ri.value().to_uint();
+    unsigned ri = unpacked.ri.value().value();
 
     switch (config.pmi_codebook) {
       case pmi_codebook_type::two: {
@@ -475,7 +475,7 @@ private:
   static void
   fill_wideband_cqi_2nd_tb(csi_report_packed& packed, csi_report_data& unpacked, const csi_report_configuration& config)
   {
-    unsigned ri                 = unpacked.ri.value().to_uint();
+    unsigned ri                 = unpacked.ri.value().value();
     unsigned wideband_cqi2_size = get_second_tb_wideband_cqi_size(ri);
 
     if (wideband_cqi2_size > 0) {

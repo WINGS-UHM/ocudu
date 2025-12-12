@@ -36,7 +36,7 @@ TEST(mac_to_fapi_pusch_pdu_test, valid_pusch_pdu_should_pass)
   // Information parameters.
   ASSERT_EQ(static_cast<unsigned>(pusch_cfg.mcs_descr.target_code_rate * 10.F), fapi_pdu.target_code_rate);
   ASSERT_EQ(pusch_cfg.mcs_descr.modulation, fapi_pdu.qam_mod_order);
-  ASSERT_EQ(pusch_cfg.mcs_index.to_uint(), fapi_pdu.mcs_index);
+  ASSERT_EQ(pusch_cfg.mcs_index.value(), fapi_pdu.mcs_index);
   ASSERT_EQ(pusch_cfg.mcs_table, fapi_pdu.mcs_table);
   ASSERT_EQ(pusch_cfg.transform_precoding, fapi_pdu.transform_precoding);
   ASSERT_EQ(pusch_cfg.n_id, fapi_pdu.nid_pusch);

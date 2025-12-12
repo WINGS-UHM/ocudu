@@ -44,7 +44,7 @@ TEST(bounded_integer_test, cast_to_integer)
   bounded_integer<uint8_t, 2, 10> val = num;
 
   TESTASSERT_EQ(num, static_cast<uint8_t>(val));
-  TESTASSERT_EQ(num, val.to_uint());
+  TESTASSERT_EQ(num, val.value());
 }
 
 TEST(bounded_integer_test, copy_ctor)

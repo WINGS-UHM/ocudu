@@ -59,7 +59,7 @@ void ocudu::build_dci_f1_0_si_rnti(dci_dl_info&               dci,
   // TODO: Verify if interleaved is suitable for SIB1.
   si_dci.interleaved_vrb_prb_mapping = false;
   si_dci.time_resource               = time_resource;
-  si_dci.modulation_coding_scheme    = mcs_index.to_uint();
+  si_dci.modulation_coding_scheme    = mcs_index.value();
   // Redundancy version for first transmission.
   // TODO: Check what is the best RV for SIB1.
   si_dci.redundancy_version           = 0;
@@ -86,7 +86,7 @@ void ocudu::build_dci_f1_0_p_rnti(dci_dl_info&               dci,
   // TODO: Verify if interleaved is suitable for Paging.
   p_dci.interleaved_vrb_prb_mapping = false;
   p_dci.short_messages_indicator    = dci_1_0_p_rnti_configuration::payload_info::scheduling_information;
-  p_dci.modulation_coding_scheme    = mcs_index.to_uint();
+  p_dci.modulation_coding_scheme    = mcs_index.value();
 }
 
 void ocudu::build_dci_f1_0_p_rnti(dci_dl_info& dci, const bwp_downlink_common& init_dl_bwp, unsigned short_messages)
@@ -119,7 +119,7 @@ void ocudu::build_dci_f1_0_ra_rnti(dci_dl_info&               dci,
       ra_frequency_type1_configuration{ra_dci.N_rb_dl_bwp, rar_vrbs.start(), rar_vrbs.length()});
   ra_dci.interleaved_vrb_prb_mapping = false;
   ra_dci.time_resource               = time_resource;
-  ra_dci.modulation_coding_scheme    = mcs_index.to_uint();
+  ra_dci.modulation_coding_scheme    = mcs_index.value();
   ra_dci.tb_scaling                  = 0; // TODO.
 }
 
@@ -153,7 +153,7 @@ void ocudu::build_dci_f1_0_tc_rnti(dci_dl_info&                  dci,
   f1_0.pucch_resource_indicator       = pucch_res_indicator;
   f1_0.pdsch_harq_fb_timing_indicator = get_dci_1_0_pdsch_to_harq_timing_indicator(k1);
 
-  f1_0.modulation_coding_scheme = mcs_index.to_uint();
+  f1_0.modulation_coding_scheme = mcs_index.value();
 
   // HARQ params.
   f1_0.harq_process_number = h_dl.id();
@@ -204,7 +204,7 @@ void ocudu::build_dci_f1_0_c_rnti(dci_dl_info&                  dci,
   f1_0.pdsch_harq_fb_timing_indicator = get_dci_1_0_pdsch_to_harq_timing_indicator(k1);
   f1_0.dl_assignment_index            = dai;
 
-  f1_0.modulation_coding_scheme = mcs_index.to_uint();
+  f1_0.modulation_coding_scheme = mcs_index.value();
 
   // HARQ params.
   f1_0.harq_process_number = h_dl.id();
@@ -280,7 +280,7 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   f1_1.pdsch_harq_fb_timing_indicator = get_dci_1_1_pdsch_to_harq_timing_indicator(k1, k1_candidates);
   f1_1.downlink_assignment_index      = dai;
 
-  f1_1.tb1_modulation_coding_scheme = tb1_mcs_index.to_uint();
+  f1_1.tb1_modulation_coding_scheme = tb1_mcs_index.value();
 
   // HARQ params.
   f1_1.harq_process_number    = h_dl.id();
@@ -324,7 +324,7 @@ void ocudu::build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
       ra_frequency_type1_get_riv(ra_frequency_type1_configuration{ul_bwp.crbs.length(), vrbs.start(), vrbs.length()});
   f0_0.time_resource = time_resource;
 
-  f0_0.modulation_coding_scheme = mcs_index.to_uint();
+  f0_0.modulation_coding_scheme = mcs_index.value();
 
   // HARQ params.
   f0_0.redundancy_version = rv;
@@ -368,7 +368,7 @@ void ocudu::build_dci_f0_0_c_rnti(dci_ul_info&                  dci,
 
   f0_0.time_resource = time_resource;
 
-  f0_0.modulation_coding_scheme = mcs_index.to_uint();
+  f0_0.modulation_coding_scheme = mcs_index.value();
 
   // HARQ params.
   f0_0.harq_process_number = h_ul.id();
@@ -420,7 +420,7 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
       ra_frequency_type1_configuration{active_ul_bwp.crbs.length(), vrbs.start(), vrbs.length()});
   f0_1.time_resource = time_resource;
 
-  f0_1.modulation_coding_scheme = mcs_index.to_uint();
+  f0_1.modulation_coding_scheme = mcs_index.value();
 
   // HARQ params.
   f0_1.harq_process_number = h_ul.id();

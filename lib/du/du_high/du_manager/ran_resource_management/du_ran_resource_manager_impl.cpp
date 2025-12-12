@@ -250,7 +250,7 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
     ue_res.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config(cell_cfg_cmn.mcg_params);
     // TODO: Move to helper.
     if (cell_cfg_cmn.pcg_params.p_nr_fr1.has_value()) {
-      ue_res.cell_group.pcg_cfg.p_nr_fr1 = cell_cfg_cmn.pcg_params.p_nr_fr1->to_int();
+      ue_res.cell_group.pcg_cfg.p_nr_fr1 = cell_cfg_cmn.pcg_params.p_nr_fr1->value();
     }
     ue_res.cell_group.pcg_cfg.pdsch_harq_codebook = pdsch_harq_ack_codebook::dynamic;
 

@@ -66,10 +66,10 @@ sch_mcs_description ocudu::pusch_mcs_get_config(pusch_mcs_table table,
   sch_mcs_description result = {};
   switch (table) {
     case pusch_mcs_table::qam64:
-      result = MCS_INDEX_TABLE_1_TP[index.to_uint()];
+      result = MCS_INDEX_TABLE_1_TP[index.value()];
       break;
     case pusch_mcs_table::qam64LowSe:
-      result = MCS_INDEX_TABLE_2_TP[index.to_uint()];
+      result = MCS_INDEX_TABLE_2_TP[index.value()];
       break;
     default:
       break;

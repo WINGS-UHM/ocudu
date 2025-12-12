@@ -40,7 +40,7 @@ protected:
       ocudu_assert(std::find(css.cbegin(), css.cend(), GetParam().cyclic_shift_reuse_factor) != css.end(),
                    "Cyclic shift reuse factor set is not compatible with the TX comb size");
     }
-    ocudu_assert(GetParam().max_nof_symbols.to_uint() >= static_cast<unsigned>(GetParam().nof_symbols),
+    ocudu_assert(GetParam().max_nof_symbols.value() >= static_cast<unsigned>(GetParam().nof_symbols),
                  "The number of symbols per SRS resource cannot be larger than the maximum number of symbols for the "
                  "entire SRS area");
 
@@ -63,7 +63,7 @@ protected:
     srs_cfg.sequence_id_reuse_factor  = GetParam().sequence_id_reuse_factor;
     srs_cfg.max_nof_symbols           = GetParam().max_nof_symbols;
 
-    nof_symbols_srs_area = du_cell_cfg.srs_cfg.max_nof_symbols.to_uint();
+    nof_symbols_srs_area = du_cell_cfg.srs_cfg.max_nof_symbols.value();
     if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
       const auto& tdd_cfg  = du_cell_cfg.tdd_ul_dl_cfg_common.value();
       nof_symbols_srs_area = std::max(nof_symbols_srs_area, tdd_cfg.pattern1.nof_ul_symbols);
@@ -102,7 +102,7 @@ protected:
     for (const auto& comb_offset : tx_comb_offsets) {
       const auto nof_elements = static_cast<unsigned>(
           std::count_if(srs_res_list.begin(), srs_res_list.end(), [comb_offset](const du_srs_resource& res) {
-            return res.tx_comb_offset.to_uint() == comb_offset;
+            return res.tx_comb_offset.value() == comb_offset;
           }));
 
       if (nof_elements != compute_expected_srs_list_size() / tx_comb_offsets.size()) {

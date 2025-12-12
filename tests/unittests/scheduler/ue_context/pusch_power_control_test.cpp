@@ -376,7 +376,7 @@ protected:
 
     // Set the PUSCH power control parameters.
     pw_per_prb =
-        static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.to_int() +
+        static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
                                               .serv_cell_cfg.ul_config.value()
@@ -577,7 +577,7 @@ protected:
 
     // Set the PUSCH power control parameters.
     pw_per_prb =
-        static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.to_int() +
+        static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
                                               .serv_cell_cfg.ul_config.value()

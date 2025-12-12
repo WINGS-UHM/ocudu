@@ -53,7 +53,7 @@ void to_json(nlohmann::json& json, const scheduler_ue_metrics& metrics)
   json["dl_ri"] = metrics.dl_ri_stats.get_nof_observations() > 0 ? metrics.dl_ri_stats.get_mean() : 1;
   json["ul_ri"] = metrics.ul_ri_stats.get_nof_observations() > 0 ? metrics.ul_ri_stats.get_mean() : 1;
 
-  json["dl_mcs"]     = metrics.dl_mcs.to_uint();
+  json["dl_mcs"]     = metrics.dl_mcs.value();
   json["dl_brate"]   = metrics.dl_brate_kbps * 1e3;
   json["dl_nof_ok"]  = metrics.dl_nof_ok;
   json["dl_nof_nok"] = metrics.dl_nof_nok;
@@ -78,7 +78,7 @@ void to_json(nlohmann::json& json, const scheduler_ue_metrics& metrics)
                             : 0.0f;
   json["srs_ta_ns"] =
       (metrics.srs_ta_stats.get_nof_observations() > 0) ? std::optional{metrics.srs_ta_stats.get_mean() * 1e9} : 0.0f;
-  json["ul_mcs"]                       = metrics.ul_mcs.to_uint();
+  json["ul_mcs"]                       = metrics.ul_mcs.value();
   json["ul_brate"]                     = metrics.ul_brate_kbps * 1e3;
   json["ul_nof_ok"]                    = metrics.ul_nof_ok;
   json["ul_nof_nok"]                   = metrics.ul_nof_nok;

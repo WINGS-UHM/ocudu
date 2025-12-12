@@ -452,7 +452,7 @@ void ue_cell::apply_link_adaptation_procedures(const csi_report_data& csi_report
         recommended_dl_layers + expert_cfg.dl_harq_la_ri_drop_threshold <= h_dl->get_grant_params().nof_layers;
     const bool is_cqi_diff_above_threshold =
         expert_cfg.dl_harq_la_cqi_drop_threshold != 0 and
-        wideband_cqi.to_uint() + expert_cfg.dl_harq_la_cqi_drop_threshold <= h_dl->get_grant_params().cqi.to_uint();
+        wideband_cqi.value() + expert_cfg.dl_harq_la_cqi_drop_threshold <= h_dl->get_grant_params().cqi.value();
     if (is_ri_diff_above_threshold or is_cqi_diff_above_threshold) {
       h_dl->cancel_retxs();
     }

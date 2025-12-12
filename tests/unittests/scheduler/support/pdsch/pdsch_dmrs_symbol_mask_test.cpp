@@ -118,9 +118,9 @@ TEST_P(PdschDmrsSymbolMaskFixture, ANormal)
                      : 11;
 
   // Get expected symbol position list from table.
-  ASSERT_TRUE(pdsch_dmrs_symbol_mask_mapping_type_A_single_table.count({last_symbol.to_uint(), additional_position}));
+  ASSERT_TRUE(pdsch_dmrs_symbol_mask_mapping_type_A_single_table.count({last_symbol.value(), additional_position}));
   static_vector<unsigned, 4> symbol_pos_list =
-      pdsch_dmrs_symbol_mask_mapping_type_A_single_table.at({last_symbol.to_uint(), additional_position});
+      pdsch_dmrs_symbol_mask_mapping_type_A_single_table.at({last_symbol.value(), additional_position});
 
   // Convert list to mask.
   dmrs_symbol_mask expected(14);

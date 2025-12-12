@@ -814,9 +814,9 @@ asn1::rrc_nr::bwp_ul_common_s ocudu::odu::make_asn1_rrc_initial_up_bwp(const ul_
                           pusch_cfg.pusch_td_alloc_list[i].symbols.length());
   }
   pusch.msg3_delta_preamb_present     = true;
-  pusch.msg3_delta_preamb             = pusch_cfg.msg3_delta_preamble.to_int();
+  pusch.msg3_delta_preamb             = pusch_cfg.msg3_delta_preamble.value();
   pusch.p0_nominal_with_grant_present = true;
-  pusch.p0_nominal_with_grant         = pusch_cfg.p0_nominal_with_grant.to_int();
+  pusch.p0_nominal_with_grant         = pusch_cfg.p0_nominal_with_grant.value();
 
   // pucch-ConfigCommon SetupRelease { PUCCH-ConfigCommon } OPTIONAL, -- Need M
   const pucch_config_common& pucch_cfg = cfg.init_ul_bwp.pucch_cfg_common.value();
@@ -2053,7 +2053,7 @@ calculate_pusch_config_diff(asn1::rrc_nr::pusch_cfg_s& out, const pusch_config& 
 
       // Set maximum rank field.
       out.max_rank_present = true;
-      out.max_rank         = tx_cfg.max_rank.to_uint();
+      out.max_rank         = tx_cfg.max_rank.value();
     } else if (std::holds_alternative<tx_scheme_non_codebook>(dest.tx_cfg.value())) {
       // Set the transmission scheme to non-codebook.
       out.tx_cfg_present = true;

@@ -23,7 +23,7 @@ static ri_li_cqi_cri_sizes get_ri_li_cqi_cri_sizes_typeI_single_panel(unsigned  
 {
   ri_li_cqi_cri_sizes result;
 
-  unsigned ri_uint              = ri.to_uint();
+  unsigned ri_uint              = ri.value();
   unsigned ri_restriction_count = static_cast<unsigned>(ri_restriction.count());
 
   // Calculate RI field size.

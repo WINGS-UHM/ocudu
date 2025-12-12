@@ -59,13 +59,13 @@ void ocudu::test_ssb_coreset0_allocation(unsigned                               
   double bw_up_hz   = point_A_hz + static_cast<double>(n_rbs * NOF_SUBCARRIERS_PER_RB * scs_to_khz(scs_common) *
                                                      band_helper::KHZ_TO_HZ);
 
-  unsigned crb_ssb = scs_common == subcarrier_spacing::kHz15 ? params.offset_to_point_A.to_uint()
-                                                             : params.offset_to_point_A.to_uint() / 2;
-  double   crb_ssb_hz =
-      params.offset_to_point_A.to_uint() *
+  unsigned crb_ssb =
+      scs_common == subcarrier_spacing::kHz15 ? params.offset_to_point_A.value() : params.offset_to_point_A.value() / 2;
+  double crb_ssb_hz =
+      params.offset_to_point_A.value() *
       static_cast<double>(scs_to_khz(subcarrier_spacing::kHz15) * NOF_SUBCARRIERS_PER_RB * band_helper::KHZ_TO_HZ);
   double k_ssb_hz =
-      params.k_ssb.to_uint() * static_cast<double>(scs_to_khz(subcarrier_spacing::kHz15) * band_helper::KHZ_TO_HZ);
+      params.k_ssb.value() * static_cast<double>(scs_to_khz(subcarrier_spacing::kHz15) * band_helper::KHZ_TO_HZ);
   double f_ssb_0_hz = point_A_hz + crb_ssb_hz + k_ssb_hz;
   double ss_ssb_hz =
       f_ssb_0_hz + static_cast<double>(scs_to_khz(scs_ssb) * NOF_SSB_SUBCARRIERS * band_helper::KHZ_TO_HZ / 2);
@@ -80,7 +80,7 @@ void ocudu::test_ssb_coreset0_allocation(unsigned                               
   test_ssb_belong_to_sync_raster(ss_ssb_hz);
 
   auto coreset0_cfg =
-      pdcch_type0_css_coreset_get(nr_band, scs_ssb, scs_common, params.coreset0_idx, params.k_ssb.to_uint());
+      pdcch_type0_css_coreset_get(nr_band, scs_ssb, scs_common, params.coreset0_idx, params.k_ssb.value());
   // Verify that the CORESET0 doesn't start below CRB0.
   ASSERT_GE(crb_ssb, static_cast<unsigned>(coreset0_cfg.offset));
 

@@ -119,7 +119,7 @@ config_helpers::compute_max_nof_pucch_symbols(const srs_builder_params& user_srs
   // slot based on the PUCCH and SRS configurations. The maximum number of PUCCH symbols is computed so that PUCCH and
   // SRS resources occupy all symbols in a slot and in such a way that they do not overlap each other.
   return user_srs_params.srs_period.has_value()
-             ? NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - user_srs_params.max_nof_symbols.to_uint()
+             ? NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - user_srs_params.max_nof_symbols.value()
              : NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
 }
 

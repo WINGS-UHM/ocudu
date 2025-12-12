@@ -60,11 +60,11 @@ sch_mcs_description ocudu::pdsch_mcs_get_config(pdsch_mcs_table table_, sch_mcs_
   // Return the MCS configuration from the selected table.
   switch (table_) {
     case pdsch_mcs_table::qam64:
-      return MCS_INDEX_TABLE_1[index.to_uint()];
+      return MCS_INDEX_TABLE_1[index.value()];
     case pdsch_mcs_table::qam256:
-      return MCS_INDEX_TABLE_2[index.to_uint()];
+      return MCS_INDEX_TABLE_2[index.value()];
     case pdsch_mcs_table::qam64LowSe:
     default:
-      return MCS_INDEX_TABLE_3[index.to_uint()];
+      return MCS_INDEX_TABLE_3[index.value()];
   }
 }

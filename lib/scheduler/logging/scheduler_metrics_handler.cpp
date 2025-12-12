@@ -201,10 +201,10 @@ void cell_metrics_handler::handle_csi_report(ue_metric_context& u, const csi_rep
 {
   // Add new CQI and RI observations if they are available in the CSI report.
   if (csi.first_tb_wideband_cqi.has_value()) {
-    u.data.cqi.update(csi.first_tb_wideband_cqi->to_uint());
+    u.data.cqi.update(csi.first_tb_wideband_cqi->value());
   }
   if (csi.ri.has_value()) {
-    u.data.dl_ri.update(csi.ri->to_uint());
+    u.data.dl_ri.update(csi.ri->value());
   }
 }
 
@@ -484,7 +484,7 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
     }
     ue_metric_context& u = ues[it->second];
     for (const auto& cw : dl_grant.pdsch_cfg.codewords) {
-      u.data.dl_mcs += cw.mcs_index.to_uint();
+      u.data.dl_mcs += cw.mcs_index.value();
       ++u.data.nof_dl_cws;
     }
 
@@ -530,7 +530,7 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
       ul_prbs_used_per_tdd_slot_idx[last_slot_tx.count() % ul_prbs_used_per_tdd_slot_idx.size()] += grant_prbs;
     }
     ue_metric_context& u = ues[it->second];
-    u.data.ul_mcs += ul_grant.pusch_cfg.mcs_index.to_uint();
+    u.data.ul_mcs += ul_grant.pusch_cfg.mcs_index.value();
     u.last_ul_olla = ul_grant.context.olla_offset;
     if (u.data.last_sr_slot.valid()) {
       unsigned sr_to_pusch_delay = last_slot_tx - u.data.last_sr_slot;

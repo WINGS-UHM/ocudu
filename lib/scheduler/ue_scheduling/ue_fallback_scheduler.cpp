@@ -1168,7 +1168,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
                    fmt::underlying(u.ue_index),
                    u.crnti,
                    prbs_tbs.nof_prbs,
-                   mcs.to_uint());
+                   mcs.value());
       return ul_srb_sched_outcome::next_slot;
     }
 

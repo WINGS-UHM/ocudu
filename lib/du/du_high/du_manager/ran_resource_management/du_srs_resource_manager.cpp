@@ -184,7 +184,7 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
         // NOTE: for TDD, the offset that are not UL slots are skipped above.
         // FDD case and TDD case for fully-UL slot.
         else if (res.symbols.start() <
-                 NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell.cell_cfg.srs_cfg.max_nof_symbols.to_uint()) {
+                 NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell.cell_cfg.srs_cfg.max_nof_symbols.value()) {
           continue;
         }
         cell.srs_res_offset_free_list.emplace_back(res.cell_res_id, offset);
@@ -266,7 +266,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
                  "The number of UL antenna ports is not valid");
     only_ue_srs_res.nof_ports                    = srs_config::srs_resource::nof_srs_ports::port1;
     only_ue_srs_res.tx_comb.size                 = ue_du_cell.cell_cfg.srs_cfg.tx_comb;
-    only_ue_srs_res.tx_comb.tx_comb_offset       = du_res.tx_comb_offset.to_uint();
+    only_ue_srs_res.tx_comb.tx_comb_offset       = du_res.tx_comb_offset.value();
     only_ue_srs_res.tx_comb.tx_comb_cyclic_shift = du_res.cs;
     only_ue_srs_res.freq_domain_pos              = du_res.freq_dom_position;
     only_ue_srs_res.res_mapping.start_pos        = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_res.symbols.start() - 1;

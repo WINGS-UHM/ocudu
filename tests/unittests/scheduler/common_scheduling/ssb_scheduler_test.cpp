@@ -140,8 +140,8 @@ void test_ssb_grid_allocation(const cell_slot_resource_grid& res_grid,
                               const ofdm_symbol_range&       ssb_symbols,
                               const crb_interval&            ssb_crbs)
 {
-  unsigned ssb_crb_start = scs == subcarrier_spacing::kHz15 ? offset_pA.to_uint() : offset_pA.to_uint() / 2;
-  unsigned ssb_crb_stop  = k_ssb.to_uint() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
+  unsigned ssb_crb_start = scs == subcarrier_spacing::kHz15 ? offset_pA.value() : offset_pA.value() / 2;
+  unsigned ssb_crb_stop  = k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
 
   // Verify resources on the left-side of SSB (lower CRBs) are unused.
   grant_info empty_space{scs, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}, {0, ssb_crb_start}};
@@ -199,11 +199,11 @@ void test_ssb_case_A_C(slot_point                          slot_tx,
     // For frequencies lower than the cutoff, there should only be at most 4 SSB opportunities (4 left-most bits in
     // in_burst_bitmap).
     TESTASSERT(in_burst_bitmap.extract(4U, 4U) == 0,
-               TEST_HARQ_ASSERT_MSG(slot_tx.to_uint(), fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
+               TEST_HARQ_ASSERT_MSG(slot_tx.count(), fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
   }
 
   uint32_t sl_point_mod =
-      slot_tx.to_uint() % (ssb_periodicity_to_value(ssb_cfg.ssb_period) * slot_tx.nof_slots_per_subframe());
+      slot_tx.count() % (ssb_periodicity_to_value(ssb_cfg.ssb_period) * slot_tx.nof_slots_per_subframe());
 
   // Get the size of the SSB list from the in_burst_bitmap.
   size_t             ssb_list_size          = 0;
@@ -237,10 +237,10 @@ void test_ssb_case_A_C(slot_point                          slot_tx,
         ++expected_ssb_per_slot;
 
         unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
-                                     ? ssb_cfg.offset_to_point_A.to_uint()
-                                     : ssb_cfg.offset_to_point_A.to_uint() / 2;
+                                     ? ssb_cfg.offset_to_point_A.value()
+                                     : ssb_cfg.offset_to_point_A.value() / 2;
         unsigned ssb_crb_stop =
-            ssb_cfg.k_ssb.to_uint() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
+            ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
         test_ssb_information(ofdm_symbols[n], sl_point_mod, crb_interval{ssb_crb_start, ssb_crb_stop}, ssb_item);
 
         // Verify there is no collision in the SSB
@@ -280,11 +280,11 @@ void test_ssb_case_B(slot_point                          slot_tx,
     // For frequencies lower than the cutoff, there should only be at most 4 SSB opportunities (4 left-most bits in
     // in_burst_bitmap).
     TESTASSERT(in_burst_bitmap.extract(4U, 4U) == 0,
-               TEST_HARQ_ASSERT_MSG(slot_tx.to_uint(), fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
+               TEST_HARQ_ASSERT_MSG(slot_tx.count(), fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
   }
 
   uint32_t sl_point_mod =
-      slot_tx.to_uint() % (ssb_periodicity_to_value(ssb_cfg.ssb_period) * slot_tx.nof_slots_per_subframe());
+      slot_tx.count() % (ssb_periodicity_to_value(ssb_cfg.ssb_period) * slot_tx.nof_slots_per_subframe());
 
   // Get the size of the SSB list from the in_burst_bitmap.
   size_t             ssb_list_size          = 0;
@@ -320,10 +320,10 @@ void test_ssb_case_B(slot_point                          slot_tx,
 
         // Check OFDM symbols and frequency allocation in the ssb_information struct.
         unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
-                                     ? ssb_cfg.offset_to_point_A.to_uint()
-                                     : ssb_cfg.offset_to_point_A.to_uint() / 2;
+                                     ? ssb_cfg.offset_to_point_A.value()
+                                     : ssb_cfg.offset_to_point_A.value() / 2;
         unsigned ssb_crb_stop =
-            ssb_cfg.k_ssb.to_uint() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
+            ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
         test_ssb_information(ssb_burst_ofdm_symb[n], sl_point_mod, crb_interval{ssb_crb_start, ssb_crb_stop}, ssb_item);
 
         // Verify there is no collision in the SSB
@@ -364,10 +364,10 @@ void test_ssb_case_B(slot_point                          slot_tx,
 
         // Check OFDM symbols and frequency allocation in the ssb_information struct.
         unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
-                                     ? ssb_cfg.offset_to_point_A.to_uint()
-                                     : ssb_cfg.offset_to_point_A.to_uint() / 2;
+                                     ? ssb_cfg.offset_to_point_A.value()
+                                     : ssb_cfg.offset_to_point_A.value() / 2;
         unsigned ssb_crb_stop =
-            ssb_cfg.k_ssb.to_uint() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
+            ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
         test_ssb_information(
             ssb_burst_ofdm_symb[n], sl_point_mod - 1, crb_interval{ssb_crb_start, ssb_crb_stop}, ssb_item);
 

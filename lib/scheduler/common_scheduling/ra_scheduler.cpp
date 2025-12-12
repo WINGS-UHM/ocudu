@@ -810,7 +810,7 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
         cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), vrbs.start(), vrbs.length()});
     msg3_info.mcs                      = sched_cfg.msg3_mcs_index;
     // Determine TPC command based on Table 8.2-2, TS 38.213.
-    msg3_info.tpc     = (get_pusch_cfg().msg3_delta_power.to_int() + 6) / 2;
+    msg3_info.tpc     = (get_pusch_cfg().msg3_delta_power.value() + 6) / 2;
     msg3_info.csi_req = false;
 
     // Allocate Msg3 RBs.

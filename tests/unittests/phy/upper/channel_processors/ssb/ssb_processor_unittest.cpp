@@ -95,9 +95,9 @@ int main()
 
             // Round the SS/PBCH block subcarrier offset to avoid incompatible subcarrier offsets.
             if (freq_range == frequency_range::FR1 && ssb_scs != subcarrier_spacing::kHz15) {
-              subcarrier_offset = 2 * (subcarrier_offset.to_uint() / 2);
+              subcarrier_offset = 2 * (subcarrier_offset.value() / 2);
             } else if (freq_range == frequency_range::FR2) {
-              subcarrier_offset = 4 * (subcarrier_offset.to_uint() / 4);
+              subcarrier_offset = 4 * (subcarrier_offset.value() / 4);
             }
 
             // Compute secondary variables.

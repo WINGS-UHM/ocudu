@@ -31,7 +31,7 @@ TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
   ASSERT_EQ(pss_profile, pdu.beta_pss_profile_nr);
   ASSERT_EQ(block_index, pdu.ssb_block_index);
   ASSERT_EQ(subcarrier_offset, pdu.ssb_subcarrier_offset);
-  ASSERT_EQ(offset_pointA, pdu.ssb_offset_pointA.to_uint());
+  ASSERT_EQ(offset_pointA, pdu.ssb_offset_pointA.value());
 }
 
 TEST(dl_ssb_pdu_builder, valid_maintenance_v3_parameters_passes)

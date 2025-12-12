@@ -161,14 +161,14 @@ static du_cell_config make_odu_cell_config(const cell_config_builder_params& par
     // The number of symbols interval per slot depends on whether it's FDD or TDD.
     if (not tdd_cfg.has_value()) {
       // In FDD, in an SRS period we can "max_nof_symbols / nof_symbols" intervals per slot.
-      nof_symb_intervals = srs_cfg.max_nof_symbols.to_uint() / static_cast<unsigned>(srs_cfg.nof_symbols) *
+      nof_symb_intervals = srs_cfg.max_nof_symbols.value() / static_cast<unsigned>(srs_cfg.nof_symbols) *
                            static_cast<unsigned>(srs_cfg.srs_period.value());
     } else {
       // In TDD, in an SRS period we can "max_nof_symbols / nof_symbols" intervals per UL slot; in addition to this, the
       // partially-UL slots can have extra symbols intervals, up to a maximum of 6U, which is the max number of symbols
       // usable for SRS resources.
       nof_symb_intervals =
-          (srs_cfg.max_nof_symbols.to_uint() / static_cast<unsigned>(srs_cfg.nof_symbols)) *
+          (srs_cfg.max_nof_symbols.value() / static_cast<unsigned>(srs_cfg.nof_symbols)) *
           tdd_cfg->pattern1.nof_ul_slots *
           (static_cast<unsigned>(srs_cfg.srs_period.value()) / tdd_cfg->pattern1.dl_ul_tx_period_nof_slots);
       if (tdd_cfg->pattern1.nof_ul_symbols != 0) {
@@ -399,7 +399,7 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
         is_partially_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
       ASSERT_LT(srs_res.res_mapping.start_pos, cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
     } else {
-      ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.to_uint());
+      ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.value());
     }
   }
 }
@@ -449,14 +449,14 @@ protected:
           srs_res_tracker.emplace_back(nof_intervals);
         } else {
           const unsigned nof_intervals =
-              srs_params.max_nof_symbols.to_uint() / static_cast<unsigned>(srs_params.nof_symbols);
+              srs_params.max_nof_symbols.value() / static_cast<unsigned>(srs_params.nof_symbols);
           srs_res_tracker.emplace_back(nof_intervals);
         }
       }
       // FDD case.
       else {
         const unsigned nof_intervals =
-            srs_params.max_nof_symbols.to_uint() / static_cast<unsigned>(srs_params.nof_symbols);
+            srs_params.max_nof_symbols.value() / static_cast<unsigned>(srs_params.nof_symbols);
         srs_res_tracker.emplace_back(nof_intervals);
       }
     }

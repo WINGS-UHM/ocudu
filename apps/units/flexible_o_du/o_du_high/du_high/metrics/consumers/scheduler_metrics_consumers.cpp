@@ -74,7 +74,7 @@ void scheduler_cell_metrics_consumer_stdout::handle_metric(const std::optional<s
         fmt::print(" {:>3}", "n/a");
       }
 
-      fmt::print("   {:>2}", int(ue.dl_mcs.to_uint()));
+      fmt::print("   {:>2}", int(ue.dl_mcs.value()));
       if (ue.dl_brate_kbps > 0) {
         fmt::print(" {:>6.6}", float_to_eng_string(ue.dl_brate_kbps * 1e3, 1, true));
       } else {
@@ -114,7 +114,7 @@ void scheduler_cell_metrics_consumer_stdout::handle_metric(const std::optional<s
         fmt::print("   1");
       }
 
-      fmt::print("   {:>2}", ue.ul_mcs.to_uint());
+      fmt::print("   {:>2}", ue.ul_mcs.value());
       if (ue.ul_brate_kbps > 0) {
         fmt::print(" {:>6.6}", float_to_eng_string(ue.ul_brate_kbps * 1e3, 2, true));
       } else {
@@ -298,7 +298,7 @@ void scheduler_cell_metrics_consumer_log::handle_metric(const std::optional<sche
         fmt::format_to(std::back_inserter(buffer), " dl_ri=n/a");
       }
 
-      fmt::format_to(std::back_inserter(buffer), " dl_mcs={}", int(ue.dl_mcs.to_uint()));
+      fmt::format_to(std::back_inserter(buffer), " dl_mcs={}", int(ue.dl_mcs.value()));
       if (ue.dl_brate_kbps > 0) {
         fmt::format_to(
             std::back_inserter(buffer), " dl_brate={}bps", float_to_eng_string(ue.dl_brate_kbps * 1e3, 2, false));
@@ -340,7 +340,7 @@ void scheduler_cell_metrics_consumer_log::handle_metric(const std::optional<sche
         fmt::format_to(std::back_inserter(buffer), " ul_ri=1");
       }
 
-      fmt::format_to(std::back_inserter(buffer), " ul_mcs={}", ue.ul_mcs.to_uint());
+      fmt::format_to(std::back_inserter(buffer), " ul_mcs={}", ue.ul_mcs.value());
       if (ue.ul_brate_kbps > 0) {
         fmt::format_to(
             std::back_inserter(buffer), " ul_brate={}bps", float_to_eng_string(ue.ul_brate_kbps * 1e3, 2, false));

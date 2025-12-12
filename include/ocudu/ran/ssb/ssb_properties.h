@@ -161,7 +161,7 @@ public:
   }
 
   /// Returns true if the value is within the range.
-  bool is_valid(frequency_range fr) const { return to_uint() <= max(fr); }
+  bool is_valid(frequency_range fr) const { return value() <= max(fr); }
 };
 
 } // namespace ocudu

@@ -21,8 +21,8 @@ std::vector<pucch_resource> ocudu::config_helpers::build_pucch_resource_list(con
 {
   // Compute the cell PUCCH resource list, depending on which parameter that has been passed.
   auto res_list = config_helpers::generate_cell_pucch_res_list(
-      user_params.res_set_0_size.to_uint() * user_params.nof_cell_res_set_configs + user_params.nof_cell_sr_resources,
-      user_params.res_set_1_size.to_uint() * user_params.nof_cell_res_set_configs + user_params.nof_cell_csi_resources,
+      user_params.res_set_0_size.value() * user_params.nof_cell_res_set_configs + user_params.nof_cell_sr_resources,
+      user_params.res_set_1_size.value() * user_params.nof_cell_res_set_configs + user_params.nof_cell_csi_resources,
       user_params.f0_or_f1_params,
       user_params.f2_or_f3_or_f4_params,
       bwp_size,

@@ -54,9 +54,9 @@ void pbch_encoder_impl::payload_generate(span<uint8_t> a, const ocudu::pbch_enco
     a[G[12]] = (uint8_t)((msg.ssb_idx >> 4U) & 1U); // 5th bit of SSB index
     a[G[13]] = (uint8_t)((msg.ssb_idx >> 3U) & 1U); // 4th bit of SSB index
   } else {
-    a[G[11]] = (uint8_t)((msg.k_ssb.to_uint() >> 4U) & 1U); // 5th bit of SSB index
-    a[G[12]] = 0;                                           // Reserved
-    a[G[13]] = 0;                                           // Reserved
+    a[G[11]] = (uint8_t)((msg.k_ssb.value() >> 4U) & 1U); // 5th bit of SSB index
+    a[G[12]] = 0;                                         // Reserved
+    a[G[13]] = 0;                                         // Reserved
   }
 }
 

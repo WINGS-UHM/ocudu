@@ -82,7 +82,7 @@ void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder& 
 
   builder.set_information_parameters(pusch_pdu.mcs_descr.target_code_rate,
                                      pusch_pdu.mcs_descr.modulation,
-                                     pusch_pdu.mcs_index.to_uint(),
+                                     pusch_pdu.mcs_index.value(),
                                      pusch_pdu.mcs_table,
                                      pusch_pdu.transform_precoding,
                                      pusch_pdu.n_id,

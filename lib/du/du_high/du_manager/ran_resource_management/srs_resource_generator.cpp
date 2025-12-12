@@ -49,7 +49,7 @@ std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_co
   // max_nof_symbols for fully-UL slots, or by the number of UL symbols for partially-UL slots. We take the min of
   // these 2 values as starting symbol, and we cap it to the 6th last symbol, which is sey by the standard, as per
   // TS 38.211, Section 6.4.1.4.1.
-  unsigned starting_sym = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_cell_cfg.srs_cfg.max_nof_symbols.to_uint();
+  unsigned starting_sym = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_cell_cfg.srs_cfg.max_nof_symbols.value();
   if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
     const auto& tdd_cfg = du_cell_cfg.tdd_ul_dl_cfg_common.value();
     starting_sym        = std::min(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern1.nof_ul_symbols);

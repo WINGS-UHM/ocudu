@@ -163,11 +163,8 @@ int64_t ta_management_system::compute_avg_n_ta_difference(const tag_measurement&
 }
 
 /// \brief Determines whether a sample is an outlier based on Welford's algorithm.
-static bool is_outlier(double sample, double mean, double sq_mean)
+static bool is_outlier(double sample, double mean, double sq_mean, double thres)
 {
-  /// [Implementation-defined] Z-score threshold for outlier detection.
-  static constexpr double thres = 1.75;
-
   double var = sq_mean - mean * mean;
   // small numerical errors can lead to negative variance.
   var            = var < 0.0 ? 0.0 : var;
@@ -214,14 +211,19 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
     tag_meas.forbid_period_start = std::nullopt;
   }
 
-  // Decide whether to filter out outlier using Welford's algorithm and using an exponential average.
-  static constexpr unsigned min_samples_for_outlier_detection = 10;
-  if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
-    // Note: for small number of samples, outlier detection is not performed.
-    ++tag_meas.count_until_outlier_detection;
-  } else if (is_outlier(n_ta_diff_, tag_meas.n_ta_diff_averager.average(), tag_meas.n_ta_diff_sq_averager.average())) {
-    // Outlier detected, discard measurement.
-    return;
+  // If enabled, decide whether to filter out outlier using Welford's algorithm and using an exponential average.
+  if (ta_cfg.outlier_detection_zscore_threshold > 0.0F) {
+    static constexpr unsigned min_samples_for_outlier_detection = 10;
+    if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
+      // Note: for small number of samples, outlier detection is not performed.
+      ++tag_meas.count_until_outlier_detection;
+    } else if (is_outlier(n_ta_diff_,
+                          tag_meas.n_ta_diff_averager.average(),
+                          tag_meas.n_ta_diff_sq_averager.average(),
+                          ta_cfg.outlier_detection_zscore_threshold)) {
+      // Outlier detected, discard measurement.
+      return;
+    }
   }
 
   // Passed outlier detection. Update statistics for this TAG measurement.

@@ -80,6 +80,8 @@ struct du_high_unit_ta_sched_control_config {
   float ta_target = 1.0F;
   /// UL SINR threshold (in dB) above which reported N_TA update measurement is considered valid.
   float ta_update_measurement_ul_sinr_threshold = 0.0F;
+  /// Z-score threshold for outlier detection in N_TA measurements.
+  float ta_outlier_detection_zscore_threshold = 1.75F;
 };
 
 /// Configuration for radio resource scheduling.

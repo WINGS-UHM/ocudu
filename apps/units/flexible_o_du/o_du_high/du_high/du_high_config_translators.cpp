@@ -1174,6 +1174,7 @@ static scheduler_expert_config generate_scheduler_expert_config(const du_high_un
   out_cfg.ue.ta_control.measurement_period                   = cell.ta_cfg.ta_measurement_slot_period;
   out_cfg.ue.ta_control.measurement_prohibit_period          = cell.ta_cfg.ta_measurement_slot_prohibit_period;
   out_cfg.ue.ta_control.update_measurement_ul_sinr_threshold = cell.ta_cfg.ta_update_measurement_ul_sinr_threshold;
+  out_cfg.ue.ta_control.outlier_detection_zscore_threshold   = cell.ta_cfg.ta_outlier_detection_zscore_threshold;
   out_cfg.ue.pre_policy_rr_ue_group_size                     = app_sched_expert_cfg.nof_preselected_newtx_ues;
 
   // PUCCH and scheduler expert parameters.

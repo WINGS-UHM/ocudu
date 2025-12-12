@@ -114,6 +114,20 @@ struct scheduler_ta_control_config {
   float target = 0.0F;
   /// UL SINR threshold (in dB) above which reported N_TA update measurement is considered valid.
   float update_measurement_ul_sinr_threshold = 0.0F;
+  /// \brief Z-score threshold for outlier detection in N_TA measurements.
+  ///
+  /// This parameter controls the sensitivity of the outlier detection algorithm used to filter out invalid
+  /// N_TA update measurements. The algorithm uses Welford's method to compute the mean and standard deviation
+  /// of N_TA differences, and measurements that deviate from the mean by more than this threshold multiplied by
+  /// the standard deviation are considered outliers and discarded.
+  ///
+  /// A lower value makes the filter more aggressive (rejects more measurements), while a higher value makes it
+  /// more permissive. Typical values range from 1.5 to 3.0. The default value of 1.75 provides a balance between
+  /// filtering noise while preserving valid measurements.
+  ///
+  /// Setting this parameter to 0.0 disables outlier detection entirely, allowing all measurements to pass through
+  /// regardless of their deviation from the mean.
+  float outlier_detection_zscore_threshold = 1.75F;
 };
 
 /// \brief UE scheduling statically configurable expert parameters.

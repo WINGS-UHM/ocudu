@@ -644,6 +644,15 @@ static void configure_cli11_ta_control_args(CLI::App& app, du_high_unit_ta_sched
              ta_params.ta_update_measurement_ul_sinr_threshold,
              "UL SINR threshold (in dB) above which reported N_TA update measurement is considered valid")
       ->capture_default_str();
+  add_option(app,
+             "--ta_outlier_detection_zscore_threshold",
+             ta_params.ta_outlier_detection_zscore_threshold,
+             "Z-score threshold for outlier detection in N_TA measurements. Controls the sensitivity of the outlier "
+             "detection algorithm. A lower value makes the filter more aggressive (rejects more measurements), while a "
+             "higher value makes it more permissive. Typical values range from 1.5 to 3.0. Setting to 0.0 disables "
+             "outlier detection.")
+      ->capture_default_str()
+      ->check(CLI::Range(0.0, 5.0));
 }
 
 static void configure_cli11_scheduler_args(CLI::App& app, du_high_unit_scheduler_config& sched_params)

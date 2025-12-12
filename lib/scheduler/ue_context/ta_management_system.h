@@ -84,7 +84,7 @@ private:
 
   struct wheel_list_node {
     /// Position in the time wheel.
-    std::optional<uint16_t> wheel_meas_pos;
+    std::optional<unsigned> wheel_meas_pos;
     /// Time at which the UE started the measurement period.
     std::optional<unsigned> meas_start_time;
     /// Next node in the linked list of a given time wheel slot.

@@ -326,8 +326,8 @@ void test_bench::add_ue()
     ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.reset();
   }
 
-  ocudu_assert(pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back().serv_cell_cfg),
-               "UE PUCCH configuration couldn't be built");
+  const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back().serv_cell_cfg);
+  ocudu_assert(success, "UE PUCCH configuration couldn't be built");
 
   // Configure SR and CSI offsets.
   ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].offset = params.sr_offset;

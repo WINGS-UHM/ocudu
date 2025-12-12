@@ -1225,6 +1225,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
         break;
       default:
         ocudu_assertion_failure("Invalid PUCCH Format");
+        return std::nullopt;
     }
     existing_pdus.update_harq_pdu_bits(new_bits.harq_ack_nof_bits,
                                        current_grants.pucch_grants.harq_resource.value().bits.sr_bits,

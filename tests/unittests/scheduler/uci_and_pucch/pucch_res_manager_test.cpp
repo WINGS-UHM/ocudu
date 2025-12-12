@@ -71,8 +71,8 @@ public:
         ue_req.cfg.cells.value().back().serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
     csi_report.report_slot_period = csi_report_periodicity::slots320;
 
-    ocudu_assert(pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back().serv_cell_cfg),
-                 "UE PUCCH configuration couldn't be built");
+    const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back().serv_cell_cfg);
+    ocudu_assert(success, "UE PUCCH configuration couldn't be built");
     return ue_req;
   }
 

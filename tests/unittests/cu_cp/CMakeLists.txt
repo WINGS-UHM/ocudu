@@ -59,6 +59,7 @@ add_executable(cu_cp_test
                cu_cp_pdu_session_resource_release_test.cpp
                cu_cp_pdu_session_resource_modify_test.cpp
                cu_cp_reestablishment_test.cpp
+               cu_cp_rrc_inactive_test.cpp
                cu_cp_setup_test.cpp
                cu_cp_ue_context_release_test.cpp
                )

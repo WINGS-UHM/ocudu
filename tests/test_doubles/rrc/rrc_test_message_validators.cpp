@@ -216,3 +216,23 @@ bool ocudu::test_helpers::is_valid_rrc_handover_preparation_info(const byte_buff
   TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_handover_preparation_info(msg);
 }
+
+bool ocudu::test_helpers::is_valid_rrc_release_with_suspend(const asn1::rrc_nr::dl_dcch_msg_s& msg)
+{
+  TRUE_OR_RETURN(msg.msg.type().value == asn1::rrc_nr::dl_dcch_msg_type_c::types_opts::c1);
+  TRUE_OR_RETURN(msg.msg.c1().type().value ==
+                 asn1::rrc_nr::dl_dcch_msg_type_c::c1_c_::types_opts::options::rrc_release);
+  TRUE_OR_RETURN(msg.msg.c1().rrc_release().crit_exts.rrc_release().suspend_cfg_present);
+  TRUE_OR_RETURN(msg.msg.c1().rrc_release().crit_exts.rrc_release().suspend_cfg.ran_notif_area_info_present);
+  TRUE_OR_RETURN(msg.msg.c1().rrc_release().crit_exts.rrc_release().suspend_cfg.t380_present);
+
+  return true;
+}
+
+bool ocudu::test_helpers::is_valid_rrc_release_with_suspend(const byte_buffer& dl_dcch_msg)
+{
+  asn1::cbit_ref              bref{dl_dcch_msg};
+  asn1::rrc_nr::dl_dcch_msg_s msg;
+  TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
+  return is_valid_rrc_release_with_suspend(msg);
+}

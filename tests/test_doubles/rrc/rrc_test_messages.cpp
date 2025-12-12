@@ -9,6 +9,7 @@
  */
 
 #include "rrc_test_messages.h"
+#include "lib/rrc/ue/rrc_asn1_converters.h"
 #include "ocudu/asn1/rrc_nr/common.h"
 #include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
@@ -101,19 +102,6 @@ byte_buffer ocudu::test_helpers::pack_ul_dcch_msg(const ul_dcch_msg_s& msg)
   return byte_buffer{};
 }
 
-asn1::rrc_nr::plmn_id_s plmn_to_asn1(const plmn_identity& plmn)
-{
-  asn1::rrc_nr::plmn_id_s asn1_plmn;
-  asn1_plmn.mcc_present         = true;
-  asn1_plmn.mcc                 = plmn.mcc().to_bytes();
-  static_vector<uint8_t, 3> mnc = plmn.mnc().to_bytes();
-  asn1_plmn.mnc.resize(mnc.size());
-  for (unsigned i = 0, sz = mnc.size(); i != sz; ++i) {
-    asn1_plmn.mnc[i] = mnc[i];
-  }
-  return asn1_plmn;
-}
-
 asn1::rrc_nr::sib1_s ocudu::test_helpers::create_sib1(const plmn_identity& plmn)
 {
   asn1::rrc_nr::sib1_s sib1;
@@ -130,7 +118,7 @@ asn1::rrc_nr::sib1_s ocudu::test_helpers::create_sib1(const plmn_identity& plmn)
   plmn_info.plmn_id_list.resize(1);
 
   // Fill plmn id.
-  plmn_info.plmn_id_list[0] = plmn_to_asn1(plmn);
+  plmn_info.plmn_id_list[0] = ocucp::plmn_to_asn1(plmn);
 
   // Fill ta and cell id.
   plmn_info.tac.from_number(7);

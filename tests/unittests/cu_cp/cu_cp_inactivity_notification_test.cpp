@@ -71,7 +71,7 @@ public:
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
 
-    // Inject inactivity notification
+    // Inject inactivity notification.
     get_cu_up(cu_up_idx).push_tx_pdu(inactivity_notification);
     return true;
   }
@@ -83,7 +83,7 @@ public:
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
 
-    // Inject inactivity notification and wait for UE Context Release Request
+    // Inject inactivity notification and wait for UE Context Release Request.
     if (!send_bearer_context_inactivity_notification(generate_bearer_context_inactivity_notification_with_ue_level(
             ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id))) {
       return false;
@@ -101,7 +101,7 @@ public:
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
 
-    // Inject inactivity notification and wait for UE Context Release Request
+    // Inject inactivity notification and wait for UE Context Release Request.
     if (!send_bearer_context_inactivity_notification(generate_bearer_context_inactivity_notification_with_drb_level(
             ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id, {}, {drb_id_t::drb1}))) {
       return false;
@@ -120,7 +120,7 @@ public:
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
 
-    // Inject inactivity notification and wait for UE Context Release Request
+    // Inject inactivity notification and wait for UE Context Release Request.
     if (!send_bearer_context_inactivity_notification(
             generate_bearer_context_inactivity_notification_with_pdu_session_level(
                 ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id, {}, {psi}))) {
@@ -154,15 +154,15 @@ public:
 TEST_F(cu_cp_inactivity_notification_test,
        when_unsupported_inactivity_message_received_then_ue_context_release_request_is_not_sent)
 {
-  // Setup second PDU session
+  // Setup second PDU session.
   ASSERT_TRUE(setup_pdu_session(psi2, drb_id_t::drb2, qfi2, generate_rrc_reconfiguration_complete_pdu(0, 8), false));
 
-  // Inject unsupported Inactivity Notification
+  // Inject unsupported Inactivity Notification.
   e1ap_message inactivity_notification = generate_bearer_context_inactivity_notification_with_drb_level(
       ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id, {drb_id_t::drb1}, {drb_id_t::drb2});
   ASSERT_TRUE(send_bearer_context_inactivity_notification(inactivity_notification));
 
-  // check that the UE Context Release Request was not sent to the AMF
+  // Check that the UE Context Release Request was not sent to the AMF.
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
                "UE Context Release for unsupported inactivity message was sent to AMF");
 }
@@ -170,14 +170,14 @@ TEST_F(cu_cp_inactivity_notification_test,
 TEST_F(cu_cp_inactivity_notification_test,
        when_ue_level_inactivity_message_received_then_ue_context_release_request_is_sent)
 {
-  // Inject Inactivity Notification and await UE Context Release Request
+  // Inject Inactivity Notification and await UE Context Release Request.
   ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_ue_context_release_request());
 }
 
 TEST_F(cu_cp_inactivity_notification_test,
        when_drb_level_inactivity_message_with_inactivity_for_all_drbs_received_then_ue_context_release_request_is_sent)
 {
-  // Inject Inactivity Notification and await UE Context Release Request
+  // Inject Inactivity Notification and await UE Context Release Request.
   ASSERT_TRUE(send_drb_level_bearer_context_inactivity_notification_and_await_ue_context_release_request());
 }
 
@@ -185,6 +185,6 @@ TEST_F(
     cu_cp_inactivity_notification_test,
     when_pdu_session_level_inactivity_message_with_inactivity_for_all_drbs_received_then_ue_context_release_request_is_sent)
 {
-  // Inject Inactivity Notification and await UE Context Release Request
+  // Inject Inactivity Notification and await UE Context Release Request.
   ASSERT_TRUE(send_pdu_session_level_bearer_context_inactivity_notification_and_await_ue_context_release_request());
 }

@@ -53,5 +53,8 @@ bool is_valid_rrc_reconfiguration(const byte_buffer&                          dl
 bool is_valid_rrc_handover_preparation_info(const asn1::rrc_nr::ho_prep_info_s& ho_prep_info);
 bool is_valid_rrc_handover_preparation_info(const byte_buffer& ho_prep_info);
 
+bool is_valid_rrc_release_with_suspend(const asn1::rrc_nr::dl_dcch_msg_s& msg);
+bool is_valid_rrc_release_with_suspend(const byte_buffer& dl_dcch_msg);
+
 } // namespace test_helpers
 } // namespace ocudu

@@ -129,6 +129,14 @@ const byte_buffer& ocudu::test_helpers::get_rrc_container(const f1ap_message& ms
     return msg.pdu.init_msg().value.ue_context_mod_request()->rrc_container;
   }
 
+  if (msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_RELEASE) {
+    if (not msg.pdu.init_msg().value.ue_context_release_cmd()->rrc_container_present) {
+      static const byte_buffer empty_buffer;
+      return empty_buffer;
+    }
+    return msg.pdu.init_msg().value.ue_context_release_cmd()->rrc_container;
+  }
+
   return msg.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container;
 }
 

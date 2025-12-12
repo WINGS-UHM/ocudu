@@ -18,13 +18,11 @@
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
-#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <unordered_map>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct cu_cp_test_amf_config {
   std::vector<supported_tracking_area> supported_tas;
@@ -43,12 +41,14 @@ struct cu_cp_test_env_params {
       unsigned                                                 max_nof_ues_         = 8192,
       unsigned                                                 max_nof_drbs_per_ue_ = 8,
       const std::vector<std::vector<supported_tracking_area>>& amf_config_ = {{default_supported_tracking_area}},
-      bool                                                     trigger_ho_from_measurements_ = true) :
+      bool                                                     trigger_ho_from_measurements_ = true,
+      bool                                                     enable_rrc_inactive_          = false) :
     max_nof_cu_ups(max_nof_cu_ups_),
     max_nof_dus(max_nof_dus_),
     max_nof_ues(max_nof_ues_),
     max_nof_drbs_per_ue(max_nof_drbs_per_ue_),
-    trigger_ho_from_measurements(trigger_ho_from_measurements_)
+    trigger_ho_from_measurements(trigger_ho_from_measurements_),
+    enable_rrc_inactive(enable_rrc_inactive_)
   {
     uint16_t amf_idx = 0;
     for (const auto& supported_tas : amf_config_) {
@@ -62,6 +62,7 @@ struct cu_cp_test_env_params {
   unsigned                                  max_nof_drbs_per_ue;
   std::map<unsigned, cu_cp_test_amf_config> amf_configs;
   bool                                      trigger_ho_from_measurements;
+  bool                                      enable_rrc_inactive;
 };
 
 class cu_cp_test_environment
@@ -98,9 +99,10 @@ public:
   /// Drop TNL connection between a DU and the CU-CP.
   bool drop_du_connection(unsigned du_idx);
   /// Run F1 setup procedure to completion.
-  bool run_f1_setup(unsigned                                         du_idx,
-                    gnb_du_id_t                                      gnb_du_id = int_to_gnb_du_id(0x11),
-                    std::vector<test_helpers::served_cell_item_info> cells = {test_helpers::served_cell_item_info{}});
+  bool run_f1_setup(unsigned                                                du_idx,
+                    gnb_du_id_t                                             gnb_du_id = int_to_gnb_du_id(0x11),
+                    const std::vector<test_helpers::served_cell_item_info>& cells     = {
+                        test_helpers::served_cell_item_info{}});
 
   /// Establish a TNL connection between a CU-UP and the CU-CP.
   std::optional<unsigned> connect_new_cu_up();
@@ -265,5 +267,4 @@ private:
   std::unique_ptr<cu_cp> cu_cp_inst;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

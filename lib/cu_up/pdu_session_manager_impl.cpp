@@ -714,6 +714,34 @@ void pdu_session_manager_impl::end_pdcp_buffering()
   }
 }
 
+void pdu_session_manager_impl::suspend()
+{
+  logger.log_debug("Suspend PDCP contexts");
+
+  for (const auto& [psi, pdu_session] : pdu_sessions) {
+    for (const auto& [drb_id, drb] : pdu_session->drbs) {
+      auto& pdcp_rx_ctrl = drb->pdcp->get_rx_upper_control_interface();
+      pdcp_rx_ctrl.suspend();
+      auto& pdcp_tx_ctrl = drb->pdcp->get_tx_upper_control_interface();
+      pdcp_tx_ctrl.suspend();
+    }
+  }
+}
+
+void pdu_session_manager_impl::resume()
+{
+  logger.log_debug("Resume PDCP contexts");
+
+  for (const auto& [psi, pdu_session] : pdu_sessions) {
+    for (const auto& [drb_id, drb] : pdu_session->drbs) {
+      auto& pdcp_rx_ctrl = drb->pdcp->get_rx_upper_control_interface();
+      pdcp_rx_ctrl.resume();
+      auto& pdcp_tx_ctrl = drb->pdcp->get_tx_upper_control_interface();
+      pdcp_tx_ctrl.resume();
+    }
+  }
+}
+
 async_task<void> pdu_session_manager_impl::await_crypto_rx_all_pdu_sessions()
 {
   logger.log_debug("Awaiting all RX crypto tasks to finish in UE");

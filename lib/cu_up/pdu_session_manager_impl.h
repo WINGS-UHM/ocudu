@@ -75,6 +75,9 @@ public:
   void begin_pdcp_buffering();
   void end_pdcp_buffering();
 
+  void suspend();
+  void resume();
+
   async_task<void> await_crypto_rx_all_pdu_sessions();
   async_task<void> await_crypto_rx_all_drbs(const std::unique_ptr<pdu_session>& pdu_session);
   async_task<void> await_crypto_tx_all_pdu_sessions();

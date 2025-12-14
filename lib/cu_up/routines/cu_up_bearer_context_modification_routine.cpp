@@ -37,21 +37,24 @@ void cu_up_bearer_context_modification_routine::operator()(
       if (ue_ctxt.is_suspended()) {
         CORO_EARLY_RETURN(response);
       }
-      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+      ue_ctxt.get_logger().log_debug("Processing bearer conetxt status suspend indication");
       ue_ctxt.begin_pdcp_buffering();
       ue_ctxt.notify_pdcp_pdu_processing_stopped();
       CORO_AWAIT(ue_ctxt.await_rx_crypto_tasks());
       CORO_AWAIT(ue_ctxt.await_tx_crypto_tasks());
       ue_ctxt.suspend();
       ue_ctxt.restart_pdcp_pdu_processing();
-      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
-    } else {
+      ue_ctxt.get_logger().log_debug("Processing bearer context status suspend indication finished");
+    } else if (*msg.bearer_context_status_change == e1ap_bearer_context_status_change::resume) {
       if (not ue_ctxt.is_suspended()) {
         CORO_EARLY_RETURN(response);
       }
-      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+      ue_ctxt.get_logger().log_debug("Processing bearer conetxt status resume indication");
       ue_ctxt.resume();
-      ue_ctxt.get_logger().log_debug("Bearer Context Modification Request with suspend indication");
+      ue_ctxt.get_logger().log_debug("Processing bearer conetxt status resume indication finished");
+    } else {
+      // Unhandled Bearer Context Status change.
+      CORO_EARLY_RETURN(response);
     }
   }
 

@@ -30,7 +30,6 @@ public:
 protected:
   std::unique_ptr<ue_context> create_ue()
   {
-    // return nullptr;
     std::unique_ptr<ue_executor_mapper> exec_mapper = std::make_unique<dummy_ue_executor_mapper>(exec);
     return std::make_unique<ue_context>(ue_index,
                                         ue_cfg,

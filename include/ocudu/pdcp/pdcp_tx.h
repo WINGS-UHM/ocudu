@@ -162,6 +162,9 @@ public:
   /// Tell the PDCP to stop buffering SDUs. The PDCP will flush the currently buffered SDUs.
   virtual void end_buffering() = 0;
 
+  virtual bool suspend() = 0;
+  virtual bool resume()  = 0;
+
   /// Get the TX count for status transfer
   virtual pdcp_count_info get_count() const = 0;
 

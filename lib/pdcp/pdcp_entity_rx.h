@@ -103,12 +103,12 @@ public:
   /// \brief Suspends the PDCP TX entity, as per TS 38.323, section 5.1.4.
   /// The PDCP entity is assumed to be buffering when this is called.
   /// \returns Returns false if already suspended or other failure. True otherwise.
-  bool suspend();
+  bool suspend() override;
 
   /// \brief Resumes the PDCP TX entity, as per TS 38.323, section 5.1.4.
   /// The PDCP entity is assumed to be buffering when this is called.
   /// \returns Returns false if already active or other failure. True otherwise.
-  bool resume();
+  bool resume() override;
 
   /// \brief Get the RX count for status transfer
   pdcp_count_info get_count() const override

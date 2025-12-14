@@ -190,12 +190,14 @@ public:
   {
     ocudu_assert(st != bearer_context_state_t::suspended, "Trying to suspend already suspended bearer context");
     st = bearer_context_state_t::suspended;
+    pdu_session_manager.suspend();
   }
 
   void resume()
   {
     ocudu_assert(st != bearer_context_state_t::active, "Trying to activate an already active bearer context");
     st = bearer_context_state_t::active;
+    pdu_session_manager.resume();
   }
 
 private:

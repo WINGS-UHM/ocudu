@@ -395,6 +395,10 @@ doxygen:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: always # Even if previous stages/required jobs fail
       allow_failure: true
+    - if: $ON_MR
+      changes:
+        paths:
+          - docs/doxygen/**/*
   script:
     - |
       rm -Rf build_doxygen
@@ -443,6 +447,9 @@ build docusaurus:
   needs:
     - job: unit coverage
       artifacts: true
+    - job: doxygen
+      artifacts: true
+      optional: true
   artifacts:
     paths:
       - public

@@ -57,3 +57,16 @@ find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.h.in" \) \
  * the distribution.
  *
  */}s" {} \;
+
+# for matlab files (for the OCUDU-matlab supplementary repo): in matlab, the header
+# is the second comment "%" block, as the first contains the file documentation
+find . -type f -name "*.m" ! -name "hSkipWeakTimingOffset.m" \
+    ! -name "HARQEntity.m" \
+    -exec perl -0777 -pi -e "s/((?:%.*\n)+\n)(?:%.*\n)+/\$1%
+%   Copyright 2021-2025 Software Radio Systems Limited
+%
+%   By using this file, you agree to the terms and conditions set
+%   forth in the LICENSE file which can be found at the top level of
+%   the distribution.
+%
+/" {} \;

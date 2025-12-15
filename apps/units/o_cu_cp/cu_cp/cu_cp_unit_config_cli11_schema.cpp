@@ -343,6 +343,9 @@ static void configure_cli11_rrc_args(CLI::App& app, cu_cp_unit_rrc_config& confi
              "Force RRC re-establishment fallback to RRC setup")
       ->capture_default_str();
 
+  add_option(app, "--force_resume_fallback", config.force_resume_fallback, "Force RRC resume fallback to RRC setup")
+      ->capture_default_str();
+
   add_option(app,
              "--rrc_procedure_guard_time_ms",
              config.rrc_procedure_guard_time_ms,

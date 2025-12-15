@@ -416,8 +416,8 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
     constexpr uint8_t      nof_groups_and_bits_per_gr = 8U;
     std::optional<uint8_t> first_non_zero_group;
     for (uint8_t group_idx = 0; group_idx != nof_groups_and_bits_per_gr; ++group_idx) {
-      const uint8_t group_8_bits = ssb_cfg.ssb_bitmap.extract(nof_groups_and_bits_per_gr * group_idx,
-                                                              nof_groups_and_bits_per_gr * (group_idx + 1));
+      const uint8_t group_8_bits =
+          ssb_cfg.ssb_bitmap.extract<uint8_t>(nof_groups_and_bits_per_gr * group_idx, nof_groups_and_bits_per_gr);
       if (group_8_bits != 0U and not first_non_zero_group.has_value()) {
         first_non_zero_group.emplace(group_8_bits);
       }

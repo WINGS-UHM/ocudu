@@ -42,4 +42,20 @@ public:
   virtual void on_status_report(byte_buffer_chain status) = 0;
 };
 
+/// This interface represents the entry point of a PDCP TX entity for handling of ROHC feedback.
+/// The PDCP RX entity uses this class to forward received and produced ROHC feedback to the TX entity.
+class pdcp_tx_feedback_handler
+{
+public:
+  virtual ~pdcp_tx_feedback_handler() = default;
+
+  /// \brief Handler for ROHC feedback received by the RX entity from the peer that shall be consumed by the TX entity.
+  /// \param rohc_feedback The received ROHC feedback PDU to be processed by the ROHC compressor of the TX entity.
+  virtual void on_rohc_feedback_received(byte_buffer_chain rohc_feedback) = 0;
+
+  /// \brief Handler for ROHC feedback produced by the RX entity that shall be forwarded to the peer entity.
+  /// \param rohc_feedback The produced ROHC feedback PDU to be forwarded by the TX entity.
+  virtual void on_rohc_feedback_produced(byte_buffer rohc_feedback) = 0;
+};
+
 } // namespace ocudu

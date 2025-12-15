@@ -97,6 +97,7 @@ struct pdcp_tx_pdu_info {
 /// It provides interfaces for the PDCP bearers, for the higher and lower layers
 class pdcp_entity_tx final : public pdcp_entity_tx_rx_base,
                              public pdcp_tx_status_handler,
+                             public pdcp_tx_feedback_handler,
                              public pdcp_tx_upper_data_interface,
                              public pdcp_tx_upper_control_interface,
                              public pdcp_tx_lower_interface
@@ -184,11 +185,32 @@ public:
   ///
   /// Ref: Ref: TS 38.323, Sec. 5.4.2, Sec. 6.2.3.1 and Sec. 6.3.{9,10}
   ///
-  /// \param status The status report
+  /// \param status The status report (including PDCP header).
   void handle_status_report(byte_buffer_chain status);
+
+  /// \brief Evaluates a ROHC feedback received from the peer entity.
+  ///
+  /// \param rohc_feedback The ROHC feedback (including PDCP header).
+  void consume_rohc_feedback(byte_buffer_chain rohc_feedback);
+
+  /// \brief Forwards ROHC feedback produced by the RX entity to the peer entity.
+  ///
+  /// \param rohc_feedback The ROHC feedback (without PDCP header).
+  void forward_rohc_feedback(byte_buffer rohc_feedback);
 
   // Status handler interface
   void on_status_report(byte_buffer_chain status) override { handle_status_report(std::move(status)); }
+
+  // Feedback handler interface
+  void on_rohc_feedback_received(byte_buffer_chain rohc_feedback) override
+  {
+    consume_rohc_feedback(std::move(rohc_feedback));
+  }
+
+  void on_rohc_feedback_produced(byte_buffer rohc_feedback) override
+  {
+    forward_rohc_feedback(std::move(rohc_feedback));
+  }
 
   /*
    * Header helpers

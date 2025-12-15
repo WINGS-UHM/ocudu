@@ -43,6 +43,7 @@ public:
 
 /// Mocking class of the surrounding layers invoked by the PDCP.
 class pdcp_rx_test_frame : public pdcp_tx_status_handler,
+                           public pdcp_tx_feedback_handler,
                            public pdcp_rx_upper_data_notifier,
                            public pdcp_rx_upper_control_notifier
 {
@@ -54,9 +55,23 @@ public:
   uint32_t                      nof_protocol_failure   = 0;
   uint32_t                      nof_resume_required    = 0;
   std::queue<byte_buffer_chain> status_report_queue;
+  std::queue<byte_buffer_chain> rohc_feedback_received;
+  std::queue<byte_buffer>       rohc_feedback_produced;
 
-  /// PDCP TX status handler
+  /// PDCP TX status handler.
   void on_status_report(byte_buffer_chain status) override { status_report_queue.push(std::move(status)); }
+
+  /// PDCP TX handler for consumption of received ROHC feedback.
+  void on_rohc_feedback_received(byte_buffer_chain rohc_feedback) override
+  {
+    rohc_feedback_received.push(std::move(rohc_feedback));
+  }
+
+  /// PDCP TX handler for forwarding of produced ROHC feedback.
+  void on_rohc_feedback_produced(byte_buffer rohc_feedback) override
+  {
+    rohc_feedback_produced.push(std::move(rohc_feedback));
+  }
 
   /// PDCP RX upper layer data notifier
   void on_new_sdu(byte_buffer sdu) override
@@ -138,6 +153,7 @@ protected:
                                                nof_crypto_threads,
                                                *metrics_agg);
     pdcp_rx->set_status_handler(test_frame.get());
+    pdcp_rx->set_feedback_handler(test_frame.get());
 
     ocudulog::flush();
   }

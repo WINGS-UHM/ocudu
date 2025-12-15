@@ -17,8 +17,9 @@ namespace ocudu::rohc {
 class rohc_compressor
 {
 public:
-  virtual ~rohc_compressor()                       = default;
-  virtual byte_buffer compress(byte_buffer packet) = 0;
+  virtual ~rohc_compressor()                                = default;
+  virtual byte_buffer compress(byte_buffer packet)          = 0;
+  virtual bool        handle_feedback(byte_buffer feedback) = 0;
 };
 
 } // namespace ocudu::rohc

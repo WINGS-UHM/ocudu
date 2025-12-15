@@ -32,6 +32,7 @@ rohc_lib_compressor::rohc_lib_compressor(rohc_config cfg_) : logger(ocudulog::fe
   }
 
   input_packet_buf.resize(rohc_max_packet_size);
+  input_feedback_buf.resize(rohc_max_packet_size);
   output_packet_buf.resize(rohc_max_packet_size);
 
   logger.info("Created ROHC compressor with ROHC library version {}. {}", rohc_version(), cfg);
@@ -72,6 +73,28 @@ byte_buffer rohc_lib_compressor::compress(byte_buffer packet)
 
   if (result.empty()) {
     logger.warning("Compression did not yield any output");
+  }
+
+  return result;
+}
+
+bool rohc_lib_compressor::handle_feedback(byte_buffer feedback)
+{
+  bool     result = false;
+  rohc_buf feedback_packet;
+  if (feedback.is_contiguous()) {
+    feedback_packet = rohc_buf_init_empty(feedback.segments().begin()->begin(), feedback.length());
+  } else {
+    feedback_packet = rohc_buf_init_empty(input_feedback_buf.data(), input_feedback_buf.size());
+    std::copy(feedback.cbegin(), feedback.cend(), input_feedback_buf.begin());
+  }
+  feedback_packet.len = feedback.length();
+
+  result = rohc_comp_deliver_feedback2(compressor, feedback_packet);
+  if (!result) {
+    logger.warning("Failed to deliver feedback to ROHC compressor. feedback_len={}", feedback.length());
+  } else {
+    logger.debug("Delivered feedback to ROHC compressor. feedback_len={}", feedback.length());
   }
 
   return result;

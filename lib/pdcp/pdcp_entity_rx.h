@@ -140,12 +140,13 @@ public:
 
   // Rx/Tx interconnect
   void set_status_handler(pdcp_tx_status_handler* status_handler_) { status_handler = status_handler_; }
+  void set_feedback_handler(pdcp_tx_feedback_handler* feedback_handler_) { feedback_handler = feedback_handler_; }
 
   /// \brief Compiles a PDCP status report
   ///
   /// Ref: TS 38.323, Sec. 5.4.1, Sec. 6.2.3.1 and Sec. 6.3.{9,10}
   ///
-  /// \return Control PDU for PDCP status report as a byte_buffer
+  /// \return Control PDU for PDCP status report as a byte_buffer (including PDCP header).
   byte_buffer compile_status_report() override;
 
   /*
@@ -241,7 +242,8 @@ private:
   /*
    * Notifiers and handlers
    */
-  pdcp_tx_status_handler*         status_handler = nullptr;
+  pdcp_tx_status_handler*         status_handler   = nullptr;
+  pdcp_tx_feedback_handler*       feedback_handler = nullptr;
   pdcp_rx_upper_data_notifier&    upper_dn;
   pdcp_rx_upper_control_notifier& upper_cn;
 

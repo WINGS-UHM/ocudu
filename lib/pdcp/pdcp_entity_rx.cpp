@@ -518,6 +518,9 @@ void pdcp_entity_rx::handle_control_pdu(byte_buffer_chain pdu)
     case pdcp_control_pdu_type::status_report:
       status_handler->on_status_report(std::move(pdu));
       break;
+    case pdcp_control_pdu_type::interspersed_rohc_feedback:
+      feedback_handler->on_rohc_feedback_received(std::move(pdu));
+      break;
     default:
       logger.log_error(pdu.begin(), pdu.end(), "Unsupported control PDU type. {}", control_hdr);
   }
@@ -633,7 +636,10 @@ bool pdcp_entity_rx::apply_header_decompression(byte_buffer& buf)
     return false;
   }
 
-  // TODO: handle feedback.
+  if (!decomp_result.feedback_packet.empty()) {
+    logger.log_debug("ROHC feedback produced. len={}", decomp_result.feedback_packet.length());
+    feedback_handler->on_rohc_feedback_produced(std::move(decomp_result.feedback_packet));
+  }
 
   if (decomp_result.decomp_packet.empty()) {
     // Only feedback was decompressed, no SDU. Continue next.

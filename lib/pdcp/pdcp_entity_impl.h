@@ -67,6 +67,7 @@ public:
     // Tx/Rx interconnect
     tx->set_status_provider(rx.get());
     rx->set_status_handler(tx.get());
+    rx->set_feedback_handler(tx.get());
   }
   ~pdcp_entity_impl() override { stop(); }
   pdcp_tx_upper_control_interface& get_tx_upper_control_interface() final { return (*tx); }

@@ -523,15 +523,15 @@ void pdcp_entity_tx::write_control_pdu_to_lower_layers(byte_buffer buf)
 void pdcp_entity_tx::handle_status_report(byte_buffer_chain status)
 {
   auto status_buffer = byte_buffer::create(status.begin(), status.end());
-  if (not status_buffer.has_value()) {
-    logger.log_warning("Unable to allocate byte_buffer");
+  if (!status_buffer.has_value()) {
+    logger.log_warning("Unable to allocate byte_buffer for status report");
     return;
   }
 
   byte_buffer buf = std::move(status_buffer.value());
   bit_decoder dec(buf);
 
-  // Unpack and check PDU header
+  // Unpack and check PDU header.
   uint32_t dc = 0;
   dec.unpack(dc, 1);
   if (dc != to_number(pdcp_dc_field::control)) {
@@ -544,9 +544,9 @@ void pdcp_entity_tx::handle_status_report(byte_buffer_chain status)
   if (cpt != to_number(pdcp_control_pdu_type::status_report)) {
     logger.log_warning(buf.begin(),
                        buf.end(),
-                       "Invalid CPT field in status report. cpt={}",
-                       to_number(pdcp_control_pdu_type::status_report),
-                       cpt);
+                       "Invalid CPT field in status report. cpt={} expected_cpt={}",
+                       cpt,
+                       to_number(pdcp_control_pdu_type::status_report));
     return;
   }
   uint32_t reserved = 0;
@@ -557,17 +557,17 @@ void pdcp_entity_tx::handle_status_report(byte_buffer_chain status)
     return;
   }
 
-  // Unpack FMC field
+  // Unpack FMC field.
   uint32_t fmc = 0;
   dec.unpack(fmc, 32);
   logger.log_info("Status report. fmc={}", fmc);
 
-  // Discard any SDU with COUNT < FMC
+  // Discard any SDU with COUNT < FMC.
   for (uint32_t count = st.tx_next_ack; count < fmc; count++) {
     discard_pdu(count);
   }
 
-  // Evaluate bitmap: discard any SDU with the bit in the bitmap set to 1
+  // Evaluate bitmap: discard any SDU with the bit in the bitmap set to 1.
   unsigned bit = 0;
   while (dec.unpack(bit, 1)) {
     fmc++;
@@ -577,6 +577,78 @@ void pdcp_entity_tx::handle_status_report(byte_buffer_chain status)
       discard_pdu(fmc);
     }
   }
+}
+
+void pdcp_entity_tx::consume_rohc_feedback(byte_buffer_chain rohc_feedback)
+{
+  if (rohc_comp == nullptr) {
+    logger.log_error("Received ROHC feedback but no compressor is configured. {}", st);
+    return;
+  }
+
+  auto feedback_buffer = byte_buffer::create(rohc_feedback.begin(), rohc_feedback.end());
+  if (!feedback_buffer.has_value()) {
+    logger.log_warning("Unable to allocate byte_buffer for ROHC feedback");
+    return;
+  }
+
+  byte_buffer buf = std::move(feedback_buffer.value());
+  bit_decoder dec(buf);
+
+  // Unpack and check PDU header.
+  uint32_t dc = 0;
+  dec.unpack(dc, 1);
+  if (dc != to_number(pdcp_dc_field::control)) {
+    logger.log_warning(buf.begin(),
+                       buf.end(),
+                       "Invalid D/C field in ROHC feedback. dc={} expected_dc={}",
+                       dc,
+                       to_number(pdcp_dc_field::control));
+    return;
+  }
+  uint32_t cpt = 0;
+  dec.unpack(cpt, 3);
+  if (cpt != to_number(pdcp_control_pdu_type::interspersed_rohc_feedback)) {
+    logger.log_warning(buf.begin(),
+                       buf.end(),
+                       "Invalid CPT field in ROHC feedback. cpt={} expected_cpt={}",
+                       cpt,
+                       to_number(pdcp_control_pdu_type::interspersed_rohc_feedback));
+    return;
+  }
+  uint32_t reserved = 0;
+  dec.unpack(reserved, 4);
+  if (reserved != 0) {
+    logger.log_warning(
+        buf.begin(), buf.end(), "Ignoring ROHC feedback because reserved bits are set. reserved={:#x}", reserved);
+    return;
+  }
+
+  // Remove header and handle the ROHC feedback.
+  buf.trim_head(1);
+
+  if (!rohc_comp->handle_feedback(std::move(buf))) {
+    logger.log_warning("Failed to handle ROHC feedback. buf_len={}", buf.length());
+  } else {
+    logger.log_debug("Handled ROHC feedback. buf_len={}", buf.length());
+  }
+}
+
+void pdcp_entity_tx::forward_rohc_feedback(byte_buffer rohc_feedback)
+{
+  logger.log_debug(rohc_feedback.begin(), rohc_feedback.end(), "TX ROHC feedback. len={}", rohc_feedback.length());
+
+  // Add space for PDCP header.
+  rohc_feedback.reserve_prepend(1);
+  bit_encoder enc(rohc_feedback);
+
+  // Pack PDU header.
+  enc.pack(to_number(pdcp_dc_field::control), 1);
+  enc.pack(to_number(pdcp_control_pdu_type::interspersed_rohc_feedback), 3);
+  enc.pack(0b0000, 4);
+
+  // Forward to lower layers.
+  write_control_pdu_to_lower_layers(std::move(rohc_feedback));
 }
 
 /*

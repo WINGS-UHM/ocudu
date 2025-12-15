@@ -25,6 +25,7 @@ public:
   rohc_lib_compressor(rohc_config cfg_);
   ~rohc_lib_compressor();
   virtual byte_buffer compress(byte_buffer packet) override;
+  virtual bool        handle_feedback(byte_buffer feedback) override;
 
 private:
   ocudulog::basic_logger& logger;
@@ -33,6 +34,7 @@ private:
   rohc_comp*  compressor = nullptr;
 
   std::vector<uint8_t> input_packet_buf;
+  std::vector<uint8_t> input_feedback_buf;
   std::vector<uint8_t> output_packet_buf;
 };
 

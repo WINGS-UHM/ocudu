@@ -26,8 +26,8 @@ namespace test_helpers {
 class test_sched_config_manager
 {
 public:
-  test_sched_config_manager(const cell_config_builder_params& builder_params,
-                            const scheduler_expert_config&    expert_cfg_ = {});
+  test_sched_config_manager(const cell_config_builder_params& builder_params = {},
+                            const scheduler_expert_config&    expert_cfg_    = {});
   ~test_sched_config_manager();
 
   const sched_cell_configuration_request_message& get_default_cell_config_request() const { return default_cell_req; }
@@ -38,7 +38,10 @@ public:
   const cell_configuration& get_cell(du_cell_index_t cell_idx) const { return *cfg_mng.common_cell_list()[cell_idx]; }
 
   const ue_configuration* add_ue(const sched_ue_creation_request_message& cfg_req);
+  const ue_configuration* update_ue(const sched_ue_reconfiguration_message& cfg_req);
   bool                    rem_ue(du_ue_index_t ue_index);
+
+  const cell_common_configuration_list& common_cell_list() const { return cfg_mng.common_cell_list(); }
 
 private:
   const cell_config_builder_params               builder_params;

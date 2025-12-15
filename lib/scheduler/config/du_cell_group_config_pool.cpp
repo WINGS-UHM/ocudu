@@ -9,12 +9,16 @@
  */
 
 #include "du_cell_group_config_pool.h"
+#include "cell_configuration.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
 using namespace ocudu;
 
-du_cell_config_pool::du_cell_config_pool(const sched_cell_configuration_request_message& cell_cfg) :
-  init_dl_bwp(cell_cfg.dl_cfg_common.init_dl_bwp), init_ul_bwp(cell_cfg.ul_cfg_common.init_ul_bwp)
+du_cell_config_pool::du_cell_config_pool(const scheduler_expert_config&                  sched_cfg_,
+                                         const sched_cell_configuration_request_message& req) :
+  cell_cfg_inst(sched_cfg_, req),
+  init_dl_bwp(cell_cfg_inst.dl_cfg_common.init_dl_bwp),
+  init_ul_bwp(cell_cfg_inst.ul_cfg_common.init_ul_bwp)
 {
 }
 
@@ -103,10 +107,11 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
 
 // class du_cell_group_config_pool
 
-void du_cell_group_config_pool::add_cell(const sched_cell_configuration_request_message& cell_cfg)
+cell_configuration& du_cell_group_config_pool::add_cell(const scheduler_expert_config&                  expert_cfg,
+                                                        const sched_cell_configuration_request_message& msg)
 {
-  ocudu_assert(cells.count(cell_cfg.cell_index) == 0, "Cell already exists");
-  cells.emplace(cell_cfg.cell_index, cell_cfg);
+  ocudu_assert(not cells.contains(msg.cell_index), "Cell already exists");
+  return cells.emplace(msg.cell_index, std::make_unique<du_cell_config_pool>(expert_cfg, msg))->cell_cfg();
 }
 
 void du_cell_group_config_pool::rem_cell(du_cell_index_t cell_index)
@@ -126,7 +131,7 @@ ue_creation_params du_cell_group_config_pool::add_ue(const sched_ue_creation_req
   if (cfg_req.cfg.cells.has_value()) {
     for (const auto& cell : cfg_req.cfg.cells.value()) {
       cell_cfgs.emplace(cell.serv_cell_cfg.cell_index,
-                        cells.at(cell.serv_cell_cfg.cell_index).update_ue(cell.serv_cell_cfg));
+                        cells[cell.serv_cell_cfg.cell_index]->update_ue(cell.serv_cell_cfg));
     }
   }
 
@@ -145,7 +150,7 @@ ue_reconfig_params du_cell_group_config_pool::reconf_ue(const sched_ue_reconfigu
   if (cfg_req.cfg.cells.has_value()) {
     for (const auto& cell : cfg_req.cfg.cells.value()) {
       cell_cfgs.emplace(cell.serv_cell_cfg.cell_index,
-                        cells.at(cell.serv_cell_cfg.cell_index).update_ue(cell.serv_cell_cfg));
+                        cells[cell.serv_cell_cfg.cell_index]->update_ue(cell.serv_cell_cfg));
     }
   }
 

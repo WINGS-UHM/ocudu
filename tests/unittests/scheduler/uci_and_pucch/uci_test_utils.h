@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/pucch_scheduling/pucch_allocator_impl.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
@@ -87,11 +88,11 @@ public:
   const test_bench_params params;
 
   // Configuration dependencies.
-  du_cell_group_config_pool      cfg_pool;
-  cell_common_configuration_list cell_cfg_list{};
-  const scheduler_expert_config  expert_cfg;
-  ue_repository                  ues;
-  const cell_configuration&      cell_cfg;
+  const scheduler_expert_config           expert_cfg;
+  test_helpers::test_sched_config_manager cfg_mng;
+  const cell_configuration&               cell_cfg;
+  ue_repository                           ues;
+  ue_cell_repository&                     cell_ues;
 
   // Other dependencies.
   pucch_res_builder_test_helper pucch_builder;
@@ -110,10 +111,10 @@ public:
   uci_scheduler_impl   uci_sched;
 
   // Helper variables.
-  std::vector<std::unique_ptr<ue_configuration>> ue_ded_cfgs;
-  rnti_t                                         last_added_ue_rnti;
-  du_ue_index_t                                  last_added_ue_idx;
-  slot_point                                     sl_tx;
+  std::vector<const ue_configuration*> ue_ded_cfgs;
+  rnti_t                               last_added_ue_rnti;
+  du_ue_index_t                        last_added_ue_idx;
+  slot_point                           sl_tx;
 };
 
 } // namespace ocudu

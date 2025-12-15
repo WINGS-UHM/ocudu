@@ -72,6 +72,17 @@ const ue_configuration* test_sched_config_manager::add_ue(const sched_ue_creatio
   return nullptr;
 }
 
+const ue_configuration* test_sched_config_manager::update_ue(const sched_ue_reconfiguration_message& cfg_req)
+{
+  auto ue_ev = cfg_mng.update_ue(cfg_req);
+  if (ue_ev.valid()) {
+    const ue_configuration* ret = &ue_ev.next_config();
+    ue_ev.notify_completion();
+    return ret;
+  }
+  return nullptr;
+}
+
 bool test_sched_config_manager::rem_ue(du_ue_index_t ue_index)
 {
   auto ev = cfg_mng.remove_ue(ue_index);

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
@@ -35,11 +36,7 @@ public:
   sched_basic_custom_test_bench(const scheduler_expert_config&                  sched_exp_cfg,
                                 const sched_cell_configuration_request_message& sched_cell_cfg_req) :
     expert_cfg{sched_exp_cfg},
-    cell_cfg{[this, sched_cell_cfg_req]() -> const cell_configuration& {
-      cfg_pool.add_cell(sched_cell_cfg_req);
-      cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(expert_cfg, sched_cell_cfg_req));
-      return *cell_cfg_list[to_du_cell_index(0)];
-    }()},
+    cell_cfg(*cfg_mng.add_cell(sched_cell_cfg_req)),
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
@@ -49,15 +46,14 @@ public:
   }
 
   // Class members.
-  scheduler_expert_config        expert_cfg;
-  cell_common_configuration_list cell_cfg_list{};
-  du_cell_group_config_pool      cfg_pool;
-  const cell_configuration&      cell_cfg;
-  ue_repository                  ues;
-  ue_cell_repository&            cell_ues;
-  std::vector<ue_configuration>  ue_ded_cfgs;
-  cell_resource_allocator        res_grid{cell_cfg};
-  slot_point                     current_sl_tx;
+  scheduler_expert_config                 expert_cfg;
+  test_helpers::test_sched_config_manager cfg_mng{{}, expert_cfg};
+  const cell_configuration&               cell_cfg;
+  ue_repository                           ues;
+  ue_cell_repository&                     cell_ues;
+  std::vector<const ue_configuration*>    ue_ded_cfgs;
+  cell_resource_allocator                 res_grid{cell_cfg};
+  slot_point                              current_sl_tx;
 
   ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
@@ -65,8 +61,9 @@ public:
   // Class methods.
   void add_ue(sched_ue_creation_request_message ue_req)
   {
-    ue_ded_cfgs.emplace_back(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req));
-    ues.add_ue(ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
+    ue_ded_cfgs.emplace_back(cfg_mng.add_ue(ue_req));
+    report_error_if_not(ue_ded_cfgs.back() != nullptr, "Failed to create UE configuration");
+    ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
   }
 
   void slot_indication(slot_point slot_tx)

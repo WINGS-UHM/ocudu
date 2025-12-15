@@ -263,19 +263,10 @@ test_bench::test_bench(const test_bench_params& params_) :
     default_expert_cfg.ue.min_pucch_pusch_prb_distance = 0U;
     return default_expert_cfg;
   }()),
+  cfg_mng(make_custom_cell_config_builder_params(params), expert_cfg),
+  cell_cfg(*cfg_mng.add_cell(make_custom_sched_cell_configuration_request(params))),
   ues(expert_cfg.ue),
-  cell_cfg([this]() -> const cell_configuration& {
-    static constexpr auto du_cell_idx = to_du_cell_index(0);
-
-    // Create cell and save a reference to its configuration.
-    auto req = make_custom_sched_cell_configuration_request(params);
-    cfg_pool.add_cell(req);
-    cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(expert_cfg, req));
-
-    const auto& cfg = *cell_cfg_list[du_cell_idx];
-    ues.add_cell(cfg, nullptr);
-    return cfg;
-  }()),
+  cell_ues(ues.add_cell(cell_cfg, nullptr)),
   pucch_builder(cell_cfg, params.pucch_ded_params),
   res_grid(cell_cfg),
   k0(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0),
@@ -337,8 +328,8 @@ void test_bench::add_ue()
     csi_report.report_slot_offset = params.csi_offset;
   }
 
-  ue_ded_cfgs.push_back(
-      std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));
+  const ue_configuration* ue_cfg = cfg_mng.add_ue(ue_req);
+  ue_ded_cfgs.push_back(ue_cfg);
   ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
   uci_sched.add_ue(ues[ue_req.ue_index].get_pcell().cfg());
 

@@ -8,6 +8,7 @@
  *
  */
 
+#include "../test_utils/config_generators.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
@@ -45,15 +46,6 @@ static unsigned compute_c_srs(unsigned nof_ul_crbs)
     }
   }
   return candidate_c_srs;
-}
-
-static sched_cell_configuration_request_message make_custom_sched_cell_configuration_request(bool is_tdd = false)
-{
-  sched_cell_configuration_request_message req = sched_config_helper::make_default_sched_cell_configuration_request(
-      cell_config_builder_params{.scs_common     = is_tdd ? subcarrier_spacing::kHz30 : subcarrier_spacing::kHz15,
-                                 .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                 .dl_f_ref_arfcn = is_tdd ? 520000U : 365000U});
-  return req;
 }
 
 static bool is_ul_slot(unsigned offset, const tdd_ul_dl_config_common& tdd_cfg)
@@ -155,12 +147,14 @@ class test_bench
 public:
   test_bench(srs_test_params params) :
     expert_cfg{config_helpers::make_default_scheduler_expert_config()},
-    cell_cfg{[this, &params]() -> const cell_configuration& {
-      auto cell_req = make_custom_sched_cell_configuration_request(params.is_tdd);
-      cfg_pool.add_cell(cell_req);
-      cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(expert_cfg, cell_req));
-      return *cell_cfg_list[to_du_cell_index(0)];
-    }()},
+    cfg_mng{[&params]() {
+              return cell_config_builder_params{.scs_common     = params.is_tdd ? subcarrier_spacing::kHz30
+                                                                                : subcarrier_spacing::kHz15,
+                                                .channel_bw_mhz = bs_channel_bandwidth::MHz20,
+                                                .dl_f_ref_arfcn = params.is_tdd ? 520000U : 365000U};
+            }(),
+            expert_cfg},
+    cell_cfg(*cfg_mng.add_cell(cfg_mng.get_default_cell_config_request())),
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     srs_sched(cell_cfg, ues),
@@ -171,16 +165,15 @@ public:
   }
 
   // Class members.
-  scheduler_expert_config        expert_cfg;
-  du_cell_group_config_pool      cfg_pool;
-  cell_common_configuration_list cell_cfg_list{};
-  const cell_configuration&      cell_cfg;
-  ue_repository                  ues;
-  ue_cell_repository&            cell_ues;
-  std::vector<ue_configuration>  ue_ded_cfgs;
-  cell_resource_allocator        res_grid{cell_cfg};
-  srs_scheduler_impl             srs_sched;
-  slot_point                     current_sl_tx;
+  scheduler_expert_config                 expert_cfg;
+  test_helpers::test_sched_config_manager cfg_mng;
+  const cell_configuration&               cell_cfg;
+  ue_repository                           ues;
+  ue_cell_repository&                     cell_ues;
+  std::vector<const ue_configuration*>    ue_ded_cfgs;
+  cell_resource_allocator                 res_grid{cell_cfg};
+  srs_scheduler_impl                      srs_sched;
+  slot_point                              current_sl_tx;
 
   ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
@@ -189,11 +182,9 @@ public:
   void add_ue(srs_periodicity srs_period)
   {
     sched_ue_creation_request_message ue_req = create_sched_ue_creation_request_for_srs_cfg(
-        srs_period,
-        cell_cfg_list[to_du_cell_index(0)]->ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
-        cell_cfg.tdd_cfg_common);
-    ue_ded_cfgs.emplace_back(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req));
-    ues.add_ue(ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
+        srs_period, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), cell_cfg.tdd_cfg_common);
+    ue_ded_cfgs.emplace_back(cfg_mng.add_ue(ue_req));
+    ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
     srs_sched.add_ue(ues[ue_req.ue_index].get_pcell().cfg());
   }
 
@@ -405,9 +396,7 @@ TEST_F(srs_positioning_scheduler_test, when_neighbor_cell_ue_positioning_is_requ
 
   // Initiate Positioning measurement.
   sched_ue_creation_request_message dummy_ue_req = create_sched_ue_creation_request_for_srs_cfg(
-      srs_period,
-      cell_cfg_list[to_du_cell_index(0)]->ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
-      cell_cfg.tdd_cfg_common);
+      srs_period, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), cell_cfg.tdd_cfg_common);
   auto& ue_srs_cfg = dummy_ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   this->srs_sched.handle_positioning_measurement_request(
       make_positioning_cell_request(pos_rnti, std::nullopt, to_du_cell_index(0), ue_srs_cfg));

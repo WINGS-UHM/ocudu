@@ -217,6 +217,6 @@ private:
 /// \brief List of common configurations for the cells currently added in the scheduler.
 ///
 /// Note: Pointers to cell configurations should remain valid on cell removal/addition.
-using cell_common_configuration_list = slotted_id_vector<du_cell_index_t, std::unique_ptr<cell_configuration>>;
+using cell_common_configuration_list = slotted_id_vector<du_cell_index_t, cell_configuration*>;
 
 } // namespace ocudu

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "cell_configuration.h"
 #include "logical_channel_config_pool.h"
 #include "sched_config_params.h"
 #include "ocudu/ran/du_types.h"
@@ -27,9 +28,12 @@ struct cell_config_dedicated;
 class du_cell_config_pool
 {
 public:
-  du_cell_config_pool(const sched_cell_configuration_request_message& cell_cfg);
+  du_cell_config_pool(const scheduler_expert_config& sched_cfg_, const sched_cell_configuration_request_message& req);
   du_cell_config_pool(const du_cell_config_pool&)            = delete;
   du_cell_config_pool& operator=(const du_cell_config_pool&) = delete;
+
+  const cell_configuration& cell_cfg() const { return cell_cfg_inst; }
+  cell_configuration&       cell_cfg() { return cell_cfg_inst; }
 
   ue_cell_config_ptr update_ue(const serving_cell_config& ue_cell);
 
@@ -41,9 +45,12 @@ private:
                const bwp_uplink_common*      ul_bwp_common,
                const bwp_uplink_dedicated*   ul_bwp_ded);
 
+  /// Cell common configuration.
+  cell_configuration cell_cfg_inst;
+
   // Cell common BWP configurations.
-  const bwp_downlink_common init_dl_bwp;
-  const bwp_uplink_common   init_ul_bwp;
+  const bwp_downlink_common& init_dl_bwp;
+  const bwp_uplink_common&   init_ul_bwp;
 
   // Pools of UE-dedicated configurations.
   config_object_pool<ue_cell_res_config>         cell_cfg_pool;
@@ -63,7 +70,8 @@ class du_cell_group_config_pool
 {
 public:
   /// Creates handles to the resources associated with common cell configuration.
-  void add_cell(const sched_cell_configuration_request_message& cell_cfg);
+  cell_configuration& add_cell(const scheduler_expert_config&                  expert_cfg,
+                               const sched_cell_configuration_request_message& cell_cfg);
 
   /// Remove cell and respective resources.
   void rem_cell(du_cell_index_t cell_index);
@@ -77,7 +85,7 @@ public:
 private:
   logical_channel_config_pool lc_ch_pool;
 
-  std::map<du_cell_index_t, du_cell_config_pool> cells;
+  slotted_id_vector<du_cell_index_t, std::unique_ptr<du_cell_config_pool>> cells;
 };
 
 } // namespace ocudu

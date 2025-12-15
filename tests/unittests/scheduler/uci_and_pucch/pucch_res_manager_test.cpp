@@ -8,6 +8,7 @@
  *
  */
 
+#include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/config/ue_configuration.h"
 #include "lib/scheduler/pucch_scheduling/pucch_resource_manager.h"
@@ -31,22 +32,15 @@ class res_manager_test_bench
 public:
   explicit res_manager_test_bench(const pucch_builder_params& builder_params_) :
     builder_params(builder_params_),
-    ues(config_helpers::make_default_scheduler_expert_config().ue),
-    cell_cfg([this]() -> const cell_configuration& {
-      static constexpr auto du_cell_idx = to_du_cell_index(0);
-
+    cell_cfg(*cfg_mng.add_cell([this]() {
       // Create cell and save a reference to its configuration.
       auto req                = sched_config_helper::make_default_sched_cell_configuration_request();
       req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
           builder_params, req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
-
-      cfg_pool.add_cell(req);
-      cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(expert_cfg, req));
-
-      const auto& cfg = *cell_cfg_list[du_cell_idx];
-      ues.add_cell(cfg, nullptr);
-      return cfg;
-    }()),
+      return req;
+    }())),
+    ues(config_helpers::make_default_scheduler_expert_config().ue),
+    cell_ues(ues.add_cell(cell_cfg, nullptr)),
     pucch_builder(cell_cfg, builder_params),
     res_manager(cell_cfg),
     sl_tx(slot_point(0, 0))
@@ -79,17 +73,17 @@ public:
   const pucch_builder_params builder_params;
 
   // Configuration dependencies.
-  du_cell_group_config_pool      cfg_pool;
-  cell_common_configuration_list cell_cfg_list{};
-  ue_repository                  ues;
-  const scheduler_expert_config  expert_cfg = config_helpers::make_default_scheduler_expert_config();
-  const cell_configuration&      cell_cfg;
+  const scheduler_expert_config           expert_cfg = config_helpers::make_default_scheduler_expert_config();
+  test_helpers::test_sched_config_manager cfg_mng{{}, expert_cfg};
+  const cell_configuration&               cell_cfg;
+  ue_repository                           ues;
+  ue_cell_repository&                     cell_ues;
 
   pucch_res_builder_test_helper pucch_builder;
   pucch_resource_manager        res_manager;
 
-  std::vector<std::unique_ptr<ue_configuration>> ue_ded_cfgs;
-  slot_point                                     sl_tx;
+  std::vector<const ue_configuration*> ue_ded_cfgs;
+  slot_point                           sl_tx;
 };
 
 class test_pucch_resource_manager : public ::testing::Test
@@ -101,8 +95,7 @@ public:
     })
   {
     auto ue_req = t_bench.make_ue_creation_req();
-    t_bench.ue_ded_cfgs.push_back(std::make_unique<ue_configuration>(
-        ue_req.ue_index, ue_req.crnti, t_bench.cell_cfg_list, t_bench.cfg_pool.add_ue(ue_req)));
+    t_bench.ue_ded_cfgs.push_back(t_bench.cfg_mng.add_ue(ue_req));
     t_bench.ues.add_ue(*t_bench.ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
 
     ue_req = t_bench.make_ue_creation_req();
@@ -117,8 +110,7 @@ public:
     pucch_cfg_1.pucch_res_list[sr_ue_res_id]                  = second_sr_res;
     pucch_cfg_1.pucch_res_list[sr_ue_res_id].res_id.ue_res_id = sr_ue_res_id;
     pucch_cfg_1.sr_res_list[0].pucch_res_id.cell_res_id       = second_sr_res.res_id.cell_res_id;
-    t_bench.ue_ded_cfgs.push_back(std::make_unique<ue_configuration>(
-        ue_req.ue_index, ue_req.crnti, t_bench.cell_cfg_list, t_bench.cfg_pool.add_ue(ue_req)));
+    t_bench.ue_ded_cfgs.push_back(t_bench.cfg_mng.add_ue(ue_req));
     t_bench.ues.add_ue(*t_bench.ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
   }
 
@@ -569,8 +561,7 @@ protected:
         csi_report.pucch_csi_res_list[0].pucch_res_id.cell_res_id = cell_csi_res.res_id.cell_res_id;
       }
 
-      t_bench->ue_ded_cfgs.push_back(std::make_unique<ue_configuration>(
-          ue_req.ue_index, ue_req.crnti, t_bench->cell_cfg_list, t_bench->cfg_pool.add_ue(ue_req)));
+      t_bench->ue_ded_cfgs.push_back(t_bench->cfg_mng.add_ue(ue_req));
       t_bench->ues.add_ue(*t_bench->ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
     }
   }

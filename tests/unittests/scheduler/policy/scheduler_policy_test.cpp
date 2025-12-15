@@ -43,19 +43,16 @@ protected:
       scheduler_expert_config    sched_cfg_ = config_helpers::make_default_scheduler_expert_config(),
       cell_config_builder_params params_    = {}) :
     params(params_),
-    cell_cfg_req(sched_config_helper::make_default_sched_cell_configuration_request(params)),
-    logger(ocudulog::fetch_basic_logger("SCHED", true)),
-    res_logger(false, cell_cfg_req.pci),
     sched_cfg([&sched_cfg_, policy]() {
       if (policy == policy_scheduler_type::time_qos) {
         sched_cfg_.ue.policy_cfg = time_qos_scheduler_config{};
       }
       return sched_cfg_;
     }()),
-    cell_cfg(*[this]() {
-      return cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, cell_cfg_req))
-          .get();
-    }()),
+    cell_cfg_req(cfg_mng.get_default_cell_config_request()),
+    logger(ocudulog::fetch_basic_logger("SCHED", true)),
+    res_logger(false, cell_cfg_req.pci),
+    cell_cfg(*cfg_mng.add_cell(cell_cfg_req)),
     cell_metrics(cell_cfg, cell_cfg_req.metrics),
     ues(cell_cfg.expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, &cell_metrics)),
@@ -64,8 +61,6 @@ protected:
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
-
-    cfg_pool.add_cell(cell_cfg_req);
   }
 
   ~base_scheduler_policy_test() { ocudulog::flush(); }
@@ -117,8 +112,7 @@ protected:
 
   ue& add_ue(const sched_ue_creation_request_message& ue_req)
   {
-    ue_ded_cell_cfg_list.push_back(
-        std::make_unique<ue_configuration>(ue_req.ue_index, ue_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_req)));
+    ue_ded_cell_cfg_list.push_back(cfg_mng.add_ue(ue_req));
     ues.add_ue(*ue_ded_cell_cfg_list.back(), ue_req.starts_in_fallback, std::nullopt);
     slice_sched.add_ue(ue_req.ue_index);
     return ues[ue_req.ue_index];
@@ -169,14 +163,13 @@ protected:
   }
 
   const cell_config_builder_params               params;
+  scheduler_expert_config                        sched_cfg;
+  test_helpers::test_sched_config_manager        cfg_mng{params, sched_cfg};
   const sched_cell_configuration_request_message cell_cfg_req;
 
-  ocudulog::basic_logger&                        logger;
-  scheduler_result_logger                        res_logger;
-  scheduler_expert_config                        sched_cfg;
-  cell_common_configuration_list                 cell_cfg_list;
-  du_cell_group_config_pool                      cfg_pool;
-  std::vector<std::unique_ptr<ue_configuration>> ue_ded_cell_cfg_list;
+  ocudulog::basic_logger&              logger;
+  scheduler_result_logger              res_logger;
+  std::vector<const ue_configuration*> ue_ded_cell_cfg_list;
 
   const cell_configuration&           cell_cfg;
   sched_cfg_dummy_notifier            dummy_mac_notif;
@@ -731,7 +724,7 @@ TEST_P(scheduler_pf_qos_test, pf_upholds_qos_in_dl_gbr_flows)
   (*cfg_req.lc_config_list)[3].qos->qos          = *get_5qi_to_qos_characteristics_mapping(uint_to_five_qi(1));
   (*cfg_req.lc_config_list)[3].qos->arp_priority = arp_prio_level_t::max();
   (*cfg_req.lc_config_list)[3].qos->gbr_qos_info = gbr_qos_flow_information{brate, brate, brate, brate};
-  ue_ded_cell_cfg_list[0]->update(cell_cfg_list, cfg_pool.reconf_ue(recfg_req));
+  ue_ded_cell_cfg_list[0]                        = cfg_mng.update_ue(recfg_req);
   // Add UE with no GBR bearer.
   ue& ue_with_no_gbr = add_ue(make_ue_create_req(to_du_ue_index(1), to_rnti(0x4602), {non_gbr_bearer_lcid}, lcg_id));
 

@@ -25,8 +25,15 @@ protected:
   sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
   sched_ue_creation_request_message ue_create_msg = sched_config_helper::create_default_sched_ue_creation_request();
 
-  cell_common_configuration_list                 cell_cfg_db;
+  const cell_configuration& add_cell()
+  {
+    cell_configuration& cell_cfg = cfg_pool.add_cell(sched_cfg, msg);
+    cell_cfg_db.emplace(msg.cell_index, &cell_cfg);
+    return cell_cfg;
+  }
+
   du_cell_group_config_pool                      cfg_pool;
+  cell_common_configuration_list                 cell_cfg_db;
   std::vector<std::unique_ptr<ue_configuration>> ue_cfg_pool;
   ue_repository                                  ue_db{sched_cfg.ue};
 
@@ -41,9 +48,8 @@ protected:
 
 TEST_F(ue_configuration_test, configuration_valid_on_creation)
 {
-  cell_configuration cell_cfg{sched_cfg, msg};
-  cfg_pool.add_cell(msg);
-  ue_cell_configuration ue_cfg{to_rnti(0x4601), cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[to_du_cell_index(0)]};
+  const cell_configuration& cell_cfg = add_cell();
+  ue_cell_configuration ue_cfg{to_rnti(0x4601), cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[cell_cfg.cell_index]};
 
   // Test Common Config.
   ASSERT_TRUE(ue_cfg.find_bwp(to_bwp_id(0)) != nullptr);
@@ -67,8 +73,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_creation)
 
 TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
 {
-  cell_configuration cell_cfg{sched_cfg, msg};
-  cfg_pool.add_cell(msg);
+  const cell_configuration& cell_cfg = cfg_pool.add_cell(sched_cfg, msg);
   ue_cell_configuration ue_cfg{to_rnti(0x4601), cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[to_du_cell_index(0)]};
 
   sched_ue_reconfiguration_message recfg_req;
@@ -91,9 +96,8 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
 TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_logical_channel_states)
 {
   // Test Preamble.
-  cell_cfg_db.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, msg));
-  ue_db.add_cell(*cell_cfg_db[to_du_cell_index(0)], nullptr);
-  cfg_pool.add_cell(msg);
+  const cell_configuration& cell_cfg = add_cell();
+  ue_db.add_cell(cell_cfg, nullptr);
   auto& u = add_ue(ue_create_msg);
 
   // Pass Reconfiguration to UE with an new Logical Channel.
@@ -162,10 +166,9 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
                                      config_helpers::compute_max_nof_candidates(aggregation_level::n8, cset_cfg),
                                      config_helpers::compute_max_nof_candidates(aggregation_level::n16, cset_cfg)});
 
-  cell_configuration cell_cfg{sched_cfg, msg};
-  cfg_pool.add_cell(msg);
+  const cell_configuration& cell_cfg = add_cell();
   rnti_t crnti = to_rnti(test_rgen::uniform_int<uint16_t>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI)));
-  ue_cell_configuration ue_cfg{crnti, cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[to_du_cell_index(0)]};
+  ue_cell_configuration ue_cfg{crnti, cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[cell_cfg.cell_index]};
 
   const bwp_config& bwp            = ue_cfg.bwp(to_bwp_id(0));
   const unsigned    max_candidates = max_nof_monitored_pdcch_candidates(bwp.dl_common->value().generic_params.scs);

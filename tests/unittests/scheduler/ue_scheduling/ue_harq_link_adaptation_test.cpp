@@ -8,9 +8,11 @@
  *
  */
 
+#include "../test_utils/config_generators.h"
 #include "../test_utils/dummy_test_components.h"
 #include "../test_utils/sched_random_utils.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
+#include "lib/scheduler/logging/scheduler_metrics_handler.h"
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
@@ -23,35 +25,35 @@ using namespace ocudu;
 class ue_harq_link_adaptation_test : public ::testing::Test
 {
 protected:
-  ue_harq_link_adaptation_test() : logger(ocudulog::fetch_basic_logger("SCHED", true)), ues(sched_cfg.ue)
+  ue_harq_link_adaptation_test() :
+    cfg_mng([]() {
+      // Set nof. DL ports to 4.
+      cell_config_builder_params params{};
+      params.nof_dl_ports = 4;
+      return params;
+    }()),
+    logger(ocudulog::fetch_basic_logger("SCHED", true)),
+    ues(sched_cfg.ue)
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 
-    // Set nof. DL ports to 4.
-    cell_config_builder_params params{};
-    params.nof_dl_ports = 4;
-    const sched_cell_configuration_request_message sched_cell_cfg_req =
-        sched_config_helper::make_default_sched_cell_configuration_request(params);
-
-    cfg_pool.add_cell(sched_cell_cfg_req);
-    cell_cfg_list.emplace(to_du_cell_index(0), std::make_unique<cell_configuration>(sched_cfg, sched_cell_cfg_req));
-    cell_cfg = cell_cfg_list[to_du_cell_index(0)].get();
+    // Create cell.
+    const sched_cell_configuration_request_message sched_cell_cfg_req = cfg_mng.get_default_cell_config_request();
+    cell_cfg                                                          = cfg_mng.add_cell(sched_cell_cfg_req);
     ues.add_cell(*cell_cfg, nullptr);
-
     next_slot = test_helper::generate_random_slot_point(cell_cfg->dl_cfg_common.init_dl_bwp.generic_params.scs);
 
     // Create UE.
-    sched_ue_creation_request_message ue_creation_req =
-        sched_config_helper::create_default_sched_ue_creation_request(params);
-    ue_creation_req.ue_index = to_du_ue_index(0);
-    ue_creation_req.crnti    = to_rnti(0x4601 + static_cast<unsigned>(ue_creation_req.ue_index));
+    sched_ue_creation_request_message ue_creation_req = cfg_mng.get_default_ue_config_request();
+    ue_creation_req.ue_index                          = to_du_ue_index(0);
+    ue_creation_req.crnti = to_rnti(0x4601 + static_cast<unsigned>(ue_creation_req.ue_index));
     ue_creation_req.cfg.lc_config_list->clear();
     for (const lcid_t lcid : std::array<lcid_t, 3>{uint_to_lcid(1), uint_to_lcid(2), uint_to_lcid(4)}) {
       ue_creation_req.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(lcid));
     }
-    ue_ded_cfg.emplace(
-        ue_creation_req.ue_index, ue_creation_req.crnti, cell_cfg_list, cfg_pool.add_ue(ue_creation_req));
+    ue_ded_cfg = cfg_mng.add_ue(ue_creation_req);
+    report_error_if_not(ue_ded_cfg != nullptr, "Failed to create UE configuration");
     ues.add_ue(*ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt);
     ue_ptr = &ues[ue_creation_req.ue_index];
     ue_cc  = &ue_ptr->get_cell(to_ue_cell_index(0));
@@ -97,11 +99,10 @@ protected:
     return h_dl;
   }
 
-  const scheduler_expert_config   sched_cfg = config_helpers::make_default_scheduler_expert_config();
-  du_cell_group_config_pool       cfg_pool;
-  cell_common_configuration_list  cell_cfg_list;
-  cell_configuration*             cell_cfg = nullptr;
-  std::optional<ue_configuration> ue_ded_cfg;
+  const scheduler_expert_config           sched_cfg = config_helpers::make_default_scheduler_expert_config();
+  test_helpers::test_sched_config_manager cfg_mng;
+  const cell_configuration*               cell_cfg   = nullptr;
+  const ue_configuration*                 ue_ded_cfg = nullptr;
 
   ocudulog::basic_logger& logger;
 

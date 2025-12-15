@@ -8,6 +8,7 @@
  *
  */
 
+#include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/support/dmrs_helpers.h"
 #include "lib/scheduler/support/mcs_tbs_calculator.h"
@@ -37,12 +38,13 @@ class common_mcs_tbs_calculator_test
 {
 public:
   const scheduler_expert_config                  expert_cfg = config_helpers::make_default_scheduler_expert_config();
+  test_helpers::test_sched_config_manager        cfg_mng{{}, expert_cfg};
   const sched_cell_configuration_request_message cell_req =
       sched_config_helper::make_default_sched_cell_configuration_request();
-  const serving_cell_config   serv_cell_cfg = config_helpers::create_default_initial_ue_serving_cell_config();
-  du_cell_config_pool         cell_cfg_pool{cell_req};
-  const cell_configuration    cell_cfg{expert_cfg, cell_req};
-  const ue_cell_configuration ue_cell_cfg{to_rnti(0x4601), cell_cfg, cell_cfg_pool.update_ue(serv_cell_cfg)};
+  const cell_configuration&    cell_cfg{*cfg_mng.add_cell(cell_req)};
+  const serving_cell_config    serv_cell_cfg{(*cfg_mng.get_default_ue_config_request().cfg.cells)[0].serv_cell_cfg};
+  const ue_configuration&      ue_cfg{*cfg_mng.add_ue(cfg_mng.get_default_ue_config_request())};
+  const ue_cell_configuration& ue_cell_cfg{ue_cfg.pcell_cfg()};
 };
 
 ///////////////       DL TEST         ///////////////

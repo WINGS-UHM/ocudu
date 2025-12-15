@@ -8,7 +8,7 @@
  *
  */
 
-#include "lib/scheduler/config/du_cell_group_config_pool.h"
+#include "../test_utils/config_generators.h"
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/support/pdcch/pdcch_mapping.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
@@ -50,18 +50,11 @@ class base_pdcch_resource_allocator_tester
 {
 protected:
   struct test_ue {
-    rnti_t                                 rnti;
-    std::unique_ptr<ue_cell_configuration> cfg;
+    rnti_t                       rnti;
+    const ue_configuration*      cfg;
+    const ue_cell_configuration* pcell_cfg;
 
-    test_ue(const cell_configuration&                cell_cfg,
-            const sched_ue_creation_request_message& req,
-            const ue_cell_config_ptr&                ue_cfg_ptr) :
-      rnti(req.crnti), cfg(std::make_unique<ue_cell_configuration>(req.crnti, cell_cfg, ue_cfg_ptr))
-    {
-      ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
-
-      ocudulog::init();
-    }
+    test_ue(const ue_configuration& ue_cfg) : rnti(ue_cfg.crnti), cfg(&ue_cfg), pcell_cfg(&cfg->pcell_cfg()) {}
   };
 
   base_pdcch_resource_allocator_tester(
@@ -69,11 +62,9 @@ protected:
       sched_cell_configuration_request_message msg =
           sched_config_helper::make_default_sched_cell_configuration_request(),
       cell_config_dedicated ue_cell = sched_config_helper::create_test_initial_ue_spcell_cell_config()) :
-    cfg_pool(msg),
-    cell_cfg{sched_cfg, msg},
-    default_ue_cell_req(ue_cell.serv_cell_cfg),
-    default_ue_cfg{crnti, cell_cfg, cfg_pool.update_ue(default_ue_cell_req)}
+    cell_cfg(*sched_cfg_mng.add_cell(msg)), default_ue_cell_req(ue_cell.serv_cell_cfg)
   {
+    ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
     test_logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 
@@ -92,19 +83,14 @@ protected:
   {
     auto result = config_validators::validate_sched_ue_creation_request_message(ue_creation_req, cell_cfg);
     report_error_if_not(result.has_value(), "UE creation request validation failed: {}", result.error());
-
-    return &test_ues
-                .insert(std::make_pair(
-                    ue_creation_req.crnti,
-                    test_ue{cell_cfg,
-                            ue_creation_req,
-                            cfg_pool.update_ue(ue_creation_req.cfg.cells.value()[to_du_cell_index(0)].serv_cell_cfg)}))
-                .first->second;
+    const ue_configuration* ue_cfg = sched_cfg_mng.add_ue(ue_creation_req);
+    report_error_if_not(ue_cfg != nullptr, "Failed to create UE configuration");
+    return &test_ues.insert(std::make_pair(ue_creation_req.crnti, test_ue{*ue_cfg})).first->second;
   }
 
   sched_ue_creation_request_message create_ue_cfg(rnti_t rnti)
   {
-    sched_ue_creation_request_message ue_creation_req = sched_config_helper::create_default_sched_ue_creation_request();
+    sched_ue_creation_request_message ue_creation_req = sched_cfg_mng.get_default_ue_config_request();
     ue_creation_req.crnti                             = rnti;
     ue_creation_req.starts_in_fallback                = false;
     (*ue_creation_req.cfg.cells)[0].serv_cell_cfg     = default_ue_cell_req;
@@ -113,7 +99,7 @@ protected:
 
   bool is_pdcch_monitored(rnti_t crnti, search_space_id ss_id) const
   {
-    const ue_cell_configuration& uecfg = *test_ues.at(crnti).cfg;
+    const ue_cell_configuration& uecfg = *test_ues.at(crnti).pcell_cfg;
     return pdcch_helper::is_pdcch_monitoring_active(res_grid[0].slot, *uecfg.search_space(ss_id).cfg) and
            not uecfg.search_space(ss_id).get_pdcch_candidates(aggregation_level::n4, res_grid[0].slot).empty();
   }
@@ -121,8 +107,8 @@ protected:
   void verify_pdcch_context(const dci_context_information& pdcch_ctx, const test_ue& u, search_space_id ss_id) const
   {
     ASSERT_EQ(pdcch_ctx.rnti, u.rnti);
-    const search_space_configuration& ss_cfg = *u.cfg->search_space(ss_id).cfg;
-    const coreset_configuration&      cs_cfg = u.cfg->coreset(ss_cfg.get_coreset_id());
+    const search_space_configuration& ss_cfg = *u.pcell_cfg->search_space(ss_id).cfg;
+    const coreset_configuration&      cs_cfg = u.pcell_cfg->coreset(ss_cfg.get_coreset_id());
     ASSERT_EQ(*pdcch_ctx.coreset_cfg, cs_cfg);
     ASSERT_EQ(pdcch_ctx.n_id_pdcch_dmrs,
               cs_cfg.pdcch_dmrs_scrambling_id.has_value() ? *cs_cfg.pdcch_dmrs_scrambling_id : cell_cfg.pci)
@@ -231,33 +217,31 @@ protected:
     fmt::format_to(std::back_inserter(fmtbuf), "\nTest config:");
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- initial BWP: RBs={}", cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs);
-    const auto& cs0_cfg = default_ue_cfg.coreset(to_coreset_id(0));
+    const auto&                  bwp_res = cell_cfg.ded_bwp_res[to_bwp_id(0)];
+    const coreset_configuration& cs0_cfg = bwp_res.coresets()[to_coreset_id(0)].cfg();
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration);
-    const auto& cs1_cfg = default_ue_cfg.coreset(to_coreset_id(1));
+    const auto& cs1_cfg = bwp_res.coresets()[to_coreset_id(1)].cfg();
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- CORESET#1: RBs={}, duration={}", get_coreset_crbs(cs1_cfg), cs1_cfg.duration);
-    fmt::format_to(
-        std::back_inserter(fmtbuf),
-        "\n- SearchSpace#0: nof_candidates={}",
-        fmt::join(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0].get_nof_candidates(), ", "));
-    fmt::format_to(
-        std::back_inserter(fmtbuf),
-        "\n- SearchSpace#1: nof_candidates={}",
-        fmt::join(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].get_nof_candidates(), ", "));
+    fmt::format_to(std::back_inserter(fmtbuf),
+                   "\n- SearchSpace#0: nof_candidates={}",
+                   fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[0].get_nof_candidates(), ", "));
+    fmt::format_to(std::back_inserter(fmtbuf),
+                   "\n- SearchSpace#1: nof_candidates={}",
+                   fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[1].get_nof_candidates(), ", "));
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- SearchSpace#2: nof_candidates={}",
-                   fmt::join(default_ue_cfg.search_space(to_search_space_id(2)).cfg->get_nof_candidates(), ", "));
+                   fmt::join(bwp_res.dl_ded()->pdcch_cfg->search_spaces[0].get_nof_candidates(), ", "));
     test_logger.info("{}", to_string(fmtbuf));
   }
 
-  ocudulog::basic_logger&       logger      = ocudulog::fetch_basic_logger("SCHED");
-  ocudulog::basic_logger&       test_logger = ocudulog::fetch_basic_logger("TEST");
-  const scheduler_expert_config sched_cfg   = config_helpers::make_default_scheduler_expert_config();
-  du_cell_config_pool           cfg_pool;
-  cell_configuration            cell_cfg;
-  const serving_cell_config     default_ue_cell_req;
-  ue_cell_configuration         default_ue_cfg;
+  ocudulog::basic_logger&                 logger      = ocudulog::fetch_basic_logger("SCHED");
+  ocudulog::basic_logger&                 test_logger = ocudulog::fetch_basic_logger("TEST");
+  const scheduler_expert_config           sched_cfg   = config_helpers::make_default_scheduler_expert_config();
+  test_helpers::test_sched_config_manager sched_cfg_mng{{}, sched_cfg};
+  const cell_configuration&               cell_cfg;
+  const serving_cell_config               default_ue_cell_req;
 
   cell_resource_allocator res_grid{cell_cfg};
 
@@ -418,13 +402,14 @@ TEST_P(ue_pdcch_resource_allocator_scrambling_tester,
       // No valid PDCCH candidates for the given configuration.
       return;
     }
-    ASSERT_EQ(pdcch_sch.alloc_dl_pdcch_ue(res_grid[0], rnti, *u->cfg, params.ss_id, aggregation_level::n4), nullptr);
+    ASSERT_EQ(pdcch_sch.alloc_dl_pdcch_ue(res_grid[0], rnti, *u->pcell_cfg, params.ss_id, aggregation_level::n4),
+              nullptr);
 
     run_slot();
   }
 
   pdcch_dl_information* pdcch =
-      pdcch_sch.alloc_dl_pdcch_ue(res_grid[0], rnti, *u->cfg, params.ss_id, aggregation_level::n4);
+      pdcch_sch.alloc_dl_pdcch_ue(res_grid[0], rnti, *u->pcell_cfg, params.ss_id, aggregation_level::n4);
 
   ASSERT_NE(pdcch, nullptr);
   ASSERT_TRUE(res_grid[0].result.dl.ul_pdcchs.empty());
@@ -450,13 +435,14 @@ TEST_P(ue_pdcch_resource_allocator_scrambling_tester,
       // No valid PDCCH candidates for the given configuration.
       return;
     }
-    ASSERT_EQ(pdcch_sch.alloc_ul_pdcch_ue(res_grid[0], rnti, *u->cfg, params.ss_id, aggregation_level::n4), nullptr);
+    ASSERT_EQ(pdcch_sch.alloc_ul_pdcch_ue(res_grid[0], rnti, *u->pcell_cfg, params.ss_id, aggregation_level::n4),
+              nullptr);
 
     run_slot();
   }
 
   pdcch_ul_information* pdcch =
-      pdcch_sch.alloc_ul_pdcch_ue(res_grid[0], rnti, *u->cfg, params.ss_id, aggregation_level::n4);
+      pdcch_sch.alloc_ul_pdcch_ue(res_grid[0], rnti, *u->pcell_cfg, params.ss_id, aggregation_level::n4);
 
   ASSERT_TRUE(res_grid[0].result.dl.dl_pdcchs.empty());
   ASSERT_EQ(res_grid[0].result.dl.ul_pdcchs.size(), 1);
@@ -643,13 +629,13 @@ protected:
       } break;
       case alloc_type::dl_crnti: {
         pdcch_dl_information* dl_pdcch =
-            pdcch_sch.alloc_dl_pdcch_ue(res_grid[0], alloc.rnti, *u->cfg, alloc.ss_id, alloc.aggr_lvl);
+            pdcch_sch.alloc_dl_pdcch_ue(res_grid[0], alloc.rnti, *u->pcell_cfg, alloc.ss_id, alloc.aggr_lvl);
         return dl_pdcch != nullptr ? &dl_pdcch->ctx : nullptr;
 
       } break;
       case alloc_type::ul_crnti: {
         pdcch_ul_information* ul_pdcch =
-            pdcch_sch.alloc_ul_pdcch_ue(res_grid[0], alloc.rnti, *u->cfg, alloc.ss_id, alloc.aggr_lvl);
+            pdcch_sch.alloc_ul_pdcch_ue(res_grid[0], alloc.rnti, *u->pcell_cfg, alloc.ss_id, alloc.aggr_lvl);
         return ul_pdcch != nullptr ? &ul_pdcch->ctx : nullptr;
 
       } break;

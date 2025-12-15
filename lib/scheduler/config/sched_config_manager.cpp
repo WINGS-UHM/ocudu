@@ -91,14 +91,15 @@ const cell_configuration* sched_config_manager::add_cell(const sched_cell_config
   if (not group_cfg_pool.contains(msg.cell_group_index)) {
     group_cfg_pool.emplace(msg.cell_group_index, std::make_unique<du_cell_group_config_pool>());
   }
-  group_cfg_pool[msg.cell_group_index]->add_cell(msg);
+  cell_configuration& cell_cfg = group_cfg_pool[msg.cell_group_index]->add_cell(expert_params, msg);
 
-  added_cells.emplace(msg.cell_index, std::make_unique<cell_configuration>(expert_params, msg));
+  // Add cell configuration.
+  added_cells.emplace(msg.cell_index, &cell_cfg);
 
-  cell_metrics_handler* cell_metrics = metrics_handler.add_cell(*added_cells[msg.cell_index], msg.metrics);
+  cell_metrics_handler* cell_metrics = metrics_handler.add_cell(cell_cfg, msg.metrics);
   ocudu_assert(cell_metrics != nullptr, "Unable to create metrics handler");
 
-  return added_cells[msg.cell_index].get();
+  return &cell_cfg;
 }
 
 void sched_config_manager::update_cell(const sched_cell_reconfiguration_request_message& msg)
@@ -108,7 +109,7 @@ void sched_config_manager::update_cell(const sched_cell_reconfiguration_request_
     ocudu_assert(added_cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
     for (const auto& rrm : msg.slice_reconf_req->rrm_policies) {
       bool found = false;
-      for (auto& slice : added_cells[cell_index]->rrm_policy_members) {
+      for (slice_rrm_policy_config& slice : added_cells[cell_index]->rrm_policy_members) {
         if (slice.rrc_member == rrm.rrc_member) {
           found     = true;
           slice.rbs = rrm.rbs;

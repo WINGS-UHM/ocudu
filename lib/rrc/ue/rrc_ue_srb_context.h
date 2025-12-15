@@ -14,8 +14,7 @@
 #include "ocudu/pdcp/pdcp_factory.h"
 #include "ocudu/support/executors/inline_task_executor.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct pdcp_tx_result {
   std::variant<byte_buffer, ngap_cause_t> result;
@@ -41,7 +40,7 @@ struct pdcp_rx_result {
 
 /// Additional context of a SRB containing notifiers to PDCP, i.e. SRB1 and SRB2.
 struct srb_pdcp_context {
-  inline_task_executor           inline_executor; // TODO: refactor F1AP msg handling to support async PDCP execution
+  inline_task_executor           inline_executor; // TODO: refactor F1AP msg handling to support async PDCP execution.
   std::unique_ptr<pdcp_entity>   entity;
   pdcp_rrc_ue_tx_adapter         pdcp_tx_notifier;
   pdcp_tx_control_rrc_ue_adapter rrc_tx_control_notifier;
@@ -53,11 +52,11 @@ struct srb_pdcp_context {
                    task_executor&   executor,
                    uint32_t         max_nof_crypto_workers)
   {
-    // prepare PDCP creation message
+    // Prepare PDCP creation message.
     pdcp_entity_creation_message srb_pdcp{};
     srb_pdcp.ue_index    = ue_index_to_uint(ue_index);
     srb_pdcp.rb_id       = srb_id;
-    srb_pdcp.config      = pdcp_make_default_srb_config(); // TODO: allow non-default PDCP SRB configs
+    srb_pdcp.config      = pdcp_make_default_srb_config(); // TODO: allow non-default PDCP SRB configs.
     srb_pdcp.tx_lower    = &pdcp_tx_notifier;
     srb_pdcp.tx_upper_cn = &rrc_tx_control_notifier;
     srb_pdcp.rx_upper_dn = &rrc_rx_data_notifier;
@@ -66,14 +65,14 @@ struct srb_pdcp_context {
     srb_pdcp.ue_dl_timer_factory   = timers;
     srb_pdcp.ue_ul_timer_factory   = timers;
     srb_pdcp.ue_ctrl_timer_factory = timers;
-    // Uplink, Downlink, Control and Crypto run in the same executor
+    // Uplink, Downlink, Control and Crypto run in the same executor.
     srb_pdcp.ue_dl_executor         = &inline_executor;
     srb_pdcp.ue_ul_executor         = &inline_executor; // synchronous inline execution required to unpack RRC msgs
     srb_pdcp.ue_ctrl_executor       = &executor;
     srb_pdcp.crypto_executor        = &inline_executor; // synchronous inline execution required to unpack RRC msgs
     srb_pdcp.max_nof_crypto_workers = max_nof_crypto_workers;
 
-    // create PDCP entity
+    // Create PDCP entity.
     entity = create_pdcp_entity(srb_pdcp);
   }
 };
@@ -91,12 +90,12 @@ public:
   {
   }
 
-  // Setup security
+  // Setup security.
   void enable_tx_security(security::integrity_enabled int_enabled,
                           security::ciphering_enabled ciph_enabled,
                           security::sec_128_as_config sec_cfg) const
   {
-    // Configure tx security
+    // Configure tx security.
     auto& pdcp_tx_ctrl = pdcp_context.entity->get_tx_upper_control_interface();
     pdcp_tx_ctrl.configure_security(sec_cfg, int_enabled, ciph_enabled);
   }
@@ -105,21 +104,33 @@ public:
                           security::ciphering_enabled ciph_enabled,
                           security::sec_128_as_config sec_cfg) const
   {
-    // Configure rx security
+    // Configure rx security.
     auto& pdcp_rx_ctrl = pdcp_context.entity->get_rx_upper_control_interface();
     pdcp_rx_ctrl.configure_security(sec_cfg, int_enabled, ciph_enabled);
   }
 
-  // Full security setup. Used e.g., with SRB2
+  // Full security setup. Used e.g., with SRB2.
   void enable_full_security(security::sec_128_as_config sec_cfg) const
   {
-    // Configure rx security
+    // Configure rx security.
     auto& pdcp_tx_ctrl = pdcp_context.entity->get_tx_upper_control_interface();
     pdcp_tx_ctrl.configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
-    // Configure tx security
+    // Configure tx security.
     auto& pdcp_rx_ctrl = pdcp_context.entity->get_rx_upper_control_interface();
     pdcp_rx_ctrl.configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
+  }
+
+  // Reestablish SRBs.
+  void reestablish(security::sec_128_as_config sec_cfg) const
+  {
+    // Reestablish rx.
+    auto& pdcp_tx_ctrl = pdcp_context.entity->get_tx_upper_control_interface();
+    pdcp_tx_ctrl.reestablish(sec_cfg);
+
+    // Reestablish tx.
+    auto& pdcp_rx_ctrl = pdcp_context.entity->get_rx_upper_control_interface();
+    pdcp_rx_ctrl.reestablish(sec_cfg);
   }
 
   // Add ciphering and integrity protection to an RRC PDU.
@@ -157,5 +168,4 @@ private:
   srb_pdcp_context pdcp_context;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

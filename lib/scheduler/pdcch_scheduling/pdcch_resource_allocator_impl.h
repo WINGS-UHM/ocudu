@@ -62,8 +62,7 @@ private:
   static const size_t SLOT_ALLOCATOR_RING_SIZE = get_allocator_ring_size_gt_min(SCHEDULER_MAX_K0);
 
   struct pdcch_candidate_info {
-    pdcch_candidate_list                                       candidates;
-    static_vector<crb_index_list, PDCCH_MAX_NOF_CANDIDATES_SS> candidate_crbs;
+    pdcch_candidate_list candidates;
   };
 
   pdcch_slot_allocator& get_pdcch_slot_alloc(slot_point sl);
@@ -71,20 +70,18 @@ private:
   pdcch_dl_information* alloc_dl_pdcch_helper(cell_slot_resource_allocator&     slot_alloc,
                                               rnti_t                            rnti,
                                               const bwp_configuration&          bwp_cfg,
-                                              const coreset_configuration&      cs_cfg,
+                                              const sched_coreset_config&       cs_cfg,
                                               const search_space_configuration& ss_cfg,
                                               aggregation_level                 aggr_lvl,
-                                              span<const pdcch_candidate_type>  candidates,
-                                              span<const crb_index_list>        candidate_crbs);
+                                              span<const pdcch_candidate_type>  candidates);
 
   pdcch_ul_information* alloc_ul_pdcch_helper(cell_slot_resource_allocator&     slot_alloc,
                                               rnti_t                            rnti,
                                               const bwp_configuration&          bwp_cfg,
-                                              const coreset_configuration&      cs_cfg,
+                                              const sched_coreset_config&       cs_cfg,
                                               const search_space_configuration& ss_cfg,
                                               aggregation_level                 aggr_lvl,
-                                              span<const pdcch_candidate_type>  candidates,
-                                              span<const crb_index_list>        candidate_crbs);
+                                              span<const pdcch_candidate_type>  candidates);
 
   const cell_configuration& cell_cfg;
 

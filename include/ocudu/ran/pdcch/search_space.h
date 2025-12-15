@@ -33,7 +33,7 @@ constexpr search_space_id to_search_space_id(unsigned ss_id)
 }
 
 /// Search Space Set Type as per TS38.213, Section 10.1.
-enum class search_space_set_type { type0, type0A, type1, type2, type3, ue_specific };
+enum class search_space_set_type : uint8_t { type0, type0A, type1, type2, type3, ue_specific };
 
 /// Checks whether the SearchSpace set is common or dedicated.
 inline bool is_common_search_space(search_space_set_type ss_set)
@@ -42,7 +42,7 @@ inline bool is_common_search_space(search_space_set_type ss_set)
 }
 
 /// SearchSpace Type.
-enum class search_space_type { common, ue_dedicated };
+enum class search_space_type : uint8_t { common, ue_dedicated };
 
 /// SearchSpace configuration as per TS38.331, "SearchSpace".
 struct search_space_configuration {
@@ -67,7 +67,7 @@ struct search_space_configuration {
     }
   };
   /// SearchSpace UE-specific DCI formats.
-  enum class ue_specific_dci_format { f0_0_and_f1_0, f0_1_and_1_1 };
+  enum class ue_specific_dci_format : uint8_t { f0_0_and_f1_0, f0_1_and_1_1 };
 
   /// Constructor for SearchSpace#0.
   explicit search_space_configuration(nr_band            band,

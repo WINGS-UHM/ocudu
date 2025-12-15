@@ -32,19 +32,19 @@ void pdcch_slot_allocator::clear()
 
 bool pdcch_slot_allocator::alloc_pdcch(dci_context_information&          pdcch_ctx,
                                        cell_slot_resource_allocator&     slot_alloc,
+                                       const sched_coreset_config&       cs_cfg,
                                        const search_space_configuration& ss_cfg,
-                                       span<const pdcch_candidate_type>  ss_candidates,
-                                       span<const prb_index_list>        ss_candidate_crbs)
+                                       span<const pdcch_candidate_type>  ss_candidates)
 {
   saved_dfs_tree.clear();
 
   // Create an DL Allocation Record.
   alloc_record record{};
-  record.is_dl                = true;
-  record.pdcch_ctx            = &pdcch_ctx;
-  record.ss_cfg               = &ss_cfg;
-  record.pdcch_candidates     = ss_candidates;
-  record.pdcch_candidate_crbs = ss_candidate_crbs;
+  record.is_dl            = true;
+  record.pdcch_ctx        = &pdcch_ctx;
+  record.cs_cfg           = &cs_cfg;
+  record.ss_cfg           = &ss_cfg;
+  record.pdcch_candidates = ss_candidates;
 
   // Try to allocate PDCCH for one of the possible CCE positions. If this operation fails, retry it, but using a
   // different permutation of past grant CCE positions.
@@ -79,21 +79,22 @@ bool pdcch_slot_allocator::cancel_last_pdcch(cell_slot_resource_allocator& slot_
   if (records.empty()) {
     return false;
   }
-  if (not slot_alloc.result.dl.dl_pdcchs.empty() and
-      records.back().pdcch_ctx == &slot_alloc.result.dl.dl_pdcchs.back().ctx) {
+  auto& last_rec = records.back();
+
+  if (not slot_alloc.result.dl.dl_pdcchs.empty() and last_rec.pdcch_ctx == &slot_alloc.result.dl.dl_pdcchs.back().ctx) {
     slot_alloc.result.dl.dl_pdcchs.pop_back();
   } else if (not slot_alloc.result.dl.ul_pdcchs.empty() and
-             records.back().pdcch_ctx == &slot_alloc.result.dl.ul_pdcchs.back().ctx) {
+             last_rec.pdcch_ctx == &slot_alloc.result.dl.ul_pdcchs.back().ctx) {
     slot_alloc.result.dl.ul_pdcchs.pop_back();
   } else {
     return false;
   }
 
   // Clear allocation on resource grid.
-  const coreset_configuration& cs_cfg     = *records.back().pdcch_ctx->coreset_cfg;
-  const crb_index_list&        pdcch_crbs = records.back().pdcch_candidate_crbs[dfs_tree.back().dci_iter_index];
-  ofdm_symbol_range            symbols{0, (uint8_t)cs_cfg.duration};
-  slot_alloc.dl_res_grid.clear(records.back().pdcch_ctx->bwp_cfg->scs, symbols, pdcch_crbs);
+  const sched_coreset_config& cs_cfg   = *last_rec.cs_cfg;
+  const crb_index_list_span pdcch_crbs = cs_cfg.candidate_crbs(dfs_tree.back().ncce, last_rec.pdcch_ctx->cces.aggr_lvl);
+  ofdm_symbol_range         symbols{0, (uint8_t)cs_cfg.cfg().duration};
+  slot_alloc.dl_res_grid.clear(last_rec.pdcch_ctx->bwp_cfg->scs, symbols, pdcch_crbs);
 
   dfs_tree.pop_back();
   records.pop_back();
@@ -155,10 +156,12 @@ bool pdcch_slot_allocator::allocate_cce(cell_slot_resource_allocator& slot_alloc
                                         const alloc_record&           record,
                                         unsigned                      dci_iter_index)
 {
-  const bwp_configuration&     bwp_cfg    = *record.pdcch_ctx->bwp_cfg;
-  const coreset_configuration& cs_cfg     = *record.pdcch_ctx->coreset_cfg;
-  const crb_index_list&        pdcch_crbs = record.pdcch_candidate_crbs[dci_iter_index];
-  grant_info                   grant;
+  const bwp_configuration&     bwp_cfg = *record.pdcch_ctx->bwp_cfg;
+  const coreset_configuration& cs_cfg  = *record.pdcch_ctx->coreset_cfg;
+  const crb_index_list_span    pdcch_crbs =
+      record.cs_cfg->candidate_crbs(record.pdcch_candidates[dci_iter_index], record.pdcch_ctx->cces.aggr_lvl);
+  ocudu_sanity_check(pdcch_crbs.size() > 0, "PDCCH candidate CRB list is empty");
+  grant_info grant;
   grant.scs = bwp_cfg.scs;
 
   // Check the current CCE position collides with an existing one.

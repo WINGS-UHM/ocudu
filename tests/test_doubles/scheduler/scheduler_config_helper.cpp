@@ -44,9 +44,9 @@ sched_cell_configuration_request_message ocudu::sched_config_helper::make_defaul
   sched_req.searchspace0      = params.search_space0_index;
   sched_req.sib1_payload_size = units::bytes{101}; // Random size.
 
-  sched_req.ded_bwps.emplace_back();
-  sched_req.ded_bwps.back().coresets.emplace_back(config_helpers::make_default_coreset_config(params));
-  sched_req.ded_bwps.back().search_spaces.emplace_back(config_helpers::make_default_ue_search_space_config(params));
+  // Generic dedicated UE config templates.
+  sched_req.dl_bwp_ded.pdcch_cfg = make_ue_dedicated_pdcch_config(params);
+  sched_req.dl_bwp_ded.pdsch_cfg = make_default_pdsch_config(params);
 
   pucch_builder_params default_pucch_builder_params{};
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(

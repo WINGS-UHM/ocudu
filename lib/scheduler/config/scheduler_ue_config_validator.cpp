@@ -16,6 +16,25 @@
 using namespace ocudu;
 using namespace config_validators;
 
+validator_result validate_bwp_ded_cfg(const serving_cell_config& ue_cell_cfg, const cell_configuration& cell_cfg)
+{
+  VERIFY(ue_cell_cfg.dl_bwps.empty(), "Only init DL BWP is supported");
+  auto&       ue_bwp_ded       = ue_cell_cfg.init_dl_bwp;
+  const auto& expected_bwp_ded = cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded();
+  if (ue_bwp_ded.pdcch_cfg.has_value()) {
+    // If UE has been provided a dedicated PDCCH config, verify it matches the base one.
+    if (ue_bwp_ded.pdcch_cfg != expected_bwp_ded->pdcch_cfg) {
+      // PDCCH configs do not match. Check if it is because there are no available resources for the UE.
+      // Note: We do this by checking if searchSpaces were set for the UE.
+      if (ue_bwp_ded.pdcch_cfg->search_spaces.empty()) {
+        return {};
+      }
+      return make_unexpected("Inconsistent PDCCH config");
+    }
+  }
+  return {};
+}
+
 error_type<std::string>
 ocudu::config_validators::validate_sched_ue_creation_request_message(const sched_ue_creation_request_message& msg,
                                                                      const cell_configuration&                cell_cfg)
@@ -25,6 +44,7 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
 
   for (const cell_config_dedicated& cell : *msg.cfg.cells) {
     HANDLE_ERROR(validate_pdcch_cfg(cell.serv_cell_cfg, cell_cfg.dl_cfg_common));
+    HANDLE_ERROR(validate_bwp_ded_cfg(cell.serv_cell_cfg, cell_cfg));
 
     HANDLE_ERROR(validate_pdsch_cfg(cell.serv_cell_cfg));
 

@@ -15,10 +15,10 @@
 namespace ocudu {
 
 /// Supported DL DCI formats.
-enum class dci_dl_format { f1_0, f1_1, f2_0 };
+enum class dci_dl_format : uint8_t { f1_0, f1_1, f2_0 };
 
 /// Supported UL DCI formats.
-enum class dci_ul_format { f0_0, f0_1 };
+enum class dci_ul_format : uint8_t { f0_0, f0_1 };
 
 inline const char* dci_format_to_string(dci_dl_format type)
 {

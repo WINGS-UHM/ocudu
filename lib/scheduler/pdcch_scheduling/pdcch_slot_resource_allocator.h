@@ -18,9 +18,11 @@ namespace ocudu {
 
 struct cell_slot_resource_allocator;
 class cell_configuration;
+class sched_coreset_config;
 
 /// List of CRBs for a given PDCCH candidate.
-using crb_index_list = static_vector<uint16_t, pdcch_constants::MAX_NOF_RB_PDCCH>;
+using crb_index_list      = static_vector<uint16_t, pdcch_constants::MAX_NOF_RB_PDCCH>;
+using crb_index_list_span = span<const uint16_t>;
 
 class pdcch_slot_allocator
 {
@@ -29,9 +31,9 @@ public:
   struct alloc_record {
     bool                              is_dl;
     dci_context_information*          pdcch_ctx;
+    const sched_coreset_config*       cs_cfg;
     const search_space_configuration* ss_cfg;
     span<const uint8_t>               pdcch_candidates;
-    span<const crb_index_list>        pdcch_candidate_crbs;
   };
 
   /// DFS decision tree node.
@@ -51,9 +53,9 @@ public:
   /// they cannot be reused in this same slot.
   bool alloc_pdcch(dci_context_information&          pdcch_ctx,
                    cell_slot_resource_allocator&     slot_alloc,
+                   const sched_coreset_config&       cs_cfg,
                    const search_space_configuration& ss_cfg,
-                   span<const pdcch_candidate_type>  ss_candidates,
-                   span<const crb_index_list>        ss_candidate_crbs);
+                   span<const pdcch_candidate_type>  ss_candidates);
 
   /// Deallocates the last PDCCH CCE space reservation.
   bool cancel_last_pdcch(cell_slot_resource_allocator& slot_alloc);

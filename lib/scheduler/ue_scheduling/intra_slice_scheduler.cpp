@@ -256,7 +256,7 @@ static std::pair<unsigned, unsigned> get_max_grants_and_rb_grant_size(span<const
   // [Implementation-defined]
   // - Assume aggregation level 2 while computing nof. candidates that can be fit in CORESET.
   // - CORESET CCEs are divided by 2 to provide equal PDCCH resources to DL and UL.
-  unsigned max_nof_candidates = (ss_info->coreset->get_nof_cces() / 2) / to_nof_cces(aggregation_level::n2);
+  unsigned max_nof_candidates = (ss_info->coreset->cfg().get_nof_cces() / 2) / to_nof_cces(aggregation_level::n2);
 
   // > Subtract already scheduled PDCCHs.
   unsigned pdcchs_in_grid = is_dl ? cell_alloc[0].result.dl.dl_pdcchs.size() : cell_alloc[0].result.dl.ul_pdcchs.size();

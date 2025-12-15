@@ -37,8 +37,7 @@ span<const uint8_t> search_space_info::get_k1_candidates() const
 }
 
 void search_space_info::update_pdcch_candidates(
-    const std::vector<std::array<pdcch_candidate_list, NOF_AGGREGATION_LEVELS>>& candidates,
-    pci_t                                                                        pci)
+    const std::vector<std::array<pdcch_candidate_list, NOF_AGGREGATION_LEVELS>>& candidates)
 {
   ocudu_assert(candidates.size() > 0, "The SearchSpace doesn't have any candidates");
   ss_pdcch_candidates = candidates;
@@ -51,17 +50,8 @@ void search_space_info::update_pdcch_candidates(
       for (unsigned candidate_idx = 0, candidate_idx_end = ss_pdcch_candidates[sl][lidx].size();
            candidate_idx != candidate_idx_end;
            ++candidate_idx) {
-        uint8_t ncce     = ss_pdcch_candidates[sl][lidx][candidate_idx];
-        auto&   crb_list = crbs_of_candidates[sl][lidx][candidate_idx];
-
-        // Get PRBs for each candidate.
-        crb_list =
-            pdcch_helper::cce_to_prb_mapping(bwp->dl_common.value()->generic_params, *coreset, pci, aggr_lvl, ncce);
-
-        // Convert PRBs to CRBs.
-        for (uint16_t& prb_idx : crb_list) {
-          prb_idx = prb_to_crb(bwp->dl_common.value()->generic_params.crbs, prb_idx);
-        }
+        uint8_t ncce                                = ss_pdcch_candidates[sl][lidx][candidate_idx];
+        crbs_of_candidates[sl][lidx][candidate_idx] = coreset->candidate_crbs(ncce, aggr_lvl);
       }
     }
   }
@@ -444,7 +434,7 @@ static void remove_ambiguous_pdcch_candidates(slotted_array<search_space_info, M
         for (; ss_it2 != bwp.search_spaces.end(); ++ss_it2) {
           const search_space_info& ss2 = ss_list[(*ss_it2)->get_id()];
 
-          if (ss2.coreset->id != ss1.coreset->id or get_dl_dci_size(ss1) != get_dl_dci_size(ss2)) {
+          if (ss2.coreset->id() != ss1.coreset->id() or get_dl_dci_size(ss1) != get_dl_dci_size(ss2)) {
             // Conditions only apply to same CORESET p, same DCI sizes.
             // TODO: The TS refers to candidates having the same scrambling, but if they are in the same CORESET, this
             // is implied.
@@ -530,15 +520,15 @@ static void apply_pdcch_candidate_monitoring_limits(slotted_array<search_space_i
           // corresponding SearchSpace. This is used to reset the monitored CCEs back to original state if max. nof.
           // non-overlapped CCEs monitored limit is exceeded.
           const bounded_bitset<maximum_nof_cces> cce_monitored_backup(
-              cce_bitmap_per_coreset_per_first_pdcch_symb[ss1->coreset->id][ss1->cfg->get_first_symbol_index()]);
+              cce_bitmap_per_coreset_per_first_pdcch_symb[ss1->coreset->id()][ss1->cfg->get_first_symbol_index()]);
           // Set the CCEs monitored.
-          cce_bitmap_per_coreset_per_first_pdcch_symb[ss1->coreset->id][ss1->cfg->get_first_symbol_index()].fill(
+          cce_bitmap_per_coreset_per_first_pdcch_symb[ss1->coreset->id()][ss1->cfg->get_first_symbol_index()].fill(
               *it2, *it2 + to_nof_cces(static_cast<aggregation_level>(i)), true);
           if (get_cce_monitored_sum() > max_non_overlapped_cces) {
             // Case: max. nof. non-overlapped CCEs exceeded.
             it2 = ss_candidates.erase(it2);
             // Reset the monitored CCEs.
-            cce_bitmap_per_coreset_per_first_pdcch_symb[ss1->coreset->id][ss1->cfg->get_first_symbol_index()] =
+            cce_bitmap_per_coreset_per_first_pdcch_symb[ss1->coreset->id()][ss1->cfg->get_first_symbol_index()] =
                 cce_monitored_backup;
           } else {
             ++it2;
@@ -552,8 +542,7 @@ static void apply_pdcch_candidate_monitoring_limits(slotted_array<search_space_i
 /// \brief Compute the list of PDCCH candidates being monitored for each SearchSpace for a given slot index.
 static void generate_crnti_monitored_pdcch_candidates(slotted_array<search_space_info, MAX_NOF_SEARCH_SPACES>& ss_list,
                                                       const bwp_config&                                        bwp_cfg,
-                                                      rnti_t                                                   crnti,
-                                                      pci_t                                                    pci)
+                                                      rnti_t                                                   crnti)
 {
   const unsigned slots_per_frame =
       NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(bwp_cfg.dl_common->value().generic_params.scs);
@@ -614,7 +603,7 @@ static void generate_crnti_monitored_pdcch_candidates(slotted_array<search_space
 
   // Save resulting candidates for this slot.
   for (const search_space_config_ptr& ss : bwp_cfg.search_spaces) {
-    ss_list[ss->get_id()].update_pdcch_candidates(candidates[ss->get_id()], pci);
+    ss_list[ss->get_id()].update_pdcch_candidates(candidates[ss->get_id()]);
   }
 }
 
@@ -704,7 +693,7 @@ void ue_cell_configuration::reconfigure(const ue_cell_config_ptr&             ue
 
   // Generate PDCCH candidates.
   for (const bwp_config_ptr& bwp : cell_ded->bwps.unsorted()) {
-    generate_crnti_monitored_pdcch_candidates(search_spaces, *bwp, crnti, cell_cfg_common.pci);
+    generate_crnti_monitored_pdcch_candidates(search_spaces, *bwp, crnti);
   }
 }
 
@@ -721,14 +710,14 @@ void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_d
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
     ss.cfg     = &ss_cfg;
-    ss.coreset = &cell_ded->coresets[ss_cfg.get_coreset_id()].value();
+    ss.coreset = &cell_cfg_common.ded_bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
                                                      cell_cfg_common.dl_cfg_common.init_dl_bwp,
                                                      *ss.bwp->dl_common.value(),
                                                      *ss.cfg,
-                                                     *ss.coreset);
+                                                     ss.coreset->cfg());
     ss.update_pdsch_mappings(cell_cfg_common.expert_cfg.ue.pdsch_interleaving_bundle_size);
   }
 }
@@ -763,14 +752,14 @@ void ue_cell_configuration::configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_down
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
     ss.cfg     = &ss_cfg;
-    ss.coreset = &cell_ded->coresets[ss_cfg.get_coreset_id()].value();
+    ss.coreset = &cell_cfg_common.ded_bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
                                                      cell_cfg_common.dl_cfg_common.init_dl_bwp,
                                                      *ss.bwp->dl_common.value(),
                                                      *ss.cfg,
-                                                     *ss.coreset);
+                                                     ss.coreset->cfg());
     ss.update_pdsch_mappings(cell_cfg_common.expert_cfg.ue.pdsch_interleaving_bundle_size);
   }
 }

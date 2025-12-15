@@ -52,7 +52,7 @@ struct pdsch_time_domain_resource_allocation {
 /// A configuration is invalid if the duration is zero.
 struct pusch_time_domain_resource_allocation {
   /// PDCCH to PUSCH delay in slots, parameter \f$K_2\f$. Values: (0..32).
-  unsigned k2;
+  uint8_t k2;
   /// PUSCH mapping.
   sch_mapping_type map_type;
   /// \brief Symbols used within the slot. Parameters \f$S\f$ and \f$L\f$. Values for \f$S\f$ are (0..10) and for

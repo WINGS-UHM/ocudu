@@ -148,7 +148,7 @@ protected:
   bool                       enable_pusch_transform_precoding;
   cell_config_builder_params builder_params;
   // We use this value to account for the case when the PDSCH or PUSCH is allocated several slots in advance.
-  unsigned max_k_value = 0;
+  uint8_t max_k_value = 0;
 
   base_fallback_tester(duplex_mode duplx_mode_, bool enable_pusch_transform_precoding_) :
     duplx_mode(duplx_mode_),

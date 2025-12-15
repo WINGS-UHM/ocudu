@@ -229,7 +229,7 @@ ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration
     // [Implementation-defined] If no PDCCH slot is found we pick the last valid PDCCH slot for this UL slot, regardless
     // of the restriction to not allow more than \c nof_ul_pdcchs_per_dl_slot UL PDCCHs per PDCCH slot.
     if (no_pdcch_slot_found) {
-      std::optional<unsigned> min_k2;
+      std::optional<uint8_t> min_k2;
       for (const auto& pusch_time_domain : pusch_time_domain_list) {
         min_k2 = std::min(min_k2.value_or(pusch_time_domain.k2), pusch_time_domain.k2);
       }
@@ -239,7 +239,7 @@ ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration
       // If the required k2 value is less than the minimum k2 value in the PUSCH time domain resource list, then we look
       // for the minimum k2 value that is greater than the DL-UL transmission period, as this is the PDCCH slot closest
       // to the PUSCH slot.
-      std::optional<unsigned> candidate_required_k2;
+      std::optional<uint8_t> candidate_required_k2;
       if (required_k2 < min_k2.value()) {
         for (const auto& pusch_time_domain : pusch_time_domain_list) {
           if (pusch_time_domain.k2 > cell_cfg.tdd_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots) {

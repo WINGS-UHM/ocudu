@@ -305,8 +305,7 @@ ocudu::config_helpers::generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl_
        ++idx) {
     // For every slot containing DL symbols check for corresponding k2 value.
     if (get_active_tdd_dl_symbols(tdd_cfg, idx, cp).length() > 0) {
-      for (unsigned k2 = min_k2;
-           k2 <= SCHEDULER_MAX_K2 and result.size() < pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS;
+      for (uint8_t k2 = min_k2; k2 <= SCHEDULER_MAX_K2 and result.size() < pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS;
            ++k2) {
         // TODO: Consider partial UL slots when scheduler supports it.
         if (get_active_tdd_ul_symbols(tdd_cfg, idx + k2, cp).length() == SYMBOLS_PER_SLOT) {

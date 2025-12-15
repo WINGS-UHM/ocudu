@@ -92,7 +92,7 @@ ue_cell_grid_allocator::alloc_dl_pdcch(const ue_cell& ue_cc, const search_space_
         "ue={} rnti={}: Failed to allocate PDSCH. Cause: No space in PDCCH.", fmt::underlying(ue_cc.ue_index), crnti);
     // Note: (Implementation-defined) Assuming all UEs share the same CORESET, if there are no more CCEs left in the
     // CORESET, stop attempting to allocate new PDCCHs in the slot.
-    unsigned nof_cces_left = ss_info.coreset->get_nof_cces();
+    unsigned nof_cces_left = ss_info.coreset->cfg().get_nof_cces();
     for (const auto& dl_pdcch : pdcch_alloc.result.dl.dl_pdcchs) {
       nof_cces_left -= std::min(nof_cces_left, to_nof_cces(dl_pdcch.ctx.cces.aggr_lvl));
     }
@@ -534,7 +534,7 @@ ue_cell_grid_allocator::setup_ul_grant_builder(const slice_ue&                  
         "ue={} rnti={}: Failed to allocate PUSCH. Cause: No space in PDCCH.", fmt::underlying(u.ue_index), u.crnti);
     // Note: (Implementation-defined) Assuming all UEs share the same CORESET, if there are no more CCEs left in the
     // CORESET, stop attempting to allocate new PDCCHs in the slot.
-    unsigned nof_cces_left = ss_info.coreset->get_nof_cces();
+    unsigned nof_cces_left = ss_info.coreset->cfg().get_nof_cces();
     for (const auto& dl_pdcch : pdcch_alloc.result.dl.dl_pdcchs) {
       nof_cces_left -= std::min(nof_cces_left, to_nof_cces(dl_pdcch.ctx.cces.aggr_lvl));
     }

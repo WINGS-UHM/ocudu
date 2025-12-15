@@ -386,7 +386,7 @@ void ocudu::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
                                     const vrb_interval&                 vrbs,
                                     bool                                is_new_data)
 {
-  const coreset_configuration& cs_cfg     = *ss_info.coreset;
+  const coreset_configuration& cs_cfg     = ss_info.coreset->cfg();
   const bwp_config&            active_bwp = *ss_info.bwp;
   const bwp_downlink_common&   bwp_dl     = *active_bwp.dl_common.value();
 
@@ -441,7 +441,7 @@ void ocudu::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
 {
   const cell_configuration&    cell_cfg       = ue_cell_cfg.cell_cfg_common;
   const search_space_info&     ss_info        = ue_cell_cfg.search_space(ss_id);
-  const coreset_configuration& cs_cfg         = *ss_info.coreset;
+  const coreset_configuration& cs_cfg         = ss_info.coreset->cfg();
   const bwp_config&            active_bwp     = *ss_info.bwp;
   const bwp_configuration&     active_bwp_cfg = active_bwp.dl_common.value()->generic_params;
 

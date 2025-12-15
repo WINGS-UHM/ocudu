@@ -14,6 +14,7 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/scheduler_ue_config_validator.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/support/test_utils.h"
 #include "fmt/std.h"
@@ -89,6 +90,9 @@ protected:
 
   test_ue* add_ue(const sched_ue_creation_request_message& ue_creation_req)
   {
+    auto result = config_validators::validate_sched_ue_creation_request_message(ue_creation_req, cell_cfg);
+    report_error_if_not(result.has_value(), "UE creation request validation failed: {}", result.error());
+
     return &test_ues
                 .insert(std::make_pair(
                     ue_creation_req.crnti,
@@ -119,7 +123,7 @@ protected:
     ASSERT_EQ(pdcch_ctx.rnti, u.rnti);
     const search_space_configuration& ss_cfg = *u.cfg->search_space(ss_id).cfg;
     const coreset_configuration&      cs_cfg = u.cfg->coreset(ss_cfg.get_coreset_id());
-    ASSERT_EQ(pdcch_ctx.coreset_cfg, &cs_cfg);
+    ASSERT_EQ(*pdcch_ctx.coreset_cfg, cs_cfg);
     ASSERT_EQ(pdcch_ctx.n_id_pdcch_dmrs,
               cs_cfg.pdcch_dmrs_scrambling_id.has_value() ? *cs_cfg.pdcch_dmrs_scrambling_id : cell_cfg.pci)
         << "Invalid N_{ID} (see TS38.211, 7.4.1.3.1)";
@@ -307,7 +311,7 @@ TEST_F(common_pdcch_allocator_tester, single_pdcch_sib1_allocation)
   ASSERT_EQ(pdcch, &res_grid[0].result.dl.dl_pdcchs[0]) << "Returned PDCCH ptr does not match allocated ptr";
   ASSERT_EQ(rnti_t::SI_RNTI, pdcch->ctx.rnti);
   ASSERT_EQ(pdcch->ctx.bwp_cfg, &cell_cfg.dl_cfg_common.init_dl_bwp.generic_params);
-  ASSERT_EQ(pdcch->ctx.coreset_cfg, &*cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0);
+  ASSERT_EQ(*pdcch->ctx.coreset_cfg, *cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0);
   ASSERT_EQ(pdcch->ctx.n_id_pdcch_dmrs, cell_cfg.pci) << "Invalid N_{ID} (see TS38.211, 7.4.1.3.1)";
   ASSERT_EQ(pdcch->ctx.n_rnti_pdcch_data, 0) << "Invalid n_{RNTI} (see TS38.211, 7.3.2.3)";
   ASSERT_EQ(pdcch->ctx.n_id_pdcch_data, cell_cfg.pci) << "Invalid n_{ID} (see TS38.211, 7.3.2.3)";
@@ -327,7 +331,7 @@ TEST_F(common_pdcch_allocator_tester, single_pdcch_rar_allocation)
   ASSERT_EQ(pdcch, &res_grid[0].result.dl.dl_pdcchs[0]) << "Returned PDCCH ptr does not match allocated ptr";
   ASSERT_EQ(ra_rnti, pdcch->ctx.rnti);
   ASSERT_EQ(pdcch->ctx.bwp_cfg, &cell_cfg.dl_cfg_common.init_dl_bwp.generic_params);
-  ASSERT_EQ(pdcch->ctx.coreset_cfg, &*cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0);
+  ASSERT_EQ(*pdcch->ctx.coreset_cfg, *cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0);
   ASSERT_EQ(pdcch->ctx.n_id_pdcch_dmrs, cell_cfg.pci) << "Invalid N_{ID} (see TS38.211, 7.4.1.3.1)";
   ASSERT_EQ(pdcch->ctx.n_rnti_pdcch_data, 0) << "Invalid n_{RNTI} (see TS38.211, 7.3.2.3)";
   ASSERT_EQ(pdcch->ctx.n_id_pdcch_data, cell_cfg.pci) << "Invalid n_{ID} (see TS38.211, 7.3.2.3)";
@@ -354,27 +358,47 @@ TEST_F(common_pdcch_allocator_tester, when_no_pdcch_space_for_rar_then_allocatio
 class ue_pdcch_resource_allocator_scrambling_tester : public base_pdcch_resource_allocator_tester,
                                                       public ::testing::TestWithParam<test_scrambling_params>
 {
+  static sched_cell_configuration_request_message make_cell_req(const test_scrambling_params& params)
+  {
+    sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
+    auto&                                    pdcch_cfg = *msg.dl_bwp_ded.pdcch_cfg;
+    pdcch_cfg.coresets[0].pdcch_dmrs_scrambling_id     = params.cs1_pdcch_dmrs_scrambling_id;
+    auto& ss2                                          = pdcch_cfg.search_spaces[0];
+    if (params.ss2_type == ocudu::search_space_type::common) {
+      ss2.set_non_ss0_monitored_dci_formats(search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});
+    } else {
+      ss2.set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
+    }
+    return msg;
+  }
+  static cell_config_dedicated make_ue_base_req(const test_scrambling_params& params)
+  {
+    cell_config_dedicated ue_cell                  = sched_config_helper::create_test_initial_ue_spcell_cell_config();
+    auto&                 pdcch_cfg                = *ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg;
+    pdcch_cfg.coresets[0].pdcch_dmrs_scrambling_id = params.cs1_pdcch_dmrs_scrambling_id;
+    if (params.ss2_type == ocudu::search_space_type::common) {
+      pdcch_cfg.search_spaces[0].set_non_ss0_monitored_dci_formats(
+          search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});
+    } else {
+      pdcch_cfg.search_spaces[0].set_non_ss0_monitored_dci_formats(
+          search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
+    }
+    return ue_cell;
+  }
+
 protected:
-  ue_pdcch_resource_allocator_scrambling_tester() : params(GetParam()) {}
+  ue_pdcch_resource_allocator_scrambling_tester() :
+    base_pdcch_resource_allocator_tester(to_rnti(0x4601), make_cell_req(GetParam()), make_ue_base_req(GetParam())),
+    params(GetParam())
+  {
+  }
 
   sched_ue_creation_request_message
   create_ue_cfg(rnti_t                             rnti,
                 search_space_configuration::type_t ss2_type      = search_space_configuration::type_t::ue_dedicated,
                 std::optional<unsigned>            cs1_n_id_dmrs = {})
   {
-    auto ue_creation_req = base_pdcch_resource_allocator_tester::create_ue_cfg(rnti);
-    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets[0].pdcch_dmrs_scrambling_id =
-        cs1_n_id_dmrs;
-    if (ss2_type == ocudu::search_space_type::common) {
-      (*ue_creation_req.cfg.cells)[0]
-          .serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]
-          .set_non_ss0_monitored_dci_formats(search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});
-    } else {
-      (*ue_creation_req.cfg.cells)[0]
-          .serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]
-          .set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
-    }
-    return ue_creation_req;
+    return base_pdcch_resource_allocator_tester::create_ue_cfg(rnti);
   }
 
   test_scrambling_params params;
@@ -556,6 +580,9 @@ protected:
           sched_cell_configuration_request_message msg =
               sched_config_helper::make_default_sched_cell_configuration_request(
                   cell_config_builder_params{.channel_bw_mhz = tparams.cell_bw});
+          if (tparams.ss2_nof_candidates.has_value()) {
+            msg.dl_bwp_ded.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(*tparams.ss2_nof_candidates);
+          }
           return msg;
         }(),
         [tparams = GetParam()]() {

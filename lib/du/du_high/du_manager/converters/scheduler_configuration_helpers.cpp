@@ -78,10 +78,8 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.si_scheduling     = si_sched_cfg;
 
   // For now, only one BWP is supported.
-  sched_req.ded_bwps.resize(1);
   if (du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg.has_value()) {
-    sched_req.ded_bwps[0].coresets      = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets;
-    sched_req.ded_bwps[0].search_spaces = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces;
+    sched_req.dl_bwp_ded = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp;
   }
 
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(

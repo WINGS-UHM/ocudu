@@ -15,31 +15,6 @@
 
 using namespace ocudu;
 
-cell_bwp_configuration::cell_bwp_configuration(
-    const dl_config_common&                                         dl_cfg_cmn,
-    const sched_cell_configuration_request_message::ded_bwp_config& bwp_cfg) :
-  coresets(bwp_cfg.coresets), search_spaces(bwp_cfg.search_spaces)
-{
-  // Fill BWP CORESETs.
-  if (dl_cfg_cmn.init_dl_bwp.pdcch_common.coreset0.has_value()) {
-    coresets.push_back(*dl_cfg_cmn.init_dl_bwp.pdcch_common.coreset0);
-  }
-  if (dl_cfg_cmn.init_dl_bwp.pdcch_common.common_coreset.has_value()) {
-    coresets.push_back(*dl_cfg_cmn.init_dl_bwp.pdcch_common.common_coreset);
-  }
-  for (auto& cs : bwp_cfg.coresets) {
-    coresets.push_back(cs);
-  }
-
-  // Fill BWP SearchSpaces.
-  for (auto& ss : dl_cfg_cmn.init_dl_bwp.pdcch_common.search_spaces) {
-    search_spaces.push_back(ss);
-  }
-  for (auto& ss : bwp_cfg.search_spaces) {
-    search_spaces.push_back(ss);
-  }
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 cell_configuration::cell_configuration(const scheduler_expert_config&                  expert_cfg_,
@@ -64,6 +39,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   ul_carrier(msg.ul_carrier),
   coreset0(msg.coreset0),
   searchspace0(msg.searchspace0),
+  init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
   ded_pucch_resources(msg.ded_pucch_resources),
   zp_csi_rs_list(msg.zp_csi_rs_list),
   nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
@@ -79,10 +55,8 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   dl_harq_mode_b(msg.dl_harq_mode_b),
   ul_harq_mode_b(msg.ul_harq_mode_b)
 {
-  // Initiate cell BWP configs.
-  for (const sched_cell_configuration_request_message::ded_bwp_config& bwp : msg.ded_bwps) {
-    bwps.emplace_back(msg.dl_cfg_common, bwp);
-  }
+  // Initiate dedicated sched BWP configs.
+  ded_bwp_res.emplace(to_bwp_id(0), pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, &msg.dl_bwp_ded);
 
   if (tdd_cfg_common.has_value()) {
     // Cache list of DL and UL slots in case of TDD

@@ -10,25 +10,11 @@
 
 #pragma once
 
-#include "ocudu/adt/slotted_vector.h"
+#include "sched_bwp_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
 namespace ocudu {
-
-/// Holds the configuration of a BWP supported by this cell.
-class cell_bwp_configuration
-{
-public:
-  cell_bwp_configuration(const dl_config_common&                                         dl_cfg_cmn,
-                         const sched_cell_configuration_request_message::ded_bwp_config& bwp_cfg);
-
-  /// List of all CORESETs configured for this BWP.
-  std::vector<coreset_configuration> coresets;
-
-  /// List of all searchSpaces configured for this BWP.
-  std::vector<search_space_configuration> search_spaces;
-};
 
 /// Holds the configuration of a cell.
 /// Additionally, this class pre-caches the computation of some const values related to the cell configuration
@@ -62,8 +48,11 @@ public:
   const uint8_t           coreset0;
   const uint8_t           searchspace0;
 
-  /// List of BWP configs supported by this cell.
-  std::vector<cell_bwp_configuration> bwps;
+  /// BWP config resources used when UEs have no dedicated config.
+  sched_bwp_config init_bwp_res;
+
+  /// List of BWP config resources handled by this cell.
+  slotted_id_vector<bwp_id_t, sched_bwp_config> ded_bwp_res;
 
   /// List of dedicated PUCCH resources.
   std::vector<pucch_resource> ded_pucch_resources;

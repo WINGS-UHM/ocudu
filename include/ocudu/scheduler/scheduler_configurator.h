@@ -38,14 +38,6 @@ class scheduler_cell_metrics_notifier;
 /// Cell Configuration Request.
 /// \remark See O-RAN WG8, Section 9.2.3.2.1, Table 9.18.
 struct sched_cell_configuration_request_message {
-  /// Configuration of a given BWP served by this cell.
-  struct ded_bwp_config {
-    /// List of dedicated CORESETs configured for this BWP. UEs may use a subset of these.
-    std::vector<coreset_configuration> coresets;
-    /// List of dedicated SearchSpaces configured for this BWP. UEs may use a subset of these.
-    std::vector<search_space_configuration> search_spaces;
-  };
-
   struct metrics_config {
     scheduler_cell_metrics_notifier* notifier = nullptr;
     /// Maximum number of UE events per report.
@@ -80,8 +72,8 @@ struct sched_cell_configuration_request_message {
   /// Scheduling of SI messages.
   std::optional<si_scheduling_config> si_scheduling;
 
-  /// List of dedicated BWP configurations for this cell.
-  std::vector<ded_bwp_config> ded_bwps;
+  /// Dedicated DL BWP config that will be used by the UEs of this cell.
+  bwp_downlink_dedicated dl_bwp_ded;
 
   /// List of dedicated PUCCH resources.
   std::vector<pucch_resource> ded_pucch_resources;

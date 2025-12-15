@@ -19,6 +19,7 @@ target_link_libraries(sched_config ocudu_ran du_resource_manager)
 
 add_library(sched_config_manager OBJECT
         cell_configuration.cpp
+        sched_bwp_config.cpp
         ue_configuration.cpp
         sched_config_manager.cpp
         du_cell_group_config_pool.cpp

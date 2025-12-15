@@ -38,13 +38,13 @@ using crb_index_list = static_vector<uint16_t, pdcch_constants::MAX_NOF_RB_PDCCH
 /// \brief Grouping of common and UE-dedicated information associated with a given search space.
 struct search_space_info {
   const search_space_configuration*                 cfg     = nullptr;
-  const coreset_configuration*                      coreset = nullptr;
-  std::optional<vrb_to_prb::interleaved_mapping>    interleaved_mapping;
+  const sched_coreset_config*                       coreset = nullptr;
   bwp_config_ptr                                    bwp;
   crb_interval                                      dl_crb_lims;
   crb_interval                                      ul_crb_lims;
   span<const pdsch_time_domain_resource_allocation> pdsch_time_domain_list;
   span<const pusch_time_domain_resource_allocation> pusch_time_domain_list;
+  std::optional<vrb_to_prb::interleaved_mapping>    interleaved_mapping;
   dci_size_config                                   dci_sz_cfg;
   dci_sizes                                         dci_sz;
 
@@ -66,7 +66,8 @@ struct search_space_info {
   }
 
   /// \brief Retrieve all the CRBs for a given aggregation level and searchSpace candidate.
-  span<const crb_index_list> get_crb_list_of_pdcch_candidates(aggregation_level aggr_lvl, slot_point pdcch_slot) const
+  span<const crb_index_list_span> get_crb_list_of_pdcch_candidates(aggregation_level aggr_lvl,
+                                                                   slot_point        pdcch_slot) const
   {
     return crbs_of_candidates[pdcch_slot.to_uint() % crbs_of_candidates.size()][to_aggregation_level_index(aggr_lvl)];
   }
@@ -79,8 +80,7 @@ struct search_space_info {
   }
 
   /// \brief Assigns computed PDCCH candidates to a SearchSpace.
-  void update_pdcch_candidates(const std::vector<std::array<pdcch_candidate_list, NOF_AGGREGATION_LEVELS>>& candidates,
-                               pci_t                                                                        pci);
+  void update_pdcch_candidates(const std::vector<std::array<pdcch_candidate_list, NOF_AGGREGATION_LEVELS>>& candidates);
 
   void update_pdsch_time_domain_list(const ue_cell_configuration& ue_cell_cfg);
 
@@ -94,7 +94,7 @@ private:
   std::vector<std::array<pdcch_candidate_list, NOF_AGGREGATION_LEVELS>> ss_pdcch_candidates;
 
   // List of CRBs used by each PDCCH candidate.
-  std::vector<std::array<std::vector<crb_index_list>, NOF_AGGREGATION_LEVELS>> crbs_of_candidates;
+  std::vector<std::array<std::vector<crb_index_list_span>, NOF_AGGREGATION_LEVELS>> crbs_of_candidates;
 
   // Mapping of PDSCH time domain resources to lists of PDSCH Configs. Each index corresponds to a different PDSCH
   // time resource index, which points to a list whose indexes correspond to different numbers of DL layers.

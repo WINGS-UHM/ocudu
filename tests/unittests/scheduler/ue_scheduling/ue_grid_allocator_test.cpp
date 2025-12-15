@@ -31,20 +31,39 @@
 
 using namespace ocudu;
 
-class ue_grid_allocator_tester : public ::testing::TestWithParam<duplex_mode>
+struct test_params {
+  scheduler_expert_config sched_cfg;
+  std::variant<search_space_configuration::common_dci_format, search_space_configuration::ue_specific_dci_format>
+      ss2_dci_fmt = search_space_configuration::ue_specific_dci_format::f0_1_and_1_1;
+};
+
+class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
 {
+  static cell_config_builder_params make_cfg_builder(const test_params& params, duplex_mode duplx_mode)
+  {
+    cell_config_builder_params builder_params{};
+    builder_params.dl_f_ref_arfcn = duplx_mode == duplex_mode::FDD ? 530000 : 520002;
+    builder_params.scs_common = duplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
+    builder_params.band       = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
+    builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
+    return builder_params;
+  }
+
+  static sched_cell_configuration_request_message
+  make_cell_config_request(const cell_config_builder_params& builder_params, const test_params& params)
+  {
+    sched_cell_configuration_request_message req;
+    req = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
+    req.dl_bwp_ded.pdcch_cfg->search_spaces[0].set_non_ss0_monitored_dci_formats(params.ss2_dci_fmt);
+    return req;
+  }
+
 protected:
-  ue_grid_allocator_tester(
-      scheduler_expert_config sched_cfg_ = config_helpers::make_default_scheduler_expert_config()) :
-    sched_cfg(std::move(sched_cfg_)),
-    cell_cfg(*[this]() {
-      cfg_builder_params.dl_f_ref_arfcn = GetParam() == duplex_mode::FDD ? 530000 : 520002;
-      cfg_builder_params.scs_common =
-          GetParam() == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
-      cfg_builder_params.band           = band_helper::get_band_from_dl_arfcn(cfg_builder_params.dl_f_ref_arfcn);
-      cfg_builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
-      const auto* cfg =
-          cfg_mng.add_cell(sched_config_helper::make_default_sched_cell_configuration_request(cfg_builder_params));
+  ue_grid_allocator_test(const test_params& params) :
+    sched_cfg(params.sched_cfg),
+    cfg_builder_params(make_cfg_builder(params, GetParam())),
+    cell_cfg(*[this, &params]() {
+      const auto* cfg = cfg_mng.add_cell(make_cell_config_request(cfg_builder_params, params));
       ocudu_assert(cfg != nullptr, "Cell configuration failed");
       return cfg;
     }()),
@@ -126,6 +145,8 @@ protected:
     for (lcid_t lcid : lcids_to_activate) {
       ue_creation_req.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(lcid));
     }
+    // Set same dedicated PDCCH config.
+    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_res.dl_ded()->pdcch_cfg;
 
     return add_ue(ue_creation_req);
   }
@@ -133,6 +154,7 @@ protected:
   ue& add_ue(const sched_ue_creation_request_message& ue_creation_req)
   {
     auto ev = cfg_mng.add_ue(ue_creation_req);
+    report_fatal_error_if_not(ev.valid(), "UE creation failed");
     ues.add_ue(ev.next_config(), ue_creation_req.starts_in_fallback, std::nullopt);
     for (const auto& lc_cfg : *ue_creation_req.cfg.lc_config_list) {
       slice_ues.add_logical_channel(ues[ue_creation_req.ue_index], lc_cfg.lcid, lc_cfg.lc_group);
@@ -242,35 +264,53 @@ protected:
   vrb_bitmap used_dl_vrbs;
 };
 
-TEST_P(ue_grid_allocator_tester,
+class ue_grid_allocator_css_test : public ue_grid_allocator_test
+{
+protected:
+  ue_grid_allocator_css_test() :
+    ue_grid_allocator_test(test_params{config_helpers::make_default_scheduler_expert_config(),
+                                       search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true}})
+  {
+  }
+};
+
+TEST_P(ue_grid_allocator_css_test,
        when_ue_dedicated_ss_is_css_then_allocation_is_within_coreset_start_crb_and_coreset0_end_crb)
 {
   static const unsigned nof_bytes_to_schedule = 40U;
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
-  // Change SS type to common.
-  (*ue_creation_req.cfg.cells)[0]
-      .serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]
-      .set_non_ss0_monitored_dci_formats(search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});
+  ue_creation_req.cfg.cells->front().serv_cell_cfg.init_dl_bwp.pdcch_cfg =
+      cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
+  ue& u                    = add_ue(ue_creation_req);
 
-  ue& u = add_ue(ue_creation_req);
-
-  const crb_interval crbs =
-      get_coreset_crbs((*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg.value().coresets.back());
+  const auto&        cs1_cfg  = u.ue_cfg_dedicated()->pcell_cfg().coreset(to_coreset_id(1));
+  const crb_interval cs1_crbs = get_coreset_crbs(cs1_cfg);
   const crb_interval crb_lims = {
-      crbs.start(), crbs.start() + cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs().length()};
+      cs1_crbs.start(),
+      cs1_crbs.start() + cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs().length()};
 
   ASSERT_TRUE(run_until([&]() { allocate_dl_newtx_grant(slice_ues[u.ue_index], nof_bytes_to_schedule, false); },
                         [&]() { return find_ue_pdsch(u.crnti, res_grid[0].result.dl.ue_grants) != nullptr; }));
   const auto& prb_alloc = res_grid[0].result.dl.ue_grants.back().pdsch_cfg.rbs.type1().convert_to<prb_interval>();
-  const auto  crb_alloc = prb_to_crb(crbs, prb_alloc);
+  const auto  crb_alloc = prb_to_crb(cs1_crbs, prb_alloc);
   ASSERT_TRUE(crb_lims.contains(crb_alloc));
 }
 
-TEST_P(ue_grid_allocator_tester, when_using_non_fallback_dci_format_use_mcs_table_set_in_pdsch_cfg)
+class ue_grid_allocator_default_cfg_test : public ue_grid_allocator_test
+{
+protected:
+  ue_grid_allocator_default_cfg_test(
+      const scheduler_expert_config& sched_cfg_ = config_helpers::make_default_scheduler_expert_config()) :
+    ue_grid_allocator_test(test_params{sched_cfg_})
+  {
+  }
+};
+
+TEST_P(ue_grid_allocator_default_cfg_test, when_using_non_fallback_dci_format_use_mcs_table_set_in_pdsch_cfg)
 {
   static const unsigned nof_bytes_to_schedule = 40U;
 
@@ -290,7 +330,7 @@ TEST_P(ue_grid_allocator_tester, when_using_non_fallback_dci_format_use_mcs_tabl
             ocudu::pdsch_mcs_table::qam256);
 }
 
-TEST_P(ue_grid_allocator_tester, allocates_pdsch_restricted_to_recommended_max_nof_rbs)
+TEST_P(ue_grid_allocator_default_cfg_test, allocates_pdsch_restricted_to_recommended_max_nof_rbs)
 {
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -309,7 +349,7 @@ TEST_P(ue_grid_allocator_tester, allocates_pdsch_restricted_to_recommended_max_n
             max_nof_rbs_to_schedule);
 }
 
-TEST_P(ue_grid_allocator_tester, allocates_pusch_restricted_to_recommended_max_nof_rbs)
+TEST_P(ue_grid_allocator_default_cfg_test, allocates_pusch_restricted_to_recommended_max_nof_rbs)
 {
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -329,7 +369,7 @@ TEST_P(ue_grid_allocator_tester, allocates_pusch_restricted_to_recommended_max_n
   ASSERT_EQ(find_ue_pusch(u1.crnti, res_grid[0].result.ul)->pusch_cfg.rbs.type1().length(), max_nof_rbs_to_schedule);
 }
 
-TEST_P(ue_grid_allocator_tester, does_not_allocate_pusch_with_all_remaining_rbs_if_its_a_sr_indication)
+TEST_P(ue_grid_allocator_default_cfg_test, does_not_allocate_pusch_with_all_remaining_rbs_if_its_a_sr_indication)
 {
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -348,7 +388,7 @@ TEST_P(ue_grid_allocator_tester, does_not_allocate_pusch_with_all_remaining_rbs_
   ASSERT_LT(find_ue_pusch(u1.crnti, res_grid[0].result.ul)->pusch_cfg.rbs.type1().length(), cell_crbs.length());
 }
 
-TEST_P(ue_grid_allocator_tester, no_two_pdschs_are_allocated_in_same_slot_for_a_ue)
+TEST_P(ue_grid_allocator_default_cfg_test, no_two_pdschs_are_allocated_in_same_slot_for_a_ue)
 {
   static const unsigned nof_bytes_to_schedule = 400U;
 
@@ -368,7 +408,7 @@ TEST_P(ue_grid_allocator_tester, no_two_pdschs_are_allocated_in_same_slot_for_a_
   ASSERT_EQ(res_grid[0].result.dl.ue_grants.size(), 1);
 }
 
-TEST_P(ue_grid_allocator_tester, no_two_puschs_are_allocated_in_same_slot_for_a_ue)
+TEST_P(ue_grid_allocator_default_cfg_test, no_two_puschs_are_allocated_in_same_slot_for_a_ue)
 {
   static const unsigned nof_bytes_to_schedule = 400U;
 
@@ -388,7 +428,7 @@ TEST_P(ue_grid_allocator_tester, no_two_puschs_are_allocated_in_same_slot_for_a_
   ASSERT_EQ(res_grid[0].result.ul.puschs.size(), 1);
 }
 
-TEST_P(ue_grid_allocator_tester, consecutive_puschs_for_a_ue_are_allocated_in_increasing_order_of_time)
+TEST_P(ue_grid_allocator_default_cfg_test, consecutive_puschs_for_a_ue_are_allocated_in_increasing_order_of_time)
 {
   static const unsigned nof_bytes_to_schedule = 400U;
 
@@ -414,7 +454,7 @@ TEST_P(ue_grid_allocator_tester, consecutive_puschs_for_a_ue_are_allocated_in_in
       1));
 }
 
-TEST_P(ue_grid_allocator_tester, consecutive_pdschs_for_a_ue_are_allocated_in_increasing_order_of_time)
+TEST_P(ue_grid_allocator_default_cfg_test, consecutive_pdschs_for_a_ue_are_allocated_in_increasing_order_of_time)
 {
   static const unsigned nof_bytes_to_schedule = 400U;
 
@@ -434,7 +474,7 @@ TEST_P(ue_grid_allocator_tester, consecutive_pdschs_for_a_ue_are_allocated_in_in
   ASSERT_GE(current_slot, last_pdsch_slot);
 }
 
-TEST_P(ue_grid_allocator_tester,
+TEST_P(ue_grid_allocator_default_cfg_test,
        ack_slot_of_consecutive_pdschs_for_a_ue_must_be_greater_than_or_equal_to_last_ack_slot_allocated)
 {
   static const unsigned nof_bytes_to_schedule = 400U;
@@ -455,7 +495,8 @@ TEST_P(ue_grid_allocator_tester,
   ASSERT_GE(current_slot + find_ue_pdsch(u.crnti, res_grid[0].result.dl.ue_grants)->context.k1, last_pdsch_ack_slot);
 }
 
-TEST_P(ue_grid_allocator_tester, successfully_allocated_pdsch_even_with_large_gap_to_last_pdsch_slot_allocated)
+TEST_P(ue_grid_allocator_default_cfg_test,
+       successfully_allocated_pdsch_even_with_large_gap_to_last_pdsch_slot_allocated)
 {
   static const unsigned nof_bytes_to_schedule                       = 8U;
   const unsigned        nof_slot_until_pdsch_is_allocated_threshold = SCHEDULER_MAX_K0;
@@ -488,7 +529,7 @@ TEST_P(ue_grid_allocator_tester, successfully_allocated_pdsch_even_with_large_ga
                         nof_slot_until_pdsch_is_allocated_threshold));
 }
 
-TEST_P(ue_grid_allocator_tester, successfully_allocates_pdsch_with_gbr_lc_prioritized_over_non_gbr_lc)
+TEST_P(ue_grid_allocator_default_cfg_test, successfully_allocates_pdsch_with_gbr_lc_prioritized_over_non_gbr_lc)
 {
   const lcg_id_t lcg_id              = uint_to_lcg_id(2);
   const lcid_t   gbr_bearer_lcid     = uint_to_lcid(6);
@@ -546,7 +587,8 @@ TEST_P(ue_grid_allocator_tester, successfully_allocates_pdsch_with_gbr_lc_priori
   ASSERT_EQ(ue_pdsch->tb_list.back().lc_chs_to_sched.front().lcid, gbr_bearer_lcid);
 }
 
-TEST_P(ue_grid_allocator_tester, successfully_allocated_pusch_even_with_large_gap_to_last_pusch_slot_allocated)
+TEST_P(ue_grid_allocator_default_cfg_test,
+       successfully_allocated_pusch_even_with_large_gap_to_last_pusch_slot_allocated)
 {
   static const unsigned nof_bytes_to_schedule                       = 400U;
   const unsigned        nof_slot_until_pusch_is_allocated_threshold = SCHEDULER_MAX_K2;
@@ -580,11 +622,11 @@ TEST_P(ue_grid_allocator_tester, successfully_allocated_pusch_even_with_large_ga
       nof_slot_until_pusch_is_allocated_threshold));
 }
 
-class ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester : public ue_grid_allocator_tester
+class ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester : public ue_grid_allocator_default_cfg_test
 {
 public:
   ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester() :
-    ue_grid_allocator_tester(([]() {
+    ue_grid_allocator_default_cfg_test(([]() {
       scheduler_expert_config sched_cfg_ = config_helpers::make_default_scheduler_expert_config();
       sched_cfg_.ue.pdsch_nof_rbs        = {20, 40};
       sched_cfg_.ue.pusch_nof_rbs        = {20, 40};
@@ -682,11 +724,11 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
             std::min(expert_cfg.pdsch_nof_rbs.stop(), max_nof_rbs_to_schedule));
 }
 
-class ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester : public ue_grid_allocator_tester
+class ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester : public ue_grid_allocator_default_cfg_test
 {
 public:
   ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester() :
-    ue_grid_allocator_tester(([]() {
+    ue_grid_allocator_default_cfg_test(([]() {
       scheduler_expert_config sched_cfg_ = config_helpers::make_default_scheduler_expert_config();
       sched_cfg_.ue.pdsch_crb_limits     = {20, 40};
       sched_cfg_.ue.pusch_crb_limits     = {20, 40};
@@ -747,7 +789,11 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester, allocates_pusch_wit
 }
 
 INSTANTIATE_TEST_SUITE_P(ue_grid_allocator_test,
-                         ue_grid_allocator_tester,
+                         ue_grid_allocator_css_test,
+                         testing::Values(duplex_mode::FDD, duplex_mode::TDD));
+
+INSTANTIATE_TEST_SUITE_P(ue_grid_allocator_test,
+                         ue_grid_allocator_default_cfg_test,
                          testing::Values(duplex_mode::FDD, duplex_mode::TDD));
 
 INSTANTIATE_TEST_SUITE_P(ue_grid_allocator_test,

@@ -329,6 +329,7 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
                  "to CU container",
                  fmt::underlying(du_ue_id));
   }
+  req.rrc_container                    = msg->rrc_container.copy();
   ue_rrc_context_creation_outcome resp = du_processor_notifier.on_ue_rrc_context_creation_request(req);
 
   // Reject the UE if the creation was not successful.
@@ -350,17 +351,26 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
     return;
   }
 
-  // Create UE context and store it.
-  f1ap_ue_context& ue_ctxt = ue_ctxt_list.add_ue(resp->ue_index, cu_ue_f1ap_id);
-  ue_ctxt_list.add_du_ue_f1ap_id(cu_ue_f1ap_id, du_ue_id);
-  ue_ctxt_list.add_srb0_rrc_notifier(resp->ue_index, resp->f1ap_srb0_notifier);
-  ue_ctxt_list.add_srb1_rrc_notifier(resp->ue_index, resp->f1ap_srb1_notifier);
-  ue_ctxt_list.add_srb2_rrc_notifier(resp->ue_index, resp->f1ap_srb2_notifier);
+  if (ue_ctxt_list.contains(resp->ue_index)) {
+    // This is a resumed UE. Update the existing context with the new DU UE F1AP ID.
+    f1ap_ue_context& ue_ctxt = ue_ctxt_list[resp->ue_index];
+    ue_ctxt_list.add_du_ue_f1ap_id(ue_ctxt.ue_ids.cu_ue_f1ap_id, du_ue_id);
 
-  ue_ctxt.logger.log_info("Added UE context");
+    ue_ctxt.logger.log_info("Resumed UE context with new DU UE F1AP ID");
+  } else {
+    // Create UE context and store it.
+    f1ap_ue_context& ue_ctxt = ue_ctxt_list.add_ue(resp->ue_index, cu_ue_f1ap_id);
+    ue_ctxt_list.add_du_ue_f1ap_id(cu_ue_f1ap_id, du_ue_id);
+    ue_ctxt_list.add_srb0_rrc_notifier(resp->ue_index, resp->f1ap_srb0_notifier);
+    ue_ctxt_list.add_srb1_rrc_notifier(resp->ue_index, resp->f1ap_srb1_notifier);
+    ue_ctxt_list.add_srb2_rrc_notifier(resp->ue_index, resp->f1ap_srb2_notifier);
+
+    ue_ctxt.logger.log_info("Added UE context");
+  }
 
   // Forward RRC container.
-  f1c_ul_bearer_handler* bearer = ue_ctxt.get_ul_bearer_manager().get_srb(srb_id_t::srb0);
+  f1c_ul_bearer_handler* bearer = ue_ctxt_list[resp->ue_index].get_ul_bearer_manager().get_srb(srb_id_t::srb0);
+
   ocudu_assert(bearer, "SRB0 should be always active");
   bearer->handle_ul_rrc_message(msg->rrc_container.copy());
 }

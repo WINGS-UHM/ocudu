@@ -21,12 +21,10 @@
 #include "ocudu/f1ap/cu_cp/f1ap_nrppa_msg_handling.h"
 #include "ocudu/f1ap/cu_cp/f1ap_rrc_msg_transfer_handling.h"
 #include "ocudu/f1ap/f1ap_message_handler.h"
-#include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct f1ap_ue_context_release_command {
   ue_index_t              ue_index = ue_index_t::invalid;
@@ -85,6 +83,8 @@ struct ue_rrc_context_creation_request {
   nr_cell_global_id_t                    cgi;
   byte_buffer                            du_to_cu_rrc_container;
   std::optional<rrc_ue_transfer_context> prev_context;
+  // This is necessary to deterimine whether this is a RRC Resume request and to use the previous context accordingly.
+  byte_buffer rrc_container;
 };
 
 /// \brief Response by CU-CP to F1AP-CU request to create UE RRC context.
@@ -191,5 +191,4 @@ public:
   virtual f1ap_interface_management_handler& get_f1ap_interface_management_handler() = 0;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

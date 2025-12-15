@@ -10,6 +10,7 @@
 
 #include "ue_context_setup_procedure.h"
 #include "../f1ap_asn1_converters.h"
+#include "f1ap_asn1_utils.h"
 #include "ocudu/f1ap/f1ap_message.h"
 
 using namespace ocudu;
@@ -115,6 +116,15 @@ bool ue_context_setup_procedure::create_ue_rrc_context(const f1ap_ue_context_set
   }
 
   if (ue_ctxt_setup_resp.c_rnti.has_value()) {
+    // If this is a RRC Resume, the UE RRC context might already exist in the CU-CP.
+    if (ue_ctxt->get_ul_bearer_manager().get_srb(srb_id_t::srb0) != nullptr and
+        ue_ctxt->get_ul_bearer_manager().get_srb(srb_id_t::srb1) != nullptr and
+        ue_ctxt->get_ul_bearer_manager().get_srb(srb_id_t::srb2) != nullptr) {
+      logger.debug("ue={} RRC context already exists in CU-CP, skipping RRC context creation",
+                   ue_ctxt_setup_resp.ue_index);
+      return true;
+    }
+
     // An C-RNTI has been allocated by the DU. In such case, we need to create a new UE RRC context in the CU-CP.
 
     ue_rrc_context_creation_request req;
@@ -171,8 +181,11 @@ f1ap_ue_context_setup_response ue_context_setup_procedure::handle_procedure_resu
     const auto& asn1_resp = transaction_sink.response();
 
     // Update gNB DU F1AP ID in F1AP UE context.
-    ue_ctxt->ue_ids.du_ue_f1ap_id = int_to_gnb_du_ue_f1ap_id(asn1_resp->gnb_du_ue_f1ap_id);
-    logger.debug("{}: Updated UE gNB-DU-UE-ID", f1ap_ue_log_prefix{ue_ctxt->ue_ids, name()});
+    if (!ue_ctxt->ue_ids.du_ue_f1ap_id.has_value() or
+        ue_ctxt->ue_ids.du_ue_f1ap_id.value() != int_to_gnb_du_ue_f1ap_id(asn1_resp->gnb_du_ue_f1ap_id)) {
+      ue_ctxt->ue_ids.du_ue_f1ap_id = int_to_gnb_du_ue_f1ap_id(asn1_resp->gnb_du_ue_f1ap_id);
+      logger.debug("{}: Updated UE gNB-DU-UE-ID", f1ap_ue_log_prefix{ue_ctxt->ue_ids, name()});
+    }
 
     // Fill response to the UE context setup procedure.
     fill_f1ap_ue_context_setup_response(resp, request.ue_index, transaction_sink.response());

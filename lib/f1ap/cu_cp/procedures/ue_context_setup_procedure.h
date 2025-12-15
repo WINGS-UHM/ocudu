@@ -10,16 +10,13 @@
 
 #pragma once
 
-#include "../f1ap_cu_impl.h"
-#include "cu_cp/ue_context/f1ap_cu_ue_transaction_manager.h"
-#include "f1ap_asn1_utils.h"
+#include "cu_cp/ue_context/f1ap_cu_ue_context.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/f1ap/cu_cp/f1ap_configuration.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ue_context_setup_procedure
 {
@@ -62,5 +59,4 @@ private:
       transaction_sink;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

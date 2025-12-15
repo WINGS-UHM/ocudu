@@ -205,7 +205,7 @@ bool du_processor_impl::create_rrc_ue(cu_cp_ue&                              ue,
     return false;
   }
 
-  // Notify CU-CP about the creation of the RRC UE
+  // Notify CU-CP about the creation of the RRC UE.
   cu_cp_notifier.on_rrc_ue_created(ue.get_ue_index(), *rrc_ue);
 
   return true;
@@ -216,11 +216,11 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
 {
   ocudu_assert(req.c_rnti != rnti_t::INVALID_RNTI, "ue={} c-rnti={}: Invalid C-RNTI", req.ue_index, req.c_rnti);
 
-  // Check that creation message is valid
+  // Check that creation message is valid.
   const du_cell_configuration* pcell = cfg.du_cfg_hdlr->get_context().find_cell(req.cgi);
   if (pcell == nullptr) {
     logger.warning("ue={} c-rnti={}: Could not find cell with nci={}", req.ue_index, req.c_rnti, req.cgi.nci);
-    // Return the RRCReject container
+    // Return the RRCReject container.
     return make_unexpected(rrc->get_rrc_reject());
   }
   const pci_t pci = pcell->pci;
@@ -228,13 +228,36 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
   ue_index_t ue_index = req.ue_index;
   cu_cp_ue*  ue       = nullptr;
 
+  bool is_resume_request = false;
+
   if (ue_index == ue_index_t::invalid) {
-    // Add new CU-CP UE
-    ue_index = ue_mng.add_ue(cfg.du_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
-    if (ue_index == ue_index_t::invalid) {
-      logger.warning("CU-CP UE creation failed");
-      return make_unexpected(rrc->get_rrc_reject());
+    // Check if this is a RRC Resume request for an existing UE.
+    expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> resume_id =
+        rrc->get_rrc_resume_id(req.rrc_container.copy(), cfg.cu_cp_cfg.ue.nof_i_rnti_ue_bits);
+    if (resume_id.has_value()) {
+      is_resume_request = true;
+      if (std::holds_alternative<short_i_rnti_t>(resume_id.value())) {
+        ue_index = ue_mng.get_ue_index(std::get<short_i_rnti_t>(resume_id.value()));
+        logger.debug("ue={}: RRC Resume Request with {}", ue_index, std::get<short_i_rnti_t>(resume_id.value()));
+      } else {
+        ue_index = ue_mng.get_ue_index(std::get<full_i_rnti_t>(resume_id.value()));
+        logger.debug("ue={}: RRC Resume Request with {}", ue_index, std::get<full_i_rnti_t>(resume_id.value()));
+      }
+      if (ue_index == ue_index_t::invalid) {
+        logger.warning("Could not find UE for RRC Resume with {}", resume_id.value());
+        // Return the RRCReject container.
+        return make_unexpected(rrc->get_rrc_reject());
+      }
+      ue_mng.set_active(ue_index);
+    } else {
+      // Add new CU-CP UE
+      ue_index = ue_mng.add_ue(cfg.du_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
+      if (ue_index == ue_index_t::invalid) {
+        logger.warning("CU-CP UE creation failed");
+        return make_unexpected(rrc->get_rrc_reject());
+      }
     }
+
     ue = ue_mng.find_ue(ue_index);
 
     /// NOTE: From this point on the UE exists in the UE manager and must be removed if any error occurs.
@@ -248,22 +271,27 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
     }
   }
 
-  // Create RRC UE. If the DU-to-CU-RRC-Container is empty, the UE will be rejected.
-  if (not create_rrc_ue(*ue, req.c_rnti, req.cgi, req.du_to_cu_rrc_container.copy(), std::move(req.prev_context))) {
-    logger.warning("ue={}: Could not create RRC UE object", ue_index);
-    // Remove the UE from the UE manager
-    ue_mng.remove_ue(ue_index);
-    // Return the RRCReject container
-    return make_unexpected(rrc->get_rrc_reject());
+  // If this is not a RRCResume, create an RRC UE. If the DU-to-CU-RRC-Container is empty, the UE will be rejected.
+  if (not is_resume_request) {
+    if (not create_rrc_ue(*ue, req.c_rnti, req.cgi, req.du_to_cu_rrc_container.copy(), req.prev_context)) {
+      logger.warning("ue={}: Could not create RRC UE object", ue_index);
+      // Remove the UE from the UE manager
+      ue_mng.remove_ue(ue_index);
+      // Return the RRCReject container
+      return make_unexpected(rrc->get_rrc_reject());
+    }
+
+    rrc_ue_interface* rrc_ue         = rrc->find_ue(ue_index);
+    f1ap_rrc_dcch_adapters[ue_index] = {};
+    f1ap_rrc_ccch_adapters[ue_index] = {};
+    f1ap_rrc_ccch_adapters.at(ue_index).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
+    f1ap_rrc_dcch_adapters.at(ue_index).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
   }
-  rrc_ue_interface* rrc_ue         = rrc->find_ue(ue_index);
-  f1ap_rrc_dcch_adapters[ue_index] = {};
-  f1ap_rrc_ccch_adapters[ue_index] = {};
-  f1ap_rrc_ccch_adapters.at(ue_index).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
-  f1ap_rrc_dcch_adapters.at(ue_index).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
 
   // Signal back that the UE was successfully created.
-  logger.info("ue={} c-rnti={}: UE created", ue->get_ue_index(), req.c_rnti);
+  logger.info(
+      "ue={} c-rnti={}: UE created{}", ue->get_ue_index(), req.c_rnti, is_resume_request ? " (RRC Resume)" : "");
+
   return ue_rrc_context_creation_response{ue_index,
                                           &f1ap_rrc_ccch_adapters.at(ue_index),
                                           &f1ap_rrc_dcch_adapters.at(ue_index).get_srb1_notifier(),

@@ -116,7 +116,7 @@ void ocudu::ocucp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s& 
     asn1_reconfig_ies.radio_bearer_cfg_present = true;
     auto& asn1_radio_bearer_cfg                = asn1_reconfig_ies.radio_bearer_cfg;
 
-    auto& cu_cp_radio_bearer_cfg = rrc_reconf.radio_bearer_cfg.value();
+    const auto& cu_cp_radio_bearer_cfg = rrc_reconf.radio_bearer_cfg.value();
 
     // Fill SRB to add mod list.
     for (const auto& srb_to_add : cu_cp_radio_bearer_cfg.srb_to_add_mod_list) {
@@ -290,5 +290,46 @@ void ocudu::ocucp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s& 
     }
 
     // TODO: add further extensions
+  }
+}
+
+void ocudu::ocucp::fill_asn1_rrc_resume_msg(asn1::rrc_nr::rrc_resume_s&        asn1_rrc_resume,
+                                            uint8_t                            rrc_transaction_id,
+                                            const rrc_resume_request_response& rrc_resume)
+{
+  using namespace asn1::rrc_nr;
+
+  asn1_rrc_resume.rrc_transaction_id = rrc_transaction_id;
+
+  rrc_resume_ies_s& asn1_resume_ies = asn1_rrc_resume.crit_exts.set_rrc_resume();
+
+  // Fill radio bearer config.
+  if (rrc_resume.radio_bearer_cfg.has_value()) {
+    asn1_resume_ies.radio_bearer_cfg_present = true;
+    radio_bearer_config_to_asn1(rrc_resume.radio_bearer_cfg.value(), asn1_resume_ies.radio_bearer_cfg);
+  }
+
+  // Fill measurement config.
+  if (rrc_resume.meas_cfg.has_value()) {
+    asn1_resume_ies.meas_cfg_present = true;
+    asn1_resume_ies.meas_cfg         = meas_config_to_rrc_asn1(rrc_resume.meas_cfg.value());
+
+    // Fill measurement gap config.
+    if (!rrc_resume.meas_gap_cfg.empty()) {
+      asn1_resume_ies.meas_cfg.meas_gap_cfg_present = true;
+
+      // Unpack measurement gap config PDU.
+      asn1::rrc_nr::meas_gap_cfg_s asn1_meas_gap_cfg;
+      asn1::cbit_ref               bref(rrc_resume.meas_gap_cfg);
+
+      if (asn1_resume_ies.meas_cfg.meas_gap_cfg.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+        report_fatal_error("Couldn't unpack MeasGapConfig RRC container");
+      }
+    }
+  }
+
+  // Fill master cell group config.
+  if (!rrc_resume.master_cell_group.empty()) {
+    asn1_resume_ies.master_cell_group = rrc_resume.master_cell_group.copy();
   }
 }

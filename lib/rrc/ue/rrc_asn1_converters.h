@@ -123,4 +123,10 @@ asn1::rrc_nr::plmn_id_s plmn_to_asn1(const plmn_identity& plmn);
 asn1::rrc_nr::ran_notif_area_info_c
 ran_notification_area_info_to_asn1(const rrc_ran_notification_area_info_t& ran_notif_area_info);
 
+/// \brief Converts type \c rrc_radio_bearer_config to an RRC NR ASN.1 type.
+/// \param[in] radio_bearer_cfg radio bearer config object.
+/// \param[out] asn1_radio_bearer_cfg The RRC NR ASN.
+void radio_bearer_config_to_asn1(const rrc_radio_bearer_config&    radio_bearer_cfg,
+                                 asn1::rrc_nr::radio_bearer_cfg_s& asn1_radio_bearer_cfg);
+
 } // namespace ocudu::ocucp

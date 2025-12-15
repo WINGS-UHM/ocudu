@@ -399,3 +399,95 @@ ocudu::ocucp::ran_notification_area_info_to_asn1(const rrc_ran_notification_area
 
   return asn1_ran_notification_area_info;
 }
+
+void ocudu::ocucp::radio_bearer_config_to_asn1(const rrc_radio_bearer_config&    radio_bearer_cfg,
+                                               asn1::rrc_nr::radio_bearer_cfg_s& asn1_radio_bearer_cfg)
+{
+  // Fill SRB to add mod list.
+  for (const auto& srb_to_add : radio_bearer_cfg.srb_to_add_mod_list) {
+    ocudu_assert(srb_to_add.srb_id != srb_id_t::nulltype, "Invalid SRB ID");
+
+    asn1::rrc_nr::srb_to_add_mod_s asn1_srb_to_add;
+    asn1_srb_to_add.srb_id = srb_id_to_uint(srb_to_add.srb_id);
+
+    asn1_srb_to_add.reestablish_pdcp_present = srb_to_add.reestablish_pdcp_present;
+
+    asn1_srb_to_add.discard_on_pdcp_present = srb_to_add.discard_on_pdcp_present;
+
+    // Fill PDCP config.
+    if (srb_to_add.pdcp_cfg.has_value()) {
+      asn1_srb_to_add.pdcp_cfg_present = true;
+      asn1_srb_to_add.pdcp_cfg         = pdcp_config_to_rrc_nr_asn1(srb_to_add.pdcp_cfg.value());
+    }
+
+    asn1_radio_bearer_cfg.srb_to_add_mod_list.push_back(asn1_srb_to_add);
+  }
+
+  // Fill DRB to add mod list.
+  for (const auto& drb_to_add : radio_bearer_cfg.drb_to_add_mod_list) {
+    ocudu_assert(drb_to_add.drb_id != drb_id_t::invalid, "Invalid DRB ID");
+
+    asn1::rrc_nr::drb_to_add_mod_s asn1_drb_to_add;
+    asn1_drb_to_add.drb_id = drb_id_to_uint(drb_to_add.drb_id);
+
+    asn1_drb_to_add.reestablish_pdcp_present = drb_to_add.reestablish_pdcp_present;
+
+    // Fill PDCP config.
+    if (drb_to_add.pdcp_cfg.has_value()) {
+      asn1_drb_to_add.pdcp_cfg_present = true;
+      asn1_drb_to_add.pdcp_cfg         = pdcp_config_to_rrc_nr_asn1(drb_to_add.pdcp_cfg.value());
+    }
+
+    // Fill CN association and SDAP config.
+    if (drb_to_add.cn_assoc.has_value()) {
+      asn1_drb_to_add.cn_assoc_present = true;
+      if (drb_to_add.cn_assoc.value().sdap_cfg.has_value()) {
+        asn1_drb_to_add.cn_assoc.set_sdap_cfg();
+        asn1_drb_to_add.cn_assoc.sdap_cfg() = sdap_config_to_rrc_asn1(drb_to_add.cn_assoc.value().sdap_cfg.value());
+      } else {
+        asn1_drb_to_add.cn_assoc.set_eps_bearer_id();
+        asn1_drb_to_add.cn_assoc.eps_bearer_id() = drb_to_add.cn_assoc.value().eps_bearer_id.value();
+      }
+    }
+
+    asn1_radio_bearer_cfg.drb_to_add_mod_list.push_back(asn1_drb_to_add);
+  }
+
+  // Fill DRB to release list.
+  for (const auto& drb_to_release : radio_bearer_cfg.drb_to_release_list) {
+    ocudu_assert(drb_to_release != drb_id_t::invalid, "Invalid DRB ID");
+    asn1_radio_bearer_cfg.drb_to_release_list.push_back(drb_id_to_uint(drb_to_release));
+  }
+
+  // Fill security config.
+  if (radio_bearer_cfg.security_cfg.has_value()) {
+    asn1_radio_bearer_cfg.security_cfg_present = true;
+
+    const auto& security_cfg = radio_bearer_cfg.security_cfg.value();
+
+    // Fill security algorithm config.
+    if (security_cfg.security_algorithm_cfg.has_value()) {
+      asn1_radio_bearer_cfg.security_cfg.security_algorithm_cfg_present = true;
+
+      // Fill ciphering algorithm config.
+      asn1_radio_bearer_cfg.security_cfg.security_algorithm_cfg.ciphering_algorithm =
+          ciphering_algorithm_to_rrc_asn1(security_cfg.security_algorithm_cfg.value().ciphering_algorithm);
+
+      // Fill integrity prot algorithm config.
+      if (security_cfg.security_algorithm_cfg.value().integrity_prot_algorithm.has_value()) {
+        asn1_radio_bearer_cfg.security_cfg.security_algorithm_cfg.integrity_prot_algorithm_present = true;
+        asn1_radio_bearer_cfg.security_cfg.security_algorithm_cfg.integrity_prot_algorithm =
+            integrity_prot_algorithm_to_rrc_asn1(
+                security_cfg.security_algorithm_cfg.value().integrity_prot_algorithm.value());
+      }
+    }
+    // Fill key to use.
+    if (security_cfg.key_to_use.has_value()) {
+      asn1_radio_bearer_cfg.security_cfg.key_to_use_present = true;
+      asn1::string_to_enum(asn1_radio_bearer_cfg.security_cfg.key_to_use, security_cfg.key_to_use.value());
+    }
+  }
+
+  // Fill SRB3 to release present.
+  asn1_radio_bearer_cfg.srb3_to_release_present = radio_bearer_cfg.srb3_to_release_present;
+}

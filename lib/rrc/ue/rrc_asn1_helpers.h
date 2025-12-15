@@ -17,8 +17,7 @@
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
 #include "ocudu/rrc/rrc_types.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Fills ASN.1 RRC Setup struct.
 /// \param[out] rrc_setup The RRC Setup ASN.1 struct to fill.
@@ -50,5 +49,12 @@ void fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s&               
                                        uint8_t                                      rrc_transaction_id,
                                        const rrc_reconfiguration_procedure_request& rrc_reconf);
 
-} // namespace ocucp
-} // namespace ocudu
+/// \brief Fills ASN.1 RRC Resume struct.
+/// \param[out] asn1_rrc_resume The RRC Resume ASN.1 struct to fill.
+/// \param[in] rrc_transaction_id The RRC transaction id.
+/// \param[in] rrc_resume The common type struct.
+void fill_asn1_rrc_resume_msg(asn1::rrc_nr::rrc_resume_s&        asn1_rrc_resume,
+                              uint8_t                            rrc_transaction_id,
+                              const rrc_resume_request_response& rrc_resume);
+
+} // namespace ocudu::ocucp

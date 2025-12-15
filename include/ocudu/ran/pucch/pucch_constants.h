@@ -95,13 +95,16 @@ constexpr unsigned MAX_NOF_LLR = MAX_NOF_RE * 2;
 /// Information Element \e PUCCH-FormatConfig.
 constexpr float MAX_CODE_RATE = 0.80F;
 
-/// [Implementation-defined] Maximum number of PUCCH resources in a cell.
-constexpr size_t MAX_NOF_CELL_PUCCH_RESOURCES = 256;
-
 /// Maximum number of common PUCCH resources in a cell.
 /// \remark See TS 38.331, section 9.2.1, maximum value is given by the number of possible values of r_PUCCH, which
 /// is 16.
 constexpr size_t MAX_NOF_CELL_COMMON_PUCCH_RESOURCES = 16;
+
+/// [Implementation-defined] Maximum number of dedicated PUCCH resources in a cell.
+constexpr size_t MAX_NOF_CELL_DED_RESOURCES = 256;
+
+/// [Implementation-defined] Maximum number of total PUCCH resources in a cell (common + dedicated).
+constexpr size_t MAX_NOF_TOT_CELL_RESOURCES = MAX_NOF_CELL_COMMON_PUCCH_RESOURCES + MAX_NOF_CELL_DED_RESOURCES;
 
 /// Maximum supported UCI payload length in number of bits for PUCCH Formats 2, 3 and 4.
 constexpr unsigned FORMATS_2_3_4_MAX_UCI_NBITS = 1706;

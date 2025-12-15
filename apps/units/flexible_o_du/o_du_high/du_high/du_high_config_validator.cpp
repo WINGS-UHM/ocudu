@@ -484,9 +484,9 @@ static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&
   // (PUCCH Resource Set Id 0 with Format 0/1 and PUCCH Resource Set Id 1 with Format 2/3/4).
   if (pucch_cfg.res_set_size * 2U * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_sr_resources +
           pucch_cfg.nof_cell_csi_resources >
-      pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES) {
+      pucch_constants::MAX_NOF_CELL_DED_RESOURCES) {
     fmt::print("With the given PUCCH parameters, the number of PUCCH resources per cell exceeds the limit={}.\n",
-               pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES);
+               pucch_constants::MAX_NOF_CELL_DED_RESOURCES);
     return false;
   }
 

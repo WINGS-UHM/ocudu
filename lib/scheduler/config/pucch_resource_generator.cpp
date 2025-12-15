@@ -933,10 +933,10 @@ std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(
                                                       bwp_size_rbs,
                                                       f4_occ_len);
 
-  if (res_list.size() > pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES) {
+  if (res_list.size() > pucch_constants::MAX_NOF_CELL_DED_RESOURCES) {
     ocudu_assertion_failure("With the given parameters, the number of PUCCH resources generated for the "
                             "cell exceeds maximum supported limit of {}",
-                            pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES);
+                            pucch_constants::MAX_NOF_CELL_DED_RESOURCES);
     return {};
   }
 

@@ -42,8 +42,8 @@ static pucch_res_id_t get_csi_res_id(const ue_cell_configuration& ue_cell_cfg)
 pucch_resource_manager::pucch_resource_manager(const cell_configuration& cell_cfg_) :
   cell_cfg(cell_cfg_),
   collision_manager(cell_cfg_),
-  slots_ctx({static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES>(cell_cfg_.ded_pucch_resources.size(),
-                                                                                  rnti_t::INVALID_RNTI)})
+  slots_ctx({static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_DED_RESOURCES>(cell_cfg_.ded_pucch_resources.size(),
+                                                                                rnti_t::INVALID_RNTI)})
 {
 }
 

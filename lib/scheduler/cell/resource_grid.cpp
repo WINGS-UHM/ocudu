@@ -38,8 +38,8 @@ void carrier_subslot_resource_grid::fill(ofdm_symbol_range symbols, crb_interval
 
   // carrier bitmap RB bit=0 corresponds to CRB=carrier offset. Thus, we need to shift the CRB interval.
   crbs.displace_by(-static_cast<int>(offset()));
-  for (unsigned i = symbols.start(); i < symbols.stop(); ++i) {
-    slot_rbs.fill(crbs.start() + i * nof_rbs(), crbs.stop() + i * nof_rbs());
+  for (unsigned sym = symbols.start(), sym_stop = symbols.stop(); sym != sym_stop; ++sym) {
+    slot_rbs.fill(crbs.start() + sym * nof_rbs(), crbs.stop() + sym * nof_rbs());
   }
 }
 
@@ -48,11 +48,11 @@ void carrier_subslot_resource_grid::fill(ofdm_symbol_range symbols, span<const u
   ocudu_sanity_check(symbols.stop() <= NOF_OFDM_SYM_PER_SLOT_NORMAL_CP, "OFDM symbols out-of-bounds");
 
   // carrier bitmap RB bit=0 corresponds to CRB=carrier offset. Thus, we need to shift the CRB interval.
-  for (unsigned i = symbols.start(); i < symbols.stop(); ++i) {
+  for (unsigned sym = symbols.start(), sym_stop = symbols.stop(); sym != sym_stop; ++sym) {
     for (uint16_t crb : crb_list) {
       ocudu_sanity_check(rb_dims().contains(crb), "CRB interval out-of-bounds");
       crb -= offset();
-      slot_rbs.set(crb + i * nof_rbs());
+      slot_rbs.set(crb + sym * nof_rbs());
     }
   }
 }
@@ -62,10 +62,10 @@ void carrier_subslot_resource_grid::clear(ofdm_symbol_range symbols, crb_interva
   ocudu_sanity_check(rb_dims().contains(crbs), "CRB interval out-of-bounds");
   ocudu_sanity_check(symbols.stop() <= NOF_OFDM_SYM_PER_SLOT_NORMAL_CP, "OFDM symbols out-of-bounds");
 
-  // carrier bitmap RB bit=0 corresponds to CRB=carrier offset. Thus, we need to shift the CRB interval.
+  // Carrier bitmap RB bit=0 corresponds to CRB=carrier offset. Thus, we need to shift the CRB interval.
   crbs.displace_by(-static_cast<int>(offset()));
-  for (unsigned i = symbols.start(); i < symbols.stop(); ++i) {
-    slot_rbs.fill(crbs.start() + i * nof_rbs(), crbs.stop() + i * nof_rbs(), false);
+  for (unsigned sym = symbols.start(), sym_stop = symbols.stop(); sym != sym_stop; ++sym) {
+    slot_rbs.fill(crbs.start() + sym * nof_rbs(), crbs.stop() + sym * nof_rbs(), false);
   }
 }
 
@@ -92,11 +92,11 @@ bool carrier_subslot_resource_grid::collides(ofdm_symbol_range                  
 
   // carrier bitmap RB bit=0 corresponds to CRB=carrier offset. Thus, we need to shift the CRB interval.
   crbs.displace_by(-static_cast<int>(offset()));
-  for (unsigned i = symbols.start(); i < symbols.stop(); ++i) {
+  for (unsigned sym = symbols.start(), sym_stop = symbols.stop(); sym != sym_stop; ++sym) {
     if (ignore_rg != nullptr) {
       // Check RB by RB for collision, ignoring RBs set in ignore_rg.
-      for (unsigned rbi = crbs.start(); rbi < crbs.stop(); ++rbi) {
-        size_t pos = rbi + i * nof_rbs();
+      for (unsigned crb = crbs.start(), crb_stop = crbs.stop(); crb != crb_stop; ++crb) {
+        size_t pos = crb + sym * nof_rbs();
         if (slot_rbs.test(pos) and (not ignore_rg->slot_rbs.test(pos))) {
           return true;
         }
@@ -104,7 +104,7 @@ bool carrier_subslot_resource_grid::collides(ofdm_symbol_range                  
       continue;
     }
 
-    if (slot_rbs.any(crbs.start() + i * nof_rbs(), crbs.stop() + i * nof_rbs())) {
+    if (slot_rbs.any(crbs.start() + sym * nof_rbs(), crbs.stop() + sym * nof_rbs())) {
       return true;
     }
   }

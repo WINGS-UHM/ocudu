@@ -261,12 +261,12 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
       // For Format 0, we use a special cell resources ID to indicate that the resource does not exist in the cell
       // resource list, but only exists in the UE dedicated configuration.
       unsigned cell_res_id_special_res = std::numeric_limits<unsigned>::max();
-      VERIFY(res_idx.res_id.cell_res_id < pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES or
+      VERIFY(res_idx.res_id.cell_res_id < pucch_constants::MAX_NOF_CELL_DED_RESOURCES or
                  res_idx.res_id.cell_res_id == cell_res_id_special_res,
              "PUCCH cell res. id={} exceeds the maximum supported PUCCH resource ID",
              res_idx.res_id.cell_res_id);
     } else {
-      VERIFY(res_idx.res_id.cell_res_id < pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES,
+      VERIFY(res_idx.res_id.cell_res_id < pucch_constants::MAX_NOF_CELL_DED_RESOURCES,
              "PUCCH cell res. id={} exceeds the maximum supported PUCCH resource ID",
              res_idx.res_id.cell_res_id);
     }

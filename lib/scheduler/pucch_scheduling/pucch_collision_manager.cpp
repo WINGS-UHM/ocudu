@@ -21,15 +21,17 @@
 #include <algorithm>
 
 using namespace ocudu;
+using namespace ocudu::detail;
 
 /// Constructs resource_info for a common PUCCH resource.
-static detail::resource_info
+static resource_info
 make_common_resource_info(const pucch_default_resource& res, unsigned r_pucch, const bwp_configuration& bwp_cfg)
 {
   // Compute PRB_first_hop and PRB_second_hop as per Section 9.2.1, TS 38.213.
-  auto prbs = get_pucch_default_prb_index(r_pucch, res.rb_bwp_offset, res.cs_indexes.size(), bwp_cfg.crbs.length());
+  const auto prbs =
+      get_pucch_default_prb_index(r_pucch, res.rb_bwp_offset, res.cs_indexes.size(), bwp_cfg.crbs.length());
 
-  return detail::resource_info{
+  return resource_info{
       .format             = res.format,
       .multiplexing_index = res.cs_indexes[get_pucch_default_cyclic_shift(r_pucch, res.cs_indexes.size())],
       .grants             = {
@@ -45,9 +47,9 @@ make_common_resource_info(const pucch_default_resource& res, unsigned r_pucch, c
 }
 
 /// Constructs resource_info for a dedicated PUCCH resource.
-static detail::resource_info make_ded_resource_info(const pucch_resource& res, const bwp_configuration& bwp_cfg)
+static resource_info make_ded_resource_info(const pucch_resource& res, const bwp_configuration& bwp_cfg)
 {
-  detail::resource_info info{.format = res.format};
+  resource_info info{.format = res.format};
 
   // Compute multiplexing index.
   switch (res.format) {
@@ -105,7 +107,7 @@ static detail::resource_info make_ded_resource_info(const pucch_resource& res, c
 }
 
 /// Checks if two PUCCH resources collide.
-static bool do_resources_collide(const detail::resource_info& res1, const detail::resource_info& res2)
+static bool do_resources_collide(const resource_info& res1, const resource_info& res2)
 {
   if (not res1.grants.overlaps(res2.grants)) {
     // Resources that do not overlap in time and frequency do not collide.
@@ -127,30 +129,104 @@ static bool do_resources_collide(const detail::resource_info& res1, const detail
   return res1.multiplexing_index == res2.multiplexing_index;
 }
 
-namespace {
+namespace ocudu::detail {
 
-/// \brief Represents a multiplexing region of PUCCH resources.
-/// Contains parameters that all resources in the region have in common.
-struct mux_region {
-  /// Time-frequency grants of the region.
-  detail::pucch_grants grants;
-  /// PUCCH format of the region.
-  pucch_format format;
+cell_resource_list make_cell_resource_list(const cell_configuration& cell_cfg)
+{
+  const auto& init_ul_bwp_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
 
-  /// Check if a a given resource belongs to this multiplexing region.
-  bool does_resource_belong(const detail::resource_info& res) const
-  {
-    return res.format == format and res.grants == grants;
+  // Get PUCCH common resource config from Table 9.2.1-1, TS 38.213.
+  // N_bwp_size is equal to the Initial UL BWP size in PRBs, as per TS 38.213, Section 9.2.1.
+  const pucch_default_resource common_default_res = get_pucch_default_resource(
+      cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, init_ul_bwp_cfg.crbs.length());
+
+  // Collect all resources (common + dedicated).
+  cell_resource_list all_resources;
+  for (unsigned r_pucch = 0; r_pucch != pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES; ++r_pucch) {
+    all_resources.push_back(make_common_resource_info(common_default_res, r_pucch, init_ul_bwp_cfg));
   }
-};
+  for (const auto& res : cell_cfg.ded_pucch_resources) {
+    all_resources.push_back(make_ded_resource_info(res, init_ul_bwp_cfg));
+  }
 
-} // namespace
+  return all_resources;
+}
+
+collision_matrix make_collision_matrix(const cell_resource_list& resources)
+{
+  collision_matrix matrix(resources.size(),
+                          bounded_bitset<pucch_constants::MAX_NOF_TOT_CELL_RESOURCES>(resources.size()));
+
+  // Precompute the collision matrix.
+  for (size_t i = 0; i != resources.size(); ++i) {
+    // A resource always collides with itself.
+    matrix[i].set(i);
+
+    // Note: The collision matrix is symmetric.
+    for (size_t j = i + 1; j != resources.size(); ++j) {
+      if (do_resources_collide(resources[i], resources[j])) {
+        matrix[i].set(j);
+        matrix[j].set(i);
+      }
+    }
+  }
+
+  return matrix;
+}
+
+mux_regions_matrix make_mux_regions_matrix(const cell_resource_list& resources)
+{
+  // Helper structure to keep track of multiplexing regions and their members.
+  struct mux_region {
+    // Time-frequency grants of the region.
+    pucch_grants grants;
+    // PUCCH format of the region.
+    pucch_format format;
+    // Members of the region.
+    bounded_bitset<pucch_constants::MAX_NOF_TOT_CELL_RESOURCES> members;
+    // Check if a given resource belongs to this multiplexing region.
+    bool does_resource_belong(const resource_info& res) const { return res.format == format and res.grants == grants; }
+  };
+  static_vector<mux_region, pucch_constants::MAX_NOF_TOT_CELL_RESOURCES> tmp_regions;
+
+  for (size_t i = 0; i != resources.size(); ++i) {
+    const auto& res = resources[i];
+
+    // Find if the resource belongs to an existing multiplexing region.
+    auto* region_it = std::find_if(tmp_regions.begin(), tmp_regions.end(), [&res](const mux_region& region) {
+      return region.does_resource_belong(res);
+    });
+
+    if (region_it == tmp_regions.end()) {
+      // If the multiplexing region does not exist yet, create it.
+      region_it = &tmp_regions.emplace_back(mux_region{
+          res.grants, res.format, bounded_bitset<pucch_constants::MAX_NOF_TOT_CELL_RESOURCES>(resources.size())});
+    }
+
+    // Add the resource to the multiplexing region.
+    region_it->members.set(i);
+  }
+
+  mux_regions_matrix mux_regions;
+  for (const auto& record : tmp_regions) {
+    // Return only multiplexing regions with more than one resource.
+    if (record.members.count() < 2) {
+      continue;
+    }
+
+    mux_regions.push_back(record.members);
+  }
+  return mux_regions;
+}
+
+} // namespace ocudu::detail
 
 pucch_collision_manager::pucch_collision_manager(const cell_configuration& cell_cfg_) :
   cell_cfg(cell_cfg_),
-  resources(compute_resources(cell_cfg)),
-  collision_matrix(compute_collisions(resources)),
-  mux_matrix(compute_mux_regions(resources)),
+  resources(make_cell_resource_list(cell_cfg)),
+  col_matrix(make_collision_matrix(resources)),
+  mux_matrix(make_mux_regions_matrix(resources)),
+  mux_region_lookup(build_mux_region_lookup(mux_matrix)),
   slots_ctx({slot_context(cell_cfg)})
 {
 }
@@ -175,45 +251,57 @@ void pucch_collision_manager::stop()
   last_sl_ind = {};
 }
 
-pucch_collision_manager::res_idx_t pucch_collision_manager::get_common_idx(unsigned r_pucch)
+pucch_collision_manager::alloc_result_t
+pucch_collision_manager::alloc_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, r_pucch_t r_pucch)
 {
-  ocudu_assert(r_pucch < nof_common_res,
-               "Common PUCCH resource index {} exceeds the maximum allowed {}.",
-               r_pucch,
-               nof_common_res);
-  return res_idx_t(r_pucch);
+  return alloc(ul_res_grid, sl, r_pucch.value());
 }
 
-/// Get the internal index of the dedicated PUCCH resource inside the collision manager.
-pucch_collision_manager::res_idx_t pucch_collision_manager::get_ded_idx(unsigned cell_res_id) const
+pucch_collision_manager::alloc_result_t
+pucch_collision_manager::alloc_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id)
+{
+  return alloc(ul_res_grid, sl, get_ded_idx(cell_res_id));
+}
+
+bool pucch_collision_manager::free_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, r_pucch_t r_pucch)
+{
+  return free(ul_res_grid, sl, r_pucch.value());
+}
+
+bool pucch_collision_manager::free_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id)
+{
+  return free(ul_res_grid, sl, get_ded_idx(cell_res_id));
+}
+
+unsigned pucch_collision_manager::get_ded_idx(unsigned cell_res_id) const
 {
   ocudu_assert(cell_res_id < cell_cfg.ded_pucch_resources.size(),
                "Dedicated PUCCH resource index {} exceeds the maximum allowed {}.",
                cell_res_id,
                cell_cfg.ded_pucch_resources.size());
-  return res_idx_t(nof_common_res + cell_res_id);
+  return pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES + cell_res_id;
 }
 
-const bounded_bitset<pucch_collision_manager::max_nof_cell_resources>&
-pucch_collision_manager::get_collision_row(res_idx_t res_idx) const
+pucch_collision_manager::mux_region_lookup_t
+pucch_collision_manager::build_mux_region_lookup(const detail::mux_regions_matrix& mux_matrix)
 {
-  return collision_matrix[res_idx.value()];
-}
-
-const bounded_bitset<pucch_collision_manager::max_nof_cell_resources>*
-pucch_collision_manager::get_mux_row(res_idx_t res_idx) const
-{
-  for (const auto& region : mux_matrix) {
-    if (region.test(res_idx.value())) {
-      return &region;
+  mux_region_lookup_t lookup;
+  for (unsigned mux_region_idx = 0; mux_region_idx != mux_matrix.size(); ++mux_region_idx) {
+    const auto& region = mux_matrix[mux_region_idx];
+    for (unsigned res_idx = 0; res_idx != region.size(); ++res_idx) {
+      if (not region.test(res_idx)) {
+        continue;
+      }
+      ocudu_assert(not lookup.contains(res_idx), "PUCCH resource {} belongs to multiple multiplexing regions", res_idx);
+      lookup.emplace(res_idx, mux_region_idx);
     }
   }
 
-  return nullptr;
+  return lookup;
 }
 
 pucch_collision_manager::alloc_result_t
-pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point sl, res_idx_t res_idx)
+pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx)
 {
   ocudu_sanity_check(sl < last_sl_ind + cell_resource_allocator::RING_ALLOCATOR_SIZE,
                      "PUCCH resource ring-buffer accessed too far into the future");
@@ -221,7 +309,7 @@ pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point 
   auto& ctx = slots_ctx[sl.count()];
 
   // Check for PUCCH-to-other UL grant collisions using the resource grids.
-  const auto& res = resources[res_idx.value()];
+  const auto& res = resources[res_idx];
   if (ul_res_grid.collides(res.grants.first_hop, &ctx.pucch_res_grid)) {
     return make_unexpected(alloc_failure_reason::UL_GRANT_COLLISION);
   }
@@ -230,13 +318,13 @@ pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point 
   }
 
   // Check for PUCCH-to-PUCCH collisions using the collision matrix.
-  const auto& row = collision_matrix[res_idx.value()];
+  const auto& row = col_matrix[res_idx];
   if ((row & ctx.current_state).any()) {
     return make_unexpected(alloc_failure_reason::PUCCH_COLLISION);
   }
 
   // Allocate the resource.
-  ctx.current_state.set(res_idx.value());
+  ctx.current_state.set(res_idx);
 
   // Fill grants in ul_res_grid and ctx.pucch_res_grid.
   ul_res_grid.fill(res.grants.first_hop);
@@ -248,39 +336,29 @@ pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point 
   return default_success_t();
 }
 
-pucch_collision_manager::alloc_result_t
-pucch_collision_manager::alloc_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned r_pucch)
-{
-  return alloc(ul_res_grid, sl, get_common_idx(r_pucch));
-}
-
-pucch_collision_manager::alloc_result_t
-pucch_collision_manager::alloc_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id)
-{
-  return alloc(ul_res_grid, sl, get_ded_idx(cell_res_id));
-}
-
-bool pucch_collision_manager::free(cell_slot_resource_grid& ul_res_grid, slot_point sl, res_idx_t res_idx)
+bool pucch_collision_manager::free(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx)
 {
   ocudu_sanity_check(sl < last_sl_ind + cell_resource_allocator::RING_ALLOCATOR_SIZE,
                      "PUCCH resource ring-buffer accessed too far into the future");
 
   auto& ctx = slots_ctx[sl.count()];
-  if (not ctx.current_state.test(res_idx.value())) {
+  if (not ctx.current_state.test(res_idx)) {
     // Resource was not allocated.
     return false;
   }
-  ctx.current_state.reset(res_idx.value());
+  ctx.current_state.reset(res_idx);
 
   // Check if any other resource in the same multiplexing region is still allocated.
   // If not, clear the grants in ul_res_grid and ctx.pucch_res_grid.
-  const auto* mux_row = get_mux_row(res_idx);
-  if (mux_row != nullptr and (*mux_row & ctx.current_state).any()) {
-    return true;
+  if (mux_region_lookup.contains(res_idx)) {
+    const auto& mux_region = mux_matrix[mux_region_lookup[res_idx]];
+    if ((mux_region & ctx.current_state).any()) {
+      return true;
+    }
   }
 
   // Clear grants in ul_res_grid and ctx.pucch_res_grid.
-  const auto& res = resources[res_idx.value()];
+  const auto& res = resources[res_idx];
   ul_res_grid.clear(res.grants.first_hop);
   ctx.pucch_res_grid.clear(res.grants.first_hop);
   if (res.grants.second_hop.has_value()) {
@@ -288,100 +366,4 @@ bool pucch_collision_manager::free(cell_slot_resource_grid& ul_res_grid, slot_po
     ctx.pucch_res_grid.clear(*res.grants.second_hop);
   }
   return true;
-}
-
-bool pucch_collision_manager::free_common(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned r_pucch)
-{
-  return free(ul_res_grid, sl, get_common_idx(r_pucch));
-}
-
-bool pucch_collision_manager::free_ded(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned cell_res_id)
-{
-  return free(ul_res_grid, sl, get_ded_idx(cell_res_id));
-}
-
-pucch_collision_manager::cell_resources_t pucch_collision_manager::compute_resources(const cell_configuration& cell_cfg)
-{
-  const auto& init_ul_bwp_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
-
-  // Get PUCCH common resource config from Table 9.2.1-1, TS 38.213.
-  // N_bwp_size is equal to the Initial UL BWP size in PRBs, as per TS 38.213, Section 9.2.1.
-  const pucch_default_resource common_default_res = get_pucch_default_resource(
-      cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, init_ul_bwp_cfg.crbs.length());
-
-  // Collect all resources (common + dedicated).
-  cell_resources_t all_resources;
-  for (unsigned r_pucch = 0; r_pucch != nof_common_res; ++r_pucch) {
-    all_resources.push_back(make_common_resource_info(common_default_res, r_pucch, init_ul_bwp_cfg));
-  }
-  for (const auto& res : cell_cfg.ded_pucch_resources) {
-    all_resources.push_back(make_ded_resource_info(res, init_ul_bwp_cfg));
-  }
-
-  return all_resources;
-}
-
-pucch_collision_manager::collision_matrix_t
-pucch_collision_manager::compute_collisions(span<const detail::resource_info> resources)
-{
-  collision_matrix_t matrix(resources.size(), bounded_bitset<max_nof_cell_resources>(resources.size()));
-
-  // Precompute the collision matrix.
-  for (size_t i = 0; i != resources.size(); ++i) {
-    // A resource always collides with itself.
-    matrix[i].set(i);
-
-    // Note: The collision matrix is symmetric.
-    for (size_t j = i + 1; j != resources.size(); ++j) {
-      if (do_resources_collide(resources[i], resources[j])) {
-        matrix[i].set(j);
-        matrix[j].set(i);
-      }
-    }
-  }
-
-  return matrix;
-}
-
-pucch_collision_manager::mux_regions_matrix_t
-pucch_collision_manager::compute_mux_regions(span<const detail::resource_info> resources)
-{
-  // Helper structure to keep track of multiplexing regions and their members.
-  struct region_record {
-    mux_region                             region;
-    bounded_bitset<max_nof_cell_resources> members;
-  };
-  static_vector<region_record, max_nof_cell_resources> tmp_regions;
-
-  for (size_t i = 0; i != resources.size(); ++i) {
-    const auto& res = resources[i];
-
-    // Find if the resource belongs to an existing multiplexing region.
-    auto* region_it = std::find_if(tmp_regions.begin(), tmp_regions.end(), [&res](const region_record& record) {
-      return record.region.does_resource_belong(res);
-    });
-
-    if (region_it == tmp_regions.end()) {
-      // If the multiplexing region does not exist yet, create it.
-      region_it = &tmp_regions.emplace_back(region_record{mux_region{
-                                                              .grants = res.grants,
-                                                              .format = res.format,
-                                                          },
-                                                          bounded_bitset<max_nof_cell_resources>(resources.size())});
-    }
-
-    // Add the resource to the multiplexing region.
-    region_it->members.set(i);
-  }
-
-  mux_regions_matrix_t mux_regions;
-  for (const auto& record : tmp_regions) {
-    // Return only multiplexing regions with more than one resource.
-    if (record.members.count() < 2) {
-      continue;
-    }
-
-    mux_regions.push_back(record.members);
-  }
-  return mux_regions;
 }

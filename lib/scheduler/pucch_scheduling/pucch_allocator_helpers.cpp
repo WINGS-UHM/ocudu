@@ -38,30 +38,6 @@ unsigned ocudu::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, u
   return cell_pci;
 }
 
-std::pair<grant_info, std::optional<grant_info>>
-ocudu::pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp, const pucch_resource& pucch_res)
-{
-  unsigned nof_prbs = 1;
-  if (const auto* format_2_3 = std::get_if<pucch_format_2_3_cfg>(&pucch_res.format_params)) {
-    nof_prbs = format_2_3->nof_prbs;
-  }
-
-  if (pucch_res.second_hop_prb.has_value()) {
-    crb_interval first_hop_crbs = prb_to_crb(init_ul_bwp, {pucch_res.starting_prb, pucch_res.starting_prb + nof_prbs});
-    ofdm_symbol_range first_hop_symbols{pucch_res.starting_sym_idx,
-                                        pucch_res.starting_sym_idx + pucch_res.nof_symbols / 2};
-    crb_interval      second_hop_crbs =
-        prb_to_crb(init_ul_bwp, {pucch_res.second_hop_prb.value(), pucch_res.second_hop_prb.value() + nof_prbs});
-    ofdm_symbol_range second_hop_symbols{pucch_res.starting_sym_idx + pucch_res.nof_symbols / 2,
-                                         pucch_res.starting_sym_idx + pucch_res.nof_symbols};
-    return {grant_info{init_ul_bwp.scs, first_hop_symbols, first_hop_crbs},
-            grant_info{init_ul_bwp.scs, second_hop_symbols, second_hop_crbs}};
-  }
-  ofdm_symbol_range symbols{pucch_res.starting_sym_idx, pucch_res.starting_sym_idx + pucch_res.nof_symbols};
-  crb_interval      crbs = prb_to_crb(init_ul_bwp, {pucch_res.starting_prb, pucch_res.starting_prb + nof_prbs});
-  return {grant_info{init_ul_bwp.scs, symbols, crbs}, std::nullopt};
-}
-
 // Checks if a PUCCH PDU is for SR.
 static bool sr_id_match(const pucch_resource& pucch_res_cfg_lhs, const pucch_info& rhs)
 {

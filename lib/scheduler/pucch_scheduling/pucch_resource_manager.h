@@ -181,7 +181,7 @@ private:
   // used to keep track of which resources are available and which UE is using them. This information is preserved over
   // the slots.
   struct slot_context {
-    static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_PUCCH_RESOURCES> ues_using_pucch_res;
+    static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_DED_RESOURCES> ues_using_pucch_res;
 
     /// Find the index of the first PUCCH resource used by a given UE among a list of resources to check.
     std::optional<unsigned> find_res_used_by_ue(span<const pucch_res_id_t> res_to_check, rnti_t rnti) const

@@ -597,7 +597,7 @@ pucch_allocator_impl::alloc_pucch_common_res_harq(cell_slot_resource_allocator& 
       continue;
     }
 
-    // TODO: just return it from the collision manager, which already precomputes the grants.
+    // TODO: just return the grants from the collision manager, which already precomputes them.
     // Compute PRB_first_hop and PRB_second_hop as per Section 9.2.1, TS 38.213.
     auto prbs = get_pucch_default_prb_index(r_pucch, pucch_res.rb_bwp_offset, pucch_res.cs_indexes.size(), size_ul_bwp);
 
@@ -1848,20 +1848,24 @@ void pucch_allocator_impl::remove_unused_pucch_res(pucch_resource_manager::ue_re
 {
   // Remove the PUCCH resources by evaluating the difference between the previously allocated resources and the
   // current ones.
+
+  // When using Formats 0 and 2, the special resources SR_F0, SR_F2, CSI_F0 and CSI_F2 are used when multiplexing HARQ
+  // with SR/CSI. When reserving these resources through the pucch_resource_manager, we don't allocate them in the
+  // pucch_collision_manager. This is because:
+  // - SR_F2 and CSI_F0: these resources are not present in the cell PUCCH resource list, so they can't be managed by
+  // the pucch_collision_manager.
+  // - SR_F0 and CSI_F2: these resources point to the same cell resource as the SR and CSI resources, respectively, so
+  // they were already allocated in the collision manager when reserving the SR and CSI resources.
+  // Therefore, after multiplexing HARQ with SR/CSI in this case, we need to take care not to release the SR/CSI
+  // resources, or we will risk collisions of the PUCCHs with other UL grants.
   if (existing_pucchs.pucch_grants.csi_resource.has_value() and not grants_to_tx.csi_resource.has_value()) {
-    // If using Formats 0 and 2 and CSI and HARQ are multiplexed together, the HARQ resource chosen will always be
-    // CSI_F2. This resource is not managed by the collision manager.
-    // In this case, we should NOT release the CSI resource here, to prevent collisions with any other UL grant.
     // TODO: If using Formats 0 and 2 and HARQ+CSI+SR are all multiplexed together, we should release the CSI resource,
-    // since the UE will use SR_F0 or SR_F2.
+    // since the UE will use SR_F0 or SR_F2. However, this case is not yet supported.
     if (not(cell_cfg.is_pucch_f0_and_f2() and grants_to_tx.harq_resource.has_value())) {
       guard.release_csi_resource();
     }
   }
   if (existing_pucchs.pucch_grants.sr_resource.has_value() and not grants_to_tx.sr_resource.has_value()) {
-    // If using Formats 0 and 2 and SR and HARQ are multiplexed together, the HARQ resource chosen will be either SR_F0
-    // or SR_F2. These resources are not managed by the collision manager.
-    // In this case, we should NOT release the SR resource here, to prevent collisions with any other UL grant.
     if (not(cell_cfg.is_pucch_f0_and_f2() and grants_to_tx.harq_resource.has_value())) {
       guard.release_sr_resource();
     }

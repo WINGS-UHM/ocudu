@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "../cell/resource_grid.h"
 #include "../config/ue_configuration.h"
 #include "ocudu/scheduler/result/pucch_info.h"
 
@@ -19,10 +18,6 @@ namespace ocudu {
 
 /// Retrieves the correct N_{ID}^0 parameter for PUCCH scrambling from the UE configuration.
 unsigned get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, unsigned cell_pci);
-
-/// Converts a PUCCH resource configuration to grant_info structures for the first and second hop (if applicable).
-std::pair<grant_info, std::optional<grant_info>> pucch_resource_to_grant_info(const bwp_configuration& init_ul_bwp,
-                                                                              const pucch_resource&    pucch_res);
 
 /// Contains the existing PUCCH grants currently allocated to a given UE.
 class pucch_existing_pdus_handler

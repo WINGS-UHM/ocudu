@@ -15,7 +15,7 @@ stages:
   - ci
   - publish
 
-builder version increased:
+static version increased:
   stage: ci
   extends: .version increased
   rules:

@@ -10,12 +10,11 @@
 
 #pragma once
 
-#include "f1ap_ue_logger.h"
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/adt/slotted_array.h"
+#include "ocudu/ran/rb_id.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class f1ap_ul_ccch_notifier;
 class f1ap_ul_dcch_notifier;
@@ -44,14 +43,25 @@ public:
   void activate_srb2(f1ap_ul_dcch_notifier& f1ap_srb2_notifier);
 
   /// Returns a pointer to the SRB bearer handler, or nullptr if the SRB has not been activated.
-  f1c_ul_bearer_handler* get_srb(srb_id_t srb_id) { return f1c_ul_bearers[srb_id_to_uint(srb_id)].get(); }
+  f1c_ul_bearer_handler* get_srb(srb_id_t srb_id)
+  {
+    if (!f1c_ul_bearers.contains(srb_id_to_uint(srb_id))) {
+      return nullptr;
+    }
+    return f1c_ul_bearers[srb_id_to_uint(srb_id)].get();
+  }
 
   /// Returns a pointer to the SRB bearer handler, or nullptr if the SRB has not been activated.
-  const f1c_ul_bearer_handler* get_srb(srb_id_t srb_id) const { return f1c_ul_bearers[srb_id_to_uint(srb_id)].get(); }
+  const f1c_ul_bearer_handler* get_srb(srb_id_t srb_id) const
+  {
+    if (!f1c_ul_bearers.contains(srb_id_to_uint(srb_id))) {
+      return nullptr;
+    }
+    return f1c_ul_bearers[srb_id_to_uint(srb_id)].get();
+  }
 
 private:
   slotted_array<std::unique_ptr<f1c_ul_bearer_handler>, MAX_NOF_SRBS> f1c_ul_bearers;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

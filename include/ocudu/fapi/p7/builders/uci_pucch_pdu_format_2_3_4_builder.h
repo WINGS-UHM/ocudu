@@ -57,17 +57,13 @@ public:
   /// builder.
   /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
   /// 3 or Format 4 PDU.
-  uci_pucch_pdu_format_2_3_4_builder& set_metrics_parameters(std::optional<float>    ul_sinr_metric,
-                                                             std::optional<unsigned> timing_advance_offset,
-                                                             std::optional<int>      timing_advance_offset_ns,
-                                                             std::optional<float>    rssi,
-                                                             std::optional<float>    rsrp,
-                                                             bool                    rsrp_use_dBm = false)
+  uci_pucch_pdu_format_2_3_4_builder& set_metrics_parameters(std::optional<float>         ul_sinr_metric,
+                                                             std::optional<phy_time_unit> timing_advance_offset,
+                                                             std::optional<float>         rssi,
+                                                             std::optional<float>         rsrp,
+                                                             bool                         rsrp_use_dBm = false)
   {
-    pdu.timing_advance_offset    = (timing_advance_offset) ? static_cast<uint16_t>(timing_advance_offset.value())
-                                                           : std::numeric_limits<uint16_t>::max();
-    pdu.timing_advance_offset_ns = (timing_advance_offset_ns) ? static_cast<int16_t>(timing_advance_offset_ns.value())
-                                                              : std::numeric_limits<int16_t>::min();
+    pdu.timing_advance_offset = timing_advance_offset;
 
     // SINR.
     int sinr =

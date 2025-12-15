@@ -77,7 +77,7 @@ private:
     fapi::rach_indication_pdu_preamble& preamble = pdu.preambles.back();
     preamble.preamble_snr                        = (snr + 64) * 2;
     preamble.preamble_pwr                        = (power + 140) * 1000;
-    preamble.timing_advance_offset_ns            = time_advance_ns;
+    preamble.timing_advance_offset               = phy_time_unit::from_seconds(time_advance_ns * 1e-9);
 
     return fapi_msg;
   }

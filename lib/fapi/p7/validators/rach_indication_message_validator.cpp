@@ -117,8 +117,9 @@ error_type<validator_report> ocudu::fapi::validate_rach_indication(const rach_in
     // NOTE: AVG SNR property uses the whole range of the property, so it will not be validated.
     for (const auto& preamble : pdu.preambles) {
       success &= validate_preamble_index(preamble.preamble_index, report);
-      success &= validate_rach_timing_advance_offset(preamble.timing_advance_offset, report);
-      success &= validate_timing_advance_offset_ns(preamble.timing_advance_offset_ns, report);
+      if (preamble.timing_advance_offset) {
+        success &= validate_rach_timing_advance_offset(preamble.timing_advance_offset->to_seconds(), report);
+      }
       success &= validate_preamble_power(preamble.preamble_pwr, report);
       // NOTE: Preamble SNR property uses the whole range of the property, so it will not be validated.
     }

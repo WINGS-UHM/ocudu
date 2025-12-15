@@ -139,26 +139,15 @@ void fapi_to_mac_indications_fastpath_translator::on_crc_indication(const fapi::
   for (const auto& fapi_pdu : msg.pdus) {
     mac_crc_pdu& pdu = indication.crcs.emplace_back();
 
-    pdu.harq_id        = fapi_pdu.harq_id;
-    pdu.rnti           = fapi_pdu.rnti;
-    pdu.tb_crc_success = fapi_pdu.tb_crc_status_ok;
-    pdu.ul_sinr_dB     = convert_fapi_to_mac_ul_sinr(fapi_pdu.ul_sinr_metric);
-    pdu.ul_rsrp_dBFS   = convert_fapi_to_mac_rsrp(fapi_pdu.rsrp);
-    if (fapi_pdu.timing_advance_offset_ns != std::numeric_limits<decltype(fapi_pdu.timing_advance_offset_ns)>::min()) {
-      pdu.time_advance_offset = phy_time_unit::from_seconds(fapi_pdu.timing_advance_offset_ns * 1e-9);
-    }
+    pdu.harq_id             = fapi_pdu.harq_id;
+    pdu.rnti                = fapi_pdu.rnti;
+    pdu.tb_crc_success      = fapi_pdu.tb_crc_status_ok;
+    pdu.ul_sinr_dB          = convert_fapi_to_mac_ul_sinr(fapi_pdu.ul_sinr_metric);
+    pdu.ul_rsrp_dBFS        = convert_fapi_to_mac_rsrp(fapi_pdu.rsrp);
+    pdu.time_advance_offset = fapi_pdu.timing_advance_offset;
   }
 
   cell_control_handler->handle_crc(indication);
-}
-
-/// Converts the given FAPI Timing Advance Offset in nanoseconds to Physical layer time unit.
-static std::optional<phy_time_unit> convert_fapi_to_mac_ta_offset(int16_t fapi_ta_offset_ns)
-{
-  if (fapi_ta_offset_ns != std::numeric_limits<decltype(fapi_ta_offset_ns)>::min()) {
-    return phy_time_unit::from_seconds(static_cast<float>(fapi_ta_offset_ns) * 1e-9);
-  }
-  return std::nullopt;
 }
 
 /// Converts the given FAPI UCI RSSI to dB as per SCF-222 v4.0 section 3.4.9.
@@ -183,7 +172,7 @@ static void convert_fapi_to_mac_pucch_f0_f1_uci_ind(mac_uci_pdu::pucch_f0_or_f1_
   mac_pucch.ul_sinr_dB          = convert_fapi_to_mac_ul_sinr(fapi_pucch.ul_sinr_metric);
   mac_pucch.rssi_dBFS           = convert_fapi_to_mac_rssi(fapi_pucch.rssi);
   mac_pucch.rsrp_dBFS           = convert_fapi_to_mac_rsrp(fapi_pucch.rsrp);
-  mac_pucch.time_advance_offset = convert_fapi_to_mac_ta_offset(fapi_pucch.timing_advance_offset_ns);
+  mac_pucch.time_advance_offset = fapi_pucch.timing_advance_offset;
 
   // Fill SR.
   if (fapi_pucch.pdu_bitmap.test(fapi::uci_pucch_pdu_format_0_1::SR_BIT)) {
@@ -201,7 +190,7 @@ static void convert_fapi_to_mac_pusch_uci_ind(mac_uci_pdu::pusch_type& mac_pusch
   mac_pusch.ul_sinr_dB          = convert_fapi_to_mac_ul_sinr(fapi_pusch.ul_sinr_metric);
   mac_pusch.rssi_dBFS           = convert_fapi_to_mac_rssi(fapi_pusch.rssi);
   mac_pusch.rsrp_dBFS           = convert_fapi_to_mac_rsrp(fapi_pusch.rsrp);
-  mac_pusch.time_advance_offset = convert_fapi_to_mac_ta_offset(fapi_pusch.timing_advance_offset_ns);
+  mac_pusch.time_advance_offset = fapi_pusch.timing_advance_offset;
 
   // Fill HARQ.
   if (fapi_pusch.pdu_bitmap.test(fapi::uci_pusch_pdu::HARQ_BIT)) {
@@ -235,7 +224,7 @@ static void convert_fapi_to_mac_pucch_f2_f3_f4_uci_ind(mac_uci_pdu::pucch_f2_or_
   mac_pucch.ul_sinr_dB          = convert_fapi_to_mac_ul_sinr(fapi_pucch.ul_sinr_metric);
   mac_pucch.rssi_dBFS           = convert_fapi_to_mac_rssi(fapi_pucch.rssi);
   mac_pucch.rsrp_dBFS           = convert_fapi_to_mac_rsrp(fapi_pucch.rsrp);
-  mac_pucch.time_advance_offset = convert_fapi_to_mac_ta_offset(fapi_pucch.timing_advance_offset_ns);
+  mac_pucch.time_advance_offset = fapi_pucch.timing_advance_offset;
 
   // Fill SR.
   if (fapi_pucch.pdu_bitmap.test(fapi::uci_pucch_pdu_format_2_3_4::SR_BIT)) {
@@ -312,7 +301,7 @@ void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::
   for (const auto& pdu : msg.pdus) {
     mac_srs_pdu& mac_pdu        = mac_msg.srss.emplace_back();
     mac_pdu.rnti                = pdu.rnti;
-    mac_pdu.time_advance_offset = convert_fapi_to_mac_ta_offset(pdu.timing_advance_offset_ns);
+    mac_pdu.time_advance_offset = pdu.timing_advance_offset;
     switch (pdu.report_type) {
       case fapi::srs_report_type::normalized_channel_iq_matrix:
         mac_pdu.report = mac_srs_pdu::normalized_channel_iq_matrix{pdu.matrix};
@@ -371,10 +360,18 @@ void fapi_to_mac_indications_fastpath_translator::on_rach_indication(const fapi:
     occas.rssi_dBFS                           = convert_fapi_to_mac_rssi_dB(pdu.avg_rssi);
 
     for (const auto& preamble : pdu.preambles) {
+      if (!preamble.timing_advance_offset) {
+        ocudulog::fetch_basic_logger("FAPI").warning(
+            "RACH indication for slot {}: Empty timing advance for slot index {}, ignoring PDU",
+            msg.slot,
+            pdu.slot_index);
+        continue;
+      }
+
       mac_rach_indication::rach_preamble& mac_pream = occas.preambles.emplace_back();
       mac_pream.index                               = preamble.preamble_index;
-      mac_pream.time_advance = phy_time_unit::from_seconds(preamble.timing_advance_offset_ns * 1e-9);
-      mac_pream.pwr_dBFS     = convert_fapi_to_mac_preamble_power_dB(preamble.preamble_pwr);
+      mac_pream.pwr_dBFS                            = convert_fapi_to_mac_preamble_power_dB(preamble.preamble_pwr);
+      mac_pream.time_advance                        = preamble.timing_advance_offset.value();
     }
   }
 

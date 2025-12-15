@@ -119,8 +119,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
     }
 
     builder_pdu.add_preamble(preamble.preamble_index,
-                             {},
-                             TA_ns,
+                             preamble.time_advance,
                              std::clamp(convert_to_dBFS(preamble.preamble_power_dB, dBFS_calibration_value),
                                         MIN_PREAMBLE_POWER_VALUE,
                                         MAX_PREAMBLE_POWER_VALUE),
@@ -287,11 +286,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
   }
 
   // Extract timing advance.
-  std::optional<int>           timing_advance_offset_ns;
   std::optional<phy_time_unit> timing_advance = result.csi.get_time_alignment();
-  if (timing_advance.has_value()) {
-    timing_advance_offset_ns = static_cast<int>(timing_advance.value().to_seconds() * 1e9);
-  }
 
   // Extract the RSRP which is optional and clamp it if available.
   std::optional<float> rsrp = result.csi.get_rsrp_dB();
@@ -306,8 +301,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
                   to_harq_id(result.harq_id),
                   result.decoder_result.tb_crc_ok,
                   sinr_dB,
-                  {},
-                  timing_advance_offset_ns,
+                  timing_advance,
                   {},
                   rsrp,
                   false);
@@ -516,7 +510,7 @@ static void add_format_2_3_4_pucch_pdu(fapi::uci_indication_builder& builder, co
     timing_advance_offset_ns = static_cast<int>(timing_advance.value().to_seconds() * 1e9);
   }
 
-  builder_format234.set_metrics_parameters(sinr_dB, {}, timing_advance_offset_ns, {}, {});
+  builder_format234.set_metrics_parameters(sinr_dB, timing_advance, std::nullopt, std::nullopt);
 
   // Fill SR parameters.
   fill_format_2_3_4_sr(builder_format234, result.processor_result.message);
@@ -571,7 +565,8 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
     // Do not use the handle for now.
     static const unsigned            handle          = 0;
     fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(handle, context.rnti);
-    srs_pdu_builder.set_metrics_parameters({}, result.processor_result.time_alignment.time_alignment * 1e9);
+    srs_pdu_builder.set_metrics_parameters(
+        phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment));
     srs_pdu_builder.set_codebook_report_matrix(result.processor_result.channel_matrix);
   }
 
@@ -579,7 +574,8 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
     // Do not use the handle for now.
     static const unsigned            handle          = 0;
     fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(handle, context.rnti);
-    srs_pdu_builder.set_metrics_parameters({}, result.processor_result.time_alignment.time_alignment * 1e9);
+    srs_pdu_builder.set_metrics_parameters(
+        phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment));
 
     // Extract the RSRP which is optional and clamp it if available.
     std::optional<float> rsrp = result.processor_result.rsrp_dB;

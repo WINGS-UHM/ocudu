@@ -58,22 +58,17 @@ public:
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
   /// \note Units for timing advace offset parameter are specified in SCF-222 v4.0 section 3.4.11 in table
   /// RACH.indication message body, and this function expect this units.
-  rach_indication_pdu_builder& add_preamble(unsigned                preamble_index,
-                                            std::optional<unsigned> timing_advance_offset,
-                                            std::optional<uint32_t> timing_advance_offset_ns,
-                                            std::optional<float>    preamble_power,
-                                            std::optional<float>    preamble_snr)
+  rach_indication_pdu_builder& add_preamble(unsigned                     preamble_index,
+                                            std::optional<phy_time_unit> timing_advance_offset,
+                                            std::optional<float>         preamble_power,
+                                            std::optional<float>         preamble_snr)
 
   {
     auto& preamble = pdu.preambles.emplace_back();
 
     preamble.preamble_index = preamble_index;
 
-    preamble.timing_advance_offset =
-        (timing_advance_offset) ? timing_advance_offset.value() : std::numeric_limits<uint16_t>::max();
-
-    preamble.timing_advance_offset_ns =
-        (timing_advance_offset_ns) ? timing_advance_offset_ns.value() : std::numeric_limits<uint32_t>::max();
+    preamble.timing_advance_offset = timing_advance_offset;
 
     preamble.preamble_pwr = (preamble_power) ? static_cast<uint32_t>((preamble_power.value() + 140.F) * 1000.F)
                                              : std::numeric_limits<uint32_t>::max();

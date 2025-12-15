@@ -109,10 +109,9 @@ struct srs_positioning_report {
 
 /// SRS indication pdu.
 struct srs_indication_pdu {
-  uint32_t handle;
-  rnti_t   rnti;
-  uint16_t timing_advance_offset;
-  int16_t  timing_advance_offset_ns;
+  uint32_t                     handle;
+  rnti_t                       rnti;
+  std::optional<phy_time_unit> timing_advance_offset;
   /// \remark The enum doesn't contain the \c reserved value defined in the FAPI spec. This is because the value is
   /// currently not used anywhere.
   srs_usage              usage;

@@ -29,11 +29,10 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   rnti_t   rnti        = to_rnti(3);
   auto     pdu_builder = builder.add_srs_pdu(handle, rnti);
 
-  std::optional<unsigned> timing    = 0;
-  std::optional<int32_t>  timing_ns = 0;
-  srs_usage               usage     = srs_usage::codebook;
+  std::optional<phy_time_unit> timing = phy_time_unit::from_seconds(0);
+  srs_usage                    usage  = srs_usage::codebook;
 
-  pdu_builder.set_metrics_parameters(timing, timing_ns);
+  pdu_builder.set_metrics_parameters(timing);
 
   std::array<cf_t, 4> values = {0, 0, 0, 0};
   srs_channel_matrix  matrix(values, 2, 2);
@@ -46,8 +45,7 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   ASSERT_EQ(handle, pdu.handle);
   ASSERT_EQ(rnti, pdu.rnti);
 
-  ASSERT_EQ(timing ? timing.value() : std::numeric_limits<uint16_t>::max(), pdu.timing_advance_offset);
-  ASSERT_EQ(timing_ns ? timing_ns.value() : std::numeric_limits<uint32_t>::max(), pdu.timing_advance_offset_ns);
+  ASSERT_EQ(timing ? timing.value() : phy_time_unit(), pdu.timing_advance_offset);
   ASSERT_EQ(usage, pdu.usage);
   ASSERT_EQ(pdu.report_type, srs_report_type::normalized_channel_iq_matrix);
   ASSERT_EQ(matrix.get_nof_rx_ports(), pdu.matrix.get_nof_rx_ports());
@@ -69,10 +67,9 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
   rnti_t   rnti        = to_rnti(3);
   auto     pdu_builder = builder.add_srs_pdu(handle, rnti);
 
-  std::optional<unsigned> timing    = 0;
-  std::optional<int32_t>  timing_ns = 0;
+  std::optional<phy_time_unit> timing = phy_time_unit::from_seconds(0);
 
-  pdu_builder.set_metrics_parameters(timing, timing_ns);
+  pdu_builder.set_metrics_parameters(timing);
 
   std::optional<phy_time_unit> ul_relative_toa = phy_time_unit::from_units_of_Tc(28);
   std::optional<uint32_t>      gnb_rx_tx_difference;
@@ -88,8 +85,7 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
   ASSERT_EQ(handle, pdu.handle);
   ASSERT_EQ(rnti, pdu.rnti);
 
-  ASSERT_EQ(timing ? timing.value() : std::numeric_limits<uint16_t>::max(), pdu.timing_advance_offset);
-  ASSERT_EQ(timing_ns ? timing_ns.value() : std::numeric_limits<uint32_t>::max(), pdu.timing_advance_offset_ns);
+  ASSERT_EQ(timing ? timing.value() : phy_time_unit(), pdu.timing_advance_offset);
   ASSERT_EQ(pdu.report_type, srs_report_type::positioning);
 
   ASSERT_EQ(ul_relative_toa, pdu.positioning.ul_relative_toa);

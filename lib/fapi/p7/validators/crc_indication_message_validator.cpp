@@ -43,8 +43,6 @@ error_type<validator_report> ocudu::fapi::validate_crc_indication(const crc_indi
     success &= validate_harq_id(pdu.harq_id, message_type_id::crc_indication, report);
     // NOTE: CB CRC status bitmap property will not be validated.
     // NOTE: SINR property uses the whole variable range, so it will not be tested.
-    success &= validate_timing_advance_offset(pdu.timing_advance_offset, message_type_id::crc_indication, report);
-    success &= validate_timing_advance_offset_ns(pdu.timing_advance_offset_ns, message_type_id::crc_indication, report);
     success &= validate_rssi(pdu.rssi, report);
     success &= validate_rsrp(pdu.rsrp, report);
   }

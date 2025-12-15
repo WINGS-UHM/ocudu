@@ -12,20 +12,21 @@
 
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
+#include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
+#include <optional>
 
 namespace ocudu {
 namespace fapi {
 
 /// RACH indication pdu preamble.
 struct rach_indication_pdu_preamble {
-  uint8_t  preamble_index;
-  uint16_t timing_advance_offset;
-  uint32_t timing_advance_offset_ns;
-  uint32_t preamble_pwr;
-  uint8_t  preamble_snr;
+  uint8_t                      preamble_index;
+  std::optional<phy_time_unit> timing_advance_offset;
+  uint32_t                     preamble_pwr;
+  uint8_t                      preamble_snr;
 };
 
 /// RACH indication pdu.

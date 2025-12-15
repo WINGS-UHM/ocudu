@@ -13,24 +13,25 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/harq_id.h"
+#include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
+#include <optional>
 
 namespace ocudu {
 namespace fapi {
 
 /// Reception data indication PDU information.
 struct crc_ind_pdu {
-  uint32_t  handle;
-  rnti_t    rnti;
-  harq_id_t harq_id;
-  bool      tb_crc_status_ok;
-  int16_t   ul_sinr_metric;
-  uint16_t  timing_advance_offset;
-  int16_t   timing_advance_offset_ns;
-  uint16_t  rssi;
-  uint16_t  rsrp;
+  uint32_t                     handle;
+  rnti_t                       rnti;
+  harq_id_t                    harq_id;
+  bool                         tb_crc_status_ok;
+  int16_t                      ul_sinr_metric;
+  std::optional<phy_time_unit> timing_advance_offset;
+  uint16_t                     rssi;
+  uint16_t                     rsrp;
 };
 
 /// CRC indication message.

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/uci/uci_mapping.h"
 #include <bitset>
 
@@ -41,17 +42,16 @@ struct uci_pucch_pdu_format_0_1 {
 
   enum class format_type : uint8_t { format_0, format_1 };
 
-  std::bitset<BITMAP_SIZE> pdu_bitmap;
-  uint32_t                 handle;
-  uint16_t                 rnti;
-  format_type              pucch_format;
-  int16_t                  ul_sinr_metric;
-  uint16_t                 timing_advance_offset;
-  int16_t                  timing_advance_offset_ns;
-  uint16_t                 rssi;
-  uint16_t                 rsrp;
-  sr_pdu_format_0_1        sr;
-  uci_harq_format_0_1      harq;
+  std::bitset<BITMAP_SIZE>     pdu_bitmap;
+  uint32_t                     handle;
+  uint16_t                     rnti;
+  format_type                  pucch_format;
+  int16_t                      ul_sinr_metric;
+  std::optional<phy_time_unit> timing_advance_offset;
+  uint16_t                     rssi;
+  uint16_t                     rsrp;
+  sr_pdu_format_0_1            sr;
+  uci_harq_format_0_1          harq;
 };
 
 } // namespace fapi

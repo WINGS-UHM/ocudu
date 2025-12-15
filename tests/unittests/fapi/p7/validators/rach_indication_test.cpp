@@ -132,7 +132,8 @@ INSTANTIATE_TEST_SUITE_P(ta,
                          testing::Combine(testing::Values(pdu_field_data<rach_indication>{
                                               "Timing advance offset",
                                               [](rach_indication& msg, int value) {
-                                                msg.pdus.back().preambles.back().timing_advance_offset = value;
+                                                msg.pdus.back().preambles.back().timing_advance_offset =
+                                                    phy_time_unit::from_seconds(value);
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{1923, true},
@@ -141,20 +142,6 @@ INSTANTIATE_TEST_SUITE_P(ta,
                                                           test_case_data{std::numeric_limits<uint16_t>::max() - 1,
                                                                          false},
                                                           test_case_data{std::numeric_limits<uint16_t>::max(), true})));
-INSTANTIATE_TEST_SUITE_P(ta_ns,
-                         validate_rach_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rach_indication>{
-                                              "Timing advance offset in nanoseconds",
-                                              [](rach_indication& msg, int value) {
-                                                msg.pdus.back().preambles.back().timing_advance_offset_ns = value;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{1002000, true},
-                                                          test_case_data{2005000, true},
-                                                          test_case_data{2005001, false},
-                                                          test_case_data{std::numeric_limits<uint32_t>::max() - 1,
-                                                                         false},
-                                                          test_case_data{std::numeric_limits<uint32_t>::max(), true})));
 
 INSTANTIATE_TEST_SUITE_P(
     preamble_pwr,

@@ -59,6 +59,18 @@ static float to_crc_ul_rsrp(unsigned rsrp)
   return static_cast<float>(static_cast<int>(rsrp) - 1280) * 0.1F;
 }
 
+/// Appends the timing advance value to the given buffer if there is a timing advance.
+static void
+append_time_advance(fmt::memory_buffer& buffer, std::optional<phy_time_unit> timing_advance, subcarrier_spacing scs)
+{
+  if (!timing_advance) {
+    return;
+  }
+
+  fmt::format_to(
+      std::back_inserter(buffer), " ta={} ({:.1f}ns)", timing_advance->to_Ta(scs), timing_advance->to_seconds() * 1e9);
+}
+
 void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
@@ -70,9 +82,7 @@ void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_
                    pdu.rnti,
                    static_cast<uint8_t>(pdu.harq_id),
                    pdu.tb_crc_status_ok ? "OK" : "KO");
-    if (pdu.timing_advance_offset_ns != std::numeric_limits<decltype(pdu.timing_advance_offset_ns)>::min()) {
-      fmt::format_to(std::back_inserter(buffer), " ta_ns={}", pdu.timing_advance_offset_ns);
-    }
+    append_time_advance(buffer, pdu.timing_advance_offset, msg.slot.scs());
     if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
       fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_crc_ul_sinr(pdu.ul_sinr_metric));
     }
@@ -233,10 +243,7 @@ void ocudu::fapi::log_rach_indication(const rach_indication& msg, unsigned secto
     // Log the preambles.
     for (const auto& preamble : pdu.preambles) {
       fmt::format_to(std::back_inserter(buffer), "\n\t\t- PREAMBLE index={}", preamble.preamble_index);
-      if (preamble.timing_advance_offset_ns !=
-          std::numeric_limits<decltype(preamble.timing_advance_offset_ns)>::max()) {
-        fmt::format_to(std::back_inserter(buffer), " ta_ns={}", preamble.timing_advance_offset_ns);
-      }
+      append_time_advance(buffer, preamble.timing_advance_offset, msg.slot.scs());
       if (preamble.preamble_pwr != std::numeric_limits<decltype(preamble.preamble_pwr)>::max()) {
         fmt::format_to(std::back_inserter(buffer), " pwr={:.1f}", to_rach_preamble_power_dB(preamble.preamble_pwr));
       }
@@ -284,7 +291,8 @@ static float to_uci_ul_rsrp(unsigned rsrp)
   return static_cast<float>(static_cast<int>(rsrp) - 1280) * 0.1F;
 }
 
-static void log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, fmt::memory_buffer& buffer)
+static void
+log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, subcarrier_spacing scs, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
                  "\n\t- UCI PUCCH format 0/1 format={} rnti={}",
@@ -294,9 +302,7 @@ static void log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, fmt::me
   if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
     fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
   }
-  if (pdu.timing_advance_offset_ns != std::numeric_limits<decltype(pdu.timing_advance_offset_ns)>::min()) {
-    fmt::format_to(std::back_inserter(buffer), " ta_ns={}", pdu.timing_advance_offset_ns);
-  }
+  append_time_advance(buffer, pdu.timing_advance_offset, scs);
   if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
     fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_uci_ul_rsrp(pdu.rsrp));
   }
@@ -318,7 +324,8 @@ static void log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, fmt::me
   }
 }
 
-static void log_uci_pucch_f234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, fmt::memory_buffer& buffer)
+static void
+log_uci_pucch_f234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, subcarrier_spacing scs, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
                  "\n\t- UCI PUCCH format 2/3/4 format={} rnti={}",
@@ -328,9 +335,7 @@ static void log_uci_pucch_f234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, fmt::m
   if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
     fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
   }
-  if (pdu.timing_advance_offset_ns != std::numeric_limits<decltype(pdu.timing_advance_offset_ns)>::min()) {
-    fmt::format_to(std::back_inserter(buffer), " ta_ns={}", pdu.timing_advance_offset_ns);
-  }
+  append_time_advance(buffer, pdu.timing_advance_offset, scs);
   if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
     fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_uci_ul_rsrp(pdu.rsrp));
   }
@@ -352,16 +357,14 @@ static void log_uci_pucch_f234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, fmt::m
   }
 }
 
-static void log_uci_pusch_pdu(const uci_pusch_pdu& pdu, fmt::memory_buffer& buffer)
+static void log_uci_pusch_pdu(const uci_pusch_pdu& pdu, subcarrier_spacing scs, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer), "\n\t- UCI PUSCH rnti={}", pdu.rnti);
 
   if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
     fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
   }
-  if (pdu.timing_advance_offset_ns != std::numeric_limits<decltype(pdu.timing_advance_offset_ns)>::min()) {
-    fmt::format_to(std::back_inserter(buffer), " ta_ns={}", pdu.timing_advance_offset_ns);
-  }
+  append_time_advance(buffer, pdu.timing_advance_offset, scs);
   if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
     fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_uci_ul_rsrp(pdu.rsrp));
   }
@@ -388,13 +391,13 @@ void ocudu::fapi::log_uci_indication(const uci_indication& msg, unsigned sector_
   for (const auto& pdu : msg.pdus) {
     switch (pdu.pdu_type) {
       case fapi::uci_pdu_type::PUSCH:
-        log_uci_pusch_pdu(pdu.pusch_pdu, buffer);
+        log_uci_pusch_pdu(pdu.pusch_pdu, msg.slot.scs(), buffer);
         break;
       case fapi::uci_pdu_type::PUCCH_format_0_1:
-        log_uci_pucch_f0_f1_pdu(pdu.pucch_pdu_f01, buffer);
+        log_uci_pucch_f0_f1_pdu(pdu.pucch_pdu_f01, msg.slot.scs(), buffer);
         break;
       case fapi::uci_pdu_type::PUCCH_format_2_3_4:
-        log_uci_pucch_f234_pdu(pdu.pucch_pdu_f234, buffer);
+        log_uci_pucch_f234_pdu(pdu.pucch_pdu_f234, msg.slot.scs(), buffer);
         break;
     }
   }
@@ -409,9 +412,7 @@ void ocudu::fapi::log_srs_indication(const srs_indication& msg, unsigned sector_
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer), "\n\t-  rnti={}", pdu.rnti);
-    if (pdu.timing_advance_offset_ns != std::numeric_limits<decltype(pdu.timing_advance_offset_ns)>::min()) {
-      fmt::format_to(std::back_inserter(buffer), " ta_ns={}", pdu.timing_advance_offset_ns);
-    }
+    append_time_advance(buffer, pdu.timing_advance_offset, msg.slot.scs());
     fmt::format_to(std::back_inserter(buffer), " report_type={}", to_string(pdu.report_type));
     if (pdu.report_type == srs_report_type::positioning && pdu.positioning.ul_relative_toa) {
       fmt::format_to(std::back_inserter(buffer), " RTOA_s={}", pdu.positioning.ul_relative_toa.value().to_seconds());

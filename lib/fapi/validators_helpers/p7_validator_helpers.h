@@ -64,51 +64,6 @@ inline bool validate_harq_id(unsigned value, message_type_id msg_id, validator_r
   return validate_field(MIN_VALUE, MAX_VALUE, value, "HARQ ID", msg_id, report);
 }
 
-/// Validates the timing advance offset property of a CRC.indication or SRS.indication PDU, as per SCF-222 v4.0
-/// section 3.4.8 and 3.4.10.
-inline bool validate_timing_advance_offset(unsigned value, message_type_id msg_id, validator_report& report)
-{
-  static constexpr unsigned INVALID   = 65535;
-  static constexpr unsigned MIN_VALUE = 0;
-  static constexpr unsigned MAX_VALUE = 63;
-
-  if (value == INVALID) {
-    return true;
-  }
-
-  return validate_field(MIN_VALUE, MAX_VALUE, value, "Timing advance offset", msg_id, report);
-}
-
-/// Validates the timing advance offset in nanoseconds property of a CRC.indication or SRS.indication PDU, as per
-/// SCF-222 v4.0 section 3.4.8 and 3.4.10.
-inline bool validate_timing_advance_offset_ns(int value, message_type_id msg_id, validator_report& report)
-{
-  static constexpr int INVALID   = -32768;
-  static constexpr int MIN_VALUE = -16800;
-  static constexpr int MAX_VALUE = 16800;
-
-  if (value == INVALID) {
-    return true;
-  }
-
-  return validate_field(MIN_VALUE, MAX_VALUE, value, "Timing advance offset in nanoseconds", msg_id, report);
-}
-
-/// Validates the timing advance offset in nanoseconds property of the RACH.indication PDU, as per SCF-222 v4.0
-/// section 3.4.11 in table RACH.indication message body.
-inline bool validate_timing_advance_offset_ns(unsigned value, validator_report& report)
-{
-  static constexpr unsigned MIN_VALUE = 0;
-  static constexpr unsigned MAX_VALUE = 2005000;
-
-  if (value == std::numeric_limits<uint32_t>::max()) {
-    return true;
-  }
-
-  return validate_field(
-      MIN_VALUE, MAX_VALUE, value, "Timing advance offset in nanoseconds", message_type_id::rach_indication, report);
-}
-
 /// Validates the RSSI property of a CRC.indication PDU, as per SCF-222 v4.0 section 3.4.8.
 inline bool validate_rssi(unsigned value, validator_report& report)
 {

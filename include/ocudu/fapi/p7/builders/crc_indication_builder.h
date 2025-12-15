@@ -35,27 +35,23 @@ public:
 
   /// Adds a \e CRC.indication PDU to the message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
-  crc_indication_builder& add_pdu(uint32_t                handle,
-                                  rnti_t                  rnti,
-                                  harq_id_t               harq_id,
-                                  bool                    tb_crc_status_ok,
-                                  std::optional<float>    ul_sinr_dB,
-                                  std::optional<unsigned> timing_advance_offset,
-                                  std::optional<int>      timing_advance_offset_in_ns,
-                                  std::optional<float>    rssi_dB,
-                                  std::optional<float>    rsrp,
-                                  bool                    rsrp_use_dBm = false)
+  crc_indication_builder& add_pdu(uint32_t                     handle,
+                                  rnti_t                       rnti,
+                                  harq_id_t                    harq_id,
+                                  bool                         tb_crc_status_ok,
+                                  std::optional<float>         ul_sinr_dB,
+                                  std::optional<phy_time_unit> timing_advance_offset,
+                                  std::optional<float>         rssi_dB,
+                                  std::optional<float>         rsrp,
+                                  bool                         rsrp_use_dBm = false)
   {
     auto& pdu = msg.pdus.emplace_back();
 
-    pdu.handle           = handle;
-    pdu.rnti             = rnti;
-    pdu.harq_id          = harq_id;
-    pdu.tb_crc_status_ok = tb_crc_status_ok;
-    pdu.timing_advance_offset =
-        (timing_advance_offset) ? timing_advance_offset.value() : std::numeric_limits<uint16_t>::max();
-    pdu.timing_advance_offset_ns =
-        (timing_advance_offset_in_ns) ? timing_advance_offset_in_ns.value() : std::numeric_limits<int16_t>::min();
+    pdu.handle                = handle;
+    pdu.rnti                  = rnti;
+    pdu.harq_id               = harq_id;
+    pdu.tb_crc_status_ok      = tb_crc_status_ok;
+    pdu.timing_advance_offset = timing_advance_offset;
 
     unsigned rssi =
         (rssi_dB) ? static_cast<unsigned>((rssi_dB.value() + 128.F) * 10.F) : std::numeric_limits<uint16_t>::max();

@@ -34,12 +34,11 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
   builder.set_basic_parameters(slot);
   auto pdu_builder = builder.add_pdu(handle, symb_id, slot_id, ra_id_d, rssi, snr);
 
-  std::optional<unsigned> timing         = 0;
-  std::optional<uint32_t> timing_ns      = 0;
-  std::optional<float>    preamble_power = 0;
-  std::optional<float>    preamble_snr;
+  std::optional<phy_time_unit> timing         = phy_time_unit::from_seconds(0);
+  std::optional<float>         preamble_power = 0;
+  std::optional<float>         preamble_snr;
 
-  pdu_builder.add_preamble(index, timing, timing_ns, preamble_power, preamble_snr);
+  pdu_builder.add_preamble(index, timing, preamble_power, preamble_snr);
 
   ASSERT_EQ(slot, msg.slot);
   ASSERT_EQ(1, msg.pdus.size());
@@ -56,8 +55,7 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
 
   const auto& preamble = pdu.preambles.back();
   ASSERT_EQ(index, preamble.preamble_index);
-  ASSERT_EQ(timing ? timing.value() : std::numeric_limits<uint16_t>::max(), preamble.timing_advance_offset);
-  ASSERT_EQ(timing_ns ? timing_ns.value() : std::numeric_limits<uint32_t>::max(), preamble.timing_advance_offset_ns);
+  ASSERT_EQ(timing, preamble.timing_advance_offset);
   ASSERT_EQ(preamble_power ? static_cast<unsigned>((preamble_power.value() + 140.F) * 1000.F)
                            : std::numeric_limits<uint32_t>::max(),
             preamble.preamble_pwr);

@@ -108,8 +108,6 @@ error_type<validator_report> ocudu::fapi::validate_srs_indication(const srs_indi
   for (const auto& pdu : msg.pdus) {
     // NOTE: Handle property will not be validated.
     success &= validate_rnti(to_value(pdu.rnti), message_type_id::srs_indication, report);
-    success &= validate_timing_advance_offset(pdu.timing_advance_offset, message_type_id::srs_indication, report);
-    success &= validate_timing_advance_offset_ns(pdu.timing_advance_offset_ns, message_type_id::srs_indication, report);
     success &= validate_srs_usage(static_cast<unsigned>(pdu.usage), report);
     success &= validate_report_type(static_cast<unsigned>(pdu.report_type), report);
 

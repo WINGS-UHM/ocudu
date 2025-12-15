@@ -566,20 +566,12 @@ static int generate_ul_sinr_metric()
   return dist(gen);
 }
 
-static unsigned generate_timing_advance_offset()
+static phy_time_unit generate_timing_advance_offset()
 {
   std::uniform_int_distribution<unsigned> dist(0, 100);
   unsigned                                value = dist(gen);
 
-  return (value < 64U) ? value : 65535U;
-}
-
-static int generate_timing_advance_offset_in_ns()
-{
-  std::uniform_int_distribution<int> dist(-32768, 32767);
-  int                                value = dist(gen);
-
-  return (-16800 <= value && value <= 16800) ? value : -32768;
+  return phy_time_unit::from_seconds((value < 64U) ? value : 65535U);
 }
 
 static unsigned generate_rssi_or_rsrp()
@@ -633,13 +625,12 @@ uci_pusch_pdu unittest::build_valid_uci_pusch_pdu()
 {
   uci_pusch_pdu pdu;
 
-  pdu.handle                   = generate_handle();
-  pdu.rnti                     = to_value(generate_rnti());
-  pdu.ul_sinr_metric           = static_cast<int16_t>(generate_ul_sinr_metric());
-  pdu.timing_advance_offset    = generate_timing_advance_offset();
-  pdu.timing_advance_offset_ns = static_cast<int16_t>(generate_timing_advance_offset_in_ns());
-  pdu.rssi                     = generate_rssi_or_rsrp();
-  pdu.rsrp                     = generate_rssi_or_rsrp();
+  pdu.handle                = generate_handle();
+  pdu.rnti                  = to_value(generate_rnti());
+  pdu.ul_sinr_metric        = static_cast<int16_t>(generate_ul_sinr_metric());
+  pdu.timing_advance_offset = generate_timing_advance_offset();
+  pdu.rssi                  = generate_rssi_or_rsrp();
+  pdu.rsrp                  = generate_rssi_or_rsrp();
 
   // Enable HARQ, CSI Part 1 and CSI Part 2.
   pdu.pdu_bitmap = 14U;
@@ -683,13 +674,12 @@ uci_pucch_pdu_format_0_1 unittest::build_valid_uci_pucch_format01_pdu()
 {
   uci_pucch_pdu_format_0_1 pdu;
 
-  pdu.handle                   = generate_handle();
-  pdu.rnti                     = to_value(generate_rnti());
-  pdu.ul_sinr_metric           = static_cast<int16_t>(generate_ul_sinr_metric());
-  pdu.timing_advance_offset    = generate_timing_advance_offset();
-  pdu.timing_advance_offset_ns = static_cast<int16_t>(generate_timing_advance_offset_in_ns());
-  pdu.rssi                     = generate_rssi_or_rsrp();
-  pdu.rsrp                     = generate_rssi_or_rsrp();
+  pdu.handle                = generate_handle();
+  pdu.rnti                  = to_value(generate_rnti());
+  pdu.ul_sinr_metric        = static_cast<int16_t>(generate_ul_sinr_metric());
+  pdu.timing_advance_offset = generate_timing_advance_offset();
+  pdu.rssi                  = generate_rssi_or_rsrp();
+  pdu.rsrp                  = generate_rssi_or_rsrp();
 
   std::uniform_int_distribution<unsigned> dist(0, 1);
   pdu.pucch_format = static_cast<uci_pucch_pdu_format_0_1::format_type>(dist(gen));
@@ -717,13 +707,12 @@ uci_pucch_pdu_format_2_3_4 unittest::build_valid_uci_pucch_format234_pdu()
 {
   uci_pucch_pdu_format_2_3_4 pdu;
 
-  pdu.handle                   = generate_handle();
-  pdu.rnti                     = to_value(generate_rnti());
-  pdu.ul_sinr_metric           = static_cast<int16_t>(generate_ul_sinr_metric());
-  pdu.timing_advance_offset    = generate_timing_advance_offset();
-  pdu.timing_advance_offset_ns = static_cast<int16_t>(generate_timing_advance_offset_in_ns());
-  pdu.rssi                     = generate_rssi_or_rsrp();
-  pdu.rsrp                     = generate_rssi_or_rsrp();
+  pdu.handle                = generate_handle();
+  pdu.rnti                  = to_value(generate_rnti());
+  pdu.ul_sinr_metric        = static_cast<int16_t>(generate_ul_sinr_metric());
+  pdu.timing_advance_offset = generate_timing_advance_offset();
+  pdu.rssi                  = generate_rssi_or_rsrp();
+  pdu.rsrp                  = generate_rssi_or_rsrp();
 
   std::uniform_int_distribution<unsigned> dist(0, 2);
   pdu.pucch_format = static_cast<uci_pucch_pdu_format_2_3_4::format_type>(dist(gen));
@@ -1227,11 +1216,10 @@ rach_indication unittest::build_valid_rach_indication()
   pdu.preambles.emplace_back();
   rach_indication_pdu_preamble& preamble = pdu.preambles.back();
 
-  preamble.preamble_index           = generate_preamble_index();
-  preamble.timing_advance_offset    = std::numeric_limits<uint16_t>::max();
-  preamble.timing_advance_offset_ns = std::numeric_limits<uint32_t>::max();
-  preamble.preamble_pwr             = std::numeric_limits<uint32_t>::max();
-  preamble.preamble_snr             = std::numeric_limits<uint8_t>::max();
+  preamble.preamble_index        = generate_preamble_index();
+  preamble.timing_advance_offset = phy_time_unit();
+  preamble.preamble_pwr          = std::numeric_limits<uint32_t>::max();
+  preamble.preamble_snr          = std::numeric_limits<uint8_t>::max();
 
   return msg;
 }
@@ -1269,15 +1257,14 @@ ocudu::fapi::crc_indication unittest::build_valid_crc_indication()
 
   msg.slot = slot_point(subcarrier_spacing::kHz240, 238, 3);
   msg.pdus.emplace_back();
-  crc_ind_pdu& pdu             = msg.pdus.front();
-  pdu.rnti                     = to_rnti(34);
-  pdu.harq_id                  = to_harq_id(2);
-  pdu.tb_crc_status_ok         = true;
-  pdu.ul_sinr_metric           = 0;
-  pdu.timing_advance_offset    = 0;
-  pdu.timing_advance_offset_ns = 0;
-  pdu.rssi                     = 100;
-  pdu.rsrp                     = 10;
+  crc_ind_pdu& pdu          = msg.pdus.front();
+  pdu.rnti                  = to_rnti(34);
+  pdu.harq_id               = to_harq_id(2);
+  pdu.tb_crc_status_ok      = true;
+  pdu.ul_sinr_metric        = 0;
+  pdu.timing_advance_offset = phy_time_unit();
+  pdu.rssi                  = 100;
+  pdu.rsrp                  = 10;
 
   return msg;
 }
@@ -1310,7 +1297,6 @@ srs_indication unittest::build_valid_srs_indication()
   pdu.handle                            = generate_handle();
   pdu.rnti                              = generate_rnti();
   pdu.timing_advance_offset             = generate_timing_advance_offset();
-  pdu.timing_advance_offset_ns          = generate_timing_advance_offset_in_ns();
   pdu.usage                             = srs_usage::codebook;
   pdu.report_type                       = srs_report_type::normalized_channel_iq_matrix;
   pdu.positioning.coordinate_system_aoa = srs_coordinate_system_ul_aoa::local;

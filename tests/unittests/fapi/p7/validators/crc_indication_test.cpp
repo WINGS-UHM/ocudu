@@ -89,35 +89,6 @@ INSTANTIATE_TEST_SUITE_P(HARQ,
                                                           test_case_data{31, true},
                                                           test_case_data{32, false})));
 
-INSTANTIATE_TEST_SUITE_P(TA,
-                         validate_crc_message_field,
-                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
-                                              "Timing advance offset",
-                                              [](crc_indication& msg, int value) {
-                                                msg.pdus.front().timing_advance_offset = value;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{63, true},
-                                                          test_case_data{64, false},
-                                                          test_case_data{65534, false},
-                                                          test_case_data{65535, true})));
-
-INSTANTIATE_TEST_SUITE_P(TA_ns,
-                         validate_crc_message_field,
-                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
-                                              "Timing advance offset in nanoseconds",
-                                              [](crc_indication& msg, int value) {
-                                                msg.pdus.front().timing_advance_offset_ns = value;
-                                              }}),
-                                          testing::Values(test_case_data{static_cast<unsigned>(int16_t(-32768)), true},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-32767)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16801)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16800)), true},
-                                                          test_case_data{0, true},
-                                                          test_case_data{16800, true},
-                                                          test_case_data{16801, false})));
-
 INSTANTIATE_TEST_SUITE_P(RSSI,
                          validate_crc_message_field,
                          testing::Combine(testing::Values(pdu_field_data<crc_indication>{
@@ -157,15 +128,14 @@ TEST(validate_crc_indication, invalid_message_fails)
   crc_indication msg = build_valid_crc_indication();
 
   // Force 3 errors.
-  msg.slot                                  = slot_point(subcarrier_spacing::kHz240, 0, 100);
-  msg.pdus.front().rsrp                     = 10000;
-  msg.pdus.front().timing_advance_offset_ns = -30000;
+  msg.slot              = slot_point(subcarrier_spacing::kHz240, 0, 100);
+  msg.pdus.front().rsrp = 10000;
 
   const auto& result = validate_crc_indication(msg);
 
   ASSERT_FALSE(result);
   // Assert 3 reports were generated.
-  ASSERT_EQ(result.error().reports.size(), 2u);
+  ASSERT_EQ(result.error().reports.size(), 1u);
 }
 
 #ifdef ASSERTS_ENABLED

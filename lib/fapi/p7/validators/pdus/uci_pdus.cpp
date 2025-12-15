@@ -32,43 +32,6 @@ static bool validate_rnti(uci_pdu_type pdu_type, unsigned value, validator_repor
   return validate_field(MIN_VALUE, MAX_VALUE, value, "RNTI", msg_type, static_cast<unsigned>(pdu_type), report);
 }
 
-/// Validates the timing advance offset property of the UCI PUSCH PDU, UCI PUCCH format 0/1/2/3/4 PDU as per SCF-222
-/// v4.0 section 3.4.9.1 to 3.9.4.3.
-static bool validate_timing_advance_offset(uci_pdu_type pdu_type, unsigned value, validator_report& report)
-{
-  static constexpr unsigned MIN_VALUE = 0;
-  static constexpr unsigned MAX_VALUE = 63;
-  static constexpr unsigned INVALID   = std::numeric_limits<uint16_t>::max();
-
-  if (value == INVALID) {
-    return true;
-  }
-
-  return validate_field(
-      MIN_VALUE, MAX_VALUE, value, "Timing advance offset", msg_type, static_cast<unsigned>(pdu_type), report);
-}
-
-/// Validates the timing advance offset in nanoseconds property of the UCI PUSCH PDU, UCI PUCCH format 0/1/2/3/4 PDU as
-/// per SCF-222 v4.0 section 3.4.9.1 to 3.9.4.3.
-static bool validate_timing_advance_offset_in_ns(uci_pdu_type pdu_type, int value, validator_report& report)
-{
-  static constexpr int MIN_VALUE = -16800;
-  static constexpr int MAX_VALUE = 16800;
-  static constexpr int INVALID   = std::numeric_limits<int16_t>::min();
-
-  if (value == INVALID) {
-    return true;
-  }
-
-  return validate_field(MIN_VALUE,
-                        MAX_VALUE,
-                        value,
-                        "Timing advance offset in nanoseconds",
-                        msg_type,
-                        static_cast<unsigned>(pdu_type),
-                        report);
-}
-
 /// Validates the RSSI property of the UCI PUSCH PDU, UCI PUCCH format 0/1/2/3/4 PDU as per SCF-222 v4.0 section 3.4.9.1
 /// to 3.9.4.3.
 static bool validate_rssi(uci_pdu_type pdu_type, unsigned value, validator_report& report)
@@ -255,8 +218,6 @@ bool ocudu::fapi::validate_uci_pusch_pdu(const uci_pusch_pdu& pdu, validator_rep
   result &= validate_rnti(pdu_type, static_cast<unsigned>(pdu.rnti), report);
 
   // NOTE: UL SINR metric property uses the whole range of the variable, so it will not be validated.
-  result &= validate_timing_advance_offset(pdu_type, pdu.timing_advance_offset, report);
-  result &= validate_timing_advance_offset_in_ns(pdu_type, pdu.timing_advance_offset_ns, report);
   result &= validate_rssi(pdu_type, pdu.rssi, report);
   result &= validate_rsrp(pdu_type, pdu.rsrp, report);
 
@@ -391,8 +352,6 @@ bool ocudu::fapi::validate_uci_pucch_format01_pdu(const uci_pucch_pdu_format_0_1
   result &= validate_pucch_format01(static_cast<unsigned>(pdu.pucch_format), report);
 
   // NOTE: UL SINR metric property uses the whole range of the variable, so it will not be validated.
-  result &= validate_timing_advance_offset(pdu_type, pdu.timing_advance_offset, report);
-  result &= validate_timing_advance_offset_in_ns(pdu_type, pdu.timing_advance_offset_ns, report);
   result &= validate_rssi(pdu_type, pdu.rssi, report);
   result &= validate_rsrp(pdu_type, pdu.rsrp, report);
 
@@ -455,8 +414,6 @@ bool ocudu::fapi::validate_uci_pucch_format234_pdu(const uci_pucch_pdu_format_2_
   result &= validate_pucch_format234(static_cast<unsigned>(pdu.pucch_format), report);
 
   // NOTE: UL SINR metric property uses the whole range of the variable, so it will not be validated.
-  result &= validate_timing_advance_offset(pdu_type, pdu.timing_advance_offset, report);
-  result &= validate_timing_advance_offset_in_ns(pdu_type, pdu.timing_advance_offset_ns, report);
   result &= validate_rssi(pdu_type, pdu.rssi, report);
   result &= validate_rsrp(pdu_type, pdu.rsrp, report);
 

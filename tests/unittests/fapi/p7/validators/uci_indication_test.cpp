@@ -44,35 +44,6 @@ INSTANTIATE_TEST_SUITE_P(RNTI,
                                                           test_case_data{32767, true},
                                                           test_case_data{65535, true})));
 
-INSTANTIATE_TEST_SUITE_P(TA,
-                         validate_uci_pusch_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_pusch_pdu>{
-                                              "Timing advance offset",
-                                              [](uci_pusch_pdu& pdu, int value) {
-                                                pdu.timing_advance_offset = value;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{63, true},
-                                                          test_case_data{64, false},
-                                                          test_case_data{65534, false},
-                                                          test_case_data{65535, true})));
-
-INSTANTIATE_TEST_SUITE_P(TA_ns,
-                         validate_uci_pusch_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_pusch_pdu>{
-                                              "Timing advance offset in nanoseconds",
-                                              [](uci_pusch_pdu& pdu, int value) {
-                                                pdu.timing_advance_offset_ns = value;
-                                              }}),
-                                          testing::Values(test_case_data{static_cast<unsigned>(int16_t(-32768)), true},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-32767)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16801)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16800)), true},
-                                                          test_case_data{0, true},
-                                                          test_case_data{16800, true},
-                                                          test_case_data{16801, false})));
-
 INSTANTIATE_TEST_SUITE_P(RSSI,
                          validate_uci_pusch_pdu_field,
                          testing::Combine(testing::Values(pdu_field_data<uci_pusch_pdu>{
@@ -242,15 +213,14 @@ TEST(validate_uci_pusch_pdu_field, invalid_pdu_fails)
 {
   auto pdu = build_valid_uci_pusch_pdu();
 
-  // Add 4 errors.
-  pdu.timing_advance_offset_ns = std::numeric_limits<int16_t>::max();
-  pdu.rssi                     = -16801;
-  pdu.harq.detection_status    = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(6);
+  // Add 2 errors.
+  pdu.rssi                  = -16801;
+  pdu.harq.detection_status = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(6);
 
   validator_report report(slot_point{subcarrier_spacing::kHz30, 0, 0});
   ASSERT_FALSE(validate_uci_pusch_pdu(pdu, report));
   // Assert no reports were generated.
-  ASSERT_EQ(report.reports.size(), 3u);
+  ASSERT_EQ(report.reports.size(), 2u);
 }
 
 class validate_uci_pucch_format01_pdu_field
@@ -289,35 +259,6 @@ INSTANTIATE_TEST_SUITE_P(
                            pdu.pucch_format = static_cast<uci_pucch_pdu_format_0_1::format_type>(value);
                          }}),
                      testing::Values(test_case_data{0, true}, test_case_data{1, true}, test_case_data{2, false})));
-
-INSTANTIATE_TEST_SUITE_P(TA,
-                         validate_uci_pucch_format01_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_pucch_pdu_format_0_1>{
-                                              "Timing advance offset",
-                                              [](uci_pucch_pdu_format_0_1& pdu, int value) {
-                                                pdu.timing_advance_offset = value;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{63, true},
-                                                          test_case_data{64, false},
-                                                          test_case_data{65534, false},
-                                                          test_case_data{65535, true})));
-
-INSTANTIATE_TEST_SUITE_P(TA_ns,
-                         validate_uci_pucch_format01_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_pucch_pdu_format_0_1>{
-                                              "Timing advance offset in nanoseconds",
-                                              [](uci_pucch_pdu_format_0_1& pdu, int value) {
-                                                pdu.timing_advance_offset_ns = value;
-                                              }}),
-                                          testing::Values(test_case_data{static_cast<unsigned>(int16_t(-32768)), true},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-32767)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16801)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16800)), true},
-                                                          test_case_data{0, true},
-                                                          test_case_data{16800, true},
-                                                          test_case_data{16801, false})));
 
 INSTANTIATE_TEST_SUITE_P(RSSI,
                          validate_uci_pucch_format01_pdu_field,
@@ -465,35 +406,6 @@ INSTANTIATE_TEST_SUITE_P(Format,
                                                           test_case_data{2, true},
                                                           test_case_data{3, false})));
 
-INSTANTIATE_TEST_SUITE_P(TA,
-                         validate_uci_pucch_format234_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_pucch_pdu_format_2_3_4>{
-                                              "Timing advance offset",
-                                              [](uci_pucch_pdu_format_2_3_4& pdu, int value) {
-                                                pdu.timing_advance_offset = value;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{63, true},
-                                                          test_case_data{64, false},
-                                                          test_case_data{65534, false},
-                                                          test_case_data{65535, true})));
-
-INSTANTIATE_TEST_SUITE_P(TA_ns,
-                         validate_uci_pucch_format234_pdu_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_pucch_pdu_format_2_3_4>{
-                                              "Timing advance offset in nanoseconds",
-                                              [](uci_pucch_pdu_format_2_3_4& pdu, int value) {
-                                                pdu.timing_advance_offset_ns = value;
-                                              }}),
-                                          testing::Values(test_case_data{static_cast<unsigned>(int16_t(-32768)), true},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-32767)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16801)), false},
-                                                          test_case_data{static_cast<unsigned>(int16_t(-16800)), true},
-                                                          test_case_data{0, true},
-                                                          test_case_data{16800, true},
-                                                          test_case_data{16801, false})));
-
 INSTANTIATE_TEST_SUITE_P(RSSI,
                          validate_uci_pucch_format234_pdu_field,
                          testing::Combine(testing::Values(pdu_field_data<uci_pucch_pdu_format_2_3_4>{
@@ -628,8 +540,7 @@ TEST(validate_uci_pucch_format234_pdu, invalid_pdu_fails)
 {
   auto pdu = build_valid_uci_pucch_format234_pdu();
 
-  // Add 4 errors.
-  pdu.timing_advance_offset      = 64;
+  // Add 3 errors.
   pdu.rsrp                       = 1281;
   pdu.csi_part1.detection_status = static_cast<uci_pusch_or_pucch_f2_3_4_detection_status>(6);
   pdu.sr.sr_bitlen               = 1707;
@@ -637,7 +548,7 @@ TEST(validate_uci_pucch_format234_pdu, invalid_pdu_fails)
   validator_report report(ocudu::slot_point{ocudu::subcarrier_spacing::kHz30, 0, 0});
   ASSERT_FALSE(validate_uci_pucch_format234_pdu(pdu, report));
   // Assert no reports were generated.
-  ASSERT_EQ(report.reports.size(), 4u);
+  ASSERT_EQ(report.reports.size(), 3u);
 }
 
 class validate_uci_indication_field

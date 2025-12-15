@@ -11,10 +11,9 @@
 #pragma once
 
 #include "ocudu/pdcp/pdcp_t_reordering.h"
-#include "ocudu/rrc/rrc_types.h"
+#include "ocudu/rrc/meas_types.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// PDCP configuration for a SRB.
 struct srb_pdcp_config {
@@ -28,9 +27,9 @@ struct rrc_ue_cfg_t {
   srb_pdcp_config              srb1_pdcp_cfg;
   std::vector<rrc_meas_timing> meas_timings;
   bool                         force_reestablishment_fallback = false;
+  bool                         force_resume_fallback          = false;
   /// \brief Guard time used for RRC message exchange with UE.
   std::chrono::milliseconds rrc_procedure_guard_time_ms{500};
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

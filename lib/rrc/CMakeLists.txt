@@ -23,6 +23,7 @@ set(SOURCES
   ue/procedures/rrc_reconfiguration_procedure.cpp
   ue/procedures/rrc_ue_capability_transfer_procedure.cpp
   ue/procedures/rrc_reestablishment_procedure.cpp
+  ue/procedures/rrc_resume_procedure.cpp
 )
 
 add_library(ocudu_rrc STATIC ${SOURCES})

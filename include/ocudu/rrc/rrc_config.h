@@ -13,8 +13,8 @@
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/gnb_id.h"
 #include "ocudu/rrc/rrc_ue_config.h"
+#include "ocudu/security/security.h"
 #include <map>
-#include <memory>
 
 namespace ocudu {
 

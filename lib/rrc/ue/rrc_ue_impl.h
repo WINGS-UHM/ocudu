@@ -18,8 +18,7 @@
 #include "ocudu/rrc/rrc_cell_context.h"
 #include "ocudu/rrc/rrc_ue.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Main UE representation in RRC
 class rrc_ue_impl final : public rrc_ue_interface, public rrc_ue_controller
@@ -96,6 +95,7 @@ private:
   void handle_pdu(const srb_id_t srb_id, byte_buffer rrc_pdu);
   void handle_rrc_setup_request(const asn1::rrc_nr::rrc_setup_request_s& msg);
   void handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request_s& msg);
+  void handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg);
   void handle_ul_info_transfer(const asn1::rrc_nr::ul_info_transfer_ies_s& ul_info_transfer);
   void handle_rrc_transaction_complete(const asn1::rrc_nr::ul_dcch_msg_s& msg, uint8_t transaction_id_);
   void handle_security_mode_complete(const asn1::rrc_nr::security_mode_complete_s& msg);
@@ -131,5 +131,4 @@ private:
   const unsigned rrc_reject_max_wait_time_s = 16;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

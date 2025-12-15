@@ -10,6 +10,7 @@
 
 #include "procedures/rrc_reconfiguration_procedure.h"
 #include "procedures/rrc_reestablishment_procedure.h"
+#include "procedures/rrc_resume_procedure.h"
 #include "procedures/rrc_setup_procedure.h"
 #include "procedures/rrc_ue_capability_transfer_procedure.h"
 #include "rrc_asn1_helpers.h"
@@ -52,6 +53,9 @@ void rrc_ue_impl::handle_ul_ccch_pdu(byte_buffer pdu)
       break;
     case ul_ccch_msg_type_c::c1_c_::types_opts::rrc_reest_request:
       handle_rrc_reest_request(ul_ccch_msg.msg.c1().rrc_reest_request());
+      break;
+    case ul_ccch_msg_type_c::c1_c_::types_opts::rrc_resume_request:
+      handle_rrc_resume_request(ul_ccch_msg.msg.c1().rrc_resume_request());
       break;
     default:
       logger.log_error("Unsupported CCCH UL message type");
@@ -150,9 +154,37 @@ void rrc_ue_impl::handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request
                                                   logger));
 }
 
+void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg)
+{
+  // If the DU to CU container is missing, assume the DU can't serve the UE, so the CU-CP should reject the UE, see
+  // TS 38.473 section 8.4.1.2.
+  if (du_to_cu_container.empty()) {
+    // Reject and release the UE.
+    logger.log_debug("Sending rrcReject. Cause: DU is not able to serve the UE");
+    on_ue_release_required(ngap_cause_radio_network_t::unspecified);
+    return;
+  }
+
+  // Launch RRC resume procedure.
+  cu_cp_ue_notifier.schedule_async_task(launch_async<rrc_resume_procedure>(msg,
+                                                                           context,
+                                                                           du_to_cu_container,
+                                                                           *this,
+                                                                           *this,
+                                                                           get_rrc_ue_control_message_handler(),
+                                                                           cu_cp_notifier,
+                                                                           cu_cp_ue_notifier,
+                                                                           metrics_notifier,
+                                                                           ngap_notifier,
+                                                                           *event_mng,
+                                                                           logger));
+}
+
 void rrc_ue_impl::stop()
 {
-  event_mng->transactions.stop();
+  if (event_mng != nullptr) {
+    event_mng->transactions.stop();
+  }
 }
 
 void rrc_ue_impl::handle_pdu(const srb_id_t srb_id, byte_buffer rrc_pdu)
@@ -196,6 +228,9 @@ void rrc_ue_impl::handle_pdu(const srb_id_t srb_id, byte_buffer rrc_pdu)
       break;
     case ul_dcch_msg_type_c::c1_c_::types_opts::rrc_reest_complete:
       handle_rrc_transaction_complete(ul_dcch_msg, ul_dcch_msg.msg.c1().rrc_reest_complete().rrc_transaction_id);
+      break;
+    case ul_dcch_msg_type_c::c1_c_::types_opts::rrc_resume_complete:
+      handle_rrc_transaction_complete(ul_dcch_msg, ul_dcch_msg.msg.c1().rrc_resume_complete().rrc_transaction_id);
       break;
     case ul_dcch_msg_type_c::c1_c_::types_opts::meas_report:
       handle_measurement_report(ul_dcch_msg.msg.c1().meas_report());

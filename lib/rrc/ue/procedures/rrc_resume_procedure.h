@@ -1,0 +1,86 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "../rrc_ue_context.h"
+#include "../rrc_ue_logger.h"
+#include "rrc_ue_event_manager.h"
+#include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/eager_async_task.h"
+#include <chrono>
+
+namespace ocudu::ocucp {
+
+class rrc_resume_procedure
+{
+public:
+  rrc_resume_procedure(const asn1::rrc_nr::rrc_resume_request_s& request_,
+                       rrc_ue_context_t&                         context_,
+                       const byte_buffer&                        du_to_cu_container_,
+                       rrc_ue_setup_proc_notifier&               rrc_ue_setup_notifier_,
+                       rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier_,
+                       rrc_ue_control_message_handler&           srb_notifier_,
+                       rrc_ue_context_update_notifier&           cu_cp_notifier_,
+                       rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier_,
+                       rrc_ue_event_notifier&                    metrics_notifier_,
+                       rrc_ue_ngap_notifier&                     ngap_notifier_,
+                       rrc_ue_event_manager&                     event_mng_,
+                       rrc_ue_logger&                            logger_);
+
+  void operator()(coro_context<async_task<void>>& ctx);
+
+  static const char* name() { return "RRC Resume Procedure"; }
+
+private:
+  /// \brief Determined whether the Resume Request is accepted or rejected.
+  bool is_resume_accepted();
+
+  /// \brief Get and verify the ResumeMAC-I and update the keys.
+  bool verify_security_context();
+
+  /// \brief Update the security keys.
+  void update_security_keys();
+
+  /// \brief Reestablish the SRBs.
+  void reestablish_srbs();
+
+  /// \remark Send RRC Resume, see section 5.3.13 in TS 38.331.
+  void send_rrc_resume();
+
+  async_task<void> handle_rrc_resume_fallback();
+
+  void log_rejected_resume(const char* cause_str);
+
+  const asn1::rrc_nr::rrc_resume_request_s& resume_request;
+  rrc_ue_context_t&                         context;
+  const byte_buffer&                        du_to_cu_container;
+  rrc_ue_setup_proc_notifier&               rrc_ue_setup_notifier;
+  rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier; // handler to the parent RRC UE object
+  rrc_ue_control_message_handler&           srb_notifier;           // for creating SRBs
+  rrc_ue_context_update_notifier&           cu_cp_notifier;         // notifier to the CU-CP
+  rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier;      // notifier to the CU-CP UE
+  rrc_ue_event_notifier&                    metrics_notifier;       // metrics notifier
+  rrc_ue_ngap_notifier&                     ngap_notifier;          // notifier to the NGAP
+  rrc_ue_event_manager&                     event_mng;              // event manager for the RRC UE entity
+  rrc_ue_logger&                            logger;
+
+  cu_cp_rrc_resume_request request;
+
+  const asn1::rrc_nr::pdcp_cfg_s   srb1_pdcp_cfg;
+  std::chrono::milliseconds        procedure_timeout{0};
+  rrc_transaction                  transaction;
+  eager_async_task<rrc_outcome>    task;
+  rrc_resume_request_response      rrc_resume_context;
+  cu_cp_ue_context_release_request ue_context_release_request;
+};
+
+} // namespace ocudu::ocucp

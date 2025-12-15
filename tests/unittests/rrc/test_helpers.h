@@ -130,6 +130,15 @@ public:
     });
   }
 
+  async_task<rrc_resume_request_response> on_rrc_resume_request(const cu_cp_rrc_resume_request& request) override
+  {
+    logger.info("ue={}: Received RRC Resume Request", request.ue_index);
+    return launch_async([](coro_context<async_task<rrc_resume_request_response>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(rrc_resume_request_response{.success = true});
+    });
+  }
+
   std::optional<rrc_meas_cfg>
   on_measurement_config_request(nr_cell_identity                   nci,
                                 const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) override

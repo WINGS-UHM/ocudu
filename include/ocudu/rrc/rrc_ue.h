@@ -428,6 +428,11 @@ public:
 
   /// \brief Notify the CU-CP to remove a UE from the CU-CP.
   virtual async_task<void> on_ue_removal_required() = 0;
+
+  /// \brief Notify the CU-CP about the reception of an RRC Resume Request.
+  /// \param[in] request The resume request.
+  /// \returns The RRC Resume Request response.
+  virtual async_task<rrc_resume_request_response> on_rrc_resume_request(const cu_cp_rrc_resume_request& request) = 0;
 };
 
 /// Interface to notify about measurements

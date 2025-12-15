@@ -43,7 +43,7 @@ rrc_ue_impl::rrc_ue_impl(rrc_pdu_f1ap_notifier&                 f1ap_pdu_notifie
 {
   ocudu_assert(context.cell.bands.empty() == false, "Band must be present in RRC cell configuration.");
 
-  // Update security context and keys
+  // Update security context and keys.
   if (rrc_context.has_value()) {
     if (!rrc_context.value().is_inter_cu_handover) {
       cu_cp_ue_notifier.update_security_context(rrc_context.value().sec_context);
@@ -68,15 +68,17 @@ void rrc_ue_impl::create_srb(const srb_creation_message& msg)
 {
   logger.log_debug("Creating {}", msg.srb_id);
 
-  // create adapter objects and PDCP bearer as needed
+  // Create adapter objects and PDCP bearer as needed.
   if (msg.srb_id == srb_id_t::srb0) {
-    // SRB0 is already set up
+    // SRB0 is already set up.
     return;
-  } else if (msg.srb_id <= srb_id_t::srb2) {
+  }
+
+  if (msg.srb_id <= srb_id_t::srb2) {
     auto&    cpu_desc  = cpu_architecture_info::get();
     uint32_t nof_cores = cpu_desc.get_host_nof_available_cpus();
 
-    // create PDCP entity for this SRB
+    // Create PDCP entity for this SRB.
     context.srbs.emplace(std::piecewise_construct,
                          std::forward_as_tuple(msg.srb_id),
                          std::forward_as_tuple(msg.ue_index,
@@ -90,7 +92,6 @@ void rrc_ue_impl::create_srb(const srb_creation_message& msg)
       security::sec_as_config sec_cfg = cu_cp_ue_notifier.get_rrc_as_config();
       srb_context.enable_full_security(security::truncate_config(sec_cfg));
     }
-
   } else {
     logger.log_error("Couldn't create {}", msg.srb_id);
   }
@@ -159,7 +160,8 @@ byte_buffer rrc_ue_impl::get_packed_handover_preparation_message()
 
   if (not context.capabilities_list.has_value()) {
     logger.log_error("No UE capabilities stored. Handover preparation message can't be generated.");
-    return {}; // no capabilities present, return empty buffer.
+    // No capabilities present, return empty buffer.
+    return {};
   }
   ies.ue_cap_rat_list = *context.capabilities_list;
 

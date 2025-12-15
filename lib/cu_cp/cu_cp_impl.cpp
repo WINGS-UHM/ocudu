@@ -156,7 +156,7 @@ void cu_cp_impl::stop()
   ev.wait();
 
   controller.stop();
-  logger.info("CU-CP stopped successfully.");
+  logger.info("CU-CP stopped successfully");
 }
 
 ngap_message_handler* cu_cp_impl::get_ngap_message_handler(const plmn_identity& plmn)
@@ -1034,6 +1034,16 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
     e1ap_removal_handler = &cu_up_db.find_cu_up_processor(cu_up_index)->get_e1ap_bearer_context_removal_handler();
   }
 
+  rrc_ue_handler*                  rrc_ue_removal_handler = nullptr;
+  f1ap_ue_context_removal_handler* f1ap_removal_handler   = nullptr;
+  if (du_index != du_index_t::invalid) {
+    du_processor* du_proc = du_db.find_du_processor(du_index);
+    if (du_proc != nullptr) {
+      rrc_ue_removal_handler = &du_proc->get_rrc_du_handler();
+      f1ap_removal_handler   = &du_proc->get_f1ap_handler();
+    }
+  }
+
   auto*                            ngap                 = ngap_db.find_ngap(ue->get_ue_context().plmn);
   ngap_ue_context_removal_handler* ngap_removal_handler = nullptr;
   if (ngap != nullptr) {
@@ -1044,9 +1054,9 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
   nrppa_removal_handler                                   = &nrppa_entity->get_nrppa_ue_context_removal_handler();
 
   return launch_async<ue_removal_routine>(ue_index,
-                                          du_db.get_du_processor(du_index).get_rrc_du_handler(),
+                                          rrc_ue_removal_handler,
                                           e1ap_removal_handler,
-                                          du_db.get_du_processor(du_index).get_f1ap_handler(),
+                                          f1ap_removal_handler,
                                           ngap_removal_handler,
                                           nrppa_removal_handler,
                                           ue_mng,

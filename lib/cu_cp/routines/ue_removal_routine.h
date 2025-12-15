@@ -22,9 +22,9 @@ class ue_removal_routine
 {
 public:
   ue_removal_routine(ue_index_t                           ue_index_,
-                     rrc_ue_handler&                      rrc_du_notifier_,
+                     rrc_ue_handler*                      rrc_du_notifier_,
                      e1ap_bearer_context_removal_handler* e1ap_removal_handler_,
-                     f1ap_ue_context_removal_handler&     f1ap_removal_handler_,
+                     f1ap_ue_context_removal_handler*     f1ap_removal_handler_,
                      ngap_ue_context_removal_handler*     ngap_removal_handler_,
                      nrppa_ue_context_removal_handler*    nrppa_removal_handler_,
                      ue_manager&                          ue_mng_,
@@ -37,9 +37,9 @@ public:
 private:
   const ue_index_t ue_index;
   // Handlers to trigger UE removal in the respective layers.
-  rrc_ue_handler&                      rrc_du_notifier;
-  e1ap_bearer_context_removal_handler* e1ap_removal_handler = nullptr;
-  f1ap_ue_context_removal_handler&     f1ap_removal_handler;
+  rrc_ue_handler*                      rrc_du_notifier       = nullptr;
+  e1ap_bearer_context_removal_handler* e1ap_removal_handler  = nullptr;
+  f1ap_ue_context_removal_handler*     f1ap_removal_handler  = nullptr;
   ngap_ue_context_removal_handler*     ngap_removal_handler  = nullptr;
   nrppa_ue_context_removal_handler*    nrppa_removal_handler = nullptr;
   // To remove UE context from DU processor.

@@ -151,13 +151,13 @@ public:
   virtual void on_new_dl_dcch(srb_id_t srb_id, const asn1::rrc_nr::dl_dcch_msg_s& dl_dcch_msg) = 0;
 };
 
-/// Interface used by the RRC reestablishment procedure to
+/// Interface used by the RRC reestablishment and RRC resume procedure to
 /// invoke actions carried out by the main RRC UE class (i.e. send DL message, remove UE).
-class rrc_ue_reestablishment_proc_notifier
+class rrc_ue_msg4_proc_notifier
 {
 public:
-  rrc_ue_reestablishment_proc_notifier()          = default;
-  virtual ~rrc_ue_reestablishment_proc_notifier() = default;
+  rrc_ue_msg4_proc_notifier()          = default;
+  virtual ~rrc_ue_msg4_proc_notifier() = default;
 
   /// \brief Notify about a DL DCCH message.
   /// \param[in] dl_dcch_msg The DL DCCH message.
@@ -499,7 +499,7 @@ class rrc_ue_interface : public rrc_ul_pdu_handler,
                          public rrc_ue_security_mode_command_proc_notifier,
                          public rrc_ue_reconfiguration_proc_notifier,
                          public rrc_ue_context_handler,
-                         public rrc_ue_reestablishment_proc_notifier
+                         public rrc_ue_msg4_proc_notifier
 {
 public:
   rrc_ue_interface()          = default;

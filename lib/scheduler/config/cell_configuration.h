@@ -16,6 +16,20 @@
 
 namespace ocudu {
 
+/// Holds the configuration of a BWP supported by this cell.
+class cell_bwp_configuration
+{
+public:
+  cell_bwp_configuration(const dl_config_common&                                         dl_cfg_cmn,
+                         const sched_cell_configuration_request_message::ded_bwp_config& bwp_cfg);
+
+  /// List of all CORESETs configured for this BWP.
+  std::vector<coreset_configuration> coresets;
+
+  /// List of all searchSpaces configured for this BWP.
+  std::vector<search_space_configuration> search_spaces;
+};
+
 /// Holds the configuration of a cell.
 /// Additionally, this class pre-caches the computation of some const values related to the cell configuration
 /// and provide parameter getter helpers.
@@ -47,6 +61,9 @@ public:
   carrier_configuration   ul_carrier;
   const uint8_t           coreset0;
   const uint8_t           searchspace0;
+
+  /// List of BWP configs supported by this cell.
+  std::vector<cell_bwp_configuration> bwps;
 
   /// List of dedicated PUCCH resources.
   std::vector<pucch_resource> ded_pucch_resources;

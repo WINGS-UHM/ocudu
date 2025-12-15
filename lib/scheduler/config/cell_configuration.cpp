@@ -15,6 +15,31 @@
 
 using namespace ocudu;
 
+cell_bwp_configuration::cell_bwp_configuration(
+    const dl_config_common&                                         dl_cfg_cmn,
+    const sched_cell_configuration_request_message::ded_bwp_config& bwp_cfg) :
+  coresets(bwp_cfg.coresets), search_spaces(bwp_cfg.search_spaces)
+{
+  // Fill BWP CORESETs.
+  if (dl_cfg_cmn.init_dl_bwp.pdcch_common.coreset0.has_value()) {
+    coresets.push_back(*dl_cfg_cmn.init_dl_bwp.pdcch_common.coreset0);
+  }
+  if (dl_cfg_cmn.init_dl_bwp.pdcch_common.common_coreset.has_value()) {
+    coresets.push_back(*dl_cfg_cmn.init_dl_bwp.pdcch_common.common_coreset);
+  }
+  for (auto& cs : bwp_cfg.coresets) {
+    coresets.push_back(cs);
+  }
+
+  // Fill BWP SearchSpaces.
+  for (auto& ss : dl_cfg_cmn.init_dl_bwp.pdcch_common.search_spaces) {
+    search_spaces.push_back(ss);
+  }
+  for (auto& ss : bwp_cfg.search_spaces) {
+    search_spaces.push_back(ss);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 cell_configuration::cell_configuration(const scheduler_expert_config&                  expert_cfg_,
@@ -54,6 +79,11 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   dl_harq_mode_b(msg.dl_harq_mode_b),
   ul_harq_mode_b(msg.ul_harq_mode_b)
 {
+  // Initiate cell BWP configs.
+  for (const sched_cell_configuration_request_message::ded_bwp_config& bwp : msg.ded_bwps) {
+    bwps.emplace_back(msg.dl_cfg_common, bwp);
+  }
+
   if (tdd_cfg_common.has_value()) {
     // Cache list of DL and UL slots in case of TDD
     const unsigned tdd_period_slots = nof_slots_per_tdd_period(*msg.tdd_ul_dl_cfg_common);

@@ -14,6 +14,8 @@
 #include "ocudu/adt/expected.h"
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch1_msg.h"
+#include "ocudu/asn1/rrc_nr/ul_ccch_msg.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/plmn_identity.h"
 
@@ -148,6 +150,72 @@ byte_buffer rrc_du_impl::get_rrc_reject()
   return pack_into_pdu(dl_ccch_msg, "RRCReject");
 }
 
+expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> rrc_du_impl::get_rrc_resume_id(byte_buffer rrc_container,
+                                                                                           uint8_t nof_i_rnti_ue_bits)
+{
+  if (rrc_container.empty()) {
+    return make_unexpected(false);
+  }
+  // Unpack RRC container.
+  if (rrc_container.length() <= 6) {
+    logger.debug("Unpacking 48 bit msg3");
+
+    // 48 bits RRC Resume Request containing Short-I-RNTI.
+    ul_ccch_msg_s ul_ccch_msg;
+    {
+      asn1::cbit_ref bref(rrc_container);
+      if (ul_ccch_msg.unpack(bref) != asn1::OCUDUASN_SUCCESS or
+          ul_ccch_msg.msg.type().value != ul_ccch_msg_type_c::types_opts::c1) {
+        logger.error(rrc_container.begin(), rrc_container.end(), "Failed to unpack CCCH UL PDU");
+        return make_unexpected(false);
+      }
+    }
+
+    if (ul_ccch_msg.msg.c1().type().value != ul_ccch_msg_type_c::c1_c_::types_opts::rrc_resume_request) {
+      return make_unexpected(true);
+    }
+
+    // Extract Short-I-RNTI.
+    expected<short_i_rnti_t> resume_id = short_i_rnti_t::from_uint(
+        static_cast<uint32_t>(ul_ccch_msg.msg.c1().rrc_resume_request().rrc_resume_request.resume_id.to_number()),
+        nof_i_rnti_ue_bits);
+    if (!resume_id.has_value()) {
+      logger.error("Invalid Resume ID in RRC Resume Request (ASN.1 short-i-rnti=0x{:x})",
+                   ul_ccch_msg.msg.c1().rrc_resume_request().rrc_resume_request.resume_id.to_number());
+      return make_unexpected(false);
+    }
+
+    return resume_id.value();
+  }
+
+  // 64 bits RRC Resume Request containing Full-I-RNTI.
+  logger.debug("Unpacking 64 bit msg3");
+  ul_ccch1_msg_s ul_ccch1_msg;
+  {
+    asn1::cbit_ref bref(rrc_container);
+    if (ul_ccch1_msg.unpack(bref) != asn1::OCUDUASN_SUCCESS or
+        ul_ccch1_msg.msg.type().value != ul_ccch1_msg_type_c::types_opts::c1) {
+      logger.error(rrc_container.begin(), rrc_container.end(), "Failed to unpack CCCH UL PDU");
+      return make_unexpected(false);
+    }
+  }
+
+  if (ul_ccch1_msg.msg.c1().type().value != ul_ccch1_msg_type_c::c1_c_::types_opts::rrc_resume_request1) {
+    return make_unexpected(true);
+  }
+
+  // Extract Full-I-RNTI.
+  expected<full_i_rnti_t> resume_id = full_i_rnti_t::from_uint(
+      ul_ccch1_msg.msg.c1().rrc_resume_request1().rrc_resume_request1.resume_id.to_number(), nof_i_rnti_ue_bits);
+  if (!resume_id.has_value()) {
+    logger.error("Invalid Resume ID in RRC Resume Request (ASN.1 full-i-rnti=0x{:x})",
+                 ul_ccch1_msg.msg.c1().rrc_resume_request1().rrc_resume_request1.resume_id.to_number());
+    return make_unexpected(false);
+  }
+
+  return resume_id.value();
+}
+
 rrc_ue_interface* rrc_du_impl::add_ue(const rrc_ue_creation_message& msg)
 {
   // If the DU to CU container is missing, assume the DU can't serve the UE, so the CU-CP should reject the UE, see
@@ -172,6 +240,7 @@ rrc_ue_interface* rrc_du_impl::add_ue(const rrc_ue_creation_message& msg)
   ue_index_t   ue_index                 = msg.ue_index;
   rrc_ue_cfg_t ue_cfg                   = {};
   ue_cfg.force_reestablishment_fallback = cfg.force_reestablishment_fallback;
+  ue_cfg.force_resume_fallback          = cfg.force_resume_fallback;
   ue_cfg.rrc_procedure_guard_time_ms    = cfg.rrc_procedure_guard_time_ms;
   ue_cfg.meas_timings                   = cell_info_db.at(msg.cell.cgi.nci).meas_timings;
 

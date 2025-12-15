@@ -70,6 +70,14 @@ public:
   /// \brief Get the RRC Reject message to send to the UE.
   virtual byte_buffer get_rrc_reject() = 0;
 
+  /// \brief Get the RRC Resume ID from a RRC container.
+  /// \param[in] rrc_container The RRC container from the DU.
+  /// \param[in] nof_i_rnti_ue_bits Number of bits used for the I-RNTI UE.
+  /// \returns The RRC Resume ID if the container contains a valid RRCResumeRequest, true if the container
+  /// contains a different message, false if an error occured e.g. during unpacking.
+  virtual expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> get_rrc_resume_id(byte_buffer rrc_container,
+                                                                                        uint8_t nof_i_rnti_ue_bits) = 0;
+
   /// Creates a new RRC UE object and returns a handle to it.
   virtual rrc_ue_interface* add_ue(const rrc_ue_creation_message& msg) = 0;
 

@@ -77,10 +77,12 @@ public:
   void store_cell_info_db(const std::map<nr_cell_global_id_t, rrc_cell_info>& cell_infos) override;
 
   // rrc_du_ue_repository.
-  byte_buffer       get_rrc_reject() override;
-  rrc_ue_interface* add_ue(const rrc_ue_creation_message& msg) override;
-  void              release_ues() override;
-  size_t            get_nof_ues() const override { return ue_db.size(); }
+  byte_buffer                                                 get_rrc_reject() override;
+  expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> get_rrc_resume_id(byte_buffer rrc_container,
+                                                                                uint8_t nof_i_rnti_ue_bits) override;
+  rrc_ue_interface*                                           add_ue(const rrc_ue_creation_message& msg) override;
+  void                                                        release_ues() override;
+  size_t                                                      get_nof_ues() const override { return ue_db.size(); }
 
   // rrc_ue_handler.
   rrc_ue_interface* find_ue(ue_index_t ue_index) override

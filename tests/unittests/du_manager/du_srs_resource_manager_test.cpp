@@ -22,17 +22,14 @@ namespace {
 struct srs_params {
   // If set, it's a TDD cell and the parameters indicates the number of UL symbols in the flexible slot.
   std::optional<unsigned> nof_ul_symbols_p1;
-  bool                    test_optimality = false;
 };
 
 std::ostream& operator<<(std::ostream& out, const srs_params& params)
 {
   if (params.nof_ul_symbols_p1.has_value()) {
-    out << fmt::format("TDD_nof_ul_symbols_p1_{}_test_optimality_{}",
-                       params.nof_ul_symbols_p1.value(),
-                       params.test_optimality ? "true" : "false");
+    out << fmt::format("TDD_nof_ul_symbols_p1_{}", params.nof_ul_symbols_p1.value());
   } else {
-    out << fmt::format("FDD_test_optimality_{}", params.test_optimality ? "true" : "false");
+    out << fmt::format("FDD_test");
   }
   return out;
 }
@@ -54,7 +51,7 @@ static bool is_partially_ul_slot(unsigned offset, const tdd_ul_dl_config_common&
   return is_tdd_partial_ul_slot(tdd_cfg, slot_index);
 }
 
-static cell_config_builder_params make_cell_cfg_params(const srs_params& params)
+static cell_config_builder_params make_cell_cfg_params(const srs_params& params = {})
 {
   const bool                 is_tdd      = params.nof_ul_symbols_p1.has_value();
   cell_config_builder_params cell_params = {.dl_f_ref_arfcn = not is_tdd ? 365000U : 520002U};
@@ -190,13 +187,12 @@ static du_cell_config make_odu_cell_config(const cell_config_builder_params& par
   return du_cfg;
 }
 
-class du_srs_resource_manager_tester : public ::testing::TestWithParam<srs_params>
+class du_srs_res_manager_base_tester
 {
 protected:
-  explicit du_srs_resource_manager_tester(
-      const cell_config_builder_params& params_ = make_cell_cfg_params(GetParam())) :
+  explicit du_srs_res_manager_base_tester(const cell_config_builder_params& params_, bool test_optimality) :
     params(params_),
-    cell_cfg_list({make_odu_cell_config(params_, GetParam().test_optimality)}),
+    cell_cfg_list({make_odu_cell_config(params_, test_optimality)}),
     srs_params(cell_cfg_list[0].srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
@@ -305,6 +301,16 @@ protected:
   slotted_array<cell_group_config, MAX_NOF_DU_UES> ues;
 };
 
+class du_srs_resource_manager_tester : public du_srs_res_manager_base_tester,
+                                       public ::testing::TestWithParam<srs_params>
+{
+protected:
+  explicit du_srs_resource_manager_tester() :
+    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true)
+  {
+  }
+};
+
 TEST_P(du_srs_resource_manager_tester, ue_are_assigned_orthogonal_srs_resources)
 {
   // Keeps track of which SRS resources have been assigned to the UEs.
@@ -396,8 +402,10 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
     // Verify the symbols, depending on whether it's FDD, or TDD.
     ASSERT_EQ(srs_res.res_mapping.nof_symb, srs_params.nof_symbols);
     if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value() and
-        is_partially_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
-      ASSERT_LT(srs_res.res_mapping.start_pos, cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
+        is_partially_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value()))
+        {
+      ASSERT_LT(srs_res.res_mapping.start_pos,
+      cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
     } else {
       ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.value());
     }
@@ -421,10 +429,12 @@ INSTANTIATE_TEST_SUITE_P(test_du_srs_res_mng_for_different_ul_symbols,
 
 /////////     Test the optimality of DU SRS resource manager policy      /////////
 
-class du_srs_resource_manager_tester_optimality : public du_srs_resource_manager_tester
+class du_srs_resource_manager_tester_optimality : public du_srs_res_manager_base_tester,
+                                                  public ::testing::TestWithParam<srs_params>
 {
 protected:
-  explicit du_srs_resource_manager_tester_optimality()
+  explicit du_srs_resource_manager_tester_optimality() :
+    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true)
   {
     nof_srs_res_per_symb_interval = static_cast<unsigned>(srs_params.tx_comb) *
                                     static_cast<unsigned>(srs_params.cyclic_shift_reuse_factor) *
@@ -598,15 +608,15 @@ TEST_P(du_srs_resource_manager_tester_optimality, srs_are_assigned_according_to_
 
 INSTANTIATE_TEST_SUITE_P(test_du_srs_res_mng_for_different_ul_symbols,
                          du_srs_resource_manager_tester_optimality,
-                         ::testing::Values(srs_params{.nof_ul_symbols_p1 = std::nullopt, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 0U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 1U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 2U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 3U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 4U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 5U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 6U, .test_optimality = true},
-                                           srs_params{.nof_ul_symbols_p1 = 7U, .test_optimality = true}),
+                         ::testing::Values(srs_params{.nof_ul_symbols_p1 = std::nullopt},
+                                           srs_params{.nof_ul_symbols_p1 = 0U},
+                                           srs_params{.nof_ul_symbols_p1 = 1U},
+                                           srs_params{.nof_ul_symbols_p1 = 2U},
+                                           srs_params{.nof_ul_symbols_p1 = 3U},
+                                           srs_params{.nof_ul_symbols_p1 = 4U},
+                                           srs_params{.nof_ul_symbols_p1 = 5U},
+                                           srs_params{.nof_ul_symbols_p1 = 6U},
+                                           srs_params{.nof_ul_symbols_p1 = 7U}),
                          [](const testing::TestParamInfo<srs_params>& params_item) {
                            return fmt::format("{}", params_item.param);
                          });

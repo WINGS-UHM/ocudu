@@ -22,14 +22,17 @@ namespace {
 struct srs_params {
   // If set, it's a TDD cell and the parameters indicates the number of UL symbols in the flexible slot.
   std::optional<unsigned> nof_ul_symbols_p1;
+  bool                    use_max_bw = true;
 };
 
 std::ostream& operator<<(std::ostream& out, const srs_params& params)
 {
   if (params.nof_ul_symbols_p1.has_value()) {
-    out << fmt::format("TDD_nof_ul_symbols_p1_{}", params.nof_ul_symbols_p1.value());
+    out << fmt::format("TDD_nof_ul_symbols_p1_{}_use_max_bw_{}",
+                       params.nof_ul_symbols_p1.value(),
+                       params.use_max_bw ? "true" : "false");
   } else {
-    out << fmt::format("FDD_test");
+    out << fmt::format("FDD_test_use_max_bw_{}", params.use_max_bw ? "true" : "false");
   }
   return out;
 }
@@ -68,39 +71,55 @@ static cell_config_builder_params make_cell_cfg_params(const srs_params& params 
   return cell_params;
 }
 
-static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_params& params)
+static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_params& params, bool use_max_bw)
 {
-  // This function generates a configuration which would potentially allow for a very large number of SRS resources.
+  // This function generates a configuration which potentially allows for a very large number of SRS resources.
   du_cell_config du_cfg  = config_helpers::make_default_du_cell_config(params);
   auto&          srs_cfg = du_cfg.srs_cfg;
 
+  if (not use_max_bw) {
+    const unsigned                     bw_nof_rbs   = du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    constexpr std::array<unsigned, 40> m_srs_values = {
+        4,   8,   12,  16,  20,  24,  28,  32,  36,  40,  48,  52,  56,  60,  64,  72,  76,  80,  88,  96,
+        104, 112, 120, 128, 132, 136, 144, 152, 160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272};
+    // Find the largest value of m_srs_values that can be used for the given BW.
+    const unsigned nof_valid_m_srs = std::count_if(
+        m_srs_values.begin(), m_srs_values.end(), [bw_nof_rbs](const unsigned elem) { return elem <= bw_nof_rbs; });
+    const auto m_srs_idx = test_rgen::uniform_int<size_t>(0U, nof_valid_m_srs - 1);
+    ocudu_assert(nof_valid_m_srs != 0 and m_srs_idx < nof_valid_m_srs, "m_srs index out-of-range");
+    srs_cfg.srs_bw_rbs.emplace(m_srs_values[m_srs_idx]);
+    // Compute the start RB based on the BWP BW and on the SRS BW.
+    srs_cfg.srs_rb_start = test_rgen::uniform_int<size_t>(0U, bw_nof_rbs - srs_cfg.srs_bw_rbs.value());
+  }
+
   // Generates a random SRS configuration.
-  srs_cfg.tx_comb                                = test_rgen::bernoulli(0.5) ? tx_comb_size::n2 : tx_comb_size::n4;
-  srs_cfg.max_nof_symbols                        = test_rgen::uniform_int<unsigned>(1U, 6U);
-  std::array<srs_nof_symbols, 3> nof_symb_values = {srs_nof_symbols::n1, srs_nof_symbols::n2, srs_nof_symbols::n4};
+  srs_cfg.tx_comb         = test_rgen::bernoulli(0.5) ? tx_comb_size::n2 : tx_comb_size::n4;
+  srs_cfg.max_nof_symbols = test_rgen::uniform_int<unsigned>(1U, 6U);
+  constexpr std::array<srs_nof_symbols, 3> nof_symb_values = {
+      srs_nof_symbols::n1, srs_nof_symbols::n2, srs_nof_symbols::n4};
   srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   while (srs_cfg.nof_symbols > srs_cfg.max_nof_symbols) {
     srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   }
 
   // The TX comb cyclic shift value depends on the TX comb size.
-  if (srs_cfg.tx_comb == ocudu::tx_comb_size::n2) {
-    std::array<nof_cyclic_shifts, 3> srs_cyclic_shift_values = {
+  if (srs_cfg.tx_comb == tx_comb_size::n2) {
+    constexpr std::array<nof_cyclic_shifts, 3> srs_cyclic_shift_values = {
         nof_cyclic_shifts::no_cyclic_shift, nof_cyclic_shifts::two, nof_cyclic_shifts::four};
     srs_cfg.cyclic_shift_reuse_factor =
         srs_cyclic_shift_values[test_rgen::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
   } else {
-    std::array<nof_cyclic_shifts, 6> srs_cyclic_shift_values = {nof_cyclic_shifts::no_cyclic_shift,
-                                                                nof_cyclic_shifts::two,
-                                                                nof_cyclic_shifts::three,
-                                                                nof_cyclic_shifts::four,
-                                                                nof_cyclic_shifts::six,
-                                                                nof_cyclic_shifts::twelve};
+    constexpr std::array<nof_cyclic_shifts, 6> srs_cyclic_shift_values = {nof_cyclic_shifts::no_cyclic_shift,
+                                                                          nof_cyclic_shifts::two,
+                                                                          nof_cyclic_shifts::three,
+                                                                          nof_cyclic_shifts::four,
+                                                                          nof_cyclic_shifts::six,
+                                                                          nof_cyclic_shifts::twelve};
     srs_cfg.cyclic_shift_reuse_factor =
         srs_cyclic_shift_values[test_rgen::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
   }
   // [Implementation-defined] These are the values in the gNB, \ref sequence_id_reuse_factor.
-  std::array<unsigned, 8> srs_seq_id_values = {1, 2, 3, 5, 6, 10, 15, 30};
+  constexpr std::array<unsigned, 8> srs_seq_id_values = {1, 2, 3, 5, 6, 10, 15, 30};
   srs_cfg.sequence_id_reuse_factor =
       srs_seq_id_values[test_rgen::uniform_int<unsigned>(0, srs_seq_id_values.size() - 1)];
 
@@ -131,9 +150,10 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   return du_cfg;
 }
 
-static du_cell_config make_odu_cell_config(const cell_config_builder_params& params, bool limit_srs_res)
+static du_cell_config
+make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_res, bool use_max_bw)
 {
-  auto du_cfg = make_srs_base_du_cell_config(params);
+  auto du_cfg = make_srs_base_du_cell_config(params, use_max_bw);
 
   // For the optimality test, we to have a configuration that doesn't allow for more than 1024 SRS resources.
   if (not limit_srs_res) {
@@ -143,8 +163,8 @@ static du_cell_config make_odu_cell_config(const cell_config_builder_params& par
   // This function calculates the total number of SRS resources that can be potentially allocated in the cell with the
   // given SRS parameters.
   auto tot_num_srs_res = [&du_cfg]() {
-    auto& tdd_cfg = du_cfg.tdd_ul_dl_cfg_common;
-    auto& srs_cfg = du_cfg.srs_cfg;
+    const auto& tdd_cfg = du_cfg.tdd_ul_dl_cfg_common;
+    const auto& srs_cfg = du_cfg.srs_cfg;
     // This is the number of SRS resources per symbol interval. A symbol interval is an interval where the SRS resource
     // can be placed within a slot and its width (or length) is given by the corresponding SRS parameter \c nof_symb in
     // the SRS configuration.
@@ -181,7 +201,7 @@ static du_cell_config make_odu_cell_config(const cell_config_builder_params& par
   };
 
   while (tot_num_srs_res() > static_cast<unsigned>(MAX_NOF_DU_UES)) {
-    du_cfg = make_srs_base_du_cell_config(params);
+    du_cfg = make_srs_base_du_cell_config(params, use_max_bw);
   }
 
   return du_cfg;
@@ -190,9 +210,11 @@ static du_cell_config make_odu_cell_config(const cell_config_builder_params& par
 class du_srs_res_manager_base_tester
 {
 protected:
-  explicit du_srs_res_manager_base_tester(const cell_config_builder_params& params_, bool test_optimality) :
+  explicit du_srs_res_manager_base_tester(const cell_config_builder_params& params_,
+                                          bool                              test_optimality,
+                                          bool                              use_max_bw) :
     params(params_),
-    cell_cfg_list({make_odu_cell_config(params_, test_optimality)}),
+    cell_cfg_list({make_srs_cell_config(params_, test_optimality, use_max_bw)}),
     srs_params(cell_cfg_list[0].srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
@@ -306,7 +328,7 @@ class du_srs_resource_manager_tester : public du_srs_res_manager_base_tester,
 {
 protected:
   explicit du_srs_resource_manager_tester() :
-    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true)
+    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true, GetParam().use_max_bw)
   {
   }
 };
@@ -393,19 +415,29 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
     ASSERT_LT(srs_res.tx_comb.tx_comb_offset, static_cast<unsigned>(srs_res.tx_comb.size));
     ASSERT_LT(srs_res.tx_comb.tx_comb_cyclic_shift, srs_res.tx_comb.size == tx_comb_size::n2 ? 8U : 12U);
 
-    ASSERT_EQ(srs_res.freq_hop.c_srs, compute_c_srs());
+    // Checks on Freq. Hopping need to be adjusted based on whether the SRS has been configured with a given BW.
+    if (GetParam().use_max_bw) {
+      // Verify that C_SRS corresponds to the maximum allowed BW.
+      ASSERT_EQ(srs_res.freq_hop.c_srs, compute_c_srs());
+      ASSERT_EQ(srs_res.freq_domain_shift, compute_freq_shift());
+    } else {
+      // Verify that C_SRS maps to a value that fits within the UL BWP.
+      constexpr unsigned b_srs_0 = 0;
+      auto               srs_cfg = srs_configuration_get(srs_res.freq_hop.c_srs, b_srs_0);
+      ASSERT_TRUE(srs_cfg.has_value());
+      ASSERT_LE(srs_cfg.value().m_srs, cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      ASSERT_LE(srs_res.freq_domain_shift + srs_cfg.value().m_srs,
+                cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.stop());
+    }
     ASSERT_EQ(srs_res.freq_hop.b_srs, 0U);
     ASSERT_EQ(srs_res.freq_hop.b_hop, 0U);
-    ASSERT_EQ(srs_res.freq_domain_shift, compute_freq_shift());
     ASSERT_EQ(srs_res.freq_domain_pos, 0U);
 
     // Verify the symbols, depending on whether it's FDD, or TDD.
     ASSERT_EQ(srs_res.res_mapping.nof_symb, srs_params.nof_symbols);
     if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value() and
-        is_partially_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value()))
-        {
-      ASSERT_LT(srs_res.res_mapping.start_pos,
-      cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
+        is_partially_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
+      ASSERT_LT(srs_res.res_mapping.start_pos, cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
     } else {
       ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.value());
     }
@@ -422,7 +454,16 @@ INSTANTIATE_TEST_SUITE_P(test_du_srs_res_mng_for_different_ul_symbols,
                                            srs_params{.nof_ul_symbols_p1 = 4U},
                                            srs_params{.nof_ul_symbols_p1 = 5U},
                                            srs_params{.nof_ul_symbols_p1 = 6U},
-                                           srs_params{.nof_ul_symbols_p1 = 7U}),
+                                           srs_params{.nof_ul_symbols_p1 = 7U},
+                                           srs_params{.nof_ul_symbols_p1 = std::nullopt, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 0U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 1U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 2U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 3U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 4U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 5U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 6U, .use_max_bw = false},
+                                           srs_params{.nof_ul_symbols_p1 = 7U, .use_max_bw = false}),
                          [](const testing::TestParamInfo<srs_params>& params_item) {
                            return fmt::format("{}", params_item.param);
                          });
@@ -434,7 +475,7 @@ class du_srs_resource_manager_tester_optimality : public du_srs_res_manager_base
 {
 protected:
   explicit du_srs_resource_manager_tester_optimality() :
-    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true)
+    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true, true)
   {
     nof_srs_res_per_symb_interval = static_cast<unsigned>(srs_params.tx_comb) *
                                     static_cast<unsigned>(srs_params.cyclic_shift_reuse_factor) *

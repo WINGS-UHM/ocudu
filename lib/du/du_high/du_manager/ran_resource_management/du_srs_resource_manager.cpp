@@ -145,7 +145,8 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
             : compute_srs_rb_start(c_srs.value(), cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
     ocudu_assert(srs_rb_start.has_value(), "SRS parameters didn't provide a valid freq_shift value");
     // As per TS 38.211, Section 6.4.1.4.3, if \f$n_{shift} >= BWP_RB_start\f$, the reference point for the SRS
-    // subcarriers is the CRB idx 0, else the BWP_RB_start; in here, implicitly define \f$n_{shift} >= BWP_RB_start\f$.
+    // subcarriers is the CRB idx 0, else the BWP_RB_start; in here, we implicitly define \f$n_{shift} >=
+    // BWP_RB_start\f$.
     cell.srs_common_params.freq_shift =
         srs_rb_start.value() + cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start();
     cell.srs_common_params.p0 = cell.cell_cfg.srs_cfg.p0;

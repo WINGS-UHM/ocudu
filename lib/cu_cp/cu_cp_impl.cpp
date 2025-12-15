@@ -25,6 +25,7 @@
 #include "routines/positioning/trp_information_exchange_routine.h"
 #include "routines/reestablishment_context_modification_routine.h"
 #include "routines/rrc_inactive_routine.h"
+#include "routines/rrc_resume_routine.h"
 #include "routines/ue_amf_context_release_request_routine.h"
 #include "routines/ue_context_release_routine.h"
 #include "routines/ue_removal_routine.h"
@@ -633,6 +634,19 @@ async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_re
 
   return launch_async<ue_amf_context_release_request_routine>(
       request, ngap ? &ngap->get_ngap_control_message_handler() : nullptr, *this, logger);
+}
+
+async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(const cu_cp_rrc_resume_request& request)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+
+  return launch_async<rrc_resume_routine>(request,
+                                          du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
+                                          cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_handler(),
+                                          *this,
+                                          ue_mng,
+                                          logger);
 }
 
 bool cu_cp_impl::handle_handover_request(ue_index_t                        ue_index,

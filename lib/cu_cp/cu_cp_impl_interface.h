@@ -243,6 +243,12 @@ public:
   /// \brief Handle a UE release request.
   /// \param[in] request The release request.
   virtual async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) = 0;
+
+  /// \brief Handle the reception of an RRC Resume Request.
+  /// \param[in] request The resume request.
+  /// \returns The RRC Resume Request response.
+  virtual async_task<rrc_resume_request_response>
+  handle_rrc_resume_request(const cu_cp_rrc_resume_request& request) = 0;
 };
 
 // Request with information for the target handler of the intra cu handover.

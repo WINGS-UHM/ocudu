@@ -26,9 +26,6 @@
 #include "ocudu/cu_cp/cu_configurator.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
-#include "ocudu/e2/e2_cu.h"
-#include "ocudu/e2/e2_cu_up_factory.h"
-#include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <dlfcn.h>
@@ -87,6 +84,7 @@ public:
   void             handle_rrc_reconf_complete_indicator(ue_index_t ue_index) override;
   async_task<bool> handle_ue_context_transfer(ue_index_t ue_index, ue_index_t old_ue_index) override;
   async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) override;
+  async_task<rrc_resume_request_response> handle_rrc_resume_request(const cu_cp_rrc_resume_request& request) override;
 
   // cu_cp_ue_context_manipulation_handler.
   void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) override;

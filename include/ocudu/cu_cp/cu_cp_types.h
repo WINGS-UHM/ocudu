@@ -34,8 +34,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Maximum number of DUs supported by CU-CP (implementation-defined).
 const uint16_t MAX_NOF_DUS = 65535;
@@ -614,8 +613,12 @@ struct cu_cp_intra_cu_handover_response {
   bool success = false;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+struct cu_cp_rrc_resume_request {
+  ue_index_t          ue_index = ue_index_t::invalid;
+  nr_cell_global_id_t cgi;
+};
+
+} // namespace ocudu::ocucp
 
 namespace fmt {
 

@@ -92,7 +92,7 @@ static void apply_update_for_removed_drbs(up_pdu_session_context&      pdu_sessi
   }
 }
 
-bool up_resource_manager::apply_config_update(const up_config_update_result& result)
+void up_resource_manager::apply_config_update(const up_config_update_result& result)
 {
   // Apply config update in an additive way.
   for (const auto& session : result.pdu_sessions_added_list) {
@@ -134,8 +134,6 @@ bool up_resource_manager::apply_config_update(const up_config_update_result& res
 
     context.pdu_sessions.erase(rem_session);
   }
-
-  return true;
 }
 
 const up_pdu_session_context& up_resource_manager::get_pdu_session_context(pdu_session_id_t psi) const

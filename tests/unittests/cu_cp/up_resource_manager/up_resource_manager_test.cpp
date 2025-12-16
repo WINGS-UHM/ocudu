@@ -361,3 +361,52 @@ TEST_F(up_resource_manager_test, when_all_drb_ids_are_used_allocation_fails_unti
     ASSERT_EQ(update.drb_to_remove_list.size(), 0);
   }
 }
+
+class up_resource_manager_used_drb_ids_test : public up_resource_manager_test,
+                                              public ::testing::WithParamInterface<uint8_t>
+{
+protected:
+  up_resource_manager_cfg cfg{{{uint_to_five_qi(9), {pdcp_cfg}}, {uint_to_five_qi(7), {pdcp_cfg}}}, GetParam()};
+  up_resource_manager     manager{cfg};
+};
+
+INSTANTIATE_TEST_SUITE_P(
+    when_there_are_no_stale_drb_ids_the_key_refresh_is_not_required,
+    up_resource_manager_used_drb_ids_test,
+    ::testing::Values(MAX_NOF_DRBS)); // this can only happen when max_nof_drbs_per_ue == MAX_NOF_DRBS
+
+TEST_P(up_resource_manager_used_drb_ids_test, when_there_are_no_stale_drb_ids_the_key_refresh_is_not_required)
+{
+  for (uint16_t i = 1; i <= MAX_NOF_DRBS; i++) {
+    // Attempt to create new PDU Session.
+    pdu_session_id_t                         psi{i};
+    cu_cp_pdu_session_resource_setup_request setup_msg =
+        generate_pdu_session_resource_setup(ue_index_t::min, psi, qos_flow_id_t::min);
+    ASSERT_TRUE(manager.validate_request(setup_msg.pdu_session_res_setup_items));
+
+    // Calculate update
+    up_config_update update = manager.calculate_update(setup_msg.pdu_session_res_setup_items);
+
+    // Verify calculated update.
+    ASSERT_EQ(update.pdu_sessions_to_setup_list.size(), 1);
+    ASSERT_EQ(update.pdu_sessions_to_modify_list.size(), 0);
+    ASSERT_EQ(update.pdu_sessions_to_remove_list.size(), 0);
+    ASSERT_EQ(update.drb_to_remove_list.size(), 0);
+
+    // Apply update.
+    up_config_update_result result;
+    result.pdu_sessions_added_list.push_back(update.pdu_sessions_to_setup_list.at(psi));
+    manager.apply_config_update(result);
+
+    // There is a new PDU session
+    ASSERT_EQ(manager.get_nof_pdu_sessions(), i);
+    ASSERT_EQ(manager.get_total_nof_qos_flows(), 1);
+    ASSERT_EQ(manager.get_nof_drbs(), i);
+    ASSERT_EQ(manager.get_nof_used_drb_ids(), i);
+    ASSERT_FALSE(manager.key_refresh_required());
+  }
+
+  ASSERT_EQ(manager.get_nof_drbs(), MAX_NOF_DRBS);
+  ASSERT_EQ(manager.get_nof_used_drb_ids(), MAX_NOF_DRBS);
+  ASSERT_FALSE(manager.key_refresh_required());
+}

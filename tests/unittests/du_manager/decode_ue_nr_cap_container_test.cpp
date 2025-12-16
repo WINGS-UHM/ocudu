@@ -80,7 +80,6 @@ static constexpr ue_capability_summary::supported_band supported_band_no_ul_mimo
     .ul_ta_reporting_supported      = false,
     .ue_specific_k_offset_supported = false};
 
-#ifdef OCUDU_HAS_ENTERPRISE
 static constexpr ue_capability_summary::supported_band supported_band_2x2_non_coherent = {
     .pusch_qam256_supported         = true,
     .pusch_tx_coherence             = tx_scheme_codebook_subset::non_coherent,
@@ -91,7 +90,6 @@ static constexpr ue_capability_summary::supported_band supported_band_2x2_non_co
     .ul_pre_compensation_supported  = false,
     .ul_ta_reporting_supported      = false,
     .ue_specific_k_offset_supported = false};
-#endif // OCUDU_HAS_ENTERPRISE
 
 const auto test_cases = to_array<decode_ue_nr_cap_container_params>(
     {decode_ue_nr_cap_container_params{
@@ -149,27 +147,21 @@ const auto test_cases = to_array<decode_ue_nr_cap_container_params>(
          .expected_capabilities = {.pdsch_qam256_supported     = true,
                                    .pdsch_qam64lowse_supported = true,
                                    .pusch_qam64lowse_supported = false,
-                                   .bands =
-                                       {
-#ifdef OCUDU_HAS_ENTERPRISE
-                                           {nr_band::n78, supported_band_2x2_non_coherent},
-#else  // OCUDU_HAS_ENTERPRISE
-                                           {nr_band::n78, supported_band_no_ul_mimo},
-#endif // OCUDU_HAS_ENTERPRISE
-                                           {nr_band::n71, supported_band_no_ul_mimo},
-                                           {nr_band::n77, supported_band_no_ul_mimo},
-                                           {nr_band::n38, supported_band_no_ul_mimo},
-                                           {nr_band::n41, supported_band_no_ul_mimo},
-                                           {nr_band::n28, supported_band_no_ul_mimo},
-                                           {nr_band::n8, supported_band_no_ul_mimo},
-                                           {nr_band::n20, supported_band_no_ul_mimo},
-                                           {nr_band::n7, supported_band_no_ul_mimo},
-                                           {nr_band::n5, supported_band_no_ul_mimo},
-                                           {nr_band::n3, supported_band_no_ul_mimo},
-                                           {nr_band::n40, supported_band_no_ul_mimo},
-                                           {nr_band::n1, supported_band_no_ul_mimo}},
-                                   .long_drx_cycle_supported                = false,
-                                   .short_drx_cycle_supported               = false,
+                                   .bands                      = {{nr_band::n78, supported_band_2x2_non_coherent},
+                                                                  {nr_band::n71, supported_band_no_ul_mimo},
+                                                                  {nr_band::n77, supported_band_no_ul_mimo},
+                                                                  {nr_band::n38, supported_band_no_ul_mimo},
+                                                                  {nr_band::n41, supported_band_no_ul_mimo},
+                                                                  {nr_band::n28, supported_band_no_ul_mimo},
+                                                                  {nr_band::n8, supported_band_no_ul_mimo},
+                                                                  {nr_band::n20, supported_band_no_ul_mimo},
+                                                                  {nr_band::n7, supported_band_no_ul_mimo},
+                                                                  {nr_band::n5, supported_band_no_ul_mimo},
+                                                                  {nr_band::n3, supported_band_no_ul_mimo},
+                                                                  {nr_band::n40, supported_band_no_ul_mimo},
+                                                                  {nr_band::n1, supported_band_no_ul_mimo}},
+                                   .long_drx_cycle_supported   = false,
+                                   .short_drx_cycle_supported  = false,
                                    .pdsch_interleaving_vrb_to_prb_supported = true,
                                    .ntn_supported                           = false,
                                    .disabled_dl_harq_feedback_supported     = false,

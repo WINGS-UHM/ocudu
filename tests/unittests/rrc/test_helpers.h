@@ -13,8 +13,7 @@
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/rrc/rrc_ue.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class dummy_rrc_f1ap_pdu_notifier : public rrc_pdu_f1ap_notifier
 {
@@ -57,7 +56,7 @@ private:
 class dummy_rrc_ue_cu_cp_adapter : public rrc_ue_context_update_notifier, public rrc_ue_measurement_notifier
 {
 public:
-  void add_ue_context(rrc_ue_reestablishment_context_response context) { reest_context = context; }
+  void add_ue_context(rrc_ue_reestablishment_context_response context) { reest_context = std::move(context); }
 
   bool next_ue_setup_response          = true;
   bool next_ue_setup_complete_response = true;
@@ -163,11 +162,13 @@ class dummy_rrc_ue_rrc_du_adapter : public rrc_ue_event_notifier
 public:
   void on_new_rrc_connection() override {}
 
-  void on_successful_rrc_release() override {}
+  void on_successful_rrc_release(bool is_inactive) override {}
 
-  void on_attempted_rrc_connection_establishment(establishment_cause_t cause) override {}
+  void on_rrc_inactive() override {}
 
-  void on_successful_rrc_connection_establishment(establishment_cause_t cause) override {}
+  void on_attempted_rrc_connection_establishment(establishment_resume_cause_t cause) override {}
+
+  void on_successful_rrc_connection_establishment(establishment_resume_cause_t cause) override {}
 
   void on_attempted_rrc_connection_reestablishment() override {}
 
@@ -176,5 +177,4 @@ public:
   void on_successful_rrc_connection_reestablishment_fallback() override {}
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

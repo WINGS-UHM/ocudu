@@ -82,9 +82,9 @@ void to_json(nlohmann::json& json, const ocudu::cu_cp_ngap_metrics_json& metrics
   json["nof_successful_handover_preparations"] = metrics.mobility.nof_successful_handover_preparations;
 }
 
-void to_json(nlohmann::json& json, const rrc_connection_establishment_counter_with_cause& metrics)
+void to_json(nlohmann::json& json, const rrc_connection_counter_with_cause& metrics)
 {
-  // RRC connection establishment counter with cause metrics.
+  // RRC connection counter with cause metrics.
   unsigned cause_index = 0;
   for (const auto& count : metrics) {
     json[fmt::format("{}", metrics.get_cause(cause_index))] = count;
@@ -95,10 +95,12 @@ void to_json(nlohmann::json& json, const rrc_connection_establishment_counter_wi
 void to_json(nlohmann::json& json, const ocudu::cu_cp_metrics_report::du_info& metrics)
 {
   // RRC-DU metrics.
-  json["gnb_du_id"]                          = metrics.id;
-  nlohmann::json& rrc_connection             = json["rrc_connection_number"];
-  rrc_connection["mean_nof_rrc_connections"] = metrics.rrc_metrics.mean_nof_rrc_connections;
-  rrc_connection["max_nof_rrc_connections"]  = metrics.rrc_metrics.max_nof_rrc_connections;
+  json["gnb_du_id"]                                   = metrics.id;
+  nlohmann::json& rrc_connection                      = json["rrc_connection_number"];
+  rrc_connection["mean_nof_rrc_connections"]          = metrics.rrc_metrics.mean_nof_rrc_connections;
+  rrc_connection["max_nof_rrc_connections"]           = metrics.rrc_metrics.max_nof_rrc_connections;
+  rrc_connection["mean_nof_inactive_rrc_connections"] = metrics.rrc_metrics.mean_nof_inactive_rrc_connections;
+  rrc_connection["max_nof_inactive_rrc_connections"]  = metrics.rrc_metrics.max_nof_inactive_rrc_connections;
 
   nlohmann::json& rrc_connection_establishment = json["rrc_connection_establishment"];
   rrc_connection_establishment["attempted_rrc_connection_establishments"] =

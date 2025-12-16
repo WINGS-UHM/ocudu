@@ -268,43 +268,86 @@ cu_cp_amf_identifier_t ocudu::ocucp::asn1_to_amf_identifier(const asn1::fixed_bi
   return amf_id;
 }
 
-establishment_cause_t
+establishment_resume_cause_t
 ocudu::ocucp::asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause)
 {
-  establishment_cause_t cause;
+  establishment_resume_cause_t cause;
   switch (asn1_cause) {
     case asn1::rrc_nr::establishment_cause_opts::options::emergency:
-      cause = establishment_cause_t::emergency;
+      cause = establishment_resume_cause_t::emergency;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::high_prio_access:
-      cause = establishment_cause_t::high_prio_access;
+      cause = establishment_resume_cause_t::high_prio_access;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mt_access:
-      cause = establishment_cause_t::mt_access;
+      cause = establishment_resume_cause_t::mt_access;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mo_sig:
-      cause = establishment_cause_t::mo_sig;
+      cause = establishment_resume_cause_t::mo_sig;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mo_data:
-      cause = establishment_cause_t::mo_data;
+      cause = establishment_resume_cause_t::mo_data;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mo_voice_call:
-      cause = establishment_cause_t::mo_voice_call;
+      cause = establishment_resume_cause_t::mo_voice_call;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mo_video_call:
-      cause = establishment_cause_t::mo_video_call;
+      cause = establishment_resume_cause_t::mo_video_call;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mo_sms:
-      cause = establishment_cause_t::mo_sms;
+      cause = establishment_resume_cause_t::mo_sms;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mps_prio_access:
-      cause = establishment_cause_t::mps_prio_access;
+      cause = establishment_resume_cause_t::mps_prio_access;
       break;
     case asn1::rrc_nr::establishment_cause_opts::options::mcs_prio_access:
-      cause = establishment_cause_t::mcs_prio_access;
+      cause = establishment_resume_cause_t::mcs_prio_access;
       break;
     default:
-      cause = establishment_cause_t::unknown;
+      cause = establishment_resume_cause_t::unknown;
+      break;
+  }
+
+  return cause;
+}
+
+establishment_resume_cause_t
+ocudu::ocucp::asn1_to_resume_cause(const asn1::rrc_nr::resume_cause_opts::options& asn1_cause)
+{
+  establishment_resume_cause_t cause;
+  switch (asn1_cause) {
+    case asn1::rrc_nr::resume_cause_opts::options::emergency:
+      cause = establishment_resume_cause_t::emergency;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::high_prio_access:
+      cause = establishment_resume_cause_t::high_prio_access;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mt_access:
+      cause = establishment_resume_cause_t::mt_access;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mo_sig:
+      cause = establishment_resume_cause_t::mo_sig;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mo_data:
+      cause = establishment_resume_cause_t::mo_data;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mo_voice_call:
+      cause = establishment_resume_cause_t::mo_voice_call;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mo_video_call:
+      cause = establishment_resume_cause_t::mo_video_call;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mo_sms:
+      cause = establishment_resume_cause_t::mo_sms;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mps_prio_access:
+      cause = establishment_resume_cause_t::mps_prio_access;
+      break;
+    case asn1::rrc_nr::resume_cause_opts::options::mcs_prio_access:
+      cause = establishment_resume_cause_t::mcs_prio_access;
+      break;
+    default:
+      cause = establishment_resume_cause_t::unknown;
       break;
   }
 

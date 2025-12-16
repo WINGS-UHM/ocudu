@@ -105,7 +105,13 @@ cu_cp_amf_identifier_t asn1_to_amf_identifier(const asn1::fixed_bitstring<24>& a
 /// \brief Converts type ASN.1 establishment cause to common type.
 /// \param[in] asn1_cause ASN.1 establishment cause object.
 /// \return The common establishment cause object where the result of the conversion is stored.
-establishment_cause_t asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause);
+establishment_resume_cause_t
+asn1_to_establishment_cause(const asn1::rrc_nr::establishment_cause_opts::options& asn1_cause);
+
+/// \brief Converts type ASN.1 resume cause to common type.
+/// \param[in] asn1_cause ASN.1 resume cause object.
+/// \return The common resume cause object where the result of the conversion is stored.
+establishment_resume_cause_t asn1_to_resume_cause(const asn1::rrc_nr::resume_cause_opts::options& asn1_cause);
 
 /// \brief Converts type \c ran_paging_cycle to an RRC NR ASN.1 type.
 /// \param[in] ran_paging_cycle ran paging cycle object.

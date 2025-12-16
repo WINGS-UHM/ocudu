@@ -191,31 +191,31 @@ inline nr_cell_identity cu_cp_nrcgi_to_nr_cell_identity(asn1::ngap::nr_cgi_s& ng
   return nr_cell_identity::create(ngap_cgi.nr_cell_id.to_number()).value();
 }
 
-/// \brief Convert common type \c establishment_cause_t to ASN.1.
+/// \brief Convert common type \c establishment_resume_cause_t to ASN.1.
 /// \param[in] cause The common type establishment cause.
 /// \return The ASN.1 establishment cause.
-inline asn1::ngap::rrc_establishment_cause_e establishment_cause_to_asn1(establishment_cause_t cause)
+inline asn1::ngap::rrc_establishment_cause_e establishment_cause_to_asn1(establishment_resume_cause_t cause)
 {
   switch (cause) {
-    case establishment_cause_t::emergency:
+    case establishment_resume_cause_t::emergency:
       return asn1::ngap::rrc_establishment_cause_e::emergency;
-    case establishment_cause_t::high_prio_access:
+    case establishment_resume_cause_t::high_prio_access:
       return asn1::ngap::rrc_establishment_cause_e::high_prio_access;
-    case establishment_cause_t::mt_access:
+    case establishment_resume_cause_t::mt_access:
       return asn1::ngap::rrc_establishment_cause_e::mt_access;
-    case establishment_cause_t::mo_sig:
+    case establishment_resume_cause_t::mo_sig:
       return asn1::ngap::rrc_establishment_cause_e::mo_sig;
-    case establishment_cause_t::mo_data:
+    case establishment_resume_cause_t::mo_data:
       return asn1::ngap::rrc_establishment_cause_e::mo_data;
-    case establishment_cause_t::mo_voice_call:
+    case establishment_resume_cause_t::mo_voice_call:
       return asn1::ngap::rrc_establishment_cause_e::mo_voice_call;
-    case establishment_cause_t::mo_video_call:
+    case establishment_resume_cause_t::mo_video_call:
       return asn1::ngap::rrc_establishment_cause_e::mo_video_call;
-    case establishment_cause_t::mo_sms:
+    case establishment_resume_cause_t::mo_sms:
       return asn1::ngap::rrc_establishment_cause_e::mo_sms;
-    case establishment_cause_t::mps_prio_access:
+    case establishment_resume_cause_t::mps_prio_access:
       return asn1::ngap::rrc_establishment_cause_e::mps_prio_access;
-    case establishment_cause_t::mcs_prio_access:
+    case establishment_resume_cause_t::mcs_prio_access:
       return asn1::ngap::rrc_establishment_cause_e::mcs_prio_access;
     default:
       return asn1::ngap::rrc_establishment_cause_e::not_available;

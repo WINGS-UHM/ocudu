@@ -73,9 +73,12 @@ inline std::string format_rrc_metrics(const std::vector<cu_cp_metrics_report::du
     fmt::format_to(std::back_inserter(buffer), " gnb_du_id={}", gnb_du_id_to_int(du_info.id));
 
     fmt::format_to(std::back_inserter(buffer),
-                   " mean_nof_rrc_connections={} max_nof_rrc_connections={}",
+                   " mean_nof_rrc_connections={} max_nof_rrc_connections={} mean_nof_inactive_rrc_connections={} "
+                   "max_nof_inactive_rrc_connections={}",
                    du_info.rrc_metrics.mean_nof_rrc_connections,
-                   du_info.rrc_metrics.max_nof_rrc_connections);
+                   du_info.rrc_metrics.max_nof_rrc_connections,
+                   du_info.rrc_metrics.mean_nof_inactive_rrc_connections,
+                   du_info.rrc_metrics.max_nof_inactive_rrc_connections);
 
     fmt::format_to(std::back_inserter(buffer), " attempted_rrc_connection_establishments=[");
     unsigned cause_index = 0;

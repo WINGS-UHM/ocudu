@@ -16,8 +16,7 @@
 #include "ocudu/rrc/rrc_metrics.h"
 #include "ocudu/rrc/rrc_ue.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// RRC DU cell information extracted from the SIB1 message.
 struct rrc_cell_info {
@@ -110,14 +109,18 @@ public:
   /// \brief Add the successful RRC setup to the metrics.
   /// \param[in] cause The establishment cause of the RRC connection. If this is given the connection establishment
   /// metrics are increased. Otherwise the connection metrics are increased.
-  virtual void handle_successful_rrc_setup(std::optional<establishment_cause_t> cause = std::nullopt) = 0;
+  virtual void handle_successful_rrc_setup(std::optional<establishment_resume_cause_t> cause = std::nullopt) = 0;
 
   /// \brief Add the successful RRC release to the metrics.
-  virtual void handle_successful_rrc_release() = 0;
+  /// \param[in] is_inactive True if the released RRC connection was in inactive state, false otherwise.
+  virtual void handle_successful_rrc_release(bool is_inactive = false) = 0;
+
+  /// \brief Add the RRC inactive transition to the metrics.
+  virtual void handle_rrc_inactive() = 0;
 
   /// \brief Add the attempted RRC connection establishment to the metrics.
   /// \param[in] cause The establishment cause of the RRC connection.
-  virtual void handle_attempted_rrc_setup(establishment_cause_t cause) = 0;
+  virtual void handle_attempted_rrc_setup(establishment_resume_cause_t cause) = 0;
 
   /// \brief Add the attempted RRC connection re-establishment to the metrics.
   virtual void handle_attempted_rrc_reestablishment() = 0;
@@ -155,6 +158,4 @@ public:
   virtual rrc_du_metrics_collector&        get_rrc_du_metrics_collector()        = 0;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

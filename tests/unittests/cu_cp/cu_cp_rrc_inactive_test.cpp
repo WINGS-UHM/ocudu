@@ -270,6 +270,11 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_level_inactivity_message_received_then_u
 
   // Send F1AP UE Context Release Complete.
   ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
 }
 
 TEST_F(cu_cp_rrc_inactive_test,
@@ -283,6 +288,11 @@ TEST_F(cu_cp_rrc_inactive_test,
 
   // Send F1AP UE Context Release Complete.
   ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
 }
 
 TEST_F(cu_cp_rrc_inactive_test,
@@ -297,10 +307,20 @@ TEST_F(cu_cp_rrc_inactive_test,
 
   // Send F1AP UE Context Release Complete.
   ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existing_ue_is_found_and_resumed)
 {
+  // Check metrics for active RRC UE.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
   // Inject Inactivity Notification and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
 
@@ -309,6 +329,11 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
 
   // Send F1AP UE Context Release Complete.
   ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
 
   // Send Initial UL RRC Message containing RRC Resume Request.
   ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_ue_context_setup_request());

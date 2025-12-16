@@ -40,9 +40,9 @@ enum class cause_misc_t : uint8_t {
   unspecified
 };
 
-/// Provides the establishment cause for the RRCSetupRequest in accordance with the information received from upper
-/// layers, see TS 38.331 section 6.2.2.
-enum class establishment_cause_t : uint8_t {
+/// Provides the establishment/resume cause for the RRCSetupRequest/RRCResumeRequest in accordance with the information
+/// received from upper layers, see TS 38.331 section 6.2.2.
+enum class establishment_resume_cause_t : uint8_t {
   emergency = 0,
   high_prio_access,
   mt_access,
@@ -129,7 +129,7 @@ struct formatter<ocudu::cause_misc_t> {
 };
 
 template <>
-struct formatter<ocudu::establishment_cause_t> {
+struct formatter<ocudu::establishment_resume_cause_t> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -137,36 +137,36 @@ struct formatter<ocudu::establishment_cause_t> {
   }
 
   template <typename FormatContext>
-  auto format(ocudu::establishment_cause_t o, FormatContext& ctx) const
+  auto format(ocudu::establishment_resume_cause_t o, FormatContext& ctx) const
   {
-    if (o == ocudu::establishment_cause_t::emergency) {
+    if (o == ocudu::establishment_resume_cause_t::emergency) {
       return format_to(ctx.out(), "emergency");
     }
-    if (o == ocudu::establishment_cause_t::high_prio_access) {
+    if (o == ocudu::establishment_resume_cause_t::high_prio_access) {
       return format_to(ctx.out(), "high_prio_access");
     }
-    if (o == ocudu::establishment_cause_t::mt_access) {
+    if (o == ocudu::establishment_resume_cause_t::mt_access) {
       return format_to(ctx.out(), "mt_access");
     }
-    if (o == ocudu::establishment_cause_t::mo_sig) {
+    if (o == ocudu::establishment_resume_cause_t::mo_sig) {
       return format_to(ctx.out(), "mo_sig");
     }
-    if (o == ocudu::establishment_cause_t::mo_data) {
+    if (o == ocudu::establishment_resume_cause_t::mo_data) {
       return format_to(ctx.out(), "mo_data");
     }
-    if (o == ocudu::establishment_cause_t::mo_voice_call) {
+    if (o == ocudu::establishment_resume_cause_t::mo_voice_call) {
       return format_to(ctx.out(), "mo_voice_call");
     }
-    if (o == ocudu::establishment_cause_t::mo_video_call) {
+    if (o == ocudu::establishment_resume_cause_t::mo_video_call) {
       return format_to(ctx.out(), "mo_video_call");
     }
-    if (o == ocudu::establishment_cause_t::mo_sms) {
+    if (o == ocudu::establishment_resume_cause_t::mo_sms) {
       return format_to(ctx.out(), "mo_sms");
     }
-    if (o == ocudu::establishment_cause_t::mps_prio_access) {
+    if (o == ocudu::establishment_resume_cause_t::mps_prio_access) {
       return format_to(ctx.out(), "mps_prio_access");
     }
-    if (o == ocudu::establishment_cause_t::mcs_prio_access) {
+    if (o == ocudu::establishment_resume_cause_t::mcs_prio_access) {
       return format_to(ctx.out(), "mcs_prio_access");
     }
 

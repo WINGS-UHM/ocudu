@@ -282,17 +282,19 @@ void rrc_du_impl::remove_ue(ue_index_t ue_index)
     return;
   }
 
+  bool is_inactive = ue_it->second->get_rrc_state() == rrc_state::connected_inactive;
+
   // Delete RRC UE to RRC DU adapter.
   rrc_ue_rrc_du_adapters.erase(ue_index);
 
   // Notify metrics.
-  metrics_aggregator.aggregate_successful_rrc_release();
+  metrics_aggregator.aggregate_successful_rrc_release(is_inactive);
 
   // Delete RRC UE.
   ue_db.erase(ue_it);
 }
 
-void rrc_du_impl::handle_successful_rrc_setup(std::optional<establishment_cause_t> cause)
+void rrc_du_impl::handle_successful_rrc_setup(std::optional<establishment_resume_cause_t> cause)
 {
   if (cause.has_value()) {
     metrics_aggregator.aggregate_successful_connection_establishment(cause.value());
@@ -301,12 +303,17 @@ void rrc_du_impl::handle_successful_rrc_setup(std::optional<establishment_cause_
   metrics_aggregator.aggregate_successful_rrc_setup();
 }
 
-void rrc_du_impl::handle_successful_rrc_release()
+void rrc_du_impl::handle_successful_rrc_release(bool is_inactive)
 {
-  metrics_aggregator.aggregate_successful_rrc_release();
+  metrics_aggregator.aggregate_successful_rrc_release(is_inactive);
 }
 
-void rrc_du_impl::handle_attempted_rrc_setup(establishment_cause_t cause)
+void rrc_du_impl::handle_rrc_inactive()
+{
+  metrics_aggregator.aggregate_successful_rrc_inactive();
+}
+
+void rrc_du_impl::handle_attempted_rrc_setup(establishment_resume_cause_t cause)
 {
   metrics_aggregator.aggregate_attempted_connection_establishment(cause);
 }

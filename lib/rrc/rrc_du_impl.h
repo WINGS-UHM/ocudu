@@ -16,9 +16,7 @@
 #include "ocudu/rrc/rrc_du.h"
 #include <unordered_map>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Adapter between RRC UE and RRC DU.
 class rrc_ue_rrc_du_adapter : public rrc_ue_event_notifier
@@ -30,14 +28,19 @@ public:
 
   void on_new_rrc_connection() override { metrics_handler.handle_successful_rrc_setup(); }
 
-  void on_successful_rrc_release() override { metrics_handler.handle_successful_rrc_release(); }
+  void on_successful_rrc_release(bool is_inactive = false) override
+  {
+    metrics_handler.handle_successful_rrc_release(is_inactive);
+  }
 
-  void on_attempted_rrc_connection_establishment(establishment_cause_t cause) override
+  void on_rrc_inactive() override { metrics_handler.handle_rrc_inactive(); }
+
+  void on_attempted_rrc_connection_establishment(establishment_resume_cause_t cause) override
   {
     metrics_handler.handle_attempted_rrc_setup(cause);
   }
 
-  void on_successful_rrc_connection_establishment(establishment_cause_t cause) override
+  void on_successful_rrc_connection_establishment(establishment_resume_cause_t cause) override
   {
     metrics_handler.handle_successful_rrc_setup(cause);
   }
@@ -95,9 +98,10 @@ public:
   void remove_ue(ue_index_t ue_index) override;
 
   // rrc_du_connection_event_handler.
-  void handle_successful_rrc_setup(std::optional<establishment_cause_t> cause) override;
-  void handle_successful_rrc_release() override;
-  void handle_attempted_rrc_setup(establishment_cause_t cause) override;
+  void handle_successful_rrc_setup(std::optional<establishment_resume_cause_t> cause) override;
+  void handle_successful_rrc_release(bool is_inactive = false) override;
+  void handle_rrc_inactive() override;
+  void handle_attempted_rrc_setup(establishment_resume_cause_t cause) override;
   void handle_attempted_rrc_reestablishment() override;
   void handle_successful_rrc_reestablishment() override;
   void handle_successful_rrc_reestablishment_fallback() override;
@@ -127,6 +131,4 @@ private:
   rrc_du_metrics_aggregator metrics_aggregator;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -574,8 +574,9 @@ TEST_F(cu_cp_connectivity_test, when_ng_f1_e1_are_setup_then_ues_can_attach)
   rnti_t              crnti         = to_rnti(0x4601);
   get_du(du_idx).push_ul_pdu(test_helpers::generate_init_ul_rrc_message_transfer(du_ue_f1ap_id, crnti));
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
-            1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.get_count(establishment_resume_cause_t::mo_sig),
+      1);
 
   // Verify F1AP DL RRC Message is sent with RRC Setup.
   f1ap_message f1ap_pdu;
@@ -592,9 +593,11 @@ TEST_F(cu_cp_connectivity_test, when_ng_f1_e1_are_setup_then_ues_can_attach)
   get_du(du_idx).push_rrc_ul_dcch_message(
       du_ue_f1ap_id, srb_id_t::srb1, test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()));
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
-            1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.get_count(establishment_resume_cause_t::mo_sig),
+      1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
+                establishment_resume_cause_t::mo_sig),
             1);
 }
 

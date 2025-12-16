@@ -10,6 +10,7 @@
 
 #include "rrc_resume_procedure.h"
 #include "rrc_setup_procedure.h"
+#include "ue/rrc_asn1_converters.h"
 #include "ue/rrc_asn1_helpers.h"
 #include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
 #include "ocudu/asn1/rrc_nr/nr_ue_variables.h"
@@ -103,7 +104,7 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
 
 async_task<void> rrc_resume_procedure::handle_rrc_resume_fallback()
 {
-  context.connection_cause = establishment_cause_t::mt_access;
+  context.connection_cause = asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause);
 
   return launch_async([this](coro_context<async_task<void>>& ctx) mutable {
     CORO_BEGIN(ctx);

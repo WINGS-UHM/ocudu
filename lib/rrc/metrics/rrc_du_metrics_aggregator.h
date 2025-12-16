@@ -17,8 +17,7 @@
 #include <cmath>
 #include <map>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 inline std::chrono::milliseconds get_current_time()
 {
@@ -26,8 +25,8 @@ inline std::chrono::milliseconds get_current_time()
 }
 
 struct rrc_connection_establishment_metrics {
-  rrc_connection_establishment_counter_with_cause attempted_rrc_connection_establishments;
-  rrc_connection_establishment_counter_with_cause successful_rrc_connection_establishments;
+  rrc_connection_counter_with_cause attempted_rrc_connection_establishments;
+  rrc_connection_counter_with_cause successful_rrc_connection_establishments;
 };
 
 struct rrc_connection_reestablishment_metrics {
@@ -44,11 +43,15 @@ public:
 
   void aggregate_successful_rrc_setup();
 
-  void aggregate_successful_rrc_release();
+  void aggregate_successful_rrc_release(bool is_inactive = false);
 
-  void aggregate_attempted_connection_establishment(establishment_cause_t cause);
+  void aggregate_successful_rrc_inactive();
 
-  void aggregate_successful_connection_establishment(establishment_cause_t cause);
+  void aggregate_successful_rrc_resume();
+
+  void aggregate_attempted_connection_establishment(establishment_resume_cause_t cause);
+
+  void aggregate_successful_connection_establishment(establishment_resume_cause_t cause);
 
   void aggregate_attempted_connection_reestablishment();
 
@@ -148,9 +151,9 @@ private:
   };
 
   rrc_connection_metrics_aggregator      connection_metrics;
+  rrc_connection_metrics_aggregator      inactive_connection_metrics;
   rrc_connection_establishment_metrics   connection_establishment_metrics;
   rrc_connection_reestablishment_metrics connection_reestablishment_metrics;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

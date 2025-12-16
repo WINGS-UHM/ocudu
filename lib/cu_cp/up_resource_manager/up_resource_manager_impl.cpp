@@ -223,7 +223,7 @@ std::vector<pdu_session_id_t> up_resource_manager::get_pdu_sessions() const
 void up_resource_manager::refresh_drb_id_after_key_change()
 {
   // Clear all DRBs.
-  context.drb_dirty = {};
+  context.drb_dirty.reset();
 
   // Mark all used DRBs as dirty.
   for (auto& drb : context.drb_map) {

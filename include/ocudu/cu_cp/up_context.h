@@ -58,7 +58,7 @@ struct up_context {
   std::map<drb_id_t, pdu_session_id_t> drb_map;      // Maps DRB ID to corresponding PDU session.
   std::map<qos_flow_id_t, drb_id_t>    qos_flow_map; // Maps QoS flow to corresponding DRB.
 
-  std::array<bool, MAX_NOF_DRBS> drb_dirty = {};
+  std::bitset<MAX_NOF_DRBS> drb_dirty;
 };
 
 } // namespace ocucp

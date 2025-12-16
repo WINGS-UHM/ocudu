@@ -415,6 +415,6 @@ using coro_context = detail::base_coro_frame<typename FutureType::promise_type>;
   return
 #define CORO_EARLY_RETURN(...)                                                                                         \
   coro_context__.promise().return_value(__VA_ARGS__);                                                                  \
-  CORO_ENTER_FINAL_SUSPEND_();
+  CORO_ENTER_FINAL_SUSPEND_()
 
 } // namespace ocudu

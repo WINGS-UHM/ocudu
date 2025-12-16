@@ -459,9 +459,7 @@ pages:
   extends: build docusaurus
   environment:
     name: pages
-    url: https://ocudu.gitlab.io/ocudu
-  variables:
-    BASE_URL: /$CI_PROJECT_NAME/
+    url: $CI_PAGES_URL
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: always # Even if previous stages/required jobs fail

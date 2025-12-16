@@ -3,7 +3,7 @@ const { themes } = require('prism-react-renderer');
 const gitlab_namespace = 'ocudu';
 const gitlab_project = 'ocudu';
 const url = `https://${gitlab_namespace}.gitlab.io/`;
-const baseUrl = process.env.BASE_URL || `/${gitlab_project}/`;
+const baseUrl = process.env.BASE_URL || '/';
 const version = process.env.CI_COMMIT_SHORT_SHA || 'local';
 const gitlab_repo_url = `https://gitlab.com/${gitlab_namespace}/${gitlab_project}`;
 

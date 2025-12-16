@@ -130,6 +130,22 @@ public:
 
   /// \brief Add the successful RRC connection re-establishment fallback to the metrics.
   virtual void handle_successful_rrc_reestablishment_fallback() = 0;
+
+  /// \brief Add the attempted RRC connection resume to the metrics.
+  virtual void handle_attempted_rrc_resume(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Add the RRC resume to the metrics.
+  /// \param[in] cause The resume cause of the RRC connection resume.
+  virtual void handle_successful_rrc_resume(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Add the successful RRC connection resume with fallback to the metrics.
+  virtual void handle_successful_rrc_resume_with_fallback(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Add the RRC connection resume followed by network release to the metrics.
+  virtual void handle_rrc_resume_followed_by_network_release(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Add the attempted RRC connection resume followed by RRC setup to the metrics.
+  virtual void handle_attempted_rrc_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) = 0;
 };
 
 class rrc_du_metrics_collector

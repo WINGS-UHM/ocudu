@@ -35,6 +35,14 @@ struct rrc_connection_reestablishment_metrics {
   unsigned successful_rrc_connection_reestablishments_without_ue_context = 0;
 };
 
+struct rrc_connection_resume_metrics {
+  rrc_connection_counter_with_cause attempted_rrc_connection_resumes;
+  rrc_connection_counter_with_cause successful_rrc_connection_resumes;
+  rrc_connection_counter_with_cause successful_rrc_connection_resumes_with_fallback;
+  rrc_connection_counter_with_cause rrc_connection_resumes_followed_by_network_release;
+  rrc_connection_counter_with_cause attempted_rrc_connection_resumes_followed_by_rrc_setup;
+};
+
 class rrc_du_metrics_aggregator : public rrc_du_metrics_collector
 {
 public:
@@ -56,6 +64,16 @@ public:
   void aggregate_attempted_connection_reestablishment();
 
   void aggregate_successful_connection_reestablishment(bool with_ue_context);
+
+  void aggregate_attempted_connection_resume(establishment_resume_cause_t cause);
+
+  void aggregate_successful_connection_resume(establishment_resume_cause_t cause);
+
+  void aggregate_successful_connection_resume_with_fallback(establishment_resume_cause_t cause);
+
+  void aggregate_connection_resume_followed_by_network_release(establishment_resume_cause_t cause);
+
+  void aggregate_attempted_connection_resume_followed_by_rrc_setup(establishment_resume_cause_t cause);
 
   void collect_metrics(rrc_du_metrics& metrics) override;
 
@@ -154,6 +172,7 @@ private:
   rrc_connection_metrics_aggregator      inactive_connection_metrics;
   rrc_connection_establishment_metrics   connection_establishment_metrics;
   rrc_connection_reestablishment_metrics connection_reestablishment_metrics;
+  rrc_connection_resume_metrics          connection_resume_metrics;
 };
 
 } // namespace ocudu::ocucp

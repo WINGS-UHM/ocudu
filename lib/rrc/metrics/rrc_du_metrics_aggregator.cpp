@@ -69,6 +69,33 @@ void rrc_du_metrics_aggregator::aggregate_successful_connection_reestablishment(
   }
 }
 
+void rrc_du_metrics_aggregator::aggregate_attempted_connection_resume(establishment_resume_cause_t cause)
+{
+  connection_resume_metrics.attempted_rrc_connection_resumes.increase(cause);
+}
+
+void rrc_du_metrics_aggregator::aggregate_successful_connection_resume(establishment_resume_cause_t cause)
+{
+  connection_resume_metrics.successful_rrc_connection_resumes.increase(cause);
+}
+
+void rrc_du_metrics_aggregator::aggregate_successful_connection_resume_with_fallback(establishment_resume_cause_t cause)
+{
+  connection_resume_metrics.successful_rrc_connection_resumes_with_fallback.increase(cause);
+}
+
+void rrc_du_metrics_aggregator::aggregate_connection_resume_followed_by_network_release(
+    establishment_resume_cause_t cause)
+{
+  connection_resume_metrics.rrc_connection_resumes_followed_by_network_release.increase(cause);
+}
+
+void rrc_du_metrics_aggregator::aggregate_attempted_connection_resume_followed_by_rrc_setup(
+    establishment_resume_cause_t cause)
+{
+  connection_resume_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.increase(cause);
+}
+
 void rrc_du_metrics_aggregator::collect_metrics(rrc_du_metrics& metrics)
 {
   metrics.mean_nof_rrc_connections          = connection_metrics.get_mean_nof_rrc_connections();
@@ -85,6 +112,14 @@ void rrc_du_metrics_aggregator::collect_metrics(rrc_du_metrics& metrics)
       connection_reestablishment_metrics.successful_rrc_connection_reestablishments_with_ue_context;
   metrics.successful_rrc_connection_reestablishments_without_ue_context =
       connection_reestablishment_metrics.successful_rrc_connection_reestablishments_without_ue_context;
+  metrics.attempted_rrc_connection_resumes  = connection_resume_metrics.attempted_rrc_connection_resumes;
+  metrics.successful_rrc_connection_resumes = connection_resume_metrics.successful_rrc_connection_resumes;
+  metrics.successful_rrc_connection_resumes_with_fallback =
+      connection_resume_metrics.successful_rrc_connection_resumes_with_fallback;
+  metrics.rrc_connection_resumes_followed_by_network_release =
+      connection_resume_metrics.rrc_connection_resumes_followed_by_network_release;
+  metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup =
+      connection_resume_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup;
   connection_metrics.reset();
   inactive_connection_metrics.reset();
 }

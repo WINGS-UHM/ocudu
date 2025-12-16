@@ -156,11 +156,18 @@ void rrc_ue_impl::handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request
 
 void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg)
 {
+  // Notify metrics about attempted RRC connection resume.
+  metrics_notifier.on_attempted_rrc_connection_resume(asn1_to_resume_cause(msg.rrc_resume_request.resume_cause));
+
   // If the DU to CU container is missing, assume the DU can't serve the UE, so the CU-CP should reject the UE, see
   // TS 38.473 section 8.4.1.2.
   if (du_to_cu_container.empty()) {
     // Reject and release the UE.
     logger.log_debug("Sending rrcReject. Cause: DU is not able to serve the UE");
+    // Notify metrics about RRC connection resume followed by network release.
+    metrics_notifier.on_rrc_connection_resume_followed_by_network_release(
+        asn1_to_resume_cause(msg.rrc_resume_request.resume_cause));
+
     on_ue_release_required(ngap_cause_radio_network_t::unspecified);
     return;
   }

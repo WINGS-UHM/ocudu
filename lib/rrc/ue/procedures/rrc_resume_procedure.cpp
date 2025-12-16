@@ -57,6 +57,12 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
   // Verify if we are in conditions for a Resume, or should opt for RRC Setup as fallback.
   if (not is_resume_accepted()) {
     CORO_AWAIT(handle_rrc_resume_fallback());
+    // Notify metrics about successful RRC connection resume with fallback.
+    metrics_notifier.on_successful_rrc_connection_resume_with_fallback(
+        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
+    // Notify metrics about attempted RRC connection resume followed by RRC setup.
+    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(
+        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
     logger.log_debug("\"{}\" finished successfully", name());
     CORO_EARLY_RETURN();
   }
@@ -73,6 +79,12 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   if (!rrc_resume_context.success) {
     CORO_AWAIT(handle_rrc_resume_fallback());
+    // Notify metrics about successful RRC connection resume with fallback.
+    metrics_notifier.on_successful_rrc_connection_resume_with_fallback(
+        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
+    // Notify metrics about attempted RRC connection resume followed by RRC setup.
+    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(
+        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
     logger.log_debug("\"{}\" finished successfully", name());
     CORO_EARLY_RETURN();
   }
@@ -91,6 +103,10 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   if (transaction.has_response()) {
     context.state = rrc_state::connected;
+
+    // Notify metrics about successful RRC connection resume.
+    metrics_notifier.on_successful_rrc_connection_resume(
+        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
 
     logger.log_info("\"{}\" finished successfully", name());
 

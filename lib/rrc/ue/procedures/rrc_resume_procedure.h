@@ -60,18 +60,18 @@ private:
 
   void log_rejected_resume(const char* cause_str);
 
-  const asn1::rrc_nr::rrc_resume_request_s& resume_request;
-  rrc_ue_context_t&                         context;
-  const byte_buffer&                        du_to_cu_container;
-  rrc_ue_setup_proc_notifier&               rrc_ue_setup_notifier;
-  rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier; // handler to the parent RRC UE object
-  rrc_ue_control_message_handler&           srb_notifier;           // for creating SRBs
-  rrc_ue_context_update_notifier&           cu_cp_notifier;         // notifier to the CU-CP
-  rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier;      // notifier to the CU-CP UE
-  rrc_ue_event_notifier&                    metrics_notifier;       // metrics notifier
-  rrc_ue_ngap_notifier&                     ngap_notifier;          // notifier to the NGAP
-  rrc_ue_event_manager&                     event_mng;              // event manager for the RRC UE entity
-  rrc_ue_logger&                            logger;
+  const asn1::rrc_nr::rrc_resume_request_s resume_request;
+  rrc_ue_context_t&                        context;
+  const byte_buffer&                       du_to_cu_container;
+  rrc_ue_setup_proc_notifier&              rrc_ue_setup_notifier;
+  rrc_ue_msg4_proc_notifier&               rrc_ue_resume_notifier; // handler to the parent RRC UE object
+  rrc_ue_control_message_handler&          srb_notifier;           // for creating SRBs
+  rrc_ue_context_update_notifier&          cu_cp_notifier;         // notifier to the CU-CP
+  rrc_ue_cu_cp_ue_notifier&                cu_cp_ue_notifier;      // notifier to the CU-CP UE
+  rrc_ue_event_notifier&                   metrics_notifier;       // metrics notifier
+  rrc_ue_ngap_notifier&                    ngap_notifier;          // notifier to the NGAP
+  rrc_ue_event_manager&                    event_mng;              // event manager for the RRC UE entity
+  rrc_ue_logger&                           logger;
 
   cu_cp_rrc_resume_request request;
 

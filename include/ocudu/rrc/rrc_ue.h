@@ -497,6 +497,21 @@ public:
 
   /// \brief Notify the RRC DU about the successful RRC connection re-establishment fallback.
   virtual void on_successful_rrc_connection_reestablishment_fallback() = 0;
+
+  /// \brief Notify the RRC DU about the attempted RRC connection resume.
+  virtual void on_attempted_rrc_connection_resume(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Notify the RRC DU about the successful RRC connection resume.
+  virtual void on_successful_rrc_connection_resume(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Notify the RRC DU about the successful RRC connection resume with fallback.
+  virtual void on_successful_rrc_connection_resume_with_fallback(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Notify the RRC DU about the RRC connection resume followed by network release.
+  virtual void on_rrc_connection_resume_followed_by_network_release(establishment_resume_cause_t cause) = 0;
+
+  /// \brief Notify the RRC DU about the attempted RRC connection resume followed by RRC setup.
+  virtual void on_attempted_rrc_connection_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) = 0;
 };
 
 /// Combined entry point for the RRC UE handling.

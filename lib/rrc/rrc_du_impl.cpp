@@ -333,6 +333,32 @@ void rrc_du_impl::handle_successful_rrc_reestablishment_fallback()
   metrics_aggregator.aggregate_successful_connection_reestablishment(false);
 }
 
+void rrc_du_impl::handle_attempted_rrc_resume(establishment_resume_cause_t cause)
+{
+  metrics_aggregator.aggregate_attempted_connection_resume(cause);
+}
+
+void rrc_du_impl::handle_successful_rrc_resume(establishment_resume_cause_t cause)
+{
+  metrics_aggregator.aggregate_successful_connection_resume(cause);
+  metrics_aggregator.aggregate_successful_rrc_resume();
+}
+
+void rrc_du_impl::handle_successful_rrc_resume_with_fallback(establishment_resume_cause_t cause)
+{
+  metrics_aggregator.aggregate_successful_connection_resume_with_fallback(cause);
+}
+
+void rrc_du_impl::handle_rrc_resume_followed_by_network_release(establishment_resume_cause_t cause)
+{
+  metrics_aggregator.aggregate_connection_resume_followed_by_network_release(cause);
+}
+
+void rrc_du_impl::handle_attempted_rrc_resume_followed_by_rrc_setup(establishment_resume_cause_t cause)
+{
+  metrics_aggregator.aggregate_attempted_connection_resume_followed_by_rrc_setup(cause);
+}
+
 void rrc_du_impl::release_ues()
 {
   // TODO: release all UEs connected to this RRC entity.

@@ -338,6 +338,11 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
   // Send Initial UL RRC Message containing RRC Resume Request.
   ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_ue_context_setup_request());
 
+  // Check metrics for attempted RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+
   // Send UE Context Setup Response and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_context_setup_response_and_await_bearer_context_modification_request());
 
@@ -346,4 +351,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
 
   // Send RRC Resume Complete.
   ASSERT_TRUE(send_rrc_resume_complete());
+
+  // Check metrics for successful RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 1);
 }

@@ -64,6 +64,12 @@ struct rrc_du_metrics {
   unsigned attempted_rrc_connection_reestablishments;
   unsigned successful_rrc_connection_reestablishments_with_ue_context;
   unsigned successful_rrc_connection_reestablishments_without_ue_context;
+  /// \brief RRC connection resume metrics, see TS 28.552 section 5.1.1.18.
+  rrc_connection_counter_with_cause attempted_rrc_connection_resumes;
+  rrc_connection_counter_with_cause successful_rrc_connection_resumes;
+  rrc_connection_counter_with_cause successful_rrc_connection_resumes_with_fallback;
+  rrc_connection_counter_with_cause rrc_connection_resumes_followed_by_network_release;
+  rrc_connection_counter_with_cause attempted_rrc_connection_resumes_followed_by_rrc_setup;
 };
 
 } // namespace ocudu

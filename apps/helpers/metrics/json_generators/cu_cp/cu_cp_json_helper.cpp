@@ -115,6 +115,16 @@ void to_json(nlohmann::json& json, const ocudu::cu_cp_metrics_report::du_info& m
       metrics.rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context;
   rrc_connection_reestablishment["successful_rrc_connection_reestablishments_without_ue_context"] =
       metrics.rrc_metrics.successful_rrc_connection_reestablishments_without_ue_context;
+
+  nlohmann::json& rrc_connection_resume                      = json["rrc_connection_resume"];
+  rrc_connection_resume["attempted_rrc_connection_resumes"]  = metrics.rrc_metrics.attempted_rrc_connection_resumes;
+  rrc_connection_resume["successful_rrc_connection_resumes"] = metrics.rrc_metrics.successful_rrc_connection_resumes;
+  rrc_connection_resume["successful_rrc_connection_resumes_with_fallback"] =
+      metrics.rrc_metrics.successful_rrc_connection_resumes_with_fallback;
+  rrc_connection_resume["rrc_connection_resumes_followed_by_network_release"] =
+      metrics.rrc_metrics.rrc_connection_resumes_followed_by_network_release;
+  rrc_connection_resume["attempted_rrc_connection_resumes_followed_by_rrc_setup"] =
+      metrics.rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup;
 }
 
 void to_json(nlohmann::json& json, const cu_cp_rrc_metrics_json& metrics)

@@ -67,19 +67,27 @@ TEST(metrics_handler_test, get_periodic_metrics_report_while_session_is_active)
   cu_cp_metrics_report::cell_info cell_info{
       nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create(0x22).value()}, pci_t{2}};
   establishment_resume_cause_t connection_cause{establishment_resume_cause_t::mt_access};
-  rrc_du_metrics               rrc_metrics{
-                    .mean_nof_rrc_connections                                      = 2,
-                    .max_nof_rrc_connections                                       = 4,
-                    .mean_nof_inactive_rrc_connections                             = 3,
-                    .max_nof_inactive_rrc_connections                              = 6,
-                    .attempted_rrc_connection_establishments                       = {},
-                    .successful_rrc_connection_establishments                      = {},
-                    .attempted_rrc_connection_reestablishments                     = 1,
-                    .successful_rrc_connection_reestablishments_with_ue_context    = 2,
-                    .successful_rrc_connection_reestablishments_without_ue_context = 3,
-  };
+  rrc_du_metrics               rrc_metrics{.mean_nof_rrc_connections                                      = 2,
+                                           .max_nof_rrc_connections                                       = 4,
+                                           .mean_nof_inactive_rrc_connections                             = 3,
+                                           .max_nof_inactive_rrc_connections                              = 6,
+                                           .attempted_rrc_connection_establishments                       = {},
+                                           .successful_rrc_connection_establishments                      = {},
+                                           .attempted_rrc_connection_reestablishments                     = 1,
+                                           .successful_rrc_connection_reestablishments_with_ue_context    = 2,
+                                           .successful_rrc_connection_reestablishments_without_ue_context = 3,
+                                           .attempted_rrc_connection_resumes                              = {},
+                                           .successful_rrc_connection_resumes                             = {},
+                                           .successful_rrc_connection_resumes_with_fallback               = {},
+                                           .rrc_connection_resumes_followed_by_network_release            = {},
+                                           .attempted_rrc_connection_resumes_followed_by_rrc_setup        = {}};
   rrc_metrics.attempted_rrc_connection_establishments.increase(connection_cause);
   rrc_metrics.successful_rrc_connection_establishments.increase(connection_cause);
+  rrc_metrics.attempted_rrc_connection_resumes.increase(connection_cause);
+  rrc_metrics.successful_rrc_connection_resumes.increase(connection_cause);
+  rrc_metrics.successful_rrc_connection_resumes_with_fallback.increase(connection_cause);
+  rrc_metrics.rrc_connection_resumes_followed_by_network_release.increase(connection_cause);
+  rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.increase(connection_cause);
   metrics_hdlr.next_metrics.dus.emplace_back(
       cu_cp_metrics_report::du_info{int_to_gnb_du_id(0), {cell_info}, rrc_metrics});
 
@@ -150,8 +158,18 @@ TEST(metrics_handler_test, get_periodic_metrics_report_while_session_is_active)
       "successful_rrc_connection_establishments=[ emergency=0 high_prio_access=0 mt_access=1 mo_sig=0 mo_data=0 "
       "mo_voice_call=0 mo_video_call=0 mo_sms=0 mps_prio_access=0 mcs_prio_access=0 unknown=0 ] "
       "attempted_rrc_connection_reestablishments=1 successful_rrc_connection_reestablishments_with_ue_context=2 "
-      "successful_rrc_connection_reestablishments_without_ue_context=3 ], nof_handover_executions_requested=2 "
-      "nof_successful_handover_executions=1";
+      "successful_rrc_connection_reestablishments_without_ue_context=3 "
+      "attempted_rrc_connection_resumes=[ emergency=0 high_prio_access=0 mt_access=1 mo_sig=0 mo_data=0 "
+      "mo_voice_call=0 mo_video_call=0 mo_sms=0 mps_prio_access=0 mcs_prio_access=0 unknown=0 ] "
+      "successful_rrc_connection_resumes=[ emergency=0 high_prio_access=0 mt_access=1 mo_sig=0 mo_data=0 "
+      "mo_voice_call=0 mo_video_call=0 mo_sms=0 mps_prio_access=0 mcs_prio_access=0 unknown=0 ] "
+      "successful_rrc_connection_resumes_with_fallback=[ emergency=0 high_prio_access=0 mt_access=1 mo_sig=0 mo_data=0 "
+      "mo_voice_call=0 mo_video_call=0 mo_sms=0 mps_prio_access=0 mcs_prio_access=0 unknown=0 ] "
+      "rrc_connection_resumes_followed_by_network_release=[ emergency=0 high_prio_access=0 mt_access=1 mo_sig=0 "
+      "mo_data=0 mo_voice_call=0 mo_video_call=0 mo_sms=0 mps_prio_access=0 mcs_prio_access=0 unknown=0 ] "
+      "attempted_rrc_connection_resumes_followed_by_rrc_setup=[ emergency=0 high_prio_access=0 mt_access=1 mo_sig=0 "
+      "mo_data=0 mo_voice_call=0 mo_video_call=0 mo_sms=0 mps_prio_access=0 mcs_prio_access=0 unknown=0 ] ], "
+      "nof_handover_executions_requested=2 nof_successful_handover_executions=1";
 
   for (unsigned i = 0; i != period.count(); ++i) {
     ASSERT_FALSE(metrics_notifier.last_metrics_report.has_value());
@@ -182,6 +200,21 @@ TEST(metrics_handler_test, get_periodic_metrics_report_while_session_is_active)
   ASSERT_EQ(metrics_notifier.last_metrics_report->dus[0]
                 .rrc_metrics.successful_rrc_connection_reestablishments_without_ue_context,
             3);
+  ASSERT_EQ(metrics_notifier.last_metrics_report->dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(
+                connection_cause),
+            1);
+  ASSERT_EQ(metrics_notifier.last_metrics_report->dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(
+                connection_cause),
+            1);
+  ASSERT_EQ(metrics_notifier.last_metrics_report->dus[0]
+                .rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(connection_cause),
+            1);
+  ASSERT_EQ(metrics_notifier.last_metrics_report->dus[0]
+                .rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(connection_cause),
+            1);
+  ASSERT_EQ(metrics_notifier.last_metrics_report->dus[0]
+                .rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.get_count(connection_cause),
+            1);
   ASSERT_EQ(metrics_notifier.last_metrics_report->ngaps.size(), 2);
   ASSERT_EQ(metrics_notifier.last_metrics_report->ngaps[0].amf_name, "open5gs-amf0");
   ASSERT_TRUE(metrics_notifier.last_metrics_report->ngaps[0].connected);

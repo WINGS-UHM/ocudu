@@ -110,6 +110,63 @@ inline std::string format_rrc_metrics(const std::vector<cu_cp_metrics_report::du
         du_info.rrc_metrics.attempted_rrc_connection_reestablishments,
         du_info.rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context,
         du_info.rrc_metrics.successful_rrc_connection_reestablishments_without_ue_context);
+
+    fmt::format_to(std::back_inserter(buffer), " attempted_rrc_connection_resumes=[");
+    cause_index = 0;
+    for (const auto& cause_count : du_info.rrc_metrics.attempted_rrc_connection_resumes) {
+      fmt::format_to(std::back_inserter(buffer),
+                     " {}={}",
+                     du_info.rrc_metrics.attempted_rrc_connection_resumes.get_cause(cause_index),
+                     cause_count);
+
+      ++cause_index;
+    }
+    fmt::format_to(std::back_inserter(buffer), " ]");
+
+    fmt::format_to(std::back_inserter(buffer), " successful_rrc_connection_resumes=[");
+    cause_index = 0;
+    for (const auto& cause_count : du_info.rrc_metrics.successful_rrc_connection_resumes) {
+      fmt::format_to(std::back_inserter(buffer),
+                     " {}={}",
+                     du_info.rrc_metrics.successful_rrc_connection_resumes.get_cause(cause_index),
+                     cause_count);
+      ++cause_index;
+    }
+    fmt::format_to(std::back_inserter(buffer), " ]");
+
+    fmt::format_to(std::back_inserter(buffer), " successful_rrc_connection_resumes_with_fallback=[");
+    cause_index = 0;
+    for (const auto& cause_count : du_info.rrc_metrics.successful_rrc_connection_resumes_with_fallback) {
+      fmt::format_to(std::back_inserter(buffer),
+                     " {}={}",
+                     du_info.rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_cause(cause_index),
+                     cause_count);
+      ++cause_index;
+    }
+    fmt::format_to(std::back_inserter(buffer), " ]");
+
+    fmt::format_to(std::back_inserter(buffer), " rrc_connection_resumes_followed_by_network_release=[");
+    cause_index = 0;
+    for (const auto& cause_count : du_info.rrc_metrics.rrc_connection_resumes_followed_by_network_release) {
+      fmt::format_to(std::back_inserter(buffer),
+                     " {}={}",
+                     du_info.rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_cause(cause_index),
+                     cause_count);
+      ++cause_index;
+    }
+    fmt::format_to(std::back_inserter(buffer), " ]");
+
+    fmt::format_to(std::back_inserter(buffer), " attempted_rrc_connection_resumes_followed_by_rrc_setup=[");
+    cause_index = 0;
+    for (const auto& cause_count : du_info.rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup) {
+      fmt::format_to(std::back_inserter(buffer),
+                     " {}={}",
+                     du_info.rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.get_cause(cause_index),
+                     cause_count);
+      ++cause_index;
+    }
+    fmt::format_to(std::back_inserter(buffer), " ]");
+
     fmt::format_to(std::back_inserter(buffer), " ],");
   }
 

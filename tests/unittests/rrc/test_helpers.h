@@ -175,6 +175,16 @@ public:
   void on_successful_rrc_connection_reestablishment() override {}
 
   void on_successful_rrc_connection_reestablishment_fallback() override {}
+
+  void on_attempted_rrc_connection_resume(establishment_resume_cause_t cause) override {}
+
+  void on_successful_rrc_connection_resume(establishment_resume_cause_t cause) override {}
+
+  void on_successful_rrc_connection_resume_with_fallback(establishment_resume_cause_t cause) override {}
+
+  void on_rrc_connection_resume_followed_by_network_release(establishment_resume_cause_t cause) override {}
+
+  void on_attempted_rrc_connection_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) override {}
 };
 
 } // namespace ocudu::ocucp

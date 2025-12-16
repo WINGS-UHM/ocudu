@@ -347,8 +347,8 @@ void pdcp_entity_tx::handle_sdu(byte_buffer buf)
   hdr.sn                   = SN(st.tx_next);
 
   // Pack header
-  if (not write_data_pdu_header(buf, hdr)) {
-    logger.log_error("Could not append PDU header, dropping SDU and notifying RRC. count={} {}", st.tx_next, st);
+  if (!prepend_data_pdu_header(buf, hdr)) {
+    logger.log_error("Could not add PDU header, dropping SDU and notifying RRC. count={} {}", st.tx_next, st);
     metrics.add_lost_sdus(1);
     upper_cn.on_protocol_failure();
     return;
@@ -627,10 +627,11 @@ void pdcp_entity_tx::consume_rohc_feedback(byte_buffer_chain rohc_feedback)
   // Remove header and handle the ROHC feedback.
   buf.trim_head(1);
 
+  size_t buf_len = buf.length();
   if (!rohc_comp->handle_feedback(std::move(buf))) {
-    logger.log_warning("Failed to handle ROHC feedback. buf_len={}", buf.length());
+    logger.log_warning("Failed to handle ROHC feedback. buf_len={}", buf_len);
   } else {
-    logger.log_debug("Handled ROHC feedback. buf_len={}", buf.length());
+    logger.log_debug("Handled ROHC feedback. buf_len={}", buf_len);
   }
 }
 
@@ -638,14 +639,12 @@ void pdcp_entity_tx::forward_rohc_feedback(byte_buffer rohc_feedback)
 {
   logger.log_debug(rohc_feedback.begin(), rohc_feedback.end(), "TX ROHC feedback. len={}", rohc_feedback.length());
 
-  // Add space for PDCP header.
-  rohc_feedback.reserve_prepend(1);
-  bit_encoder enc(rohc_feedback);
-
-  // Pack PDU header.
-  enc.pack(to_number(pdcp_dc_field::control), 1);
-  enc.pack(to_number(pdcp_control_pdu_type::interspersed_rohc_feedback), 3);
-  enc.pack(0b0000, 4);
+  // Pack header
+  if (!prepend_control_pdu_header(rohc_feedback, pdcp_control_pdu_type::interspersed_rohc_feedback)) {
+    logger.log_error("Could not add PDU header to ROHC feedback. {}", st);
+    upper_cn.on_protocol_failure();
+    return;
+  }
 
   // Forward to lower layers.
   write_control_pdu_to_lower_layers(std::move(rohc_feedback));
@@ -944,8 +943,8 @@ void pdcp_entity_tx::retransmit_all_pdus()
       hdr.sn                   = SN(count);
 
       // Pack header
-      if (not write_data_pdu_header(buf, hdr)) {
-        logger.log_error("Could not append PDU header, dropping SDU and notifying RRC. count={} {}", count, st);
+      if (!prepend_data_pdu_header(buf, hdr)) {
+        logger.log_error("Could not add PDU header, dropping SDU and notifying RRC. count={} {}", count, st);
         metrics.add_lost_sdus(1);
         upper_cn.on_protocol_failure();
         return;
@@ -1145,7 +1144,7 @@ uint32_t pdcp_entity_tx::notification_count_estimation(uint32_t notification_sn)
 /*
  * PDU Helpers
  */
-bool pdcp_entity_tx::write_data_pdu_header(byte_buffer& buf, const pdcp_data_pdu_header& hdr) const
+bool pdcp_entity_tx::prepend_data_pdu_header(byte_buffer& buf, const pdcp_data_pdu_header& hdr) const
 {
   // Sanity check: 18-bit SN not allowed for SRBs
   ocudu_assert(
@@ -1199,6 +1198,30 @@ bool pdcp_entity_tx::write_data_pdu_header(byte_buffer& buf, const pdcp_data_pdu
       logger.log_error("Invalid sn_size={}", cfg.sn_size);
       return false;
   }
+  return true;
+}
+
+bool pdcp_entity_tx::prepend_control_pdu_header(byte_buffer& buf, pdcp_control_pdu_type cpt) const
+{
+  constexpr size_t hdr_len = 1;
+  auto             view    = buf.reserve_prepend(hdr_len);
+  if (view.length() != hdr_len) {
+    logger.log_error("Not enough space to write control PDU header.");
+    return false;
+  }
+
+  byte_buffer::iterator hdr_writer = buf.begin();
+  if (hdr_writer == buf.end()) {
+    logger.log_error("Not enough space to write control PDU header.");
+    return false;
+  }
+
+  // D/C bit field (1).
+  *hdr_writer = (to_number(pdcp_dc_field::control) & 0x1) << 7;
+
+  // PDU type
+  *hdr_writer |= (to_number(cpt) & 0x3) << 4;
+
   return true;
 }
 

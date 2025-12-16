@@ -216,10 +216,15 @@ public:
    * Header helpers
    */
 
-  /// \brief Writes the header of a PDCP data PDU according to the content of the associated object
-  /// \param[out] buf Reference to a byte_buffer that is appended by the header bytes
-  /// \param[in] hdr Reference to a pdcp_data_pdu_header that represents the header content
-  [[nodiscard]] bool write_data_pdu_header(byte_buffer& buf, const pdcp_data_pdu_header& hdr) const;
+  /// \brief Prepend the header of a PDCP data PDU according to the content of the associated object.
+  /// \param[inout] buf Reference to a byte_buffer that is prepended by the header bytes.
+  /// \param[in] hdr Reference to a pdcp_data_pdu_header that represents the header content.
+  [[nodiscard]] bool prepend_data_pdu_header(byte_buffer& buf, const pdcp_data_pdu_header& hdr) const;
+
+  /// \brief Prepend the header of a PDCP control PDU.
+  /// \param[inout] buf Reference to a byte_buffer that is prepended by the header bytes.
+  /// \param[in] cpt Control PDU type.
+  [[nodiscard]] bool prepend_control_pdu_header(byte_buffer& buf, pdcp_control_pdu_type cpt) const;
 
   /*
    * Testing helpers

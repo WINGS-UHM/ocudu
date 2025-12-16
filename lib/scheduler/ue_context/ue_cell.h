@@ -66,7 +66,8 @@ public:
           cell_harq_manager&           cell_harq_pool,
           ue_shared_context            shared_ctx,
           const ue_cell_components&    components,
-          std::optional<slot_point>    msg3_slot_rx);
+          std::optional<slot_point>    msg3_slot_rx,
+          ocudulog::basic_logger&      logger_);
 
   const du_ue_index_t   ue_index;
   const du_cell_index_t cell_index;

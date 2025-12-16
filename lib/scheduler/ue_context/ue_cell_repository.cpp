@@ -85,7 +85,8 @@ ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
                                  &ue_mcs_calculators[ue_cfg.ue_index],
                                  &pusch_pwr_controllers[ue_cfg.ue_index],
                                  &pucch_pwr_controllers[ue_cfg.ue_index]},
-              msg3_slot_rx);
+              msg3_slot_rx,
+              logger);
   auto res = rnti_to_ue_index_lookup.insert(std::make_pair(ue_cfg.crnti, ue_cfg.ue_index));
   ocudu_assert(res.second, "UE with duplicate RNTI being added to the cell UE repository");
   return ues[ue_cfg.ue_index];

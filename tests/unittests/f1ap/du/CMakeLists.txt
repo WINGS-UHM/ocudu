@@ -43,4 +43,4 @@ target_link_libraries(f1ap_du_test
         f1ap_du_test_helpers
         gtest
         gtest_main)
-add_test(f1ap_du_test f1ap_du_test)
+gtest_discover_tests(f1ap_du_test PROPERTIES "LABELS;f1ap_du")

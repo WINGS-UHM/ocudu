@@ -13,6 +13,7 @@
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
+#include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
@@ -641,4 +642,185 @@ TEST_F(cu_cp_intra_du_handover_test, intra_cell_ho_test)
 
   // // STATUS: Source UE should be removed from DU.
   ASSERT_EQ(report.ues.size(), 1) << "Source UE should be removed";
+}
+
+class cu_cp_intra_cell_handover_after_drb_id_wraparound_test : public cu_cp_intra_du_handover_test
+{
+public:
+  [[nodiscard]] bool
+  setup_pdu_session(pdu_session_id_t psi_,
+                    drb_id_t         drb_id_,
+                    qos_flow_id_t    qfi_,
+                    byte_buffer      rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
+                    bool             is_initial_session_          = false)
+  {
+    return cu_cp_test_environment::setup_pdu_session(du_idx,
+                                                     cu_up_idx,
+                                                     du_ue_id,
+                                                     crnti,
+                                                     cu_up_e1ap_id,
+                                                     psi_,
+                                                     drb_id_,
+                                                     qfi_,
+                                                     std::move(rrc_reconfiguration_complete),
+                                                     is_initial_session_);
+  }
+
+  [[nodiscard]] bool release_pdu_session(pdu_session_id_t psi_,
+                                         drb_id_t         drb_id_,
+                                         qos_flow_id_t    qfi_,
+                                         byte_buffer      rrc_reconfiguration_complete_)
+  {
+    ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+    ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
+    ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                 "there are still E1AP messages to pop from CU-UP");
+
+    // Inject NGAP PDU Session Resource Release Command and await Bearer Context Modification Request
+    get_amf().push_tx_pdu(
+        generate_valid_pdu_session_resource_release_command(amf_ue_id, ue_ctx->ran_ue_id.value(), psi_));
+    bool result = this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu);
+    report_fatal_error_if_not(result, "Failed to receive Bearer Context Modification Request");
+    report_fatal_error_if_not(test_helpers::is_valid_bearer_context_modification_request(e1ap_pdu),
+                              "Invalid Bearer Context Modification Request");
+
+    // Inject Bearer Context Modification Response and wait for UE Context Modification Request
+    get_cu_up(cu_up_idx).push_tx_pdu(generate_bearer_context_modification_response(
+        ue_ctx->cu_cp_e1ap_id.value(), ue_ctx->cu_up_e1ap_id.value(), {{psi_, drb_test_params{drb_id_, qfi_}}}, {}));
+    result = this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu);
+    report_fatal_error_if_not(result, "Failed to receive UE Context Modification Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_modification_request(f1ap_pdu),
+                              "Invalid UE Context Modification Request");
+
+    // Inject UE Context Modification Response and await RRC Reconfiguration
+    get_du(du_idx).push_ul_pdu(
+        test_helpers::generate_ue_context_modification_response(du_ue_id, ue_ctx->cu_ue_id.value(), crnti));
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive F1AP DL RRC Message (containing RRC Reconfiguration)");
+    report_fatal_error_if_not(test_helpers::is_valid_dl_rrc_message_transfer(f1ap_pdu),
+                              "Invalid DL RRC Message Transfer");
+    {
+      const byte_buffer& rrc_container = test_helpers::get_rrc_container(f1ap_pdu);
+      report_fatal_error_if_not(
+          test_helpers::is_valid_rrc_reconfiguration(test_helpers::extract_dl_dcch_msg(rrc_container), {}, {}),
+          "Invalid RRC Reconfiguration");
+    }
+
+    // Inject RRC Reconfiguration Complete and await PDU Session Resource Release Response
+    get_du(du_idx).push_ul_pdu(test_helpers::generate_ul_rrc_message_transfer(
+        du_ue_id, ue_ctx->cu_ue_id.value(), srb_id_t::srb1, std::move(rrc_reconfiguration_complete_)));
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu, std::chrono::milliseconds(10000)),
+                              "Failed to receive PDU Session Resource Release Response");
+    report_fatal_error_if_not(test_helpers::is_valid_pdu_session_resource_release_response(ngap_pdu),
+                              "Invalid PDU Session Resource Release Response");
+    return true;
+  }
+
+  void increment_count_and_transaction_id()
+  {
+    count++;
+    if (transaction_id < 3) {
+      ++transaction_id;
+    } else {
+      transaction_id = 0;
+    }
+  }
+
+  unsigned transaction_id = 0;
+  uint8_t  count          = 8;
+};
+
+TEST_F(cu_cp_intra_cell_handover_after_drb_id_wraparound_test,
+       when_too_many_stale_drb_ids_are_present_intra_cell_handover_will_be_triggerred_proactively)
+{
+  // UE is already attached and one PDU session with one DRB is setup
+  // No intra-cell handover has been triggered yet.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.mobility.nof_handover_executions_requested, 0U);
+  ASSERT_EQ(report.mobility.nof_successful_handover_executions, 0U);
+
+  // Add and remove PDU session 2-23 with one DRB (22 times):
+  for (uint8_t i = 2; i <= 23; i++) {
+    ASSERT_TRUE(
+        cu_cp_test_environment::setup_pdu_session(du_idx,
+                                                  cu_up_idx,
+                                                  du_ue_id,
+                                                  crnti,
+                                                  cu_up_e1ap_id,
+                                                  uint_to_pdu_session_id(i),
+                                                  uint_to_drb_id(i),
+                                                  uint_to_qos_flow_id(i),
+                                                  generate_rrc_reconfiguration_complete_pdu(transaction_id, count),
+                                                  false));
+
+    increment_count_and_transaction_id();
+    ASSERT_TRUE(release_pdu_session(uint_to_pdu_session_id(i),
+                                    uint_to_drb_id(i),
+                                    uint_to_qos_flow_id(i),
+                                    generate_rrc_reconfiguration_complete_pdu(transaction_id, count)));
+    increment_count_and_transaction_id();
+
+    // Check that intra-cell HO was not triggered yet
+    ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
+    ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU ");
+    ocudu_assert(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                 "there are still E1AP messages to pop from CU-UP");
+  }
+
+  // 1 DRB ID is still in use.
+  // 22 DRB IDs are stale - used and released by PDU Sessions 2-23.
+  // 6 DRB IDs are left available, but UE may need add up to 7 more DRBs.
+  // Next PDU Session Resource Setup Procedure with one DRB should trigger intra-cell HO at the end.
+  uint16_t next_drb_id = 24;
+  ASSERT_TRUE(setup_pdu_session(uint_to_pdu_session_id(next_drb_id),
+                                uint_to_drb_id(next_drb_id),
+                                uint_to_qos_flow_id(next_drb_id),
+                                generate_rrc_reconfiguration_complete_pdu(transaction_id, count),
+                                false));
+  increment_count_and_transaction_id();
+
+  // intra-cell HO is triggered
+  report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu), "Failed to receive UE Context Setup Request");
+  report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request_with_ue_capabilities(f1ap_pdu),
+                            "Invalid UE Context Setup Request");
+
+  // Inject UE Context Setup Response and await UE Context Modification Request.
+  target_du_ue_id = int_to_gnb_du_ue_f1ap_id(2);
+  target_cu_ue_id = int_to_gnb_cu_ue_f1ap_id(1);
+  crnti           = to_rnti(0x4602);
+  ASSERT_TRUE(send_ue_context_setup_response_and_await_ue_context_modification_request());
+
+  // Inject UE Context Modification Response.
+  crnti = to_rnti(0x4602);
+  ASSERT_TRUE(send_ue_context_modification_response());
+
+  // Check that the metrics report contains a requested handover execution.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.mobility.nof_handover_executions_requested, 1U);
+  ASSERT_EQ(report.mobility.nof_successful_handover_executions, 0U);
+
+  // Inject RRC Reconfiguration Complete and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_bearer_context_modification_request("00000a00ff014561"));
+
+  // Inject Bearer Context Modification Response and await UE Context Modification Request.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_modification_request());
+
+  // STATUS: Source UE is still present in DU.
+  ASSERT_EQ(report.ues.size(), 2) << "Source UE should be still present";
+
+  // // Inject UE Context Modification Response and await UE Context Release Command.
+  ASSERT_TRUE(send_ue_context_modification_response_and_await_ue_context_release_command());
+
+  // // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+
+  // // Check that the metrics report contains a successful handover execution.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.mobility.nof_successful_handover_executions, 1U);
+
+  // // STATUS: Source UE should be removed from DU.
+  ASSERT_EQ(report.ues.size(), 1) << "Source UE should be removed";
+
+  // report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.mobility.nof_successful_handover_executions, 1U);
 }

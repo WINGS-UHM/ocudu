@@ -116,7 +116,8 @@ f1ap_message
 generate_ue_context_setup_response(gnb_cu_ue_f1ap_id_t   cu_ue_id,
                                    gnb_du_ue_f1ap_id_t   du_ue_id,
                                    std::optional<rnti_t> crnti             = std::nullopt,
-                                   byte_buffer           cell_group_config = test_helpers::create_cell_group_config());
+                                   byte_buffer           cell_group_config = test_helpers::create_cell_group_config(),
+                                   const std::vector<drb_id_t>& drbs_setup_list = {});
 
 /// \brief Generates dummy F1AP UE CONTEXT SETUP FAILURE message, sent by the DU to the CU, as per TS 38.473
 /// section 8.3.1.3.

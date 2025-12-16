@@ -377,10 +377,11 @@ f1ap_message ocudu::test_helpers::generate_ue_context_setup_request(gnb_cu_ue_f1
   return msg;
 }
 
-f1ap_message ocudu::test_helpers::generate_ue_context_setup_response(gnb_cu_ue_f1ap_id_t   cu_ue_id,
-                                                                     gnb_du_ue_f1ap_id_t   du_ue_id,
-                                                                     std::optional<rnti_t> crnti,
-                                                                     byte_buffer           cell_group_config)
+f1ap_message ocudu::test_helpers::generate_ue_context_setup_response(gnb_cu_ue_f1ap_id_t          cu_ue_id,
+                                                                     gnb_du_ue_f1ap_id_t          du_ue_id,
+                                                                     std::optional<rnti_t>        crnti,
+                                                                     byte_buffer                  cell_group_config,
+                                                                     const std::vector<drb_id_t>& drbs_setup_list)
 {
   f1ap_message ue_context_setup_response = {};
 
@@ -397,6 +398,13 @@ f1ap_message ocudu::test_helpers::generate_ue_context_setup_response(gnb_cu_ue_f
   }
 
   ue_context_setup_resp->du_to_cu_rrc_info.cell_group_cfg = cell_group_config.copy();
+
+  ue_context_setup_resp->drbs_setup_list_present = !drbs_setup_list.empty();
+  for (const auto& drb : drbs_setup_list) {
+    ue_context_setup_resp->drbs_setup_list.push_back({});
+    ue_context_setup_resp->drbs_setup_list.back().load_info_obj(ASN1_F1AP_ID_DRBS_SETUP_ITEM);
+    ue_context_setup_resp->drbs_setup_list.back().value().drbs_setup_item().drb_id = drb_id_to_uint(drb);
+  }
 
   return ue_context_setup_response;
 }

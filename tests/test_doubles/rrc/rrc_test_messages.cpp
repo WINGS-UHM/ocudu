@@ -45,6 +45,34 @@ ocudu::test_helpers::create_rrc_reestablishment_request(rnti_t old_crnti, pci_t 
   return msg;
 }
 
+ul_ccch_msg_s ocudu::test_helpers::create_rrc_resume_request(uint64_t resume_id, const std::string& resume_mac_i)
+{
+  ul_ccch_msg_s msg;
+
+  rrc_resume_request_s& req = msg.msg.set_c1().set_rrc_resume_request();
+
+  req.rrc_resume_request.resume_id.from_number(resume_id);
+  req.rrc_resume_request.resume_mac_i.from_string(resume_mac_i);
+
+  req.rrc_resume_request.resume_cause.value = resume_cause_opts::mo_data;
+
+  return msg;
+}
+
+ul_dcch_msg_s ocudu::test_helpers::create_rrc_resume_complete(uint8_t sel_plmn_id)
+{
+  ul_dcch_msg_s msg;
+
+  rrc_resume_complete_s& res = msg.msg.set_c1().set_rrc_resume_complete();
+  res.rrc_transaction_id     = 0;
+
+  rrc_resume_complete_ies_s& res_cmplt = res.crit_exts.set_rrc_resume_complete();
+  res_cmplt.sel_plmn_id_present        = true;
+  res_cmplt.sel_plmn_id                = sel_plmn_id;
+
+  return msg;
+}
+
 ul_dcch_msg_s ocudu::test_helpers::create_rrc_setup_complete(uint8_t sel_plmn_id)
 {
   ul_dcch_msg_s msg;

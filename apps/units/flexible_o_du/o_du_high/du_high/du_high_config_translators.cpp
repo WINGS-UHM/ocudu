@@ -789,8 +789,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
           static_cast<float>(get_nof_slots_per_subframe(base_cell.common_scs)) * user_srs_cfg.srs_period_ms.value());
       du_srs_cfg.srs_period.emplace(static_cast<srs_periodicity>(srs_period_slots));
     }
-    du_srs_cfg.srs_bw_rbs                = user_srs_cfg.srs_bw_rbs;
-    du_srs_cfg.srs_rb_start              = user_srs_cfg.srs_rb_start;
+    du_srs_cfg.c_srs                     = user_srs_cfg.c_srs;
+    du_srs_cfg.freq_domain_shift         = user_srs_cfg.freq_domain_shift;
     du_srs_cfg.tx_comb                   = user_srs_cfg.tx_comb == 2 ? tx_comb_size::n2 : tx_comb_size::n4;
     du_srs_cfg.max_nof_symbols           = user_srs_cfg.max_nof_symbols_per_slot;
     du_srs_cfg.nof_symbols               = static_cast<srs_nof_symbols>(user_srs_cfg.nof_symbols);

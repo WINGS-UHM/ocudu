@@ -692,22 +692,10 @@ static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
     return false;
   }
 
-  if (config.srs_bw_rbs.has_value()) {
-    if (config.srs_bw_rbs.value() > nof_crbs) {
-      fmt::print(
-          "The SRS bandwidth in RBs ({}) should be less than or equal to the maximum number of the carrier CRBs ({})\n",
-          config.srs_bw_rbs.value(),
-          nof_crbs);
-      return false;
-    }
-    if (config.srs_rb_start + config.srs_bw_rbs.value() > nof_crbs) {
-      fmt::print("With the given SRS start RB ({}) and BW in RBs ({}), the SRS would fall outside the carrier CRBs [0, "
-                 "{}). \n",
-                 config.srs_rb_start,
-                 config.srs_bw_rbs.value(),
-                 nof_crbs);
-      return false;
-    }
+  // TODO: revise this when GNB fully supports BWP starting from CRB > 0.
+  if (config.freq_domain_shift >= nof_crbs) {
+    fmt::print("SRS frequency shift ({}) is larger than the BPW BW in RBs ({})\n", config.freq_domain_shift, nof_crbs);
+    return false;
   }
 
   if (config.tx_comb == 2U) {

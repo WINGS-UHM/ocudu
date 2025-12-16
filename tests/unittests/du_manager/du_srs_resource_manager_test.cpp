@@ -70,6 +70,26 @@ static cell_config_builder_params make_cell_cfg_params(const srs_params& params 
 
   return cell_params;
 }
+// Helper that computes the C_SRS parameter (see Section 6.4.1.4.3, TS 38.211) that maximize the SRS BW, given the BWP
+// size in RBs.
+static unsigned compute_c_srs(unsigned nof_ul_bwp_rbs)
+{
+  unsigned candidate_c_srs = 0U;
+  unsigned candidate_m_srs = 0U;
+  // Spans over Table 6.4.1.4.3-1 in TS 38.211 and find the smallest C_SRS that maximizes m_srs_0 under the
+  // constraint of m_SRS <= nof_BW_RBs.
+  for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
+    // In this test, we only consider the case where B_SRS is 0.
+    constexpr uint8_t                b_srs   = 0U;
+    std::optional<srs_configuration> srs_cfg = srs_configuration_get(c_srs_it, b_srs);
+    ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
+    if (srs_cfg.value().m_srs <= nof_ul_bwp_rbs and srs_cfg.value().m_srs > candidate_m_srs) {
+      candidate_m_srs = srs_cfg->m_srs;
+      candidate_c_srs = c_srs_it;
+    }
+  }
+  return candidate_c_srs;
+}
 
 static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_params& params, bool use_max_bw)
 {
@@ -78,18 +98,16 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   auto&          srs_cfg = du_cfg.srs_cfg;
 
   if (not use_max_bw) {
-    const unsigned                     bw_nof_rbs   = du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-    constexpr std::array<unsigned, 40> m_srs_values = {
-        4,   8,   12,  16,  20,  24,  28,  32,  36,  40,  48,  52,  56,  60,  64,  72,  76,  80,  88,  96,
-        104, 112, 120, 128, 132, 136, 144, 152, 160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272};
-    // Find the largest value of m_srs_values that can be used for the given BW.
-    const unsigned nof_valid_m_srs = std::count_if(
-        m_srs_values.begin(), m_srs_values.end(), [bw_nof_rbs](const unsigned elem) { return elem <= bw_nof_rbs; });
-    const auto m_srs_idx = test_rgen::uniform_int<size_t>(0U, nof_valid_m_srs - 1);
-    ocudu_assert(nof_valid_m_srs != 0 and m_srs_idx < nof_valid_m_srs, "m_srs index out-of-range");
-    srs_cfg.srs_bw_rbs.emplace(m_srs_values[m_srs_idx]);
-    // Compute the start RB based on the BWP BW and on the SRS BW.
-    srs_cfg.srs_rb_start = test_rgen::uniform_int<size_t>(0U, bw_nof_rbs - srs_cfg.srs_bw_rbs.value());
+    const unsigned bw_nof_rbs = du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    // Get the max value of C_SRS for the given BWP size.
+    const unsigned c_srs_valid_max = compute_c_srs(bw_nof_rbs);
+    // Pick a random C_SRS value.
+    srs_cfg.c_srs.emplace(test_rgen::uniform_int<size_t>(0U, c_srs_valid_max));
+    // Compute the Frequency Domain Shift based on the BWP BW and on the SRS BW.
+    constexpr uint8_t b_srs_0     = 0;
+    const auto        srs_cfg_val = srs_configuration_get(srs_cfg.c_srs.value(), b_srs_0);
+    ocudu_assert(srs_cfg_val.has_value(), "Invalid SRS configuration");
+    srs_cfg.freq_domain_shift = test_rgen::uniform_int<size_t>(0U, bw_nof_rbs - srs_cfg_val.value().m_srs);
   }
 
   // Generates a random SRS configuration.
@@ -283,34 +301,13 @@ protected:
     bool operator!=(const srs_res_params& rhs) const { return not operator==(rhs); }
   };
 
-  // Helper that computes the C_SRS parameter (see Section 6.4.1.4.3, TS 38.211).
-  unsigned compute_c_srs() const
-  {
-    unsigned candidate_c_srs = 0U;
-    unsigned candidate_m_srs = 0U;
-    // Spans over Table 6.4.1.4.3-1 in TS 38.211 and find the smallest C_SRS that maximizes m_srs_0 under the
-    // constraint of m_SRS <= nof_BW_RBs.
-    for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
-      // In this test, we only consider the case where B_SRS is 0.
-      constexpr uint8_t                b_srs   = 0U;
-      std::optional<srs_configuration> srs_cfg = srs_configuration_get(c_srs_it, b_srs);
-      ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
-      if (srs_cfg.value().m_srs <= cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length() and
-          srs_cfg.value().m_srs > candidate_m_srs) {
-        candidate_m_srs = srs_cfg->m_srs;
-        candidate_c_srs = c_srs_it;
-      }
-    }
-    return candidate_c_srs;
-  }
-
   // Helper that computes the Frequency Shift parameter (see Section 6.4.1.4.3, TS 38.211).
   unsigned compute_freq_shift() const
   {
     // The function computes the frequency shift so that the SRS resources are placed in the center of the band.
-    unsigned   c_srs         = compute_c_srs();
-    unsigned   ul_bw_nof_rbs = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-    const auto srs_cfg       = srs_configuration_get(c_srs, 0U);
+    const unsigned ul_bw_nof_rbs = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    const unsigned c_srs         = compute_c_srs(ul_bw_nof_rbs);
+    const auto     srs_cfg       = srs_configuration_get(c_srs, 0U);
     ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
     return (ul_bw_nof_rbs - srs_cfg.value().m_srs) / 2U;
   }
@@ -418,7 +415,8 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
     // Checks on Freq. Hopping need to be adjusted based on whether the SRS has been configured with a given BW.
     if (GetParam().use_max_bw) {
       // Verify that C_SRS corresponds to the maximum allowed BW.
-      ASSERT_EQ(srs_res.freq_hop.c_srs, compute_c_srs());
+      ASSERT_EQ(srs_res.freq_hop.c_srs,
+                compute_c_srs(cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length()));
       ASSERT_EQ(srs_res.freq_domain_shift, compute_freq_shift());
     } else {
       // Verify that C_SRS maps to a value that fits within the UL BWP.

@@ -361,7 +361,7 @@ void srs_scheduler_impl::schedule_updated_ues_srs(cell_resource_allocator& cell_
 }
 
 bool srs_scheduler_impl::allocate_srs_opportunity(cell_slot_resource_allocator& slot_alloc,
-                                                  const periodic_srs_info&      srs_opportunity)
+                                                  const periodic_srs_info&      srs_opportunity) const
 {
   slot_point sl_srs = slot_alloc.slot;
 
@@ -432,6 +432,8 @@ bool srs_scheduler_impl::allocate_srs_opportunity(cell_slot_resource_allocator& 
   const bwp_configuration& ul_bwp_cfg         = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
   const unsigned           nof_symbs_per_slot = get_nsymb_per_slot(ul_bwp_cfg.cp);
   const unsigned           starting_symb      = nof_symbs_per_slot - srs_res->res_mapping.start_pos - 1;
+  // Fill all the RBs in UL BW grid, even though the SRS is configured as narrowband; if there are SRS grants allocated,
+  // the scheduler is not yet capable of allocating PUSCH on any of the symbols that are used by the SRS.
   slot_alloc.ul_res_grid.fill(
       grant_info(ul_bwp_cfg.scs,
                  ofdm_symbol_range{starting_symb, starting_symb + static_cast<unsigned>(srs_res->res_mapping.nof_symb)},
@@ -513,7 +515,7 @@ const ue_cell_configuration* srs_scheduler_impl::get_ue_cfg(rnti_t rnti) const
 {
   auto* u = ues.find_by_rnti(rnti);
   if (u != nullptr) {
-    auto* ue_cc = u->find_cell(cell_cfg.cell_index);
+    const auto* ue_cc = u->find_cell(cell_cfg.cell_index);
     if (ue_cc != nullptr) {
       return &ue_cc->cfg();
     }

@@ -64,7 +64,8 @@ private:
   // Helper that schedules the SRS for UEs that were recently added or reconfigured.
   void schedule_updated_ues_srs(cell_resource_allocator& res_alloc);
   // Helper that allocates an SRS opportunity for a given UE.
-  bool allocate_srs_opportunity(cell_slot_resource_allocator& slot_alloc, const periodic_srs_info& srs_opportunity);
+  bool allocate_srs_opportunity(cell_slot_resource_allocator& slot_alloc,
+                                const periodic_srs_info&      srs_opportunity) const;
 
   void add_ue_to_grid(const ue_cell_configuration& ue_cfg, bool is_reconf);
 

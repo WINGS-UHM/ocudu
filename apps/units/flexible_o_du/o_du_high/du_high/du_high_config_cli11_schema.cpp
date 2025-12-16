@@ -1182,14 +1182,12 @@ static void configure_cli11_srs_args(CLI::App& app, du_high_unit_srs_config& srs
   add_option(app, "--srs_nof_sym_per_resource", srs_params.nof_symbols, "Number of symbols per SRS resource")
       ->capture_default_str()
       ->check(CLI::IsMember({1, 2, 4}));
-  add_option(app, "--srs_bw_rbs", srs_params.srs_bw_rbs, "SRS BW in RBs")
+  add_option(app, "--c_srs", srs_params.c_srs, "C_SRS parameter for SRS")
       ->capture_default_str()
-      ->check(CLI::IsMember({4,   8,   12,  16,  20,  24,  28,  32,  36,  40,  48,  52,  56,  60,
-                             64,  72,  76,  80,  88,  96,  104, 112, 120, 128, 132, 136, 144, 152,
-                             160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272}));
-  add_option(app, "--srs_rb_start", srs_params.srs_rb_start, "SRS start RB position within the BWP")
+      ->check(CLI::Range(0, 63));
+  add_option(app, "--srs_freq_domain_shift", srs_params.freq_domain_shift, "SRS frequency domain shift")
       ->capture_default_str()
-      ->check(CLI::Range(0, 269));
+      ->check(CLI::Range(0, 268));
   add_option(app, "--srs_tx_comb", srs_params.tx_comb, "SRS TX comb size")
       ->capture_default_str()
       ->check(CLI::IsMember({2, 4}));

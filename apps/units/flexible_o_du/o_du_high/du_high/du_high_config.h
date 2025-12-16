@@ -502,6 +502,11 @@ struct du_high_unit_srs_config {
   /// TS 38.331, converted to millisecond.
   /// Values: {1, 2, 2.5, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560}.
   std::optional<float> srs_period_ms = std::nullopt;
+  /// Defines the C_SRS parameter to be used for SRS, as per \c c-SRS, \c SRS-Resource \c SRS-Config, TS 38.331.
+  /// If not set, the C_SRS is computed automatically and configured to use the maximum allowed SRS bandwidth.
+  /// \remark The Frequency-Hopping SRS parameters assume b-SRS = 0.
+  /// Values: {0,..,63}.
+  std::optional<unsigned> c_srs = std::nullopt;
   /// \brief Defines the maximum number of symbols dedicated to (all) the cell SRS resources in a slot.
   /// This is the space that the GNB reserves for all the cell SRS resources in the UL slots, not to be confused with
   /// the symbols per SRS resource configured in the UE dedicated configuration. Values: {1,...,6}.
@@ -509,12 +514,10 @@ struct du_high_unit_srs_config {
   /// Defines the number of symbols per SRS resource as per \c nrofSymbols, \c resourceMapping, \c SRS-Resource \c
   /// SRS-Config, TS 38.331. Values: {1, 2, 4}.
   unsigned nof_symbols = 1;
-  /// If set, defines the SRS bandwidth in RBs.
-  /// Values: {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 52, 56, 60, 64, 72, 76, 80, 88, 96, 104, 112, 120, 128, 132,
-  /// 136, 144, 152, 160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272}.
-  std::optional<unsigned> srs_bw_rbs = std::nullopt;
-  /// Defines the lowest RB index of the SRS RBs interval.
-  unsigned srs_rb_start = 0;
+  /// Defines the lowest CRB index of the SRS CRBs interval, \c freqDomainShift. Only used if \ref c_srs is set.
+  /// \remark Note this defines the CRB index, not the PRB.
+  /// Values: {0,..,268}.
+  unsigned freq_domain_shift = 0;
   /// \c Transmission comb number, \c transmissionComb, \c SRS-Resource \c SRS-Config, TS 38.331. Values: {2, 4}.
   unsigned tx_comb = 4;
   /// Defines the Cyclic Shift (CS) reuse factor for the SRS resources.

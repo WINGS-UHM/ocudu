@@ -28,6 +28,11 @@ struct srs_builder_params {
   /// If present, defines the SRS period for SRS periodic resources, in slots.
   /// When not present, the SRS resources are set as aperiodic.
   std::optional<srs_periodicity> srs_period = std::nullopt;
+  /// Defines the C_SRS parameter to be used for SRS, as per \c c-SRS, \c SRS-Resource \c SRS-Config, TS 38.331.
+  /// If not set, the C_SRS is computed automatically and configured to use the maximum allowed SRS bandwidth.
+  /// \remark The Frequency-Hopping SRS parameters assume b-SRS = 0.
+  /// Values: {0,..,63}.
+  std::optional<unsigned> c_srs = std::nullopt;
   /// Maximum number of symbols per UL slot dedicated for SRS resources.
   /// \remark In case of Sounding Reference Signals (SRS) being used, the number of symbols should be reduced so that
   /// the PUCCH resources do not overlap in symbols with the SRS resources.
@@ -38,12 +43,10 @@ struct srs_builder_params {
   tx_comb_size tx_comb = tx_comb_size::n4;
   /// Defines the number of symbols per SRS resource.
   srs_nof_symbols nof_symbols = srs_nof_symbols::n1;
-  /// If set, defines the SRS bandwidth in RBs.
-  /// Values: {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 52, 56, 60, 64, 72, 76, 80, 88, 96, 104, 112, 120, 128, 132,
-  /// 136, 144, 152, 160, 168, 176, 184, 192, 208, 216, 224, 240, 256, 264, 272}.
-  std::optional<unsigned> srs_bw_rbs = std::nullopt;
-  /// Defines the index of SRS starting RB within the BWP.
-  bounded_integer<unsigned, 0, 269> srs_rb_start = 0;
+  /// Defines the lowest CRB index of the SRS CRBs interval, \c freqDomainShift. Only used if \ref c_srs is set.
+  /// \remark Note this defines the CRB index, not the PRB.
+  /// Values: {0,..,268}.
+  bounded_integer<unsigned, 0, 268> freq_domain_shift = 0;
   /// Defines the CS reuse factor for the SRS resources.
   /// \remark With 2 or 4 antenna ports, different cyclic shifts are used by the different antennas. This parameter
   /// defines how many UEs can be multiplexed in the same symbols and RBs by exploiting different cyclic shifts.

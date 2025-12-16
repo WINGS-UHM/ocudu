@@ -49,7 +49,7 @@ void p5_responses_handler::on_stop_indication(const fapi::stop_indication& msg)
 
 void p5_responses_handler::handle_slot_indication(const mac_cell_timing_context& context)
 {
-  //TODO: add a proper stop procedure to flush any pending tasks in the fapi executor
+  // TODO: add a proper stop procedure to flush any pending tasks in the fapi executor
   if (is_first_slot.load(std::memory_order_relaxed)) {
     is_first_slot = false;
     if (!fapi_ctrl_executor.defer([this]() { transaction_manager.start_outcome.set(true); })) {

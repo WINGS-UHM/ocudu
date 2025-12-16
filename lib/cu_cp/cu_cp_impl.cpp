@@ -710,6 +710,7 @@ cu_cp_impl::handle_new_pdu_session_resource_setup_request(cu_cp_pdu_session_reso
       du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
       ue->get_rrc_ue(),
       get_cu_cp_rrc_ue_interface(),
+      get_cu_cp_mobility_manager_handler(),
       ue->get_task_sched(),
       ue->get_up_resource_manager(),
       logger);
@@ -729,6 +730,7 @@ cu_cp_impl::handle_new_pdu_session_resource_modify_request(const cu_cp_pdu_sessi
       du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
       ue->get_rrc_ue(),
       get_cu_cp_rrc_ue_interface(),
+      get_cu_cp_mobility_manager_handler(),
       ue->get_task_sched(),
       ue->get_up_resource_manager(),
       logger);
@@ -986,6 +988,31 @@ cu_cp_impl::handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_reque
                                                  ue_mng,
                                                  mobility_mng,
                                                  logger);
+}
+
+void cu_cp_impl::handle_intra_cell_handover_required(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+
+  if (ue != nullptr) {
+    nr_cell_global_id_t cgi = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci())->cgi;
+    cu_cp_intra_cu_handover_request intra_cu_handover_request = {ue_index, ue->get_du_index(), cgi, ue->get_pci()};
+
+    byte_buffer sib1 = du_db.get_du_processor(ue->get_du_index())
+                           .get_mobility_handler()
+                           .get_packed_sib1(intra_cu_handover_request.cgi);
+    auto& du_processor = du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler();
+    ue->get_task_sched().schedule_async_task(launch_async([this, intra_cu_handover_request, &du_processor, sib1](
+                                                              coro_context<async_task<void>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+
+      CORO_AWAIT(launch_async<intra_cu_handover_routine>(
+          intra_cu_handover_request, std::move(sib1), du_processor, du_processor, *this, ue_mng, mobility_mng, logger));
+
+      CORO_RETURN();
+    }));
+  }
 }
 
 async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)

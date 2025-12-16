@@ -337,6 +337,10 @@ public:
   handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_request& request,
                                    du_index_t&                            source_du_index,
                                    du_index_t&                            target_du_index) = 0;
+
+  /// \brief Handle a intra-cell handover required to refresh KgNB key for the UE
+  /// \param[in] ue_index The index of the UE that needs the intra-cell handover
+  virtual void handle_intra_cell_handover_required(ue_index_t ue_index) = 0;
 };
 
 /// Interface to handle ue removals.

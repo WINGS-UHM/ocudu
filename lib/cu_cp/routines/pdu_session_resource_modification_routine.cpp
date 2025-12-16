@@ -50,6 +50,7 @@ pdu_session_resource_modification_routine::pdu_session_resource_modification_rou
     f1ap_ue_context_manager&                         f1ap_ue_ctxt_mng_,
     rrc_ue_interface*                                rrc_ue_,
     cu_cp_rrc_ue_interface&                          cu_cp_notifier_,
+    cu_cp_mobility_manager_handler&                  mobility_mng_,
     ue_task_scheduler&                               ue_task_sched_,
     up_resource_manager&                             up_resource_mng_,
     ocudulog::basic_logger&                          logger_) :
@@ -58,6 +59,7 @@ pdu_session_resource_modification_routine::pdu_session_resource_modification_rou
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
   rrc_ue(rrc_ue_),
   cu_cp_notifier(cu_cp_notifier_),
+  mobility_mng(mobility_mng_),
   ue_task_sched(ue_task_sched_),
   up_resource_mng(up_resource_mng_),
   logger(logger_)
@@ -80,6 +82,10 @@ void pdu_session_resource_modification_routine::operator()(
   {
     // Calculate next user-plane configuration based on incoming modify message.
     next_config = up_resource_mng.calculate_update(modify_request);
+    // TODO:
+    // - check if next_config can be applied - check if too many DRB IDs are stale to add new PDU sessions,
+    // - check if the KgNB refresh could make enough stale DRB IDs available again
+    // - if yes, perform intra-cell HO before continuing the procedure, else return early.
   }
 
   {
@@ -187,7 +193,15 @@ void pdu_session_resource_modification_routine::operator()(
       CORO_EARLY_RETURN(generate_pdu_session_resource_modify_response(false));
     }
   }
-
+  {
+    if (up_resource_mng.key_refresh_required()) {
+      logger.info(
+          "ue={}: \"{}\" Key KgNB refresh required, triggering intra-cell handover", modify_request.ue_index, name());
+      {
+        mobility_mng.handle_intra_cell_handover_required(modify_request.ue_index);
+      }
+    }
+  }
   // We are done.
   CORO_RETURN(generate_pdu_session_resource_modify_response(true));
 }

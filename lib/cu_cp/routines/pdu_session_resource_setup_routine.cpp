@@ -65,6 +65,7 @@ pdu_session_resource_setup_routine::pdu_session_resource_setup_routine(
     f1ap_ue_context_manager&                        f1ap_ue_ctxt_mng_,
     rrc_ue_interface*                               rrc_ue_,
     cu_cp_rrc_ue_interface&                         cu_cp_notifier_,
+    cu_cp_mobility_manager_handler&                 mobility_mng_,
     ue_task_scheduler&                              ue_task_sched_,
     up_resource_manager&                            up_resource_mng_,
     ocudulog::basic_logger&                         logger_) :
@@ -76,6 +77,7 @@ pdu_session_resource_setup_routine::pdu_session_resource_setup_routine(
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
   rrc_ue(rrc_ue_),
   cu_cp_notifier(cu_cp_notifier_),
+  mobility_mng(mobility_mng_),
   ue_task_sched(ue_task_sched_),
   up_resource_mng(up_resource_mng_),
   logger(logger_)
@@ -103,6 +105,11 @@ void pdu_session_resource_setup_routine::operator()(
 
   // Check next configuration.
   if (next_config.pdu_sessions_to_setup_list.empty()) {
+    // TODO:
+    // - check if too many DRB IDs are stale to add new PDU sessions,
+    // - check if the KgNB refresh could make enough stale DRB IDs available again
+    // - if yes, perform intra-cell HO before continuing the procedure, else return early.
+
     logger.info("ue={}: \"{}\" No PDU sessions to setup", setup_msg.ue_index, name());
     CORO_EARLY_RETURN(
         handle_pdu_session_resource_setup_result(false, ngap_cause_radio_network_t::radio_res_not_available));
@@ -258,6 +265,15 @@ void pdu_session_resource_setup_routine::operator()(
           {setup_msg.ue_index, {}, ngap_cause_radio_network_t::release_due_to_ngran_generated_reason}));
       CORO_EARLY_RETURN(handle_pdu_session_resource_setup_result(
           false, ngap_cause_radio_network_t::release_due_to_ngran_generated_reason));
+    }
+  }
+  {
+    if (up_resource_mng.key_refresh_required()) {
+      logger.info(
+          "ue={}: \"{}\" Key KgNB refresh required, triggering intra-cell handover", setup_msg.ue_index, name());
+      {
+        mobility_mng.handle_intra_cell_handover_required(setup_msg.ue_index);
+      }
     }
   }
 

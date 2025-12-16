@@ -49,6 +49,7 @@ public:
                                      f1ap_ue_context_manager&                        f1ap_ue_ctxt_mng_,
                                      rrc_ue_interface*                               rrc_ue_,
                                      cu_cp_rrc_ue_interface&                         cu_cp_notifier_,
+                                     cu_cp_mobility_manager_handler&                 mobility_mng_,
                                      ue_task_scheduler&                              ue_task_sched_,
                                      up_resource_manager&                            up_resource_mng_,
                                      ocudulog::basic_logger&                         logger_);
@@ -71,13 +72,14 @@ private:
 
   up_config_update next_config;
 
-  e1ap_bearer_context_manager& e1ap_bearer_ctxt_mng; // to trigger bearer context setup at CU-UP
-  f1ap_ue_context_manager&     f1ap_ue_ctxt_mng;     // to trigger UE context modification at DU
-  rrc_ue_interface*            rrc_ue;               // to trigger RRC Reconfiguration at UE
-  cu_cp_rrc_ue_interface&      cu_cp_notifier;       // to trigger UE release at CU-CP
-  ue_task_scheduler&           ue_task_sched;        // to schedule UE release request
-  up_resource_manager&         up_resource_mng;      // to get RRC DRB config
-  ocudulog::basic_logger&      logger;
+  e1ap_bearer_context_manager&    e1ap_bearer_ctxt_mng; // to trigger bearer context setup at CU-UP
+  f1ap_ue_context_manager&        f1ap_ue_ctxt_mng;     // to trigger UE context modification at DU
+  rrc_ue_interface*               rrc_ue;               // to trigger RRC Reconfiguration at UE
+  cu_cp_rrc_ue_interface&         cu_cp_notifier;       // to trigger UE release at CU-CP
+  cu_cp_mobility_manager_handler& mobility_mng;         // to trigger intra-cell HO when KgNB key refresh is required
+  ue_task_scheduler&              ue_task_sched;        // to schedule UE release request
+  up_resource_manager&            up_resource_mng;      // to get RRC DRB config
+  ocudulog::basic_logger&         logger;
 
   // (sub-)routine requests
   e1ap_bearer_context_setup_request        bearer_context_setup_request;

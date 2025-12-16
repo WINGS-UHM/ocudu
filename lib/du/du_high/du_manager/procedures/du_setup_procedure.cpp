@@ -171,22 +171,8 @@ async_task<void> du_setup_procedure::handle_f1_setup_response(const f1_setup_res
         report_fatal_error("Invalid F1 Setup Response");
     }
 
-    if (count < request.max_f1c_tnl_connection_retries - 1) {
-      ctxt.logger.warning("F1 Setup attempt {}/{} failed. Cause: {}. Retrying in {} ms...",
-                          count + 1,
-                          request.max_f1c_tnl_connection_retries,
-                          failure_cause,
-                          request.f1c_tnl_connection_retry_wait.count());
-      return launch_async([this](coro_context<async_task<void>>& ctx) {
-        CORO_BEGIN(ctx);
-        CORO_AWAIT(async_wait_for(timer, request.f1c_tnl_connection_retry_wait));
-        CORO_RETURN();
-      });
-    }
-    ctxt.logger.error("F1 Setup attempt {}/{} failed. Cause: {}. No more retries left.",
-                      count + 1,
-                      request.max_f1c_tnl_connection_retries,
-                      failure_cause);
+    // TO-DO: trigger SCTP association shutdown
+    ctxt.logger.error("F1 Setup procedure failed. Cause: {}.", failure_cause);
     return launch_no_op_task();
   }
 

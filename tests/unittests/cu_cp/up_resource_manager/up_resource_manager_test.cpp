@@ -11,6 +11,7 @@
 #include "../cu_cp_test_messages.h"
 #include "lib/cu_cp/up_resource_manager/up_resource_manager_impl.h"
 #include "ocudu/adt/byte_buffer.h"
+#include "ocudu/ran/rb_id.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
@@ -28,6 +29,11 @@ protected:
     ocudulog::basic_logger& rrc_logger = ocudulog::fetch_basic_logger("RRC", false);
     rrc_logger.set_level(ocudulog::basic_levels::debug);
     rrc_logger.set_hex_dump_max_size(32);
+
+    ASSERT_EQ(manager.get_nof_pdu_sessions(), 0);
+    ASSERT_EQ(manager.get_total_nof_qos_flows(), 0);
+    ASSERT_EQ(manager.get_nof_drbs(), 0);
+    ASSERT_EQ(manager.get_nof_used_drb_ids(), 0);
   }
 
   void setup_initial_pdu_session()
@@ -409,6 +415,84 @@ TEST_P(up_resource_manager_used_drb_ids_test, when_there_are_no_stale_drb_ids_th
   ASSERT_EQ(manager.get_nof_drbs(), MAX_NOF_DRBS);
   ASSERT_EQ(manager.get_nof_used_drb_ids(), MAX_NOF_DRBS);
   ASSERT_FALSE(manager.key_refresh_required());
+}
+
+class up_resource_manager_key_refresh_useful_test : public up_resource_manager_test,
+                                                    public ::testing::WithParamInterface<uint8_t>
+{
+protected:
+  up_resource_manager_cfg cfg{{{uint_to_five_qi(9), {pdcp_cfg}}, {uint_to_five_qi(7), {pdcp_cfg}}}, GetParam()};
+  up_resource_manager     manager{cfg};
+};
+
+INSTANTIATE_TEST_SUITE_P(key_refresh_useful_will_trigger_if_there_are_too_many_stale_drbs_test,
+                         up_resource_manager_key_refresh_useful_test,
+                         ::testing::Range((uint8_t)1, (uint8_t)MAX_NOF_DRBS));
+
+TEST_P(up_resource_manager_key_refresh_useful_test,
+       key_refresh_useful_will_trigger_if_there_are_too_many_stale_drbs_test)
+{
+  // Add MAX_NOF_DRBS stale PDU sessions
+  for (uint16_t i = 1; i <= MAX_NOF_DRBS; i++) {
+    // Attempt to create new PDU Session.
+    pdu_session_id_t                         psi{i};
+    cu_cp_pdu_session_resource_setup_request setup_msg =
+        generate_pdu_session_resource_setup(ue_index_t::min, psi, qos_flow_id_t::min);
+    ASSERT_TRUE(manager.validate_request(setup_msg.pdu_session_res_setup_items));
+
+    // Calculate update
+    up_config_update update = manager.calculate_update(setup_msg.pdu_session_res_setup_items);
+
+    // Verify calculated update.
+    ASSERT_EQ(update.pdu_sessions_to_setup_list.size(), 1);
+    ASSERT_EQ(update.pdu_sessions_to_modify_list.size(), 0);
+    ASSERT_EQ(update.pdu_sessions_to_remove_list.size(), 0);
+    ASSERT_EQ(update.drb_to_remove_list.size(), 0);
+
+    // Apply update.
+    up_config_update_result result;
+    result.pdu_sessions_added_list.push_back(update.pdu_sessions_to_setup_list.at(psi));
+    manager.apply_config_update(result);
+
+    // There is a new PDU session
+    ASSERT_EQ(manager.get_nof_pdu_sessions(), 1);
+    ASSERT_EQ(manager.get_total_nof_qos_flows(), 1);
+    ASSERT_EQ(manager.get_nof_drbs(), 1);
+    ASSERT_EQ(manager.get_nof_used_drb_ids(), i);
+
+    // Remove existing session.
+    cu_cp_pdu_session_resource_release_command release_msg =
+        generate_pdu_session_resource_release(ue_index_t::min, psi);
+    ASSERT_TRUE(manager.validate_request(release_msg));
+
+    // Calculate update
+    update = manager.calculate_update(release_msg);
+
+    // Verify calculated update.
+    ASSERT_EQ(update.pdu_sessions_to_setup_list.size(), 0);
+    ASSERT_EQ(update.pdu_sessions_to_modify_list.size(), 0);
+    ASSERT_EQ(update.pdu_sessions_to_remove_list.size(), 1);
+    ASSERT_EQ(update.drb_to_remove_list.size(), 1);
+
+    // Apply update.
+    result.pdu_sessions_removed_list.push_back(update.pdu_sessions_to_remove_list.front());
+    manager.apply_config_update(result);
+
+    // PDU session removed, but nof_used_drb_ids is incremented by one more stale DRB ID
+    ASSERT_EQ(manager.get_nof_pdu_sessions(), 0);
+    ASSERT_EQ(manager.get_total_nof_qos_flows(), 0);
+    ASSERT_EQ(manager.get_nof_drbs(), 0);
+    ASSERT_EQ(manager.get_nof_used_drb_ids(), i);
+
+    // If available DRB IDs < number of DRBs that UE may need - key refresh useful should trigger
+    if (MAX_NOF_DRBS - i < std::min((uint8_t)GetParam(), (uint8_t)8)) {
+      ASSERT_TRUE(manager.key_refresh_useful());
+    } else {
+      ASSERT_FALSE(manager.key_refresh_useful());
+    }
+  }
+  ASSERT_TRUE(manager.key_refresh_useful());
+  ASSERT_TRUE(manager.key_refresh_required());
 }
 
 class up_resource_manager_max_nof_drbs_per_ue_test : public up_resource_manager_test,

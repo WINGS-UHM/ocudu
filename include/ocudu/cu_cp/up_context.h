@@ -52,13 +52,14 @@ struct up_pdu_session_context {
 
 /// \brief This struct holds the UP configuration currently in place.
 struct up_context {
-  std::map<pdu_session_id_t, up_pdu_session_context> pdu_sessions; // Map of existing PDU sessions.
+  std::map<pdu_session_id_t, up_pdu_session_context> pdu_sessions;
 
-  /// Hash-maps for quick access.
-  std::map<drb_id_t, pdu_session_id_t> drb_map;      // Maps DRB ID to corresponding PDU session.
-  std::map<qos_flow_id_t, drb_id_t>    qos_flow_map; // Maps QoS flow to corresponding DRB.
+  std::map<drb_id_t, pdu_session_id_t> drb_map;
+  std::map<qos_flow_id_t, drb_id_t>    qos_flow_map;
 
-  std::bitset<MAX_NOF_DRBS> used_drb_ids; // DRB IDs that were already used with the current KgNB key.
+  // Set of DRB IDs that were used with particular KgNB key, tracked to satisfy 3GPP TS 38.331 section 5.3.1.2.
+  // Before DRB ID reuse the gNB has to derive a new KgNB by triggering an intra-cell handover.
+  std::bitset<MAX_NOF_DRBS> used_drb_ids;
 };
 
 } // namespace ocucp

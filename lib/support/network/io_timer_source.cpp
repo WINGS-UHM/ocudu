@@ -46,14 +46,8 @@ io_timer_source::io_timer_source(timer_manager&            tick_sink_,
 {
   if (auto_start) {
     running.store(true, std::memory_order_relaxed);
-    create_subscriber(stop_flag.get_token());
+    create_subscriber(shutdown_flag.get_token());
   }
-}
-
-io_timer_source::~io_timer_source()
-{
-  running.store(false, std::memory_order_release);
-  // The dtor of stop_flag will block until all tasks using the token have completed.
 }
 
 void io_timer_source::resume()
@@ -65,7 +59,7 @@ void io_timer_source::resume()
   }
 
   // Dispatch task to start ticking.
-  while (not tick_exec.defer([this, token = stop_flag.get_token()]() { create_subscriber(token); })) {
+  while (not tick_exec.defer([this, token = shutdown_flag.get_token()]() { create_subscriber(token); })) {
     // We cannot allow the command to be lost. Retry until we succeed.
     std::this_thread::sleep_for(std::chrono::milliseconds{1});
   }
@@ -77,7 +71,7 @@ void io_timer_source::request_stop()
   running.store(false, std::memory_order_release);
 }
 
-void io_timer_source::create_subscriber(scoped_sync_token token)
+void io_timer_source::create_subscriber(stop_event_token token)
 {
   // Note: Called inside the ticking executor, except for in the ctor.
 
@@ -111,11 +105,11 @@ void io_timer_source::destroy_subscriber()
   logger.info("IO timer source stopped.");
 }
 
-void io_timer_source::read_time(int raw_fd, scoped_sync_token& stop_token)
+void io_timer_source::read_time(int raw_fd, stop_event_token& stop_token)
 {
   // Note: Called inside the ticking executor.
 
-  if (not running.load(std::memory_order_acquire)) {
+  if (not running.load(std::memory_order_acquire) or stop_token.is_stop_requested()) {
     // Destroy subscriber and signal the completion of the stop by resetting the token.
     destroy_subscriber();
     stop_token.reset();

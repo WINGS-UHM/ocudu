@@ -71,6 +71,7 @@ private:
   ocudulog::basic_logger&         logger;
   p5_transaction_outcome_manager& transaction_manager;
   task_executor&                  fapi_ctrl_executor;
+  std::atomic<bool>               is_first_slot = {true};
 };
 
 } // namespace fapi_adaptor

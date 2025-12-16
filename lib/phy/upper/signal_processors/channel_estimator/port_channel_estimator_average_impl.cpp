@@ -121,6 +121,10 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
                "Symbol size mismatch: requested {} subcarriers, supported {}.",
                symbol.size(),
                nof_subcarriers);
+  ocudu_assert(i_symbol >= cfg_local.first_symbol,
+               "Symbol index {} is lower than the minimum supported index {}.",
+               i_symbol,
+               cfg_local.first_symbol);
   ocudu_assert(i_symbol < nof_symbols,
                "Symbol index {} is larger than the maximum supported index {}.",
                i_symbol,

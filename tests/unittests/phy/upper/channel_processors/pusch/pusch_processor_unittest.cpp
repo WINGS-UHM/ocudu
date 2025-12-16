@@ -401,7 +401,6 @@ TEST_P(PuschProcessorFixture, PuschProcessorUnittest)
   ASSERT_EQ(1, demodulator_spy->get_entries().size());
   const pusch_demodulator_spy::entry_t& demodulator_entry = demodulator_spy->get_entries().front();
   ASSERT_EQ(&rg_spy, demodulator_entry.grid);
-  ASSERT_EQ(estimator_entry.estimate, demodulator_entry.estimates);
   ASSERT_EQ(pdu.rnti, demodulator_entry.config.rnti);
   ASSERT_EQ(rb_mask, demodulator_entry.config.rb_mask);
   ASSERT_EQ(pdu.mcs_descr.modulation, demodulator_entry.config.modulation);

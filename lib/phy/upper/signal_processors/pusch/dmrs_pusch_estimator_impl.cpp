@@ -12,17 +12,19 @@
 #include "../dmrs_helper.h"
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/upper/channel_estimation.h"
 
 using namespace ocudu;
 
-void dmrs_pusch_estimator_impl::estimate(channel_estimate&              estimate,
-                                         dmrs_pusch_estimator_notifier& notifier,
+void dmrs_pusch_estimator_impl::estimate(dmrs_pusch_estimator_notifier& notifier,
                                          const resource_grid_reader&    grid,
                                          const configuration&           config)
 {
-  dmrs_type type          = config.get_dmrs_type();
-  unsigned  nof_tx_layers = config.get_nof_tx_layers();
-  unsigned  nof_rx_ports  = config.rx_ports.size();
+  dmrs_type type         = config.get_dmrs_type();
+  unsigned  nof_rx_ports = config.rx_ports.size();
+  nof_tx_layers          = config.get_nof_tx_layers();
+  nof_re                 = config.rb_mask.size() * NRE;
+  ofdm_symbols.set(config.first_symbol, config.first_symbol + config.nof_symbols);
 
   ocudu_assert(nof_rx_ports <= ch_estimator.size(),
                "Trying to estimate the channel for {} antenna ports, configured {}.",
@@ -41,12 +43,6 @@ void dmrs_pusch_estimator_impl::estimate(channel_estimate&              estimate
   // Resize DM-RS symbol buffer.
   temp_symbols.resize(dims);
 
-  // Resize channel estimate.
-  estimate.resize({static_cast<unsigned>(config.rb_mask.size()),
-                   config.first_symbol + config.nof_symbols,
-                   nof_rx_ports,
-                   nof_tx_layers});
-
   // Generate symbols and allocation patterns.
   generate(temp_symbols, coordinates, config);
 
@@ -59,27 +55,13 @@ void dmrs_pusch_estimator_impl::estimate(channel_estimate&              estimate
 
   pending_ports = nof_rx_ports;
   for (unsigned i_port = 0; i_port != nof_rx_ports; ++i_port) {
-    auto estimator_callback = [this, &estimate, &grid, i_port, nof_tx_layers, &notifier]() {
+    auto estimator_callback = [this, &grid, i_port, &notifier]() {
       const port_channel_estimator_results& ch_est_results =
           ch_estimator[i_port]->compute(grid, i_port, temp_symbols, est_cfg);
-
-      for (unsigned i_layer = 0; i_layer != nof_tx_layers; ++i_layer) {
-        for (unsigned i_symbol = est_cfg.first_symbol, last_symbol = est_cfg.first_symbol + est_cfg.nof_symbols;
-             i_symbol != last_symbol;
-             ++i_symbol) {
-          ch_est_results.get_symbol_ch_estimate(
-              estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer), i_symbol, i_layer);
-        }
-        estimate.set_rsrp(ch_est_results.get_rsrp(i_layer), i_port, i_layer);
-        estimate.set_time_alignment(ch_est_results.get_time_alignment(), i_port, i_layer);
-        estimate.set_cfo_Hz(ch_est_results.get_cfo_Hz(), i_port, i_layer);
-      }
-      estimate.set_epre(ch_est_results.get_epre(), i_port);
-      estimate.set_noise_variance(ch_est_results.get_noise_variance(), i_port);
-      estimate.set_snr(ch_est_results.get_snr(), i_port);
+      ch_est_result[i_port] = &ch_est_results;
 
       if (pending_ports.fetch_sub(1) == 1) {
-        notifier.on_estimation_complete();
+        notifier.on_estimation_complete(*this);
       }
     };
 
@@ -129,8 +111,7 @@ void dmrs_pusch_estimator_impl::generate(dmrs_symbol_list&        symbols,
                                          span<layer_dmrs_pattern> mask,
                                          const configuration&     cfg)
 {
-  dmrs_type type          = cfg.get_dmrs_type();
-  unsigned  nof_tx_layers = cfg.get_nof_tx_layers();
+  dmrs_type type = cfg.get_dmrs_type();
 
   // For each symbol in the transmission generate DMRS for layer 0.
   for (unsigned ofdm_symbol_index = cfg.first_symbol,
@@ -191,4 +172,164 @@ void dmrs_pusch_estimator_impl::generate(dmrs_symbol_list&        symbols,
     mask[i_layer].rb_mask    = cfg.rb_mask;
     mask[i_layer].re_pattern = params.re_pattern;
   }
+}
+
+void dmrs_pusch_estimator_impl::get_symbol_ch_estimate(span<cbf16_t> estimates,
+                                                       unsigned      i_symbol,
+                                                       unsigned      rx_port,
+                                                       unsigned      tx_layer) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  ocudu_assert(tx_layer < nof_tx_layers,
+               "Invalid transmission layer {} - number of supported layers is {}.",
+               tx_layer,
+               nof_tx_layers);
+  ch_est_result[rx_port]->get_symbol_ch_estimate(estimates, i_symbol, tx_layer);
+}
+
+void dmrs_pusch_estimator_impl::get_path_ch_estimate(span<cbf16_t> estimates, unsigned rx_port, unsigned tx_layer) const
+{
+  unsigned view_size = ofdm_symbols.length() * nof_re;
+  ocudu_assert(estimates.size() == view_size,
+               "Requested path has {} REs, configured {} ({} x {}).",
+               estimates.size(),
+               view_size,
+               nof_re,
+               ofdm_symbols.length());
+
+  span<cbf16_t> out = estimates;
+
+  for (unsigned i_symbol = ofdm_symbols.start(), last = ofdm_symbols.stop(); i_symbol != last; ++i_symbol) {
+    get_symbol_ch_estimate(out.first(nof_re), i_symbol, rx_port, tx_layer);
+    out = out.last(out.size() - nof_re);
+  }
+}
+
+float dmrs_pusch_estimator_impl::get_rsrp(unsigned rx_port, unsigned tx_layer) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  ocudu_assert(tx_layer < nof_tx_layers,
+               "Invalid transmission layer {} - number of supported layers is {}.",
+               tx_layer,
+               nof_tx_layers);
+  return ch_est_result[rx_port]->get_rsrp(tx_layer);
+}
+
+float dmrs_pusch_estimator_impl::get_rsrp_dB(unsigned rx_port, unsigned tx_layer) const
+{
+  return convert_power_to_dB(get_rsrp(rx_port, tx_layer));
+}
+
+static_vector<float, MAX_PORTS> dmrs_pusch_estimator_impl::get_rsrp_all_ports(unsigned tx_layer) const
+{
+  ocudu_assert(tx_layer < nof_tx_layers,
+               "Invalid transmission layer {} - number of supported layers is {}.",
+               tx_layer,
+               nof_tx_layers);
+  unsigned nof_ports = ch_est_result.size();
+
+  static_vector<float, MAX_PORTS> rsrp_values(nof_ports);
+  for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
+    ocudu_assert(ch_est_result[i_port], "Invalid channel estimator results for port {}.", i_port);
+    rsrp_values[i_port] = ch_est_result[i_port]->get_rsrp(tx_layer);
+  }
+
+  return rsrp_values;
+}
+
+float dmrs_pusch_estimator_impl::get_noise_variance(unsigned rx_port) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  return ch_est_result[rx_port]->get_noise_variance();
+}
+
+float dmrs_pusch_estimator_impl::get_noise_variance_dB(unsigned rx_port) const
+{
+  return convert_power_to_dB(get_noise_variance(rx_port));
+}
+
+float dmrs_pusch_estimator_impl::get_epre(unsigned rx_port) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  return ch_est_result[rx_port]->get_epre();
+}
+
+float dmrs_pusch_estimator_impl::get_snr(unsigned rx_port) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  return ch_est_result[rx_port]->get_snr();
+}
+
+float dmrs_pusch_estimator_impl::get_layer_average_snr(unsigned tx_layer) const
+{
+  ocudu_assert(tx_layer < nof_tx_layers,
+               "Invalid transmission layer {} - number of supported layers is {}.",
+               tx_layer,
+               nof_tx_layers);
+  float total_rsrp      = 0;
+  float total_noise_var = 0;
+  for (const auto& r : ch_est_result) {
+    total_rsrp += r->get_rsrp(tx_layer);
+    total_noise_var += r->get_noise_variance();
+  }
+
+  if (std::isnormal(total_noise_var)) {
+    return total_rsrp / total_noise_var;
+  }
+
+  return 0;
+}
+
+phy_time_unit dmrs_pusch_estimator_impl::get_time_alignment(unsigned rx_port) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  return ch_est_result[rx_port]->get_time_alignment();
+}
+
+std::optional<float> dmrs_pusch_estimator_impl::get_cfo_Hz(unsigned rx_port) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  return ch_est_result[rx_port]->get_cfo_Hz();
+}
+
+void dmrs_pusch_estimator_impl::get_channel_state_information(channel_state_information& csi) const
+{
+  // EPRE and RSRP are reported as a linear average of the results for all Rx ports.
+  float    epre_lin      = 0.0F;
+  unsigned best_rx_port  = 0;
+  float    best_path_snr = -std::numeric_limits<float>::infinity();
+  unsigned nof_rx_ports  = ch_est_result.size();
+
+  for (unsigned i_rx_port = 0; i_rx_port != nof_rx_ports; ++i_rx_port) {
+    // Accumulate EPRE and RSRP values.
+    epre_lin += get_epre(i_rx_port);
+
+    // Determine the Rx port with better SNR.
+    float port_snr = get_snr(i_rx_port);
+    if (port_snr > best_path_snr) {
+      best_path_snr = port_snr;
+      best_rx_port  = i_rx_port;
+    }
+  }
+
+  // Set the RSRP according to the estimated values for each receive port (currently, only layer 0).
+  static_vector<float, MAX_PORTS> rsrp_help = get_rsrp_all_ports(/*tx_layer=*/0);
+  csi.set_rsrp_lin(rsrp_help);
+
+  epre_lin /= static_cast<float>(nof_rx_ports);
+
+  csi.set_epre(convert_power_to_dB(epre_lin));
+
+  // Use the time alignment of the channel path with best SNR.
+  csi.set_time_alignment(get_time_alignment(best_rx_port));
+
+  // Use the CFO of the channel path with best SNR.
+  std::optional<float> cfo_help = get_cfo_Hz(best_rx_port);
+  if (cfo_help.has_value()) {
+    csi.set_cfo(*cfo_help);
+  }
+
+  // SINR is reported by averaging the signal and noise power contributions of all Rx ports.
+  csi.set_sinr_dB(channel_state_information::sinr_type::channel_estimator,
+                  convert_power_to_dB(get_layer_average_snr(0)));
 }

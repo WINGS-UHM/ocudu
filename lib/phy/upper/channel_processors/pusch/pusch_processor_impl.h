@@ -173,7 +173,7 @@ private:
 
   private:
     // See interface for documentation.
-    void on_estimation_complete() override
+    void on_estimation_complete(const dmrs_pusch_estimator_results& est_results) override
     {
       // Move current transmission parameters to the stack.
       pusch_processor_result_notifier* current_notifier = std::exchange(notifier, nullptr);
@@ -192,6 +192,7 @@ private:
                                       std::move(rm_buffer),
                                       std::move(dependencies),
                                       *current_notifier,
+                                      est_results,
                                       *current_grid,
                                       *current_pdu,
                                       used_dmrs_type,
@@ -241,6 +242,7 @@ private:
   /// \param[in,out] rm_buffer                    Rate matcher buffer.
   /// \param[in,out] dependencies                 Pointer to the dependencies object assigned to the PUSCH processor.
   /// \param[in]     notifier                     Result notification interface.
+  /// \param[in]     est_results                  Results of the DM-RS channel estimator.
   /// \param[in]     grid                         Source resource grid.
   /// \param[in]     pdu                          Necessary parameters to process the PUSCH transmission.
   /// \param[in]     dmrs_type                    DM-RS type used by the PUSCH transmission.
@@ -249,6 +251,7 @@ private:
                     unique_rx_buffer                       rm_buffer,
                     concurrent_dependencies_pool_type::ptr dependencies,
                     pusch_processor_result_notifier&       notifier,
+                    const dmrs_pusch_estimator_results&    est_results,
                     const resource_grid_reader&            grid,
                     const pdu_t&                           pdu,
                     const dmrs_type&                       dmrs_type,

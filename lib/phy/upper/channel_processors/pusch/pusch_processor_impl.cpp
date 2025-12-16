@@ -198,13 +198,14 @@ void pusch_processor_impl::process(span<uint8_t>                    data,
       data, std::move(rm_buffer), std::move(dependencies), notifier, grid, pdu, dmrs_type, nof_cdm_groups_without_data);
 
   // Run the channel estimator. When done, the notifier will trigger the remaining steps for recovering the PUSCH data.
-  estimator.estimate(ch_estimate, estimator_notifier, grid, ch_est_config);
+  estimator.estimate(estimator_notifier, grid, ch_est_config);
 }
 
 void pusch_processor_impl::process_data(span<uint8_t>                          data,
                                         unique_rx_buffer                       rm_buffer,
                                         concurrent_dependencies_pool_type::ptr dependencies,
                                         pusch_processor_result_notifier&       notifier,
+                                        const dmrs_pusch_estimator_results&    est_results,
                                         const resource_grid_reader&            grid,
                                         const pdu_t&                           pdu,
                                         const dmrs_type&                       dmrs_type,
@@ -212,8 +213,37 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
 {
   using namespace units::literals;
 
-  // Get channel estimates. They were filled in by pusch_processor_impl::process(...).
+  // Get channel estimates storage and fill it with the results of the DM-RS channel estimator.
+  // TODO: This won't be necessary once the demodulator takes the results interface as input.
+  // TODO: We can remove ch_estimate from the dependencies - now (a variable local to this method should be enough) or
+  // wait the end of the refactor?
   channel_estimate& ch_estimate = dependencies->get_channel_estimate();
+
+  // Get RB mask relative to Point A. According to TS38.211 Section 6.3.1.7, the VRB-to-PRB mapping for PUSCH is never
+  // interleaved.
+  crb_bitmap rb_mask = pdu.freq_alloc.get_crb_mask(pdu.bwp_start_rb, pdu.bwp_size_rb);
+
+  ch_estimate.resize({static_cast<unsigned>(rb_mask.size()),
+                      pdu.start_symbol_index + pdu.nof_symbols,
+                      static_cast<unsigned>(pdu.rx_ports.size()),
+                      pdu.nof_tx_layers});
+
+  for (unsigned i_port = 0, nof_ports = pdu.rx_ports.size(); i_port != nof_ports; ++i_port) {
+    for (unsigned i_layer = 0, nof_layers = pdu.nof_tx_layers; i_layer != nof_layers; ++i_layer) {
+      for (unsigned i_symbol = pdu.start_symbol_index, last_symbol = pdu.start_symbol_index + pdu.nof_symbols;
+           i_symbol != last_symbol;
+           ++i_symbol) {
+        est_results.get_symbol_ch_estimate(
+            ch_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer), i_symbol, i_port, i_layer);
+      }
+      ch_estimate.set_time_alignment(est_results.get_time_alignment(i_port), i_port, i_layer);
+      ch_estimate.set_cfo_Hz(est_results.get_cfo_Hz(i_port), i_port, i_layer);
+      ch_estimate.set_rsrp(est_results.get_rsrp(i_port, i_layer), i_port, i_layer);
+    }
+    ch_estimate.set_epre(est_results.get_epre(i_port), i_port);
+    ch_estimate.set_noise_variance(est_results.get_noise_variance(i_port), i_port);
+    ch_estimate.set_snr(est_results.get_snr(i_port), i_port);
+  }
 
   // Set the DC (Direct Current) subcarrier to zero if its position is within the resource grid and transform precoding
   // is disabled. This step is skipped when transform precoding is used, as forcing the DC to zero in that case may
@@ -241,9 +271,6 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
 
   // Number of RB used by this transmission.
   unsigned nof_rb = pdu.freq_alloc.get_nof_rb();
-
-  // Get RB mask relative to Point A. It assumes PUSCH is never interleaved.
-  crb_bitmap rb_mask = pdu.freq_alloc.get_crb_mask(pdu.bwp_start_rb, pdu.bwp_size_rb);
 
   // Determine if the PUSCH allocation overlaps with the position of the DC.
   bool overlap_dc = false;

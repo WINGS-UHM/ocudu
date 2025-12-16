@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/upper/channel_estimation.h"
+#include "ocudu/phy/upper/channel_state_information.h"
 #include "ocudu/phy/upper/dmrs_mapping.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/slot_point.h"
@@ -24,6 +24,8 @@ namespace ocudu {
 
 class resource_grid_reader;
 
+class dmrs_pusch_estimator_results;
+
 /// Notifier to communicate the completion of the estimation process.
 class dmrs_pusch_estimator_notifier
 {
@@ -31,8 +33,9 @@ public:
   /// Default destructor.
   virtual ~dmrs_pusch_estimator_notifier() = default;
 
-  /// Communicates the notified object about the completion of the estimation process.
-  virtual void on_estimation_complete() = 0;
+  /// \brief Communicates the notified object about the completion of the estimation process.
+  /// \param[in] est_results  Provides access to the estimation results.
+  virtual void on_estimation_complete(const dmrs_pusch_estimator_results& est_results) = 0;
 };
 
 /// DM-RS-based PUSCH channel estimator interface.
@@ -116,14 +119,80 @@ public:
   virtual ~dmrs_pusch_estimator() = default;
 
   /// \brief Estimates the PUSCH propagation channel.
-  /// \param[out] estimate Channel estimate.
   /// \param[in]  notifier Notifier to communicate the end of the estimation process.
   /// \param[in]  grid     Received resource grid.
   /// \param[in]  config   DM-RS configuration parameters. They characterize the DM-RS symbols and their indices.
-  virtual void estimate(channel_estimate&              estimate,
-                        dmrs_pusch_estimator_notifier& notifier,
-                        const resource_grid_reader&    grid,
-                        const configuration&           config) = 0;
+  virtual void
+  estimate(dmrs_pusch_estimator_notifier& notifier, const resource_grid_reader& grid, const configuration& config) = 0;
+};
+
+/// Interface for accessing the results of running the DM-RS PUSCH estimator.
+class dmrs_pusch_estimator_results
+{
+public:
+  /// Default destructor.
+  virtual ~dmrs_pusch_estimator_results() = default;
+
+  /// Returns the estimated noise variance for the given Rx port (linear scale).
+  virtual float get_noise_variance(unsigned rx_port) const = 0;
+
+  /// Returns the estimated noise variance for the given Rx port (dB scale).
+  virtual float get_noise_variance_dB(unsigned rx_port) const = 0;
+
+  /// Returns the estimated RSRP for the path between the given Rx port and Tx layer (linear scale).
+  virtual float get_rsrp(unsigned rx_port, unsigned tx_layer = 0) const = 0;
+
+  /// Gets the estimated RSRP for all Rx ports for the given Tx layer (linear scale).
+  virtual static_vector<float, MAX_PORTS> get_rsrp_all_ports(unsigned tx_layer = 0) const = 0;
+
+  /// Returns the estimated RSRP for the path between the given Rx port and Tx layer (dB scale).
+  virtual float get_rsrp_dB(unsigned rx_port, unsigned tx_layer = 0) const = 0;
+
+  /// \brief Returns the average EPRE for the given Rx port (linear scale).
+  ///
+  /// \remark The EPRE is defined as the average received power (including noise) across all REs carrying DM-RS for all
+  /// layers.
+  virtual float get_epre(unsigned rx_port) const = 0;
+
+  /// \brief Returns the average EPRE for the given Rx port (dB scale).
+  ///
+  /// \remark The EPRE is defined as the average received power (including noise) across all REs carrying DM-RS.
+  float get_epre_dB(unsigned rx_port) const { return convert_power_to_dB(get_epre(rx_port)); }
+
+  /// Returns the estimated SNR for the given Rx port (linear scale).
+  virtual float get_snr(unsigned rx_port) const = 0;
+
+  /// Returns the estimated average SNR for a given layer (linear scale).
+  virtual float get_layer_average_snr(unsigned tx_layer = 0) const = 0;
+
+  /// Returns the estimated SNR for the given Rx port (dB scale).
+  float get_snr_dB(unsigned rx_port) const { return convert_power_to_dB(get_snr(rx_port)); }
+
+  /// Returns the estimated time alignment in PHY time units between the given Rx port.
+  virtual phy_time_unit get_time_alignment(unsigned rx_port) const = 0;
+
+  /// \brief Returns the carrier frequency offset in hertz estimated for the given Rx port.
+  ///
+  /// \remark The CFO estimation may be emtpy depending on the DM-RS configuration.
+  virtual std::optional<float> get_cfo_Hz(unsigned rx_port) const = 0;
+
+  /// \brief Gets the RE channel estimates of the path between the given Rx port and Tx layer.
+  ///
+  /// The values are indexed by i) subcarriers and ii) OFDM symbols.
+  virtual void get_path_ch_estimate(span<cbf16_t> estimates, unsigned rx_port, unsigned tx_layer = 0) const = 0;
+
+  /// \brief Gets the RE channel estimates for a given OFDM symbol, Rx port and Tx layer.
+  ///
+  /// The values are indexed by subcarrier.
+  virtual void get_symbol_ch_estimate(span<cbf16_t> estimates,
+                                      unsigned      i_symbol,
+                                      unsigned      rx_port  = 0,
+                                      unsigned      tx_layer = 0) const = 0;
+
+  /// \brief Gets the general Channel State Information.
+  ///
+  /// \param[out] csi Channel State Information object where the CSI parameters are stored.
+  virtual void get_channel_state_information(channel_state_information& csi) const = 0;
 };
 
 } // namespace ocudu

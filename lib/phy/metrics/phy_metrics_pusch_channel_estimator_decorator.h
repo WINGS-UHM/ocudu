@@ -31,8 +31,7 @@ public:
   }
 
   // See interface for documentation.
-  void estimate(channel_estimate&              estimate,
-                dmrs_pusch_estimator_notifier& notifier,
+  void estimate(dmrs_pusch_estimator_notifier& notifier,
                 const resource_grid_reader&    grid,
                 const configuration&           config) override
   {
@@ -40,7 +39,7 @@ public:
     {
       // Use scoped resource usage class to measure CPU usage of this block.
       resource_usage_utils::scoped_resource_usage rusage_tracker(metrics.measurements);
-      base->estimate(estimate, notifier, grid, config);
+      base->estimate(notifier, grid, config);
     }
     metrics.nof_prb = static_cast<unsigned>(config.rb_mask.count());
     metrics_notifier.on_new_metric(metrics);

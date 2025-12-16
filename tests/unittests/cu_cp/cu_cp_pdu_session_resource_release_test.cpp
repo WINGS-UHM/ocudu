@@ -248,8 +248,8 @@ public:
   }
 
   [[nodiscard]] bool
-  send_rrc_reconfiguration_complete_and_await_pdu_session_setup_response(unsigned rrc_recfg_transaction_id = 1,
-                                                                         uint8_t  rrc_recfg_count          = 9)
+  send_rrc_reconfiguration_complete_and_await_pdu_session_release_response(unsigned rrc_recfg_transaction_id = 1,
+                                                                           uint8_t  rrc_recfg_count          = 9)
   {
     // Inject UL RRC Message (containing RRC Reconfiguration Complete) and wait for PDU Session Resource Release
     // Response
@@ -261,7 +261,7 @@ public:
     report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu, std::chrono::milliseconds(10000)),
                               "Failed to receive PDU Session Resource Release Response");
     report_fatal_error_if_not(test_helpers::is_valid_pdu_session_resource_release_response(ngap_pdu),
-                              "Invalid PDU Session Resource Setup Response");
+                              "Invalid PDU Session Resource Release Response");
     return true;
   }
 };
@@ -281,7 +281,7 @@ TEST_F(cu_cp_pdu_session_resource_release_test, when_bearer_context_modification
   ASSERT_TRUE(send_ue_context_modification_response_and_await_rrc_reconfiguration());
 
   // Inject RRC Reconfiguration Complete and await PDU Session Resource Release Response
-  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_setup_response());
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_release_response());
 }
 
 TEST_F(cu_cp_pdu_session_resource_release_test, when_ue_context_modification_failure_received_then_release_succeeds)
@@ -299,7 +299,7 @@ TEST_F(cu_cp_pdu_session_resource_release_test, when_ue_context_modification_fai
   ASSERT_TRUE(send_ue_context_modification_failure_and_await_rrc_reconfiguration());
 
   // Inject RRC Reconfiguration Complete and await PDU Session Resource Release Response
-  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_setup_response());
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_release_response());
 }
 
 TEST_F(cu_cp_pdu_session_resource_release_test, when_all_sub_actions_succeed_then_release_succeeds)
@@ -317,7 +317,7 @@ TEST_F(cu_cp_pdu_session_resource_release_test, when_all_sub_actions_succeed_the
   ASSERT_TRUE(send_ue_context_modification_response_and_await_rrc_reconfiguration());
 
   // Inject RRC Reconfiguration Complete and await PDU Session Resource Release Response
-  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_setup_response());
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_release_response());
 }
 
 TEST_F(cu_cp_pdu_session_resource_release_test, when_only_pdu_session_released_then_bearer_context_release_command_sent)
@@ -332,5 +332,5 @@ TEST_F(cu_cp_pdu_session_resource_release_test, when_only_pdu_session_released_t
   ASSERT_TRUE(send_ue_context_modification_response_and_await_rrc_reconfiguration());
 
   // Inject RRC Reconfiguration Complete and await PDU Session Resource Release Response
-  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_setup_response(0, 8));
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_release_response(0, 8));
 }

@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include "ocudu/adt/bounded_bitset.h"
 
 namespace ocudu {
 
@@ -19,6 +20,12 @@ constexpr harq_id_t to_harq_id(unsigned h_id)
 {
   return static_cast<harq_id_t>(h_id);
 }
+
+/// Bitset mask for DL HARQ Feedback Disabled configuration.
+using harq_dl_feedback_disabled_mask = bounded_bitset<MAX_NOF_HARQS, true>;
+
+/// Bitset mask for UL HARQ mode configuration.
+using harq_ul_mode_mask = bounded_bitset<MAX_NOF_HARQS, true>;
 
 /// Outcomes of a HARQ-ACK report.
 enum class mac_harq_ack_report_status : int8_t { nack = 0, ack, dtx };

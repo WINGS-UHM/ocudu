@@ -178,16 +178,15 @@ static void set_ul_dci_harq_num_field_size(serving_cell_config& cell_cfg, unsign
   }
 }
 
-static void set_ul_harq_mode(serving_cell_config&                       cell_cfg,
-                             const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask)
+static void set_ul_harq_mode(serving_cell_config& cell_cfg, const harq_ul_mode_mask& ul_harq_mode_mask)
 {
   if (cell_cfg.ul_config.has_value() and cell_cfg.ul_config->pusch_serv_cell_cfg.has_value()) {
     cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode = ul_harq_mode_mask;
   }
 }
 
-static void set_dl_harq_feedback_disabled(serving_cell_config&                       cell_cfg,
-                                          const bounded_bitset<MAX_NOF_HARQS, true>& disabled_harq_feedback_mask)
+static void set_dl_harq_feedback_disabled(serving_cell_config&                  cell_cfg,
+                                          const harq_dl_feedback_disabled_mask& disabled_harq_feedback_mask)
 {
   if (cell_cfg.pdsch_serv_cell_cfg.has_value()) {
     cell_cfg.pdsch_serv_cell_cfg->dl_harq_feedback_disabled = disabled_harq_feedback_mask;
@@ -588,11 +587,10 @@ unsigned ue_capability_manager::select_ul_dci_harq_num_field_size(du_cell_index_
   return std::max(std::min(cell_dci_size, band_dci_size), default_dci_size);
 }
 
-bounded_bitset<MAX_NOF_HARQS, true>
-ue_capability_manager::select_disabled_dl_harq_feedback(du_cell_index_t cell_idx) const
+harq_dl_feedback_disabled_mask ue_capability_manager::select_disabled_dl_harq_feedback(du_cell_index_t cell_idx) const
 {
   // The bit(s) set to zero identify HARQ processes with enabled DL HARQ feedback.
-  bounded_bitset<MAX_NOF_HARQS, true> default_harq_feedback_disabled(MAX_NOF_HARQS);
+  harq_dl_feedback_disabled_mask default_harq_feedback_disabled(MAX_NOF_HARQS);
   default_harq_feedback_disabled.reset();
 
   // Configured disabled DL HARQ feedback.
@@ -601,7 +599,7 @@ ue_capability_manager::select_disabled_dl_harq_feedback(du_cell_index_t cell_idx
   if (not pdsch_serv_cell_cfg.has_value()) {
     return default_harq_feedback_disabled;
   }
-  bounded_bitset<MAX_NOF_HARQS, true> cell_harq_feedback_disabled = pdsch_serv_cell_cfg->dl_harq_feedback_disabled;
+  harq_dl_feedback_disabled_mask cell_harq_feedback_disabled = pdsch_serv_cell_cfg->dl_harq_feedback_disabled;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -622,10 +620,10 @@ ue_capability_manager::select_disabled_dl_harq_feedback(du_cell_index_t cell_idx
   return default_harq_feedback_disabled;
 }
 
-bounded_bitset<MAX_NOF_HARQS, true> ue_capability_manager::select_ul_harq_mode(du_cell_index_t cell_idx) const
+harq_ul_mode_mask ue_capability_manager::select_ul_harq_mode(du_cell_index_t cell_idx) const
 {
   // A bit set to one identifies a HARQ process in modeA and a bit set to zero identifies a HARQ process in modeB.
-  bounded_bitset<MAX_NOF_HARQS, true> default_ul_harq_mode_mask(MAX_NOF_HARQS);
+  harq_ul_mode_mask default_ul_harq_mode_mask(MAX_NOF_HARQS);
   default_ul_harq_mode_mask.fill(true);
 
   // Configured disabled UL HARQ mode B.
@@ -639,7 +637,7 @@ bounded_bitset<MAX_NOF_HARQS, true> ue_capability_manager::select_ul_harq_mode(d
     return default_ul_harq_mode_mask;
   }
 
-  bounded_bitset<MAX_NOF_HARQS, true> cell_ul_harq_mode_mask = pusch_serv_cell_cfg->ul_harq_mode;
+  harq_ul_mode_mask cell_ul_harq_mode_mask = pusch_serv_cell_cfg->ul_harq_mode;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.

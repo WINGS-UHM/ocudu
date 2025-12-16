@@ -99,9 +99,9 @@ private:
   /// Selects the UL HARQ Process Number field size.
   unsigned select_ul_dci_harq_num_field_size(du_cell_index_t cell_idx) const;
   /// Selects the DL HARQ feedback disabled.
-  bounded_bitset<MAX_NOF_HARQS, true> select_disabled_dl_harq_feedback(du_cell_index_t cell_idx) const;
+  harq_dl_feedback_disabled_mask select_disabled_dl_harq_feedback(du_cell_index_t cell_idx) const;
   /// Selects the UL HARQ Mode B.
-  bounded_bitset<MAX_NOF_HARQS, true> select_ul_harq_mode(du_cell_index_t cell_idx) const;
+  harq_ul_mode_mask select_ul_harq_mode(du_cell_index_t cell_idx) const;
 
   // Updates the DRX config of the UE.
   void update_drx(du_ue_resource_config& ue_res_cfg);

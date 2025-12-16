@@ -527,8 +527,8 @@ public:
   unsigned nof_dl_harqs() const { return get_dl_ue().harqs.size(); }
   unsigned nof_ul_harqs() const { return get_ul_ue().harqs.size(); }
 
-  void reconfigure(const bounded_bitset<MAX_NOF_HARQS, true>& dl_harq_feedback_disabled_mask,
-                   const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask);
+  void reconfigure(const harq_dl_feedback_disabled_mask& dl_harq_feedback_disabled_mask,
+                   const harq_ul_mode_mask&              ul_harq_mode_mask);
 
   /// Checks whether there are free HARQ processes.
   bool   has_empty_dl_harqs(bool select_normal_mode_only = false) const;

@@ -152,7 +152,7 @@ struct du_high_unit_pdsch_config {
   /// where bits set to 1 indicate HARQ processes with feedback disabled, and 0 indicate feedback enabled.
   /// The bitset has size of MAX_NOF_HARQS. The first/leftmost bit corresponds to HARQ process ID 0. Bits corresponding
   /// to HARQ process IDs that are not configured are ignored.
-  bounded_bitset<MAX_NOF_HARQS, true> harq_feedback_disabled = {bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
+  harq_dl_feedback_disabled_mask harq_feedback_disabled = harq_dl_feedback_disabled_mask(MAX_NOF_HARQS);
   /// Number of UE DL HARQ processes.
   unsigned nof_harqs = 16;
   /// Maximum number of times a DL HARQ process can be retransmitted, before it gets discarded.
@@ -224,7 +224,7 @@ struct du_high_unit_pusch_config {
   /// HARQ processes with feedback disabled, and 0 indicate feedback enabled.
   /// The bitset has size of MAX_NOF_HARQS. The first/leftmost bit corresponds to HARQ process ID 0. Bits corresponding
   /// to HARQ process IDs that are not configured are ignored.
-  bounded_bitset<MAX_NOF_HARQS, true> harq_mode_b = {bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
+  harq_ul_mode_mask harq_mode_b = harq_ul_mode_mask(MAX_NOF_HARQS);
   /// Number of UE UL HARQ processes.
   unsigned nof_harqs = 16;
   /// Maximum number of times a UL HARQ process can be retransmitted, before it gets discarded.

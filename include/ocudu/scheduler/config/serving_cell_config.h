@@ -230,7 +230,7 @@ struct pusch_serving_cell_config {
 
   /// See TS 38.331, \c uplinkHARQ-mode.
   /// A bit set to one identifies a HARQ process in modeA and a bit set to zero identifies a HARQ process in modeB.
-  bounded_bitset<MAX_NOF_HARQS, true> ul_harq_mode = {~bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
+  harq_ul_mode_mask ul_harq_mode = ~harq_ul_mode_mask(MAX_NOF_HARQS);
 
   /// See TS 38.331, \c nrofHARQ-ProcessesForPUSCH.
   nof_harq_proc_for_pusch nof_harq_proc{nof_harq_proc_for_pusch::n16};
@@ -285,7 +285,7 @@ struct pdsch_serving_cell_config {
   x_overhead                                         x_ov_head{x_overhead::not_set};
   /// See TS 38.331, \c downlinkHARQ-FeedbackDisabled.
   /// A bit set to 1 indicates HARQ processes with disabled DL HARQ feedback; a bit set to 0 indicate feedback enabled.
-  bounded_bitset<MAX_NOF_HARQS, true> dl_harq_feedback_disabled = {bounded_bitset<MAX_NOF_HARQS, true>(MAX_NOF_HARQS)};
+  harq_dl_feedback_disabled_mask dl_harq_feedback_disabled = harq_dl_feedback_disabled_mask(MAX_NOF_HARQS);
   /// See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
   nof_harq_proc_for_pdsch          nof_harq_proc{nof_harq_proc_for_pdsch::n16};
   std::optional<serv_cell_index_t> pucch_cell;

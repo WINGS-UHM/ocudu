@@ -901,8 +901,8 @@ unique_ue_harq_entity::~unique_ue_harq_entity()
   }
 }
 
-void unique_ue_harq_entity::reconfigure(const bounded_bitset<MAX_NOF_HARQS, true>& dl_harq_feedback_disabled_mask,
-                                        const bounded_bitset<MAX_NOF_HARQS, true>& ul_harq_mode_mask)
+void unique_ue_harq_entity::reconfigure(const harq_dl_feedback_disabled_mask& dl_harq_feedback_disabled_mask,
+                                        const harq_ul_mode_mask&              ul_harq_mode_mask)
 {
   if (cell_harq_mgr->ul.ntn_cs_koffset == 0) {
     // Not NTN cell, do not set DL HARQ Feedback Disabled and UL HARQ mode B.

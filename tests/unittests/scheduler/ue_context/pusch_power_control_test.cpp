@@ -56,10 +56,9 @@ protected:
           exp_cfg.ue.ul_power_ctrl.target_pusch_sinr          = default_pusch_sinr;
           return exp_cfg;
         }(),
-        sched_config_helper::make_default_sched_cell_configuration_request(
-            cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
-                                       .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                       .dl_f_ref_arfcn = 520000U})),
+        cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
+                                   .channel_bw_mhz = bs_channel_bandwidth::MHz20,
+                                   .dl_f_ref_arfcn = 520000U}),
     phr_periodic_timer_sl(GetParam().phr_periodic_timer_sf * NOF_SLOT_PER_SF)
   {
     add_ue(sched_config_helper::create_default_sched_ue_creation_request());
@@ -295,10 +294,9 @@ protected:
           exp_cfg.ue.ul_power_ctrl.target_pusch_sinr          = target_sinr_;
           return exp_cfg;
         }(),
-        sched_config_helper::make_default_sched_cell_configuration_request(
-            cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
-                                       .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                       .dl_f_ref_arfcn = 520000U})),
+        cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
+                                   .channel_bw_mhz = bs_channel_bandwidth::MHz20,
+                                   .dl_f_ref_arfcn = 520000U}),
     pusch_sinr_target_dB(target_sinr_)
   {
     ocudulog::init();
@@ -563,7 +561,7 @@ protected:
   pusch_cl_pw_control_bounds_test_bench() :
     pusch_closed_loop_power_control_base_test_bench(target_sinr, pusch_pw_ctrl_alpha)
   {
-    sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request();
+    sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
 
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()

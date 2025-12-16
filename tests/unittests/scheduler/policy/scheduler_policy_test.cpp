@@ -35,21 +35,26 @@ using namespace ocudu;
 /// - time_qos - Time based QoS-aware scheduler.
 enum class policy_scheduler_type { time_rr, time_qos };
 
+struct test_params {
+  policy_scheduler_type      policy    = policy_scheduler_type::time_rr;
+  scheduler_expert_config    sched_cfg = config_helpers::make_default_scheduler_expert_config();
+  cell_config_builder_params builder   = {};
+  std::optional<sched_cell_configuration_request_message> cell_cfg_req = std::nullopt;
+};
+
 class base_scheduler_policy_test
 {
 protected:
-  base_scheduler_policy_test(
-      policy_scheduler_type      policy,
-      scheduler_expert_config    sched_cfg_ = config_helpers::make_default_scheduler_expert_config(),
-      cell_config_builder_params params_    = {}) :
-    params(params_),
-    sched_cfg([&sched_cfg_, policy]() {
-      if (policy == policy_scheduler_type::time_qos) {
-        sched_cfg_.ue.policy_cfg = time_qos_scheduler_config{};
+  base_scheduler_policy_test(const test_params& tparams) :
+    params(tparams.builder),
+    sched_cfg([&tparams]() {
+      auto expert_cfg = tparams.sched_cfg;
+      if (tparams.policy == policy_scheduler_type::time_qos) {
+        expert_cfg.ue.policy_cfg = time_qos_scheduler_config{};
       }
-      return sched_cfg_;
+      return expert_cfg;
     }()),
-    cell_cfg_req(cfg_mng.get_default_cell_config_request()),
+    cell_cfg_req(tparams.cell_cfg_req.has_value() ? *tparams.cell_cfg_req : cfg_mng.get_default_cell_config_request()),
     logger(ocudulog::fetch_basic_logger("SCHED", true)),
     res_logger(false, cell_cfg_req.pci),
     cell_cfg(*cfg_mng.add_cell(cell_cfg_req)),
@@ -113,6 +118,7 @@ protected:
   ue& add_ue(const sched_ue_creation_request_message& ue_req)
   {
     ue_ded_cell_cfg_list.push_back(cfg_mng.add_ue(ue_req));
+    ocudu_assert(ue_ded_cell_cfg_list.back() != nullptr, "Failed to create UE configuration");
     ues.add_ue(*ue_ded_cell_cfg_list.back(), ue_req.starts_in_fallback, std::nullopt);
     slice_sched.add_ue(ue_req.ue_index);
     return ues[ue_req.ue_index];
@@ -189,22 +195,37 @@ protected:
   slot_point next_slot{0, test_rgen::uniform_int<unsigned>(0, 10239)};
 };
 
-class scheduler_policy_test : public base_scheduler_policy_test, public ::testing::TestWithParam<policy_scheduler_type>
+class scheduler_policy_css_test : public base_scheduler_policy_test,
+                                  public ::testing::TestWithParam<policy_scheduler_type>
 {
 protected:
-  scheduler_policy_test() : base_scheduler_policy_test(GetParam()) {}
+  scheduler_policy_css_test() :
+    base_scheduler_policy_test(test_params{.policy = GetParam(), .cell_cfg_req = []() {
+                                             auto cell_req =
+                                                 sched_config_helper::make_default_sched_cell_configuration_request();
+                                             cell_req.dl_bwp_ded.pdcch_cfg->search_spaces = make_search_spaces();
+                                             return cell_req;
+                                           }()})
+  {
+  }
+
+  static std::vector<search_space_configuration> make_search_spaces()
+  {
+    std::vector<search_space_configuration> ss_list;
+    ss_list.push_back(config_helpers::make_default_common_search_space_config());
+    ss_list.back().set_non_ss0_id(to_search_space_id(2));
+    // Note: We use Aggregation Level 2 to avoid collisions with CORESET#0 PDCCH candidates.
+    ss_list.back().set_non_ss0_nof_candidates({0, 2, 0, 0, 0});
+    return ss_list;
+  }
 };
 
-TEST_P(scheduler_policy_test, when_coreset0_used_then_dl_grant_is_within_bounds_of_coreset0_rbs)
+TEST_P(scheduler_policy_css_test, when_coreset0_used_then_dl_grant_is_within_bounds_of_coreset0_rbs)
 {
-  auto  ue_req  = make_ue_create_req(to_du_ue_index(0), to_rnti(0x4601), {uint_to_lcid(4)}, uint_to_lcg_id(0));
-  auto& ss_list = (*ue_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces;
-  ss_list.clear();
-  ss_list.push_back(config_helpers::make_default_common_search_space_config());
-  ss_list.back().set_non_ss0_id(to_search_space_id(2));
-  // Note: We use Aggregation Level 2 to avoid collisions with CORESET#0 PDCCH candidates.
-  ss_list.back().set_non_ss0_nof_candidates({0, 2, 0, 0, 0});
-  ue& u = add_ue(ue_req);
+  auto ue_req = make_ue_create_req(to_du_ue_index(0), to_rnti(0x4601), {uint_to_lcid(4)}, uint_to_lcg_id(0));
+  (*ue_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces = make_search_spaces();
+  ue& u                                                                     = add_ue(ue_req);
+
   // Note: set CQI=15 to use low aggregation level.
   u.get_pcell().handle_csi_report(
       csi_report_data{std::nullopt, std::nullopt, std::nullopt, std::nullopt, cqi_value{15U}, true});
@@ -219,6 +240,12 @@ TEST_P(scheduler_policy_test, when_coreset0_used_then_dl_grant_is_within_bounds_
                                            this->res_grid[0].result.dl.ue_grants.back().pdsch_cfg.rbs.type1().stop()};
   ASSERT_EQ(prb_to_crb(crbs, alloced_prbs), crbs);
 }
+
+class scheduler_policy_test : public base_scheduler_policy_test, public ::testing::TestWithParam<policy_scheduler_type>
+{
+protected:
+  scheduler_policy_test() : base_scheduler_policy_test(test_params{.policy = GetParam()}) {}
+};
 
 TEST_P(scheduler_policy_test, scheduler_uses_only_specific_searchspaces_defined_in_dedicated_configuration)
 {
@@ -420,42 +447,47 @@ class scheduler_policy_partial_slot_tdd_test : public base_scheduler_policy_test
 {
 protected:
   scheduler_policy_partial_slot_tdd_test() :
-    base_scheduler_policy_test(GetParam(), config_helpers::make_default_scheduler_expert_config(), []() {
-      cell_config_builder_params builder_params{};
-      // Band 40.
-      builder_params.dl_f_ref_arfcn = 465000;
-      builder_params.scs_common     = subcarrier_spacing::kHz30;
-      builder_params.band           = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
-      builder_params.channel_bw_mhz = ocudu::bs_channel_bandwidth::MHz20;
-
-      const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-          builder_params.channel_bw_mhz,
-          builder_params.scs_common,
-          builder_params.band.has_value() ? band_helper::get_freq_range(builder_params.band.value())
-                                          : frequency_range::FR1);
-
-      std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-          band_helper::get_ssb_coreset0_freq_location(builder_params.dl_f_ref_arfcn,
-                                                      *builder_params.band,
-                                                      nof_crbs,
-                                                      builder_params.scs_common,
-                                                      builder_params.scs_common,
-                                                      builder_params.search_space0_index,
-                                                      builder_params.max_coreset0_duration);
-      ocudu_assert(ssb_freq_loc.has_value(), "Invalid cell config parameters");
-      builder_params.offset_to_point_a    = ssb_freq_loc->offset_to_point_A;
-      builder_params.k_ssb                = ssb_freq_loc->k_ssb;
-      builder_params.coreset0_index       = ssb_freq_loc->coreset0_idx;
-      builder_params.tdd_ul_dl_cfg_common = tdd_ul_dl_config_common{.ref_scs  = subcarrier_spacing::kHz30,
-                                                                    .pattern1 = {.dl_ul_tx_period_nof_slots = 10,
-                                                                                 .nof_dl_slots              = 5,
-                                                                                 .nof_dl_symbols            = 5,
-                                                                                 .nof_ul_slots              = 4,
-                                                                                 .nof_ul_symbols            = 0}};
-      return builder_params;
-    }())
+    base_scheduler_policy_test(test_params{.policy    = GetParam(),
+                                           .sched_cfg = config_helpers::make_default_scheduler_expert_config(),
+                                           .builder   = make_builder_params()})
   {
     next_slot = {to_numerology_value(subcarrier_spacing::kHz30), 0};
+  }
+
+  static cell_config_builder_params make_builder_params()
+  {
+    cell_config_builder_params builder_params{};
+    // Band 40.
+    builder_params.dl_f_ref_arfcn = 465000;
+    builder_params.scs_common     = subcarrier_spacing::kHz30;
+    builder_params.band           = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
+    builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
+
+    const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
+        builder_params.channel_bw_mhz,
+        builder_params.scs_common,
+        builder_params.band.has_value() ? band_helper::get_freq_range(builder_params.band.value())
+                                        : frequency_range::FR1);
+
+    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
+        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_f_ref_arfcn,
+                                                    *builder_params.band,
+                                                    nof_crbs,
+                                                    builder_params.scs_common,
+                                                    builder_params.scs_common,
+                                                    builder_params.search_space0_index,
+                                                    builder_params.max_coreset0_duration);
+    ocudu_assert(ssb_freq_loc.has_value(), "Invalid cell config parameters");
+    builder_params.offset_to_point_a    = ssb_freq_loc->offset_to_point_A;
+    builder_params.k_ssb                = ssb_freq_loc->k_ssb;
+    builder_params.coreset0_index       = ssb_freq_loc->coreset0_idx;
+    builder_params.tdd_ul_dl_cfg_common = tdd_ul_dl_config_common{.ref_scs  = subcarrier_spacing::kHz30,
+                                                                  .pattern1 = {.dl_ul_tx_period_nof_slots = 10,
+                                                                               .nof_dl_slots              = 5,
+                                                                               .nof_dl_symbols            = 5,
+                                                                               .nof_ul_slots              = 4,
+                                                                               .nof_ul_symbols            = 0}};
+    return builder_params;
   }
 };
 
@@ -480,7 +512,7 @@ TEST_P(scheduler_policy_partial_slot_tdd_test, scheduler_allocates_in_partial_sl
 class scheduler_round_robin_test : public base_scheduler_policy_test, public ::testing::Test
 {
 protected:
-  scheduler_round_robin_test() : base_scheduler_policy_test(policy_scheduler_type::time_rr) {}
+  scheduler_round_robin_test() : base_scheduler_policy_test(test_params{policy_scheduler_type::time_rr}) {}
 };
 
 TEST_F(scheduler_round_robin_test, round_robin_does_not_account_ues_with_empty_buffers)
@@ -538,7 +570,7 @@ TEST_F(scheduler_round_robin_test, round_robin_must_not_attempt_to_allocate_twic
 class scheduler_pf_test : public base_scheduler_policy_test, public ::testing::Test
 {
 protected:
-  scheduler_pf_test() : base_scheduler_policy_test(policy_scheduler_type::time_qos) {}
+  scheduler_pf_test() : base_scheduler_policy_test(test_params{policy_scheduler_type::time_qos}) {}
 };
 
 TEST_F(scheduler_pf_test, pf_does_not_account_ues_with_empty_buffers)
@@ -681,7 +713,7 @@ using gbr_bitrate_bps = uint64_t;
 class scheduler_pf_qos_test : public base_scheduler_policy_test, public ::testing::TestWithParam<gbr_bitrate_bps>
 {
 protected:
-  scheduler_pf_qos_test() : base_scheduler_policy_test(policy_scheduler_type::time_qos) {}
+  scheduler_pf_qos_test() : base_scheduler_policy_test(test_params{policy_scheduler_type::time_qos}) {}
 
   static double to_bytes_per_slot(uint64_t bitrate_bps, subcarrier_spacing bwp_scs)
   {
@@ -785,15 +817,17 @@ class scheduler_policy_alloc_bounds_test : public base_scheduler_policy_test,
 {
 protected:
   scheduler_policy_alloc_bounds_test() :
-    base_scheduler_policy_test(GetParam(), []() {
-      scheduler_expert_config sched_cfg_ = config_helpers::make_default_scheduler_expert_config();
+    base_scheduler_policy_test(test_params{GetParam(), []() {
+                                             scheduler_expert_config sched_cfg_ =
+                                                 config_helpers::make_default_scheduler_expert_config();
 
-      // Modify boundaries within which PDSCH and PUSCH needs to be allocated to UEs.
-      sched_cfg_.ue.pdsch_crb_limits = {10, 15};
-      sched_cfg_.ue.pusch_crb_limits = {10, 15};
+                                             // Modify boundaries within which PDSCH and PUSCH needs to be allocated to
+                                             // UEs.
+                                             sched_cfg_.ue.pdsch_crb_limits = {10, 15};
+                                             sched_cfg_.ue.pusch_crb_limits = {10, 15};
 
-      return sched_cfg_;
-    }())
+                                             return sched_cfg_;
+                                           }()})
   {
     run_slot();
   }
@@ -844,6 +878,9 @@ TEST_P(scheduler_policy_alloc_bounds_test, scheduler_allocates_pusch_within_conf
   ASSERT_TRUE(this->res_grid[0].result.ul.puschs.back().pusch_cfg.rbs.type1() == expected_vrb_interval);
 }
 
+INSTANTIATE_TEST_SUITE_P(scheduler_policy,
+                         scheduler_policy_css_test,
+                         testing::Values(policy_scheduler_type::time_rr, policy_scheduler_type::time_qos));
 INSTANTIATE_TEST_SUITE_P(scheduler_policy,
                          scheduler_policy_test,
                          testing::Values(policy_scheduler_type::time_rr, policy_scheduler_type::time_qos));

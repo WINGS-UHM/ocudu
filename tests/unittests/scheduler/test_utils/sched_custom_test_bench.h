@@ -33,10 +33,14 @@ public:
 class sched_basic_custom_test_bench
 {
 public:
-  sched_basic_custom_test_bench(const scheduler_expert_config&                  sched_exp_cfg,
-                                const sched_cell_configuration_request_message& sched_cell_cfg_req) :
+  sched_basic_custom_test_bench(
+      const scheduler_expert_config&                                 sched_exp_cfg,
+      const cell_config_builder_params&                              builder_params,
+      const std::optional<sched_cell_configuration_request_message>& sched_cell_cfg_req = {}) :
     expert_cfg{sched_exp_cfg},
-    cell_cfg(*cfg_mng.add_cell(sched_cell_cfg_req)),
+    cfg_mng{builder_params, expert_cfg},
+    cell_cfg(*cfg_mng.add_cell(sched_cell_cfg_req.has_value() ? *sched_cell_cfg_req
+                                                              : cfg_mng.get_default_cell_config_request())),
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
@@ -47,7 +51,7 @@ public:
 
   // Class members.
   scheduler_expert_config                 expert_cfg;
-  test_helpers::test_sched_config_manager cfg_mng{{}, expert_cfg};
+  test_helpers::test_sched_config_manager cfg_mng;
   const cell_configuration&               cell_cfg;
   ue_repository                           ues;
   ue_cell_repository&                     cell_ues;

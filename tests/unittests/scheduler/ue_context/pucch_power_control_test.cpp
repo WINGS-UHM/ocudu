@@ -107,6 +107,46 @@ std::ostream& operator<<(std::ostream& os, const pucch_pw_ctrl_params& params)
 class pucch_power_control_test_bench : public ::testing::TestWithParam<pucch_pw_ctrl_params>,
                                        public sched_basic_custom_test_bench
 {
+  static cell_config_builder_params make_cell_config_params()
+  {
+    return cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
+                                      .channel_bw_mhz = bs_channel_bandwidth::MHz20,
+                                      .dl_f_ref_arfcn = 520000U};
+  }
+
+  static sched_cell_configuration_request_message make_cell_config_request(const pucch_pw_ctrl_params& tparams)
+  {
+    auto req = sched_config_helper::make_default_sched_cell_configuration_request(make_cell_config_params());
+    set_pucch_formats(req.ded_pucch_resources, tparams);
+    return req;
+  }
+
+  static void set_pucch_formats(span<pucch_resource> pucch_res_list, const pucch_pw_ctrl_params& tparams)
+  {
+    // Set the format of the PUCCH resources as per the test parameters.
+    // NOTE: The parameter won't match the PUCCH format, but this is not important for this test.
+    // Make all PUCCH Format 1 resources (by default, the PUCCH resource in set 0 are of Format 1) as per test
+    // parameters.
+    for (auto& res : pucch_res_list) {
+      if (res.format == pucch_format::FORMAT_1) {
+        res.format = tparams.format_set_0;
+        if (tparams.format_set_0 == pucch_format::FORMAT_0) {
+          res.format_params = pucch_format_0_cfg{};
+        }
+      }
+    }
+    // Make all PUCCH Format 2 resources (by default, the PUCCH resource in set 1 are of Format 2) as per test
+    // parameters.
+    for (auto& res : pucch_res_list) {
+      if (res.format == pucch_format::FORMAT_2) {
+        res.format = tparams.format_set_1;
+        if (tparams.format_set_1 == pucch_format::FORMAT_4) {
+          res.format_params = pucch_format_4_cfg{};
+        }
+      }
+    }
+  }
+
 protected:
   pucch_power_control_test_bench() :
     sched_basic_custom_test_bench(
@@ -118,10 +158,8 @@ protected:
           exp_cfg.ue.ul_power_ctrl.pucch_f3_sinr_target_dB    = target_sinr_f2_3;
           return exp_cfg;
         }(),
-        sched_config_helper::make_default_sched_cell_configuration_request(
-            cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
-                                       .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                       .dl_f_ref_arfcn = 520000U})),
+        make_cell_config_params(),
+        make_cell_config_request(GetParam())),
     format_set_0(GetParam().format_set_0),
     format_set_1(GetParam().format_set_1)
   {
@@ -131,28 +169,11 @@ protected:
                      format_set_1 == pucch_format::FORMAT_4,
                  "For PUCCH resources set 1, Format 0 and are not valid");
 
-    sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request();
+    sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
 
     auto& pucch_res_list =
         ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value().pucch_res_list;
-
-    // Set the format of the PUCCH resources as per the test parameters.
-    // NOTE: The parameter won't match the PUCCH format, but this is not important for this test.
-    // Make all PUCCH Format 1 resources (by default, the PUCCH resource in set 0 are of Format 1) as per test
-    // parameters.
-    for (auto& res : pucch_res_list) {
-      if (res.format == ocudu::pucch_format::FORMAT_1) {
-        res.format = GetParam().format_set_0;
-      }
-    }
-    // Make all PUCCH Format 2 resources (by default, the PUCCH resource in set 1 are of Format 2) as per test
-    // parameters.
-    for (auto& res : pucch_res_list) {
-      if (res.format == ocudu::pucch_format::FORMAT_2) {
-        res.format = GetParam().format_set_1;
-      }
-    }
-
+    set_pucch_formats(pucch_res_list, GetParam());
     add_ue(ue_req);
   }
 

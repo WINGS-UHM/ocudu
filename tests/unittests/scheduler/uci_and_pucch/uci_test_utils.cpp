@@ -308,13 +308,16 @@ void test_bench::add_ue()
   }
 
   // Configure SR and CSI periodicities.
-  ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].period = params.sr_period;
+  auto& serv_cell_cfg                                                   = ue_req.cfg.cells->back().serv_cell_cfg;
+  serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].period = params.sr_period;
   if (params.csi_period.has_value()) {
     auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        ue_req.cfg.cells.value().back().serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
+        serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
     csi_report.report_slot_period = *params.csi_period;
   } else {
     ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.reset();
+    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list.clear();
+    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->p_zp_csi_rs_res.reset();
   }
 
   const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back().serv_cell_cfg);
@@ -324,11 +327,12 @@ void test_bench::add_ue()
   ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].offset = params.sr_offset;
   if (params.csi_period.has_value()) {
     auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        ue_req.cfg.cells.value().back().serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
+        serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
     csi_report.report_slot_offset = params.csi_offset;
   }
 
   const ue_configuration* ue_cfg = cfg_mng.add_ue(ue_req);
+  ocudu_assert(ue_cfg != nullptr, "Failed to create UE configuration");
   ue_ded_cfgs.push_back(ue_cfg);
   ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
   uci_sched.add_ue(ues[ue_req.ue_index].get_pcell().cfg());

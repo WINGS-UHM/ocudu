@@ -56,7 +56,13 @@ class pucch_alloc_common_harq_test : public ::testing::TestWithParam<pucch_alloc
 public:
   pucch_alloc_common_harq_test() :
     params{GetParam()},
-    t_bench(test_bench_params{.pucch_res_common = params.input.pucch_res_common, .n_cces = params.input.n_cces}),
+    t_bench(test_bench_params{
+        .pucch_ded_params = {.f0_or_f1_params =
+                                 params.input.pucch_res_common <= 2
+                                     ? std::variant<pucch_f1_params, pucch_f0_params>{pucch_f0_params{}}
+                                     : std::variant<pucch_f1_params, pucch_f0_params>{pucch_f1_params{}}},
+        .pucch_res_common = params.input.pucch_res_common,
+        .n_cces           = params.input.n_cces}),
     expected_info(test_helpers::make_common_pucch_info(&t_bench.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params,
                                                        t_bench.cell_cfg.pci,
                                                        params.output.format,
@@ -177,7 +183,7 @@ INSTANTIATE_TEST_SUITE_P(
 class pucch_alloc_common_harq_multiple_alloc_test : public ::testing::Test
 {
 public:
-  pucch_alloc_common_harq_multiple_alloc_test() : t_bench(test_bench_params{.pucch_res_common = 0, .n_cces = 1}) {}
+  pucch_alloc_common_harq_multiple_alloc_test() : t_bench(test_bench_params{.pucch_res_common = 11, .n_cces = 1}) {}
 
 protected:
   // Parameters that are passed by the routing to run the tests.

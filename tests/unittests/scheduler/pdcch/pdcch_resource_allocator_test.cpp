@@ -91,6 +91,7 @@ protected:
   sched_ue_creation_request_message create_ue_cfg(rnti_t rnti)
   {
     sched_ue_creation_request_message ue_creation_req = sched_cfg_mng.get_default_ue_config_request();
+    ue_creation_req.ue_index                          = to_du_ue_index((unsigned)rnti - 0x4601);
     ue_creation_req.crnti                             = rnti;
     ue_creation_req.starts_in_fallback                = false;
     (*ue_creation_req.cfg.cells)[0].serv_cell_cfg     = default_ue_cell_req;
@@ -666,7 +667,6 @@ TEST_P(multi_alloc_pdcch_resource_allocator_tester, pdcch_allocation_outcome)
 {
   test_logger.info("Test params: {}", params);
   print_cfg();
-  ocudulog::flush();
 
   for (const multi_alloc_test_params::alloc& a : params.allocs) {
     this->allocate_pdcch(a);
@@ -727,8 +727,8 @@ INSTANTIATE_TEST_SUITE_P(
     {{alloc_type::dl_crnti, to_rnti(0x4601), aggregation_level::n2, to_search_space_id(2), 0},
      {alloc_type::dl_crnti, to_rnti(0x4602), aggregation_level::n2, to_search_space_id(2), 2},
      {alloc_type::dl_crnti, to_rnti(0x4603), aggregation_level::n2, to_search_space_id(2), 4},
-     {alloc_type::ul_crnti, to_rnti(0x4601), aggregation_level::n2, to_search_space_id(2), 6},
-     {alloc_type::ul_crnti, to_rnti(0x4602), aggregation_level::n2, to_search_space_id(2), 8}}},
+     {alloc_type::ul_crnti, to_rnti(0x4604), aggregation_level::n2, to_search_space_id(2), 6},
+     {alloc_type::ul_crnti, to_rnti(0x4605), aggregation_level::n2, to_search_space_id(2), 8}}},
   multi_alloc_test_params{cell_bw::MHz20, std::array<uint8_t, 5>{0,0,5,0,0},
     {{alloc_type::dl_crnti, to_rnti(0x4601), aggregation_level::n4, to_search_space_id(2), 0},
      {alloc_type::dl_crnti, to_rnti(0x4602), aggregation_level::n4, to_search_space_id(2), 4},

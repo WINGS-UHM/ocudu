@@ -16,6 +16,7 @@
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
@@ -52,9 +53,7 @@ protected:
     for (const lcid_t lcid : std::array<lcid_t, 3>{uint_to_lcid(1), uint_to_lcid(2), uint_to_lcid(4)}) {
       ue_creation_req.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(lcid));
     }
-    auto& pucch_cfg = ue_creation_req.cfg.cells.value()[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
-    pucch_cfg.format_2_common_param->max_c_rate = max_pucch_code_rate::dot_35;
-    ue_ded_cfg                                  = cfg_mng.add_ue(ue_creation_req);
+    ue_ded_cfg = cfg_mng.add_ue(ue_creation_req);
     report_error_if_not(ue_ded_cfg != nullptr, "Failed to create UE configuration");
     ues.add_ue(*ue_ded_cfg, ue_creation_req.starts_in_fallback, std::nullopt);
     ue_ptr = &ues[ue_creation_req.ue_index];

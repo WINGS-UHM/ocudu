@@ -163,6 +163,7 @@ ue_config_update_event sched_config_manager::add_ue(const sched_ue_creation_requ
     return ue_config_update_event{cfg_req.ue_index, *this};
   }
 
+  // Validate UE creation config.
   error_type<std::string> result =
       config_validators::validate_sched_ue_creation_request_message(cfg_req, *added_cells[pcell_index]);
   if (not result.has_value()) {

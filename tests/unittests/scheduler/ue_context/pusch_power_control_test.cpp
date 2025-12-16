@@ -61,7 +61,7 @@ protected:
                                    .dl_f_ref_arfcn = 520000U}),
     phr_periodic_timer_sl(GetParam().phr_periodic_timer_sf * NOF_SLOT_PER_SF)
   {
-    add_ue(sched_config_helper::create_default_sched_ue_creation_request());
+    add_ue(cfg_mng.get_default_ue_config_request());
   }
 
   ~phr_ul_power_control_test_bench() { ocudulog::flush(); }
@@ -356,7 +356,7 @@ protected:
     pusch_closed_loop_power_control_base_test_bench(GetParam().target_sinr, GetParam().pusch_pw_ctrl_alpha),
     average_reported_sinr_dB(0.5f)
   {
-    sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request();
+    sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
 
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()

@@ -55,11 +55,12 @@ static bool is_ul_slot(unsigned offset, const tdd_ul_dl_config_common& tdd_cfg)
 }
 
 static sched_ue_creation_request_message
-create_sched_ue_creation_request_for_srs_cfg(srs_periodicity                              srs_period,
+create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_message&     base_ue_req,
+                                             srs_periodicity                              srs_period,
                                              unsigned                                     nof_ul_crbs,
                                              const std::optional<tdd_ul_dl_config_common> tdd_cfg)
 {
-  sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request();
+  sched_ue_creation_request_message ue_req = base_ue_req;
   auto& ue_srs_cfg = ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
 
   // Set SRS resource set periodic.
@@ -162,6 +163,8 @@ public:
   {
     slot_indication(current_sl_tx);
     mac_logger.set_level(ocudulog::basic_levels::debug);
+
+    ocudulog::init();
   }
 
   // Class members.
@@ -181,9 +184,13 @@ public:
   // Class methods.
   void add_ue(srs_periodicity srs_period)
   {
-    sched_ue_creation_request_message ue_req = create_sched_ue_creation_request_for_srs_cfg(
-        srs_period, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), cell_cfg.tdd_cfg_common);
+    sched_ue_creation_request_message ue_req =
+        create_sched_ue_creation_request_for_srs_cfg(cfg_mng.get_default_ue_config_request(),
+                                                     srs_period,
+                                                     cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+                                                     cell_cfg.tdd_cfg_common);
     ue_ded_cfgs.emplace_back(cfg_mng.add_ue(ue_req));
+    report_error_if_not(ue_ded_cfgs.back() != nullptr, "Failed to create UE configuration");
     ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
     srs_sched.add_ue(ues[ue_req.ue_index].get_pcell().cfg());
   }
@@ -395,8 +402,11 @@ TEST_F(srs_positioning_scheduler_test, when_neighbor_cell_ue_positioning_is_requ
   rnti_t pos_rnti = rnti_t::MIN_RESERVED_RNTI;
 
   // Initiate Positioning measurement.
-  sched_ue_creation_request_message dummy_ue_req = create_sched_ue_creation_request_for_srs_cfg(
-      srs_period, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), cell_cfg.tdd_cfg_common);
+  sched_ue_creation_request_message dummy_ue_req =
+      create_sched_ue_creation_request_for_srs_cfg(cfg_mng.get_default_ue_config_request(),
+                                                   srs_period,
+                                                   cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+                                                   cell_cfg.tdd_cfg_common);
   auto& ue_srs_cfg = dummy_ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   this->srs_sched.handle_positioning_measurement_request(
       make_positioning_cell_request(pos_rnti, std::nullopt, to_du_cell_index(0), ue_srs_cfg));

@@ -47,6 +47,8 @@ public:
   {
     slot_indication(current_sl_tx);
     mac_logger.set_level(ocudulog::basic_levels::debug);
+
+    ocudulog::init();
   }
 
   // Class members.

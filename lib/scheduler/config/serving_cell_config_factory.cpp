@@ -588,13 +588,18 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
     res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
   }
 
+  // Increase code rate in case of more than 4 layers.
+  const unsigned nof_dl_layers =
+      params.max_nof_layers.has_value() ? params.max_nof_layers.value() : params.nof_dl_ports;
+  const max_pucch_code_rate max_c_rate = nof_dl_layers >= 4 ? max_pucch_code_rate::dot_35 : max_pucch_code_rate::dot_25;
+
   pucch_cfg.format_1_common_param.emplace();
   pucch_cfg.format_2_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_pucch_code_rate::dot_25, .simultaneous_harq_ack_csi = true});
+      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
   pucch_cfg.format_3_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_pucch_code_rate::dot_25, .simultaneous_harq_ack_csi = true});
+      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
   pucch_cfg.format_4_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_pucch_code_rate::dot_25, .simultaneous_harq_ack_csi = true});
+      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
 
   // >>> dl-DataToUl-Ack
   // TS38.213, 9.1.2.1 - "If a UE is provided dl-DataToUL-ACK, the UE does not expect to be indicated by DCI format 1_0

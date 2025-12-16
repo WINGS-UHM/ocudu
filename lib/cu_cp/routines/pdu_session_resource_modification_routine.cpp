@@ -194,9 +194,9 @@ void pdu_session_resource_modification_routine::operator()(
     }
   }
   {
-    if (up_resource_mng.key_refresh_required()) {
+    if (up_resource_mng.key_refresh_required() || up_resource_mng.key_refresh_useful()) {
       logger.info(
-          "ue={}: \"{}\" Key KgNB refresh required, triggering intra-cell handover", modify_request.ue_index, name());
+          "ue={}: \"{}\" Key KgNB refresh is needed, triggering intra-cell handover", modify_request.ue_index, name());
       {
         mobility_mng.handle_intra_cell_handover_required(modify_request.ue_index);
       }

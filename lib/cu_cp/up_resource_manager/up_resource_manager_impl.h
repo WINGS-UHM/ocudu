@@ -75,6 +75,7 @@ public:
   void                          apply_config_update(const up_config_update_result& result);
   void                          refresh_drb_id_after_key_change();
   bool                          key_refresh_required();
+  bool                          key_refresh_useful();
   const up_pdu_session_context& get_pdu_session_context(pdu_session_id_t psi) const;
   const up_drb_context&         get_drb_context(drb_id_t drb_id) const;
   bool                          has_pdu_session(pdu_session_id_t pdu_session_id) const;
@@ -92,7 +93,9 @@ public:
   const std::map<pdu_session_id_t, up_pdu_session_context>& get_pdu_sessions_map() const;
 
 private:
-  bool valid_5qi(const five_qi_t five_qi);
+  bool   valid_5qi(const five_qi_t five_qi);
+  size_t get_nof_stale_drb_ids() const;
+  size_t get_nof_available_drb_ids() const;
 
   up_resource_manager_cfg cfg;
 

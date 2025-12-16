@@ -195,7 +195,21 @@ size_t up_resource_manager::get_total_nof_qos_flows() const
 
 size_t up_resource_manager::get_nof_used_drb_ids() const
 {
+  // Get number of DRB IDs that were already used with current KgNB key
   return context.used_drb_ids.count();
+}
+
+size_t up_resource_manager::get_nof_stale_drb_ids() const
+{
+  // Get number of DRB IDs that were already used with current KgNB key and are not in use by any DRB
+  // Those DRB IDs can be moved to available DRB IDs pool
+  return get_nof_used_drb_ids() - get_nof_drbs();
+}
+
+size_t up_resource_manager::get_nof_available_drb_ids() const
+{
+  // Get number of DRB IDs that were not yet used by any DRB with current KgNB key
+  return MAX_NOF_DRBS - get_nof_used_drb_ids();
 }
 
 std::vector<drb_id_t> up_resource_manager::get_drbs() const
@@ -236,14 +250,32 @@ void up_resource_manager::refresh_drb_id_after_key_change()
   }
 }
 
+bool up_resource_manager::key_refresh_useful()
+{
+  // This check can be used to proactively trigger intra-cell handover.
+  // Number of DRB IDs needed is calculated as smaller of default max_nof_drbs_per_ue (8) and the amount of
+  // addditional DRBs that UE can still add (max_nof_drbs_per_ue - number of active DRBs).
+  // Trigger intra-cell handover if:
+  // - if number of available DRB IDs is smaller than number of DRBs needed
+  // - if stale DRB IDs would be refreshed, there would be enough available DRB IDs.
+  constexpr size_t default_max_nof_drbs_per_ue = 8;
+  size_t           nof_drbs_needed = std::min(cfg.max_nof_drbs_per_ue - get_nof_drbs(), default_max_nof_drbs_per_ue);
+  if (get_nof_available_drb_ids() < nof_drbs_needed) {
+    if (get_nof_stale_drb_ids() + get_nof_available_drb_ids() >= nof_drbs_needed) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool up_resource_manager::key_refresh_required()
 {
-  auto used_drb_ids      = get_nof_used_drb_ids();        // DRB IDs already used with current KgNB key
-  auto active_drb_ids    = get_nof_drbs();                // DRB IDs currently in use by active DRBs
-  auto stale_drb_ids     = used_drb_ids - active_drb_ids; // DRB IDs used with current KgNB key but no longer in use
-  auto available_drb_ids = MAX_NOF_DRBS - used_drb_ids;   // DRB IDs that weren't used yet with current KgNB key
-
-  if (stale_drb_ids > 0 && available_drb_ids == 0) {
+  // This check triggers intra-cell handover when last available DRB ID was used.
+  // Check if KgNB key refresh via intra-cell handover is required:
+  // - there is zero available unused DRB IDs left for new DRBs,
+  // - there are some stale DRB IDs that could be refreshed.
+  // This situation should not happen - key_refresh_useful() should always trigger not later that this check.
+  if (get_nof_stale_drb_ids() > 0 && get_nof_available_drb_ids() == 0) {
     logger.debug("KgNB key refresh required, no DRB IDs available");
     return true;
   }

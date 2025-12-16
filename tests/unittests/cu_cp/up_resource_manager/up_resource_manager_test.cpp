@@ -51,6 +51,7 @@ protected:
 
     // Verify PDU session and DRB were added
     ASSERT_EQ(manager.get_nof_drbs(), 1);
+    ASSERT_EQ(manager.get_nof_used_drb_ids(), 1);
     ASSERT_EQ(manager.get_nof_pdu_sessions(), 1);
     ASSERT_EQ(manager.get_nof_qos_flows(psi), 1);
     ASSERT_EQ(manager.get_total_nof_qos_flows(), 1);
@@ -251,16 +252,24 @@ TEST_F(up_resource_manager_test, when_pdu_session_gets_removed_all_resources_are
   ASSERT_EQ(manager.get_total_nof_qos_flows(), 0);
   ASSERT_EQ(manager.get_nof_drbs(), 0);
 
+  // DRBs that were used are marked as used until the keys are changed
+  ASSERT_EQ(manager.get_nof_used_drb_ids(), 2);
+  manager.refresh_drb_id_after_key_change();
+  ASSERT_EQ(manager.get_nof_used_drb_ids(), 0);
+
   // Setting up initial PDU session is possible again.
   setup_initial_pdu_session();
 }
 
-TEST_F(up_resource_manager_test, when_all_drbs_are_dirty_drb_id_allocation_fails)
+TEST_F(up_resource_manager_test, when_all_drb_ids_are_used_allocation_fails_until_keys_are_refreshed)
 {
   // Preamble.
   setup_initial_pdu_session();
+  constexpr std::size_t initial_nof_drbs = 1;
+  ASSERT_EQ(manager.get_nof_drbs(), initial_nof_drbs);
+  ASSERT_EQ(manager.get_nof_used_drb_ids(), initial_nof_drbs);
 
-  for (unsigned i = 0; i < MAX_NOF_DRBS - 1; i++) {
+  for (unsigned i = 1; i < MAX_NOF_DRBS; i++) {
     // Attempt to create new session with PSI=2.
     pdu_session_id_t                         psi{2};
     cu_cp_pdu_session_resource_setup_request setup_msg =
@@ -286,7 +295,7 @@ TEST_F(up_resource_manager_test, when_all_drbs_are_dirty_drb_id_allocation_fails
     ASSERT_EQ(manager.get_total_nof_qos_flows(), 2);
     ASSERT_EQ(manager.get_nof_drbs(), 2);
 
-    // Remove PDU session so DRB id is marked as dirty.
+    // Remove PDU session, DRB ID is stale and still marked as used.
     cu_cp_pdu_session_resource_release_command release_msg =
         generate_pdu_session_resource_release(ue_index_t::min, psi);
     ASSERT_TRUE(manager.validate_request(release_msg));
@@ -304,13 +313,20 @@ TEST_F(up_resource_manager_test, when_all_drbs_are_dirty_drb_id_allocation_fails
     rel_result.pdu_sessions_removed_list.push_back(rel_update.pdu_sessions_to_remove_list.front());
     manager.apply_config_update(rel_result);
 
-    // All resources are removed.
+    // All resources are removed, but DRB IDs are stale and still marked as used.
     ASSERT_EQ(manager.get_nof_pdu_sessions(), 1);
     ASSERT_EQ(manager.get_total_nof_qos_flows(), 1);
     ASSERT_EQ(manager.get_nof_drbs(), 1);
+    ASSERT_EQ(manager.get_nof_used_drb_ids(), i + 1);
+    if (i + initial_nof_drbs == MAX_NOF_DRBS) {
+      ASSERT_TRUE(manager.key_refresh_required());
+    } else {
+      ASSERT_FALSE(manager.key_refresh_required());
+    }
   }
 
-  // All DRBs were used. There are no more DRB IDs available and allocation will fail.
+  // All DRB IDs were used. There are no more DRB IDs available and allocation will fail.
+  ASSERT_TRUE(manager.key_refresh_required());
   {
     pdu_session_id_t                         psi{2};
     cu_cp_pdu_session_resource_setup_request setup_msg =
@@ -328,6 +344,7 @@ TEST_F(up_resource_manager_test, when_all_drbs_are_dirty_drb_id_allocation_fails
   }
   // After marking the keys as changed, we can create DRBs again.
   manager.refresh_drb_id_after_key_change();
+  ASSERT_FALSE(manager.key_refresh_required());
   {
     pdu_session_id_t                         psi{2};
     cu_cp_pdu_session_resource_setup_request setup_msg =

@@ -65,8 +65,8 @@ static void apply_update_for_new_drbs(up_pdu_session_context&                   
     // Add to DRB-to-PDU session look-up table.
     context.drb_map.emplace(drb.first, pdu_session_context.id);
 
-    // Mark DRB Id as dirty, until keys are refreshed.
-    context.drb_dirty[get_dirty_drb_index(drb.first)] = true;
+    // Mark DRB ID as used, until keys are refreshed.
+    context.used_drb_ids[get_used_drb_id(drb.first)] = true;
 
     // add QoS flows of the DRB to the map.
     for (const auto& flow : drb.second.qos_flows) {
@@ -222,12 +222,12 @@ std::vector<pdu_session_id_t> up_resource_manager::get_pdu_sessions() const
 
 void up_resource_manager::refresh_drb_id_after_key_change()
 {
-  // Clear all DRBs.
-  context.drb_dirty.reset();
+  // Clear all used DRBs.
+  context.used_drb_ids.reset();
 
-  // Mark all used DRBs as dirty.
+  // Mark all DRB IDs of current DRBs as used.
   for (auto& drb : context.drb_map) {
-    context.drb_dirty[get_dirty_drb_index(drb.first)] = true;
+    context.used_drb_ids[get_used_drb_id(drb.first)] = true;
   }
 }
 

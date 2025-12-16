@@ -193,6 +193,11 @@ size_t up_resource_manager::get_total_nof_qos_flows() const
   return context.qos_flow_map.size();
 }
 
+size_t up_resource_manager::get_nof_used_drb_ids() const
+{
+  return context.used_drb_ids.count();
+}
+
 std::vector<drb_id_t> up_resource_manager::get_drbs() const
 {
   std::vector<drb_id_t> drb_ids;
@@ -229,6 +234,20 @@ void up_resource_manager::refresh_drb_id_after_key_change()
   for (auto& drb : context.drb_map) {
     context.used_drb_ids[get_used_drb_id(drb.first)] = true;
   }
+}
+
+bool up_resource_manager::key_refresh_required()
+{
+  auto used_drb_ids      = get_nof_used_drb_ids();        // DRB IDs already used with current KgNB key
+  auto active_drb_ids    = get_nof_drbs();                // DRB IDs currently in use by active DRBs
+  auto stale_drb_ids     = used_drb_ids - active_drb_ids; // DRB IDs used with current KgNB key but no longer in use
+  auto available_drb_ids = MAX_NOF_DRBS - used_drb_ids;   // DRB IDs that weren't used yet with current KgNB key
+
+  if (stale_drb_ids > 0 && available_drb_ids == 0) {
+    logger.debug("KgNB key refresh required, no DRB IDs available");
+    return true;
+  }
+  return false;
 }
 
 up_context up_resource_manager::get_up_context() const

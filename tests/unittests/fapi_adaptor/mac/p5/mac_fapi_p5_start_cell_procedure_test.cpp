@@ -34,9 +34,9 @@ public:
   void stop_request(const fapi::stop_request& msg) override {}
   void start_request(const fapi::start_request& msg) override { start_request_sent = true; }
 
-  bool has_param_request_been_sent() const { return param_request_sent.load(); }
-  bool has_config_request_been_sent() const { return config_request_sent.load(); }
-  bool has_start_request_been_sent() const { return start_request_sent.load(); }
+  bool has_param_request_been_sent() const { return param_request_sent; }
+  bool has_config_request_been_sent() const { return config_request_sent; }
+  bool has_start_request_been_sent() const { return start_request_sent; }
 };
 
 class mac_fapi_p5_start_cell_procedure_fixture : public ::testing::Test
@@ -58,54 +58,71 @@ protected:
   fapi::cell_configuration             cell_cfg;
   std::chrono::milliseconds            timeout{100};
   mac_fapi_start_cell_procedure_config config{cell_cfg, timeout};
-  // Procedure objects.
+  /// Procedure objects.
   async_task<bool>                                      proc;
   std::optional<unittest::waitable_task_launcher<bool>> proc_launcher;
 
 public:
   explicit mac_fapi_p5_start_cell_procedure_fixture() :
-    fapi_worker("test", 2048),
+    fapi_worker("fapi_exec_test", 32),
     fapi_executor(fapi_worker),
-    mac_worker("mac_test", 2048),
+    mac_worker("mac_exec_test", 32),
     mac_executor(mac_worker),
     epoll_broker(create_io_broker(io_broker_type::epoll, {})),
     timer_source(timers, *epoll_broker, mac_executor, std::chrono::milliseconds{1}),
-    transaction_manager({timers, fapi_executor})
+    transaction_manager(timer_factory{timers, fapi_executor})
   {
-    mac_fapi_start_cell_procedure_dependencies dependencies = {
-        ocudulog::fetch_basic_logger("TEST"), gateway_spy, transaction_manager, fapi_executor, mac_executor, timers};
-    proc = launch_async<mac_fapi_start_cell_procedure>(config, dependencies);
   }
 
-  void start_procedure() { proc_launcher.emplace(proc); }
+  void start_procedure()
+  {
+    sync_event start;
 
-  void wait_procedure_to_finish() { proc_launcher->wait_for_coroutine_result(); }
+    // Spawn start procedure in the MAC executor and wait until it has started.
+    (void)mac_executor.defer([this, token = start.get_token()]() {
+      mac_fapi_start_cell_procedure_dependencies dependencies = {.logger = ocudulog::fetch_basic_logger("TEST"),
+                                                                 .config_msg_gateway  = gateway_spy,
+                                                                 .transaction_manager = transaction_manager,
+                                                                 .mac_ctrl_executor   = mac_executor,
+                                                                 .fapi_ctrl_executor  = fapi_executor,
+                                                                 .timers              = timers};
+
+      proc = launch_async<mac_fapi_start_cell_procedure>(config, dependencies);
+      proc_launcher.emplace(proc);
+    });
+  }
+
+  void wait_procedure_to_finish()
+  {
+    proc_launcher->wait_for_coroutine_result();
+    mac_worker.wait_pending_tasks();
+  }
 
   void send_param_response(bool outcome = true)
   {
-    while (!gateway_spy.has_param_request_been_sent())
-      ;
+    while (!gateway_spy.has_param_request_been_sent()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
-    if (!fapi_executor.defer([this, outcome]() { transaction_manager.param_response_outcome.set(outcome); }))
-      ;
+    (void)fapi_executor.defer([this, outcome]() { transaction_manager.param_response_outcome.set(outcome); });
   }
 
   void send_config_response(bool outcome = true)
   {
-    while (!gateway_spy.has_config_request_been_sent())
-      ;
+    while (!gateway_spy.has_config_request_been_sent()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
-    if (!fapi_executor.defer([this, outcome]() { transaction_manager.config_response_outcome.set(outcome); }))
-      ;
+    (void)fapi_executor.defer([this, outcome]() { transaction_manager.config_response_outcome.set(outcome); });
   }
 
   void send_start_response(bool outcome = true)
   {
-    while (!gateway_spy.has_start_request_been_sent())
-      ;
+    while (!gateway_spy.has_start_request_been_sent()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
-    if (!fapi_executor.defer([this, outcome]() { transaction_manager.start_outcome.set(outcome); }))
-      ;
+    (void)fapi_executor.defer([this, outcome]() { transaction_manager.start_outcome.set(outcome); });
   }
 };
 
@@ -116,7 +133,7 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, param_request_is_sent_and_no_re
   start_procedure();
   wait_procedure_to_finish();
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_FALSE(gateway_spy.has_config_request_been_sent());
   ASSERT_FALSE(gateway_spy.has_start_request_been_sent());
@@ -129,7 +146,7 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, config_request_is_sent_and_no_r
   send_param_response();
   wait_procedure_to_finish();
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_TRUE(gateway_spy.has_config_request_been_sent());
   ASSERT_FALSE(gateway_spy.has_start_request_been_sent());
@@ -143,7 +160,7 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, start_request_is_sent_and_no_re
   send_config_response();
   wait_procedure_to_finish();
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_TRUE(gateway_spy.has_start_request_been_sent());
   ASSERT_FALSE(*proc_launcher->result);
@@ -159,10 +176,10 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, start_procedure_completes_corre
 
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_TRUE(gateway_spy.has_start_request_been_sent());
-  // Check that procedure finished.
+  // Check that the procedure has finished.
   ASSERT_TRUE(proc_launcher->finished());
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(*proc_launcher->result);
 }
 
@@ -172,7 +189,7 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, param_response_contain_error_th
   send_param_response(false);
   wait_procedure_to_finish();
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_FALSE(gateway_spy.has_config_request_been_sent());
   ASSERT_FALSE(gateway_spy.has_start_request_been_sent());
@@ -186,10 +203,10 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, config_response_contain_error_t
   send_config_response(false);
   wait_procedure_to_finish();
 
-  // Check that procedure finished.
+  // Check that the procedure has finished.
   ASSERT_TRUE(proc_launcher->finished());
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_TRUE(gateway_spy.has_config_request_been_sent());
   ASSERT_FALSE(gateway_spy.has_start_request_been_sent());
@@ -204,10 +221,10 @@ TEST_F(mac_fapi_p5_start_cell_procedure_fixture, start_request_produces_error_th
   send_start_response(false);
   wait_procedure_to_finish();
 
-  // Check that procedure finished.
+  // Check that the procedure has finished.
   ASSERT_TRUE(proc_launcher->finished());
 
-  // Procedure finish checks.
+  // Procedure completion checks.
   ASSERT_TRUE(gateway_spy.has_param_request_been_sent());
   ASSERT_TRUE(gateway_spy.has_config_request_been_sent());
   ASSERT_TRUE(gateway_spy.has_start_request_been_sent());

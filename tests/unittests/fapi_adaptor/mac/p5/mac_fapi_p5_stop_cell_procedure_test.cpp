@@ -47,48 +47,59 @@ protected:
   general_task_worker<concurrent_queue_policy::locking_mpsc, concurrent_queue_wait_policy::condition_variable>
       mac_worker;
   general_task_worker_executor<concurrent_queue_policy::locking_mpsc, concurrent_queue_wait_policy::condition_variable>
-                                            mac_executor;
-  ocudulog::basic_logger&                   logger = ocudulog::fetch_basic_logger("TEST");
-  std::unique_ptr<io_broker>                epoll_broker;
-  io_timer_source                           timer_source;
-  p5_transaction_outcome_manager            transaction_manager;
-  config_message_gateway_spy                gateway_spy;
-  std::chrono::milliseconds                 timeout{100};
-  mac_fapi_stop_cell_procedure_dependencies dependencies{logger,
-                                                         gateway_spy,
-                                                         transaction_manager,
-                                                         mac_executor,
-                                                         fapi_executor,
-                                                         timers};
-
-  // Procedure objects.
+                                 mac_executor;
+  std::unique_ptr<io_broker>     epoll_broker;
+  io_timer_source                timer_source;
+  p5_transaction_outcome_manager transaction_manager;
+  config_message_gateway_spy     gateway_spy;
+  std::chrono::milliseconds      timeout{100};
+  /// Procedure objects.
   async_task<bool>                                      proc;
   std::optional<unittest::waitable_task_launcher<bool>> proc_launcher;
 
 public:
   explicit mac_fapi_p5_stop_cell_procedure_fixture() :
-    fapi_worker("test", 2048),
+    fapi_worker("fapi_exec_test", 32),
     fapi_executor(fapi_worker),
-    mac_worker("mac_test", 2048),
+    mac_worker("mac_exec_test", 32),
     mac_executor(mac_worker),
     epoll_broker(create_io_broker(io_broker_type::epoll, {})),
-    timer_source(timers, *epoll_broker, fapi_executor, std::chrono::milliseconds{1}),
-    transaction_manager({timers, fapi_executor})
+    timer_source(timers, *epoll_broker, mac_executor, std::chrono::milliseconds{1}),
+    transaction_manager(timer_factory{timers, fapi_executor})
   {
-    proc = launch_async<mac_fapi_stop_cell_procedure>(timeout, dependencies);
   }
 
-  void start_procedure() { proc_launcher.emplace(proc); }
+  void start_procedure()
+  {
+    sync_event start;
 
-  void wait_procedure_to_finish() { proc_launcher->wait_for_coroutine_result(); }
+    // Spawn start procedure in the MAC executor and wait until it has started.
+    (void)mac_executor.defer([this, token = start.get_token()]() {
+      mac_fapi_stop_cell_procedure_dependencies dependencies{.logger             = ocudulog::fetch_basic_logger("TEST"),
+                                                             .config_msg_gateway = gateway_spy,
+                                                             .transaction_manager = transaction_manager,
+                                                             .mac_ctrl_executor   = mac_executor,
+                                                             .fapi_ctrl_executor  = fapi_executor,
+                                                             .timers              = timers};
+
+      proc = launch_async<mac_fapi_stop_cell_procedure>(timeout, dependencies);
+      proc_launcher.emplace(proc);
+    });
+  }
+
+  void wait_procedure_to_finish()
+  {
+    proc_launcher->wait_for_coroutine_result();
+    mac_worker.wait_pending_tasks();
+  }
 
   void send_stop_indication(bool outcome = true)
   {
-    while (!gateway_spy.has_stop_request_been_sent())
-      ;
+    while (!gateway_spy.has_stop_request_been_sent()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
-    if (!fapi_executor.defer([this, outcome]() { transaction_manager.stop_response_outcome.set(outcome); }))
-      ;
+    (void)fapi_executor.defer([this, outcome]() { transaction_manager.stop_response_outcome.set(outcome); });
   }
 };
 
@@ -99,7 +110,7 @@ TEST_F(mac_fapi_p5_stop_cell_procedure_fixture, stop_request_is_sent_and_no_resp
   start_procedure();
   wait_procedure_to_finish();
 
-  // Checks when the coroutine finished.
+  // Checks when the coroutine has finished.
   ASSERT_TRUE(gateway_spy.has_stop_request_been_sent());
   ASSERT_FALSE(*proc_launcher->result);
 }
@@ -110,10 +121,10 @@ TEST_F(mac_fapi_p5_stop_cell_procedure_fixture, procedure_ends_correctly)
   send_stop_indication();
   wait_procedure_to_finish();
 
-  // Check that procedure finished.
+  // Check the procedure has finished.
   ASSERT_TRUE(proc_launcher->finished());
 
-  // Checks when the coroutine finished.
+  // Checks when the coroutine has finished.
   ASSERT_TRUE(*proc_launcher->result);
 }
 
@@ -123,10 +134,10 @@ TEST_F(mac_fapi_p5_stop_cell_procedure_fixture, stop_request_produces_error_indi
   send_stop_indication(false);
   wait_procedure_to_finish();
 
-  // Check that procedure finished.
+  // Check the procedure has finished.
   ASSERT_TRUE(proc_launcher->finished());
 
-  // Checks when the coroutine finished.
+  // Checks when the coroutine has finished.
   ASSERT_TRUE(gateway_spy.has_stop_request_been_sent());
   ASSERT_TRUE(*proc_launcher->result);
 }

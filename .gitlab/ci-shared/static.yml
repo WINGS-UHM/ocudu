@@ -25,10 +25,12 @@ include:
 
 .headers:
   extends: .static
+  variables:
+    IGNORE_PATH: ""
   script:
     - |
       check_headers() {
-        update_headers.sh
+        update_headers.sh "$IGNORE_PATH"
         is-pristine-repo.sh
       }
     - check_headers

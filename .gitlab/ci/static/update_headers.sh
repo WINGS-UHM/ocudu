@@ -9,12 +9,38 @@
 
 set -e
 
+# 1. Parse multiple paths from the first argument
+# Example: "path1 path2 path3"
+RAW_INPUT=$1
+ADDITIONAL_IGNORE=()
+
+for entry in $RAW_INPUT; do
+    # Strip leading/trailing slashes
+    CLEAN_PATH=$(echo "$entry" | sed 's|^/||;s|/$||')
+    
+    if [ -n "$CLEAN_PATH" ]; then
+        # Each path needs its own ! -path pair
+        ADDITIONAL_IGNORE+=("!" "-path" "*/${CLEAN_PATH}/*")
+    fi
+done
+
 echo "=================="
 echo "= Update headers ="
+echo "Ignore flags: ${ADDITIONAL_IGNORE[@]}"
 echo "=================="
 
 # for CMake/YML files
-find . -type f -\( -name "CMakeLists.txt" -o -name "*.cmake" -o -name "*.yml" -o -name "*.sh" -o -name "*.py" -o -name "*.toml" -o -name "Dockerfile" -o -name "ocudu_performance" -o -name ".gdbinit" \) \
+find . -type f \( -name "CMakeLists.txt" \
+                   -o -name "*.cmake" \
+                   -o -name "*.yml" \
+                   -o -name "*.sh" \
+                   -o -name "*.py" \
+                   -o -name "*.toml" \
+                   -o -name "Dockerfile" \
+                   -o -name "ocudu_performance" \
+                   -o -name ".gdbinit" \
+                   -o -name "*.tf" \
+                   -o -name "*.tfvars" \) \
     ! -path "*/build*/*" ! -path "*/.tox/*" ! -path "*/docker/open5gs/*" ! -name "FindBackward.cmake" ! -name "sbom.cmake" ! -path "*/node_modules*/*" \
     -print0 | while IFS= read -r -d '' file; do
 
@@ -46,8 +72,11 @@ find . -type f -\( -name "CMakeLists.txt" -o -name "*.cmake" -o -name "*.yml" -o
 done
 
 # for actual source and header files
-find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.h.in" \) \
-    ! -path "*/external/*" ! -name "rfnoc_test.cc" \
+find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.h.in" -o -name "*.js" \) \
+    ! -path "*/external/*" \
+    ! -path "*/.docusaurus/*" \
+    "${ADDITIONAL_IGNORE[@]}" \
+    ! -name "rfnoc_test.cc" \
     -exec perl -0777 -pi -e "s{/\*.*?\*/}{/*
  *
  * Copyright 2021-$(date +%Y) Software Radio Systems Limited
@@ -60,7 +89,9 @@ find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.h.in" \) \
 
 # for matlab files (for the OCUDU-matlab supplementary repo): in matlab, the header
 # is the second comment "%" block, as the first contains the file documentation
-find . -type f -name "*.m" ! -name "hSkipWeakTimingOffset.m" \
+find . -type f \( -name "*.m"\) \
+    "${ADDITIONAL_IGNORE[@]}" \
+    ! -name "hSkipWeakTimingOffset.m" \
     ! -name "HARQEntity.m" \
     -exec perl -0777 -pi -e "s/((?:%.*\n)+\n)(?:%.*\n)+/\$1%
 %   Copyright 2021-2025 Software Radio Systems Limited

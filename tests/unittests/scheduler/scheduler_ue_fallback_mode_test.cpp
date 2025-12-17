@@ -29,9 +29,7 @@ public:
   base_scheduler_conres_test(duplex_mode duplx_mode = duplex_mode::FDD) :
     scheduler_test_simulator(4, duplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30)
   {
-    builder_params =
-        duplx_mode == duplex_mode::TDD ? cell_config_builder_profiles::tdd() : cell_config_builder_profiles::fdd();
-    builder_params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
+    builder_params = cell_config_builder_profiles::create(duplx_mode);
 
     // Create cell config with space for two PDCCHs in the SearchSpace#1.
     add_cell(sched_config_helper::make_default_sched_cell_configuration_request(builder_params));
@@ -325,7 +323,7 @@ protected:
                          nof_rtt_slots;
   }
 
-  cell_config_builder_params builder_params{cell_config_builder_profiles::tdd()};
+  cell_config_builder_params builder_params{cell_config_builder_profiles::create(duplex_mode::TDD)};
   const du_cell_index_t      cell_index = to_du_cell_index(0);
   const du_ue_index_t        ue_index   = to_du_ue_index(0);
   const rnti_t               rnti       = to_rnti(0x4601);

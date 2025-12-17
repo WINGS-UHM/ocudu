@@ -23,7 +23,7 @@ class mac_rach_handler_test : public ::testing::Test
 protected:
   mac_rach_handler_test() :
     logger(ocudulog::fetch_basic_logger("MAC")),
-    params(cell_config_builder_profiles::tdd()),
+    params(cell_config_builder_profiles::create(duplex_mode::TDD)),
     sched_cfg([this]() {
       auto cfg = sched_config_helper::make_default_sched_cell_configuration_request(params);
       // Leave some preambles for CFRA.

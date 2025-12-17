@@ -1190,9 +1190,10 @@ public:
 /// \brief Generate custom cell configuration builder params based on duplex mode.
 static cell_config_builder_params generate_custom_cell_config_builder_params(duplex_mode dplx_mode)
 {
-  cell_config_builder_params params = dplx_mode == duplex_mode::FDD
-                                          ? cell_config_builder_profiles::fdd(bs_channel_bandwidth::MHz20)
-                                          : cell_config_builder_profiles::tdd(bs_channel_bandwidth::MHz100);
+  cell_config_builder_params params = cell_config_builder_profiles::create(
+      dplx_mode,
+      frequency_range::FR1,
+      dplx_mode == duplex_mode::TDD ? bs_channel_bandwidth::MHz100 : bs_channel_bandwidth::MHz20);
 
   if (dplx_mode == duplex_mode::TDD) {
     params.tdd_ul_dl_cfg_common.emplace();

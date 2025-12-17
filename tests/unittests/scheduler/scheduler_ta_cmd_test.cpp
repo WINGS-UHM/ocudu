@@ -23,7 +23,7 @@ protected:
   scheduler_ta_cmd_tester() :
     scheduler_test_simulator(4, GetParam() == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30)
   {
-    params = GetParam() == duplex_mode::FDD ? cell_config_builder_profiles::fdd() : cell_config_builder_profiles::tdd();
+    params = cell_config_builder_profiles::create(GetParam());
 
     // Add Cell.
     this->add_cell(sched_config_helper::make_default_sched_cell_configuration_request(params));

@@ -457,7 +457,7 @@ protected:
 
   static cell_config_builder_params make_builder_params()
   {
-    cell_config_builder_params builder_params = cell_config_builder_profiles::tdd();
+    cell_config_builder_params builder_params = cell_config_builder_profiles::create(duplex_mode::TDD);
     builder_params.tdd_ul_dl_cfg_common       = tdd_ul_dl_config_common{.ref_scs  = subcarrier_spacing::kHz30,
                                                                         .pattern1 = {.dl_ul_tx_period_nof_slots = 10,
                                                                                      .nof_dl_slots              = 5,

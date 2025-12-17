@@ -13,35 +13,48 @@
 
 using namespace ocudu;
 
-cell_config_builder_params cell_config_builder_profiles::tdd(bs_channel_bandwidth bw)
+/// Create cell build parameters for a TDD band.
+static cell_config_builder_params tdd(bs_channel_bandwidth bw)
 {
   cell_config_builder_params params{};
   params.scs_common             = subcarrier_spacing::kHz30;
   params.dl_carrier.arfcn_f_ref = 520002;
   params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
   params.dl_carrier.carrier_bw  = bw;
-
-  return params.auto_derive_params();
+  return params;
 }
 
-cell_config_builder_params cell_config_builder_profiles::fdd(bs_channel_bandwidth bw)
+/// Create cell build parameters for a FDD band.
+static cell_config_builder_params fdd(bs_channel_bandwidth bw)
 {
   cell_config_builder_params params{};
   params.scs_common             = subcarrier_spacing::kHz15;
   params.dl_carrier.arfcn_f_ref = 530000;
   params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
   params.dl_carrier.carrier_bw  = bw;
-
-  return params.auto_derive_params();
+  return params;
 }
 
-cell_config_builder_params cell_config_builder_profiles::tdd_fr2(bs_channel_bandwidth bw)
+/// Create cell build parameters for a TDD FR2 band.
+static cell_config_builder_params tdd_fr2(bs_channel_bandwidth bw)
 {
   cell_config_builder_params params{};
   params.scs_common             = subcarrier_spacing::kHz120;
   params.dl_carrier.arfcn_f_ref = 2074171;
   params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
   params.dl_carrier.carrier_bw  = bw;
+  return params;
+}
 
-  return params.auto_derive_params();
+cell_config_builder_params
+cell_config_builder_profiles::create(duplex_mode mode, frequency_range fr, bs_channel_bandwidth bw)
+{
+  if (mode == duplex_mode::TDD) {
+    if (fr == frequency_range::FR1) {
+      return tdd(bw);
+    }
+    return tdd_fr2(bw);
+  }
+  report_error_if_not(fr == frequency_range::FR1, "FDD bands are only supported in FR1");
+  return fdd(bw);
 }

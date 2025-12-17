@@ -36,7 +36,7 @@ protected:
                                                        subcarrier_spacing::kHz30,
                                                        true,
                                                        true}),
-    params(cell_config_builder_profiles::tdd())
+    params(cell_config_builder_profiles::create(duplex_mode::TDD))
   {
     auto sched_cell_cfg_req = sched_config_helper::make_default_sched_cell_configuration_request(params);
     pucch_builder_params pucch_basic_params{

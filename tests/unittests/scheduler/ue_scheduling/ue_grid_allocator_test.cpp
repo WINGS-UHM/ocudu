@@ -40,11 +40,6 @@ struct test_params {
 
 class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
 {
-  static cell_config_builder_params make_cfg_builder(const test_params& params, duplex_mode duplx_mode)
-  {
-    return duplx_mode == duplex_mode::FDD ? cell_config_builder_profiles::fdd() : cell_config_builder_profiles::tdd();
-  }
-
   static sched_cell_configuration_request_message
   make_cell_config_request(const cell_config_builder_params& builder_params, const test_params& params)
   {
@@ -57,7 +52,7 @@ class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
 protected:
   ue_grid_allocator_test(const test_params& params) :
     sched_cfg(params.sched_cfg),
-    cfg_builder_params(make_cfg_builder(params, GetParam())),
+    cfg_builder_params(cell_config_builder_profiles::create(GetParam())),
     cell_cfg(*[this, &params]() {
       const auto* cfg = cfg_mng.add_cell(make_cell_config_request(cfg_builder_params, params));
       ocudu_assert(cfg != nullptr, "Cell configuration failed");

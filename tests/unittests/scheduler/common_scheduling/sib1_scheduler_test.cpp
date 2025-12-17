@@ -222,24 +222,8 @@ struct sib_test_bench {
     cell_config_builder_params cell_cfg{};
     cell_cfg.dl_carrier.arfcn_f_ref = freq_arfcn;
     cell_cfg.scs_common             = init_bwp_scs;
-    cell_cfg.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_carrier.arfcn_f_ref);
     cell_cfg.dl_carrier.carrier_bw  = carrier_bw_mhz;
-
-    const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-        cell_cfg.dl_carrier.carrier_bw, cell_cfg.scs_common, band_helper::get_freq_range(cell_cfg.dl_carrier.band));
-
-    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(cell_cfg.dl_carrier.arfcn_f_ref,
-                                                    cell_cfg.dl_carrier.band,
-                                                    nof_crbs,
-                                                    cell_cfg.scs_common,
-                                                    cell_cfg.scs_common,
-                                                    cell_cfg.search_space0_index,
-                                                    cell_cfg.max_coreset0_duration);
-    ocudu_assert(ssb_freq_loc.has_value(), "Invalid cell config parameters");
-    cell_cfg.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
-    cell_cfg.k_ssb             = ssb_freq_loc->k_ssb;
-    cell_cfg.coreset0_index    = ssb_freq_loc->coreset0_idx;
+    cell_cfg.auto_derive_params();
 
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);

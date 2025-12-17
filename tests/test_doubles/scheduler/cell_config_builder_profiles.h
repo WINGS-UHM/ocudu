@@ -10,19 +10,16 @@
 
 #pragma once
 
+#include "ocudu/ran/duplex_mode.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 
 namespace ocudu {
 namespace cell_config_builder_profiles {
 
-/// Create cell build parameters for a TDD band.
-cell_config_builder_params tdd(bs_channel_bandwidth bw = bs_channel_bandwidth::MHz20);
-
-/// Create cell build parameters for a FDD band.
-cell_config_builder_params fdd(bs_channel_bandwidth bw = bs_channel_bandwidth::MHz20);
-
-/// Create cell build parameters for a TDD FR2 band.
-cell_config_builder_params tdd_fr2(bs_channel_bandwidth bw = bs_channel_bandwidth::MHz100);
+/// Create basic cell build parameters with given duplex mode, frequency range and bandwidth.
+cell_config_builder_params create(duplex_mode          mode = duplex_mode::TDD,
+                                  frequency_range      fr   = frequency_range::FR1,
+                                  bs_channel_bandwidth bw   = bs_channel_bandwidth::MHz20);
 
 } // namespace cell_config_builder_profiles
 } // namespace ocudu

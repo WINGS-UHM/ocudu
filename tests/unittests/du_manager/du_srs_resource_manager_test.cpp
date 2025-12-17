@@ -59,7 +59,7 @@ static cell_config_builder_params make_cell_cfg_params(const srs_params& params 
 {
   const bool                 is_tdd = params.nof_ul_symbols_p1.has_value();
   cell_config_builder_params cell_params =
-      is_tdd ? cell_config_builder_profiles::tdd() : cell_config_builder_profiles::fdd();
+      cell_config_builder_profiles::create(is_tdd ? duplex_mode::TDD : duplex_mode::FDD);
   if (is_tdd) {
     auto& tdd_cfg                              = cell_params.tdd_ul_dl_cfg_common.emplace();
     tdd_cfg.pattern1.dl_ul_tx_period_nof_slots = 10;

@@ -18,6 +18,7 @@
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
 #include "lib/scheduler/ue_scheduling/ue_fallback_scheduler.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
@@ -30,37 +31,6 @@
 #include <utility>
 
 using namespace ocudu;
-
-static cell_config_builder_params test_builder_params(duplex_mode duplx_mode)
-{
-  cell_config_builder_params builder_params{};
-  if (duplx_mode == duplex_mode::TDD) {
-    // Band 40.
-    builder_params.dl_carrier.arfcn_f_ref = 474000;
-    builder_params.scs_common             = subcarrier_spacing::kHz30;
-    builder_params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
-    builder_params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
-
-    const unsigned nof_crbs =
-        band_helper::get_n_rbs_from_bw(builder_params.dl_carrier.carrier_bw,
-                                       builder_params.scs_common,
-                                       band_helper::get_freq_range(builder_params.dl_carrier.band));
-
-    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_carrier.arfcn_f_ref,
-                                                    builder_params.dl_carrier.band,
-                                                    nof_crbs,
-                                                    builder_params.scs_common,
-                                                    builder_params.scs_common,
-                                                    builder_params.search_space0_index,
-                                                    builder_params.max_coreset0_duration);
-    builder_params.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
-    builder_params.k_ssb             = ssb_freq_loc->k_ssb;
-    builder_params.coreset0_index    = ssb_freq_loc->coreset0_idx;
-  }
-
-  return builder_params;
-}
 
 /// Helper class to initialize and store relevant objects for the test and provide helper methods.
 struct test_bench {
@@ -150,7 +120,7 @@ protected:
   base_fallback_tester(duplex_mode duplx_mode_, bool enable_pusch_transform_precoding_) :
     duplx_mode(duplx_mode_),
     enable_pusch_transform_precoding(enable_pusch_transform_precoding_),
-    builder_params(test_builder_params(duplx_mode))
+    builder_params(cell_config_builder_profiles::create(duplx_mode))
   {
   }
 

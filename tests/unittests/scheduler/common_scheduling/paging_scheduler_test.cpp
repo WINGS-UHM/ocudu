@@ -135,14 +135,12 @@ public:
     return cfg;
   }
 
-  sched_cell_configuration_request_message
+  static sched_cell_configuration_request_message
   create_custom_cell_config_request(duplex_mode          duplx_mode,
-                                    subcarrier_spacing   scs        = ocudu::subcarrier_spacing::kHz30,
-                                    bs_channel_bandwidth carrier_bw = ocudu::bs_channel_bandwidth::MHz20) const
+                                    bs_channel_bandwidth carrier_bw = bs_channel_bandwidth::MHz20)
   {
-    cell_config_builder_params cell_cfg = duplx_mode == duplex_mode::FDD
-                                              ? cell_config_builder_profiles::fdd()
-                                              : cell_config_builder_profiles::tdd(carrier_bw);
+    cell_config_builder_params cell_cfg =
+        cell_config_builder_profiles::create(duplx_mode, frequency_range::FR1, carrier_bw);
     return sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);
   }
 
@@ -308,8 +306,7 @@ TEST_F(paging_sched_special_case_tester, successfully_allocated_paging_grant_5mh
   const unsigned max_paging_retries  = 3;
   const uint16_t drx_cycle_in_nof_rf = 128;
 
-  auto sched_cell_cfg =
-      create_custom_cell_config_request(ocudu::duplex_mode::FDD, subcarrier_spacing::kHz15, bs_channel_bandwidth::MHz5);
+  auto sched_cell_cfg = create_custom_cell_config_request(duplex_mode::FDD, bs_channel_bandwidth::MHz5);
 
   // Shuffle between SearchSpace#0 and SearchSpace#1.
   const auto ss_id = to_search_space_id(get_random_uint(0, 1));

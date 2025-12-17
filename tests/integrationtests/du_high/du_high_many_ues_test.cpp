@@ -23,7 +23,7 @@ static du_high_env_sim_params create_few_ues_config()
 {
   // Reduce number of PUCCH resources, so we do not have to create so many UEs to reach the saturation point.
   du_high_env_sim_params params;
-  params.builder_params = cell_config_builder_profiles::tdd();
+  params.builder_params = cell_config_builder_profiles::create(duplex_mode::TDD);
   params.builder_params.value().tdd_ul_dl_cfg_common =
       tdd_ul_dl_config_common{subcarrier_spacing::kHz30, {10, 8, 5, 1, 4}};
   params.pucch_cfg.emplace();
@@ -37,7 +37,7 @@ static du_high_env_sim_params create_few_ues_config()
 static du_high_env_sim_params create_many_ues_config()
 {
   du_high_env_sim_params params;
-  params.builder_params = cell_config_builder_profiles::tdd();
+  params.builder_params = cell_config_builder_profiles::create(duplex_mode::TDD);
   params.pucch_cfg.emplace();
   params.pucch_cfg->res_set_0_size           = 8;
   params.pucch_cfg->res_set_1_size           = 8;

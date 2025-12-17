@@ -155,7 +155,7 @@ protected:
   create_custom_cell_config_request(duplex_mode mode, bool enable_pusch_transform_precoding) const
   {
     auto msg =
-        sched_config_helper::make_default_sched_cell_configuration_request(create_custom_cell_cfg_builder_params(mode));
+        sched_config_helper::make_default_sched_cell_configuration_request(cell_config_builder_profiles::create(mode));
     msg.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder = enable_pusch_transform_precoding;
     return msg;
   }
@@ -190,11 +190,6 @@ protected:
     return total_cw_tb_size_bytes;
   }
 
-  static cell_config_builder_params create_custom_cell_cfg_builder_params(duplex_mode mode)
-  {
-    return mode == duplex_mode::FDD ? cell_config_builder_profiles::fdd() : cell_config_builder_profiles::tdd();
-  }
-
   void add_ue(du_ue_index_t ue_index,
               lcid_t        lcid_,
               lcg_id_t      lcgid_,
@@ -202,7 +197,7 @@ protected:
               bool          enable_pusch_transform_precoding,
               bool          is_fallback = false)
   {
-    const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(mode);
+    const auto& cell_cfg_params = cell_config_builder_profiles::create(mode);
     add_ue(ue_index, lcid_, lcgid_, cell_cfg_params, enable_pusch_transform_precoding, is_fallback);
   }
 
@@ -674,33 +669,16 @@ TEST_P(multiple_ue_sched_tester, when_scheduling_multiple_ue_in_small_bw_neither
   const lcg_id_t lcgid              = uint_to_lcg_id(0);
 
   // Make custom cell configuration for TDD and FDD i.e. 10 Mhz for TDD and 5Mhz for FDD.
-  auto builder_params                  = create_custom_cell_cfg_builder_params(params.duplx_mode);
+  auto builder_params                  = cell_config_builder_profiles::create(params.duplx_mode);
   builder_params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz5;
   if (params.duplx_mode == duplex_mode::TDD) {
     builder_params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz10;
   }
-  builder_params.dl_carrier.band = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
+  builder_params.auto_derive_params();
 
-  const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(builder_params.dl_carrier.carrier_bw,
-                                                           builder_params.scs_common,
-                                                           band_helper::get_freq_range(builder_params.dl_carrier.band));
-
-  std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-      band_helper::get_ssb_coreset0_freq_location(builder_params.dl_carrier.arfcn_f_ref,
-                                                  builder_params.dl_carrier.band,
-                                                  nof_crbs,
-                                                  builder_params.scs_common,
-                                                  builder_params.scs_common,
-                                                  builder_params.search_space0_index,
-                                                  builder_params.max_coreset0_duration);
-  builder_params.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
-  builder_params.k_ssb             = ssb_freq_loc->k_ssb;
-  builder_params.coreset0_index    = ssb_freq_loc->coreset0_idx;
-
-  config_helpers::cell_config_builder_params_extended extended_params{builder_params};
-  const bool                                          enable_csi_rs_pdsch_multiplexing = true;
+  const bool enable_csi_rs_pdsch_multiplexing = true;
   setup_sched(create_expert_config(10, params.pdsch_interleaving_bundle_size, enable_csi_rs_pdsch_multiplexing),
-              sched_config_helper::make_default_sched_cell_configuration_request(extended_params));
+              sched_config_helper::make_default_sched_cell_configuration_request(builder_params));
 
   // NOTE: The buffer size must be high enough for the scheduler to keep allocating resources to the UE. In order to
   // avoid failing of test we ignore the min_buffer_size_in_bytes and max_buffer_size_in_bytes set in params.
@@ -710,7 +688,7 @@ TEST_P(multiple_ue_sched_tester, when_scheduling_multiple_ue_in_small_bw_neither
   // Add UE(s) and notify to each UE a DL buffer status indication of random size between min and max defined in
   // params. Assumption: LCID is DRB1.
   for (unsigned idx = 0; idx != params.nof_ues; ++idx) {
-    add_ue(to_du_ue_index(idx), lcid, lcgid, extended_params, params.enable_pusch_transform_precoding);
+    add_ue(to_du_ue_index(idx), lcid, lcgid, builder_params, params.enable_pusch_transform_precoding);
     push_buffer_state_to_dl_ue(to_du_ue_index(idx), dl_buffer_size, lcid);
     notify_ul_bsr_from_ue(to_du_ue_index(idx), ul_buffer_size, lcgid);
   }
@@ -850,7 +828,7 @@ TEST_P(multiple_ue_sched_tester, dl_dci_format_1_0_test)
   std::vector<uci_indication> uci_ind_to_send;
 
   // Pre-populate common UE creation request parameters.
-  const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(params.duplx_mode);
+  const auto& cell_cfg_params = cell_config_builder_profiles::create(params.duplx_mode);
   auto        ue_creation_req = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg_params);
 
   auto it = std::find_if(ue_creation_req.cfg.lc_config_list->begin(),
@@ -964,7 +942,7 @@ TEST_P(multiple_ue_sched_tester, dl_dci_format_1_1_test)
   std::vector<uci_indication> uci_ind_to_send;
 
   // Pre-populate common UE creation request parameters.
-  const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(params.duplx_mode);
+  const auto& cell_cfg_params = cell_config_builder_profiles::create(params.duplx_mode);
   auto        ue_creation_req = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg_params);
 
   auto it = std::find_if(ue_creation_req.cfg.lc_config_list->begin(),
@@ -1105,7 +1083,7 @@ TEST_P(multiple_ue_sched_tester, ul_dci_format_0_1_test)
   const lcg_id_t lcgid = uint_to_lcg_id(0);
 
   // Pre-populate common UE creation request parameters.
-  const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(params.duplx_mode);
+  const auto& cell_cfg_params = cell_config_builder_profiles::create(params.duplx_mode);
   auto        ue_creation_req = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg_params);
 
   auto it = std::find_if(ue_creation_req.cfg.lc_config_list->begin(),
@@ -1359,7 +1337,7 @@ TEST_F(single_ue_sched_tester, test_ue_scheduling_with_empty_spcell_cfg)
   setup_sched(create_expert_config(10, vrb_to_prb::mapping_type::non_interleaved),
               create_custom_cell_config_request(ocudu::duplex_mode::TDD, false));
   // Add UE.
-  const auto& cell_cfg_params = create_custom_cell_cfg_builder_params(ocudu::duplex_mode::TDD);
+  const auto& cell_cfg_params = cell_config_builder_profiles::create(ocudu::duplex_mode::TDD);
   auto        ue_creation_req = sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(cell_cfg_params);
   ue_creation_req.starts_in_fallback = true;
 

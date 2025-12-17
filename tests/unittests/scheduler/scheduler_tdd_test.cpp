@@ -36,7 +36,7 @@ protected:
         scheduler_test_sim_config{.max_scs = testparams.tdd_cfg.ref_scs, .auto_uci = true, .auto_crc = true})
   {
     ocudu_assert(testparams.tdd_cfg.ref_scs == subcarrier_spacing::kHz30, "Only 30kHz SCS is supported in this test");
-    params                      = cell_config_builder_profiles::tdd();
+    params                      = cell_config_builder_profiles::create(duplex_mode::TDD);
     params.csi_rs_enabled       = testparams.csi_rs_enabled;
     params.tdd_ul_dl_cfg_common = testparams.tdd_cfg;
     params.min_k1               = testparams.min_k;

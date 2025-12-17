@@ -10,6 +10,7 @@
 
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
@@ -149,13 +150,7 @@ class test_bench
 public:
   test_bench(srs_test_params params) :
     expert_cfg{config_helpers::make_default_scheduler_expert_config()},
-    cfg_mng{[&params]() {
-              return cell_config_builder_params{.scs_common = params.is_tdd ? subcarrier_spacing::kHz30
-                                                                            : subcarrier_spacing::kHz15,
-                                                .dl_carrier = {.carrier_bw  = bs_channel_bandwidth::MHz20,
-                                                               .arfcn_f_ref = params.is_tdd ? 520000U : 365000U}};
-            }(),
-            expert_cfg},
+    cfg_mng{cell_config_builder_profiles::create(params.is_tdd ? duplex_mode::TDD : duplex_mode::FDD), expert_cfg},
     cell_cfg(*cfg_mng.add_cell(cfg_mng.get_default_cell_config_request())),
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),

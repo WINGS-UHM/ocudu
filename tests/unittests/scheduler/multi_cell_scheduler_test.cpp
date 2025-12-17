@@ -31,8 +31,7 @@ protected:
                              test_params.dplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15
                                                                        : subcarrier_spacing::kHz30)
   {
-    cell_config_builder_params params = test_params.dplx_mode == duplex_mode::FDD ? cell_config_builder_profiles::fdd()
-                                                                                  : cell_config_builder_profiles::tdd();
+    cell_config_builder_params params = cell_config_builder_profiles::create(test_params.dplx_mode);
 
     // Add Cells.
     for (unsigned cell_idx = 0; cell_idx < test_params.nof_cells; ++cell_idx) {

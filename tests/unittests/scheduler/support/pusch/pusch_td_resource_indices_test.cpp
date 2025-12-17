@@ -10,6 +10,7 @@
 
 #include "lib/scheduler/support/pusch/pusch_default_time_allocation.h"
 #include "lib/scheduler/support/pusch/pusch_td_resource_indices.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
@@ -35,33 +36,11 @@ protected:
   pusch_td_resource_indices_test()
   {
     test_params testparams = GetParam();
-    if (testparams.tdd_cfg.has_value()) {
-      params.scs_common             = testparams.tdd_cfg->ref_scs;
-      params.dl_carrier.arfcn_f_ref = 520002;
-      params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
-    }
-    params.dl_carrier.band  = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
-    const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-        params.dl_carrier.carrier_bw, params.scs_common, band_helper::get_freq_range(params.dl_carrier.band));
-    static const uint8_t                                   ss0_idx = 0;
-    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(params.dl_carrier.arfcn_f_ref,
-                                                    params.dl_carrier.band,
-                                                    nof_crbs,
-                                                    params.scs_common,
-                                                    params.scs_common,
-                                                    ss0_idx,
-                                                    params.max_coreset0_duration);
-    if (!ssb_freq_loc.has_value()) {
-      report_error("Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", params.pci);
-    }
-    params.offset_to_point_a    = (*ssb_freq_loc).offset_to_point_A;
-    params.k_ssb                = (*ssb_freq_loc).k_ssb;
-    params.coreset0_index       = (*ssb_freq_loc).coreset0_idx;
-    params.search_space0_index  = ss0_idx;
+    params = cell_config_builder_profiles::create(testparams.tdd_cfg.has_value() ? duplex_mode::TDD : duplex_mode::FDD);
     params.tdd_ul_dl_cfg_common = testparams.tdd_cfg;
     params.min_k1               = testparams.min_k;
     params.min_k2               = testparams.min_k;
+    params.auto_derive_params();
 
     sched_cell_configuration_request_message sched_cell_cfg_req =
         sched_config_helper::make_default_sched_cell_configuration_request(params);

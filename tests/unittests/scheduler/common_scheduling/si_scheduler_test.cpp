@@ -41,7 +41,8 @@ public:
   si_scheduler_setup(const sched_cell_configuration_request_message& msg) :
     expert_cfg(config_helpers::make_default_scheduler_expert_config()),
     cell_cfg(expert_cfg,
-             sched_config_helper::make_default_sched_cell_configuration_request(cell_config_builder_profiles::tdd())),
+             sched_config_helper::make_default_sched_cell_configuration_request(
+                 cell_config_builder_profiles::create(duplex_mode::TDD))),
     pdcch_sch(cell_cfg),
     res_grid(cell_cfg),
     si_sched(cell_cfg, pdcch_sch, msg),

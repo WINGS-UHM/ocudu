@@ -66,7 +66,7 @@ protected:
     return true;
   }
 
-  cell_config_builder_params      params{cell_config_builder_profiles::tdd()};
+  cell_config_builder_params      params{cell_config_builder_profiles::create(duplex_mode::TDD)};
   const std::optional<drx_params> drx_args;
   std::vector<du_cell_config>     cell_cfg_list;
   du_drx_resource_manager         drx{cell_cfg_list};

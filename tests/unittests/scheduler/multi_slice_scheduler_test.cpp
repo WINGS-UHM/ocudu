@@ -74,7 +74,7 @@ protected:
   }
 
   multi_slice_test_params    params;
-  cell_config_builder_params builder_params = cell_config_builder_profiles::tdd();
+  cell_config_builder_params builder_params = cell_config_builder_profiles::create(duplex_mode::TDD);
 
   unsigned ue_count = 0;
 };

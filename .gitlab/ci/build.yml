@@ -265,6 +265,7 @@ include:
   extends: .build_and_unit
   variables: &gdb_printers_variables
     OS: ubuntu-24.04
+    OCUDU_TARGET: pretty_printer_tests
     COMPILER: gcc
     CMAKE_BUILD_TYPE: Debug
     ASSERT_LEVEL: PARANOID

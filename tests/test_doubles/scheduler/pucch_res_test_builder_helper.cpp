@@ -10,14 +10,15 @@
 
 #include "pucch_res_test_builder_helper.h"
 #include "../../../lib/scheduler/config/cell_configuration.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
 using namespace ocudu;
 
-static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&               init_ul_bwp,
-                                                   std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common,
-                                                   const serving_cell_config&             base_ue_cfg,
-                                                   const pucch_builder_params&            pucch_cfg)
+static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&                      init_ul_bwp,
+                                                   const std::optional<tdd_ul_dl_config_common>& tdd_ul_dl_cfg_common,
+                                                   const serving_cell_config&                    base_ue_cfg,
+                                                   const pucch_builder_params&                   pucch_cfg)
 {
   odu::du_cell_config cell_cfg;
   cell_cfg.ul_cfg_common.init_ul_bwp = init_ul_bwp;
@@ -30,9 +31,9 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
 pucch_res_builder_test_helper::pucch_res_builder_test_helper() : pucch_res_mgr(std::nullopt) {}
 
 pucch_res_builder_test_helper::pucch_res_builder_test_helper(
-    const bwp_uplink_common&               init_ul_bwp,
-    std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common,
-    const pucch_builder_params&            pucch_cfg) :
+    const bwp_uplink_common&                      init_ul_bwp,
+    const std::optional<tdd_ul_dl_config_common>& tdd_ul_dl_cfg_common,
+    const pucch_builder_params&                   pucch_cfg) :
   required_info(pucch_res_builder_info{.init_ul_bwp          = init_ul_bwp,
                                        .tdd_ul_dl_cfg_common = tdd_ul_dl_cfg_common,
                                        .pucch_cfg            = pucch_cfg})
@@ -45,11 +46,16 @@ pucch_res_builder_test_helper::pucch_res_builder_test_helper(const cell_configur
                                        .tdd_ul_dl_cfg_common = cell_cfg.tdd_cfg_common,
                                        .pucch_cfg            = pucch_cfg})
 {
+  // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
+  const auto ded_pucch_resource_list = config_helpers::build_pucch_resource_list(
+      pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+  ocudu_assert(cell_cfg.ded_pucch_resources == ded_pucch_resource_list,
+               "Mismatch between the PUCCH parameters used for cell_cfg and for the UE PUCCH configuration");
 }
 
-void pucch_res_builder_test_helper::setup(const bwp_uplink_common&               init_ul_bwp_,
-                                          std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common_,
-                                          const pucch_builder_params&            pucch_cfg)
+void pucch_res_builder_test_helper::setup(const bwp_uplink_common&                      init_ul_bwp_,
+                                          const std::optional<tdd_ul_dl_config_common>& tdd_ul_dl_cfg_common_,
+                                          const pucch_builder_params&                   pucch_cfg)
 {
   if (required_info.has_value()) {
     return;
@@ -60,6 +66,11 @@ void pucch_res_builder_test_helper::setup(const bwp_uplink_common&              
 
 void pucch_res_builder_test_helper::setup(const cell_configuration& cell_cfg, const pucch_builder_params& pucch_cfg)
 {
+  // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
+  const auto ded_pucch_resource_list = config_helpers::build_pucch_resource_list(
+      pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+  ocudu_assert(cell_cfg.ded_pucch_resources == ded_pucch_resource_list,
+               "Mismatch between the PUCCH parameters used for cell_cfg and for the UE PUCCH configuration");
   setup(cell_cfg.ul_cfg_common.init_ul_bwp, cell_cfg.tdd_cfg_common, pucch_cfg);
 }
 

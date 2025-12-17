@@ -8,6 +8,7 @@
  *
  */
 
+#include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
@@ -114,13 +115,39 @@ class pucch_power_control_test_bench : public ::testing::TestWithParam<pucch_pw_
         .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .arfcn_f_ref = 520000U}};
   }
 
+  static pucch_builder_params make_pucch_builder_params()
+  {
+    pucch_builder_params pucch_params;
+
+    if (GetParam().format_set_0 == pucch_format::FORMAT_0) {
+      pucch_params.f0_or_f1_params.emplace<pucch_f0_params>(pucch_f0_params{});
+    } else if (GetParam().format_set_0 == pucch_format::FORMAT_1) {
+      pucch_params.f0_or_f1_params.emplace<pucch_f1_params>(pucch_f1_params{});
+    }
+
+    if (GetParam().format_set_1 == pucch_format::FORMAT_2) {
+      pucch_params.f2_or_f3_or_f4_params.emplace<pucch_f2_params>(pucch_f2_params{});
+    } else if (GetParam().format_set_1 == pucch_format::FORMAT_3) {
+      pucch_params.f2_or_f3_or_f4_params.emplace<pucch_f3_params>(pucch_f3_params{});
+    } else if (GetParam().format_set_1 == pucch_format::FORMAT_4) {
+      pucch_params.f2_or_f3_or_f4_params.emplace<pucch_f4_params>(pucch_f4_params{});
+    }
+    return pucch_params;
+  }
+
   static sched_cell_configuration_request_message make_cell_config_request(const pucch_pw_ctrl_params& tparams)
   {
     auto req = sched_config_helper::make_default_sched_cell_configuration_request(make_cell_config_params());
+
+    // Overwrite the default list of dedicated PUCCH resources.
+    req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
+        make_pucch_builder_params(), req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
     if (tparams.format_set_0 == pucch_format::FORMAT_0) {
       req.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 0;
+    } else if (tparams.format_set_0 == pucch_format::FORMAT_1) {
+      req.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 11;
     }
-    set_pucch_formats(req.ded_pucch_resources, tparams);
+
     return req;
   }
 
@@ -166,6 +193,14 @@ protected:
     format_set_0(GetParam().format_set_0),
     format_set_1(GetParam().format_set_1)
   {
+    // The scope of the following configuration is solely to build the test_bench with a UE. The PUCCH configuration
+    // is not used at all for the test, apart from construction and Setup. However, the PUCCH power controller requires
+    // the UE configuration to retrieve the formats used by the PUCCH resources; therefore, we need to build a UE
+    // configuration that is valid, otherwise the configuration validator triggers an error.
+    // The number of PUCCH symbols, PRBs and payload used for the test are generated randomly instead of being taken
+    // from the given config; otherwise, it would be extremely complex to build a test in which the symbols, PRBs
+    // payload bits change frequently as needed by this test.
+
     ocudu_assert(format_set_0 == pucch_format::FORMAT_0 or format_set_0 == pucch_format::FORMAT_1,
                  "For PUCCH resources set 0, Format 2, 3 and 4 are not valid");
     ocudu_assert(format_set_1 == pucch_format::FORMAT_2 or format_set_1 == pucch_format::FORMAT_3 or
@@ -173,9 +208,8 @@ protected:
                  "For PUCCH resources set 1, Format 0 and are not valid");
 
     sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
-
-    auto& pucch_cfg = ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
-    set_pucch_formats(pucch_cfg.pucch_res_list, GetParam());
+    pucch_res_builder_test_helper     pucch_builder(cell_cfg, make_pucch_builder_params());
+    pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().front().serv_cell_cfg);
     add_ue(ue_req);
   }
 
@@ -207,7 +241,7 @@ protected:
     bool           intraslot_freq_hopping = false;
   };
 
-  pucch_pw_control generate_pucch(slot_point sl)
+  pucch_pw_control generate_pucch(slot_point sl) const
   {
     pucch_pw_control pucch;
     pucch.format  = test_rgen::bernoulli(0.5) ? format_set_0 : format_set_1;
@@ -396,7 +430,7 @@ TEST_P(pucch_power_control_test_bench, when_phr_is_non_positive_cl_stops_increas
 
     // Wait at least 160 slots before checking the SINR convergence, to avoid trivial convergence when the initial SINR
     // is set the same as the target.
-    static const unsigned min_nof_slots = 160U;
+    static constexpr unsigned min_nof_slots = 160U;
     if (sl_cnt > min_nof_slots) {
       // We consider the SINR has converged when the average SINR is within 0.5 dB of the target SINR. This is to
       // account the precision of the TPC commands.
@@ -444,24 +478,18 @@ TEST_P(pucch_power_control_test_bench, when_phr_is_non_positive_cl_stops_increas
 INSTANTIATE_TEST_SUITE_P(
     test_ul_power_control_phr,
     pucch_power_control_test_bench,
-    testing::Values(
-        // pucch_pw_ctrl_params{-2, 0, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_4},
-        // pucch_pw_ctrl_params{5, 0, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_4},
-        // pucch_pw_ctrl_params{8, 0, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_4},
-        // pucch_pw_ctrl_params{10, 0, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_4},
-        pucch_pw_ctrl_params{0, -2, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
-        pucch_pw_ctrl_params{0, 5, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
-        pucch_pw_ctrl_params{0, 8, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
-        pucch_pw_ctrl_params{0, 10, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2}
-        // pucch_pw_ctrl_params{-2, 5, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{5, -2, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{5, 8, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{8, 5, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{0, 8, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{8, 0, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{8, 10, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
-        // pucch_pw_ctrl_params{10, 8, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2}
-        ),
+    testing::Values(pucch_pw_ctrl_params{0, -2, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{0, 5, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{0, 8, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{0, 10, ocudu::pucch_format::FORMAT_1, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{-2, 5, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{5, -2, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{5, 8, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{8, 5, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{0, 8, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{8, 0, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{8, 10, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2},
+                    pucch_pw_ctrl_params{10, 8, ocudu::pucch_format::FORMAT_0, ocudu::pucch_format::FORMAT_2}),
     [](const testing::TestParamInfo<pucch_power_control_test_bench::ParamType>& info_) {
       return fmt::format(
           "SINR_f0_{}dB_SINR_f2_3_{}dB_Format_{}_{}",

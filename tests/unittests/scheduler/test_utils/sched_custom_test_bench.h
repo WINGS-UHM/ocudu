@@ -66,7 +66,7 @@ public:
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   // Class methods.
-  void add_ue(sched_ue_creation_request_message ue_req)
+  void add_ue(const sched_ue_creation_request_message& ue_req)
   {
     ue_ded_cfgs.emplace_back(cfg_mng.add_ue(ue_req));
     report_error_if_not(ue_ded_cfgs.back() != nullptr, "Failed to create UE configuration");

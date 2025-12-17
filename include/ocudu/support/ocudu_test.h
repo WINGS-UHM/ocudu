@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu_assert.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/format.h"
 
 namespace ocudu {

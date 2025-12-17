@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "../../../include/ocudu/ran/pucch/pucch_uci_bits.h"
 #include "../cell/resource_grid.h"
 #include "../config/ue_configuration.h"
+#include "ocudu/ran/pucch/pucch_uci_bits.h"
 
 namespace ocudu {
 

@@ -18,7 +18,6 @@
 #include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 #include "ocudu/ran/ssb/ssb_gscn.h"
 #include "ocudu/ran/subcarrier_spacing.h"
-#include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "fmt/std.h"

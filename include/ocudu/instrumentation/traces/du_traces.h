@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/ran/du_types.h"
 #include "ocudu/support/tracing/rusage_trace_recorder.h"
 
 namespace ocudu {

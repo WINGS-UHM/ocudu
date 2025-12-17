@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "ocudu_test.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/error_handling.h"
+#include "ocudu/support/ocudu_test.h"
 #include <cstdio>
 #include <random>
 

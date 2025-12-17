@@ -61,7 +61,7 @@ public:
     scheduler_test_simulator(
         scheduler_test_sim_config{.max_scs = subcarrier_spacing::kHz30, .auto_uci = true, .auto_crc = true})
   {
-    params = cell_config_builder_profiles::tdd(subcarrier_spacing::kHz30);
+    params = cell_config_builder_profiles::tdd();
 
     // Add Cell.
     auto cell_cfg_req = sched_config_helper::make_default_sched_cell_configuration_request(params);

@@ -55,7 +55,7 @@ public:
                                                        .auto_uci = true,
                                                        .auto_crc = true}),
     test_params(tparams),
-    params(cell_config_builder_profiles::tdd(subcarrier_spacing::kHz30, bs_channel_bandwidth::MHz100))
+    params(cell_config_builder_profiles::tdd(bs_channel_bandwidth::MHz100))
   {
     this->logger.set_level(sched_log_level);
 

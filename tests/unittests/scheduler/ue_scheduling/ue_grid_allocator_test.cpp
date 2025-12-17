@@ -19,6 +19,7 @@
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
 #include "ocudu/adt/unique_function.h"
@@ -41,12 +42,7 @@ class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
 {
   static cell_config_builder_params make_cfg_builder(const test_params& params, duplex_mode duplx_mode)
   {
-    cell_config_builder_params builder_params{};
-    builder_params.dl_carrier.arfcn_f_ref = duplx_mode == duplex_mode::FDD ? 530000 : 520002;
-    builder_params.scs_common = duplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
-    builder_params.dl_carrier.band       = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
-    builder_params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
-    return builder_params;
+    return duplx_mode == duplex_mode::FDD ? cell_config_builder_profiles::fdd() : cell_config_builder_profiles::tdd();
   }
 
   static sched_cell_configuration_request_message

@@ -33,6 +33,7 @@
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/mac/mac_test_messages.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "ocudu/adt/mpmc_queue.h"
@@ -1189,30 +1190,9 @@ public:
 /// \brief Generate custom cell configuration builder params based on duplex mode.
 static cell_config_builder_params generate_custom_cell_config_builder_params(duplex_mode dplx_mode)
 {
-  cell_config_builder_params params{};
-  params.scs_common             = dplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
-  params.dl_carrier.arfcn_f_ref = dplx_mode == duplex_mode::FDD ? 530000 : 520002;
-  params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
-  params.dl_carrier.carrier_bw =
-      dplx_mode == duplex_mode::FDD ? ocudu::bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz100;
-  const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-      params.dl_carrier.carrier_bw, params.scs_common, band_helper::get_freq_range(params.dl_carrier.band));
-  static const uint8_t                                   ss0_idx = 0;
-  std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-      band_helper::get_ssb_coreset0_freq_location(params.dl_carrier.arfcn_f_ref,
-                                                  params.dl_carrier.band,
-                                                  nof_crbs,
-                                                  params.scs_common,
-                                                  params.scs_common,
-                                                  ss0_idx,
-                                                  params.max_coreset0_duration);
-  if (!ssb_freq_loc.has_value()) {
-    report_error("Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", params.pci);
-  }
-  params.offset_to_point_a   = (*ssb_freq_loc).offset_to_point_A;
-  params.k_ssb               = (*ssb_freq_loc).k_ssb;
-  params.coreset0_index      = (*ssb_freq_loc).coreset0_idx;
-  params.search_space0_index = ss0_idx;
+  cell_config_builder_params params = dplx_mode == duplex_mode::FDD
+                                          ? cell_config_builder_profiles::fdd(bs_channel_bandwidth::MHz20)
+                                          : cell_config_builder_profiles::tdd(bs_channel_bandwidth::MHz100);
 
   if (dplx_mode == duplex_mode::TDD) {
     params.tdd_ul_dl_cfg_common.emplace();

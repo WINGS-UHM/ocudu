@@ -56,6 +56,64 @@ struct cell_config_builder_params {
   std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common;
   /// Maximum number of DL layers.
   std::optional<unsigned> max_nof_layers;
+  /// SSB subcarrier spacing.
+  std::optional<subcarrier_spacing> scs_ssb;
+
+  /// \brief Helper builder method to auto-derive dependent parameters, namely band, SSB SCS, nof DL layers,
+  /// offset-to-pointA, k_SSB and coreset0 index.
+  cell_config_builder_params& auto_derive_params()
+  {
+    // Auto-derive band if not derived yet.
+    if (dl_carrier.band == nr_band::invalid) {
+      dl_carrier.band = band_helper::get_band_from_dl_arfcn(dl_carrier.arfcn_f_ref);
+    }
+
+    // Auto-derive nof layers if not provided.
+    if (not max_nof_layers.has_value()) {
+      max_nof_layers = dl_carrier.nof_ant;
+    }
+
+    // Auto-derive SSB SCS.
+    if (not scs_ssb.has_value()) {
+      scs_ssb = band_helper::get_most_suitable_ssb_scs(dl_carrier.band, scs_common);
+    }
+
+    // Auto-derive offset_to_pointA, k_ssb and coreset0 index.
+    if (not coreset0_index.has_value() or not offset_to_point_a.has_value() or not k_ssb.has_value()) {
+      if (offset_to_point_a.has_value() or k_ssb.has_value()) {
+        report_error("The user either sets {controlResourceSetZero, offsetToPointA, kSSB} or just "
+                     "{controlResourceSetZero}, or none of them.\n");
+      }
+      const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
+          dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(dl_carrier.band));
+
+      std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
+      if (coreset0_index.has_value()) {
+        ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(dl_carrier.arfcn_f_ref,
+                                                                                 dl_carrier.band,
+                                                                                 nof_crbs,
+                                                                                 scs_common,
+                                                                                 *scs_ssb,
+                                                                                 search_space0_index,
+                                                                                 coreset0_index.value());
+      } else {
+        ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(dl_carrier.arfcn_f_ref,
+                                                                   dl_carrier.band,
+                                                                   nof_crbs,
+                                                                   scs_common,
+                                                                   *scs_ssb,
+                                                                   search_space0_index,
+                                                                   max_coreset0_duration);
+      }
+      report_error_if_not(
+          ssb_freq_loc.has_value(), "Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", pci);
+      offset_to_point_a = ssb_freq_loc->offset_to_point_A;
+      k_ssb             = ssb_freq_loc->k_ssb;
+      coreset0_index    = ssb_freq_loc->coreset0_idx;
+    }
+
+    return *this;
+  }
 };
 
 } // namespace ocudu

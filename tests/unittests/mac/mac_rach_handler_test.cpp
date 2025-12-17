@@ -23,7 +23,7 @@ class mac_rach_handler_test : public ::testing::Test
 protected:
   mac_rach_handler_test() :
     logger(ocudulog::fetch_basic_logger("MAC")),
-    params(cell_config_builder_profiles::tdd(subcarrier_spacing::kHz30)),
+    params(cell_config_builder_profiles::tdd()),
     sched_cfg([this]() {
       auto cfg = sched_config_helper::make_default_sched_cell_configuration_request(params);
       // Leave some preambles for CFRA.

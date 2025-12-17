@@ -16,11 +16,13 @@ namespace ocudu {
 namespace cell_config_builder_profiles {
 
 /// Create cell build parameters for a TDD band.
-cell_config_builder_params tdd(subcarrier_spacing   scs = subcarrier_spacing::kHz30,
-                               bs_channel_bandwidth bw  = bs_channel_bandwidth::MHz20);
+cell_config_builder_params tdd(bs_channel_bandwidth bw = bs_channel_bandwidth::MHz20);
 
 /// Create cell build parameters for a FDD band.
-cell_config_builder_params fdd();
+cell_config_builder_params fdd(bs_channel_bandwidth bw = bs_channel_bandwidth::MHz20);
+
+/// Create cell build parameters for a TDD FR2 band.
+cell_config_builder_params tdd_fr2(bs_channel_bandwidth bw = bs_channel_bandwidth::MHz100);
 
 } // namespace cell_config_builder_profiles
 } // namespace ocudu

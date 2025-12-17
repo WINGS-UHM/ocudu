@@ -33,9 +33,7 @@ using namespace ocudu::config_helpers;
 cell_config_builder_params_extended::cell_config_builder_params_extended(const cell_config_builder_params& source) :
   cell_config_builder_params(source)
 {
-  if (dl_carrier.band == nr_band::invalid) {
-    dl_carrier.band = band_helper::get_band_from_dl_arfcn(dl_carrier.arfcn_f_ref);
-  }
+  auto_derive_params();
 
   cell_nof_crbs =
       band_helper::get_n_rbs_from_bw(dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(dl_carrier.band));
@@ -53,53 +51,15 @@ cell_config_builder_params_extended::cell_config_builder_params_extended(const c
     report_error("TDD pattern has been set for non-TDD band\n");
   }
 
-  ssb_scs = band_helper::get_most_suitable_ssb_scs(dl_carrier.band, scs_common);
-
-  // Derive SSB parameters, if not provided.
-  if (not coreset0_index.has_value() or not offset_to_point_a.has_value() or not k_ssb.has_value()) {
-    if (offset_to_point_a.has_value() or k_ssb.has_value()) {
-      report_error("The user either sets {controlResourceSetZero, offsetToPointA, kSSB} or just "
-                   "{controlResourceSetZero}, or none of them.\n");
-    }
-    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
-    if (coreset0_index.has_value()) {
-      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(dl_carrier.arfcn_f_ref,
-                                                                               dl_carrier.band,
-                                                                               cell_nof_crbs,
-                                                                               scs_common,
-                                                                               ssb_scs,
-                                                                               search_space0_index,
-                                                                               coreset0_index.value());
-    } else {
-      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(dl_carrier.arfcn_f_ref,
-                                                                 dl_carrier.band,
-                                                                 cell_nof_crbs,
-                                                                 scs_common,
-                                                                 ssb_scs,
-                                                                 search_space0_index,
-                                                                 max_coreset0_duration);
-    }
-    if (!ssb_freq_loc.has_value()) {
-      report_error("Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", pci);
-    }
-    offset_to_point_a = ssb_freq_loc->offset_to_point_A;
-    coreset0_index    = ssb_freq_loc->coreset0_idx;
-    k_ssb             = ssb_freq_loc->k_ssb;
-  }
-
   // Compute and store final SSB position based on (selected) values.
   ssb_arfcn = band_helper::get_ssb_arfcn(dl_carrier.arfcn_f_ref,
                                          dl_carrier.band,
                                          cell_nof_crbs,
                                          scs_common,
-                                         ssb_scs,
+                                         *scs_ssb,
                                          offset_to_point_a.value(),
                                          k_ssb.value());
   ocudu_assert(ssb_arfcn.has_value(), "Unable to derive SSB location correctly");
-
-  if (not source.max_nof_layers.has_value()) {
-    max_nof_layers = source.dl_carrier.nof_ant;
-  }
 }
 
 static carrier_configuration make_default_carrier_configuration(const cell_config_builder_params_extended& params,
@@ -179,7 +139,7 @@ ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_par
   cfg.set_freq_domain_resources(freq_resources);
   // Number of symbols equal to CORESET#0 duration.
   const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
-      params.dl_carrier.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
   cfg.duration             = desc.nof_symb_coreset;
   cfg.precoder_granurality = coreset_configuration::precoder_granularity_type::same_as_reg_bundle;
   return cfg;
@@ -187,13 +147,12 @@ ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_par
 
 /// Generates a default CORESET#0 configuration. The default CORESET#0 table index value used is equal to 6.
 /// \remark See TS 38.213, Table 13-1.
-coreset_configuration
-ocudu::config_helpers::make_default_coreset0_config(const cell_config_builder_params_extended& params)
+coreset_configuration config_helpers::make_default_coreset0_config(const cell_config_builder_params_extended& params)
 {
   coreset_configuration cfg{};
   cfg.id                                         = to_coreset_id(0);
   const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
-      params.dl_carrier.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
 
   cfg.duration       = static_cast<unsigned>(desc.nof_symb_coreset);
   const int rb_start = params.scs_common == subcarrier_spacing::kHz15
@@ -217,7 +176,7 @@ search_space_configuration
 ocudu::config_helpers::make_default_search_space_zero_config(const cell_config_builder_params_extended& params)
 {
   return search_space_configuration{
-      params.dl_carrier.band, params.scs_common, params.ssb_scs, *params.coreset0_index, params.search_space0_index};
+      params.dl_carrier.band, params.scs_common, *params.scs_ssb, *params.coreset0_index, params.search_space0_index};
 }
 
 search_space_configuration
@@ -426,14 +385,14 @@ ssb_configuration ocudu::config_helpers::make_default_ssb_config(const cell_conf
 {
   ssb_configuration cfg{};
 
-  cfg.scs               = params.ssb_scs;
+  cfg.scs               = *params.scs_ssb;
   cfg.offset_to_point_A = *params.offset_to_point_a;
   cfg.ssb_period        = ssb_periodicity::ms10;
   cfg.k_ssb             = *params.k_ssb;
 
   // Set SSB idx 0 to 1.
   cfg.ssb_bitmap.set(0);
-  cfg.ssb_bitmap.set_L_max(ssb_get_L_max(params.ssb_scs, params.dl_carrier.arfcn_f_ref, params.dl_carrier.band));
+  cfg.ssb_bitmap.set_L_max(ssb_get_L_max(*params.scs_ssb, params.dl_carrier.arfcn_f_ref, params.dl_carrier.band));
   // Set SSB beam ID 0 (corresponding to SSB idx 0) to 0.
   cfg.beam_ids = {0};
 

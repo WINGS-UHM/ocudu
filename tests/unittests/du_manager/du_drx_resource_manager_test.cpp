@@ -9,6 +9,7 @@
  */
 
 #include "lib/du/du_high/du_manager/ran_resource_management/du_drx_resource_manager.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/support/test_utils.h"
@@ -16,15 +17,6 @@
 
 using namespace ocudu;
 using namespace odu;
-
-static cell_config_builder_params get_tdd_builder_params()
-{
-  cell_config_builder_params params;
-  params.scs_common             = subcarrier_spacing::kHz30;
-  params.dl_carrier.arfcn_f_ref = 520002;
-  params.dl_carrier.band        = nr_band::n41;
-  return params;
-}
 
 static du_cell_config create_du_cell_config(const cell_config_builder_params& params,
                                             const std::optional<drx_params>&  drx)
@@ -74,7 +66,7 @@ protected:
     return true;
   }
 
-  cell_config_builder_params      params{get_tdd_builder_params()};
+  cell_config_builder_params      params{cell_config_builder_profiles::tdd()};
   const std::optional<drx_params> drx_args;
   std::vector<du_cell_config>     cell_cfg_list;
   du_drx_resource_manager         drx{cell_cfg_list};

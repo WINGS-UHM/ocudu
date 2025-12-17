@@ -9,6 +9,7 @@
  */
 
 #include "lib/du/du_high/du_manager/ran_resource_management/du_srs_resource_manager.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
@@ -56,8 +57,9 @@ static bool is_partially_ul_slot(unsigned offset, const tdd_ul_dl_config_common&
 
 static cell_config_builder_params make_cell_cfg_params(const srs_params& params = {})
 {
-  const bool                 is_tdd      = params.nof_ul_symbols_p1.has_value();
-  cell_config_builder_params cell_params = {.dl_carrier{.arfcn_f_ref = not is_tdd ? 365000U : 520002U}};
+  const bool                 is_tdd = params.nof_ul_symbols_p1.has_value();
+  cell_config_builder_params cell_params =
+      is_tdd ? cell_config_builder_profiles::tdd() : cell_config_builder_profiles::fdd();
   if (is_tdd) {
     auto& tdd_cfg                              = cell_params.tdd_ul_dl_cfg_common.emplace();
     tdd_cfg.pattern1.dl_ul_tx_period_nof_slots = 10;

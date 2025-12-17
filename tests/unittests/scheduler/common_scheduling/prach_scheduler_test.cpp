@@ -9,6 +9,7 @@
  */
 
 #include "lib/scheduler/common_scheduling/prach_scheduler.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
@@ -41,7 +42,10 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
 {
   cell_config_builder_params params = {
       .scs_common = test_params.scs,
-      .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .band = test_params.band}};
+      .dl_carrier = {.carrier_bw = band_helper::get_freq_range(test_params.band) == frequency_range::FR2
+                                       ? bs_channel_bandwidth::MHz100
+                                       : bs_channel_bandwidth::MHz20,
+                     .band       = test_params.band}};
   // For TDD, set DL ARFCN according to the band.
   if (not band_helper::is_paired_spectrum(test_params.band)) {
     if (band_helper::get_freq_range(test_params.band) == frequency_range::FR1) {
@@ -50,37 +54,10 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
       params.dl_carrier.arfcn_f_ref = 2074171;
     }
   }
-  if (band_helper::get_freq_range(test_params.band) == frequency_range::FR2) {
-    params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz100;
-  }
+  params.auto_derive_params();
+
   sched_cell_configuration_request_message sched_req =
       sched_config_helper::make_default_sched_cell_configuration_request(params);
-
-  // Change Carrier parameters when SCS is 15kHz.
-  if (test_params.scs == subcarrier_spacing::kHz15) {
-    sched_req.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 106;
-    sched_req.dl_cfg_common.init_dl_bwp.generic_params.crbs =
-        crb_interval{0, sched_req.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
-  }
-  // Change Carrier parameters when SCS is 30kHz.
-  else if (test_params.scs == subcarrier_spacing::kHz30) {
-    sched_req.dl_cfg_common.freq_info_dl.scs_carrier_list.emplace_back(
-        scs_specific_carrier{0, subcarrier_spacing::kHz30, 51});
-    sched_req.dl_cfg_common.init_dl_bwp.generic_params.crbs = {
-        0, sched_req.dl_cfg_common.freq_info_dl.scs_carrier_list[1].carrier_bandwidth};
-  }
-  // Change Carrier parameters when SCS is 120kHz.
-  else if (test_params.scs == subcarrier_spacing::kHz120) {
-    sched_req.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 66;
-    sched_req.dl_cfg_common.init_dl_bwp.generic_params.crbs =
-        crb_interval{0, sched_req.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
-  }
-
-  if (band_helper::get_freq_range(test_params.band) == frequency_range::FR2) {
-    sched_req.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz100;
-  } else {
-    sched_req.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
-  }
 
   sched_req.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index =
       test_params.prach_cfg_index;

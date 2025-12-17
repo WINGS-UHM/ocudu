@@ -29,7 +29,6 @@ struct cell_config_builder_params_extended : public cell_config_builder_params {
   /// \c SS_ref is defined is per TS 38.104, Section 5.4.3.1 and 5.4.3.2.
   std::optional<unsigned> ssb_arfcn;
   unsigned                cell_nof_crbs;
-  subcarrier_spacing      ssb_scs;
 };
 
 static_vector<uint8_t, 8> generate_k1_candidates(const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k1 = 4);

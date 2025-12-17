@@ -10,6 +10,7 @@
 
 #include "lib/scheduler/scheduler_impl.h"
 #include "test_utils/dummy_test_components.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
@@ -191,31 +192,7 @@ protected:
 
   static cell_config_builder_params create_custom_cell_cfg_builder_params(duplex_mode mode)
   {
-    cell_config_builder_params cell_cfg{};
-    if (mode == duplex_mode::TDD) {
-      // Band 40.
-      cell_cfg.dl_carrier.arfcn_f_ref = 474000;
-      cell_cfg.scs_common             = subcarrier_spacing::kHz30;
-      cell_cfg.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_carrier.arfcn_f_ref);
-      cell_cfg.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
-
-      const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-          cell_cfg.dl_carrier.carrier_bw, cell_cfg.scs_common, band_helper::get_freq_range(cell_cfg.dl_carrier.band));
-
-      std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-          band_helper::get_ssb_coreset0_freq_location(cell_cfg.dl_carrier.arfcn_f_ref,
-                                                      cell_cfg.dl_carrier.band,
-                                                      nof_crbs,
-                                                      cell_cfg.scs_common,
-                                                      cell_cfg.scs_common,
-                                                      cell_cfg.search_space0_index,
-                                                      cell_cfg.max_coreset0_duration);
-      cell_cfg.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
-      cell_cfg.k_ssb             = ssb_freq_loc->k_ssb;
-      cell_cfg.coreset0_index    = ssb_freq_loc->coreset0_idx;
-    }
-    cell_cfg.csi_rs_enabled = true;
-    return cell_cfg;
+    return mode == duplex_mode::FDD ? cell_config_builder_profiles::fdd() : cell_config_builder_profiles::tdd();
   }
 
   void add_ue(du_ue_index_t ue_index,

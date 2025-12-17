@@ -13,6 +13,7 @@
 #include "lib/scheduler/scheduler_impl.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
 #include "lib/scheduler/ue_scheduling/ue_fallback_scheduler.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/duplex_mode.h"
@@ -139,14 +140,9 @@ public:
                                     subcarrier_spacing   scs        = ocudu::subcarrier_spacing::kHz30,
                                     bs_channel_bandwidth carrier_bw = ocudu::bs_channel_bandwidth::MHz20) const
   {
-    cell_config_builder_params cell_cfg{};
-    if (duplx_mode == duplex_mode::TDD) {
-      // Band 40.
-      cell_cfg.dl_carrier.arfcn_f_ref = 465000;
-      cell_cfg.scs_common             = scs;
-      cell_cfg.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_carrier.arfcn_f_ref);
-      cell_cfg.dl_carrier.carrier_bw  = carrier_bw;
-    }
+    cell_config_builder_params cell_cfg = duplx_mode == duplex_mode::FDD
+                                              ? cell_config_builder_profiles::fdd()
+                                              : cell_config_builder_profiles::tdd(carrier_bw);
     return sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);
   }
 

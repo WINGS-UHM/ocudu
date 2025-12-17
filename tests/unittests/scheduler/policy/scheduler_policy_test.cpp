@@ -17,6 +17,7 @@
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_scheduling/intra_slice_scheduler.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "ocudu/adt/unique_function.h"
@@ -456,36 +457,13 @@ protected:
 
   static cell_config_builder_params make_builder_params()
   {
-    cell_config_builder_params builder_params{};
-    // Band 40.
-    builder_params.dl_carrier.arfcn_f_ref = 465000;
-    builder_params.scs_common             = subcarrier_spacing::kHz30;
-    builder_params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
-    builder_params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
-
-    const unsigned nof_crbs =
-        band_helper::get_n_rbs_from_bw(builder_params.dl_carrier.carrier_bw,
-                                       builder_params.scs_common,
-                                       band_helper::get_freq_range(builder_params.dl_carrier.band));
-
-    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_carrier.arfcn_f_ref,
-                                                    builder_params.dl_carrier.band,
-                                                    nof_crbs,
-                                                    builder_params.scs_common,
-                                                    builder_params.scs_common,
-                                                    builder_params.search_space0_index,
-                                                    builder_params.max_coreset0_duration);
-    ocudu_assert(ssb_freq_loc.has_value(), "Invalid cell config parameters");
-    builder_params.offset_to_point_a    = ssb_freq_loc->offset_to_point_A;
-    builder_params.k_ssb                = ssb_freq_loc->k_ssb;
-    builder_params.coreset0_index       = ssb_freq_loc->coreset0_idx;
-    builder_params.tdd_ul_dl_cfg_common = tdd_ul_dl_config_common{.ref_scs  = subcarrier_spacing::kHz30,
-                                                                  .pattern1 = {.dl_ul_tx_period_nof_slots = 10,
-                                                                               .nof_dl_slots              = 5,
-                                                                               .nof_dl_symbols            = 5,
-                                                                               .nof_ul_slots              = 4,
-                                                                               .nof_ul_symbols            = 0}};
+    cell_config_builder_params builder_params = cell_config_builder_profiles::tdd();
+    builder_params.tdd_ul_dl_cfg_common       = tdd_ul_dl_config_common{.ref_scs  = subcarrier_spacing::kHz30,
+                                                                        .pattern1 = {.dl_ul_tx_period_nof_slots = 10,
+                                                                                     .nof_dl_slots              = 5,
+                                                                                     .nof_dl_symbols            = 5,
+                                                                                     .nof_ul_slots              = 4,
+                                                                                     .nof_ul_symbols            = 0}};
     return builder_params;
   }
 };

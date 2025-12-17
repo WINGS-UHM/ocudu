@@ -76,7 +76,7 @@ add_executable(du_ran_resource_manager_test
         du_drx_resource_manager_test.cpp
         decode_ue_nr_cap_container_test.cpp)
 target_include_directories(du_ran_resource_manager_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_ran_resource_manager_test du_manager_test_helpers gtest gtest_main)
+target_link_libraries(du_ran_resource_manager_test du_manager_test_helpers sched_test_doubles gtest gtest_main)
 gtest_discover_tests(du_ran_resource_manager_test)
 
 add_executable(srs_resource_generator_test srs_resource_generator_test.cpp)
@@ -86,7 +86,7 @@ gtest_discover_tests(srs_resource_generator_test)
 
 add_executable(du_srs_resource_manager_test du_srs_resource_manager_test.cpp)
 target_include_directories(du_srs_resource_manager_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_srs_resource_manager_test du_manager_test_helpers gtest gtest_main)
+target_link_libraries(du_srs_resource_manager_test du_manager_test_helpers sched_test_doubles gtest gtest_main)
 gtest_discover_tests(du_srs_resource_manager_test)
 
 add_executable(cbs_encoder_test cbs/cbs_encoder_test.cpp)

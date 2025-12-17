@@ -124,8 +124,8 @@ private:
       msg.dl_cfg_common.init_dl_bwp.generic_params.crbs = {
           0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list[1].carrier_bandwidth};
     }
-    msg.dl_carrier.carrier_bw_mhz = 20;
-    msg.dl_carrier.nof_ant        = 1;
+    msg.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
+    msg.dl_carrier.nof_ant    = 1;
 
     return msg;
   }

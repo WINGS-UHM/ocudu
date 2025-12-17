@@ -39,8 +39,8 @@ create_data_flow_cplane_sched(const transmitter_config&                         
   frequency_range freq_range =
       (tx_config.scs > subcarrier_spacing::kHz60) ? frequency_range::FR2 : frequency_range::FR1;
 
-  config.ru_nof_prbs = get_max_Nprb(bs_channel_bandwidth_to_MHz(tx_config.ru_working_bw), tx_config.scs, freq_range);
-  config.sector      = tx_config.sector;
+  config.ru_nof_prbs           = get_max_Nprb(tx_config.ru_working_bw, tx_config.scs, freq_range);
+  config.sector                = tx_config.sector;
   config.dl_compr_params       = tx_config.dl_compr_params;
   config.ul_compr_params       = tx_config.ul_compr_params;
   config.prach_compr_params    = tx_config.prach_compr_params;
@@ -82,7 +82,7 @@ create_data_flow_uplane_data(const transmitter_config&              tx_config,
       (tx_config.scs > subcarrier_spacing::kHz60) ? frequency_range::FR2 : frequency_range::FR1;
 
   data_flow_uplane_downlink_data_impl_config config;
-  config.ru_nof_prbs  = get_max_Nprb(bs_channel_bandwidth_to_MHz(tx_config.ru_working_bw), tx_config.scs, freq_range);
+  config.ru_nof_prbs  = get_max_Nprb(tx_config.ru_working_bw, tx_config.scs, freq_range);
   config.sector       = tx_config.sector;
   config.dl_eaxc      = tx_config.dl_eaxc;
   config.compr_params = tx_config.dl_compr_params;
@@ -155,7 +155,7 @@ static std::shared_ptr<ether::eth_frame_pool> create_eth_frame_pool(const transm
                               ecpri_builder->get_header_size(ecpri::message_type::iq_data) +
                               uplane_builder->get_header_size(tx_config.dl_compr_params);
 
-  unsigned nof_prbs = get_max_Nprb(bs_channel_bandwidth_to_MHz(tx_config.ru_working_bw), tx_config.scs, freq_range);
+  unsigned nof_prbs = get_max_Nprb(tx_config.ru_working_bw, tx_config.scs, freq_range);
 
   unsigned nof_frames_per_symbol = 1;
   if (calculate_nof_frames_per_symbol) {

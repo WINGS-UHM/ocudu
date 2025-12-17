@@ -1136,7 +1136,7 @@ int main(int argc, char** argv)
   logger.set_level(test_params.log_level);
   ocudulog::fetch_basic_logger("PHY").set_level(ocudulog::basic_levels::error);
 
-  unsigned nof_prb = get_max_Nprb(bs_channel_bandwidth_to_MHz(test_params.bw), test_params.scs, frequency_range::FR1);
+  unsigned nof_prb = get_max_Nprb(test_params.bw, test_params.scs, frequency_range::FR1);
 
   // Set up resources used by the DU emulator.
   std::shared_ptr<resource_grid_factory> rg_factory = create_resource_grid_factory();

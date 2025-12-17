@@ -90,7 +90,7 @@ async_task<mac_ue_reconfiguration_response> du_ue_ric_configuration_procedure::h
   res_alloc_cfg.rrm_policy_group = request.rrm_policy_ratio_list[0];
 
   // TODO remove when RRM group support is added to scheduler.
-  unsigned nof_prbs = get_max_Nprb(du_params.ran.cells[0].dl_carrier.carrier_bw_mhz,
+  unsigned nof_prbs = get_max_Nprb(du_params.ran.cells[0].dl_carrier.carrier_bw,
                                    du_params.ran.cells[0].scs_common,
                                    band_helper::get_freq_range(du_params.ran.cells[0].dl_carrier.band));
 

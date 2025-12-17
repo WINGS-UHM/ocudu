@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ran/bs_channel_bandwidth.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <array>
 #include <limits>
@@ -35,34 +36,34 @@ constexpr std::size_t get_rb_bw_khz(subcarrier_spacing scs)
 }
 
 /// Converts channel bandwidth in MHz to index.
-constexpr std::size_t channel_bw_mhz_to_index_fr1(unsigned dl_bw_mhz)
+constexpr std::size_t channel_bw_mhz_to_index_fr1(bs_channel_bandwidth dl_bw_mhz)
 {
   switch (dl_bw_mhz) {
-    case 5:
+    case bs_channel_bandwidth::MHz5:
       return 0;
-    case 10:
+    case bs_channel_bandwidth::MHz10:
       return 1;
-    case 15:
+    case bs_channel_bandwidth::MHz15:
       return 2;
-    case 20:
+    case bs_channel_bandwidth::MHz20:
       return 3;
-    case 25:
+    case bs_channel_bandwidth::MHz25:
       return 4;
-    case 30:
+    case bs_channel_bandwidth::MHz30:
       return 5;
-    case 40:
+    case bs_channel_bandwidth::MHz40:
       return 6;
-    case 50:
+    case bs_channel_bandwidth::MHz50:
       return 7;
-    case 60:
+    case bs_channel_bandwidth::MHz60:
       return 8;
-    case 70:
+    case bs_channel_bandwidth::MHz70:
       return 9;
-    case 80:
+    case bs_channel_bandwidth::MHz80:
       return 10;
-    case 90:
+    case bs_channel_bandwidth::MHz90:
       return 11;
-    case 100:
+    case bs_channel_bandwidth::MHz100:
       return 12;
     default:
       break;
@@ -71,16 +72,16 @@ constexpr std::size_t channel_bw_mhz_to_index_fr1(unsigned dl_bw_mhz)
 }
 
 /// Converts channel bandwidth in MHz to index.
-constexpr std::size_t channel_bw_mhz_to_index_fr2(unsigned dl_bw_mhz)
+constexpr std::size_t channel_bw_mhz_to_index_fr2(bs_channel_bandwidth dl_bw_mhz)
 {
   switch (dl_bw_mhz) {
-    case 50:
+    case bs_channel_bandwidth::MHz50:
       return 0;
-    case 100:
+    case bs_channel_bandwidth::MHz100:
       return 1;
-    case 200:
+    case bs_channel_bandwidth::MHz200:
       return 2;
-    case 400:
+    case bs_channel_bandwidth::MHz400:
       return 3;
     default:
       break;
@@ -90,7 +91,7 @@ constexpr std::size_t channel_bw_mhz_to_index_fr2(unsigned dl_bw_mhz)
 
 /// Computes the maximum transmission bandwidth in number of PRBs.
 /// \remark See TS 38.104, Table 5.3.2-1/2 - Transmission bandwidth configuration for FR1/FR2.
-inline std::size_t get_max_Nprb(unsigned dl_bw_mhz, subcarrier_spacing scs, frequency_range fr)
+inline std::size_t get_max_Nprb(bs_channel_bandwidth dl_bw_mhz, subcarrier_spacing scs, frequency_range fr)
 {
   ocudu_sanity_check(is_scs_valid(scs, fr), "Invalid SCS");
   static constexpr std::array<std::size_t, 3> rb_table_fr1[] = {

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ran/bs_channel_bandwidth.h"
 #include "ocudu/ran/nr_band.h"
 #include <cstdint>
 
@@ -18,8 +19,8 @@ namespace ocudu {
 /// \brief Configuration of each transmission point associated to the corresponding cell(s). This includes
 /// different physical antennas, different frequencies, bandwidths.
 struct carrier_configuration {
-  /// Width of this carrier in MHz. Values: 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 200, 400.
-  uint16_t carrier_bw_mhz;
+  /// Width of this carrier in MHz.
+  bs_channel_bandwidth carrier_bw;
   /// NR Absolute Radio Frequency Channel Number (NR-ARFCN) of "F_REF", which is the RF reference frequency, as per
   /// TS 38.104, Section 5.4.2.1 ("F_REF" maps to the central frequency of the band).
   uint32_t arfcn_f_ref;

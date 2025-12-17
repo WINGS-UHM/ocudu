@@ -155,7 +155,7 @@ int main(int argc, char** argv)
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
   logger.set_level(ocudulog::basic_levels::none);
 
-  std::size_t nof_prbs           = get_max_Nprb(bs_channel_bandwidth_to_MHz(bw), scs, frequency_range::FR1);
+  std::size_t nof_prbs           = get_max_Nprb(bw, scs, frequency_range::FR1);
   double      symbol_duration_us = 1e3 / (get_nsymb_per_slot(cyclic_prefix::NORMAL) * get_nof_slots_per_subframe(scs));
 
   std::unique_ptr<ofh::iq_compressor> compressor =

@@ -87,8 +87,8 @@ static carrier_configuration make_default_carrier_configuration(const cell_confi
                                                                 bool                                       is_dl)
 {
   carrier_configuration cfg{};
-  cfg.carrier_bw_mhz = bs_channel_bandwidth_to_MHz(params.channel_bw_mhz);
-  cfg.band           = params.band.value();
+  cfg.carrier_bw = params.channel_bw_mhz;
+  cfg.band       = params.band.value();
   if (is_dl) {
     cfg.arfcn_f_ref = params.dl_f_ref_arfcn;
     cfg.nof_ant     = params.nof_dl_ports;
@@ -97,9 +97,9 @@ static carrier_configuration make_default_carrier_configuration(const cell_confi
     cfg.nof_ant     = 1;
   }
   const min_channel_bandwidth min_channel_bw = band_helper::get_min_channel_bw(cfg.band, params.scs_common);
-  ocudu_assert(cfg.carrier_bw_mhz >= min_channel_bandwidth_to_MHz(min_channel_bw),
+  ocudu_assert(bs_channel_bandwidth_to_MHz(cfg.carrier_bw) >= min_channel_bandwidth_to_MHz(min_channel_bw),
                "Carrier BW {}Mhz must be greater than or equal to minimum channel BW {}Mhz",
-               cfg.carrier_bw_mhz,
+               bs_channel_bandwidth_to_MHz(cfg.carrier_bw),
                min_channel_bandwidth_to_MHz(min_channel_bw));
   return cfg;
 }

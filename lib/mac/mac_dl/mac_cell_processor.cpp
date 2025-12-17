@@ -45,7 +45,7 @@ mac_cell_processor::mac_cell_processor(const mac_cell_creation_request& cell_cfg
   phy_cell(phy_notifier_),
   timers(timers_),
   ue_mng(rnti_table),
-  dl_harq_buffers(band_helper::get_n_rbs_from_bw(MHz_to_bs_channel_bandwidth(cell_cfg.dl_carrier.carrier_bw_mhz),
+  dl_harq_buffers(band_helper::get_n_rbs_from_bw(cell_cfg.dl_carrier.carrier_bw,
                                                  cell_cfg.scs_common,
                                                  band_helper::get_freq_range(cell_cfg.dl_carrier.band)),
                   cell_cfg.dl_carrier.nof_ant,

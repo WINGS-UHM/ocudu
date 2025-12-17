@@ -43,14 +43,14 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
   for (const auto& cell : cells) {
     fmt::print("Cell pci={}, bw={} MHz, {}T{}R, dl_arfcn={} (n{}), dl_freq={} MHz, dl_ssb_arfcn={}, ul_freq={} MHz\n",
                cell.pci,
-               cell.dl_carrier.carrier_bw_mhz,
+               bs_channel_bandwidth_to_MHz(cell.dl_carrier.carrier_bw),
                cell.dl_carrier.nof_ant,
                cell.ul_carrier.nof_ant,
                cell.dl_carrier.arfcn_f_ref,
-               ocudu::nr_band_to_uint(cell.dl_carrier.band),
-               ocudu::band_helper::nr_arfcn_to_freq(cell.dl_carrier.arfcn_f_ref) / 1e6,
+               nr_band_to_uint(cell.dl_carrier.band),
+               band_helper::nr_arfcn_to_freq(cell.dl_carrier.arfcn_f_ref) / 1e6,
                cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
-               ocudu::band_helper::nr_arfcn_to_freq(cell.ul_carrier.arfcn_f_ref) / 1e6);
+               band_helper::nr_arfcn_to_freq(cell.ul_carrier.arfcn_f_ref) / 1e6);
 
     logger.info(
         "SSB derived parameters for cell: {}, band: {}, dl_arfcn:{}, nof_crbs: {} scs:{}, ssb_scs:{}:\n\t - SSB offset "

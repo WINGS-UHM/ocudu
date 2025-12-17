@@ -38,11 +38,9 @@ using namespace ocudu;
 static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
   // Deduce common numerology and grid size for DL and UL.
-  unsigned numerology = to_numerology_value(du_cell.scs_common);
-  unsigned grid_size_bw_prb =
-      band_helper::get_n_rbs_from_bw(MHz_to_bs_channel_bandwidth(du_cell.dl_carrier.carrier_bw_mhz),
-                                     du_cell.scs_common,
-                                     band_helper::get_freq_range(du_cell.dl_carrier.band));
+  unsigned numerology       = to_numerology_value(du_cell.scs_common);
+  unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
+      du_cell.dl_carrier.carrier_bw, du_cell.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
 
   fapi::carrier_config fapi_config = {};
 
@@ -92,8 +90,8 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
     nr_band band           = cell.dl_carrier.band;
     du_low_cell.duplex     = band_helper::get_duplex_mode(band);
     du_low_cell.freq_range = band_helper::get_freq_range(band);
-    du_low_cell.bw_rb      = band_helper::get_n_rbs_from_bw(
-        MHz_to_bs_channel_bandwidth(cell.dl_carrier.carrier_bw_mhz), cell.scs_common, du_low_cell.freq_range);
+    du_low_cell.bw_rb =
+        band_helper::get_n_rbs_from_bw(cell.dl_carrier.carrier_bw, cell.scs_common, du_low_cell.freq_range);
     du_low_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
     du_low_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
     du_low_cell.prach_ports     = du_hi_cell.cell.prach_cfg.ports;
@@ -123,7 +121,7 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
     out_cell.dl_arfcn        = cell.dl_carrier.arfcn_f_ref;
     out_cell.ul_arfcn        = cell.ul_carrier.arfcn_f_ref;
     out_cell.tdd_config      = cell.tdd_ul_dl_cfg_common;
-    out_cell.bw              = MHz_to_bs_channel_bandwidth(cell.dl_carrier.carrier_bw_mhz);
+    out_cell.bw              = cell.dl_carrier.carrier_bw;
     out_cell.freq_range      = band_helper::get_freq_range(cell.dl_carrier.band);
     out_cell.cp              = cell.dl_cfg_common.init_dl_bwp.generic_params.cp;
   }

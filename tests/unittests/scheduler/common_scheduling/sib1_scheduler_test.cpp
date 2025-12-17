@@ -131,14 +131,14 @@ struct sib_test_bench {
   }
 
   // Test bench ctor for SSB/SIB1 scheduler collision test.
-  sib_test_bench(uint32_t           freq_arfcn,
-                 uint16_t           offset_to_point_A,
-                 uint8_t            k_ssb,
-                 uint8_t            ssb_bitmap,
-                 uint8_t            l_max,
-                 subcarrier_spacing init_bwp_scs,
-                 uint8_t            pdcch_config_sib1,
-                 uint16_t           carrier_bw_mhz) :
+  sib_test_bench(uint32_t             freq_arfcn,
+                 uint16_t             offset_to_point_A,
+                 uint8_t              k_ssb,
+                 uint8_t              ssb_bitmap,
+                 uint8_t              l_max,
+                 subcarrier_spacing   init_bwp_scs,
+                 uint8_t              pdcch_config_sib1,
+                 bs_channel_bandwidth carrier_bw_mhz) :
     sched_cfg(
         make_scheduler_expert_cfg({10, aggregation_level::n4, 10, aggregation_level::n4, sib1_rtx_periodicity::ms10})),
     cfg_msg{make_cell_cfg_req_for_sib_sched(freq_arfcn,
@@ -217,13 +217,13 @@ struct sib_test_bench {
                                                                                   uint8_t            l_max,
                                                                                   subcarrier_spacing init_bwp_scs,
                                                                                   uint8_t            pdcch_config_sib1,
-                                                                                  uint16_t           carrier_bw_mhz)
+                                                                                  bs_channel_bandwidth carrier_bw_mhz)
   {
     cell_config_builder_params cell_cfg{};
     cell_cfg.dl_f_ref_arfcn = freq_arfcn;
     cell_cfg.scs_common     = init_bwp_scs;
     cell_cfg.band           = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_f_ref_arfcn);
-    cell_cfg.channel_bw_mhz = static_cast<bs_channel_bandwidth>(carrier_bw_mhz);
+    cell_cfg.channel_bw_mhz = carrier_bw_mhz;
 
     const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
         cell_cfg.channel_bw_mhz,
@@ -251,7 +251,7 @@ struct sib_test_bench {
     msg.ssb_config.ssb_period        = ssb_periodicity::ms10;
     msg.ssb_config.offset_to_point_A = ssb_offset_to_pointA{offset_to_point_A};
     msg.ssb_config.k_ssb             = k_ssb;
-    msg.dl_carrier.carrier_bw_mhz    = carrier_bw_mhz;
+    msg.dl_carrier.carrier_bw        = carrier_bw_mhz;
     msg.coreset0                     = (pdcch_config_sib1 >> 4U) & 0b00001111;
     msg.searchspace0                 = pdcch_config_sib1 & 0b00001111;
 
@@ -430,14 +430,14 @@ void test_sib1_periodicity(sib1_rtx_periodicity sib1_rtx_period, ssb_periodicity
 /// \param[in] pdcch_config_sib1 is \c pdcch-ConfigSIB1, as per TS38.213, Section 13.
 /// \param[in] carrier_bw_mhz corresponds to the width of this carrier in MHz. Values: 5, 10, 15, 20, 25, 30, 40,
 /// 50, 60, 70, 80, 90, 100, 200, 400.
-void test_ssb_sib1_collision(uint32_t           freq_arfcn,
-                             uint16_t           offset_to_point_A,
-                             uint8_t            k_ssb,
-                             uint8_t            ssb_bitmap,
-                             uint8_t            l_max,
-                             subcarrier_spacing scs,
-                             uint8_t            pdcch_config_sib1,
-                             uint16_t           carrier_bw_mhz)
+void test_ssb_sib1_collision(uint32_t             freq_arfcn,
+                             uint16_t             offset_to_point_A,
+                             uint8_t              k_ssb,
+                             uint8_t              ssb_bitmap,
+                             uint8_t              l_max,
+                             subcarrier_spacing   scs,
+                             uint8_t              pdcch_config_sib1,
+                             bs_channel_bandwidth carrier_bw_mhz)
 {
   // Instantiate the sib_test_bench and the SIB1 scheduler.
   sib_test_bench t_bench{
@@ -475,16 +475,15 @@ void test_ssb_sib1_collision(uint32_t           freq_arfcn,
 }
 
 // Test for potential collisions between SIB1 PDCCH/PDSCH and SSB.
-void test_sib_1_pdsch_collisions(unsigned freq_arfcn, subcarrier_spacing scs, uint16_t carrier_bw_mhz)
+void test_sib_1_pdsch_collisions(unsigned freq_arfcn, subcarrier_spacing scs, bs_channel_bandwidth carrier_bw_mhz)
 {
   const auto band      = band_helper::get_band_from_dl_arfcn(freq_arfcn);
   const auto min_ch_bw = band_helper::get_min_channel_bw(band, scs);
-  ocudu_assert(carrier_bw_mhz >= min_channel_bandwidth_to_MHz(min_ch_bw), "Invalid carrier BW");
+  ocudu_assert(bs_channel_bandwidth_to_MHz(carrier_bw_mhz) >= min_channel_bandwidth_to_MHz(min_ch_bw),
+               "Invalid carrier BW");
 
-  const auto nof_rbs_bpw =
-      band_helper::get_n_rbs_from_bw(static_cast<bs_channel_bandwidth>(carrier_bw_mhz),
-                                     scs,
-                                     band_helper::get_freq_range(band_helper::get_band_from_dl_arfcn(freq_arfcn)));
+  const auto nof_rbs_bpw = band_helper::get_n_rbs_from_bw(
+      carrier_bw_mhz, scs, band_helper::get_freq_range(band_helper::get_band_from_dl_arfcn(freq_arfcn)));
 
   // NOTE: We only test 1 beam, as we don't have resource grids for multiple beams implemented yet.
   const uint8_t L_max = ssb_get_L_max(scs, freq_arfcn, band);
@@ -660,7 +659,7 @@ TEST(sib1_scheduler_test, test_sib1_ssb_collision_for_15khz_scs)
   // This can be any frequency such that the DL band has SSB SCS 15kHz (case A, in this case).
   constexpr uint32_t freq_arfcn = 536020;
 
-  test_sib_1_pdsch_collisions(freq_arfcn, scs, 20);
+  test_sib_1_pdsch_collisions(freq_arfcn, scs, bs_channel_bandwidth::MHz20);
 }
 
 TEST(sib1_scheduler_test, test_sib1_ssb_collision_for_30khz_scs)
@@ -671,7 +670,7 @@ TEST(sib1_scheduler_test, test_sib1_ssb_collision_for_30khz_scs)
   // This can be any frequency such that the DL band has SSB SCS 30kHz (case B, in this case).
   constexpr uint32_t freq_arfcn = 176000;
 
-  test_sib_1_pdsch_collisions(freq_arfcn, scs, 20);
+  test_sib_1_pdsch_collisions(freq_arfcn, scs, bs_channel_bandwidth::MHz20);
 }
 
 /// Parameters used by partial slot TDD tests.

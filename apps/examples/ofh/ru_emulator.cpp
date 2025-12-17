@@ -1029,8 +1029,7 @@ int main(int argc, char** argv)
     }
 
     ru_emulator_config emu_cfg;
-    emu_cfg.nof_prb =
-        get_max_Nprb(bs_channel_bandwidth_to_MHz(ru_cfg.bandwidth), subcarrier_spacing::kHz30, frequency_range::FR1);
+    emu_cfg.nof_prb      = get_max_Nprb(ru_cfg.bandwidth, subcarrier_spacing::kHz30, frequency_range::FR1);
     emu_cfg.compr_params = {to_compression_type(ru_cfg.ul_compr_method), ru_cfg.ul_compr_bitwidth};
     emu_cfg.vlan_tag     = ru_cfg.vlan_tag;
     if (!parse_mac_address(ru_cfg.ru_mac_address, emu_cfg.ru_mac)) {

@@ -76,9 +76,9 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
   }
 
   if (band_helper::get_freq_range(test_params.band) == frequency_range::FR2) {
-    sched_req.dl_carrier.carrier_bw_mhz = 100;
+    sched_req.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz100;
   } else {
-    sched_req.dl_carrier.carrier_bw_mhz = 20;
+    sched_req.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
   }
 
   sched_req.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index =

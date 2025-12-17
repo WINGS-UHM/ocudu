@@ -48,12 +48,12 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
 
   unsigned numerology       = to_numerology_value(du_cell.scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
-      MHz_to_bs_channel_bandwidth(du_cell.dl_carrier.carrier_bw_mhz),
+      du_cell.dl_carrier.carrier_bw,
       du_cell.scs_common,
       band_helper::get_freq_range(band_helper::get_band_from_dl_arfcn(du_cell.dl_carrier.arfcn_f_ref)));
 
-  cell_cfg.carrier_cfg.dl_bandwidth = du_cell.dl_carrier.carrier_bw_mhz;
-  cell_cfg.carrier_cfg.ul_bandwidth = du_cell.ul_carrier.carrier_bw_mhz;
+  cell_cfg.carrier_cfg.dl_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.dl_carrier.carrier_bw);
+  cell_cfg.carrier_cfg.ul_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.ul_carrier.carrier_bw);
 
   cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.dl_carrier.arfcn_f_ref;
   cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ul_carrier.arfcn_f_ref;
@@ -86,7 +86,7 @@ generate_fapi_fastpath_adaptor_config(const o_du_high_config& config)
   for (unsigned i = 0, e = config.du_hi.ran.cells.size(); i != e; ++i) {
     const auto& du_cell = config.du_hi.ran.cells[i];
     unsigned    nof_prb = get_max_Nprb(
-        du_cell.dl_carrier.carrier_bw_mhz, du_cell.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
+        du_cell.dl_carrier.carrier_bw, du_cell.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
     fapi_adaptor::mac_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {.sector_id     = i,
                                                                        .cell_nof_prbs = nof_prb,
                                                                        .scs           = du_cell.scs_common,

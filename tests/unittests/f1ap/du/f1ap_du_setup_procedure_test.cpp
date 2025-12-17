@@ -13,6 +13,7 @@
 #include "test_doubles/f1ap/f1ap_test_messages.h"
 #include "unittests/f1ap/common/f1ap_du_test_messages.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
@@ -217,5 +218,39 @@ TEST_F(f1ap_du_test, when_retry_limit_reached_then_du_not_connected)
   ASSERT_TRUE(t.ready());
   ASSERT_FALSE(t.get().has_value());
   ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::f1_setup_failure);
+  ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
+}
+
+/// Test unsuccessful F1 Setup procedure with F1 Setup Response timeout.
+TEST_F(f1ap_du_test, when_timeout_then_du_not_connected)
+{
+  // Action : Launch F1 setup procedure.
+  ASSERT_TRUE(f1ap->connect_to_cu_cp());
+  f1_setup_request_message request_msg = generate_f1_setup_request_message();
+  test_logger.info("Launch f1 setup request procedure...");
+  async_task<f1_setup_result>         t = f1ap->handle_f1_setup_request(request_msg);
+  lazy_task_launcher<f1_setup_result> t_launcher(t);
+
+  // Status: CU received F1 Setup Request.
+  ASSERT_EQ(f1c_gw.last_tx_pdu().pdu.type().value, asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(f1c_gw.last_tx_pdu().pdu.init_msg().value.type().value,
+            asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request);
+  f1c_gw.clear_tx_pdus();
+
+  // Status: Procedure not yet ready.
+  ASSERT_FALSE(t.ready());
+
+  // Status: Wait for F1 Setup Response timeout.
+  for (unsigned msec_elapsed = 0; msec_elapsed < 3000; ++msec_elapsed) {
+    ASSERT_FALSE(t.ready());
+    ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
+
+    this->tick();
+  }
+
+  // Unsuccessful outcome after F1 Setup Response timeout.
+  ASSERT_TRUE(t.ready());
+  ASSERT_FALSE(t.get().has_value());
+  ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::timeout);
   ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
 }

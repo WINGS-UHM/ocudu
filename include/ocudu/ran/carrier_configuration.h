@@ -20,14 +20,14 @@ namespace ocudu {
 /// different physical antennas, different frequencies, bandwidths.
 struct carrier_configuration {
   /// Width of this carrier in MHz.
-  bs_channel_bandwidth carrier_bw;
+  bs_channel_bandwidth carrier_bw = bs_channel_bandwidth::MHz10;
   /// NR Absolute Radio Frequency Channel Number (NR-ARFCN) of "F_REF", which is the RF reference frequency, as per
   /// TS 38.104, Section 5.4.2.1 ("F_REF" maps to the central frequency of the band).
-  uint32_t arfcn_f_ref;
+  uint32_t arfcn_f_ref = 365000;
   /// <em>NR operating band<\em>, as per Table 5.2-1 and 5.2-2. TS 38.104.
-  nr_band band;
+  nr_band band = nr_band::invalid;
   /// Number of antennas. Values: (0..65355).
-  uint16_t nof_ant;
+  uint16_t nof_ant = 1;
 };
 
 } // namespace ocudu

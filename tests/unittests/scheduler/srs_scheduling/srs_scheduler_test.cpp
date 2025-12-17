@@ -150,10 +150,10 @@ public:
   test_bench(srs_test_params params) :
     expert_cfg{config_helpers::make_default_scheduler_expert_config()},
     cfg_mng{[&params]() {
-              return cell_config_builder_params{.scs_common     = params.is_tdd ? subcarrier_spacing::kHz30
-                                                                                : subcarrier_spacing::kHz15,
-                                                .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                                .dl_f_ref_arfcn = params.is_tdd ? 520000U : 365000U};
+              return cell_config_builder_params{.scs_common = params.is_tdd ? subcarrier_spacing::kHz30
+                                                                            : subcarrier_spacing::kHz15,
+                                                .dl_carrier = {.carrier_bw  = bs_channel_bandwidth::MHz20,
+                                                               .arfcn_f_ref = params.is_tdd ? 520000U : 365000U}};
             }(),
             expert_cfg},
     cell_cfg(*cfg_mng.add_cell(cfg_mng.get_default_cell_config_request())),

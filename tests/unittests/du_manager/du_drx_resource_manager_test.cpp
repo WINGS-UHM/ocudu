@@ -20,9 +20,9 @@ using namespace odu;
 static cell_config_builder_params get_tdd_builder_params()
 {
   cell_config_builder_params params;
-  params.scs_common     = subcarrier_spacing::kHz30;
-  params.dl_f_ref_arfcn = 520002;
-  params.band           = nr_band::n41;
+  params.scs_common             = subcarrier_spacing::kHz30;
+  params.dl_carrier.arfcn_f_ref = 520002;
+  params.dl_carrier.band        = nr_band::n41;
   return params;
 }
 

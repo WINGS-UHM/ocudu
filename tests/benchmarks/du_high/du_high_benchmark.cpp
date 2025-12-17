@@ -1190,17 +1190,17 @@ public:
 static cell_config_builder_params generate_custom_cell_config_builder_params(duplex_mode dplx_mode)
 {
   cell_config_builder_params params{};
-  params.scs_common     = dplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
-  params.dl_f_ref_arfcn = dplx_mode == duplex_mode::FDD ? 530000 : 520002;
-  params.band           = band_helper::get_band_from_dl_arfcn(params.dl_f_ref_arfcn);
-  params.channel_bw_mhz =
+  params.scs_common             = dplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
+  params.dl_carrier.arfcn_f_ref = dplx_mode == duplex_mode::FDD ? 530000 : 520002;
+  params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
+  params.dl_carrier.carrier_bw =
       dplx_mode == duplex_mode::FDD ? ocudu::bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz100;
   const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-      params.channel_bw_mhz, params.scs_common, band_helper::get_freq_range(*params.band));
+      params.dl_carrier.carrier_bw, params.scs_common, band_helper::get_freq_range(params.dl_carrier.band));
   static const uint8_t                                   ss0_idx = 0;
   std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-      band_helper::get_ssb_coreset0_freq_location(params.dl_f_ref_arfcn,
-                                                  *params.band,
+      band_helper::get_ssb_coreset0_freq_location(params.dl_carrier.arfcn_f_ref,
+                                                  params.dl_carrier.band,
                                                   nof_crbs,
                                                   params.scs_common,
                                                   params.scs_common,

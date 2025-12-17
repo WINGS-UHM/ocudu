@@ -566,7 +566,7 @@ protected:
         [tparams = GetParam()]() {
           sched_cell_configuration_request_message msg =
               sched_config_helper::make_default_sched_cell_configuration_request(
-                  cell_config_builder_params{.channel_bw_mhz = tparams.cell_bw});
+                  cell_config_builder_params{.dl_carrier{.carrier_bw = tparams.cell_bw}});
           if (tparams.ss2_nof_candidates.has_value()) {
             msg.dl_bwp_ded.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(*tparams.ss2_nof_candidates);
           }
@@ -574,7 +574,7 @@ protected:
         }(),
         [tparams = GetParam()]() {
           cell_config_dedicated ue_cell = sched_config_helper::create_test_initial_ue_spcell_cell_config(
-              cell_config_builder_params{.channel_bw_mhz = tparams.cell_bw});
+              cell_config_builder_params{.dl_carrier{.carrier_bw = tparams.cell_bw}});
           if (tparams.ss2_nof_candidates.has_value()) {
             ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(
                 *tparams.ss2_nof_candidates);
@@ -592,7 +592,7 @@ protected:
         .serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]
         .set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
     cell_config_builder_params builder_params{};
-    builder_params.channel_bw_mhz = params.cell_bw;
+    builder_params.dl_carrier.carrier_bw = params.cell_bw;
     (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets[0] =
         config_helpers::make_default_coreset_config(builder_params);
     return ue_creation_req;

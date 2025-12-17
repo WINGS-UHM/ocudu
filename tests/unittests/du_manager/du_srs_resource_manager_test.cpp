@@ -57,7 +57,7 @@ static bool is_partially_ul_slot(unsigned offset, const tdd_ul_dl_config_common&
 static cell_config_builder_params make_cell_cfg_params(const srs_params& params = {})
 {
   const bool                 is_tdd      = params.nof_ul_symbols_p1.has_value();
-  cell_config_builder_params cell_params = {.dl_f_ref_arfcn = not is_tdd ? 365000U : 520002U};
+  cell_config_builder_params cell_params = {.dl_carrier{.arfcn_f_ref = not is_tdd ? 365000U : 520002U}};
   if (is_tdd) {
     auto& tdd_cfg                              = cell_params.tdd_ul_dl_cfg_common.emplace();
     tdd_cfg.pattern1.dl_ul_tx_period_nof_slots = 10;

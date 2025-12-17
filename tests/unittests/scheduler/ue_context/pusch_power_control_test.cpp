@@ -56,9 +56,8 @@ protected:
           exp_cfg.ue.ul_power_ctrl.target_pusch_sinr          = default_pusch_sinr;
           return exp_cfg;
         }(),
-        cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
-                                   .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                   .dl_f_ref_arfcn = 520000U}),
+        cell_config_builder_params{.scs_common = subcarrier_spacing::kHz30,
+                                   .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .arfcn_f_ref = 520000U}}),
     phr_periodic_timer_sl(GetParam().phr_periodic_timer_sf * NOF_SLOT_PER_SF)
   {
     add_ue(cfg_mng.get_default_ue_config_request());
@@ -294,9 +293,8 @@ protected:
           exp_cfg.ue.ul_power_ctrl.target_pusch_sinr          = target_sinr_;
           return exp_cfg;
         }(),
-        cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
-                                   .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                   .dl_f_ref_arfcn = 520000U}),
+        cell_config_builder_params{.scs_common = subcarrier_spacing::kHz30,
+                                   .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .arfcn_f_ref = 520000U}}),
     pusch_sinr_target_dB(target_sinr_)
   {
     ocudulog::init();

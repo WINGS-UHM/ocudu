@@ -36,20 +36,19 @@ static cell_config_builder_params test_builder_params(duplex_mode duplx_mode)
   cell_config_builder_params builder_params{};
   if (duplx_mode == duplex_mode::TDD) {
     // Band 40.
-    builder_params.dl_f_ref_arfcn = 474000;
-    builder_params.scs_common     = ocudu::subcarrier_spacing::kHz30;
-    builder_params.band           = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
-    builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
+    builder_params.dl_carrier.arfcn_f_ref = 474000;
+    builder_params.scs_common             = subcarrier_spacing::kHz30;
+    builder_params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
+    builder_params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
 
-    const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-        builder_params.channel_bw_mhz,
-        builder_params.scs_common,
-        builder_params.band.has_value() ? band_helper::get_freq_range(builder_params.band.value())
-                                        : frequency_range::FR1);
+    const unsigned nof_crbs =
+        band_helper::get_n_rbs_from_bw(builder_params.dl_carrier.carrier_bw,
+                                       builder_params.scs_common,
+                                       band_helper::get_freq_range(builder_params.dl_carrier.band));
 
     std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_f_ref_arfcn,
-                                                    *builder_params.band,
+        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_carrier.arfcn_f_ref,
+                                                    builder_params.dl_carrier.band,
                                                     nof_crbs,
                                                     builder_params.scs_common,
                                                     builder_params.scs_common,
@@ -58,8 +57,6 @@ static cell_config_builder_params test_builder_params(duplex_mode duplx_mode)
     builder_params.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
     builder_params.k_ssb             = ssb_freq_loc->k_ssb;
     builder_params.coreset0_index    = ssb_freq_loc->coreset0_idx;
-  } else {
-    builder_params.band = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
   }
 
   return builder_params;

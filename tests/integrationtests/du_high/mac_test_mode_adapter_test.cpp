@@ -173,7 +173,7 @@ protected:
 
     // create cell
     cell_config_builder_params builder{};
-    builder.nof_dl_ports = params.nof_ports;
+    builder.dl_carrier.nof_ant = params.nof_ports;
     adapter.add_cell(test_helpers::make_default_mac_cell_config(builder));
 
     // create UE

@@ -40,10 +40,10 @@ protected:
     test_cfg(
         []() {
           cell_config_builder_params params{};
-          params.scs_common     = subcarrier_spacing::kHz30;
-          params.channel_bw_mhz = bs_channel_bandwidth::MHz100;
-          params.dl_f_ref_arfcn = 520000;
-          params.band           = nr_band::n41;
+          params.scs_common             = subcarrier_spacing::kHz30;
+          params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz100;
+          params.dl_carrier.arfcn_f_ref = 520000;
+          params.dl_carrier.band        = nr_band::n41;
           return params;
         }(),
         expert_cfg),

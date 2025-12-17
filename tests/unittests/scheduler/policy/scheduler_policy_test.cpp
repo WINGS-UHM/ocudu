@@ -458,20 +458,19 @@ protected:
   {
     cell_config_builder_params builder_params{};
     // Band 40.
-    builder_params.dl_f_ref_arfcn = 465000;
-    builder_params.scs_common     = subcarrier_spacing::kHz30;
-    builder_params.band           = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
-    builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
+    builder_params.dl_carrier.arfcn_f_ref = 465000;
+    builder_params.scs_common             = subcarrier_spacing::kHz30;
+    builder_params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
+    builder_params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
 
-    const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-        builder_params.channel_bw_mhz,
-        builder_params.scs_common,
-        builder_params.band.has_value() ? band_helper::get_freq_range(builder_params.band.value())
-                                        : frequency_range::FR1);
+    const unsigned nof_crbs =
+        band_helper::get_n_rbs_from_bw(builder_params.dl_carrier.carrier_bw,
+                                       builder_params.scs_common,
+                                       band_helper::get_freq_range(builder_params.dl_carrier.band));
 
     std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_f_ref_arfcn,
-                                                    *builder_params.band,
+        band_helper::get_ssb_coreset0_freq_location(builder_params.dl_carrier.arfcn_f_ref,
+                                                    builder_params.dl_carrier.band,
                                                     nof_crbs,
                                                     builder_params.scs_common,
                                                     builder_params.scs_common,

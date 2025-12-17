@@ -150,12 +150,12 @@ TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_l
 TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpass_limit)
 {
   cell_config_builder_params params{};
-  params.scs_common     = subcarrier_spacing::kHz30;
-  params.dl_f_ref_arfcn = 520002;
-  params.band           = nr_band::n41;
-  params.channel_bw_mhz = bs_channel_bandwidth::MHz50;
-  msg                   = sched_config_helper::make_default_sched_cell_configuration_request(params);
-  ue_create_msg         = sched_config_helper::create_default_sched_ue_creation_request(params);
+  params.scs_common             = subcarrier_spacing::kHz30;
+  params.dl_carrier.arfcn_f_ref = 520002;
+  params.dl_carrier.band        = nr_band::n41;
+  params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz50;
+  msg                           = sched_config_helper::make_default_sched_cell_configuration_request(params);
+  ue_create_msg                 = sched_config_helper::create_default_sched_ue_creation_request(params);
 
   auto&                        pdcch_cfg = *(*ue_create_msg.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg;
   const coreset_configuration& cset_cfg  = pdcch_cfg.coresets[0];

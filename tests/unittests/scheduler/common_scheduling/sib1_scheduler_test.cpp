@@ -179,18 +179,18 @@ struct sib_test_bench {
   {
     cell_config_builder_params cell_cfg{};
     if (duplx_mode == ocudu::duplex_mode::FDD) {
-      cell_cfg.dl_f_ref_arfcn = init_bwp_scs == subcarrier_spacing::kHz15 ? 536020 : 176300;
-      cell_cfg.band           = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_f_ref_arfcn);
+      cell_cfg.dl_carrier.arfcn_f_ref = init_bwp_scs == subcarrier_spacing::kHz15 ? 536020 : 176300;
+      cell_cfg.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_carrier.arfcn_f_ref);
     } else {
       // With SCS 15kHz, we set band n38, which (for this SCS) is in SSB case A (L_max = 4); with SCS 30kHz, we set n40,
       // which is in SSB case C, which is in SSB case C and with L_max = 8.
-      cell_cfg.dl_f_ref_arfcn = init_bwp_scs == subcarrier_spacing::kHz15 ? 518410 : 465000;
-      cell_cfg.band           = init_bwp_scs == subcarrier_spacing::kHz15 ? nr_band::n38 : nr_band::n40;
+      cell_cfg.dl_carrier.arfcn_f_ref = init_bwp_scs == subcarrier_spacing::kHz15 ? 518410 : 465000;
+      cell_cfg.dl_carrier.band        = init_bwp_scs == subcarrier_spacing::kHz15 ? nr_band::n38 : nr_band::n40;
     }
-    cell_cfg.scs_common          = init_bwp_scs;
-    cell_cfg.channel_bw_mhz      = static_cast<bs_channel_bandwidth>(carrier_bw_mhz);
-    cell_cfg.coreset0_index      = (pdcch_config_sib1 >> 4U) & 0b00001111U;
-    cell_cfg.search_space0_index = pdcch_config_sib1 & 0b00001111U;
+    cell_cfg.scs_common            = init_bwp_scs;
+    cell_cfg.dl_carrier.carrier_bw = static_cast<bs_channel_bandwidth>(carrier_bw_mhz);
+    cell_cfg.coreset0_index        = (pdcch_config_sib1 >> 4U) & 0b00001111U;
+    cell_cfg.search_space0_index   = pdcch_config_sib1 & 0b00001111U;
 
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);
@@ -220,19 +220,17 @@ struct sib_test_bench {
                                                                                   bs_channel_bandwidth carrier_bw_mhz)
   {
     cell_config_builder_params cell_cfg{};
-    cell_cfg.dl_f_ref_arfcn = freq_arfcn;
-    cell_cfg.scs_common     = init_bwp_scs;
-    cell_cfg.band           = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_f_ref_arfcn);
-    cell_cfg.channel_bw_mhz = carrier_bw_mhz;
+    cell_cfg.dl_carrier.arfcn_f_ref = freq_arfcn;
+    cell_cfg.scs_common             = init_bwp_scs;
+    cell_cfg.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(cell_cfg.dl_carrier.arfcn_f_ref);
+    cell_cfg.dl_carrier.carrier_bw  = carrier_bw_mhz;
 
     const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
-        cell_cfg.channel_bw_mhz,
-        cell_cfg.scs_common,
-        cell_cfg.band.has_value() ? band_helper::get_freq_range(cell_cfg.band.value()) : frequency_range::FR1);
+        cell_cfg.dl_carrier.carrier_bw, cell_cfg.scs_common, band_helper::get_freq_range(cell_cfg.dl_carrier.band));
 
     std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc =
-        band_helper::get_ssb_coreset0_freq_location(cell_cfg.dl_f_ref_arfcn,
-                                                    *cell_cfg.band,
+        band_helper::get_ssb_coreset0_freq_location(cell_cfg.dl_carrier.arfcn_f_ref,
+                                                    cell_cfg.dl_carrier.band,
                                                     nof_crbs,
                                                     cell_cfg.scs_common,
                                                     cell_cfg.scs_common,

@@ -22,7 +22,6 @@
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_builder_params.h"
-#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include <algorithm>
 #include <set>
@@ -34,14 +33,15 @@ using namespace ocudu::config_helpers;
 cell_config_builder_params_extended::cell_config_builder_params_extended(const cell_config_builder_params& source) :
   cell_config_builder_params(source)
 {
-  if (not band.has_value()) {
-    band = band_helper::get_band_from_dl_arfcn(dl_f_ref_arfcn);
+  if (dl_carrier.band == nr_band::invalid) {
+    dl_carrier.band = band_helper::get_band_from_dl_arfcn(dl_carrier.arfcn_f_ref);
   }
 
-  cell_nof_crbs = band_helper::get_n_rbs_from_bw(channel_bw_mhz, scs_common, band_helper::get_freq_range(band.value()));
+  cell_nof_crbs =
+      band_helper::get_n_rbs_from_bw(dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(dl_carrier.band));
 
   // If TDD band and TDD pattern has not been specified, generate a default one.
-  if (not tdd_ul_dl_cfg_common.has_value() and band_helper::get_duplex_mode(band.value()) == duplex_mode::TDD) {
+  if (not tdd_ul_dl_cfg_common.has_value() and band_helper::get_duplex_mode(dl_carrier.band) == duplex_mode::TDD) {
     tdd_ul_dl_cfg_common.emplace();
     tdd_ul_dl_cfg_common->ref_scs                            = scs_common;
     tdd_ul_dl_cfg_common->pattern1.dl_ul_tx_period_nof_slots = 10;
@@ -49,11 +49,11 @@ cell_config_builder_params_extended::cell_config_builder_params_extended(const c
     tdd_ul_dl_cfg_common->pattern1.nof_dl_symbols            = 8;
     tdd_ul_dl_cfg_common->pattern1.nof_ul_slots              = 3;
     tdd_ul_dl_cfg_common->pattern1.nof_ul_symbols            = 0;
-  } else if (tdd_ul_dl_cfg_common.has_value() and band_helper::get_duplex_mode(band.value()) != duplex_mode::TDD) {
+  } else if (tdd_ul_dl_cfg_common.has_value() and band_helper::get_duplex_mode(dl_carrier.band) != duplex_mode::TDD) {
     report_error("TDD pattern has been set for non-TDD band\n");
   }
 
-  ssb_scs = band_helper::get_most_suitable_ssb_scs(*band, scs_common);
+  ssb_scs = band_helper::get_most_suitable_ssb_scs(dl_carrier.band, scs_common);
 
   // Derive SSB parameters, if not provided.
   if (not coreset0_index.has_value() or not offset_to_point_a.has_value() or not k_ssb.has_value()) {
@@ -63,11 +63,21 @@ cell_config_builder_params_extended::cell_config_builder_params_extended(const c
     }
     std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
     if (coreset0_index.has_value()) {
-      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(
-          dl_f_ref_arfcn, *band, cell_nof_crbs, scs_common, ssb_scs, search_space0_index, coreset0_index.value());
+      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(dl_carrier.arfcn_f_ref,
+                                                                               dl_carrier.band,
+                                                                               cell_nof_crbs,
+                                                                               scs_common,
+                                                                               ssb_scs,
+                                                                               search_space0_index,
+                                                                               coreset0_index.value());
     } else {
-      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(
-          dl_f_ref_arfcn, *band, cell_nof_crbs, scs_common, ssb_scs, search_space0_index, max_coreset0_duration);
+      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(dl_carrier.arfcn_f_ref,
+                                                                 dl_carrier.band,
+                                                                 cell_nof_crbs,
+                                                                 scs_common,
+                                                                 ssb_scs,
+                                                                 search_space0_index,
+                                                                 max_coreset0_duration);
     }
     if (!ssb_freq_loc.has_value()) {
       report_error("Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", pci);
@@ -78,23 +88,26 @@ cell_config_builder_params_extended::cell_config_builder_params_extended(const c
   }
 
   // Compute and store final SSB position based on (selected) values.
-  ssb_arfcn = band_helper::get_ssb_arfcn(
-      dl_f_ref_arfcn, *band, cell_nof_crbs, scs_common, ssb_scs, offset_to_point_a.value(), k_ssb.value());
+  ssb_arfcn = band_helper::get_ssb_arfcn(dl_carrier.arfcn_f_ref,
+                                         dl_carrier.band,
+                                         cell_nof_crbs,
+                                         scs_common,
+                                         ssb_scs,
+                                         offset_to_point_a.value(),
+                                         k_ssb.value());
   ocudu_assert(ssb_arfcn.has_value(), "Unable to derive SSB location correctly");
+
+  if (not source.max_nof_layers.has_value()) {
+    max_nof_layers = source.dl_carrier.nof_ant;
+  }
 }
 
 static carrier_configuration make_default_carrier_configuration(const cell_config_builder_params_extended& params,
                                                                 bool                                       is_dl)
 {
-  carrier_configuration cfg{};
-  cfg.carrier_bw = params.channel_bw_mhz;
-  cfg.band       = params.band.value();
-  if (is_dl) {
-    cfg.arfcn_f_ref = params.dl_f_ref_arfcn;
-    cfg.nof_ant     = params.nof_dl_ports;
-  } else {
-    cfg.arfcn_f_ref = band_helper::get_ul_arfcn_from_dl_arfcn(params.dl_f_ref_arfcn, cfg.band);
-    cfg.nof_ant     = 1;
+  carrier_configuration cfg = params.dl_carrier;
+  if (not is_dl) {
+    cfg.arfcn_f_ref = band_helper::get_ul_arfcn_from_dl_arfcn(params.dl_carrier.arfcn_f_ref, cfg.band);
   }
   const min_channel_bandwidth min_channel_bw = band_helper::get_min_channel_bw(cfg.band, params.scs_common);
   ocudu_assert(bs_channel_bandwidth_to_MHz(cfg.carrier_bw) >= min_channel_bandwidth_to_MHz(min_channel_bw),
@@ -166,7 +179,7 @@ ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_par
   cfg.set_freq_domain_resources(freq_resources);
   // Number of symbols equal to CORESET#0 duration.
   const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
-      *params.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
   cfg.duration             = desc.nof_symb_coreset;
   cfg.precoder_granurality = coreset_configuration::precoder_granularity_type::same_as_reg_bundle;
   return cfg;
@@ -180,7 +193,7 @@ ocudu::config_helpers::make_default_coreset0_config(const cell_config_builder_pa
   coreset_configuration cfg{};
   cfg.id                                         = to_coreset_id(0);
   const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
-      *params.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
 
   cfg.duration       = static_cast<unsigned>(desc.nof_symb_coreset);
   const int rb_start = params.scs_common == subcarrier_spacing::kHz15
@@ -204,7 +217,7 @@ search_space_configuration
 ocudu::config_helpers::make_default_search_space_zero_config(const cell_config_builder_params_extended& params)
 {
   return search_space_configuration{
-      *params.band, params.scs_common, params.ssb_scs, *params.coreset0_index, params.search_space0_index};
+      params.dl_carrier.band, params.scs_common, params.ssb_scs, *params.coreset0_index, params.search_space0_index};
 }
 
 search_space_configuration
@@ -249,7 +262,7 @@ dl_config_common ocudu::config_helpers::make_default_dl_config_common(const cell
 
   // Configure FrequencyInfoDL.
   cfg.freq_info_dl.freq_band_list.emplace_back();
-  cfg.freq_info_dl.freq_band_list.back().band = *params.band;
+  cfg.freq_info_dl.freq_band_list.back().band = params.dl_carrier.band;
   cfg.freq_info_dl.offset_to_point_a          = params.offset_to_point_a->value();
   cfg.freq_info_dl.scs_carrier_list.emplace_back();
   cfg.freq_info_dl.scs_carrier_list.back().scs               = params.scs_common;
@@ -260,7 +273,7 @@ dl_config_common ocudu::config_helpers::make_default_dl_config_common(const cell
 
   // \c params.dl_f_ref_arfcn refers to the ARFCN of the DL f_ref, as per TS 38.104, Section 5.4.2.1.
   const double dl_absolute_freq_point_a = band_helper::get_abs_freq_point_a_from_f_ref(
-      band_helper::nr_arfcn_to_freq(params.dl_f_ref_arfcn), params.cell_nof_crbs, params.scs_common);
+      band_helper::nr_arfcn_to_freq(params.dl_carrier.arfcn_f_ref), params.cell_nof_crbs, params.scs_common);
   // \c absolute_freq_point_a needs to be expressed as in ARFCN, as per \c absoluteFrequencyPointA definition in 38.211,
   // Section 4.4.4.2.
   cfg.freq_info_dl.absolute_freq_point_a = band_helper::freq_to_nr_arfcn(dl_absolute_freq_point_a);
@@ -335,8 +348,9 @@ ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell
 {
   ul_config_common cfg{};
   // This is the ARFCN of the UL f_ref, as per TS 38.104, Section 5.4.2.1.
-  const uint32_t ul_arfcn                 = band_helper::get_ul_arfcn_from_dl_arfcn(params.dl_f_ref_arfcn, params.band);
-  const double   ul_absolute_freq_point_a = band_helper::get_abs_freq_point_a_from_f_ref(
+  const uint32_t ul_arfcn =
+      band_helper::get_ul_arfcn_from_dl_arfcn(params.dl_carrier.arfcn_f_ref, params.dl_carrier.band);
+  const double ul_absolute_freq_point_a = band_helper::get_abs_freq_point_a_from_f_ref(
       band_helper::nr_arfcn_to_freq(ul_arfcn), params.cell_nof_crbs, params.scs_common);
   // \c absolute_freq_point_a needs to be expressed as in ARFCN, as per \c absoluteFrequencyPointA definition in 38.211,
   // Section 4.4.4.2.
@@ -346,12 +360,12 @@ ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell
   cfg.freq_info_ul.scs_carrier_list[0].offset_to_carrier = 0;
   cfg.freq_info_ul.scs_carrier_list[0].carrier_bandwidth = params.cell_nof_crbs;
   cfg.freq_info_ul.freq_band_list.emplace_back();
-  cfg.freq_info_ul.freq_band_list.back().band = *params.band;
+  cfg.freq_info_ul.freq_band_list.back().band = params.dl_carrier.band;
   cfg.init_ul_bwp.generic_params              = make_default_init_bwp(params);
   cfg.init_ul_bwp.rach_cfg_common.emplace();
   cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.zero_correlation_zone_config = 0;
   cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index           = 16;
-  if (band_helper::get_duplex_mode(params.band.value()) == duplex_mode::TDD) {
+  if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::TDD) {
     std::optional<uint8_t> idx_found = prach_helper::find_valid_prach_config_index(
         params.scs_common,
         cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.zero_correlation_zone_config,
@@ -363,8 +377,8 @@ ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell
   // Although this is not specified in the TS, from our tests, the UE expects Msg1-SCS to be given when using short
   // PRACH Preambles formats. With long formats, we can set Msg1-SCS as \c invalid, in which case the UE derives the
   // PRACH SCS from \c prach-ConfigurationIndex in RACH-ConfigGeneric.
-  const frequency_range freq_range = band_helper::get_freq_range(params.band.value());
-  const duplex_mode     duplex     = band_helper::get_duplex_mode(params.band.value());
+  const frequency_range freq_range = band_helper::get_freq_range(params.dl_carrier.band);
+  const duplex_mode     duplex     = band_helper::get_duplex_mode(params.dl_carrier.band);
   cfg.init_ul_bwp.rach_cfg_common->msg1_scs =
       is_long_preamble(prach_configuration_get(
                            freq_range, duplex, cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
@@ -385,7 +399,7 @@ ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell
   cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window = 10U << to_numerology_value(params.scs_common);
   cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.preamble_rx_target_pw = -100;
   cfg.init_ul_bwp.pusch_cfg_common.emplace();
-  if (band_helper::get_duplex_mode(params.band.value()) == duplex_mode::FDD) {
+  if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::FDD) {
     cfg.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list = {
         pusch_time_domain_resource_allocation{params.min_k2, sch_mapping_type::typeA, ofdm_symbol_range{0, 14}}};
   } else {
@@ -419,10 +433,7 @@ ssb_configuration ocudu::config_helpers::make_default_ssb_config(const cell_conf
 
   // Set SSB idx 0 to 1.
   cfg.ssb_bitmap.set(0);
-  cfg.ssb_bitmap.set_L_max(
-      ssb_get_L_max(params.ssb_scs,
-                    params.dl_f_ref_arfcn,
-                    params.band.value_or(band_helper::get_band_from_dl_arfcn(params.dl_f_ref_arfcn))));
+  cfg.ssb_bitmap.set_L_max(ssb_get_L_max(params.ssb_scs, params.dl_carrier.arfcn_f_ref, params.dl_carrier.band));
   // Set SSB beam ID 0 (corresponding to SSB idx 0) to 0.
   cfg.beam_ids = {0};
 
@@ -590,7 +601,7 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
 
   // Increase code rate in case of more than 4 layers.
   const unsigned nof_dl_layers =
-      params.max_nof_layers.has_value() ? params.max_nof_layers.value() : params.nof_dl_ports;
+      params.max_nof_layers.has_value() ? params.max_nof_layers.value() : params.dl_carrier.nof_ant;
   const max_pucch_code_rate max_c_rate = nof_dl_layers >= 4 ? max_pucch_code_rate::dot_35 : max_pucch_code_rate::dot_25;
 
   pucch_cfg.format_1_common_param.emplace();
@@ -608,7 +619,7 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
   // the active DL BWP of a corresponding serving cell.
   // Inactive for format1_0."
   // Note2: Only k1 >= 4 supported.
-  if (band_helper::get_duplex_mode(params.band.value()) == duplex_mode::FDD) {
+  if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::FDD) {
     pucch_cfg.dl_data_to_ul_ack = {params.min_k1};
   } else {
     // TDD
@@ -669,11 +680,11 @@ static csi_helper::csi_builder_params make_default_csi_builder_params(const cell
   csi_helper::csi_builder_params csi_params{};
   csi_params.pci            = params.pci;
   csi_params.nof_rbs        = params.cell_nof_crbs;
-  csi_params.nof_ports      = params.nof_dl_ports;
-  csi_params.max_nof_layers = params.max_nof_layers.value_or(params.nof_dl_ports);
+  csi_params.nof_ports      = params.dl_carrier.nof_ant;
+  csi_params.max_nof_layers = *params.max_nof_layers;
   csi_params.csi_rs_period  = csi_helper::get_max_csi_rs_period(params.scs_common);
 
-  if (band_helper::get_duplex_mode(params.band.value()) == duplex_mode::TDD) {
+  if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::TDD) {
     // Set a default CSI report slot offset that falls in an UL slot.
     const auto& tdd_pattern = *params.tdd_ul_dl_cfg_common;
 

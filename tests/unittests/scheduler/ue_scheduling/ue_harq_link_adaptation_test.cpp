@@ -30,7 +30,7 @@ protected:
     cfg_mng([]() {
       // Set nof. DL ports to 4.
       cell_config_builder_params params{};
-      params.nof_dl_ports = 4;
+      params.dl_carrier.nof_ant = 4;
       return params;
     }()),
     logger(ocudulog::fetch_basic_logger("SCHED", true)),

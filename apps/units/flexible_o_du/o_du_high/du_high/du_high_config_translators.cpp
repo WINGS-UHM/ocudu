@@ -295,12 +295,12 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     const du_high_unit_base_cell_config& base_cell = cell.cell;
     param.pci                                      = base_cell.pci;
     param.scs_common                               = base_cell.common_scs;
-    param.channel_bw_mhz                           = base_cell.channel_bw_mhz;
-    param.dl_f_ref_arfcn                           = base_cell.dl_f_ref_arfcn;
-    param.band                                     = band;
+    param.dl_carrier.carrier_bw                    = base_cell.channel_bw_mhz;
+    param.dl_carrier.arfcn_f_ref                   = base_cell.dl_f_ref_arfcn;
+    param.dl_carrier.band                          = band;
     // Enable CSI-RS if the PDSCH mcs is dynamic (min_ue_mcs != max_ue_mcs).
     param.csi_rs_enabled      = base_cell.csi_cfg.csi_rs_enabled;
-    param.nof_dl_ports        = base_cell.nof_antennas_dl;
+    param.dl_carrier.nof_ant  = base_cell.nof_antennas_dl;
     param.max_nof_layers      = base_cell.pdsch_cfg.max_rank;
     param.search_space0_index = base_cell.pdcch_cfg.common.ss0_index;
     param.min_k1              = base_cell.pucch_cfg.min_k1;
@@ -310,7 +310,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // FR1 to spread CORESET RBs across the BW. This results in one extra symbol to be used for PDSCH.
     if (base_cell.pdcch_cfg.common.max_coreset0_duration.has_value()) {
       param.max_coreset0_duration = base_cell.pdcch_cfg.common.max_coreset0_duration.value();
-    } else if ((param.channel_bw_mhz > bs_channel_bandwidth::MHz50) && (freq_range == frequency_range::FR1)) {
+    } else if ((param.dl_carrier.carrier_bw > bs_channel_bandwidth::MHz50) && (freq_range == frequency_range::FR1)) {
       param.max_coreset0_duration = 1;
     }
     const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(base_cell.channel_bw_mhz, param.scs_common, freq_range);
@@ -319,7 +319,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     if (base_cell.pdcch_cfg.common.coreset0_index.has_value()) {
       ssb_freq_loc =
           band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(base_cell.dl_f_ref_arfcn,
-                                                                    *param.band,
+                                                                    param.dl_carrier.band,
                                                                     nof_crbs,
                                                                     base_cell.common_scs,
                                                                     base_cell.common_scs,
@@ -327,7 +327,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                                                                     base_cell.pdcch_cfg.common.coreset0_index.value());
     } else {
       ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(base_cell.dl_f_ref_arfcn,
-                                                                 *param.band,
+                                                                 param.dl_carrier.band,
                                                                  nof_crbs,
                                                                  base_cell.common_scs,
                                                                  base_cell.common_scs,
@@ -695,8 +695,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     du_high_unit_pucch_config        user_pucch_cfg                = user_pucch_cfg_pre_processing;
     // For 5MHz BW or for 10MHz TDD, the default PUCCH configuration would use too many PRBs, we need to reduce them not
     // to waste the useful UL BW.
-    if ((param.channel_bw_mhz < bs_channel_bandwidth::MHz10 or
-         (is_tdd and param.channel_bw_mhz <= bs_channel_bandwidth::MHz10)) and
+    if ((param.dl_carrier.carrier_bw < bs_channel_bandwidth::MHz10 or
+         (is_tdd and param.dl_carrier.carrier_bw <= bs_channel_bandwidth::MHz10)) and
         user_pucch_cfg_pre_processing == du_high_unit_pucch_config{}) {
       constexpr unsigned res_set_size_5mhz             = 7;
       constexpr unsigned nof_cell_res_set_configs_5mhz = 1;
@@ -918,15 +918,16 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     // RLM configuration.
     if (cell.cell.rlm_cfg.resource_type != rlm_resource_type::default_type) {
-      rlm_helper::rlm_builder_params rlm_params(cell.cell.rlm_cfg.resource_type,
-                                                ssb_get_L_max(out_cell.ssb_cfg.scs, param.dl_f_ref_arfcn, param.band),
-                                                out_cell.ssb_cfg.ssb_bitmap,
-                                                out_cell.ssb_cfg.beam_ids);
-      radio_link_monitoring_config   rlm_cfg = rlm_helper::make_radio_link_monitoring_config(
+      rlm_helper::rlm_builder_params rlm_params(
+          cell.cell.rlm_cfg.resource_type,
+          ssb_get_L_max(out_cell.ssb_cfg.scs, param.dl_carrier.arfcn_f_ref, param.dl_carrier.band),
+          out_cell.ssb_cfg.ssb_bitmap,
+          out_cell.ssb_cfg.beam_ids);
+      radio_link_monitoring_config rlm_cfg = rlm_helper::make_radio_link_monitoring_config(
           rlm_params,
           out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()
-                ? out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list
-                : std::vector<nzp_csi_rs_resource>{});
+              ? out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list
+              : std::vector<nzp_csi_rs_resource>{});
       out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.rlm_cfg =
           rlm_cfg.rlm_resources.empty() ? std::nullopt : std::optional<radio_link_monitoring_config>(rlm_cfg);
     }

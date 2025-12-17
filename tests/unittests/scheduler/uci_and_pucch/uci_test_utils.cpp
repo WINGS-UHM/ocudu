@@ -208,10 +208,10 @@ bool ocudu::pucch_info_match(const pucch_info& expected, const pucch_info& test)
 static cell_config_builder_params make_custom_cell_config_builder_params(const test_bench_params& params)
 {
   cell_config_builder_params cfg_params{};
-  cfg_params.scs_common     = params.tdd ? subcarrier_spacing::kHz30 : subcarrier_spacing::kHz15;
-  cfg_params.channel_bw_mhz = bs_channel_bandwidth::MHz10;
-  cfg_params.dl_f_ref_arfcn = params.tdd ? 520000U : 365000U;
-  cfg_params.nof_dl_ports   = params.nof_ul_dl_ports;
+  cfg_params.scs_common             = params.tdd ? subcarrier_spacing::kHz30 : subcarrier_spacing::kHz15;
+  cfg_params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz10;
+  cfg_params.dl_carrier.arfcn_f_ref = params.tdd ? 520000U : 365000U;
+  cfg_params.dl_carrier.nof_ant     = params.nof_ul_dl_ports;
 
   if (params.tdd) {
     cfg_params.tdd_ul_dl_cfg_common = tdd_ul_dl_config_common{.ref_scs  = subcarrier_spacing::kHz30,

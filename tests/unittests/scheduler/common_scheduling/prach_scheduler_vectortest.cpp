@@ -96,18 +96,18 @@ make_custom_sched_cell_configuration_request(subcarrier_spacing scs_common,
                                              uint8_t            nof_fd_ra)
 {
   cell_config_builder_params params = {
-      .pci = pci, .scs_common = scs_common, .channel_bw_mhz = ocudu::bs_channel_bandwidth::MHz20, .band = band};
+      .pci = pci, .scs_common = scs_common, .dl_carrier{.carrier_bw = bs_channel_bandwidth::MHz20, .band = band}};
 
   // For TDD, set DL ARFCN according to the band.
   if (not band_helper::is_paired_spectrum(band)) {
     if (band_helper::get_freq_range(band) == frequency_range::FR1) {
-      params.dl_f_ref_arfcn = 520002;
+      params.dl_carrier.arfcn_f_ref = 520002;
     } else {
-      params.dl_f_ref_arfcn = 2074171;
+      params.dl_carrier.arfcn_f_ref = 2074171;
     }
   }
   if (band_helper::get_freq_range(band) == frequency_range::FR2) {
-    params.channel_bw_mhz = bs_channel_bandwidth::MHz100;
+    params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz100;
   }
   sched_cell_configuration_request_message sched_req =
       sched_config_helper::make_default_sched_cell_configuration_request(params);

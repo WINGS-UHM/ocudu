@@ -109,9 +109,9 @@ class pucch_power_control_test_bench : public ::testing::TestWithParam<pucch_pw_
 {
   static cell_config_builder_params make_cell_config_params()
   {
-    return cell_config_builder_params{.scs_common     = subcarrier_spacing::kHz30,
-                                      .channel_bw_mhz = bs_channel_bandwidth::MHz20,
-                                      .dl_f_ref_arfcn = 520000U};
+    return cell_config_builder_params{
+        .scs_common = subcarrier_spacing::kHz30,
+        .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .arfcn_f_ref = 520000U}};
   }
 
   static sched_cell_configuration_request_message make_cell_config_request(const pucch_pw_ctrl_params& tparams)

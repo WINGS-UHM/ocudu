@@ -250,12 +250,12 @@ void benchmark_tdd(benchmarker& bm, const bench_params& params)
   sched_cfg.ue.max_pdcch_alloc_attempts_per_slot = params.max_dl_grants_per_slot;
 
   cell_config_builder_params builder_params{};
-  builder_params.dl_f_ref_arfcn       = 520002;
-  builder_params.band                 = nr_band::n41;
-  builder_params.channel_bw_mhz       = bs_channel_bandwidth::MHz100;
-  builder_params.scs_common           = subcarrier_spacing::kHz30;
-  builder_params.tdd_ul_dl_cfg_common = tdd_ul_dl_config_common{builder_params.scs_common, {10, 7, 8, 2, 0}};
-  builder_params.nof_dl_ports         = 4;
+  builder_params.dl_carrier.arfcn_f_ref = 520002;
+  builder_params.dl_carrier.band        = nr_band::n41;
+  builder_params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz100;
+  builder_params.scs_common             = subcarrier_spacing::kHz30;
+  builder_params.tdd_ul_dl_cfg_common   = tdd_ul_dl_config_common{builder_params.scs_common, {10, 7, 8, 2, 0}};
+  builder_params.dl_carrier.nof_ant     = 4;
 
   // Instantiate the simulator on the heap because of huge object size
   std::unique_ptr<multi_ue_sched_simulator> sim = std::make_unique<multi_ue_sched_simulator>(sched_cfg, builder_params);

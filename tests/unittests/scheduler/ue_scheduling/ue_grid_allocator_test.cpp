@@ -42,10 +42,10 @@ class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
   static cell_config_builder_params make_cfg_builder(const test_params& params, duplex_mode duplx_mode)
   {
     cell_config_builder_params builder_params{};
-    builder_params.dl_f_ref_arfcn = duplx_mode == duplex_mode::FDD ? 530000 : 520002;
+    builder_params.dl_carrier.arfcn_f_ref = duplx_mode == duplex_mode::FDD ? 530000 : 520002;
     builder_params.scs_common = duplx_mode == duplex_mode::FDD ? subcarrier_spacing::kHz15 : subcarrier_spacing::kHz30;
-    builder_params.band       = band_helper::get_band_from_dl_arfcn(builder_params.dl_f_ref_arfcn);
-    builder_params.channel_bw_mhz = bs_channel_bandwidth::MHz20;
+    builder_params.dl_carrier.band       = band_helper::get_band_from_dl_arfcn(builder_params.dl_carrier.arfcn_f_ref);
+    builder_params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
     return builder_params;
   }
 

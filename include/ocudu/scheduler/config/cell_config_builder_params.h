@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/band_helper.h"
-#include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/ssb/ssb_properties.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
@@ -26,14 +26,10 @@ struct cell_config_builder_params {
   pci_t pci = 1;
   /// subCarrierSpacingCommon, as per \c MIB, TS 38.331.
   subcarrier_spacing scs_common = subcarrier_spacing::kHz15;
-  /// BS Channel Bandwidth, as per TS 38.104, Section 5.3.1.
-  bs_channel_bandwidth channel_bw_mhz = bs_channel_bandwidth::MHz10;
-  /// This ARFCN represents "f_ref" for DL, as per TS 38.104, Section 5.4.2.1. As per TS 38.104, Section 5.4.2.2,
-  /// "f_ref" maps to the central frequency of the band.
-  unsigned dl_f_ref_arfcn = 365000;
-  /// <em>NR operating band<\em>, as per Table 5.2-1 and 5.2-2, TS 38.104. If not specified, a valid band for the
-  /// provided DL ARFCN is automatically derived.
-  std::optional<nr_band> band;
+  /// DL carrier configuration.
+  /// \remark If nr_band is invalid, an appropriate band is derived from the provided DL ARFCN.
+  /// \remark UL carrier is automatically derived.
+  carrier_configuration dl_carrier{bs_channel_bandwidth::MHz10, 365000, nr_band::invalid, 1};
   /// offsetToPointA, as per TS 38.211, Section 4.4.4.2; \ref ssb_offset_to_pointA. If not specified, a valid offset
   /// is derived.
   std::optional<ssb_offset_to_pointA> offset_to_point_a;
@@ -48,8 +44,6 @@ struct cell_config_builder_params {
   std::optional<ssb_subcarrier_offset> k_ssb;
   /// Whether to enable CSI-RS in the cell.
   bool csi_rs_enabled = true;
-  /// Number of DL ports for the cell.
-  unsigned nof_dl_ports = 1;
   /// \brief Minimum k1 value used in the generation of the UE "dl-DataToUl-Ack", as per TS38.213, 9.1.2.1.
   /// Possible values: {1, ..., 15}.
   uint8_t min_k1 = 4;

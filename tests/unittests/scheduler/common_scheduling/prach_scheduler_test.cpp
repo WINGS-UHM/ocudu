@@ -40,17 +40,18 @@ static sched_cell_configuration_request_message
 make_custom_sched_cell_configuration_request(const prach_test_params test_params)
 {
   cell_config_builder_params params = {
-      .scs_common = test_params.scs, .channel_bw_mhz = ocudu::bs_channel_bandwidth::MHz20, .band = test_params.band};
+      .scs_common = test_params.scs,
+      .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .band = test_params.band}};
   // For TDD, set DL ARFCN according to the band.
   if (not band_helper::is_paired_spectrum(test_params.band)) {
     if (band_helper::get_freq_range(test_params.band) == frequency_range::FR1) {
-      params.dl_f_ref_arfcn = 520002;
+      params.dl_carrier.arfcn_f_ref = 520002;
     } else {
-      params.dl_f_ref_arfcn = 2074171;
+      params.dl_carrier.arfcn_f_ref = 2074171;
     }
   }
   if (band_helper::get_freq_range(test_params.band) == frequency_range::FR2) {
-    params.channel_bw_mhz = bs_channel_bandwidth::MHz100;
+    params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz100;
   }
   sched_cell_configuration_request_message sched_req =
       sched_config_helper::make_default_sched_cell_configuration_request(params);

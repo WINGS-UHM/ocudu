@@ -33,7 +33,7 @@ sched_cell_configuration_request_message ocudu::sched_config_helper::make_defaul
 
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
   const pdcch_type0_css_coreset_description coreset0_desc = pdcch_type0_css_coreset_get(
-      *params.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, params.ssb_scs, params.scs_common, *params.coreset0_index, params.k_ssb->value());
   sched_req.dmrs_typeA_pos =
       coreset0_desc.nof_symb_coreset == 3U ? dmrs_typeA_position::pos3 : dmrs_typeA_position::pos2;
 

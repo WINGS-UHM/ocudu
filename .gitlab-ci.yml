@@ -404,7 +404,7 @@ doxygen:
       rm -Rf build_doxygen
       mkdir build_doxygen
       cd build_doxygen || exit
-      cmake -DENABLE_UHD=False -DBUILD_TESTING=False ..
+      cmake -DENABLE_UHD=False -DDOXYGEN_HAVE_DOT=False -DBUILD_TESTING=False ..
       make -j $(nproc) doxygen
   artifacts:
     paths:

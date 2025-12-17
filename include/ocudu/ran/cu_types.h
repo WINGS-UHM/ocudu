@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/qos/five_qi.h"
 #include "ocudu/ran/qos/qos_flow_id.h"

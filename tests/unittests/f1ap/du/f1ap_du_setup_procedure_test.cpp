@@ -28,10 +28,10 @@ static f1ap_message generate_f1_setup_failure_with_time_to_wait(const f1ap_messa
   return msg;
 }
 
-/// Test successful f1 setup procedure
+/// Test successful F1 Setup procedure.
 TEST_F(f1ap_du_test, when_f1_setup_response_received_then_du_connected)
 {
-  // Action: Launch F1 setup procedure
+  // Action: Launch F1 setup procedure.
   ASSERT_TRUE(f1ap->connect_to_cu_cp());
   f1_setup_request_message request_msg = generate_f1_setup_request_message();
   test_logger.info("Launch f1 setup request procedure...");
@@ -49,7 +49,7 @@ TEST_F(f1ap_du_test, when_f1_setup_response_received_then_du_connected)
   // Status: Procedure not yet ready.
   ASSERT_FALSE(t.ready());
 
-  // Action: F1 setup response received.
+  // Action: F1 Setup Response received.
   f1ap_message f1_setup_response = test_helpers::generate_f1_setup_response(f1c_gw.last_tx_pdu());
   test_logger.info("Injecting F1SetupResponse");
   f1ap->handle_message(f1_setup_response);
@@ -59,10 +59,12 @@ TEST_F(f1ap_du_test, when_f1_setup_response_received_then_du_connected)
   ASSERT_EQ(t.get().value().cells_to_activate.size(), f1_setup_req->gnb_du_served_cells_list.size());
 }
 
-/// Test unsuccessful f1 setup procedure with time to wait and successful retry
+/// Test successful F1 Setup procedure:
+// - first DU receives F1 Setup Failure response with Time To Wait IE,
+// - then DU recieves successful F1 Setup Response.
 TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry_with_success)
 {
-  // Action: Launch F1 setup procedure
+  // Action: Launch F1 setup procedure.
   ASSERT_TRUE(f1ap->connect_to_cu_cp());
   f1_setup_request_message request_msg = generate_f1_setup_request_message();
   test_logger.info("Launch f1 setup request procedure...");
@@ -70,17 +72,21 @@ TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry
   lazy_task_launcher<f1_setup_result> t_launcher(t);
 
   // Status: CU received F1 Setup Request.
-  ASSERT_EQ(f1c_gw.last_tx_pdu().pdu.type().value, asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
-  ASSERT_EQ(f1c_gw.last_tx_pdu().pdu.init_msg().value.type().value,
+  f1ap_message f1_setup_req_1_pdu = f1c_gw.last_tx_pdu();
+  ASSERT_EQ(f1_setup_req_1_pdu.pdu.type().value, asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(f1_setup_req_1_pdu.pdu.init_msg().value.type().value,
             asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request);
+  const auto f1_setup_req = f1_setup_req_1_pdu.pdu.init_msg().value.f1_setup_request();
+  ASSERT_FALSE(
+      f1_setup_req->gnb_du_served_cells_list[0]->gnb_du_served_cells_item().served_cell_info.meas_timing_cfg.empty());
 
   // Status: Procedure not yet ready.
   ASSERT_FALSE(t.ready());
 
-  // Action: F1 setup failure with time to wait received.
-  unsigned     transaction_id = get_transaction_id(f1c_gw.last_tx_pdu().pdu).value();
+  // Action: F1 Setup Failure with Time To Wait IE received.
+  unsigned     transaction_id = get_transaction_id(f1_setup_req_1_pdu.pdu).value();
   f1ap_message f1_setup_failure =
-      generate_f1_setup_failure_with_time_to_wait(f1c_gw.last_tx_pdu(), asn1::f1ap::time_to_wait_opts::v10s);
+      generate_f1_setup_failure_with_time_to_wait(f1_setup_req_1_pdu, asn1::f1ap::time_to_wait_opts::v10s);
   test_logger.info("Injecting F1SetupFailure with time to wait");
   f1c_gw.clear_tx_pdus();
   f1ap->handle_message(f1_setup_failure);
@@ -94,23 +100,27 @@ TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry
   }
 
   // Status: CU received F1 Setup Request again.
-  ASSERT_EQ(f1c_gw.last_tx_pdu().pdu.type().value, asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
-  ASSERT_EQ(f1c_gw.last_tx_pdu().pdu.init_msg().value.type().value,
+  f1ap_message f1_setup_req_2_pdu = f1c_gw.last_tx_pdu();
+  ASSERT_EQ(f1_setup_req_2_pdu.pdu.type().value, asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(f1_setup_req_2_pdu.pdu.init_msg().value.type().value,
             asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::f1_setup_request);
 
-  unsigned transaction_id2 = get_transaction_id(f1c_gw.last_tx_pdu().pdu).value();
+  unsigned transaction_id2 = get_transaction_id(f1_setup_req_2_pdu.pdu).value();
   EXPECT_NE(transaction_id, transaction_id2);
 
-  // Successful outcome after reinitiated F1 Setup
-  f1ap_message f1_setup_response = test_helpers::generate_f1_setup_response(f1c_gw.last_tx_pdu());
+  // Successful outcome after reinitiated F1 Setup procedure.
+  f1ap_message f1_setup_response = test_helpers::generate_f1_setup_response(f1_setup_req_2_pdu);
   test_logger.info("Injecting F1SetupResponse");
   f1ap->handle_message(f1_setup_response);
 
   ASSERT_TRUE(t.ready());
   ASSERT_TRUE(t.get().has_value());
+  ASSERT_EQ(t.get().value().cells_to_activate.size(), f1_setup_req->gnb_du_served_cells_list.size());
 }
 
-/// Test unsuccessful f1 setup procedure with time to wait and unsuccessful retry
+/// Test unsuccessful F1 Setup procedure:
+// - first DU receives F1 Setup Failure response with Time To Wait IE,
+// - then DU recieves F1 Setup Failure response without Time To Wait IE and the procedure fails.
 TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry_without_success)
 {
   // Action: Launch F1 setup procedure
@@ -128,7 +138,7 @@ TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry
   // Status: Procedure not yet ready.
   EXPECT_FALSE(t.ready());
 
-  // Action: F1 setup failure with time to wait received.
+  // Action: F1 Setup Failure with Time To Wait IE received.
   unsigned     transaction_id = get_transaction_id(f1c_gw.last_tx_pdu().pdu).value();
   f1ap_message f1_setup_failure =
       generate_f1_setup_failure_with_time_to_wait(f1c_gw.last_tx_pdu(), asn1::f1ap::time_to_wait_opts::v10s);
@@ -152,19 +162,22 @@ TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry
   unsigned transaction_id2 = get_transaction_id(f1c_gw.last_tx_pdu().pdu).value();
   EXPECT_NE(transaction_id, transaction_id2);
 
-  // Unsuccessful outcome after reinitiated F1 Setup
+  // Unsuccessful outcome after reinitiated F1 Setup procedure and F1 Setup Failure without Time To Wait IE received.
   f1_setup_failure = test_helpers::generate_f1_setup_failure(f1c_gw.last_tx_pdu());
   test_logger.info("Injecting F1SetupFailure");
   f1ap->handle_message(f1_setup_failure);
+  f1c_gw.clear_tx_pdus();
 
   ASSERT_TRUE(t.ready());
   ASSERT_FALSE(t.get().has_value());
+  ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::f1_setup_failure);
+  ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
 }
 
-/// Test the f1 setup procedure
+/// Test unsuccessful F1 Setup procedure with F1 Setup Failure responses with Time To Wait IE and retry limit reached.
 TEST_F(f1ap_du_test, when_retry_limit_reached_then_du_not_connected)
 {
-  // Action : Launch F1 setup procedure
+  // Action : Launch F1 setup procedure.
   ASSERT_TRUE(f1ap->connect_to_cu_cp());
   f1_setup_request_message request_msg = generate_f1_setup_request_message();
   test_logger.info("Launch f1 setup request procedure...");
@@ -180,7 +193,7 @@ TEST_F(f1ap_du_test, when_retry_limit_reached_then_du_not_connected)
   ASSERT_FALSE(t.ready());
 
   for (unsigned i = 0; i < request_msg.max_setup_retries; i++) {
-    // Status: F1 setup failure received.
+    // Status: F1 Setup Failure with Time To Wait IE received.
     f1ap_message f1_setup_response_msg =
         generate_f1_setup_failure_with_time_to_wait(f1c_gw.last_tx_pdu(), asn1::f1ap::time_to_wait_opts::v10s);
     f1c_gw.clear_tx_pdus();
@@ -195,7 +208,7 @@ TEST_F(f1ap_du_test, when_retry_limit_reached_then_du_not_connected)
     }
   }
 
-  // Status: F1 setup failure received.
+  // Unsuccessful outcome after F1 Setup Failure with Time To Wait IE received due to retry limit reached.
   f1ap_message f1_setup_response_msg =
       generate_f1_setup_failure_with_time_to_wait(f1c_gw.last_tx_pdu(), asn1::f1ap::time_to_wait_opts::v10s);
   f1c_gw.clear_tx_pdus();
@@ -203,5 +216,6 @@ TEST_F(f1ap_du_test, when_retry_limit_reached_then_du_not_connected)
 
   ASSERT_TRUE(t.ready());
   ASSERT_FALSE(t.get().has_value());
+  ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::f1_setup_failure);
   ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
 }

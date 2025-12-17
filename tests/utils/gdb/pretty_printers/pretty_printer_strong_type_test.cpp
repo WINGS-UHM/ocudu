@@ -15,7 +15,7 @@ struct tag;
 
 int main()
 {
-  ocudu::strong_type<int, tag> a{42};
+  ocudu::strong_type<int, tag, ocudu::strong_equality> a{42};
 
   std::abort();
 }

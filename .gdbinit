@@ -250,5 +250,22 @@ def make_cbf16_t(val):
 
 gdb.pretty_printers.append(make_cbf16_t)
 
+class StrongType(object):
+    def __init__(self, val):
+        self.__val = val
+
+    def to_string(self):
+        return f'{{val = {self.__val["val"]}}}'
+
+    def display_hint(self):
+        return None
+
+def make_strong_type(val):
+    s = str(val.type.strip_typedefs())
+    if s.startswith('ocudu::strong_type<') and s.endswith('>'):
+        return StrongType(val)
+
+gdb.pretty_printers.append(make_strong_type)
+
 end
 

@@ -57,7 +57,7 @@ add_test(NAME pretty_printer_tiny_optional_alternative_present_test
 
 add_executable(pretty_printer_strong_type_test pretty_printer_strong_type_test.cpp)
 add_test(NAME pretty_printer_strong_type_test
-         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'val = 42'")
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep '{val = 42}'")
 
 add_custom_target(pretty_printer_tests)
 add_dependencies(pretty_printer_tests

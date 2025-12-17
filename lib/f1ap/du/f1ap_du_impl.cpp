@@ -29,6 +29,7 @@
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ran/nr_cgi.h"
+#include "ocudu/support/async/coroutine.h"
 
 using namespace ocudu;
 using namespace asn1::f1ap;
@@ -95,6 +96,11 @@ bool f1ap_du_impl::connect_to_cu_cp()
   ues.update_tx_pdu_notifier(*tx_pdu_notifier);
 
   return true;
+}
+
+async_task<void> f1ap_du_impl::disconnect_from_cu_cp()
+{
+  return connection_handler.handle_tnl_association_removal();
 }
 
 async_task<f1_setup_result> f1ap_du_impl::handle_f1_setup_request(const f1_setup_request_message& request)

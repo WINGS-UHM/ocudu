@@ -130,6 +130,9 @@ public:
   /// \brief Connect the DU to CU-CP via F1-C interface.
   [[nodiscard]] virtual bool connect_to_cu_cp() = 0;
 
+  /// \brief Disconnect the DU from CU-CP after failed F1 Setup procedure.
+  virtual async_task<void> disconnect_from_cu_cp() = 0;
+
   /// \brief Initiates the F1 Setup procedure as per TS 38.473, Section 8.2.3.
   /// \param[in] request The F1SetupRequest message to transmit.
   /// \return Returns a f1_setup_response_message struct with the success member set to 'true' in case of a

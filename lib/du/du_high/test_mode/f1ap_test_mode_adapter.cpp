@@ -15,6 +15,7 @@
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/f1ap/du/f1ap_du_factory.h"
 #include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/support/async/async_task.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -39,6 +40,7 @@ public:
     adapted->handle_rrc_delivery_report(report);
   }
   [[nodiscard]] bool          connect_to_cu_cp() override { return adapted->connect_to_cu_cp(); }
+  async_task<void>            disconnect_from_cu_cp() override { return adapted->disconnect_from_cu_cp(); }
   async_task<f1_setup_result> handle_f1_setup_request(const f1_setup_request_message& request) override
   {
     return adapted->handle_f1_setup_request(request);

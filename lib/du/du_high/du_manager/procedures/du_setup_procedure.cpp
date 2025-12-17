@@ -19,6 +19,7 @@
 #include "ocudu/scheduler/config/scheduler_cell_config_validator.h"
 #include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/coroutine.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -171,9 +172,9 @@ async_task<void> du_setup_procedure::handle_f1_setup_response(const f1_setup_res
         report_fatal_error("Invalid F1 Setup Response");
     }
 
-    // TO-DO: trigger SCTP association shutdown
-    ctxt.logger.error("F1 Setup procedure failed. Cause: {}.", failure_cause);
-    return launch_no_op_task();
+    // Trigger SCTP association shutdown after failed F1 Setup procedure.
+    ctxt.logger.error("F1 Setup procedure failed, triggering SCTP association shutdown. Cause: {}.", failure_cause);
+    return ctxt.params.f1ap.conn_mng.disconnect_from_cu_cp();
   }
 
   // Success case.

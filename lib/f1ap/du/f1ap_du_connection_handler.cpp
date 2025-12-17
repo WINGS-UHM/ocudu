@@ -97,7 +97,7 @@ f1ap_du_connection_handler::f1ap_du_connection_handler(f1c_connection_client& f1
 
 f1ap_du_connection_handler::~f1ap_du_connection_handler()
 {
-  // Check whether the F1-C TNL association was previously shutdown as part of the F1 Removal procedure.
+  // Check whether the F1-C TNL association was previously shutdown as part of F1 Removal or failed F1 Setup procedure.
   if (is_connected()) {
     logger.warning("F1-C TNL association was not properly shutdown before F1AP shutdown. Forcing it...");
   }

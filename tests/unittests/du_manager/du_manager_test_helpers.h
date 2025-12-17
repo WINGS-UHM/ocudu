@@ -18,6 +18,7 @@
 #include "ocudu/mac/mac_paging_information_handler.h"
 #include "ocudu/mac/mac_positioning_measurement_handler.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/async_test_utils.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include <map>
@@ -114,6 +115,7 @@ public:
 
   slotted_id_table<du_ue_index_t, f1ap_ue_context, MAX_NOF_DU_UES> f1ap_ues;
 
+  wait_manual_event_tester<void>                                 wait_tnl_shutdown;
   wait_manual_event_tester<f1_setup_result>                      wait_f1_setup;
   wait_manual_event_tester<void>                                 wait_f1_removal;
   std::optional<f1ap_ue_creation_request>                        last_ue_create;
@@ -125,7 +127,8 @@ public:
   wait_manual_event_tester<f1ap_ue_context_modification_confirm> wait_ue_mod;
   std::optional<gnbdu_config_update_request>                     last_du_cfg_req;
 
-  bool connect_to_cu_cp() override { return true; }
+  bool             connect_to_cu_cp() override { return true; }
+  async_task<void> disconnect_from_cu_cp() override { return wait_tnl_shutdown.launch(); }
 
   async_task<f1_setup_result> handle_f1_setup_request(const f1_setup_request_message& request) override
   {

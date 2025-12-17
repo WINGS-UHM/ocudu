@@ -16,6 +16,7 @@
 #include "f1ap_du_metrics_collector_impl.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/f1ap/du/f1ap_du.h"
+#include "ocudu/support/async/async_task.h"
 #include <memory>
 
 namespace ocudu {
@@ -35,7 +36,8 @@ public:
                timer_manager&              timers_);
   ~f1ap_du_impl() override;
 
-  bool connect_to_cu_cp() override;
+  bool             connect_to_cu_cp() override;
+  async_task<void> disconnect_from_cu_cp() override;
 
   // F1AP interface management procedures functions as per TS38.473, Section 8.2.
   async_task<f1_reset_acknowledgement>     handle_f1_reset_request(const f1_reset_request& req) override;

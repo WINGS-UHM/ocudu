@@ -66,7 +66,7 @@ static void apply_update_for_new_drbs(up_pdu_session_context&                   
     context.drb_map.emplace(drb.first, pdu_session_context.id);
 
     // Mark DRB ID as used, until keys are refreshed.
-    context.used_drb_ids[get_used_drb_id(drb.first)] = true;
+    context.used_drb_ids[get_used_drb_index(drb.first)] = true;
 
     // add QoS flows of the DRB to the map.
     for (const auto& flow : drb.second.qos_flows) {
@@ -246,7 +246,7 @@ void up_resource_manager::refresh_drb_id_after_key_change()
 
   // Mark all DRB IDs of current DRBs as used.
   for (auto& drb : context.drb_map) {
-    context.used_drb_ids[get_used_drb_id(drb.first)] = true;
+    context.used_drb_ids[get_used_drb_index(drb.first)] = true;
   }
 }
 

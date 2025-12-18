@@ -26,8 +26,7 @@ ue::ue(const ue_configuration&       cfg,
   lc_ch_mgr(std::move(lch_repo)),
   ta_mgr(std::move(ta_mgr_)),
   drx(drx_ctrl),
-  cells(ue_cells_),
-  logger(ocudulog::fetch_basic_logger("SCHED"))
+  cells(ue_cells_)
 {
 }
 

@@ -121,8 +121,7 @@ private:
   /// Controller of DRX active timer.
   ue_drx_controller& drx;
   /// Configured cells for the UE.
-  const ue_cell_lookup&   cells;
-  ocudulog::basic_logger& logger;
+  const ue_cell_lookup& cells;
 
   slot_point last_sl_tx;
 };

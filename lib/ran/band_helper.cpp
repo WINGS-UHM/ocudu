@@ -170,7 +170,7 @@ struct nr_operating_band {
 
 } // namespace
 
-static constexpr unsigned                                             nof_nr_operating_band = 68;
+static constexpr unsigned                                             nof_nr_operating_band = 69;
 static constexpr std::array<nr_operating_band, nof_nr_operating_band> nr_operating_bands    = {{
     // clang-format off
     {nr_band::n1,  duplex_mode::FDD},
@@ -233,6 +233,7 @@ static constexpr std::array<nr_operating_band, nof_nr_operating_band> nr_operati
     {nr_band::n101, duplex_mode::TDD},
     {nr_band::n102, duplex_mode::TDD},
     {nr_band::n104, duplex_mode::TDD},
+    {nr_band::n254, duplex_mode::FDD},
     {nr_band::n255, duplex_mode::FDD},
     {nr_band::n256, duplex_mode::FDD},
     {nr_band::n257, duplex_mode::TDD},
@@ -258,7 +259,7 @@ struct nr_band_ssb_scs_case {
 
 /// NR operating bands with corresponding SSB Subcarrier Spacing and SSB pattern case, as per Table 5.4.3.3-1 for FR1
 /// and Table 5.4.3.3-1 for FR2, TS 38.104, Rel. 17, version 17.8.0.
-static constexpr unsigned                                           nof_nr_ssb_bands           = 74;
+static constexpr unsigned                                           nof_nr_ssb_bands           = 76;
 static constexpr std::array<nr_band_ssb_scs_case, nof_nr_ssb_bands> nr_ssb_band_scs_case_table = {{
     // clang-format off
     {nr_band::n1,  subcarrier_spacing::kHz15, ssb_pattern_case::A},
@@ -319,6 +320,8 @@ static constexpr std::array<nr_band_ssb_scs_case, nof_nr_ssb_bands> nr_ssb_band_
     {nr_band::n101, subcarrier_spacing::kHz30, ssb_pattern_case::C},
     {nr_band::n102, subcarrier_spacing::kHz30, ssb_pattern_case::C},
     {nr_band::n104, subcarrier_spacing::kHz30, ssb_pattern_case::C},
+    {nr_band::n254, subcarrier_spacing::kHz15, ssb_pattern_case::A},
+    {nr_band::n254, subcarrier_spacing::kHz30, ssb_pattern_case::B},
     {nr_band::n255, subcarrier_spacing::kHz15, ssb_pattern_case::A},
     {nr_band::n255, subcarrier_spacing::kHz30, ssb_pattern_case::B},
     {nr_band::n256, subcarrier_spacing::kHz15, ssb_pattern_case::A},
@@ -1030,8 +1033,9 @@ bool ocudu::band_helper::is_unlicensed_band(nr_band band)
 frequency_range ocudu::band_helper::get_freq_range(nr_band band)
 {
   ocudu_assert(band != nr_band::invalid, "Band must be a valid NR band.");
-  return (band <= nr_band::n104 || band == nr_band::n255 || band == nr_band::n256) ? frequency_range::FR1
-                                                                                   : frequency_range::FR2;
+  return (band <= nr_band::n104 || band == nr_band::n254 || band == nr_band::n255 || band == nr_band::n256)
+             ? frequency_range::FR1
+             : frequency_range::FR2;
 }
 
 double ocudu::band_helper::get_abs_freq_point_a_from_f_ref(double             f_ref,
@@ -1207,6 +1211,7 @@ min_channel_bandwidth ocudu::band_helper::get_min_channel_bw(nr_band nr_band, su
       }
       return min_channel_bandwidth::invalid;
     }
+    case nr_band::n254:
     case nr_band::n255:
     case nr_band::n256: {
       if (scs == subcarrier_spacing::kHz15) {

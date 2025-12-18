@@ -179,7 +179,9 @@ f1ap_du_test::f1ap_du_test()
 
 f1ap_du_test::~f1ap_du_test()
 {
-  run_f1_removal_procedure();
+  if (f1ap->is_f1_setup()) {
+    run_f1_removal_procedure();
+  }
 
   // flush logger after each test
   ocudulog::flush();

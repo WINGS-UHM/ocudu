@@ -173,6 +173,10 @@ TEST_F(f1ap_du_test, when_f1_setup_failure_with_time_to_wait_received_then_retry
   ASSERT_FALSE(t.get().has_value());
   ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::f1_setup_failure);
   ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
+
+  async_task<void>         sctp_disconnect = f1ap->disconnect_from_cu_cp();
+  lazy_task_launcher<void> sctp_disconnect_launcher(sctp_disconnect);
+  this->tick(); // f1ap_du_connection_handler::rx_path_disconnected flag is set by defered event, tick to let it finish
 }
 
 /// Test unsuccessful F1 Setup procedure with F1 Setup Failure responses with Time To Wait IE and retry limit reached.
@@ -219,6 +223,10 @@ TEST_F(f1ap_du_test, when_retry_limit_reached_then_du_not_connected)
   ASSERT_FALSE(t.get().has_value());
   ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::f1_setup_failure);
   ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
+
+  async_task<void>         sctp_disconnect = f1ap->disconnect_from_cu_cp();
+  lazy_task_launcher<void> sctp_disconnect_launcher(sctp_disconnect);
+  this->tick(); // f1ap_du_connection_handler::rx_path_disconnected flag is set by defered event, tick to let it finish
 }
 
 /// Test unsuccessful F1 Setup procedure with F1 Setup Response timeout.
@@ -253,4 +261,8 @@ TEST_F(f1ap_du_test, when_timeout_then_du_not_connected)
   ASSERT_FALSE(t.get().has_value());
   ASSERT_EQ(t.get().error().result, f1_setup_failure::result_code::timeout);
   ASSERT_EQ(f1c_gw.pop_tx_pdu(), std::nullopt);
+
+  async_task<void>         sctp_disconnect = f1ap->disconnect_from_cu_cp();
+  lazy_task_launcher<void> sctp_disconnect_launcher(sctp_disconnect);
+  this->tick(); // f1ap_du_connection_handler::rx_path_disconnected flag is set by defered event, tick to let it finish
 }

@@ -220,6 +220,7 @@ private:
   /// \param buf The control PDU to be handled (including header and payload)
   void handle_control_pdu(byte_buffer_chain pdu);
 
+  void deliver_sdu(pdcp_rx_sdu_info& sdu_info);
   void deliver_all_consecutive_counts();
   void deliver_all_sdus();
   void discard_all_sdus();

@@ -523,25 +523,28 @@ void pdcp_entity_rx::handle_control_pdu(byte_buffer_chain pdu)
   }
 }
 
+void pdcp_entity_rx::deliver_sdu(pdcp_rx_sdu_info& sdu_info)
+{
+  // Perform header decompression if required.
+  if (apply_header_decompression(sdu_info.buf)) {
+    logger.log_info("RX SDU. count={}", st.rx_deliv);
+
+    // Pass PDCP SDU to the upper layers
+    metrics.add_sdus(1, sdu_info.buf.length());
+    record_reordering_dealy(sdu_info.time_of_arrival);
+    auto sdu_latency_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now() - sdu_info.time_of_arrival);
+    metrics.add_sdu_latency_ns(sdu_latency_ns.count());
+    upper_dn.on_new_sdu(std::move(sdu_info.buf));
+  }
+}
+
 // Deliver all consecutively associated COUNTs.
 // Update RX_DELIV after submitting to higher layers
 void pdcp_entity_rx::deliver_all_consecutive_counts()
 {
   while (st.rx_deliv != st.rx_next && rx_window.has_sn(st.rx_deliv)) {
-    pdcp_rx_sdu_info& sdu_info = rx_window[st.rx_deliv];
-
-    // Perform header decompression if required.
-    if (apply_header_decompression(sdu_info.buf)) {
-      logger.log_info("RX SDU. count={}", st.rx_deliv);
-
-      // Pass PDCP SDU to the upper layers
-      metrics.add_sdus(1, sdu_info.buf.length());
-      record_reordering_dealy(sdu_info.time_of_arrival);
-      auto sdu_latency_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-          std::chrono::high_resolution_clock::now() - sdu_info.time_of_arrival);
-      metrics.add_sdu_latency_ns(sdu_latency_ns.count());
-      upper_dn.on_new_sdu(std::move(sdu_info.buf));
-    }
+    deliver_sdu(rx_window[st.rx_deliv]);
     rx_window.remove_sn(st.rx_deliv);
 
     // Update RX_DELIV
@@ -556,20 +559,7 @@ void pdcp_entity_rx::deliver_all_sdus()
 {
   for (uint32_t count = st.rx_deliv; count < st.rx_next; count++) {
     if (rx_window.has_sn(count)) {
-      pdcp_rx_sdu_info& sdu_info = rx_window[count];
-
-      // Perform header decompression if required.
-      if (apply_header_decompression(sdu_info.buf)) {
-        logger.log_info("RX SDU. count={}", count);
-
-        // Pass PDCP SDU to the upper layers
-        metrics.add_sdus(1, sdu_info.buf.length());
-        record_reordering_dealy(sdu_info.time_of_arrival);
-        auto sdu_latency_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - sdu_info.time_of_arrival);
-        metrics.add_sdu_latency_ns(sdu_latency_ns.count());
-        upper_dn.on_new_sdu(std::move(sdu_info.buf));
-      }
+      deliver_sdu(rx_window[count]);
       rx_window.remove_sn(count);
     }
   }

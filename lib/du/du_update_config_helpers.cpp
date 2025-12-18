@@ -77,7 +77,7 @@ unsigned config_helpers::compute_prach_frequency_start(const pucch_builder_param
                                                        bool                        is_long_prach)
 {
   // This is to preserve a guardband between the PUCCH and PRACH.
-  const unsigned pucch_to_prach_guardband = is_long_prach ? 0U : 3U;
+  const unsigned pucch_to_prach_guardband = is_long_prach ? 0U : 5U;
   return find_largest_prb_interval_without_pucch(user_params, bwp_size).start() + pucch_to_prach_guardband;
 }
 

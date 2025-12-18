@@ -41,6 +41,7 @@ prb_interval find_largest_prb_interval_without_pucch(const pucch_builder_params&
 ///
 /// \param user_params parameters passed by the user for the generation the PUCCH resource list.
 /// \param bwp_size size of the BWP in RBs.
+/// \param is_long_prach whether the PRACH uses long preambles.
 /// \return PRACH frequency start.
 unsigned compute_prach_frequency_start(const pucch_builder_params& user_params, unsigned bwp_size, bool is_long_prach);
 

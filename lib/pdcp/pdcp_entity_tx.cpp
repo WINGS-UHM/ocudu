@@ -106,13 +106,8 @@ pdcp_entity_tx::pdcp_entity_tx(uint32_t                        ue_index,
     sec_engine_pool.push_back(std::move(null_engine));
   }
 
-  // Create ROHC compressor if needed
-  if (cfg.header_compression.has_value() && cfg.header_compression->rohc_type == rohc::rohc_type_t::rohc) {
-    rohc_comp = rohc::create_rohc_compressor(*cfg.header_compression);
-    if (rohc_comp == nullptr) {
-      logger.log_error("Failed to create ROHC compressor. {}", cfg);
-    }
-  }
+  // Create ROHC compressor if needed.
+  init_header_compression();
 }
 
 pdcp_entity_tx::~pdcp_entity_tx()
@@ -452,6 +447,8 @@ void pdcp_entity_tx::reestablish(security::sec_128_as_config sec_cfg)
   logger.log_debug("Reestablishing PDCP. st={}", st);
   // - for UM DRBs and AM DRBs, reset the ROHC protocol for uplink and start with an IR state in U-mode (as
   //   defined in RFC 3095 [8] and RFC 4815 [9]) if drb-ContinueROHC is not configured in TS 38.331 [3];
+  init_header_compression();
+
   // - for UM DRBs and AM DRBs, reset the EHC protocol for uplink if drb-ContinueEHC-UL is not configured in
   //   TS 38.331 [3];
   //   Header compression not supported yet (TODO).
@@ -693,6 +690,16 @@ security::security_result pdcp_entity_tx::apply_ciphering_and_integrity_protecti
     logger.log_warning("Failed to apply security on PDU. count={}", result.count);
   }
   return {std::move(result.buf.value())};
+}
+
+void pdcp_entity_tx::init_header_compression()
+{
+  if (cfg.header_compression.has_value() && cfg.header_compression->rohc_type == rohc::rohc_type_t::rohc) {
+    rohc_comp = rohc::create_rohc_compressor(*cfg.header_compression);
+    if (rohc_comp == nullptr) {
+      logger.log_error("Failed to create ROHC compressor. {}", cfg);
+    }
+  }
 }
 
 bool pdcp_entity_tx::apply_header_compression(byte_buffer& buf)

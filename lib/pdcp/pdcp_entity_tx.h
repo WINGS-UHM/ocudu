@@ -292,6 +292,9 @@ private:
   /// Apply ciphering and integrity protection to the payload
   security::security_result apply_ciphering_and_integrity_protection(byte_buffer buf, uint32_t count);
 
+  /// \brief Creates (and replaces) a ROHC compressor according to the ROHC configuration, if needed.
+  void init_header_compression();
+
   /// \brief Compresses the header of the SDU if ROHC is applicable. Pass-through otherwise.
   /// \param buf InOut SDU for header compression.
   /// \return true if compression resulted in a data SDU for further processing.

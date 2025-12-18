@@ -229,6 +229,9 @@ private:
   /// Apply deciphering and integrity check to the PDU
   security::security_result apply_deciphering_and_integrity_check(byte_buffer buf, uint32_t count);
 
+  /// \brief Creates (and replaces) a ROHC decompressor according to the ROHC configuration, if needed.
+  void init_header_decompression();
+
   /// \brief Decompresses the header of the SDU if ROHC is applicable. Pass-through otherwise.
   /// \param buf InOut SDU for header decompression.
   /// \return true if decompression resulted in a data SDU for passing to upper layers.

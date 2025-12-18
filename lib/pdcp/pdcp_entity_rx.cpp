@@ -99,13 +99,8 @@ pdcp_entity_rx::pdcp_entity_rx(uint32_t                        ue_index,
     sec_engine_pool.push_back(std::move(null_engine));
   }
 
-  // Create ROHC decompressor if needed
-  if (cfg.header_compression.has_value()) {
-    rohc_decomp = rohc::create_rohc_decompressor(*cfg.header_compression);
-    if (rohc_decomp == nullptr) {
-      logger.log_error("Failed to create ROHC decompressor. {}", cfg);
-    }
-  }
+  // Create ROHC decompressor if needed.
+  init_header_decompression();
 }
 
 pdcp_entity_rx::~pdcp_entity_rx()
@@ -282,7 +277,7 @@ void pdcp_entity_rx::reestablish(security::sec_128_as_config sec_cfg)
   //   defined in RFC 3095 [8] and RFC 4815 [9]) if drb-ContinueROHC is not configured in TS 38.331 [3];
   // - for UM DRBs and AM DRBs, reset the EHC protocol for downlink if drb-ContinueEHC-DL is not configured in
   //   TS 38.331 [3];
-  // TODO header compression not supported yet.
+  init_header_decompression();
 
   // - for UM DRBs and SRBs, set RX_NEXT and RX_DELIV to the initial value;
   if (is_srb() || is_um()) {
@@ -624,6 +619,16 @@ byte_buffer pdcp_entity_rx::compile_status_report()
   }
 
   return buf;
+}
+
+void pdcp_entity_rx::init_header_decompression()
+{
+  if (cfg.header_compression.has_value()) {
+    rohc_decomp = rohc::create_rohc_decompressor(*cfg.header_compression);
+    if (rohc_decomp == nullptr) {
+      logger.log_error("Failed to create ROHC decompressor. {}", cfg);
+    }
+  }
 }
 
 bool pdcp_entity_rx::apply_header_decompression(byte_buffer& buf)

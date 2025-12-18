@@ -535,18 +535,21 @@ void pdcp_entity_tx::handle_status_report(byte_buffer_chain status)
   uint32_t dc = 0;
   dec.unpack(dc, 1);
   if (dc != to_number(pdcp_dc_field::control)) {
-    logger.log_warning(
-        buf.begin(), buf.end(), "Invalid D/C field in status report. dc={}", to_number(pdcp_dc_field::control), dc);
+    logger.log_error(buf.begin(),
+                     buf.end(),
+                     "Invalid D/C field in status report. dc={} expected_dc={}",
+                     dc,
+                     to_number(pdcp_dc_field::control));
     return;
   }
   uint32_t cpt = 0;
   dec.unpack(cpt, 3);
   if (cpt != to_number(pdcp_control_pdu_type::status_report)) {
-    logger.log_warning(buf.begin(),
-                       buf.end(),
-                       "Invalid CPT field in status report. cpt={} expected_cpt={}",
-                       cpt,
-                       to_number(pdcp_control_pdu_type::status_report));
+    logger.log_error(buf.begin(),
+                     buf.end(),
+                     "Invalid CPT field in status report. cpt={} expected_cpt={}",
+                     cpt,
+                     to_number(pdcp_control_pdu_type::status_report));
     return;
   }
   uint32_t reserved = 0;
@@ -599,21 +602,21 @@ void pdcp_entity_tx::consume_rohc_feedback(byte_buffer_chain rohc_feedback)
   uint32_t dc = 0;
   dec.unpack(dc, 1);
   if (dc != to_number(pdcp_dc_field::control)) {
-    logger.log_warning(buf.begin(),
-                       buf.end(),
-                       "Invalid D/C field in ROHC feedback. dc={} expected_dc={}",
-                       dc,
-                       to_number(pdcp_dc_field::control));
+    logger.log_error(buf.begin(),
+                     buf.end(),
+                     "Invalid D/C field in ROHC feedback. dc={} expected_dc={}",
+                     dc,
+                     to_number(pdcp_dc_field::control));
     return;
   }
   uint32_t cpt = 0;
   dec.unpack(cpt, 3);
   if (cpt != to_number(pdcp_control_pdu_type::interspersed_rohc_feedback)) {
-    logger.log_warning(buf.begin(),
-                       buf.end(),
-                       "Invalid CPT field in ROHC feedback. cpt={} expected_cpt={}",
-                       cpt,
-                       to_number(pdcp_control_pdu_type::interspersed_rohc_feedback));
+    logger.log_error(buf.begin(),
+                     buf.end(),
+                     "Invalid CPT field in ROHC feedback. cpt={} expected_cpt={}",
+                     cpt,
+                     to_number(pdcp_control_pdu_type::interspersed_rohc_feedback));
     return;
   }
   uint32_t reserved = 0;

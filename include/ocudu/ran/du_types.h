@@ -20,9 +20,9 @@ namespace ocudu {
 /// Maximum number of UEs supported by DU (implementation-defined).
 enum du_ue_index_t : uint16_t {
   MIN_DU_UE_INDEX     = 0,
-  MAX_DU_UE_INDEX     = 1023,
-  MAX_NOF_DU_UES      = 1024,
-  INVALID_DU_UE_INDEX = 1024
+  MAX_DU_UE_INDEX     = 8191,
+  MAX_NOF_DU_UES      = 8192,
+  INVALID_DU_UE_INDEX = MAX_NOF_DU_UES
 };
 
 /// Maximum number of cells supported by DU (implementation-defined).

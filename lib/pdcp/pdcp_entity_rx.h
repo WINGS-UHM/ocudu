@@ -225,7 +225,7 @@ private:
   void deliver_all_sdus();
   void discard_all_sdus();
 
-  void record_reordering_dealy(std::chrono::system_clock::time_point time_of_arrival);
+  void record_reordering_delay(std::chrono::system_clock::time_point time_of_arrival);
 
   /// Apply deciphering and integrity check to the PDU
   security::security_result apply_deciphering_and_integrity_check(byte_buffer buf, uint32_t count);

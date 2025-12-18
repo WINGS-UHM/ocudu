@@ -531,7 +531,7 @@ void pdcp_entity_rx::deliver_sdu(pdcp_rx_sdu_info& sdu_info)
 
     // Pass PDCP SDU to the upper layers
     metrics.add_sdus(1, sdu_info.buf.length());
-    record_reordering_dealy(sdu_info.time_of_arrival);
+    record_reordering_delay(sdu_info.time_of_arrival);
     auto sdu_latency_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::high_resolution_clock::now() - sdu_info.time_of_arrival);
     metrics.add_sdu_latency_ns(sdu_latency_ns.count());
@@ -778,7 +778,7 @@ void pdcp_entity_rx::handle_t_reordering_expire()
 
         // Pass PDCP SDU to the upper layers
         metrics.add_sdus(1, sdu_info.buf.length());
-        record_reordering_dealy(sdu_info.time_of_arrival);
+        record_reordering_delay(sdu_info.time_of_arrival);
         auto sdu_latency_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::high_resolution_clock::now() - sdu_info.time_of_arrival);
         metrics.add_sdu_latency_ns(sdu_latency_ns.count());
@@ -855,7 +855,7 @@ bool pdcp_entity_rx::read_data_pdu_header(pdcp_data_pdu_header& hdr, const byte_
   return true;
 }
 
-void pdcp_entity_rx::record_reordering_dealy(std::chrono::system_clock::time_point time_of_arrival)
+void pdcp_entity_rx::record_reordering_delay(std::chrono::system_clock::time_point time_of_arrival)
 {
   std::chrono::microseconds time_taken =
       std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - time_of_arrival);

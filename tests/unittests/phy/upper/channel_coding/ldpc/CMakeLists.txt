@@ -6,4 +6,6 @@
 # the distribution.
 #
 
-# TODO: LDPC chain test
+add_executable(ldpc_chain_test ldpc_chain_test.cpp)
+target_link_libraries(ldpc_chain_test ocudu_channel_coding ocudulog gtest gtest_main)
+add_test(ldpc_chain_test ldpc_chain_test)

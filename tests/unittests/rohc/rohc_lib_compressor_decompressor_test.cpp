@@ -225,6 +225,54 @@ TEST_P(rohc_lib_test, compress_decompress_ip)
   EXPECT_EQ(test_spy.get_error_counter(), 0);
 }
 
+TEST_P(rohc_lib_test, compress_decompress_ip_with_feedback)
+{
+  rohc_test_params                       param  = GetParam();
+  std::unique_ptr<rohc_lib_compressor>   comp   = std::make_unique<rohc_lib_compressor>(param.config);
+  std::unique_ptr<rohc_lib_decompressor> decomp = std::make_unique<rohc_lib_decompressor>(param.config);
+
+  constexpr size_t                       n_pdu    = 5;
+  std::array<byte_buffer, n_pdu>         original = {byte_buffer::create(ip_ping_req_1).value(),
+                                                     byte_buffer::create(ip_ping_req_2).value(),
+                                                     byte_buffer::create(ip_ping_req_3).value(),
+                                                     byte_buffer::create(ip_ping_req_4).value(),
+                                                     byte_buffer::create(ip_ping_req_5).value()};
+  std::array<byte_buffer, n_pdu>         compressed;
+  std::array<rohc_decromp_result, n_pdu> decompressed;
+
+  uint32_t original_len         = 0;
+  uint32_t compressed_len       = 0;
+  uint32_t nof_feedback_packets = 0;
+  for (size_t i = 0; i < n_pdu; i++) {
+    // compress
+    original_len += original[i].length();
+    compressed[i] = comp->compress(std::move(original[i].deep_copy().value()));
+    ASSERT_FALSE(compressed[i].empty());
+    compressed_len += compressed[i].length();
+
+    // decompress and deliver feedback
+    decompressed[i] = decomp->decompress(std::move(compressed[i]));
+    EXPECT_FALSE(decompressed[i].decomp_packet.empty());
+    EXPECT_EQ(decompressed[i].decomp_packet, original[i]);
+    if (!decompressed[i].feedback_packet.empty()) {
+      EXPECT_TRUE(comp->handle_feedback(std::move(decompressed[i].feedback_packet)));
+      nof_feedback_packets++;
+    }
+  }
+  EXPECT_GE(nof_feedback_packets, 1);
+
+  if (param.config.profiles.is_profile_enabled(rohc_profile::profile0x0004) ||
+      param.config.profiles.is_profile_enabled(rohc_profile::profile0x0104)) {
+    EXPECT_LT(compressed_len, original_len);
+  } else {
+    EXPECT_GE(compressed_len, original_len);
+  }
+
+  // No warnings or errors
+  EXPECT_EQ(test_spy.get_warning_counter(), 0);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
+}
+
 TEST_P(rohc_lib_test, compress_decompress_udp)
 {
   rohc_test_params                       param  = GetParam();
@@ -247,6 +295,7 @@ TEST_P(rohc_lib_test, compress_decompress_udp)
     compressed[i] = comp->compress(std::move(original[i].deep_copy().value()));
     ASSERT_FALSE(compressed[i].empty());
     compressed_len += compressed[i].length();
+    logger.error("compressed[{}]_len={}", i, compressed[i].length());
   }
 
   if (param.config.profiles.is_profile_enabled(rohc_profile::profile0x0002) ||
@@ -258,10 +307,66 @@ TEST_P(rohc_lib_test, compress_decompress_udp)
     EXPECT_GE(compressed_len, original_len);
   }
 
+  uint32_t nof_feedback_packets = 0;
   for (size_t i = 0; i < n_pdu; i++) {
     decompressed[i] = decomp->decompress(std::move(compressed[i]));
     EXPECT_FALSE(decompressed[i].decomp_packet.empty());
     EXPECT_EQ(decompressed[i].decomp_packet, original[i]);
+    if (!decompressed[i].feedback_packet.empty()) {
+      nof_feedback_packets++;
+      logger.error("i={} len={}", i, decompressed[i].feedback_packet.length());
+    }
+  }
+  EXPECT_GE(nof_feedback_packets, 1);
+
+  // No warnings or errors
+  EXPECT_EQ(test_spy.get_warning_counter(), 0);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
+}
+
+TEST_P(rohc_lib_test, compress_decompress_udp_with_feedback)
+{
+  rohc_test_params                       param  = GetParam();
+  std::unique_ptr<rohc_lib_compressor>   comp   = std::make_unique<rohc_lib_compressor>(param.config);
+  std::unique_ptr<rohc_lib_decompressor> decomp = std::make_unique<rohc_lib_decompressor>(param.config);
+
+  constexpr size_t                       n_pdu    = 5;
+  std::array<byte_buffer, n_pdu>         original = {byte_buffer::create(udp_1).value(),
+                                                     byte_buffer::create(udp_2).value(),
+                                                     byte_buffer::create(udp_3).value(),
+                                                     byte_buffer::create(udp_4).value(),
+                                                     byte_buffer::create(udp_5).value()};
+  std::array<byte_buffer, n_pdu>         compressed;
+  std::array<rohc_decromp_result, n_pdu> decompressed;
+
+  uint32_t original_len         = 0;
+  uint32_t compressed_len       = 0;
+  uint32_t nof_feedback_packets = 0;
+  for (size_t i = 0; i < n_pdu; i++) {
+    // compress
+    original_len += original[i].length();
+    compressed[i] = comp->compress(std::move(original[i].deep_copy().value()));
+    ASSERT_FALSE(compressed[i].empty());
+    compressed_len += compressed[i].length();
+
+    // decompress and deliver feedback
+    decompressed[i] = decomp->decompress(std::move(compressed[i]));
+    EXPECT_FALSE(decompressed[i].decomp_packet.empty());
+    EXPECT_EQ(decompressed[i].decomp_packet, original[i]);
+    if (!decompressed[i].feedback_packet.empty()) {
+      EXPECT_TRUE(comp->handle_feedback(std::move(decompressed[i].feedback_packet)));
+      nof_feedback_packets++;
+    }
+  }
+  EXPECT_GE(nof_feedback_packets, 1);
+
+  if (param.config.profiles.is_profile_enabled(rohc_profile::profile0x0002) ||
+      param.config.profiles.is_profile_enabled(rohc_profile::profile0x0004) ||
+      param.config.profiles.is_profile_enabled(rohc_profile::profile0x0102) ||
+      param.config.profiles.is_profile_enabled(rohc_profile::profile0x0104)) {
+    EXPECT_LT(compressed_len, original_len);
+  } else {
+    EXPECT_GE(compressed_len, original_len);
   }
 
   // No warnings or errors
@@ -305,6 +410,55 @@ TEST_P(rohc_lib_test, compress_decompress_tcp)
     decompressed[i] = decomp->decompress(std::move(compressed[i]));
     EXPECT_FALSE(decompressed[i].decomp_packet.empty());
     EXPECT_EQ(decompressed[i].decomp_packet, original[i]);
+  }
+
+  // No warnings or errors
+  EXPECT_EQ(test_spy.get_warning_counter(), 0);
+  EXPECT_EQ(test_spy.get_error_counter(), 0);
+}
+
+TEST_P(rohc_lib_test, compress_decompress_tcp_with_feedback)
+{
+  rohc_test_params                       param  = GetParam();
+  std::unique_ptr<rohc_lib_compressor>   comp   = std::make_unique<rohc_lib_compressor>(param.config);
+  std::unique_ptr<rohc_lib_decompressor> decomp = std::make_unique<rohc_lib_decompressor>(param.config);
+
+  constexpr size_t                       n_pdu    = 5;
+  std::array<byte_buffer, n_pdu>         original = {byte_buffer::create(tcp_1).value(),
+                                                     byte_buffer::create(tcp_2).value(),
+                                                     byte_buffer::create(tcp_3).value(),
+                                                     byte_buffer::create(tcp_4).value(),
+                                                     byte_buffer::create(tcp_5).value()};
+  std::array<byte_buffer, n_pdu>         compressed;
+  std::array<rohc_decromp_result, n_pdu> decompressed;
+
+  uint32_t original_len         = 0;
+  uint32_t compressed_len       = 0;
+  uint32_t nof_feedback_packets = 0;
+  for (size_t i = 0; i < n_pdu; i++) {
+    // compress
+    original_len += original[i].length();
+    compressed[i] = comp->compress(std::move(original[i].deep_copy().value()));
+    ASSERT_FALSE(compressed[i].empty());
+    compressed_len += compressed[i].length();
+
+    // decompress and deliver feedback
+    decompressed[i] = decomp->decompress(std::move(compressed[i]));
+    EXPECT_FALSE(decompressed[i].decomp_packet.empty());
+    EXPECT_EQ(decompressed[i].decomp_packet, original[i]);
+    if (!decompressed[i].feedback_packet.empty()) {
+      EXPECT_TRUE(comp->handle_feedback(std::move(decompressed[i].feedback_packet)));
+      nof_feedback_packets++;
+    }
+  }
+  EXPECT_GE(nof_feedback_packets, 1);
+
+  if (param.config.profiles.is_profile_enabled(rohc_profile::profile0x0004) ||
+      param.config.profiles.is_profile_enabled(rohc_profile::profile0x0006) ||
+      param.config.profiles.is_profile_enabled(rohc_profile::profile0x0104)) {
+    EXPECT_LT(compressed_len, original_len);
+  } else {
+    EXPECT_GE(compressed_len, original_len);
   }
 
   // No warnings or errors

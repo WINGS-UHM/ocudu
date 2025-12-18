@@ -106,7 +106,7 @@ protected:
     cell_config_builder_params builder_params{};
     builder_params.scs_common = t_params.scs;
     if (dplx_mode == ocudu::duplex_mode::TDD) {
-      builder_params.dl_carrier.arfcn_f_ref = 520000;
+      builder_params.dl_carrier.arfcn_f_ref = 520002;
       builder_params.dl_carrier.band        = nr_band::n41;
     }
     if (t_params.scs == ocudu::subcarrier_spacing::kHz30) {

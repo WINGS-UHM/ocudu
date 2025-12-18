@@ -184,7 +184,7 @@ struct sib_test_bench {
     } else {
       // With SCS 15kHz, we set band n38, which (for this SCS) is in SSB case A (L_max = 4); with SCS 30kHz, we set n40,
       // which is in SSB case C, which is in SSB case C and with L_max = 8.
-      cell_cfg.dl_carrier.arfcn_f_ref = init_bwp_scs == subcarrier_spacing::kHz15 ? 518410 : 465000;
+      cell_cfg.dl_carrier.arfcn_f_ref = init_bwp_scs == subcarrier_spacing::kHz15 ? 518440 : 465000;
       cell_cfg.dl_carrier.band        = init_bwp_scs == subcarrier_spacing::kHz15 ? nr_band::n38 : nr_band::n40;
     }
     cell_cfg.scs_common            = init_bwp_scs;

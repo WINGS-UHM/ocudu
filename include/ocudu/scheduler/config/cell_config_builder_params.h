@@ -66,6 +66,14 @@ struct cell_config_builder_params {
     // Auto-derive band if not derived yet.
     if (dl_carrier.band == nr_band::invalid) {
       dl_carrier.band = band_helper::get_band_from_dl_arfcn(dl_carrier.arfcn_f_ref);
+    } else {
+      auto err = band_helper::is_dl_arfcn_valid_given_band(
+          dl_carrier.band, dl_carrier.arfcn_f_ref, scs_common, dl_carrier.carrier_bw);
+      report_error_if_not(err.has_value(),
+                          "DL ARFCN {} is not valid for band {}. Cause: {}\n",
+                          dl_carrier.arfcn_f_ref,
+                          static_cast<unsigned>(dl_carrier.band),
+                          err.error());
     }
 
     // Auto-derive nof layers if not provided.

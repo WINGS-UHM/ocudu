@@ -142,7 +142,7 @@ protected:
     if (scs_common > subcarrier_spacing::kHz60) {
       band = nr_band::n261;
     } else if (scs_common == subcarrier_spacing::kHz30) {
-      band = nr_band::n78;
+      band = nr_band::n41;
     }
 
     frequency_range fr                 = band_helper::get_freq_range(band);

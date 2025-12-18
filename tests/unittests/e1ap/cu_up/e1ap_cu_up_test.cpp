@@ -237,6 +237,23 @@ TEST_F(e1ap_cu_up_test, when_valid_part_of_e1_reset_received_then_reset_ack_sent
             e1ap_gw.last_tx_e1ap_pdu.pdu.successful_outcome().value.type());
 }
 
+TEST_F(e1ap_cu_up_test, when_bearer_context_valid_and_resume_requested_dl_status_notification_sent)
+{
+  run_e1_setup_procedure();
+
+  // Setup Bearer Context.
+  this->setup_bearer(9);
+
+  // Receive E1 Reset message.
+  ue_index_t ue_index{0};
+  e1ap->handle_dl_data_notification_required(ue_index);
+
+  // Check the generated PDU is indeed the DL Data Notification.
+  ASSERT_EQ(asn1::e1ap::e1ap_pdu_c::types_opts::options::init_msg, e1ap_gw.last_tx_e1ap_pdu.pdu.type());
+  ASSERT_EQ(asn1::e1ap::e1ap_elem_procs_o::init_msg_c::types_opts::options::dl_data_notif,
+            e1ap_gw.last_tx_e1ap_pdu.pdu.init_msg().value.type());
+}
+
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

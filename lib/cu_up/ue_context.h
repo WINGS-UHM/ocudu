@@ -186,6 +186,8 @@ public:
 
   bool is_suspended() const { return st == bearer_context_state_t::suspended; }
 
+  bool resume_pending() const { return resume_requested; }
+
   void suspend()
   {
     ocudu_assert(st != bearer_context_state_t::suspended, "Trying to suspend already suspended bearer context");
@@ -198,6 +200,7 @@ public:
     ocudu_assert(st != bearer_context_state_t::active, "Trying to activate an already active bearer context");
     st = bearer_context_state_t::active;
     pdu_session_manager.resume();
+    resume_requested = false;
   }
 
 private:
@@ -212,9 +215,11 @@ private:
   timer_factory ue_ul_timer_factory;
   timer_factory ue_ctrl_timer_factory;
 
-  unique_timer ue_inactivity_timer;
-
+  // Inactivity related variables.
+  unique_timer           ue_inactivity_timer;
   bearer_context_state_t st{bearer_context_state_t::active};
+  bool                   resume_requested{false};
+
   /// Handle expired UE inactivity timer. This function is called from a timer that is run in UE executor,
   /// therefore it handovers the handling to control executor.
   void on_ue_inactivity_timer_expired()

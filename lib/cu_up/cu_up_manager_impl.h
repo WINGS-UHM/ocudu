@@ -78,6 +78,7 @@ public:
   // PDCP event handlers.
   void handle_pdcp_protocol_failure(ue_index_t ue_index) override;
   void handle_pdcp_max_count_reached(ue_index_t ue_index) override;
+  void handle_pdcp_resume_required(ue_index_t ue_index) override;
 
   // Test helpers.
   void trigger_enable_test_mode();

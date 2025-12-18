@@ -74,7 +74,12 @@ public:
 
   void on_resume_required() override
   {
-    // TODO notify CU-UP manager of resume required.
+    if (cu_up_mngr == nullptr) {
+      ocudulog::fetch_basic_logger("PDCP").debug(
+          "Resume requested from PDCP Rx, but no E1AP handler present. Ignoring");
+      return;
+    }
+    cu_up_mngr->handle_pdcp_resume_required(ue_index);
   }
 
   cu_up_manager_pdcp_interface* cu_up_mngr = nullptr;
@@ -143,7 +148,12 @@ public:
 
   void on_resume_required() override
   {
-    // TODO notify CU-UP manager of the need to resume bearer context.
+    if (cu_up_mngr == nullptr) {
+      ocudulog::fetch_basic_logger("PDCP").debug(
+          "Resume requested from PDCP Tx, but no E1AP handler present. Ignoring");
+      return;
+    }
+    cu_up_mngr->handle_pdcp_resume_required(ue_index);
   }
 
 private:

@@ -155,6 +155,27 @@ void e1ap_cu_up_impl::handle_bearer_context_release_request_required(ue_index_t 
   pdu_notifier->on_new_message(e1ap_msg);
 }
 
+void e1ap_cu_up_impl::handle_dl_data_notification_required(ue_index_t ue_index)
+{
+  // Get UE context.
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.error("ue={}: Dropping DL data notification. UE does not exist", fmt::underlying(ue_index));
+    return;
+  }
+  e1ap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+
+  // Prepare message.
+  e1ap_message e1ap_msg;
+  e1ap_msg.pdu.set_init_msg();
+  e1ap_msg.pdu.init_msg().load_info_obj(ASN1_E1AP_ID_D_L_DATA_NOTIF);
+  dl_data_notif_s& dl_notif      = e1ap_msg.pdu.init_msg().value.dl_data_notif();
+  dl_notif->gnb_cu_cp_ue_e1ap_id = gnb_cu_cp_ue_e1ap_id_to_uint(ue_ctxt.ue_ids.cu_cp_ue_e1ap_id);
+  dl_notif->gnb_cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_to_uint(ue_ctxt.ue_ids.cu_up_ue_e1ap_id);
+
+  // Send DL Data Notification.
+  pdu_notifier->on_new_message(e1ap_msg);
+}
+
 void e1ap_cu_up_impl::handle_message(const e1ap_message& msg)
 {
   // Run E1AP protocols in CU-UP executor.

@@ -307,6 +307,8 @@ public:
   void handle_pdcp_protocol_failure(ocuup::ue_index_t ue_index) override {}
 
   void handle_pdcp_max_count_reached(ocuup::ue_index_t ue_index) override {}
+
+  void handle_pdcp_resume_required(ocuup::ue_index_t ue_index) override {}
 };
 
 class dummy_e1ap final : public ocuup::e1ap_interface
@@ -334,6 +336,8 @@ public:
   void handle_message(const e1ap_message& msg) override {}
 
   void handle_bearer_context_release_request_required(ocuup::ue_index_t ue_index) override {}
+
+  void handle_dl_data_notification_required(ocuup::ue_index_t ue_index) override {}
 };
 
 inline e1ap_message generate_bearer_context_setup_request(unsigned cu_cp_ue_e1ap_id)

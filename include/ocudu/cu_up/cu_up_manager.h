@@ -80,6 +80,8 @@ public:
   virtual void handle_pdcp_protocol_failure(ue_index_t ue_index) = 0;
 
   virtual void handle_pdcp_max_count_reached(ue_index_t ue_index) = 0;
+
+  virtual void handle_pdcp_resume_required(ue_index_t ue_index) = 0;
 };
 
 class cu_up_manager : public cu_up_manager_e1ap_connection_notifier,

@@ -208,6 +208,25 @@ void cu_up_manager_impl::handle_pdcp_max_count_reached(ue_index_t ue_index)
   e1ap.handle_bearer_context_release_request_required(ue_index);
 }
 
+void cu_up_manager_impl::handle_pdcp_resume_required(ue_index_t ue_index)
+{
+  ue_context* ue_ctxt = ue_mng->find_ue(ue_index);
+  if (ue_ctxt == nullptr) {
+    logger.error("ue={}: Resume was requested, but could not find UE context", ue_index);
+    return;
+  }
+
+  if (not ue_ctxt->is_suspended()) {
+    logger.warning("ue={}: Resume requested, but bearer context is not suspended", ue_index);
+  }
+
+  if (ue_ctxt->resume_pending()) {
+    logger.debug("ue={}: Resume already requested. Ignoring more requrests", ue_index);
+  }
+
+  e1ap.handle_dl_data_notification_required(ue_index);
+}
+
 ///
 /// Test mode helpers.
 ///

@@ -1,7 +1,6 @@
 #include "rohc_lib_decompressor.h"
 #include "rohc_lib_common.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include <cstdlib>
 
 using namespace ocudu;
 using namespace ocudu::rohc;

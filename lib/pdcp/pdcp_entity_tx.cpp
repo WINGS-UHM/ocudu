@@ -12,6 +12,7 @@
 #include "../security/security_engine_impl.h"
 #include "ocudu/instrumentation/traces/tracy_profiler.h"
 #include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/rohc/rohc_compressor.h"
 #include "ocudu/rohc/rohc_factory.h"
 #include "ocudu/rohc/rohc_support.h"
 #include "ocudu/support/bit_encoding.h"
@@ -30,6 +31,7 @@ pdcp_entity_tx::pdcp_entity_tx(uint32_t                        ue_index,
                                task_executor&                  ue_dl_executor_,
                                task_executor&                  crypto_executor_,
                                uint32_t                        max_nof_crypto_workers_,
+                               const rohc::rohc_factory&       rohc_comp_factory_,
                                pdcp_metrics_aggregator&        metrics_agg_) :
   pdcp_entity_tx_rx_base(rb_id_, cfg_.rb_type, cfg_.rlc_mode, cfg_.sn_size),
   logger("PDCP", {ue_index, rb_id_, "DL"}),
@@ -40,6 +42,7 @@ pdcp_entity_tx::pdcp_entity_tx(uint32_t                        ue_index,
   ue_dl_executor(ue_dl_executor_),
   crypto_executor(crypto_executor_),
   max_nof_crypto_workers(max_nof_crypto_workers_),
+  rohc_comp_factory(rohc_comp_factory_),
   tx_window(cfg.rb_type, cfg.rlc_mode, cfg.sn_size, logger),
   metrics(metrics_agg_.get_metrics_period().count()),
   metrics_agg(metrics_agg_)
@@ -769,7 +772,7 @@ security::security_result pdcp_entity_tx::apply_ciphering_and_integrity_protecti
 void pdcp_entity_tx::init_header_compression()
 {
   if (cfg.header_compression.has_value() && cfg.header_compression->rohc_type == rohc::rohc_type_t::rohc) {
-    rohc_comp = rohc::create_rohc_compressor(*cfg.header_compression);
+    rohc_comp = rohc_comp_factory.create_rohc_compressor(*cfg.header_compression);
     if (rohc_comp == nullptr) {
       logger.log_error("Failed to create ROHC compressor. {}", cfg);
     }

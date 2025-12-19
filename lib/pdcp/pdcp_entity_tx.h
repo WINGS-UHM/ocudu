@@ -23,7 +23,7 @@
 #include "ocudu/adt/ring_buffer.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_tx.h"
-#include "ocudu/rohc/rohc_compressor.h"
+#include "ocudu/rohc/rohc_factory.h"
 #include "ocudu/security/security.h"
 #include "ocudu/security/security_engine.h"
 #include "ocudu/support/timers.h"
@@ -112,6 +112,7 @@ public:
                  task_executor&                  ue_dl_executor_,
                  task_executor&                  crypto_executor_,
                  uint32_t                        max_nof_crypto_workers_,
+                 const rohc::rohc_factory&       rohc_comp_factory_,
                  pdcp_metrics_aggregator&        metrics_agg_);
 
   ~pdcp_entity_tx() override;
@@ -285,6 +286,7 @@ private:
   /// Id used to identify out of date PDUs after a retransmission.
   uint16_t retransmit_id = 0;
 
+  const rohc::rohc_factory&              rohc_comp_factory;
   std::unique_ptr<rohc::rohc_compressor> rohc_comp;
 
   using sec_engine_vec = std::vector<std::unique_ptr<security::security_engine_tx>>;

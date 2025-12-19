@@ -160,6 +160,7 @@ protected:
 
     metrics_agg =
         std::make_unique<pdcp_metrics_aggregator>(0, rb_id, timer_duration{100}, &metrics_notif, worker, false);
+    pdcp_rohc_factory = rohc::create_rohc_factory();
     // Create PDCP entity
     pdcp_tx = std::make_unique<pdcp_entity_tx>(0,
                                                rb_id,
@@ -170,6 +171,7 @@ protected:
                                                worker,
                                                crypto_exec,
                                                nof_crypto_threads,
+                                               *pdcp_rohc_factory,
                                                *metrics_agg);
     pdcp_tx->set_status_provider(&test_frame);
     pdcp_tx->handle_desired_buffer_size_notification(20 * (1 << 20)); // 20 MBi in RLC buffer
@@ -211,6 +213,7 @@ protected:
   const pdcp_max_count       default_max_count = {pdcp_tx_default_max_count_notify, pdcp_tx_default_max_count_hard};
   mock_pdcp_metrics_notifier metrics_notif;
   std::unique_ptr<pdcp_metrics_aggregator> metrics_agg;
+  std::unique_ptr<rohc::rohc_factory>      pdcp_rohc_factory;
   std::unique_ptr<pdcp_entity_tx>          pdcp_tx;
 
   const uint32_t      nof_crypto_threads;

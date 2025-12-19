@@ -169,6 +169,7 @@ static void benchmark_pdcp_tx(bench_params                  params,
   // Create test frame
   std::unique_ptr<pdcp_tx_gen_frame>       frame;
   std::unique_ptr<pdcp_metrics_aggregator> metrics_agg;
+  std::unique_ptr<rohc::rohc_factory>      pdcp_rohc_factory;
   std::unique_ptr<pdcp_entity_tx>          pdcp_tx;
 
   // Prepare
@@ -198,7 +199,8 @@ static void benchmark_pdcp_tx(bench_params                  params,
     }
     frame       = std::make_unique<pdcp_tx_gen_frame>();
     metrics_agg = std::make_unique<pdcp_metrics_aggregator>(0, drb_id_t::drb1, timer_duration{1000}, nullptr, dl_exec);
-    pdcp_tx     = std::make_unique<pdcp_entity_tx>(0,
+    pdcp_rohc_factory = rohc::create_rohc_factory();
+    pdcp_tx           = std::make_unique<pdcp_entity_tx>(0,
                                                drb_id_t::drb1,
                                                config,
                                                *frame,
@@ -207,6 +209,7 @@ static void benchmark_pdcp_tx(bench_params                  params,
                                                dl_exec,
                                                crypto_exec,
                                                params.nof_crypto_threads,
+                                               *pdcp_rohc_factory,
                                                *metrics_agg);
     pdcp_tx->configure_security(sec_cfg, int_enabled, ciph_enabled);
 

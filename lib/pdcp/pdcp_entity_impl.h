@@ -15,7 +15,6 @@
 #include "pdcp_metrics_aggregator.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_entity.h"
-#include <cstdio>
 #include <memory>
 
 namespace ocudu {
@@ -43,6 +42,8 @@ public:
     metrics_timer(ue_ctrl_timer_factory.create_timer()),
     metrics_agg(ue_index, rb_id, metrics_period, config.custom.metrics_notifier, ue_ctrl_executor)
   {
+    pdcp_rohc_factory = rohc::create_rohc_factory();
+
     tx = std::make_unique<pdcp_entity_tx>(ue_index,
                                           rb_id,
                                           config.get_tx_config(),
@@ -52,6 +53,7 @@ public:
                                           ue_dl_executor,
                                           crypto_executor,
                                           max_nof_crypto_workers,
+                                          *pdcp_rohc_factory,
                                           metrics_agg);
     rx = std::make_unique<pdcp_entity_rx>(ue_index,
                                           rb_id,
@@ -62,6 +64,7 @@ public:
                                           ue_ul_executor,
                                           crypto_executor,
                                           max_nof_crypto_workers,
+                                          *pdcp_rohc_factory,
                                           metrics_agg);
 
     // Tx/Rx interconnect
@@ -90,8 +93,9 @@ public:
   manual_event_flag& rx_crypto_awaitable() override { return rx->crypto_awaitable(); }
 
 private:
-  std::unique_ptr<pdcp_entity_tx> tx;
-  std::unique_ptr<pdcp_entity_rx> rx;
+  std::unique_ptr<rohc::rohc_factory> pdcp_rohc_factory;
+  std::unique_ptr<pdcp_entity_tx>     tx;
+  std::unique_ptr<pdcp_entity_rx>     rx;
 
   pdcp_bearer_logger      logger;
   timer_duration          metrics_period;

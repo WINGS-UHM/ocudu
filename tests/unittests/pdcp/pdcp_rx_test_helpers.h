@@ -142,7 +142,8 @@ protected:
     test_frame = std::make_unique<pdcp_rx_test_frame>();
     metrics_agg =
         std::make_unique<pdcp_metrics_aggregator>(0, rb_id, timer_duration{100}, &metrics_notif, worker, false);
-    pdcp_rx = std::make_unique<pdcp_entity_rx>(0,
+    pdcp_rohc_factory = rohc::create_rohc_factory();
+    pdcp_rx           = std::make_unique<pdcp_entity_rx>(0,
                                                rb_id,
                                                config,
                                                *test_frame,
@@ -151,6 +152,7 @@ protected:
                                                worker,
                                                crypto_exec,
                                                nof_crypto_threads,
+                                               *pdcp_rohc_factory,
                                                *metrics_agg);
     pdcp_rx->set_status_handler(test_frame.get());
     pdcp_rx->set_feedback_handler(test_frame.get());
@@ -205,6 +207,7 @@ protected:
 
   security::sec_128_as_config              sec_cfg;
   std::unique_ptr<pdcp_metrics_aggregator> metrics_agg;
+  std::unique_ptr<rohc::rohc_factory>      pdcp_rohc_factory;
   std::unique_ptr<pdcp_entity_rx>          pdcp_rx;
   mock_pdcp_metrics_notifier               metrics_notif;
   pdcp_rx_lower_interface*                 pdcp_rx_lower = nullptr;

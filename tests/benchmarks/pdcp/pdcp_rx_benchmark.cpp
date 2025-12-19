@@ -179,6 +179,7 @@ static std::vector<byte_buffer_chain> gen_pdu_list(bench_params                 
 
   std::unique_ptr<pdcp_metrics_aggregator> metrics_agg =
       std::make_unique<pdcp_metrics_aggregator>(0, drb_id_t::drb1, timer_duration{1000}, nullptr, worker);
+  std::unique_ptr<rohc::rohc_factory> pdcp_rohc_factory = rohc::create_rohc_factory();
   // Create PDCP entities
   std::unique_ptr<pdcp_entity_tx> pdcp_tx = std::make_unique<pdcp_entity_tx>(0,
                                                                              drb_id_t::drb1,
@@ -189,6 +190,7 @@ static std::vector<byte_buffer_chain> gen_pdu_list(bench_params                 
                                                                              worker,
                                                                              worker,
                                                                              params.nof_crypto_threads,
+                                                                             *pdcp_rohc_factory,
                                                                              *metrics_agg);
   pdcp_tx->configure_security(sec_cfg, int_enabled, ciph_enabled);
 
@@ -256,6 +258,7 @@ static void benchmark_pdcp_rx(bench_params                  params,
 
   std::unique_ptr<pdcp_rx_test_frame>      frame;
   std::unique_ptr<pdcp_metrics_aggregator> metrics_agg;
+  std::unique_ptr<rohc::rohc_factory>      pdcp_rohc_factory;
   std::unique_ptr<pdcp_entity_rx>          pdcp_rx;
 
   uint64_t nof_sdus = params.nof_sdus;
@@ -286,7 +289,8 @@ static void benchmark_pdcp_rx(bench_params                  params,
     pdu_list    = gen_pdu_list(params, int_enabled, ciph_enabled, int_algo, ciph_algo);
     frame       = std::make_unique<pdcp_rx_test_frame>();
     metrics_agg = std::make_unique<pdcp_metrics_aggregator>(0, drb_id_t::drb1, timer_duration{1000}, nullptr, ul_exec);
-    pdcp_rx     = std::make_unique<pdcp_entity_rx>(0,
+    pdcp_rohc_factory = rohc::create_rohc_factory();
+    pdcp_rx           = std::make_unique<pdcp_entity_rx>(0,
                                                drb_id_t::drb1,
                                                config,
                                                *frame,
@@ -295,6 +299,7 @@ static void benchmark_pdcp_rx(bench_params                  params,
                                                ul_exec,
                                                crypto_exec,
                                                params.nof_crypto_threads,
+                                               *pdcp_rohc_factory,
                                                *metrics_agg);
     pdcp_rx->configure_security(sec_cfg, int_enabled, ciph_enabled);
   };

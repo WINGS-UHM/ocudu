@@ -22,7 +22,7 @@
 #include "ocudu/adt/ring_buffer.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_rx.h"
-#include "ocudu/rohc/rohc_decompressor.h"
+#include "ocudu/rohc/rohc_factory.h"
 #include "ocudu/security/security_engine.h"
 #include "ocudu/support/sdu_window.h"
 #include "ocudu/support/timers.h"
@@ -82,6 +82,7 @@ public:
                  task_executor&                  ue_ul_executor_,
                  task_executor&                  crypto_executor_,
                  uint32_t                        max_nof_crypto_workers_,
+                 const rohc::rohc_factory&       rohc_decomp_factory_,
                  pdcp_metrics_aggregator&        metrics_agg_);
 
   ~pdcp_entity_rx() override;
@@ -179,6 +180,7 @@ private:
   const pdcp_rx_config cfg;
   bool                 stopped = false;
 
+  const rohc::rohc_factory&                rohc_decomp_factory;
   std::unique_ptr<rohc::rohc_decompressor> rohc_decomp;
 
   using sec_engine_vec = std::vector<std::unique_ptr<security::security_engine_rx>>;

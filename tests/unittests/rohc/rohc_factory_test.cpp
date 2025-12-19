@@ -9,6 +9,9 @@
  */
 
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/rohc/rohc_compressor.h"
+#include "ocudu/rohc/rohc_config.h"
+#include "ocudu/rohc/rohc_decompressor.h"
 #include "ocudu/rohc/rohc_factory.h"
 #include "ocudu/rohc/rohc_support.h"
 #include <gtest/gtest.h>
@@ -44,7 +47,9 @@ protected:
 
 TEST_F(rohc_factory_test, create_rohc_compressor_when_supported)
 {
-  std::unique_ptr<rohc_compressor> comp = create_rohc_compressor(rohc_config{});
+  std::unique_ptr<rohc_factory> factory = create_rohc_factory();
+  ASSERT_NE(factory, nullptr);
+  std::unique_ptr<rohc_compressor> comp = factory->create_rohc_compressor(rohc_config{});
   if (rohc_supported()) {
     EXPECT_NE(comp, nullptr);
   } else {
@@ -54,7 +59,9 @@ TEST_F(rohc_factory_test, create_rohc_compressor_when_supported)
 
 TEST_F(rohc_factory_test, create_rohc_decompressor_when_supported)
 {
-  std::unique_ptr<rohc_decompressor> decomp = create_rohc_decompressor(rohc_config{});
+  std::unique_ptr<rohc_factory> factory = create_rohc_factory();
+  ASSERT_NE(factory, nullptr);
+  std::unique_ptr<rohc_decompressor> decomp = factory->create_rohc_decompressor(rohc_config{});
   if (rohc_supported()) {
     EXPECT_NE(decomp, nullptr);
   } else {

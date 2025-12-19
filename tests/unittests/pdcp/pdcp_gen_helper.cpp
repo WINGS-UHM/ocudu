@@ -149,9 +149,19 @@ int main(int argc, char** argv)
   std::unique_ptr<pdcp_metrics_aggregator> metrics_agg =
       std::make_unique<pdcp_metrics_aggregator>(0, drb_id_t::drb1, timer_duration{100}, nullptr, worker);
   // Create PDCP entities
-  std::unique_ptr<pdcp_entity_tx> pdcp_tx = std::make_unique<pdcp_entity_tx>(
-      0, drb_id_t::drb1, config, frame, frame, timer_factory{timers, worker}, worker, worker, 1, *metrics_agg);
-  pdcp_tx_state st = {args.count, args.count, 0, args.count, args.count};
+  std::unique_ptr<rohc::rohc_factory> pdcp_rohc_factory = rohc::create_rohc_factory();
+  std::unique_ptr<pdcp_entity_tx>     pdcp_tx           = std::make_unique<pdcp_entity_tx>(0,
+                                                                             drb_id_t::drb1,
+                                                                             config,
+                                                                             frame,
+                                                                             frame,
+                                                                             timer_factory{timers, worker},
+                                                                             worker,
+                                                                             worker,
+                                                                             1,
+                                                                             *pdcp_rohc_factory,
+                                                                             *metrics_agg);
+  pdcp_tx_state                       st                = {args.count, args.count, 0, args.count, args.count};
   pdcp_tx->set_state(st);
   pdcp_tx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 

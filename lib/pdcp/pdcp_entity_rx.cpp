@@ -11,6 +11,7 @@
 #include "pdcp_entity_rx.h"
 #include "../security/security_engine_impl.h"
 #include "ocudu/instrumentation/traces/up_traces.h"
+#include "ocudu/rohc/rohc_decompressor.h"
 #include "ocudu/rohc/rohc_factory.h"
 #include "ocudu/rohc/rohc_support.h"
 #include "ocudu/support/bit_encoding.h"
@@ -28,10 +29,12 @@ pdcp_entity_rx::pdcp_entity_rx(uint32_t                        ue_index,
                                task_executor&                  ue_ul_executor_,
                                task_executor&                  crypto_executor_,
                                uint32_t                        max_nof_crypto_workers_,
+                               const rohc::rohc_factory&       rohc_decomp_factory_,
                                pdcp_metrics_aggregator&        metrics_agg_) :
   pdcp_entity_tx_rx_base(rb_id_, cfg_.rb_type, cfg_.rlc_mode, cfg_.sn_size),
   logger("PDCP", {ue_index, rb_id_, "UL"}),
   cfg(cfg_),
+  rohc_decomp_factory(rohc_decomp_factory_),
   rx_window(logger, pdcp_window_size(pdcp_sn_size_to_uint(cfg.sn_size))),
   upper_dn(upper_dn_),
   upper_cn(upper_cn_),
@@ -617,7 +620,7 @@ byte_buffer pdcp_entity_rx::compile_status_report()
 void pdcp_entity_rx::init_header_decompression()
 {
   if (cfg.header_compression.has_value()) {
-    rohc_decomp = rohc::create_rohc_decompressor(*cfg.header_compression);
+    rohc_decomp = rohc_decomp_factory.create_rohc_decompressor(*cfg.header_compression);
     if (rohc_decomp == nullptr) {
       logger.log_error("Failed to create ROHC decompressor. {}", cfg);
     }

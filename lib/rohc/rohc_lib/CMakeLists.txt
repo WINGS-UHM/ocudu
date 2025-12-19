@@ -9,6 +9,7 @@
 set(SOURCES
   rohc_lib_compressor.cpp
   rohc_lib_decompressor.cpp
+  rohc_lib_factory.cpp
 )
 
 add_library(ocudu_rohc_lib STATIC ${SOURCES})

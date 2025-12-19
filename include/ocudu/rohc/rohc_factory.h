@@ -10,14 +10,26 @@
 
 #pragma once
 
-#include "ocudu/rohc/rohc_compressor.h"
-#include "ocudu/rohc/rohc_config.h"
-#include "ocudu/rohc/rohc_decompressor.h"
 #include <memory>
 
 namespace ocudu::rohc {
 
-std::unique_ptr<rohc_compressor>   create_rohc_compressor(const rohc_config& cfg);
-std::unique_ptr<rohc_decompressor> create_rohc_decompressor(const rohc_config& cfg);
+class rohc_compressor;
+class rohc_decompressor;
+struct rohc_config;
+
+class rohc_factory
+{
+public:
+  virtual ~rohc_factory()             = default;
+  rohc_factory()                      = default;
+  rohc_factory(const rohc_factory&)   = delete;
+  void operator=(const rohc_factory&) = delete;
+
+  virtual std::unique_ptr<rohc_compressor>   create_rohc_compressor(const rohc_config& cfg) const   = 0;
+  virtual std::unique_ptr<rohc_decompressor> create_rohc_decompressor(const rohc_config& cfg) const = 0;
+};
+
+std::unique_ptr<rohc_factory> create_rohc_factory();
 
 } // namespace ocudu::rohc

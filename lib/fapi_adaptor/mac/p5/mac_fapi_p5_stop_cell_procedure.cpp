@@ -10,7 +10,7 @@
 
 #include "mac_fapi_p5_stop_cell_procedure.h"
 #include "p5_transaction_outcome_manager.h"
-#include "ocudu/fapi/p5/config_message_gateway.h"
+#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/support/async/execute_on_blocking.h"
 
 using namespace ocudu;
@@ -22,7 +22,7 @@ mac_fapi_stop_cell_procedure::mac_fapi_stop_cell_procedure(
   timeout(timeout_),
   stop_req(),
   logger(dependencies.logger),
-  config_msg_gateway(dependencies.config_msg_gateway),
+  p5_gateway(dependencies.p5_gateway),
   transaction_manager(dependencies.transaction_manager),
   mac_ctrl_executor(dependencies.mac_ctrl_executor),
   fapi_ctrl_executor(dependencies.fapi_ctrl_executor),
@@ -41,7 +41,7 @@ void mac_fapi_stop_cell_procedure::operator()(coro_context<async_task<bool>>& ct
   transaction_sink.subscribe_to(transaction_manager.stop_response_outcome, timeout);
 
   // Send the STOP.request.
-  config_msg_gateway.stop_request(stop_req);
+  p5_gateway.send_stop_request(stop_req);
 
   // Wait for transaction to finish.
   CORO_AWAIT(transaction_sink);

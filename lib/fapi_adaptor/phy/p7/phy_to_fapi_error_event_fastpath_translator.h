@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
 #include "ocudu/phy/upper/upper_phy_error_notifier.h"
 
 namespace ocudu {
@@ -35,14 +35,14 @@ public:
   void on_late_prach_message(slot_point prach_msg_slot) override;
 
   /// Configures the FAPI error-specific notifier to the given one.
-  void set_error_message_notifier(fapi::error_message_notifier& fapi_error_notifier)
+  void set_error_indication_notifier(fapi::error_indication_notifier& fapi_error_notifier)
   {
     error_notifier = &fapi_error_notifier;
   }
 
 private:
   /// Error indication notifier.
-  fapi::error_message_notifier* error_notifier;
+  fapi::error_indication_notifier* error_notifier;
 };
 
 } // namespace fapi_adaptor

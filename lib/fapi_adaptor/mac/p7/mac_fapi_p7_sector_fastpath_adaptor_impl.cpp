@@ -23,11 +23,11 @@ generate_translator_config(const mac_fapi_p7_sector_fastpath_adaptor_config& con
 static mac_to_fapi_fastpath_translator_dependencies
 generate_translator_dependencies(mac_fapi_p7_sector_fastpath_adaptor_dependencies dependencies)
 {
-  return {.logger            = ocudulog::fetch_basic_logger("FAPI"),
-          .msg_gw            = dependencies.gateway,
-          .last_msg_notifier = dependencies.last_msg_notifier,
-          .pm_mapper         = std::move(dependencies.pm_mapper),
-          .part2_mapper      = std::move(dependencies.part2_mapper)};
+  return {.logger               = ocudulog::fetch_basic_logger("FAPI"),
+          .p7_gateway           = dependencies.p7_gateway,
+          .p7_last_req_notifier = dependencies.p7_last_req_notifier,
+          .pm_mapper            = std::move(dependencies.pm_mapper),
+          .part2_mapper         = std::move(dependencies.part2_mapper)};
 }
 
 mac_fapi_p7_sector_fastpath_adaptor_impl::mac_fapi_p7_sector_fastpath_adaptor_impl(
@@ -41,17 +41,17 @@ mac_fapi_p7_sector_fastpath_adaptor_impl::mac_fapi_p7_sector_fastpath_adaptor_im
 {
 }
 
-fapi::slot_time_message_notifier& mac_fapi_p7_sector_fastpath_adaptor_impl::get_slot_time_message_notifier()
+fapi::p7_slot_indication_notifier& mac_fapi_p7_sector_fastpath_adaptor_impl::get_p7_slot_indication_notifier()
 {
   return fapi_time_translator;
 }
 
-fapi::error_message_notifier& mac_fapi_p7_sector_fastpath_adaptor_impl::get_error_message_notifier()
+fapi::error_indication_notifier& mac_fapi_p7_sector_fastpath_adaptor_impl::get_error_indication_notifier()
 {
   return fapi_error_translator;
 }
 
-fapi::slot_data_message_notifier& mac_fapi_p7_sector_fastpath_adaptor_impl::get_slot_data_message_notifier()
+fapi::p7_indications_notifier& mac_fapi_p7_sector_fastpath_adaptor_impl::get_p7_indications_notifier()
 {
   return fapi_data_translator;
 }

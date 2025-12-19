@@ -43,7 +43,7 @@ struct rach_indication_pdu {
 };
 
 /// RACH indication message
-struct rach_indication_message : public base_message {
+struct rach_indication : public base_message {
   /// Maximum number of supported measurement PDUs in this message.
   static constexpr unsigned MAX_NUM_RACH_PDUS = 64;
 

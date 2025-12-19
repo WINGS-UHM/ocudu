@@ -16,8 +16,8 @@
 namespace ocudu {
 
 namespace fapi {
-class slot_last_message_notifier;
-class slot_message_gateway;
+class p7_last_request_notifier;
+class p7_requests_gateway;
 struct cell_configuration;
 } // namespace fapi
 
@@ -32,10 +32,10 @@ public:
   virtual ~mac_fapi_p7_sector_adaptor_factory() = default;
 
   /// Creates a MAC-FAPI P7 sector adaptor.
-  virtual std::unique_ptr<mac_fapi_p7_sector_adaptor> create(const fapi::cell_configuration&   fapi_cfg,
-                                                             fapi::slot_message_gateway&       gateway,
-                                                             fapi::slot_last_message_notifier& last_msg_notifier,
-                                                             ru_controller&                    ru_ctrl) = 0;
+  virtual std::unique_ptr<mac_fapi_p7_sector_adaptor> create(const fapi::cell_configuration& fapi_cfg,
+                                                             fapi::p7_requests_gateway&      p7_gateway,
+                                                             fapi::p7_last_request_notifier& p7_last_req_notifier,
+                                                             ru_controller&                  ru_ctrl) = 0;
 };
 
 } // namespace fapi_adaptor

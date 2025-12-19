@@ -9,16 +9,16 @@
  */
 
 #include "phy_to_fapi_error_event_fastpath_translator.h"
-#include "ocudu/fapi/common/error_indication_message_builder.h"
+#include "ocudu/fapi/common/error_indication_builder.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;
 
 namespace {
-class error_notifier_dummy : public fapi::error_message_notifier
+class error_notifier_dummy : public fapi::error_indication_notifier
 {
 public:
-  void on_error_indication(const fapi::error_indication_message& msg) override {}
+  void on_error_indication(const fapi::error_indication& msg) override {}
 };
 
 } // namespace

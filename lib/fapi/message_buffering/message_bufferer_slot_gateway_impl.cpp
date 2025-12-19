@@ -14,14 +14,14 @@
 using namespace ocudu;
 using namespace fapi;
 
-message_bufferer_slot_gateway_impl::message_bufferer_slot_gateway_impl(unsigned              sector_id_,
-                                                                       unsigned              l2_nof_slots_ahead_,
-                                                                       subcarrier_spacing    scs_,
-                                                                       slot_message_gateway& gateway_) :
+message_bufferer_slot_gateway_impl::message_bufferer_slot_gateway_impl(unsigned             sector_id_,
+                                                                       unsigned             l2_nof_slots_ahead_,
+                                                                       subcarrier_spacing   scs_,
+                                                                       p7_requests_gateway& p7_gateway_) :
   sector_id(sector_id_),
   l2_nof_slots_ahead(l2_nof_slots_ahead_),
   scs(scs_),
-  gateway(gateway_),
+  p7_gateway(p7_gateway_),
   logger(ocudulog::fetch_basic_logger("FAPI"))
 {
   // Pool size is 1 unit bigger than the number of slots the L2 is ahead of the L1, in case that an incoming message
@@ -108,51 +108,47 @@ static void send_message(slot_point              slot,
 
 void message_bufferer_slot_gateway_impl::forward_cached_messages(slot_point slot)
 {
-  send_message<dl_tti_request_message>(
-      slot, scs, sector_id, logger, dl_tti_pool, [this](const dl_tti_request_message& msg) {
-        gateway.dl_tti_request(msg);
-      });
+  send_message<dl_tti_request>(slot, scs, sector_id, logger, dl_tti_pool, [this](const dl_tti_request& msg) {
+    p7_gateway.send_dl_tti_request(msg);
+  });
 
-  send_message<ul_tti_request_message>(
-      slot, scs, sector_id, logger, ul_tti_pool, [this](const ul_tti_request_message& msg) {
-        gateway.ul_tti_request(msg);
-      });
+  send_message<ul_tti_request>(slot, scs, sector_id, logger, ul_tti_pool, [this](const ul_tti_request& msg) {
+    p7_gateway.send_ul_tti_request(msg);
+  });
 
-  send_message<ul_dci_request_message>(
-      slot, scs, sector_id, logger, ul_dci_pool, [this](const ul_dci_request_message& msg) {
-        gateway.ul_dci_request(msg);
-      });
+  send_message<ul_dci_request>(slot, scs, sector_id, logger, ul_dci_pool, [this](const ul_dci_request& msg) {
+    p7_gateway.send_ul_dci_request(msg);
+  });
 
-  send_message<tx_data_request_message>(
-      slot, scs, sector_id, logger, tx_data_pool, [this](const tx_data_request_message& msg) {
-        gateway.tx_data_request(msg);
-      });
+  send_message<tx_data_request>(slot, scs, sector_id, logger, tx_data_pool, [this](const tx_data_request& msg) {
+    p7_gateway.send_tx_data_request(msg);
+  });
 }
 
-void message_bufferer_slot_gateway_impl::handle_dl_tti_request(const dl_tti_request_message& msg)
+void message_bufferer_slot_gateway_impl::handle_dl_tti_request(const dl_tti_request& msg)
 {
-  handle_message(msg,
-                 span<std::optional<dl_tti_request_message>>(dl_tti_pool),
-                 [this](const dl_tti_request_message& message) { gateway.dl_tti_request(message); });
+  handle_message(msg, span<std::optional<dl_tti_request>>(dl_tti_pool), [this](const dl_tti_request& message) {
+    p7_gateway.send_dl_tti_request(message);
+  });
 }
 
-void message_bufferer_slot_gateway_impl::handle_ul_tti_request(const ul_tti_request_message& msg)
+void message_bufferer_slot_gateway_impl::handle_ul_tti_request(const ul_tti_request& msg)
 {
-  handle_message(msg,
-                 span<std::optional<ul_tti_request_message>>(ul_tti_pool),
-                 [this](const ul_tti_request_message& message) { gateway.ul_tti_request(message); });
+  handle_message(msg, span<std::optional<ul_tti_request>>(ul_tti_pool), [this](const ul_tti_request& message) {
+    p7_gateway.send_ul_tti_request(message);
+  });
 }
 
-void message_bufferer_slot_gateway_impl::handle_ul_dci_request(const ul_dci_request_message& msg)
+void message_bufferer_slot_gateway_impl::handle_ul_dci_request(const ul_dci_request& msg)
 {
-  handle_message(msg,
-                 span<std::optional<ul_dci_request_message>>(ul_dci_pool),
-                 [this](const ul_dci_request_message& message) { gateway.ul_dci_request(message); });
+  handle_message(msg, span<std::optional<ul_dci_request>>(ul_dci_pool), [this](const ul_dci_request& message) {
+    p7_gateway.send_ul_dci_request(message);
+  });
 }
 
-void message_bufferer_slot_gateway_impl::handle_tx_data_request(const tx_data_request_message& msg)
+void message_bufferer_slot_gateway_impl::handle_tx_data_request(const tx_data_request& msg)
 {
-  handle_message(msg,
-                 span<std::optional<tx_data_request_message>>(tx_data_pool),
-                 [this](const tx_data_request_message& message) { gateway.tx_data_request(message); });
+  handle_message(msg, span<std::optional<tx_data_request>>(tx_data_pool), [this](const tx_data_request& message) {
+    p7_gateway.send_tx_data_request(message);
+  });
 }

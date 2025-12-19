@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/p7/slot_time_message_notifier.h"
+#include "ocudu/fapi/p7/p7_slot_indication_notifier.h"
 #include "ocudu/phy/upper/upper_phy_timing_handler.h"
 #include "ocudu/phy/upper/upper_phy_timing_notifier.h"
 
@@ -34,17 +34,17 @@ public:
   // See interface for documentation.
   void on_tti_boundary(const upper_phy_timing_context& context) override;
 
-  /// \brief Configures the FAPI slot-based, time-specific notifier to the given one.
-  void set_slot_time_message_notifier(fapi::slot_time_message_notifier& fapi_time_slot_notifier)
+  /// \brief Configures the FAPI P7 slot indication notifier to the given one.
+  void set_p7_slot_indication_notifier(fapi::p7_slot_indication_notifier& notifier)
   {
-    time_notifier = &fapi_time_slot_notifier;
+    slot_indication_notifier = &notifier;
   }
 
 private:
   /// FAPI to PHY data translator.
   fapi_to_phy_fastpath_translator& translator;
-  /// FAPI slot-based, time-specific message notifier.
-  fapi::slot_time_message_notifier* time_notifier;
+  /// FAPI slot-based, slot indication notifier.
+  fapi::p7_slot_indication_notifier* slot_indication_notifier;
 };
 
 } // namespace fapi_adaptor

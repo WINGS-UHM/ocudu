@@ -20,7 +20,7 @@ mac_fapi_p5_fastpath_cell_operation_controller_impl::mac_fapi_p5_fastpath_cell_o
     const mac_fapi_p5_fastpath_cell_operation_controller_impl_dependencies& dependencies) :
   cell_cfg(config.cell_cfg),
   logger(dependencies.logger),
-  config_msg_gateway(dependencies.config_msg_gateway),
+  p5_gateway(dependencies.p5_gateway),
   transaction_manager(dependencies.transaction_manager),
   timers(dependencies.timers),
   fapi_ctrl_executor(dependencies.fapi_ctrl_executor),
@@ -32,7 +32,7 @@ async_task<bool> mac_fapi_p5_fastpath_cell_operation_controller_impl::start()
 {
   mac_fapi_start_cell_procedure_config       config       = {.cell_cfg = cell_cfg, .timeout = TIMEOUT_IN_MILLISECONDS};
   mac_fapi_start_cell_procedure_dependencies dependencies = {.logger              = logger,
-                                                             .config_msg_gateway  = config_msg_gateway,
+                                                             .p5_gateway          = p5_gateway,
                                                              .transaction_manager = transaction_manager,
                                                              .mac_ctrl_executor   = mac_ctrl_executor,
                                                              .fapi_ctrl_executor  = fapi_ctrl_executor,
@@ -43,7 +43,7 @@ async_task<bool> mac_fapi_p5_fastpath_cell_operation_controller_impl::start()
 async_task<bool> mac_fapi_p5_fastpath_cell_operation_controller_impl::stop()
 {
   mac_fapi_stop_cell_procedure_dependencies dependencies = {.logger              = logger,
-                                                            .config_msg_gateway  = config_msg_gateway,
+                                                            .p5_gateway          = p5_gateway,
                                                             .transaction_manager = transaction_manager,
                                                             .mac_ctrl_executor   = mac_ctrl_executor,
                                                             .fapi_ctrl_executor  = fapi_ctrl_executor,

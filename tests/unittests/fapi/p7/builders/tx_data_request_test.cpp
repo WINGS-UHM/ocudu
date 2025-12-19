@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/tx_data_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/tx_data_request_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -16,8 +16,8 @@ using namespace fapi;
 
 TEST(tx_data_request_builder, valid_basic_parameters_passes)
 {
-  tx_data_request_message         msg;
-  tx_data_request_message_builder builder(msg);
+  tx_data_request         msg;
+  tx_data_request_builder builder(msg);
 
   unsigned sfn  = 100;
   unsigned slot = 20;

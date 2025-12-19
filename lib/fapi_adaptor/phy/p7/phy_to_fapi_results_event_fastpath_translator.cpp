@@ -9,11 +9,11 @@
  */
 
 #include "phy_to_fapi_results_event_fastpath_translator.h"
-#include "ocudu/fapi/p7/builders/crc_indication_message_builder.h"
-#include "ocudu/fapi/p7/builders/rach_indication_message_builder.h"
-#include "ocudu/fapi/p7/builders/rx_data_indication_message_builder.h"
-#include "ocudu/fapi/p7/builders/srs_indication_message_builder.h"
-#include "ocudu/fapi/p7/builders/uci_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/crc_indication_builder.h"
+#include "ocudu/fapi/p7/builders/rach_indication_builder.h"
+#include "ocudu/fapi/p7/builders/rx_data_indication_builder.h"
+#include "ocudu/fapi/p7/builders/srs_indication_builder.h"
+#include "ocudu/fapi/p7/builders/uci_indication_builder.h"
 #include "ocudu/fapi/p7/validators/crc_indication_message_validator.h"
 #include "ocudu/fapi/p7/validators/rach_indication_message_validator.h"
 #include "ocudu/fapi/p7/validators/rx_data_indication_message_validator.h"
@@ -28,21 +28,22 @@ using namespace fapi_adaptor;
 
 namespace {
 
-class slot_data_message_notifier_dummy : public fapi::slot_data_message_notifier
+class p7_indications_notifier_dummy : public fapi::p7_indications_notifier
 {
 public:
-  void on_rx_data_indication(const fapi::rx_data_indication_message& msg) override {}
-  void on_crc_indication(const fapi::crc_indication_message& msg) override {}
-  void on_uci_indication(const fapi::uci_indication_message& msg) override {}
-  void on_srs_indication(const fapi::srs_indication_message& msg) override {}
-  void on_rach_indication(const fapi::rach_indication_message& msg) override {}
+  void on_rx_data_indication(const fapi::rx_data_indication& msg) override {}
+  void on_crc_indication(const fapi::crc_indication& msg) override {}
+  void on_uci_indication(const fapi::uci_indication& msg) override {}
+  void on_srs_indication(const fapi::srs_indication& msg) override {}
+  void on_rach_indication(const fapi::rach_indication& msg) override {}
 };
 
 } // namespace
 
-/// This dummy object is passed to the constructor of the PHY-to-FAPI data event translator as a placeholder for the
-/// actual data-specific notifier, which will be later set up through the \ref set_slot_data_message_notifier() method.
-static slot_data_message_notifier_dummy dummy_data_notifier;
+/// This dummy object is passed to the constructor of the PHY-to-FAPI indications event translator as a placeholder for
+/// the actual data-specific notifier, which will be later set up through the \ref set_slot_data_message_notifier()
+/// method.
+static p7_indications_notifier_dummy dummy_p7_notifier;
 
 phy_to_fapi_results_event_fastpath_translator::phy_to_fapi_results_event_fastpath_translator(
     unsigned                sector_id_,
@@ -51,7 +52,7 @@ phy_to_fapi_results_event_fastpath_translator::phy_to_fapi_results_event_fastpat
   sector_id(sector_id_),
   dBFS_calibration_value(dBFS_calibration_value_),
   logger(logger_),
-  data_notifier(&dummy_data_notifier)
+  p7_notifier(&dummy_p7_notifier)
 {
 }
 
@@ -81,8 +82,8 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
     return;
   }
 
-  fapi::rach_indication_message         msg;
-  fapi::rach_indication_message_builder builder(msg);
+  fapi::rach_indication         msg;
+  fapi::rach_indication_builder builder(msg);
 
   builder.set_basic_parameters(slot.sfn(), slot.slot_index());
 
@@ -133,7 +134,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
     return;
   }
 
-  data_notifier->on_rach_indication(msg);
+  p7_notifier->on_rach_indication(msg);
 }
 
 void phy_to_fapi_results_event_fastpath_translator::on_new_pusch_results_control(const ul_pusch_results_control& result)
@@ -191,8 +192,8 @@ static unsigned get_uci_payload_length(const ul_pusch_results_control& result)
 
 void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(const ul_pusch_results_control& result)
 {
-  fapi::uci_indication_message         msg;
-  fapi::uci_indication_message_builder builder(msg);
+  fapi::uci_indication         msg;
+  fapi::uci_indication_builder builder(msg);
 
   builder.set_basic_parameters(result.slot.sfn(), result.slot.slot_index());
 
@@ -259,13 +260,13 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
     return;
   }
 
-  data_notifier->on_uci_indication(msg);
+  p7_notifier->on_uci_indication(msg);
 }
 
 void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const ul_pusch_results_data& result)
 {
-  fapi::crc_indication_message         msg;
-  fapi::crc_indication_message_builder builder(msg);
+  fapi::crc_indication         msg;
+  fapi::crc_indication_builder builder(msg);
 
   builder.set_basic_parameters(result.slot.sfn(), result.slot.slot_index());
 
@@ -322,13 +323,13 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
     return;
   }
 
-  data_notifier->on_crc_indication(msg);
+  p7_notifier->on_crc_indication(msg);
 }
 
 void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(const ul_pusch_results_data& result)
 {
-  fapi::rx_data_indication_message         msg;
-  fapi::rx_data_indication_message_builder builder(msg);
+  fapi::rx_data_indication         msg;
+  fapi::rx_data_indication_builder builder(msg);
 
   // Uplink CP/UP plane separation is not supported for now.
   unsigned control_length = 0;
@@ -344,7 +345,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
     return;
   }
 
-  data_notifier->on_rx_data_indication(msg);
+  p7_notifier->on_rx_data_indication(msg);
 }
 
 /// Fills the SR parameters for PUCCH Format 0 or Format 1 using the given builder and result.
@@ -388,7 +389,7 @@ static void fill_format_0_1_harq(fapi::uci_pucch_pdu_format_0_1_builder& builder
 }
 
 /// Adds a PUCCH Format 0 or Format 1 PDU to the given builder using the data provided by result.
-static void add_format_0_1_pucch_pdu(fapi::uci_indication_message_builder& builder, const ul_pucch_results& result)
+static void add_format_0_1_pucch_pdu(fapi::uci_indication_builder& builder, const ul_pucch_results& result)
 {
   // Do not use the handle for now.
   static const unsigned                  handle  = 0;
@@ -495,7 +496,7 @@ static void fill_format_2_3_4_csi_part1(fapi::uci_pucch_pdu_format_2_3_4_builder
 }
 
 /// Adds a PUCCH Format 2, Format 3 or Format 4 PDU to the given builder using the data provided by result.
-static void add_format_2_3_4_pucch_pdu(fapi::uci_indication_message_builder& builder, const ul_pucch_results& result)
+static void add_format_2_3_4_pucch_pdu(fapi::uci_indication_builder& builder, const ul_pucch_results& result)
 {
   // Do not use the handle for now.
   static const unsigned                    handle = 0;
@@ -535,8 +536,8 @@ static void add_format_2_3_4_pucch_pdu(fapi::uci_indication_message_builder& bui
 
 void phy_to_fapi_results_event_fastpath_translator::on_new_pucch_results(const ul_pucch_results& result)
 {
-  fapi::uci_indication_message         msg;
-  fapi::uci_indication_message_builder builder(msg);
+  fapi::uci_indication         msg;
+  fapi::uci_indication_builder builder(msg);
 
   const ul_pucch_context& context = result.context;
   builder.set_basic_parameters(context.slot.sfn(), context.slot.slot_index());
@@ -561,13 +562,13 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_pucch_results(const u
     return;
   }
 
-  data_notifier->on_uci_indication(msg);
+  p7_notifier->on_uci_indication(msg);
 }
 
 void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_srs_results& result)
 {
-  fapi::srs_indication_message         msg;
-  fapi::srs_indication_message_builder builder(msg);
+  fapi::srs_indication         msg;
+  fapi::srs_indication_builder builder(msg);
 
   const ul_srs_context& context = result.context;
   builder.set_basic_parameters(context.slot.sfn(), context.slot.slot_index());
@@ -607,5 +608,5 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
     return;
   }
 
-  data_notifier->on_srs_indication(msg);
+  p7_notifier->on_srs_indication(msg);
 }

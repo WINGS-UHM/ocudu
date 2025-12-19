@@ -17,8 +17,8 @@ using namespace fapi;
 using namespace unittest;
 
 class validate_srs_indication_field
-  : public validate_fapi_message<srs_indication_message>,
-    public testing::TestWithParam<std::tuple<pdu_field_data<srs_indication_message>, test_case_data>>
+  : public validate_fapi_message<srs_indication>,
+    public testing::TestWithParam<std::tuple<pdu_field_data<srs_indication>, test_case_data>>
 {};
 
 TEST_P(validate_srs_indication_field, WithValue)
@@ -34,9 +34,9 @@ TEST_P(validate_srs_indication_field, WithValue)
 
 INSTANTIATE_TEST_SUITE_P(sfn,
                          validate_srs_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<srs_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<srs_indication>{
                                               "sfn",
-                                              [](srs_indication_message& pdu, int value) { pdu.sfn = value; }}),
+                                              [](srs_indication& pdu, int value) { pdu.sfn = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{512, true},
                                                           test_case_data{1023, true},
@@ -44,9 +44,9 @@ INSTANTIATE_TEST_SUITE_P(sfn,
 
 INSTANTIATE_TEST_SUITE_P(slot,
                          validate_srs_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<srs_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<srs_indication>{
                                               "slot",
-                                              [](srs_indication_message& pdu, int value) { pdu.slot = value; }}),
+                                              [](srs_indication& pdu, int value) { pdu.slot = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{80, true},
                                                           test_case_data{159, true},
@@ -54,9 +54,9 @@ INSTANTIATE_TEST_SUITE_P(slot,
 
 INSTANTIATE_TEST_SUITE_P(RNTI,
                          validate_srs_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<srs_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<srs_indication>{
                                               "RNTI",
-                                              [](srs_indication_message& pdu, int value) {
+                                              [](srs_indication& pdu, int value) {
                                                 pdu.pdus.back().rnti = to_rnti(value);
                                               }}),
                                           testing::Values(test_case_data{0, false},
@@ -67,11 +67,9 @@ INSTANTIATE_TEST_SUITE_P(RNTI,
 INSTANTIATE_TEST_SUITE_P(
     ta,
     validate_srs_indication_field,
-    testing::Combine(testing::Values(pdu_field_data<srs_indication_message>{"Timing advance offset",
-                                                                            [](srs_indication_message& msg, int value) {
-                                                                              msg.pdus.back().timing_advance_offset =
-                                                                                  value;
-                                                                            }}),
+    testing::Combine(testing::Values(pdu_field_data<srs_indication>{
+                         "Timing advance offset",
+                         [](srs_indication& msg, int value) { msg.pdus.back().timing_advance_offset = value; }}),
                      testing::Values(test_case_data{0, true},
                                      test_case_data{32, true},
                                      test_case_data{63, true},
@@ -80,9 +78,9 @@ INSTANTIATE_TEST_SUITE_P(
                                      test_case_data{std::numeric_limits<uint16_t>::max(), true})));
 INSTANTIATE_TEST_SUITE_P(ta_ns,
                          validate_srs_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<srs_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<srs_indication>{
                                               "Timing advance offset in nanoseconds",
-                                              [](srs_indication_message& msg, int value) {
+                                              [](srs_indication& msg, int value) {
                                                 msg.pdus.back().timing_advance_offset_ns = value;
                                               }}),
                                           testing::Values(test_case_data{static_cast<unsigned>(int16_t(-10000)), true},

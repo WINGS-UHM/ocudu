@@ -37,7 +37,7 @@ struct crc_ind_pdu {
 };
 
 /// CRC indication message.
-struct crc_indication_message : public base_message {
+struct crc_indication : public base_message {
   /// Maximum number of supported CRCs in this message.
   static constexpr unsigned MAX_NUM_CRCS_PER_SLOT = 32;
 

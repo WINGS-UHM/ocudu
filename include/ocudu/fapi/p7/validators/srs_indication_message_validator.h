@@ -16,11 +16,11 @@
 namespace ocudu {
 namespace fapi {
 
-struct srs_indication_message;
+struct srs_indication;
 
 /// Validates the given SRS.indication message and returns a report for the result of the validation. The validation
 /// checks every property of the message, as per SCF-222 v4.0 Section 3.4.10.
-error_type<validator_report> validate_srs_indication(const srs_indication_message& msg);
+error_type<validator_report> validate_srs_indication(const srs_indication& msg);
 
 } // namespace fapi
 } // namespace ocudu

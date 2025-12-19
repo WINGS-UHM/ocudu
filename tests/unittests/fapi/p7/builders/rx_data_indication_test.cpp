@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/rx_data_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/rx_data_indication_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -20,8 +20,8 @@ TEST(rx_data_indication_builder, valid_basic_parameters_passes)
   unsigned slot           = 40;
   unsigned control_length = 119;
 
-  rx_data_indication_message         msg;
-  rx_data_indication_message_builder builder(msg);
+  rx_data_indication         msg;
+  rx_data_indication_builder builder(msg);
 
   builder.set_basic_parameters(sfn, slot, control_length);
 
@@ -39,8 +39,8 @@ TEST(rx_data_indication_builder, add_custom_pdu_passes)
   std::optional<unsigned> rapid;
   unsigned                harq = 14;
 
-  rx_data_indication_message         msg;
-  rx_data_indication_message_builder builder(msg);
+  rx_data_indication         msg;
+  rx_data_indication_builder builder(msg);
 
   builder.add_custom_pdu(handle, rnti, rapid, harq, {data});
 

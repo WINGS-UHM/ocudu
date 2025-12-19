@@ -16,22 +16,22 @@ using namespace fapi_adaptor;
 phy_fapi_p5_sector_fastpath_adaptor_impl::phy_fapi_p5_sector_fastpath_adaptor_impl(
     const phy_fapi_p5_sector_fastpath_adaptor_config&       config,
     const phy_fapi_p5_sector_fastpath_adaptor_dependencies& dependencies) :
-  gateway(config, dependencies)
+  p5_handler(config, dependencies)
 {
 }
 
-fapi::config_message_gateway& phy_fapi_p5_sector_fastpath_adaptor_impl::get_config_message_gateway()
+fapi::p5_requests_gateway& phy_fapi_p5_sector_fastpath_adaptor_impl::get_p5_requests_gateway()
 {
-  return gateway;
+  return p5_handler;
 }
 
-void phy_fapi_p5_sector_fastpath_adaptor_impl::set_config_message_notifier(
-    fapi::config_message_notifier& config_notifier)
+void phy_fapi_p5_sector_fastpath_adaptor_impl::set_p5_responses_notifier(fapi::p5_responses_notifier& config_notifier)
 {
-  gateway.set_config_message_notifier(config_notifier);
+  p5_handler.set_p5_responses_notifier(config_notifier);
 }
 
-void phy_fapi_p5_sector_fastpath_adaptor_impl::set_error_message_notifier(fapi::error_message_notifier& err_notifier)
+void phy_fapi_p5_sector_fastpath_adaptor_impl::set_error_indication_notifier(
+    fapi::error_indication_notifier& err_notifier)
 {
-  gateway.set_error_message_notifier(err_notifier);
+  p5_handler.set_error_indication_notifier(err_notifier);
 }

@@ -1,0 +1,58 @@
+/*
+ *
+ * Copyright 2021-2025 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+namespace ocudu {
+namespace fapi {
+
+struct crc_indication;
+struct dl_tti_response;
+struct rach_indication;
+struct rx_data_indication;
+struct srs_indication;
+struct uci_indication;
+
+/// \brief Slot-based, data-specific message notifier interface.
+///
+/// This interface notifies the reception of slot-based, P7 FAPI indications from the underlying PHY.
+class p7_indications_notifier
+{
+public:
+  virtual ~p7_indications_notifier() = default;
+
+  /// \brief Notifies the reception of a RX data indication message.
+  ///
+  /// \param[in] msg Message contents.
+  virtual void on_rx_data_indication(const rx_data_indication& msg) = 0;
+
+  /// \brief Notifies the reception of a CRC indication message.
+  ///
+  /// \param[in] msg Message contents.
+  virtual void on_crc_indication(const crc_indication& msg) = 0;
+
+  /// \brief Notifies the reception of a UCI indication message.
+  ///
+  /// \param[in] msg Message contents.
+  virtual void on_uci_indication(const uci_indication& msg) = 0;
+
+  /// \brief Notifies the reception of a SRS indication message.
+  ///
+  /// \param[in] msg Message contents.
+  virtual void on_srs_indication(const srs_indication& msg) = 0;
+
+  /// \brief Notifies the reception of a RACH indication message.
+  ///
+  /// \param[in] msg Message contents.
+  virtual void on_rach_indication(const rach_indication& msg) = 0;
+};
+
+} // namespace fapi
+} // namespace ocudu

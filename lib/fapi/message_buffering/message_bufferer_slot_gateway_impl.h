@@ -15,7 +15,7 @@
 #include "ocudu/fapi/p7/messages/tx_data_request.h"
 #include "ocudu/fapi/p7/messages/ul_dci_request.h"
 #include "ocudu/fapi/p7/messages/ul_tti_request.h"
-#include "ocudu/fapi/p7/slot_message_gateway.h"
+#include "ocudu/fapi/p7/p7_requests_gateway.h"
 #include "ocudu/ocudulog/logger.h"
 #include <atomic>
 
@@ -40,22 +40,22 @@ constexpr unsigned MAX_NUM_BUFFERED_MESSAGES = 8U;
 class message_bufferer_slot_gateway_impl
 {
 public:
-  message_bufferer_slot_gateway_impl(unsigned              sector_id_,
-                                     unsigned              l2_nof_slots_ahead_,
-                                     subcarrier_spacing    scs_,
-                                     slot_message_gateway& gateway_);
+  message_bufferer_slot_gateway_impl(unsigned             sector_id_,
+                                     unsigned             l2_nof_slots_ahead_,
+                                     subcarrier_spacing   scs_,
+                                     p7_requests_gateway& p7_gateway_);
 
   /// Handles a DL_TTI.request message.
-  void handle_dl_tti_request(const dl_tti_request_message& msg);
+  void handle_dl_tti_request(const dl_tti_request& msg);
 
   /// Handles a UL_TTI.request message.
-  void handle_ul_tti_request(const ul_tti_request_message& msg);
+  void handle_ul_tti_request(const ul_tti_request& msg);
 
   /// Handles a UL_DCI.request message.
-  void handle_ul_dci_request(const ul_dci_request_message& msg);
+  void handle_ul_dci_request(const ul_dci_request& msg);
 
   /// Handles a TX_Data.request message.
-  void handle_tx_data_request(const tx_data_request_message& msg);
+  void handle_tx_data_request(const tx_data_request& msg);
 
   /// Updates the current slot with the given slot.
   void update_current_slot(slot_point slot)
@@ -87,16 +87,16 @@ private:
   void handle_message(T&& msg, P pool, Function func);
 
 private:
-  const unsigned                                                                   sector_id;
-  const unsigned                                                                   l2_nof_slots_ahead;
-  const subcarrier_spacing                                                         scs;
-  slot_message_gateway&                                                            gateway;
-  ocudulog::basic_logger&                                                          logger;
-  std::atomic<uint32_t>                                                            current_slot_count_val;
-  static_vector<std::optional<dl_tti_request_message>, MAX_NUM_BUFFERED_MESSAGES>  dl_tti_pool;
-  static_vector<std::optional<ul_tti_request_message>, MAX_NUM_BUFFERED_MESSAGES>  ul_tti_pool;
-  static_vector<std::optional<ul_dci_request_message>, MAX_NUM_BUFFERED_MESSAGES>  ul_dci_pool;
-  static_vector<std::optional<tx_data_request_message>, MAX_NUM_BUFFERED_MESSAGES> tx_data_pool;
+  const unsigned                                                           sector_id;
+  const unsigned                                                           l2_nof_slots_ahead;
+  const subcarrier_spacing                                                 scs;
+  p7_requests_gateway&                                                     p7_gateway;
+  ocudulog::basic_logger&                                                  logger;
+  std::atomic<uint32_t>                                                    current_slot_count_val;
+  static_vector<std::optional<dl_tti_request>, MAX_NUM_BUFFERED_MESSAGES>  dl_tti_pool;
+  static_vector<std::optional<ul_tti_request>, MAX_NUM_BUFFERED_MESSAGES>  ul_tti_pool;
+  static_vector<std::optional<ul_dci_request>, MAX_NUM_BUFFERED_MESSAGES>  ul_dci_pool;
+  static_vector<std::optional<tx_data_request>, MAX_NUM_BUFFERED_MESSAGES> tx_data_pool;
 };
 
 } // namespace fapi

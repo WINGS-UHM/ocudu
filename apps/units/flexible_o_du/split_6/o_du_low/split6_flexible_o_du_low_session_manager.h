@@ -12,7 +12,7 @@
 
 #include "split6_flexible_o_du_low_session.h"
 #include "split6_flexible_o_du_low_session_factory.h"
-#include "ocudu/fapi/cell_operation_request_notifier.h"
+#include "ocudu/fapi/p5/p5_operational_change_request_notifier.h"
 #include <memory>
 
 namespace ocudu {
@@ -21,7 +21,7 @@ class split6_flexible_o_du_low_metrics_notifier;
 /// \brief Split 6 flexible O-DU low session manager.
 ///
 /// This class listens to on start/stop requests from FAPI and creates the flexible O-DU low session.
-class split6_flexible_o_du_low_session_manager : public fapi::cell_operation_request_notifier
+class split6_flexible_o_du_low_session_manager : public fapi::p5_operational_change_request_notifier
 {
 public:
   explicit split6_flexible_o_du_low_session_manager(

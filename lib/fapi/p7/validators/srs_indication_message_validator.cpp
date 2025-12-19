@@ -98,7 +98,7 @@ static bool validate_srs_rsrp(float value, validator_report& report)
       MIN_VALUE, MAX_VALUE, rsrp_in_tenths, "SRS Positioning Report RSRP", message_type_id::srs_indication, report);
 }
 
-error_type<validator_report> ocudu::fapi::validate_srs_indication(const srs_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_srs_indication(const srs_indication& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

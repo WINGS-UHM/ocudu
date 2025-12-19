@@ -21,20 +21,20 @@ using namespace ocudu;
 using namespace fapi;
 
 message_bufferer_slot_gateway_task_dispatcher::message_bufferer_slot_gateway_task_dispatcher(
-    unsigned                    sector_id_,
-    unsigned                    l2_nof_slots_ahead,
-    subcarrier_spacing          scs_,
-    fapi::slot_message_gateway& gateway,
-    task_executor&              executor_) :
+    unsigned                   sector_id_,
+    unsigned                   l2_nof_slots_ahead,
+    subcarrier_spacing         scs_,
+    fapi::p7_requests_gateway& p7_gateway,
+    task_executor&             executor_) :
   sector_id(sector_id_),
   scs(scs_),
   logger(ocudulog::fetch_basic_logger("FAPI")),
   executor(executor_),
-  message_bufferer_gateway(sector_id, l2_nof_slots_ahead, scs_, gateway)
+  message_bufferer_gateway(sector_id, l2_nof_slots_ahead, scs_, p7_gateway)
 {
 }
 
-void message_bufferer_slot_gateway_task_dispatcher::dl_tti_request(const dl_tti_request_message& msg)
+void message_bufferer_slot_gateway_task_dispatcher::send_dl_tti_request(const dl_tti_request& msg)
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_dl_tti_request(msg); })) {
@@ -44,7 +44,7 @@ void message_bufferer_slot_gateway_task_dispatcher::dl_tti_request(const dl_tti_
   }
 }
 
-void message_bufferer_slot_gateway_task_dispatcher::ul_tti_request(const ul_tti_request_message& msg)
+void message_bufferer_slot_gateway_task_dispatcher::send_ul_tti_request(const ul_tti_request& msg)
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_ul_tti_request(msg); })) {
@@ -54,7 +54,7 @@ void message_bufferer_slot_gateway_task_dispatcher::ul_tti_request(const ul_tti_
   }
 }
 
-void message_bufferer_slot_gateway_task_dispatcher::ul_dci_request(const ul_dci_request_message& msg)
+void message_bufferer_slot_gateway_task_dispatcher::send_ul_dci_request(const ul_dci_request& msg)
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_ul_dci_request(msg); })) {
@@ -64,7 +64,7 @@ void message_bufferer_slot_gateway_task_dispatcher::ul_dci_request(const ul_dci_
   }
 }
 
-void message_bufferer_slot_gateway_task_dispatcher::tx_data_request(const tx_data_request_message& msg)
+void message_bufferer_slot_gateway_task_dispatcher::send_tx_data_request(const tx_data_request& msg)
 {
   if (!executor.defer(
           [this, msg]() noexcept OCUDU_RTSAN_NONBLOCKING { message_bufferer_gateway.handle_tx_data_request(msg); })) {

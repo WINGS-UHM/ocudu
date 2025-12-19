@@ -29,9 +29,9 @@ split6_o_du_impl::split6_o_du_impl(unsigned                                     
     auto& p7_mac_sector_adaptor = odu_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
     auto& p7_phy_sector_adaptor = adaptor->get_sector_adaptor(i).get_p7_sector_adaptor();
 
-    p7_phy_sector_adaptor.set_slot_data_message_notifier(p7_mac_sector_adaptor.get_slot_data_message_notifier());
-    p7_phy_sector_adaptor.set_error_message_notifier(p7_mac_sector_adaptor.get_error_message_notifier());
-    p7_phy_sector_adaptor.set_slot_time_message_notifier(p7_mac_sector_adaptor.get_slot_time_message_notifier());
+    p7_phy_sector_adaptor.set_p7_indications_notifier(p7_mac_sector_adaptor.get_p7_indications_notifier());
+    p7_phy_sector_adaptor.set_error_indication_notifier(p7_mac_sector_adaptor.get_error_indication_notifier());
+    p7_phy_sector_adaptor.set_p7_slot_indication_notifier(p7_mac_sector_adaptor.get_p7_slot_indication_notifier());
 
     // TODO: connect P5
   }

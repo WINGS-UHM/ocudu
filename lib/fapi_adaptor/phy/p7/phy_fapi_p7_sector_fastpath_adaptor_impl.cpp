@@ -9,7 +9,7 @@
  */
 
 #include "phy_fapi_p7_sector_fastpath_adaptor_impl.h"
-#include "ocudu/fapi/p7/slot_last_message_notifier.h"
+#include "ocudu/fapi/p7/p7_last_request_notifier.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;
@@ -58,31 +58,30 @@ upper_phy_timing_notifier& phy_fapi_p7_sector_fastpath_adaptor_impl::get_timing_
   return time_translator;
 }
 
-void phy_fapi_p7_sector_fastpath_adaptor_impl::set_slot_time_message_notifier(
-    fapi::slot_time_message_notifier& fapi_time_slot_notifier)
+void phy_fapi_p7_sector_fastpath_adaptor_impl::set_p7_slot_indication_notifier(
+    fapi::p7_slot_indication_notifier& notifier)
 {
-  time_translator.set_slot_time_message_notifier(fapi_time_slot_notifier);
+  time_translator.set_p7_slot_indication_notifier(notifier);
 }
 
-void phy_fapi_p7_sector_fastpath_adaptor_impl::set_error_message_notifier(
-    fapi::error_message_notifier& fapi_error_notifier)
+void phy_fapi_p7_sector_fastpath_adaptor_impl::set_error_indication_notifier(
+    fapi::error_indication_notifier& fapi_error_notifier)
 {
-  fapi_translator.set_error_message_notifier(fapi_error_notifier);
-  error_translator.set_error_message_notifier(fapi_error_notifier);
+  fapi_translator.set_error_indication_notifier(fapi_error_notifier);
+  error_translator.set_error_indication_notifier(fapi_error_notifier);
 }
 
-void phy_fapi_p7_sector_fastpath_adaptor_impl::set_slot_data_message_notifier(
-    fapi::slot_data_message_notifier& fapi_data_notifier)
+void phy_fapi_p7_sector_fastpath_adaptor_impl::set_p7_indications_notifier(fapi::p7_indications_notifier& fapi_notifier)
 {
-  results_translator.set_slot_data_message_notifier(fapi_data_notifier);
+  results_translator.set_p7_indications_notifier(fapi_notifier);
 }
 
-fapi::slot_last_message_notifier& phy_fapi_p7_sector_fastpath_adaptor_impl::get_slot_last_message_notifier()
+fapi::p7_last_request_notifier& phy_fapi_p7_sector_fastpath_adaptor_impl::get_p7_last_request_notifier()
 {
   return fapi_translator;
 }
 
-fapi::slot_message_gateway& phy_fapi_p7_sector_fastpath_adaptor_impl::get_slot_message_gateway()
+fapi::p7_requests_gateway& phy_fapi_p7_sector_fastpath_adaptor_impl::get_p7_requests_gateway()
 {
   return fapi_translator;
 }

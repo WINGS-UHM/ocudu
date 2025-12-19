@@ -641,8 +641,8 @@ TEST(validate_uci_pucch_format234_pdu, invalid_pdu_fails)
 }
 
 class validate_uci_indication_field
-  : public validate_fapi_message<uci_indication_message>,
-    public testing::TestWithParam<std::tuple<pdu_field_data<uci_indication_message>, test_case_data>>
+  : public validate_fapi_message<uci_indication>,
+    public testing::TestWithParam<std::tuple<pdu_field_data<uci_indication>, test_case_data>>
 {};
 
 TEST_P(validate_uci_indication_field, WithValue)
@@ -658,9 +658,9 @@ TEST_P(validate_uci_indication_field, WithValue)
 
 INSTANTIATE_TEST_SUITE_P(SFN,
                          validate_uci_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<uci_indication>{
                                               "sfn",
-                                              [](uci_indication_message& msg, int value) { msg.sfn = value; }}),
+                                              [](uci_indication& msg, int value) { msg.sfn = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{522, true},
                                                           test_case_data{1023, true},
@@ -668,9 +668,9 @@ INSTANTIATE_TEST_SUITE_P(SFN,
 
 INSTANTIATE_TEST_SUITE_P(slot,
                          validate_uci_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<uci_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<uci_indication>{
                                               "slot",
-                                              [](uci_indication_message& msg, int value) { msg.slot = value; }}),
+                                              [](uci_indication& msg, int value) { msg.slot = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{80, true},
                                                           test_case_data{159, true},

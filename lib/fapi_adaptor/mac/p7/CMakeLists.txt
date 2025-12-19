@@ -15,9 +15,10 @@ target_link_libraries(ocudu_mac_to_fapi_p7_fastpath_translator PRIVATE ocudu_mac
 
 
 set(SOURCES
-        fapi_to_mac_data_msg_fastpath_translator.cpp
-        fapi_to_mac_error_msg_fastpath_translator.cpp
-        fapi_to_mac_time_msg_fastpath_translator.cpp)
+        fapi_to_mac_error_indication_fastpath_translator.cpp
+        fapi_to_mac_indications_fastpath_translator.cpp
+        fapi_to_mac_slot_indication_fastpath_translator.cpp
+)
 
 add_library(ocudu_fapi_to_mac_p7_fastpath_translator STATIC ${SOURCES})
 target_link_libraries(ocudu_fapi_to_mac_p7_fastpath_translator PRIVATE ocuduvec ocudu_support ocudu_fapi_message_validator_helpers)

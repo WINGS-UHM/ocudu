@@ -35,7 +35,7 @@ static bool validate_pdu_payload(const shared_transport_block& buffer, validator
   return false;
 }
 
-error_type<validator_report> ocudu::fapi::validate_tx_data_request(const tx_data_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_tx_data_request(const tx_data_request& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

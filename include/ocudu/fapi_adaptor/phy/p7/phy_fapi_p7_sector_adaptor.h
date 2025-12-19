@@ -13,11 +13,11 @@
 namespace ocudu {
 
 namespace fapi {
-class slot_data_message_notifier;
-class error_message_notifier;
-class slot_last_message_notifier;
-class slot_message_gateway;
-class slot_time_message_notifier;
+class error_indication_notifier;
+class p7_indications_notifier;
+class p7_last_request_notifier;
+class p7_requests_gateway;
+class p7_slot_indication_notifier;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -32,20 +32,20 @@ class phy_fapi_p7_sector_adaptor
 public:
   virtual ~phy_fapi_p7_sector_adaptor() = default;
 
-  /// Returns a reference to the slot-based message gateway used by the adaptor.
-  virtual fapi::slot_message_gateway& get_slot_message_gateway() = 0;
+  /// Returns a reference to the P7 requests gateway used by the adaptor.
+  virtual fapi::p7_requests_gateway& get_p7_requests_gateway() = 0;
 
-  /// Returns a reference to the slot-based last message notifier used by the adaptor.
-  virtual fapi::slot_last_message_notifier& get_slot_last_message_notifier() = 0;
+  /// Returns a reference to the P7 last request notifier used by the adaptor.
+  virtual fapi::p7_last_request_notifier& get_p7_last_request_notifier() = 0;
 
-  /// Configures the slot-based, time-specific message notifier to the given one.
-  virtual void set_slot_time_message_notifier(fapi::slot_time_message_notifier& fapi_time_notifier) = 0;
+  /// Configures the P7 slot indication notifier to the given one.
+  virtual void set_p7_slot_indication_notifier(fapi::p7_slot_indication_notifier& notifier) = 0;
 
-  /// Configures the error-specific message notifier to the given one.
-  virtual void set_error_message_notifier(fapi::error_message_notifier& fapi_error_notifier) = 0;
+  /// Configures the error indication notifier to the given one.
+  virtual void set_error_indication_notifier(fapi::error_indication_notifier& fapi_error_notifier) = 0;
 
-  /// Configures the slot-based, data-specific message notifier to the given one.
-  virtual void set_slot_data_message_notifier(fapi::slot_data_message_notifier& fapi_data_notifier) = 0;
+  /// Configures the P7 slot indications notifier to the given one.
+  virtual void set_p7_indications_notifier(fapi::p7_indications_notifier& fapi_notifier) = 0;
 };
 
 } // namespace fapi_adaptor

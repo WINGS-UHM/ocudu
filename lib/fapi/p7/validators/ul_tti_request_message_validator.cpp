@@ -20,7 +20,7 @@
 using namespace ocudu;
 using namespace fapi;
 
-error_type<validator_report> ocudu::fapi::validate_ul_tti_request(const ul_tti_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_ul_tti_request(const ul_tti_request& msg)
 {
   validator_report                 report(msg.sfn, msg.slot);
   static constexpr message_type_id msg_type = message_type_id::ul_tti_request;

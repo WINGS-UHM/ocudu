@@ -15,9 +15,9 @@
 namespace ocudu {
 
 namespace fapi {
-class slot_data_message_notifier;
-class error_message_notifier;
-class slot_time_message_notifier;
+class error_indication_notifier;
+class p7_indications_notifier;
+class p7_slot_indication_notifier;
 } // namespace fapi
 
 class mac_cell_control_information_handler;

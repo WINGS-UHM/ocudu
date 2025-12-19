@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/common/error_indication_message_builder.h"
+#include "ocudu/fapi/common/error_indication_builder.h"
 #include <gtest/gtest.h>
 #include <random>
 

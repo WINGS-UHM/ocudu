@@ -32,7 +32,7 @@ struct rx_data_indication_pdu {
 };
 
 /// Reception data indication message.
-struct rx_data_indication_message : public base_message {
+struct rx_data_indication : public base_message {
   /// Maximum number of supported UCI PDUs in this message.
   static constexpr unsigned MAX_NUM_ULSCH_PDUS_PER_SLOT = 64;
 

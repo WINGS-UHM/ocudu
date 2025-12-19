@@ -31,9 +31,9 @@ public:
 
   // See interface for documentation.
   std::unique_ptr<fapi_adaptor::mac_fapi_p5_sector_adaptor>
-  create_fapi_p5_sector_adaptor(fapi::config_message_gateway& gateway,
-                                task_executor&                executor,
-                                task_executor&                control_executor) override;
+  create_fapi_p5_sector_adaptor(fapi::p5_requests_gateway& p5_gateway,
+                                task_executor&             executor,
+                                task_executor&             control_executor) override;
 
   // See interface for documentation.
   std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor_factory>

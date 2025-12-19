@@ -13,17 +13,17 @@
 using namespace ocudu;
 using namespace fapi;
 
-logging_decorator_impl::logging_decorator_impl(unsigned                    sector_id,
-                                               ocudulog::basic_logger&     logger,
-                                               slot_message_gateway&       gateway_,
-                                               slot_last_message_notifier& last_msg_notifier_) :
+logging_decorator_impl::logging_decorator_impl(unsigned                  sector_id,
+                                               ocudulog::basic_logger&   logger,
+                                               p7_requests_gateway&      p7_gateway_,
+                                               p7_last_request_notifier& p7_last_req_notifier_) :
   fapi_decorator({}),
   data_notifier(sector_id, logger),
   error_notifier(sector_id, logger),
   time_notifier(sector_id, logger),
-  gateway(sector_id, logger, gateway_)
+  gateway(sector_id, logger, p7_gateway_)
 {
-  last_msg_notifier.set_slot_last_message_notifier(last_msg_notifier_);
+  last_msg_notifier.set_p7_last_request_notifier(p7_last_req_notifier_);
 }
 
 logging_decorator_impl::logging_decorator_impl(unsigned                        sector_id,
@@ -33,48 +33,48 @@ logging_decorator_impl::logging_decorator_impl(unsigned                        s
   data_notifier(sector_id, logger),
   error_notifier(sector_id, logger),
   time_notifier(sector_id, logger),
-  gateway(sector_id, logger, next_decorator->get_slot_message_gateway())
+  gateway(sector_id, logger, next_decorator->get_p7_requests_gateway())
 {
-  last_msg_notifier.set_slot_last_message_notifier(next_decorator->get_slot_last_message_notifier());
+  last_msg_notifier.set_p7_last_request_notifier(next_decorator->get_p7_last_request_notifier());
   connect_notifiers();
 }
 
-slot_data_message_notifier& logging_decorator_impl::get_slot_data_message_notifier_from_this_decorator()
+p7_indications_notifier& logging_decorator_impl::get_p7_indications_notifier_from_this_decorator()
 {
   return data_notifier;
 }
 
-slot_last_message_notifier& logging_decorator_impl::get_slot_last_message_notifier()
+p7_last_request_notifier& logging_decorator_impl::get_p7_last_request_notifier()
 {
   return last_msg_notifier;
 }
 
-slot_message_gateway& logging_decorator_impl::get_slot_message_gateway()
+p7_requests_gateway& logging_decorator_impl::get_p7_requests_gateway()
 {
   return gateway;
 }
 
-error_message_notifier& logging_decorator_impl::get_error_message_notifier_from_this_decorator()
+error_indication_notifier& logging_decorator_impl::get_error_indication_notifier_from_this_decorator()
 {
   return error_notifier;
 }
 
-slot_time_message_notifier& logging_decorator_impl::get_slot_time_message_notifier_from_this_decorator()
+p7_slot_indication_notifier& logging_decorator_impl::get_p7_slot_indication_notifier_from_this_decorator()
 {
   return time_notifier;
 }
 
-void logging_decorator_impl::set_slot_data_message_notifier(slot_data_message_notifier& notifier)
+void logging_decorator_impl::set_p7_indications_notifier(p7_indications_notifier& notifier)
 {
-  data_notifier.set_slot_data_message_notifier(notifier);
+  data_notifier.set_p7_indications_notifier(notifier);
 }
 
-void logging_decorator_impl::set_error_message_notifier(error_message_notifier& notifier)
+void logging_decorator_impl::set_error_indication_notifier(error_indication_notifier& notifier)
 {
-  error_notifier.set_error_message_notifier(notifier);
+  error_notifier.set_error_indication_notifier(notifier);
 }
 
-void logging_decorator_impl::set_slot_time_message_notifier(slot_time_message_notifier& notifier)
+void logging_decorator_impl::set_p7_slot_indication_notifier(p7_slot_indication_notifier& notifier)
 {
-  time_notifier.set_slot_time_message_notifier(notifier);
+  time_notifier.set_p7_slot_indication_notifier(notifier);
 }

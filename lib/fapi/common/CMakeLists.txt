@@ -7,7 +7,7 @@
 #
 
 set(SOURCES
-    error_indication_message_validator.cpp)
+    error_indication_validator.cpp)
 
 add_library(ocudu_fapi_common_validators STATIC ${SOURCES})
 target_link_libraries(ocudu_fapi_common_validators ocudulog ocudu_fapi_message_validator_helpers)

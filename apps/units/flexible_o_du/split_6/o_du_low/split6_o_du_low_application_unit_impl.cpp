@@ -121,7 +121,7 @@ split6_o_du_low_application_unit_impl::create_flexible_o_du_low(worker_manager& 
   split6_flexible_o_du_low_dependencies dependencies;
   dependencies.phy_p5_adaptor = std::make_unique<fapi_adaptor::phy_fapi_p5_sector_operation_request_adaptor>(logger);
   dependencies.mac_p5_adaptor = plugin->create_fapi_p5_sector_adaptor(
-      dependencies.phy_p5_adaptor->get_config_message_gateway(), *workers.split6_exec, *workers.split6_crtl_exec);
+      dependencies.phy_p5_adaptor->get_p5_requests_gateway(), *workers.split6_exec, *workers.split6_crtl_exec);
   dependencies.odu_low_session_factory = std::make_unique<split6_flexible_o_du_low_session_factory>(
       unit_cfg,
       workers,

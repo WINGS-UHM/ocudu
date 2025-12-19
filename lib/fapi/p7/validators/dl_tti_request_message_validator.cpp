@@ -21,7 +21,7 @@
 using namespace ocudu;
 using namespace fapi;
 
-error_type<validator_report> ocudu::fapi::validate_dl_tti_request(const dl_tti_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_dl_tti_request(const dl_tti_request& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

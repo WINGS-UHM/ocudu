@@ -31,7 +31,7 @@ struct uci_indication_pdu {
 };
 
 /// UCI indication message.
-struct uci_indication_message : public base_message {
+struct uci_indication : public base_message {
   uint16_t                                                    sfn;
   uint16_t                                                    slot;
   static_vector<uci_indication_pdu, MAX_UCI_PDUS_PER_UCI_IND> pdus;

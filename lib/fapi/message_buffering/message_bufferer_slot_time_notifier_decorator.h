@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/p7/slot_time_message_notifier.h"
+#include "ocudu/fapi/p7/p7_slot_indication_notifier.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>
 #include <functional>
@@ -21,7 +21,7 @@ namespace fapi {
 class message_bufferer_slot_gateway_task_dispatcher;
 
 /// Advances the slot indication message by the value configured in construction.
-class message_bufferer_slot_time_notifier_decorator : public slot_time_message_notifier
+class message_bufferer_slot_time_notifier_decorator : public p7_slot_indication_notifier
 {
 public:
   message_bufferer_slot_time_notifier_decorator(
@@ -30,17 +30,20 @@ public:
       message_bufferer_slot_gateway_task_dispatcher& gateway_task_dispatcher_);
 
   // See interface for documentation.
-  void on_slot_indication(const slot_indication_message& msg) override;
+  void on_slot_indication(const slot_indication& msg) override;
 
   // Configures the message bufferer notifier to the given one.
-  void set_slot_time_notifier(slot_time_message_notifier& time_notifier) { notifier = std::ref(time_notifier); }
+  void set_p7_slot_indication_notifier(p7_slot_indication_notifier& p7_slot_ind_notifier)
+  {
+    notifier = std::ref(p7_slot_ind_notifier);
+  }
 
 private:
-  const subcarrier_spacing                           scs;
-  const unsigned                                     l2_nof_slots_ahead;
-  const std::chrono::nanoseconds                     l2_nof_slots_ahead_ns;
-  message_bufferer_slot_gateway_task_dispatcher&     gateway_task_dispatcher;
-  std::reference_wrapper<slot_time_message_notifier> notifier;
+  const subcarrier_spacing                            scs;
+  const unsigned                                      l2_nof_slots_ahead;
+  const std::chrono::nanoseconds                      l2_nof_slots_ahead_ns;
+  message_bufferer_slot_gateway_task_dispatcher&      gateway_task_dispatcher;
+  std::reference_wrapper<p7_slot_indication_notifier> notifier;
 };
 
 } // namespace fapi

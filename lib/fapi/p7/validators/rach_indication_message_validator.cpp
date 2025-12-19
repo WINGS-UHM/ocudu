@@ -117,7 +117,7 @@ static bool validate_preamble_power(unsigned value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, value, "Preamble power", message_type_id::rach_indication, report);
 }
 
-error_type<validator_report> ocudu::fapi::validate_rach_indication(const rach_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_rach_indication(const rach_indication& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

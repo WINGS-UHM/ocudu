@@ -10,24 +10,24 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
 
 namespace ocudu {
 namespace fapi {
 
 /// Error message notifier dispatcher that forwards error messages to the configured notifier.
-class error_message_notifier_dispatcher : public error_message_notifier
+class error_notifier_dispatcher : public error_indication_notifier
 {
-  error_message_notifier* notifier = nullptr;
+  error_indication_notifier* notifier = nullptr;
 
 public:
-  error_message_notifier_dispatcher();
+  error_notifier_dispatcher();
 
   // See interface for documentation.
-  void on_error_indication(const error_indication_message& msg) override;
+  void on_error_indication(const error_indication& msg) override;
 
-  /// Sets the error message notifier to the given one.
-  void set_error_message_notifier(error_message_notifier& error_notifier);
+  /// Sets the error indication notifier to the given one.
+  void set_error_indication_notifier(error_indication_notifier& error_notifier);
 };
 
 } // namespace fapi

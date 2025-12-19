@@ -36,7 +36,7 @@ struct dl_tti_request_pdu {
 };
 
 /// Downlink TTI request message.
-struct dl_tti_request_message : public base_message {
+struct dl_tti_request : public base_message {
   /// Array index for the number of DL DCIs.
   static constexpr unsigned DL_DCI_INDEX = 4;
   /// Maximum supported number of DL PDU types in this release.

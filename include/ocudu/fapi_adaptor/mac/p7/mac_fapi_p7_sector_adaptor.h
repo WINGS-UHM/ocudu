@@ -13,9 +13,9 @@
 namespace ocudu {
 
 namespace fapi {
-class slot_data_message_notifier;
-class error_message_notifier;
-class slot_time_message_notifier;
+class error_indication_notifier;
+class p7_indications_notifier;
+class p7_slot_indication_notifier;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -31,14 +31,14 @@ class mac_fapi_p7_sector_adaptor
 public:
   virtual ~mac_fapi_p7_sector_adaptor() = default;
 
-  /// Returns a reference to the slot time notifier used by the adaptor.
-  virtual fapi::slot_time_message_notifier& get_slot_time_message_notifier() = 0;
+  /// Returns a reference to the P7 slot indication notifier used by the adaptor.
+  virtual fapi::p7_slot_indication_notifier& get_p7_slot_indication_notifier() = 0;
 
   /// Returns a reference to the error notifier used by the adaptor.
-  virtual fapi::error_message_notifier& get_error_message_notifier() = 0;
+  virtual fapi::error_indication_notifier& get_error_indication_notifier() = 0;
 
-  /// Returns a reference to the slot data notifier used by the adaptor.
-  virtual fapi::slot_data_message_notifier& get_slot_data_message_notifier() = 0;
+  /// Returns a reference to the P7 indications notifier used by the adaptor.
+  virtual fapi::p7_indications_notifier& get_p7_indications_notifier() = 0;
 };
 
 } // namespace fapi_adaptor

@@ -10,17 +10,17 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
 
 namespace ocudu {
 namespace fapi {
 
 /// Dummy FAPI error message notifier that will close the application if its methods are called.
-class error_message_notifier_dummy : public error_message_notifier
+class error_notifier_dummy : public error_indication_notifier
 {
 public:
   // See interface for documentation.
-  void on_error_indication(const error_indication_message& msg) override;
+  void on_error_indication(const error_indication& msg) override;
 };
 
 } // namespace fapi

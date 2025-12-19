@@ -122,7 +122,7 @@ struct srs_indication_pdu {
 };
 
 /// SRS indication message.
-struct srs_indication_message : public base_message {
+struct srs_indication : public base_message {
   uint16_t                                                    sfn;
   uint16_t                                                    slot;
   uint16_t                                                    control_length;

@@ -20,8 +20,8 @@
 namespace ocudu {
 
 namespace fapi {
-class slot_last_message_notifier;
-class slot_message_gateway;
+class p7_last_request_notifier;
+class p7_requests_gateway;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -38,10 +38,10 @@ struct mac_to_fapi_fastpath_translator_config {
 struct mac_to_fapi_fastpath_translator_dependencies {
   /// Logger.
   ocudulog::basic_logger& logger;
-  /// FAPI slot message gateway.
-  fapi::slot_message_gateway& msg_gw;
+  /// FAPI P7 gateway.
+  fapi::p7_requests_gateway& p7_gateway;
   /// FAPI slot last message gateway.
-  fapi::slot_last_message_notifier& last_msg_notifier;
+  fapi::p7_last_request_notifier& p7_last_req_notifier;
   /// Precoding matrix mapper.
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part 2 correspondence mapper.
@@ -91,10 +91,10 @@ private:
   const unsigned cell_nof_prbs;
   /// FAPI logger.
   ocudulog::basic_logger& logger;
-  /// FAPI message gateway to the outside world.
-  fapi::slot_message_gateway& msg_gw;
-  /// Slot-specific last message notifier.
-  fapi::slot_last_message_notifier& last_msg_notifier;
+  /// FAPI P7 gateway.
+  fapi::p7_requests_gateway& p7_gateway;
+  /// P7 last requests notifier.
+  fapi::p7_last_request_notifier& p7_last_req_notifier;
   /// Precoding matrix mapper.
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part2 correspondence mapper.

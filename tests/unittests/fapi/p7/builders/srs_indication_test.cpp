@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/srs_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/srs_indication_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -16,8 +16,8 @@ using namespace fapi;
 
 TEST(srs_indication_builder, valid_srs_indication_passes)
 {
-  srs_indication_message         msg;
-  srs_indication_message_builder builder(msg);
+  srs_indication         msg;
+  srs_indication_builder builder(msg);
 
   unsigned sfn  = 13;
   unsigned slot = 12;
@@ -55,8 +55,8 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
 
 TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes)
 {
-  srs_indication_message         msg;
-  srs_indication_message_builder builder(msg);
+  srs_indication         msg;
+  srs_indication_builder builder(msg);
 
   unsigned sfn  = 13;
   unsigned slot = 12;

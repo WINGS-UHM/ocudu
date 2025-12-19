@@ -43,7 +43,7 @@ static bool validate_pdu_value(const uint8_t* value, validator_report& report)
   return false;
 }
 
-error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_data_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_data_indication& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

@@ -13,25 +13,25 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-fapi::config_message_gateway& phy_fapi_p5_sector_operation_request_adaptor::get_config_message_gateway()
+fapi::p5_requests_gateway& phy_fapi_p5_sector_operation_request_adaptor::get_p5_requests_gateway()
 {
   return gateway;
 }
 
-void phy_fapi_p5_sector_operation_request_adaptor::set_config_message_notifier(
-    fapi::config_message_notifier& config_notifier)
+void phy_fapi_p5_sector_operation_request_adaptor::set_p5_responses_notifier(
+    fapi::p5_responses_notifier& config_notifier)
 {
-  gateway.set_config_message_notifier(config_notifier);
+  gateway.set_p5_responses_notifier(config_notifier);
 }
 
-void phy_fapi_p5_sector_operation_request_adaptor::set_error_message_notifier(
-    fapi::error_message_notifier& err_notifier)
+void phy_fapi_p5_sector_operation_request_adaptor::set_error_indication_notifier(
+    fapi::error_indication_notifier& err_notifier)
 {
-  gateway.set_error_message_notifier(err_notifier);
+  gateway.set_error_indication_notifier(err_notifier);
 }
 
-void phy_fapi_p5_sector_operation_request_adaptor::set_cell_operation_request_notifier(
-    fapi::cell_operation_request_notifier& cell_notifier)
+void phy_fapi_p5_sector_operation_request_adaptor::set_p5_operational_change_request_notifier(
+    fapi::p5_operational_change_request_notifier& p5_notifier)
 {
-  gateway.set_cell_operation_request_notifier(cell_notifier);
+  gateway.set_cell_operation_request_notifier(p5_notifier);
 }

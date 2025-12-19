@@ -10,7 +10,7 @@
 
 #include "message_bufferer_slot_time_notifier_decorator.h"
 #include "message_bufferer_slot_gateway_task_dispatcher.h"
-#include "ocudu/fapi/p7/builders/slot_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/slot_indication_builder.h"
 #include "ocudu/fapi/p7/messages/slot_indication.h"
 #include "ocudu/ran/slot_point.h"
 
@@ -20,16 +20,16 @@ using namespace fapi;
 namespace {
 
 /// Dummy slot time message notifier.
-class slot_time_message_notifier_dummy : public slot_time_message_notifier
+class p7_slot_indication_notifier_dummy : public p7_slot_indication_notifier
 {
 public:
   // See interface for documentation.
-  void on_slot_indication(const slot_indication_message& msg) override {}
+  void on_slot_indication(const slot_indication& msg) override {}
 };
 
 } // namespace
 
-static slot_time_message_notifier_dummy dummy_notifier;
+static p7_slot_indication_notifier_dummy dummy_notifier;
 
 message_bufferer_slot_time_notifier_decorator::message_bufferer_slot_time_notifier_decorator(
     unsigned                                       l2_nof_slots_ahead_,
@@ -43,7 +43,7 @@ message_bufferer_slot_time_notifier_decorator::message_bufferer_slot_time_notifi
 {
 }
 
-void message_bufferer_slot_time_notifier_decorator::on_slot_indication(const slot_indication_message& msg)
+void message_bufferer_slot_time_notifier_decorator::on_slot_indication(const slot_indication& msg)
 {
   slot_point slot(scs, msg.sfn, msg.slot);
 
@@ -52,8 +52,8 @@ void message_bufferer_slot_time_notifier_decorator::on_slot_indication(const slo
 
   // Notify the upper layers.
   slot_point delayed_slot = slot + l2_nof_slots_ahead;
-  notifier.get().on_slot_indication(build_slot_indication_message(
-      delayed_slot.sfn(), delayed_slot.slot_index(), msg.time_point + l2_nof_slots_ahead_ns));
+  notifier.get().on_slot_indication(
+      build_slot_indication(delayed_slot.sfn(), delayed_slot.slot_index(), msg.time_point + l2_nof_slots_ahead_ns));
 
   // Forward cached messages.
   gateway_task_dispatcher.forward_cached_messages(slot);

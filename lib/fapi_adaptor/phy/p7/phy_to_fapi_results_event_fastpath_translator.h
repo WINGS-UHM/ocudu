@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/p7/slot_data_message_notifier.h"
+#include "ocudu/fapi/p7/p7_indications_notifier.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
 
@@ -43,11 +43,8 @@ public:
   // See interface for documentation.
   void on_new_srs_results(const ul_srs_results& result) override;
 
-  /// Configures the FAPI slot-based, data-specific notifier to the given one.
-  void set_slot_data_message_notifier(fapi::slot_data_message_notifier& fapi_data_slot_notifier)
-  {
-    data_notifier = &fapi_data_slot_notifier;
-  }
+  /// Configures the FAPI P7 indications notifier to the given one.
+  void set_p7_indications_notifier(fapi::p7_indications_notifier& fapi_p7_notifier) { p7_notifier = &fapi_p7_notifier; }
 
 private:
   /// Notifies a new FAPI \e CRC.indication through the data notifier.
@@ -66,8 +63,8 @@ private:
   const float dBFS_calibration_value;
   /// FAPI logger.
   ocudulog::basic_logger& logger;
-  /// FAPI slot-based, data-specific message notifier.
-  fapi::slot_data_message_notifier* data_notifier;
+  /// FAPI P7 indications notifier.
+  fapi::p7_indications_notifier* p7_notifier;
 };
 
 } // namespace fapi_adaptor

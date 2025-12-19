@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/uci_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/uci_indication_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -320,8 +320,8 @@ TEST(uci_indication_builder, valid_pucch_f234_pdu_csi_payoad_part2_passes)
 
 TEST(uci_indication_builder, valid_basic_parameters_passes)
 {
-  uci_indication_message         msg;
-  uci_indication_message_builder builder(msg);
+  uci_indication         msg;
+  uci_indication_builder builder(msg);
 
   unsigned sfn  = 13;
   unsigned slot = 14;
@@ -334,8 +334,8 @@ TEST(uci_indication_builder, valid_basic_parameters_passes)
 
 TEST(uci_indication_builder, add_pusch_pdu_passes)
 {
-  uci_indication_message         msg;
-  uci_indication_message_builder builder(msg);
+  uci_indication         msg;
+  uci_indication_builder builder(msg);
 
   unsigned handle = 8;
   rnti_t   rnti   = to_rnti(9);
@@ -352,8 +352,8 @@ TEST(uci_indication_builder, add_pusch_pdu_passes)
 
 TEST(uci_indication_builder, add_pucch_f01_passes)
 {
-  uci_indication_message         msg;
-  uci_indication_message_builder builder(msg);
+  uci_indication         msg;
+  uci_indication_builder builder(msg);
 
   unsigned     handle = 4;
   rnti_t       rnti   = to_rnti(5);
@@ -374,8 +374,8 @@ TEST(uci_indication_builder, add_pucch_f01_passes)
 
 TEST(uci_indication_builder, add_pucch_f234_passes)
 {
-  uci_indication_message         msg;
-  uci_indication_message_builder builder(msg);
+  uci_indication         msg;
+  uci_indication_builder builder(msg);
 
   unsigned     handle = 3;
   rnti_t       rnti   = to_rnti(4);

@@ -25,9 +25,7 @@
 using namespace ocudu;
 using namespace fapi;
 
-void ocudu::fapi::log_error_indication(const error_indication_message& msg,
-                                       unsigned                        sector_id,
-                                       ocudulog::basic_logger&         logger)
+void ocudu::fapi::log_error_indication(const error_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer),
@@ -57,9 +55,7 @@ static float to_crc_ul_rsrp(unsigned rsrp)
   return static_cast<float>(static_cast<int>(rsrp) - 1280) * 0.1F;
 }
 
-void ocudu::fapi::log_crc_indication(const crc_indication_message& msg,
-                                     unsigned                      sector_id,
-                                     ocudulog::basic_logger&       logger)
+void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: CRC.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -158,9 +154,7 @@ static void log_prs_pdu(const dl_prs_pdu& pdu, fmt::memory_buffer& buffer)
                  pdu.nid_prs);
 }
 
-void ocudu::fapi::log_dl_tti_request(const dl_tti_request_message& msg,
-                                     unsigned                      sector_id,
-                                     ocudulog::basic_logger&       logger)
+void ocudu::fapi::log_dl_tti_request(const dl_tti_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: DL_TTI.request slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -206,9 +200,7 @@ static float to_rach_preamble_snr_dB(int fapi_snr)
   return (fapi_snr - 128) * 0.5F;
 }
 
-void ocudu::fapi::log_rach_indication(const rach_indication_message& msg,
-                                      unsigned                       sector_id,
-                                      ocudulog::basic_logger&        logger)
+void ocudu::fapi::log_rach_indication(const rach_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: RACH.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -239,9 +231,9 @@ void ocudu::fapi::log_rach_indication(const rach_indication_message& msg,
   logger.debug("{}", to_c_str(buffer));
 }
 
-void ocudu::fapi::log_rx_data_indication(const rx_data_indication_message& msg,
-                                         unsigned                          sector_id,
-                                         ocudulog::basic_logger&           logger)
+void ocudu::fapi::log_rx_data_indication(const rx_data_indication& msg,
+                                         unsigned                  sector_id,
+                                         ocudulog::basic_logger&   logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: Rx_Data.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -254,9 +246,7 @@ void ocudu::fapi::log_rx_data_indication(const rx_data_indication_message& msg,
   logger.debug("{}", to_c_str(buffer));
 }
 
-void ocudu::fapi::log_tx_data_request(const tx_data_request_message& msg,
-                                      unsigned                       sector_id,
-                                      ocudulog::basic_logger&        logger)
+void ocudu::fapi::log_tx_data_request(const tx_data_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   logger.debug("Sector#{}: Tx_Data.request slot={}.{} nof_pdus={}", sector_id, msg.sfn, msg.slot, msg.pdus.size());
 }
@@ -369,9 +359,7 @@ static void log_uci_pusch_pdu(const uci_pusch_pdu& pdu, fmt::memory_buffer& buff
   }
 }
 
-void ocudu::fapi::log_uci_indication(const uci_indication_message& msg,
-                                     unsigned                      sector_id,
-                                     ocudulog::basic_logger&       logger)
+void ocudu::fapi::log_uci_indication(const uci_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: UCI.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -393,9 +381,7 @@ void ocudu::fapi::log_uci_indication(const uci_indication_message& msg,
   logger.debug("{}", to_c_str(buffer));
 }
 
-void ocudu::fapi::log_srs_indication(const srs_indication_message& msg,
-                                     unsigned                      sector_id,
-                                     ocudulog::basic_logger&       logger)
+void ocudu::fapi::log_srs_indication(const srs_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: SRS.indication slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -503,9 +489,7 @@ static void log_srs_pdu(const ul_srs_pdu& pdu, fmt::memory_buffer& buffer)
       pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
 }
 
-void ocudu::fapi::log_ul_tti_request(const ul_tti_request_message& msg,
-                                     unsigned                      sector_id,
-                                     ocudulog::basic_logger&       logger)
+void ocudu::fapi::log_ul_tti_request(const ul_tti_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_TTI.request slot={}.{}", sector_id, msg.sfn, msg.slot);
@@ -532,17 +516,13 @@ void ocudu::fapi::log_ul_tti_request(const ul_tti_request_message& msg,
   logger.debug("{}", to_c_str(buffer));
 }
 
-void ocudu::fapi::log_slot_indication(const slot_indication_message& msg,
-                                      unsigned                       sector_id,
-                                      ocudulog::basic_logger&        logger)
+void ocudu::fapi::log_slot_indication(const slot_indication& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   logger.set_context(msg.sfn, msg.slot);
   logger.debug("Sector#{}: Slot.indication time_point={}", sector_id, msg.time_point.time_since_epoch().count());
 }
 
-void ocudu::fapi::log_ul_dci_request(const ul_dci_request_message& msg,
-                                     unsigned                      sector_id,
-                                     ocudulog::basic_logger&       logger)
+void ocudu::fapi::log_ul_dci_request(const ul_dci_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_DCI.request slot={}.{}", sector_id, msg.sfn, msg.slot);

@@ -32,7 +32,7 @@ struct tx_data_req_pdu {
 };
 
 /// Transmission request message.
-struct tx_data_request_message : public base_message {
+struct tx_data_request : public base_message {
   uint16_t                                                sfn;
   uint16_t                                                slot;
   uint16_t                                                control_length;

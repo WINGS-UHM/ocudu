@@ -15,7 +15,7 @@
 #include "ocudu/du/du_high/o_du_high_config.h"
 #include "ocudu/e2/e2_du_factory.h"
 #include "ocudu/fapi/decorator_factory.h"
-#include "ocudu/fapi/p5/config_message_gateway.h"
+#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
@@ -29,7 +29,7 @@ static fapi_adaptor::mac_fapi_p5_sector_fastpath_adaptor_dependencies
 generate_mac_fapi_p5_sector_adaptor_dependencies(const o_du_high_sector_dependencies& sector_dependencies)
 {
   return {.logger             = ocudulog::fetch_basic_logger("FAPI"),
-          .gateway            = sector_dependencies.p5_gateway,
+          .p5_gateway         = sector_dependencies.p5_gateway,
           .timers             = sector_dependencies.timer_mng,
           .fapi_ctrl_executor = sector_dependencies.fapi_ctrl_executor,
           .mac_ctrl_executor  = sector_dependencies.mac_ctrl_executor};
@@ -105,8 +105,8 @@ generate_mac_fapi_p7_sector_adaptor_dependencies(const o_du_high_sector_dependen
                                                  unsigned                             nof_tx_antennas,
                                                  unsigned                             sector)
 {
-  return {.gateway                = sector_dependencies.p7_gateway,
-          .last_msg_notifier      = sector_dependencies.last_msg_notifier,
+  return {.p7_gateway             = sector_dependencies.p7_gateway,
+          .p7_last_req_notifier   = sector_dependencies.p7_last_req_notifier,
           .pm_mapper              = std::move(std::get<std::unique_ptr<fapi_adaptor::precoding_matrix_mapper>>(
               fapi_adaptor::generate_precoding_matrix_tables(nof_tx_antennas, sector))),
           .part2_mapper           = std::move(std::get<std::unique_ptr<fapi_adaptor::uci_part2_correspondence_mapper>>(

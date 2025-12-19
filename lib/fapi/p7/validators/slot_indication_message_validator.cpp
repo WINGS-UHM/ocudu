@@ -15,7 +15,7 @@
 using namespace ocudu;
 using namespace fapi;
 
-error_type<validator_report> ocudu::fapi::validate_slot_indication(const slot_indication_message& msg)
+error_type<validator_report> ocudu::fapi::validate_slot_indication(const slot_indication& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/error_message_notifier.h"
-#include "ocudu/fapi/p5/config_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
+#include "ocudu/fapi/p5/p5_responses_notifier.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/ocudulog/logger.h"
 
@@ -28,8 +28,8 @@ struct p5_transaction_outcome_manager;
 /// This class is responsible for receiving, decoding and processing FAPI P5 response messages originating from an L1
 /// instance. Its primary function is to interpret the contents of a P5 response and update the state and outcome of the
 /// associated FAPI P5 transaction.
-class p5_responses_handler : public fapi::config_message_notifier,
-                             public fapi::error_message_notifier,
+class p5_responses_handler : public fapi::p5_responses_notifier,
+                             public fapi::error_indication_notifier,
                              public mac_cell_slot_handler
 {
 public:
@@ -50,7 +50,7 @@ public:
   void on_stop_indication(const fapi::stop_indication& msg) override;
 
   // See interface for documentation.
-  void on_error_indication(const fapi::error_indication_message& msg) override;
+  void on_error_indication(const fapi::error_indication& msg) override;
 
   // See interface for documentation.
   void handle_slot_indication(const mac_cell_timing_context& context) override;

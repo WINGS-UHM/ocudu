@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/ul_dci_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/ul_dci_request_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -16,8 +16,8 @@ using namespace fapi;
 
 TEST(ul_dci_request_builder, valid_basic_parameters_passes)
 {
-  ul_dci_request_message         msg;
-  ul_dci_request_message_builder builder(msg);
+  ul_dci_request         msg;
+  ul_dci_request_builder builder(msg);
 
   unsigned sfn      = 16;
   unsigned slot     = 18;
@@ -33,7 +33,7 @@ TEST(ul_dci_request_builder, valid_basic_parameters_passes)
 
     ASSERT_EQ(i + 1, msg.pdus.size());
     ASSERT_EQ(i + 1, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_dci_pdu_type::PDCCH)]);
-    ASSERT_EQ(nof_dcis, msg.num_pdus_of_each_type[ul_dci_request_message::DCI_INDEX]);
+    ASSERT_EQ(nof_dcis, msg.num_pdus_of_each_type[ul_dci_request::DCI_INDEX]);
   }
 
   ASSERT_EQ(sfn, msg.sfn);

@@ -13,42 +13,42 @@
 using namespace ocudu;
 using namespace fapi;
 
-slot_message_gateway& message_bufferer_decorator_impl::get_slot_message_gateway()
+p7_requests_gateway& message_bufferer_decorator_impl::get_p7_requests_gateway()
 {
   return dispatcher;
 }
 
-slot_time_message_notifier& message_bufferer_decorator_impl::get_slot_time_message_notifier_from_this_decorator()
+p7_slot_indication_notifier& message_bufferer_decorator_impl::get_p7_slot_indication_notifier_from_this_decorator()
 {
   return time_notifier;
 }
 
-slot_data_message_notifier& message_bufferer_decorator_impl::get_slot_data_message_notifier_from_this_decorator()
+p7_indications_notifier& message_bufferer_decorator_impl::get_p7_indications_notifier_from_this_decorator()
 {
-  return data_notifier;
+  return p7_notifier;
 }
 
-slot_last_message_notifier& message_bufferer_decorator_impl::get_slot_last_message_notifier()
+p7_last_request_notifier& message_bufferer_decorator_impl::get_p7_last_request_notifier()
 {
-  return last_msg_notifier;
+  return p7_last_msg_notifier;
 }
 
-error_message_notifier& message_bufferer_decorator_impl::get_error_message_notifier_from_this_decorator()
+error_indication_notifier& message_bufferer_decorator_impl::get_error_indication_notifier_from_this_decorator()
 {
   return error_notifier;
 }
 
-void message_bufferer_decorator_impl::set_slot_time_message_notifier(slot_time_message_notifier& notifier)
+void message_bufferer_decorator_impl::set_p7_slot_indication_notifier(p7_slot_indication_notifier& notifier)
 {
-  time_notifier.set_slot_time_notifier(notifier);
+  time_notifier.set_p7_slot_indication_notifier(notifier);
 }
 
-void message_bufferer_decorator_impl::set_slot_data_message_notifier(slot_data_message_notifier& notifier)
+void message_bufferer_decorator_impl::set_p7_indications_notifier(p7_indications_notifier& notifier)
 {
-  data_notifier.set_slot_data_message_notifier(notifier);
+  p7_notifier.set_p7_indications_notifier(notifier);
 }
 
-void message_bufferer_decorator_impl::set_error_message_notifier(error_message_notifier& notifier)
+void message_bufferer_decorator_impl::set_error_indication_notifier(error_indication_notifier& notifier)
 {
-  error_notifier.set_error_message_notifier(notifier);
+  error_notifier.set_error_indication_notifier(notifier);
 }

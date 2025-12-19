@@ -16,7 +16,7 @@
 using namespace ocudu;
 using namespace fapi;
 
-error_type<validator_report> ocudu::fapi::validate_ul_dci_request(const ul_dci_request_message& msg)
+error_type<validator_report> ocudu::fapi::validate_ul_dci_request(const ul_dci_request& msg)
 {
   validator_report report(msg.sfn, msg.slot);
 

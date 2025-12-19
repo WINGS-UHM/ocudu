@@ -17,8 +17,8 @@ using namespace fapi;
 using namespace unittest;
 
 class validate_tx_data_request_field
-  : public validate_fapi_message<tx_data_request_message>,
-    public testing::TestWithParam<std::tuple<pdu_field_data<tx_data_request_message>, test_case_data>>
+  : public validate_fapi_message<tx_data_request>,
+    public testing::TestWithParam<std::tuple<pdu_field_data<tx_data_request>, test_case_data>>
 {};
 
 TEST_P(validate_tx_data_request_field, with_value)
@@ -34,9 +34,9 @@ TEST_P(validate_tx_data_request_field, with_value)
 
 INSTANTIATE_TEST_SUITE_P(sfn,
                          validate_tx_data_request_field,
-                         testing::Combine(testing::Values(pdu_field_data<tx_data_request_message>{
+                         testing::Combine(testing::Values(pdu_field_data<tx_data_request>{
                                               "sfn",
-                                              [](tx_data_request_message& msg, int value) { msg.sfn = value; }}),
+                                              [](tx_data_request& msg, int value) { msg.sfn = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{512, true},
                                                           test_case_data{1023, true},
@@ -44,9 +44,9 @@ INSTANTIATE_TEST_SUITE_P(sfn,
 
 INSTANTIATE_TEST_SUITE_P(slot,
                          validate_tx_data_request_field,
-                         testing::Combine(testing::Values(pdu_field_data<tx_data_request_message>{
+                         testing::Combine(testing::Values(pdu_field_data<tx_data_request>{
                                               "slot",
-                                              [](tx_data_request_message& msg, int value) { msg.slot = value; }}),
+                                              [](tx_data_request& msg, int value) { msg.slot = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{80, true},
                                                           test_case_data{159, true},
@@ -55,9 +55,9 @@ INSTANTIATE_TEST_SUITE_P(slot,
 INSTANTIATE_TEST_SUITE_P(
     cw_index,
     validate_tx_data_request_field,
-    testing::Combine(testing::Values(pdu_field_data<tx_data_request_message>{
+    testing::Combine(testing::Values(pdu_field_data<tx_data_request>{
                          "CW index",
-                         [](tx_data_request_message& msg, int value) { msg.pdus.back().cw_index = value; }}),
+                         [](tx_data_request& msg, int value) { msg.pdus.back().cw_index = value; }}),
                      testing::Values(test_case_data{0, true}, test_case_data{1, true}, test_case_data{2, false})));
 
 TEST(validate_tx_data_request_pdu, valid_pdu_passes)

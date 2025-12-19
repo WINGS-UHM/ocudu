@@ -9,10 +9,10 @@
  */
 
 #include "split6_o_du_low_plugin_dummy.h"
-#include "ocudu/fapi/common/error_message_notifier.h"
-#include "ocudu/fapi/p5/config_message_notifier.h"
-#include "ocudu/fapi/p7/slot_data_message_notifier.h"
-#include "ocudu/fapi/p7/slot_time_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
+#include "ocudu/fapi/p5/p5_responses_notifier.h"
+#include "ocudu/fapi/p7/p7_indications_notifier.h"
+#include "ocudu/fapi/p7/p7_slot_indication_notifier.h"
 #include "ocudu/fapi_adaptor/mac/operation_controller.h"
 
 using namespace ocudu;
@@ -27,64 +27,67 @@ public:
   void stop() override {}
 };
 
-/// FAPI error message notifier dummy implementation.
-class error_message_notifier_dummy : public fapi::error_message_notifier
+/// FAPI error indication notifier dummy implementation.
+class error_indication_notifier_dummy : public fapi::error_indication_notifier
 {
 public:
-  void on_error_indication(const fapi::error_indication_message& msg) override {}
+  void on_error_indication(const fapi::error_indication& msg) override {}
 };
 
-/// FAPI slot data message notifier dummy implementation.
-class slot_data_message_notifier_dummy : public fapi::slot_data_message_notifier
+/// FAPI P7 indications notifier dummy implementation.
+class p7_indications_notifier_dummy : public fapi::p7_indications_notifier
 {
 public:
-  void on_rx_data_indication(const fapi::rx_data_indication_message& msg) override {}
-  void on_crc_indication(const fapi::crc_indication_message& msg) override {}
-  void on_uci_indication(const fapi::uci_indication_message& msg) override {}
-  void on_srs_indication(const fapi::srs_indication_message& msg) override {}
-  void on_rach_indication(const fapi::rach_indication_message& msg) override {}
+  void on_rx_data_indication(const fapi::rx_data_indication& msg) override {}
+  void on_crc_indication(const fapi::crc_indication& msg) override {}
+  void on_uci_indication(const fapi::uci_indication& msg) override {}
+  void on_srs_indication(const fapi::srs_indication& msg) override {}
+  void on_rach_indication(const fapi::rach_indication& msg) override {}
 };
 
-/// FAPI slot time message notifier dummy implementation.
-class slot_time_message_notifier_dummy : public fapi::slot_time_message_notifier
+/// FAPI P7 slot indication notifier dummy implementation.
+class p7_slot_indication_notifier_dummy : public fapi::p7_slot_indication_notifier
 {
 public:
-  void on_slot_indication(const fapi::slot_indication_message& msg) override {}
+  void on_slot_indication(const fapi::slot_indication& msg) override {}
 };
 
 /// MAC-FAPI P7 sector adaptor dummy implementation.
 class mac_fapi_p7_sector_adaptor_dummy : public fapi_adaptor::mac_fapi_p7_sector_adaptor
 {
-  slot_data_message_notifier_dummy dummy_data_notifier;
-  slot_time_message_notifier_dummy dummy_time_notifier;
-  error_message_notifier_dummy     dummy_error_notifier;
+  p7_indications_notifier_dummy     dummy_p7_indications_notifier;
+  p7_slot_indication_notifier_dummy dummy_p7_slot_indication_notifier;
+  error_indication_notifier_dummy   dummy_error_notifier;
 
 public:
   // See interface for documentation.
-  fapi::slot_data_message_notifier& get_slot_data_message_notifier() override { return dummy_data_notifier; }
+  fapi::p7_indications_notifier& get_p7_indications_notifier() override { return dummy_p7_indications_notifier; }
 
   // See interface for documentation.
-  fapi::slot_time_message_notifier& get_slot_time_message_notifier() override { return dummy_time_notifier; }
+  fapi::p7_slot_indication_notifier& get_p7_slot_indication_notifier() override
+  {
+    return dummy_p7_slot_indication_notifier;
+  }
 
   // See interface for documentation.
-  fapi::error_message_notifier& get_error_message_notifier() override { return dummy_error_notifier; }
+  fapi::error_indication_notifier& get_error_indication_notifier() override { return dummy_error_notifier; }
 };
 
 /// MAC-FAPI P7 sector adaptor factory dummy implementation.
 class mac_fapi_p7_sector_adaptor_factory_dummy : public fapi_adaptor::mac_fapi_p7_sector_adaptor_factory
 {
   // See interface for documentation.
-  std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> create(const fapi::cell_configuration&   fapi_cfg,
-                                                                   fapi::slot_message_gateway&       gateway,
-                                                                   fapi::slot_last_message_notifier& last_msg_notifier,
-                                                                   ru_controller&                    ru_ctrl) override
+  std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor> create(const fapi::cell_configuration& fapi_cfg,
+                                                                   fapi::p7_requests_gateway&      p7_gateway,
+                                                                   fapi::p7_last_request_notifier& p7_last_req_notifier,
+                                                                   ru_controller&                  ru_ctrl) override
   {
     return std::make_unique<mac_fapi_p7_sector_adaptor_dummy>();
   }
 };
 
 /// FAPI config message notifier dummy implementation.
-class config_message_notifier_dummy : public fapi::config_message_notifier
+class p5_notifier_dummy : public fapi::p5_responses_notifier
 {
 public:
   void on_param_response(const fapi::param_response& msg) override {}
@@ -95,16 +98,16 @@ public:
 /// MAC-FAPI P5 sector adaptor dummy implementation.
 class mac_fapi_p5_sector_adaptor_dummy : public fapi_adaptor::mac_fapi_p5_sector_adaptor
 {
-  operation_controller_dummy    dummy_controller;
-  config_message_notifier_dummy dummy_config_notifier;
-  error_message_notifier_dummy  dummy_error_notifier;
+  operation_controller_dummy      dummy_controller;
+  p5_notifier_dummy               dummy_config_notifier;
+  error_indication_notifier_dummy dummy_error_notifier;
 
 public:
   // See interface for documentation.
-  fapi::config_message_notifier& get_config_message_notifier() override { return dummy_config_notifier; }
+  fapi::p5_responses_notifier& get_p5_responses_notifier() override { return dummy_config_notifier; }
 
   // See interface for documentation.
-  fapi::error_message_notifier& get_error_message_notifier() override { return dummy_error_notifier; }
+  fapi::error_indication_notifier& get_error_indication_notifier() override { return dummy_error_notifier; }
 
   // See interface for documentation.
   fapi_adaptor::operation_controller& get_operation_controller() override { return dummy_controller; }
@@ -113,9 +116,9 @@ public:
 } // namespace
 
 std::unique_ptr<fapi_adaptor::mac_fapi_p5_sector_adaptor>
-split6_o_du_low_plugin_dummy::create_fapi_p5_sector_adaptor(fapi::config_message_gateway& gateway,
-                                                            task_executor&                executor,
-                                                            task_executor&                control_executor)
+split6_o_du_low_plugin_dummy::create_fapi_p5_sector_adaptor(fapi::p5_requests_gateway& p5_gateway,
+                                                            task_executor&             executor,
+                                                            task_executor&             control_executor)
 {
   return std::make_unique<mac_fapi_p5_sector_adaptor_dummy>();
 }

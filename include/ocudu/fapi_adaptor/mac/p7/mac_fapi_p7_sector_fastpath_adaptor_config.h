@@ -20,8 +20,8 @@ namespace ocudu {
 class task_executor;
 
 namespace fapi {
-class slot_message_gateway;
-class slot_last_message_notifier;
+class p7_last_request_notifier;
+class p7_requests_gateway;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -42,10 +42,10 @@ struct mac_fapi_p7_sector_fastpath_adaptor_config {
 
 /// MAC-FAPI P7 sector fastpath adaptor dependencies.
 struct mac_fapi_p7_sector_fastpath_adaptor_dependencies {
-  /// Slot-specific FAPI message gateway.
-  fapi::slot_message_gateway& gateway;
-  /// Slot-specific last message notifier.
-  fapi::slot_last_message_notifier& last_msg_notifier;
+  /// FAPI P7 requests gateway.
+  fapi::p7_requests_gateway& p7_gateway;
+  /// P7 last requests notifier.
+  fapi::p7_last_request_notifier& p7_last_req_notifier;
   /// Precoding matrix mapper.
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part2 mapper.

@@ -36,7 +36,7 @@ void split6_flexible_o_du_low_session::set_dependencies(
     std::unique_ptr<radio_unit>                               radio,
     unique_timer                                              timer)
 {
-  ocudu_assert(slot_msg_adaptor, "Invalid FAPI slot message adaptor");
+  ocudu_assert(slot_msg_adaptor, "Invalid FAPI P7 message adaptor");
   ocudu_assert(du, "Invalid O-DU low");
   ocudu_assert(radio, "Invalid Radio Unit");
 
@@ -58,9 +58,9 @@ void split6_flexible_o_du_low_session::set_dependencies(
 
     // Connect adaptor with O-DU low.
     auto& fapi_adaptor = odu_low->get_phy_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
-    fapi_adaptor.set_slot_time_message_notifier(mac_p7_adaptor->get_slot_time_message_notifier());
-    fapi_adaptor.set_slot_data_message_notifier(mac_p7_adaptor->get_slot_data_message_notifier());
-    fapi_adaptor.set_error_message_notifier(mac_p7_adaptor->get_error_message_notifier());
+    fapi_adaptor.set_p7_slot_indication_notifier(mac_p7_adaptor->get_p7_slot_indication_notifier());
+    fapi_adaptor.set_p7_indications_notifier(mac_p7_adaptor->get_p7_indications_notifier());
+    fapi_adaptor.set_error_indication_notifier(mac_p7_adaptor->get_error_indication_notifier());
   }
 
   odu_low->get_operation_controller().start();

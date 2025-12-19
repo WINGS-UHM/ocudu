@@ -22,7 +22,7 @@ mac_fapi_p5_sector_fastpath_adaptor_impl::mac_fapi_p5_sector_fastpath_adaptor_im
   controller(mac_fapi_p5_fastpath_cell_operation_controller_impl_config{.cell_cfg = config.cell_cfg},
              mac_fapi_p5_fastpath_cell_operation_controller_impl_dependencies{
                  .logger              = dependencies.logger,
-                 .config_msg_gateway  = dependencies.gateway,
+                 .p5_gateway          = dependencies.p5_gateway,
                  .transaction_manager = transaction_manager,
                  .timers              = dependencies.timers,
                  .fapi_ctrl_executor  = dependencies.fapi_ctrl_executor,
@@ -30,12 +30,12 @@ mac_fapi_p5_sector_fastpath_adaptor_impl::mac_fapi_p5_sector_fastpath_adaptor_im
 {
 }
 
-fapi::config_message_notifier& mac_fapi_p5_sector_fastpath_adaptor_impl::get_config_message_notifier()
+fapi::p5_responses_notifier& mac_fapi_p5_sector_fastpath_adaptor_impl::get_p5_responses_notifier()
 {
   return responses_handler;
 }
 
-fapi::error_message_notifier& mac_fapi_p5_sector_fastpath_adaptor_impl::get_error_message_notifier()
+fapi::error_indication_notifier& mac_fapi_p5_sector_fastpath_adaptor_impl::get_error_indication_notifier()
 {
   return responses_handler;
 }

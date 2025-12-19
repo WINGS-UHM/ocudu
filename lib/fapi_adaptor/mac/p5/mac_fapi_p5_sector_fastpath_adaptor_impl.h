@@ -29,10 +29,10 @@ public:
                                            const mac_fapi_p5_sector_fastpath_adaptor_dependencies& dependencies);
 
   // See interface for documentation.
-  fapi::config_message_notifier& get_config_message_notifier() override;
+  fapi::p5_responses_notifier& get_p5_responses_notifier() override;
 
   // See interface for documentation.
-  fapi::error_message_notifier& get_error_message_notifier() override;
+  fapi::error_indication_notifier& get_error_indication_notifier() override;
 
   // See interface for documentation.
   phy_cell_operation_controller& get_operation_controller() override;

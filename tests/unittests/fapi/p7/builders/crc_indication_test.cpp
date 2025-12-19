@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/crc_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/crc_indication_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -17,8 +17,8 @@ using namespace fapi;
 TEST(crc_indication_builder, valid_indication_passes)
 {
   for (unsigned i = 0; i != 2; ++i) {
-    crc_indication_message         msg;
-    crc_indication_message_builder builder(msg);
+    crc_indication         msg;
+    crc_indication_builder builder(msg);
 
     unsigned slot = 15;
     unsigned sfn  = 100;
@@ -86,8 +86,8 @@ TEST(crc_indication_builder, valid_indication_passes)
 
 TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
 {
-  crc_indication_message         msg;
-  crc_indication_message_builder builder(msg);
+  crc_indication         msg;
+  crc_indication_builder builder(msg);
 
   unsigned slot = 15;
   unsigned sfn  = 100;

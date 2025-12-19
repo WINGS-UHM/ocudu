@@ -34,7 +34,7 @@ struct ul_tti_request_pdu {
 };
 
 /// Uplink TTI request message.
-struct ul_tti_request_message : public base_message {
+struct ul_tti_request : public base_message {
   enum class pdu_type : uint8_t { PRACH, PUSCH, PUCCH_format01, PUCCH_format234, SRS, msga_PUSCH };
 
   /// Maximum number of supported UL PDU types in this release.

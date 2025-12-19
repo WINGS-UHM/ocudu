@@ -48,11 +48,11 @@ o_du_unit ocudu::create_o_du_split6(const split6_o_du_unit_config&              
     auto&                              p5_sector_adaptor = fapi_adaptor->get_sector_adaptor(i).get_p5_sector_adaptor();
     auto&                              p7_sector_adaptor = fapi_adaptor->get_sector_adaptor(i).get_p7_sector_adaptor();
     odu::o_du_high_sector_dependencies sector_dependencies = {
-        .p5_gateway         = p5_sector_adaptor.get_config_message_gateway(),
-        .p7_gateway         = p7_sector_adaptor.get_slot_message_gateway(),
-        .last_msg_notifier  = p7_sector_adaptor.get_slot_last_message_notifier(),
-        .timer_mng          = du_dependencies.timer_ctrl->get_timer_manager(),
-        .fapi_ctrl_executor = du_dependencies.workers->get_cmd_line_executor(),
+        .p5_gateway           = p5_sector_adaptor.get_p5_requests_gateway(),
+        .p7_gateway           = p7_sector_adaptor.get_p7_requests_gateway(),
+        .p7_last_req_notifier = p7_sector_adaptor.get_p7_last_request_notifier(),
+        .timer_mng            = du_dependencies.timer_ctrl->get_timer_manager(),
+        .fapi_ctrl_executor   = du_dependencies.workers->get_cmd_line_executor(),
         // :TODO: create executor mapper for split 6 and pass correct executor here
         .mac_ctrl_executor = du_dependencies.workers->get_du_high_executor_mapper().du_control_executor(),
         .fapi_executor =

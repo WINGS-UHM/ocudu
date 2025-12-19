@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/ul_tti_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/ul_tti_request_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -19,8 +19,8 @@ TEST(ul_tti_request_builder, valid_basic_parameters_passes)
   unsigned slot = 13;
   unsigned sfn  = 599;
 
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   builder.set_basic_parameters(sfn, slot);
 
@@ -31,8 +31,8 @@ TEST(ul_tti_request_builder, valid_basic_parameters_passes)
 
 TEST(ul_tti_request_builder, add_prach_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_pdu_type::PRACH)]);
@@ -63,12 +63,12 @@ TEST(ul_tti_request_builder, add_prach_pdu_passes)
 
 TEST(ul_tti_request_builder, add_pucch_f0_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
   uint32_t     handle = 3214;
@@ -76,8 +76,8 @@ TEST(ul_tti_request_builder, add_pucch_f0_pdu_passes)
 
   builder.add_pucch_pdu(rnti, handle, format);
 
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
@@ -88,12 +88,12 @@ TEST(ul_tti_request_builder, add_pucch_f0_pdu_passes)
 
 TEST(ul_tti_request_builder, add_pucch_f1_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
   uint32_t     handle = 3214;
@@ -101,8 +101,8 @@ TEST(ul_tti_request_builder, add_pucch_f1_pdu_passes)
 
   builder.add_pucch_pdu(rnti, handle, format);
 
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
@@ -113,12 +113,12 @@ TEST(ul_tti_request_builder, add_pucch_f1_pdu_passes)
 
 TEST(ul_tti_request_builder, add_pucch_f2_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
   uint32_t     handle = 3214;
@@ -126,8 +126,8 @@ TEST(ul_tti_request_builder, add_pucch_f2_pdu_passes)
 
   builder.add_pucch_pdu(rnti, handle, format);
 
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
@@ -138,12 +138,12 @@ TEST(ul_tti_request_builder, add_pucch_f2_pdu_passes)
 
 TEST(ul_tti_request_builder, add_pucch_f3_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
   uint32_t     handle = 3214;
@@ -151,8 +151,8 @@ TEST(ul_tti_request_builder, add_pucch_f3_pdu_passes)
 
   builder.add_pucch_pdu(rnti, handle, format);
 
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
@@ -163,12 +163,12 @@ TEST(ul_tti_request_builder, add_pucch_f3_pdu_passes)
 
 TEST(ul_tti_request_builder, add_pucch_f4_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
   uint32_t     handle = 3214;
@@ -176,8 +176,8 @@ TEST(ul_tti_request_builder, add_pucch_f4_pdu_passes)
 
   builder.add_pucch_pdu(rnti, handle, format);
 
-  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format01)]);
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request_message::pdu_type::PUCCH_format234)]);
+  ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
+  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
@@ -188,8 +188,8 @@ TEST(ul_tti_request_builder, add_pucch_f4_pdu_passes)
 
 TEST(ul_tti_request_builder, add_pusch_pdu_passes)
 {
-  ul_tti_request_message         msg;
-  ul_tti_request_message_builder builder(msg);
+  ul_tti_request         msg;
+  ul_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_pdu_type::PUSCH)]);

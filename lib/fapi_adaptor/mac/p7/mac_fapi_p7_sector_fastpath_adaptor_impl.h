@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "fapi_to_mac_data_msg_fastpath_translator.h"
-#include "fapi_to_mac_error_msg_fastpath_translator.h"
-#include "fapi_to_mac_time_msg_fastpath_translator.h"
+#include "fapi_to_mac_error_indication_fastpath_translator.h"
+#include "fapi_to_mac_indications_fastpath_translator.h"
+#include "fapi_to_mac_slot_indication_fastpath_translator.h"
 #include "mac_fapi_p7_sector_fastpath_adaptor_impl_config.h"
 #include "mac_to_fapi_fastpath_translator.h"
 #include "ocudu/fapi_adaptor/mac/operation_controller.h"
@@ -39,13 +39,13 @@ public:
   void stop() override { mac_translator.stop(); }
 
   // See interface for documentation.
-  fapi::slot_time_message_notifier& get_slot_time_message_notifier() override;
+  fapi::p7_slot_indication_notifier& get_p7_slot_indication_notifier() override;
 
   // See interface for documentation.
-  fapi::error_message_notifier& get_error_message_notifier() override;
+  fapi::error_indication_notifier& get_error_indication_notifier() override;
 
   // See interface for documentation.
-  fapi::slot_data_message_notifier& get_slot_data_message_notifier() override;
+  fapi::p7_indications_notifier& get_p7_indications_notifier() override;
 
   // See interface for documentation.
   mac_cell_result_notifier& get_cell_result_notifier() override;
@@ -63,14 +63,14 @@ public:
   void set_cell_crc_handler(mac_cell_control_information_handler& handler) override;
 
 private:
-  /// MAC-to-FAPI data translator.
+  /// MAC-to-FAPI translator.
   mac_to_fapi_fastpath_translator mac_translator;
-  /// FAPI-to-MAC data-specific message translator.
-  fapi_to_mac_data_msg_fastpath_translator fapi_data_translator;
-  /// FAPI-to-MAC time-specific message translator.
-  fapi_to_mac_time_msg_fastpath_translator fapi_time_translator;
+  /// FAPI-to-MAC indications message translator.
+  fapi_to_mac_indications_fastpath_translator fapi_data_translator;
+  /// FAPI-to-MAC slot indications message translator.
+  fapi_to_mac_slot_indication_fastpath_translator fapi_time_translator;
   /// FAPI-to-MAC error-specific message translator.
-  fapi_to_mac_error_msg_fastpath_translator fapi_error_translator;
+  fapi_to_mac_error_indication_fastpath_translator fapi_error_translator;
 };
 
 } // namespace fapi_adaptor

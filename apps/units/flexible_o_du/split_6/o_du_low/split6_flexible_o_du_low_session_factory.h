@@ -18,10 +18,10 @@
 namespace ocudu {
 
 namespace fapi {
-class slot_message_gateway;
-class slot_last_message_notifier;
+class p5_requests_gateway;
+class p7_last_request_notifier;
+class p7_requests_gateway;
 struct cell_configuration;
-class config_message_gateway;
 } // namespace fapi
 
 struct worker_manager;
@@ -72,7 +72,7 @@ class split6_flexible_o_du_low_session_factory
   worker_manager&                                                   workers;
   timer_manager&                                                    timers;
   split6_flexible_o_du_low_metrics_notifier*                        notifier;
-  std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor_factory> slot_messages_adaptor_factory;
+  std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor_factory> p7_requests_adaptor_factory;
   start_time_calculator                                             start_time_calc;
   std::optional<float>                                              sampling_rate_MHz;
 
@@ -82,15 +82,15 @@ public:
       worker_manager&                                                   workers_,
       timer_manager&                                                    timers_,
       split6_flexible_o_du_low_metrics_notifier*                        notifier_,
-      std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor_factory> slot_messages_adaptor_factory_) :
+      std::unique_ptr<fapi_adaptor::mac_fapi_p7_sector_adaptor_factory> p7_requests_adaptor_factory_) :
     unit_config(std::move(unit_config_)),
     workers(workers_),
     timers(timers_),
     notifier(notifier_),
-    slot_messages_adaptor_factory(std::move(slot_messages_adaptor_factory_)),
+    p7_requests_adaptor_factory(std::move(p7_requests_adaptor_factory_)),
     start_time_calc(std::chrono::milliseconds{unit_config.start_time_jitter_ms}, ocudulog::fetch_basic_logger("APP"))
   {
-    report_error_if_not(slot_messages_adaptor_factory, "Invalid FAPI slot messages adaptor factory");
+    report_error_if_not(p7_requests_adaptor_factory, "Invalid FAPI P7 messages adaptor factory");
 
     if (const auto* ru_cfg = std::get_if<ru_sdr_unit_config>(&unit_config.ru_cfg)) {
       sampling_rate_MHz.emplace(ru_cfg->srate_MHz);

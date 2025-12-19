@@ -28,14 +28,14 @@ using namespace unittest;
 
 namespace {
 
-/// Error message notifier spy implementation.
-class error_message_notifier_spy : public fapi::error_message_notifier
+/// Error indication notifier spy implementation.
+class error_indication_notifier_spy : public fapi::error_indication_notifier
 {
-  fapi::error_indication_message message;
-  bool                           error_indication_detected = false;
+  fapi::error_indication message;
+  bool                   error_indication_detected = false;
 
 public:
-  void on_error_indication(const fapi::error_indication_message& msg) override
+  void on_error_indication(const fapi::error_indication& msg) override
   {
     message                   = msg;
     error_indication_detected = true;
@@ -43,7 +43,7 @@ public:
 
   bool has_on_error_indication_been_called() const { return error_indication_detected; }
 
-  const fapi::error_indication_message get_message() const { return message; }
+  const fapi::error_indication get_message() const { return message; }
 };
 
 class downlink_pdu_validator_dummy : public downlink_pdu_validator
@@ -226,7 +226,7 @@ protected:
   fapi::carrier_config                   carrier_cfg = {0, 0, {}, {11, 51, 106, 0, 0}, 0, 0, 0, {}, {}, 0, 0, 0, 0};
   downlink_pdu_validator_dummy           dl_pdu_validator;
   uplink_pdu_validator_dummy             ul_pdu_validator;
-  error_message_notifier_spy             error_notifier_spy;
+  error_indication_notifier_spy          error_notifier_spy;
   manual_task_worker                     worker;
   fapi_to_phy_fastpath_translator_config config =
       {sector_id, headroom_in_slots, false, scs, scs, prach_cfg, carrier_cfg, {0}};
@@ -245,7 +245,7 @@ protected:
 public:
   fapi_to_phy_translator_fixture() : worker(1), translator(config, std::move(dependencies))
   {
-    translator.set_error_message_notifier(error_notifier_spy);
+    translator.set_error_indication_notifier(error_notifier_spy);
     translator.handle_new_slot(slot);
   }
 };
@@ -262,13 +262,13 @@ TEST_F(fapi_to_phy_translator_fixture, downlink_processor_is_configured_on_new_d
   ASSERT_FALSE(dl_processor_pool.processor(slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
-  fapi::dl_tti_request_message msg;
+  fapi::dl_tti_request msg;
   msg.sfn  = slot.sfn();
   msg.slot = slot.slot_index();
   // Add a PDU to the message.
   msg.pdus.emplace_back();
 
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the downlink processor is configured.
   ASSERT_TRUE(dl_processor_pool.processor(slot).has_configure_resource_grid_method_been_called());
@@ -278,15 +278,15 @@ TEST_F(fapi_to_phy_translator_fixture, downlink_processor_is_configured_on_new_d
 
 TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_is_processed)
 {
-  fapi::dl_tti_request_message msg = build_valid_dl_tti_request();
-  slot_point                   msg_slot(scs, msg.sfn, msg.slot);
+  fapi::dl_tti_request msg = build_valid_dl_tti_request();
+  slot_point           msg_slot(scs, msg.sfn, msg.slot);
 
   ASSERT_FALSE(dl_processor_pool.processor(msg_slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
   translator.handle_new_slot(msg_slot);
   // Process SSB PDU.
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the downlink processor is configured.
   ASSERT_TRUE(dl_processor_pool.processor(msg_slot).has_configure_resource_grid_method_been_called());
@@ -296,7 +296,7 @@ TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_is_processed)
 
   translator.handle_new_slot(msg_slot + 1);
   ++msg.slot;
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the finish processing PDUs method of the previous slot downlink_processor has been called.
   ASSERT_TRUE(dl_processor_pool.processor(msg_slot).has_finish_processing_pdus_method_been_called());
@@ -305,8 +305,8 @@ TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_is_processed)
 
 TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_within_allowed_delay_is_processed)
 {
-  const fapi::dl_tti_request_message& msg = build_valid_dl_tti_request();
-  slot_point                          msg_slot(scs, msg.sfn, msg.slot);
+  const fapi::dl_tti_request& msg = build_valid_dl_tti_request();
+  slot_point                  msg_slot(scs, msg.sfn, msg.slot);
 
   ASSERT_FALSE(dl_processor_pool.processor(msg_slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
@@ -319,7 +319,7 @@ TEST_F(fapi_to_phy_translator_fixture, dl_ssb_pdu_within_allowed_delay_is_proces
   }
 
   // Send a DL_TTI.request.
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the downlink processor is configured.
   ASSERT_TRUE(dl_processor_pool.processor(msg_slot).has_configure_resource_grid_method_been_called());
@@ -334,7 +334,7 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_sends_previous
   ASSERT_FALSE(dl_processor_pool.processor(slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
-  fapi::dl_tti_request_message msg;
+  fapi::dl_tti_request msg;
   msg.sfn  = slot.sfn();
   msg.slot = slot.slot_index();
   // Add a pdu to the message.
@@ -346,7 +346,7 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_sends_previous
   }
 
   // Send a DL_TTI.request.
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the downlink processor is configured.
   ASSERT_TRUE(dl_processor_pool.processor(slot).has_configure_resource_grid_method_been_called());
@@ -355,7 +355,7 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_sends_previous
 
   // Send another DL_TTI.request and check that the previous one has been sent.
   ++msg.slot;
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the finish processing PDUs method of the previous slot downlink_processor has been called.
   ASSERT_TRUE(dl_processor_pool.processor(slot).has_finish_processing_pdus_method_been_called());
@@ -368,7 +368,7 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_from_a_slot_de
 
   translator.handle_new_slot(current_slot);
 
-  fapi::dl_tti_request_message msg;
+  fapi::dl_tti_request msg;
   msg.sfn  = current_slot.sfn();
   msg.slot = current_slot.slot_index();
 
@@ -379,11 +379,11 @@ TEST_F(fapi_to_phy_translator_fixture, receiving_a_dl_tti_request_from_a_slot_de
   }
 
   // Send a DL_TTI.request.
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert the error contents
   ASSERT_TRUE(error_notifier_spy.has_on_error_indication_been_called());
-  const fapi::error_indication_message& error_msg = error_notifier_spy.get_message();
+  const fapi::error_indication& error_msg = error_notifier_spy.get_message();
   ASSERT_EQ(error_msg.message_id, fapi::message_type_id::dl_tti_request);
   ASSERT_EQ(error_msg.error_code, fapi::error_code_id::out_of_sync);
   ASSERT_EQ(error_msg.sfn, slot.sfn());
@@ -397,14 +397,14 @@ TEST_F(fapi_to_phy_translator_fixture, message_received_is_sended_when_a_message
   ASSERT_FALSE(dl_processor_pool.processor(slot).has_configure_resource_grid_method_been_called());
   ASSERT_EQ(rg_pool.get_getter_count(), 0);
 
-  fapi::dl_tti_request_message msg;
+  fapi::dl_tti_request msg;
   msg.sfn  = slot.sfn();
   msg.slot = slot.slot_index();
   // Add a PDU to the message.
   msg.pdus.emplace_back();
 
   // Send a DL_TTI.request.
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the downlink processor is configured.
   ASSERT_TRUE(dl_processor_pool.processor(slot).has_configure_resource_grid_method_been_called());
@@ -419,7 +419,7 @@ TEST_F(fapi_to_phy_translator_fixture, message_received_is_sended_when_a_message
   ASSERT_FALSE(dl_processor_pool.processor(slot).has_finish_processing_pdus_method_been_called());
 
   ++msg.slot;
-  translator.dl_tti_request(msg);
+  translator.send_dl_tti_request(msg);
 
   // Assert that the finish processing PDUs method of the previous slot downlink_processor has been called.
   ASSERT_TRUE(dl_processor_pool.processor(slot).has_finish_processing_pdus_method_been_called());
@@ -429,12 +429,12 @@ TEST_F(fapi_to_phy_translator_fixture, message_received_is_sended_when_a_message
 TEST_F(fapi_to_phy_translator_fixture,
        empty_ul_tti_does_not_generate_request_when_allow_request_on_empty_slot_is_disabled)
 {
-  fapi::ul_tti_request_message msg;
+  fapi::ul_tti_request msg;
   msg.sfn  = slot.sfn();
   msg.slot = slot.slot_index();
 
   translator.handle_new_slot(slot);
-  translator.ul_tti_request(msg);
+  translator.send_ul_tti_request(msg);
 
   ASSERT_FALSE(ul_request_processor.has_uplink_been_requested());
 }
@@ -454,12 +454,12 @@ TEST_F(fapi_to_phy_translator_fixture, empty_ul_tti_generates_request_when_allow
        std::move(
            std::get<std::unique_ptr<uci_part2_correspondence_repository>>(generate_uci_part2_correspondence(1)))});
 
-  fapi::ul_tti_request_message msg;
+  fapi::ul_tti_request msg;
   msg.sfn  = slot.sfn();
   msg.slot = slot.slot_index();
 
   translator_allow.handle_new_slot(slot);
-  translator_allow.ul_tti_request(msg);
+  translator_allow.send_ul_tti_request(msg);
 
   ASSERT_TRUE(ul_request_processor.has_uplink_been_requested());
 }

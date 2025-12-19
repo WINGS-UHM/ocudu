@@ -10,17 +10,17 @@
 
 #include "configuration_procedure.h"
 #include "ocudu/fapi/common/error_indication.h"
-#include "ocudu/fapi/common/error_message_notifier.h"
-#include "ocudu/fapi/p5/config_message_notifier.h"
-#include "ocudu/fapi/p5/config_messages.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
+#include "ocudu/fapi/p5/p5_messages.h"
+#include "ocudu/fapi/p5/p5_responses_notifier.h"
 
 using namespace ocudu;
 using namespace fapi;
 
 namespace {
 
-/// FAPI configuration message notifier dummy implementation.
-class config_message_notifier_dummy : public config_message_notifier
+/// Dummy FAPI P5 responses notifier.
+class p5_notifier_dummy : public p5_responses_notifier
 {
 public:
   void on_param_response(const param_response& msg) override
@@ -39,16 +39,16 @@ public:
   }
 };
 
-class error_message_notifier_dummy : public error_message_notifier
+class error_indication_notifier_dummy : public error_indication_notifier
 {
 public:
-  void on_error_indication(const error_indication_message& msg) override
+  void on_error_indication(const error_indication& msg) override
   {
     report_error("Dummy FAPI ERROR.indication notifier cannot notify errors");
   }
 };
 
-class cell_operation_request_notifier_dummy : public cell_operation_request_notifier
+class p5_operational_change_request_notifier_dummy : public p5_operational_change_request_notifier
 {
 public:
   bool on_start_request(const cell_configuration& config) override { return false; }
@@ -57,19 +57,19 @@ public:
 
 } // namespace
 
-static config_message_notifier_dummy         dummy_msg_notifier;
-static error_message_notifier_dummy          dummy_error_msg_notifier;
-static cell_operation_request_notifier_dummy dummy_cell_operation_notifier;
+static p5_notifier_dummy                            p5_dummy_notifier;
+static error_indication_notifier_dummy              p5_error_notifier;
+static p5_operational_change_request_notifier_dummy p5_operational_change_notifier;
 
 configuration_procedure::configuration_procedure(ocudulog::basic_logger& logger_) :
   logger(logger_),
-  notifier(&dummy_msg_notifier),
-  error_notifier(&dummy_error_msg_notifier),
-  cell_operation_notifier(&dummy_cell_operation_notifier)
+  p5_notifier(&p5_dummy_notifier),
+  error_notifier(&p5_error_notifier),
+  cell_operation_notifier(&p5_operational_change_notifier)
 {
 }
 
-void configuration_procedure::param_request(const fapi::param_request& msg)
+void configuration_procedure::send_param_request(const fapi::param_request& msg)
 {
   // Do nothing for the PARAM.response.
   param_response response;
@@ -78,10 +78,10 @@ void configuration_procedure::param_request(const fapi::param_request& msg)
   // If current status is running, report back error code, as per SCF-222 v4.0 section 3.3.1.3.
   response.error_code = (status == cell_status::RUNNING) ? error_code_id::msg_invalid_state : error_code_id::msg_ok;
 
-  notifier->on_param_response(response);
+  p5_notifier->on_param_response(response);
 }
 
-void configuration_procedure::config_request(const fapi::config_request& msg)
+void configuration_procedure::send_config_request(const fapi::config_request& msg)
 {
   cell_status current_status = status;
 
@@ -100,16 +100,16 @@ void configuration_procedure::config_request(const fapi::config_request& msg)
     status = cell_status::CONFIGURED;
   }
 
-  notifier->on_config_response(response);
+  p5_notifier->on_config_response(response);
 }
 
-void configuration_procedure::start_request(const fapi::start_request& msg)
+void configuration_procedure::send_start_request(const fapi::start_request& msg)
 {
   cell_status current_status = status;
 
   // Unexpected status, notify error.
   if (current_status != cell_status::CONFIGURED) {
-    error_indication_message indication;
+    error_indication indication;
     indication.message_id = message_type_id::start_request;
     indication.error_code = error_code_id::msg_invalid_state;
     error_notifier->on_error_indication(indication);
@@ -120,7 +120,7 @@ void configuration_procedure::start_request(const fapi::start_request& msg)
   // Status is configured. Create DU low and set the status to start.
   if (!cell_operation_notifier->on_start_request(cell_cfg)) {
     logger.error("Failed to start cell id '{}'", cell_cfg.pci);
-    error_indication_message indication;
+    error_indication indication;
     indication.message_id = message_type_id::start_request;
     indication.error_code = error_code_id::msg_invalid_config;
     error_notifier->on_error_indication(indication);
@@ -132,13 +132,13 @@ void configuration_procedure::start_request(const fapi::start_request& msg)
   status = cell_status::RUNNING;
 }
 
-void configuration_procedure::stop_request(const fapi::stop_request& msg)
+void configuration_procedure::send_stop_request(const fapi::stop_request& msg)
 {
   cell_status current_status = status;
 
   // Unexpected status, notify error.
   if (current_status != cell_status::RUNNING) {
-    error_indication_message indication;
+    error_indication indication;
     indication.message_id = message_type_id::stop_request;
     indication.error_code = error_code_id::msg_invalid_state;
     error_notifier->on_error_indication(indication);
@@ -153,7 +153,7 @@ void configuration_procedure::stop_request(const fapi::stop_request& msg)
   status = cell_status::CONFIGURED;
 
   stop_indication indication;
-  notifier->on_stop_indication(indication);
+  p5_notifier->on_stop_indication(indication);
 }
 
 bool configuration_procedure::update_cell_config(const fapi::config_request& msg)

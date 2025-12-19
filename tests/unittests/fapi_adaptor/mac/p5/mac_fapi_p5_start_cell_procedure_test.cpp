@@ -11,7 +11,7 @@
 #include "helpers.h"
 #include "mac_fapi_p5_start_cell_procedure.h"
 #include "p5_transaction_outcome_manager.h"
-#include "ocudu/fapi/p5/config_message_gateway.h"
+#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/support/executors/task_worker.h"
 #include "ocudu/support/io/io_broker_factory.h"
 #include "ocudu/support/io/io_timer_source.h"
@@ -22,17 +22,17 @@ using namespace fapi_adaptor;
 
 namespace {
 
-class config_message_gateway_spy : public fapi::config_message_gateway
+class config_message_gateway_spy : public fapi::p5_requests_gateway
 {
   std::atomic<bool> param_request_sent  = false;
   std::atomic<bool> config_request_sent = false;
   std::atomic<bool> start_request_sent  = false;
 
 public:
-  void param_request(const fapi::param_request& msg) override { param_request_sent = true; }
-  void config_request(const fapi::config_request& msg) override { config_request_sent = true; }
-  void stop_request(const fapi::stop_request& msg) override {}
-  void start_request(const fapi::start_request& msg) override { start_request_sent = true; }
+  void send_param_request(const fapi::param_request& msg) override { param_request_sent = true; }
+  void send_config_request(const fapi::config_request& msg) override { config_request_sent = true; }
+  void send_stop_request(const fapi::stop_request& msg) override {}
+  void send_start_request(const fapi::start_request& msg) override { start_request_sent = true; }
 
   bool has_param_request_been_sent() const { return param_request_sent; }
   bool has_config_request_been_sent() const { return config_request_sent; }
@@ -80,8 +80,8 @@ public:
 
     // Spawn start procedure in the MAC executor and wait until it has started.
     (void)mac_executor.defer([this, token = start.get_token()]() {
-      mac_fapi_start_cell_procedure_dependencies dependencies = {.logger = ocudulog::fetch_basic_logger("TEST"),
-                                                                 .config_msg_gateway  = gateway_spy,
+      mac_fapi_start_cell_procedure_dependencies dependencies = {.logger     = ocudulog::fetch_basic_logger("TEST"),
+                                                                 .p5_gateway = gateway_spy,
                                                                  .transaction_manager = transaction_manager,
                                                                  .mac_ctrl_executor   = mac_executor,
                                                                  .fapi_ctrl_executor  = fapi_executor,

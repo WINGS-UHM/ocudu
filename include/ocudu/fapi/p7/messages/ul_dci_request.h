@@ -26,7 +26,7 @@ struct ul_dci_pdu {
 };
 
 /// Uplink DCI request message.
-struct ul_dci_request_message : public base_message {
+struct ul_dci_request : public base_message {
   /// [Implementation-defined] DCI index in the array number PDUs of each type.
   static constexpr unsigned DCI_INDEX = 1;
   /// [Implementation-defined] Maximum number of supported UL PDU types in this release.

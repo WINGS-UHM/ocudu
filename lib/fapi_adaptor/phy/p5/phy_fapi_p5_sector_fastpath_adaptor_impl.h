@@ -24,16 +24,16 @@ public:
                                            const phy_fapi_p5_sector_fastpath_adaptor_dependencies& dependencies);
 
   // See interface for documentation.
-  fapi::config_message_gateway& get_config_message_gateway() override;
+  fapi::p5_requests_gateway& get_p5_requests_gateway() override;
 
   // See interface for documentation.
-  void set_config_message_notifier(fapi::config_message_notifier& config_notifier) override;
+  void set_p5_responses_notifier(fapi::p5_responses_notifier& config_notifier) override;
 
   // See interface for documentation.
-  void set_error_message_notifier(fapi::error_message_notifier& err_notifier) override;
+  void set_error_indication_notifier(fapi::error_indication_notifier& err_notifier) override;
 
 private:
-  p5_requests_handler gateway;
+  p5_requests_handler p5_handler;
 };
 
 } // namespace fapi_adaptor

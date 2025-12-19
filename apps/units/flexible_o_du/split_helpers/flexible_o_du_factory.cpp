@@ -235,15 +235,15 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
         .p5_gateway = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
                           .get_sector_adaptor(i)
                           .get_p5_sector_adaptor()
-                          .get_config_message_gateway(),
+                          .get_p5_requests_gateway(),
         .p7_gateway = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
                           .get_sector_adaptor(i)
                           .get_p7_sector_adaptor()
-                          .get_slot_message_gateway(),
-        .last_msg_notifier = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
-                                 .get_sector_adaptor(i)
-                                 .get_p7_sector_adaptor()
-                                 .get_slot_last_message_notifier(),
+                          .get_p7_requests_gateway(),
+        .p7_last_req_notifier = odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor()
+                                    .get_sector_adaptor(i)
+                                    .get_p7_sector_adaptor()
+                                    .get_p7_last_request_notifier(),
         .timer_mng          = dependencies.timer_ctrl->get_timer_manager(),
         .fapi_ctrl_executor = dependencies.workers->get_cmd_line_executor(),
         .mac_ctrl_executor  = dependencies.workers->get_du_high_executor_mapper().du_control_executor(),
@@ -263,8 +263,8 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
     auto& p5_mac_adaptor =
         odu_hi_unit.o_du_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p5_sector_fastpath_adaptor();
 
-    p5_phy_adaptor.set_config_message_notifier(p5_mac_adaptor.get_config_message_notifier());
-    p5_phy_adaptor.set_error_message_notifier(p5_mac_adaptor.get_error_message_notifier());
+    p5_phy_adaptor.set_p5_responses_notifier(p5_mac_adaptor.get_p5_responses_notifier());
+    p5_phy_adaptor.set_error_indication_notifier(p5_mac_adaptor.get_error_indication_notifier());
 
     auto& p7_phy_adaptor =
         odu_lo_unit.o_du_lo->get_phy_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
@@ -272,9 +272,9 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
         odu_hi_unit.o_du_hi->get_mac_fapi_fastpath_adaptor().get_sector_adaptor(i).get_p7_sector_adaptor();
 
     // Connect P7 O-DU low with O-DU high.
-    p7_phy_adaptor.set_slot_time_message_notifier(p7_mac_adaptor.get_slot_time_message_notifier());
-    p7_phy_adaptor.set_error_message_notifier(p7_mac_adaptor.get_error_message_notifier());
-    p7_phy_adaptor.set_slot_data_message_notifier(p7_mac_adaptor.get_slot_data_message_notifier());
+    p7_phy_adaptor.set_p7_slot_indication_notifier(p7_mac_adaptor.get_p7_slot_indication_notifier());
+    p7_phy_adaptor.set_error_indication_notifier(p7_mac_adaptor.get_error_indication_notifier());
+    p7_phy_adaptor.set_p7_indications_notifier(p7_mac_adaptor.get_p7_indications_notifier());
   }
 
   std::for_each(odu_hi_unit.metrics.begin(), odu_hi_unit.metrics.end(), [&](auto& e) {

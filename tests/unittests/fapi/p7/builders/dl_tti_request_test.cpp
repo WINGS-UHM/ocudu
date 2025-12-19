@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/dl_tti_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/dl_tti_request_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -20,8 +20,8 @@ TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
   unsigned sfn      = 599;
   unsigned n_groups = 2;
 
-  dl_tti_request_message         msg;
-  dl_tti_request_message_builder builder(msg);
+  dl_tti_request         msg;
+  dl_tti_request_builder builder(msg);
 
   builder.set_basic_parameters(sfn, slot, n_groups);
 
@@ -33,8 +33,8 @@ TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
 
 TEST(dl_ssb_pdu_builder, add_pdcch_pdu_passes)
 {
-  dl_tti_request_message         msg;
-  dl_tti_request_message_builder builder(msg);
+  dl_tti_request         msg;
+  dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDCCH)]);
@@ -46,13 +46,13 @@ TEST(dl_ssb_pdu_builder, add_pdcch_pdu_passes)
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDCCH)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(dl_pdu_type::PDCCH, msg.pdus.back().pdu_type);
-  ASSERT_EQ(nof_dci_in_pdu, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_tti_request_message::DL_DCI_INDEX)]);
+  ASSERT_EQ(nof_dci_in_pdu, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_tti_request::DL_DCI_INDEX)]);
 }
 
 TEST(dl_ssb_pdu_builder, add_pdsch_pdu_passes)
 {
-  dl_tti_request_message         msg;
-  dl_tti_request_message_builder builder(msg);
+  dl_tti_request         msg;
+  dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDSCH)]);
@@ -66,8 +66,8 @@ TEST(dl_ssb_pdu_builder, add_pdsch_pdu_passes)
 
 TEST(dl_ssb_pdu_builder, add_ssb_pdu_passes)
 {
-  dl_tti_request_message         msg;
-  dl_tti_request_message_builder builder(msg);
+  dl_tti_request         msg;
+  dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::SSB)]);
@@ -81,8 +81,8 @@ TEST(dl_ssb_pdu_builder, add_ssb_pdu_passes)
 
 TEST(dl_ssb_pdu_builder, add_csi_pdu_passes)
 {
-  dl_tti_request_message         msg;
-  dl_tti_request_message_builder builder(msg);
+  dl_tti_request         msg;
+  dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::CSI_RS)]);

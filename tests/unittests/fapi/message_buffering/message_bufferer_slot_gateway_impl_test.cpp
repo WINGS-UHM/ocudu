@@ -109,7 +109,7 @@ static bool operator==(const dl_tti_request_pdu& lhs, const dl_tti_request_pdu& 
   return false;
 }
 
-static bool operator==(const dl_tti_request_message& lhs, const dl_tti_request_message& rhs)
+static bool operator==(const dl_tti_request& lhs, const dl_tti_request& rhs)
 {
   return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
          lhs.num_groups == rhs.num_groups && lhs.pdus == rhs.pdus;
@@ -178,7 +178,7 @@ static bool operator==(const ul_tti_request_pdu& lhs, const ul_tti_request_pdu& 
   return false;
 }
 
-static bool operator==(const ul_tti_request_message& lhs, const ul_tti_request_message& rhs)
+static bool operator==(const ul_tti_request& lhs, const ul_tti_request& rhs)
 {
   return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
          lhs.num_groups == rhs.num_groups && lhs.pdus == rhs.pdus;
@@ -189,7 +189,7 @@ static bool operator==(const ul_dci_pdu& lhs, const ul_dci_pdu& rhs)
   return lhs.pdu_type == rhs.pdu_type && lhs.pdu_size == rhs.pdu_size && lhs.pdu == rhs.pdu;
 }
 
-static bool operator==(const ul_dci_request_message& lhs, const ul_dci_request_message& rhs)
+static bool operator==(const ul_dci_request& lhs, const ul_dci_request& rhs)
 {
   return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
          lhs.pdus == rhs.pdus;
@@ -200,7 +200,7 @@ static bool operator==(const tx_data_req_pdu& lhs, const tx_data_req_pdu& rhs)
   return lhs.pdu_index == rhs.pdu_index && lhs.cw_index == rhs.cw_index && lhs.pdu.get_buffer() == rhs.pdu.get_buffer();
 }
 
-static bool operator==(const tx_data_request_message& lhs, const tx_data_request_message& rhs)
+static bool operator==(const tx_data_request& lhs, const tx_data_request& rhs)
 {
   return lhs.sfn == rhs.sfn && lhs.slot == rhs.slot && lhs.control_length == rhs.control_length && lhs.pdus == rhs.pdus;
 }
@@ -210,50 +210,50 @@ static bool operator==(const tx_data_request_message& lhs, const tx_data_request
 
 namespace {
 
-class slot_message_gateway_spy : public slot_message_gateway
+class p7_requests_gateway_spy : public p7_requests_gateway
 {
-  bool                    dl_tti_request_received  = false;
-  bool                    ul_tti_request_received  = false;
-  bool                    ul_dci_request_received  = false;
-  bool                    tx_data_request_received = false;
-  dl_tti_request_message  dl_tti_msg;
-  ul_tti_request_message  ul_tti_msg;
-  ul_dci_request_message  ul_dci_msg;
-  tx_data_request_message tx_data_msg;
+  bool            dl_tti_request_received  = false;
+  bool            ul_tti_request_received  = false;
+  bool            ul_dci_request_received  = false;
+  bool            tx_data_request_received = false;
+  dl_tti_request  dl_tti_msg;
+  ul_tti_request  ul_tti_msg;
+  ul_dci_request  ul_dci_msg;
+  tx_data_request tx_data_msg;
 
 public:
-  void dl_tti_request(const dl_tti_request_message& msg) override
+  void send_dl_tti_request(const dl_tti_request& msg) override
   {
     dl_tti_request_received = true;
     dl_tti_msg              = msg;
   }
 
-  void ul_tti_request(const ul_tti_request_message& msg) override
+  void send_ul_tti_request(const ul_tti_request& msg) override
   {
     ul_tti_request_received = true;
     ul_tti_msg              = msg;
   }
 
-  void ul_dci_request(const ul_dci_request_message& msg) override
+  void send_ul_dci_request(const ul_dci_request& msg) override
   {
     ul_dci_request_received = true;
     ul_dci_msg              = msg;
   }
 
-  void tx_data_request(const tx_data_request_message& msg) override
+  void send_tx_data_request(const tx_data_request& msg) override
   {
     tx_data_request_received = true;
     tx_data_msg              = msg;
   }
 
-  bool                           has_dl_tti_request_message_been_received() const { return dl_tti_request_received; }
-  bool                           has_ul_tti_request_message_been_received() const { return ul_tti_request_received; }
-  bool                           has_ul_dci_request_message_been_received() const { return ul_dci_request_received; }
-  bool                           has_tx_data_request_message_been_received() const { return tx_data_request_received; }
-  const dl_tti_request_message&  get_dl_tti_request() const { return dl_tti_msg; }
-  const ul_tti_request_message&  get_ul_tti_request() const { return ul_tti_msg; }
-  const ul_dci_request_message&  get_ul_dci_request() const { return ul_dci_msg; }
-  const tx_data_request_message& get_tx_data_request() const { return tx_data_msg; }
+  bool                   has_dl_tti_request_message_been_received() const { return dl_tti_request_received; }
+  bool                   has_ul_tti_request_message_been_received() const { return ul_tti_request_received; }
+  bool                   has_ul_dci_request_message_been_received() const { return ul_dci_request_received; }
+  bool                   has_tx_data_request_message_been_received() const { return tx_data_request_received; }
+  const dl_tti_request&  get_dl_tti_request() const { return dl_tti_msg; }
+  const ul_tti_request&  get_ul_tti_request() const { return ul_tti_msg; }
+  const ul_dci_request&  get_ul_dci_request() const { return ul_dci_msg; }
+  const tx_data_request& get_tx_data_request() const { return tx_data_msg; }
 
   void reset()
   {
@@ -268,15 +268,15 @@ public:
 
 TEST(bufferer_slot_gateway_impl_test, dl_tti_request_from_same_slot_is_transmitted)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
-  const dl_tti_request_message& msg  = unittest::build_valid_dl_tti_request();
-  slot_point                    slot = slot_point(scs, msg.sfn, msg.slot);
+  const dl_tti_request& msg  = unittest::build_valid_dl_tti_request();
+  slot_point            slot = slot_point(scs, msg.sfn, msg.slot);
   bufferer->update_current_slot(slot);
   ASSERT_FALSE(spy.has_dl_tti_request_message_been_received());
 
@@ -289,18 +289,18 @@ TEST(bufferer_slot_gateway_impl_test, dl_tti_request_from_same_slot_is_transmitt
 
 TEST(bufferer_slot_gateway_impl_test, cached_slot_is_sended_when_the_current_slot_matches)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
-  slot_point              current_slot(scs, 10, 0);
-  dl_tti_request_message  dl_tti_msg  = unittest::build_valid_dl_tti_request();
-  ul_tti_request_message  ul_tti_msg  = unittest::build_valid_ul_tti_request();
-  ul_dci_request_message  ul_dci_msg  = unittest::build_valid_ul_dci_request();
-  tx_data_request_message tx_data_msg = unittest::build_valid_tx_data_request();
+  slot_point      current_slot(scs, 10, 0);
+  dl_tti_request  dl_tti_msg  = unittest::build_valid_dl_tti_request();
+  ul_tti_request  ul_tti_msg  = unittest::build_valid_ul_tti_request();
+  ul_dci_request  ul_dci_msg  = unittest::build_valid_ul_dci_request();
+  tx_data_request tx_data_msg = unittest::build_valid_tx_data_request();
 
   slot_point first_message_slot = current_slot + 1;
 
@@ -366,16 +366,16 @@ TEST(bufferer_slot_gateway_impl_test, cached_slot_is_sended_when_the_current_slo
 
 TEST(bufferer_slot_gateway_impl_test, older_slots_than_supported_delay_are_sended)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
-  slot_point             current_slot(scs, 5, 0);
-  dl_tti_request_message msg      = unittest::build_valid_dl_tti_request();
-  slot_point             msg_slot = current_slot - 1;
+  slot_point     current_slot(scs, 5, 0);
+  dl_tti_request msg      = unittest::build_valid_dl_tti_request();
+  slot_point     msg_slot = current_slot - 1;
 
   msg.sfn  = msg_slot.sfn();
   msg.slot = msg_slot.slot_index();
@@ -391,16 +391,16 @@ TEST(bufferer_slot_gateway_impl_test, older_slots_than_supported_delay_are_sende
 #ifdef ASSERTS_ENABLED
 TEST(bufferer_slot_gateway_impl_test, message_with_slot_bigger_than_delay_deads)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
-  slot_point             current_slot(scs, 5, 0);
-  dl_tti_request_message msg      = unittest::build_valid_dl_tti_request();
-  slot_point             msg_slot = current_slot + l2_nof_slots_ahead + 1;
+  slot_point     current_slot(scs, 5, 0);
+  dl_tti_request msg      = unittest::build_valid_dl_tti_request();
+  slot_point     msg_slot = current_slot + l2_nof_slots_ahead + 1;
 
   msg.sfn  = msg_slot.sfn();
   msg.slot = msg_slot.slot_index();
@@ -413,15 +413,15 @@ TEST(bufferer_slot_gateway_impl_test, message_with_slot_bigger_than_delay_deads)
 
 TEST(bufferer_slot_gateway_impl_test, all_cached_slot_is_sended_when_the_current_slot_matches)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
-  slot_point             current_slot(scs, 10, 0);
-  dl_tti_request_message dl_tti_msg = unittest::build_valid_dl_tti_request();
+  slot_point     current_slot(scs, 10, 0);
+  dl_tti_request dl_tti_msg = unittest::build_valid_dl_tti_request();
 
   slot_point first_message_slot = current_slot + 1;
   dl_tti_msg.sfn                = first_message_slot.sfn();
@@ -461,10 +461,10 @@ TEST(bufferer_slot_gateway_impl_test, all_cached_slot_is_sended_when_the_current
 
 TEST(bufferer_slot_gateway_impl_test, no_cached_messages_send_nothing)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
@@ -481,15 +481,15 @@ TEST(bufferer_slot_gateway_impl_test, no_cached_messages_send_nothing)
 
 TEST(bufferer_slot_gateway_impl_test, sended_messages_are_removed_from_the_pool)
 {
-  unsigned                 sector_id          = 0;
-  unsigned                 l2_nof_slots_ahead = 2U;
-  subcarrier_spacing       scs                = subcarrier_spacing::kHz30;
-  slot_message_gateway_spy spy;
+  unsigned                sector_id          = 0;
+  unsigned                l2_nof_slots_ahead = 2U;
+  subcarrier_spacing      scs                = subcarrier_spacing::kHz30;
+  p7_requests_gateway_spy spy;
 
   auto bufferer = std::make_unique<message_bufferer_slot_gateway_impl>(sector_id, l2_nof_slots_ahead, scs, spy);
 
-  slot_point             current_slot(scs, 10, 0);
-  dl_tti_request_message dl_tti_msg = unittest::build_valid_dl_tti_request();
+  slot_point     current_slot(scs, 10, 0);
+  dl_tti_request dl_tti_msg = unittest::build_valid_dl_tti_request();
 
   slot_point first_message_slot = current_slot + 1;
   dl_tti_msg.sfn                = first_message_slot.sfn();

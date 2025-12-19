@@ -11,8 +11,8 @@
 #pragma once
 
 #include "decorator_helpers/error_notifier_dispatcher.h"
-#include "decorator_helpers/slot_data_message_notifier_dispatcher.h"
-#include "decorator_helpers/slot_last_message_notifier_dispatcher.h"
+#include "decorator_helpers/p7_indications_notifier_dispatcher.h"
+#include "decorator_helpers/p7_last_request_notifier_dispatcher.h"
 #include "message_bufferer_slot_gateway_task_dispatcher.h"
 #include "message_bufferer_slot_time_notifier_decorator.h"
 #include "ocudu/fapi/decorator.h"
@@ -27,50 +27,50 @@ namespace fapi {
 class message_bufferer_decorator_impl : public fapi_decorator
 {
 public:
-  message_bufferer_decorator_impl(unsigned                    sector_id,
-                                  unsigned                    l2_nof_slots_ahead,
-                                  subcarrier_spacing          scs,
-                                  slot_message_gateway&       gateway,
-                                  slot_last_message_notifier& last_msg_notifier_,
-                                  task_executor&              executor) :
+  message_bufferer_decorator_impl(unsigned                  sector_id,
+                                  unsigned                  l2_nof_slots_ahead,
+                                  subcarrier_spacing        scs,
+                                  p7_requests_gateway&      p7_gateway,
+                                  p7_last_request_notifier& p7_last_req_notifier_,
+                                  task_executor&            executor) :
     fapi_decorator({}),
-    dispatcher(sector_id, l2_nof_slots_ahead, scs, gateway, executor),
+    dispatcher(sector_id, l2_nof_slots_ahead, scs, p7_gateway, executor),
     time_notifier(l2_nof_slots_ahead, scs, dispatcher)
   {
-    last_msg_notifier.set_slot_last_message_notifier(last_msg_notifier_);
+    p7_last_msg_notifier.set_p7_last_request_notifier(p7_last_req_notifier_);
   }
 
   // See interface for documentation.
-  slot_message_gateway& get_slot_message_gateway() override;
+  p7_requests_gateway& get_p7_requests_gateway() override;
 
   // See interface for documentation.
-  slot_last_message_notifier& get_slot_last_message_notifier() override;
+  p7_last_request_notifier& get_p7_last_request_notifier() override;
 
   // See interface for documentation.
-  void set_slot_time_message_notifier(slot_time_message_notifier& notifier) override;
+  void set_p7_slot_indication_notifier(p7_slot_indication_notifier& notifier) override;
 
   // See interface for documentation.
-  void set_slot_data_message_notifier(slot_data_message_notifier& notifier) override;
+  void set_p7_indications_notifier(p7_indications_notifier& notifier) override;
 
   // See interface for documentation.
-  void set_error_message_notifier(error_message_notifier& notifier) override;
+  void set_error_indication_notifier(error_indication_notifier& notifier) override;
 
 private:
   // See interface for documentation.
-  slot_time_message_notifier& get_slot_time_message_notifier_from_this_decorator() override;
+  p7_slot_indication_notifier& get_p7_slot_indication_notifier_from_this_decorator() override;
 
   // See interface for documentation.
-  slot_data_message_notifier& get_slot_data_message_notifier_from_this_decorator() override;
+  p7_indications_notifier& get_p7_indications_notifier_from_this_decorator() override;
 
   // See interface for documentation.
-  error_message_notifier& get_error_message_notifier_from_this_decorator() override;
+  error_indication_notifier& get_error_indication_notifier_from_this_decorator() override;
 
 private:
   message_bufferer_slot_gateway_task_dispatcher dispatcher;
   message_bufferer_slot_time_notifier_decorator time_notifier;
-  slot_last_message_notifier_dispatcher         last_msg_notifier;
-  slot_data_message_notifier_dispatcher         data_notifier;
-  error_message_notifier_dispatcher             error_notifier;
+  p7_last_request_notifier_dispatcher           p7_last_msg_notifier;
+  p7_indications_notifier_dispatcher            p7_notifier;
+  error_notifier_dispatcher                     error_notifier;
 };
 
 } // namespace fapi

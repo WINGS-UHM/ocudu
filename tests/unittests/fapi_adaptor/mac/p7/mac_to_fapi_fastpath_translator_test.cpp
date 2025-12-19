@@ -14,8 +14,8 @@
 #include "ocudu/fapi/p7/messages/tx_data_request.h"
 #include "ocudu/fapi/p7/messages/ul_dci_request.h"
 #include "ocudu/fapi/p7/messages/ul_tti_request.h"
-#include "ocudu/fapi/p7/slot_last_message_notifier.h"
-#include "ocudu/fapi/p7/slot_message_gateway.h"
+#include "ocudu/fapi/p7/p7_last_request_notifier.h"
+#include "ocudu/fapi/p7/p7_requests_gateway.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "ocudu/ocudulog/ocudulog.h"
@@ -26,54 +26,54 @@ using namespace fapi_adaptor;
 
 namespace {
 
-/// Spy implementation of a slot message gateway.
-class slot_message_gateway_spy : public fapi::slot_message_gateway
+/// Spy implementation of a P7 requests gateway.
+class p7_requests_gateway_spy : public fapi::p7_requests_gateway
 {
-  bool                          has_dl_tti_request_method_been_called = false;
-  fapi::dl_tti_request_message  dl_tti_msg;
-  bool                          has_ul_tti_request_method_been_called = false;
-  fapi::ul_tti_request_message  ul_tti_msg;
-  bool                          has_tx_data_request_method_been_called = false;
-  fapi::tx_data_request_message tx_data_msg;
-  bool                          has_ul_dci_request_method_been_called = false;
-  fapi::ul_dci_request_message  ul_dci_msg;
+  bool                  has_dl_tti_request_method_been_called = false;
+  fapi::dl_tti_request  dl_tti_msg;
+  bool                  has_ul_tti_request_method_been_called = false;
+  fapi::ul_tti_request  ul_tti_msg;
+  bool                  has_tx_data_request_method_been_called = false;
+  fapi::tx_data_request tx_data_msg;
+  bool                  has_ul_dci_request_method_been_called = false;
+  fapi::ul_dci_request  ul_dci_msg;
 
 public:
   bool has_dl_tti_request_method_called() const { return has_dl_tti_request_method_been_called; }
   bool has_ul_tti_request_method_called() const { return has_ul_tti_request_method_been_called; }
   bool has_tx_data_request_method_called() const { return has_tx_data_request_method_been_called; }
   bool has_ul_dci_request_method_called() const { return has_ul_dci_request_method_been_called; }
-  const fapi::dl_tti_request_message&  dl_tti_request_msg() const { return dl_tti_msg; }
-  const fapi::ul_tti_request_message&  ul_tti_request_msg() const { return ul_tti_msg; }
-  const fapi::tx_data_request_message& tx_data_request_msg() const { return tx_data_msg; }
-  const fapi::ul_dci_request_message&  ul_dci_request_msg() const { return ul_dci_msg; }
+  const fapi::dl_tti_request&  dl_tti_request_msg() const { return dl_tti_msg; }
+  const fapi::ul_tti_request&  ul_tti_request_msg() const { return ul_tti_msg; }
+  const fapi::tx_data_request& tx_data_request_msg() const { return tx_data_msg; }
+  const fapi::ul_dci_request&  ul_dci_request_msg() const { return ul_dci_msg; }
 
-  void dl_tti_request(const fapi::dl_tti_request_message& msg) override
+  void send_dl_tti_request(const fapi::dl_tti_request& msg) override
   {
     has_dl_tti_request_method_been_called = true;
     dl_tti_msg                            = msg;
   }
 
-  void ul_tti_request(const fapi::ul_tti_request_message& msg) override
+  void send_ul_tti_request(const fapi::ul_tti_request& msg) override
   {
     has_ul_tti_request_method_been_called = true;
     ul_tti_msg                            = msg;
   }
 
-  void ul_dci_request(const fapi::ul_dci_request_message& msg) override
+  void send_ul_dci_request(const fapi::ul_dci_request& msg) override
   {
     has_ul_dci_request_method_been_called = true;
     ul_dci_msg                            = msg;
   }
 
-  void tx_data_request(const fapi::tx_data_request_message& msg) override
+  void send_tx_data_request(const fapi::tx_data_request& msg) override
   {
     has_tx_data_request_method_been_called = true;
     tx_data_msg                            = msg;
   }
 };
 
-class slot_last_message_notifier_spy : public fapi::slot_last_message_notifier
+class slot_last_message_notifier_spy : public fapi::p7_last_request_notifier
 {
   bool       has_been_notified = false;
   slot_point notif_slot;
@@ -110,7 +110,7 @@ public:
 class mac_to_fapi_translator_fixture : public ::testing::Test
 {
 protected:
-  slot_message_gateway_spy                                                                          gateway_spy;
+  p7_requests_gateway_spy                                                                           gateway_spy;
   slot_last_message_notifier_spy                                                                    notifier_spy;
   mac_cell_slot_handler_spy                                                                         slot_handler_spy;
   const unsigned                                                                                    nof_prbs = 51U;
@@ -144,7 +144,7 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
   translator.on_new_downlink_scheduler_results(result);
 
   ASSERT_TRUE(gateway_spy.has_dl_tti_request_method_called());
-  const fapi::dl_tti_request_message& msg = gateway_spy.dl_tti_request_msg();
+  const fapi::dl_tti_request& msg = gateway_spy.dl_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), 5U);
   ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::dl_pdu_type::PDCCH);
   ASSERT_EQ(msg.pdus.back().pdu_type, fapi::dl_pdu_type::PDSCH);
@@ -214,7 +214,7 @@ TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_u
   translator.on_new_uplink_scheduler_results(result);
 
   ASSERT_TRUE(gateway_spy.has_ul_tti_request_method_called());
-  const fapi::ul_tti_request_message& msg = gateway_spy.ul_tti_request_msg();
+  const fapi::ul_tti_request& msg = gateway_spy.ul_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), 4U);
   ASSERT_EQ(msg.pdus.front().pdu_type, fapi::ul_pdu_type::PRACH);
   ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::ul_pdu_type::PUSCH);
@@ -253,7 +253,7 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx
   translator.on_new_downlink_data(data_result.result);
 
   ASSERT_TRUE(gateway_spy.has_tx_data_request_method_called());
-  const fapi::tx_data_request_message& msg = gateway_spy.tx_data_request_msg();
+  const fapi::tx_data_request& msg = gateway_spy.tx_data_request_msg();
   ASSERT_EQ(msg.pdus.size(), 1);
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
@@ -289,7 +289,7 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_ul
   translator.on_new_downlink_scheduler_results(result);
 
   ASSERT_TRUE(gateway_spy.has_ul_dci_request_method_called());
-  const fapi::ul_dci_request_message& msg = gateway_spy.ul_dci_request_msg();
+  const fapi::ul_dci_request& msg = gateway_spy.ul_dci_request_msg();
   ASSERT_EQ(msg.pdus.size(), 1);
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
@@ -311,10 +311,10 @@ TEST_F(mac_to_fapi_translator_fixture, dl_tti_message_with_all_pdus_passes)
   const mac_dl_sched_result& result = result_test.result;
   translator.on_new_downlink_scheduler_results(result);
 
-  const fapi::ul_dci_request_message& ul_dci_msg = gateway_spy.ul_dci_request_msg();
+  const fapi::ul_dci_request& ul_dci_msg = gateway_spy.ul_dci_request_msg();
   ASSERT_EQ(ul_dci_msg.pdus.size(), MAX_UL_PDCCH_PDUS_PER_SLOT);
 
-  const fapi::dl_tti_request_message& dl_tti_msg = gateway_spy.dl_tti_request_msg();
+  const fapi::dl_tti_request& dl_tti_msg = gateway_spy.dl_tti_request_msg();
   // As the MAC struct does still not contain MAX_PRS_PDUS_PER_SLOT, substract the value.
   ASSERT_EQ(dl_tti_msg.pdus.size(), MAX_DL_PDUS_PER_SLOT - MAX_PRS_PDUS_PER_SLOT);
 
@@ -332,14 +332,14 @@ TEST_F(mac_to_fapi_translator_fixture, tx_data_message_with_all_pdus_passes)
       unittests::build_valid_mac_data_result_with_all_supported_pdu();
   translator.on_new_downlink_data(data_result.result);
 
-  const fapi::tx_data_request_message& tx_data_msg = gateway_spy.tx_data_request_msg();
+  const fapi::tx_data_request& tx_data_msg = gateway_spy.tx_data_request_msg();
   ASSERT_EQ(tx_data_msg.pdus.size(),
             MAX_SI_PDUS_PER_SLOT + MAX_RAR_PDUS_PER_SLOT + MAX_UE_PDUS_PER_SLOT + MAX_PAGING_PDUS_PER_SLOT);
 
-  const fapi::ul_dci_request_message& ul_dci_msg = gateway_spy.ul_dci_request_msg();
+  const fapi::ul_dci_request& ul_dci_msg = gateway_spy.ul_dci_request_msg();
   ASSERT_EQ(ul_dci_msg.pdus.size(), MAX_UL_PDCCH_PDUS_PER_SLOT);
 
-  const fapi::dl_tti_request_message& dl_tti_msg = gateway_spy.dl_tti_request_msg();
+  const fapi::dl_tti_request& dl_tti_msg = gateway_spy.dl_tti_request_msg();
   // As the MAC struct does still not contain MAX_PRS_PDUS_PER_SLOT, substract the value.
   ASSERT_EQ(dl_tti_msg.pdus.size(), MAX_DL_PDUS_PER_SLOT - MAX_PRS_PDUS_PER_SLOT);
 
@@ -357,7 +357,7 @@ TEST_F(mac_to_fapi_translator_fixture, ul_tti_message_with_all_pdus_passes)
   const mac_ul_sched_result& result = result_test.result;
   translator.on_new_uplink_scheduler_results(result);
 
-  const fapi::ul_tti_request_message& msg = gateway_spy.ul_tti_request_msg();
+  const fapi::ul_tti_request& msg = gateway_spy.ul_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), MAX_UL_PDUS_PER_SLOT);
 
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());

@@ -31,9 +31,9 @@ public:
     ocudu_assert(adaptor, "Invalid MAC-FAPI sector adaptor");
 
     if (decorator) {
-      decorator->set_slot_data_message_notifier(adaptor->get_slot_data_message_notifier());
-      decorator->set_error_message_notifier(adaptor->get_error_message_notifier());
-      decorator->set_slot_time_message_notifier(adaptor->get_slot_time_message_notifier());
+      decorator->set_p7_indications_notifier(adaptor->get_p7_indications_notifier());
+      decorator->set_error_indication_notifier(adaptor->get_error_indication_notifier());
+      decorator->set_p7_slot_indication_notifier(adaptor->get_p7_slot_indication_notifier());
     }
   }
 
@@ -47,21 +47,21 @@ public:
   void stop() override { adaptor->get_operation_controller().stop(); }
 
   // See interface for documentation.
-  fapi::slot_time_message_notifier& get_slot_time_message_notifier() override
+  fapi::p7_slot_indication_notifier& get_p7_slot_indication_notifier() override
   {
-    return decorator ? decorator->get_slot_time_message_notifier() : adaptor->get_slot_time_message_notifier();
+    return decorator ? decorator->get_p7_slot_indication_notifier() : adaptor->get_p7_slot_indication_notifier();
   }
 
   // See interface for documentation.
-  fapi::error_message_notifier& get_error_message_notifier() override
+  fapi::error_indication_notifier& get_error_indication_notifier() override
   {
-    return decorator ? decorator->get_error_message_notifier() : adaptor->get_error_message_notifier();
+    return decorator ? decorator->get_error_indication_notifier() : adaptor->get_error_indication_notifier();
   }
 
   // See interface for documentation.
-  fapi::slot_data_message_notifier& get_slot_data_message_notifier() override
+  fapi::p7_indications_notifier& get_p7_indications_notifier() override
   {
-    return decorator ? decorator->get_slot_data_message_notifier() : adaptor->get_slot_data_message_notifier();
+    return decorator ? decorator->get_p7_indications_notifier() : adaptor->get_p7_indications_notifier();
   }
 
   // See interface for documentation.
@@ -105,20 +105,20 @@ std::unique_ptr<mac_fapi_p7_sector_fastpath_adaptor> ocudu::fapi_adaptor::create
   fapi::decorator_config decorator_cfg;
   if (config.log_level == ocudulog::basic_levels::debug) {
     decorator_cfg.logging_cfg.emplace(
-        fapi::logging_decorator_config{.sector_id         = config.sector_id,
-                                       .logger            = ocudulog::fetch_basic_logger("FAPI", true),
-                                       .gateway           = base_dependencies.gateway,
-                                       .last_msg_notifier = base_dependencies.last_msg_notifier});
+        fapi::logging_decorator_config{.sector_id            = config.sector_id,
+                                       .logger               = ocudulog::fetch_basic_logger("FAPI", true),
+                                       .p7_gateway           = base_dependencies.p7_gateway,
+                                       .p7_last_req_notifier = base_dependencies.p7_last_req_notifier});
   }
   if (config.l2_nof_slots_ahead != 0) {
     ocudu_assert(base_dependencies.bufferer_task_executor, "Invalid executor for the FAPI message bufferer decorator");
     decorator_cfg.bufferer_cfg.emplace(
-        fapi::message_bufferer_decorator_config{.sector_id          = config.sector_id,
-                                                .l2_nof_slots_ahead = config.l2_nof_slots_ahead,
-                                                .scs                = config.scs,
-                                                .executor           = *base_dependencies.bufferer_task_executor,
-                                                .gateway            = base_dependencies.gateway,
-                                                .last_msg_notifier  = base_dependencies.last_msg_notifier});
+        fapi::message_bufferer_decorator_config{.sector_id            = config.sector_id,
+                                                .l2_nof_slots_ahead   = config.l2_nof_slots_ahead,
+                                                .scs                  = config.scs,
+                                                .executor             = *base_dependencies.bufferer_task_executor,
+                                                .p7_gateway           = base_dependencies.p7_gateway,
+                                                .p7_last_req_notifier = base_dependencies.p7_last_req_notifier});
   }
 
   auto decorators = fapi::create_decorators(decorator_cfg);
@@ -132,8 +132,8 @@ std::unique_ptr<mac_fapi_p7_sector_fastpath_adaptor> ocudu::fapi_adaptor::create
   mac_fapi_p7_sector_fastpath_adaptor_impl_dependencies adaptor_dependencies = {
       .base_dependencies =
           mac_fapi_p7_sector_fastpath_adaptor_dependencies{
-              .gateway                = decorators->get_slot_message_gateway(),
-              .last_msg_notifier      = decorators->get_slot_last_message_notifier(),
+              .p7_gateway             = decorators->get_p7_requests_gateway(),
+              .p7_last_req_notifier   = decorators->get_p7_last_request_notifier(),
               .pm_mapper              = std::move(base_dependencies.pm_mapper),
               .part2_mapper           = std::move(base_dependencies.part2_mapper),
               .bufferer_task_executor = base_dependencies.bufferer_task_executor},

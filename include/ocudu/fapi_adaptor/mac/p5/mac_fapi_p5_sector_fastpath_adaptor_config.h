@@ -17,7 +17,7 @@
 namespace ocudu {
 
 namespace fapi {
-class config_message_gateway;
+class p5_requests_gateway;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -31,8 +31,8 @@ struct mac_fapi_p5_sector_fastpath_adaptor_config {
 struct mac_fapi_p5_sector_fastpath_adaptor_dependencies {
   /// Logger.
   ocudulog::basic_logger& logger;
-  /// FAPI configuration message gateway.
-  fapi::config_message_gateway& gateway;
+  /// FAPI P5 requests gateway.
+  fapi::p5_requests_gateway& p5_gateway;
   /// Timer manager.
   timer_manager& timers;
   /// FAPI control task executor.

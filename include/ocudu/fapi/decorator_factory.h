@@ -23,20 +23,20 @@ namespace fapi {
 
 /// FAPI message bufferer decorator configuration.
 struct message_bufferer_decorator_config {
-  unsigned                    sector_id;
-  unsigned                    l2_nof_slots_ahead;
-  subcarrier_spacing          scs;
-  task_executor&              executor;
-  slot_message_gateway&       gateway;
-  slot_last_message_notifier& last_msg_notifier;
+  unsigned                  sector_id;
+  unsigned                  l2_nof_slots_ahead;
+  subcarrier_spacing        scs;
+  task_executor&            executor;
+  p7_requests_gateway&      p7_gateway;
+  p7_last_request_notifier& p7_last_req_notifier;
 };
 
 /// FAPI logging decorator configuration.
 struct logging_decorator_config {
-  unsigned                    sector_id;
-  ocudulog::basic_logger&     logger;
-  slot_message_gateway&       gateway;
-  slot_last_message_notifier& last_msg_notifier;
+  unsigned                  sector_id;
+  ocudulog::basic_logger&   logger;
+  p7_requests_gateway&      p7_gateway;
+  p7_last_request_notifier& p7_last_req_notifier;
 };
 
 /// FAPI decorator configurations.

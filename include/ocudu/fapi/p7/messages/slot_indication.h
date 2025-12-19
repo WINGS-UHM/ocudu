@@ -17,7 +17,7 @@ namespace ocudu {
 namespace fapi {
 
 /// Slot indication message.
-struct slot_indication_message : public base_message {
+struct slot_indication : public base_message {
   uint16_t sfn;
   uint16_t slot;
   /// Vendor specific properties.

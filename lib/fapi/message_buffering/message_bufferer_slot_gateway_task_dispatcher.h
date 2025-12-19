@@ -11,7 +11,7 @@
 #pragma once
 
 #include "message_bufferer_slot_gateway_impl.h"
-#include "ocudu/fapi/p7/slot_time_message_notifier.h"
+#include "ocudu/fapi/p7/p7_slot_indication_notifier.h"
 
 namespace ocudu {
 
@@ -20,14 +20,14 @@ class task_executor;
 namespace fapi {
 
 /// Buffered slot gateway task dispatcher.
-class message_bufferer_slot_gateway_task_dispatcher : public slot_message_gateway
+class message_bufferer_slot_gateway_task_dispatcher : public p7_requests_gateway
 {
 public:
-  message_bufferer_slot_gateway_task_dispatcher(unsigned              sector_id_,
-                                                unsigned              l2_nof_slots_ahead,
-                                                subcarrier_spacing    scs_,
-                                                slot_message_gateway& gateway,
-                                                task_executor&        executor_);
+  message_bufferer_slot_gateway_task_dispatcher(unsigned             sector_id_,
+                                                unsigned             l2_nof_slots_ahead,
+                                                subcarrier_spacing   scs_,
+                                                p7_requests_gateway& gateway,
+                                                task_executor&       executor_);
 
   /// Updates the current slot of the message bufferer slot gateway.
   void update_current_slot(slot_point slot);
@@ -36,16 +36,16 @@ public:
   void forward_cached_messages(slot_point slot);
 
   // See interface for documentation.
-  void dl_tti_request(const dl_tti_request_message& msg) override;
+  void send_dl_tti_request(const dl_tti_request& msg) override;
 
   // See interface for documentation.
-  void ul_tti_request(const ul_tti_request_message& msg) override;
+  void send_ul_tti_request(const ul_tti_request& msg) override;
 
   // See interface for documentation.
-  void ul_dci_request(const ul_dci_request_message& msg) override;
+  void send_ul_dci_request(const ul_dci_request& msg) override;
 
   // See interface for documentation.
-  void tx_data_request(const tx_data_request_message& msg) override;
+  void send_tx_data_request(const tx_data_request& msg) override;
 
 private:
   const unsigned                     sector_id;

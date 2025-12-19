@@ -36,22 +36,22 @@ public:
   upper_phy_timing_notifier& get_timing_notifier() override;
 
   // See interface for documentation.
-  fapi::slot_message_gateway& get_slot_message_gateway() override;
+  fapi::p7_requests_gateway& get_p7_requests_gateway() override;
 
   // See interface for documentation.
   upper_phy_rx_results_notifier& get_rx_results_notifier() override;
 
   // See interface for documentation.
-  void set_slot_time_message_notifier(fapi::slot_time_message_notifier& fapi_time_notifier) override;
+  void set_p7_slot_indication_notifier(fapi::p7_slot_indication_notifier& notifier) override;
 
   // See interface for documentation.
-  void set_error_message_notifier(fapi::error_message_notifier& fapi_error_notifier) override;
+  void set_error_indication_notifier(fapi::error_indication_notifier& fapi_error_notifier) override;
 
   // See interface for documentation.
-  void set_slot_data_message_notifier(fapi::slot_data_message_notifier& fapi_data_notifier) override;
+  void set_p7_indications_notifier(fapi::p7_indications_notifier& fapi_notifier) override;
 
   // See interface for documentation.
-  fapi::slot_last_message_notifier& get_slot_last_message_notifier() override;
+  fapi::p7_last_request_notifier& get_p7_last_request_notifier() override;
 
 private:
   /// PHY-to-FAPI uplink results events translator.

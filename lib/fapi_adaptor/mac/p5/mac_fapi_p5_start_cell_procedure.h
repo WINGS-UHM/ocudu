@@ -11,14 +11,14 @@
 #pragma once
 
 #include "ocudu/fapi/cell_config.h"
-#include "ocudu/fapi/p5/config_messages.h"
+#include "ocudu/fapi/p5/p5_messages.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/protocol_transaction_manager.h"
 
 namespace ocudu {
 
 namespace fapi {
-class config_message_gateway;
+class p5_requests_gateway;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -35,7 +35,7 @@ struct mac_fapi_start_cell_procedure_config {
 /// MAC-FAPI start procedure dependencies.
 struct mac_fapi_start_cell_procedure_dependencies {
   ocudulog::basic_logger&         logger;
-  fapi::config_message_gateway&   config_msg_gateway;
+  fapi::p5_requests_gateway&      p5_gateway;
   p5_transaction_outcome_manager& transaction_manager;
   task_executor&                  mac_ctrl_executor;
   task_executor&                  fapi_ctrl_executor;
@@ -75,7 +75,7 @@ private:
   const fapi::start_request                   start_req;
   const std::chrono::milliseconds             timeout;
   ocudulog::basic_logger&                     logger;
-  fapi::config_message_gateway&               config_msg_gateway;
+  fapi::p5_requests_gateway&                  p5_gateway;
   p5_transaction_outcome_manager&             transaction_manager;
   task_executor&                              mac_ctrl_executor;
   task_executor&                              fapi_ctrl_executor;

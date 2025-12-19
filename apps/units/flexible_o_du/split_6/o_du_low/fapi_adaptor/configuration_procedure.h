@@ -11,18 +11,18 @@
 #pragma once
 
 #include "ocudu/fapi/cell_config.h"
-#include "ocudu/fapi/cell_operation_request_notifier.h"
-#include "ocudu/fapi/p5/config_message_gateway.h"
+#include "ocudu/fapi/p5/p5_operational_change_request_notifier.h"
+#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/ocudulog/logger.h"
 
 namespace ocudu {
 namespace fapi {
 
-class error_message_notifier;
-class config_message_notifier;
+class error_indication_notifier;
+class p5_responses_notifier;
 
 /// FAPI configuration procedure.
-class configuration_procedure : public config_message_gateway
+class configuration_procedure : public p5_requests_gateway
 {
   enum class cell_status : uint8_t { IDLE, CONFIGURED, RUNNING };
 
@@ -30,25 +30,25 @@ public:
   explicit configuration_procedure(ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
-  void param_request(const fapi::param_request& msg) override;
+  void send_param_request(const fapi::param_request& msg) override;
 
   // See interface for documentation.
-  void config_request(const fapi::config_request& msg) override;
+  void send_config_request(const fapi::config_request& msg) override;
 
   // See interface for documentation.
-  void start_request(const fapi::start_request& msg) override;
+  void send_start_request(const fapi::start_request& msg) override;
 
   // See interface for documentation.
-  void stop_request(const fapi::stop_request& msg) override;
+  void send_stop_request(const fapi::stop_request& msg) override;
 
-  /// Sets the config message notifier to the given one.
-  void set_config_message_notifier(config_message_notifier& config_notifier) { notifier = &config_notifier; }
+  /// Sets the FAPI P5 responses notifier to the given one.
+  void set_p5_responses_notifier(p5_responses_notifier& config_notifier) { p5_notifier = &config_notifier; }
 
-  /// Sets the error message notifier to the given one.
-  void set_error_message_notifier(error_message_notifier& err_notifier) { error_notifier = &err_notifier; }
+  /// Sets the error indication notifier to the given one.
+  void set_error_indication_notifier(error_indication_notifier& err_notifier) { error_notifier = &err_notifier; }
 
   /// Sets the cell operation request notifier to the given one.
-  void set_cell_operation_request_notifier(cell_operation_request_notifier& cell_notifier)
+  void set_cell_operation_request_notifier(p5_operational_change_request_notifier& cell_notifier)
   {
     cell_operation_notifier = &cell_notifier;
   }
@@ -59,12 +59,12 @@ private:
   bool update_cell_config(const fapi::config_request& msg);
 
 private:
-  ocudulog::basic_logger&          logger;
-  cell_configuration               cell_cfg;
-  config_message_notifier*         notifier                = nullptr;
-  error_message_notifier*          error_notifier          = nullptr;
-  cell_operation_request_notifier* cell_operation_notifier = nullptr;
-  cell_status                      status                  = cell_status::IDLE;
+  ocudulog::basic_logger&                 logger;
+  cell_configuration                      cell_cfg;
+  p5_responses_notifier*                  p5_notifier             = nullptr;
+  error_indication_notifier*              error_notifier          = nullptr;
+  p5_operational_change_request_notifier* cell_operation_notifier = nullptr;
+  cell_status                             status                  = cell_status::IDLE;
 };
 
 } // namespace fapi

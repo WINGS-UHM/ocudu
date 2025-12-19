@@ -16,11 +16,11 @@
 namespace ocudu {
 namespace fapi {
 
-struct uci_indication_message;
+struct uci_indication;
 
 /// Validates the given UCI.indication message and returns a report for the result of the validation. The validation
 /// checks every property of the message, as per SCF-222 v4.0 Section 3.4.9.
-error_type<validator_report> validate_uci_indication(const uci_indication_message& msg);
+error_type<validator_report> validate_uci_indication(const uci_indication& msg);
 
 } // namespace fapi
 } // namespace ocudu

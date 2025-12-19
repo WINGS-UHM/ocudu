@@ -16,11 +16,11 @@
 namespace ocudu {
 namespace fapi {
 
-struct crc_indication_message;
+struct crc_indication;
 
 /// Validates the given CRC.indication message and returns a report for the result of the validation. The validation
 /// checks every property of the message, as per SCF-222 v4.0 Section 3.4.8.
-error_type<validator_report> validate_crc_indication(const crc_indication_message& msg);
+error_type<validator_report> validate_crc_indication(const crc_indication& msg);
 
 } // namespace fapi
 } // namespace ocudu

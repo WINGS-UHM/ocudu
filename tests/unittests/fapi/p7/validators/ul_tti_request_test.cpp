@@ -17,8 +17,8 @@ using namespace fapi;
 using namespace unittest;
 
 class validate_ul_tti_request_field
-  : public validate_fapi_message<ul_tti_request_message>,
-    public testing::TestWithParam<std::tuple<pdu_field_data<ul_tti_request_message>, test_case_data>>
+  : public validate_fapi_message<ul_tti_request>,
+    public testing::TestWithParam<std::tuple<pdu_field_data<ul_tti_request>, test_case_data>>
 {};
 
 TEST_P(validate_ul_tti_request_field, with_value)
@@ -34,9 +34,9 @@ TEST_P(validate_ul_tti_request_field, with_value)
 
 INSTANTIATE_TEST_SUITE_P(sfn,
                          validate_ul_tti_request_field,
-                         testing::Combine(testing::Values(pdu_field_data<ul_tti_request_message>{
+                         testing::Combine(testing::Values(pdu_field_data<ul_tti_request>{
                                               "sfn",
-                                              [](ul_tti_request_message& msg, int value) { msg.sfn = value; }}),
+                                              [](ul_tti_request& msg, int value) { msg.sfn = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{512, true},
                                                           test_case_data{1023, true},
@@ -44,9 +44,9 @@ INSTANTIATE_TEST_SUITE_P(sfn,
 
 INSTANTIATE_TEST_SUITE_P(slot,
                          validate_ul_tti_request_field,
-                         testing::Combine(testing::Values(pdu_field_data<ul_tti_request_message>{
+                         testing::Combine(testing::Values(pdu_field_data<ul_tti_request>{
                                               "slot",
-                                              [](ul_tti_request_message& msg, int value) { msg.slot = value; }}),
+                                              [](ul_tti_request& msg, int value) { msg.slot = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{80, true},
                                                           test_case_data{159, true},
@@ -54,9 +54,9 @@ INSTANTIATE_TEST_SUITE_P(slot,
 
 INSTANTIATE_TEST_SUITE_P(nof_pdu_grps,
                          validate_ul_tti_request_field,
-                         testing::Combine(testing::Values(pdu_field_data<ul_tti_request_message>{
+                         testing::Combine(testing::Values(pdu_field_data<ul_tti_request>{
                                               "Number of PDU groups",
-                                              [](ul_tti_request_message& msg, int value) { msg.num_groups = value; }}),
+                                              [](ul_tti_request& msg, int value) { msg.num_groups = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{1902, true},
                                                           test_case_data{3823, false})));

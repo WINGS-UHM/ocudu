@@ -17,7 +17,7 @@ namespace ocudu {
 namespace fapi {
 
 /// Encodes the error indication message.
-struct error_indication_message : public base_message {
+struct error_indication : public base_message {
   uint16_t        sfn;
   uint16_t        slot;
   message_type_id message_id;

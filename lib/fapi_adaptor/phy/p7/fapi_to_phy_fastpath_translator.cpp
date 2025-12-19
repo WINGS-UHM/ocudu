@@ -19,7 +19,7 @@
 #include "pdu_translators/srs.h"
 #include "pdu_translators/ssb.h"
 #include "ocudu/adt/expected.h"
-#include "ocudu/fapi/common/error_indication_message_builder.h"
+#include "ocudu/fapi/common/error_indication_builder.h"
 #include "ocudu/instrumentation/traces/critical_traces.h"
 #include "ocudu/instrumentation/traces/du_traces.h"
 #include "ocudu/ocudulog/ocudulog.h"
@@ -37,10 +37,10 @@ using namespace fapi_adaptor;
 
 namespace {
 
-class error_notifier_dummy : public fapi::error_message_notifier
+class error_notifier_dummy : public fapi::error_indication_notifier
 {
 public:
-  void on_error_indication(const fapi::error_indication_message& msg) override {}
+  void on_error_indication(const fapi::error_indication& msg) override {}
 };
 
 } // namespace
@@ -155,7 +155,7 @@ static re_pattern get_re_pattern_port(const csi_rs_pattern& pattern_all_ports, u
 /// \brief Returns a list of the RE patterns that carry CSI-RS for the given DL_TTI.request.
 /// Each element of the list refers to a CSI-RS PDU with the same index.
 static static_vector<re_pattern_list, MAX_CSI_RS_PDUS_PER_SLOT>
-generate_csi_re_pattern_list(const fapi::dl_tti_request_message& msg, uint16_t cell_bandwidth_prb)
+generate_csi_re_pattern_list(const fapi::dl_tti_request& msg, uint16_t cell_bandwidth_prb)
 {
   static_vector<re_pattern_list, MAX_CSI_RS_PDUS_PER_SLOT> re_pattern_lst;
 
@@ -181,13 +181,13 @@ generate_csi_re_pattern_list(const fapi::dl_tti_request_message& msg, uint16_t c
 
 /// \brief Translates, validates and returns the FAPI PDUs to PHY PDUs.
 /// \note If a PDU fails the validation, the whole DL_TTI.request message is dropped.
-static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_tti_request_message& msg,
-                                                                 const downlink_pdu_validator&       dl_pdu_validator,
-                                                                 ocudulog::basic_logger&             logger,
-                                                                 subcarrier_spacing                  scs_common,
-                                                                 uint16_t                            cell_bandwidth_prb,
-                                                                 const precoding_matrix_repository&  pm_repo,
-                                                                 unsigned                            sector_id)
+static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_tti_request&        msg,
+                                                                 const downlink_pdu_validator&      dl_pdu_validator,
+                                                                 ocudulog::basic_logger&            logger,
+                                                                 subcarrier_spacing                 scs_common,
+                                                                 uint16_t                           cell_bandwidth_prb,
+                                                                 const precoding_matrix_repository& pm_repo,
+                                                                 unsigned                           sector_id)
 {
   downlink_pdus pdus;
   const auto&   csi_re_patterns = generate_csi_re_pattern_list(msg, cell_bandwidth_prb);
@@ -288,7 +288,7 @@ static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_
   return pdus;
 }
 
-void fapi_to_phy_fastpath_translator::dl_tti_request(const fapi::dl_tti_request_message& msg)
+void fapi_to_phy_fastpath_translator::send_dl_tti_request(const fapi::dl_tti_request& msg)
 {
   // :TODO: check the current slot matches the DL_TTI.request slot. Do this in a different class.
   // :TODO: check the messages order. Do this in a different class.
@@ -409,7 +409,7 @@ static prach_detector::configuration get_prach_dectector_config_from(const prach
 
 /// \brief Translates, validates and returns the FAPI PDUs to PHY PDUs.
 /// \note If a PDU fails the validation, the whole UL_TTI.request message is dropped.
-static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tti_request_message&  msg,
+static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tti_request&          msg,
                                                                const uplink_pdu_validator&          ul_pdu_validator,
                                                                const rach_config_common&            prach_cfg,
                                                                const fapi::carrier_config&          carrier_cfg,
@@ -492,7 +492,7 @@ static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tt
   return pdus;
 }
 
-void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_message& msg)
+void fapi_to_phy_fastpath_translator::send_ul_tti_request(const fapi::ul_tti_request& msg)
 {
   // :TODO: check the messages order. Do this in a different class.
   slot_point  slot(scs, msg.sfn, msg.slot);
@@ -595,7 +595,7 @@ void fapi_to_phy_fastpath_translator::ul_tti_request(const fapi::ul_tti_request_
   l1_ul_tracer << trace_event("ul_tti_request", tp);
 }
 
-void fapi_to_phy_fastpath_translator::ul_dci_request(const fapi::ul_dci_request_message& msg)
+void fapi_to_phy_fastpath_translator::send_ul_dci_request(const fapi::ul_dci_request& msg)
 {
   slot_point  current_slot = get_current_slot();
   trace_point tp           = l1_ul_tracer.now();
@@ -653,7 +653,7 @@ void fapi_to_phy_fastpath_translator::ul_dci_request(const fapi::ul_dci_request_
   l1_ul_tracer << trace_event("ul_dci_request", tp);
 }
 
-void fapi_to_phy_fastpath_translator::tx_data_request(const fapi::tx_data_request_message& msg)
+void fapi_to_phy_fastpath_translator::send_tx_data_request(const fapi::tx_data_request& msg)
 {
   slot_point  current_slot = get_current_slot();
   trace_point tp           = l1_dl_tracer.now();

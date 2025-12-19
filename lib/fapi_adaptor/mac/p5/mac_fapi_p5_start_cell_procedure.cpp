@@ -10,7 +10,7 @@
 
 #include "mac_fapi_p5_start_cell_procedure.h"
 #include "p5_transaction_outcome_manager.h"
-#include "ocudu/fapi/p5/config_message_gateway.h"
+#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/support/async/execute_on_blocking.h"
 #include "ocudu/support/async/protocol_transaction_manager.h"
 
@@ -30,7 +30,7 @@ mac_fapi_start_cell_procedure::mac_fapi_start_cell_procedure(
   start_req(),
   timeout(config.timeout),
   logger(dependencies.logger),
-  config_msg_gateway(dependencies.config_msg_gateway),
+  p5_gateway(dependencies.p5_gateway),
   transaction_manager(dependencies.transaction_manager),
   mac_ctrl_executor(dependencies.mac_ctrl_executor),
   fapi_ctrl_executor(dependencies.fapi_ctrl_executor),
@@ -48,7 +48,7 @@ void mac_fapi_start_cell_procedure::operator()(coro_context<async_task<bool>>& c
   // Configure the transaction.
   transaction_param.subscribe_to(transaction_manager.param_response_outcome, timeout);
 
-  config_msg_gateway.param_request(param_req);
+  p5_gateway.send_param_request(param_req);
 
   CORO_AWAIT(transaction_param);
 
@@ -62,7 +62,7 @@ void mac_fapi_start_cell_procedure::operator()(coro_context<async_task<bool>>& c
 
   transaction_config.subscribe_to(transaction_manager.config_response_outcome, timeout);
 
-  config_msg_gateway.config_request(config_req);
+  p5_gateway.send_config_request(config_req);
 
   CORO_AWAIT(transaction_config);
 
@@ -76,7 +76,7 @@ void mac_fapi_start_cell_procedure::operator()(coro_context<async_task<bool>>& c
 
   transaction_start.subscribe_to(transaction_manager.start_outcome, timeout);
 
-  config_msg_gateway.start_request(start_req);
+  p5_gateway.send_start_request(start_req);
 
   CORO_AWAIT(transaction_start);
 

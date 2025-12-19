@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
 #include "ocudu/fapi/p5/config_request_tlvs.h"
 #include "ocudu/fapi/p7/messages/dl_tti_request.h"
 #include "ocudu/fapi/p7/messages/tx_data_request.h"
 #include "ocudu/fapi/p7/messages/ul_dci_request.h"
 #include "ocudu/fapi/p7/messages/ul_tti_request.h"
-#include "ocudu/fapi/p7/slot_last_message_notifier.h"
-#include "ocudu/fapi/p7/slot_message_gateway.h"
+#include "ocudu/fapi/p7/p7_last_request_notifier.h"
+#include "ocudu/fapi/p7/p7_requests_gateway.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_repository.h"
 #include "ocudu/ocudulog/logger.h"
@@ -95,7 +95,7 @@ struct fapi_to_phy_fastpath_translator_dependencies {
 /// messages of the same type in one slot results in undefined behavior.
 /// \note The translator is designed to work for a sector and subcarrier spacing. Supporting more than one sector and/or
 /// subcarrier spacing will require more instances of the translator.
-class fapi_to_phy_fastpath_translator : public fapi::slot_message_gateway, public fapi::slot_last_message_notifier
+class fapi_to_phy_fastpath_translator : public fapi::p7_requests_gateway, public fapi::p7_last_request_notifier
 {
   /// \brief Slot-based upper PHY controller.
   ///
@@ -198,16 +198,16 @@ public:
                                   fapi_to_phy_fastpath_translator_dependencies  dependencies);
 
   // See interface for documentation.
-  void dl_tti_request(const fapi::dl_tti_request_message& msg) override;
+  void send_dl_tti_request(const fapi::dl_tti_request& msg) override;
 
   // See interface for documentation.
-  void ul_tti_request(const fapi::ul_tti_request_message& msg) override;
+  void send_ul_tti_request(const fapi::ul_tti_request& msg) override;
 
   // See interface for documentation.
-  void ul_dci_request(const fapi::ul_dci_request_message& msg) override;
+  void send_ul_dci_request(const fapi::ul_dci_request& msg) override;
 
   // See interface for documentation.
-  void tx_data_request(const fapi::tx_data_request_message& msg) override;
+  void send_tx_data_request(const fapi::tx_data_request& msg) override;
 
   // See interface for documentation.
   void on_last_message(slot_point slot) override;
@@ -224,7 +224,7 @@ public:
   void handle_new_slot(slot_point slot);
 
   /// Configures the FAPI error-specific notifier to the given one.
-  void set_error_message_notifier(fapi::error_message_notifier& fapi_error_notifier)
+  void set_error_indication_notifier(fapi::error_indication_notifier& fapi_error_notifier)
   {
     error_notifier = &fapi_error_notifier;
   }
@@ -273,7 +273,7 @@ private:
   /// UCI Part2 correspondence repository.
   std::unique_ptr<uci_part2_correspondence_repository> part2_repo;
   /// Error indication notifier.
-  fapi::error_message_notifier* error_notifier = nullptr;
+  fapi::error_indication_notifier* error_notifier = nullptr;
   /// Subcarrier spacing as per TS38.211 Section 4.2.
   const subcarrier_spacing scs;
   /// Common subcarrier spacing as per TS38.331 Section 6.2.2.

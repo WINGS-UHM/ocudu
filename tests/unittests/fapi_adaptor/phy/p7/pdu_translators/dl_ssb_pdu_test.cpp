@@ -9,7 +9,7 @@
  */
 
 #include "ssb.h"
-#include "ocudu/fapi/p7/builders/dl_tti_request_message_builder.h"
+#include "ocudu/fapi/p7/builders/dl_tti_request_builder.h"
 #include "ocudu/ocuduvec/bit.h"
 #include "ocudu/ocuduvec/compare.h"
 #include "ocudu/ran/ssb/pbch_mib_pack.h"
@@ -89,8 +89,8 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               bool                cell_barred            = binary_dist(gen);
               bool                intra_freq_reselection = binary_dist(gen);
 
-              fapi::dl_tti_request_message         msg;
-              fapi::dl_tti_request_message_builder builder(msg);
+              fapi::dl_tti_request         msg;
+              fapi::dl_tti_request_builder builder(msg);
               builder.set_basic_parameters(slot.sfn(), slot.slot_index(), 0);
               auto     ssb_builder = builder.add_ssb_pdu(pci, beta_pss, ssb_idx, ssb_subcarrier_offset, offset_pointA);
               uint32_t mib_payload = generate_bch_payload(ssb_subcarrier_offset,

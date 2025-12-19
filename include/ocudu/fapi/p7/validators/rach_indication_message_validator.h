@@ -16,11 +16,11 @@
 namespace ocudu {
 namespace fapi {
 
-struct rach_indication_message;
+struct rach_indication;
 
 /// Validates the given RACH.indication message and returns a report for the result of the validation. The validation
 /// checks every property of the message, as per SCF-222 v4.0 Section 3.4.11.
-error_type<validator_report> validate_rach_indication(const rach_indication_message& msg);
+error_type<validator_report> validate_rach_indication(const rach_indication& msg);
 
 } // namespace fapi
 } // namespace ocudu

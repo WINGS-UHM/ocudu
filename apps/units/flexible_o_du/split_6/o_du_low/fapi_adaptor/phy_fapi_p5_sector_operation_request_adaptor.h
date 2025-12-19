@@ -28,16 +28,16 @@ public:
   explicit phy_fapi_p5_sector_operation_request_adaptor(ocudulog::basic_logger& logger) : gateway(logger) {}
 
   // See interface for documentation.
-  fapi::config_message_gateway& get_config_message_gateway() override;
+  fapi::p5_requests_gateway& get_p5_requests_gateway() override;
 
   // See interface for documentation.
-  void set_error_message_notifier(fapi::error_message_notifier& err_notifier) override;
+  void set_error_indication_notifier(fapi::error_indication_notifier& err_notifier) override;
 
   // See interface for documentation.
-  void set_config_message_notifier(fapi::config_message_notifier& config_notifier) override;
+  void set_p5_responses_notifier(fapi::p5_responses_notifier& config_notifier) override;
 
-  // Sets the FAPI cell operation request notifier to the given one.
-  void set_cell_operation_request_notifier(fapi::cell_operation_request_notifier& cell_notifier);
+  // Sets the FAPI P5 operational change request notifier to the given one.
+  void set_p5_operational_change_request_notifier(fapi::p5_operational_change_request_notifier& p5_notifier);
 };
 
 } // namespace fapi_adaptor

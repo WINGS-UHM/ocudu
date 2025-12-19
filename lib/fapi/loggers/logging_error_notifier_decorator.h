@@ -10,23 +10,23 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/error_message_notifier.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
 namespace ocudu {
 namespace fapi {
 
 /// Adds logging information over the implemented interface.
-class logging_error_notifier_decorator : public error_message_notifier
+class logging_error_notifier_decorator : public error_indication_notifier
 {
 public:
   logging_error_notifier_decorator(unsigned sector_id_, ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
-  void on_error_indication(const error_indication_message& msg) override;
+  void on_error_indication(const error_indication& msg) override;
 
-  /// Sets the error message notifier to the given one.
-  void set_error_message_notifier(error_message_notifier& error_notifier);
+  /// Sets the error indication notifier to the given one.
+  void set_error_indication_notifier(error_indication_notifier& error_notifier);
 
 private:
   /// Sector identifier.
@@ -34,7 +34,7 @@ private:
   /// FAPI logger.
   ocudulog::basic_logger& logger;
   /// Error notifier.
-  error_message_notifier* notifier;
+  error_indication_notifier* notifier;
 };
 
 } // namespace fapi

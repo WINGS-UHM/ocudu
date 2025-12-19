@@ -20,7 +20,7 @@ class task_executor;
 class timer_manager;
 
 namespace fapi {
-class config_message_gateway;
+class p5_requests_gateway;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -36,7 +36,7 @@ struct mac_fapi_p5_fastpath_cell_operation_controller_impl_config {
 /// MAC-FAPI P5 fastpath cell operation controller implementation dependencies.
 struct mac_fapi_p5_fastpath_cell_operation_controller_impl_dependencies {
   ocudulog::basic_logger&         logger;
-  fapi::config_message_gateway&   config_msg_gateway;
+  fapi::p5_requests_gateway&      p5_gateway;
   p5_transaction_outcome_manager& transaction_manager;
   timer_manager&                  timers;
   task_executor&                  fapi_ctrl_executor;
@@ -63,7 +63,7 @@ public:
 private:
   const fapi::cell_configuration  cell_cfg;
   ocudulog::basic_logger&         logger;
-  fapi::config_message_gateway&   config_msg_gateway;
+  fapi::p5_requests_gateway&      p5_gateway;
   p5_transaction_outcome_manager& transaction_manager;
   timer_manager&                  timers;
   task_executor&                  fapi_ctrl_executor;

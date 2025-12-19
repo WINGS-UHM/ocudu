@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/fapi/p7/builders/rach_indication_message_builder.h"
+#include "ocudu/fapi/p7/builders/rach_indication_builder.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -16,8 +16,8 @@ using namespace fapi;
 
 TEST(rach_indication_builder, valid_basic_parameters_passes)
 {
-  rach_indication_message         msg;
-  rach_indication_message_builder builder(msg);
+  rach_indication         msg;
+  rach_indication_builder builder(msg);
 
   unsigned             slot    = 12;
   unsigned             sfn     = 13;

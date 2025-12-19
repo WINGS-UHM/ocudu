@@ -17,8 +17,8 @@ using namespace fapi;
 using namespace unittest;
 
 class validate_rx_data_indication_field
-  : public validate_fapi_message<rx_data_indication_message>,
-    public testing::TestWithParam<std::tuple<pdu_field_data<rx_data_indication_message>, test_case_data>>
+  : public validate_fapi_message<rx_data_indication>,
+    public testing::TestWithParam<std::tuple<pdu_field_data<rx_data_indication>, test_case_data>>
 {};
 
 TEST_P(validate_rx_data_indication_field, WithValue)
@@ -34,9 +34,9 @@ TEST_P(validate_rx_data_indication_field, WithValue)
 
 INSTANTIATE_TEST_SUITE_P(sfn,
                          validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "sfn",
-                                              [](rx_data_indication_message& pdu, int value) { pdu.sfn = value; }}),
+                                              [](rx_data_indication& pdu, int value) { pdu.sfn = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{512, true},
                                                           test_case_data{1023, true},
@@ -44,9 +44,9 @@ INSTANTIATE_TEST_SUITE_P(sfn,
 
 INSTANTIATE_TEST_SUITE_P(slot,
                          validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "slot",
-                                              [](rx_data_indication_message& pdu, int value) { pdu.slot = value; }}),
+                                              [](rx_data_indication& pdu, int value) { pdu.slot = value; }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{80, true},
                                                           test_case_data{159, true},
@@ -54,9 +54,9 @@ INSTANTIATE_TEST_SUITE_P(slot,
 
 INSTANTIATE_TEST_SUITE_P(RNTI,
                          validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "RNTI",
-                                              [](rx_data_indication_message& pdu, int value) {
+                                              [](rx_data_indication& pdu, int value) {
                                                 pdu.pdus.back().rnti = to_rnti(value);
                                               }}),
                                           testing::Values(test_case_data{0, false},
@@ -66,9 +66,9 @@ INSTANTIATE_TEST_SUITE_P(RNTI,
 
 INSTANTIATE_TEST_SUITE_P(RAPID,
                          validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "RAPID",
-                                              [](rx_data_indication_message& pdu, int value) {
+                                              [](rx_data_indication& pdu, int value) {
                                                 pdu.pdus.back().rapid = value;
                                               }}),
                                           testing::Values(test_case_data{0, true},
@@ -80,9 +80,9 @@ INSTANTIATE_TEST_SUITE_P(RAPID,
 
 INSTANTIATE_TEST_SUITE_P(HarqID,
                          validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "HARQ ID",
-                                              [](rx_data_indication_message& pdu, int value) {
+                                              [](rx_data_indication& pdu, int value) {
                                                 pdu.pdus.back().harq_id = value;
                                               }}),
                                           testing::Values(test_case_data{0, true},
@@ -95,9 +95,9 @@ INSTANTIATE_TEST_SUITE_P(HarqID,
 
 INSTANTIATE_TEST_SUITE_P(PDUTag,
                          validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication_message>{
+                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "PDU tag",
-                                              [](rx_data_indication_message& pdu, int value) {
+                                              [](rx_data_indication& pdu, int value) {
                                                 pdu.pdus.back().pdu_tag =
                                                     static_cast<rx_data_indication_pdu::pdu_tag_type>(value);
                                               }}),

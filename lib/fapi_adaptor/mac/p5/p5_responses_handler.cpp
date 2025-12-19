@@ -11,7 +11,7 @@
 #include "p5_responses_handler.h"
 #include "p5_transaction_outcome_manager.h"
 #include "ocudu/fapi/common/error_indication.h"
-#include "ocudu/fapi/p5/config_messages.h"
+#include "ocudu/fapi/p5/p5_messages.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;
@@ -58,7 +58,7 @@ void p5_responses_handler::handle_slot_indication(const mac_cell_timing_context&
   }
 }
 
-void p5_responses_handler::on_error_indication(const fapi::error_indication_message& msg)
+void p5_responses_handler::on_error_indication(const fapi::error_indication& msg)
 {
   if (!fapi_ctrl_executor.defer([this, msg_id = msg.message_id]() {
         switch (msg_id) {

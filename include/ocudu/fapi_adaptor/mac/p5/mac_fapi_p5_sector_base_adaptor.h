@@ -13,9 +13,9 @@
 namespace ocudu {
 
 namespace fapi {
-class config_message_gateway;
-class config_message_notifier;
-class error_message_notifier;
+class error_indication_notifier;
+class p5_requests_gateway;
+class p5_responses_notifier;
 } // namespace fapi
 
 namespace fapi_adaptor {
@@ -32,11 +32,11 @@ class mac_fapi_p5_sector_base_adaptor
 public:
   virtual ~mac_fapi_p5_sector_base_adaptor() = default;
 
-  /// Returns the FAPI configuration message notifier of this adaptor.
-  virtual fapi::config_message_notifier& get_config_message_notifier() = 0;
+  /// Returns the FAPI configuration P5 responses notifier of this adaptor.
+  virtual fapi::p5_responses_notifier& get_p5_responses_notifier() = 0;
 
-  /// Returns the FAPI error message notifier of this adaptor.
-  virtual fapi::error_message_notifier& get_error_message_notifier() = 0;
+  /// Returns the FAPI error indication notifier of this adaptor.
+  virtual fapi::error_indication_notifier& get_error_indication_notifier() = 0;
 };
 
 } // namespace fapi_adaptor

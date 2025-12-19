@@ -128,6 +128,12 @@ void rrc_ue_impl::cancel_all_transactions()
   event_mng->cancel_all();
 }
 
+void rrc_ue_impl::update_c_rnti(rnti_t crnti)
+{
+  context.c_rnti = crnti;
+  logger.set_prefix(rrc_ue_log_prefix{context.ue_index, crnti});
+}
+
 void rrc_ue_impl::on_new_dl_ccch(const asn1::rrc_nr::dl_ccch_msg_s& dl_ccch_msg)
 {
   send_dl_ccch(dl_ccch_msg);

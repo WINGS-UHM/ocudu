@@ -86,6 +86,7 @@ public:
 
   // rrc_ue_context_handler
   rrc_ue_reestablishment_context_response get_context() override;
+  void                                    update_c_rnti(rnti_t crnti) override;
   rrc_cell_context                        get_cell_context() const override { return context.cell; }
 
 private:

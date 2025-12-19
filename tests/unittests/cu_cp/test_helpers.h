@@ -790,6 +790,8 @@ public:
     return rrc_ue_reestablishment_context_response{};
   }
 
+  void update_c_rnti(rnti_t crnti) override {}
+
   rrc_cell_context get_cell_context() const override
   {
     logger.info("Received a new request to get RRC UE cell context");

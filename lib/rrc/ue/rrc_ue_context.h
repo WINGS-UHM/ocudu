@@ -18,21 +18,20 @@
 #include "ocudu/rrc/rrc_ue.h"
 #include "ocudu/rrc/rrc_ue_config.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Holds the RRC UE context used by the UE object and all its procedures.
 class rrc_ue_context_t
 {
 public:
   rrc_ue_context_t(const ue_index_t                       ue_index_,
-                   const rnti_t                           c_rnti_,
+                   rnti_t                                 c_rnti_,
                    const rrc_cell_context&                cell_,
                    const rrc_ue_cfg_t&                    cfg_,
                    std::optional<rrc_ue_transfer_context> rrc_context_);
 
   const ue_index_t                   ue_index; // UE index assigned by the DU processor
-  const rnti_t                       c_rnti;   // current C-RNTI
+  rnti_t                             c_rnti;   // current C-RNTI
   rrc_cell_context                   cell;     // current cell
   const rrc_ue_cfg_t                 cfg;
   plmn_identity                      plmn_id = plmn_identity::test_value(); // PLMN identity of the UE
@@ -50,5 +49,4 @@ public:
   ocudulog::basic_logger&                logger;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

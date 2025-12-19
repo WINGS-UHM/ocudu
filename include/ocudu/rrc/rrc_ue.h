@@ -461,6 +461,10 @@ public:
   /// \returns The RRC Reestablishment UE Context.
   virtual rrc_ue_reestablishment_context_response get_context() = 0;
 
+  /// \brief Update the C-RNTI of the RRC UE, e.g. for RRC resume.
+  /// \param[in] crnti The new C-RNTI of the RRC UE.
+  virtual void update_c_rnti(rnti_t crnti) = 0;
+
   /// \brief Get the cell context of the RRC UE.
   /// \returns The cell context.
   virtual rrc_cell_context get_cell_context() const = 0;

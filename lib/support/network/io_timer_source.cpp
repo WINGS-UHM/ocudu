@@ -58,8 +58,15 @@ void io_timer_source::resume()
     return;
   }
 
+  // Get a new stop token.
+  auto token = shutdown_flag.get_token();
+  if (token.is_stop_requested()) {
+    // Unable to retrieve token because the request to stop was already made.
+    return;
+  }
+
   // Dispatch task to start ticking.
-  while (not tick_exec.defer([this, token = shutdown_flag.get_token()]() { create_subscriber(token); })) {
+  while (not tick_exec.defer([this, token = std::move(token)]() { create_subscriber(token); })) {
     // We cannot allow the command to be lost. Retry until we succeed.
     std::this_thread::sleep_for(std::chrono::milliseconds{1});
   }

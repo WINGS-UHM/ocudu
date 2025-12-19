@@ -90,6 +90,12 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
   }
 
   {
+    // Update UE context with new C-RNTI.
+    ue->get_ue_context().crnti = ue_context_setup_response.c_rnti.value();
+    ue->get_rrc_ue()->update_c_rnti(ue_context_setup_response.c_rnti.value());
+  }
+
+  {
     // Prepare update for UP resource manager.
     up_config_update_result result;
     for (const auto& pdu_session_to_add : next_config.pdu_sessions_to_setup_list) {
@@ -201,8 +207,8 @@ bool rrc_resume_routine::handle_ue_context_setup_response()
   }
 
   if (!ue_context_setup_response.c_rnti.has_value()) {
-    logger.warning("No C-RNTI present in UE context setup");
-    // return false;
+    logger.warning("No C-RNTI present in UE context setup response");
+    return false;
   }
 
   // Create bearer context mod request.

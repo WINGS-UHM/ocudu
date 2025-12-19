@@ -21,7 +21,7 @@ using namespace ocudu;
 namespace {
 
 // Change if you want to see logs.
-ocudulog::basic_levels sched_log_level = ocudulog::basic_levels::debug;
+ocudulog::basic_levels sched_log_level = ocudulog::basic_levels::warning;
 
 struct multi_ue_test_params {
   unsigned nof_ues            = 1;

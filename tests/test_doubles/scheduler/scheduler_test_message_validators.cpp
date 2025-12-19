@@ -87,7 +87,6 @@ bool test_helper::is_valid_dl_msg_alloc(const dl_msg_alloc& grant, const std::op
 {
   TRUE_OR_RETURN(is_pdsch_info_valid(grant.pdsch_cfg, coreset0));
   TRUE_OR_RETURN(grant.pdsch_cfg.codewords[0].new_data == not grant.tb_list.empty());
-  TRUE_OR_RETURN(grant.tb_list.size() <= 2);
 
   if (grant.pdsch_cfg.dci_fmt == dci_dl_format::f1_0) {
     TRUE_OR_RETURN(grant.tb_list.size() <= 1);

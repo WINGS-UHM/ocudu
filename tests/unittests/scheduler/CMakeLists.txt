@@ -22,18 +22,6 @@ add_subdirectory(config)
 add_subdirectory(slicing)
 add_subdirectory(srs_scheduling)
 
-add_executable(sched_no_ue_test scheduler_no_ue_test.cpp)
-target_link_libraries(sched_no_ue_test
-        ocudu_sched
-        scheduler_test_suite
-        ocudulog
-        mac_configuration_helpers
-        sched_config
-        sched_test_doubles
-        gtest
-        gtest_main)
-add_test(sched_no_ue_test sched_no_ue_test)
-
 add_executable(pdcch_resource_allocator_test pdcch/pdcch_resource_allocator_test.cpp)
 target_link_libraries(pdcch_resource_allocator_test
 	ocudu_sched
@@ -51,11 +39,12 @@ add_executable(scheduler_test
         scheduler_tdd_test.cpp
         scheduler_ue_fallback_mode_test.cpp
         scheduler_ta_cmd_test.cpp
-        multi_cell_scheduler_test.cpp
-        multi_slice_scheduler_test.cpp
+		scheduler_multi_cell_test.cpp
+		scheduler_multi_slice_test.cpp
         scheduler_qos_test.cpp
         scheduler_multi_grants_test.cpp
         scheduler_multi_ue_test.cpp
+		scheduler_no_ue_test.cpp
 )
 target_link_libraries(scheduler_test
         ocudu_sched
@@ -75,17 +64,6 @@ target_link_libraries(scheduler_test_doubles_test
         gtest
         gtest_main)
 gtest_discover_tests(scheduler_test_doubles_test)
-
-add_executable(multiple_ue_sched_test multiple_ue_sched_test.cpp)
-target_link_libraries(multiple_ue_sched_test
-        ocudu_sched
-        sched_config
-        scheduler_test_suite
-        mac_configuration_helpers
-        sched_test_doubles
-        gtest
-        gtest_main)
-gtest_discover_tests(multiple_ue_sched_test)
 
 add_executable(scheduler_metrics_handler_test scheduler_metrics_handler_test.cpp)
 target_link_libraries(scheduler_metrics_handler_test

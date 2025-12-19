@@ -50,6 +50,12 @@ io_timer_source::io_timer_source(timer_manager&            tick_sink_,
   }
 }
 
+io_timer_source::~io_timer_source()
+{
+  request_stop();
+  // The dtor of stop_flag will block until all tasks using the token have completed.
+}
+
 void io_timer_source::resume()
 {
   auto prev = running.exchange(true, std::memory_order_acq_rel);

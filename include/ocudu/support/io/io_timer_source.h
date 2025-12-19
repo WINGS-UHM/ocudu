@@ -26,6 +26,7 @@ public:
                   task_executor&            executor,
                   std::chrono::milliseconds tick_period,
                   bool                      auto_start = true);
+  ~io_timer_source();
 
   /// Resume ticking in case it was previously halted.
   void resume();

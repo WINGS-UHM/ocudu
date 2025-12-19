@@ -21,7 +21,7 @@ using namespace ocudu;
 namespace {
 
 // Change if you want to see logs.
-ocudulog::basic_levels sched_log_level = ocudulog::basic_levels::warning;
+ocudulog::basic_levels sched_log_level = ocudulog::basic_levels::debug;
 
 struct multi_ue_test_params {
   unsigned nof_ues            = 1;
@@ -311,6 +311,7 @@ INSTANTIATE_TEST_SUITE_P(scheduler_rb_distribution_test,
                                            multi_ue_test_params{16, 4},
                                            multi_ue_test_params{512, 128}));
 
+/// This test verifies that the scheduler respects the buffer occupancy reports
 class scheduler_buffer_occupancy_test : public scheduler_multi_ue_test, public ::testing::Test
 {
 public:
@@ -319,6 +320,7 @@ public:
 
 TEST_F(scheduler_buffer_occupancy_test, when_dl_bo_is_set_then_enough_dl_tbs_is_scheduled)
 {
+  // TEST CASE 1: No DL BO is forwarded, no DL grant should be scheduled.
   ASSERT_FALSE(run_slot_until([this]() { return this->last_sched_result()->dl.ue_grants.size() > 0; }, 1000))
       << "If no DL BO is forwarded, no DL grant should be scheduled";
 
@@ -362,4 +364,82 @@ TEST_F(scheduler_buffer_occupancy_test, when_dl_bo_is_set_then_enough_dl_tbs_is_
   for (unsigned i = 0; i != test_params.nof_ues; ++i) {
     ASSERT_LE(ue_dl_drb_sched[i], (ue_dl_bos[i] * 1.1 + 10));
   }
+}
+
+TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_bytes_are_scheduled)
+{
+  // TEST CASE 1: No DL BO is forwarded, no DL grant should be scheduled.
+  ASSERT_FALSE(run_slot_until([this]() { return this->last_sched_result()->ul.puschs.size() > 0; }, 1000))
+      << "If no DL BO is forwarded, no DL grant should be scheduled";
+
+  // Push UL BSR for all UEs.
+  std::vector<unsigned> ue_bsrs(test_params.nof_ues);
+  std::vector<unsigned> ue_ul_drb_sched(test_params.nof_ues);
+  for (unsigned i = 0; i != test_params.nof_ues; ++i) {
+    ue_bsrs[i] = test_rgen::uniform_int<unsigned>(1, 20000);
+    ul_bsr_indication_message bsr{to_du_cell_index(0),
+                                  to_du_ue_index(i),
+                                  to_rnti(0x4601 + i),
+                                  bsr_format::LONG_BSR,
+                                  ul_bsr_lcg_report_list{{uint_to_lcg_id(2), ue_bsrs[i]}}};
+    this->push_bsr(bsr);
+  }
+
+  // The scheduler should schedule enough bytes for each UE.
+  unsigned max_nof_slots = 10000;
+  unsigned ues_completed = 0;
+  for (unsigned i = 0; i < max_nof_slots and ues_completed < test_params.nof_ues; ++i) {
+    run_slot();
+
+    for (const auto& grant : last_sched_result()->ul.puschs) {
+      auto& ue_sched_bytes = ue_ul_drb_sched[grant.context.ue_index];
+      auto& ue_bsr         = ue_bsrs[grant.context.ue_index];
+      if (ue_sched_bytes < ue_bsr and ue_sched_bytes + grant.pusch_cfg.tb_size_bytes >= ue_bsr) {
+        ues_completed++;
+        if (ues_completed == test_params.nof_ues) {
+          test_logger.info("All UEs have received enough UL bytes after {} slots", i + 1);
+          // Run some extra slots to ensure that any overhead is scheduled.
+          max_nof_slots = i + 100;
+        }
+      }
+      ue_sched_bytes += grant.pusch_cfg.tb_size_bytes;
+
+      // The UE sends BSR updates in the scheduled UL grants.
+      ul_bsr_indication_message bsr{
+          to_du_cell_index(0),
+          grant.context.ue_index,
+          to_rnti(0x4601 + grant.context.ue_index),
+          bsr_format::LONG_BSR,
+          ul_bsr_lcg_report_list{{uint_to_lcg_id(2), ue_bsr - std::min(ue_bsr, ue_sched_bytes)}}};
+      this->push_bsr(bsr);
+    }
+  }
+  ASSERT_EQ(ues_completed, test_params.nof_ues) << "Not enough UL bytes scheduled for some UEs";
+
+  // We have the guarantee now that all UEs have been scheduled sufficiently.
+  // However, we also want to ensure they were not over-scheduled.
+  for (unsigned i = 0; i != test_params.nof_ues; ++i) {
+    ASSERT_LE(ue_ul_drb_sched[i], (ue_bsrs[i] * 1.2 + 512))
+        << fmt::format("rnti={}: Too many bytes scheduled for UE", to_rnti(0x4601 + i));
+  }
+}
+
+TEST_F(scheduler_buffer_occupancy_test, when_bsr_and_dl_bo_are_zero_no_grants_are_scheduled)
+{
+  for (unsigned i = 0; i != test_params.nof_ues; ++i) {
+    dl_buffer_state_indication_message dl_buf_st{to_du_ue_index(i), LCID_MIN_DRB, 0, this->next_slot_rx()};
+    this->push_dl_buffer_state(dl_buf_st);
+    ul_bsr_indication_message bsr{to_du_cell_index(0),
+                                  to_du_ue_index(i),
+                                  to_rnti(0x4601 + i),
+                                  bsr_format::LONG_BSR,
+                                  ul_bsr_lcg_report_list{{uint_to_lcg_id(2), 0}}};
+    this->push_bsr(bsr);
+  }
+
+  ASSERT_FALSE(run_slot_until(
+      [this]() {
+        return this->last_sched_result()->ul.puschs.size() > 0 or this->last_sched_result()->dl.ue_grants.size() > 0;
+      },
+      1000));
 }

@@ -145,8 +145,6 @@ static odu::du_low_config generate_du_low_config(const du_low_unit_config&      
     // 10 ms.
     unsigned ul_pipeline_depth = nof_slots_per_frame;
 
-    static constexpr unsigned prach_pipeline_depth = 1;
-
     const prach_configuration prach_cfg =
         prach_configuration_get(cell.freq_range, cell.duplex, cell.prach_config_index);
     ocudu_assert(prach_cfg.format != prach_format_type::invalid,
@@ -156,19 +154,19 @@ static odu::du_low_config generate_du_low_config(const du_low_unit_config&      
                  to_string(cell.freq_range),
                  to_string(cell.duplex));
 
-    upper_phy_cell.nof_tx_ports                                     = cell.nof_tx_antennas;
-    upper_phy_cell.nof_rx_ports                                     = cell.nof_rx_antennas;
-    upper_phy_cell.nof_dl_rg                                        = dl_pipeline_depth + 2;
-    upper_phy_cell.nof_ul_rg                                        = ul_pipeline_depth;
-    upper_phy_cell.nof_prach_buffer                                 = prach_pipeline_depth * nof_slots_per_subframe;
-    upper_phy_cell.max_nof_td_prach_occasions                       = prach_cfg.nof_occasions_within_slot;
-    upper_phy_cell.max_nof_fd_prach_occasions                       = 1;
-    upper_phy_cell.is_prach_long_format                             = is_long_preamble(prach_cfg.format);
-    upper_phy_cell.nof_dl_processors                                = dl_pipeline_depth;
-    upper_phy_cell.dl_bw_rb                                         = bw_rb;
-    upper_phy_cell.ul_bw_rb                                         = bw_rb;
-    upper_phy_cell.pusch_max_nof_layers                             = cell.pusch_max_nof_layers;
-    upper_phy_cell.active_scs                                       = {};
+    upper_phy_cell.nof_tx_ports               = cell.nof_tx_antennas;
+    upper_phy_cell.nof_rx_ports               = cell.nof_rx_antennas;
+    upper_phy_cell.nof_dl_rg                  = dl_pipeline_depth + 2;
+    upper_phy_cell.nof_ul_rg                  = ul_pipeline_depth;
+    upper_phy_cell.nof_prach_buffer           = du_low.expert_phy_cfg.max_processing_delay_slots + 2;
+    upper_phy_cell.max_nof_td_prach_occasions = prach_cfg.nof_occasions_within_slot;
+    upper_phy_cell.max_nof_fd_prach_occasions = 1;
+    upper_phy_cell.is_prach_long_format       = is_long_preamble(prach_cfg.format);
+    upper_phy_cell.nof_dl_processors          = dl_pipeline_depth;
+    upper_phy_cell.dl_bw_rb                   = bw_rb;
+    upper_phy_cell.ul_bw_rb                   = bw_rb;
+    upper_phy_cell.pusch_max_nof_layers       = cell.pusch_max_nof_layers;
+    upper_phy_cell.active_scs                 = {};
     upper_phy_cell.active_scs[to_numerology_value(cell.scs_common)] = true;
     upper_phy_cell.rx_buffer_config.nof_buffers                     = nof_buffers;
     upper_phy_cell.rx_buffer_config.nof_codeblocks                  = max_rx_nof_codeblocks;

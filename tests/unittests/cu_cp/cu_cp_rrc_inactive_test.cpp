@@ -237,6 +237,85 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool trigger_rrc_inactive(gnb_du_ue_f1ap_id_t du_ue_id_)
+  {
+    // Inject Inactivity Notification and await Bearer Context Modification Request.
+    if (!send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request()) {
+      return false;
+    }
+
+    // Send Bearer Context Modification Response and await UE Context Release Command.
+    if (!send_bearer_context_modification_response_and_await_ue_context_release_command()) {
+      return false;
+    }
+
+    // Send F1AP UE Context Release Complete.
+    report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+    report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+
+    // Inject F1AP UE Context Release Complete.
+    get_du(du_idx).push_ul_pdu(test_helpers::generate_ue_context_release_complete(ue_ctx->cu_ue_id.value(), du_ue_id_));
+
+    return true;
+  }
+
+  [[nodiscard]] bool resume_ue(gnb_du_ue_f1ap_id_t du_ue_id_,
+                               rnti_t              crnti_,
+                               unsigned            i_rnti,
+                               const std::string&  resume_mac_i,
+                               byte_buffer         rrc_resume_complete)
+  {
+    // Inject Initial UL RRC message and await UE context setup request.
+    f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(
+        du_ue_id_,
+        crnti_,
+        plmn_identity::test_value(),
+        {},
+        test_helpers::pack_ul_ccch_msg(test_helpers::create_rrc_resume_request(i_rnti, resume_mac_i)));
+    test_logger.info("c-rnti={} du_ue={}: Injecting Initial UL RRC message", crnti_, fmt::underlying(du_ue_id_));
+    get_du(du_idx).push_ul_pdu(init_ul_rrc_msg);
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive UE Context Setup Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request(f1ap_pdu),
+                              "Invalid UE Context Setup Request");
+
+    // Inject UE Context Setup Response and wait for Bearer Context Modification Request.
+    get_du(du_idx).push_ul_pdu(test_helpers::generate_ue_context_setup_response(
+        ue_ctx->cu_ue_id.value(),
+        du_ue_id_,
+        crnti_,
+        make_byte_buffer(
+            "5c04c00604b0701f00811a0f020001273b8c02692f30004d25e24040008c8040a26418d6d8d76006e08040000101000083446a48d8"
+            "02692f1200000464e35b63224f8060664abff0124e9106e28dc61b8e372c6fbf56c70eb00442c0680182c4601c020521004930b2a0"
+            "003fe00000000060dc2108000780594008300000020698101450a000e3890000246aac90838002081840a1839389142c60d1c3c811"
+            "00000850000800b50001000850101800b50102000850202800b50203000850303800b503040c885010480504014014120580505018"
+            "01416068050601c0141a0780507020314100880905204963028711d159e26f2681d2083c5df81821c00000038ffd294a5294f28160"
+            "00021976000000000000000000108ad5450047001800082000e21009c400e0202108001c420138401c080441000388402708038180"
+            "842000710804e18070401104000e21009c300080000008218081018201c1a0001c71000000080100020180020240088029800008c4"
+            "0089c7001800")
+            .value(),
+        {drb_id_t::drb1}));
+
+    report_fatal_error_if_not(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu),
+                              "Failed to receive Bearer Context Modification Request");
+    report_fatal_error_if_not(test_helpers::is_valid_bearer_context_modification_request(e1ap_pdu),
+                              "Invalid Bearer Context Modification Request");
+
+    // Send Bearer Context Modification Response and await DL RRC Message Transfer.
+    if (!send_bearer_context_modification_response_and_await_dl_rrc_message_transfer()) {
+      return false;
+    }
+
+    // Inject UL RRC Message (containing RRC Resume Complete).
+    f1ap_message ul_rrc_msg = test_helpers::generate_ul_rrc_message_transfer(
+        du_ue_id_, ue_ctx->cu_ue_id.value(), srb_id_t::srb1, std::move(rrc_resume_complete));
+    get_du(du_idx).push_ul_pdu(ul_rrc_msg);
+
+    return true;
+  }
+
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
 
@@ -356,4 +435,64 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(
       report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 1);
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resume_is_successful_again)
+{
+  // First Active -> Inactive -> Resume cycle.
+
+  // Check metrics for active RRC UE.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
+  // Inject Inactivity Notification and handle it.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Successfully resume UE.
+  ASSERT_TRUE(
+      resume_ue(du_ue_id_2, crnti_2, 0x36000, "1111010001000010", make_byte_buffer("000020400033b01cab").value()));
+
+  // Check metrics for attempted/successful RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 1);
+
+  // Second Active -> Inactive -> Resume cycle.
+
+  gnb_du_ue_f1ap_id_t du_ue_id_3 = int_to_gnb_du_ue_f1ap_id(2);
+  rnti_t              crnti_3    = to_rnti(0x4603);
+
+  // Check metrics for active RRC UE.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
+  // Inject Inactivity Notification and handle it.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id_2));
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Successfully resume UE.
+  ASSERT_TRUE(
+      resume_ue(du_ue_id_3, crnti_3, 0x36001, "1010101010011111", make_byte_buffer("00002240006f0cba6b").value()));
+
+  // Check metrics for successful RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  // Check metrics for attempted/successful RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            2);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 2);
 }

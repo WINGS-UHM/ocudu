@@ -45,6 +45,12 @@ public:
   virtual void store_cell_info_db(const std::map<nr_cell_global_id_t, rrc_cell_info>& cell_infos) = 0;
 };
 
+struct rrc_resume_context_t {
+  bool                                                       is_resume;
+  std::optional<std::variant<short_i_rnti_t, full_i_rnti_t>> rrc_resume_id = std::nullopt;
+  std::optional<establishment_resume_cause_t>                resume_cause  = std::nullopt;
+};
+
 struct rrc_ue_creation_message {
   ue_index_t                             ue_index;
   rnti_t                                 c_rnti;
@@ -69,13 +75,13 @@ public:
   /// \brief Get the RRC Reject message to send to the UE.
   virtual byte_buffer get_rrc_reject() = 0;
 
-  /// \brief Get the RRC Resume ID from a RRC container.
+  /// \brief Get the RRC Resume context containing the resume ID and resume cause from a RRC container.
   /// \param[in] rrc_container The RRC container from the DU.
   /// \param[in] nof_i_rnti_ue_bits Number of bits used for the I-RNTI UE.
-  /// \returns The RRC Resume ID if the container contains a valid RRCResumeRequest, true if the container
-  /// contains a different message, false if an error occured e.g. during unpacking.
-  virtual expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> get_rrc_resume_id(byte_buffer rrc_container,
-                                                                                        uint8_t nof_i_rnti_ue_bits) = 0;
+  /// \returns The RRC Resume context if the container contains a valid UL CCCH Message, std::nullopt if an error
+  /// occured e.g. during unpacking.
+  virtual std::optional<rrc_resume_context_t> get_rrc_resume_context(byte_buffer rrc_container,
+                                                                     uint8_t     nof_i_rnti_ue_bits) = 0;
 
   /// Creates a new RRC UE object and returns a handle to it.
   virtual rrc_ue_interface* add_ue(const rrc_ue_creation_message& msg) = 0;

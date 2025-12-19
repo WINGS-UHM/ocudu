@@ -25,14 +25,10 @@ class rrc_resume_procedure
 public:
   rrc_resume_procedure(const asn1::rrc_nr::rrc_resume_request_s& request_,
                        rrc_ue_context_t&                         context_,
-                       const byte_buffer&                        du_to_cu_container_,
-                       rrc_ue_setup_proc_notifier&               rrc_ue_setup_notifier_,
                        rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier_,
-                       rrc_ue_control_message_handler&           srb_notifier_,
                        rrc_ue_context_update_notifier&           cu_cp_notifier_,
                        rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier_,
                        rrc_ue_event_notifier&                    metrics_notifier_,
-                       rrc_ue_ngap_notifier&                     ngap_notifier_,
                        rrc_ue_event_manager&                     event_mng_,
                        rrc_ue_logger&                            logger_);
 
@@ -41,11 +37,8 @@ public:
   static const char* name() { return "RRC Resume Procedure"; }
 
 private:
-  /// \brief Determined whether the Resume Request is accepted or rejected.
-  bool is_resume_accepted();
-
   /// \brief Get and verify the ResumeMAC-I and update the keys.
-  bool verify_security_context();
+  bool verify_and_update_security_context();
 
   /// \brief Update the security keys.
   void update_security_keys();
@@ -56,20 +49,14 @@ private:
   /// \remark Send RRC Resume, see section 5.3.13 in TS 38.331.
   void send_rrc_resume();
 
-  async_task<void> handle_rrc_resume_fallback();
-
-  void log_rejected_resume(const char* cause_str);
+  async_task<void> handle_rrc_resume_failure();
 
   const asn1::rrc_nr::rrc_resume_request_s resume_request;
   rrc_ue_context_t&                        context;
-  const byte_buffer&                       du_to_cu_container;
-  rrc_ue_setup_proc_notifier&              rrc_ue_setup_notifier;
   rrc_ue_msg4_proc_notifier&               rrc_ue_resume_notifier; // handler to the parent RRC UE object
-  rrc_ue_control_message_handler&          srb_notifier;           // for creating SRBs
   rrc_ue_context_update_notifier&          cu_cp_notifier;         // notifier to the CU-CP
   rrc_ue_cu_cp_ue_notifier&                cu_cp_ue_notifier;      // notifier to the CU-CP UE
   rrc_ue_event_notifier&                   metrics_notifier;       // metrics notifier
-  rrc_ue_ngap_notifier&                    ngap_notifier;          // notifier to the NGAP
   rrc_ue_event_manager&                    event_mng;              // event manager for the RRC UE entity
   rrc_ue_logger&                           logger;
 

@@ -156,9 +156,6 @@ void rrc_ue_impl::handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request
 
 void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg)
 {
-  // Notify metrics about attempted RRC connection resume.
-  metrics_notifier.on_attempted_rrc_connection_resume(asn1_to_resume_cause(msg.rrc_resume_request.resume_cause));
-
   // If the DU to CU container is missing, assume the DU can't serve the UE, so the CU-CP should reject the UE, see
   // TS 38.473 section 8.4.1.2.
   if (du_to_cu_container.empty()) {
@@ -172,19 +169,33 @@ void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_reque
     return;
   }
 
+  // If UE context wasn't found (UE is in IDLE) or forced by configuration, fallback to RRC Setup.
+  if (context.state == rrc_state::idle or context.cfg.force_resume_fallback) {
+    logger.log_info("Received RRC Resume Request, but falling back to RRC Setup. Cause: {}",
+                    context.cfg.force_resume_fallback ? "RRC Resumes are disabled" : "UE context wasn't found");
+    // Fallback to RRC Setup
+    context.connection_cause = asn1_to_resume_cause(msg.rrc_resume_request.resume_cause);
+
+    // Notify metrics about the attempted RRC connection resume followed by RRC Setup.
+    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(context.connection_cause);
+
+    cu_cp_ue_notifier.schedule_async_task(launch_async<rrc_setup_procedure>(context,
+                                                                            du_to_cu_container,
+                                                                            *this,
+                                                                            get_rrc_ue_control_message_handler(),
+                                                                            cu_cp_notifier,
+                                                                            metrics_notifier,
+                                                                            ngap_notifier,
+                                                                            *event_mng,
+                                                                            logger,
+                                                                            false,
+                                                                            true));
+    return;
+  }
+
   // Launch RRC resume procedure.
-  cu_cp_ue_notifier.schedule_async_task(launch_async<rrc_resume_procedure>(msg,
-                                                                           context,
-                                                                           du_to_cu_container,
-                                                                           *this,
-                                                                           *this,
-                                                                           get_rrc_ue_control_message_handler(),
-                                                                           cu_cp_notifier,
-                                                                           cu_cp_ue_notifier,
-                                                                           metrics_notifier,
-                                                                           ngap_notifier,
-                                                                           *event_mng,
-                                                                           logger));
+  cu_cp_ue_notifier.schedule_async_task(launch_async<rrc_resume_procedure>(
+      msg, context, *this, cu_cp_notifier, cu_cp_ue_notifier, metrics_notifier, *event_mng, logger));
 }
 
 void rrc_ue_impl::stop()

@@ -9,6 +9,7 @@
  */
 
 #include "rrc_du_impl.h"
+#include "ue/rrc_asn1_converters.h"
 #include "ue/rrc_measurement_types_asn1_converters.h"
 #include "ue/rrc_ue_helpers.h"
 #include "ocudu/adt/expected.h"
@@ -150,11 +151,11 @@ byte_buffer rrc_du_impl::get_rrc_reject()
   return pack_into_pdu(dl_ccch_msg, "RRCReject");
 }
 
-expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> rrc_du_impl::get_rrc_resume_id(byte_buffer rrc_container,
-                                                                                           uint8_t nof_i_rnti_ue_bits)
+std::optional<rrc_resume_context_t> rrc_du_impl::get_rrc_resume_context(byte_buffer rrc_container,
+                                                                        uint8_t     nof_i_rnti_ue_bits)
 {
   if (rrc_container.empty()) {
-    return make_unexpected(false);
+    return std::nullopt;
   }
   // Unpack RRC container.
   if (rrc_container.length() <= 6) {
@@ -167,13 +168,17 @@ expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> rrc_du_impl::get_rrc
       if (ul_ccch_msg.unpack(bref) != asn1::OCUDUASN_SUCCESS or
           ul_ccch_msg.msg.type().value != ul_ccch_msg_type_c::types_opts::c1) {
         logger.error(rrc_container.begin(), rrc_container.end(), "Failed to unpack CCCH UL PDU");
-        return make_unexpected(false);
+        return std::nullopt;
       }
     }
 
     if (ul_ccch_msg.msg.c1().type().value != ul_ccch_msg_type_c::c1_c_::types_opts::rrc_resume_request) {
-      return make_unexpected(true);
+      return rrc_resume_context_t{.is_resume = false};
     }
+
+    // Notify metrics about attempted RRC connection resume.
+    handle_attempted_rrc_resume(
+        asn1_to_resume_cause(ul_ccch_msg.msg.c1().rrc_resume_request().rrc_resume_request.resume_cause));
 
     // Extract Short-I-RNTI.
     expected<short_i_rnti_t> resume_id = short_i_rnti_t::from_uint(
@@ -182,10 +187,14 @@ expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> rrc_du_impl::get_rrc
     if (!resume_id.has_value()) {
       logger.error("Invalid Resume ID in RRC Resume Request (ASN.1 short-i-rnti=0x{:x})",
                    ul_ccch_msg.msg.c1().rrc_resume_request().rrc_resume_request.resume_id.to_number());
-      return make_unexpected(false);
+      return std::nullopt;
     }
 
-    return resume_id.value();
+    return rrc_resume_context_t{
+        .is_resume     = true,
+        .rrc_resume_id = resume_id.value(),
+        .resume_cause = asn1_to_resume_cause(ul_ccch_msg.msg.c1().rrc_resume_request().rrc_resume_request.resume_cause),
+    };
   }
 
   // 64 bits RRC Resume Request containing Full-I-RNTI.
@@ -196,12 +205,12 @@ expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> rrc_du_impl::get_rrc
     if (ul_ccch1_msg.unpack(bref) != asn1::OCUDUASN_SUCCESS or
         ul_ccch1_msg.msg.type().value != ul_ccch1_msg_type_c::types_opts::c1) {
       logger.error(rrc_container.begin(), rrc_container.end(), "Failed to unpack CCCH UL PDU");
-      return make_unexpected(false);
+      return std::nullopt;
     }
   }
 
   if (ul_ccch1_msg.msg.c1().type().value != ul_ccch1_msg_type_c::c1_c_::types_opts::rrc_resume_request1) {
-    return make_unexpected(true);
+    return rrc_resume_context_t{.is_resume = false};
   }
 
   // Extract Full-I-RNTI.
@@ -210,10 +219,15 @@ expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> rrc_du_impl::get_rrc
   if (!resume_id.has_value()) {
     logger.error("Invalid Resume ID in RRC Resume Request (ASN.1 full-i-rnti=0x{:x})",
                  ul_ccch1_msg.msg.c1().rrc_resume_request1().rrc_resume_request1.resume_id.to_number());
-    return make_unexpected(false);
+    return std::nullopt;
   }
 
-  return resume_id.value();
+  return rrc_resume_context_t{
+      .is_resume     = true,
+      .rrc_resume_id = resume_id.value(),
+      .resume_cause =
+          asn1_to_resume_cause(ul_ccch1_msg.msg.c1().rrc_resume_request1().rrc_resume_request1.resume_cause),
+  };
 }
 
 rrc_ue_interface* rrc_du_impl::add_ue(const rrc_ue_creation_message& msg)

@@ -233,24 +233,44 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
 
   if (ue_index == ue_index_t::invalid) {
     // Check if this is a RRC Resume request for an existing UE.
-    expected<std::variant<short_i_rnti_t, full_i_rnti_t>, bool> resume_id =
-        rrc->get_rrc_resume_id(req.rrc_container.copy(), cfg.cu_cp_cfg.ue.nof_i_rnti_ue_bits);
-    if (resume_id.has_value()) {
-      is_resume_request = true;
-      if (std::holds_alternative<short_i_rnti_t>(resume_id.value())) {
-        ue_index = ue_mng.get_ue_index(std::get<short_i_rnti_t>(resume_id.value()));
-        logger.debug("ue={}: RRC Resume Request with {}", ue_index, std::get<short_i_rnti_t>(resume_id.value()));
+    std::optional<rrc_resume_context_t> resume_context =
+        rrc->get_rrc_resume_context(req.rrc_container.copy(), cfg.cu_cp_cfg.ue.nof_i_rnti_ue_bits);
+    if (!resume_context.has_value()) {
+      logger.warning("ue={}: Could not extract RRC Resume context from UL CCCH Message", req.ue_index);
+      // Return the RRCReject container.
+      return make_unexpected(rrc->get_rrc_reject());
+    }
+
+    if (resume_context->is_resume && resume_context->rrc_resume_id.has_value()) {
+      if (std::holds_alternative<short_i_rnti_t>(resume_context->rrc_resume_id.value())) {
+        ue_index = ue_mng.get_ue_index(std::get<short_i_rnti_t>(resume_context->rrc_resume_id.value()));
+        logger.debug("ue={}: RRC Resume Request with {}",
+                     ue_index,
+                     std::get<short_i_rnti_t>(resume_context->rrc_resume_id.value()));
       } else {
-        ue_index = ue_mng.get_ue_index(std::get<full_i_rnti_t>(resume_id.value()));
-        logger.debug("ue={}: RRC Resume Request with {}", ue_index, std::get<full_i_rnti_t>(resume_id.value()));
+        ue_index = ue_mng.get_ue_index(std::get<full_i_rnti_t>(resume_context->rrc_resume_id.value()));
+        logger.debug("ue={}: RRC Resume Request with {}",
+                     ue_index,
+                     std::get<full_i_rnti_t>(resume_context->rrc_resume_id.value()));
       }
-      if (ue_index == ue_index_t::invalid) {
-        logger.warning("Could not find UE for RRC Resume with {}", resume_id.value());
-        // Return the RRCReject container.
-        return make_unexpected(rrc->get_rrc_reject());
+
+      if (ue_index != ue_index_t::invalid) {
+        if (cfg.cu_cp_cfg.rrc.force_resume_fallback) {
+          // RRC Resume fallback forced - do not resume. The DU doesn't have a F1AP UE context, so we also remove it
+          // here.
+          logger.info("ue={}: RRC Resume fallback forced. Removing F1AP UE context", ue_index);
+          f1ap->get_f1ap_ue_context_removal_handler().remove_ue_context(ue_index);
+          ue_index = ue_index_t::invalid;
+        } else {
+          ue_mng.set_active(ue_index);
+          is_resume_request = true;
+        }
       }
-      ue_mng.set_active(ue_index);
-    } else {
+    }
+
+    if (ue_index == ue_index_t::invalid) {
+      // RRC Resume not requested or failed - create a new UE.
+
       // Add new CU-CP UE
       ue_index = ue_mng.add_ue(cfg.du_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
       if (ue_index == ue_index_t::invalid) {

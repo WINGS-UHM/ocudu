@@ -9,39 +9,31 @@
  */
 
 #include "rrc_resume_procedure.h"
-#include "rrc_setup_procedure.h"
 #include "ue/rrc_asn1_converters.h"
 #include "ue/rrc_asn1_helpers.h"
 #include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
 #include "ocudu/asn1/rrc_nr/nr_ue_variables.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/security/integrity.h"
+#include "ocudu/support/async/coroutine.h"
 
 using namespace ocudu;
 using namespace ocucp;
 
 rrc_resume_procedure::rrc_resume_procedure(const asn1::rrc_nr::rrc_resume_request_s& request_,
                                            rrc_ue_context_t&                         context_,
-                                           const byte_buffer&                        du_to_cu_container_,
-                                           rrc_ue_setup_proc_notifier&               rrc_ue_setup_notifier_,
                                            rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier_,
-                                           rrc_ue_control_message_handler&           srb_notifier_,
                                            rrc_ue_context_update_notifier&           cu_cp_notifier_,
                                            rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier_,
                                            rrc_ue_event_notifier&                    metrics_notifier_,
-                                           rrc_ue_ngap_notifier&                     ngap_notifier_,
                                            rrc_ue_event_manager&                     event_mng_,
                                            rrc_ue_logger&                            logger_) :
   resume_request(request_),
   context(context_),
-  du_to_cu_container(du_to_cu_container_),
-  rrc_ue_setup_notifier(rrc_ue_setup_notifier_),
   rrc_ue_resume_notifier(rrc_ue_resume_notifier_),
-  srb_notifier(srb_notifier_),
   cu_cp_notifier(cu_cp_notifier_),
   cu_cp_ue_notifier(cu_cp_ue_notifier_),
   metrics_notifier(metrics_notifier_),
-  ngap_notifier(ngap_notifier_),
   event_mng(event_mng_),
   logger(logger_)
 {
@@ -54,23 +46,14 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   logger.log_info("\"{}\" started...", name());
 
-  // Verify if we are in conditions for a Resume, or should opt for RRC Setup as fallback.
-  if (not is_resume_accepted()) {
-    CORO_AWAIT(handle_rrc_resume_fallback());
-    // Notify metrics about successful RRC connection resume with fallback.
-    metrics_notifier.on_successful_rrc_connection_resume_with_fallback(
-        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
-    // Notify metrics about attempted RRC connection resume followed by RRC setup.
-    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(
-        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
-    logger.log_debug("\"{}\" finished successfully", name());
+  // Verify security context.
+  if (not verify_and_update_security_context()) {
+    // Request UE release due to invalid security context.
+    logger.log_warning("Rejecting RRC Resume UE. Cause: UE does not have valid security context");
+    logger.log_info("\"{}\" failed. Requesting UE context release", name());
+    CORO_AWAIT(handle_rrc_resume_failure());
     CORO_EARLY_RETURN();
   }
-
-  // Update the security keys and reestablish the SRBs. This must be done before the CU-CP is notified, to send the
-  // correct security information to the CU-UP.
-  update_security_keys();
-  reestablish_srbs();
 
   // Notify the CU-CP about the resume request.
   request.ue_index = context.ue_index;
@@ -78,14 +61,8 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
   CORO_AWAIT_VALUE(rrc_resume_context, cu_cp_notifier.on_rrc_resume_request(request));
 
   if (!rrc_resume_context.success) {
-    CORO_AWAIT(handle_rrc_resume_fallback());
-    // Notify metrics about successful RRC connection resume with fallback.
-    metrics_notifier.on_successful_rrc_connection_resume_with_fallback(
-        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
-    // Notify metrics about attempted RRC connection resume followed by RRC setup.
-    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(
-        asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
-    logger.log_debug("\"{}\" finished successfully", name());
+    logger.log_info("\"{}\" failed. Requesting UE context release", name());
+    CORO_AWAIT(handle_rrc_resume_failure());
     CORO_EARLY_RETURN();
   }
 
@@ -118,41 +95,26 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
   CORO_RETURN();
 }
 
-async_task<void> rrc_resume_procedure::handle_rrc_resume_fallback()
+async_task<void> rrc_resume_procedure::handle_rrc_resume_failure()
 {
   context.connection_cause = asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause);
 
+  // Notify metrics about RRC connection resume followed by network release.
+  metrics_notifier.on_rrc_connection_resume_followed_by_network_release(
+      asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
+
+  // Request UE Release.
   return launch_async([this](coro_context<async_task<void>>& ctx) mutable {
     CORO_BEGIN(ctx);
 
     // Reject RRC Resume Request by sending RRC Setup.
-    CORO_AWAIT(launch_async<rrc_setup_procedure>(context,
-                                                 du_to_cu_container,
-                                                 rrc_ue_setup_notifier,
-                                                 srb_notifier,
-                                                 cu_cp_notifier,
-                                                 metrics_notifier,
-                                                 ngap_notifier,
-                                                 event_mng,
-                                                 logger,
-                                                 true));
-
+    CORO_AWAIT(cu_cp_notifier.on_ue_release_required(
+        {.ue_index = context.ue_index, .cause = ngap_cause_radio_network_t::unspecified}));
     CORO_RETURN();
   });
 }
 
-bool rrc_resume_procedure::is_resume_accepted()
-{
-  if (context.cfg.force_resume_fallback) {
-    log_rejected_resume("RRC Resumes were disabled by the app configuration");
-    return false;
-  }
-
-  // Verify security context.
-  return verify_security_context();
-}
-
-bool rrc_resume_procedure::verify_security_context()
+bool rrc_resume_procedure::verify_and_update_security_context()
 {
   bool valid = false;
 
@@ -162,8 +124,8 @@ bool rrc_resume_procedure::verify_security_context()
   std::memcpy(resume_mac.data(), &resume_mac_int, 2);
 
   // Get packed varResumeMAC-Input.
-  asn1::rrc_nr::var_short_mac_input_s var_resume_mac_input = {};
-  var_resume_mac_input.source_pci                          = context.cell.pci;
+  asn1::rrc_nr::var_resume_mac_input_s var_resume_mac_input = {};
+  var_resume_mac_input.source_pci                           = context.cell.pci;
   var_resume_mac_input.target_cell_id.from_number(context.cell.cgi.nci.value());
   var_resume_mac_input.source_c_rnti        = to_value(context.c_rnti);
   byte_buffer   var_resume_mac_input_packed = {};
@@ -183,9 +145,13 @@ bool rrc_resume_procedure::verify_security_context()
     security::sec_as_config source_as_config = sec_context.get_as_config(security::sec_domain::rrc);
     valid = security::verify_short_mac(resume_mac, var_resume_mac_input_packed, source_as_config);
     logger.log_debug("Received RRC resume request. resume_mac_valid={}", valid);
-  } else {
-    log_rejected_resume("UE does not have valid security context");
   }
+
+  // Update the security keys and reestablish the SRBs. This must be done directly after validating the RRC Resume
+  // Request. Even if it fails, the security context must be updated, as the UE did this after sending the RRC Resume
+  // Request.
+  update_security_keys();
+  reestablish_srbs();
 
   return valid;
 }
@@ -216,9 +182,4 @@ void rrc_resume_procedure::send_rrc_resume()
   fill_asn1_rrc_resume_msg(dl_dcch_msg.msg.c1().rrc_resume(), transaction.id(), rrc_resume_context);
 
   rrc_ue_resume_notifier.on_new_dl_dcch(srb_id_t::srb1, dl_dcch_msg);
-}
-
-void rrc_resume_procedure::log_rejected_resume(const char* cause_str)
-{
-  logger.log_info("Rejecting RRC Resume UE. Cause: {}. Fallback to RRC Setup Procedure...", cause_str);
 }

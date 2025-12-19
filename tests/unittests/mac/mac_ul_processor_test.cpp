@@ -173,7 +173,7 @@ struct test_bench {
   // Call the dummy DU notifier to ensure no UL CCCH indication was forwarded.
   bool verify_no_ul_ccch_msg() { return du_mng_notifier.verify_no_ul_ccch_msg(); }
 
-  const slotted_array<mac_test_ue, MAX_NOF_DU_UES>& get_test_ues() const { return test_ues; }
+  const slotted_array<mac_test_ue, MAX_NOF_DU_UES, false>& get_test_ues() const { return test_ues; }
 
   void run_slot()
   {
@@ -211,7 +211,7 @@ private:
   mac_ul_processor       mac_ul{cfg};
   mac_rx_data_indication rx_msg_sbsr;
 
-  slotted_array<mac_test_ue, MAX_NOF_DU_UES> test_ues;
+  slotted_array<mac_test_ue, MAX_NOF_DU_UES, false> test_ues;
 };
 
 mac_rx_data_indication create_rx_data_indication(du_cell_index_t cell_idx, rnti_t rnti, byte_buffer pdu_payload)

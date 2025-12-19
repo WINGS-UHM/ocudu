@@ -20,7 +20,7 @@
 
 namespace ocudu {
 
-using du_rnti_table = rnti_value_table<du_ue_index_t, du_ue_index_t::INVALID_DU_UE_INDEX>;
+using du_rnti_table = rnti_value_table<du_ue_index_t, du_ue_index_t::MAX_NOF_DU_UES>;
 
 /// Stores MAC UL UE context. In particular, the UL PDU notifiers for each logical channel.
 class mac_ul_ue_context
@@ -76,7 +76,7 @@ private:
   du_rnti_table&          rnti_table;
 
   /// MAC UL UE repository.
-  du_ue_list<mac_ul_ue_context> ue_db;
+  slotted_array<mac_ul_ue_context, MAX_NOF_DU_UES, false> ue_db;
 };
 
 } // namespace ocudu

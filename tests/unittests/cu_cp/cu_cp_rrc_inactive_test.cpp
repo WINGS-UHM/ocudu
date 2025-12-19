@@ -15,6 +15,7 @@
 #include "tests/test_doubles/rrc/rrc_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
+#include "tests/unittests/ngap/ngap_test_messages.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
 #include <gtest/gtest.h>
@@ -184,6 +185,48 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool
+  send_init_ul_rrc_message_transfer_and_await_rrc_setup(uint64_t           resume_id    = 0x36000,
+                                                        const std::string& resume_mac_i = "1111010001000010")
+  {
+    // Inject Initial UL RRC message and await DL RRC Message Transfer with RRC Setup.
+    f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(
+        du_ue_id_2,
+        crnti_2,
+        plmn_identity::test_value(),
+        {},
+        test_helpers::pack_ul_ccch_msg(test_helpers::create_rrc_resume_request(resume_id, resume_mac_i)));
+    test_logger.info("c-rnti={} du_ue={}: Injecting Initial UL RRC message", crnti_2, fmt::underlying(du_ue_id_2));
+    get_du(du_idx).push_ul_pdu(init_ul_rrc_msg);
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive DL RRC Message Transfer");
+    report_fatal_error_if_not(test_helpers::is_valid_dl_rrc_message_transfer_with_msg4(f1ap_pdu),
+                              "Invalid DL RRC Message Transfer");
+
+    return true;
+  }
+
+  [[nodiscard]] bool send_init_ul_rrc_message_transfer_and_await_ngap_ue_context_release_request(
+      uint64_t           resume_id    = 0x36000,
+      const std::string& resume_mac_i = "1111010001000010")
+  {
+    // Inject Initial UL RRC message and await NGAP UE Context Release Request.
+    f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(
+        du_ue_id_2,
+        crnti_2,
+        plmn_identity::test_value(),
+        {},
+        test_helpers::pack_ul_ccch_msg(test_helpers::create_rrc_resume_request(resume_id, resume_mac_i)));
+    test_logger.info("c-rnti={} du_ue={}: Injecting Initial UL RRC message", crnti_2, fmt::underlying(du_ue_id_2));
+    get_du(du_idx).push_ul_pdu(init_ul_rrc_msg);
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu),
+                              "Failed to receive NGAP UE Context Release Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_request(ngap_pdu),
+                              "Invalid NGAP UE Context Release Request");
+
+    return true;
+  }
+
   [[nodiscard]] bool send_ue_context_setup_response_and_await_bearer_context_modification_request()
   {
     // Inject UE Context Setup Response and wait for Bearer Context Modification Request.
@@ -313,6 +356,65 @@ public:
         du_ue_id_, ue_ctx->cu_ue_id.value(), srb_id_t::srb1, std::move(rrc_resume_complete));
     get_du(du_idx).push_ul_pdu(ul_rrc_msg);
 
+    return true;
+  }
+
+  [[nodiscard]] bool finish_rrc_setup()
+  {
+    // Send RRC Setup Complete.
+    // > Generate UL RRC Message (containing RRC Setup Complete) with PDCP SN=0.
+    get_du(du_idx).push_rrc_ul_dcch_message(
+        du_ue_id_2, srb_id_t::srb1, test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()));
+
+    // CU-CP should send an NGAP Initial UE Message.
+    if (!this->wait_for_ngap_tx_pdu(ngap_pdu)) {
+      return false;
+    }
+
+    report_fatal_error_if_not(test_helpers::is_valid_init_ue_message(ngap_pdu), "Invalid init UE message");
+
+    return true;
+  }
+
+  [[nodiscard]] bool send_ngap_ue_context_release_command_and_await_bearer_context_release_command()
+  {
+    report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
+                              "there are still NGAP messages to pop from AMF");
+    report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+    report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+
+    // Inject NGAP UE Context Release Command and wait for Bearer Context Release Command.
+    get_amf().push_tx_pdu(generate_valid_ue_context_release_command_with_amf_ue_ngap_id(ue_ctx->amf_ue_id.value()));
+    report_fatal_error_if_not(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu),
+                              "Failed to receive Bearer Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_bearer_context_release_command(e1ap_pdu),
+                              "Invalid Bearer Context Release Command");
+    return true;
+  }
+
+  [[nodiscard]] bool send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command()
+  {
+    // Inject Bearer Context Release Complete and wait for F1AP UE Context Release Command.
+    get_cu_up(cu_up_idx).push_tx_pdu(
+        generate_bearer_context_release_complete(ue_ctx->cu_cp_e1ap_id.value(), ue_ctx->cu_up_e1ap_id.value()));
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive UE Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_command(f1ap_pdu),
+                              "Invalid UE Context Release Command");
+    return true;
+  }
+
+  [[nodiscard]] bool send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete()
+  {
+    // Inject F1AP UE Context Release Complete and wait for N1AP UE Context Release Command.
+    if (!send_f1ap_ue_context_release_complete()) {
+      return false;
+    }
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive UE Context Release Complete");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_complete(ngap_pdu),
+                              "Invalid UE Context Release Complete");
     return true;
   }
 
@@ -495,4 +597,70 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resum
             2);
   ASSERT_EQ(
       report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 2);
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_unknown_ue_is_received_then_fallback_succeeds)
+{
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 0);
+
+  // Send Initial UL RRC Message containing RRC Resume Request (no UE is inactive at the moment) and await RRC Setup.
+  ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_rrc_setup());
+
+  // Finish RRC Setup.
+  ASSERT_TRUE(finish_rrc_setup());
+
+  // Check metrics for RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.get_count(
+                establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
+                establishment_resume_cause_t::mo_data),
+            1);
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_mac_is_received_then_release_is_sent)
+{
+  // Inject Inactivity Notification and handle it.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Send Initial UL RRC Message containing RRC Resume Request with invalid ResumeMAC-I and await NGAP UE Context
+  // Release Request.
+  ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_ngap_ue_context_release_request(0x36000, "0000000000000000"));
+
+  // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
+  ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command());
+
+  // Inject Bearer Context Release Complete and await F1AP UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command());
+
+  // Inject F1AP UE Context Release Complete and await NGAP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete());
+
+  // STATUS: UE should be removed at this stage.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
+  // Check metrics for RRC resume.
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(
+                establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
+                establishment_resume_cause_t::mo_data),
+            0);
 }

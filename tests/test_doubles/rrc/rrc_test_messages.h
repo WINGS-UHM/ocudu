@@ -35,7 +35,7 @@ asn1::rrc_nr::ul_ccch_msg_s create_rrc_resume_request(uint64_t           resume_
                                                       const std::string& resume_mac_i = "1111010001000010");
 
 /// \brief Generates a dummy RRC Resume Complete message.
-asn1::rrc_nr::ul_dcch_msg_s create_rrc_resume_complete(uint8_t sel_plmn_id = 1);
+asn1::rrc_nr::ul_dcch_msg_s create_rrc_resume_complete(uint8_t transaction_id = 0, uint8_t sel_plmn_id = 1);
 
 /// \brief Generates a dummy RRC Setup Complete message.
 asn1::rrc_nr::ul_dcch_msg_s create_rrc_setup_complete(uint8_t sel_plmn_id = 1);

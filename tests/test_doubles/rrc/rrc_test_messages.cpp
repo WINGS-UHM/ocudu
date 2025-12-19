@@ -59,12 +59,12 @@ ul_ccch_msg_s ocudu::test_helpers::create_rrc_resume_request(uint64_t resume_id,
   return msg;
 }
 
-ul_dcch_msg_s ocudu::test_helpers::create_rrc_resume_complete(uint8_t sel_plmn_id)
+ul_dcch_msg_s ocudu::test_helpers::create_rrc_resume_complete(uint8_t transaction_id, uint8_t sel_plmn_id)
 {
   ul_dcch_msg_s msg;
 
   rrc_resume_complete_s& res = msg.msg.set_c1().set_rrc_resume_complete();
-  res.rrc_transaction_id     = 0;
+  res.rrc_transaction_id     = transaction_id;
 
   rrc_resume_complete_ies_s& res_cmplt = res.crit_exts.set_rrc_resume_complete();
   res_cmplt.sel_plmn_id_present        = true;

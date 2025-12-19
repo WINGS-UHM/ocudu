@@ -39,7 +39,7 @@ void ngap_handover_resource_allocation_procedure::operator()(coro_context<async_
 
   logger.debug("ue={}: \"{}\" started...", request.ue_index, name());
 
-  // Notify DU repository about handover request and await requst ack.
+  // Notify DU repository about handover request and await request ack.
   CORO_AWAIT_VALUE(response, cu_cp_notifier.on_ngap_handover_request(request));
 
   if (response.success) {

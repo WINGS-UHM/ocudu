@@ -359,7 +359,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_dl_bo_is_set_then_enough_dl_tbs_is_
   }
   ASSERT_EQ(ues_completed, test_params.nof_ues) << "Not enough bytes scheduled for some UEs";
 
-  // We have the guarantee now that all UEs have been scheduled sufficiently.
+  // We have the guarantee now that all UEs have been scheduled enough bytes.
   // However, we also want to ensure they were not over-scheduled.
   for (unsigned i = 0; i != test_params.nof_ues; ++i) {
     ASSERT_LE(ue_dl_drb_sched[i], (ue_dl_bos[i] * 1.1 + 10));
@@ -416,7 +416,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_byte
   }
   ASSERT_EQ(ues_completed, test_params.nof_ues) << "Not enough UL bytes scheduled for some UEs";
 
-  // We have the guarantee now that all UEs have been scheduled sufficiently.
+  // We have the guarantee now that all UEs have been scheduled enough bytes.
   // However, we also want to ensure they were not over-scheduled.
   for (unsigned i = 0; i != test_params.nof_ues; ++i) {
     ASSERT_LE(ue_ul_drb_sched[i], (ue_bsrs[i] * 1.2 + 512))

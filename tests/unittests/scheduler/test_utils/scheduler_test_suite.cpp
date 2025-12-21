@@ -566,19 +566,29 @@ void ocudu::test_ul_resource_grid_collisions(const cell_configuration& cell_cfg,
 {
   cell_slot_resource_grid      grid(cell_cfg.ul_cfg_common.freq_info_ul.scs_carrier_list);
   std::vector<test_grant_info> ul_grants = get_ul_grants(cell_cfg, result);
+  std::set<rnti_t>             rntis;
 
   for (const test_grant_info& test_grant : ul_grants) {
-    // Collisions between PUCCH grants are tested in \c test_pucch_consistency.
     if (test_grant.type == test_grant_info::PUCCH) {
+      // Collisions between PUCCH grants are tested in \c test_pucch_consistency.
       grid.fill(test_grant.grant);
+      // RNTIs can be repeated in PUCCH grants.
+      rntis.emplace(test_grant.rnti);
     }
   }
 
   for (const test_grant_info& test_grant : ul_grants) {
-    if (test_grant.type != test_grant_info::PUCCH) {
-      ASSERT_FALSE(grid.collides(test_grant.grant))
-          << fmt::format("Resource collision for grant with rnti={}", test_grant.rnti);
-      grid.fill(test_grant.grant);
+    if (test_grant.type == test_grant_info::PUCCH) {
+      continue;
+    }
+    ASSERT_FALSE(grid.collides(test_grant.grant))
+        << fmt::format("Resource collision for grant with rnti={}", test_grant.rnti);
+    grid.fill(test_grant.grant);
+
+    if (test_grant.type == test_grant_info::UE_UL) {
+      ASSERT_TRUE(rntis.count(test_grant.rnti) == 0) << fmt::format("Duplicate RNTI detected: {}", test_grant.rnti);
+      // TODO: Handle no multiplexing of UCI into PUSCH.
+      rntis.emplace(test_grant.rnti);
     }
   }
 }

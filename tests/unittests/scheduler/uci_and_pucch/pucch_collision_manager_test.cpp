@@ -526,3 +526,28 @@ TEST_F(pucch_collision_manager_rg_test, free_doesnt_clear_grants_if_resource_was
   // Check that the resource grid was not modified.
   check_rg_has_expected_grants(slot_alloc.ul_res_grid, {ded_grant});
 }
+
+TEST_F(pucch_collision_manager_rg_test, slot_indication_clears_pucch_res_grid)
+{
+  for (unsigned i = 0; i != cell_resource_allocator::RING_ALLOCATOR_SIZE; ++i) {
+    // Allocate the dedicated resource.
+    ASSERT_TRUE(col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0).has_value());
+
+    // Advance to the next slot.
+    run_slot();
+  }
+
+  for (unsigned i = 0; i != cell_resource_allocator::RING_ALLOCATOR_SIZE; ++i) {
+    // Simulate a non-PUCCH grant over the dedicated resource grant.
+    slot_alloc.ul_res_grid.fill(ded_grant);
+
+    // Try to allocate the dedicated resource again. It should always fail because of a UL grant collision.
+    // If it doesn't fail, it means the PUCCH resource grid was not cleared on slot indication.
+    auto res = col_manager.alloc_ded(slot_alloc.ul_res_grid, sl, 0);
+    ASSERT_FALSE(res.has_value());
+    ASSERT_EQ(pucch_collision_manager::alloc_failure_reason::UL_GRANT_COLLISION, res.error());
+
+    // Advance to the next slot.
+    run_slot();
+  }
+}

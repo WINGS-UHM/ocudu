@@ -238,6 +238,7 @@ void pucch_collision_manager::slot_indication(slot_point sl_tx)
 
   // Clear previous slot context.
   slots_ctx[(sl_tx - 1).count()].current_state.reset();
+  slots_ctx[(sl_tx - 1).count()].pucch_res_grid.clear();
   // Update last slot indication.
   last_sl_ind = sl_tx;
 }
@@ -247,6 +248,7 @@ void pucch_collision_manager::stop()
   // Clear all slot contexts.
   for (auto& ctx : slots_ctx) {
     ctx.current_state.reset();
+    ctx.pucch_res_grid.clear();
   }
   last_sl_ind = {};
 }

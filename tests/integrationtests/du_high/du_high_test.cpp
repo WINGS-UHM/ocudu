@@ -122,7 +122,7 @@ TEST_F(du_high_tester, when_ue_context_release_received_then_ue_gets_deleted)
   ASSERT_TRUE(test_helpers::is_valid_ue_context_release_complete(cu_notifier.f1ap_ul_msgs.rbegin()->second, msg));
 }
 
-TEST_F(du_high_tester, when_ue_context_setup_release_starts_then_drb_activity_stops)
+TEST_F(du_high_tester, when_ue_context_release_starts_then_drb_activity_stops)
 {
   // Create UE.
   rnti_t rnti = to_rnti(0x4601);
@@ -144,6 +144,11 @@ TEST_F(du_high_tester, when_ue_context_setup_release_starts_then_drb_activity_st
     cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
   }
 
+  // Ensure DRB is active by verifying that some DRB PDUs are scheduled.
+  EXPECT_TRUE(this->run_until([this, rnti]() {
+    return find_ue_pdsch_with_lcid(rnti, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
+  }));
+
   // DU receives F1AP UE Context Release Command.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = generate_ue_context_release_command();
@@ -164,8 +169,8 @@ TEST_F(du_high_tester, when_ue_context_setup_release_starts_then_drb_activity_st
     const dl_msg_alloc* pdsch = find_ue_pdsch(rnti, phy.cells[0].last_dl_res.value().dl_res->ue_grants);
     if (pdsch != nullptr) {
       // PDSCH scheduled. Ensure it was for SRB1.
-      // Note: There might be at most one single DRB1 PDSCH that smuggles in after the RRC Release due to race
-      // conditions.
+      // Note: There might be at most one single DRB1 PDSCH that smuggles in after the RRC Release due to
+      // non-deterministic nature of threading.
       auto* drb_pdsch = find_ue_pdsch_with_lcid(rnti, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants);
       if (drb_pdsch != nullptr) {
         drb_data_count++;
@@ -173,6 +178,61 @@ TEST_F(du_high_tester, when_ue_context_setup_release_starts_then_drb_activity_st
       }
     }
   }
+}
+
+TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_resources_are_still_scheduled)
+{
+  // Create two UEs.
+  rnti_t rnti1 = to_rnti(0x4601);
+  ASSERT_TRUE(add_ue(rnti1));
+  ASSERT_TRUE(run_rrc_setup(rnti1));
+  ASSERT_TRUE(run_ue_context_setup(rnti1));
+  rnti_t rnti2 = to_rnti(0x4602);
+  ASSERT_TRUE(add_ue(rnti2));
+  ASSERT_TRUE(run_rrc_setup(rnti2));
+  ASSERT_TRUE(run_ue_context_setup(rnti2));
+
+  // CU-UP forwards many DRB PDUs to both UEs.
+  const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
+  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
+    nru_dl_message f1u_pdu{
+        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
+    auto it = cu_up_sim.bearers.begin();
+    it->second.rx_notifier->on_new_pdu(f1u_pdu);
+    ++it;
+    it->second.rx_notifier->on_new_pdu(f1u_pdu);
+  }
+
+  // DU receives F1AP UE Context Release Command.
+  cu_notifier.f1ap_ul_msgs.clear();
+  f1ap_message msg = generate_ue_context_release_command();
+  this->du_hi->get_f1ap_du().handle_message(msg);
+  this->test_logger.info("STATUS: UEContextReleaseCommand received by DU. Waiting for rrcRelease being transmitted...");
+  // Ensure that once SRB1 (RRC Release) is scheduled.
+  run_slot();
+  EXPECT_TRUE(this->run_until([this, rnti1]() {
+    return find_ue_pdsch_with_lcid(rnti1, LCID_SRB1, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
+  }));
+  this->test_logger.info("STATUS: RRC Release started being scheduled...");
+
+  // Test Case: While UE Context Release Complete has not been sent, periodic UCI should keep being scheduled for UE1.
+  // These scheduled PUCCH grants will ensure that there is no interference between the UE1 final transmissions and
+  // other UL grants.
+  unsigned ue2_pdsch_count = 0;
+  unsigned ue1_pucch_count = 0;
+  ASSERT_TRUE(run_until([&]() {
+    bool ue_ctxt_rel_cmp_sent = cu_notifier.f1ap_ul_msgs.empty();
+    // Ensure that UE2 periodic resources are scheduled while UE1 release is ongoing.
+    if (find_ue_pdsch_with_lcid(rnti2, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr) {
+      ue2_pdsch_count++;
+    }
+    if (find_ue_pucch(rnti1, phy.cells[0].last_ul_res.value().ul_res->pucchs) != nullptr) {
+      ue1_pucch_count++;
+    }
+    return ue_ctxt_rel_cmp_sent;
+  }));
+  ASSERT_GT(ue2_pdsch_count, 0) << "No periodic PDSCH resources were scheduled for UE2";
+  ASSERT_GT(ue1_pucch_count, 0) << "No periodic PUCCH resources were scheduled for UE1 while its release was ongoing";
 }
 
 TEST_F(du_high_tester, when_f1ap_reset_received_then_ues_are_removed)

@@ -42,21 +42,25 @@ void ue_deletion_procedure::operator()(coro_context<async_task<void>>& ctx)
   // > Disconnect DRBs from F1-U and SRBs from F1-C to stop handling traffic in flight and delivery notifications.
   CORO_AWAIT(stop_ue_bearer_traffic());
 
+  if (ran_res_release_timeout.count() > 0) {
+    // Timeout specified between UE deactivation and UE actual removal.
+    CORO_AWAIT(async_wait_for(du_params.services.timers.create_unique_timer(du_params.services.du_mng_exec),
+                              ran_res_release_timeout));
+  }
+
   // > Remove UE from F1AP.
   du_params.f1ap.ue_mng.handle_ue_deletion_request(ue_index);
 
   // > Remove UE from MAC.
+  // Note: The UE removal from the scheduler should be done after the timeout period. Otherwise, the scheduler will
+  // stop scheduling the periodic UCI/SRS grants of the UE, while the UE may keep sending UCI/SRS (remember that as per
+  // TS 38.331 5.3.8.3, the UE stays active for 60msec after receiving an RRC Release). This could lead to collisions
+  // between UCI/SRS and PUSCH.
   {
     CORO_AWAIT_VALUE(const mac_ue_delete_response mac_resp, launch_mac_ue_delete());
     if (not mac_resp.result) {
       proc_logger.log_proc_failure("Failed to remove UE from MAC.");
     }
-  }
-
-  if (ran_res_release_timeout.count() > 0) {
-    // Timeout specified between UE deactivation and UE actual removal.
-    CORO_AWAIT(async_wait_for(du_params.services.timers.create_unique_timer(du_params.services.du_mng_exec),
-                              ran_res_release_timeout));
   }
 
   // > Remove UE object from DU UE manager.

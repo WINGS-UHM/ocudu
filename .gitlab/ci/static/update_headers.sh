@@ -9,51 +9,58 @@
 
 set -e
 
-# 1. Parse multiple paths from the first argument
-# Example: "path1 path2 path3"
+# Parse multiple paths from the first argument (e.g., "path1 path2 path3")
 RAW_INPUT=$1
-ADDITIONAL_IGNORE=()
+ADDITIONAL_IGNORE=""
 
 for entry in $RAW_INPUT; do
-    # Strip leading/trailing slashes
-    CLEAN_PATH=$(echo "$entry" | sed 's|^/||;s|/$||')
+    CLEAN_PATH=$(echo "$entry" | sed 's|^/||;s|/$||')  # Strip leading/trailing slashes
     
     if [ -n "$CLEAN_PATH" ]; then
-        # Each path needs its own ! -path pair
-        ADDITIONAL_IGNORE+=("!" "-path" "*/${CLEAN_PATH}/*")
+        ADDITIONAL_IGNORE="$ADDITIONAL_IGNORE ! -path */${CLEAN_PATH}/*"
     fi
 done
 
 echo "=================="
 echo "= Update headers ="
-echo "Ignore flags: ${ADDITIONAL_IGNORE[@]}"
+echo "= Ignore flags: $ADDITIONAL_IGNORE ="
 echo "=================="
 
-# for CMake/YML files
-find . -type f \( -name "CMakeLists.txt" \
-                   -o -name "*.cmake" \
-                   -o -name "*.yml" \
-                   -o -name "*.sh" \
-                   -o -name "*.py" \
-                   -o -name "*.toml" \
-                   -o -name "Dockerfile" \
-                   -o -name "ocudu_performance" \
-                   -o -name ".gdbinit" \
-                   -o -name "*.tf" \
-                   -o -name "*.tfvars" \) \
-    ! -path "*/build*/*" ! -path "*/.tox/*" ! -path "*/docker/open5gs/*" ! -name "FindBackward.cmake" ! -name "sbom.cmake" ! -path "*/node_modules*/*" \
+# ============================================================================
+# Update headers for CMake/YML/Script files
+# ============================================================================
+find . -type f \( \
+        -name "CMakeLists.txt" \
+        -o -name "*.cmake" \
+        -o -name "*.yml" \
+        -o -name "*.sh" \
+        -o -name "*.py" \
+        -o -name "*.toml" \
+        -o -name "Dockerfile" \
+        -o -name "ocudu_performance" \
+        -o -name ".gdbinit" \
+        -o -name "*.tf" \
+        -o -name "*.tfvars" \
+    \) \
+    ! -path "*/build*/*" \
+    ! -path "*/.tox/*" \
+    ! -path "*/docker/open5gs/*" \
+    ! -path "*/node_modules*/*" \
+    $ADDITIONAL_IGNORE \
+    ! -name "FindBackward.cmake" \
+    ! -name "sbom.cmake" \
     -print0 | while IFS= read -r -d '' file; do
 
     # Check header format
     found_header=false
     while IFS= read -r line; do
         if [ -z "$line" ] && [ "$found_header" = false ]; then
-            continue # Ignore empty lines before first comment block
+            continue  # Ignore empty lines before first comment block
         elif [[ "$line" =~ ^#.*$ ]]; then
             found_header=true
-            continue # This line start with #. Keep reading
+            continue  # Line starts with #, keep reading
         elif [[ -z "$line" ]]; then
-            break # Empty line after the header block. The format is valid and exit.
+            break  # Empty line after header block - format is valid
         else
             echo "$file: Header (or empty line after it) is missing."
             exit 1
@@ -71,11 +78,18 @@ find . -type f \( -name "CMakeLists.txt" \
 
 done
 
-# for actual source and header files
-find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.h.in" -o -name "*.js" \) \
+# ============================================================================
+# Update headers for C++/JS source and header files
+# ============================================================================
+find . -type f \( \
+        -name "*.cpp" \
+        -o -name "*.h" \
+        -o -name "*.h.in" \
+        -o -name "*.js" \
+    \) \
     ! -path "*/external/*" \
     ! -path "*/.docusaurus/*" \
-    "${ADDITIONAL_IGNORE[@]}" \
+    $ADDITIONAL_IGNORE \
     ! -name "rfnoc_test.cc" \
     -exec perl -0777 -pi -e "s{/\*.*?\*/}{/*
  *
@@ -87,10 +101,13 @@ find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.h.in" -o -name "*.js"
  *
  */}s" {} \;
 
-# for matlab files (for the OCUDU-matlab supplementary repo): in matlab, the header
-# is the second comment "%" block, as the first contains the file documentation
-find . -type f \( -name "*.m"\) \
-    "${ADDITIONAL_IGNORE[@]}" \
+# ============================================================================
+# Update headers for MATLAB files
+# Note: In MATLAB, the header is the second "%" comment block,
+#       as the first block contains the file documentation
+# ============================================================================
+find . -type f -name "*.m" \
+    $ADDITIONAL_IGNORE \
     ! -name "hSkipWeakTimingOffset.m" \
     ! -name "HARQEntity.m" \
     -exec perl -0777 -pi -e "s/((?:%.*\n)+\n)(?:%.*\n)+/\$1%

@@ -37,9 +37,9 @@ public:
 
 private:
   void create_subscriber(scoped_sync_token token);
-  void destroy_subscriber();
+  void destroy_subscriber(scoped_sync_token& token);
 
-  void read_time(int raw_fd);
+  void read_time(int raw_fd, scoped_sync_token& token);
 
   const std::chrono::milliseconds tick_period;
   timer_manager&                  tick_sink;

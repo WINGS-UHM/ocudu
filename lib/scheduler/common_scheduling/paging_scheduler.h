@@ -62,9 +62,13 @@ private:
     paging_retries_count_type retry_count;
   };
 
-  using paging_info_queue = concurrent_queue<sched_paging_information,
-                                             concurrent_queue_policy::lockfree_mpmc,
-                                             concurrent_queue_wait_policy::non_blocking>;
+  using paging_info_queue = concurrent_queue<sched_paging_information, concurrent_queue_policy::lockfree_mpmc>;
+
+  /// Clean up old paging requests.
+  void handle_expired_paging_requests();
+
+  /// \brief Processes pending Paging requests from upper layers.
+  void handle_pending_paging_requests();
 
   /// \brief Checks paging conditions for a UE in SearchSpace > 0 i.e pagingSearchSpace > 0 in its active BWP config.
   ///

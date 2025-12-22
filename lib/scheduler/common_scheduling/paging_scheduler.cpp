@@ -82,18 +82,7 @@ paging_scheduler::paging_scheduler(const scheduler_expert_config&               
 void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
 {
   // Pop pending Paging notification and process them.
-  sched_paging_information new_pg_info;
-  while (new_paging_notifications.try_pop(new_pg_info)) {
-    // Check whether Paging information is already present or not. i.e. tackle repeated Paging attempt from upper
-    // layers.
-    if (paging_pending_ues.find(new_pg_info.paging_identity) == paging_pending_ues.end()) {
-      if (paging_pending_ues.size() < MAX_NOF_PENDING_PAGINGS) {
-        paging_pending_ues.emplace(new_pg_info.paging_identity, ue_paging_info{.info = new_pg_info, .retry_count = 0});
-      } else {
-        logger.warning("Map of paging pending UEs is full. Dropping paging id={}\n", new_pg_info.paging_identity);
-      }
-    }
-  }
+  handle_pending_paging_requests();
 
   // NOTE:
   // - [Implementation defined] The pagingSearchSpace (in PDCCH-Common IE) value in UE's active BWP must be taken into
@@ -107,22 +96,18 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
   //   frames.
   const auto paging_search_space = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
 
-  const cell_slot_resource_allocator& pdcch_alloc = res_grid[0];
-  const auto                          pdcch_slot  = pdcch_alloc.slot;
+  // How much far ahead in time the scheduler will allocate the Paging.
+  constexpr static unsigned           max_dl_slots_ahead_sched = 0;
+  const cell_slot_resource_allocator& pdcch_alloc              = res_grid[max_dl_slots_ahead_sched];
+  const auto                          pdcch_slot               = pdcch_alloc.slot;
+
   // Verify PDCCH slot is DL enabled.
   if (not cell_cfg.is_dl_enabled(pdcch_slot)) {
     return;
   }
 
-  // Check for maximum paging retries.
-  auto it = paging_pending_ues.begin();
-  while (it != paging_pending_ues.end()) {
-    if (it->second.retry_count >= expert_cfg.pg.max_paging_retries) {
-      it = paging_pending_ues.erase(it);
-    } else {
-      ++it;
-    }
-  }
+  // Handle expired paging requests.
+  handle_expired_paging_requests();
 
   // Clear all previous vectors.
   for (auto& sched_paging_ues : pdsch_time_res_idx_to_scheduled_ues_lookup) {
@@ -148,7 +133,12 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
     // i_s = floor (UE_ID/N) mod Ns.
     const unsigned i_s = (pg_info.ue_identity_index_value / N) % nof_po_per_pf;
 
-    for (unsigned time_res_idx = 0; time_res_idx != pdsch_td_alloc_list.size(); ++time_res_idx) {
+    if (not slot_helper.is_paging_slot(pdcch_slot, i_s)) {
+      // Not a paging slot for this UE.
+      continue;
+    }
+
+    for (unsigned time_res_idx = 0, sz = pdsch_td_alloc_list.size(); time_res_idx != sz; ++time_res_idx) {
       const cell_slot_resource_allocator& paging_alloc = res_grid[pdsch_td_alloc_list[time_res_idx].k0];
       // Verify Paging slot is DL enabled.
       if (not cell_cfg.is_dl_enabled(paging_alloc.slot)) {
@@ -163,8 +153,8 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
           pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx].size() >= MAX_PAGING_RECORDS_PER_PAGING_PDU) {
         continue;
       }
-      const auto&                 pdsch_td_cfg = pdsch_td_alloc_list[time_res_idx];
-      const coreset_configuration cs_cfg       = cell_cfg.get_common_coreset(ss_cfg->get_coreset_id());
+      const auto&                  pdsch_td_cfg = pdsch_td_alloc_list[time_res_idx];
+      const coreset_configuration& cs_cfg       = cell_cfg.get_common_coreset(ss_cfg->get_coreset_id());
       // Check whether PDSCH time domain resource does not overlap with CORESET.
       if (pdsch_td_cfg.symbols.start() < ss_cfg->get_first_symbol_index() + cs_cfg.duration) {
         continue;
@@ -174,29 +164,15 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
         continue;
       }
 
-      if (slot_helper.is_paging_slot(pdcch_slot, i_s)) {
-        if (paging_search_space == 0 and
-            is_there_space_available_for_paging(
-                res_grid,
-                time_res_idx,
-                get_accumulated_paging_msg_size(pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx]) +
-                    (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
-                         ? RRC_CN_PAGING_ID_RECORD_SIZE
-                         : RRC_RAN_PAGING_ID_RECORD_SIZE))) {
-          pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx].push_back(&pg_info);
-          break;
-        }
-        if (paging_search_space > 0 and
-            is_there_space_available_for_paging(
-                res_grid,
-                time_res_idx,
-                get_accumulated_paging_msg_size(pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx]) +
-                    (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
-                         ? RRC_CN_PAGING_ID_RECORD_SIZE
-                         : RRC_RAN_PAGING_ID_RECORD_SIZE))) {
-          pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx].push_back(&pg_info);
-          break;
-        }
+      if (is_there_space_available_for_paging(
+              res_grid,
+              time_res_idx,
+              get_accumulated_paging_msg_size(pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx]) +
+                  (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
+                       ? RRC_CN_PAGING_ID_RECORD_SIZE
+                       : RRC_RAN_PAGING_ID_RECORD_SIZE))) {
+        pdsch_time_res_idx_to_scheduled_ues_lookup[time_res_idx].push_back(&pg_info);
+        break;
       }
     }
   }
@@ -214,6 +190,39 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
         paging_pending_ues.at(pg_info->paging_identity).retry_count++;
       }
     }
+  }
+}
+
+void paging_scheduler::handle_expired_paging_requests()
+{
+  // Check for maximum paging retries.
+  auto it = paging_pending_ues.begin();
+  while (it != paging_pending_ues.end()) {
+    if (it->second.retry_count >= expert_cfg.pg.max_paging_retries) {
+      it = paging_pending_ues.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+void paging_scheduler::handle_pending_paging_requests()
+{
+  sched_paging_information new_pg_info;
+  while (new_paging_notifications.try_pop(new_pg_info)) {
+    // Check whether Paging information is already present or not. i.e. tackle repeated Paging attempt from upper
+    // layers.
+    if (paging_pending_ues.find(new_pg_info.paging_identity) != paging_pending_ues.end()) {
+      logger.info("Paging information for id={} discarded. Cause: It is already being handled.",
+                  new_pg_info.paging_identity);
+      continue;
+    }
+    if (paging_pending_ues.size() >= MAX_NOF_PENDING_PAGINGS) {
+      logger.warning("Paging information for id={} discarded. Cause: Map of paging pending UEs is full.\n",
+                     new_pg_info.paging_identity);
+      return;
+    }
+    paging_pending_ues.emplace(new_pg_info.paging_identity, ue_paging_info{.info = new_pg_info, .retry_count = 0});
   }
 }
 

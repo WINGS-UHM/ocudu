@@ -12,8 +12,8 @@
 
 #include "mac_dl_ue_repository.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
-#include "ocudu/scheduler/harq_id.h"
 
 namespace ocudu {
 

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/pdcch/downlink_preemption.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/pdsch/pdsch_prb_bundling.h"
@@ -26,7 +27,6 @@
 #include "ocudu/ran/tci.h"
 #include "ocudu/ran/time_alignment_config.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
-#include "ocudu/scheduler/harq_id.h"
 #include "ocudu/scheduler/result/resource_block_group.h"
 
 namespace ocudu {

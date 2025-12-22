@@ -13,7 +13,7 @@
 #include "ocudu/fapi/p7/messages/ul_pdu_type.h"
 #include "ocudu/fapi/p7/messages/ul_pusch_pdu.h"
 #include "ocudu/fapi/validator_report.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 
 using namespace ocudu;
 using namespace fapi;

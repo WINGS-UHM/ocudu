@@ -14,7 +14,7 @@
 #include "ocudu/adt/span.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/du_types.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/support/executors/task_executor.h"
 #include "ocudu/support/shared_transport_block.h"
 

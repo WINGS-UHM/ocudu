@@ -12,7 +12,7 @@
 
 #include "ocudu/mac/mac_cell_control_information_handler.h"
 #include "ocudu/mac/mac_pdu_handler.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 
 namespace ocudu {
 

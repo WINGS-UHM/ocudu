@@ -13,7 +13,7 @@
 #include "ocudu/du/du_high/du_test_mode_config.h"
 #include "ocudu/mac/mac_cell_control_information_handler.h"
 #include "ocudu/mac/mac_pdu_handler.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
 namespace ocudu {

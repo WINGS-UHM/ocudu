@@ -17,6 +17,7 @@
 #include "ocudu/ran/direct_current_offset.h"
 #include "ocudu/ran/gnb_du_id.h"
 #include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/ntn.h"
 #include "ocudu/ran/pcch/pcch_configuration.h"
 #include "ocudu/ran/pci.h"
@@ -35,7 +36,6 @@
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tac.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
-#include "ocudu/scheduler/harq_id.h"
 #include <map>
 #include <string>
 #include <vector>

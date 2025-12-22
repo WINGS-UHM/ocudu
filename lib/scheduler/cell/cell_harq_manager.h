@@ -15,12 +15,12 @@
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/csi_report/csi_report_data.h"
 #include "ocudu/ran/du_types.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/pusch/pusch_mcs.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
-#include "ocudu/scheduler/harq_id.h"
 #include "ocudu/scheduler/result/dci_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
 

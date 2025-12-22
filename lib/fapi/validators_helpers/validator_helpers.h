@@ -11,7 +11,7 @@
 #pragma once
 
 #include "field_checkers.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 
 namespace ocudu {
 namespace fapi {

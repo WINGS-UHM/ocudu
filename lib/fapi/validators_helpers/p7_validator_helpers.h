@@ -14,7 +14,7 @@
 #include "ocudu/fapi/p7/messages/dl_pdu_type.h"
 #include "ocudu/fapi/p7/messages/uci_pdu_type.h"
 #include "ocudu/fapi/p7/messages/ul_pdu_type.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 
 namespace ocudu {
 namespace fapi {

@@ -14,6 +14,7 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/csi_report/csi_report_data.h"
 #include "ocudu/ran/du_types.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/logical_channel/bsr_format.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
 #include "ocudu/ran/logical_channel/phr_report.h"
@@ -24,7 +25,6 @@
 #include "ocudu/ran/srs/srs_channel_matrix.h"
 #include "ocudu/ran/uci/uci_constants.h"
 #include "ocudu/scheduler/config/logical_channel_group.h"
-#include "ocudu/scheduler/harq_id.h"
 #include <variant>
 
 namespace ocudu {

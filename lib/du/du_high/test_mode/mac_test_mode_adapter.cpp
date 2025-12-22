@@ -14,7 +14,7 @@
 #include "ocudu/adt/ring_buffer.h"
 #include "ocudu/mac/mac_cell_timing_context.h"
 #include "ocudu/mac/mac_factory.h"
-#include "ocudu/scheduler/harq_id.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include <functional>
 #include <utility>

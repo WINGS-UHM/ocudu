@@ -10,8 +10,8 @@
 
 #pragma once
 
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/rnti.h"
-#include "ocudu/scheduler/harq_id.h"
 
 namespace ocudu {
 

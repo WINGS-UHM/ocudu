@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
 #include "ocudu/ran/pdcch/dci_format.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
@@ -20,7 +21,6 @@
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/time_alignment_config.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
-#include "ocudu/scheduler/harq_id.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
 

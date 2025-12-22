@@ -214,10 +214,9 @@ bool du_high_env_simulator::run_rrc_setup(rnti_t rnti)
   }
   const ue_sim_context& u = it->second;
 
-  // Send DL RRC Message which contains RRC Setup.
+  // Send DL RRC Message which contains RRC Setup and await UL RRC message (containing RRC Setup).
   f1ap_message msg = generate_dl_rrc_message_transfer(
       *u.du_ue_id, *u.cu_ue_id, srb_id_t::srb0, byte_buffer::create({0x1, 0x2, 0x3}).value());
-
   return send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg, 0);
 }
 
@@ -430,6 +429,10 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
       return false;
     }
   }
+
+  // UL RLC status PDU is sent to avoid RLC ReTxs of the RRC Reconfig.
+  mac_rx_data_indication statusmsg = test_helpers::create_pdu_with_rlc_status_ack(next_slot, rnti, LCID_SRB1, 1);
+  du_hi->get_pdu_handler().handle_rx_data_indication(statusmsg);
 
   return true;
 }

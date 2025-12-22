@@ -52,6 +52,18 @@ ocudu::test_helpers::create_pdu_with_sdu(slot_point sl_rx, rnti_t rnti, lcid_t l
   return mac_rx_data_indication{sl_rx, to_du_cell_index(0), {mac_rx_pdu{rnti, 0, 0, std::move(mac_pdu)}}};
 }
 
+mac_rx_data_indication
+test_helpers::create_pdu_with_rlc_status_ack(slot_point sl_rx, rnti_t rnti, lcid_t lcid, uint32_t ack_sn)
+{
+  // assuming RLC SN size of 12bits.
+  uint8_t     rlc_sn_part1 = (ack_sn & 0xf00U) >> 8U;
+  uint8_t     rlc_sn_part2 = (ack_sn & 0xffU);
+  byte_buffer mac_pdu =
+      byte_buffer::create({(uint8_t)lcid, 0x03, static_cast<uint8_t>(0x00U + rlc_sn_part1), rlc_sn_part2, 0x00})
+          .value();
+  return mac_rx_data_indication{sl_rx, to_du_cell_index(0), {mac_rx_pdu{rnti, 0, 0, std::move(mac_pdu)}}};
+}
+
 mac_crc_indication_message ocudu::test_helpers::create_crc_indication(slot_point sl_rx, rnti_t rnti, harq_id_t h_id)
 {
   return mac_crc_indication_message{.sl_rx = sl_rx,

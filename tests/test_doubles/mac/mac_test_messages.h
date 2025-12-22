@@ -29,6 +29,9 @@ create_ccch_message(slot_point sl_rx, rnti_t rnti, du_cell_index_t du_cell_index
 
 mac_rx_data_indication create_pdu_with_sdu(slot_point sl_rx, rnti_t rnti, lcid_t lcid, uint32_t rlc_sn = 0);
 
+/// Creates an MAC Rx data indication containing an RLC status PDU with an ACK for the given RLC SN.
+mac_rx_data_indication create_pdu_with_rlc_status_ack(slot_point sl_rx, rnti_t rnti, lcid_t lcid, uint32_t ack_sn);
+
 /// \brief Generate MAC UCI PDU from PUCCH information, with all HARQ-ACKs set to ACK, SRs set as not detected and CSI
 /// set as 1s.
 mac_uci_pdu create_uci_pdu(const pucch_info& pucch);

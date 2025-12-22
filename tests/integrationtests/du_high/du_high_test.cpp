@@ -207,13 +207,16 @@ TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_re
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = generate_ue_context_release_command();
   this->du_hi->get_f1ap_du().handle_message(msg);
+
+  // Ensure that SRB1 (RRC Release) is scheduled and schedule RLC ACK.
   this->test_logger.info("STATUS: UEContextReleaseCommand received by DU. Waiting for rrcRelease being transmitted...");
-  // Ensure that once SRB1 (RRC Release) is scheduled.
   run_slot();
   EXPECT_TRUE(this->run_until([this, rnti1]() {
     return find_ue_pdsch_with_lcid(rnti1, LCID_SRB1, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
   }));
   this->test_logger.info("STATUS: RRC Release started being scheduled...");
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_pdu_with_rlc_status_ack(next_slot, rnti1, LCID_SRB1, 2));
 
   // Test Case: While UE Context Release Complete has not been sent, periodic UCI should keep being scheduled for UE1.
   // These scheduled PUCCH grants will ensure that there is no interference between the UE1 final transmissions and
@@ -221,7 +224,7 @@ TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_re
   unsigned ue2_pdsch_count = 0;
   unsigned ue1_pucch_count = 0;
   ASSERT_TRUE(run_until([&]() {
-    bool ue_ctxt_rel_cmp_sent = cu_notifier.f1ap_ul_msgs.empty();
+    bool ue_ctxt_rel_cmp_sent = not cu_notifier.f1ap_ul_msgs.empty();
     // Ensure that UE2 periodic resources are scheduled while UE1 release is ongoing.
     if (find_ue_pdsch_with_lcid(rnti2, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr) {
       ue2_pdsch_count++;

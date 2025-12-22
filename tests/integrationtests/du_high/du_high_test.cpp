@@ -215,6 +215,8 @@ TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_re
     return find_ue_pdsch_with_lcid(rnti1, LCID_SRB1, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
   }));
   this->test_logger.info("STATUS: RRC Release started being scheduled...");
+
+  // DU receives RLC ACK for RRC Release.
   du_hi->get_pdu_handler().handle_rx_data_indication(
       test_helpers::create_pdu_with_rlc_status_ack(next_slot, rnti1, LCID_SRB1, 2));
 
@@ -229,13 +231,13 @@ TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_re
     if (find_ue_pdsch_with_lcid(rnti2, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr) {
       ue2_pdsch_count++;
     }
-    if (find_ue_pucch(rnti1, phy.cells[0].last_ul_res.value().ul_res->pucchs) != nullptr) {
+    if (find_ue_pucch_with_csi(rnti1, phy.cells[0].last_ul_res.value().ul_res->pucchs) != nullptr) {
       ue1_pucch_count++;
     }
     return ue_ctxt_rel_cmp_sent;
   }));
   ASSERT_GT(ue2_pdsch_count, 0) << "No periodic PDSCH resources were scheduled for UE2";
-  ASSERT_GT(ue1_pucch_count, 0) << "No periodic PUCCH resources were scheduled for UE1 while its release was ongoing";
+  ASSERT_GT(ue1_pucch_count, 0) << "No periodic CSI resources were scheduled for UE1 while its release was ongoing";
 }
 
 TEST_F(du_high_tester, when_f1ap_reset_received_then_ues_are_removed)

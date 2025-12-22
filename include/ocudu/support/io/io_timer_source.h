@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/support/io/io_broker.h"
-#include "ocudu/support/synchronization/stop_event.h"
+#include "ocudu/support/synchronization/sync_event.h"
 
 namespace ocudu {
 
@@ -36,10 +36,10 @@ public:
   void request_stop();
 
 private:
-  void create_subscriber(stop_event_token token);
+  void create_subscriber(scoped_sync_token token);
   void destroy_subscriber();
 
-  void read_time(int raw_fd, stop_event_token& token);
+  void read_time(int raw_fd);
 
   const std::chrono::milliseconds tick_period;
   timer_manager&                  tick_sink;
@@ -52,9 +52,9 @@ private:
   std::atomic<bool> running{false};
 
   // Synchronization primitive to stop the timer source.
-  // Note: shutdown_flag.stop() is only called during io_timer_source destruction. Do not confuse it with stop/resume
+  // Note: shutdown_flag.reset() is only called during io_timer_source destruction. Do not confuse it with stop/resume
   // of the timer.
-  stop_event_source shutdown_flag;
+  sync_event shutdown_flag;
 };
 
 } // namespace ocudu

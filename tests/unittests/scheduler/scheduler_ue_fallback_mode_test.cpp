@@ -126,6 +126,7 @@ class scheduler_con_res_msg4_test : public base_single_ue_scheduler_conres_test,
 public:
   scheduler_con_res_msg4_test() : base_single_ue_scheduler_conres_test(GetParam().duplx_mode), params(GetParam()) {}
 
+  /// Enqueues several RACH indications with RNTI different than the created UE.
   void enqueue_random_number_of_rach_indications()
   {
     rach_indication_message rach_ind{to_du_cell_index(0), next_slot_rx(), {{0, 0, {}}}};
@@ -298,14 +299,6 @@ TEST_P(scheduler_con_res_msg4_test, while_ue_is_in_fallback_then_common_ss_is_us
 
 TEST_P(scheduler_con_res_msg4_test, when_msg4_gets_retxed_then_tc_rnti_is_used_and_csi_rs_avoided)
 {
-  // Enqueue RACH.
-  rach_indication_message rach_ind{
-      to_du_cell_index(0), next_slot_rx(), {{0, 0, {{.preamble_id = 0, .tc_rnti = rnti}}}}};
-  this->sched->handle_rach_indication(rach_ind);
-
-  // Run until all RARs are scheduled.
-  this->run_slot_until([this]() { return this->last_sched_result()->dl.rar_grants.empty(); });
-
   // Enqueue ConRes CE and Msg4.
   this->sched->handle_dl_mac_ce_indication(dl_mac_ce_indication{ue_index, lcid_dl_sch_t::UE_CON_RES_ID});
   this->push_dl_buffer_state(dl_buffer_state_indication_message{this->ue_index, params.msg4_lcid, msg4_size});

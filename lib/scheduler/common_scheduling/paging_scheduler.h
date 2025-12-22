@@ -64,9 +64,6 @@ private:
 
   using paging_info_queue = concurrent_queue<sched_paging_information, concurrent_queue_policy::lockfree_mpmc>;
 
-  /// Clean up old paging requests.
-  void handle_expired_paging_requests();
-
   /// \brief Processes pending Paging requests from upper layers.
   void handle_pending_paging_requests();
 
@@ -154,8 +151,7 @@ private:
   flat_map<ue_paging_id, ue_paging_info> paging_pending_ues;
   /// Lookup to keep track of scheduled paging UEs at a particular PDSCH time resource index. Index of \c
   /// pdsch_time_res_idx_to_scheduled_ues_lookup corresponds to PDSCH Time Domain Resource Index.
-  static_vector<std::vector<const sched_paging_information*>, MAX_NOF_PDSCH_TD_RESOURCE_ALLOCATIONS>
-      pdsch_time_res_idx_to_scheduled_ues_lookup;
+  std::vector<std::vector<const sched_paging_information*>> pdsch_time_res_idx_to_scheduled_ues_lookup;
 
   ocudulog::basic_logger& logger;
 };

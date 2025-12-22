@@ -36,45 +36,43 @@ paging_scheduler::paging_scheduler(const scheduler_expert_config&               
   new_paging_notifications(PAGING_INFO_QUEUE_SIZE),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
+  ocudu_assert(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value(),
+               "Paging Search Space not configured in DL BWP.");
+
   paging_pending_ues.reserve(MAX_NOF_PENDING_PAGINGS);
-  if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value()) {
-    for (const auto& cfg : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
-      if (cfg.get_id() != cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value()) {
-        continue;
-      }
-      ss_cfg = &cfg;
-      break;
+
+  // Pre-fetch search space config.
+  for (const auto& cfg : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+    if (cfg.get_id() != cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value()) {
+      continue;
     }
-
-    if (ss_cfg == nullptr) {
-      ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
-    }
-
-    // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
-    bwp_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params;
-    if (ss_cfg->is_common_search_space()) {
-      // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
-      if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value()) {
-        bwp_cfg.crbs = get_coreset0_crbs(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common);
-      }
-    }
-
-    // See TS 38.214, Table 5.1.2.1.1-1.
-    // TODO: Select PDSCH time domain resource allocation to apply based on SS/PBCH and CORESET mux. pattern.
-    pdsch_td_alloc_list = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list.empty()
-                              ? pdsch_default_time_allocations_default_A_table(bwp_cfg.cp, cell_cfg.dmrs_typeA_pos)
-                              : cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
-
-    // Generate an empty vector for each element of pdsch_time_res_idx_to_scheduled_ues_lookup; only then we can reserve
-    // the capacity.
-    pdsch_time_res_idx_to_scheduled_ues_lookup.assign(pdsch_time_res_idx_to_scheduled_ues_lookup.capacity(),
-                                                      std::vector<const sched_paging_information*>{});
-    for (auto& sched_paging_ues : pdsch_time_res_idx_to_scheduled_ues_lookup) {
-      sched_paging_ues.reserve(MAX_PAGING_RECORDS_PER_PAGING_PDU);
-    }
-
-  } else {
+    ss_cfg = &cfg;
+    break;
+  }
+  if (ss_cfg == nullptr) {
     ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
+  }
+
+  // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
+  bwp_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params;
+  if (ss_cfg->is_common_search_space()) {
+    // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
+    if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value()) {
+      bwp_cfg.crbs = get_coreset0_crbs(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common);
+    }
+  }
+
+  // See TS 38.214, Table 5.1.2.1.1-1.
+  // TODO: Select PDSCH time domain resource allocation to apply based on SS/PBCH and CORESET mux. pattern.
+  pdsch_td_alloc_list = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list.empty()
+                            ? pdsch_default_time_allocations_default_A_table(bwp_cfg.cp, cell_cfg.dmrs_typeA_pos)
+                            : cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+
+  // Generate an empty vector for each element of pdsch_time_res_idx_to_scheduled_ues_lookup; only then we can reserve
+  // the capacity.
+  pdsch_time_res_idx_to_scheduled_ues_lookup.resize(pdsch_td_alloc_list.size());
+  for (auto& sched_paging_ues : pdsch_time_res_idx_to_scheduled_ues_lookup) {
+    sched_paging_ues.reserve(MAX_PAGING_RECORDS_PER_PAGING_PDU);
   }
 }
 
@@ -104,14 +102,6 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
     return;
   }
 
-  // Handle expired paging requests.
-  handle_expired_paging_requests();
-
-  // Clear all previous vectors.
-  for (auto& sched_paging_ues : pdsch_time_res_idx_to_scheduled_ues_lookup) {
-    sched_paging_ues.clear();
-  }
-
   // Group pending paging opportunities based on their PDSCH time resource index.
   for (const auto& pg_it : paging_pending_ues) {
     const auto& pg_info = pg_it.second.info;
@@ -130,22 +120,19 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
     if (not group.empty() and allocate_paging(res_grid, pdcch_slot, pdsch_td_res_idx, group, paging_search_space)) {
       // Allocation successful. Mark number of retries.
       for (const auto* pg_info : group) {
-        paging_pending_ues.at(pg_info->paging_identity).retry_count++;
+        auto it = paging_pending_ues.find(pg_info->paging_identity);
+        ocudu_sanity_check(it != paging_pending_ues.end(), "Paging info must be present in the pending map.");
+        if (++it->second.retry_count >= expert_cfg.pg.max_paging_retries) {
+          // Remove from pending paging UEs map if it exceeded maximum retries.
+          paging_pending_ues.erase(it);
+        }
       }
     }
   }
-}
 
-void paging_scheduler::handle_expired_paging_requests()
-{
-  // Check for maximum paging retries.
-  auto it = paging_pending_ues.begin();
-  while (it != paging_pending_ues.end()) {
-    if (it->second.retry_count >= expert_cfg.pg.max_paging_retries) {
-      it = paging_pending_ues.erase(it);
-    } else {
-      ++it;
-    }
+  // Clear all the computed candidates.
+  for (auto& sched_paging_ues : pdsch_time_res_idx_to_scheduled_ues_lookup) {
+    sched_paging_ues.clear();
   }
 }
 

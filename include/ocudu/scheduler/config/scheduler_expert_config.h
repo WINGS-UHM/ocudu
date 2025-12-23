@@ -239,7 +239,7 @@ struct scheduler_ra_expert_config {
   /// Maximum number of Msg3 PUSCH retransmissions.
   unsigned max_nof_msg3_harq_retxs = 4;
   /// Number of RBs that are used as guardband on each side of the PRACH RBs dedicated interval for short PRACH formats.
-  unsigned nof_prach_guardbands_rbs = 5;
+  unsigned nof_prach_guardbands_rbs = 3;
   /// Timeout for Msg3 HARQ with pending retransmission to be discarded.
   std::chrono::milliseconds harq_retx_timeout{100};
 };

@@ -86,9 +86,11 @@ find . -type f \( \
         -o -name "*.h" \
         -o -name "*.h.in" \
         -o -name "*.js" \
+        -o -name "*.proto" \
     \) \
     ! -path "*/external/*" \
     ! -path "*/.docusaurus/*" \
+    ! -path "*/node_modules/*" \
     $ADDITIONAL_IGNORE \
     ! -name "rfnoc_test.cc" \
     -exec perl -0777 -pi -e "s{/\*.*?\*/}{/*

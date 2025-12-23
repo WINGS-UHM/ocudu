@@ -34,15 +34,22 @@ public:
   static constexpr unsigned RRC_RAN_PAGING_ID_RECORD_SIZE = 6U;
   // [Implementation defined] Maximum number of pending pagings allowed.
   static constexpr unsigned MAX_NOF_PENDING_PAGINGS = MAX_NOF_DU_UES;
+  // [Implementation defined] Number of slots that the paging is scheduled ahead of the current slot.
+  static constexpr unsigned DEFAULT_NOF_SLOTS_AHEAD_SCHED = 4U;
 
   /// NG-5G-S-TMSI (48 bits) or I-RNTI-Value (40 bits).
   using ue_paging_id              = uint64_t;
   using paging_retries_count_type = unsigned;
 
-  explicit paging_scheduler(const scheduler_expert_config&                  expert_cfg_,
-                            const cell_configuration&                       cell_cfg_,
-                            pdcch_resource_allocator&                       pdcch_sch_,
-                            const sched_cell_configuration_request_message& msg);
+  /// \brief Constructor.
+  /// \param[in] cell_cfg_ Cell configuration.
+  /// \param[in] pdcch_sch_ PDCCH resource allocator.
+  /// \param[in] nof_slots_ahead_sched_ Number of slots ahead to schedule paging. The higher the value, the higher
+  /// the priority of paging scheduling compared to other scheduling tasks. It will make the paging scheduler more
+  /// likely to find resources available in the resource grid.
+  explicit paging_scheduler(const cell_configuration& cell_cfg_,
+                            pdcch_resource_allocator& pdcch_sch_,
+                            unsigned                  nof_slots_ahead_sched_ = DEFAULT_NOF_SLOTS_AHEAD_SCHED);
 
   /// \brief Performs paging (if any) scheduling for the current slot.
   ///
@@ -120,6 +127,7 @@ private:
   const scheduler_expert_config& expert_cfg;
   const cell_configuration&      cell_cfg;
   pdcch_resource_allocator&      pdcch_sch;
+  const unsigned                 nof_slots_ahead_sched;
 
   // Derived args.
 

@@ -21,7 +21,7 @@ namespace ocudu {
 class paging_slot_helper
 {
 public:
-  explicit paging_slot_helper(const cell_configuration& cell_cfg_, const sched_cell_configuration_request_message& msg);
+  explicit paging_slot_helper(const cell_configuration& cell_cfg_);
 
   /// \brief Checks paging conditions for a given slot and Paging Occasion.
   ///

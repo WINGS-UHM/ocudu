@@ -21,18 +21,18 @@ using namespace ocudu;
 // (Implementation-defined) limit for maximum number of pending paging indications.
 static constexpr size_t PAGING_INFO_QUEUE_SIZE = 128;
 
-paging_scheduler::paging_scheduler(const scheduler_expert_config&                  expert_cfg_,
-                                   const cell_configuration&                       cell_cfg_,
-                                   pdcch_resource_allocator&                       pdcch_sch_,
-                                   const sched_cell_configuration_request_message& msg) :
-  expert_cfg(expert_cfg_),
+paging_scheduler::paging_scheduler(const cell_configuration& cell_cfg_,
+                                   pdcch_resource_allocator& pdcch_sch_,
+                                   unsigned                  nof_slots_ahead_sched_) :
+  expert_cfg(cell_cfg_.expert_cfg),
   cell_cfg(cell_cfg_),
   pdcch_sch(pdcch_sch_),
+  nof_slots_ahead_sched(nof_slots_ahead_sched_),
   default_paging_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle)),
   nof_pf_per_drx_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.nof_pf)),
   paging_frame_offset(cell_cfg.dl_cfg_common.pcch_cfg.paging_frame_offset),
   nof_po_per_pf(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.ns)),
-  slot_helper(cell_cfg_, msg),
+  slot_helper(cell_cfg_),
   new_paging_notifications(PAGING_INFO_QUEUE_SIZE),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
@@ -93,9 +93,8 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
   //   frames.
 
   // How much far ahead in time the scheduler will allocate the Paging.
-  constexpr static unsigned           max_dl_slots_ahead_sched = 0;
-  const cell_slot_resource_allocator& pdcch_alloc              = res_grid[max_dl_slots_ahead_sched];
-  const auto                          pdcch_slot               = pdcch_alloc.slot;
+  const cell_slot_resource_allocator& pdcch_alloc = res_grid[nof_slots_ahead_sched];
+  const auto                          pdcch_slot  = pdcch_alloc.slot;
 
   // Verify PDCCH slot is DL enabled.
   if (not cell_cfg.is_dl_enabled(pdcch_slot)) {

@@ -197,10 +197,9 @@ TEST_F(si_scheduler_test, when_si_is_updated_then_new_version_is_applied_at_si_c
 
 TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_exactly_once)
 {
-  const paging_slot_helper slot_helper(
-      cell_cfg, make_sched_configuration_request(DEFAULT_SIB1_PAYLOAD_SIZE, DEFAULT_SI_SCHED_CFG));
-  const units::bytes   new_sib1_len     = DEFAULT_SIB1_PAYLOAD_SIZE + units::bytes{64U};
-  si_scheduling_config new_si_sched_cfg = DEFAULT_SI_SCHED_CFG;
+  const paging_slot_helper slot_helper(cell_cfg);
+  const units::bytes       new_sib1_len     = DEFAULT_SIB1_PAYLOAD_SIZE + units::bytes{64U};
+  si_scheduling_config     new_si_sched_cfg = DEFAULT_SI_SCHED_CFG;
   new_si_sched_cfg.si_messages[0].msg_len += units::bytes{64U};
 
   // Update SI scheduling.

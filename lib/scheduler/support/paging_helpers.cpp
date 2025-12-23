@@ -13,9 +13,7 @@
 
 using namespace ocudu;
 
-paging_slot_helper::paging_slot_helper(const cell_configuration&                       cell_cfg_,
-                                       const sched_cell_configuration_request_message& msg) :
-  cell_cfg(cell_cfg_)
+paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_)
 {
   if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value()) {
     for (const auto& cfg : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
@@ -49,8 +47,8 @@ paging_slot_helper::paging_slot_helper(const cell_configuration&                
         }
         // For Ns = 1, there is only one PO which starts from the first PDCCH monitoring occasion for paging in the PF.
         // TS 38.304, clause 7.1. Hence, n0 slot must be use and not n0 + 1 slot.
-        type0_pdcch_css_slots[i_ssb] =
-            precompute_type0_pdcch_css_n0(msg.searchspace0, msg.coreset0, cell_cfg, msg.scs_common, i_ssb);
+        type0_pdcch_css_slots[i_ssb] = precompute_type0_pdcch_css_n0(
+            cell_cfg.searchspace0, cell_cfg.coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
       }
     } else {
       if (ss_cfg->get_coreset_id() != to_coreset_id(0) and
@@ -62,7 +60,7 @@ paging_slot_helper::paging_slot_helper(const cell_configuration&                
           (not cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value())) {
         ocudu_assertion_failure("CORESET0 configuration for Paging Search Space not configured in DL BWP.");
       }
-      precompute_type2_pdcch_slots(msg.scs_common);
+      precompute_type2_pdcch_slots(cell_cfg.scs_common);
     }
   } else {
     ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");

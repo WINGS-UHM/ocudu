@@ -52,7 +52,7 @@ struct paging_sched_test_bench {
     cell_cfg{expert_cfg, cell_req},
     res_grid{cell_cfg},
     pdcch_sch{cell_cfg},
-    pg_sch{expert_cfg, cell_cfg, pdcch_sch, cell_req}
+    pg_sch{cell_cfg, pdcch_sch, 0}
   {
   }
 };

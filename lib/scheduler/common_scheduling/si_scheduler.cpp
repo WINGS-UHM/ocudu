@@ -19,7 +19,7 @@ si_scheduler::si_scheduler(const cell_configuration&                       cfg_,
                            const sched_cell_configuration_request_message& msg) :
   cell_cfg(cfg_),
   scs_common(cell_cfg.scs_common),
-  paging_helper(cfg_, msg),
+  paging_helper(cfg_),
   default_paging_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle)),
   si_change_mod_period(default_paging_cycle * static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff)),
   pdcch_sch(pdcch_sch_),

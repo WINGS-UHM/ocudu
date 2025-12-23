@@ -11,7 +11,6 @@
 #include "du_high_config_cli11_schema.h"
 #include "apps/helpers/logger/logger_appconfig_cli11_utils.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
-#include "apps/services/worker_manager/cli11_cpu_affinities_parser_helper.h"
 #include "du_high_config.h"
 #include "du_high_config_cli11_ntn_schema.h"
 #include "ocudu/adt/ranges/transform.h"
@@ -19,11 +18,13 @@
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/sib/cell_reselection.h"
 #include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/support/cli11_utils.h"
 #include "ocudu/support/config_parsers.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
+#include "CLI/CLI11.hpp"
 #include <charconv>
 
 using namespace ocudu;
@@ -1335,7 +1336,7 @@ static void configure_cli11_si_sched_info(CLI::App& app, du_high_unit_sib_config
              "Mapping of SIB types to SI-messages. SIB numbers should not be repeated")
       ->default_function(get_vector_default_function(span<const uint8_t>(si_sched_info.sib_mapping_info)))
       ->capture_default_str()
-      ->check(CLI::IsMember({2, 6, 7, 8, 19}));
+      ->check(CLI::IsMember({2, 3, 4, 5, 6, 7, 8, 19}));
   add_option(
       app, "--si_window_position", si_sched_info.si_window_position, "SI window position of the associated SI-message")
       ->capture_default_str()
@@ -1437,6 +1438,289 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_prach_config&
       ->check(CLI::Range(1U, 10U));
 }
 
+static void configure_cli11_sib2_config_args(CLI::App& app, du_high_unit_sib_config::sib2_config& sib2_cfg)
+{
+  add_option(app, "--q_hyst", sib2_cfg.q_hyst, "Hysteresis value for ranking criteria.")
+      ->capture_default_str()
+      ->check(CLI::IsMember({0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24}));
+  add_option(
+      app,
+      "--thresh_serving_low_p",
+      sib2_cfg.thresh_serving_low_p,
+      "Rx level threshold used by the UE on the serving cell when reselecting towards a lower priority RAT/frequency.")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 31));
+  add_option(app,
+             "--cell_reselection_priority",
+             sib2_cfg.cell_reselection_priority,
+             "Integer part of the cell reselection priority for the frequency of this cell")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 7));
+  add_option(app, "--q_rx_lev_min", sib2_cfg.q_rx_lev_min, "Minimum required Rx level in the cell in dBm")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                  v = std::stoi(value);
+        static constexpr interval<int, true> valid_range(-140, -44);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(
+      app, "--s_intra_search_p", sib2_cfg.s_intra_search_p, "Rx level threshold for intra frequency measurements in dB")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                       v = std::stoi(value);
+        static constexpr interval<unsigned, true> valid_range(0, 62);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app, "--t_reselection_nr", sib2_cfg.t_reselection_nr, "Cell reselection timer value in seconds")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 7));
+}
+
+static void configure_cli11_intra_freq_neigh_cell_info_args(
+    CLI::App&                                                           app,
+    du_high_unit_sib_config::sib3_config::intra_freq_neigh_cell_config& neigh_info)
+{
+  add_option(app, "--pci", neigh_info.pci, "PCI")->capture_default_str()->check(CLI::Range(0, 1007));
+  add_option(app, "--q_offset_cell", neigh_info.q_offset_cell, "PCI")
+      ->capture_default_str()
+      ->check(CLI::IsMember({-24, -22, -20, -18, -16, -14, -12, -10, -8, -6, -5, -4, -3, -2, -1, 0,
+                             1,   2,   3,   4,   5,   6,   8,   10,  12, 14, 16, 18, 20, 22, 24}));
+}
+
+static void configure_cli11_pci_range_args(CLI::App& app, pci_range_config& range)
+{
+  add_option(app, "--start", range.start, "Range start")->capture_default_str()->check(CLI::Range(0, 1007));
+  add_option(app, "--size", range.size, "Range size")
+      ->capture_default_str()
+      ->check(CLI::IsMember({1, 4, 8, 12, 16, 24, 32, 48, 64, 84, 96, 128, 168, 252, 504, 1008}));
+}
+
+static void configure_cli11_sib3_config_args(CLI::App& app, du_high_unit_sib_config::sib3_config& sib3_cfg)
+{
+  // Intra frequency neighbor cell list.
+  auto intra_freq_neigh_cell_list_lambda = [&sib3_cfg](const std::vector<std::string>& values) {
+    // Prepare the list.
+    sib3_cfg.intra_freq_neigh_cell_list.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("Intra frequency neighbor cell list",
+                      "Intra frequency neighbor cell list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_intra_freq_neigh_cell_info_args(subapp, sib3_cfg.intra_freq_neigh_cell_list[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(
+      app, "--intra_freq_neigh_cell_list", intra_freq_neigh_cell_list_lambda, "Intra frequency neighbor cell list");
+
+  // Intra frequency excluded cell list.
+  auto intra_freq_excluded_cell_list_lambda = [&sib3_cfg](const std::vector<std::string>& values) {
+    // Prepare the list.
+    sib3_cfg.intra_freq_excluded_cell_list.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("Intra frequency excluded cell list",
+                      "Intra frequency excluded cell list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_pci_range_args(subapp, sib3_cfg.intra_freq_excluded_cell_list[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(app,
+                  "--intra_freq_excluded_cell_list",
+                  intra_freq_excluded_cell_list_lambda,
+                  "Intra frequency excluded cell list");
+}
+
+static void configure_cli11_inter_freq_carrier_freq_info_args(
+    CLI::App&                                                             app,
+    du_high_unit_sib_config::sib4_config::inter_freq_carrier_freq_config& config)
+{
+  add_option(app, "--arfcn", config.arfcn, "ARFCN");
+  add_option_function<std::string>(
+      app,
+      "--ssb_scs",
+      [&scs = config.ssb_scs](const std::string& value) -> std::string {
+        scs = to_subcarrier_spacing(value);
+        if (scs == subcarrier_spacing::invalid) {
+          return fmt::format("Invalid SSB subcarrier spacing '{}'", value);
+        }
+        return {};
+      },
+      "SSB subcarrier spacing")
+      ->capture_default_str();
+  add_option(app, "--derive_ssb_index_from_cell", config.derive_ssb_index_from_cell, "Derive SSB index from cell")
+      ->capture_default_str();
+  add_option(app, "--q_rx_lev_min", config.q_rx_lev_min, "Minimum required Rx level in the cell in dBm")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                  v = std::stoi(value);
+        static constexpr interval<int, true> valid_range(-140, -44);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app,
+             "--thresh_x_high_p",
+             config.thresh_x_high_p,
+             "Rx level threshold in dB used when reselecting to a higher priority RAT/frequency in dB")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                       v = std::stoi(value);
+        static constexpr interval<unsigned, true> valid_range(0, 62);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app,
+             "--thresh_x_low_p",
+             config.thresh_x_low_p,
+             "Rx level threshold in dB used when reselecting to a lower priority RAT/frequency in dB")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                       v = std::stoi(value);
+        static constexpr interval<unsigned, true> valid_range(0, 62);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app,
+             "--q_offset_freq",
+             config.q_offset_freq,
+             "Frequency specific offset in dB for equal priority NR frequencies.")
+      ->capture_default_str()
+      ->check(CLI::IsMember({-24, -22, -20, -18, -16, -14, -12, -10, -8, -6, -5, -4, -3, -2, -1, 0,
+                             1,   2,   3,   4,   5,   6,   8,   10,  12, 14, 16, 18, 20, 22, 24}));
+}
+
+static void configure_cli11_sib4_config_args(CLI::App& app, du_high_unit_sib_config::sib4_config& sib4_cfg)
+{
+  // Inter frequency carrier frequency list.
+  auto inter_freq_carrier_freq_list_lambda = [&sib4_cfg](const std::vector<std::string>& values) {
+    // Prepare the list.
+    sib4_cfg.inter_freq_carrier_freq_list.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("Inter frequency carrier frequency list",
+                      "Inter frequency carrier frequency list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_inter_freq_carrier_freq_info_args(subapp, sib4_cfg.inter_freq_carrier_freq_list[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(app,
+                  "--inter_freq_carrier_freq_list",
+                  inter_freq_carrier_freq_list_lambda,
+                  "Inter frequency carrier frequency list");
+}
+
+static void
+configure_cli11_carrier_freq_eutra_args(CLI::App&                                                        app,
+                                        du_high_unit_sib_config::sib5_config::carrier_freq_eutra_config& config)
+{
+  add_option(app, "--earfcn", config.earfcn, "EARFCN");
+  add_option(app, "--allowed_meas_bandwidth", config.allowed_meas_bandwidth, "Allowed measurement bandwidth")
+      ->capture_default_str()
+      ->check(CLI::IsMember({6, 15, 25, 50, 75, 100}));
+  add_option(
+      app, "--presence_antenna_port1", config.presence_antenna_port1, "Whether all neighbor cells use Antenna Port 1")
+      ->capture_default_str();
+  add_option(app,
+             "--cell_reselection_priority",
+             config.cell_reselection_priority,
+             "Integer part of the cell reselection priority for the frequency of this cell")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 7));
+  add_option(app,
+             "--thresh_x_high",
+             config.thresh_x_high,
+             "Rx level threshold in dB used when reselecting to a higher priority RAT/frequency in dB")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                       v = std::stoi(value);
+        static constexpr interval<unsigned, true> valid_range(0, 62);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app,
+             "--thresh_x_low",
+             config.thresh_x_low,
+             "Rx level threshold in dB used when reselecting to a lower priority RAT/frequency in dB")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                       v = std::stoi(value);
+        static constexpr interval<unsigned, true> valid_range(0, 62);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app, "--q_rx_lev_min", config.q_rx_lev_min, "Minimum required Rx level in the cell in dBm")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        int                                  v = std::stoi(value);
+        static constexpr interval<int, true> valid_range(-140, -44);
+        if (not valid_range.contains(v) or (v % 2 != 0)) {
+          return fmt::format("Must be an even value within the {} interval", valid_range);
+        }
+        return "";
+      });
+  add_option(app, "--q_qual_min", config.q_qual_min, "Minimum required quality level in the cell in dB")
+      ->capture_default_str()
+      ->check(CLI::Range(-34, -3));
+  add_option(app,
+             "--p_max_eutra",
+             config.p_max_eutra,
+             "Maximum allowed transmission power in dBm on the (uplink) carrier frequency.")
+      ->capture_default_str()
+      ->check(CLI::Range(-30, 33));
+}
+
+static void configure_cli11_sib5_config_args(CLI::App& app, du_high_unit_sib_config::sib5_config& sib5_cfg)
+{
+  add_option(app, "--t_reselection_eutra", sib5_cfg.t_reselection_eutra, "Cell reselection timer value in seconds")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 7));
+
+  // Inter frequency carrier frequency list.
+  auto inter_freq_carrier_freq_list_lambda = [&sib5_cfg](const std::vector<std::string>& values) {
+    // Prepare the list.
+    sib5_cfg.carrier_freq_list_eutra.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("EUTRA carrier frequency list", "EUTRA carrier frequency list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_carrier_freq_eutra_args(subapp, sib5_cfg.carrier_freq_list_eutra[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(
+      app, "--carrier_freq_list_eutra", inter_freq_carrier_freq_list_lambda, "EUTRA carrier frequency list");
+}
+
 static void configure_cli11_etws_args(CLI::App& app, du_high_unit_sib_config::etws_config& sib_params)
 {
   add_option(app, "--message_id", sib_params.message_id, "ETWS message ID.")
@@ -1511,6 +1795,58 @@ static void configure_cli11_sib_args(CLI::App& app, du_high_unit_sib_config& sib
         }
       },
       "Configures the scheduling for each of the SI-messages broadcast by the gNB");
+
+  CLI::App*                                   sib2_subcmd = add_subcommand(app, "sib2", "SIB2 parameters");
+  static du_high_unit_sib_config::sib2_config sib2_cfg;
+  configure_cli11_sib2_config_args(*sib2_subcmd, sib2_cfg);
+  auto sib2_verify_callback = [&]() {
+    CLI::App* sib2_sub_cmd = app.get_subcommand("sib2");
+    if (sib2_sub_cmd->count() != 0) {
+      sib_params.sib2_cfg.emplace(sib2_cfg);
+    } else {
+      sib2_subcmd->disabled();
+    }
+  };
+  sib2_subcmd->parse_complete_callback(sib2_verify_callback);
+
+  CLI::App*                                   sib3_subcmd = add_subcommand(app, "sib3", "SIB3 parameters");
+  static du_high_unit_sib_config::sib3_config sib3_cfg;
+  configure_cli11_sib3_config_args(*sib3_subcmd, sib3_cfg);
+  auto sib3_verify_callback = [&]() {
+    CLI::App* sib3_sub_cmd = app.get_subcommand("sib3");
+    if (sib3_sub_cmd->count() != 0) {
+      sib_params.sib3_cfg.emplace(sib3_cfg);
+    } else {
+      sib3_subcmd->disabled();
+    }
+  };
+  sib3_subcmd->parse_complete_callback(sib3_verify_callback);
+
+  CLI::App*                                   sib4_subcmd = add_subcommand(app, "sib4", "SIB4 parameters");
+  static du_high_unit_sib_config::sib4_config sib4_cfg;
+  configure_cli11_sib4_config_args(*sib4_subcmd, sib4_cfg);
+  auto sib4_verify_callback = [&]() {
+    CLI::App* sib4_sub_cmd = app.get_subcommand("sib4");
+    if (sib4_sub_cmd->count() != 0) {
+      sib_params.sib4_cfg.emplace(sib4_cfg);
+    } else {
+      sib4_subcmd->disabled();
+    }
+  };
+  sib4_subcmd->parse_complete_callback(sib4_verify_callback);
+
+  CLI::App*                                   sib5_subcmd = add_subcommand(app, "sib5", "SIB5 parameters");
+  static du_high_unit_sib_config::sib5_config sib5_cfg;
+  configure_cli11_sib5_config_args(*sib5_subcmd, sib5_cfg);
+  auto sib5_verify_callback = [&]() {
+    CLI::App* sib5_sub_cmd = app.get_subcommand("sib5");
+    if (sib5_sub_cmd->count() != 0) {
+      sib_params.sib5_cfg.emplace(sib5_cfg);
+    } else {
+      sib5_subcmd->disabled();
+    }
+  };
+  sib5_subcmd->parse_complete_callback(sib5_verify_callback);
 
   CLI::App* etws_subcmd = add_subcommand(app, "etws", "ETWS configuration parameters");
   static du_high_unit_sib_config::etws_config etws_cfg;

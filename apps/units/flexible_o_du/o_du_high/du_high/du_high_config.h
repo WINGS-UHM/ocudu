@@ -11,7 +11,7 @@
 #pragma once
 
 #include "apps/helpers/metrics/metrics_config.h"
-#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/bs_channel_bandwidth.h"
 #include "ocudu/ran/direct_current_offset.h"
@@ -633,6 +633,13 @@ struct du_high_unit_pdcch_config {
   pdcch_dedicated_unit_config dedicated;
 };
 
+struct pci_range_config {
+  /// Start of the PCI range. Values: {0, ..., 1007}.
+  pci_t start = 0;
+  /// Size of the PCI range. Values: {1, 4, 8, 12, 16, 24, 32, 48, 64, 84, 96, 128, 168, 252, 504, 1008}.
+  unsigned size = 1;
+};
+
 /// Configuration of SIBs and SI-message scheduling.
 struct du_high_unit_sib_config {
   struct si_sched_info_config {
@@ -644,6 +651,82 @@ struct du_high_unit_sib_config {
     /// SI window position of the associated SI-message. See TS 38.331, \c SchedulingInfo2-r17. Values: {1,...,256}.
     /// \remark This field is only applicable for release 17 \c SI-SchedulingInfo2.
     std::optional<unsigned> si_window_position;
+  };
+
+  struct sib2_config {
+    // Hysteresis value for ranking criteria. Values: {0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24}.
+    unsigned q_hyst = 3;
+    /// Rx level threshold used by the UE on the serving cell when reselecting towards a lower priority RAT/frequency.
+    /// Values: {0, ..., 31}.
+    unsigned thresh_serving_low_p = 0;
+    /// Integer part of the cell reselection priority for the frequency of this cell. Values: {0, ..., 7}.
+    unsigned cell_reselection_priority = 6;
+    /// Minimum required Rx level in the cell in dBm. Values: {-140, -138, -136, ..., -44} dBm.
+    int q_rx_lev_min = -140;
+    /// Rx level threshold for intra frequency measurements in dB. Values: {0, 2, 4, ..., 62}.
+    unsigned s_intra_search_p = 62;
+    /// Cell reselection timer value in seconds. Values: {0, ..., 7}.
+    unsigned t_reselection_nr = 1;
+  };
+
+  struct sib3_config {
+    struct intra_freq_neigh_cell_config {
+      /// Physical cell identifier. Values: {0, ..., 1007}.
+      pci_t pci = 0;
+      /// Parameter "Qoffsets,n" in TS 38.304. Specifies the offset between the two cells.
+      int8_t q_offset_cell = 0;
+    };
+    /// List of intra-frequency neighbouring cells with specific cell reselection parameters.
+    std::vector<intra_freq_neigh_cell_config> intra_freq_neigh_cell_list;
+    /// List of excluded intra-frequency neighbouring cells.
+    std::vector<pci_range_config> intra_freq_excluded_cell_list;
+  };
+
+  struct sib4_config {
+    struct inter_freq_carrier_freq_config {
+      /// ARFCN of the carrier frequency.
+      uint32_t arfcn;
+      /// SSB subcarrier spacing.
+      subcarrier_spacing ssb_scs                    = subcarrier_spacing::kHz15;
+      bool               derive_ssb_index_from_cell = false;
+      /// Minimum required Rx level in the cell in dBm. Values: {-140, -138, -136, ..., -44}.
+      int q_rx_lev_min = -140;
+      /// Rx level threshold in dB used when reselecting to a higher priority RAT/frequency. Values: {0, 2, 4, ..., 62}.
+      unsigned thresh_x_high_p = 0;
+      /// Rx level threshold in dB used when reselecting to a lower priority RAT/frequency. Values: {0, 2, 4, ..., 62}.
+      unsigned thresh_x_low_p = 0;
+      // Frequency specific offset in dB for equal priority NR frequencies.
+      unsigned q_offset_freq = 0;
+    };
+    /// List of neighbouring carrier frequencies and frequency specific cell reselection information.
+    std::vector<inter_freq_carrier_freq_config> inter_freq_carrier_freq_list;
+  };
+
+  struct sib5_config {
+    struct carrier_freq_eutra_config {
+      /// EUTRA ARFCN of the carrier frequency.
+      uint32_t earfcn;
+      /// Maximum allowed measurement bandwidth in RBs. Values: {6, 15, 25, 50, 75, 100}.
+      unsigned allowed_meas_bandwidth;
+      /// Indicates whether all the neighbouring cells use Antenna Port 1.
+      bool presence_antenna_port1 = false;
+      // Integer part of the cell reselection priority for this frequency.
+      std::optional<unsigned> cell_reselection_priority;
+      /// Rx level threshold in dB used when reselecting to a higher priority RAT/frequency. Values: {0, 2, 4, ..., 62}.
+      unsigned thresh_x_high = 0;
+      /// Rx level threshold in dB used when reselecting to a lower priority RAT/frequency. Values: {0, 2, 4, ..., 62}.
+      unsigned thresh_x_low = 0;
+      /// Minimum required Rx level in the cell in dBm. Values: {-140, -138, -136, ..., -44}.
+      int q_rx_lev_min = -140;
+      /// Minimum required quality level in the cell in dB. Values: {-34, ..., -3}.
+      int q_qual_min = -34;
+      /// Maximum allowed transmission power in dBm on the (uplink) carrier frequency. Values: {-30, ..., 33}.
+      int p_max_eutra = 33;
+    };
+    /// Cell reselection timer value in seconds. Values: {0, ..., 7}.
+    unsigned t_reselection_eutra;
+    /// List of carrier frequencies of E-UTRA.
+    std::vector<carrier_freq_eutra_config> carrier_freq_list_eutra;
   };
 
   /// \brief Earthquake and Tsunami Warning System (ETWS) message parameters.
@@ -660,7 +743,7 @@ struct du_high_unit_sib_config {
     /// \brief ETWS warning type (see \ref sib6_info::warning_type). Values: {0, ..., 0xffff}
     /// \remark See TS23.041 Section 9.3.24 for a list of meaningful values.
     unsigned warning_type = 0x0980;
-    /// \brief CBS Coding scheme used for the warning message Values: {0, ..., 0xff}.
+    /// \brief CBS Coding scheme used for the warning message. Values: {0, ..., 0xff}.
     ///
     /// Supported coding schemes:
     ///   - 0x00..0x0f: Languages using GSM-7 default alphabet.
@@ -740,6 +823,14 @@ struct du_high_unit_sib_config {
   std::vector<si_sched_info_config> si_sched_info;
   /// UE timers and constants parameters
   sib_ue_timers_and_constants ue_timers_and_constants;
+  /// SIB2 configuration parameters.
+  std::optional<sib2_config> sib2_cfg;
+  /// SIB3 configuration parameters.
+  std::optional<sib3_config> sib3_cfg;
+  /// SIB4 configuration parameters.
+  std::optional<sib4_config> sib4_cfg;
+  /// SIB5 configuration parameters.
+  std::optional<sib5_config> sib5_cfg;
   /// Parameters of the SIB19.
   sib19_info sib19;
   /// ETWS configuration parameters.

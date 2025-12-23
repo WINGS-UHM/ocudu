@@ -11,12 +11,14 @@
 #include "asn1_sys_info_packer.h"
 #include "asn1_ntn_config_helpers.h"
 #include "asn1_rrc_config_helpers.h"
+#include "asn1_sys_info_packer_helpers.h"
 #include "ocudu/asn1/rrc_nr/bcch_bch_msg.h"
 #include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
 #include "ocudu/asn1/rrc_nr/sys_info.h"
 #include "ocudu/du/du_cell_config.h"
 #include "ocudu/du/du_high/du_manager/cbs/cbs_encoder.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/sib/system_info_config.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -391,6 +393,9 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
             if (static_cast<std::underlying_type_t<sib_type>>(type) == sib_id) {
               switch (type) {
                 case sib_type::sib2:
+                case sib_type::sib3:
+                case sib_type::sib4:
+                case sib_type::sib5:
                 case sib_type::sib6:
                 case sib_type::sib7:
                 case sib_type::sib8: {
@@ -498,16 +503,77 @@ static asn1::rrc_nr::sib2_s make_asn1_rrc_cell_sib2(const sib2_info& sib2_params
   using namespace asn1::rrc_nr;
   sib2_s sib2;
 
-  if (sib2_params.q_hyst_db) {
-    sib2.cell_resel_info_common.q_hyst = sib2_s::cell_resel_info_common_s_::q_hyst_opts::db3;
-  }
-  sib2.cell_resel_serving_freq_info.thresh_serving_low_p = sib2_params.thresh_serving_low_p;
-  sib2.cell_resel_serving_freq_info.cell_resel_prio      = sib2_params.cell_reselection_priority;
-
-  sib2.intra_freq_cell_resel_info.q_rx_lev_min     = sib2_params.q_rx_lev_min;
-  sib2.intra_freq_cell_resel_info.s_intra_search_p = sib2_params.s_intra_search_p;
-  sib2.intra_freq_cell_resel_info.t_resel_nr       = sib2_params.t_reselection_nr;
+  sib2.cell_resel_info_common.q_hyst.value               = asn1_utils::make_asn1_rrc_q_hyst(sib2_params.q_hyst);
+  sib2.cell_resel_serving_freq_info.thresh_serving_low_p = sib2_params.thresh_serving_low_p.value();
+  sib2.cell_resel_serving_freq_info.cell_resel_prio      = sib2_params.cell_reselection_priority.value();
+  sib2.intra_freq_cell_resel_info.s_intra_search_p       = sib2_params.s_intra_search_p.value();
+  sib2.intra_freq_cell_resel_info.q_rx_lev_min           = sib2_params.q_rx_lev_min.value();
+  sib2.intra_freq_cell_resel_info.t_resel_nr             = sib2_params.t_reselection_nr.value();
   return sib2;
+}
+
+static asn1::rrc_nr::sib3_s make_asn1_rrc_cell_sib3(const sib3_info& sib3_params)
+{
+  using namespace asn1::rrc_nr;
+  sib3_s sib3;
+
+  for (const auto& neigh_cell : sib3_params.intra_freq_neigh_cell_list) {
+    asn1::rrc_nr::intra_freq_neigh_cell_info_s asn1_neigh_cell;
+    asn1_neigh_cell.pci                 = neigh_cell.pci;
+    asn1_neigh_cell.q_offset_cell.value = asn1_utils::make_asn1_rrc_q_offset_range(neigh_cell.q_offset_cell);
+    sib3.intra_freq_neigh_cell_list.push_back(asn1_neigh_cell);
+  }
+  for (const auto& excluded_range : sib3_params.intra_freq_excluded_cell_list) {
+    sib3.intra_freq_excluded_cell_list.push_back(asn1_utils::make_asn1_rrc_pci_range(excluded_range));
+  }
+
+  return sib3;
+}
+
+static asn1::rrc_nr::sib4_s make_asn1_rrc_cell_sib4(const sib4_info& sib4_params)
+{
+  using namespace asn1::rrc_nr;
+  sib4_s sib4;
+
+  for (const auto& neigh_freq : sib4_params.inter_freq_carrier_freq_list) {
+    asn1::rrc_nr::inter_freq_carrier_freq_info_s asn1_neigh_freq;
+    asn1_neigh_freq.dl_carrier_freq              = neigh_freq.arfcn;
+    asn1_neigh_freq.ssb_subcarrier_spacing.value = get_asn1_scs(neigh_freq.ssb_scs);
+    asn1_neigh_freq.derive_ssb_idx_from_cell     = neigh_freq.derive_ssb_index_from_cell;
+    asn1_neigh_freq.q_rx_lev_min                 = neigh_freq.q_rx_lev_min.value();
+    asn1_neigh_freq.thresh_x_high_p              = neigh_freq.thresh_x_high_p.value();
+    asn1_neigh_freq.thresh_x_low_p               = neigh_freq.thresh_x_low_p.value();
+    asn1_neigh_freq.q_offset_freq_present        = true;
+    asn1_neigh_freq.q_offset_freq.value          = asn1_utils::make_asn1_rrc_q_offset_range(neigh_freq.q_offset_freq);
+    sib4.inter_freq_carrier_freq_list.push_back(asn1_neigh_freq);
+  }
+
+  return sib4;
+}
+
+static asn1::rrc_nr::sib5_s make_asn1_rrc_cell_sib5(const sib5_info& sib5_params)
+{
+  using namespace asn1::rrc_nr;
+  sib5_s sib5;
+
+  sib5.t_resel_eutra = sib5_params.t_reselection_eutra.value();
+  for (const auto& eutra_freq : sib5_params.carrier_freq_list_eutra) {
+    asn1::rrc_nr::carrier_freq_eutra_s asn1_eutra_freq;
+    asn1_eutra_freq.carrier_freq       = eutra_freq.earfcn;
+    asn1_eutra_freq.allowed_meas_bw    = asn1_utils::make_asn1_rrc_allowed_meas_bw(eutra_freq.allowed_meas_bandwidth);
+    asn1_eutra_freq.presence_ant_port1 = eutra_freq.presence_antenna_port1;
+    if (eutra_freq.cell_reselection_priority.has_value()) {
+      asn1_eutra_freq.cell_resel_prio_present = true;
+      asn1_eutra_freq.cell_resel_prio         = eutra_freq.cell_reselection_priority->value();
+    }
+    asn1_eutra_freq.thresh_x_high = eutra_freq.thresh_x_high.value();
+    asn1_eutra_freq.thresh_x_low  = eutra_freq.thresh_x_low.value();
+    asn1_eutra_freq.q_rx_lev_min  = eutra_freq.q_rx_lev_min.value();
+    asn1_eutra_freq.q_qual_min    = eutra_freq.q_qual_min.value();
+    asn1_eutra_freq.p_max_eutra   = eutra_freq.p_max_eutra.value();
+    sib5.carrier_freq_list_eutra.push_back(asn1_eutra_freq);
+  }
+  return sib5;
 }
 
 static asn1::rrc_nr::sib6_s make_asn1_rrc_cell_sib6(const sib6_info& sib6_params)
@@ -719,10 +785,24 @@ static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make
       const auto& cfg     = std::get<sib2_info>(sib);
       sib2_s&     out_sib = ret.front().set_sib2();
       out_sib             = make_asn1_rrc_cell_sib2(cfg);
-      if (cfg.nof_ssbs_to_average.has_value()) {
-        out_sib.cell_resel_info_common.nrof_ss_blocks_to_average_present = true;
-        out_sib.cell_resel_info_common.nrof_ss_blocks_to_average         = cfg.nof_ssbs_to_average.value();
-      }
+      break;
+    }
+    case sib_type::sib3: {
+      const auto& cfg     = std::get<sib3_info>(sib);
+      sib3_s&     out_sib = ret.front().set_sib3();
+      out_sib             = make_asn1_rrc_cell_sib3(cfg);
+      break;
+    }
+    case sib_type::sib4: {
+      const auto& cfg     = std::get<sib4_info>(sib);
+      sib4_s&     out_sib = ret.front().set_sib4();
+      out_sib             = make_asn1_rrc_cell_sib4(cfg);
+      break;
+    }
+    case sib_type::sib5: {
+      const auto& cfg     = std::get<sib5_info>(sib);
+      sib5_s&     out_sib = ret.front().set_sib5();
+      out_sib             = make_asn1_rrc_cell_sib5(cfg);
       break;
     }
     case sib_type::sib6: {

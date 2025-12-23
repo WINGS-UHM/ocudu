@@ -22,6 +22,7 @@
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/sib/cell_reselection.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
@@ -103,16 +104,71 @@ static pcch_config generate_pcch_config(const du_high_unit_base_cell_config& cel
   return cfg;
 }
 
-static sib2_info create_sib2_info()
+static sib2_info create_sib2_info(const du_high_unit_sib_config::sib2_config& config)
 {
   sib2_info sib2;
-  sib2.q_hyst_db                 = 3;
-  sib2.q_rx_lev_min              = -70;
-  sib2.s_intra_search_p          = 31;
-  sib2.t_reselection_nr          = 1;
-  sib2.cell_reselection_priority = 6;
-  sib2.thresh_serving_low_p      = 0;
+  sib2.q_hyst                    = static_cast<q_hyst_t>(config.q_hyst);
+  sib2.thresh_serving_low_p      = config.thresh_serving_low_p;
+  sib2.cell_reselection_priority = config.cell_reselection_priority;
+  sib2.q_rx_lev_min              = config.q_rx_lev_min / 2;
+  sib2.s_intra_search_p          = config.s_intra_search_p / 2;
+  sib2.t_reselection_nr          = config.t_reselection_nr;
   return sib2;
+}
+
+static sib3_info create_sib3_info(const du_high_unit_sib_config::sib3_config& config)
+{
+  sib3_info sib3;
+  for (const auto& neigh : config.intra_freq_neigh_cell_list) {
+    intra_freq_neigh_cell_info info;
+    info.pci           = neigh.pci;
+    info.q_offset_cell = static_cast<q_offset_range_t>(neigh.q_offset_cell);
+    sib3.intra_freq_neigh_cell_list.push_back(info);
+  }
+  for (const auto& range_cfg : config.intra_freq_excluded_cell_list) {
+    pci_range_t range;
+    range.start = range_cfg.start;
+    range.size  = static_cast<pci_range_t::range_t>(range_cfg.size);
+    sib3.intra_freq_excluded_cell_list.push_back(range);
+  }
+  return sib3;
+}
+
+static sib4_info create_sib4_info(const du_high_unit_sib_config::sib4_config& config)
+{
+  sib4_info sib4;
+  for (const auto& carrier : config.inter_freq_carrier_freq_list) {
+    inter_freq_carrier_freq_info info;
+    info.arfcn                      = carrier.arfcn;
+    info.ssb_scs                    = carrier.ssb_scs;
+    info.derive_ssb_index_from_cell = carrier.derive_ssb_index_from_cell;
+    info.q_rx_lev_min               = carrier.q_rx_lev_min / 2;
+    info.thresh_x_high_p            = carrier.thresh_x_high_p / 2;
+    info.thresh_x_low_p             = carrier.thresh_x_low_p / 2;
+    info.q_offset_freq              = static_cast<q_offset_range_t>(carrier.q_offset_freq);
+    sib4.inter_freq_carrier_freq_list.push_back(info);
+  }
+  return sib4;
+}
+
+static sib5_info create_sib5_info(const du_high_unit_sib_config::sib5_config& config)
+{
+  sib5_info sib5;
+  sib5.t_reselection_eutra = config.t_reselection_eutra;
+  for (const auto& carrier : config.carrier_freq_list_eutra) {
+    carrier_freq_eutra info;
+    info.earfcn                    = carrier.earfcn;
+    info.allowed_meas_bandwidth    = static_cast<eutra_allowed_meas_bandwidth_t>(carrier.allowed_meas_bandwidth);
+    info.presence_antenna_port1    = carrier.presence_antenna_port1;
+    info.cell_reselection_priority = carrier.cell_reselection_priority;
+    info.thresh_x_high             = carrier.thresh_x_high / 2;
+    info.thresh_x_low              = carrier.thresh_x_low / 2;
+    info.q_rx_lev_min              = carrier.q_rx_lev_min / 2;
+    info.q_qual_min                = carrier.q_qual_min;
+    info.p_max_eutra               = carrier.p_max_eutra;
+    sib5.carrier_freq_list_eutra.push_back(info);
+  }
+  return sib5;
 }
 
 static sib6_info create_sib6_info(const du_high_unit_sib_config::etws_config& etws_cfg)
@@ -394,7 +450,32 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         sib_info item;
         switch (sib_id) {
           case 2: {
-            item = create_sib2_info();
+            if (!base_cell.sib_cfg.sib2_cfg.has_value()) {
+              report_error("SIB-2 cannot be scheduled without SIB2 config. Set the SIB2 config or remove SIB-2 from "
+                           "the si_sched_info list");
+            }
+            item = create_sib2_info(base_cell.sib_cfg.sib2_cfg.value());
+          } break;
+          case 3: {
+            if (!base_cell.sib_cfg.sib3_cfg.has_value()) {
+              report_error("SIB-3 cannot be scheduled without SIB3 config. Set the SIB3 config or remove SIB-3 from "
+                           "the si_sched_info list");
+            }
+            item = create_sib3_info(base_cell.sib_cfg.sib3_cfg.value());
+          } break;
+          case 4: {
+            if (!base_cell.sib_cfg.sib4_cfg.has_value()) {
+              report_error("SIB-4 cannot be scheduled without SIB4 config. Set the SIB4 config or remove SIB-4 from "
+                           "the si_sched_info list");
+            }
+            item = create_sib4_info(base_cell.sib_cfg.sib4_cfg.value());
+          } break;
+          case 5: {
+            if (!base_cell.sib_cfg.sib5_cfg.has_value()) {
+              report_error("SIB-5 cannot be scheduled without SIB5 config. Set the SIB5 config or remove SIB-5 from "
+                           "the si_sched_info list");
+            }
+            item = create_sib5_info(base_cell.sib_cfg.sib5_cfg.value());
           } break;
           case 6: {
             if (!base_cell.sib_cfg.etws_cfg.has_value()) {

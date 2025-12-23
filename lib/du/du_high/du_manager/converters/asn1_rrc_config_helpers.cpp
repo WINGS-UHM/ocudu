@@ -12,7 +12,6 @@
 #include "asn1_csi_meas_config_helpers.h"
 #include "ocudu/asn1/asn1_diff_utils.h"
 #include "ocudu/ran/band_helper.h"
-#include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/support/error_handling.h"
 
 using namespace ocudu;

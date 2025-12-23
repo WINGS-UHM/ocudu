@@ -12,6 +12,7 @@ set(SOURCES
         asn1_ntn_config_helpers.cpp
         asn1_rrc_config_helpers.cpp
         asn1_sys_info_packer.cpp
+        asn1_sys_info_packer_helpers.cpp
         f1ap_configuration_helpers.cpp
         rlc_config_helpers.cpp
         scheduler_configuration_helpers.cpp)

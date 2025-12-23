@@ -128,6 +128,14 @@ void scheduler_event_logger::enqueue_impl(const ue_cfg_applied_event& ev)
   }
 }
 
+void scheduler_event_logger::enqueue_impl(const ue_deactivation_event& req)
+{
+  if (mode == debug) {
+    fmt::format_to(
+        std::back_inserter(fmtbuf), "\n- UE deactivation: ue={} rnti={}", fmt::underlying(req.ue_index), req.rnti);
+  }
+}
+
 void scheduler_event_logger::enqueue_impl(const error_indication_event& err_ind)
 {
   if (mode == debug) {

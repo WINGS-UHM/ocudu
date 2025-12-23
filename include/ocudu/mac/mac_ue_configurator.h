@@ -103,9 +103,16 @@ struct mac_ue_reconfiguration_response {
 
 /// Input parameters used to delete a UE in the scheduler.
 struct mac_ue_delete_request {
+  /// Serving cell of the UE to be deleted.
   du_cell_index_t cell_index;
-  du_ue_index_t   ue_index;
-  rnti_t          rnti;
+  /// DU-specific UE index of the UE to be deleted.
+  du_ue_index_t ue_index;
+  /// C-RNTI of the UE to be deleted.
+  rnti_t rnti;
+  /// \brief Minimum wait period between the UE being marked as inactive and actually being removed from MAC.
+  ///
+  /// This delay allows to absorb any in-flight UL transmissions from the UE while it is being released.
+  std::chrono::milliseconds min_removal_delay{0};
 };
 
 /// \brief Outcome of a MAC UE deletion request procedure.

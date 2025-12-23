@@ -100,6 +100,7 @@ public:
   void handle_ue_reconfiguration_request(const sched_ue_reconfiguration_message& ue_request) override {}
   void handle_ue_removal_request(du_ue_index_t ue_index) override {}
   void handle_ue_config_applied(du_ue_index_t ue_index) override {}
+  void handle_ue_deactivation_request(du_ue_index_t ue_index) override {}
   void handle_si_update_request(const si_scheduling_update_request& req) override {}
   void handle_ul_bsr_indication(const ul_bsr_indication_message& bsr) override {}
   void handle_crc_indication(const ul_crc_indication& crc) override {}

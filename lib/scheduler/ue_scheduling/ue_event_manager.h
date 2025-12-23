@@ -68,6 +68,7 @@ public:
   void handle_ue_reconfiguration(ue_config_update_event ev) override;
   void handle_ue_deletion(ue_config_delete_event ev) override;
   void handle_ue_config_applied(du_cell_index_t pcell_idx, du_ue_index_t ue_idx) override;
+  void handle_ue_deactivation_request(du_cell_index_t pcell_idx, du_ue_index_t ue_idx) override;
 
   // scheduler_feedback_handler methods.
   void handle_ul_bsr_indication(const ul_bsr_indication_message& bsr) override;

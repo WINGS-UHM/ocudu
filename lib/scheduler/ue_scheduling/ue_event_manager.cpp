@@ -376,14 +376,12 @@ void ue_cell_event_manager::handle_ue_deletion(ue_config_delete_event ev)
     const auto&  u    = ue_db[ue_idx];
     const rnti_t rnti = u.crnti;
 
-    for (unsigned i = 0, e = u.nof_cells(); i != e; ++i) {
-      // Update UCI scheduling by removing existing UE UCI resources.
-      uci_sched.rem_ue(u.get_pcell().cfg());
-      // Update SRS scheduling by removing existing UE SRS resources.
-      srs_sched.rem_ue(u.get_pcell().cfg());
-      // Schedule removal of UE from slice scheduler.
-      slice_sched.rem_ue(ue_idx);
-    }
+    // Update UCI scheduling by removing existing UE UCI resources.
+    uci_sched.rem_ue(u.get_pcell().cfg());
+    // Update SRS scheduling by removing existing UE SRS resources.
+    srs_sched.rem_ue(u.get_pcell().cfg());
+    // Schedule removal of UE from slice scheduler.
+    slice_sched.rem_ue(ue_idx);
 
     // Schedule UE removal from repository.
     ue_db.schedule_ue_rem(std::move(ev));
@@ -413,6 +411,26 @@ void ue_cell_event_manager::handle_ue_config_applied(du_cell_index_t pcell_idx, 
   };
 
   push_event(pcell_idx, event_t{"ue_cfg_applied", ue_idx, std::move(handle_ue_config_applied_impl)});
+}
+
+void ue_cell_event_manager::handle_ue_deactivation_request(du_cell_index_t pcell_idx, du_ue_index_t ue_idx)
+{
+  auto handle_ue_deactivation_impl = [this, ue_idx]() {
+    if (not ue_db.contains(ue_idx)) {
+      return event_result::invalid_ue;
+    }
+    auto& u = ue_db[ue_idx];
+
+    // Schedule removal of UE from slice scheduler so it doesn't get scheduled PDSCH/PUSCH.
+    slice_sched.rem_ue(ue_idx);
+
+    // Log event.
+    ev_logger.enqueue(scheduler_event_logger::ue_deactivation_event{ue_idx, u.crnti});
+
+    return event_result::processed;
+  };
+
+  push_event(pcell_idx, event_t{"ue_deactivation", ue_idx, std::move(handle_ue_deactivation_impl)});
 }
 
 void ue_cell_event_manager::handle_ul_bsr_indication(const ul_bsr_indication_message& bsr_ind)

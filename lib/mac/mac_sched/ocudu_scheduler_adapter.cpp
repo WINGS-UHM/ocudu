@@ -11,6 +11,7 @@
 #include "ocudu_scheduler_adapter.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include "ocudu/scheduler/scheduler_factory.h"
+#include "ocudu/support/async/async_timer.h"
 #include "ocudu/support/executors/execute_until_success.h"
 
 using namespace ocudu;
@@ -125,6 +126,16 @@ async_task<void> ocudu_scheduler_adapter::handle_ue_removal_request(const mac_ue
 {
   return launch_async([this, msg](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
+
+    if (msg.min_removal_delay.count() > 0) {
+      // > Wait for the minimum removal delay before starting the actual UE removal.
+
+      // Deactivate UE so it doesn't get new PDSCH/PUSCH grants during the wait period.
+      sched_impl->handle_ue_deactivation_request(msg.ue_index);
+
+      // Wait for the specified delay.
+      CORO_AWAIT(async_wait_for(timers.create_unique_timer(ctrl_exec), msg.min_removal_delay));
+    }
 
     // Remove UE from the scheduler.
     sched_impl->handle_ue_removal_request(msg.ue_index);

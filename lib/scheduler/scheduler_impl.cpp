@@ -128,6 +128,16 @@ void scheduler_impl::handle_ue_config_applied(du_ue_index_t ue_index)
   cells[pcell_idx]->get_ue_configurator().handle_ue_config_applied(pcell_idx, ue_index);
 }
 
+void scheduler_impl::handle_ue_deactivation_request(du_ue_index_t ue_index)
+{
+  const du_cell_index_t pcell_idx = cfg_mng.get_pcell_index(ue_index);
+  if (pcell_idx == INVALID_DU_CELL_INDEX) {
+    logger.error("ue={}: Discarding ue deactivation event. Cause: UE does not exist", fmt::underlying(ue_index));
+    return;
+  }
+  cells[pcell_idx]->get_ue_configurator().handle_ue_deactivation_request(pcell_idx, ue_index);
+}
+
 void scheduler_impl::handle_rach_indication(const rach_indication_message& msg)
 {
   ocudu_assert(cells.contains(msg.cell_index), "cell={} does not exist", fmt::underlying(msg.cell_index));

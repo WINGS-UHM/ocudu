@@ -42,12 +42,6 @@ void ue_deletion_procedure::operator()(coro_context<async_task<void>>& ctx)
   // > Disconnect DRBs from F1-U and SRBs from F1-C to stop handling traffic in flight and delivery notifications.
   CORO_AWAIT(stop_ue_bearer_traffic());
 
-  if (ran_res_release_timeout.count() > 0) {
-    // Timeout specified between UE deactivation and UE actual removal.
-    CORO_AWAIT(async_wait_for(du_params.services.timers.create_unique_timer(du_params.services.du_mng_exec),
-                              ran_res_release_timeout));
-  }
-
   // > Remove UE from F1AP.
   du_params.f1ap.ue_mng.handle_ue_deletion_request(ue_index);
 
@@ -74,9 +68,10 @@ void ue_deletion_procedure::operator()(coro_context<async_task<void>>& ctx)
 async_task<mac_ue_delete_response> ue_deletion_procedure::launch_mac_ue_delete()
 {
   mac_ue_delete_request mac_msg{};
-  mac_msg.ue_index   = ue->ue_index;
-  mac_msg.rnti       = ue->rnti;
-  mac_msg.cell_index = ue->pcell_index;
+  mac_msg.ue_index          = ue->ue_index;
+  mac_msg.rnti              = ue->rnti;
+  mac_msg.cell_index        = ue->pcell_index;
+  mac_msg.min_removal_delay = ran_res_release_timeout;
   return du_params.mac.mgr.get_ue_configurator().handle_ue_delete_request(mac_msg);
 }
 

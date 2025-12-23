@@ -46,6 +46,7 @@ include:
     TEST_EXECUTION_TIMEOUT: 0
     # CI
     OCUDU_DIR: ${CI_PROJECT_DIR}
+    OCUDU_BUILD_DIR: build
     INFRASTRUCTURE_TAG: amd64-avx2
     TRANSFER_METER_FREQUENCY: 5s
     ARTIFACT_COMPRESSION_LEVEL: slowest
@@ -126,12 +127,12 @@ include:
     - |
       build_ocudu() {
         set -x
-        builder.sh -m "-j${KUBERNETES_CPU_REQUEST} ${OCUDU_TARGET}" ${BUILD_CMD} ${OCUDU_DIR}
+        builder.sh -b "${OCUDU_BUILD_DIR}" -m "-j${KUBERNETES_CPU_REQUEST} ${OCUDU_TARGET}" ${BUILD_CMD} ${OCUDU_DIR}
         { set +x; } 2>/dev/null
       }
     - |
       launch_tests_ocudu() {
-        cd ${OCUDU_DIR}/build
+        cd ${OCUDU_DIR}/${OCUDU_BUILD_DIR}
         echo "Using LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
         set -x
         ctest -j${KUBERNETES_CPU_REQUEST} --schedule-random --output-on-failure --output-junit xunit.xml $CTEST_ARGS

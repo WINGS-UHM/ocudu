@@ -44,14 +44,14 @@ include:
         build_ocudu
         if [[ -n "$OUTPUT_FINGERPRINT" ]]; then
           echo "Storing fingerprints of all executables to $OUTPUT_FINGERPRINT"
-          cd build
+          cd ${OCUDU_BUILD_DIR}
           /usr/local/builder_tools/bin/python /usr/local/bin/changed_tests.py -b . -o "../$OUTPUT_FINGERPRINT"
           cd ..
         fi
       }
 
       launch_tests() {
-        cd ${CI_PROJECT_DIR}/build
+        cd ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}
         if [ -n "${FINGERPRINT}" ]; then
           echo "Searching for changed tests"
           CTEST_SUBSET=$(/usr/local/builder_tools/bin/python /usr/local/bin/changed_tests.py -b . -i "../${FINGERPRINT}" -d md5)
@@ -125,7 +125,7 @@ include:
     - launch_tests
   timeout: 6h
   after_script:
-    - mv ${CI_PROJECT_DIR}/build/coverage.xml      ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage.xml            || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage.xml      ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage.xml            || true
   artifacts:
     when: always
     reports:
@@ -134,7 +134,7 @@ include:
         path: ${CI_JOB_ID}_coverage.xml
     paths:
       - ${CI_JOB_ID}_coverage.xml
-      - build/Testing/Temporary/MemoryChecker.*.log
+      - ${OCUDU_BUILD_DIR}/Testing/Temporary/MemoryChecker.*.log
     expire_in: 5 days
 
 # Basic builds (MR and update cache on Nightly)

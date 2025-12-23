@@ -107,7 +107,7 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
     if (std::optional<unsigned> time_res_idx = find_pdsch_time_resource(res_grid, pg_info, pdcch_slot);
         time_res_idx.has_value()) {
       // A suitable PDSCH time resource found for this UE.
-      pdsch_time_res_idx_to_scheduled_ues_lookup[*time_res_idx].push_back(&pg_info);
+      pdsch_time_res_idx_to_scheduled_ues_lookup[*time_res_idx].push_back(pg_it.first);
     }
   }
 
@@ -118,8 +118,8 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
     const auto& group = pdsch_time_res_idx_to_scheduled_ues_lookup[pdsch_td_res_idx];
     if (not group.empty() and allocate_paging(res_grid, pdcch_slot, pdsch_td_res_idx, group, paging_search_space)) {
       // Allocation successful. Mark number of retries.
-      for (const auto* pg_info : group) {
-        auto it = paging_pending_ues.find(pg_info->paging_identity);
+      for (ue_paging_id pg_id : group) {
+        auto it = paging_pending_ues.find(pg_id);
         ocudu_sanity_check(it != paging_pending_ues.end(), "Paging info must be present in the pending map.");
         if (++it->second.retry_count >= expert_cfg.pg.max_paging_retries) {
           // Remove from pending paging UEs map if it exceeded maximum retries.
@@ -201,15 +201,15 @@ std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_re
   return std::nullopt;
 }
 
-unsigned
-paging_scheduler::get_accumulated_paging_msg_size(const std::vector<const sched_paging_information*>& ues_paging_info)
+unsigned paging_scheduler::get_accumulated_paging_msg_size(const std::vector<ue_paging_id>& ue_paging_ids) const
 {
   // Estimate of the number of bytes required for the upper layer header in bytes.
   static constexpr unsigned RRC_HEADER_SIZE_ESTIMATE = 2U;
 
   unsigned payload_size = 0;
-  for (const auto& pg_info : ues_paging_info) {
-    if (pg_info->paging_type_indicator == paging_identity_type::cn_ue_paging_identity) {
+  for (ue_paging_id pg_id : ue_paging_ids) {
+    const auto& pg_info = paging_pending_ues.at(pg_id).info;
+    if (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity) {
       payload_size += RRC_CN_PAGING_ID_RECORD_SIZE;
     } else {
       payload_size += RRC_RAN_PAGING_ID_RECORD_SIZE;
@@ -317,11 +317,11 @@ bool paging_scheduler::is_there_space_available_for_paging(const cell_resource_a
   return true;
 }
 
-bool paging_scheduler::allocate_paging(cell_resource_allocator&                            res_grid,
-                                       slot_point                                          pdcch_slot,
-                                       unsigned                                            pdsch_time_res,
-                                       const std::vector<const sched_paging_information*>& ues_paging_info,
-                                       search_space_id                                     ss_id)
+bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid,
+                                       slot_point                       pdcch_slot,
+                                       unsigned                         pdsch_time_res,
+                                       const std::vector<ue_paging_id>& ue_paging_ids,
+                                       search_space_id                  ss_id)
 {
   // NOTE:
   // - [Implementation defined] Need to take into account PDSCH Time Domain Resource Allocation in UE's active DL BWP,
@@ -330,14 +330,14 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&                 
   cell_slot_resource_allocator& pdcch_alloc = res_grid[pdcch_slot];
   if (pdcch_alloc.result.dl.dl_pdcchs.full()) {
     logger.warning("Dropping Paging opportunity for id={}. Cause: Not enough PDCCH space for Paging",
-                   ues_paging_info.front()->paging_identity);
+                   ue_paging_ids.front());
     return false;
   }
 
   cell_slot_resource_allocator& pdsch_alloc = res_grid[pdcch_slot + pdsch_td_alloc_list[pdsch_time_res].k0];
   if (pdsch_alloc.result.dl.paging_grants.full()) {
     logger.warning("Dropping Paging opportunity for id={}. Cause: Not enough PDSCH space for Paging",
-                   ues_paging_info.front()->paging_identity);
+                   ue_paging_ids.front());
     return false;
   }
 
@@ -358,7 +358,7 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&                 
 
   const sch_mcs_description mcs_descr = pdsch_mcs_get_config(pdsch_mcs_table::qam64, expert_cfg.pg.paging_mcs_index);
   const sch_prbs_tbs        paging_prbs_tbs =
-      get_nof_prbs(prbs_calculator_sch_config{get_accumulated_paging_msg_size(ues_paging_info),
+      get_nof_prbs(prbs_calculator_sch_config{get_accumulated_paging_msg_size(ue_paging_ids),
                                               nof_symb_sh,
                                               calculate_nof_dmrs_per_rb(dmrs_info),
                                               nof_oh_prb,
@@ -395,33 +395,34 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&                 
                     *pdcch,
                     paging_crbs,
                     pdsch_time_res,
-                    ues_paging_info,
+                    ue_paging_ids,
                     dmrs_info,
                     paging_prbs_tbs.tbs_bytes);
 
   return true;
 }
 
-void paging_scheduler::fill_paging_grant(dl_paging_allocation&                               pg_grant,
-                                         pdcch_dl_information&                               pdcch,
-                                         crb_interval                                        crbs_grant,
-                                         unsigned                                            time_resource,
-                                         const std::vector<const sched_paging_information*>& ues_paging_info,
-                                         const dmrs_information&                             dmrs_info,
-                                         unsigned                                            tbs)
+void paging_scheduler::fill_paging_grant(dl_paging_allocation&            pg_grant,
+                                         pdcch_dl_information&            pdcch,
+                                         crb_interval                     crbs_grant,
+                                         unsigned                         time_resource,
+                                         const std::vector<ue_paging_id>& ue_paging_ids,
+                                         const dmrs_information&          dmrs_info,
+                                         unsigned                         tbs)
 {
   // Fill Paging DCI.
   build_dci_f1_0_p_rnti(
       pdcch.dci, cell_cfg.dl_cfg_common.init_dl_bwp, crbs_grant, time_resource, expert_cfg.pg.paging_mcs_index);
 
   // Add Paging UE info to list of Paging information to pass to lower layers.
-  for (const auto& pg_info : ues_paging_info) {
+  for (ue_paging_id pg_id : ue_paging_ids) {
+    const auto& pg_info = paging_pending_ues.at(pg_id);
     pg_grant.paging_ue_list.emplace_back();
     pg_grant.paging_ue_list.back().paging_type_indicator =
-        pg_info->paging_type_indicator == paging_identity_type::cn_ue_paging_identity
+        pg_info.info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
             ? paging_ue_info::cn_ue_paging_identity
             : paging_ue_info::ran_ue_paging_identity;
-    pg_grant.paging_ue_list.back().paging_identity = pg_info->paging_identity;
+    pg_grant.paging_ue_list.back().paging_identity = pg_id;
   }
 
   // Fill PDSCH configuration.

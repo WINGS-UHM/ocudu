@@ -293,7 +293,7 @@ TEST_P(paging_sched_tester, successfully_paging_multiple_ues)
   }
 
   for (auto& it : fiveg_s_tmsi_to_paging_attempts_lookup) {
-    ASSERT_EQ(it.second, params.max_paging_retries);
+    ASSERT_EQ(it.second, params.max_paging_retries) << fmt::format("For UE with 5G-S-TMSI: {:#x}", it.first);
   }
 }
 

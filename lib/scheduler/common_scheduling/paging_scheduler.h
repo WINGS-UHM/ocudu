@@ -79,9 +79,9 @@ private:
                                                    slot_point                      pdcch_slot) const;
 
   /// \brief Helper function to get sum of paging payload size of each UE scheduled at a particular slot.
-  /// \param[in] ues_paging_info List of UE scheduled at a particular slot for Paging.
+  /// \param[in] ue_paging_ids List of UE scheduled at a particular slot for Paging.
   /// \return Sum of payload size.
-  static unsigned get_accumulated_paging_msg_size(const std::vector<const sched_paging_information*>& ues_paging_info);
+  unsigned get_accumulated_paging_msg_size(const std::vector<ue_paging_id>& ue_paging_ids) const;
 
   /// \brief Checks whether there is space for PDSCH to allocate Paging grant.
   ///
@@ -97,14 +97,14 @@ private:
   ///
   /// \param[out,in] res_grid Resource grid with current allocations and scheduling results.
   /// \param[in] pdsch_time_res Slot at which PDSCH needs to be scheduled.
-  /// \param[in] ues_paging_info List of UE scheduled at a particular slot for Paging.
+  /// \param[in] ues_paging_ids List of UE scheduled at a particular slot for Paging.
   /// \param[in] ss_id Search Space Id used in scheduling paging message.
   /// \return True if paging allocation is successful, false otherwise.
-  bool allocate_paging(cell_resource_allocator&                            res_grid,
-                       slot_point                                          pdcch_slot,
-                       unsigned                                            pdsch_time_res,
-                       const std::vector<const sched_paging_information*>& ues_paging_info,
-                       search_space_id                                     ss_id);
+  bool allocate_paging(cell_resource_allocator&         res_grid,
+                       slot_point                       pdcch_slot,
+                       unsigned                         pdsch_time_res,
+                       const std::vector<ue_paging_id>& ues_paging_ids,
+                       search_space_id                  ss_id);
 
   /// \brief Fills the Paging grant.
   ///
@@ -112,16 +112,16 @@ private:
   /// \param[out,in] pdcch Allocated PDCCH for Paging.
   /// \param[in] crbs_grant Paging grant in CRBs.
   /// \param[in] time_resource Slot at which PDSCH needs to be scheduled.
-  /// \param[in] ues_paging_info List of UE scheduled at a particular slot for Paging.
+  /// \param[in] ues_paging_ids List of UE scheduled at a particular slot for Paging.
   /// \param[in] dmrs_info DMRS information related to the scheduled grant.
   /// \param[in] tbs TBS information of the Paging grant.
-  void fill_paging_grant(dl_paging_allocation&                               pg_grant,
-                         pdcch_dl_information&                               pdcch,
-                         crb_interval                                        crbs_grant,
-                         unsigned                                            time_resource,
-                         const std::vector<const sched_paging_information*>& ues_paging_info,
-                         const dmrs_information&                             dmrs_info,
-                         unsigned                                            tbs);
+  void fill_paging_grant(dl_paging_allocation&            pg_grant,
+                         pdcch_dl_information&            pdcch,
+                         crb_interval                     crbs_grant,
+                         unsigned                         time_resource,
+                         const std::vector<ue_paging_id>& ues_paging_ids,
+                         const dmrs_information&          dmrs_info,
+                         unsigned                         tbs);
 
   // Args.
   const scheduler_expert_config& expert_cfg;
@@ -159,7 +159,7 @@ private:
   flat_map<ue_paging_id, ue_paging_info> paging_pending_ues;
   /// Lookup to keep track of scheduled paging UEs at a particular PDSCH time resource index. Index of \c
   /// pdsch_time_res_idx_to_scheduled_ues_lookup corresponds to PDSCH Time Domain Resource Index.
-  std::vector<std::vector<const sched_paging_information*>> pdsch_time_res_idx_to_scheduled_ues_lookup;
+  std::vector<std::vector<ue_paging_id>> pdsch_time_res_idx_to_scheduled_ues_lookup;
 
   ocudulog::basic_logger& logger;
 };

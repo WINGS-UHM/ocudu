@@ -32,9 +32,14 @@ static void configure_cli11_metrics_args(CLI::App& app, odu::metrics_appconfig& 
 
 static void configure_cli11_f1ap_args(CLI::App& app, odu::f1ap_appconfig& f1c_params)
 {
-  app.add_option("--cu_cp_addr", f1c_params.cu_cp_address, "CU-CP F1-C address to connect to")->capture_default_str();
-  app.add_option(
-         "--bind_addr", f1c_params.bind_address, "DU F1-C bind address. If left empty, implicit bind is performed")
+  app.add_option("--addrs",
+                 f1c_params.cu_cp_addresses,
+                 "CU-CP F1-C addresses to connect to. Multiple addresses can be specified for SCTP multi-homing")
+      ->capture_default_str();
+  app.add_option("--bind_addrs",
+                 f1c_params.bind_addresses,
+                 "DU F1-C bind addresses. Multiple addresses can be specified for SCTP "
+                 "multi-homing. If left empty, implicit bind is performed")
       ->capture_default_str();
 }
 

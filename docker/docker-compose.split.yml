@@ -125,8 +125,8 @@ configs:
   du_compose_config.yml:
     content: |
       f1ap:
-        cu_cp_addr: ${CU_CP_IP:-10.53.1.4}
-        bind_addr: ${DU_IP:-10.53.1.6}
+        addrs: ${CU_CP_IP:-10.53.1.4}
+        bind_addrs: ${DU_IP:-10.53.1.6}
       f1u:
         socket:
           -

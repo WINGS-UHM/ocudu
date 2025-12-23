@@ -27,10 +27,10 @@ namespace odu {
 
 /// Configuration of the F1-C interface of the DU.
 struct f1ap_appconfig {
-  /// CU-CP F1-C address the DU will connect to.
-  std::string cu_cp_address = "127.0.10.1";
-  /// DU F1-C bind address.
-  std::string bind_address = "127.0.10.2";
+  /// CU-CP F1-C addresses the DU will connect to.
+  std::vector<std::string> cu_cp_addresses = {"127.0.10.1"};
+  /// DU F1-C bind addresses.
+  std::vector<std::string> bind_addresses = {"127.0.10.2"};
 };
 
 struct f1u_appconfig {

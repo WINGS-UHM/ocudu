@@ -20,9 +20,16 @@ bool ocudu::validate_appconfig(const du_appconfig& config)
     return false;
   }
 
-  if (config.f1ap_cfg.cu_cp_address.empty()) {
+  if (config.f1ap_cfg.cu_cp_addresses.empty()) {
     fmt::print("CU-CP F1-C address is mandatory\n");
     return false;
+  }
+
+  for (const auto& addr : config.f1ap_cfg.cu_cp_addresses) {
+    if (addr.empty()) {
+      fmt::print("CU-CP F1-C address cannot be empty\n");
+      return false;
+    }
   }
 
   if (!validate_f1u_sockets_appconfig(config.f1u_cfg.f1u_sockets)) {

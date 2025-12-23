@@ -69,8 +69,8 @@ static void fill_du_appconfig_f1u_section(YAML::Node node, const odu::f1u_appcon
 
 static void fill_du_appconfig_f1ap_section(YAML::Node node, const odu::f1ap_appconfig& config)
 {
-  node["cu_cp_addr"] = config.cu_cp_address;
-  node["bind_addr"]  = config.bind_address;
+  node["addrs"]      = config.cu_cp_addresses;
+  node["bind_addrs"] = config.bind_addresses;
 }
 
 void ocudu::fill_du_appconfig_in_yaml_schema(YAML::Node& node, const du_appconfig& config)

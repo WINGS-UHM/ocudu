@@ -23,7 +23,7 @@ namespace ocudu {
 /// \param[in] scs_ssb is ssb subcarrier spacing.
 /// \param[in] params is set of parameters defining the SSB position within the band and the CORESET0 and
 /// SearchSpaceZero indices.
-void test_ssb_coreset0_allocation(unsigned                                       dl_arfcn,
+void test_ssb_coreset0_allocation(arfcn_t                                        dl_arfcn,
                                   nr_band                                        nr_band,
                                   unsigned                                       n_rbs_,
                                   subcarrier_spacing                             scs_common,

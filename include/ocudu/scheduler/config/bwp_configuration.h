@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ran/arfcn.h"
 #include "ocudu/ran/bwp/bwp_configuration.h"
 #include "ocudu/ran/pcch/pcch_configuration.h"
 #include "ocudu/ran/pdcch/coreset.h"
@@ -141,9 +142,9 @@ struct freq_band_indicator {
 struct frequency_info_dl {
   /// \brief Absolute frequency of the SSB as ARFCN. This is the ARFCN of the SS_ref (or SSB central frequency).
   /// SS_ref is defined is per TS 38.104, Section 5.4.3.1 and 5.4.3.2.
-  unsigned absolute_frequency_ssb;
+  arfcn_t absolute_frequency_ssb;
   /// Absolute frequency (in ARFCN) of the reference resource block (common RB0).
-  unsigned absolute_freq_point_a;
+  arfcn_t absolute_freq_point_a;
   /// Represents the offset to Point A, as defined in TS 38.211, clause 4.4.4.2. Values: (0..2199).
   unsigned offset_to_point_a;
   /// Set of carriers for different subcarrier spacings. The network configures this for all SCSs that are used in
@@ -173,7 +174,7 @@ struct dl_config_common {
 
 struct frequency_info_ul {
   /// Absolute frequency (in ARFCN) of the CRB0.
-  unsigned absolute_freq_point_a;
+  arfcn_t absolute_freq_point_a;
   /// Set of carriers for different subcarrier spacings. The network configures this for all SCSs that are used in
   /// UL BWPs in this serving cell. Size: (1..maxSCSs=5).
   std::vector<scs_specific_carrier> scs_carrier_list;

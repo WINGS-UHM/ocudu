@@ -51,7 +51,7 @@ struct nrppa_result_ss_rsrp_per_ssb_item {
 
 struct nrppa_result_ss_rsrp_item {
   pci_t                                          nr_pci;
-  uint32_t                                       nr_arfcn;
+  arfcn_t                                        nr_arfcn;
   std::optional<nr_cell_global_id_t>             cgi_nr;
   std::optional<uint8_t>                         value_ss_rsrp_cell;
   std::vector<nrppa_result_ss_rsrp_per_ssb_item> ss_rsrp_per_ssb;
@@ -64,7 +64,7 @@ struct nrppa_result_ss_rsrq_per_ssb_item {
 
 struct nrppa_result_ss_rsrq_item {
   pci_t                                          nr_pci;
-  uint32_t                                       nr_arfcn;
+  arfcn_t                                        nr_arfcn;
   std::optional<nr_cell_global_id_t>             cgi_nr;
   std::optional<uint8_t>                         value_ss_rsrq_cell;
   std::vector<nrppa_result_ss_rsrq_per_ssb_item> ss_rsrq_per_ssb;
@@ -77,7 +77,7 @@ struct nrppa_result_csi_rsrp_per_csi_rs_item {
 
 struct nrppa_result_csi_rsrp_item {
   pci_t                                              nr_pci;
-  uint32_t                                           nr_arfcn;
+  arfcn_t                                            nr_arfcn;
   std::optional<nr_cell_global_id_t>                 cgi_nr;
   std::optional<uint8_t>                             value_csi_rsrp_cell;
   std::vector<nrppa_result_csi_rsrp_per_csi_rs_item> csi_rsrp_per_csi_rs;
@@ -90,7 +90,7 @@ struct nrppa_result_csi_rsrq_per_csi_rs_item {
 
 struct nrppa_result_csi_rsrq_item {
   pci_t                                              nr_pci;
-  uint32_t                                           nr_arfcn;
+  arfcn_t                                            nr_arfcn;
   std::optional<nr_cell_global_id_t>                 cgi_nr;
   std::optional<uint8_t>                             value_csi_rsrq_cell;
   std::vector<nrppa_result_csi_rsrq_per_csi_rs_item> csi_rsrq_per_csi_rs;

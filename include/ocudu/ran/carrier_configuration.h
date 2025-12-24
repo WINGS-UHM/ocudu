@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "arfcn.h"
 #include "ocudu/ran/bs_channel_bandwidth.h"
 #include "ocudu/ran/nr_band.h"
 #include <cstdint>
@@ -23,7 +24,7 @@ struct carrier_configuration {
   bs_channel_bandwidth carrier_bw = bs_channel_bandwidth::MHz10;
   /// NR Absolute Radio Frequency Channel Number (NR-ARFCN) of "F_REF", which is the RF reference frequency, as per
   /// TS 38.104, Section 5.4.2.1 ("F_REF" maps to the central frequency of the band).
-  uint32_t arfcn_f_ref = 365000;
+  arfcn_t arfcn_f_ref = 365000;
   /// <em>NR operating band<\em>, as per Table 5.2-1 and 5.2-2. TS 38.104.
   nr_band band = nr_band::invalid;
   /// Number of antennas. Values: (0..65355).

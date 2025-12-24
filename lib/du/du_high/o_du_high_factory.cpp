@@ -55,8 +55,8 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.carrier_cfg.dl_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.dl_carrier.carrier_bw);
   cell_cfg.carrier_cfg.ul_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.ul_carrier.carrier_bw);
 
-  cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.dl_carrier.arfcn_f_ref;
-  cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ul_carrier.arfcn_f_ref;
+  cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.dl_carrier.arfcn_f_ref.value();
+  cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ul_carrier.arfcn_f_ref.value();
 
   // NOTE; for now we only need to fill the nof_prb_ul_grid and nof_prb_dl_grid for the common SCS.
   cell_cfg.carrier_cfg.dl_grid_size             = {};

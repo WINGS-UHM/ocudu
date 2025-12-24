@@ -95,7 +95,7 @@ void inter_cu_handover_target_routine::operator()(
       CORO_EARLY_RETURN(generate_handover_resource_allocation_response(false));
     }
     ue->get_security_manager().perform_horizontal_key_derivation(cell_cfg->serving_cell_cfg.pci.value(),
-                                                                 cell_cfg->serving_cell_cfg.ssb_arfcn.value());
+                                                                 cell_cfg->serving_cell_cfg.ssb_arfcn.value().value());
 
     if (!fill_e1ap_bearer_context_setup_request(ue->get_security_manager().get_up_as_config())) {
       logger.warning("ue={}: \"{}\" failed. Cause: Could not fill context at CU-UP", request.ue_index, name());

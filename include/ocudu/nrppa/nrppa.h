@@ -22,7 +22,7 @@ namespace ocucp {
 struct cell_measurement_positioning_info {
   struct cell_measurement_item_t {
     nr_cell_global_id_t nr_cgi;
-    uint32_t            nr_arfcn;
+    arfcn_t             nr_arfcn;
     rrc_meas_result_nr  meas_result;
   };
 

@@ -32,7 +32,7 @@ byte_buffer ocudu::odu::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_
   meas_item.freq_and_timing_present = true;
   auto& freq_time                   = meas_item.freq_and_timing;
   freq_time.ssb_subcarrier_spacing  = get_asn1_scs(du_cfg.ssb_cfg.scs);
-  freq_time.carrier_freq            = du_cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb;
+  freq_time.carrier_freq            = du_cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
 
   // > Derive SSB periodicity, duration and offset.
   // TODO: Derive the correct duration.

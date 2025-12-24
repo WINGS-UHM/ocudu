@@ -130,7 +130,7 @@ static YAML::Node build_cu_cp_mobility_cells_section(const cu_cp_unit_cell_confi
     node["pci"] = config.pci.value();
   }
   if (config.ssb_arfcn) {
-    node["ssb_arfcn"] = config.ssb_arfcn.value();
+    node["ssb_arfcn"] = config.ssb_arfcn.value().value();
   }
   if (config.ssb_scs) {
     node["ssb_scs"] = config.ssb_scs.value();

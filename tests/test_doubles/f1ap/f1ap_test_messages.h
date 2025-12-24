@@ -19,6 +19,7 @@
 #include "ocudu/f1ap/common/interface_management.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/arfcn.h"
 #include "ocudu/ran/gnb_du_id.h"
 #include "ocudu/ran/nr_band.h"
 #include "ocudu/ran/nr_cgi.h"
@@ -47,7 +48,7 @@ struct served_cell_item_info {
   pci_t              pci      = 0;
   tac_t              tac      = 7;
   nr_band            band     = nr_band::n78;
-  uint32_t           nr_arfcn = 620688;
+  arfcn_t            nr_arfcn = 620688;
   meas_timing_config meas_timing_cfg;
   std::string        sib1_str = create_sib1_hex_string(plmn_identity::test_value());
 };

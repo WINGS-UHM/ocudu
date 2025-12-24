@@ -131,7 +131,7 @@ struct sib_test_bench {
   }
 
   // Test bench ctor for SSB/SIB1 scheduler collision test.
-  sib_test_bench(uint32_t             freq_arfcn,
+  sib_test_bench(arfcn_t              freq_arfcn,
                  uint16_t             offset_to_point_A,
                  uint8_t              k_ssb,
                  uint8_t              ssb_bitmap,
@@ -210,7 +210,7 @@ struct sib_test_bench {
   }
 
   // Create default configuration and change specific parameters based on input args.
-  static sched_cell_configuration_request_message make_cell_cfg_req_for_sib_sched(uint32_t           freq_arfcn,
+  static sched_cell_configuration_request_message make_cell_cfg_req_for_sib_sched(arfcn_t            freq_arfcn,
                                                                                   uint16_t           offset_to_point_A,
                                                                                   uint8_t            k_ssb,
                                                                                   uint8_t            ssb_bitmap,
@@ -412,7 +412,7 @@ void test_sib1_periodicity(sib1_rtx_periodicity sib1_rtx_period, ssb_periodicity
 /// \param[in] pdcch_config_sib1 is \c pdcch-ConfigSIB1, as per TS38.213, Section 13.
 /// \param[in] carrier_bw_mhz corresponds to the width of this carrier in MHz. Values: 5, 10, 15, 20, 25, 30, 40,
 /// 50, 60, 70, 80, 90, 100, 200, 400.
-void test_ssb_sib1_collision(uint32_t             freq_arfcn,
+void test_ssb_sib1_collision(arfcn_t              freq_arfcn,
                              uint16_t             offset_to_point_A,
                              uint8_t              k_ssb,
                              uint8_t              ssb_bitmap,
@@ -457,7 +457,7 @@ void test_ssb_sib1_collision(uint32_t             freq_arfcn,
 }
 
 // Test for potential collisions between SIB1 PDCCH/PDSCH and SSB.
-void test_sib_1_pdsch_collisions(unsigned freq_arfcn, subcarrier_spacing scs, bs_channel_bandwidth carrier_bw_mhz)
+void test_sib_1_pdsch_collisions(arfcn_t freq_arfcn, subcarrier_spacing scs, bs_channel_bandwidth carrier_bw_mhz)
 {
   const auto band      = band_helper::get_band_from_dl_arfcn(freq_arfcn);
   const auto min_ch_bw = band_helper::get_min_channel_bw(band, scs);
@@ -639,7 +639,7 @@ TEST(sib1_scheduler_test, test_sib1_ssb_collision_for_15khz_scs)
   // SCS 15kHz.
   constexpr subcarrier_spacing scs = subcarrier_spacing::kHz15;
   // This can be any frequency such that the DL band has SSB SCS 15kHz (case A, in this case).
-  constexpr uint32_t freq_arfcn = 536020;
+  constexpr arfcn_t freq_arfcn = 536020;
 
   test_sib_1_pdsch_collisions(freq_arfcn, scs, bs_channel_bandwidth::MHz20);
 }
@@ -650,7 +650,7 @@ TEST(sib1_scheduler_test, test_sib1_ssb_collision_for_30khz_scs)
   // SCS 30kHz.
   constexpr subcarrier_spacing scs = subcarrier_spacing::kHz30;
   // This can be any frequency such that the DL band has SSB SCS 30kHz (case B, in this case).
-  constexpr uint32_t freq_arfcn = 176000;
+  constexpr arfcn_t freq_arfcn = 176000;
 
   test_sib_1_pdsch_collisions(freq_arfcn, scs, bs_channel_bandwidth::MHz20);
 }

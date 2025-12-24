@@ -895,7 +895,7 @@ struct du_high_unit_base_cell_config {
   /// Sector Id (4-14 bits) that gets concatenated with gNB-Id to form the NR Cell Identity (NCI).
   std::optional<unsigned> sector_id;
   /// DL ARFCN of "F_REF", which is the RF reference frequency, as per TS 38.104, Section 5.4.2.1.
-  unsigned dl_f_ref_arfcn = 536020;
+  arfcn_t dl_f_ref_arfcn = 536020;
   /// Common subcarrier spacing for the entire resource grid. It must be supported by the band SS raster.
   subcarrier_spacing common_scs = subcarrier_spacing::kHz15;
   /// NR band.

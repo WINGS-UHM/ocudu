@@ -25,7 +25,7 @@ struct du_trp_info {
   trp_id_t                           trp_id;
   std::optional<pci_t>               pci;
   std::optional<nr_cell_global_id_t> cgi;
-  std::optional<uint32_t>            arfcn;
+  std::optional<arfcn_t>             arfcn;
 };
 
 struct du_trp_info_response {
@@ -37,7 +37,7 @@ struct du_positioning_info_request {
 };
 
 struct srs_carrier {
-  uint32_t                          point_a;
+  arfcn_t                           point_a;
   bool                              freq_shift_7p5khz_present;
   std::vector<scs_specific_carrier> ul_ch_bw_per_scs_list;
   bwp_configuration                 ul_bwp_cfg;

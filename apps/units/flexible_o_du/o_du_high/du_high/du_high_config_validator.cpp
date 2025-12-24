@@ -1001,8 +1001,8 @@ static bool validate_dl_ul_arfcn_and_band(const du_high_unit_base_cell_config& c
       return false;
     }
     // Check if also the corresponding UL ARFCN is valid.
-    const uint32_t ul_arfcn = band_helper::get_ul_arfcn_from_dl_arfcn(config.dl_f_ref_arfcn, config.band.value());
-    ret                     = band_helper::is_ul_arfcn_valid_given_band(*config.band, ul_arfcn, config.channel_bw_mhz);
+    const arfcn_t ul_arfcn = band_helper::get_ul_arfcn_from_dl_arfcn(config.dl_f_ref_arfcn, config.band.value());
+    ret                    = band_helper::is_ul_arfcn_valid_given_band(*config.band, ul_arfcn, config.channel_bw_mhz);
     if (not ret.has_value()) {
       // NOTE: The message must say that it's the DL ARFCN that is invalid, as that is the parameters set by the user.
       fmt::print(

@@ -35,7 +35,7 @@ struct serving_cell_meas_config {
   std::optional<pci_t>              pci;       ///< Physical cell identifier.
   std::optional<nr_band>            band;      ///< NR band.
   std::optional<rrc_ssb_mtc>        ssb_mtc;   ///< SSB measurement and timing config.
-  std::optional<unsigned>           ssb_arfcn; ///< SSB ARFCN.
+  std::optional<arfcn_t>            ssb_arfcn; ///< SSB ARFCN.
   std::optional<subcarrier_spacing> ssb_scs;   ///< SSB subcarrier spacing.
 };
 

@@ -22,7 +22,7 @@ using namespace band_helper;
 TEST(test_get_band_from_arfcn, mix_bands)
 {
   ASSERT_NE(nr_band::invalid, get_band_from_dl_arfcn(530000U));
-  ASSERT_EQ(nr_band::invalid, get_band_from_dl_arfcn(5300000U));
+  ASSERT_EQ(nr_band::invalid, get_band_from_dl_arfcn(975000U));
   ASSERT_EQ(nr_band::n1, get_band_from_dl_arfcn(423000U));
   ASSERT_EQ(nr_band::n3, get_band_from_dl_arfcn(365000U));
   ASSERT_EQ(nr_band::n5, get_band_from_dl_arfcn(175000U));
@@ -126,13 +126,10 @@ TEST(get_ul_arfcn_from_dl_arfcn, mixed_frequencies)
 
 TEST(test_arfcn_freq_conversion, arfcn_to_freq_corner_cases)
 {
-  const uint32_t max_valid_nr_arfcn = 3279165;
+  constexpr arfcn_t max_valid_nr_arfcn = 3279165;
 
-  // Max ARFCN is 3279165 at almost 10 GHz
+  // Max ARFCN is 3279165 at almost 10 GHz.
   ASSERT_DOUBLE_EQ(99.99996e9, nr_arfcn_to_freq(max_valid_nr_arfcn));
-
-  // Invalid ARFCN
-  ASSERT_DOUBLE_EQ(0.0, nr_arfcn_to_freq(max_valid_nr_arfcn + 1));
 }
 
 TEST(test_band_duplexing, all_bands)

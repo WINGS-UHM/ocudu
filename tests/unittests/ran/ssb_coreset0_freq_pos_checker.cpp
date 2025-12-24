@@ -20,12 +20,12 @@ using namespace ocudu;
 // with the synchronization raster defined in Table 5.4.3.1-1, TS 38.104.
 static void test_ssb_belong_to_sync_raster(double ss_ssb_hz)
 {
-  if (band_helper::freq_to_nr_arfcn(ss_ssb_hz) < band_helper::MIN_ARFCN_3_GHZ_24_5_GHZ) {
-    unsigned ss_ssb_khz = static_cast<unsigned>(ss_ssb_hz * band_helper::HZ_TO_KHZ);
+  if (band_helper::freq_to_nr_arfcn(ss_ssb_hz) < MIN_ARFCN_3_GHZ_24_5_GHZ) {
+    const auto ss_ssb_khz = static_cast<unsigned>(ss_ssb_hz * band_helper::HZ_TO_KHZ);
     for (unsigned M : {1, 3, 5}) {
-      unsigned f_ssb_N_raster =
+      const unsigned f_ssb_N_raster =
           ss_ssb_khz - M * static_cast<unsigned>(band_helper::M_SIZE_SYNC_RASTER_1_HZ * band_helper::HZ_TO_KHZ);
-      unsigned rem_N_raster =
+      const unsigned rem_N_raster =
           f_ssb_N_raster % static_cast<unsigned>(band_helper::N_SIZE_SYNC_RASTER_1_HZ * band_helper::HZ_TO_KHZ);
       if (rem_N_raster == 0) {
         return;
@@ -34,10 +34,10 @@ static void test_ssb_belong_to_sync_raster(double ss_ssb_hz)
         ASSERT_EQ(0, rem_N_raster);
       }
     }
-  } else if (band_helper::freq_to_nr_arfcn(ss_ssb_hz) < band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ) {
-    unsigned ss_ssb_khz =
+  } else if (band_helper::freq_to_nr_arfcn(ss_ssb_hz) < MIN_ARFCN_24_5_GHZ_100_GHZ) {
+    const auto ss_ssb_khz =
         static_cast<unsigned>((ss_ssb_hz - band_helper::N_REF_OFFSET_3_GHZ_24_5_GHZ) * band_helper::HZ_TO_KHZ);
-    unsigned rem_N_raster =
+    const auto rem_N_raster =
         ss_ssb_khz % static_cast<unsigned>(band_helper::N_SIZE_SYNC_RASTER_2_HZ * band_helper::HZ_TO_KHZ);
     ASSERT_EQ(0, rem_N_raster);
   } else {
@@ -46,7 +46,7 @@ static void test_ssb_belong_to_sync_raster(double ss_ssb_hz)
   }
 }
 
-void ocudu::test_ssb_coreset0_allocation(unsigned                                       dl_arfcn,
+void ocudu::test_ssb_coreset0_allocation(arfcn_t                                        dl_arfcn,
                                          nr_band                                        nr_band,
                                          unsigned                                       n_rbs,
                                          subcarrier_spacing                             scs_common,
@@ -54,22 +54,22 @@ void ocudu::test_ssb_coreset0_allocation(unsigned                               
                                          const band_helper::ssb_coreset0_freq_location& params)
 {
   // Position of SSB central carrier, located at the 120th SSB's subcarrier.
-  double f_ref_hz   = band_helper::nr_arfcn_to_freq(dl_arfcn);
-  double point_A_hz = band_helper::get_abs_freq_point_a_from_f_ref(f_ref_hz, n_rbs, scs_common);
-  double bw_up_hz   = point_A_hz + static_cast<double>(n_rbs * NOF_SUBCARRIERS_PER_RB * scs_to_khz(scs_common) *
-                                                     band_helper::KHZ_TO_HZ);
+  const double f_ref_hz   = band_helper::nr_arfcn_to_freq(dl_arfcn);
+  const double point_A_hz = band_helper::get_abs_freq_point_a_from_f_ref(f_ref_hz, n_rbs, scs_common);
+  const double bw_up_hz   = point_A_hz + static_cast<double>(n_rbs * NOF_SUBCARRIERS_PER_RB * scs_to_khz(scs_common) *
+                                                           band_helper::KHZ_TO_HZ);
 
-  unsigned crb_ssb =
+  const unsigned crb_ssb =
       scs_common == subcarrier_spacing::kHz15 ? params.offset_to_point_A.value() : params.offset_to_point_A.value() / 2;
-  double crb_ssb_hz =
+  const double crb_ssb_hz =
       params.offset_to_point_A.value() *
       static_cast<double>(scs_to_khz(subcarrier_spacing::kHz15) * NOF_SUBCARRIERS_PER_RB * band_helper::KHZ_TO_HZ);
-  double k_ssb_hz =
+  const double k_ssb_hz =
       params.k_ssb.value() * static_cast<double>(scs_to_khz(subcarrier_spacing::kHz15) * band_helper::KHZ_TO_HZ);
-  double f_ssb_0_hz = point_A_hz + crb_ssb_hz + k_ssb_hz;
-  double ss_ssb_hz =
+  const double f_ssb_0_hz = point_A_hz + crb_ssb_hz + k_ssb_hz;
+  const double ss_ssb_hz =
       f_ssb_0_hz + static_cast<double>(scs_to_khz(scs_ssb) * NOF_SSB_SUBCARRIERS * band_helper::KHZ_TO_HZ / 2);
-  double f_ssb_ub_hz =
+  const double f_ssb_ub_hz =
       f_ssb_0_hz + static_cast<double>(scs_to_khz(scs_ssb) * NOF_SSB_SUBCARRIERS * band_helper::KHZ_TO_HZ);
 
   // Verify that the first SSB's subcarrier is not below pointA.

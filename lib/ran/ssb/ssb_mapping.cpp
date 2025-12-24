@@ -15,7 +15,7 @@
 
 using namespace ocudu;
 
-uint8_t ocudu::ssb_get_L_max(subcarrier_spacing ssb_scs, unsigned dl_arfcn, std::optional<nr_band> band)
+uint8_t ocudu::ssb_get_L_max(subcarrier_spacing ssb_scs, arfcn_t dl_arfcn, std::optional<nr_band> band)
 {
   uint8_t L_max = 0;
 
@@ -29,15 +29,16 @@ uint8_t ocudu::ssb_get_L_max(subcarrier_spacing ssb_scs, unsigned dl_arfcn, std:
   bool paired_spectrum = band_helper::is_paired_spectrum(gnb_band);
 
   // Get L_max from SSB pattern case and carrier frequency and paired spectrum flag.
-  uint32_t f_arfcn = dl_arfcn;
+  arfcn_t f_arfcn = dl_arfcn;
   switch (ssb_case) {
     case ssb_pattern_case::A:
     case ssb_pattern_case::B:
       L_max = (f_arfcn < CUTOFF_FREQ_ARFCN_CASE_A_B_C) ? 4 : 8;
       break;
     case ssb_pattern_case::C: {
-      uint32_t ssb_cutoff_freq = paired_spectrum ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
-      L_max                    = (f_arfcn < ssb_cutoff_freq) ? 4 : 8;
+      const arfcn_t ssb_cutoff_freq =
+          paired_spectrum ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
+      L_max = (f_arfcn < ssb_cutoff_freq) ? 4 : 8;
     } break;
     case ssb_pattern_case::D:
     case ssb_pattern_case::E:

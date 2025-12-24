@@ -325,7 +325,7 @@ void cell_meas_manager::update_measurement_object(nr_cell_identity              
 {
   ocudu_assert(is_complete(serving_cell_cfg), "Incomplete measurement object update for nci={:#x}", nci);
 
-  ssb_frequency_t ssb_freq = serving_cell_cfg.ssb_arfcn.value();
+  ssb_frequency_t ssb_freq = serving_cell_cfg.ssb_arfcn.value().value();
 
   // Add to lookup.
   if (ssb_freq_to_ncis.find(ssb_freq) != ssb_freq_to_ncis.end()) {

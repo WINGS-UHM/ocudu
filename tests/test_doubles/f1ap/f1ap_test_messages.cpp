@@ -81,7 +81,7 @@ gnb_du_served_cells_item_s ocudu::test_helpers::generate_served_cells_item(const
   served_cells_item.served_cell_info.served_plmns.push_back(served_plmn);
 
   served_cells_item.served_cell_info.nr_mode_info.set_tdd();
-  served_cells_item.served_cell_info.nr_mode_info.tdd().nr_freq_info.nr_arfcn = info.nr_arfcn;
+  served_cells_item.served_cell_info.nr_mode_info.tdd().nr_freq_info.nr_arfcn = info.nr_arfcn.value();
   freq_band_nr_item_s freq_band_nr_item;
   freq_band_nr_item.freq_band_ind_nr = static_cast<uint16_t>(info.band);
   served_cells_item.served_cell_info.nr_mode_info.tdd().nr_freq_info.freq_band_list_nr.push_back(freq_band_nr_item);

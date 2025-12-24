@@ -229,7 +229,7 @@ span<const unsigned> ocudu::band_helper::get_gscn_special_raster_iterator(nr_ban
 
 double band_helper::get_ss_ref_from_gscn(unsigned gscn)
 {
-  ocudu_assert(gscn >= MIN_GSCN_FREQ_0_3GHZ and gscn <= band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ,
+  ocudu_assert(gscn >= MIN_GSCN_FREQ_0_3GHZ and gscn <= band_helper::MAX_GSCN_FREQ_24_5_GHZ_100_GHZ,
                "GSCN must be within the [{},{}] interval",
                MIN_GSCN_FREQ_0_3GHZ,
                MAX_GSCN_FREQ_24_5_GHZ_100_GHZ);

@@ -180,7 +180,7 @@ void f1ap_du_positioning_information_exchange_procedure::send_response() const
       auto&       out = resp->srs_configuration.srs_carrier_list[i];
       const auto& in  = result.srs_carriers[i];
 
-      out.point_a = in.point_a;
+      out.point_a = in.point_a.value();
       // Fill UplinkChannelBW-PerSCS-List.
       out.ul_ch_bw_per_scs_list.resize(in.ul_ch_bw_per_scs_list.size());
       for (unsigned j = 0, e2 = in.ul_ch_bw_per_scs_list.size(); j != e2; ++j) {

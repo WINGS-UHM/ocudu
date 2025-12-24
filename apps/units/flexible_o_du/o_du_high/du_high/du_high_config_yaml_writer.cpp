@@ -682,7 +682,7 @@ static YAML::Node build_cell_entry(const du_high_unit_base_cell_config& config)
   YAML::Node node;
 
   node["pci"]                   = config.pci;
-  node["dl_arfcn"]              = config.dl_f_ref_arfcn;
+  node["dl_arfcn"]              = config.dl_f_ref_arfcn.value();
   node["common_scs"]            = scs_to_khz(config.common_scs);
   node["channel_bandwidth_MHz"] = bs_channel_bandwidth_to_MHz(config.channel_bw_mhz);
   node["nof_antennas_ul"]       = config.nof_antennas_ul;

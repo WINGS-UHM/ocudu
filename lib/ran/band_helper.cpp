@@ -43,12 +43,12 @@ enum class delta_freq_raster {
 struct nr_band_raster {
   nr_band           band;
   delta_freq_raster delta_f_rast;
-  uint32_t          ul_nref_first;
-  uint32_t          ul_nref_step;
-  uint32_t          ul_nref_last;
-  uint32_t          dl_nref_first;
-  uint32_t          dl_nref_step;
-  uint32_t          dl_nref_last;
+  arfcn_t           ul_nref_first;
+  arfcn_t           ul_nref_step;
+  arfcn_t           ul_nref_last;
+  arfcn_t           dl_nref_first;
+  arfcn_t           dl_nref_step;
+  arfcn_t           dl_nref_last;
 };
 
 } // namespace
@@ -341,13 +341,13 @@ static constexpr std::array<nr_band_ssb_scs_case, nof_nr_ssb_bands> nr_ssb_band_
 namespace {
 
 struct nr_raster_params {
-  double   freq_range_start;
-  double   freq_range_end;
-  double   delta_F_global_kHz;
-  double   F_REF_Offs_MHz;
-  uint32_t N_REF_Offs;
-  uint32_t N_REF_min;
-  uint32_t N_REF_max;
+  double  freq_range_start;
+  double  freq_range_end;
+  double  delta_F_global_kHz;
+  double  F_REF_Offs_MHz;
+  arfcn_t N_REF_Offs;
+  arfcn_t N_REF_min;
+  arfcn_t N_REF_max;
 
   bool operator==(const nr_raster_params& rhs) const
   {
@@ -360,7 +360,6 @@ struct nr_raster_params {
 } // namespace
 
 /// NR-ARFCN parameters for the global frequency raster, as per Table 5.4.2.1-1, TS 38.104, Rel. 17, version 17.8.0.
-static constexpr unsigned                        max_nr_arfcn = 3279165;
 static constexpr std::array<nr_raster_params, 3> nr_fr_params = {{
     // clang-format off
     // Frequency range 0 - 3000 MHz
@@ -368,7 +367,7 @@ static constexpr std::array<nr_raster_params, 3> nr_fr_params = {{
     // Frequency range 3000 - 24250 MHz
     {3000, 24250, 15, 3000.0, 600000, 600000, 2016666},
     // Frequency range 24250 - 100000 MHz
-    {24250, 100000, 60, 24250.08, 2016667, 2016667, max_nr_arfcn}
+    {24250, 100000, 60, 24250.08, 2016667, 2016667, MAX_ARFCN}
     // clang-format on
 }};
 
@@ -463,7 +462,7 @@ static nr_band_raster fetch_band_raster(nr_band band, std::optional<delta_freq_r
 }
 
 /// Helper to calculate F_REF according to Table 5.4.2.1-1.
-static nr_raster_params get_raster_params(uint32_t nr_arfcn)
+static nr_raster_params get_raster_params(arfcn_t nr_arfcn)
 {
   for (const nr_raster_params& fr : nr_fr_params) {
     if (nr_arfcn >= fr.N_REF_min && nr_arfcn <= fr.N_REF_max) {
@@ -493,7 +492,7 @@ static bool is_valid_raster_param(const nr_raster_params& raster)
 
 // Validates band n28, which has an additional ARFCN value to the given interval, as per Table 5.4.2.3-1, TS 38.104,
 // version 17.8.0.
-static error_type<std::string> validate_band_n28(uint32_t arfcn, bs_channel_bandwidth bw, bool is_dl = true)
+static error_type<std::string> validate_band_n28(arfcn_t arfcn, bs_channel_bandwidth bw, bool is_dl = true)
 {
   const nr_band_raster band_raster = fetch_band_raster(nr_band::n28, {});
   if (band_raster.band == ocudu::nr_band::invalid) {
@@ -501,83 +500,84 @@ static error_type<std::string> validate_band_n28(uint32_t arfcn, bs_channel_band
   }
 
   // Try first if the ARFCN matches any value of the interval for 100kHz channel raster.
-  uint32_t nref_first = is_dl ? band_raster.dl_nref_first : band_raster.ul_nref_first;
-  uint32_t nref_last  = is_dl ? band_raster.dl_nref_last : band_raster.ul_nref_last;
-  uint32_t nref_step  = is_dl ? band_raster.dl_nref_step : band_raster.ul_nref_step;
-  if (arfcn >= nref_first and arfcn <= nref_last and ((arfcn - nref_first) % nref_step) == 0) {
+  arfcn_t nref_first(is_dl ? band_raster.dl_nref_first : band_raster.ul_nref_first);
+  arfcn_t nref_last(is_dl ? band_raster.dl_nref_last : band_raster.ul_nref_last);
+  arfcn_t nref_step(is_dl ? band_raster.dl_nref_step : band_raster.ul_nref_step);
+  if (arfcn >= nref_first and arfcn <= nref_last and ((arfcn - nref_first) % nref_step.value()) == 0) {
     return error_type<std::string>{};
   }
 
   // Extra ARFCN value as per Table 5.4.2.3-1, TS 38.104, version 17.8.0 (see NOTE 4 in the table).
-  const uint32_t arfnc_40MHz = is_dl ? 155608U : 144608U;
+  const arfcn_t arfnc_40MHz = is_dl ? 155608U : 144608U;
   if (bw == ocudu::bs_channel_bandwidth::MHz40 and arfcn == arfnc_40MHz) {
     return error_type<std::string>{};
   }
 
-  return make_unexpected(
-      fmt::format("{} ARFCN must be within the interval [{},{}], in steps of {}, for the chosen band",
-                  is_dl ? "DL" : "UL",
-                  nref_first,
-                  nref_last,
-                  nref_step));
+  return make_unexpected(fmt::format(
+      "{} ARFCN must be within the interval [{},{}], in steps of {}, for the chosen band, or {} for 40MHz BW",
+      is_dl ? "DL" : "UL",
+      nref_first,
+      nref_last,
+      nref_step,
+      is_dl ? 155608U : 144608U));
 }
 
 // Validates band n46, whose valid ARFCN values depend on the channel BW, as per Table 5.4.2.3-1, TS 38.104,
 // version 17.8.0.
-static error_type<std::string> validate_band_n46(uint32_t arfcn, bs_channel_bandwidth bw)
+static error_type<std::string> validate_band_n46(arfcn_t arfcn, bs_channel_bandwidth bw)
 {
-  static constexpr std::array<unsigned, 2>  n46_b_10_dlarfnc = {782000, 788668};
-  static constexpr std::array<unsigned, 32> n46_b_20_dlarfnc = {
+  static constexpr std::array<uint32_t, 2>  n46_b_10_dlarfnc = {782000, 788668};
+  static constexpr std::array<uint32_t, 32> n46_b_20_dlarfnc = {
       // clang-format off
       744000, 745332, 746668, 748000, 749332, 750668, 752000, 753332, 754668, 756000, 765332, 766668, 768000, 769332,
       770668, 772000, 773332, 774668, 776000, 777332, 778668, 780000, 781332, 783000, 784332, 785668, 787000, 788332,
       789668, 791000, 792332, 793668
       // clang-format on
   };
-  static constexpr std::array<unsigned, 18> n46_b_40_dlarfnc = {
+  static constexpr std::array<uint32_t, 18> n46_b_40_dlarfnc = {
       // clang-format off
       744668, 746000, 748668, 751332, 754000, 755332, 766000, 767332, 770000, 772668, 775332, 778000, 780668, 783668,
       786332, 787668, 790332, 793000
       // clang-format on
   };
-  static constexpr std::array<unsigned, 17> n46_b_60_dlarfnc = {
+  static constexpr std::array<uint32_t, 17> n46_b_60_dlarfnc = {
       // clang-format off
       745332, 746668, 748000,  752000, 753332, 754668, 766668, 768000, 769332, 773332, 774668, 778668, 780000, 784332,
       785668, 791000, 792332
       // clang-format on
   };
-  static constexpr std::array<unsigned, 10> n46_b_80_dlarfnc = {
+  static constexpr std::array<uint32_t, 10> n46_b_80_dlarfnc = {
       746000, 747332, 752668, 754000, 767332, 768668, 774000, 779332, 785000, 791668};
-  static constexpr std::array<unsigned, 4> n46_b_100_dlarfnc = {746668, 753332, 768000, 791000};
+  static constexpr std::array<uint32_t, 4> n46_b_100_dlarfnc = {746668, 753332, 768000, 791000};
   static const char* error_msg = "Only a restricted set of DL-ARFCN values are allowed in band n46";
 
-  auto dl_arfcn_exist = [](span<const unsigned> band_list, unsigned dl_arfcn) {
-    return std::find(band_list.begin(), band_list.end(), dl_arfcn) != band_list.end();
+  auto dl_arfcn_exist = [](span<const uint32_t> band_list, arfcn_t dl_arfcn) {
+    return std::find(band_list.begin(), band_list.end(), dl_arfcn.value()) != band_list.end();
   };
 
   switch (bw) {
     case bs_channel_bandwidth::MHz10: {
-      return dl_arfcn_exist(span<const unsigned>(n46_b_10_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(n46_b_10_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                            : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz20: {
-      return dl_arfcn_exist(span<const unsigned>(n46_b_20_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(n46_b_20_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                            : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz40: {
-      return dl_arfcn_exist(span<const unsigned>(n46_b_40_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(n46_b_40_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                            : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz60: {
-      return dl_arfcn_exist(span<const unsigned>(n46_b_60_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(n46_b_60_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                            : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz80: {
-      return dl_arfcn_exist(span<const unsigned>(n46_b_80_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(n46_b_80_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                            : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz100: {
-      return dl_arfcn_exist(span<const unsigned>(n46_b_100_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(n46_b_100_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                             : make_unexpected(fmt::format(error_msg));
     }
     default:
@@ -587,9 +587,9 @@ static error_type<std::string> validate_band_n46(uint32_t arfcn, bs_channel_band
 
 /// Validates band n66, whose valid ARFCN values depend on the channel BW, as per Table 5.4.2.3-1, TS 38.104,
 /// version 17.8.0.
-static error_type<std::string> validate_band_n96(uint32_t arfcn, bs_channel_bandwidth bw)
+static error_type<std::string> validate_band_n96(arfcn_t arfcn, bs_channel_bandwidth bw)
 {
-  static constexpr std::array<unsigned, 59> b_20_dlarfnc = {
+  static constexpr std::array<uint32_t, 59> b_20_dlarfnc = {
       // clang-format off
       797000, 798332, 799668, 801000, 802332, 803668, 805000, 806332, 807668, 809000, 810332, 811668, 813000, 814332,
       815668, 817000, 818332, 819668, 821000, 822332, 823668, 825000, 826332, 827668, 829000, 830332, 831668, 833000,
@@ -598,56 +598,56 @@ static error_type<std::string> validate_band_n96(uint32_t arfcn, bs_channel_band
       871668, 873000, 874332
       // clang-format on
   };
-  static constexpr std::array<unsigned, 29> b_40_dlarfnc = {
+  static constexpr std::array<uint32_t, 29> b_40_dlarfnc = {
       // clang-format off
       797668, 800332, 803000, 805668, 808332, 811000, 813668, 816332, 819000, 821668, 824332, 827000, 829668, 832332,
       835000, 837668, 840332, 843000, 845668, 848332, 851000, 853668, 856332, 859000, 861668, 864332, 867000, 869668,
       872332
       // clang-format on
   };
-  static constexpr std::array<unsigned, 29> b_60_dlarfnc = {
+  static constexpr std::array<uint32_t, 29> b_60_dlarfnc = {
       // clang-format off
       798332, 799668, 803668, 805000, 809000, 810332, 814332, 815668, 819668, 821000, 825000, 826332, 830332, 831668,
       835668, 837000, 841000, 842332, 846332, 847668, 851668, 853000, 857000, 858332, 862332, 863668, 867668, 869000,
       873000
       // clang-format on
   };
-  static constexpr std::array<unsigned, 14> b_80_dlarfnc = {
+  static constexpr std::array<uint32_t, 14> b_80_dlarfnc = {
       // clang-format off
       799000, 804332, 809668, 815000, 820332, 825668, 831000, 836332, 841668, 847000, 852332, 857668, 863000, 868332
       // clang-format on
   };
-  static constexpr std::array<unsigned, 17> b_100_dlarfnc = {
+  static constexpr std::array<uint32_t, 17> b_100_dlarfnc = {
       // clang-format off
       799668, 803668, 810332, 814332, 821000, 825000, 831668, 835668, 842332, 846332, 853000, 857000, 863668, 867668,
       869000, 870332, 871668
       // clang-format on
   };
 
-  auto dl_arfcn_exist = [](span<const unsigned> band_list, unsigned dl_arfcn) {
-    return std::find(band_list.begin(), band_list.end(), dl_arfcn) != band_list.end();
+  auto dl_arfcn_exist = [](span<const unsigned> band_list, arfcn_t dl_arfcn) {
+    return std::find(band_list.begin(), band_list.end(), dl_arfcn.value()) != band_list.end();
   };
 
   static const char* error_msg = "Only a restricted set of DL-ARFCN values are allowed in band n96";
   switch (bw) {
     case bs_channel_bandwidth::MHz20: {
-      return dl_arfcn_exist(span<const unsigned>(b_20_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_20_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz40: {
-      return dl_arfcn_exist(span<const unsigned>(b_40_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_40_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz60: {
-      return dl_arfcn_exist(span<const unsigned>(b_60_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_60_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz80: {
-      return dl_arfcn_exist(span<const unsigned>(b_80_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_80_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz100: {
-      return dl_arfcn_exist(span<const unsigned>(b_100_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_100_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                         : make_unexpected(fmt::format(error_msg));
     }
     default:
@@ -657,26 +657,26 @@ static error_type<std::string> validate_band_n96(uint32_t arfcn, bs_channel_band
 
 /// Validates band n102, whose valid ARFCN values depend on the channel BW, as per Table 5.4.2.3-1, TS 38.104,
 /// version 17.8.0.
-static error_type<std::string> validate_band_n102(uint32_t arfcn, bs_channel_bandwidth bw)
+static error_type<std::string> validate_band_n102(arfcn_t arfcn, bs_channel_bandwidth bw)
 {
-  static constexpr std::array<unsigned, 24> b_20_dlarfnc = {
+  static constexpr std::array<uint32_t, 24> b_20_dlarfnc = {
       // clang-format off
       797000, 798332, 799668, 801000, 802332, 803668, 805000, 806332, 807668, 809000, 810332, 811668, 813000, 814332,
       815668, 817000, 818332, 819668, 821000, 822332, 823668, 825000, 826332, 827668
       // clang-format on
   };
-  static constexpr std::array<unsigned, 12> b_40_dlarfnc = {
+  static constexpr std::array<uint32_t, 12> b_40_dlarfnc = {
       // clang-format off
       797668, 800332, 803000, 805668, 808332, 811000, 813668, 816332, 819000, 821668, 824332, 827000
       // clang-format on
   };
-  static constexpr std::array<unsigned, 12> b_60_dlarfnc = {
+  static constexpr std::array<uint32_t, 12> b_60_dlarfnc = {
       // clang-format off
       798332, 799668, 803668, 805000, 809000, 810332, 814332, 815668, 819668, 821000, 825000, 826332
       // clang-format on
   };
-  static constexpr std::array<unsigned, 6> b_80_dlarfnc  = {799000, 804332, 809668, 815000, 820332, 825668};
-  static constexpr std::array<unsigned, 6> b_100_dlarfnc = {799668, 803668, 810332, 814332, 821000, 825000};
+  static constexpr std::array<uint32_t, 6> b_80_dlarfnc  = {799000, 804332, 809668, 815000, 820332, 825668};
+  static constexpr std::array<uint32_t, 6> b_100_dlarfnc = {799668, 803668, 810332, 814332, 821000, 825000};
 
   const nr_band_raster band_raster = fetch_band_raster(nr_band::n102, {});
   if (band_raster.band == ocudu::nr_band::invalid or arfcn < band_raster.dl_nref_first or
@@ -684,30 +684,30 @@ static error_type<std::string> validate_band_n102(uint32_t arfcn, bs_channel_ban
     return make_unexpected(fmt::format("Band n102 channel raster not found"));
   }
 
-  auto dl_arfcn_exist = [](span<const unsigned> band_list, unsigned dl_arfcn) {
-    return std::find(band_list.begin(), band_list.end(), dl_arfcn) != band_list.end();
+  auto dl_arfcn_exist = [](span<const uint32_t> band_list, arfcn_t dl_arfcn) {
+    return std::find(band_list.begin(), band_list.end(), dl_arfcn.value()) != band_list.end();
   };
 
   static const char* error_msg = "Only a restricted set of DL-ARFCN values are allowed in band n102";
   switch (bw) {
     case bs_channel_bandwidth::MHz20: {
-      return dl_arfcn_exist(span<const unsigned>(b_20_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_20_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz40: {
-      return dl_arfcn_exist(span<const unsigned>(b_40_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_40_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz60: {
-      return dl_arfcn_exist(span<const unsigned>(b_60_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_60_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz80: {
-      return dl_arfcn_exist(span<const unsigned>(b_80_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_80_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                        : make_unexpected(fmt::format(error_msg));
     }
     case bs_channel_bandwidth::MHz100: {
-      return dl_arfcn_exist(span<const unsigned>(b_100_dlarfnc), arfcn) ? error_type<std::string>{}
+      return dl_arfcn_exist(span<const uint32_t>(b_100_dlarfnc), arfcn) ? error_type<std::string>{}
                                                                         : make_unexpected(fmt::format(error_msg));
     }
     default:
@@ -715,7 +715,7 @@ static error_type<std::string> validate_band_n102(uint32_t arfcn, bs_channel_ban
   }
 }
 
-static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spacing scs)
+static error_type<std::string> validate_band_n90(arfcn_t arfcn, subcarrier_spacing scs)
 {
   // Band n90 needs to be handled separately. Since it can take a Delta freq raster value among three possible ones
   // {15kHz, 30kHz, 100kHz}, we need to first check if the DL ARFCN is compatible with 100kHz; if not, we assume Delta
@@ -727,7 +727,7 @@ static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spac
   }
 
   if (arfcn >= band_raster.dl_nref_first and arfcn <= band_raster.dl_nref_last and
-      ((arfcn - band_raster.dl_nref_first) % band_raster.dl_nref_step) == 0) {
+      ((arfcn - band_raster.dl_nref_first) % band_raster.dl_nref_step.value()) == 0) {
     return error_type<std::string>{};
   }
 
@@ -736,7 +736,7 @@ static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spac
       nr_band::n90, scs == subcarrier_spacing::kHz15 ? delta_freq_raster::kHz15 : delta_freq_raster::kHz30);
   if (band_raster.band != ocudu::nr_band::invalid) {
     if (arfcn >= band_raster.dl_nref_first and arfcn <= band_raster.dl_nref_last and
-        ((arfcn - band_raster.dl_nref_first) % band_raster.dl_nref_step) == 0) {
+        ((arfcn - band_raster.dl_nref_first) % band_raster.dl_nref_step.value()) == 0) {
       return error_type<std::string>{};
     }
   }
@@ -746,10 +746,10 @@ static error_type<std::string> validate_band_n90(uint32_t arfcn, subcarrier_spac
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-nr_band ocudu::band_helper::get_band_from_dl_arfcn(uint32_t arfcn_f_ref)
+nr_band ocudu::band_helper::get_band_from_dl_arfcn(arfcn_t arfcn_f_ref)
 {
   // As per Table 5.4.2.3-1, TS 38.104, v17.8.0, band n28 has an additional ARFCN value outside the interval of step 20.
-  const uint32_t arfcn_n28 = 155608U;
+  constexpr arfcn_t arfcn_n28 = 155608U;
   if (arfcn_f_ref == arfcn_n28) {
     return nr_band::n28;
   }
@@ -757,7 +757,7 @@ nr_band ocudu::band_helper::get_band_from_dl_arfcn(uint32_t arfcn_f_ref)
   for (const nr_band_raster& band : nr_band_table) {
     // Check given ARFCN is between the first and last possible ARFCN.
     if (arfcn_f_ref >= band.dl_nref_first and arfcn_f_ref <= band.dl_nref_last and
-        ((arfcn_f_ref - band.dl_nref_first) % band.dl_nref_step) == 0) {
+        ((arfcn_f_ref - band.dl_nref_first) % band.dl_nref_step.value()) == 0) {
       return band.band;
     }
   }
@@ -765,7 +765,7 @@ nr_band ocudu::band_helper::get_band_from_dl_arfcn(uint32_t arfcn_f_ref)
 }
 
 error_type<std::string> ocudu::band_helper::is_dl_arfcn_valid_given_band(nr_band              band,
-                                                                         uint32_t             arfcn_f_ref,
+                                                                         arfcn_t              arfcn_f_ref,
                                                                          subcarrier_spacing   scs,
                                                                          bs_channel_bandwidth bw)
 {
@@ -811,7 +811,7 @@ error_type<std::string> ocudu::band_helper::is_dl_arfcn_valid_given_band(nr_band
   for (const nr_band_raster& raster_band : nr_band_table) {
     if (raster_band.band == band and raster_band.delta_f_rast == band_delta_freq_raster) {
       if (arfcn_f_ref >= raster_band.dl_nref_first and arfcn_f_ref <= raster_band.dl_nref_last and
-          ((arfcn_f_ref - raster_band.dl_nref_first) % raster_band.dl_nref_step) == 0) {
+          ((arfcn_f_ref - raster_band.dl_nref_first) % raster_band.dl_nref_step.value()) == 0) {
         return {};
       }
       return make_unexpected(
@@ -825,7 +825,7 @@ error_type<std::string> ocudu::band_helper::is_dl_arfcn_valid_given_band(nr_band
 }
 
 error_type<std::string>
-ocudu::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f_ref, bs_channel_bandwidth bw)
+ocudu::band_helper::is_ul_arfcn_valid_given_band(nr_band band, arfcn_t arfcn_f_ref, bs_channel_bandwidth bw)
 {
   if (get_duplex_mode(band) != duplex_mode::FDD) {
     return {};
@@ -837,7 +837,7 @@ ocudu::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f_
   }
 
   // Assume standard Delta freq raster of 100kHz.
-  const delta_freq_raster band_delta_freq_raster = delta_freq_raster::kHz100;
+  constexpr delta_freq_raster band_delta_freq_raster = delta_freq_raster::kHz100;
 
   for (const nr_band_raster& raster_band : nr_band_table) {
     if (raster_band.band == band and raster_band.delta_f_rast == band_delta_freq_raster) {
@@ -852,7 +852,7 @@ ocudu::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f_
                         raster_band.ul_nref_last));
       }
       if (arfcn_f_ref >= raster_band.ul_nref_first and arfcn_f_ref <= raster_band.ul_nref_last and
-          ((arfcn_f_ref - raster_band.ul_nref_first) % raster_band.ul_nref_step) == 0) {
+          ((arfcn_f_ref - raster_band.ul_nref_first) % raster_band.ul_nref_step.value()) == 0) {
         return {};
       }
       return make_unexpected(
@@ -865,7 +865,7 @@ ocudu::band_helper::is_ul_arfcn_valid_given_band(nr_band band, uint32_t arfcn_f_
   return make_unexpected(fmt::format("Band {} is not valid", fmt::underlying(band)));
 }
 
-uint32_t ocudu::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std::optional<nr_band> band)
+arfcn_t ocudu::band_helper::get_ul_arfcn_from_dl_arfcn(arfcn_t dl_arfcn, std::optional<nr_band> band)
 {
   // NOTE: The procedure implemented in this function is implementation-defined.
   const nr_band operating_band = band.value_or(get_band_from_dl_arfcn(dl_arfcn));
@@ -876,8 +876,8 @@ uint32_t ocudu::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std::
   }
 
   // Extra ARFCN value as per Table 5.4.2.3-1, TS 38.104, version 17.8.0 (see NOTE 4 in the table).
-  const uint32_t n28_b40_dl_arfcn = 155608U;
-  const uint32_t n28_b40_ul_arfcn = 144608U;
+  constexpr arfcn_t n28_b40_dl_arfcn = 155608U;
+  constexpr arfcn_t n28_b40_ul_arfcn = 144608U;
   if (band == nr_band::n28 and dl_arfcn == n28_b40_dl_arfcn) {
     return n28_b40_ul_arfcn;
   }
@@ -885,8 +885,8 @@ uint32_t ocudu::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std::
   // Derive UL ARFCN for FDD bands.
   for (const nr_band_raster& b_it : nr_band_table) {
     if (b_it.band == operating_band) {
-      const uint32_t offset             = (dl_arfcn - b_it.dl_nref_first) / b_it.dl_nref_step;
-      const uint32_t candidate_ul_arfcn = b_it.ul_nref_first + offset * b_it.ul_nref_step;
+      const uint32_t offset = (dl_arfcn - b_it.dl_nref_first) / b_it.dl_nref_step.value();
+      const arfcn_t  candidate_ul_arfcn(b_it.ul_nref_first + offset * b_it.ul_nref_step.value());
       // For band n66, n70, n92, n94, the UL spectrum is smaller than the corresponding DL spectrum, as these bands
       // supports asymmetrical UL anc DL channel operations. However, the current GNB doesn't support this feature.
       // If the resulting UL ARFCN is outside the valid range, return 0.
@@ -895,10 +895,10 @@ uint32_t ocudu::band_helper::get_ul_arfcn_from_dl_arfcn(uint32_t dl_arfcn, std::
     }
   }
 
-  return 0;
+  return 0U;
 }
 
-double ocudu::band_helper::nr_arfcn_to_freq(uint32_t nr_arfcn)
+double ocudu::band_helper::nr_arfcn_to_freq(arfcn_t nr_arfcn)
 {
   const nr_raster_params params = get_raster_params(nr_arfcn);
   if (not is_valid_raster_param(params)) {
@@ -907,14 +907,19 @@ double ocudu::band_helper::nr_arfcn_to_freq(uint32_t nr_arfcn)
   return (params.F_REF_Offs_MHz * 1e6 + params.delta_F_global_kHz * (nr_arfcn - params.N_REF_Offs) * 1e3);
 }
 
-uint32_t ocudu::band_helper::freq_to_nr_arfcn(double freq)
+arfcn_t ocudu::band_helper::freq_to_nr_arfcn(double freq)
 {
   const nr_raster_params params = get_raster_params(freq);
   if (not is_valid_raster_param(params)) {
     return 0;
   }
-  return static_cast<uint32_t>(((freq - params.F_REF_Offs_MHz * 1e6) / 1e3 / params.delta_F_global_kHz) +
-                               params.N_REF_Offs);
+
+  const double arfcn_pre_cast = ((freq - params.F_REF_Offs_MHz * 1e6) / 1e3 / params.delta_F_global_kHz) +
+                                static_cast<double>(params.N_REF_Offs.value());
+  ocudu_assert(arfcn_pre_cast >= 0, "Unexpected negative ARFCN value detected before casting to unsigned");
+  ocudu_assert(std::ceil(arfcn_pre_cast) - std::floor(arfcn_pre_cast) == 0,
+               "Unexpected decimal part of ARFCN value detected before casting to unsigned");
+  return static_cast<uint32_t>(arfcn_pre_cast);
 }
 
 bool ocudu::band_helper::is_band_for_shared_spectrum(nr_band band)
@@ -1030,9 +1035,9 @@ frequency_range ocudu::band_helper::get_freq_range(nr_band band)
 }
 
 double ocudu::band_helper::get_abs_freq_point_a_from_f_ref(double             f_ref,
-                                                           uint32_t           nof_rbs,
+                                                           unsigned           nof_rbs,
                                                            subcarrier_spacing scs,
-                                                           uint32_t           offset_to_carrier)
+                                                           unsigned           offset_to_carrier)
 {
   // NOTE (i): It is unclear whether the SCS should always be 15kHz for FR1 (\ref get_abs_freq_point_a_from_center_freq
   // and see note).
@@ -1052,9 +1057,9 @@ double ocudu::band_helper::get_abs_freq_point_a_from_f_ref(double             f_
 }
 
 double ocudu::band_helper::get_f_ref_from_abs_freq_point_a(double             abs_freq_point_a,
-                                                           uint32_t           nof_rbs,
+                                                           unsigned           nof_rbs,
                                                            subcarrier_spacing scs,
-                                                           uint32_t           offset_to_carrier)
+                                                           unsigned           offset_to_carrier)
 {
   // See notes in \ref get_abs_freq_point_a_from_f_ref.
 
@@ -1322,7 +1327,7 @@ static interval<unsigned> get_ssb_crbs(subcarrier_spacing    scs_common,
 }
 
 std::optional<ssb_coreset0_freq_location>
-ocudu::band_helper::get_ssb_coreset0_freq_location(unsigned           dl_arfcn,
+ocudu::band_helper::get_ssb_coreset0_freq_location(arfcn_t            dl_arfcn,
                                                    nr_band            band,
                                                    unsigned           n_rbs,
                                                    subcarrier_spacing scs_common,
@@ -1385,7 +1390,7 @@ ocudu::band_helper::get_ssb_coreset0_freq_location(unsigned           dl_arfcn,
 }
 
 std::optional<ssb_coreset0_freq_location>
-ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(unsigned           dl_arfcn,
+ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t            dl_arfcn,
                                                                  nr_band            band,
                                                                  unsigned           n_rbs,
                                                                  subcarrier_spacing scs_common,
@@ -1559,13 +1564,13 @@ n_ta_offset ocudu::band_helper::get_ta_offset(frequency_range freq_range)
   return n_ta_offset::n13792;
 }
 
-std::optional<unsigned> ocudu::band_helper::get_ssb_arfcn(unsigned              dl_arfcn,
-                                                          nr_band               band,
-                                                          unsigned              n_rbs,
-                                                          subcarrier_spacing    scs_common,
-                                                          subcarrier_spacing    scs_ssb,
-                                                          ssb_offset_to_pointA  offset_to_point_A,
-                                                          ssb_subcarrier_offset k_ssb)
+std::optional<arfcn_t> ocudu::band_helper::get_ssb_arfcn(arfcn_t               dl_arfcn,
+                                                         nr_band               band,
+                                                         unsigned              n_rbs,
+                                                         subcarrier_spacing    scs_common,
+                                                         subcarrier_spacing    scs_ssb,
+                                                         ssb_offset_to_pointA  offset_to_point_A,
+                                                         ssb_subcarrier_offset k_ssb)
 {
   // Get f_ref, point_A from dl_f_ref_arfcn, band and bandwidth.
   ssb_freq_position_generator du_cfg{dl_arfcn, band, n_rbs, scs_common, scs_ssb};
@@ -1579,7 +1584,7 @@ std::optional<unsigned> ocudu::band_helper::get_ssb_arfcn(unsigned              
   return {};
 }
 
-error_type<std::string> ocudu::band_helper::is_ssb_arfcn_valid_given_band(uint32_t             ssb_arfcn,
+error_type<std::string> ocudu::band_helper::is_ssb_arfcn_valid_given_band(arfcn_t              ssb_arfcn,
                                                                           nr_band              band,
                                                                           subcarrier_spacing   ssb_scs,
                                                                           bs_channel_bandwidth bw)

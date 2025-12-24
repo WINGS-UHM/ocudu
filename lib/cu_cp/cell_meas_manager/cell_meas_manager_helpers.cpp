@@ -69,7 +69,7 @@ bool ocudu::ocucp::is_valid_configuration(
     if (!ssb_freq_to_meas_object.empty()) {
       const auto& serving_cell_cfg = cell.second.serving_cell_cfg;
       if (serving_cell_cfg.ssb_arfcn.has_value()) {
-        ssb_frequency_t ssb_freq = serving_cell_cfg.ssb_arfcn.value();
+        ssb_frequency_t ssb_freq = serving_cell_cfg.ssb_arfcn.value().value();
         if (ssb_freq_to_meas_object.find(ssb_freq) != ssb_freq_to_meas_object.end()) {
           // Check if the measurement object is already present.
           rrc_meas_obj_nr meas_obj_nr = generate_measurement_object(serving_cell_cfg);
@@ -149,7 +149,7 @@ std::vector<ssb_frequency_t> ocudu::ocucp::generate_measurement_object_list(cons
   // Add serving cell if periodic report is configured
   auto& serving_cell = cfg.cells.at(serving_nci);
   if (serving_cell.periodic_report_cfg_id.has_value() && is_complete(serving_cell.serving_cell_cfg)) {
-    ssb_freqs.push_back(serving_cell.serving_cell_cfg.ssb_arfcn.value());
+    ssb_freqs.push_back(serving_cell.serving_cell_cfg.ssb_arfcn.value().value());
   }
   // Add neighbor cells if report is configured
   for (const auto& ncell : serving_cell.ncells) {
@@ -158,7 +158,7 @@ std::vector<ssb_frequency_t> ocudu::ocucp::generate_measurement_object_list(cons
     if (!ncell.report_cfg_ids.empty() && is_complete(cell_cfg.serving_cell_cfg)) {
       if (std::find(ssb_freqs.begin(), ssb_freqs.end(), cell_cfg.serving_cell_cfg.ssb_arfcn.value()) ==
           ssb_freqs.end()) {
-        ssb_freqs.push_back(cell_cfg.serving_cell_cfg.ssb_arfcn.value());
+        ssb_freqs.push_back(cell_cfg.serving_cell_cfg.ssb_arfcn.value().value());
       }
     }
   }
@@ -199,7 +199,7 @@ rrc_meas_obj_nr ocudu::ocucp::generate_measurement_object(const serving_cell_mea
 {
   rrc_meas_obj_nr meas_obj_nr;
 
-  meas_obj_nr.ssb_freq               = cfg.ssb_arfcn;
+  meas_obj_nr.ssb_freq = cfg.ssb_arfcn.has_value() ? std::optional{cfg.ssb_arfcn.value().value()} : std::nullopt;
   meas_obj_nr.ssb_subcarrier_spacing = cfg.ssb_scs;
   meas_obj_nr.smtc1                  = cfg.ssb_mtc;
 

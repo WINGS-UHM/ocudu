@@ -51,8 +51,8 @@ struct flexible_o_du_ru_config {
     unsigned                               nof_rx_antennas;
     unsigned                               nof_tx_antennas;
     std::optional<tdd_ul_dl_config_common> tdd_config;
-    unsigned                               dl_arfcn;
-    unsigned                               ul_arfcn;
+    arfcn_t                                dl_arfcn;
+    arfcn_t                                ul_arfcn;
     frequency_range                        freq_range;
   };
 

@@ -118,8 +118,8 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
     out_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
     out_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
     out_cell.scs             = cell.scs_common;
-    out_cell.dl_arfcn        = cell.dl_carrier.arfcn_f_ref;
-    out_cell.ul_arfcn        = cell.ul_carrier.arfcn_f_ref;
+    out_cell.dl_arfcn        = cell.dl_carrier.arfcn_f_ref.value();
+    out_cell.ul_arfcn        = cell.ul_carrier.arfcn_f_ref.value();
     out_cell.tdd_config      = cell.tdd_ul_dl_cfg_common;
     out_cell.bw              = cell.dl_carrier.carrier_bw;
     out_cell.freq_range      = band_helper::get_freq_range(cell.dl_carrier.band);

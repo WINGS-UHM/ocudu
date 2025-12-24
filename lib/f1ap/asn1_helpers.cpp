@@ -746,7 +746,7 @@ asn1::f1ap::trp_info_s ocudu::trp_info_to_asn1(const odu::du_trp_info& trp)
   }
   if (trp.arfcn.has_value()) {
     trp_info_type_resp_item_c item;
-    item.set_nr_arfcn() = trp.arfcn.value();
+    item.set_nr_arfcn() = trp.arfcn.value().value();
     asn1out.trp_info_type_resp_list.push_back(item);
   }
 

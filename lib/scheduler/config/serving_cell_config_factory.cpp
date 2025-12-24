@@ -307,7 +307,7 @@ ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell
 {
   ul_config_common cfg{};
   // This is the ARFCN of the UL f_ref, as per TS 38.104, Section 5.4.2.1.
-  const uint32_t ul_arfcn =
+  const arfcn_t ul_arfcn =
       band_helper::get_ul_arfcn_from_dl_arfcn(params.dl_carrier.arfcn_f_ref, params.dl_carrier.band);
   const double ul_absolute_freq_point_a = band_helper::get_abs_freq_point_a_from_f_ref(
       band_helper::nr_arfcn_to_freq(ul_arfcn), params.cell_nof_crbs, params.scs_common);

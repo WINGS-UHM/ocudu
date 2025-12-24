@@ -45,7 +45,7 @@ struct ssb_test_bench {
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 
   ssb_test_bench(ssb_periodicity     ssb_period,
-                 uint32_t            freq_arfcn,
+                 arfcn_t             freq_arfcn,
                  uint16_t            offset_to_point_A,
                  const ssb_bitmap_t& in_burst_bitmap,
                  subcarrier_spacing  ssb_scs,
@@ -94,7 +94,7 @@ private:
 
   // Create default configuration and change specific parameters based on input args.
   sched_cell_configuration_request_message make_cell_cfg_req_for_sib_sched(ssb_periodicity     ssb_period,
-                                                                           uint32_t            freq_arfcn,
+                                                                           arfcn_t             freq_arfcn,
                                                                            uint16_t            offset_to_point_A,
                                                                            const ssb_bitmap_t& in_burst_bitmap,
                                                                            subcarrier_spacing  init_bwp_scs,
@@ -186,7 +186,7 @@ void test_ssb_information(uint8_t                expected_sym,
 
 /// This function tests SSB case A and C (both paired and unpaired spectrum).
 void test_ssb_case_A_C(slot_point                          slot_tx,
-                       uint32_t                            freq_cutoff,
+                       arfcn_t                             freq_cutoff,
                        const cell_configuration&           cell_cfg,
                        const cell_slot_resource_allocator& slot_alloc)
 {
@@ -395,7 +395,7 @@ void test_ssb_case_B(slot_point                          slot_tx,
 }
 
 void test_ssb_allocation(ssb_periodicity     ssb_period,
-                         uint32_t            freq_arfcn,
+                         arfcn_t             freq_arfcn,
                          uint16_t            offset_to_point_A,
                          const ssb_bitmap_t& in_burst_bitmap,
                          subcarrier_spacing  ssb_scs,
@@ -432,8 +432,9 @@ void test_ssb_allocation(ssb_periodicity     ssb_period,
         test_ssb_case_B(bench.slot_tx(), bench.get_cell_sched_config(), bench.get_slot_allocator());
         break;
       case ssb_pattern_case::C: {
-        uint32_t f_cutoff_arfnc = bench.get_cell_sched_config().paired_spectrum ? CUTOFF_FREQ_ARFCN_CASE_A_B_C
-                                                                                : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
+        const arfcn_t f_cutoff_arfnc = bench.get_cell_sched_config().paired_spectrum
+                                           ? CUTOFF_FREQ_ARFCN_CASE_A_B_C
+                                           : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
         test_ssb_case_A_C(bench.slot_tx(), f_cutoff_arfnc, bench.get_cell_sched_config(), bench.get_slot_allocator());
       } break;
       default:
@@ -449,7 +450,7 @@ TEST(ssb_scheduler_test, test_time_domain_ssb_scheduling)
   //                   TEST CASE A
   // ##########################################################
   // TEST Case A, frequency < 3GHz.
-  uint32_t freq_arfcn = 536020;
+  arfcn_t freq_arfcn = 536020;
   //
   // uint64_t           in_burst_bitmap = static_cast<uint64_t>(0b01100000U) << static_cast<uint64_t>(56U);
   uint8_t            L_max   = 4U;
@@ -589,8 +590,8 @@ TEST(ssb_scheduler_test, test_freq_domain_ssb_scheduling)
   //                   TEST CASE A
   // ##########################################################
   // TEST Case A, frequency < 3GHz.
-  uint32_t freq_arfcn = 536020;
-  uint8_t  L_max      = 4U;
+  arfcn_t freq_arfcn = 536020;
+  uint8_t L_max      = 4U;
 
   subcarrier_spacing ssb_scs     = subcarrier_spacing::kHz15;
   ssb_periodicity    periodicity = ssb_periodicity::ms10;

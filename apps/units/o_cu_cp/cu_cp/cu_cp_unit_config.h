@@ -13,6 +13,7 @@
 #include "apps/helpers/metrics/metrics_config.h"
 #include "apps/units/o_cu_cp/cu_cp/cu_cp_unit_pcap_config.h"
 #include "cu_cp_unit_logger_config.h"
+#include "ocudu/ran/arfcn.h"
 #include "ocudu/ran/gnb_id.h"
 #include "ocudu/ran/nr_band.h"
 #include "ocudu/ran/pci.h"
@@ -106,7 +107,7 @@ struct cu_cp_unit_cell_config_item {
   /// NR band.
   std::optional<nr_band> band;
   /// SSB ARFCN.
-  std::optional<unsigned> ssb_arfcn;
+  std::optional<arfcn_t> ssb_arfcn;
   /// SSB subcarrier spacing.
   std::optional<unsigned> ssb_scs;
   /// SSB period.

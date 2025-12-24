@@ -54,7 +54,7 @@ public:
 
 private:
   /// \brief Perform allocation for case A and C (both paired and unpaired spectrum) - TS 38.213, Section 4.1.
-  void ssb_alloc_case_A_C(ssb_information_list& ssb_list, uint32_t freq_arfcn_cut_off, slot_point sl_point_mod) const;
+  void ssb_alloc_case_A_C(ssb_information_list& ssb_list, arfcn_t freq_arfcn_cut_off, slot_point sl_point_mod) const;
 
   /// \brief Perform SSB allocation for case B (both paired and unpaired spectrum) - TS 38.213, Section 4.1.
   void ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point sl_point_mod) const;

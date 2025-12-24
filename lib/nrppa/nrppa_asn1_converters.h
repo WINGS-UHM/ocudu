@@ -185,7 +185,7 @@ inline asn1::nrppa::e_c_id_meas_result_s e_cid_meas_result_to_asn1(const nrppa_e
       for (const auto& result_item : *result) {
         asn1::nrppa::result_ss_rsrp_item_s rsrp_item;
         rsrp_item.nr_pci   = result_item.nr_pci;
-        rsrp_item.nr_arfcn = result_item.nr_arfcn;
+        rsrp_item.nr_arfcn = result_item.nr_arfcn.value();
 
         if (result_item.cgi_nr.has_value()) {
           rsrp_item.cgi_nr_present = true;
@@ -220,7 +220,7 @@ inline asn1::nrppa::e_c_id_meas_result_s e_cid_meas_result_to_asn1(const nrppa_e
       for (const auto& result_item : *result) {
         asn1::nrppa::result_ss_rsrq_item_s rsrq_item;
         rsrq_item.nr_pci   = result_item.nr_pci;
-        rsrq_item.nr_arfcn = result_item.nr_arfcn;
+        rsrq_item.nr_arfcn = result_item.nr_arfcn.value();
 
         if (result_item.cgi_nr.has_value()) {
           rsrq_item.cgi_nr_present = true;
@@ -255,7 +255,7 @@ inline asn1::nrppa::e_c_id_meas_result_s e_cid_meas_result_to_asn1(const nrppa_e
       for (const auto& result_item : *result) {
         asn1::nrppa::result_csi_rsrp_item_s rsrp_item;
         rsrp_item.nr_pci   = result_item.nr_pci;
-        rsrp_item.nr_arfcn = result_item.nr_arfcn;
+        rsrp_item.nr_arfcn = result_item.nr_arfcn.value();
 
         if (result_item.cgi_nr.has_value()) {
           rsrp_item.cgi_nr_present = true;
@@ -290,7 +290,7 @@ inline asn1::nrppa::e_c_id_meas_result_s e_cid_meas_result_to_asn1(const nrppa_e
       for (const auto& result_item : *result) {
         asn1::nrppa::result_csi_rsrq_item_s rsrq_item;
         rsrq_item.nr_pci   = result_item.nr_pci;
-        rsrq_item.nr_arfcn = result_item.nr_arfcn;
+        rsrq_item.nr_arfcn = result_item.nr_arfcn.value();
 
         if (result_item.cgi_nr.has_value()) {
           rsrq_item.cgi_nr_present = true;

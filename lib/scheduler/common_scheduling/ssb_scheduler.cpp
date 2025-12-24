@@ -60,7 +60,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
   switch (cell_cfg.ssb_case) {
     case ssb_pattern_case::A:
     case ssb_pattern_case::C: {
-      uint32_t ssb_cut_off_freq =
+      const arfcn_t ssb_cut_off_freq =
           cell_cfg.paired_spectrum ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
       ssb_alloc_case_A_C(ssb_list, ssb_cut_off_freq, sl_point_mod);
       break;
@@ -85,7 +85,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
 }
 
 void ssb_scheduler::ssb_alloc_case_A_C(ssb_information_list& ssb_list,
-                                       uint32_t              freq_arfcn_cut_off,
+                                       arfcn_t               freq_arfcn_cut_off,
                                        slot_point            sl_point_mod) const
 {
   const uint32_t slot_idx = sl_point_mod.to_uint();
@@ -125,7 +125,7 @@ void ssb_scheduler::ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point 
 
   // For frequency lower than cutoff, SSB occasions are on slot 0 and 1 only, while for frequencies higher than the
   // cutoff, the SSB occasions are on slot 0, 1, 2, and 3.
-  const uint32_t max_slot_idx_case_B = cell_cfg.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_A_B_C ? 1U : 3U;
+  const arfcn_t max_slot_idx_case_B = cell_cfg.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_A_B_C ? 1U : 3U;
   if (slot_idx > max_slot_idx_case_B) {
     return;
   }

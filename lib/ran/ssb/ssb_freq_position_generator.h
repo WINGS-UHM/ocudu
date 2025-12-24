@@ -35,7 +35,7 @@ struct ssb_freq_location {
 class ssb_freq_position_generator
 {
 public:
-  explicit ssb_freq_position_generator(unsigned           dl_arfcn,
+  explicit ssb_freq_position_generator(arfcn_t            dl_arfcn,
                                        nr_band            nr_band_,
                                        unsigned           n_rbs_,
                                        subcarrier_spacing scs_common,
@@ -59,8 +59,8 @@ private:
   ssb_freq_location get_next_ssb_location_special_raster();
 
   /// Parameters that are passed to the constructor.
-  const unsigned dl_arfcn;
-  const nr_band  band;
+  const arfcn_t dl_arfcn;
+  const nr_band band;
   /// Transmission bandwidth configuration \f$N_{RB}\f$, as per Table 5.3.2-1, TS 38.104.
   const unsigned           n_rbs;
   const subcarrier_spacing scs_common;

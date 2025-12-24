@@ -419,9 +419,9 @@ static asn1::rrc_nr::dl_cfg_common_s make_asn1_rrc_dl_cfg_common(const du_cell_c
   }
   out.freq_info_dl.absolute_freq_ssb_present = true;
   // TODO: Check how to derive this value.
-  out.freq_info_dl.absolute_freq_ssb = cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb;
+  out.freq_info_dl.absolute_freq_ssb = cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
   // TODO: Check how to derive absoluteFreqPointA.
-  out.freq_info_dl.absolute_freq_point_a = cfg.dl_cfg_common.freq_info_dl.absolute_freq_point_a;
+  out.freq_info_dl.absolute_freq_point_a = cfg.dl_cfg_common.freq_info_dl.absolute_freq_point_a.value();
   out.freq_info_dl.scs_specific_carrier_list =
       make_asn1_rrc_scs_specific_carrier_list(cfg.dl_cfg_common.freq_info_dl.scs_carrier_list);
 
@@ -848,7 +848,7 @@ static asn1::rrc_nr::ul_cfg_common_s make_asn1_rrc_ul_cfg_common(const ul_config
     out.freq_info_ul.freq_band_list.push_back(nr_band_to_uint(ul_band.band));
   }
   out.freq_info_ul.absolute_freq_point_a_present = true;
-  out.freq_info_ul.absolute_freq_point_a         = cfg.freq_info_ul.absolute_freq_point_a;
+  out.freq_info_ul.absolute_freq_point_a         = cfg.freq_info_ul.absolute_freq_point_a.value();
   if (cfg.freq_info_ul.p_max.has_value()) {
     out.freq_info_ul.p_max_present = true;
     out.freq_info_ul.p_max         = cfg.freq_info_ul.p_max->value();

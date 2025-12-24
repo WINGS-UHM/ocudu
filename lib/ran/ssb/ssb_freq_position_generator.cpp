@@ -55,7 +55,7 @@ compute_k_ssb(double f_ssb_0_hz, double point_A_hz, ssb_offset_to_pointA offset_
   return static_cast<uint64_t>(f_ssb_0_hz * band_helper::HZ_TO_KHZ - f_crb_ssb_kHz) / scs_to_khz(scs_ref);
 }
 
-ssb_freq_position_generator::ssb_freq_position_generator(unsigned           dl_arfcn_,
+ssb_freq_position_generator::ssb_freq_position_generator(arfcn_t            dl_arfcn_,
                                                          nr_band            nr_band_,
                                                          unsigned           n_rbs_,
                                                          subcarrier_spacing scs_common_,
@@ -86,9 +86,9 @@ ssb_freq_position_generator::ssb_freq_position_generator(unsigned           dl_a
 
   // Get the starting point of parameter N for the sync-raster. This allows us to avoid the generation of all possible
   // SSB positions in the raster.
-  if (dl_arfcn < band_helper::MIN_ARFCN_3_GHZ_24_5_GHZ) {
+  if (dl_arfcn < MIN_ARFCN_3_GHZ_24_5_GHZ) {
     N_raster = static_cast<unsigned>(std::floor(ss_ref_l_bound_hz / band_helper::N_SIZE_SYNC_RASTER_1_HZ));
-  } else if (dl_arfcn >= band_helper::MIN_ARFCN_3_GHZ_24_5_GHZ && dl_arfcn < band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ) {
+  } else if (dl_arfcn >= MIN_ARFCN_3_GHZ_24_5_GHZ && dl_arfcn < MIN_ARFCN_24_5_GHZ_100_GHZ) {
     // For BW >= 40MHz, Band n79 has a different sync raster step size and need to be handled separately.
     const bool is_band_40mhz_or_above = (scs_common == subcarrier_spacing::kHz15 and n_rbs >= 216U) or
                                         (scs_common == subcarrier_spacing::kHz30 and n_rbs >= 106U) or
@@ -149,12 +149,12 @@ ssb_freq_position_generator::ssb_freq_position_generator(unsigned           dl_a
 double ssb_freq_position_generator::get_ss_ref_hz(unsigned N, unsigned M) const
 {
   // Get SS_ref given the parameters N, M, as per Table 5.4.3.1-1, TS 38.104.
-  if (dl_arfcn >= band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ) {
+  if (dl_arfcn >= MIN_ARFCN_24_5_GHZ_100_GHZ) {
     return band_helper::BASE_FREQ_GSCN_RASTER_24_5_GHZ_100_GHZ +
            static_cast<double>(N) * band_helper::N_SIZE_SYNC_RASTER_3_HZ;
   }
 
-  if (dl_arfcn >= band_helper::MIN_ARFCN_3_GHZ_24_5_GHZ) {
+  if (dl_arfcn >= MIN_ARFCN_3_GHZ_24_5_GHZ) {
     return band_helper::N_REF_OFFSET_3_GHZ_24_5_GHZ + static_cast<double>(N) * band_helper::N_SIZE_SYNC_RASTER_2_HZ;
   }
 
@@ -165,7 +165,7 @@ double ssb_freq_position_generator::get_ss_ref_hz(unsigned N, unsigned M) const
 unsigned ssb_freq_position_generator::find_M_raster()
 {
   // M raster does not apply above 3GHz.
-  if (dl_arfcn >= band_helper::MIN_ARFCN_3_GHZ_24_5_GHZ) {
+  if (dl_arfcn >= MIN_ARFCN_3_GHZ_24_5_GHZ) {
     return 0;
   }
 
@@ -237,9 +237,9 @@ ssb_freq_location ssb_freq_position_generator::get_next_ssb_location()
   ssb_freq_location ssb{.is_valid = false};
 
   unsigned N_raster_max = band_helper::N_UB_SYNC_RASTER_1;
-  if (dl_arfcn >= band_helper::MIN_ARFCN_24_5_GHZ_100_GHZ) {
+  if (dl_arfcn >= MIN_ARFCN_24_5_GHZ_100_GHZ) {
     N_raster_max = band_helper::N_UB_SYNC_RASTER_3;
-  } else if (dl_arfcn >= band_helper::MIN_ARFCN_3_GHZ_24_5_GHZ) {
+  } else if (dl_arfcn >= MIN_ARFCN_3_GHZ_24_5_GHZ) {
     N_raster_max = band_helper::N_UB_SYNC_RASTER_2;
   }
 

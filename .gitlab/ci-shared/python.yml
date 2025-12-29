@@ -6,14 +6,6 @@
 # the distribution.
 #
 
-variables:
-  PY_DIR: $CI_PROJECT_DIR
-  PYTHON_VERSION: "3.14"
-  TWINE_PASSWORD: $CI_JOB_TOKEN
-  TWINE_USERNAME: gitlab-ci-token
-  TWINE_REPO: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi
-  PIP_EXTRA_INDEX_URL: https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple
-
 .parallel-python-versions:
   parallel: &matrix-python-version
     matrix:
@@ -21,6 +13,8 @@ variables:
 
 .python_base:
   image: python:${PYTHON_VERSION}-alpine # sh entrypoint
+  variables:
+    PYTHON_VERSION: "3.14"
 
 .python_publish:
   extends: .python_base
@@ -37,6 +31,11 @@ variables:
   rules:
     - if: $ON_MR
   script:
+    - &setup_env_variables |
+      export TWINE_PASSWORD="$CI_JOB_TOKEN"
+      export TWINE_USERNAME="gitlab-ci-token"
+      export TWINE_REPO="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
+      export PIP_EXTRA_INDEX_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple"
     - pip install 'tox<5'
     - cd $PY_DIR
     - tox -r
@@ -45,6 +44,7 @@ variables:
 .publish deps:
   extends: .python_publish
   script:
+    - *setup_env_variables
     - pip install twine
     - cd $PY_DIR
     - pip install .
@@ -73,6 +73,7 @@ variables:
       entrypoint: ["env", "-u", "DOCKER_HOST"]
       command: ["dockerd-entrypoint.sh"]
   script:
+    - *setup_env_variables
     # Install tools
     - DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends curl apt-transport-https ca-certificates python3-pip python3-venv
     - pip install cibuildwheel build twine
@@ -86,7 +87,7 @@ variables:
       VERSION="${file#*-}"
       PY_LIB_NAME="${file%%-*}"
     # Exit 0 if already exists
-    - (pip index versions ${PY_LIB_NAME} --extra-index-url https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_API_V4_URL#"https://"}/projects/${CI_PROJECT_ID}/packages/pypi/simple | grep "$VERSION") && exit 0 || true
+    - (pip index versions ${PY_LIB_NAME} --extra-index-url ${PIP_EXTRA_INDEX_URL} | grep "$VERSION") && exit 0 || true
     # If it's a new package/version, setup cibuildwheel and run it. If it's a pure python wheel, run build instead.
     - curl -sSL https://get.docker.com/ | sh
     - cibuildwheel --platform linux --output-dir dist || python3 -m build --wheel

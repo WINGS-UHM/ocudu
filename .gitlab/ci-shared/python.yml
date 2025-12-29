@@ -30,29 +30,6 @@ variables:
       when: manual
       allow_failure: true
 
-.version_changed_pyproject:
-  stage: static
-  rules:
-    - if: $ON_MR
-  image: python:${PYTHON_VERSION}-alpine # sh entrypoint
-  before_script:
-    - apk add git git-lfs
-    - pip install semver
-    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 20
-  script:
-    - NEW_VERSION=$(cat $PY_DIR/pyproject.toml | grep '^version' | cut -d'"' -f2)
-    - export NEW_VERSION
-    - |
-      git checkout $CI_MERGE_REQUEST_DIFF_BASE_SHA
-      if [ ! -e "$PY_DIR/pyproject.toml" ]; then
-          exit 0
-      fi
-    - OLD_VERSION=$(cat $PY_DIR/pyproject.toml | grep '^version' | cut -d'"' -f2)
-    - export OLD_VERSION
-    - |
-      echo "OLD version: $OLD_VERSION -- NEW version: $NEW_VERSION"
-    - python3 -c "import semver; import os; exit(0) if (semver.compare(os.environ['NEW_VERSION'], os.environ['OLD_VERSION']) > 0) else exit(1)"
-
 # Tools
 
 .tox:

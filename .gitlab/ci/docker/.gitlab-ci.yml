@@ -8,7 +8,6 @@
 
 include:
   - local: .gitlab/ci-shared/docker.yml
-  - local: .gitlab/ci-shared/python.yml
   - local: .gitlab/ci-shared/version_check.yml
 
 ################################################################################

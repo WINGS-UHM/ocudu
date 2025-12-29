@@ -72,8 +72,6 @@ trigger docker:
   trigger:
     include: .gitlab/ci/docker/.gitlab-ci.yml
     strategy: depend
-  variables:
-    PY_DIR: docker/metrics_server
   needs:
     - job: trigger buildkit
       optional: true

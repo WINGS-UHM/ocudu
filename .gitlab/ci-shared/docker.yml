@@ -137,22 +137,6 @@ variables:
       docker manifest push ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}
       echo "Image ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION} pushed"
 
-.docker copy:
-  stage: publish
-  image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION
-  tags:
-    - amd64
-  rules:
-    - if: $ON_DEFAULT_BRANCH
-    - if: $ON_MR
-  variables:
-    GIT_STRATEGY: none
-  before_script:
-    - *docker_login
-    - |
-      DEBIAN_FRONTEND=noninteractive apt-get update && \
-        apt-get install -y --no-install-recommends skopeo
-
 .check image exists for all supported ubuntu versions:
   extends: .docker-builder
   variables:

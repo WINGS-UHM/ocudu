@@ -373,7 +373,7 @@ ubuntu-dpdk-builder arm64:
     OS_FAMILY: none
     OS_NAME: none
     OS_VERSION: none
-    MULTI_ARCH_BUILD: "false"
+    MULTI_ARCH_BUILD: "true"
     MODE: publish
     KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "75G"
     KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "75G"
@@ -384,7 +384,7 @@ ubuntu-dpdk-builder arm64:
   before_script:
     - |
       export NAME=builder-$OS_NAME-$OS_VERSION
-      export VERSION=${DOCKER_BUILDER_VERSION}-${PLATFORM}
+      export VERSION=${DOCKER_BUILDER_VERSION}
       export CONTEXT=.gitlab/ci/builders
       export DOCKERFILE=$CONTEXT/$OS_FAMILY
       export BUILD_ARGS="OS_NAME=${OS_NAME};VERSION=${OS_VERSION};TAG=${VERSION}}"
@@ -415,7 +415,7 @@ image-build-publish [codechecker]:
   extends: .image-build-publish
   stage: publish
   variables:
-    MULTI_ARCH_BUILD: none
+    MULTI_ARCH_BUILD: ""
     PLATFORM: amd64
     MODE: publish
   tags:
@@ -822,18 +822,4 @@ image-build-publish [archlinux, latest, amd64]:
     OS_NAME: archlinux
     OS_VERSION: latest
     PLATFORM: amd64
-
-manifest [archlinux, latest]:
-  extends: .docker copy
-  stage: manifest
-  variables:
-    OS_NAME: archlinux
-    OS_VERSION: latest
-  script:
-    - |
-      skopeo copy \
-        docker://${CI_REGISTRY_IMAGE}/builder-$OS_NAME-$OS_VERSION:${DOCKER_BUILDER_VERSION}-amd64 \
-        docker://${CI_REGISTRY_IMAGE}/builder-$OS_NAME-$OS_VERSION:${DOCKER_BUILDER_VERSION}
-  needs:
-    - job: image-build-publish [archlinux, latest, amd64]
-      optional: false
+    MULTI_ARCH_BUILD: ""

@@ -282,7 +282,7 @@ bool sctp_socket::close()
 bool sctp_socket::bind(struct sockaddr& ai_addr, const socklen_t& ai_addrlen, const std::string& bind_interface)
 {
   if (not is_open()) {
-    logger.error("Failed to bind to {}. Cause: Socket is closed", get_nameinfo(ai_addr, ai_addrlen));
+    logger.error("{}: Failed to bind to {}. Cause: Socket is closed", if_name, get_nameinfo(ai_addr, ai_addrlen));
     return false;
   }
 
@@ -309,6 +309,78 @@ bool sctp_socket::bind(struct sockaddr& ai_addr, const socklen_t& ai_addrlen, co
   return true;
 }
 
+bool sctp_socket::bindx(const std::vector<sockaddr_storage>& addrs, const std::string& bind_interface)
+{
+  if (addrs.empty()) {
+    logger.info("{}: Bind to {} address(es) was skipped", if_name, addrs.size());
+    return true; // Nothing to do
+  }
+
+  if (not is_open()) {
+    logger.error("{}: Failed to bind {} address(es). Cause: Socket is closed", if_name, addrs.size());
+    return false;
+  }
+
+  // SO_BINDTODEVICE does not make sense in case of multihoming with SCTP.
+  // Only bind to interface if a single or no address is provided.
+  if (addrs.size() <= 1) {
+    if (not bind_to_interface(sock_fd, bind_interface, logger)) {
+      return false;
+    }
+  } else if (!bind_interface.empty() && bind_interface != "auto") {
+    logger.error(
+        "{}: bind_interface is not supported with multihoming ({} bind addresses configured) and will be ignored. "
+        "Please remove bind_interface or use a single address",
+        if_name,
+        addrs.size());
+  }
+
+  logger.debug("{}: Binding {} address(es) using sctp_bindx()...", if_name, addrs.size());
+
+  // Pack addresses into contiguous buffer with correct sizes for each address family.
+  // sctp_bindx expects addresses to be packed based on their actual size (sockaddr_in or sockaddr_in6),
+  // not sockaddr_storage which is 128 bytes and causes offset issues when reading multiple addresses.
+  size_t total_size = 0;
+  for (const auto& addr : addrs) {
+    sa_family_t family = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
+    if (family == AF_INET) {
+      total_size += sizeof(sockaddr_in);
+    } else if (family == AF_INET6) {
+      total_size += sizeof(sockaddr_in6);
+    } else {
+      logger.error("{}: Unknown address family: {}", if_name, family);
+      return false;
+    }
+  }
+
+  std::vector<uint8_t> packed_addrs(total_size);
+  size_t               offset = 0;
+  for (const auto& addr : addrs) {
+    sa_family_t family    = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
+    size_t      addr_size = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+    std::memcpy(packed_addrs.data() + offset, &addr, addr_size);
+    offset += addr_size;
+  }
+
+  int result =
+      sctp_bindx(sock_fd.value(), reinterpret_cast<sockaddr*>(packed_addrs.data()), addrs.size(), SCTP_BINDX_ADD_ADDR);
+
+  if (result < 0) {
+    logger.error("{}: Failed to bind {} address(es). Cause: {}", if_name, addrs.size(), ::strerror(errno));
+    return false;
+  }
+
+  logger.info("{}: Bind to {} address(es) was successful", if_name, addrs.size());
+  // Set socket to non-blocking after bind is successful.
+  if (non_blocking_mode) {
+    if (not set_non_blocking()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool sctp_socket::connect(struct sockaddr& ai_addr, const socklen_t& ai_addrlen)
 {
   logger.debug("{}: Connecting to {}...", if_name, get_nameinfo(ai_addr, ai_addrlen));
@@ -323,6 +395,70 @@ bool sctp_socket::connect(struct sockaddr& ai_addr, const socklen_t& ai_addrlen)
   }
 
   // set socket to non-blocking after connect is established
+  if (non_blocking_mode) {
+    if (not set_non_blocking()) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool sctp_socket::connectx(const std::vector<sockaddr_storage>& addrs)
+{
+  if (addrs.empty()) {
+    logger.error("{}: Failed to connect with sctp_connectx(). Cause: can't connect with empty address list", if_name);
+    return false;
+  }
+
+  if (not is_open()) {
+    logger.error(
+        "{}: Failed to connect to {} address(es) with sctp_connectx(). Cause: socket is closed", if_name, addrs.size());
+    return false;
+  }
+
+  logger.debug("{}: Connecting to {} address(es) using sctp_connectx()...", if_name, addrs.size());
+
+  // Pack addresses into contiguous buffer with correct sizes for each address family.
+  // sctp_connectx expects addresses to be packed based on their actual size (sockaddr_in or sockaddr_in6),
+  // not sockaddr_storage which is 128 bytes and causes offset issues when reading multiple addresses.
+  size_t total_size = 0;
+  for (const auto& addr : addrs) {
+    sa_family_t family = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
+    if (family == AF_INET) {
+      total_size += sizeof(sockaddr_in);
+    } else if (family == AF_INET6) {
+      total_size += sizeof(sockaddr_in6);
+    } else {
+      logger.error("{}: Unknown address family: {}", if_name, family);
+      return false;
+    }
+  }
+
+  std::vector<uint8_t> packed_addrs(total_size);
+  size_t               offset = 0;
+  for (const auto& addr : addrs) {
+    sa_family_t family    = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
+    size_t      addr_size = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+    std::memcpy(packed_addrs.data() + offset, &addr, addr_size);
+    offset += addr_size;
+  }
+
+  sctp_assoc_t assoc_id = 0;
+  int          result =
+      sctp_connectx(sock_fd.value(), reinterpret_cast<sockaddr*>(packed_addrs.data()), addrs.size(), &assoc_id);
+
+  if (result < 0) {
+    logger.debug("{}: Failed to connect to {} address(es) with sctp_connectx(). Cause: {}",
+                 if_name,
+                 addrs.size(),
+                 ::strerror(errno));
+    return false;
+  }
+
+  logger.info("{}: Successfully connected to {} address(es) using sctp_connectx()", if_name, addrs.size());
+
+  // Set socket to non-blocking after connect is established.
   if (non_blocking_mode) {
     if (not set_non_blocking()) {
       return false;

@@ -47,7 +47,7 @@ set(SOURCES
 
 add_library(ocudu_support STATIC ${SOURCES})
 target_link_libraries(ocudu_support PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES}
-	${NUMA_LIBRARIES} ocudulog)
+	${NUMA_LIBRARIES} ${SCTP_LIBRARIES} ocudulog)
 add_backward(ocudu_support)
 
 if (Backward_FOUND AND BACKWARD_HAS_EXTERNAL_LIBRARIES)

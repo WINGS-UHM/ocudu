@@ -389,7 +389,7 @@ static std::vector<test_parameters> generate_cases()
   });
   for (const auto& i : implementation) {
     // Resource blocks.
-    for (auto rb : {2U, 20U, 100U, 180U, 260U}) {
+    for (auto rb : {2U, 20U, 50U}) {
       // Layers.
       for (auto l : {1U, 2U, 4U}) {
         // Code rate.

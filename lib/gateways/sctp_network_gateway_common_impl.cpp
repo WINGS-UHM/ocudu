@@ -95,34 +95,52 @@ expected<sctp_socket> sctp_network_gateway_common_impl::create_socket(int ai_fam
 /// \brief Create and bind socket to given address.
 bool sctp_network_gateway_common_impl::create_and_bind_common()
 {
-  sockaddr_searcher searcher{node_cfg.bind_addresses[0], node_cfg.bind_port, logger};
-  struct addrinfo*  result = nullptr;
-  for (result = searcher.next(); result != nullptr; result = searcher.next()) {
-    // create SCTP socket
-    auto outcome = this->create_socket(result->ai_family, result->ai_socktype);
-    if (not outcome.has_value()) {
-      if (errno == ESOCKTNOSUPPORT) {
-        // There is no support for this type of socket. Stop search.
-        break;
+  // Resolve all bind addresses and determine required socket family.
+  bool                          has_ipv6_bind_addr = false;
+  std::vector<sockaddr_storage> resolved_addrs;
+  // TO-DO: this should be a std::set to guarantee deduplication and avoid possible address-in-use errors
+
+  for (const auto& addr : node_cfg.bind_addresses) {
+    sockaddr_searcher searcher{addr, node_cfg.bind_port, logger};
+
+    for (struct addrinfo* result = searcher.next(); result != nullptr; result = searcher.next()) {
+      struct sockaddr_storage storage;
+      std::memcpy(&storage, result->ai_addr, result->ai_addrlen);
+      resolved_addrs.emplace_back(storage);
+
+      if (result->ai_family == AF_INET6) {
+        has_ipv6_bind_addr = true;
       }
-      continue;
     }
-    sctp_socket& candidate = outcome.value();
-
-    if (not candidate.bind(*result->ai_addr, result->ai_addrlen, node_cfg.bind_interface)) {
-      // Bind failed. Try next candidate
-      continue;
-    }
-
-    // Socket is successfully created and binded. Save it and exit search.
-    socket = std::move(candidate);
-    break;
   }
 
+  if (resolved_addrs.empty()) {
+    logger.error("Failed to resolve any bind addresses");
+    return false;
+  }
+
+  // Create socket using the determined socket family.
+  int socket_family = has_ipv6_bind_addr ? AF_INET6 : AF_INET;
+
+  auto outcome = this->create_socket(socket_family, SOCK_SEQPACKET);
+  if (not outcome.has_value()) {
+    logger.error("Failed to create SCTP socket");
+    return false;
+  }
+
+  sctp_socket& candidate = outcome.value();
+
+  // Bind all resolved addresses using sctp_bindx.
+  if (not candidate.bindx(resolved_addrs, node_cfg.bind_interface)) {
+    logger.error("Failed to bind SCTP socket to {} address(es)", resolved_addrs.size());
+    return false;
+  }
+
+  socket = std::move(candidate);
+
   if (not socket.is_open()) {
-    fmt::print("Failed to bind SCTP socket to {}:{}. Cause: {}\n",
-               node_cfg.bind_addresses[0],
-               node_cfg.bind_port,
+    fmt::print("Failed to create and bind SCTP socket to {} address(es). Cause: {}\n",
+               resolved_addrs.size(),
                ::strerror(errno));
     return false;
   }

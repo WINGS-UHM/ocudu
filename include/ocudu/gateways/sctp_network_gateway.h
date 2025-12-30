@@ -70,9 +70,6 @@ class sctp_network_gateway_controller : public network_gateway_controller
 public:
   virtual ~sctp_network_gateway_controller() = default;
 
-  /// \brief Create and connect socket to given address.
-  virtual bool create_and_connect() = 0;
-
   /// \brief Start listening on socket.
   virtual bool listen() = 0;
 

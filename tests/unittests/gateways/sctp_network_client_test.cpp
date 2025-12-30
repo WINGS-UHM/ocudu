@@ -418,3 +418,5 @@ TEST_F(sctp_network_client_test, when_client_sends_eof_before_processing_incomin
   server_recv = server.receive();
   ASSERT_EQ(server_recv.value().sctp_assoc_change().sac_state, SCTP_SHUTDOWN_COMP);
 }
+
+// TO-DO: Add IPv6 tests

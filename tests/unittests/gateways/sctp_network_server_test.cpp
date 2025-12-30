@@ -189,6 +189,13 @@ TEST_F(sctp_network_server_test, when_bind_interface_is_invalid_then_server_is_n
   ASSERT_EQ(server, nullptr);
 }
 
+TEST_F(sctp_network_server_test, when_binding_on_bogus_address_then_bind_fails)
+{
+  server_cfg.sctp.bind_addresses = {"1.1.1.1"};
+  server                         = create_sctp_network_server(server_cfg);
+  ASSERT_EQ(server, nullptr);
+}
+
 TEST_F(sctp_network_server_test, when_bind_address_is_empty_then_server_is_not_created)
 {
   server_cfg.sctp.bind_addresses = {""};
@@ -360,4 +367,111 @@ TEST_F(sctp_network_server_test, when_multiple_clients_connect_then_multiple_ass
   trigger_broker(); // < Client2: SCTP SHUTDOWN EVENT
   trigger_broker(); // < Client2: SCTP SHUTDOWN COMP
   ASSERT_TRUE(assoc_factory.association_destroyed) << "Client 2 shutdown was not processed";
+}
+
+// IPv6 tests
+
+TEST_F(sctp_network_server_test, when_binding_on_bogus_v6_address_then_server_is_not_created)
+{
+  server_cfg.sctp.bind_addresses = {"1:1::"};
+  server                         = create_sctp_network_server(server_cfg);
+  ASSERT_EQ(server, nullptr);
+}
+
+TEST_F(sctp_network_server_test, when_binding_on_v6_localhost_then_server_is_created)
+{
+  server_cfg.sctp.bind_addresses = {"::1"};
+  server                         = create_sctp_network_server(server_cfg);
+  ASSERT_NE(server, nullptr);
+  ASSERT_TRUE(server->listen());
+  std::optional<uint16_t> port = server->get_listen_port();
+  ASSERT_TRUE(port.has_value());
+  ASSERT_NE(port.value(), 0);
+}
+
+// SCTP socket option tests
+
+TEST_F(sctp_network_server_test, when_rto_is_set_then_rto_changes)
+{
+  std::chrono::milliseconds rto_init{120};
+  std::chrono::milliseconds rto_min{120};
+  std::chrono::milliseconds rto_max{800};
+
+  server_cfg.sctp.rto_initial = rto_init;
+  server_cfg.sctp.rto_min     = rto_min;
+  server_cfg.sctp.rto_max     = rto_max;
+
+  server = create_sctp_network_server(server_cfg);
+  ASSERT_NE(server, nullptr);
+
+  int fd = server->get_socket_fd();
+
+  // Check used RTO values.
+  sctp_rtoinfo rto_opts  = {};
+  socklen_t    rto_sz    = sizeof(sctp_rtoinfo);
+  rto_opts.srto_assoc_id = 0;
+  ASSERT_EQ(getsockopt(fd, SOL_SCTP, SCTP_RTOINFO, &rto_opts, &rto_sz), 0) << ::strerror(errno);
+  ASSERT_EQ(rto_opts.srto_initial, rto_init.count());
+  ASSERT_EQ(rto_opts.srto_min, rto_min.count());
+  ASSERT_EQ(rto_opts.srto_max, rto_max.count());
+}
+
+TEST_F(sctp_network_server_test, when_init_msg_is_set_then_init_msg_changes)
+{
+  uint32_t                  init_max_attempts = 1;
+  std::chrono::milliseconds max_init_timeo{120};
+
+  server_cfg.sctp.init_max_attempts = init_max_attempts;
+  server_cfg.sctp.max_init_timeo    = max_init_timeo;
+
+  server = create_sctp_network_server(server_cfg);
+  ASSERT_NE(server, nullptr);
+
+  int fd = server->get_socket_fd();
+
+  // Check used SCTP_INITMSG values.
+  sctp_initmsg init_opts = {};
+  socklen_t    init_sz   = sizeof(sctp_initmsg);
+  ASSERT_EQ(getsockopt(fd, SOL_SCTP, SCTP_INITMSG, &init_opts, &init_sz), 0);
+
+  ASSERT_EQ(init_opts.sinit_max_attempts, init_max_attempts);
+  ASSERT_EQ(init_opts.sinit_max_init_timeo, max_init_timeo.count());
+}
+
+TEST_F(sctp_network_server_test, when_assoc_is_set_then_assoc_changes)
+{
+  uint32_t assoc_max_rxt = 5;
+
+  server_cfg.sctp.assoc_max_rxt = assoc_max_rxt;
+
+  server = create_sctp_network_server(server_cfg);
+  ASSERT_NE(server, nullptr);
+
+  int fd = server->get_socket_fd();
+
+  // Check used SCTP_ASSOCINFO values.
+  sctp_assocparams assoc_opts = {};
+  socklen_t        assoc_sz   = sizeof(sctp_assocparams);
+  ASSERT_EQ(getsockopt(fd, SOL_SCTP, SCTP_ASSOCINFO, &assoc_opts, &assoc_sz), 0);
+
+  ASSERT_EQ(assoc_opts.sasoc_asocmaxrxt, assoc_max_rxt);
+}
+
+TEST_F(sctp_network_server_test, when_paddr_is_set_then_paddr_changes)
+{
+  std::chrono::milliseconds hb_interval{5000};
+
+  server_cfg.sctp.hb_interval = hb_interval;
+
+  server = create_sctp_network_server(server_cfg);
+  ASSERT_NE(server, nullptr);
+
+  int fd = server->get_socket_fd();
+
+  // Check used SCTP_PEER_ADDR_PARAMS values.
+  sctp_paddrparams paddr_opts = {};
+  socklen_t        paddr_sz   = sizeof(sctp_paddrparams);
+  ASSERT_EQ(getsockopt(fd, SOL_SCTP, SCTP_PEER_ADDR_PARAMS, &paddr_opts, &paddr_sz), 0);
+
+  ASSERT_EQ(paddr_opts.spp_hbinterval, hb_interval.count());
 }

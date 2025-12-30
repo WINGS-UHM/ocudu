@@ -12,7 +12,6 @@
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/gateways/sctp_network_client_factory.h"
-#include "ocudu/gateways/sctp_network_gateway_factory.h"
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/pcap/dlt_pcap.h"
 

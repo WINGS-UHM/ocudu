@@ -217,6 +217,26 @@ static bool sctp_set_nodelay(const unique_fd& fd, std::optional<bool> nodelay)
   return ::setsockopt(fd.value(), IPPROTO_SCTP, SCTP_NODELAY, &optval, sizeof(optval)) == 0;
 }
 
+/// Disable IPV6_V6ONLY for IPv6 sockets to allow both IPv4 and IPv6 addresses in case of multihoming.
+/// This allows IPv4-mapped IPv6 addresses to work on IPv6 sockets.
+static bool
+set_ipv6_v6only(const unique_fd& fd, int ai_family, const std::string& if_name, ocudulog::basic_logger& logger)
+{
+  if (ai_family != AF_INET6) {
+    // Only applicable to IPv6 sockets
+    return true;
+  }
+
+  int optval = 0; // 0 = allow both IPv4 and IPv6
+  if (::setsockopt(fd.value(), IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)) < 0) {
+    logger.error("{}: Failed to set IPV6_V6ONLY=0. errno={}", if_name, ::strerror(errno));
+    return false;
+  }
+
+  logger.debug("{}: IPV6_V6ONLY disabled, socket supports both IPv4 and IPv6", if_name);
+  return true;
+}
+
 // sctp_socket class.
 
 sctp_socket::sctp_socket() : logger(ocudulog::fetch_basic_logger("SCTP-GW")) {}
@@ -499,6 +519,11 @@ bool sctp_socket::set_sockopts(const sctp_socket_params& params)
   if (not sctp_subscribe_to_events(sock_fd)) {
     logger.error(
         "{}: SCTP failed to be created. Cause: Subscribing to SCTP events failed: {}", if_name, ::strerror(errno));
+    return false;
+  }
+
+  // Disable IPV6_V6ONLY for IPv6 sockets to support both IPv4 and IPv6.
+  if (not set_ipv6_v6only(sock_fd, params.ai_family, if_name, logger)) {
     return false;
   }
 

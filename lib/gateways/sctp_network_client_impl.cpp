@@ -183,39 +183,50 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
     }
   }
 
-  sockaddr_searcher searcher{client_cfg.connect_addresses[0], client_cfg.connect_port, logger};
-  auto              start = std::chrono::steady_clock::now();
+  auto start = std::chrono::steady_clock::now();
   // Create SCTP socket only if not created earlier during bind. Otherwise, reuse socket.
-  bool             reuse_socket = socket.is_open();
-  struct addrinfo* result       = nullptr;
-  for (auto candidate = searcher.next(); candidate != nullptr and result == nullptr; candidate = searcher.next()) {
-    if (not reuse_socket) {
-      // Create SCTP socket only if not created earlier through bind or another connection.
-      expected<sctp_socket> outcome = create_socket(candidate->ai_family, candidate->ai_socktype);
-      if (not outcome.has_value()) {
-        if (errno == ESOCKTNOSUPPORT) {
-          // Stop the search.
-          break;
-        }
-        continue;
-      }
-      socket = std::move(outcome.value());
-    }
+  bool reuse_socket = socket.is_open();
 
-    bool connection_success = socket.connect(*candidate->ai_addr, candidate->ai_addrlen);
-    if (not connection_success) {
-      // connection failed, but before trying the next address, make sure the just created socket is deleted.
-      if (not reuse_socket) {
-        socket.close();
-      }
-      continue;
-    }
+  // Resolve all destination addresses and determine required socket family.
+  // If socket was already created during bind, its family is already set and cannot be changed.
+  // If socket family determined from destination addresses is different - in that case IPv6 paths won't work.
+  bool has_ipv6_dest_addr = false;
 
-    // Found a valid candidate.
-    result = candidate;
+  std::vector<sockaddr_storage> resolved_addrs;
+  // TO-DO: this should be a std::set to guarantee deduplication and avoid possible address-in-use errors?
+
+  for (const auto& addr : client_cfg.connect_addresses) {
+    sockaddr_searcher searcher{addr, client_cfg.connect_port, logger};
+
+    for (struct addrinfo* result = searcher.next(); result != nullptr; result = searcher.next()) {
+      struct sockaddr_storage storage;
+      std::memcpy(&storage, result->ai_addr, result->ai_addrlen);
+      resolved_addrs.emplace_back(storage);
+
+      if (result->ai_family == AF_INET6) {
+        has_ipv6_dest_addr = true;
+      }
+    }
   }
 
-  if (result == nullptr) {
+  if (not reuse_socket) {
+    // Create SCTP socket only if not created earlier through bind or another connection.
+    int                   socket_family = has_ipv6_dest_addr ? AF_INET6 : AF_INET;
+    expected<sctp_socket> outcome       = create_socket(socket_family, SOCK_SEQPACKET);
+    if (outcome.has_value()) {
+      socket = std::move(outcome.value());
+    }
+  }
+
+  bool connection_success = socket.connectx(resolved_addrs);
+  if (not connection_success) {
+    // Connection failed, make sure the just created socket is deleted.
+    if (not reuse_socket) {
+      socket.close();
+    }
+  }
+
+  if (not connection_success) {
     auto        end    = std::chrono::steady_clock::now();
     auto        now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::string cause  = ::strerror(errno);
@@ -241,7 +252,13 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
 
   // Create objects representing state of the client.
   recv_handler = std::move(recv_handler_);
-  auto addr    = transport_layer_address::create_from_sockaddr(*result->ai_addr, result->ai_addrlen);
+
+  // Use the first resolved destination address as the peer address.
+  // TO-DO: this should use sctp_getpaddrs to get the actual connected address?
+  const sockaddr_storage& peer_storage = resolved_addrs[0];
+  sa_family_t             family       = reinterpret_cast<const sockaddr*>(&peer_storage)->sa_family;
+  socklen_t               peer_len     = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+  auto addr = transport_layer_address::create_from_sockaddr(reinterpret_cast<const sockaddr&>(peer_storage), peer_len);
   {
     // Save server address and create a shutdown context flag.
     std::unique_lock<std::mutex> lock(connection_mutex);
@@ -323,7 +340,8 @@ void sctp_network_client_impl::receive()
 
 void sctp_network_client_impl::handle_connection_shutdown(const char* cause)
 {
-  // Signal that the upper layer sender should stop sending new SCTP data (including the EOF, which would fail anyway).
+  // Signal that the upper layer sender should stop sending new SCTP data (including the EOF, which would fail
+  // anyway).
   bool prev = shutdown_received->exchange(true);
 
   if (not prev and cause != nullptr) {

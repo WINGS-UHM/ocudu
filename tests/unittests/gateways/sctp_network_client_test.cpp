@@ -77,7 +77,8 @@ public:
     ocudulog::fetch_basic_logger("SCTP-GW").set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 
-    client_cfg.sctp.ppid = NGAP_PPID;
+    client_cfg.sctp.if_name = "client";
+    client_cfg.sctp.ppid    = NGAP_PPID;
   }
   ~sctp_network_client_test() override
   {
@@ -125,7 +126,7 @@ public:
 protected:
   inline_task_executor       io_rx_executor;
   dummy_io_broker            broker;
-  sctp_network_client_config client_cfg{{.if_name = "client"}, broker, io_rx_executor};
+  sctp_network_client_config client_cfg{sctp_network_connector_config{}, broker, io_rx_executor};
 
   sctp_recv_notifier_factory recv_notifier_factory;
 

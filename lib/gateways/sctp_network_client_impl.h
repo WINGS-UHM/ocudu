@@ -25,16 +25,16 @@ namespace ocudu {
 /// This implementation assumes single-threaded access to its public interface.
 class sctp_network_client_impl : public sctp_network_client, public sctp_network_gateway_common_impl
 {
-  explicit sctp_network_client_impl(const sctp_network_gateway_config& sctp_cfg,
-                                    io_broker&                         broker,
-                                    task_executor&                     io_rx_executor_);
+  explicit sctp_network_client_impl(const sctp_network_connector_config& sctp_cfg,
+                                    io_broker&                           broker,
+                                    task_executor&                       io_rx_executor_);
 
 public:
   ~sctp_network_client_impl() override;
 
   /// Create an SCTP client.
   static std::unique_ptr<sctp_network_client>
-  create(const sctp_network_gateway_config& sctp_cfg, io_broker& broker, task_executor& io_rx_executor);
+  create(const sctp_network_connector_config& sctp_cfg, io_broker& broker, task_executor& io_rx_executor);
 
   /// Connect to an SCTP server with the provided address.
   std::unique_ptr<sctp_association_sdu_notifier>
@@ -57,6 +57,8 @@ private:
                            socklen_t                     src_addr_len);
   void handle_connection_shutdown(const char* cause);
   void handle_connection_terminated(const std::string& cause);
+
+  const sctp_network_connector_config client_cfg;
 
   io_broker&     broker;
   task_executor& io_rx_executor;

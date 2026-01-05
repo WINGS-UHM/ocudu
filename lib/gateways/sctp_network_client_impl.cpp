@@ -116,10 +116,10 @@ private:
   std::shared_ptr<std::atomic<bool>> closed_flag;
 };
 
-sctp_network_client_impl::sctp_network_client_impl(const sctp_network_gateway_config& sctp_cfg,
-                                                   io_broker&                         broker_,
-                                                   task_executor&                     io_rx_executor_) :
-  sctp_network_gateway_common_impl(sctp_cfg), broker(broker_), io_rx_executor(io_rx_executor_)
+sctp_network_client_impl::sctp_network_client_impl(const sctp_network_connector_config& sctp_cfg,
+                                                   io_broker&                           broker_,
+                                                   task_executor&                       io_rx_executor_) :
+  sctp_network_gateway_common_impl(sctp_cfg), client_cfg(sctp_cfg), broker(broker_), io_rx_executor(io_rx_executor_)
 {
 }
 
@@ -398,9 +398,9 @@ void sctp_network_client_impl::handle_notification(span<const uint8_t>          
   }
 }
 
-std::unique_ptr<sctp_network_client> sctp_network_client_impl::create(const sctp_network_gateway_config& sctp_cfg,
-                                                                      io_broker&                         broker_,
-                                                                      task_executor&                     io_rx_executor)
+std::unique_ptr<sctp_network_client> sctp_network_client_impl::create(const sctp_network_connector_config& sctp_cfg,
+                                                                      io_broker&                           broker_,
+                                                                      task_executor& io_rx_executor)
 {
   // Validate arguments.
   if (sctp_cfg.if_name.empty()) {

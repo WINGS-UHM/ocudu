@@ -47,6 +47,8 @@ public:
 
     report_fatal_error_if_not(server->listen(), "Failed to listen to connections");
 
+    int server_port = server->get_listen_port().value();
+
     for (unsigned i = 0; i < nof_clients; i++) {
       // Create context instance.
       auto ret = client_associations.insert(std::make_pair(i, std::make_unique<sctp_client_association_context>()));
@@ -54,17 +56,18 @@ public:
 
       // Create client.
       sctp_network_client_config client_cfg{{}, *client_broker, rx_executor};
-      client_cfg.sctp.if_name   = fmt::format("client{}", i);
-      client_cfg.sctp.ppid      = NGAP_PPID;
-      ret.first->second->client = create_sctp_network_client(client_cfg);
+      client_cfg.sctp.if_name         = fmt::format("client{}", i);
+      client_cfg.sctp.ppid            = NGAP_PPID;
+      client_cfg.sctp.dest_name       = "server";
+      client_cfg.sctp.connect_address = server_cfg.sctp.bind_address;
+      client_cfg.sctp.connect_port    = server_port;
+      ret.first->second->client       = create_sctp_network_client(client_cfg);
       report_fatal_error_if_not(ret.first->second->client != nullptr, "Failed to create Client");
     }
 
     // Connect Clients.
     for (auto& assoc : client_associations) {
-      int server_port             = server->get_listen_port().value();
-      assoc.second->client_sender = assoc.second->client->connect_to(
-          "server", server_cfg.sctp.bind_address, server_port, create_client_receiver(assoc.first));
+      assoc.second->client_sender = assoc.second->client->connect(create_client_receiver(assoc.first));
       report_fatal_error_if_not(assoc.second->client_sender != nullptr, "Failed to connect Client");
     }
 

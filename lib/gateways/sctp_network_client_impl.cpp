@@ -160,10 +160,7 @@ sctp_network_client_impl::~sctp_network_client_impl()
 }
 
 std::unique_ptr<sctp_association_sdu_notifier>
-sctp_network_client_impl::connect_to(const std::string&                             dest_name,
-                                     const std::string&                             dest_addr,
-                                     int                                            dest_port,
-                                     std::unique_ptr<sctp_association_sdu_notifier> recv_handler_)
+sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier> recv_handler_)
 {
   {
     std::lock_guard<std::mutex> lock(connection_mutex);
@@ -171,8 +168,8 @@ sctp_network_client_impl::connect_to(const std::string&                         
       // If this is not the first connection.
       logger.error("{}: Connection to {}:{} failed. Cause: Connection is already in progress",
                    node_cfg.if_name,
-                   dest_addr,
-                   dest_port);
+                   client_cfg.connect_address,
+                   client_cfg.connect_port);
       return nullptr;
     }
   }
@@ -184,7 +181,7 @@ sctp_network_client_impl::connect_to(const std::string&                         
     }
   }
 
-  sockaddr_searcher searcher{dest_addr, dest_port, logger};
+  sockaddr_searcher searcher{client_cfg.connect_address, client_cfg.connect_port, logger};
   auto              start = std::chrono::steady_clock::now();
   // Create SCTP socket only if not created earlier during bind. Otherwise, reuse socket.
   bool             reuse_socket = socket.is_open();
@@ -225,16 +222,16 @@ sctp_network_client_impl::connect_to(const std::string&                         
     }
     fmt::print("{}: Failed to connect to {} on {}:{}. error=\"{}\" timeout={}ms\n",
                node_cfg.if_name,
-               dest_name,
-               dest_addr,
-               dest_port,
+               client_cfg.dest_name,
+               client_cfg.connect_address,
+               client_cfg.connect_port,
                cause,
                now_ms.count());
     logger.error("{}: Failed to connect to {} on {}:{}. error=\"{}\" timeout={}ms",
                  node_cfg.if_name,
-                 dest_name,
-                 dest_addr,
-                 dest_port,
+                 client_cfg.dest_name,
+                 client_cfg.connect_address,
+                 client_cfg.connect_port,
                  cause,
                  now_ms.count());
     return nullptr;
@@ -274,7 +271,11 @@ sctp_network_client_impl::connect_to(const std::string&                         
     return nullptr;
   }
 
-  logger.info("{}: SCTP connection to {} on {}:{} was established", node_cfg.if_name, dest_name, dest_addr, dest_port);
+  logger.info("{}: SCTP connection to {} on {}:{} was established",
+              node_cfg.if_name,
+              client_cfg.dest_name,
+              client_cfg.connect_address,
+              client_cfg.connect_port);
 
   return std::make_unique<sctp_send_notifier>(*this, addr);
 }

@@ -48,10 +48,7 @@ public:
     epoll_broker(create_io_broker(io_broker_type::epoll)),
     gw(create_sctp_network_client({nw_config, *epoll_broker, executor}))
   {
-    sctp_sender = gw->connect_to("RIC",
-                                 nw_config.connect_address,
-                                 nw_config.connect_port,
-                                 std::make_unique<my_dummy_sctp_association_sdu_notifier>(*this));
+    sctp_sender = gw->connect(std::make_unique<my_dummy_sctp_association_sdu_notifier>(*this));
     if (sctp_sender == nullptr) {
       test_logger.error("Failed to establish E2 connection to Near-RT RIC on {}:{}.",
                         nw_config.connect_address,

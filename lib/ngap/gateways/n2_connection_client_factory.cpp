@@ -235,10 +235,7 @@ public:
                  sctp_cfg.dest_name,
                  sctp_cfg.connect_address,
                  sctp_cfg.connect_port);
-    std::unique_ptr<sctp_association_sdu_notifier> sctp_sender = sctp_gateway->connect_to(
-        sctp_cfg.dest_name,
-        sctp_cfg.connect_address,
-        sctp_cfg.connect_port,
+    std::unique_ptr<sctp_association_sdu_notifier> sctp_sender = sctp_gateway->connect(
         std::make_unique<sctp_to_n2_pdu_notifier>(std::move(cu_cp_rx_pdu_notifier), pcap_writer, logger));
 
     if (sctp_sender == nullptr) {

@@ -110,7 +110,7 @@ public:
 
   bool connect_to_server(const std::string& server_addr, int server_port)
   {
-    auto sender = client->connect_to("server", server_addr, server_port, recv_notifier_factory.create());
+    auto sender = client->connect(recv_notifier_factory.create());
     if (sender != nullptr) {
       client_sender = std::move(sender);
       return true;
@@ -173,8 +173,11 @@ TEST_F(sctp_network_client_test, when_server_does_not_exist_then_connection_fail
 
 TEST_F(sctp_network_client_test, when_broker_rejects_subscriber_then_connect_fails)
 {
-  broker.accept_next_fd = false;
-  client                = create_sctp_network_client(client_cfg);
+  broker.accept_next_fd           = false;
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
 
   ASSERT_FALSE(connect_to_server(server.address, server.bind_port));
   ASSERT_GE(broker.last_registered_fd.value(), 0);
@@ -183,7 +186,10 @@ TEST_F(sctp_network_client_test, when_broker_rejects_subscriber_then_connect_fai
 
 TEST_F(sctp_network_client_test, when_server_exists_then_connection_succeeds)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
 
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
   ASSERT_EQ(broker.last_registered_fd.value(), client->get_socket_fd());
@@ -213,14 +219,20 @@ TEST_F(sctp_network_client_test, when_server_exists_then_connection_succeeds)
 
 TEST_F(sctp_network_client_test, when_client_binds_address_then_connection_succeeds)
 {
-  client_cfg.sctp.bind_address = "127.0.0.2";
-  client                       = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.bind_address    = "127.0.0.2";
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
 }
 
 TEST_F(sctp_network_client_test, when_client_sends_data_then_server_receives_it)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
 
   std::vector<uint8_t> sent_data = {0x1, 0x2, 0x3};
@@ -239,7 +251,10 @@ TEST_F(sctp_network_client_test, when_client_sends_data_then_server_receives_it)
 
 TEST_F(sctp_network_client_test, when_server_sends_data_then_client_receives_it)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
 
   // Server receives SCTP COMM UP
@@ -263,7 +278,10 @@ TEST_F(sctp_network_client_test, when_server_sends_data_then_client_receives_it)
 
 TEST_F(sctp_network_client_test, when_client_sender_is_destroyed_then_client_sends_eof)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
 
   // Client processes SCTP COMM UP
@@ -291,7 +309,10 @@ TEST_F(sctp_network_client_test, when_client_sender_is_destroyed_then_client_sen
 
 TEST_F(sctp_network_client_test, when_client_is_destroyed_then_server_gets_eof)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
   // Client processes SCTP COMM UP
   trigger_broker();
@@ -312,7 +333,10 @@ TEST_F(sctp_network_client_test, when_client_is_destroyed_then_server_gets_eof)
 
 TEST_F(sctp_network_client_test, when_server_is_destroyed_then_client_receives_sctp_shutdown_event)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
   // Client processes SCTP COMM UP
   trigger_broker();
@@ -333,7 +357,10 @@ TEST_F(sctp_network_client_test, when_server_is_destroyed_then_client_receives_s
 
 TEST_F(sctp_network_client_test, when_server_sends_eof_then_client_receives_sctp_shutdown_event)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
   // Client processes SCTP COMM UP
   trigger_broker();
@@ -360,7 +387,10 @@ TEST_F(sctp_network_client_test, when_server_sends_eof_then_client_receives_sctp
 
 TEST_F(sctp_network_client_test, when_client_sends_eof_before_processing_incoming_eof_then_shutdown_is_successful)
 {
-  client = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.connect_address = server.address;
+  client_cfg.sctp.connect_port    = server.bind_port;
+  client_cfg.sctp.dest_name       = "server";
+  client                          = create_sctp_network_client(client_cfg);
   ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
   // Client processes SCTP COMM UP
   trigger_broker();

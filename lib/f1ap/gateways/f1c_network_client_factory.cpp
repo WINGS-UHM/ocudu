@@ -111,10 +111,7 @@ public:
 
     logger.debug(
         "Establishing TNL connection to CU-CP ({}:{})...", sctp_params.connect_address, sctp_params.connect_port);
-    std::unique_ptr<sctp_association_sdu_notifier> sctp_sender = sctp_gateway->connect_to(
-        "CU-CP",
-        sctp_params.connect_address,
-        sctp_params.connect_port,
+    std::unique_ptr<sctp_association_sdu_notifier> sctp_sender = sctp_gateway->connect(
         std::make_unique<sctp_to_f1c_pdu_notifier>(std::move(du_rx_pdu_notifier), pcap_writer, logger));
     if (sctp_sender == nullptr) {
       logger.error("Failed to establish F1-C TNL connection to CU-CP on {}:{}.",

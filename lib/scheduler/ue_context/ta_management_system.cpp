@@ -213,6 +213,10 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
 
   // If enabled, decide whether to filter out outlier using Welford's algorithm and using an exponential average.
   if (ta_cfg.outlier_detection_zscore_threshold > 0.0F) {
+    // Update exponential averages for outlier detection.
+    tag_meas.n_ta_diff_averager.push(n_ta_diff_);
+    tag_meas.n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
+
     static constexpr unsigned min_samples_for_outlier_detection = 10;
     if (tag_meas.count_until_outlier_detection < min_samples_for_outlier_detection) {
       // Note: for small number of samples, outlier detection is not performed.
@@ -227,8 +231,6 @@ void ta_management_system::handle_ul_n_ta_update_indication(soa::row_id         
   }
 
   // Passed outlier detection. Update statistics for this TAG measurement.
-  tag_meas.n_ta_diff_averager.push(n_ta_diff_);
-  tag_meas.n_ta_diff_sq_averager.push(n_ta_diff_ * n_ta_diff_);
   tag_meas.window_sum_samples += n_ta_diff_;
   ++tag_meas.window_count_samples;
   tag_meas.last_t_a = compute_new_t_a(compute_avg_n_ta_difference(tag_meas), u.ul_scs);

@@ -13,6 +13,7 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rnti.h"
 
 namespace ocudu {
 namespace ocucp {
@@ -40,7 +41,7 @@ public:
   virtual ~f1ap_ul_ccch_notifier() = default;
 
   /// This callback is invoked on each outgoing UL CCCH PDU.
-  virtual void on_ul_ccch_pdu(byte_buffer pdu) = 0;
+  virtual void on_ul_ccch_pdu(byte_buffer pdu, rnti_t c_rnti) = 0;
 };
 
 /// Notifier interface used to notify outgoing UL DCCH PDUs that were received over the F1 interface.

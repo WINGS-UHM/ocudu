@@ -25,6 +25,7 @@ class rrc_resume_procedure
 public:
   rrc_resume_procedure(const asn1::rrc_nr::rrc_resume_request_s& request_,
                        rrc_ue_context_t&                         context_,
+                       rnti_t                                    new_c_rnti_,
                        rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier_,
                        rrc_ue_context_update_notifier&           cu_cp_notifier_,
                        rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier_,
@@ -53,6 +54,7 @@ private:
 
   const asn1::rrc_nr::rrc_resume_request_s resume_request;
   rrc_ue_context_t&                        context;
+  rnti_t                                   new_c_rnti;
   rrc_ue_msg4_proc_notifier&               rrc_ue_resume_notifier; // handler to the parent RRC UE object
   rrc_ue_context_update_notifier&          cu_cp_notifier;         // notifier to the CU-CP
   rrc_ue_cu_cp_ue_notifier&                cu_cp_ue_notifier;      // notifier to the CU-CP UE

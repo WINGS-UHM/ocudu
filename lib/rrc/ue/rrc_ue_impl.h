@@ -41,7 +41,7 @@ public:
   ~rrc_ue_impl();
 
   // rrc_ul_pdu_handler
-  void handle_ul_ccch_pdu(byte_buffer pdu) override;
+  void handle_ul_ccch_pdu(byte_buffer pdu, rnti_t c_rnti) override;
   void handle_ul_dcch_pdu(const srb_id_t srb_id, byte_buffer pdcp_pdu) override;
 
   // rrc_ue_interface
@@ -106,7 +106,7 @@ private:
   void handle_pdu(const srb_id_t srb_id, byte_buffer rrc_pdu);
   void handle_rrc_setup_request(const asn1::rrc_nr::rrc_setup_request_s& msg);
   void handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request_s& msg);
-  void handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg);
+  void handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg, rnti_t c_rnti);
   void handle_ul_info_transfer(const asn1::rrc_nr::ul_info_transfer_ies_s& ul_info_transfer);
   void handle_rrc_transaction_complete(const asn1::rrc_nr::ul_dcch_msg_s& msg, uint8_t transaction_id_);
   void handle_security_mode_complete(const asn1::rrc_nr::security_mode_complete_s& msg);

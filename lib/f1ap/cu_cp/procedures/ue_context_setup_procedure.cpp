@@ -119,7 +119,7 @@ bool ue_context_setup_procedure::create_ue_rrc_context(const f1ap_ue_context_set
 
   if (ue_ctxt_setup_resp.c_rnti.has_value()) {
     // If this is a RRC Resume, the UE RRC context might already exist in the CU-CP.
-    if (ue_ctxt->get_ul_bearer_manager().get_srb(srb_id_t::srb0) != nullptr and
+    if (ue_ctxt->get_ul_bearer_manager().get_srb0() != nullptr and
         ue_ctxt->get_ul_bearer_manager().get_srb(srb_id_t::srb1) != nullptr and
         ue_ctxt->get_ul_bearer_manager().get_srb(srb_id_t::srb2) != nullptr) {
       logger.debug("ue={} RRC context already exists in CU-CP, skipping RRC context creation",

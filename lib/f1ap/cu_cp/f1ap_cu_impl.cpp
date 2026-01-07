@@ -370,10 +370,10 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
   }
 
   // Forward RRC container.
-  f1c_ul_bearer_handler* bearer = ue_ctxt_list[resp->ue_index].get_ul_bearer_manager().get_srb(srb_id_t::srb0);
+  f1c_initial_ul_bearer_handler* bearer = ue_ctxt_list[resp->ue_index].get_ul_bearer_manager().get_srb0();
 
   ocudu_assert(bearer, "SRB0 should be always active");
-  bearer->handle_ul_rrc_message(msg->rrc_container.copy());
+  bearer->handle_initial_ul_rrc_message(msg->rrc_container.copy(), crnti);
 }
 
 void f1ap_cu_impl::handle_ul_rrc_message(const asn1::f1ap::ul_rrc_msg_transfer_s& msg)

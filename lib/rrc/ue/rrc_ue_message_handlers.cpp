@@ -29,7 +29,7 @@ using namespace ocudu;
 using namespace ocucp;
 using namespace asn1::rrc_nr;
 
-void rrc_ue_impl::handle_ul_ccch_pdu(byte_buffer pdu)
+void rrc_ue_impl::handle_ul_ccch_pdu(byte_buffer pdu, rnti_t c_rnti)
 {
   // Parse UL-CCCH.
   ul_ccch_msg_s ul_ccch_msg;
@@ -55,7 +55,7 @@ void rrc_ue_impl::handle_ul_ccch_pdu(byte_buffer pdu)
       handle_rrc_reest_request(ul_ccch_msg.msg.c1().rrc_reest_request());
       break;
     case ul_ccch_msg_type_c::c1_c_::types_opts::rrc_resume_request:
-      handle_rrc_resume_request(ul_ccch_msg.msg.c1().rrc_resume_request());
+      handle_rrc_resume_request(ul_ccch_msg.msg.c1().rrc_resume_request(), c_rnti);
       break;
     default:
       logger.log_error("Unsupported CCCH UL message type");
@@ -154,7 +154,7 @@ void rrc_ue_impl::handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request
                                                   logger));
 }
 
-void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg)
+void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg, rnti_t c_rnti)
 {
   // If the DU to CU container is missing, assume the DU can't serve the UE, so the CU-CP should reject the UE, see
   // TS 38.473 section 8.4.1.2.
@@ -195,7 +195,7 @@ void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_reque
 
   // Launch RRC resume procedure.
   cu_cp_ue_notifier.schedule_async_task(launch_async<rrc_resume_procedure>(
-      msg, context, *this, cu_cp_notifier, cu_cp_ue_notifier, metrics_notifier, *event_mng, logger));
+      msg, context, c_rnti, *this, cu_cp_notifier, cu_cp_ue_notifier, metrics_notifier, *event_mng, logger));
 }
 
 void rrc_ue_impl::stop()

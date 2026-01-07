@@ -25,6 +25,7 @@
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rnti.h"
 #include "ocudu/ran/s_nssai.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tac.h"
@@ -618,6 +619,7 @@ struct cu_cp_intra_cu_handover_response {
 struct cu_cp_rrc_resume_request {
   ue_index_t          ue_index = ue_index_t::invalid;
   nr_cell_global_id_t cgi;
+  rnti_t              new_c_rnti;
 };
 
 } // namespace ocudu::ocucp

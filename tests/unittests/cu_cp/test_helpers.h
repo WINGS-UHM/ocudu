@@ -632,8 +632,8 @@ public:
   // RRC UE Controller.
   void stop() override {}
 
-  // RRC UL PDU handler.
-  void handle_ul_ccch_pdu(byte_buffer pdu) override {}
+  // RRC UL PDU handler
+  void handle_ul_ccch_pdu(byte_buffer pdu, rnti_t rnti) override {}
   void handle_ul_dcch_pdu(const srb_id_t srb_id, byte_buffer pdu) override {}
 
   // RRC NGAP Message handler.

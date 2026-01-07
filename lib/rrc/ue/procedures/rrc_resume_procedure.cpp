@@ -22,6 +22,7 @@ using namespace ocucp;
 
 rrc_resume_procedure::rrc_resume_procedure(const asn1::rrc_nr::rrc_resume_request_s& request_,
                                            rrc_ue_context_t&                         context_,
+                                           rnti_t                                    new_c_rnti_,
                                            rrc_ue_msg4_proc_notifier&                rrc_ue_resume_notifier_,
                                            rrc_ue_context_update_notifier&           cu_cp_notifier_,
                                            rrc_ue_cu_cp_ue_notifier&                 cu_cp_ue_notifier_,
@@ -30,6 +31,7 @@ rrc_resume_procedure::rrc_resume_procedure(const asn1::rrc_nr::rrc_resume_reques
                                            rrc_ue_logger&                            logger_) :
   resume_request(request_),
   context(context_),
+  new_c_rnti(new_c_rnti_),
   rrc_ue_resume_notifier(rrc_ue_resume_notifier_),
   cu_cp_notifier(cu_cp_notifier_),
   cu_cp_ue_notifier(cu_cp_ue_notifier_),
@@ -56,8 +58,9 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
   }
 
   // Notify the CU-CP about the resume request.
-  request.ue_index = context.ue_index;
-  request.cgi      = context.cell.cgi;
+  request.ue_index   = context.ue_index;
+  request.cgi        = context.cell.cgi;
+  request.new_c_rnti = new_c_rnti;
   CORO_AWAIT_VALUE(rrc_resume_context, cu_cp_notifier.on_rrc_resume_request(request));
 
   if (!rrc_resume_context.success) {

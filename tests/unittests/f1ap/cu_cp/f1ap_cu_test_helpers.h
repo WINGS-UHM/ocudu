@@ -87,7 +87,7 @@ class dummy_f1ap_ul_ccch_message_notifier : public ocucp::f1ap_ul_ccch_notifier
 {
 public:
   dummy_f1ap_ul_ccch_message_notifier() = default;
-  void on_ul_ccch_pdu(byte_buffer pdu) override
+  void on_ul_ccch_pdu(byte_buffer pdu, rnti_t c_rnti) override
   {
     logger.info("Received UL CCCH RRC message");
     last_ul_ccch_pdu = std::move(pdu);

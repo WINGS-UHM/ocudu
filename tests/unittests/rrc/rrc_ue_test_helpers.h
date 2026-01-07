@@ -215,32 +215,37 @@ protected:
   void receive_setup_request()
   {
     // Inject RRC setup into UE object.
-    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(byte_buffer::create(rrc_setup_pdu).value());
+    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(byte_buffer::create(rrc_setup_pdu).value(), to_rnti(0x1234));
   }
 
   void receive_invalid_setup_request()
   {
     // Inject corrupted RRC setup into UE object.
-    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(byte_buffer::create({0x9d, 0xec, 0x89, 0xde, 0x57, 0x66}).value());
+    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(byte_buffer::create({0x9d, 0xec, 0x89, 0xde, 0x57, 0x66}).value(),
+                                                    to_rnti(0x1234));
   }
 
   void receive_invalid_reestablishment_request(pci_t pci, rnti_t c_rnti)
   {
     // Inject RRC Reestablishment Request into UE object.
-    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(generate_invalid_rrc_reestablishment_request_pdu(pci, c_rnti));
+    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(generate_invalid_rrc_reestablishment_request_pdu(pci, c_rnti),
+                                                    c_rnti);
   }
 
   void receive_valid_reestablishment_request(pci_t pci, rnti_t c_rnti)
   {
     // Inject RRC Reestablishment Request into UE object.
-    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(generate_valid_rrc_reestablishment_request_pdu(pci, c_rnti));
+    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(generate_valid_rrc_reestablishment_request_pdu(pci, c_rnti),
+                                                    c_rnti);
   }
 
   void receive_valid_reestablishment_request_with_cause_recfg_fail(pci_t pci, rnti_t c_rnti)
   {
     // Inject RRC Reestablishment Request into UE object.
-    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(generate_valid_rrc_reestablishment_request_pdu(
-        pci, c_rnti, "0111011100001000", asn1::rrc_nr::reest_cause_opts::options::recfg_fail));
+    rrc_ue->get_ul_pdu_handler().handle_ul_ccch_pdu(
+        generate_valid_rrc_reestablishment_request_pdu(
+            pci, c_rnti, "0111011100001000", asn1::rrc_nr::reest_cause_opts::options::recfg_fail),
+        c_rnti);
   }
 
   void receive_reestablishment_complete()

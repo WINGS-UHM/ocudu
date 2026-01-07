@@ -373,10 +373,14 @@ ue_fallback_scheduler::schedule_dl_srb(cell_resource_allocator&              res
     // expire by the slot it will receive the ConRes, abort the allocation; the \ref slot_indication function will take
     // care of removing the UE.
     if (u.get_pcell().get_pcell_state().msg3_rx_slot.valid() and not u.get_pcell().get_pcell_state().conres_complete) {
+      const auto ntn_cs_koffset_subframes =
+          cell_cfg.ntn_cs_koffset
+              ? divide_ceil<uint32_t, uint32_t>(cell_cfg.ntn_cs_koffset, pdsch_alloc.slot.nof_slots_per_subframe())
+              : 0;
       const auto ra_conres_timer_subframes =
           static_cast<uint32_t>(
               u.get_pcell().cfg().init_bwp().ul_common.value()->rach_cfg_common.value().ra_con_res_timer.count()) +
-          cell_cfg.ntn_cs_koffset;
+          ntn_cs_koffset_subframes;
       const int conres_msg3_slot_diff = pdsch_alloc.slot - u.get_pcell().get_pcell_state().msg3_rx_slot;
       if (conres_msg3_slot_diff < 0 or
           divide_ceil<uint32_t, uint32_t>(static_cast<uint32_t>(conres_msg3_slot_diff),
@@ -1359,8 +1363,10 @@ static bool handle_conres_expiry(ue& u, slot_point sl_tx, ocudulog::basic_logger
   }
 
   const auto conres_timer = ue_pcell.cfg().init_bwp().ul_common.value()->rach_cfg_common->ra_con_res_timer.count();
-  const auto conres_timer_slots = (conres_timer + ntn_cs_koffset) * sl_tx.nof_slots_per_subframe();
+  const auto conres_timer_slots = conres_timer * sl_tx.nof_slots_per_subframe() + ntn_cs_koffset;
   const auto sl_conres          = ue_pcell.get_pcell_state().msg3_rx_slot + conres_timer_slots;
+  const auto ntn_cs_koffset_ms =
+      ntn_cs_koffset ? divide_ceil<uint32_t, uint32_t>(ntn_cs_koffset, sl_tx.nof_slots_per_subframe()) : 0;
   if (sl_conres > sl_tx) {
     // ConRes window has not yet elapsed.
     return false;
@@ -1373,7 +1379,7 @@ static bool handle_conres_expiry(ue& u, slot_point sl_tx, ocudulog::basic_logger
                    fmt::underlying(u.ue_index),
                    u.crnti,
                    conres_timer,
-                   make_formattable([k = ntn_cs_koffset](auto& ctx) {
+                   make_formattable([k = ntn_cs_koffset_ms](auto& ctx) {
                      return k ? fmt::format_to(ctx.out(), " + RTT: {}ms", k) : ctx.out();
                    }));
     ue_pcell.set_conres_state(true);

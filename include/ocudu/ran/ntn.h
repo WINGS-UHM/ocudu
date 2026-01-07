@@ -121,9 +121,9 @@ struct ntn_config {
   std::optional<uint64_t> epoch_sfn_offset;
   /// If provided it will be used to fill the EpochTime section in SIB19.
   std::optional<epoch_time_t> epoch_time;
-  /// Scheduling offset used for the timing relationships that are modified for NTN (see TS 38.213). The unit of the
-  /// field K_offset is number of slots for a given subcarrier spacing of 15 kHz.
-  unsigned cell_specific_koffset;
+  /// Scheduling offset used for NTN-specific timing relationships (see TS 38.213). The field is expressed in slots for
+  /// a subcarrier spacing of 15 kHz, corresponding to milliseconds.
+  std::chrono::milliseconds cell_specific_koffset;
   /// Scheduling offset provided by network if downlink and uplink frame timing are not aligned at gNB.
   std::optional<unsigned> k_mac;
   /// A validity duration configured by the network for assistance information which indicates the maximum time duration

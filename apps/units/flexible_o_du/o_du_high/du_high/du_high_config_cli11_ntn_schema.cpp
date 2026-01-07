@@ -98,7 +98,8 @@ static void configure_cli11_ephemeris_info_orbital(CLI::App& app, orbital_coordi
 
 void ocudu::configure_cli11_ntn_args(CLI::App& app, ntn_config& config)
 {
-  add_option(app, "--cell_specific_koffset", config.cell_specific_koffset, "Cell-specific k-offset to be used for NTN.")
+  add_option(
+      app, "--cell_specific_koffset", config.cell_specific_koffset, "Cell-specific k-offset to be used for NTN [ms].")
       ->capture_default_str()
       ->check(CLI::Range(0, 1023));
 

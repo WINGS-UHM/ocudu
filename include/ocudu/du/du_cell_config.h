@@ -122,8 +122,9 @@ struct du_cell_config {
   /// Parameters for SRS-Config generation.
   srs_builder_params srs_cfg;
 
-  /// Defines the maximum allowable channel delay in slots when running in NTN mode. see TS38.300 section 16.14.2.
-  unsigned ntn_cs_koffset = 0;
+  /// Defines the maximum allowable channel delay in slots when running in NTN mode. The unit is number of slots for a
+  /// given subcarrier spacing of 15 kHz (i.e., milliseconds). See TS38.300 section 16.14.2.
+  std::chrono::milliseconds ntn_cs_koffset = std::chrono::milliseconds(0);
 
   /// Whether UL HARQ Mode B is enabled for this NTN cell (if there is at least one UL HARQ process in mode B).
   bool ul_harq_mode_b = false;

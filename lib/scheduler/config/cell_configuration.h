@@ -78,7 +78,7 @@ public:
   uint8_t          L_max;
 
   /// NTN parameters.
-  /// Cell-Specific K-offset.
+  /// Cell-specific K-offset in slots defined by the cell subcarrier spacing.
   unsigned ntn_cs_koffset;
   /// UL HARQ Mode B.
   bool ul_harq_mode_b;

@@ -31,8 +31,8 @@ struct scheduler_test_sim_config {
   bool auto_uci = false;
   /// Whether to automatically respond to PUSCH grants with CRC indications.
   bool auto_crc = false;
-  /// Cell-Specific K-offset for NTN cells.
-  unsigned ntn_cs_koffset = 0;
+  /// Cell-Specific K-offset for NTN cells expressed in slots for a subcarrier spacing of 15 kHz, i.e., milliseconds.
+  std::chrono::milliseconds ntn_cs_koffset{0};
 };
 
 /// Helper class to help setup a scheduler unit test.
@@ -87,7 +87,7 @@ public:
   const unsigned                      tx_rx_delay;
   bool                                auto_uci       = false;
   bool                                auto_crc       = false;
-  unsigned                            ntn_cs_koffset = 0;
+  std::chrono::milliseconds           ntn_cs_koffset = std::chrono::milliseconds(0);
   ocudulog::basic_logger&             logger;
   ocudulog::basic_logger&             test_logger;
   const scheduler_expert_config       sched_cfg;

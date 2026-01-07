@@ -356,11 +356,12 @@ class scheduler_conres_expiry_test : public scheduler_test_simulator,
 protected:
   scheduler_conres_expiry_test() :
     scheduler_test_simulator(
-        scheduler_test_sim_config{.max_scs = GetParam().max_scs, .ntn_cs_koffset = GetParam().ntn_cs_koffset})
+        scheduler_test_sim_config{.max_scs        = GetParam().max_scs,
+                                  .ntn_cs_koffset = std::chrono::milliseconds(GetParam().ntn_cs_koffset)})
   {
     // Create cell.
     auto cell_cfg_req           = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    cell_cfg_req.ntn_cs_koffset = ntn_cs_koffset;
+    cell_cfg_req.ntn_cs_koffset = ntn_cs_koffset.count() * next_slot.nof_slots_per_subframe();
     add_cell(cell_cfg_req);
 
     // Create a UE.
@@ -370,7 +371,7 @@ protected:
     ue_cfg.starts_in_fallback = true;
     ue_cfg.ul_ccch_slot_rx    = next_slot;
     scheduler_test_simulator::add_ue(ue_cfg, true);
-    nof_rtt_slots      = cell_cfg_req.ntn_cs_koffset * next_slot.nof_slots_per_subframe();
+    nof_rtt_slots      = cell_cfg_req.ntn_cs_koffset;
     ul_ccch_slot_rx    = next_slot;
     conres_expiry_slot = ul_ccch_slot_rx +
                          cell_cfg_req.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer.count() *

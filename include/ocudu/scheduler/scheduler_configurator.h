@@ -91,7 +91,7 @@ struct sched_cell_configuration_request_message {
   std::vector<slice_rrm_policy_config> rrm_policy_members;
 
   /// NTN parameters.
-  /// Cell-Specific K-offset.
+  /// Cell-specific K-offset in slots defined by the cell subcarrier spacing.
   unsigned ntn_cs_koffset = 0;
   /// Indicates whether UL HARQ Mode B is enabled (if there is at least one UL HARQ process in mode B).
   bool ul_harq_mode_b = false;

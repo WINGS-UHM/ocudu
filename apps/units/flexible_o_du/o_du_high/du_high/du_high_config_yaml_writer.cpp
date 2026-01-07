@@ -81,7 +81,7 @@ static YAML::Node build_du_high_ntn_section(const ntn_config& config)
 {
   YAML::Node node;
 
-  node["cell_specific_koffset"] = config.cell_specific_koffset;
+  node["cell_specific_koffset"] = config.cell_specific_koffset.count();
 
   if (config.ntn_ul_sync_validity_dur) {
     node["ntn_ul_sync_validity_dur"] = config.ntn_ul_sync_validity_dur.value();

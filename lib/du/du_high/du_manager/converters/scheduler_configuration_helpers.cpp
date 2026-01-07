@@ -66,7 +66,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.tdd_ul_dl_cfg_common = du_cfg.tdd_ul_dl_cfg_common;
   sched_req.nof_beams            = 1;
   // NTN parameters.
-  sched_req.ntn_cs_koffset = du_cfg.ntn_cs_koffset;
+  sched_req.ntn_cs_koffset = du_cfg.ntn_cs_koffset.count() * get_nof_slots_per_subframe(du_cfg.scs_common);
   sched_req.ul_harq_mode_b = du_cfg.ul_harq_mode_b;
 
   sched_req.coreset0     = du_cfg.coreset0_idx;

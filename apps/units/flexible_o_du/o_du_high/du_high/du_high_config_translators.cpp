@@ -222,7 +222,7 @@ static sib19_info create_sib19_info(const ntn_config& config)
   sib19.distance_thres           = config.distance_threshold;
   sib19.ref_location             = config.reference_location;
   sib19.t_service                = config.t_service;
-  sib19.cell_specific_koffset    = config.cell_specific_koffset;
+  sib19.cell_specific_koffset    = config.cell_specific_koffset.count();
   sib19.ephemeris_info           = config.ephemeris_info;
   sib19.epoch_time               = config.epoch_time;
   sib19.k_mac                    = config.k_mac;
@@ -609,11 +609,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             : std::min({cell.cell.nof_antennas_ul, phy_capabilities.max_nof_layers, cell.cell.pusch_cfg.max_rank});
 
     if (cell.cell.ntn_cfg.has_value()) {
-      if (base_cell.common_scs == subcarrier_spacing::kHz30) {
-        out_cell.ntn_cs_koffset = cell.cell.ntn_cfg.value().cell_specific_koffset * 2;
-      } else {
-        out_cell.ntn_cs_koffset = cell.cell.ntn_cfg.value().cell_specific_koffset;
-      }
+      out_cell.ntn_cs_koffset = cell.cell.ntn_cfg.value().cell_specific_koffset;
     }
 
     out_cell.ul_harq_mode_b = cell.cell.pusch_cfg.harq_mode_b.any();
@@ -1024,21 +1020,21 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
 static void ntn_augment_rlc_config(const ntn_config& ntn_cfg, rlc_config& rlc)
 {
-  if (ntn_cfg.cell_specific_koffset > 1000) {
+  if (ntn_cfg.cell_specific_koffset.count() > 1000) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 4000);
-  } else if (ntn_cfg.cell_specific_koffset > 800) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 800) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 2000);
-  } else if (ntn_cfg.cell_specific_koffset > 500) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 500) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 2000);
-  } else if (ntn_cfg.cell_specific_koffset > 300) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 300) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 1000);
-  } else if (ntn_cfg.cell_specific_koffset > 200) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 200) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 800);
-  } else if (ntn_cfg.cell_specific_koffset > 100) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 100) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 400);
-  } else if (ntn_cfg.cell_specific_koffset > 50) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 50) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 200);
-  } else if (ntn_cfg.cell_specific_koffset > 10) {
+  } else if (ntn_cfg.cell_specific_koffset.count() > 10) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 100);
   } else {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 50);

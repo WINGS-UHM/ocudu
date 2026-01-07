@@ -38,8 +38,9 @@ const unsigned SCHEDULER_MAX_K1 = 15;
 /// and to reduce BLER, we restrict maximum value of k2 to 11.
 const unsigned SCHEDULER_MAX_K2 = 11;
 
-/// Maximum value of NTN cell specific Koffset. See TS 38.331
-const unsigned NTN_CELL_SPECIFIC_KOFFSET_MAX = 512;
+/// Maximum value of NTN Cell-specific K-offset. The field is expressed in slots for a subcarrier spacing of 15 kHz.
+/// See TS 38.331.
+const unsigned NTN_CELL_SPECIFIC_KOFFSET_MAX = 1023;
 
 /// Maximum value of Msg delta. See table 6.1.2.1.1-5, in TS 38.214.
 const unsigned MAX_MSG3_DELTA = 6;

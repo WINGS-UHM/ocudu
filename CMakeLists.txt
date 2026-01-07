@@ -681,7 +681,7 @@ message(STATUS "Building OCUDU version ${OCUDU_VERSION_STRING}")
 ########################################################################
 # Generate SBOM
 ########################################################################
-parse_copyright_file("${CMAKE_SOURCE_DIR}/COPYRIGHT")
+parse_copyright_file("${CMAKE_SOURCE_DIR}/COPYRIGHTS.txt")
 sbom_add(
     LICENSE "LicenseRef-OCUDU"
     NAME    "AGPL-3.0-only"

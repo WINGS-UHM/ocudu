@@ -684,7 +684,7 @@ message(STATUS "Building OCUDU version ${OCUDU_VERSION_STRING}")
 parse_copyright_file("${CMAKE_SOURCE_DIR}/COPYRIGHTS.txt")
 sbom_add(
     LICENSE "LicenseRef-OCUDU"
-    NAME    "AGPL-3.0-only"
+    NAME    "BSD-3-Clause-Open-MPI"
     FILE    "${CMAKE_SOURCE_DIR}/LICENSE"
 )
 sbom_finalize(NO_VERIFY)

@@ -19,10 +19,6 @@ TEST(PuschPrecodingInfo, Table7_3_1_1_2_2)
   static constexpr srs_resource_configuration::one_two_four_enum nof_srs_ports =
       srs_resource_configuration::one_two_four_enum::four;
 
-#ifndef OCUDU_HAS_ENTERPRISE
-  GTEST_SKIP();
-#endif // OCUDU_HAS_ENTERPRISE
-
   for (unsigned row_index = 0; row_index != 62; ++row_index) {
     unsigned nof_layers = 0;
     unsigned tpmi       = 0;
@@ -88,10 +84,6 @@ TEST(PuschPrecodingInfo, Table7_3_1_1_2_4)
   static constexpr unsigned                                      max_rank = 2;
   static constexpr srs_resource_configuration::one_two_four_enum nof_srs_ports =
       srs_resource_configuration::one_two_four_enum::two;
-
-#ifndef OCUDU_HAS_ENTERPRISE
-  GTEST_SKIP();
-#endif // OCUDU_HAS_ENTERPRISE
 
   for (unsigned row_index = 0; row_index != 9; ++row_index) {
     unsigned tpmi       = 0;

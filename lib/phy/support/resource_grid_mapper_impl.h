@@ -41,7 +41,7 @@ public:
 
 private:
   /// Maximum number of subcarriers that can be accomodated in an OFDM symbol.
-  static constexpr unsigned max_nof_subcarriers = MAX_RB * NOF_SUBCARRIERS_PER_RB;
+  static constexpr unsigned max_nof_subcarriers = MAX_NOF_SUBCARRIERS;
   /// Maximum number of ports to map in a mapping call.
   static constexpr unsigned max_nof_ports = precoding_constants::MAX_NOF_PORTS;
 

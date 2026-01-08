@@ -99,7 +99,7 @@ void data_flow_uplane_downlink_data_impl::enqueue_section_type_1_message_symbol_
   const resource_grid_reader& reader = grid.get_reader();
 
   // Temporary buffer used to store IQ data when the RU operating bandwidth is not the same to the cell bandwidth.
-  std::array<cbf16_t, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB> temp_buffer;
+  std::array<cbf16_t, MAX_NOF_SUBCARRIERS> temp_buffer;
   if (OCUDU_UNLIKELY(ru_nof_prbs * NOF_SUBCARRIERS_PER_RB != reader.get_nof_subc())) {
     // Zero out the elements that won't be filled after reading the resource grid.
     std::fill(temp_buffer.begin() + reader.get_nof_subc(), temp_buffer.end(), 0);

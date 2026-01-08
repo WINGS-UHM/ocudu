@@ -177,7 +177,7 @@ protected:
 
 std::mt19937                                  LowerPhyUplinkProcessorFixture::rgen(0);
 std::uniform_int_distribution<unsigned>       LowerPhyUplinkProcessorFixture::dist_sector_id(0, 16);
-std::uniform_int_distribution<unsigned>       LowerPhyUplinkProcessorFixture::dist_bandwidth_prb(1, MAX_RB);
+std::uniform_int_distribution<unsigned>       LowerPhyUplinkProcessorFixture::dist_bandwidth_prb(1, MAX_NOF_PRBS);
 std::uniform_real_distribution<double>        LowerPhyUplinkProcessorFixture::dist_center_freq_Hz(1e8, 6e9);
 std::uniform_real_distribution<float>         LowerPhyUplinkProcessorFixture::dist_sample(-1, 1);
 std::uniform_real_distribution<float>         LowerPhyUplinkProcessorFixture::dist_dft_window_offset(0, 0.9);

@@ -75,7 +75,7 @@ interpolator::configuration configure_interpolator(const bounded_bitset<NOF_SUBC
 /// \param[in]  re_pattern       Resource element pattern within resource blocks.
 void extract_dmrs_grid(span<cf_t>                                    dmrs_symbols,
                        span<const cbf16_t>                           ofdm_symbol_view,
-                       const bounded_bitset<MAX_RB>&                 hop_rb_mask,
+                       const bounded_bitset<MAX_NOF_PRBS>&           hop_rb_mask,
                        const bounded_bitset<NOF_SUBCARRIERS_PER_RB>& re_pattern);
 
 } // namespace ocudu

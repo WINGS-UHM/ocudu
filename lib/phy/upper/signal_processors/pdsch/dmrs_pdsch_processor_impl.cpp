@@ -134,7 +134,7 @@ void ocudu::dmrs_pdsch_processor_impl::map(resource_grid_writer& grid, const con
     temp_re.resize(nof_dmrs_ports_cdm, nof_dmrs_re_slot);
 
     // Prepare precoding configuration for the CDM group.
-    precoding_configuration cdm_group_precoding(nof_dmrs_ports_cdm, nof_antenna_ports, 1, MAX_RB);
+    precoding_configuration cdm_group_precoding(nof_dmrs_ports_cdm, nof_antenna_ports, 1, MAX_NOF_PRBS);
 
     // For each symbol in the slot....
     unsigned i_gen_dmrs_symbols = 0;

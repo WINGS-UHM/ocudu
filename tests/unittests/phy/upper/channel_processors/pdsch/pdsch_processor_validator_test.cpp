@@ -63,7 +63,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 const std::vector<test_case_t> pdsch_processor_validator_test_data = {
     {[] {
        pdsch_processor::pdu_t pdu = base_pdu;
-       pdu.bwp_size_rb            = MAX_RB + 1;
+       pdu.bwp_size_rb            = MAX_NOF_PRBS + 1;
        return pdu;
      },
      R"(Invalid BWP configuration, i\.e\., \[0, 276\) for the given RB allocation, i\.e\., \[0, 52\)\.)"},
@@ -166,8 +166,8 @@ const std::vector<test_case_t> pdsch_processor_validator_test_data = {
 
        // Create RE pattern that collides with DM-RS.
        re_pattern reserved_pattern;
-       reserved_pattern.crb_mask = ~crb_bitmap(MAX_RB);
-       reserved_pattern.crb_mask.fill(0, MAX_RB);
+       reserved_pattern.crb_mask = ~crb_bitmap(MAX_NOF_PRBS);
+       reserved_pattern.crb_mask.fill(0, MAX_NOF_PRBS);
        reserved_pattern.symbols = pdu.dmrs_symbol_mask;
        reserved_pattern.re_mask = ~bounded_bitset<NOF_SUBCARRIERS_PER_RB>(NOF_SUBCARRIERS_PER_RB);
        pdu.reserved.merge(reserved_pattern);

@@ -26,7 +26,7 @@ class time_alignment_estimator_dft_impl : public time_alignment_estimator
 {
 public:
   /// Maximum number of PRB.
-  static constexpr unsigned max_nof_re = MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB;
+  static constexpr unsigned max_nof_re = MAX_NOF_SUBCARRIERS;
 
   /// Minimum DFT size to satisfy the minimum TA measurement.
   static const unsigned min_dft_size;

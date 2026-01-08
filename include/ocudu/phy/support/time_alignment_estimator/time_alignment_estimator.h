@@ -26,7 +26,7 @@ public:
   /// \brief Maximum number of symbols that can be used for estimating the time alignment.
   ///
   /// It is equal to the maximum number of subcarriers that can be contained in an OFDM symbol.
-  static constexpr unsigned max_nof_symbols = MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB;
+  static constexpr unsigned max_nof_symbols = MAX_NOF_SUBCARRIERS;
 
   /// Default destructor.
   virtual ~time_alignment_estimator() = default;

@@ -39,7 +39,7 @@ private:
   /// Resource grid mapper.
   std::unique_ptr<resource_grid_mapper> mapper;
   /// Temporary sequence.
-  static_vector<cf_t, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB>    dmrs_sequence;
+  static_vector<cf_t, MAX_NOF_SUBCARRIERS>                      dmrs_sequence;
   static_re_buffer<ptrs_constants::max_nof_ports, MAX_NOF_PRBS> sequence;
 };
 

@@ -14,9 +14,6 @@
 
 namespace ocudu {
 
-/// Defines the maximum number of Resource Blocks (RB) that a resource grid can carry
-constexpr unsigned MAX_RB = 275;
-
 /// Defines the SSB bandwidth in Resource Blocks (RBs)
 constexpr unsigned SSB_BW_RB = 20;
 

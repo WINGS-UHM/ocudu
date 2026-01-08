@@ -129,8 +129,8 @@ void iq_compression_bfp_avx2::decompress(span<cbf16_t>                iq_data,
   constexpr size_t avx2_size_iqs = 16;
   constexpr size_t prb_size      = divide_ceil(NOF_SUBCARRIERS_PER_RB * 2, avx2_size_iqs) * avx2_size_iqs;
 
-  alignas(64) std::array<int16_t, MAX_NOF_PRBS * prb_size>                 unpacked_iq_data;
-  alignas(64) std::array<float, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB * 2> unpacked_iq_scaling;
+  alignas(64) std::array<int16_t, MAX_NOF_PRBS * prb_size> unpacked_iq_data;
+  alignas(64) std::array<float, MAX_NOF_SUBCARRIERS * 2>   unpacked_iq_scaling;
 
   unsigned idx = 0;
   for (unsigned c_prb_idx = 0; c_prb_idx != nof_prbs; ++c_prb_idx) {

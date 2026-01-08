@@ -22,7 +22,7 @@ pusch_processor_validator_impl::pusch_processor_validator_impl(
   static constexpr interval<unsigned, true> nof_tx_layers_range(1, pusch_processor_impl::max_nof_layers);
 
   ocudu_assert(
-      (ce_dims.nof_prb > 0) && (ce_dims.nof_prb <= MAX_RB), "Invalid number of PRB (i.e. {}).", ce_dims.nof_prb);
+      (ce_dims.nof_prb > 0) && (ce_dims.nof_prb <= MAX_NOF_PRBS), "Invalid number of PRB (i.e. {}).", ce_dims.nof_prb);
   ocudu_assert((ce_dims.nof_symbols > 0) && (ce_dims.nof_symbols <= MAX_NSYMB_PER_SLOT),
                "Invalid number of OFDM symbols.");
   ocudu_assert(ce_dims.nof_rx_ports > 0, "The number of receive ports cannot be zero.");

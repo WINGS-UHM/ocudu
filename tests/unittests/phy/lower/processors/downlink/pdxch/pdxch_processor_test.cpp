@@ -233,7 +233,7 @@ protected:
 
 std::mt19937                                      LowerPhyDownlinkProcessorFixture::rgen(0);
 std::uniform_int_distribution<unsigned>           LowerPhyDownlinkProcessorFixture::dist_sector_id(0, 16);
-std::uniform_int_distribution<unsigned>           LowerPhyDownlinkProcessorFixture::dist_bandwidth_prb(1, MAX_RB);
+std::uniform_int_distribution<unsigned>           LowerPhyDownlinkProcessorFixture::dist_bandwidth_prb(1, MAX_NOF_PRBS);
 std::uniform_real_distribution<double>            LowerPhyDownlinkProcessorFixture::dist_center_freq_Hz(1e8, 6e9);
 std::uniform_real_distribution<float>             LowerPhyDownlinkProcessorFixture::dist_sample(-1, 1);
 std::shared_ptr<ofdm_modulator_factory_spy>       LowerPhyDownlinkProcessorFixture::ofdm_mod_factory_spy      = nullptr;

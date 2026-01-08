@@ -70,11 +70,11 @@ public:
   unsigned get_nof_symbols() const override { return max_symb; }
 
   // See interface for documentation.
-  span<const cf_t> put(unsigned                                               port,
-                       unsigned                                               l,
-                       unsigned                                               k_init,
-                       const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
-                       span<const cf_t>                                       symbols) override
+  span<const cf_t> put(unsigned                                   port,
+                       unsigned                                   l,
+                       unsigned                                   k_init,
+                       const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask,
+                       span<const cf_t>                           symbols) override
   {
     ++count;
     unsigned i_symb = 0;
@@ -97,11 +97,11 @@ public:
   }
 
   // See interface for documentation.
-  span<const cbf16_t> put(unsigned                                               port,
-                          unsigned                                               l,
-                          unsigned                                               k_init,
-                          const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
-                          span<const cbf16_t>                                    symbols) override
+  span<const cbf16_t> put(unsigned                                   port,
+                          unsigned                                   l,
+                          unsigned                                   k_init,
+                          const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask,
+                          span<const cbf16_t>                        symbols) override
   {
     ++count;
     unsigned i_symb = 0;
@@ -284,11 +284,11 @@ public:
 
   bool is_empty() const override { return entries.empty(); }
 
-  span<cf_t> get(span<cf_t>                                             symbols,
-                 unsigned                                               port,
-                 unsigned                                               l,
-                 unsigned                                               k_init,
-                 const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const override
+  span<cf_t> get(span<cf_t>                                 symbols,
+                 unsigned                                   port,
+                 unsigned                                   l,
+                 unsigned                                   k_init,
+                 const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask) const override
   {
     ++count;
     mask.for_each(0, mask.size(), [&](unsigned i_subc) {
@@ -300,11 +300,11 @@ public:
     return symbols;
   }
 
-  span<cbf16_t> get(span<cbf16_t>                                          symbols,
-                    unsigned                                               port,
-                    unsigned                                               l,
-                    unsigned                                               k_init,
-                    const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const override
+  span<cbf16_t> get(span<cbf16_t>                              symbols,
+                    unsigned                                   port,
+                    unsigned                                   l,
+                    unsigned                                   k_init,
+                    const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask) const override
   {
     ++count;
     mask.for_each(0, mask.size(), [&](unsigned i_subc) {

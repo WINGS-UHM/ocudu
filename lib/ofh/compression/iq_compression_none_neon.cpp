@@ -118,7 +118,7 @@ void iq_compression_none_neon::decompress(span<cbf16_t>                iq_data,
 
   quantizer q_out(params.data_width);
 
-  std::array<int16_t, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB * 2> unpacked_iq_data;
+  std::array<int16_t, MAX_NOF_SUBCARRIERS * 2> unpacked_iq_data;
 
   unsigned idx = 0;
   for (unsigned rb = 0; rb != nof_prbs; ++rb) {

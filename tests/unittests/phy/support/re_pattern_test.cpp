@@ -62,13 +62,13 @@ void test_merge_even()
   // The pattern should be repeated for each symbol.
   for (unsigned l = 0; l != MAX_NSYMB_PER_SLOT; ++l) {
     // Create mask with all entries to false
-    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> mask(MAX_RB * NOF_SUBCARRIERS_PER_RB);
+    bounded_bitset<MAX_NOF_SUBCARRIERS> mask(MAX_NOF_SUBCARRIERS);
 
     // Set include mask.
     list.get_inclusion_mask(mask, l);
 
     // For each subcarrier it checks the mask.
-    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
+    for (unsigned k = 0; k != MAX_NOF_SUBCARRIERS; ++k) {
       bool gold = false;
 
       // if it is in the RB range, then check the subcarrier index.
@@ -84,7 +84,7 @@ void test_merge_even()
     list.get_exclusion_mask(mask, l);
 
     // All the subcarriers shall be false.
-    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
+    for (unsigned k = 0; k != MAX_NOF_SUBCARRIERS; ++k) {
       TESTASSERT(!mask.test(k));
     }
   }
@@ -132,13 +132,13 @@ void test_merge_odd()
   // The pattern should be repeated for each symbol.
   for (unsigned l = 0; l != MAX_NSYMB_PER_SLOT; ++l) {
     // Create mask with all entries to false
-    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> mask(MAX_RB * NOF_SUBCARRIERS_PER_RB);
+    bounded_bitset<MAX_NOF_SUBCARRIERS> mask(MAX_NOF_SUBCARRIERS);
 
     // Set include mask.
     list.get_inclusion_mask(mask, l);
 
     // For each subcarrier it checks the mask.
-    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
+    for (unsigned k = 0; k != MAX_NOF_SUBCARRIERS; ++k) {
       bool gold = false;
 
       // if it is in the RB range, then check the subcarrier index.
@@ -154,7 +154,7 @@ void test_merge_odd()
     list.get_exclusion_mask(mask, l);
 
     // All the subcarriers shall be false.
-    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
+    for (unsigned k = 0; k != MAX_NOF_SUBCARRIERS; ++k) {
       TESTASSERT(!mask.test(k));
     }
   }
@@ -165,7 +165,7 @@ void test_merge_same()
 {
   // Create a pattern.
   re_pattern pattern;
-  pattern.crb_mask = crb_bitmap(MAX_RB);
+  pattern.crb_mask = crb_bitmap(MAX_NOF_PRBS);
   pattern.crb_mask.set(0);
   pattern.re_mask.set(0);
   pattern.symbols.set(0);
@@ -184,14 +184,14 @@ void test_merge_diff_rb()
 {
   // Create pattern 1.
   re_pattern pattern1;
-  pattern1.crb_mask = crb_bitmap(MAX_RB);
+  pattern1.crb_mask = crb_bitmap(MAX_NOF_PRBS);
   pattern1.crb_mask.set(0);
   pattern1.re_mask.set(0);
   pattern1.symbols.set(0);
 
   // Create a pattern 2.
   re_pattern pattern2;
-  pattern1.crb_mask = crb_bitmap(MAX_RB);
+  pattern1.crb_mask = crb_bitmap(MAX_NOF_PRBS);
   pattern1.crb_mask.set(1);
   pattern2.re_mask.set(0);
   pattern2.symbols = {};
@@ -210,7 +210,7 @@ void test_inclusion_count()
 {
   // Create a pattern.
   re_pattern pattern;
-  pattern.crb_mask = crb_bitmap(MAX_RB);
+  pattern.crb_mask = crb_bitmap(MAX_NOF_PRBS);
   pattern.crb_mask.set(0);
   pattern.re_mask.set(0);
   pattern.symbols.set(0);
@@ -235,7 +235,7 @@ void test_equal()
 {
   // Create a pattern.
   re_pattern pattern;
-  pattern.crb_mask = crb_bitmap(MAX_RB);
+  pattern.crb_mask = crb_bitmap(MAX_NOF_PRBS);
   pattern.crb_mask.set(0);
   pattern.re_mask.set(0);
   pattern.symbols.set(0);
@@ -269,7 +269,7 @@ void test_bracket_initializer()
 
   // Create same pattern using parameters.
   re_pattern pattern;
-  pattern.crb_mask = crb_bitmap(MAX_RB);
+  pattern.crb_mask = crb_bitmap(MAX_NOF_PRBS);
   pattern.crb_mask.fill(0, 52);
   pattern.re_mask = re_prb_mask();
   pattern.re_mask.set(0);

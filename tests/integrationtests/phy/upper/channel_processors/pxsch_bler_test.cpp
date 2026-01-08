@@ -258,8 +258,8 @@ private:
     report_fatal_error_if_not(receiver, "Failed to create PUSCH processor.");
 
     // Create resource grids.
-    tx_grid = grid_factory->create(nof_layers, MAX_NSYMB_PER_SLOT, NOF_SUBCARRIERS_PER_RB * MAX_RB);
-    rx_grid = grid_factory->create(nof_rx_ports, MAX_NSYMB_PER_SLOT, NOF_SUBCARRIERS_PER_RB * MAX_RB);
+    tx_grid = grid_factory->create(nof_layers, MAX_NSYMB_PER_SLOT, MAX_NOF_SUBCARRIERS);
+    rx_grid = grid_factory->create(nof_rx_ports, MAX_NSYMB_PER_SLOT, MAX_NOF_SUBCARRIERS);
 
     // Calculate number of codeblocks.
     nof_codeblocks = ldpc::compute_nof_codeblocks(units::bits(tbs), ldpc_base_graph);
@@ -343,7 +343,7 @@ private:
                                                   nof_corrupted_re_per_ofdm_symbol,
                                                   nof_layers,
                                                   nof_rx_ports,
-                                                  MAX_RB * NOF_SUBCARRIERS_PER_RB,
+                                                  MAX_NOF_SUBCARRIERS,
                                                   nof_ofdm_symbols,
                                                   max_nof_threads,
                                                   scs,

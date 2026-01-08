@@ -101,11 +101,11 @@ static const auto processor_validator_test_data = to_array<test_case_t>(
            test_params entry         = {};
            entry.config              = base_format_2_config;
            entry.config.bwp_start_rb = 10;
-           entry.config.bwp_size_rb  = MAX_RB - entry.config.bwp_start_rb + 1;
+           entry.config.bwp_size_rb  = MAX_NOF_PRBS - entry.config.bwp_start_rb + 1;
            entry.assert_message      = fmt::format(
                R"(BWP allocation goes up to PRB {}\, exceeding the configured maximum grid RB size\, i\.e\.\, {}\.)",
                entry.config.bwp_start_rb + entry.config.bwp_size_rb,
-               MAX_RB);
+               MAX_NOF_PRBS);
            return entry;
          },
      },

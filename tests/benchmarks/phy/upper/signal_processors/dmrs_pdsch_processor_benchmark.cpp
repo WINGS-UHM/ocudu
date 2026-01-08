@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 
   for (auto topology : channel_topology_list) {
     std::unique_ptr<resource_grid> grid =
-        create_resource_grid(topology.nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
+        create_resource_grid(topology.nof_ports, MAX_NSYMB_PER_SLOT, MAX_NOF_SUBCARRIERS);
     TESTASSERT(grid);
 
     // Generate precoding weights.

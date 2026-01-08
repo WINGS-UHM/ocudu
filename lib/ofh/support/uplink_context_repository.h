@@ -59,8 +59,8 @@ public:
   {
     const resource_grid_reader& reader = grid.grid->get_reader();
 
-    re_written = static_vector<bounded_bitset<MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB>, MAX_NOF_SUPPORTED_EAXC>(
-        reader.get_nof_ports(), bounded_bitset<MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB>(size_t(reader.get_nof_subc())));
+    re_written = static_vector<bounded_bitset<MAX_NOF_SUBCARRIERS>, MAX_NOF_SUPPORTED_EAXC>(
+        reader.get_nof_ports(), bounded_bitset<MAX_NOF_SUBCARRIERS>(size_t(reader.get_nof_subc())));
   }
 
   /// Returns true if this context is empty, otherwise false.
@@ -77,7 +77,7 @@ public:
 
   /// Returns a span of bitmaps that indicate the REs that have been written for the given symbol. Each element of the
   /// span corresponds to a port.
-  span<const bounded_bitset<MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB>> get_re_written_mask() const { return re_written; }
+  span<const bounded_bitset<MAX_NOF_SUBCARRIERS>> get_re_written_mask() const { return re_written; }
 
   /// Writes the given RE IQ buffer into the port and start RE.
   void write_grid(unsigned port, unsigned start_re, span<const cbf16_t> re_iq_buffer)
@@ -124,9 +124,9 @@ private:
   }
 
 private:
-  unsigned                                                                                     symbol;
-  uplink_context_resource_grid_info                                                            grid;
-  static_vector<bounded_bitset<MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB>, MAX_NOF_SUPPORTED_EAXC> re_written;
+  unsigned                                                                   symbol;
+  uplink_context_resource_grid_info                                          grid;
+  static_vector<bounded_bitset<MAX_NOF_SUBCARRIERS>, MAX_NOF_SUPPORTED_EAXC> re_written;
 };
 
 /// Uplink context repository.

@@ -47,9 +47,9 @@ struct re_pattern {
              const symbol_slot_mask& symbols_) :
     crb_mask(rb_end), re_mask(re_mask_), symbols(symbols_)
   {
-    static constexpr interval<unsigned, true> rb_begin_interval  = {0, MAX_RB - 1};
-    static constexpr interval<unsigned, true> rb_stride_interval = {1, MAX_RB - 1};
-    static constexpr interval<unsigned, true> rb_end_interval    = {1, MAX_RB};
+    static constexpr interval<unsigned, true> rb_begin_interval  = {0, MAX_NOF_PRBS - 1};
+    static constexpr interval<unsigned, true> rb_stride_interval = {1, MAX_NOF_PRBS - 1};
+    static constexpr interval<unsigned, true> rb_end_interval    = {1, MAX_NOF_PRBS};
 
     ocudu_assert(rb_begin_interval.contains(rb_begin),
                  "The RB begin (i.e., {}) is out of range {}.",
@@ -88,7 +88,7 @@ struct re_pattern {
   /// \param[in,out] mask Provides a mask representing an entire symbol in a resource grid.
   /// \param[in] symbol Indicates the symbol index for the mask to be included.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end
-  void get_inclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
+  void get_inclusion_mask(bounded_bitset<MAX_NOF_SUBCARRIERS>& mask, unsigned symbol) const;
 
   /// \brief Exclude the described resource element pattern in a resource grid symbol mask.
   ///
@@ -98,7 +98,7 @@ struct re_pattern {
   /// \param[in,out] mask Provides a mask representing an entire symbol in a resource grid.
   /// \param[in] symbol Indicates the symbol index for the mask to be excluded.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end
-  void get_exclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
+  void get_exclusion_mask(bounded_bitset<MAX_NOF_SUBCARRIERS>& mask, unsigned symbol) const;
 };
 
 /// \brief Checks if two RE patterns are equal.
@@ -209,7 +209,7 @@ public:
   /// \param[in,out] mask   Provides a mask representing an entire symbol in a resource grid.
   /// \param[in]     symbol Indicates the symbol index for the mask to be included.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end.
-  void get_inclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
+  void get_inclusion_mask(bounded_bitset<MAX_NOF_SUBCARRIERS>& mask, unsigned symbol) const;
 
   /// \brief Counts the number of elements included in the described pattern.
   ///
@@ -229,7 +229,7 @@ public:
   /// \param[in,out] mask   Provides a mask representing an entire symbol in a resource grid.
   /// \param[in]     symbol Indicates the symbol index for the mask to be excluded.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end.
-  void get_exclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
+  void get_exclusion_mask(bounded_bitset<MAX_NOF_SUBCARRIERS>& mask, unsigned symbol) const;
 
   /// Get the internal resource element patterns.
   span<const re_pattern> get_re_patterns() const { return list; }

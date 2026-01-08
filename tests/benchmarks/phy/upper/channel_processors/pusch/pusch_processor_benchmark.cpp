@@ -441,7 +441,7 @@ create_sw_pusch_decoder_factory(std::shared_ptr<crc_calculator_factory> crc_calc
   pusch_decoder_factory_sw_config.segmenter_factory         = segmenter_rx_factory;
   pusch_decoder_factory_sw_config.nof_pusch_decoder_threads = nof_threads + nof_pusch_decoder_threads + 1;
   pusch_decoder_factory_sw_config.executor                  = executor.get();
-  pusch_decoder_factory_sw_config.nof_prb                   = MAX_RB;
+  pusch_decoder_factory_sw_config.nof_prb                   = MAX_NOF_PRBS;
   pusch_decoder_factory_sw_config.nof_layers                = pusch_constants::MAX_NOF_LAYERS;
 
   return create_pusch_decoder_factory_sw(pusch_decoder_factory_sw_config);
@@ -579,12 +579,12 @@ static std::shared_ptr<pusch_processor_factory> create_pusch_processor_factory()
   TESTASSERT(eq_factory);
 
   std::shared_ptr<transform_precoder_factory> precoding_factory =
-      create_dft_transform_precoder_factory(dft_factory, MAX_RB);
+      create_dft_transform_precoder_factory(dft_factory, MAX_NOF_PRBS);
   TESTASSERT(precoding_factory);
 
   // Create PUSCH demodulator factory.
   std::shared_ptr<pusch_demodulator_factory> pusch_demod_factory = create_pusch_demodulator_factory_sw(
-      eq_factory, precoding_factory, chan_demodulation_factory, evm_calc_factory, prg_factory, MAX_RB, false);
+      eq_factory, precoding_factory, chan_demodulation_factory, evm_calc_factory, prg_factory, MAX_NOF_PRBS, false);
   TESTASSERT(pusch_demod_factory);
 
   // Create PUSCH demultiplexer factory.
@@ -618,7 +618,7 @@ static std::shared_ptr<pusch_processor_factory> create_pusch_processor_factory()
   pusch_proc_factory_config.demux_factory                       = demux_factory;
   pusch_proc_factory_config.decoder_factory                     = pusch_dec_factory;
   pusch_proc_factory_config.uci_dec_factory                     = uci_dec_factory;
-  pusch_proc_factory_config.ch_estimate_dimensions.nof_prb      = MAX_RB;
+  pusch_proc_factory_config.ch_estimate_dimensions.nof_prb      = MAX_NOF_PRBS;
   pusch_proc_factory_config.ch_estimate_dimensions.nof_symbols  = MAX_NSYMB_PER_SLOT;
   pusch_proc_factory_config.ch_estimate_dimensions.nof_rx_ports = selected_profile.nof_rx_ports;
   pusch_proc_factory_config.ch_estimate_dimensions.nof_tx_layers =
@@ -631,7 +631,7 @@ static std::shared_ptr<pusch_processor_factory> create_pusch_processor_factory()
   TESTASSERT(pusch_proc_factory);
 
   pusch_proc_factory_config.decoder_factory =
-      create_pusch_decoder_empty_factory(MAX_RB, pusch_constants::MAX_NOF_LAYERS);
+      create_pusch_decoder_empty_factory(MAX_NOF_PRBS, pusch_constants::MAX_NOF_LAYERS);
   TESTASSERT(pusch_proc_factory_config.decoder_factory);
   std::shared_ptr<pusch_processor_factory> uci_proc_factory =
       create_pusch_processor_factory_sw(pusch_proc_factory_config);
@@ -786,7 +786,7 @@ int main(int argc, char** argv)
 
   // Grid dimensions for all test cases.
   unsigned grid_nof_symbols = get_nsymb_per_slot(selected_profile.cp);
-  unsigned grid_nof_subcs   = MAX_RB * NOF_SUBCARRIERS_PER_RB;
+  unsigned grid_nof_subcs   = MAX_NOF_SUBCARRIERS;
 
   // Create resource grid.
   std::unique_ptr<resource_grid> grid =
@@ -805,8 +805,7 @@ int main(int argc, char** argv)
   std::generate(random_re.begin(), random_re.end(), [&rgen, &c_normal_dist]() { return c_normal_dist(rgen); });
 
   // Generate a RE mask and set all elements to true.
-  bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB> re_mask =
-      ~bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>(grid_nof_subcs);
+  bounded_bitset<MAX_NOF_SUBCARRIERS> re_mask = ~bounded_bitset<MAX_NOF_SUBCARRIERS>(grid_nof_subcs);
 
   // Fill the grid with the random RE.
   span<const cf_t> re_view(random_re);

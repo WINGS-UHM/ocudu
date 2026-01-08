@@ -66,7 +66,7 @@ public:
 
 private:
   /// Data type for representing an RE mask within an OFDM symbol.
-  using re_symbol_mask_type = bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>;
+  using re_symbol_mask_type = bounded_bitset<MAX_NOF_SUBCARRIERS>;
 
   /// \brief Gets channel data Resource Elements from the resource grid.
   ///

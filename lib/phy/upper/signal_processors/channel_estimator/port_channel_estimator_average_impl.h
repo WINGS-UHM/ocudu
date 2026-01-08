@@ -38,7 +38,7 @@ public:
   static constexpr unsigned MAX_V_PILOTS = 12;
 
   /// Maximum number of pilots per OFDM symbol.
-  static constexpr unsigned MAX_NOF_PILOTS_SYMBOL = MAX_RB * NOF_SUBCARRIERS_PER_RB + 2 * MAX_V_PILOTS;
+  static constexpr unsigned MAX_NOF_PILOTS_SYMBOL = MAX_NOF_SUBCARRIERS + 2 * MAX_V_PILOTS;
 
   /// Maximum number of OFDM symbols that contain DM-RS in a transmission.
   static constexpr unsigned MAX_NOF_DMRS_SYMBOLS = pusch_constants::MAX_NOF_DMRS_SYMBOLS;
@@ -190,7 +190,7 @@ private:
   dmrs_symbol_list rx_pilots;
 
   /// Auxiliary buffer for processing the pilots.
-  static_re_buffer<MAX_LAYERS, MAX_RB * NOF_SUBCARRIERS_PER_RB> pilot_products;
+  static_re_buffer<MAX_LAYERS, MAX_NOF_SUBCARRIERS> pilot_products;
 
   /// Second auxiliary buffer for processing the pilots.
   static_re_measurement<cf_t, MAX_NOF_PILOTS_SYMBOL, MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS> enlarged_pilots_lse;
@@ -200,8 +200,8 @@ private:
   ///
   /// The storage for the first hop needs to be bigger since it covers the cases with no frequency hopping.
   /// @{
-  static_re_measurement<cf_t, MAX_RB * NOF_SUBCARRIERS_PER_RB, MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS>     freq_response_hop0;
-  static_re_measurement<cf_t, MAX_RB * NOF_SUBCARRIERS_PER_RB, MAX_NOF_DMRS_SYMBOLS / 2, MAX_LAYERS> freq_response_hop1;
+  static_re_measurement<cf_t, MAX_NOF_SUBCARRIERS, MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS>     freq_response_hop0;
+  static_re_measurement<cf_t, MAX_NOF_SUBCARRIERS, MAX_NOF_DMRS_SYMBOLS / 2, MAX_LAYERS> freq_response_hop1;
   /// @}
 
   /// Buffer for the OFDM symbols starting epochs within the current slot.

@@ -25,11 +25,11 @@ class resource_grid_mapper;
 class resource_grid_impl : public resource_grid
 {
 private:
-  std::array<cbf16_t, NOF_SUBCARRIERS_PER_RB * MAX_RB> temp;
-  std::atomic<unsigned>                                empty = {};
-  unsigned                                             nof_ports;
-  unsigned                                             nof_symb;
-  unsigned                                             nof_subc;
+  std::array<cbf16_t, MAX_NOF_SUBCARRIERS> temp;
+  std::atomic<unsigned>                    empty = {};
+  unsigned                                 nof_ports;
+  unsigned                                 nof_symb;
+  unsigned                                 nof_subc;
 
   /// \brief Stores the resource grid data.
   ///

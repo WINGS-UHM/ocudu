@@ -90,10 +90,10 @@ public:
                      (channel_estimate_dimensions.nof_rx_ports != 0) &&
                      (channel_estimate_dimensions.nof_tx_layers != 0),
                  "Channel estimate dimensions cannot be zero.");
-    ocudu_assert(channel_estimate_dimensions.nof_prb <= MAX_RB,
+    ocudu_assert(channel_estimate_dimensions.nof_prb <= MAX_NOF_PRBS,
                  "Number of RB, i.e., {}, exceeds maximum bandwidth, i.e., {}.",
                  channel_estimate_dimensions.nof_prb,
-                 MAX_RB);
+                 MAX_NOF_PRBS);
     ocudu_assert(channel_estimate_dimensions.nof_symbols <= MAX_NSYMB_PER_SLOT,
                  "Number of OFDM symbols, i.e., {}, exceeds maximum slot symbols, i.e., {}.",
                  channel_estimate_dimensions.nof_symbols,

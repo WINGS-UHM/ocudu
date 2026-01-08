@@ -63,7 +63,7 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 const std::vector<test_case_t> pusch_processor_validator_test_data = {
     {[] {
        pusch_processor::pdu_t pdu = base_pdu;
-       pdu.bwp_size_rb            = MAX_RB + 1;
+       pdu.bwp_size_rb            = MAX_NOF_PRBS + 1;
        return pdu;
      },
      R"(The sum of the BWP start \(i\.e\., 0\) and size \(i\.e\., 276\) exceeds the maximum grid size \(i\.e\., 275 PRB\)\.)"},
@@ -151,7 +151,7 @@ const std::vector<test_case_t> pusch_processor_validator_test_data = {
      R"(Invalid LBRM size \(0 bytes\)\.)"},
     {[] {
        pusch_processor::pdu_t pdu = base_pdu;
-       pdu.dc_position            = MAX_RB * NOF_SUBCARRIERS_PER_RB;
+       pdu.dc_position            = MAX_NOF_SUBCARRIERS;
        return pdu;
      },
      R"(DC position \(i\.e\., 3300\) is out of range \[0\.\.3300\)\.)"},
@@ -270,12 +270,12 @@ protected:
     ASSERT_NE(eq_factory, nullptr);
 
     std::shared_ptr<transform_precoder_factory> precoding_factory =
-        create_dft_transform_precoder_factory(dft_factory, MAX_RB);
+        create_dft_transform_precoder_factory(dft_factory, MAX_NOF_PRBS);
     ASSERT_NE(precoding_factory, nullptr);
 
     // Create PUSCH demodulator factory.
     std::shared_ptr<pusch_demodulator_factory> pusch_demod_factory = create_pusch_demodulator_factory_sw(
-        eq_factory, precoding_factory, chan_demodulation_factory, nullptr, prg_factory, MAX_RB, false);
+        eq_factory, precoding_factory, chan_demodulation_factory, nullptr, prg_factory, MAX_NOF_PRBS, false);
     ASSERT_NE(pusch_demod_factory, nullptr);
 
     // Create PUSCH demultiplexer factory.
@@ -288,7 +288,7 @@ protected:
     pusch_dec_config.decoder_factory                         = ldpc_dec_factory;
     pusch_dec_config.dematcher_factory                       = ldpc_rm_factory;
     pusch_dec_config.segmenter_factory                       = ldpc_segm_rx_factory;
-    pusch_dec_config.nof_prb                                 = MAX_RB;
+    pusch_dec_config.nof_prb                                 = MAX_NOF_PRBS;
     pusch_dec_config.nof_layers                              = pusch_constants::MAX_NOF_LAYERS;
     std::shared_ptr<pusch_decoder_factory> pusch_dec_factory = create_pusch_decoder_factory_sw(pusch_dec_config);
     ASSERT_NE(pusch_dec_factory, nullptr);
@@ -309,7 +309,7 @@ protected:
     pusch_proc_factory_config.demux_factory                        = demux_factory;
     pusch_proc_factory_config.decoder_factory                      = pusch_dec_factory;
     pusch_proc_factory_config.uci_dec_factory                      = uci_dec_factory;
-    pusch_proc_factory_config.ch_estimate_dimensions.nof_prb       = MAX_RB;
+    pusch_proc_factory_config.ch_estimate_dimensions.nof_prb       = MAX_NOF_PRBS;
     pusch_proc_factory_config.ch_estimate_dimensions.nof_symbols   = MAX_NSYMB_PER_SLOT;
     pusch_proc_factory_config.ch_estimate_dimensions.nof_rx_ports  = pusch_constants::MAX_NOF_RX_PORTS;
     pusch_proc_factory_config.ch_estimate_dimensions.nof_tx_layers = max_supported_nof_layers;

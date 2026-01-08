@@ -54,15 +54,15 @@ constexpr units::bits get_max_codeword_size(unsigned nof_prb, unsigned nof_layer
 
 /// Maximum number of bits per OFDM symbol.
 constexpr unsigned MAX_NOF_BITS_PER_OFDM_SYMBOL =
-    MAX_NOF_LAYERS * MAX_RB * NOF_SUBCARRIERS_PER_RB * pusch_constants::MAX_MODULATION_ORDER;
+    MAX_NOF_LAYERS * MAX_NOF_SUBCARRIERS * pusch_constants::MAX_MODULATION_ORDER;
 
 /// Maximum number of OFDM symbols carrying DM-RS in a slot is at most \f$4 \times 2\f$, being 4 the maximum
 /// number of positions \f$\bar{l}\f$ and 2 the maximum number of indices \f$l'\f$, as per TS38.211 Section 6.4.1.1.
 constexpr unsigned MAX_NOF_DMRS_SYMBOLS = 4 * 2;
 
 /// Maximum number of subcarriers carrying DM-RS in a symbol. It is at most half of the total number of subcarriers
-/// (i.e., <tt>MAX_RB * NOF_SUBCARRIERS_PER_RB / 2</tt>) is assigned a DM-RS symbol.
-constexpr unsigned MAX_NOF_DMRS_SUBC = MAX_RB * NOF_SUBCARRIERS_PER_RB / 2;
+/// (i.e., <tt>MAX_NOF_SUBCARRIERS / 2</tt>) is assigned a DM-RS symbol.
+constexpr unsigned MAX_NOF_DMRS_SUBC = MAX_NOF_SUBCARRIERS / 2;
 
 /// Maximum number of PUSCH time domain resource allocations. See TS 38.331, \c maxNrofUL-Allocations.
 constexpr unsigned MAX_NOF_PUSCH_TD_RES_ALLOCS = 16;

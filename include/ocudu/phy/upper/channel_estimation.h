@@ -39,7 +39,7 @@ private:
   static constexpr unsigned MAX_TX_RX_PATHS = MAX_TX_LAYERS * MAX_RX_PORTS;
 
   /// Maximum total number of REs in a channel estimate.
-  static constexpr unsigned MAX_BUFFER_SIZE = MAX_TX_RX_PATHS * MAX_RB * NOF_SUBCARRIERS_PER_RB * MAX_NSYMB_PER_SLOT;
+  static constexpr unsigned MAX_BUFFER_SIZE = MAX_TX_RX_PATHS * MAX_NOF_SUBCARRIERS * MAX_NSYMB_PER_SLOT;
 
 public:
   /// Describes the data structure containing the channel estimate.
@@ -55,7 +55,7 @@ public:
   };
 
   /// Default constructor: creates a max-size channel estimate object.
-  channel_estimate() : channel_estimate({MAX_RB, MAX_NSYMB_PER_SLOT, MAX_RX_PORTS, MAX_TX_LAYERS}) {}
+  channel_estimate() : channel_estimate({MAX_NOF_PRBS, MAX_NSYMB_PER_SLOT, MAX_RX_PORTS, MAX_TX_LAYERS}) {}
 
   /// Constructor: creates a channel estimate object with the given dimensions.
   explicit channel_estimate(const channel_estimate_dimensions& dims) :
@@ -66,7 +66,8 @@ public:
     nof_tx_layers(dims.nof_tx_layers),
     ce({nof_subcarriers, nof_symbols, nof_rx_ports, nof_tx_layers})
   {
-    ocudu_assert(dims.nof_prb <= MAX_RB, "Requested {} RBs, but at most {} are allowed.", dims.nof_prb, MAX_RB);
+    ocudu_assert(
+        dims.nof_prb <= MAX_NOF_PRBS, "Requested {} RBs, but at most {} are allowed.", dims.nof_prb, MAX_NOF_PRBS);
     ocudu_assert(dims.nof_symbols <= MAX_NSYMB_PER_SLOT,
                  "Requested {} OFDM symbols, but at most {} are allowed.",
                  dims.nof_symbols,

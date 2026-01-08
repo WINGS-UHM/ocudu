@@ -36,7 +36,7 @@ public:
   {
     iq_data.resize(MAX_NSYMB_PER_SLOT);
     for (auto& iq_symbol : iq_data) {
-      iq_symbol.resize(MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB);
+      iq_symbol.resize(MAX_NOF_SUBCARRIERS);
     }
   }
 

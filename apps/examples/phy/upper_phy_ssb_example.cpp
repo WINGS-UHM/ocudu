@@ -59,7 +59,7 @@ private:
   std::mt19937                          rgen;
 
   // Pseudo-random data and symbol buffers.
-  static constexpr unsigned MAX_NRE_PER_SLOT = MAX_NSYMB_PER_SLOT * MAX_RB * NOF_SUBCARRIERS_PER_RB;
+  static constexpr unsigned MAX_NRE_PER_SLOT = MAX_NSYMB_PER_SLOT * MAX_NOF_SUBCARRIERS;
   static_bit_buffer<MAX_NRE_PER_SLOT * MODULATION_MAX_BITS_PER_SYMBOL> data;
   static_re_buffer<1, MAX_NRE_PER_SLOT>                                data_symbols;
 

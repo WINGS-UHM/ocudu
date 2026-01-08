@@ -42,18 +42,18 @@ public:
   bool is_empty() const override;
 
   // See interface for documentation.
-  span<cf_t> get(span<cf_t>                                             symbols,
-                 unsigned                                               port,
-                 unsigned                                               l,
-                 unsigned                                               k_init,
-                 const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const override;
+  span<cf_t> get(span<cf_t>                                 symbols,
+                 unsigned                                   port,
+                 unsigned                                   l,
+                 unsigned                                   k_init,
+                 const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask) const override;
 
   // See interface for documentation.
-  span<cbf16_t> get(span<cbf16_t>                                          symbols,
-                    unsigned                                               port,
-                    unsigned                                               l,
-                    unsigned                                               k_init,
-                    const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const override;
+  span<cbf16_t> get(span<cbf16_t>                              symbols,
+                    unsigned                                   port,
+                    unsigned                                   l,
+                    unsigned                                   k_init,
+                    const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask) const override;
 
   // See interface for documentation.
   void get(span<cf_t> symbols, unsigned port, unsigned l, unsigned k_init, unsigned stride) const override;

@@ -99,7 +99,7 @@ int main(int argc, char** argv)
   TESTASSERT(low_papr_seq_gen_factory);
 
   std::shared_ptr<srs_estimator_factory> srs_est_factory =
-      create_srs_estimator_generic_factory(low_papr_seq_gen_factory, ta_est_factory, MAX_RB);
+      create_srs_estimator_generic_factory(low_papr_seq_gen_factory, ta_est_factory, MAX_NOF_PRBS);
 
   std::unique_ptr<srs_estimator> estimator = srs_est_factory->create();
   TESTASSERT(estimator);
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 
   // Grid dimensions for all test cases.
   unsigned grid_nof_symbols = get_nsymb_per_slot(cyclic_prefix::NORMAL);
-  unsigned grid_nof_subcs   = MAX_RB * NOF_SUBCARRIERS_PER_RB;
+  unsigned grid_nof_subcs   = MAX_NOF_SUBCARRIERS;
 
   unsigned           nof_rx_ports    = 4;
   unsigned           nof_tx_ports    = 4;
@@ -138,8 +138,7 @@ int main(int argc, char** argv)
   std::generate(random_re.begin(), random_re.end(), [&rgen, &c_normal_dist]() { return c_normal_dist(rgen); });
 
   // Generate a RE mask and set all elements to true.
-  bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB> re_mask =
-      ~bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>(grid_nof_subcs);
+  bounded_bitset<MAX_NOF_SUBCARRIERS> re_mask = ~bounded_bitset<MAX_NOF_SUBCARRIERS>(grid_nof_subcs);
 
   // Fill the grid with the random RE.
   span<const cf_t> re_view(random_re);

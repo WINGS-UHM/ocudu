@@ -19,6 +19,7 @@
 #include "ocudu/ocuduvec/compare.h"
 #include "ocudu/phy/upper/channel_processors/pusch/factories.h"
 #include "ocudu/ran/pusch/ulsch_info.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/sch/sch_dmrs_power.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
@@ -106,7 +107,7 @@ protected:
     proc_factory_config.demux_factory                        = demux_factory_spy;
     proc_factory_config.decoder_factory                      = decoder_factory_spy;
     proc_factory_config.uci_dec_factory                      = uci_dec_factory_spy;
-    proc_factory_config.ch_estimate_dimensions.nof_prb       = MAX_RB;
+    proc_factory_config.ch_estimate_dimensions.nof_prb       = MAX_NOF_PRBS;
     proc_factory_config.ch_estimate_dimensions.nof_symbols   = MAX_NSYMB_PER_SLOT;
     proc_factory_config.ch_estimate_dimensions.nof_rx_ports  = MAX_PORTS;
     proc_factory_config.ch_estimate_dimensions.nof_tx_layers = 1;
@@ -157,12 +158,12 @@ protected:
     unsigned nof_slots_per_subframe = get_nof_slots_per_subframe(scs);
 
     // Generate PDU.
-    pdu.slot                       = slot_point(numerology, slot_count_dist(rgen) % (10240 * nof_slots_per_subframe));
-    pdu.rnti                       = rnti_dist(rgen);
-    pdu.bwp_start_rb               = bwp_start_dist(rgen);
-    pdu.bwp_size_rb                = std::min(MAX_RB - pdu.bwp_start_rb, bwp_size_dist(rgen));
-    pdu.cp                         = cyclic_prefix_conf;
-    pdu.mcs_descr.modulation       = modulation;
+    pdu.slot                 = slot_point(numerology, slot_count_dist(rgen) % (10240 * nof_slots_per_subframe));
+    pdu.rnti                 = rnti_dist(rgen);
+    pdu.bwp_start_rb         = bwp_start_dist(rgen);
+    pdu.bwp_size_rb          = std::min(static_cast<unsigned>(MAX_NOF_PRBS) - pdu.bwp_start_rb, bwp_size_dist(rgen));
+    pdu.cp                   = cyclic_prefix_conf;
+    pdu.mcs_descr.modulation = modulation;
     pdu.mcs_descr.target_code_rate = target_code_rate_dist(rgen);
 
     if (codeword_present) {
@@ -276,8 +277,8 @@ std::unique_ptr<pusch_pdu_validator> PuschProcessorFixture::validator        = n
 std::mt19937                            PuschProcessorFixture::rgen;
 std::uniform_int_distribution<unsigned> PuschProcessorFixture::slot_count_dist(0, 10240 * 8);
 std::uniform_int_distribution<uint16_t> PuschProcessorFixture::rnti_dist(1, std::numeric_limits<uint16_t>::max());
-std::uniform_int_distribution<unsigned> PuschProcessorFixture::bwp_size_dist(1, MAX_RB);
-std::uniform_int_distribution<unsigned> PuschProcessorFixture::bwp_start_dist(0, MAX_RB - 1);
+std::uniform_int_distribution<unsigned> PuschProcessorFixture::bwp_size_dist(1, MAX_NOF_PRBS);
+std::uniform_int_distribution<unsigned> PuschProcessorFixture::bwp_start_dist(0, MAX_NOF_PRBS - 1);
 std::uniform_int_distribution<unsigned> PuschProcessorFixture::rv_dist(0, 3);
 std::uniform_int_distribution<unsigned> PuschProcessorFixture::bool_dist(0, 1);
 std::uniform_int_distribution<uint8_t>  PuschProcessorFixture::ldpc_base_graph_dist(0, 1);

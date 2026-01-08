@@ -65,9 +65,9 @@ private:
   /// Channel precoder.
   std::unique_ptr<channel_precoder> precoder;
   /// Temporary generated sequence.
-  static_re_buffer<one_layer, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB, cf_t> sequence;
+  static_re_buffer<one_layer, MAX_NOF_SUBCARRIERS, cf_t> sequence;
   /// Temporary precoded symbols.
-  static_re_buffer<MAX_PORTS, MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB, cbf16_t> symbols;
+  static_re_buffer<MAX_PORTS, MAX_NOF_SUBCARRIERS, cbf16_t> symbols;
 };
 
 } // namespace ocudu

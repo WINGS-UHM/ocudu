@@ -111,22 +111,22 @@ public:
   unsigned get_nof_subc() const override { return grid_data.size(); }
   unsigned get_nof_symbols() const override { return MAX_NSYMB_PER_SLOT; }
 
-  span<const cf_t> put(unsigned                                               port,
-                       unsigned                                               l,
-                       unsigned                                               k_init,
-                       const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
-                       span<const cf_t>                                       symbols) override
+  span<const cf_t> put(unsigned                                   port,
+                       unsigned                                   l,
+                       unsigned                                   k_init,
+                       const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask,
+                       span<const cf_t>                           symbols) override
   {
     grid_written = true;
     nof_prbs_written += symbols.size() / NOF_SUBCARRIERS_PER_RB;
     return {};
   }
 
-  span<const cbf16_t> put(unsigned                                               port,
-                          unsigned                                               l,
-                          unsigned                                               k_init,
-                          const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
-                          span<const cbf16_t>                                    symbols) override
+  span<const cbf16_t> put(unsigned                                   port,
+                          unsigned                                   l,
+                          unsigned                                   k_init,
+                          const bounded_bitset<MAX_NOF_SUBCARRIERS>& mask,
+                          span<const cbf16_t>                        symbols) override
   {
     grid_written = true;
     nof_prbs_written += symbols.size() / NOF_SUBCARRIERS_PER_RB;

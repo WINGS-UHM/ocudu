@@ -29,6 +29,10 @@ constexpr std::size_t MAX_NOF_PRBS = 275;
 /// See TS 38.211, 4.4.4.1 - Resource Blocks, General.
 constexpr std::size_t NOF_SUBCARRIERS_PER_RB = 12;
 
+/// Maximum number of subcarriers in a carrier.
+/// \remark See MAX_NOF_PRBS and NOF_SUBCARRIERS_PER_RB.
+constexpr std::size_t MAX_NOF_SUBCARRIERS = MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB;
+
 /// Compute RB bandwidth in kHz, based on the used numerology.
 constexpr std::size_t get_rb_bw_khz(subcarrier_spacing scs)
 {

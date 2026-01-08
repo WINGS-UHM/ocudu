@@ -63,7 +63,7 @@ get_ulsch_demultiplex_nof_re_prb_dmrs(dmrs_type dmrs_, unsigned nof_cdm_groups_w
 static ulsch_demultiplex_impl::re_set_type
 re_set_select(const ulsch_demultiplex_impl::re_set_type& re_set, unsigned d, unsigned m_re_count)
 {
-  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> result(re_set.size());
+  bounded_bitset<MAX_NOF_SUBCARRIERS> result(re_set.size());
 
   for (unsigned count = 0, startpos = 0, d_count = 0; count != m_re_count;) {
     // Find next available position.
@@ -84,10 +84,9 @@ re_set_select(const ulsch_demultiplex_impl::re_set_type& re_set, unsigned d, uns
 }
 
 // Creates another resource element set without any selection of the same size.
-static bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>
-re_set_copy_size(const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& re_set)
+static bounded_bitset<MAX_NOF_SUBCARRIERS> re_set_copy_size(const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_set)
 {
-  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> result(re_set.size());
+  bounded_bitset<MAX_NOF_SUBCARRIERS> result(re_set.size());
   return result;
 }
 

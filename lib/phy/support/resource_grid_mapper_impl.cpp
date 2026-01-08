@@ -15,8 +15,7 @@
 
 using namespace ocudu;
 
-using precoding_buffer_type =
-    static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB, cbf16_t>;
+using precoding_buffer_type = static_re_buffer<precoding_constants::MAX_NOF_PORTS, MAX_NOF_SUBCARRIERS, cbf16_t>;
 
 // Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
 static const re_prb_mask& get_re_mask_type_1(unsigned cdm_group_id)
@@ -129,8 +128,8 @@ void resource_grid_mapper_impl::map_re_block(resource_grid_writer&              
                                              unsigned                                   i_subc)
 {
   // Temporary intermediate buffer for storing precoded symbols.
-  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB, cbf16_t> precoding_buffer_copy;
-  modular_re_buffer<cbf16_t, MAX_PORTS>                                                          precoding_buffer_view;
+  static_re_buffer<precoding_constants::MAX_NOF_PORTS, MAX_NOF_SUBCARRIERS, cbf16_t> precoding_buffer_copy;
+  modular_re_buffer<cbf16_t, MAX_PORTS>                                              precoding_buffer_view;
 
   unsigned nof_antennas = prg_weights.get_nof_ports();
   unsigned nof_re_block = block_mask.count();

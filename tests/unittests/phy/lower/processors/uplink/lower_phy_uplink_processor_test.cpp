@@ -16,6 +16,7 @@
 #include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_dynamic.h"
 #include "ocudu/phy/lower/processors/uplink/uplink_processor_baseband.h"
 #include "ocudu/phy/lower/processors/uplink/uplink_processor_factories.h"
+#include "ocudu/ran/resource_block.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
@@ -184,7 +185,7 @@ protected:
 };
 
 std::mt19937                                        LowerPhyUplinkProcessorFixture::rgen(0);
-std::uniform_int_distribution<unsigned>             LowerPhyUplinkProcessorFixture::dist_bandwidth_prb(1, MAX_RB);
+std::uniform_int_distribution<unsigned>             LowerPhyUplinkProcessorFixture::dist_bandwidth_prb(1, MAX_NOF_PRBS);
 std::uniform_real_distribution<double>              LowerPhyUplinkProcessorFixture::dist_center_freq_Hz(1e8, 6e9);
 std::uniform_real_distribution<float>               LowerPhyUplinkProcessorFixture::dist_sample(-1, 1);
 std::shared_ptr<prach_processor_factory_spy>        LowerPhyUplinkProcessorFixture::prach_proc_factory = nullptr;

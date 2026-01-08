@@ -46,7 +46,7 @@ private:
   /// It is given by the maximum value of \f$m_{SRS,0}\f$ in TS38.211 Table 6.4.1.4.3-1 and a comb size of 2.
   static constexpr unsigned max_seq_length = 272 * NOF_SUBCARRIERS_PER_RB / 2;
   /// Maximum number of resource elements that an OFDM symbol contains.
-  static constexpr unsigned max_symbol_size = MAX_RB * NOF_SUBCARRIERS_PER_RB;
+  static constexpr unsigned max_symbol_size = MAX_NOF_SUBCARRIERS;
   /// Complex exponential table size for time compensation.
   static constexpr unsigned cexp_table_size = 1024;
   /// Complex exponential table amplitude for time compensation.

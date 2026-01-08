@@ -19,6 +19,7 @@
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
 #include "ocudu/phy/upper/rx_buffer_pool.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/support/test_utils.h"
 #ifdef DPDK_FOUND
@@ -185,7 +186,7 @@ static std::shared_ptr<pusch_decoder_factory> create_generic_pusch_decoder_facto
   pusch_decoder_factory_sw_config.decoder_factory   = ldpc_decoder_factory;
   pusch_decoder_factory_sw_config.dematcher_factory = ldpc_rate_dematcher_factory;
   pusch_decoder_factory_sw_config.segmenter_factory = segmenter_rx_factory;
-  pusch_decoder_factory_sw_config.nof_prb           = MAX_RB;
+  pusch_decoder_factory_sw_config.nof_prb           = MAX_NOF_PRBS;
   pusch_decoder_factory_sw_config.nof_layers        = pusch_constants::MAX_NOF_LAYERS;
   return create_pusch_decoder_factory_sw(pusch_decoder_factory_sw_config);
 }

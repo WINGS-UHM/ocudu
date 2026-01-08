@@ -37,7 +37,7 @@ private:
   /// Maximum currently supported ports for the CSI-RS generation.
   static constexpr unsigned CSI_RS_MAX_PORTS = 16;
   /// Maximum sequence length for one OFDM symbol.
-  static constexpr unsigned MAX_SEQ_LEN = MAX_SUBCS_PRB * MAX_RB;
+  static constexpr unsigned MAX_SEQ_LEN = MAX_SUBCS_PRB * MAX_NOF_PRBS;
 
   /// \brief CDM sequence element struct.
   /// \remark This struct is used to build the CDM sequence tables.

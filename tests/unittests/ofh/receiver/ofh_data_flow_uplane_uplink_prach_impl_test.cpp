@@ -91,7 +91,7 @@ public:
     results.uplane_results.params.symbol_id = 0;
     results.eaxc                            = 4;
     auto& section                           = results.uplane_results.sections.emplace_back();
-    section.iq_samples.resize(MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB);
+    section.iq_samples.resize(MAX_NOF_SUBCARRIERS);
 
     ul_cplane_context context;
     context.filter_index = ocudu::ofh::filter_index_type::ul_prach_preamble_1p25khz;
@@ -150,7 +150,7 @@ public:
     section.nof_prbs                  = 273;
     section.use_current_symbol_number = true;
     section.is_every_rb_used          = true;
-    section.iq_samples.resize(MAX_NOF_PRBS * NOF_SUBCARRIERS_PER_RB);
+    section.iq_samples.resize(MAX_NOF_SUBCARRIERS);
 
     return deco_results;
   }

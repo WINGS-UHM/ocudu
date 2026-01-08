@@ -227,7 +227,7 @@ ocudu::create_sw_pusch_processor_factory(task_executor&                         
     pusch_decoder_factory_sw_config.segmenter_factory         = segmenter_rx_factory;
     pusch_decoder_factory_sw_config.nof_pusch_decoder_threads = max_nof_threads;
     pusch_decoder_factory_sw_config.executor                  = &executor;
-    pusch_decoder_factory_sw_config.nof_prb                   = MAX_RB;
+    pusch_decoder_factory_sw_config.nof_prb                   = MAX_NOF_PRBS;
     pusch_decoder_factory_sw_config.nof_layers                = pusch_constants::MAX_NOF_LAYERS;
     pusch_dec_factory = create_pusch_decoder_factory_sw(pusch_decoder_factory_sw_config);
 #if defined(HWACC_PDSCH_ENABLED) && defined(HWACC_PUSCH_ENABLED)
@@ -276,11 +276,17 @@ ocudu::create_sw_pusch_processor_factory(task_executor&                         
   report_fatal_error_if_not(evm_calc_factory, "Failed to create factory.");
 
   std::shared_ptr<transform_precoder_factory> precoding_factory =
-      create_dft_transform_precoder_factory(dft_proc_factory, MAX_RB);
+      create_dft_transform_precoder_factory(dft_proc_factory, MAX_NOF_PRBS);
   report_fatal_error_if_not(precoding_factory, "Invalid transform precoding factory.");
 
-  std::shared_ptr<pusch_demodulator_factory> pusch_demod_factory = create_pusch_demodulator_factory_sw(
-      eq_factory, precoding_factory, chan_demod_factory, evm_calc_factory, pseudo_random_gen_factory, MAX_RB, true);
+  std::shared_ptr<pusch_demodulator_factory> pusch_demod_factory =
+      create_pusch_demodulator_factory_sw(eq_factory,
+                                          precoding_factory,
+                                          chan_demod_factory,
+                                          evm_calc_factory,
+                                          pseudo_random_gen_factory,
+                                          MAX_NOF_PRBS,
+                                          true);
   report_fatal_error_if_not(pusch_demod_factory, "Failed to create factory.");
 
   std::shared_ptr<ulsch_demultiplex_factory> demux_factory = create_ulsch_demultiplex_factory_sw();

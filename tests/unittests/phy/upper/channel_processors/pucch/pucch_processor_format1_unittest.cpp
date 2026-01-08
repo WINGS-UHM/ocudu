@@ -80,7 +80,7 @@ protected:
       channel_estimate_dimensions.nof_tx_layers = 1;
       channel_estimate_dimensions.nof_rx_ports  = 1;
       channel_estimate_dimensions.nof_symbols   = MAX_NSYMB_PER_SLOT;
-      channel_estimate_dimensions.nof_prb       = MAX_RB;
+      channel_estimate_dimensions.nof_prb       = MAX_NOF_PRBS;
 
       // Create PUCCH processor factory.
       processor_factory = create_pucch_processor_factory_sw(
@@ -119,7 +119,7 @@ protected:
 
     std::uniform_int_distribution<unsigned> num_dist(0, static_cast<unsigned>(subcarrier_spacing::kHz240));
     std::uniform_int_distribution<unsigned> slot_dist(0, 160 * 1024 - 1);
-    std::uniform_int_distribution<unsigned> bwp_size_dist(1, MAX_RB);
+    std::uniform_int_distribution<unsigned> bwp_size_dist(1, MAX_NOF_PRBS);
     std::uniform_int_distribution<unsigned> bool_dist(0, 1);
     std::uniform_int_distribution<unsigned> starting_prb_dist(0, 274);
     std::uniform_int_distribution<unsigned> n_id_dist(0, 1023);
@@ -148,7 +148,7 @@ protected:
     std::uniform_int_distribution<unsigned> nof_symbols_dist(4, get_nsymb_per_slot(config.cp));
     config.nof_symbols = nof_symbols_dist(rgen);
 
-    std::uniform_int_distribution<unsigned> bwp_start_dist(0, MAX_RB - config.bwp_size_rb);
+    std::uniform_int_distribution<unsigned> bwp_start_dist(0, MAX_NOF_PRBS - config.bwp_size_rb);
     config.bwp_start_rb = bwp_start_dist(rgen);
 
     std::uniform_int_distribution<unsigned> start_symbol_index_dist(0,

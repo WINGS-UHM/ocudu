@@ -32,7 +32,7 @@ int main()
   std::uniform_int_distribution<unsigned> offset_to_pointA_dist(0, 191);
   std::uniform_int_distribution<unsigned> ssb_subcarrier_offset_dist(0, 11);
 
-  resource_grid_writer_spy grid(MAX_PORTS, MAX_NSYMB_PER_SLOT, MAX_RB);
+  resource_grid_writer_spy grid(MAX_PORTS, MAX_NSYMB_PER_SLOT, MAX_NOF_PRBS);
 
   std::shared_ptr<pbch_encoder_factory_spy>   encoder_factory_spy   = std::make_shared<pbch_encoder_factory_spy>();
   std::shared_ptr<pbch_modulator_factory_spy> modulator_factory_spy = std::make_shared<pbch_modulator_factory_spy>();
@@ -146,7 +146,7 @@ int main()
               pss->reset();
               sss->reset();
 
-              error_type<std::string> is_valid = pbch_validator->is_valid(pdu, MAX_RB);
+              error_type<std::string> is_valid = pbch_validator->is_valid(pdu, MAX_NOF_PRBS);
               TESTASSERT(is_valid.has_value(), "{}", is_valid.error());
 
               // Process PDU.

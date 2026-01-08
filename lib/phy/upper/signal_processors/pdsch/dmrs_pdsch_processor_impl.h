@@ -30,7 +30,7 @@ private:
       std::max(dmrs_type(dmrs_type::TYPE1).nof_dmrs_per_rb(), dmrs_type(dmrs_type::TYPE2).nof_dmrs_per_rb());
 
   /// Define the maximum number of DMRS per symbol.
-  static constexpr unsigned MAX_DMRS_PER_SYMBOL = MAX_RB * MAX_DRMS_PER_RB;
+  static constexpr unsigned MAX_DMRS_PER_SYMBOL = MAX_NOF_PRBS * MAX_DRMS_PER_RB;
 
   /// \brief Maximum number of OFDM symbols containing DM-RS on a PDSCH allocation
   ///

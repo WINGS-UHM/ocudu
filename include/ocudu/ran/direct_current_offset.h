@@ -27,10 +27,10 @@ namespace ocudu {
 /// txDirectCurrentLocation - 12 * N_RB / 2, where "N_RB" is the number of RBs of the SCS-Carrier.
 /// In case the DC offset falls within the SCS-Carrier boundaries, its value should range between {0,...,12 * N_RB - 1}.
 enum class dc_offset_t : int {
-  min          = -static_cast<int>(NOF_SUBCARRIERS_PER_RB * MAX_NOF_PRBS) / 2,
+  min          = -static_cast<int>(MAX_NOF_SUBCARRIERS) / 2,
   center       = 0,
-  max          = static_cast<int>(NOF_SUBCARRIERS_PER_RB * MAX_NOF_PRBS) / 2 - 1,
-  outside      = static_cast<int>(NOF_SUBCARRIERS_PER_RB * MAX_NOF_PRBS) / 2,
+  max          = static_cast<int>(MAX_NOF_SUBCARRIERS) / 2 - 1,
+  outside      = static_cast<int>(MAX_NOF_SUBCARRIERS) / 2,
   undetermined = std::numeric_limits<int>::max()
 };
 

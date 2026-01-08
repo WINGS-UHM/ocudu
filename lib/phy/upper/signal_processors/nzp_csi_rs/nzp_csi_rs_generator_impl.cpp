@@ -213,7 +213,7 @@ void nzp_csi_rs_generator_impl::map(resource_grid_writer& grid, const config_t& 
     data.resize(cdm_group_size, seq_len * nof_symbols);
 
     // Prepare precoding configuration for the CDM group.
-    precoding_configuration cdm_group_precoding(cdm_group_size, nof_ports, 1, MAX_RB);
+    precoding_configuration cdm_group_precoding(cdm_group_size, nof_ports, 1, MAX_NOF_PRBS);
 
     // Prepare base sequence for each symbol within the slot.
     for (unsigned i_symbol_slot = 0, i_symbol_slot_end = get_nsymb_per_slot(config.cp), i_symbol_cdm = 0;

@@ -278,7 +278,7 @@ float ocudu::estimate_time_alignment(const re_measurement<cf_t>&                
   }
 
   // Prepare RE mask, common for all symbols carrying DM-RS.
-  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> re_mask =
+  bounded_bitset<MAX_NOF_SUBCARRIERS> re_mask =
       hop_rb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(pattern.re_pattern);
 
   ocudu_assert(pilots_lse_buffer.get_slice(0).size() == re_mask.count(),
@@ -499,8 +499,8 @@ extract_re_prb(span<cf_t> out, const bounded_bitset<NOF_SUBCARRIERS_PER_RB>& re_
 #endif // __ARM_NEON
 
   // Generic algorithm.
-  bounded_bitset<MAX_NOF_PRBS>                          prb  = ~bounded_bitset<MAX_NOF_PRBS>(nof_prb);
-  bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_NOF_PRBS> mask = prb.kronecker_product(re_mask);
+  bounded_bitset<MAX_NOF_PRBS>        prb  = ~bounded_bitset<MAX_NOF_PRBS>(nof_prb);
+  bounded_bitset<MAX_NOF_SUBCARRIERS> mask = prb.kronecker_product(re_mask);
   mask.for_each(0, mask.size(), [&out, &in](unsigned i_re) mutable {
     out.front() = to_cf(in[i_re]);
     out         = out.last(out.size() - 1);

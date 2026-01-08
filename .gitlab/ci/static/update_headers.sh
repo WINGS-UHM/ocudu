@@ -15,7 +15,7 @@ ADDITIONAL_IGNORE=""
 
 for entry in $RAW_INPUT; do
     CLEAN_PATH=$(echo "$entry" | sed 's|^/||;s|/$||')  # Strip leading/trailing slashes
-    
+
     if [ -n "$CLEAN_PATH" ]; then
         ADDITIONAL_IGNORE="$ADDITIONAL_IGNORE ! -path */${CLEAN_PATH}/*"
     fi
@@ -113,7 +113,7 @@ find . -type f -name "*.m" \
     ! -name "hSkipWeakTimingOffset.m" \
     ! -name "HARQEntity.m" \
     -exec perl -0777 -pi -e "s/((?:%.*\n)+\n)(?:%.*\n)+/\$1%
-%   Copyright 2021-2025 Software Radio Systems Limited
+%   Copyright 2021-$(date +%Y) Software Radio Systems Limited
 %
 %   By using this file, you agree to the terms and conditions set
 %   forth in the LICENSE file which can be found at the top level of

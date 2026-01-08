@@ -186,6 +186,12 @@ static float to_rach_rssi_dB(int fapi_rssi)
   return (fapi_rssi - 140000) * 0.001F;
 }
 
+/// Converts the given FAPI RACH occasion SNR to dB as per SCF-222 v4.0 section 3.4.11.
+static float to_rach_snr_dB(int fapi_snr)
+{
+  return (fapi_snr - 128) * 0.5F;
+}
+
 /// Converts the given FAPI RACH preamble power to dB as per SCF-222 v4.0 section 3.4.11.
 static float to_rach_preamble_power_dB(int fapi_power)
 {
@@ -204,10 +210,15 @@ void ocudu::fapi::log_rach_indication(const rach_indication& msg, unsigned secto
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: RACH.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
-    fmt::format_to(std::back_inserter(buffer), "\n\t- PRACH symb_idx={} slot_idx={}", pdu.symbol_index, pdu.slot_index);
+    fmt::format_to(std::back_inserter(buffer),
+                   "\n\t- PRACH symb_idx={} slot_idx={} ra_index={}",
+                   pdu.symbol_index,
+                   pdu.slot_index,
+                   pdu.ra_index);
     if (pdu.avg_rssi != std::numeric_limits<decltype(pdu.avg_rssi)>::max()) {
       fmt::format_to(std::back_inserter(buffer), " rssi={:.1f}", to_rach_rssi_dB(pdu.avg_rssi));
     }
+    fmt::format_to(std::back_inserter(buffer), " avg_snr={:.1f}", to_rach_snr_dB(pdu.avg_snr));
     fmt::format_to(std::back_inserter(buffer), " nof_preambles={}:", pdu.preambles.size());
 
     // Log the preambles.

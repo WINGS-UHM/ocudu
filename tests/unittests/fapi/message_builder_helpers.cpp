@@ -1217,13 +1217,11 @@ rach_indication unittest::build_valid_rach_indication()
 
   msg.pdus.emplace_back();
   rach_indication_pdu& pdu = msg.pdus.back();
-  msg.num_pdu              = msg.pdus.size();
 
   pdu.symbol_index = generate_start_symbol_index();
   pdu.slot_index   = generate_slot_index();
   pdu.ra_index     = generate_ra_index();
   pdu.avg_rssi     = std::numeric_limits<uint32_t>::max();
-  pdu.rsrp         = std::numeric_limits<uint16_t>::max();
   pdu.avg_snr      = std::numeric_limits<uint8_t>::max();
 
   pdu.preambles.emplace_back();

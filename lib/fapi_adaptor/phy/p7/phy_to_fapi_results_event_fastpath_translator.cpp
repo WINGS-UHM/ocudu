@@ -101,7 +101,6 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
       fd_ra_index,
       std::clamp(
           convert_to_dBFS(result.result.rssi_dB, dBFS_calibration_value), MIN_AVG_RSSI_VALUE, MAX_AVG_RSSI_VALUE),
-      {},
       {});
 
   for (const auto& preamble : result.result.preambles) {

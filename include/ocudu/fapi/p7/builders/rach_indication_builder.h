@@ -16,8 +16,6 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// RACH.indication PDU builder that helps to fill in the parameters specified in SCF-222 v4.0 section 3.4.11.
 class rach_indication_pdu_builder
 {
@@ -26,16 +24,14 @@ class rach_indication_pdu_builder
 public:
   explicit rach_indication_pdu_builder(rach_indication_pdu& pdu_) : pdu(pdu_) {}
 
-  /// Sets the basic parameters of the RACH.indication PDU and returns a reference to the builder.
+  /// Sets the basic parameters of the \e RACH.indication PDU and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
   rach_indication_pdu_builder& set_basic_params(uint16_t             handle,
                                                 uint8_t              symbol_index,
                                                 uint8_t              slot_index,
                                                 uint8_t              ra_index,
                                                 std::optional<float> avg_rssi_dB,
-                                                std::optional<float> rsrp,
-                                                std::optional<float> avg_snr_dB,
-                                                bool                 rsrp_use_dBm = false)
+                                                std::optional<float> avg_snr_dB)
 
   {
     pdu.handle       = handle;
@@ -55,20 +51,10 @@ public:
                  std::numeric_limits<uint8_t>::max());
     pdu.avg_snr = static_cast<uint8_t>(avg_snr);
 
-    unsigned rsrp_value = (rsrp) ? static_cast<unsigned>((rsrp.value() + ((rsrp_use_dBm) ? 140.F : 128.F)) * 10.F)
-                                 : std::numeric_limits<uint16_t>::max();
-
-    ocudu_assert(rsrp_value <= std::numeric_limits<uint16_t>::max(),
-                 "RSRP ({}) exceeds the maximum ({}).",
-                 rsrp_value,
-                 std::numeric_limits<uint16_t>::max());
-
-    pdu.rsrp = static_cast<uint16_t>(rsrp_value);
-
     return *this;
   }
 
-  /// Adds a preamble to the RACH.indication PDU and returns a reference to the builder.
+  /// Adds a preamble to the \e RACH.indication PDU and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
   /// \note Units for timing advace offset parameter are specified in SCF-222 v4.0 section 3.4.11 in table
   /// RACH.indication message body, and this function expect this units.
@@ -114,7 +100,7 @@ class rach_indication_builder
 public:
   explicit rach_indication_builder(rach_indication& msg_) : msg(msg_) {}
 
-  /// Sets the basic parameters of the RACH.indication message and returns a reference to the builder.
+  /// Sets the basic parameters of the \e RACH.indication message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
   rach_indication_builder& set_basic_parameters(slot_point slot)
   {
@@ -123,22 +109,20 @@ public:
     return *this;
   }
 
-  /// Adds a PDU to the RACH.indication message and returns a reference to the builder.
+  /// Adds a PDU to the \e RACH.indication message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
   rach_indication_pdu_builder add_pdu(uint16_t             handle,
                                       uint8_t              symbol_index,
                                       uint8_t              slot_index,
                                       uint8_t              ra_index,
                                       std::optional<float> avg_rssi,
-                                      std::optional<float> rsrp,
-                                      std::optional<float> avg_snr,
-                                      bool                 rsrp_use_dBm = false)
+                                      std::optional<float> avg_snr)
   {
     auto& pdu = msg.pdus.emplace_back();
 
     rach_indication_pdu_builder builder(pdu);
 
-    builder.set_basic_params(handle, symbol_index, slot_index, ra_index, avg_rssi, rsrp, avg_snr, rsrp_use_dBm);
+    builder.set_basic_params(handle, symbol_index, slot_index, ra_index, avg_rssi, avg_snr);
 
     return builder;
   }

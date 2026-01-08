@@ -13,6 +13,7 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
@@ -29,28 +30,19 @@ struct rach_indication_pdu_preamble {
 
 /// RACH indication pdu.
 struct rach_indication_pdu {
-  /// Maximum number of supported preambles per slot.
-  static constexpr unsigned MAX_NUM_PREAMBLES = 64;
-
-  uint16_t handle;
-  uint8_t  symbol_index;
-  uint8_t  slot_index;
-  uint8_t  ra_index;
-  // :TODO: double check this variable. Table says uint16_t, range specifies uint32_t.
-  uint32_t                                                       avg_rssi;
-  uint16_t                                                       rsrp;
-  uint8_t                                                        avg_snr;
-  static_vector<rach_indication_pdu_preamble, MAX_NUM_PREAMBLES> preambles;
+  uint32_t                                                                      handle;
+  uint8_t                                                                       symbol_index;
+  uint8_t                                                                       slot_index;
+  uint8_t                                                                       ra_index;
+  uint32_t                                                                      avg_rssi;
+  uint8_t                                                                       avg_snr;
+  static_vector<rach_indication_pdu_preamble, MAX_PREAMBLES_PER_PRACH_OCCASION> preambles;
 };
 
 /// RACH indication message
 struct rach_indication : public base_message {
-  /// Maximum number of supported measurement PDUs in this message.
-  static constexpr unsigned MAX_NUM_RACH_PDUS = 64;
-
-  slot_point                                            slot;
-  uint8_t                                               num_pdu;
-  static_vector<rach_indication_pdu, MAX_NUM_RACH_PDUS> pdus;
+  slot_point                                                       slot;
+  static_vector<rach_indication_pdu, MAX_PRACH_OCCASIONS_PER_SLOT> pdus;
 };
 
 } // namespace fapi

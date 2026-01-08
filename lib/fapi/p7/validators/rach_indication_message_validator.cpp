@@ -65,20 +65,6 @@ static bool validate_avg_rssi(unsigned value, validator_report& report)
   return validate_field(MIN_VALUE, MAX_VALUE, value, "AVG RSSI", message_type_id::rach_indication, report);
 }
 
-/// Validates the RSRP property of the RACH.indication PDU, as per SCF-222 v4.0 section 3.4.11 in table
-/// RACH.indication message body.
-static bool validate_rach_rsrp(unsigned value, validator_report& report)
-{
-  static constexpr unsigned MIN_VALUE = 0;
-  static constexpr unsigned MAX_VALUE = 1280;
-
-  if (value == std::numeric_limits<uint16_t>::max()) {
-    return true;
-  }
-
-  return validate_field(MIN_VALUE, MAX_VALUE, value, "RSRP", message_type_id::rach_indication, report);
-}
-
 /// Validates the preamble index property of the RACH.indication PDU, as per SCF-222 v4.0 section 3.4.11 in table
 /// RACH.indication message body.
 static bool validate_preamble_index(unsigned value, validator_report& report)
@@ -128,7 +114,6 @@ error_type<validator_report> ocudu::fapi::validate_rach_indication(const rach_in
     success &= validate_slot_index(pdu.slot_index, report);
     success &= validate_ra_index(pdu.ra_index, report);
     success &= validate_avg_rssi(pdu.avg_rssi, report);
-    success &= validate_rach_rsrp(pdu.rsrp, report);
     // NOTE: AVG SNR property uses the whole range of the property, so it will not be validated.
     for (const auto& preamble : pdu.preambles) {
       success &= validate_preamble_index(preamble.preamble_index, report);

@@ -115,19 +115,6 @@ INSTANTIATE_TEST_SUITE_P(
                                      test_case_data{std::numeric_limits<uint32_t>::max() - 1, false},
                                      test_case_data{std::numeric_limits<uint32_t>::max(), true})));
 
-INSTANTIATE_TEST_SUITE_P(rsrp,
-                         validate_rach_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rach_indication>{
-                                              "RSRP",
-                                              [](rach_indication& msg, int value) { msg.pdus.back().rsrp = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{640, true},
-                                                          test_case_data{1280, true},
-                                                          test_case_data{1281, false},
-                                                          test_case_data{std::numeric_limits<uint16_t>::max() - 1,
-                                                                         false},
-                                                          test_case_data{std::numeric_limits<uint16_t>::max(), true})));
-
 INSTANTIATE_TEST_SUITE_P(preamble_index,
                          validate_rach_indication_field,
                          testing::Combine(testing::Values(pdu_field_data<rach_indication>{

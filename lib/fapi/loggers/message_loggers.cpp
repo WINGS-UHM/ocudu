@@ -47,6 +47,12 @@ static float to_crc_ul_sinr(int sinr)
   return static_cast<float>(sinr) * 0.002F;
 }
 
+/// Converts the given FAPI CRC RSSI to dB as per SCF-222 v4.0 section 3.4.8.
+static float to_crc_ul_rssi(unsigned rssi)
+{
+  return static_cast<float>(static_cast<int>(rssi) - 1280) * 0.1F;
+}
+
 /// Converts the given FAPI CRC RSRP to dB as per SCF-222 v4.0 section 3.4.8.
 static float to_crc_ul_rsrp(unsigned rsrp)
 {
@@ -60,15 +66,18 @@ void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer),
-                   "\n\t- CRC rnti={} harq_id={} tb_status={}",
+                   "\n\t- CRC rnti={:x} harq_id={} tb_status={}",
                    pdu.rnti,
-                   pdu.harq_id,
+                   static_cast<uint8_t>(pdu.harq_id),
                    pdu.tb_crc_status_ok ? "OK" : "KO");
     if (pdu.timing_advance_offset_ns != std::numeric_limits<decltype(pdu.timing_advance_offset_ns)>::min()) {
       fmt::format_to(std::back_inserter(buffer), " ta_ns={}", pdu.timing_advance_offset_ns);
     }
     if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
       fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_crc_ul_sinr(pdu.ul_sinr_metric));
+    }
+    if (pdu.rssi != std::numeric_limits<decltype(pdu.rssi)>::max()) {
+      fmt::format_to(std::back_inserter(buffer), " rssi={:.1f}", to_crc_ul_rssi(pdu.rssi));
     }
     if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
       fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_crc_ul_rsrp(pdu.rsrp));

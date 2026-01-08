@@ -27,13 +27,10 @@ TEST(crc_indication_builder, valid_indication_passes)
 
     builder.set_basic_parameters(slot);
 
-    uint32_t                                                      handle = 34U;
-    rnti_t                                                        rnti   = to_rnti(10);
-    std::optional<uint8_t>                                        rapid;
-    uint8_t                                                       harq_id       = 0;
-    uint8_t                                                       tb_crc_status = 0;
-    unsigned                                                      num_cb        = 32;
-    static_vector<uint8_t, crc_ind_pdu::MAX_NUM_CB_PER_TTI_BYTES> cb_crc_status;
+    uint32_t  handle        = 34U;
+    rnti_t    rnti          = to_rnti(10);
+    harq_id_t harq_id       = to_harq_id(0);
+    uint8_t   tb_crc_status = 0;
 
     std::optional<float> ul_sinr_dB;
     ul_sinr_dB.emplace(-65);
@@ -53,11 +50,8 @@ TEST(crc_indication_builder, valid_indication_passes)
 
     builder.add_pdu(handle,
                     rnti,
-                    rapid,
                     harq_id,
                     tb_crc_status,
-                    num_cb,
-                    {cb_crc_status},
                     ul_sinr_dB,
                     timing_advance_offset,
                     timing_advance_offset_in_ns,
@@ -69,12 +63,9 @@ TEST(crc_indication_builder, valid_indication_passes)
 
     const crc_ind_pdu& pdu = msg.pdus.back();
     ASSERT_EQ(handle, pdu.handle);
-    ASSERT_EQ(num_cb, pdu.num_cb);
     ASSERT_EQ(harq_id, pdu.harq_id);
     ASSERT_EQ(rnti, pdu.rnti);
-    ASSERT_EQ(rapid ? rapid.value() : 255, pdu.rapid);
     ASSERT_EQ(tb_crc_status, pdu.tb_crc_status_ok);
-    ASSERT_EQ(cb_crc_status, pdu.cb_crc_status);
     ASSERT_EQ(static_cast<int16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : -32768), pdu.ul_sinr_metric);
     ASSERT_EQ(static_cast<uint16_t>(timing_advance_offset ? timing_advance_offset.value() : 65535),
               pdu.timing_advance_offset);
@@ -97,13 +88,10 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
 
   builder.set_basic_parameters(slot);
 
-  uint32_t                                                      handle = 34U;
-  rnti_t                                                        rnti   = to_rnti(10);
-  std::optional<uint8_t>                                        rapid;
-  uint8_t                                                       harq_id       = 0;
-  uint8_t                                                       tb_crc_status = 0;
-  uint16_t                                                      num_cb        = 21;
-  static_vector<uint8_t, crc_ind_pdu::MAX_NUM_CB_PER_TTI_BYTES> cb_crc_status;
+  uint32_t  handle        = 34U;
+  rnti_t    rnti          = to_rnti(10);
+  harq_id_t harq_id       = to_harq_id(0);
+  uint8_t   tb_crc_status = 0;
 
   std::optional<float>    ul_sinr_dB;
   std::optional<unsigned> timing_advance_offset;
@@ -113,11 +101,8 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
 
   builder.add_pdu(handle,
                   rnti,
-                  rapid,
                   harq_id,
                   tb_crc_status,
-                  num_cb,
-                  {cb_crc_status},
                   ul_sinr_dB,
                   timing_advance_offset,
                   timing_advance_offset_in_ns,
@@ -130,10 +115,7 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
   ASSERT_EQ(handle, pdu.handle);
   ASSERT_EQ(harq_id, pdu.harq_id);
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(rapid ? rapid.value() : 255, pdu.rapid);
   ASSERT_EQ(tb_crc_status, pdu.tb_crc_status_ok);
-  ASSERT_EQ(cb_crc_status, pdu.cb_crc_status);
-  ASSERT_EQ(num_cb, pdu.num_cb);
   ASSERT_EQ(static_cast<int16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : -32768), pdu.ul_sinr_metric);
   ASSERT_EQ(static_cast<uint16_t>(timing_advance_offset ? timing_advance_offset.value() : 65535),
             pdu.timing_advance_offset);

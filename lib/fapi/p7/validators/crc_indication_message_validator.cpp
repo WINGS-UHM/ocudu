@@ -40,7 +40,6 @@ error_type<validator_report> ocudu::fapi::validate_crc_indication(const crc_indi
   for (const auto& pdu : msg.pdus) {
     // NOTE: Handle property will not be validated as the values are not specified in the document.
     success &= validate_rnti(to_value(pdu.rnti), message_type_id::crc_indication, report);
-    success &= validate_rapid(pdu.rapid, message_type_id::crc_indication, report);
     success &= validate_harq_id(pdu.harq_id, message_type_id::crc_indication, report);
     // NOTE: CB CRC status bitmap property will not be validated.
     // NOTE: SINR property uses the whole variable range, so it will not be tested.

@@ -1271,8 +1271,7 @@ ocudu::fapi::crc_indication unittest::build_valid_crc_indication()
   msg.pdus.emplace_back();
   crc_ind_pdu& pdu             = msg.pdus.front();
   pdu.rnti                     = to_rnti(34);
-  pdu.rapid                    = 3;
-  pdu.harq_id                  = 2;
+  pdu.harq_id                  = to_harq_id(2);
   pdu.tb_crc_status_ok         = true;
   pdu.ul_sinr_metric           = 0;
   pdu.timing_advance_offset    = 0;

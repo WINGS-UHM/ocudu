@@ -74,24 +74,12 @@ INSTANTIATE_TEST_SUITE_P(
                          [](crc_indication& msg, int value) { msg.pdus.front().rnti = to_rnti(value); }}),
                      testing::Values(test_case_data{0, false}, test_case_data{1, true}, test_case_data{159, true})));
 
-INSTANTIATE_TEST_SUITE_P(RAPID,
-                         validate_crc_message_field,
-                         testing::Combine(testing::Values(pdu_field_data<crc_indication>{
-                                              "RAPID",
-                                              [](crc_indication& msg, int value) { msg.pdus.front().rapid = value; }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{63, true},
-                                                          test_case_data{64, false},
-                                                          test_case_data{254, false},
-                                                          test_case_data{255, true})));
-
 INSTANTIATE_TEST_SUITE_P(HARQ,
                          validate_crc_message_field,
                          testing::Combine(testing::Values(pdu_field_data<crc_indication>{
                                               "HARQ ID",
                                               [](crc_indication& msg, int value) {
-                                                msg.pdus.front().harq_id = value;
+                                                msg.pdus.front().harq_id = to_harq_id(value);
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{8, true},

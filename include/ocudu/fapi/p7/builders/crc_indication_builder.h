@@ -16,8 +16,6 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// CRC.indication message builder that helps to fill in the parameters specified in SCF-222 v4.0 section 3.4.8.
 class crc_indication_builder
 {
@@ -26,7 +24,7 @@ class crc_indication_builder
 public:
   explicit crc_indication_builder(crc_indication& msg_) : msg(msg_) {}
 
-  /// Sets the CRC.indication basic parameters and returns a reference to the builder.
+  /// Sets the \e CRC.indication basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
   crc_indication_builder& set_basic_parameters(slot_point slot)
   {
@@ -35,15 +33,12 @@ public:
     return *this;
   }
 
-  /// Adds a CRC.indication PDU to the message and returns a reference to the builder.
+  /// Adds a \e CRC.indication PDU to the message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
   crc_indication_builder& add_pdu(uint32_t                handle,
                                   rnti_t                  rnti,
-                                  std::optional<uint8_t>  rapid,
-                                  uint8_t                 harq_id,
+                                  harq_id_t               harq_id,
                                   bool                    tb_crc_status_ok,
-                                  uint16_t                num_cb,
-                                  span<const uint8_t>     cb_crc_status,
                                   std::optional<float>    ul_sinr_dB,
                                   std::optional<unsigned> timing_advance_offset,
                                   std::optional<int>      timing_advance_offset_in_ns,
@@ -55,11 +50,8 @@ public:
 
     pdu.handle           = handle;
     pdu.rnti             = rnti;
-    pdu.rapid            = (rapid) ? rapid.value() : 255U;
     pdu.harq_id          = harq_id;
     pdu.tb_crc_status_ok = tb_crc_status_ok;
-    pdu.num_cb           = num_cb;
-    pdu.cb_crc_status.assign(cb_crc_status.begin(), cb_crc_status.end());
     pdu.timing_advance_offset =
         (timing_advance_offset) ? timing_advance_offset.value() : std::numeric_limits<uint16_t>::max();
     pdu.timing_advance_offset_ns =

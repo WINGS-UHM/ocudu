@@ -271,8 +271,6 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
 
   // Handle is not supported for now.
   unsigned handle = 0;
-  // CB CRC status is not supported for now.
-  unsigned num_cb = 0;
 
   // NOTE: Clamp values defined in SCF-222 v4.0 Section 3.4.8 Table CRC.indication message body.
   static constexpr float MIN_UL_SINR_VALUE = -65.534;
@@ -302,13 +300,11 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
         convert_to_dBFS(rsrp.value(), dBFS_calibration_value), MIN_UL_RSRP_VALUE_DBFS, MAX_UL_RSRP_VALUE_DBFS);
   }
 
+  // TODO: Remove to_harq_id once this type has been changed in the PHY layer
   builder.add_pdu(handle,
                   result.rnti,
-                  std::optional<uint8_t>(),
-                  result.harq_id,
+                  to_harq_id(result.harq_id),
                   result.decoder_result.tb_crc_ok,
-                  num_cb,
-                  {},
                   sinr_dB,
                   {},
                   timing_advance_offset_ns,

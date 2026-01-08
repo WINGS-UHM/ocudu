@@ -4,5 +4,5 @@
 - Closes #
 
 /assign me
-/label ~"FAPI" ~"sw arch police"
+/label ~"FAPI"
 /assign_reviewer @faluco @AleaLC @sauka @jc.gonzalez1

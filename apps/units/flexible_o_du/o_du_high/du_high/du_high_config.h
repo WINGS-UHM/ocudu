@@ -849,7 +849,7 @@ struct du_high_unit_prach_config {
   std::optional<unsigned> ra_resp_window;
   /// Number of RBs that are used as guardband on each side of the PRACH RBs dedicated interval for short PRACH
   /// formats.
-  unsigned nof_prach_guardbands_rbs = 5;
+  unsigned nof_prach_guardbands_rbs = 3;
 };
 
 /// Slice scheduling configuration for a cell.

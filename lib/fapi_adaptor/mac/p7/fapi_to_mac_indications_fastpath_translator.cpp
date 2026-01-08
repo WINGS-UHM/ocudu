@@ -108,11 +108,11 @@ void fapi_to_mac_indications_fastpath_translator::on_rx_data_indication(const fa
   indication.cell_index = to_du_cell_index(sector_id);
   for (const auto& fapi_pdu : msg.pdus) {
     // PDUs that were not successfully decoded have zero length.
-    if (fapi_pdu.pdu_length == 0) {
+    if (fapi_pdu.transport_block.empty()) {
       continue;
     }
 
-    auto pdu_buffer = byte_buffer::create(span<const uint8_t>(fapi_pdu.data, fapi_pdu.pdu_length));
+    auto pdu_buffer = byte_buffer::create(fapi_pdu.transport_block);
     if (not pdu_buffer.has_value()) {
       ocudulog::fetch_basic_logger("FAPI").warning("Sector#{}: Unable to allocate memory for MAC RX PDU", sector_id);
       // Avoid new buffer allocations for the same FAPI PDU.

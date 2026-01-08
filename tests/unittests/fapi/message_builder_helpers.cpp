@@ -49,19 +49,11 @@ static unsigned generate_uint16()
   return dist(gen);
 }
 
-static unsigned generate_rapid()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 128);
-  unsigned                                value = dist(gen);
-
-  return (value < 64U) ? value : 255U;
-}
-
-static unsigned generate_harq()
+static harq_id_t generate_harq()
 {
   std::uniform_int_distribution<unsigned> dist(0, 15);
 
-  return dist(gen);
+  return static_cast<harq_id_t>(dist(gen));
 }
 
 static unsigned generate_handle()
@@ -484,17 +476,14 @@ rx_data_indication unittest::build_valid_rx_data_indication()
   unsigned sfn        = generate_sfn();
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
-  msg.control_length  = 0;
 
   msg.pdus.emplace_back();
-  auto& pdu      = msg.pdus.back();
-  pdu.handle     = generate_handle();
-  pdu.rnti       = generate_rnti();
-  pdu.rapid      = generate_rapid();
-  pdu.harq_id    = generate_harq();
-  pdu.pdu_tag    = rx_data_indication_pdu::pdu_tag_type::custom;
-  pdu.pdu_length = 1;
-  pdu.data       = reinterpret_cast<uint8_t*>(&pdu.data);
+  auto& pdu                                            = msg.pdus.back();
+  pdu.handle                                           = generate_handle();
+  pdu.rnti                                             = generate_rnti();
+  pdu.harq_id                                          = generate_harq();
+  static std::array<uint8_t, 10> fixed_transport_block = {};
+  pdu.transport_block                                  = fixed_transport_block;
 
   return msg;
 }

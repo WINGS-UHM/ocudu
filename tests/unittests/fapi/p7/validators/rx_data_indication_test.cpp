@@ -78,26 +78,12 @@ INSTANTIATE_TEST_SUITE_P(RNTI,
                                                           test_case_data{32767, true},
                                                           test_case_data{65535, true})));
 
-INSTANTIATE_TEST_SUITE_P(RAPID,
-                         validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
-                                              "RAPID",
-                                              [](rx_data_indication& pdu, int value) {
-                                                pdu.pdus.back().rapid = value;
-                                              }}),
-                                          testing::Values(test_case_data{0, true},
-                                                          test_case_data{31, true},
-                                                          test_case_data{63, true},
-                                                          test_case_data{64, false},
-                                                          test_case_data{254, false},
-                                                          test_case_data{255, true})));
-
 INSTANTIATE_TEST_SUITE_P(HarqID,
                          validate_rx_data_indication_field,
                          testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
                                               "HARQ ID",
                                               [](rx_data_indication& pdu, int value) {
-                                                pdu.pdus.back().harq_id = value;
+                                                pdu.pdus.back().harq_id = to_harq_id(value);
                                               }}),
                                           testing::Values(test_case_data{0, true},
                                                           test_case_data{8, true},
@@ -106,19 +92,6 @@ INSTANTIATE_TEST_SUITE_P(HarqID,
                                                           test_case_data{24, true},
                                                           test_case_data{31, true},
                                                           test_case_data{32, false})));
-
-INSTANTIATE_TEST_SUITE_P(PDUTag,
-                         validate_rx_data_indication_field,
-                         testing::Combine(testing::Values(pdu_field_data<rx_data_indication>{
-                                              "PDU tag",
-                                              [](rx_data_indication& pdu, int value) {
-                                                pdu.pdus.back().pdu_tag =
-                                                    static_cast<rx_data_indication_pdu::pdu_tag_type>(value);
-                                              }}),
-                                          testing::Values(test_case_data{0, false},
-                                                          test_case_data{99, false},
-                                                          test_case_data{100, true},
-                                                          test_case_data{101, false})));
 
 /// Valid Message should pass.
 TEST(validate_rx_data_indication, valid_indication_passes)
@@ -130,36 +103,19 @@ TEST(validate_rx_data_indication, valid_indication_passes)
   EXPECT_TRUE(result);
 }
 
-TEST(validate_rx_data_indication, valid_indication_with_no_data_passes)
-{
-  auto msg = build_valid_rx_data_indication();
-
-  msg.pdus.back().rapid      = 1U;
-  msg.pdus.back().harq_id    = 1U;
-  msg.pdus.back().pdu_tag    = rx_data_indication_pdu::pdu_tag_type::custom;
-  msg.pdus.back().pdu_length = 0;
-  msg.pdus.back().data       = nullptr;
-
-  const auto& result = validate_rx_data_indication(msg);
-
-  EXPECT_TRUE(result);
-}
-
 /// Add 3 errors and check that validation fails with 3 errors.
 TEST(validate_rx_data_indication, invalid_indication_fails)
 {
   auto msg = build_valid_rx_data_indication();
 
-  msg.pdus.back().rapid   = 64U;
-  msg.pdus.back().harq_id = 32U;
-  msg.pdus.back().pdu_tag = rx_data_indication_pdu::pdu_tag_type::MAC_PDU;
+  msg.pdus.back().harq_id = to_harq_id(32U);
 
   const auto& result = validate_rx_data_indication(msg);
 
   EXPECT_FALSE(result);
   const auto& report = result.error();
   // Check that the 3 errors are reported.
-  EXPECT_EQ(report.reports.size(), 3U);
+  EXPECT_EQ(report.reports.size(), 1U);
 }
 
 #ifdef ASSERTS_ENABLED

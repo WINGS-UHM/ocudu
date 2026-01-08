@@ -331,13 +331,12 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
   fapi::rx_data_indication         msg;
   fapi::rx_data_indication_builder builder(msg);
 
-  // Uplink CP/UP plane separation is not supported for now.
-  unsigned control_length = 0;
-  builder.set_basic_parameters(result.slot, control_length);
+  builder.set_basic_parameters(result.slot);
 
   // Handle is not supported for now.
   unsigned handle = 0;
-  builder.add_custom_pdu(handle, result.rnti, {}, result.harq_id, result.payload);
+  // TODO: Remove the to_harq_id call once it is changed in the PHY layer.
+  builder.add_pdu(handle, result.rnti, to_harq_id(result.harq_id), result.payload);
 
   error_type<fapi::validator_report> validation_result = validate_rx_data_indication(msg);
   if (!validation_result) {

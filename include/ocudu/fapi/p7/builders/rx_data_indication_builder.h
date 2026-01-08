@@ -17,8 +17,6 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// Rx_Data.indication message builder that helps to fill in the parameters specified in SCF-222 v4.0 section 3.4.7.
 class rx_data_indication_builder
 {
@@ -27,12 +25,11 @@ class rx_data_indication_builder
 public:
   explicit rx_data_indication_builder(rx_data_indication& msg_) : msg(msg_) {}
 
-  /// Sets the Rx_Data.indication basic parameters and returns a reference to the builder.
+  /// Sets the \e Rx_Data.indication basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
-  rx_data_indication_builder& set_basic_parameters(slot_point slot, uint16_t control_length)
+  rx_data_indication_builder& set_basic_parameters(slot_point slot)
   {
-    msg.slot           = slot;
-    msg.control_length = control_length;
+    msg.slot = slot;
 
     return *this;
   }
@@ -40,19 +37,14 @@ public:
   /// Adds a PDU to the message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
   rx_data_indication_builder&
-  add_custom_pdu(uint32_t handle, rnti_t rnti, std::optional<unsigned> rapid, uint8_t harq_id, span<const uint8_t> data)
+  add_pdu(uint32_t handle, rnti_t rnti, harq_id_t harq_id, span<const uint8_t> transport_block)
   {
     auto& pdu = msg.pdus.emplace_back();
 
-    pdu.handle  = handle;
-    pdu.rnti    = rnti;
-    pdu.rapid   = (rapid) ? static_cast<uint8_t>(rapid.value()) : 255U;
-    pdu.harq_id = harq_id;
-
-    // Mark the PDU as custom. This part of the message is not compliant with FAPI.
-    pdu.pdu_tag    = rx_data_indication_pdu::pdu_tag_type::custom;
-    pdu.pdu_length = data.size();
-    pdu.data       = data.data();
+    pdu.handle          = handle;
+    pdu.rnti            = rnti;
+    pdu.harq_id         = harq_id;
+    pdu.transport_block = transport_block;
 
     return *this;
   }

@@ -16,25 +16,11 @@
 using namespace ocudu;
 using namespace fapi;
 
-/// Validates the PDU tag property of the Rx_Data.indication PDU, as per SCF-222 v4.0 section 3.4.7 in table
-/// Rx_Data.indication message body.
-/// \note This validator only accepts the custom tag.
-static bool validate_pdu_tag(rx_data_indication_pdu::pdu_tag_type value, validator_report& report)
-{
-  if (value == rx_data_indication_pdu::pdu_tag_type::custom) {
-    return true;
-  }
-
-  report.append(static_cast<int>(value), "PDU tag", message_type_id::rx_data_indication);
-
-  return false;
-}
-
 /// Validates the PDU value property of the Rx_Data.indication PDU, as per SCF-222 v4.0 section 3.4.7 in table
 /// Rx_Data.indication message body.
-static bool validate_pdu_value(const uint8_t* value, validator_report& report)
+static bool validate_pdu_value(span<const uint8_t> transport_block, validator_report& report)
 {
-  if (value != nullptr) {
+  if (!transport_block.empty()) {
     return true;
   }
 
@@ -55,14 +41,10 @@ error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_d
   for (const auto& pdu : msg.pdus) {
     // NOTE: Handle property will not be validated.
     success &= validate_rnti(to_value(pdu.rnti), msg_id, report);
-    success &= validate_rapid(pdu.rapid, msg_id, report);
     success &= validate_harq_id(pdu.harq_id, msg_id, report);
     // NOTE: PDU length property will not be validated.
-    success &= validate_pdu_tag(pdu.pdu_tag, report);
     // PDUs that were not decoded successfully do not carry data.
-    if (pdu.pdu_length) {
-      success &= validate_pdu_value(pdu.data, report);
-    }
+    success &= validate_pdu_value(pdu.transport_block, report);
   }
 
   // Build the result.

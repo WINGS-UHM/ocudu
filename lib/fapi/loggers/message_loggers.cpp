@@ -237,8 +237,11 @@ void ocudu::fapi::log_rx_data_indication(const rx_data_indication& msg,
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: Rx_Data.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
-    fmt::format_to(
-        std::back_inserter(buffer), "\n\t- DATA rnti={} harq_id={} tbs={}", pdu.rnti, pdu.harq_id, pdu.pdu_length);
+    fmt::format_to(std::back_inserter(buffer),
+                   "\n\t- PDU rnti={:x} harq_id={} tbs={}",
+                   pdu.rnti,
+                   static_cast<uint8_t>(pdu.harq_id),
+                   pdu.transport_block.size());
   }
 
   logger.debug("{}", to_c_str(buffer));

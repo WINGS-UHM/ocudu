@@ -122,67 +122,15 @@ TEST_F(du_high_tester, when_ue_context_release_received_then_ue_gets_deleted)
   ASSERT_TRUE(test_helpers::is_valid_ue_context_release_complete(cu_notifier.f1ap_ul_msgs.rbegin()->second, msg));
 }
 
-TEST_F(du_high_tester, when_ue_context_release_starts_then_drb_activity_stops)
+/// Test: While UE Context Release is ongoing (i.e. RRC Release has been sent, the UE may have ACKed it, but it has
+/// not yet shut down), ensure that:
+/// - space is still reserved for the UE periodic resources (e.g. PUCCH for CSI/ACK) and other UE grants do not
+/// interfere with it;
+/// - no new grants are scheduled for the UE being removed.
+TEST_F(du_high_tester,
+       while_ue_context_release_is_on_going_then_grants_are_not_scheduled_and_ue_periodic_resources_are_still_scheduled)
 {
-  // Create UE.
-  rnti_t rnti = to_rnti(0x4601);
-  ASSERT_TRUE(add_ue(rnti));
-  ASSERT_TRUE(run_rrc_setup(rnti));
-  ASSERT_TRUE(run_ue_context_setup(rnti));
-
-  // Run some slots to ensure no SRB1 RLC status PDU is pending.
-  for (unsigned i = 0, slots_guard = 100; i != slots_guard; ++i) {
-    run_slot();
-  }
-
-  // CU-UP forwards many DRB PDUs.
-  const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
-
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
-
-  // Ensure DRB is active by verifying that some DRB PDUs are scheduled.
-  EXPECT_TRUE(this->run_until([this, rnti]() {
-    return find_ue_pdsch_with_lcid(rnti, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
-  }));
-
-  // DU receives F1AP UE Context Release Command.
-  cu_notifier.f1ap_ul_msgs.clear();
-  f1ap_message msg = generate_ue_context_release_command();
-  this->du_hi->get_f1ap_du().handle_message(msg);
-  this->test_logger.info("STATUS: UEContextReleaseCommand received by DU. Waiting for rrcRelease being transmitted...");
-
-  // Ensure that once SRB1 (RRC Release) is scheduled.
-  run_slot();
-  EXPECT_TRUE(this->run_until([this, rnti]() {
-    return find_ue_pdsch_with_lcid(rnti, LCID_SRB1, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
-  }));
-  this->test_logger.info("STATUS: RRC Release started being scheduled...");
-
-  // Ensure that DRBs stop being scheduled at this point, even if it takes a while for the UE release to complete.
-  unsigned drb_data_count = 0;
-  while (cu_notifier.f1ap_ul_msgs.empty()) {
-    run_slot();
-    const dl_msg_alloc* pdsch = find_ue_pdsch(rnti, phy.cells[0].last_dl_res.value().dl_res->ue_grants);
-    if (pdsch != nullptr) {
-      // PDSCH scheduled. Ensure it was for SRB1.
-      // Note: There might be at most one single DRB1 PDSCH that smuggles in after the RRC Release due to
-      // non-deterministic nature of threading.
-      auto* drb_pdsch = find_ue_pdsch_with_lcid(rnti, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants);
-      if (drb_pdsch != nullptr) {
-        drb_data_count++;
-        ASSERT_LT(drb_data_count, 2) << "More than 1 PDSCH grant for DRB data was scheduled after RRC Release";
-      }
-    }
-  }
-}
-
-TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_resources_are_still_scheduled)
-{
-  // Create two UEs.
+  // EVENT: Create two UEs.
   rnti_t rnti1 = to_rnti(0x4601);
   ASSERT_TRUE(add_ue(rnti1));
   ASSERT_TRUE(run_rrc_setup(rnti1));
@@ -192,7 +140,7 @@ TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_re
   ASSERT_TRUE(run_rrc_setup(rnti2));
   ASSERT_TRUE(run_ue_context_setup(rnti2));
 
-  // CU-UP forwards many DRB PDUs to both UEs.
+  // EVENT: CU-UP forwards many DRB PDUs to both UEs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
   for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
     nru_dl_message f1u_pdu{
@@ -203,41 +151,77 @@ TEST_F(du_high_tester, while_ue_context_release_is_on_going_then_its_periodic_re
     it->second.rx_notifier->on_new_pdu(f1u_pdu);
   }
 
-  // DU receives F1AP UE Context Release Command.
+  // Sanity Check: Ensure DRB is active by verifying that some DRB PDUs are scheduled.
+  EXPECT_TRUE(this->run_until([this, rnti1]() {
+    return find_ue_pdsch_with_lcid(rnti1, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
+  }));
+
+  // EVENT: DU receives F1AP UE Context Release Command.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = generate_ue_context_release_command();
   this->du_hi->get_f1ap_du().handle_message(msg);
 
-  // Ensure that SRB1 (RRC Release) is scheduled and schedule RLC ACK.
+  // TEST CASE: Ensure that SRB1 (RRC Release) is scheduled and schedule RLC ACK.
   this->test_logger.info("STATUS: UEContextReleaseCommand received by DU. Waiting for rrcRelease being transmitted...");
-  run_slot();
-  EXPECT_TRUE(this->run_until([this, rnti1]() {
-    return find_ue_pdsch_with_lcid(rnti1, LCID_SRB1, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
-  }));
-  this->test_logger.info("STATUS: RRC Release started being scheduled...");
+  unsigned srb1_bytes     = msg.pdu.init_msg().value.ue_context_release_cmd()->rrc_container.size();
+  auto     srb1_scheduled = [this, rnti1, &srb1_bytes]() mutable {
+    auto* pdsch = find_ue_pdsch_with_lcid(rnti1, LCID_SRB1, phy.cells[0].last_dl_res.value().dl_res->ue_grants);
+    if (pdsch != nullptr) {
+      for (auto& lc : pdsch->tb_list[0].lc_chs_to_sched) {
+        if (lc.lcid == LCID_SRB1) {
+          srb1_bytes -= std::min(lc.sched_bytes, srb1_bytes);
+        }
+      }
+    }
+    return srb1_bytes == 0;
+  };
+  EXPECT_TRUE(this->run_until(srb1_scheduled));
+  this->test_logger.info("STATUS: RRC Release was scheduled");
 
-  // DU receives RLC ACK for RRC Release.
+  // EVENT: DU receives RLC ACK for RRC Release.
   du_hi->get_pdu_handler().handle_rx_data_indication(
       test_helpers::create_pdu_with_rlc_status_ack(next_slot, rnti1, LCID_SRB1, 2));
+  // Note: We run one slot to ensure all the pending events are flushed.
+  run_slot();
+  this->test_logger.info("STATUS: DU received RLC statud PDU ACK");
 
-  // Test Case: While UE Context Release Complete has not been sent, periodic UCI should keep being scheduled for UE1.
-  // These scheduled PUCCH grants will ensure that there is no interference between the UE1 final transmissions and
-  // other UL grants.
+  // While UE Context Release Complete has not been sent...
   unsigned ue2_pdsch_count = 0;
-  unsigned ue1_pucch_count = 0;
-  ASSERT_TRUE(run_until([&]() {
-    bool ue_ctxt_rel_cmp_sent = not cu_notifier.f1ap_ul_msgs.empty();
-    // Ensure that UE2 periodic resources are scheduled while UE1 release is ongoing.
+  unsigned ue1_csi_count   = 0;
+  unsigned ue1_sr_count    = 0;
+  for (unsigned count = 0, max_count = 1000; count < max_count and cu_notifier.f1ap_ul_msgs.empty(); ++count) {
+    run_slot();
+
+    // TEST CASE: Ensure no PDSCH/PUSCH grants are scheduled for UE1.
+    ASSERT_EQ(find_ue_dl_pdcch(rnti1, *phy.cells[0].last_dl_res.value().dl_res), nullptr)
+        << "New DL grants were scheduled for UE1 while its release was ongoing";
+    ASSERT_EQ(find_ue_ul_pdcch(rnti1, *phy.cells[0].last_dl_res->dl_res), nullptr)
+        << "New UL grants were scheduled for UE1 while its release was ongoing";
+
+    // TEST CASE: Ensure that UE2 activity is unaffected.
     if (find_ue_pdsch_with_lcid(rnti2, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr) {
       ue2_pdsch_count++;
     }
+
+    // TEST CASE: Ensure UE1 UCI periodic resources are still scheduled.
     if (find_ue_pucch_with_csi(rnti1, phy.cells[0].last_ul_res.value().ul_res->pucchs) != nullptr) {
-      ue1_pucch_count++;
+      ue1_csi_count++;
     }
-    return ue_ctxt_rel_cmp_sent;
-  }));
+    auto* pucch = find_ue_pucch_with_sr(rnti1, phy.cells[0].last_ul_res.value().ul_res->pucchs);
+    if (pucch != nullptr) {
+      // Push SR indication to MAC. It should be ignored.
+      mac_uci_indication_message uci;
+      uci.sl_rx = next_slot - 1;
+      uci.ucis.push_back(test_helpers::create_uci_pdu(*pucch));
+      std::get<mac_uci_pdu::pucch_f0_or_f1_type>(uci.ucis.back().pdu).sr_info->detected = true;
+      du_hi->get_control_info_handler(to_du_cell_index(0)).handle_uci(uci);
+      ue1_sr_count++;
+    }
+  }
+  ASSERT_FALSE(cu_notifier.f1ap_ul_msgs.empty()) << "UE Context Release Complete was not sent within the expected time";
   ASSERT_GT(ue2_pdsch_count, 0) << "No periodic PDSCH resources were scheduled for UE2";
-  ASSERT_GT(ue1_pucch_count, 0) << "No periodic CSI resources were scheduled for UE1 while its release was ongoing";
+  ASSERT_GT(ue1_csi_count, 0) << "No periodic CSI resources were scheduled for UE1 while its release was ongoing";
+  ASSERT_GT(ue1_sr_count, 0) << "No periodic SR resources were scheduled for UE1 while its release was ongoing";
 }
 
 TEST_F(du_high_tester, when_f1ap_reset_received_then_ues_are_removed)

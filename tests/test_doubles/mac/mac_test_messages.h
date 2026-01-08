@@ -32,6 +32,9 @@ mac_rx_data_indication create_pdu_with_sdu(slot_point sl_rx, rnti_t rnti, lcid_t
 /// Creates an MAC Rx data indication containing an RLC status PDU with an ACK for the given RLC SN.
 mac_rx_data_indication create_pdu_with_rlc_status_ack(slot_point sl_rx, rnti_t rnti, lcid_t lcid, uint32_t ack_sn);
 
+/// Adds a MAC subheader to a given MAC SDU and creates a MAC Rx PDU.
+byte_buffer prepend_mac_subheader(lcid_t lcid, const byte_buffer& mac_sdu);
+
 /// \brief Generate MAC UCI PDU from PUCCH information, with all HARQ-ACKs set to ACK, SRs set as not detected and CSI
 /// set as 1s.
 mac_uci_pdu create_uci_pdu(const pucch_info& pucch);

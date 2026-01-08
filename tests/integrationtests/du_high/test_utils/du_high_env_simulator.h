@@ -11,6 +11,7 @@
 #pragma once
 
 #include "du_high_sim_dependencies.h"
+#include "du_high_ue_simulator.h"
 #include "du_high_worker_manager.h"
 #include "tests/test_doubles/f1u/dummy_f1u_du_gateway.h"
 #include "tests/test_doubles/mac/dummy_mac_result_notifier.h"
@@ -126,7 +127,11 @@ protected:
     du_cell_index_t                       pcell_index;
     std::array<srb_context, MAX_NOF_SRBS> srbs;
     std::unique_ptr<f1ap_message>         last_ul_f1ap_msg;
+    std::unique_ptr<du_high_ue_simulator> sim;
   };
+
+  /// Handle any pending tasks that should be run before the start of the slot (e.g. RLC PDUs from UEs).
+  void handle_slot_preamble_tasks();
 
   [[nodiscard]] bool
   await_dl_msg_sched(const ue_sim_context& u, lcid_t lcid, std::optional<unsigned> max_slot_count = std::nullopt);

@@ -9,6 +9,7 @@
  */
 
 #include "mac_test_messages.h"
+#include "ocudu/mac/mac_pdu_format.h"
 #include "ocudu/scheduler/result/pucch_info.h"
 #include "ocudu/scheduler/result/pusch_info.h"
 #include "ocudu/scheduler/result/srs_info.h"
@@ -26,6 +27,23 @@ ocudu::test_helpers::create_ccch_message(slot_point sl_rx, rnti_t rnti, du_cell_
                   0,
                   0,
                   byte_buffer::create({0x34, 0x1e, 0x4f, 0xc0, 0x4f, 0xa6, 0x06, 0x3f, 0x00, 0x00, 0x00}).value()}}};
+}
+
+byte_buffer test_helpers::prepend_mac_subheader(lcid_t lcid, const byte_buffer& mac_sdu)
+{
+  byte_buffer mac_pdu;
+  uint8_t     lcid_val = static_cast<uint8_t>(lcid) & 0x3fU;
+  unsigned    sdu_len  = mac_sdu.length();
+  if (sdu_len < MAC_SDU_SUBHEADER_LENGTH_THRES) {
+    mac_pdu = byte_buffer::create({lcid_val, static_cast<uint8_t>(sdu_len)}).value();
+  } else {
+    mac_pdu = byte_buffer::create({static_cast<uint8_t>((1U << 6U) + lcid_val),
+                                   static_cast<uint8_t>((sdu_len & 0xff00U) >> 8U),
+                                   static_cast<uint8_t>(sdu_len & 0xffU)})
+                  .value();
+  }
+  report_fatal_error_if_not(mac_pdu.append(mac_sdu), "Failed to append MAC SDU to MAC PDU");
+  return mac_pdu;
 }
 
 mac_rx_data_indication

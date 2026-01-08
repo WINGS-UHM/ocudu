@@ -151,6 +151,18 @@ bool du_high_env_simulator::add_ue(rnti_t rnti, du_cell_index_t cell_index)
     return false;
   }
 
+  // Create UE sim context.
+  auto ret = ues.insert(std::make_pair(
+      rnti,
+      ue_sim_context{.rnti        = rnti,
+                     .du_ue_id    = std::nullopt,
+                     .cu_ue_id    = std::nullopt,
+                     .pcell_index = cell_index,
+                     .sim         = std::make_unique<du_high_ue_simulator>(
+                         du_high_ue_simulator_config{rnti, cell_index, du_high_cfg}, du_hi_dependencies)}));
+  report_fatal_error_if_not(ret.second, "Unable to create UE sim context for rnti={}", rnti);
+  ue_sim_context& ue_ctxt = ret.first->second;
+
   cu_notifier.f1ap_ul_msgs.clear();
 
   // Send UL-CCCH message.
@@ -160,15 +172,11 @@ bool du_high_env_simulator::add_ue(rnti_t rnti, du_cell_index_t cell_index)
   // Note: These events are concurrent.
   bool init_ul_rrc_msg_flag = false;
   auto init_ul_rrc_msg_sent = [this, rnti, &init_ul_rrc_msg_flag]() {
-    if (init_ul_rrc_msg_flag) {
-      return;
-    }
-    if (not cu_notifier.f1ap_ul_msgs.empty()) {
+    if (not init_ul_rrc_msg_flag and not cu_notifier.f1ap_ul_msgs.empty()) {
       report_fatal_error_if_not(
           test_helpers::is_init_ul_rrc_msg_transfer_valid(cu_notifier.f1ap_ul_msgs.rbegin()->second, rnti),
           "Init UL RRC Message is not valid");
       init_ul_rrc_msg_flag = true;
-      return;
     }
   };
   bool conres_sent     = false;
@@ -184,7 +192,6 @@ bool du_high_env_simulator::add_ue(rnti_t rnti, du_cell_index_t cell_index)
                                       nullptr,
                                   "UE ConRes not scheduled");
         conres_sent = true;
-        return;
       }
     }
   };
@@ -197,10 +204,10 @@ bool du_high_env_simulator::add_ue(rnti_t rnti, du_cell_index_t cell_index)
     return false;
   }
 
-  gnb_du_ue_f1ap_id_t du_ue_id = int_to_gnb_du_ue_f1ap_id(
+  // Store F1AP UE IDs in UE context.
+  ue_ctxt.du_ue_id = int_to_gnb_du_ue_f1ap_id(
       cu_notifier.f1ap_ul_msgs.rbegin()->second.pdu.init_msg().value.init_ul_rrc_msg_transfer()->gnb_du_ue_f1ap_id);
-  gnb_cu_ue_f1ap_id_t cu_ue_id = int_to_gnb_cu_ue_f1ap_id(next_cu_ue_id++);
-  EXPECT_TRUE(ues.insert(std::make_pair(rnti, ue_sim_context{rnti, du_ue_id, cu_ue_id, cell_index})).second);
+  ue_ctxt.cu_ue_id = int_to_gnb_cu_ue_f1ap_id(next_cu_ue_id++);
 
   return true;
 }
@@ -327,8 +334,7 @@ bool du_high_env_simulator::send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_co
 
   // UE sends UL message. Wait until F1AP forwards UL RRC Message to CU-CP.
   cu_notifier.f1ap_ul_msgs.clear();
-  du_hi->get_pdu_handler().handle_rx_data_indication(
-      test_helpers::create_pdu_with_sdu(next_slot, u.rnti, ul_lcid, rlc_ul_sn));
+  u.sim->enqueue_ul_mac_sdu(ul_lcid, byte_buffer::create({0x1U, 0x2, 0x3}).value());
   bool     ret       = run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
   srb_id_t ul_srb_id = int_to_srb_id(ul_lcid);
   if (not ret or not test_helpers::is_ul_rrc_msg_transfer_valid(cu_notifier.f1ap_ul_msgs.rbegin()->second, ul_srb_id)) {
@@ -420,8 +426,7 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
   // Await for Reconfiguration Complete that signals the UE config update completion.
   if (srb1_pdu_size > 0) {
     cu_notifier.f1ap_ul_msgs.clear();
-    du_hi->get_pdu_handler().handle_rx_data_indication(
-        test_helpers::create_pdu_with_sdu(next_slot, u.rnti, LCID_SRB1, 1));
+    u.sim->enqueue_ul_mac_sdu(LCID_SRB1, byte_buffer::create({0x1U, 0x2, 0x3}).value());
     bool ret = run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
     if (not ret or
         not test_helpers::is_ul_rrc_msg_transfer_valid(cu_notifier.f1ap_ul_msgs.rbegin()->second, srb_id_t::srb1)) {
@@ -429,10 +434,6 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
       return false;
     }
   }
-
-  // UL RLC status PDU is sent to avoid RLC ReTxs of the RRC Reconfig.
-  mac_rx_data_indication statusmsg = test_helpers::create_pdu_with_rlc_status_ack(next_slot, rnti, LCID_SRB1, 1);
-  du_hi->get_pdu_handler().handle_rx_data_indication(statusmsg);
 
   return true;
 }
@@ -474,6 +475,9 @@ bool du_high_env_simulator::run_ue_context_release(rnti_t rnti, srb_id_t srb_id)
 
 void du_high_env_simulator::run_slot()
 {
+  // Process any pending UE tasks (e.g. RLC PDUs from UEs).
+  handle_slot_preamble_tasks();
+
   // Dispatch a slot indication to all cells in the L2 (fork work across cells).
   for (unsigned i = 0; i != du_high_cfg.ran.cells.size(); ++i) {
     du_hi->get_slot_handler(to_du_cell_index(i)).handle_slot_indication({next_slot, std::chrono::system_clock::now()});
@@ -501,10 +505,10 @@ void du_high_env_simulator::run_slot()
 
     // Process results.
     handle_slot_results(to_du_cell_index(i));
-
-    // Signal pending tasks that a slot has completed.
-    next_slot_signal.set();
   }
+
+  // Signal pending tasks that a slot has completed.
+  next_slot_signal.set();
 
   // Erase tasks that have completed.
   for (auto it = pending_tasks.begin(); it != pending_tasks.end();) {
@@ -549,6 +553,26 @@ void du_high_env_simulator::handle_slot_results(du_cell_index_t cell_index)
     if (not ul_res.srss.empty()) {
       mac_srs_indication_message srs_ind = test_helpers::create_srs_indication(sl_rx, ul_res.srss);
       this->du_hi->get_control_info_handler(cell_index).handle_srs(srs_ind);
+    }
+  }
+
+  // Forward PDU data to the simulated UEs.
+  if (phy_cell.last_dl_res.has_value() and phy_cell.last_dl_res->dl_res != nullptr) {
+    const dl_sched_result& dl_res = *phy_cell.last_dl_res->dl_res;
+
+    if (phy_cell.last_dl_data.has_value()) {
+      const auto& ue_pdus = phy_cell.last_dl_data->ue_pdus;
+      for (unsigned pdu_idx = 0, sz = ue_pdus.size(); pdu_idx < sz; ++pdu_idx) {
+        const mac_dl_data_result::dl_pdu& pdu   = ue_pdus[pdu_idx];
+        const auto&                       grant = dl_res.ue_grants[pdu_idx];
+        auto                              ue_it = ues.find(grant.pdsch_cfg.rnti);
+        if (ue_it == ues.end()) {
+          test_logger.warning("rnti={}: Received DL PDUs for unknown UE", grant.pdsch_cfg.rnti);
+          continue;
+        }
+        ue_sim_context& uectx = ue_it->second;
+        uectx.sim->handle_dl_pdu(pdu);
+      }
     }
   }
 }
@@ -606,10 +630,25 @@ du_high_env_simulator::launch_ue_creation_task(rnti_t rnti, du_cell_index_t cell
                        init_ul_rrc_msg = std::unique_ptr<f1ap_message>{}](coro_context<async_task<void>>& ctx) mutable {
     CORO_BEGIN(ctx);
 
+    // Check that UE does not already exist.
     if (ues.count(rnti) > 0) {
       report_fatal_error_if_not(assert_success, "rnti={}: UE already exists", rnti);
       CORO_EARLY_RETURN();
     }
+
+    // Create UE sim context.
+    report_fatal_error_if_not(
+        ues.insert(std::make_pair(rnti,
+                                  ue_sim_context{.rnti        = rnti,
+                                                 .du_ue_id    = std::nullopt,
+                                                 .cu_ue_id    = std::nullopt,
+                                                 .pcell_index = cell_index,
+                                                 .sim         = std::make_unique<du_high_ue_simulator>(
+                                                     du_high_ue_simulator_config{rnti, cell_index, du_high_cfg},
+                                                     du_hi_dependencies)}))
+            .second,
+        "Unable to create UE sim context for rnti={}",
+        rnti);
 
     // Forward UL-CCCH message.
     du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, rnti, cell_index));
@@ -642,17 +681,16 @@ du_high_env_simulator::launch_ue_creation_task(rnti_t rnti, du_cell_index_t cell
                               "rnti={}: Unable to create UE. Timeout waiting for Init UL RRC Message or ConRes CE",
                               rnti);
 
-    // Add sim UE object to simulator.
+    // Store F1AP UE IDs of the sim UE object.
     {
       auto du_ue_id =
           int_to_gnb_du_ue_f1ap_id(init_ul_rrc_msg->pdu.init_msg().value.init_ul_rrc_msg_transfer()->gnb_du_ue_f1ap_id);
-      auto ret = ues.insert(std::make_pair(rnti,
-                                           ue_sim_context{.rnti             = rnti,
-                                                          .du_ue_id         = du_ue_id,
-                                                          .cu_ue_id         = int_to_gnb_cu_ue_f1ap_id(next_cu_ue_id++),
-                                                          .pcell_index      = cell_index,
-                                                          .last_ul_f1ap_msg = std::move(init_ul_rrc_msg)}));
-      report_fatal_error_if_not(ret.second, "Failed to register sim UE");
+      auto ue_it = ues.find(rnti);
+      report_fatal_error_if_not(ue_it != ues.end(), "rnti={}: UE sim context not found", rnti);
+      ue_sim_context& ue_ctxt  = ue_it->second;
+      ue_ctxt.du_ue_id         = du_ue_id;
+      ue_ctxt.cu_ue_id         = int_to_gnb_cu_ue_f1ap_id(next_cu_ue_id++);
+      ue_ctxt.last_ul_f1ap_msg = std::move(init_ul_rrc_msg);
     }
 
     CORO_RETURN();
@@ -861,4 +899,25 @@ async_task<bool> du_high_env_simulator::launch_run_until_task(unique_function<bo
 
         CORO_RETURN(false);
       });
+}
+
+void du_high_env_simulator::handle_slot_preamble_tasks()
+{
+  // Handle any pending UE UL RLC PDUs.
+  for (unsigned i = 0; i != du_high_cfg.ran.cells.size(); ++i) {
+    mac_rx_data_indication rx_ind{.sl_rx = next_slot, .cell_index = to_du_cell_index(i)};
+    // Only process UEs with matching PCell.
+    for (auto& [rnti, u] : ues) {
+      if (u.pcell_index == i) {
+        if (auto pdu_opt = u.sim->build_next_ul_mac_pdu(); pdu_opt.has_value()) {
+          rx_ind.pdus.push_back(mac_rx_pdu{.rnti = rnti, .rapid = 0, .harq_id = 0, .pdu = std::move(pdu_opt.value())});
+        }
+      }
+    }
+
+    // Finally, forward MAC Rx indication to DU-high.
+    if (not rx_ind.pdus.empty()) {
+      du_hi->get_pdu_handler().handle_rx_data_indication(rx_ind);
+    }
+  }
 }

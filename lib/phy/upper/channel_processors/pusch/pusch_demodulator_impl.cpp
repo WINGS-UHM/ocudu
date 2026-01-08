@@ -274,8 +274,8 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&      codeword_buf
   re_prb_mask active_re_per_prb_dmrs = ~config.dmrs_config_type.get_dmrs_prb_mask(config.nof_cdm_groups_without_data);
 
   // Prepare RE mask.
-  re_symbol_mask_type re_mask      = config.rb_mask.kronecker_product<NRE>(active_re_per_prb);
-  re_symbol_mask_type re_mask_dmrs = config.rb_mask.kronecker_product<NRE>(active_re_per_prb_dmrs);
+  re_symbol_mask_type re_mask      = config.rb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(active_re_per_prb);
+  re_symbol_mask_type re_mask_dmrs = config.rb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(active_re_per_prb_dmrs);
 
   // Calculate the number of bits per RE and port.
   unsigned nof_bits_per_re = config.nof_tx_layers * get_bits_per_symbol(config.modulation);

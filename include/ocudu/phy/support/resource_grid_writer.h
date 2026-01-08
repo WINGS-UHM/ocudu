@@ -41,11 +41,11 @@ public:
   /// \note The number of elements of \c mask shall be equal to or lower than the resource grid number of subcarriers.
   /// \note The number of elements of \c symbols shall be equal to or greater than the number of true elements in
   /// \c mask.
-  virtual span<const cf_t> put(unsigned                            port,
-                               unsigned                            l,
-                               unsigned                            k_init,
-                               const bounded_bitset<NRE * MAX_RB>& mask,
-                               span<const cf_t>                    symbols) = 0;
+  virtual span<const cf_t> put(unsigned                                               port,
+                               unsigned                                               l,
+                               unsigned                                               k_init,
+                               const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                               span<const cf_t>                                       symbols) = 0;
 
   /// \brief Puts a number of resource elements in the resource grid at the given port and symbol using a bounded bitset
   /// to indicate which subcarriers are allocated and which are not.
@@ -59,11 +59,11 @@ public:
   /// \note The number of elements of \c mask shall be equal to or lower than the resource grid number of subcarriers.
   /// \note The number of elements of \c symbols shall be equal to or greater than the number of true elements in
   /// \c mask.
-  virtual span<const cbf16_t> put(unsigned                            port,
-                                  unsigned                            l,
-                                  unsigned                            k_init,
-                                  const bounded_bitset<NRE * MAX_RB>& mask,
-                                  span<const cbf16_t>                 symbols) = 0;
+  virtual span<const cbf16_t> put(unsigned                                               port,
+                                  unsigned                                               l,
+                                  unsigned                                               k_init,
+                                  const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                                  span<const cbf16_t>                                    symbols) = 0;
 
   /// \brief Puts a consecutive number of resource elements for the given \c port and symbol \c l, starting at \c
   /// k_init.

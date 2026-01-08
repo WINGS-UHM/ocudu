@@ -120,7 +120,7 @@ inline unsigned pdsch_compute_nof_data_re(const pdsch_processor::pdu_t& pdu)
   unsigned nof_prb = crb_mask.count();
 
   // Calculate the number of RE allocated in the grid.
-  unsigned nof_grid_re = nof_prb * NRE * pdu.nof_symbols;
+  unsigned nof_grid_re = nof_prb * NOF_SUBCARRIERS_PER_RB * pdu.nof_symbols;
 
   // Generate DM-RS pattern.
   re_pattern dmrs_pattern = pdu.dmrs.get_dmrs_pattern(

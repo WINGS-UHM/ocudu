@@ -31,7 +31,7 @@ void pucch_demodulator_format3::demodulate(span<log_likelihood_ratio>           
       config.nof_symbols, config.second_hop_prb.has_value(), config.additional_dmrs);
 
   // Number of REs per OFDM symbol.
-  const unsigned nof_re_symb = config.nof_prb * NRE;
+  const unsigned nof_re_symb = config.nof_prb * NOF_SUBCARRIERS_PER_RB;
 
   // Number of data Resource Elements in a slot for a single Rx port.
   const unsigned nof_re_port = (config.nof_symbols - dmrs_symb_mask.count()) * nof_re_symb;
@@ -42,18 +42,18 @@ void pucch_demodulator_format3::demodulate(span<log_likelihood_ratio>           
                config.nof_prb,
                pucch_constants::FORMAT3_MAX_NPRB);
 
-  ocudu_assert((config.first_prb + config.nof_prb) * NRE <= grid.get_nof_subc(),
+  ocudu_assert((config.first_prb + config.nof_prb) * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc(),
                "PUCCH Format 3: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
                config.first_prb,
                config.first_prb + config.nof_prb,
-               grid.get_nof_subc() / NRE);
+               grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
   ocudu_assert(!config.second_hop_prb.has_value() ||
-                   ((*config.second_hop_prb + config.nof_prb) * NRE <= grid.get_nof_subc()),
+                   ((*config.second_hop_prb + config.nof_prb) * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc()),
                "PUCCH Format 3: PRB allocation outside grid (second hop). Requested [{}, {}), grid has {} PRBs.",
                *config.second_hop_prb,
                *config.second_hop_prb + config.nof_prb,
-               grid.get_nof_subc() / NRE);
+               grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
   interval<unsigned, true> nof_symbols_range(pucch_constants::FORMAT3_MIN_NSYMB, pucch_constants::FORMAT3_MAX_NSYMB);
   ocudu_assert(nof_symbols_range.contains(config.nof_symbols),

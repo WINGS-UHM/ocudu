@@ -296,7 +296,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
       config.Nref             = 0;
       config.base_graph       = get_ldpc_base_graph(mcs.get_normalised_target_code_rate(), units::bits(tbs));
       config.mod              = mcs.modulation;
-      config.nof_ch_symbols   = profile.nof_symbols * nof_prb * NRE;
+      config.nof_ch_symbols   = profile.nof_symbols * nof_prb * NOF_SUBCARRIERS_PER_RB;
       config.nof_layers       = profile.nof_tx_layers;
       config.rv               = 0;
 
@@ -366,7 +366,7 @@ int main(int argc, char** argv)
   rx_buffer_pool_config pool_config = {};
 
   // Create a vector to hold the randomly generated LLRs.
-  unsigned                          max_nof_ch_symbols = 14 * 270 * NRE;
+  unsigned                          max_nof_ch_symbols = 14 * 270 * NOF_SUBCARRIERS_PER_RB;
   unsigned                          max_nof_llrs       = max_nof_ch_symbols * 8;
   std::vector<log_likelihood_ratio> random_llrs(max_nof_llrs);
 

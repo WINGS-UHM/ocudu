@@ -88,7 +88,7 @@ struct re_pattern {
   /// \param[in,out] mask Provides a mask representing an entire symbol in a resource grid.
   /// \param[in] symbol Indicates the symbol index for the mask to be included.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end
-  void get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const;
+  void get_inclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
 
   /// \brief Exclude the described resource element pattern in a resource grid symbol mask.
   ///
@@ -98,7 +98,7 @@ struct re_pattern {
   /// \param[in,out] mask Provides a mask representing an entire symbol in a resource grid.
   /// \param[in] symbol Indicates the symbol index for the mask to be excluded.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end
-  void get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const;
+  void get_exclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
 };
 
 /// \brief Checks if two RE patterns are equal.
@@ -209,7 +209,7 @@ public:
   /// \param[in,out] mask   Provides a mask representing an entire symbol in a resource grid.
   /// \param[in]     symbol Indicates the symbol index for the mask to be included.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end.
-  void get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const;
+  void get_inclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
 
   /// \brief Counts the number of elements included in the described pattern.
   ///
@@ -229,7 +229,7 @@ public:
   /// \param[in,out] mask   Provides a mask representing an entire symbol in a resource grid.
   /// \param[in]     symbol Indicates the symbol index for the mask to be excluded.
   /// \note This method expects that the number of elements of \c mask is equal to or greater than \c rb_end.
-  void get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const;
+  void get_exclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const;
 
   /// Get the internal resource element patterns.
   span<const re_pattern> get_re_patterns() const { return list; }

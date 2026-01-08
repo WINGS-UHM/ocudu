@@ -786,7 +786,7 @@ int main(int argc, char** argv)
 
   // Grid dimensions for all test cases.
   unsigned grid_nof_symbols = get_nsymb_per_slot(selected_profile.cp);
-  unsigned grid_nof_subcs   = MAX_RB * NRE;
+  unsigned grid_nof_subcs   = MAX_RB * NOF_SUBCARRIERS_PER_RB;
 
   // Create resource grid.
   std::unique_ptr<resource_grid> grid =
@@ -805,7 +805,8 @@ int main(int argc, char** argv)
   std::generate(random_re.begin(), random_re.end(), [&rgen, &c_normal_dist]() { return c_normal_dist(rgen); });
 
   // Generate a RE mask and set all elements to true.
-  bounded_bitset<NRE * MAX_RB> re_mask = ~bounded_bitset<NRE * MAX_RB>(grid_nof_subcs);
+  bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB> re_mask =
+      ~bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>(grid_nof_subcs);
 
   // Fill the grid with the random RE.
   span<const cf_t> re_view(random_re);

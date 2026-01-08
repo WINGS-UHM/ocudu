@@ -21,7 +21,7 @@ class ulsch_demultiplex_impl : public ulsch_demultiplex, private pusch_codeword_
 {
 public:
   /// Resource element set type.
-  using re_set_type = bounded_bitset<MAX_RB * NRE>;
+  using re_set_type = bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>;
 
   // See interface for documentation.
   void

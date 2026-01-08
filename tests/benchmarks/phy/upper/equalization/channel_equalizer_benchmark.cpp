@@ -110,7 +110,7 @@ int main(int argc, char** argv)
     unsigned nof_rx_ports     = topology.first;
     unsigned nof_tx_layers    = topology.second;
     unsigned nof_ofdm_symbols = MAX_NSYMB_PER_SLOT;
-    unsigned nof_subcarriers  = nof_prb * NRE;
+    unsigned nof_subcarriers  = nof_prb * NOF_SUBCARRIERS_PER_RB;
 
     // Skip topology if it is not supported.
     if (!equalizer->is_supported(nof_rx_ports, nof_tx_layers)) {

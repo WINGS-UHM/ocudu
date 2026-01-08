@@ -33,21 +33,22 @@ void pucch_demodulator_format4::demodulate(span<log_likelihood_ratio>           
       config.nof_symbols, config.second_hop_prb.has_value(), config.additional_dmrs);
 
   // Number of REs per OFDM symbol. PUCCH Format 4 only gets a PRB.
-  unsigned nof_re_symb = NRE;
+  unsigned nof_re_symb = NOF_SUBCARRIERS_PER_RB;
 
   // Number of data Resource Elements in a slot for a single Rx port.
   unsigned nof_re_port = (config.nof_symbols - dmrs_symb_mask.count()) * nof_re_symb;
 
   // Assert that allocations are valid.
-  ocudu_assert(config.first_prb * NRE <= grid.get_nof_subc(),
+  ocudu_assert(config.first_prb * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc(),
                "PUCCH Format 4: PRB allocation outside grid (first hop). Requested {}, grid has {} PRBs.",
                config.first_prb,
-               grid.get_nof_subc() / NRE);
+               grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
-  ocudu_assert(!config.second_hop_prb.has_value() || (*config.second_hop_prb * NRE <= grid.get_nof_subc()),
+  ocudu_assert(!config.second_hop_prb.has_value() ||
+                   (*config.second_hop_prb * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc()),
                "PUCCH Format 4: PRB allocation outside grid (second hop). Requested {}, grid has {} PRBs.",
                *config.second_hop_prb,
-               grid.get_nof_subc() / NRE);
+               grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
   interval<unsigned, true> nof_symbols_range(pucch_constants::FORMAT4_MIN_NSYMB, pucch_constants::FORMAT4_MAX_NSYMB);
   ocudu_assert(nof_symbols_range.contains(config.nof_symbols),
@@ -104,8 +105,8 @@ void pucch_demodulator_format4::inverse_blockwise_spreading(span<cf_t>        or
   unsigned         mod = 12 / config.occ_length;
   span<const cf_t> wn  = pucch_orthogonal_sequence_format4::get_sequence(config.occ_length, config.occ_index);
 
-  for (unsigned k = 0; k != NRE; ++k) {
-    for (unsigned l = 0, l_end = eq_re.size() / NRE; l != l_end; ++l) {
+  for (unsigned k = 0; k != NOF_SUBCARRIERS_PER_RB; ++k) {
+    for (unsigned l = 0, l_end = eq_re.size() / NOF_SUBCARRIERS_PER_RB; l != l_end; ++l) {
       unsigned original_index = (l * mod) + (k % mod);
       unsigned spread_index   = (l * 12) + k;
       original[original_index] += eq_re[spread_index] / wn[k];

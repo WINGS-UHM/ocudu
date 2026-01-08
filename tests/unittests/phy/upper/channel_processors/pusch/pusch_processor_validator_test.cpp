@@ -151,7 +151,7 @@ const std::vector<test_case_t> pusch_processor_validator_test_data = {
      R"(Invalid LBRM size \(0 bytes\)\.)"},
     {[] {
        pusch_processor::pdu_t pdu = base_pdu;
-       pdu.dc_position            = MAX_RB * NRE;
+       pdu.dc_position            = MAX_RB * NOF_SUBCARRIERS_PER_RB;
        return pdu;
      },
      R"(DC position \(i\.e\., 3300\) is out of range \[0\.\.3300\)\.)"},

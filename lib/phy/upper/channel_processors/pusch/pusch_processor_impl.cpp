@@ -275,7 +275,7 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
   // Determine if the PUSCH allocation overlaps with the position of the DC.
   bool overlap_dc = false;
   if (pdu.dc_position.has_value()) {
-    unsigned dc_position_prb = *pdu.dc_position / NRE;
+    unsigned dc_position_prb = *pdu.dc_position / NOF_SUBCARRIERS_PER_RB;
     overlap_dc               = rb_mask.test(dc_position_prb);
   }
 

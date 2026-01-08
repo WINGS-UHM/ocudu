@@ -23,7 +23,7 @@ void dmrs_pusch_estimator_impl::estimate(dmrs_pusch_estimator_notifier& notifier
   dmrs_type type         = config.get_dmrs_type();
   unsigned  nof_rx_ports = config.rx_ports.size();
   nof_tx_layers          = config.get_nof_tx_layers();
-  nof_re                 = config.rb_mask.size() * NRE;
+  nof_re                 = config.rb_mask.size() * NOF_SUBCARRIERS_PER_RB;
   ofdm_symbols.set(config.first_symbol, config.first_symbol + config.nof_symbols);
 
   ocudu_assert(nof_rx_ports <= ch_estimator.size(),

@@ -65,8 +65,8 @@ dlsch_information ocudu::get_dlsch_information(const dlsch_configuration& config
   unsigned nof_pt_rs_per_rb = 0;
 
   // Count total number of resource elements available for DL-SCH.
-  unsigned nof_re_dl_sch =
-      config.nof_rb * (config.nof_symbols * NRE - nof_re_dmrs_per_rb - nof_re_csi_rs_per_rb - nof_pt_rs_per_rb);
+  unsigned nof_re_dl_sch = config.nof_rb * (config.nof_symbols * NOF_SUBCARRIERS_PER_RB - nof_re_dmrs_per_rb -
+                                            nof_re_csi_rs_per_rb - nof_pt_rs_per_rb);
 
   // Retrieve the modulation order.
   unsigned modulation_order = get_bits_per_symbol(config.mcs_descr.modulation);

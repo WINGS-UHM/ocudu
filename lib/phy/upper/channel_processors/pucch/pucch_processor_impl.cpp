@@ -258,7 +258,8 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
   const modulation_scheme mod_scheme = config.pi2_bpsk ? modulation_scheme::PI_2_BPSK : modulation_scheme::QPSK;
 
   span<log_likelihood_ratio> llr = span<log_likelihood_ratio>(temp_llr).first(
-      NRE * config.nof_prb * (config.nof_symbols - dmrs_symb_mask.count()) * get_bits_per_symbol(mod_scheme));
+      NOF_SUBCARRIERS_PER_RB * config.nof_prb * (config.nof_symbols - dmrs_symb_mask.count()) *
+      get_bits_per_symbol(mod_scheme));
 
   // PUCCH Format 3 demodulator configuration.
   pucch_demodulator::format3_configuration demod_config;
@@ -346,7 +347,8 @@ pucch_processor_result pucch_processor_impl::process(const resource_grid_reader&
   const modulation_scheme mod_scheme = config.pi2_bpsk ? modulation_scheme::PI_2_BPSK : modulation_scheme::QPSK;
 
   span<log_likelihood_ratio> llr = span<log_likelihood_ratio>(temp_llr).first(
-      NRE * (config.nof_symbols - dmrs_symb_mask.count()) * get_bits_per_symbol(mod_scheme) / config.occ_length);
+      NOF_SUBCARRIERS_PER_RB * (config.nof_symbols - dmrs_symb_mask.count()) * get_bits_per_symbol(mod_scheme) /
+      config.occ_length);
 
   // PUCCH Format 4 demodulator configuration.
   pucch_demodulator::format4_configuration demod_config;

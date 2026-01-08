@@ -199,7 +199,7 @@ TEST_P(LowerPhyUplinkProcessorFixture, DemodulatorConfiguration)
   expected_demod_config.cp                        = cp;
   expected_demod_config.nof_samples_window_offset = static_cast<unsigned>(
       static_cast<float>(cp.get_length(1, scs).to_samples(srate.to_Hz())) * config.dft_window_offset);
-  expected_demod_config.scale          = 1.0F / static_cast<float>(std::sqrt(config.bandwidth_rb * NRE));
+  expected_demod_config.scale = 1.0F / static_cast<float>(std::sqrt(config.bandwidth_rb * NOF_SUBCARRIERS_PER_RB));
   expected_demod_config.center_freq_Hz = config.center_freq_Hz;
 
   ASSERT_EQ(ofdm_demod_spy->get_configuration(), expected_demod_config);

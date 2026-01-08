@@ -31,7 +31,7 @@ public:
 #ifdef ASSERTS_ENABLED
     for (const auto& entry : dft_processors) {
       unsigned M_rb     = entry.first;
-      unsigned M_sc     = M_rb * NRE;
+      unsigned M_sc     = M_rb * NOF_SUBCARRIERS_PER_RB;
       unsigned dft_size = entry.second->get_size();
       ocudu_assert(
           transform_precoding::is_nof_prbs_valid(M_rb), "Invalid number of resource elements (i.e., {}).", M_rb);

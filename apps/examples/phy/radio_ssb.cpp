@@ -481,7 +481,8 @@ create_lower_phy_configuration(task_executor*                rx_task_executor,
 
   // Baseband gain includes normalization to unitary power (according to the number of subcarriers) and the additional
   // back-off to account for signal PAPR.
-  phy_config.amplitude_config.input_gain_dB = -convert_power_to_dB(bw_rb * NRE) - baseband_backoff_dB;
+  phy_config.amplitude_config.input_gain_dB =
+      -convert_power_to_dB(bw_rb * NOF_SUBCARRIERS_PER_RB) - baseband_backoff_dB;
 
   lower_phy_dependencies deps = {// Logger for amplitude control metrics.
                                  .logger               = *logger,
@@ -652,9 +653,9 @@ int main(int argc, char** argv)
   // Ratio between the resource grid SCS and 15kHz SCS.
   unsigned ratio_scs_over_ref = pow2(to_numerology_value(scs) - to_numerology_value(ref_scs));
   // Frequency of Point A in Hz.
-  double dl_pointA_freq_Hz = dl_center_freq - scs_Hz * NRE * bw_rb / 2;
+  double dl_pointA_freq_Hz = dl_center_freq - scs_Hz * NOF_SUBCARRIERS_PER_RB * bw_rb / 2;
   // Frequency of the lowest SS/PBCH block subcarrier.
-  double ssb_lowest_freq_Hz = ssb_center_freq - (scs_Hz * NRE * SSB_BW_RB / 2);
+  double ssb_lowest_freq_Hz = ssb_center_freq - (scs_Hz * NOF_SUBCARRIERS_PER_RB * SSB_BW_RB / 2);
   // Frequency offset from Point A to the lowest SS/PBCH block subcarrier in Hz.
   double ssb_offset_pointA_Hz = ssb_lowest_freq_Hz - dl_pointA_freq_Hz;
   // Frequency offset from Point A to the lowest SS/PBCH block subcarrier in 15kHz subcarriers (only valid for FR1).
@@ -667,11 +668,12 @@ int main(int argc, char** argv)
                ssb_center_freq,
                scs_to_khz(scs));
   // SSB frequency offset to Point A as a number of RBs.
-  ssb_offset_to_pointA ssb_offset_pointA_subc_rb = ssb_offset_pointA_subc_ref / NRE;
+  ssb_offset_to_pointA ssb_offset_pointA_subc_rb = ssb_offset_pointA_subc_ref / NOF_SUBCARRIERS_PER_RB;
   // Round down the offset to Point A to match CRB boundaries.
   ssb_offset_pointA_subc_rb = (ssb_offset_pointA_subc_rb.value() / ratio_scs_over_ref) * ratio_scs_over_ref;
   // Remainder SSB frequency offset from Point A after rounding.
-  ssb_subcarrier_offset subcarrier_offset = ssb_offset_pointA_subc_ref - ssb_offset_pointA_subc_rb.value() * NRE;
+  ssb_subcarrier_offset subcarrier_offset =
+      ssb_offset_pointA_subc_ref - ssb_offset_pointA_subc_rb.value() * NOF_SUBCARRIERS_PER_RB;
 
   upper_phy_ssb_example::configuration upper_phy_sample_config;
   upper_phy_sample_config.log_level                    = log_level;

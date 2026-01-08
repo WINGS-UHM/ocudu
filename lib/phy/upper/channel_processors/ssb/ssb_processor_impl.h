@@ -97,8 +97,9 @@ public:
 
     // The SSB subcarrier offset (k_ssb) maximum value is such that the first SS/PBCH resource block overlaps with the
     // previous CRB, i.e., the CRB based on common subcarrier spacing which is aligned with subcarrier 0 of N_CRB_SSB.
-    unsigned k_ssb_max =
-        (fr == frequency_range::FR1) ? (NRE * pow2(to_numerology_value(pdu.common_scs)) - 1) : (NRE - 1);
+    unsigned k_ssb_max = (fr == frequency_range::FR1)
+                             ? (NOF_SUBCARRIERS_PER_RB * pow2(to_numerology_value(pdu.common_scs)) - 1)
+                             : (NOF_SUBCARRIERS_PER_RB - 1);
     if (pdu.subcarrier_offset.value() > k_ssb_max) {
       return make_unexpected(fmt::format("With common SCS {}kHz, the maximum SSB subcarrier offset is {} (i.e., {}).",
                                          k_ssb_max,
@@ -106,11 +107,11 @@ public:
     }
 
     // SSB first subcarriers in common subcarrier spacing;
-    unsigned ssb_start_subc =
-        (pdu.offset_to_pointA.value() * NRE * pointA_scs_kHz + pdu.subcarrier_offset.value() * kssb_scs_kHz) /
-        scs_to_khz(pdu.common_scs);
+    unsigned ssb_start_subc = (pdu.offset_to_pointA.value() * NOF_SUBCARRIERS_PER_RB * pointA_scs_kHz +
+                               pdu.subcarrier_offset.value() * kssb_scs_kHz) /
+                              scs_to_khz(pdu.common_scs);
     // SSB bandwidth expressed in SSB SCS number of subcarriers.
-    unsigned ssb_bw_subc = SSB_BW_RB * NRE;
+    unsigned ssb_bw_subc = SSB_BW_RB * NOF_SUBCARRIERS_PER_RB;
 
     // If using mixed numerology, use the SCS ratio to convert the SSB bandwidth to common SCS subcarriers.
     if (OCUDU_UNLIKELY(ssb_scs != pdu.common_scs)) {
@@ -122,7 +123,7 @@ public:
     // carrier bandwidth. The carrier bandwidth is expressed in units of PRBs based on common subcarrier spacing. As
     // such, compute the subcarrier based on common SCS at which the SSB ends. This assumes the resource grid
     // start is set at Point A.
-    if (ssb_start_subc + ssb_bw_subc > cell_bandwith_prbs * NRE) {
+    if (ssb_start_subc + ssb_bw_subc > cell_bandwith_prbs * NOF_SUBCARRIERS_PER_RB) {
       return make_unexpected(
           fmt::format("Invalid SSB location: The SSB block spans outside the carrier bandwidth (i.e., {} PRBs).",
                       cell_bandwith_prbs));

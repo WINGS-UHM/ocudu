@@ -25,11 +25,11 @@
 
 using namespace ocudu;
 
-static const bounded_bitset<NRE> re_pattern_pucch_f2 =
+static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pucch_f2 =
     {false, true, false, false, true, false, false, true, false, false, true, false};
-static const bounded_bitset<NRE> re_pattern_pusch_0 =
+static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pusch_0 =
     {true, false, true, false, true, false, true, false, true, false, true, false};
-static const bounded_bitset<NRE> re_pattern_pusch_1 =
+static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pusch_1 =
     {false, true, false, true, false, true, false, true, false, true, false, true};
 
 /// Coefficients of a raised cosine FIR filter with roll-off 0.2, 3-symbol span, 10 samples per symbol (total 31
@@ -128,7 +128,8 @@ static void add_v_pilots(span<cf_t> new_pilots, span<const cf_t> old_pilots);
 /// \param[in]  re_mask Selected resource elements within each PRB.
 /// \param[in]  in      Frequency domain resource grid view.
 /// \return The view of the remaining unwritten output.
-static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_mask, span<const cbf16_t> in);
+static span<cf_t>
+extract_re_prb(span<cf_t> out, const bounded_bitset<NOF_SUBCARRIERS_PER_RB>& re_mask, span<const cbf16_t> in);
 
 unsigned ocudu::extract_layer_hop_rx_pilots(dmrs_symbol_list&                            rx_symbols,
                                             const resource_grid_reader&                  grid,
@@ -173,11 +174,15 @@ unsigned ocudu::extract_layer_hop_rx_pilots(dmrs_symbol_list&                   
 
     if (is_contiguous) {
       layer_dmrs_symbols = extract_re_prb(
-          layer_dmrs_symbols, pattern.re_pattern, ofdm_symbol_view.subspan(i_prb_begin * NRE, nof_prb * NRE));
+          layer_dmrs_symbols,
+          pattern.re_pattern,
+          ofdm_symbol_view.subspan(i_prb_begin * NOF_SUBCARRIERS_PER_RB, nof_prb * NOF_SUBCARRIERS_PER_RB));
     } else {
       hop_rb_mask.for_each(0, hop_rb_mask.size(), [&](unsigned i_rb) {
         layer_dmrs_symbols =
-            extract_re_prb(layer_dmrs_symbols, pattern.re_pattern, ofdm_symbol_view.subspan(i_rb * NRE, NRE));
+            extract_re_prb(layer_dmrs_symbols,
+                           pattern.re_pattern,
+                           ofdm_symbol_view.subspan(i_rb * NOF_SUBCARRIERS_PER_RB, NOF_SUBCARRIERS_PER_RB));
       });
     }
 
@@ -273,7 +278,8 @@ float ocudu::estimate_time_alignment(const re_measurement<cf_t>&                
   }
 
   // Prepare RE mask, common for all symbols carrying DM-RS.
-  bounded_bitset<MAX_RB * NRE> re_mask = hop_rb_mask.kronecker_product<NRE>(pattern.re_pattern);
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> re_mask =
+      hop_rb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(pattern.re_pattern);
 
   ocudu_assert(pilots_lse_buffer.get_slice(0).size() == re_mask.count(),
                "Expected {} channel estimates, provided {}.",
@@ -283,7 +289,7 @@ float ocudu::estimate_time_alignment(const re_measurement<cf_t>&                
   return ta_estimator.estimate(pilots_lse_buffer, re_mask, scs).time_alignment;
 }
 
-interpolator::configuration ocudu::configure_interpolator(const bounded_bitset<NRE>& re_mask)
+interpolator::configuration ocudu::configure_interpolator(const bounded_bitset<NOF_SUBCARRIERS_PER_RB>& re_mask)
 {
   int offset = re_mask.find_lowest();
   ocudu_assert(offset != -1, "re_mask seems to have no active entries.");
@@ -367,16 +373,17 @@ static void add_v_pilots(span<cf_t> new_pilots, span<const cf_t> old_pilots)
   compute_v_pilots(new_pilots.last(nof_v_pilots), base_abs, base_arg, /* is start = */ false);
 }
 
-static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_mask, span<const cbf16_t> in)
+static span<cf_t>
+extract_re_prb(span<cf_t> out, const bounded_bitset<NOF_SUBCARRIERS_PER_RB>& re_mask, span<const cbf16_t> in)
 {
-  ocudu_assert(in.size() % NRE == 0, "Invalid input size.");
-  ocudu_assert(re_mask.size() == NRE, "Invalid RE mask.");
-  unsigned nof_prb = in.size() / NRE;
+  ocudu_assert(in.size() % NOF_SUBCARRIERS_PER_RB == 0, "Invalid input size.");
+  ocudu_assert(re_mask.size() == NOF_SUBCARRIERS_PER_RB, "Invalid RE mask.");
+  unsigned nof_prb = in.size() / NOF_SUBCARRIERS_PER_RB;
   ocudu_assert(out.size() >= nof_prb * re_mask.count(), "Invalid output size.");
 
   if (re_mask.all()) {
-    ocuduvec::convert(out.first(nof_prb * NRE), in);
-    return out.last(out.size() - nof_prb * NRE);
+    ocuduvec::convert(out.first(nof_prb * NOF_SUBCARRIERS_PER_RB), in);
+    return out.last(out.size() - nof_prb * NOF_SUBCARRIERS_PER_RB);
   }
 
 #ifdef __AVX2__
@@ -385,7 +392,8 @@ static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_m
       __m128i data_idx = _mm_setr_epi32(1, 4, 7, 10);
 
       // Gather data RE as 32-bit unsigned integers.
-      __m128i data_si128 = _mm_i32gather_epi32(reinterpret_cast<const int*>(in.data() + NRE * i_prb), data_idx, 4);
+      __m128i data_si128 = _mm_i32gather_epi32(
+          reinterpret_cast<const int*>(in.data() + static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB) * i_prb), data_idx, 4);
 
       // Convert to single precision.
       __m128i data_lo    = _mm_unpacklo_epi16(_mm_setzero_si128(), data_si128);
@@ -438,7 +446,8 @@ static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_m
     for (unsigned i_prb = 0; i_prb != nof_prb; ++i_prb) {
       // Load an entire PRB, deinterleave the data in 3 registers of four 32-bit unsigned integers and select the second
       // NEON register.
-      uint32x4_t data_u32 = vld3q_u32(reinterpret_cast<const unsigned*>(in.data() + NRE * i_prb)).val[1];
+      uint32x4_t data_u32 =
+          vld3q_u32(reinterpret_cast<const unsigned*>(in.data() + NOF_SUBCARRIERS_PER_RB * i_prb)).val[1];
 
       // Convert to single precision.
       float32x4_t data_lo = vreinterpretq_f32_u16(vzip1q_u16(vdupq_n_u16(0), vreinterpretq_u16_u32(data_u32)));
@@ -490,8 +499,8 @@ static span<cf_t> extract_re_prb(span<cf_t> out, const bounded_bitset<NRE>& re_m
 #endif // __ARM_NEON
 
   // Generic algorithm.
-  bounded_bitset<MAX_NOF_PRBS>       prb  = ~bounded_bitset<MAX_NOF_PRBS>(nof_prb);
-  bounded_bitset<NRE * MAX_NOF_PRBS> mask = prb.kronecker_product(re_mask);
+  bounded_bitset<MAX_NOF_PRBS>                          prb  = ~bounded_bitset<MAX_NOF_PRBS>(nof_prb);
+  bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_NOF_PRBS> mask = prb.kronecker_product(re_mask);
   mask.for_each(0, mask.size(), [&out, &in](unsigned i_re) mutable {
     out.front() = to_cf(in[i_re]);
     out         = out.last(out.size() - 1);

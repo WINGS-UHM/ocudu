@@ -39,7 +39,7 @@ private:
   static constexpr unsigned MAX_TX_RX_PATHS = MAX_TX_LAYERS * MAX_RX_PORTS;
 
   /// Maximum total number of REs in a channel estimate.
-  static constexpr unsigned MAX_BUFFER_SIZE = MAX_TX_RX_PATHS * MAX_RB * NRE * MAX_NSYMB_PER_SLOT;
+  static constexpr unsigned MAX_BUFFER_SIZE = MAX_TX_RX_PATHS * MAX_RB * NOF_SUBCARRIERS_PER_RB * MAX_NSYMB_PER_SLOT;
 
 public:
   /// Describes the data structure containing the channel estimate.
@@ -60,7 +60,7 @@ public:
   /// Constructor: creates a channel estimate object with the given dimensions.
   explicit channel_estimate(const channel_estimate_dimensions& dims) :
     max_dims(dims),
-    nof_subcarriers(dims.nof_prb * NRE),
+    nof_subcarriers(dims.nof_prb * NOF_SUBCARRIERS_PER_RB),
     nof_symbols(dims.nof_symbols),
     nof_rx_ports(dims.nof_rx_ports),
     nof_tx_layers(dims.nof_tx_layers),
@@ -83,7 +83,10 @@ public:
     unsigned nof_paths = dims.nof_tx_layers * dims.nof_rx_ports;
 
     // Exposes the memory reserved for channel estimates.
-    ce.resize({dims.nof_prb * NRE, dims.nof_symbols, dims.nof_rx_ports, dims.nof_tx_layers});
+    ce.resize({dims.nof_prb * static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB),
+               dims.nof_symbols,
+               dims.nof_rx_ports,
+               dims.nof_tx_layers});
 
     // Set all reserved memory to one.
     span<cbf16_t> data = ce.get_view<4>({});
@@ -309,7 +312,7 @@ public:
   /// Resizes internal buffers.
   void resize(const channel_estimate_dimensions& dims)
   {
-    nof_subcarriers = dims.nof_prb * NRE;
+    nof_subcarriers = dims.nof_prb * NOF_SUBCARRIERS_PER_RB;
     nof_symbols     = dims.nof_symbols;
     nof_rx_ports    = dims.nof_rx_ports;
     nof_tx_layers   = dims.nof_tx_layers;
@@ -330,14 +333,17 @@ public:
                  "Total requested REs ({}) exceed maximum available ({}).",
                  nof_res,
                  static_cast<unsigned>(MAX_BUFFER_SIZE));
-    ce.resize({NRE * dims.nof_prb, dims.nof_symbols, dims.nof_rx_ports, dims.nof_tx_layers});
+    ce.resize({static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB) * dims.nof_prb,
+               dims.nof_symbols,
+               dims.nof_rx_ports,
+               dims.nof_tx_layers});
   }
 
   /// Returns channel estimate dimensions.
   channel_estimate_dimensions size() const
   {
     channel_estimate_dimensions tmp;
-    tmp.nof_prb       = nof_subcarriers / NRE;
+    tmp.nof_prb       = nof_subcarriers / NOF_SUBCARRIERS_PER_RB;
     tmp.nof_symbols   = nof_symbols;
     tmp.nof_rx_ports  = nof_rx_ports;
     tmp.nof_tx_layers = nof_tx_layers;

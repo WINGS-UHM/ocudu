@@ -50,9 +50,9 @@ public:
 
   std::unique_ptr<pucch_detector> create() override
   {
-    std::array<float, NRE> alphas;
+    std::array<float, NOF_SUBCARRIERS_PER_RB> alphas;
     std::generate(alphas.begin(), alphas.end(), [n = 0U]() mutable {
-      return (TWOPI * static_cast<float>(n++) / static_cast<float>(NRE));
+      return (TWOPI * static_cast<float>(n++) / static_cast<float>(NOF_SUBCARRIERS_PER_RB));
     });
 
     std::unique_ptr<pucch_detector_format0> detector_format0 =
@@ -61,8 +61,8 @@ public:
     std::unique_ptr<pucch_detector_format1> detector_format1 = std::make_unique<pucch_detector_format1>(
         low_papr_factory->create(1, 0, alphas),
         prg_factory->create(),
-        dft_factory->create({.size = NRE, .dir = dft_processor::direction::DIRECT}),
-        dft_factory->create({.size = NRE, .dir = dft_processor::direction::INVERSE}));
+        dft_factory->create({.size = NOF_SUBCARRIERS_PER_RB, .dir = dft_processor::direction::DIRECT}),
+        dft_factory->create({.size = NOF_SUBCARRIERS_PER_RB, .dir = dft_processor::direction::INVERSE}));
 
     return std::make_unique<pucch_detector_impl>(std::move(detector_format0), std::move(detector_format1));
   }

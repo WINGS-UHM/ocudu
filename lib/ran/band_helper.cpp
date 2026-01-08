@@ -1048,15 +1048,13 @@ double ocudu::band_helper::get_abs_freq_point_a_from_f_ref(double             f_
   // NOTE (ii): TS 38.104, Section 5.4.2.2, reports <em>[...] The mapping must apply to at least one numerology
   // supported by the BS.<\em>. Therefore, the correct SCS to be used in this procedure still needs to determined.
 
-  // Number of subcarriers in a RE.
-  static constexpr unsigned NRE = 12;
   // Half of the number of subcarriers in a RE.
   static constexpr unsigned NRE_half = 6;
 
   // The procedure, which is explained in TS 38.104, Section 5.4.2.2, gives the position of f_ref in terms of subcarrier
   // and CRB index, depending on the size of N_RB. Below we compute the value in unit of subcarriers, meaning we don't
   // need to separate the cases of even and odd N_RB.
-  const unsigned delta_point_a_f_ref = nof_rbs * NRE_half + offset_to_carrier * NRE;
+  const unsigned delta_point_a_f_ref = nof_rbs * NRE_half + offset_to_carrier * NOF_SUBCARRIERS_PER_RB;
   return f_ref - static_cast<double>(delta_point_a_f_ref * scs_to_khz(scs) * KHZ_TO_HZ);
 }
 
@@ -1067,13 +1065,11 @@ double ocudu::band_helper::get_f_ref_from_abs_freq_point_a(double             ab
 {
   // See notes in \ref get_abs_freq_point_a_from_f_ref.
 
-  // Number of subcarriers in a RE.
-  static constexpr unsigned NRE = 12;
   // Half of the number of subcarriers in a RE.
   static constexpr unsigned NRE_half = 6;
 
   // The procedure used in this function is the inverse of what explained in TS 38.104, Section 5.4.2.2.
-  const unsigned delta_point_a_f_ref = nof_rbs * NRE_half + offset_to_carrier * NRE;
+  const unsigned delta_point_a_f_ref = nof_rbs * NRE_half + offset_to_carrier * NOF_SUBCARRIERS_PER_RB;
   return abs_freq_point_a + static_cast<double>(delta_point_a_f_ref * scs_to_khz(scs) * KHZ_TO_HZ);
 }
 

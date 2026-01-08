@@ -147,12 +147,12 @@ private:
   static constexpr auto j       = cf_t(0.0F, 1.0F);
   static constexpr auto neg_j   = cf_t(0.0F, -1.0F);
 
-  static constexpr std::array<std::array<cf_t, NRE>, 2> pucch_format4_length2 = {{
+  static constexpr std::array<std::array<cf_t, NOF_SUBCARRIERS_PER_RB>, 2> pucch_format4_length2 = {{
       {one, one, one, one, one, one, one, one, one, one, one, one},
       {one, one, one, one, one, one, neg_one, neg_one, neg_one, neg_one, neg_one, neg_one},
   }};
 
-  static constexpr std::array<std::array<cf_t, NRE>, 4> pucch_format4_length4 = {{
+  static constexpr std::array<std::array<cf_t, NOF_SUBCARRIERS_PER_RB>, 4> pucch_format4_length4 = {{
       {one, one, one, one, one, one, one, one, one, one, one, one},
       {one, one, one, neg_j, neg_j, neg_j, neg_one, neg_one, neg_one, j, j, j},
       {one, one, one, neg_one, neg_one, neg_one, one, one, one, neg_one, neg_one, neg_one},

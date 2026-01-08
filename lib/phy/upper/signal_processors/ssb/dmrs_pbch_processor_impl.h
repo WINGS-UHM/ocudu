@@ -23,7 +23,7 @@ private:
   /// PBCH DM-RS stride within a resource block.
   static constexpr unsigned stride = 4U;
   /// Number of PBCH DM-RS per resource block.
-  static constexpr unsigned nof_dmrs_prb = NRE / stride;
+  static constexpr unsigned nof_dmrs_prb = NOF_SUBCARRIERS_PER_RB / stride;
   /// Number of PBCH DM-RS contained in a full SS/PBCH block OFDM symbol.
   static constexpr unsigned nof_dmrs_full_symbol = SSB_BW_RB * nof_dmrs_prb;
   /// Number of PBCH DM-RS contained in one edge SS/PBCH block OFDM symbol.

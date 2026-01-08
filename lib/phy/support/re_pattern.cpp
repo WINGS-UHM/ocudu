@@ -12,7 +12,7 @@
 
 using namespace ocudu;
 
-void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const
+void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const
 {
   // Skip if the symbol is not set to true.
   if (!symbols.test(symbol)) {
@@ -25,8 +25,9 @@ void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   unsigned crb_count     = crb_mask.count();
   ocudu_assert((i_crb_lowest <= i_crb_highest) && (i_crb_highest >= 0), "Invalid CRB allocation.");
   if ((static_cast<unsigned>(i_crb_highest + 1 - i_crb_lowest) == crb_count) && re_mask.all()) {
-    unsigned i_re_begin = i_crb_lowest * NRE;
-    unsigned i_re_end   = std::min(NRE * (i_crb_highest + 1), static_cast<unsigned>(mask.size()));
+    unsigned i_re_begin = i_crb_lowest * NOF_SUBCARRIERS_PER_RB;
+    unsigned i_re_end   = std::min(static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB) * (i_crb_highest + 1),
+                                 static_cast<unsigned>(mask.size()));
 
     if (i_re_begin < mask.size()) {
       mask.fill(i_re_begin, i_re_end, true);
@@ -36,7 +37,8 @@ void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   }
 
   // Generate a RE mask for the entire bandwidth.
-  bounded_bitset<MAX_RB * NRE> pattern_re_mask = crb_mask.kronecker_product<NRE>(re_mask);
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> pattern_re_mask =
+      crb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(re_mask);
 
   // Append zeros or discard bits to match the input mask size.
   pattern_re_mask.resize(mask.size());
@@ -47,7 +49,7 @@ void re_pattern::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   mask |= pattern_re_mask;
 }
 
-void re_pattern::get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const
+void re_pattern::get_exclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const
 {
   // Skip if the symbol is not used.
   if (!symbols.test(symbol)) {
@@ -60,8 +62,9 @@ void re_pattern::get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   unsigned crb_count     = crb_mask.count();
   ocudu_assert((i_crb_lowest <= i_crb_highest) && (i_crb_highest >= 0), "Invalid CRB allocation.");
   if ((static_cast<unsigned>(i_crb_highest + 1 - i_crb_lowest) == crb_count) && re_mask.all()) {
-    unsigned i_re_begin = i_crb_lowest * NRE;
-    unsigned i_re_end   = std::min(NRE * (i_crb_highest + 1), static_cast<unsigned>(mask.size()));
+    unsigned i_re_begin = i_crb_lowest * NOF_SUBCARRIERS_PER_RB;
+    unsigned i_re_end   = std::min(static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB) * (i_crb_highest + 1),
+                                 static_cast<unsigned>(mask.size()));
 
     if (i_re_begin < mask.size()) {
       mask.fill(i_re_begin, i_re_end, false);
@@ -71,7 +74,8 @@ void re_pattern::get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned
   }
 
   // Generate a RE mask for the entire bandwidth.
-  bounded_bitset<MAX_RB * NRE> pattern_re_mask = crb_mask.kronecker_product<NRE>(re_mask);
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> pattern_re_mask =
+      crb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(re_mask);
 
   // Append zeros or discard bits to match the input mask size.
   pattern_re_mask.resize(mask.size());
@@ -138,10 +142,10 @@ bool re_pattern_list::operator==(const re_pattern_list& other) const
 {
   // Generates the inclusion mask for each symbol and compare if they are equal.
   for (unsigned symbol = 0; symbol != MAX_NSYMB_PER_SLOT; ++symbol) {
-    bounded_bitset<MAX_RB * NRE> inclusion_mask(MAX_RB * NRE);
+    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> inclusion_mask(MAX_RB * NOF_SUBCARRIERS_PER_RB);
     get_inclusion_mask(inclusion_mask, symbol);
 
-    bounded_bitset<MAX_RB * NRE> inclusion_mask_other(MAX_RB * NRE);
+    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> inclusion_mask_other(MAX_RB * NOF_SUBCARRIERS_PER_RB);
     other.get_inclusion_mask(inclusion_mask_other, symbol);
 
     // Early return false if they are not equal for this symbol.
@@ -153,7 +157,7 @@ bool re_pattern_list::operator==(const re_pattern_list& other) const
   return true;
 }
 
-void re_pattern_list::get_inclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const
+void re_pattern_list::get_inclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const
 {
   // Iterate all given patterns.
   for (const re_pattern& p : list) {
@@ -187,11 +191,12 @@ re_pattern_list::get_inclusion_count(unsigned start_symbol, unsigned nof_symbols
 
   unsigned count = 0;
 
-  re_prb_mask                  base_re_mask   = ~re_prb_mask();
-  bounded_bitset<MAX_RB * NRE> active_re_mask = rb_mask.kronecker_product<NRE>(base_re_mask);
+  re_prb_mask                                     base_re_mask = ~re_prb_mask();
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> active_re_mask =
+      rb_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(base_re_mask);
 
   for (unsigned symbol_idx = start_symbol; symbol_idx != start_symbol + nof_symbols; ++symbol_idx) {
-    bounded_bitset<MAX_RB * NRE> inclusion_mask(active_re_mask.size());
+    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> inclusion_mask(active_re_mask.size());
 
     // Iterate all patterns to get a wideband inclusion mask.
     for (const re_pattern& p : list) {
@@ -208,7 +213,7 @@ re_pattern_list::get_inclusion_count(unsigned start_symbol, unsigned nof_symbols
   return count;
 }
 
-void re_pattern_list::get_exclusion_mask(bounded_bitset<MAX_RB * NRE>& mask, unsigned symbol) const
+void re_pattern_list::get_exclusion_mask(bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask, unsigned symbol) const
 {
   // Iterate all given patterns.
   for (const re_pattern& p : list) {

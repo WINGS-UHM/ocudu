@@ -22,10 +22,13 @@ void transform_precoder_dft_impl::deprecode_ofdm_symbol(span<cf_t> x, span<const
   // Extract number of subcarriers.
   unsigned M_sc = x.size();
   ocudu_assert(x.size() == y.size(), "Input and output sizes must be equal.");
-  ocudu_assert(M_sc % NRE == 0, "The number of subcarriers (i.e., {}) must be muliple of {}.", M_sc, NRE);
+  ocudu_assert(M_sc % NOF_SUBCARRIERS_PER_RB == 0,
+               "The number of subcarriers (i.e., {}) must be muliple of {}.",
+               M_sc,
+               NOF_SUBCARRIERS_PER_RB);
 
   // Calculate number of resource blocks.
-  unsigned M_rb = M_sc / NRE;
+  unsigned M_rb = M_sc / NOF_SUBCARRIERS_PER_RB;
   ocudu_assert(transform_precoding::is_nof_prbs_valid(M_rb), "The number of PRB (i.e., {}) is not valid.", M_rb);
   ocudu_assert(dft_processors.count(M_rb), "No DFT processor available for the number of PRB (i.e., {}).", M_rb);
 

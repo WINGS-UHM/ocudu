@@ -31,11 +31,11 @@ unsigned resource_grid_writer_impl::get_nof_symbols() const
   return data.get_dimension_size(resource_grid_dimensions::symbol);
 }
 
-span<const cf_t> resource_grid_writer_impl::put(unsigned                            port,
-                                                unsigned                            l,
-                                                unsigned                            k_init,
-                                                const bounded_bitset<NRE * MAX_RB>& mask,
-                                                span<const cf_t>                    symbols)
+span<const cf_t> resource_grid_writer_impl::put(unsigned                                               port,
+                                                unsigned                                               l,
+                                                unsigned                                               k_init,
+                                                const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                                                span<const cf_t>                                       symbols)
 {
   interval<unsigned, false> l_range(0, get_nof_symbols());
   interval<unsigned, true>  mask_size_range(1, get_nof_subc());
@@ -70,11 +70,11 @@ span<const cf_t> resource_grid_writer_impl::put(unsigned                        
   return symbols;
 }
 
-span<const cbf16_t> resource_grid_writer_impl::put(unsigned                            port,
-                                                   unsigned                            l,
-                                                   unsigned                            k_init,
-                                                   const bounded_bitset<NRE * MAX_RB>& mask,
-                                                   span<const cbf16_t>                 symbols)
+span<const cbf16_t> resource_grid_writer_impl::put(unsigned                                               port,
+                                                   unsigned                                               l,
+                                                   unsigned                                               k_init,
+                                                   const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                                                   span<const cbf16_t>                                    symbols)
 {
   interval<unsigned, false> l_range(0, get_nof_symbols());
   interval<unsigned, true>  mask_size_range(1, get_nof_subc());

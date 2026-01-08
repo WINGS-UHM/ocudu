@@ -87,7 +87,7 @@ int main(int argc, char** argv)
   benchmarker perf_meas_cf(precoder_type + " cf_t precoding", nof_repetitions);
   benchmarker perf_meas_ci8(precoder_type + " ci8_t layer mapping + precoding", nof_repetitions);
 
-  unsigned nof_re = nof_rb * NRE;
+  unsigned nof_re = nof_rb * NOF_SUBCARRIERS_PER_RB;
 
   for (auto topology : channel_topology_list) {
     // Get dimensions.

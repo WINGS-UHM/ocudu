@@ -547,7 +547,7 @@ create_dl_resource_grid_pool(const upper_phy_factory_dependencies&  factory_depe
   std::vector<std::unique_ptr<resource_grid>> grids(config.nof_dl_rg);
   std::generate(
       grids.begin(), grids.end(), [&rg_factory, nof_tx_ports = config.nof_tx_ports, dl_bw_rb = config.dl_bw_rb]() {
-        return rg_factory->create(nof_tx_ports, MAX_NSYMB_PER_SLOT, dl_bw_rb * NRE);
+        return rg_factory->create(nof_tx_ports, MAX_NSYMB_PER_SLOT, dl_bw_rb * NOF_SUBCARRIERS_PER_RB);
       });
 
   return create_asynchronous_resource_grid_pool(*factory_dependencies.executors.dl_grid_executor.executor,

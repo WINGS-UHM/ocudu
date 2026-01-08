@@ -37,7 +37,7 @@ public:
         // Prepare DFT size.
         dft_processor::configuration dft_config;
         dft_config.dir  = dft_processor::direction::INVERSE;
-        dft_config.size = NRE * nof_prb;
+        dft_config.size = NOF_SUBCARRIERS_PER_RB * nof_prb;
 
         dft_processors.emplace(nof_prb, dft_factory->create(dft_config));
       }

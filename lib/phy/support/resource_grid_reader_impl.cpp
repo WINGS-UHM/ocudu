@@ -45,11 +45,11 @@ bool resource_grid_reader_impl::is_empty() const
   return true;
 }
 
-span<cf_t> resource_grid_reader_impl::get(span<cf_t>                          symbols,
-                                          unsigned                            port,
-                                          unsigned                            l,
-                                          unsigned                            k_init,
-                                          const bounded_bitset<MAX_RB * NRE>& mask) const
+span<cf_t> resource_grid_reader_impl::get(span<cf_t>                                             symbols,
+                                          unsigned                                               port,
+                                          unsigned                                               l,
+                                          unsigned                                               k_init,
+                                          const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const
 {
   ocudu_assert(k_init + mask.size() <= get_nof_subc(),
                "The initial subcarrier index (i.e., {}) plus the mask size (i.e., {}) exceeds the maximum number of "
@@ -94,11 +94,11 @@ span<cf_t> resource_grid_reader_impl::get(span<cf_t>                          sy
   return symbols;
 }
 
-span<cbf16_t> resource_grid_reader_impl::get(span<cbf16_t>                       symbols,
-                                             unsigned                            port,
-                                             unsigned                            l,
-                                             unsigned                            k_init,
-                                             const bounded_bitset<MAX_RB * NRE>& mask) const
+span<cbf16_t> resource_grid_reader_impl::get(span<cbf16_t>                                          symbols,
+                                             unsigned                                               port,
+                                             unsigned                                               l,
+                                             unsigned                                               k_init,
+                                             const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const
 {
   ocudu_assert(k_init + mask.size() <= get_nof_subc(),
                "The initial subcarrier index (i.e., {}) plus the mask size (i.e., {}) exceeds the maximum number of "

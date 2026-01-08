@@ -373,11 +373,14 @@ static float estimate_noise(
   const auto& lse_dims           = dmrs_lse.get_dimensions_size();
   const auto& reconstructed_dims = dmrs_reconstructed.get_dimensions_size();
 
-  ocudu_assert(lse_dims[0] == NRE, "The number of REs {} in the LSE tensor is not {}.", lse_dims[0], NRE);
-  ocudu_assert(reconstructed_dims[0] == NRE,
+  ocudu_assert(lse_dims[0] == NOF_SUBCARRIERS_PER_RB,
+               "The number of REs {} in the LSE tensor is not {}.",
+               lse_dims[0],
+               NOF_SUBCARRIERS_PER_RB);
+  ocudu_assert(reconstructed_dims[0] == NOF_SUBCARRIERS_PER_RB,
                "The number of REs {} in the reconstructed tensor is not {}.",
                reconstructed_dims[0],
-               NRE);
+               NOF_SUBCARRIERS_PER_RB);
   unsigned n_ports = lse_dims[2];
   ocudu_assert(reconstructed_dims[2] == n_ports,
                "The number of antenna ports {} in the reconstructed tensor does not match that of the LSE tensor {}.",
@@ -398,7 +401,7 @@ static float estimate_noise(
 
 void pucch_detector_format1::combine_reconstructed_contributions(
     static_tensor<3, cf_t, MAX_PORTS * pucch_detector_format1::MAX_ALLOCATED_RE_F1 / 2>& dmrs_reconstructed,
-    const static_tensor<2, cf_t, NRE * MAX_PORTS>&                                       ch,
+    const static_tensor<2, cf_t, NOF_SUBCARRIERS_PER_RB * MAX_PORTS>&                    ch,
     span<const cf_t>                                                                     w_star_dmrs,
     bool                                                                                 is_first)
 {
@@ -406,7 +409,10 @@ void pucch_detector_format1::combine_reconstructed_contributions(
   const auto& dmrs_dims = dmrs_reconstructed.get_dimensions_size();
 
   ocudu_assert(ch_dims[0] == NSHIFTS, "The number of REs {} in the input tensor is not {}.", ch_dims[0], NSHIFTS);
-  ocudu_assert(dmrs_dims[0] == NRE, "The number of REs {} in the output tensor is not {}.", dmrs_dims[0], NRE);
+  ocudu_assert(dmrs_dims[0] == NOF_SUBCARRIERS_PER_RB,
+               "The number of REs {} in the output tensor is not {}.",
+               dmrs_dims[0],
+               NOF_SUBCARRIERS_PER_RB);
   unsigned n_ports = ch_dims[1];
   ocudu_assert(dmrs_dims[2] == n_ports,
                "The number of antenna ports {} in the output tensor does not match that of the input tensor {}.",
@@ -418,7 +424,7 @@ void pucch_detector_format1::combine_reconstructed_contributions(
                dmrs_dims[1],
                n_symbols);
 
-  std::array<cf_t, NRE> reconstructed;
+  std::array<cf_t, NOF_SUBCARRIERS_PER_RB> reconstructed;
 
   for (unsigned i_port = 0; i_port != n_ports; ++i_port) {
     // Spreading in frequency domain is done with columns of DFT matrix. Therefore, the superposition of all PUCCH is
@@ -510,7 +516,7 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
     const pucch_format1_map<unsigned>&                                                     mux_nof_harq_ack,
     unsigned                                                                               i_hop)
 {
-  unsigned first_subcarrier     = NRE * config.starting_prb;
+  unsigned first_subcarrier     = NOF_SUBCARRIERS_PER_RB * config.starting_prb;
   unsigned start_symbol         = config.start_symbol_index;
   unsigned last_symbol          = start_symbol + config.nof_symbols;
   unsigned nof_data_symbols_hop = config.nof_symbols / 2U;
@@ -526,7 +532,7 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
       nof_dmrs_symbols_hop     = nof_symbols_hop - nof_data_symbols_hop;
     } else {
       start_symbol     = start_symbol + config.nof_symbols / 2U;
-      first_subcarrier = NRE * *config.second_hop_prb;
+      first_subcarrier = NOF_SUBCARRIERS_PER_RB * *config.second_hop_prb;
 
       unsigned nof_symbols_hop = nof_dmrs_symbols_hop;
       nof_data_symbols_hop     = divide_ceil(config.nof_symbols - 1U, 4U);
@@ -534,10 +540,14 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
     }
   }
 
-  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> data_lse({NRE, nof_data_symbols_hop, nof_ports});
-  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> dmrs_lse({NRE, nof_dmrs_symbols_hop, nof_ports});
-  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> data_dft({NRE, nof_data_symbols_hop, nof_ports});
-  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> dmrs_dft({NRE, nof_dmrs_symbols_hop, nof_ports});
+  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> data_lse(
+      {NOF_SUBCARRIERS_PER_RB, nof_data_symbols_hop, nof_ports});
+  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> dmrs_lse(
+      {NOF_SUBCARRIERS_PER_RB, nof_dmrs_symbols_hop, nof_ports});
+  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> data_dft(
+      {NOF_SUBCARRIERS_PER_RB, nof_data_symbols_hop, nof_ports});
+  static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> dmrs_dft(
+      {NOF_SUBCARRIERS_PER_RB, nof_dmrs_symbols_hop, nof_ports});
 
   // Compute the group index from the initialization seed. For PUCCH F1, the sequence number is identically zero.
   unsigned group_index     = config.n_id % 30;
@@ -586,7 +596,7 @@ pucch_detector_format1::hop_contribution_common pucch_detector_format1::process_
 
   bool                                                        is_first = true;
   static_tensor<3, cf_t, MAX_PORTS * MAX_ALLOCATED_RE_F1 / 2> dmrs_reconstructed(
-      {NRE, nof_dmrs_symbols_hop, nof_ports});
+      {NOF_SUBCARRIERS_PER_RB, nof_dmrs_symbols_hop, nof_ports});
 
   auto this_pucch_nof_harq_ack = mux_nof_harq_ack.begin();
   auto end_pucch_nof_harq_ack  = mux_nof_harq_ack.end();

@@ -36,7 +36,7 @@ public:
     handler(std::move(handler_)),
     logger(logger_),
     worker("rx_symb_print", 40),
-    temp_buffer(nof_rb * NRE),
+    temp_buffer(nof_rb * NOF_SUBCARRIERS_PER_RB),
     temp_prach_buffer(prach_constants::LONG_SEQUENCE_LENGTH),
     nof_symbols(MAX_NSYMB_PER_SLOT),
     start_port(ul_print_ports.start()),

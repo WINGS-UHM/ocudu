@@ -142,9 +142,9 @@ inline unsigned ssb_get_k_first(frequency_range       fr,
   unsigned ssb_scs_kHz = scs_to_khz(ssb_scs);
 
   // Calculate the number of 15kHz subcarriers from point A to the first subcarrier of the SS/PBCH block.
-  unsigned k_first_15kHz =
-      (offset_to_pointA.value() * NRE * pointA_offset_scs_kHz + subcarrier_offset.value() * subcarrier_offset_scs_kHz) /
-      15;
+  unsigned k_first_15kHz = (offset_to_pointA.value() * NOF_SUBCARRIERS_PER_RB * pointA_offset_scs_kHz +
+                            subcarrier_offset.value() * subcarrier_offset_scs_kHz) /
+                           15;
 
   // Make sure the above conversion is exact and has no remainder.
   ocudu_assert((k_first_15kHz * 15) % ssb_scs_kHz == 0,

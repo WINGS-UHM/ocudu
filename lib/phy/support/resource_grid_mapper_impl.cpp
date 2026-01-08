@@ -15,7 +15,8 @@
 
 using namespace ocudu;
 
-using precoding_buffer_type = static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB, cbf16_t>;
+using precoding_buffer_type =
+    static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB, cbf16_t>;
 
 // Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
 static const re_prb_mask& get_re_mask_type_1(unsigned cdm_group_id)
@@ -44,7 +45,7 @@ static void map_dmrs_type1_contiguous(resource_grid_writer&          writer,
 
   // The PDSCH DM-RS Type 1 occupies one of every two resource elements across the OFDM symbol.
   static constexpr unsigned re_stride       = 2;
-  static constexpr unsigned nof_dmrs_re_prb = NRE / re_stride;
+  static constexpr unsigned nof_dmrs_re_prb = NOF_SUBCARRIERS_PER_RB / re_stride;
 
   unsigned nof_precoding_ports = precoding.get_nof_ports();
 
@@ -67,7 +68,7 @@ static void map_dmrs_type1_contiguous(resource_grid_writer&          writer,
   unsigned crb_end   = pattern.crb_mask.find_highest(true) + 1;
 
   // First subcarrier occupied by a DM-RS symbol.
-  unsigned first_subcarrier = first_crb * NRE + cdm_group_id;
+  unsigned first_subcarrier = first_crb * NOF_SUBCARRIERS_PER_RB + cdm_group_id;
 
   // Counter for the number of RE read from the input and mapped to the grid.
   unsigned i_re_buffer = 0;
@@ -128,8 +129,8 @@ void resource_grid_mapper_impl::map_re_block(resource_grid_writer&              
                                              unsigned                                   i_subc)
 {
   // Temporary intermediate buffer for storing precoded symbols.
-  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB, cbf16_t> precoding_buffer_copy;
-  modular_re_buffer<cbf16_t, MAX_PORTS>                                       precoding_buffer_view;
+  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB, cbf16_t> precoding_buffer_copy;
+  modular_re_buffer<cbf16_t, MAX_PORTS>                                                          precoding_buffer_view;
 
   unsigned nof_antennas = prg_weights.get_nof_ports();
   unsigned nof_re_block = block_mask.count();
@@ -196,7 +197,7 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
   }
 
   // PRG size in number of subcarriers.
-  unsigned prg_size = precoding.get_prg_size() * NRE;
+  unsigned prg_size = precoding.get_prg_size() * NOF_SUBCARRIERS_PER_RB;
 
   int first_symbol = pattern.symbols.find_lowest(true);
   int end_symbol   = pattern.symbols.find_highest(true) + 1;
@@ -212,7 +213,7 @@ void resource_grid_mapper_impl::map(resource_grid_writer&          writer,
   ocudu_assert(i_highest_subc >= 0, "At least one subcarrier must be used by the allocation pattern.");
 
   // Resize the mask to the highest subcarrier, ceiling to PRB.
-  symbol_re_mask.resize(divide_ceil(i_highest_subc + 1, NRE) * NRE);
+  symbol_re_mask.resize(divide_ceil(i_highest_subc + 1, NOF_SUBCARRIERS_PER_RB) * NOF_SUBCARRIERS_PER_RB);
 
   // Number of RE to be allocated for each OFDM symbol in the pattern.
   unsigned nof_re_symbol = symbol_re_mask.count();

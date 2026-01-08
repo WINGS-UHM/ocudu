@@ -141,7 +141,8 @@ static float compute_delta_tf(pucch_format   format,
       // Number of resource elements.
       const unsigned n_re =
           nof_prbs *
-          (nof_symb - get_pucch_format3_4_nof_dmrs_symbols(nof_symb, intraslot_freq_hopping, additional_dmrs)) * NRE;
+          (nof_symb - get_pucch_format3_4_nof_dmrs_symbols(nof_symb, intraslot_freq_hopping, additional_dmrs)) *
+          NOF_SUBCARRIERS_PER_RB;
 
       delta_tf = compute_delta_tf_format_2_3_4(nof_uci_bits, payload_plus_crc_bits, n_re);
       break;

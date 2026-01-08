@@ -77,7 +77,7 @@ pucch_format3_code_rate(unsigned nof_prb, unsigned nof_data_symbols, bool pi2_bp
 
   // PUCCH Format 3 channel bits are modulated as either QPSK or pi/2-BPSK and mapped to all REs
   // of the symbols that contain data.
-  const unsigned nof_channel_bits = (nof_prb * NRE * nof_data_symbols * (pi2_bpsk ? 1 : 2));
+  const unsigned nof_channel_bits = (nof_prb * NOF_SUBCARRIERS_PER_RB * nof_data_symbols * (pi2_bpsk ? 1 : 2));
 
   // Calculate code rate.
   return static_cast<float>(payload_plus_crc_bits) / static_cast<float>(nof_channel_bits);
@@ -101,7 +101,7 @@ pucch_format4_code_rate(unsigned spreading_factor, unsigned nof_data_symbols, bo
 
   // PUCCH Format 4 channel bits are modulated as either QPSK or pi/2-BPSK and mapped to all REs
   // of the symbols that contain data.
-  const unsigned nof_channel_bits = (NRE * nof_data_symbols * (pi2_bpsk ? 1 : 2));
+  const unsigned nof_channel_bits = (NOF_SUBCARRIERS_PER_RB * nof_data_symbols * (pi2_bpsk ? 1 : 2));
 
   // Calculate code rate.
   return static_cast<float>(payload_plus_crc_bits) / static_cast<float>(nof_channel_bits);

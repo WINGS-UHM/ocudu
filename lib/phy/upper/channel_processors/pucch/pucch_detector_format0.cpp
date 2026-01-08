@@ -132,14 +132,14 @@ pucch_detector_format0::detect(const ocudu::resource_grid_reader&           grid
   ocudu_assert(nof_ports * nof_symbols != 0, "The number of ports or symbols is zero.");
 
   // Prepare the temporary RE storage.
-  temp_re.resize({NRE, nof_symbols, nof_ports});
+  temp_re.resize({NOF_SUBCARRIERS_PER_RB, nof_symbols, nof_ports});
 
   // Extract resource elements.
   for (unsigned i_symbol = 0; i_symbol != nof_symbols; ++i_symbol) {
     // Calculate the initial subcarrier position.
-    unsigned i_subc = config.starting_prb * NRE;
+    unsigned i_subc = config.starting_prb * NOF_SUBCARRIERS_PER_RB;
     if ((i_symbol != 0) && config.second_hop_prb.has_value()) {
-      i_subc = *config.second_hop_prb * NRE;
+      i_subc = *config.second_hop_prb * NOF_SUBCARRIERS_PER_RB;
     }
 
     // Iterate ports.
@@ -197,9 +197,9 @@ pucch_detector_format0::detect(const ocudu::resource_grid_reader&           grid
         cf_t rx_seq_corr = ocuduvec::dot_prod(rx_symbols, sequence);
 
         // Update cumulative values.
-        float corr_contribution = std::norm(rx_seq_corr) / static_cast<float>(NRE);
+        float corr_contribution = std::norm(rx_seq_corr) / static_cast<float>(NOF_SUBCARRIERS_PER_RB);
         sum_corr += corr_contribution;
-        sum_noise_var += rx_power * static_cast<float>(NRE) - corr_contribution;
+        sum_noise_var += rx_power * static_cast<float>(NOF_SUBCARRIERS_PER_RB) - corr_contribution;
       }
     }
 

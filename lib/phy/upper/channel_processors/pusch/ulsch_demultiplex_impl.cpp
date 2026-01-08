@@ -56,14 +56,14 @@ get_ulsch_demultiplex_nof_re_prb_dmrs(dmrs_type dmrs_, unsigned nof_cdm_groups_w
   // Count number of RE used for DM-RS.
   unsigned nof_re_dmrs_per_rb = nof_cdm_groups_without_data * get_nof_re_per_prb(dmrs);
 
-  return (NRE - nof_re_dmrs_per_rb) * nof_prb;
+  return (NOF_SUBCARRIERS_PER_RB - nof_re_dmrs_per_rb) * nof_prb;
 }
 
 // Selects from re_set the first m_re_count elements skipping d.
 static ulsch_demultiplex_impl::re_set_type
 re_set_select(const ulsch_demultiplex_impl::re_set_type& re_set, unsigned d, unsigned m_re_count)
 {
-  bounded_bitset<MAX_RB * NRE> result(re_set.size());
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> result(re_set.size());
 
   for (unsigned count = 0, startpos = 0, d_count = 0; count != m_re_count;) {
     // Find next available position.
@@ -84,9 +84,10 @@ re_set_select(const ulsch_demultiplex_impl::re_set_type& re_set, unsigned d, uns
 }
 
 // Creates another resource element set without any selection of the same size.
-static bounded_bitset<MAX_RB * NRE> re_set_copy_size(const bounded_bitset<MAX_RB * NRE>& re_set)
+static bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>
+re_set_copy_size(const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& re_set)
 {
-  bounded_bitset<MAX_RB * NRE> result(re_set.size());
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> result(re_set.size());
   return result;
 }
 
@@ -319,7 +320,7 @@ void ulsch_demultiplex_impl::on_end_codeword()
 void ulsch_demultiplex_impl::configure_current_ofdm_symbol()
 {
   // Calculate the number of RE available for UL-SCH.
-  unsigned M_ulsch = config.nof_prb * NRE;
+  unsigned M_ulsch = config.nof_prb * NOF_SUBCARRIERS_PER_RB;
 
   // If the OFDM symbol contain DM-RS, subtract the number of RE for DM-RS.
   bool contain_dm_rs = config.dmrs_symbol_mask.test(ofdm_symbol_index);

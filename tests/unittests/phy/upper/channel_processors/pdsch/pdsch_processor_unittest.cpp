@@ -176,7 +176,7 @@ TEST_P(PdschProcessorFixture, UnitTest)
   crb_bitmap rb_mask = pdu.freq_alloc.get_crb_mask(pdu.bwp_start_rb, pdu.bwp_size_rb);
 
   // Count number of resource elements.
-  unsigned Nre = pdu.freq_alloc.get_nof_rb() * NRE * pdu.nof_symbols -
+  unsigned Nre = pdu.freq_alloc.get_nof_rb() * NOF_SUBCARRIERS_PER_RB * pdu.nof_symbols -
                  reserved.get_inclusion_count(pdu.start_symbol_index, pdu.nof_symbols, rb_mask);
 
   static_vector<shared_transport_block, pdsch_processor::MAX_NOF_TRANSPORT_BLOCKS> data;

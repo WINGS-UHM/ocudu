@@ -23,7 +23,7 @@ using namespace ocudu;
 ofdm_symbol_demodulator_impl::ofdm_symbol_demodulator_impl(const ofdm_demodulator_configuration& ofdm_config,
                                                            ofdm_demodulator_dependencies         dependencies) :
   dft_size(ofdm_config.dft_size),
-  rg_size(ofdm_config.bw_rb * NRE),
+  rg_size(ofdm_config.bw_rb * NOF_SUBCARRIERS_PER_RB),
   cp(ofdm_config.cp),
   nof_samples_window_offset(ofdm_config.nof_samples_window_offset),
   scs(to_subcarrier_spacing(ofdm_config.numerology)),

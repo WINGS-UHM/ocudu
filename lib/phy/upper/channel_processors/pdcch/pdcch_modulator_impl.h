@@ -29,7 +29,7 @@ private:
   static constexpr unsigned MAX_RB_PER_PDCCH = 16 * 6;
 
   /// Defines the number of resource elements available for PDCCH in a resource block.
-  static constexpr unsigned NOF_RE_PER_RB = NRE - 3;
+  static constexpr unsigned NOF_RE_PER_RB = NOF_SUBCARRIERS_PER_RB - 3;
 
   /// Defines the maximum number of resource elements that can be utilised for a PDCCH transmission.
   static constexpr unsigned MAX_RE = NOF_RE_PER_RB * MAX_RB_PER_PDCCH;

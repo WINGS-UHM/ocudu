@@ -313,7 +313,7 @@ TEST_P(PuschProcessorFixture, PuschProcessorUnittest)
       dmrs_config.dmrs.nof_dmrs_per_rb() * dmrs_config.nof_cdm_groups_without_data * nof_dmrs_symbols;
 
   // Calculate the mnumber of data RE per PRB.
-  unsigned nof_re_per_prb = NRE * pdu.nof_symbols - nof_dmrs_per_prb;
+  unsigned nof_re_per_prb = NOF_SUBCARRIERS_PER_RB * pdu.nof_symbols - nof_dmrs_per_prb;
 
   // Calculate the number of RE used for the PUSCH transmission.
   unsigned nof_re = pdu.freq_alloc.get_nof_rb() * nof_re_per_prb;

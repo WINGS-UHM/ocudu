@@ -34,18 +34,18 @@ public:
   unsigned get_nof_symbols() const override;
 
   // See interface for documentation.
-  span<const cf_t> put(unsigned                            port,
-                       unsigned                            l,
-                       unsigned                            k_init,
-                       const bounded_bitset<NRE * MAX_RB>& mask,
-                       span<const cf_t>                    symbols) override;
+  span<const cf_t> put(unsigned                                               port,
+                       unsigned                                               l,
+                       unsigned                                               k_init,
+                       const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                       span<const cf_t>                                       symbols) override;
 
   // See interface for documentation.
-  span<const cbf16_t> put(unsigned                            port,
-                          unsigned                            l,
-                          unsigned                            k_init,
-                          const bounded_bitset<NRE * MAX_RB>& mask,
-                          span<const cbf16_t>                 symbols) override;
+  span<const cbf16_t> put(unsigned                                               port,
+                          unsigned                                               l,
+                          unsigned                                               k_init,
+                          const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                          span<const cbf16_t>                                    symbols) override;
 
   // See interface for documentation.
   void put(unsigned port, unsigned l, unsigned k_init, span<const cf_t> symbols) override;

@@ -39,7 +39,7 @@ void test_merge_even()
   for (unsigned i_prb = rb_begin; i_prb < rb_end; i_prb += rb_stride) {
     pattern_1.crb_mask.set(i_prb);
   }
-  for (unsigned k = 0; k != NRE; ++k) {
+  for (unsigned k = 0; k != NOF_SUBCARRIERS_PER_RB; ++k) {
     pattern_1.re_mask.set(k, k % 2 == 0);
   }
   for (unsigned l = 0; l != MAX_NSYMB_PER_SLOT; ++l) {
@@ -62,17 +62,18 @@ void test_merge_even()
   // The pattern should be repeated for each symbol.
   for (unsigned l = 0; l != MAX_NSYMB_PER_SLOT; ++l) {
     // Create mask with all entries to false
-    bounded_bitset<MAX_RB * NRE> mask(MAX_RB * NRE);
+    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> mask(MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
     // Set include mask.
     list.get_inclusion_mask(mask, l);
 
     // For each subcarrier it checks the mask.
-    for (unsigned k = 0; k != MAX_RB * NRE; ++k) {
+    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
       bool gold = false;
 
       // if it is in the RB range, then check the subcarrier index.
-      if ((k >= rb_begin * NRE) && (k < rb_end * NRE) && ((k / NRE - rb_begin) % rb_stride == 0)) {
+      if ((k >= rb_begin * NOF_SUBCARRIERS_PER_RB) && (k < rb_end * NOF_SUBCARRIERS_PER_RB) &&
+          ((k / NOF_SUBCARRIERS_PER_RB - rb_begin) % rb_stride == 0)) {
         // Even subcarrier
         gold = (k % 2 == 0);
       }
@@ -83,7 +84,7 @@ void test_merge_even()
     list.get_exclusion_mask(mask, l);
 
     // All the subcarriers shall be false.
-    for (unsigned k = 0; k != MAX_RB * NRE; ++k) {
+    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
       TESTASSERT(!mask.test(k));
     }
   }
@@ -109,7 +110,7 @@ void test_merge_odd()
   for (unsigned i_prb = rb_begin; i_prb < rb_end; i_prb += rb_stride) {
     pattern_1.crb_mask.set(i_prb);
   }
-  for (unsigned k = 0; k != NRE; ++k) {
+  for (unsigned k = 0; k != NOF_SUBCARRIERS_PER_RB; ++k) {
     pattern_1.re_mask.set(k, k % 2 == 0);
   }
   for (unsigned l = 0; l != MAX_NSYMB_PER_SLOT; ++l) {
@@ -122,7 +123,7 @@ void test_merge_odd()
   // - odd subcarrier indexes, and
   // - even symbol indexes.
   re_pattern pattern_2 = pattern_1;
-  for (unsigned k = 0; k != NRE; ++k) {
+  for (unsigned k = 0; k != NOF_SUBCARRIERS_PER_RB; ++k) {
     pattern_2.re_mask.set(k, k % 2 == 1);
   }
   list.merge(pattern_2);
@@ -131,17 +132,18 @@ void test_merge_odd()
   // The pattern should be repeated for each symbol.
   for (unsigned l = 0; l != MAX_NSYMB_PER_SLOT; ++l) {
     // Create mask with all entries to false
-    bounded_bitset<MAX_RB * NRE> mask(MAX_RB * NRE);
+    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> mask(MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
     // Set include mask.
     list.get_inclusion_mask(mask, l);
 
     // For each subcarrier it checks the mask.
-    for (unsigned k = 0; k != MAX_RB * NRE; ++k) {
+    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
       bool gold = false;
 
       // if it is in the RB range, then check the subcarrier index.
-      if (k >= rb_begin * NRE && k < rb_end * NRE && (k / NRE - rb_begin) % rb_stride == 0) {
+      if (k >= rb_begin * NOF_SUBCARRIERS_PER_RB && k < rb_end * NOF_SUBCARRIERS_PER_RB &&
+          (k / NOF_SUBCARRIERS_PER_RB - rb_begin) % rb_stride == 0) {
         // Even symbol
         gold = (l % 2 == 0);
       }
@@ -152,7 +154,7 @@ void test_merge_odd()
     list.get_exclusion_mask(mask, l);
 
     // All the subcarriers shall be false.
-    for (unsigned k = 0; k != MAX_RB * NRE; ++k) {
+    for (unsigned k = 0; k != MAX_RB * NOF_SUBCARRIERS_PER_RB; ++k) {
       TESTASSERT(!mask.test(k));
     }
   }

@@ -162,7 +162,7 @@ inline void pucch_3_4_extract_and_equalize(span<cf_t>                  eq_re,
   auto nof_rx_ports = static_cast<unsigned>(rx_ports.size());
 
   // Number of REs per OFDM symbol.
-  unsigned nof_re_symb = nof_prb * NRE;
+  unsigned nof_re_symb = nof_prb * NOF_SUBCARRIERS_PER_RB;
 
   // Index of the first symbol allocated to the second hop, when intra-slot frequency hopping is enabled.
   unsigned second_hop_start = (nof_symbols / 2) + start_symbol_index;
@@ -182,10 +182,10 @@ inline void pucch_3_4_extract_and_equalize(span<cf_t>                  eq_re,
     }
 
     // Calculate the lowest resource element containing the PUCCH resource within the OFDM symbol.
-    unsigned first_subc = first_prb * NRE;
+    unsigned first_subc = first_prb * NOF_SUBCARRIERS_PER_RB;
     if (second_hop_prb.has_value() && (i_symbol >= second_hop_start)) {
       // Intra-slot frequency hopping.
-      first_subc = *second_hop_prb * NRE;
+      first_subc = *second_hop_prb * NOF_SUBCARRIERS_PER_RB;
     }
 
     // Create modular buffers to hold the spans for this symbol.

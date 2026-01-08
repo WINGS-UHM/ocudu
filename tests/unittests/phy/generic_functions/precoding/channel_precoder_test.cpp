@@ -190,13 +190,15 @@ protected:
 
 private:
   // Buffer for holding floating point randomly generated data.
-  static_re_buffer<precoding_constants::MAX_NOF_LAYERS, NRE * MAX_RB * MAX_NSYMB_PER_SLOT> random_data;
+  static_re_buffer<precoding_constants::MAX_NOF_LAYERS, NOF_SUBCARRIERS_PER_RB * MAX_RB * MAX_NSYMB_PER_SLOT>
+      random_data;
 
   // Buffer for holding ci8_t randomly generated data.
   std::vector<ci8_t> random_data_ci8;
 
   // Buffer for holding the golden sequence.
-  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB * MAX_NSYMB_PER_SLOT> golden_data;
+  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB * MAX_NSYMB_PER_SLOT>
+      golden_data;
 
   // Uniform real distribution to generate data samples.
   std::uniform_real_distribution<float> data_dist{-10.0, +10.0};
@@ -220,11 +222,11 @@ TEST_P(PrecodingFixture, RandomWeightsCft)
   unsigned nof_ports = std::get<2>(test_case);
 
   // Number of resource elements per layer.
-  unsigned nof_re = nof_rb * NRE;
+  unsigned nof_re = nof_rb * NOF_SUBCARRIERS_PER_RB;
 
   // Buffer to hold the precoded RE.
-  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB * MAX_NSYMB_PER_SLOT, cbf16_t> precoding_buffer(
-      nof_ports, nof_re);
+  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB * MAX_NSYMB_PER_SLOT, cbf16_t>
+      precoding_buffer(nof_ports, nof_re);
   for (unsigned nof_layers = 1; nof_layers <= nof_ports; ++nof_layers) {
     // Generate random RE arranged by layers.
     const re_buffer_reader<>& input_data = generate_random_data(nof_layers, nof_re);
@@ -254,11 +256,11 @@ TEST_P(PrecodingFixture, RandomWeightsCi8)
   unsigned nof_ports = std::get<2>(test_case);
 
   // Number of resource elements per layer.
-  unsigned nof_re = nof_rb * NRE;
+  unsigned nof_re = nof_rb * NOF_SUBCARRIERS_PER_RB;
 
   // Buffer to hold the precoded RE.
-  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB * MAX_NSYMB_PER_SLOT, cbf16_t> precoding_buffer(
-      nof_ports, nof_re);
+  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB * MAX_NSYMB_PER_SLOT, cbf16_t>
+      precoding_buffer(nof_ports, nof_re);
   for (unsigned nof_layers = 1; nof_layers <= nof_ports; ++nof_layers) {
     // Generate random RE arranged by layers.
     span<const ci8_t> input_data = generate_random_data_ci8(nof_layers, nof_re);

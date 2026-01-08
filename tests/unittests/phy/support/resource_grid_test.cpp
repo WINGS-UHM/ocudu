@@ -76,9 +76,9 @@ void test_mask_bitset(unsigned nof_ports, unsigned nof_symbols, unsigned nof_sub
   std::uniform_real_distribution<float>   value_dist(-1.0, +1.0);
 
   // Put elements in grid.
-  unsigned                     symbol_idx = symbol_dist(rgen);
-  std::vector<cf_t>            symbols_gold(nof_elements);
-  bounded_bitset<MAX_RB * NRE> mask(nof_subc);
+  unsigned                                        symbol_idx = symbol_dist(rgen);
+  std::vector<cf_t>                               symbols_gold(nof_elements);
+  bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> mask(nof_subc);
 
   // Fill mask and generate symbols.
   unsigned port_gold = port_dist(rgen);

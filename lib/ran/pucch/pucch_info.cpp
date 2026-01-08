@@ -124,7 +124,8 @@ unsigned ocudu::get_pucch_format3_max_nof_prbs(unsigned                         
   // ceil operation guarantees that the number of PRBs is enough to satisfy the effective code rate constraint.
   unsigned nof_prbs = static_cast<unsigned>(
       std::ceil(static_cast<float>(nof_payload_bits) /
-                (static_cast<float>((nof_symbols.value() - nof_dmrs_symbols) * NRE * mod_order) * max_code_rate)));
+                (static_cast<float>((nof_symbols.value() - nof_dmrs_symbols) * NOF_SUBCARRIERS_PER_RB * mod_order) *
+                 max_code_rate)));
 
   round_to_valid_nof_prbs(nof_prbs);
 
@@ -141,7 +142,7 @@ unsigned ocudu::get_pucch_format3_max_nof_prbs(unsigned                         
 
   // Check that the number of PRBs can hold the total number of bits after rate matching.
   while (static_cast<unsigned>(std::ceil(static_cast<float>(payload_plus_crc_bits) / max_code_rate)) >
-         (nof_data_symbols * NRE * nof_prbs * mod_order)) {
+         (nof_data_symbols * NOF_SUBCARRIERS_PER_RB * nof_prbs * mod_order)) {
     round_to_valid_nof_prbs(++nof_prbs);
 
     // The resulting number of PRBs is too big for PUCCH Format 3, so just return.
@@ -194,7 +195,8 @@ unsigned ocudu::get_pucch_format3_max_payload(unsigned max_nof_prbs,
   // max payloads is obtained by using the floor operation from the maximum PHY capacity, given the PRBs, symbols and
   // max_code_rate.
   const unsigned estimated_pucch_f3_capacity = static_cast<unsigned>(std::floor(
-      static_cast<float>((nof_symbols - nof_dmrs_symbols) * NRE * mod_order * max_nof_prbs) * max_code_rate));
+      static_cast<float>((nof_symbols - nof_dmrs_symbols) * NOF_SUBCARRIERS_PER_RB * mod_order * max_nof_prbs) *
+      max_code_rate));
 
   // Get the payload depending on the estimated PUCCH F3 capacity (which we define as the nof bits that the PUCCH F3 can
   // carry).
@@ -239,8 +241,9 @@ unsigned ocudu::get_pucch_format4_max_payload(unsigned         nof_symbols,
   // max_code_rate.
   // NOTE: The maximum number of bits that can be carried by a PUCCH Format 4 resource is 115, which is obtained for 14
   // symbols, a spreading factor of 2, QPSK, no additional DM-RS and 0.8 max code rate.
-  const unsigned estimated_pucch_f4_capacity = static_cast<unsigned>(std::floor(
-      static_cast<float>((nof_symbols - nof_dmrs_symbols) * NRE * mod_order) * max_code_rate / spreading_factor));
+  const unsigned estimated_pucch_f4_capacity = static_cast<unsigned>(
+      std::floor(static_cast<float>((nof_symbols - nof_dmrs_symbols) * NOF_SUBCARRIERS_PER_RB * mod_order) *
+                 max_code_rate / spreading_factor));
 
   // Get the payload depending on the estimated PUCCH F4 capacity (which we define as the nof bits that the PUCCH F4 can
   // carry).

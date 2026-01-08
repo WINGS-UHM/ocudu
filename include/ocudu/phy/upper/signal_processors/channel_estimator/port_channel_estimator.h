@@ -51,7 +51,7 @@ public:
     /// Symbol index within the slot in which the first hop occurs if it has a value.
     std::optional<unsigned> hopping_symbol_index;
     /// Boolean mask to specify the resource elements within the resource blocks carrying DM-RS symbols.
-    bounded_bitset<NRE> re_pattern;
+    bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern;
   };
 
   /// Estimator configuration parameters.

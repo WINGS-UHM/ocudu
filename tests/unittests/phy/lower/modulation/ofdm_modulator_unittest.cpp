@@ -75,7 +75,7 @@ int main()
         ofdm_config.cp                           = cp;
         ofdm_config.scale                        = dist_rg(rgen);
 
-        unsigned nsubc = ofdm_config.bw_rb * NRE;
+        unsigned nsubc = ofdm_config.bw_rb * NOF_SUBCARRIERS_PER_RB;
 
         // Create OFDM modulator.
         std::unique_ptr<ofdm_slot_modulator> ofdm = ofdm_factory->create_ofdm_slot_modulator(ofdm_config);

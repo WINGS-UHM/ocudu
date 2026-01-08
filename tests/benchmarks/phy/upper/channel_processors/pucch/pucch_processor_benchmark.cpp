@@ -467,7 +467,7 @@ int main(int argc, char** argv)
 
   // Create resource grid.
   std::unique_ptr<resource_grid> grid =
-      create_resource_grid(max_nof_ports, get_nsymb_per_slot(cy_prefix), NRE * bwp_size_rb);
+      create_resource_grid(max_nof_ports, get_nsymb_per_slot(cy_prefix), NOF_SUBCARRIERS_PER_RB * bwp_size_rb);
   TESTASSERT(grid);
 
   // Standard complex normal distribution with zero mean.

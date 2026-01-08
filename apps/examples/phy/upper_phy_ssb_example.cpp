@@ -59,7 +59,7 @@ private:
   std::mt19937                          rgen;
 
   // Pseudo-random data and symbol buffers.
-  static constexpr unsigned MAX_NRE_PER_SLOT = MAX_NSYMB_PER_SLOT * MAX_RB * NRE;
+  static constexpr unsigned MAX_NRE_PER_SLOT = MAX_NSYMB_PER_SLOT * MAX_RB * NOF_SUBCARRIERS_PER_RB;
   static_bit_buffer<MAX_NRE_PER_SLOT * MODULATION_MAX_BITS_PER_SYMBOL> data;
   static_re_buffer<1, MAX_NRE_PER_SLOT>                                data_symbols;
 
@@ -153,7 +153,7 @@ public:
       prach_context.rb_offset             = 0;
       prach_context.nof_td_occasions      = 6;
       prach_context.nof_fd_occasions      = 1;
-      prach_context.nof_prb_ul_grid       = nof_subcs / NRE;
+      prach_context.nof_prb_ul_grid       = nof_subcs / NOF_SUBCARRIERS_PER_RB;
       prach_context.pusch_scs             = to_subcarrier_spacing(context.slot.numerology());
       prach_context.root_sequence_index   = 0;
       prach_context.restricted_set        = restricted_set_config::UNRESTRICTED;
@@ -240,7 +240,7 @@ public:
           precoding_configuration::precoding_configuration::make_wideband(make_one_layer_all_ports(nof_ports));
 
       // Contiguous allocation pattern in time and frequency.
-      re_pattern grid_allocation(0, nof_subcs / NRE, 1, ~re_prb_mask(), ~symbol_slot_mask());
+      re_pattern grid_allocation(0, nof_subcs / NOF_SUBCARRIERS_PER_RB, 1, ~re_prb_mask(), ~symbol_slot_mask());
 
       // Map the data symbols to the grid.
       mapper->map(rg.get_writer(), data_symbols, grid_allocation, precoding_config);
@@ -354,7 +354,7 @@ std::unique_ptr<upper_phy_ssb_example> ocudu::upper_phy_ssb_example::create(cons
   ASSERT_FACTORY(ssb);
 
   // Determine the number of subcarriers of the resource grid.
-  unsigned nof_subcs = config.max_nof_prb * NRE;
+  unsigned nof_subcs = config.max_nof_prb * NOF_SUBCARRIERS_PER_RB;
 
   // Create DL and UL resource grid pool configuration.
   std::unique_ptr<resource_grid_pool> dl_rg_pool = nullptr;

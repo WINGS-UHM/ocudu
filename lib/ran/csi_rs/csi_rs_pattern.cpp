@@ -15,7 +15,7 @@
 
 using namespace ocudu;
 
-static constexpr unsigned NRE = 12;
+static constexpr unsigned NOF_SUBCARRIERS_PER_RB = 12;
 
 // Generates the frequency and time locations for TS 38.211, Table 7.4.1.5.3-1 Row one.
 // Returns the number of ports used for mapping the CSI-RS signal.
@@ -50,7 +50,7 @@ static void mapping_row_2(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 1;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 2: 1 k_ref is needed");
-  ocudu_assert(k_ref[0] < NRE, "CSI-RS Mapping Row 2: k_0 outside the valid range");
+  ocudu_assert(k_ref[0] < NOF_SUBCARRIERS_PER_RB, "CSI-RS Mapping Row 2: k_0 outside the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one ||
                    config.freq_density == csi_rs_freq_density_type::dot5_even_RB ||
                    config.freq_density == csi_rs_freq_density_type::dot5_odd_RB,
@@ -74,7 +74,7 @@ static void mapping_row_3(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 1;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 3: one k_ref is needed");
-  ocudu_assert(k_ref[0] < NRE - 1, "CSI-RS Mapping Row 3: k_0 outside of the valid range");
+  ocudu_assert(k_ref[0] < NOF_SUBCARRIERS_PER_RB - 1, "CSI-RS Mapping Row 3: k_0 outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one ||
                    config.freq_density == csi_rs_freq_density_type::dot5_even_RB ||
                    config.freq_density == csi_rs_freq_density_type::dot5_odd_RB,
@@ -103,7 +103,7 @@ static void mapping_row_4(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 1;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 4: 1 k_ref is needed");
-  ocudu_assert(k_ref[0] < NRE - 3, "CSI-RS Mapping Row 4: k_0 outside of the valid range");
+  ocudu_assert(k_ref[0] < NOF_SUBCARRIERS_PER_RB - 3, "CSI-RS Mapping Row 4: k_0 outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 4: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::fd_CDM2, "CSI-RS Mapping Row 4: invalid CDM type ");
 
@@ -130,7 +130,7 @@ static void mapping_row_5(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 1;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 5: 1 k_ref is needed");
-  ocudu_assert(k_ref[0] < NRE - 1, "CSI-RS Mapping Row 5: k_0 outside of the valid range");
+  ocudu_assert(k_ref[0] < NOF_SUBCARRIERS_PER_RB - 1, "CSI-RS Mapping Row 5: k_0 outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 5: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::fd_CDM2, "CSI-RS Mapping Row 5: invalid CDM type ");
 
@@ -157,7 +157,7 @@ static void mapping_row_6(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 4;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 6: 4 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 6: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 6: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::fd_CDM2, "CSI-RS Mapping Row 6: invalid CDM type");
@@ -185,7 +185,7 @@ static void mapping_row_7(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 2;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 7: 2 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 7: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 7: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::fd_CDM2, "CSI-RS Mapping Row 7: invalid CDM type");
@@ -217,7 +217,7 @@ static void mapping_row_8(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 2;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 8: 2 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 8: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 8: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::cdm4_FD2_TD2, "CSI-RS Mapping Row 8: invalid CDM type");
@@ -245,7 +245,7 @@ static void mapping_row_9(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 6;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 9: 6 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 9: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 9: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::fd_CDM2, "CSI-RS Mapping Row 9: invalid CDM type");
@@ -273,7 +273,7 @@ static void mapping_row_10(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 3;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 10: 3 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 10: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one, "CSI-RS Mapping Row 10: invalid density");
   ocudu_assert(config.cdm == csi_rs_cdm_type::cdm4_FD2_TD2, "CSI-RS Mapping Row 10: invalid CDM type");
@@ -301,7 +301,7 @@ static void mapping_row_11(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 4;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 11: 4 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 11: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one ||
                    config.freq_density == csi_rs_freq_density_type::dot5_even_RB ||
@@ -336,7 +336,7 @@ static void mapping_row_12(span<unsigned>                      k_bar,
   constexpr unsigned NOF_K_REF = 4;
 
   ocudu_assert(NOF_K_REF == k_ref.size(), "CSI-RS Mapping Row 12: 4 k_ref are needed");
-  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NRE - 1,
+  ocudu_assert(*std::max_element(k_ref.begin(), k_ref.end()) < NOF_SUBCARRIERS_PER_RB - 1,
                "CSI-RS Mapping Row 12: k references outside of the valid range");
   ocudu_assert(config.freq_density == csi_rs_freq_density_type::one ||
                    config.freq_density == csi_rs_freq_density_type::dot5_even_RB ||

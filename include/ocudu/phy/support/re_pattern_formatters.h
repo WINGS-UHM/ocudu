@@ -37,7 +37,8 @@ struct formatter<ocudu::re_pattern> {
     helper.format_always(
         ctx, "symb={:n}", static_cast<ocudu::bounded_bitset<ocudu::MAX_NSYMB_PER_SLOT>>(pattern.symbols));
     helper.format_always(ctx, "rb={:n}", pattern.crb_mask);
-    helper.format_always(ctx, "re={:n}", static_cast<ocudu::bounded_bitset<ocudu::NRE>>(pattern.re_mask));
+    helper.format_always(
+        ctx, "re={:n}", static_cast<ocudu::bounded_bitset<ocudu::NOF_SUBCARRIERS_PER_RB>>(pattern.re_mask));
 
     return ctx.out();
   }

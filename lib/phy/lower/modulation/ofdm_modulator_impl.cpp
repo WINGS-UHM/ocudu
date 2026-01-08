@@ -21,7 +21,7 @@ using namespace ocudu;
 ofdm_symbol_modulator_impl::ofdm_symbol_modulator_impl(const ofdm_modulator_configuration& ofdm_config,
                                                        ofdm_modulator_dependencies         dependencies) :
   dft_size(ofdm_config.dft_size),
-  rg_size(ofdm_config.bw_rb * NRE),
+  rg_size(ofdm_config.bw_rb * NOF_SUBCARRIERS_PER_RB),
   cp(ofdm_config.cp),
   scs(to_subcarrier_spacing(ofdm_config.numerology)),
   sampling_rate_Hz(to_sampling_rate_Hz(scs, dft_size)),

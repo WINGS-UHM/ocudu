@@ -53,7 +53,10 @@ public:
 
   /// Constructs a resource spy.
   resource_grid_writer_spy(unsigned max_ports_ = 0, unsigned max_symb_ = 0, unsigned max_prb_ = 0) :
-    max_ports(max_ports_), max_symb(max_symb_), max_prb(max_prb_), data({max_prb * NRE, max_symb, max_ports})
+    max_ports(max_ports_),
+    max_symb(max_symb_),
+    max_prb(max_prb_),
+    data({max_prb * static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB), max_symb, max_ports})
   {
   }
 
@@ -61,17 +64,17 @@ public:
   unsigned get_nof_ports() const override { return max_ports; }
 
   // See interface for documentation.
-  unsigned get_nof_subc() const override { return max_prb * NRE; }
+  unsigned get_nof_subc() const override { return max_prb * NOF_SUBCARRIERS_PER_RB; }
 
   // See interface for documentation.
   unsigned get_nof_symbols() const override { return max_symb; }
 
   // See interface for documentation.
-  span<const cf_t> put(unsigned                            port,
-                       unsigned                            l,
-                       unsigned                            k_init,
-                       const bounded_bitset<NRE * MAX_RB>& mask,
-                       span<const cf_t>                    symbols) override
+  span<const cf_t> put(unsigned                                               port,
+                       unsigned                                               l,
+                       unsigned                                               k_init,
+                       const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                       span<const cf_t>                                       symbols) override
   {
     ++count;
     unsigned i_symb = 0;
@@ -94,11 +97,11 @@ public:
   }
 
   // See interface for documentation.
-  span<const cbf16_t> put(unsigned                            port,
-                          unsigned                            l,
-                          unsigned                            k_init,
-                          const bounded_bitset<NRE * MAX_RB>& mask,
-                          span<const cbf16_t>                 symbols) override
+  span<const cbf16_t> put(unsigned                                               port,
+                          unsigned                                               l,
+                          unsigned                                               k_init,
+                          const bounded_bitset<NOF_SUBCARRIERS_PER_RB * MAX_RB>& mask,
+                          span<const cbf16_t>                                    symbols) override
   {
     ++count;
     unsigned i_symb = 0;
@@ -232,7 +235,10 @@ private:
     // Ensure the port, symbol and subcarrier indexes are in range.
     TESTASSERT(port < max_ports, "Port index {} exceeded maximum {}.", port, max_ports);
     TESTASSERT(symbol < max_symb, "Symbol index {} exceeded maximum {}.", symbol, max_symb);
-    TESTASSERT(subcarrier < max_prb * NRE, "Subcarrier index {} exceeded maximum {}.", subcarrier, max_prb * NRE);
+    TESTASSERT(subcarrier < max_prb * NOF_SUBCARRIERS_PER_RB,
+               "Subcarrier index {} exceeded maximum {}.",
+               subcarrier,
+               max_prb * NOF_SUBCARRIERS_PER_RB);
 
     // Select reference to the resource element.
     cbf16_t& value_cbf16 = data[{subcarrier, symbol, port}];
@@ -258,7 +264,10 @@ public:
   resource_grid_reader_spy() : max_ports(0), max_symb(0), max_prb(0) {}
 
   resource_grid_reader_spy(unsigned max_ports_, unsigned max_symb_, unsigned max_prb_) :
-    max_ports(max_ports_), max_symb(max_symb_), max_prb(max_prb_), grid({max_prb * NRE, max_symb, max_ports})
+    max_ports(max_ports_),
+    max_symb(max_symb_),
+    max_prb(max_prb_),
+    grid({max_prb * static_cast<unsigned>(NOF_SUBCARRIERS_PER_RB), max_symb, max_ports})
   {
     // Fill grid with NAN.
     cf_t nan = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()};
@@ -267,7 +276,7 @@ public:
 
   unsigned get_nof_ports() const override { return max_ports; }
 
-  unsigned get_nof_subc() const override { return max_prb * NRE; }
+  unsigned get_nof_subc() const override { return max_prb * NOF_SUBCARRIERS_PER_RB; }
 
   unsigned get_nof_symbols() const override { return max_symb; }
 
@@ -275,11 +284,11 @@ public:
 
   bool is_empty() const override { return entries.empty(); }
 
-  span<cf_t> get(span<cf_t>                          symbols,
-                 unsigned                            port,
-                 unsigned                            l,
-                 unsigned                            k_init,
-                 const bounded_bitset<MAX_RB * NRE>& mask) const override
+  span<cf_t> get(span<cf_t>                                             symbols,
+                 unsigned                                               port,
+                 unsigned                                               l,
+                 unsigned                                               k_init,
+                 const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const override
   {
     ++count;
     mask.for_each(0, mask.size(), [&](unsigned i_subc) {
@@ -291,11 +300,11 @@ public:
     return symbols;
   }
 
-  span<cbf16_t> get(span<cbf16_t>                       symbols,
-                    unsigned                            port,
-                    unsigned                            l,
-                    unsigned                            k_init,
-                    const bounded_bitset<MAX_RB * NRE>& mask) const override
+  span<cbf16_t> get(span<cbf16_t>                                          symbols,
+                    unsigned                                               port,
+                    unsigned                                               l,
+                    unsigned                                               k_init,
+                    const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const override
   {
     ++count;
     mask.for_each(0, mask.size(), [&](unsigned i_subc) {
@@ -333,7 +342,7 @@ public:
 
   void write(span<const expected_entry_t> entries_)
   {
-    unsigned current_max_sc   = max_prb * NRE;
+    unsigned current_max_sc   = max_prb * NOF_SUBCARRIERS_PER_RB;
     unsigned current_max_symb = max_symb;
     unsigned current_max_port = max_ports;
     for (const expected_entry_t& e : entries_) {
@@ -348,7 +357,7 @@ public:
         current_max_port = e.port;
       }
     }
-    max_prb   = current_max_sc / NRE + 1;
+    max_prb   = current_max_sc / NOF_SUBCARRIERS_PER_RB + 1;
     max_symb  = current_max_symb + 1;
     max_ports = current_max_port + 1;
   }

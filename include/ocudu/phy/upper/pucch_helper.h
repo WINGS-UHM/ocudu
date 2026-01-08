@@ -57,7 +57,7 @@ public:
     return {u, v};
   }
 
-  /// \brief Computes the NR alpha index (1-NRE) (TS38.211 clause 6.3.2.2.2 Cyclic shift hopping)
+  /// \brief Computes the NR alpha index (1-NOF_SUBCARRIERS_PER_RB) (TS38.211 clause 6.3.2.2.2 Cyclic shift hopping)
   ///
   /// \param slot[in]    Current slot
   /// \param cp[in]      Cyclic prefix type
@@ -89,7 +89,7 @@ public:
     unsigned base_idx = get_nsymb_per_slot(cp) * n_slot + symbol;
     unsigned n_cs     = reverse_byte(cs.get_byte(base_idx));
 
-    unsigned alpha_idx = (m0 + m_cs + n_cs) % NRE;
+    unsigned alpha_idx = (m0 + m_cs + n_cs) % NOF_SUBCARRIERS_PER_RB;
     return alpha_idx;
   }
 };

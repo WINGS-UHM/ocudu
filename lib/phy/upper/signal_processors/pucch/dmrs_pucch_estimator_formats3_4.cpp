@@ -43,7 +43,7 @@ void dmrs_pucch_estimator_formats3_4::generate_sequence(span<cf_t>             s
   unsigned alpha_idx = helper.get_alpha_index(config.slot, config.cp, config.n_id, symbol, m_0, 0);
 
   // Generate the r_uv sequence.
-  low_papr_generator->generate(sequence, u, v, alpha_idx, NRE);
+  low_papr_generator->generate(sequence, u, v, alpha_idx, NOF_SUBCARRIERS_PER_RB);
 }
 
 dmrs_pucch_estimator_formats3_4::layer_dmrs_pattern
@@ -52,7 +52,7 @@ dmrs_pucch_estimator_formats3_4::generate_dmrs_pattern(const estimate_config& co
   layer_dmrs_pattern mask;
 
   // All RE within the PRB are allocated to DM-RS.
-  mask.re_pattern = ~bounded_bitset<NRE>(NRE);
+  mask.re_pattern = ~bounded_bitset<NOF_SUBCARRIERS_PER_RB>(NOF_SUBCARRIERS_PER_RB);
 
   // Set PRB allocation.
   mask.rb_mask.resize(nof_prb_grid);
@@ -88,7 +88,7 @@ void dmrs_pucch_estimator_formats3_4::estimate(channel_estimate&           estim
 
   // Prepare DM-RS symbol buffer dimensions.
   re_measurement_dimensions dims;
-  dims.nof_subc    = config.nof_prb * NRE;
+  dims.nof_subc    = config.nof_prb * NOF_SUBCARRIERS_PER_RB;
   dims.nof_symbols = dmrs_symb_mask.count();
   dims.nof_slices  = pucch_constants::MAX_LAYERS;
 

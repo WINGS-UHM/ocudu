@@ -196,10 +196,10 @@ ulsch_information ocudu::get_ulsch_information(const ulsch_configuration& config
       nof_symbols_dmrs * config.nof_cdm_groups_without_data * get_nof_re_per_prb(config.dmrs_type);
 
   // Count total number of resource elements available for UL data.
-  unsigned nof_re_total = config.nof_rb * (config.nof_symbols * NRE - nof_re_dmrs_per_rb);
+  unsigned nof_re_total = config.nof_rb * (config.nof_symbols * NOF_SUBCARRIERS_PER_RB - nof_re_dmrs_per_rb);
 
   // Count number of resource elements that can potentially carry UCI. It excludes symbols with DM-RS.
-  unsigned nof_re_uci = (config.nof_symbols - nof_symbols_dmrs) * config.nof_rb * NRE;
+  unsigned nof_re_uci = (config.nof_symbols - nof_symbols_dmrs) * config.nof_rb * NOF_SUBCARRIERS_PER_RB;
 
   // Retrieve the modulation order.
   unsigned modulation_order = get_bits_per_symbol(config.mcs_descr.modulation);
@@ -217,7 +217,7 @@ ulsch_information ocudu::get_ulsch_information(const ulsch_configuration& config
     }
 
     // Accumulate RE contained in the symbol.
-    nof_re_uci_l0 += config.nof_rb * NRE;
+    nof_re_uci_l0 += config.nof_rb * NOF_SUBCARRIERS_PER_RB;
   }
 
   // Calculate the number of RE occupied by HARQ-ACK.

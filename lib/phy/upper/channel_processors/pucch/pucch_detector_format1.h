@@ -40,7 +40,7 @@ public:
   /// \brief Maximum number of REs allocated to PUCCH Format 1.
   ///
   /// The allocated resources are at most one PRB over all OFDM symbols.
-  static constexpr unsigned MAX_ALLOCATED_RE_F1 = NRE * MAX_NSYMB_PER_SLOT;
+  static constexpr unsigned MAX_ALLOCATED_RE_F1 = NOF_SUBCARRIERS_PER_RB * MAX_NSYMB_PER_SLOT;
 
   /// \brief Constructor: provides access to a collection of low-PAPR sequences and a pseudorandom sequence generator.
   /// \param[in] low_papr_         Collection of low-PAPR sequences.
@@ -63,11 +63,17 @@ public:
     ocudu_assert(low_papr, "Invalid Low PAPR sequence generator.");
     ocudu_assert(dft, "Invalid DFT processor");
     ocudu_assert(dft->get_direction() == dft_processor::direction::DIRECT, "DFT processor direction set to INVERSE");
-    ocudu_assert(dft->get_size() == NRE, "DFT processor size is {}, should be {}.", dft->get_size(), NRE);
+    ocudu_assert(dft->get_size() == NOF_SUBCARRIERS_PER_RB,
+                 "DFT processor size is {}, should be {}.",
+                 dft->get_size(),
+                 NOF_SUBCARRIERS_PER_RB);
     ocudu_assert(idft, "Invalid inverse DFT processor");
     ocudu_assert(idft->get_direction() == dft_processor::direction::INVERSE,
                  "Inverse DFT processor direction set to DIRECT");
-    ocudu_assert(idft->get_size() == NRE, "Inverse DFT processor size is {}, should be {}.", dft->get_size(), NRE);
+    ocudu_assert(idft->get_size() == NOF_SUBCARRIERS_PER_RB,
+                 "Inverse DFT processor size is {}, should be {}.",
+                 dft->get_size(),
+                 NOF_SUBCARRIERS_PER_RB);
   }
 
   /// Detects multiplexed PUCCH Format 1 transmissions. See \ref pucch_detector for more details.
@@ -131,7 +137,7 @@ private:
   ///                                 overwrite (not combine with) the content of \c dmrs_reconstructed.
   void combine_reconstructed_contributions(
       static_tensor<3, cf_t, MAX_PORTS * pucch_detector_format1::MAX_ALLOCATED_RE_F1 / 2>& dmrs_reconstructed,
-      const static_tensor<2, cf_t, NRE * MAX_PORTS>&                                       ch,
+      const static_tensor<2, cf_t, NOF_SUBCARRIERS_PER_RB * MAX_PORTS>&                    ch,
       span<const cf_t>                                                                     w_star_dmrs,
       bool                                                                                 is_first);
 

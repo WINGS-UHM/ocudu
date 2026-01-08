@@ -59,11 +59,11 @@ public:
   ///       subcarriers.
   /// \note The number of elements of \c symbols shall be equal to or greater than the number of true elements in
   ///       \c mask.
-  virtual span<cf_t> get(span<cf_t>                          symbols,
-                         unsigned                            port,
-                         unsigned                            l,
-                         unsigned                            k_init,
-                         const bounded_bitset<MAX_RB * NRE>& mask) const = 0;
+  virtual span<cf_t> get(span<cf_t>                                             symbols,
+                         unsigned                                               port,
+                         unsigned                                               l,
+                         unsigned                                               k_init,
+                         const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const = 0;
 
   /// \brief Gets a number of resource elements in the resource grid at the given port and symbol using a bounded bitset
   /// to indicate which subcarriers are allocated and which are not.
@@ -78,11 +78,11 @@ public:
   ///       subcarriers.
   /// \note The number of elements of \c symbols shall be equal to or greater than the number of true elements in
   ///       \c mask.
-  virtual span<cbf16_t> get(span<cbf16_t>                       symbols,
-                            unsigned                            port,
-                            unsigned                            l,
-                            unsigned                            k_init,
-                            const bounded_bitset<MAX_RB * NRE>& mask) const = 0;
+  virtual span<cbf16_t> get(span<cbf16_t>                                          symbols,
+                            unsigned                                               port,
+                            unsigned                                               l,
+                            unsigned                                               k_init,
+                            const bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>& mask) const = 0;
 
   /// \brief Gets a number of resource elements for a given port and symbol \c l starting at \c k_init and picks the
   /// first element every \c stride.

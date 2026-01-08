@@ -128,7 +128,7 @@ static ulsch_configuration get_ulsch_config(const ul_sched_info& grant)
   ulsch_cfg.nof_layers                  = grant.pusch_cfg.nof_layers;
   if (grant.pusch_cfg.tx_direct_current_location < 3300) {
     // Check if DC overlaps with PUSCH in RBs.
-    const unsigned     dc_position_crbs = grant.pusch_cfg.tx_direct_current_location / NRE;
+    const unsigned     dc_position_crbs = grant.pusch_cfg.tx_direct_current_location / NOF_SUBCARRIERS_PER_RB;
     const vrb_interval vrbs             = grant.pusch_cfg.rbs.type1();
     const crb_interval crbs = prb_to_crb(grant.pusch_cfg.bwp_cfg->crbs, prb_interval{vrbs.start(), vrbs.stop()});
     ulsch_cfg.contains_dc   = crbs.contains(dc_position_crbs);

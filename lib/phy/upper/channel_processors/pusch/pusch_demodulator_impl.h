@@ -45,10 +45,12 @@ public:
     demapper(std::move(demapper_)),
     evm_calc(std::move(evm_calc_)),
     descrambler(std::move(descrambler_)),
-    ch_re_copy(MAX_PORTS, max_nof_rb * NRE),
-    temp_eq_re(max_nof_rb * NRE * pusch_constants::MAX_NOF_LAYERS),
-    temp_eq_noise_vars(max_nof_rb * NRE * pusch_constants::MAX_NOF_LAYERS),
-    ch_estimates_copy(max_nof_rb * NRE, pusch_constants::MAX_NOF_RX_PORTS, pusch_constants::MAX_NOF_LAYERS),
+    ch_re_copy(MAX_PORTS, max_nof_rb * NOF_SUBCARRIERS_PER_RB),
+    temp_eq_re(max_nof_rb * NOF_SUBCARRIERS_PER_RB * pusch_constants::MAX_NOF_LAYERS),
+    temp_eq_noise_vars(max_nof_rb * NOF_SUBCARRIERS_PER_RB * pusch_constants::MAX_NOF_LAYERS),
+    ch_estimates_copy(max_nof_rb * NOF_SUBCARRIERS_PER_RB,
+                      pusch_constants::MAX_NOF_RX_PORTS,
+                      pusch_constants::MAX_NOF_LAYERS),
     compute_post_eq_sinr(compute_post_eq_sinr_)
   {
     ocudu_assert(equalizer, "Invalid pointer to channel_equalizer object.");
@@ -64,7 +66,7 @@ public:
 
 private:
   /// Data type for representing an RE mask within an OFDM symbol.
-  using re_symbol_mask_type = bounded_bitset<MAX_RB * NRE>;
+  using re_symbol_mask_type = bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB>;
 
   /// \brief Gets channel data Resource Elements from the resource grid.
   ///

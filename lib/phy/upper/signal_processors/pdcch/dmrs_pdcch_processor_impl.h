@@ -26,7 +26,7 @@ private:
   static constexpr unsigned STRIDE = 4;
 
   /// Number of DM-RS for PDCCH per active resource block.
-  static constexpr unsigned NOF_DMRS_PER_RB = NRE / STRIDE;
+  static constexpr unsigned NOF_DMRS_PER_RB = NOF_SUBCARRIERS_PER_RB / STRIDE;
 
   /// Maximum number of DM-RS for PDCCH that can be found in a symbol.
   static constexpr unsigned MAX_NOF_DMRS_PER_SYMBOL = pdcch_constants::MAX_NOF_RB_PDCCH * NOF_DMRS_PER_RB;

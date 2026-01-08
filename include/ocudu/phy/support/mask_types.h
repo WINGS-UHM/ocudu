@@ -34,14 +34,14 @@ public:
 
 /// \brief Represents a RE mask within a PRB.
 ///
-/// Inherits from \c bounded_bitset<NRE>.
-class re_prb_mask : public bounded_bitset<NRE>
+/// Inherits from \c bounded_bitset<NOF_SUBCARRIERS_PER_RB>.
+class re_prb_mask : public bounded_bitset<NOF_SUBCARRIERS_PER_RB>
 {
 public:
-  /// Default constructor - It creates a mask containing \c NRE bits.
-  constexpr re_prb_mask() : bounded_bitset(NRE) {}
+  /// Default constructor - It creates a mask containing \c NOF_SUBCARRIERS_PER_RB bits.
+  constexpr re_prb_mask() : bounded_bitset(NOF_SUBCARRIERS_PER_RB) {}
 
-  /// Copy constructor from another \c bounded_bitset<NRE>.
+  /// Copy constructor from another \c bounded_bitset<NOF_SUBCARRIERS_PER_RB>.
   re_prb_mask(const bounded_bitset& other) : bounded_bitset(other) {}
 
   /// Constructor from an initializer list.
@@ -81,7 +81,7 @@ struct formatter<ocudu::re_prb_mask> {
   template <typename FormatContext>
   auto format(const ocudu::re_prb_mask& mask, FormatContext& ctx) const
   {
-    fmt::format_to(ctx.out(), "{:i}", static_cast<ocudu::bounded_bitset<ocudu::NRE>>(mask));
+    fmt::format_to(ctx.out(), "{:i}", static_cast<ocudu::bounded_bitset<ocudu::NOF_SUBCARRIERS_PER_RB>>(mask));
     return ctx.out();
   }
 };

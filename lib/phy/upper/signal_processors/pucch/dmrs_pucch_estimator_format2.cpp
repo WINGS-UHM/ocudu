@@ -16,7 +16,7 @@ using namespace ocudu;
 /// \brief DM-RS RE allocation pattern for PUCCH Format 2.
 ///
 /// Indicates the Resource Elements containing DM-RS symbols within a PRB, as per TS38.211 Section 6.4.1.3.2.2.
-static const bounded_bitset<NRE> format2_prb_re_mask =
+static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> format2_prb_re_mask =
     {false, true, false, false, true, false, false, true, false, false, true, false};
 
 unsigned dmrs_pucch_estimator_format2::c_init(unsigned                                           symbol,

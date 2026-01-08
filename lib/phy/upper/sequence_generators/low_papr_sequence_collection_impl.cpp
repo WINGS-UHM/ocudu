@@ -20,11 +20,11 @@ low_papr_sequence_collection_impl::low_papr_sequence_collection_impl(low_papr_se
 
 {
   // Calculate sequence length.
-  unsigned M_zc = (NRE * m) / pow2(delta);
+  unsigned M_zc = (NOF_SUBCARRIERS_PER_RB * m) / pow2(delta);
 
   // Calculate number of bases.
   unsigned nof_bases = MAX_NOF_BASES;
-  if ((NRE / 2) <= M_zc && M_zc <= (5 * NRE)) {
+  if ((NOF_SUBCARRIERS_PER_RB / 2) <= M_zc && M_zc <= (5 * NOF_SUBCARRIERS_PER_RB)) {
     nof_bases = 1;
   }
 

@@ -102,7 +102,8 @@ int main(int argc, char** argv)
   benchmarker perf_meas("DM-RS PDSCH processor", nof_repetitions);
 
   for (auto topology : channel_topology_list) {
-    std::unique_ptr<resource_grid> grid = create_resource_grid(topology.nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+    std::unique_ptr<resource_grid> grid =
+        create_resource_grid(topology.nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
     TESTASSERT(grid);
 
     // Generate precoding weights.

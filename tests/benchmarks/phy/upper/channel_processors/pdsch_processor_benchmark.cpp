@@ -734,8 +734,9 @@ static std::unique_ptr<resource_grid> create_resource_grid(unsigned nof_ports, u
 static bounded_unique_object_pool<resource_grid> create_resource_grid_pool()
 {
   std::vector<std::unique_ptr<resource_grid>> grids(nof_threads);
-  std::generate(
-      grids.begin(), grids.end(), []() { return create_resource_grid(MAX_PORTS, MAX_NSYMB_PER_SLOT, MAX_RB * NRE); });
+  std::generate(grids.begin(), grids.end(), []() {
+    return create_resource_grid(MAX_PORTS, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
+  });
 
   return bounded_unique_object_pool<resource_grid>(grids);
 }

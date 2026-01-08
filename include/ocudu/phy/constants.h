@@ -10,13 +10,12 @@
 
 #pragma once
 
+#include "ocudu/ran/resource_block.h"
+
 namespace ocudu {
 
 /// Defines the maximum number of Resource Blocks (RB) that a resource grid can carry
 constexpr unsigned MAX_RB = 275;
-
-/// Defines the number of Resource Elements (RE) per Resource Block (RB) in frequency domain
-constexpr unsigned NRE = 12;
 
 /// Defines the SSB bandwidth in Resource Blocks (RBs)
 constexpr unsigned SSB_BW_RB = 20;
@@ -25,7 +24,7 @@ constexpr unsigned SSB_BW_RB = 20;
 constexpr unsigned SSB_DURATION_NSYMB = 4;
 
 /// Defines the SSB bandwidth in Resource Elements
-constexpr unsigned SSB_BW_RE = NRE * SSB_BW_RB;
+constexpr unsigned SSB_BW_RE = NOF_SUBCARRIERS_PER_RB * SSB_BW_RB;
 
 /// Defines the maximum number of ports for any channel transmission
 constexpr unsigned MAX_PORTS = 16;

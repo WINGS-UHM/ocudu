@@ -150,7 +150,7 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
 
     // Prepare PRACH resource grid.
     unsigned K               = pusch_scs_Hz / prach_scs_Hz;
-    unsigned prach_grid_size = config.nof_prb_ul_grid * K * NRE;
+    unsigned prach_grid_size = config.nof_prb_ul_grid * K * NOF_SUBCARRIERS_PER_RB;
     ocudu_assert(
         dft.get_size() > prach_grid_size,
         "DFT size {} for PRACH SCS {} is not sufficient for K={}, N_RB={}. The minimum expected DFT size is {}.",
@@ -173,7 +173,8 @@ void ofdm_prach_demodulator_impl::demodulate(prach_buffer&                      
       for (unsigned i_fd_occasion = 0; i_fd_occasion != config.nof_fd_occasions; ++i_fd_occasion) {
         // Calculate initial subcarrier.
         unsigned k_start =
-            K * NRE * (config.rb_offset + freq_mapping_info.nof_rb_ra * i_fd_occasion) + freq_mapping_info.k_bar;
+            K * NOF_SUBCARRIERS_PER_RB * (config.rb_offset + freq_mapping_info.nof_rb_ra * i_fd_occasion) +
+            freq_mapping_info.k_bar;
         ocudu_assert(k_start + preamble_info.sequence_length < prach_grid_size,
                      "Start subcarrier {} plus sequence length {} exceeds PRACH grid size {}.",
                      k_start,

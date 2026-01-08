@@ -192,7 +192,7 @@ TEST_P(PxschChainFixture, Ideal)
   // Calculate TBS.
   tbs_calculator_configuration tbs_params;
   tbs_params.nof_symb_sh      = nof_ofdm_symbols;
-  tbs_params.nof_dmrs_prb     = NRE * dmrs_symbol_mask.count();
+  tbs_params.nof_dmrs_prb     = NOF_SUBCARRIERS_PER_RB * dmrs_symbol_mask.count();
   tbs_params.nof_oh_prb       = 0;
   tbs_params.mcs_descr        = mcs_descr;
   tbs_params.nof_layers       = nof_layers;
@@ -283,9 +283,9 @@ TEST_P(PxschChainFixture, Ideal)
                    [&rgen, &dist](cf_t in) { return in + dist(rgen); });
 
     // Simulate DC.
-    unsigned dc_position_begin = rgen() % (NRE * rb_mapping.length());
+    unsigned dc_position_begin = rgen() % (NOF_SUBCARRIERS_PER_RB * rb_mapping.length());
     for (unsigned dc_position = dc_position_begin; dc_position < modulated_symbols.size();
-         dc_position += NRE * rb_mapping.length()) {
+         dc_position += NOF_SUBCARRIERS_PER_RB * rb_mapping.length()) {
       modulated_symbols[dc_position] = 0;
     }
 

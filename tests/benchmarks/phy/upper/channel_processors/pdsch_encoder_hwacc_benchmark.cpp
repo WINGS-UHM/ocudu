@@ -269,7 +269,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
       config.mod            = mcs.modulation;
       config.Nref           = 0;
       config.nof_layers     = profile.nof_tx_layers;
-      config.nof_ch_symbols = profile.nof_symbols * nof_prb * NRE;
+      config.nof_ch_symbols = profile.nof_symbols * nof_prb * NOF_SUBCARRIERS_PER_RB;
 
       // Codeword size.
       unsigned bits_per_symbol = get_bits_per_symbol(mcs.modulation);

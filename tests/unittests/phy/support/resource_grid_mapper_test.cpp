@@ -71,7 +71,7 @@ static void assert_grid(const re_buffer_reader<>&   golden,
   unsigned nof_ports = golden.get_nof_slices();
   for (unsigned i_symbol = 0, re_offset = 0; i_symbol != MAX_NSYMB_PER_SLOT; ++i_symbol) {
     // RE mask for an OFDM symbol.
-    bounded_bitset<MAX_RB * NRE> re_mask(nof_grid_rb * NRE);
+    bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> re_mask(nof_grid_rb * NOF_SUBCARRIERS_PER_RB);
     allocation.get_inclusion_mask(re_mask, i_symbol);
     reserved.get_exclusion_mask(re_mask, i_symbol);
 
@@ -179,7 +179,7 @@ protected:
     // Some RE.
     re_prb_mask re_mask;
     re_mask.set(0);
-    for (unsigned i_re = 1; i_re != NRE; ++i_re) {
+    for (unsigned i_re = 1; i_re != NOF_SUBCARRIERS_PER_RB; ++i_re) {
       if (static_cast<bool>(bool_dist(rgen))) {
         re_mask.set(i_re);
       }
@@ -249,13 +249,13 @@ protected:
 
     unsigned i_re_buffer = 0;
     for (unsigned i_symbol = 0; i_symbol != MAX_NSYMB_PER_SLOT; ++i_symbol) {
-      bounded_bitset<MAX_RB * NRE> re_pattern_symbol(MAX_RB * NRE);
+      bounded_bitset<MAX_RB * NOF_SUBCARRIERS_PER_RB> re_pattern_symbol(MAX_RB * NOF_SUBCARRIERS_PER_RB);
       allocation.get_inclusion_mask(re_pattern_symbol, i_symbol);
       reserved.get_exclusion_mask(re_pattern_symbol, i_symbol);
 
       re_pattern_symbol.for_each(0, re_pattern_symbol.size(), [&](unsigned i_re) {
         // PRG of each RE.
-        unsigned prg_id = i_re / (configuration.get_prg_size() * NRE);
+        unsigned prg_id = i_re / (configuration.get_prg_size() * NOF_SUBCARRIERS_PER_RB);
 
         for (unsigned i_port = 0; i_port != nof_ports; ++i_port) {
           for (unsigned i_layer = 0; i_layer != nof_layers; ++i_layer) {
@@ -311,10 +311,12 @@ protected:
 
 private:
   // Buffer for holding randomly generated data.
-  static_re_buffer<precoding_constants::MAX_NOF_LAYERS, NRE * MAX_RB * MAX_NSYMB_PER_SLOT> random_data;
+  static_re_buffer<precoding_constants::MAX_NOF_LAYERS, NOF_SUBCARRIERS_PER_RB * MAX_RB * MAX_NSYMB_PER_SLOT>
+      random_data;
 
   // Buffer for holding the golden sequence.
-  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NRE * MAX_RB * MAX_NSYMB_PER_SLOT> golden_data;
+  static_re_buffer<precoding_constants::MAX_NOF_PORTS, NOF_SUBCARRIERS_PER_RB * MAX_RB * MAX_NSYMB_PER_SLOT>
+      golden_data;
 
   // Uniform distribution to generate data samples.
   std::uniform_real_distribution<float> data_dist{-10.0, +10.0};
@@ -331,7 +333,7 @@ std::shared_ptr<resource_grid_factory>        ResourceGridMapperFixture::rg_fact
 TEST_F(ResourceGridMapperFixture, SinglePort)
 {
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(1, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid = rg_factory->create(1, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
   grid->set_all_zero();
 
   constexpr unsigned nof_layers = 1;
@@ -369,7 +371,8 @@ TEST_F(ResourceGridMapperFixture, OneLayerToOnePort)
 
   for (unsigned nof_ports = 1; nof_ports <= precoding_constants::MAX_NOF_PORTS; ++nof_ports) {
     // Create resource grid.
-    std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+    std::unique_ptr<resource_grid> grid =
+        rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
     grid->set_all_zero();
 
     // The precoding configuration maps a single layer to one of the antenna ports, selected randomly.
@@ -410,7 +413,8 @@ TEST_F(ResourceGridMapperFixture, OneLayerAllPorts)
 
   for (unsigned nof_ports = 1; nof_ports <= precoding_constants::MAX_NOF_PORTS; ++nof_ports) {
     // Create resource grid.
-    std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+    std::unique_ptr<resource_grid> grid =
+        rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
     grid->set_all_zero();
 
     // Create a transmit diversity precoding configuration.
@@ -445,7 +449,8 @@ TEST_F(ResourceGridMapperFixture, Identity)
 {
   for (unsigned nof_streams = 1; nof_streams <= precoding_constants::MAX_NOF_LAYERS; ++nof_streams) {
     // Create resource grid.
-    std::unique_ptr<resource_grid> grid = rg_factory->create(nof_streams, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+    std::unique_ptr<resource_grid> grid =
+        rg_factory->create(nof_streams, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
     grid->set_all_zero();
 
     // Create a precoding configuration with precoding coefficients forming an identity matrix.
@@ -481,7 +486,7 @@ TEST_F(ResourceGridMapperFixture, OneLayerTwoPorts)
   constexpr unsigned nof_layers = 1;
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(2, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid = rg_factory->create(2, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
   for (unsigned codebook_index = 0, nof_cb_index = 4; codebook_index != nof_cb_index; ++codebook_index) {
     // Initialize grid to zero.
@@ -521,7 +526,7 @@ TEST_F(ResourceGridMapperFixture, TwoLayerTwoPorts)
   constexpr unsigned nof_layers = 2;
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(2, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid = rg_factory->create(2, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
   for (unsigned codebook_index = 0, nof_cb_index = 2; codebook_index != nof_cb_index; ++codebook_index) {
     // Initialize grid to zero.
@@ -562,7 +567,8 @@ TEST_F(ResourceGridMapperFixture, OneLayerFourPorts)
   constexpr unsigned nof_ports  = 4;
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid =
+      rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
   for (unsigned i_beam = 0; i_beam != 8; ++i_beam) {
     for (unsigned i_pol_phase = 0; i_pol_phase != 4; ++i_pol_phase) {
@@ -605,7 +611,8 @@ TEST_F(ResourceGridMapperFixture, TwoLayerFourPorts)
   constexpr unsigned nof_ports  = 4;
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid =
+      rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
   for (unsigned i_beam = 0; i_beam != 8; ++i_beam) {
     for (unsigned i_beam_offset = 0; i_beam_offset != 1; ++i_beam_offset) {
@@ -650,7 +657,8 @@ TEST_F(ResourceGridMapperFixture, ThreeLayerFourPorts)
   constexpr unsigned nof_ports  = 4;
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid =
+      rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
   for (unsigned i_beam = 0; i_beam != 8; ++i_beam) {
     for (unsigned i_pol_phase = 0; i_pol_phase != 2; ++i_pol_phase) {
@@ -693,7 +701,8 @@ TEST_F(ResourceGridMapperFixture, FourLayerFourPorts)
   constexpr unsigned nof_ports  = 4;
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NRE);
+  std::unique_ptr<resource_grid> grid =
+      rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, MAX_RB * NOF_SUBCARRIERS_PER_RB);
 
   for (unsigned i_beam = 0; i_beam != 8; ++i_beam) {
     for (unsigned i_pol_phase = 0; i_pol_phase != 2; ++i_pol_phase) {
@@ -738,13 +747,14 @@ TEST_P(ResourceGridMapperFixture, MultiplePrg)
   unsigned prg_size  = std::get<2>(test_case);
 
   // Create resource grid.
-  std::unique_ptr<resource_grid> grid = rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, nof_rb * NRE);
+  std::unique_ptr<resource_grid> grid =
+      rg_factory->create(nof_ports, MAX_NSYMB_PER_SLOT, nof_rb * NOF_SUBCARRIERS_PER_RB);
 
   // Number of subcarriers in an OFDM symbol.
-  unsigned nof_subc = nof_rb * NRE;
+  unsigned nof_subc = nof_rb * NOF_SUBCARRIERS_PER_RB;
 
   // Number of RE that fit in a PRG for an OFDM symbol.
-  unsigned nof_re_prg = prg_size * NRE;
+  unsigned nof_re_prg = prg_size * NOF_SUBCARRIERS_PER_RB;
 
   for (unsigned nof_layers = 1; nof_layers <= nof_ports; ++nof_layers) {
     // Initialize grid to zero.

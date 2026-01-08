@@ -86,21 +86,21 @@ static float estimate_noise(const dmrs_symbol_list&                   pilots,
 static void setup_auxiliary_buffers(
     modular_re_measurement<cf_t, port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS>& pilots_lse,
     static_re_measurement<cf_t,
-                          MAX_RB * NRE + 2 * MAX_V_PILOTS,
+                          MAX_RB * NOF_SUBCARRIERS_PER_RB + 2 * MAX_V_PILOTS,
                           port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS,
                           MAX_LAYERS>& enlarged_pilots_lse,
     modular_re_measurement<cf_t, port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS>&
-                                                     filtered_pilots_lse,
+                                                                   filtered_pilots_lse,
     static_re_measurement<cf_t,
-                          MAX_RB * NRE + 2 * MAX_V_PILOTS,
+                          MAX_RB * NOF_SUBCARRIERS_PER_RB + 2 * MAX_V_PILOTS,
                           port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS,
-                          MAX_LAYERS>&               enlarged_filtered_pilots_lse,
-    static_re_buffer<MAX_LAYERS, MAX_RB * NRE>&      pilot_products,
-    port_channel_estimator_fd_smoothing_strategy     fd_smoothing_strategy,
-    port_channel_estimator_td_interpolation_strategy td_interpolation_strategy,
-    unsigned                                         nof_tx_layers,
-    unsigned                                         nof_dmrs_symbols,
-    unsigned                                         nof_symbol_pilots);
+                          MAX_LAYERS>&                             enlarged_filtered_pilots_lse,
+    static_re_buffer<MAX_LAYERS, MAX_RB * NOF_SUBCARRIERS_PER_RB>& pilot_products,
+    port_channel_estimator_fd_smoothing_strategy                   fd_smoothing_strategy,
+    port_channel_estimator_td_interpolation_strategy               td_interpolation_strategy,
+    unsigned                                                       nof_tx_layers,
+    unsigned                                                       nof_dmrs_symbols,
+    unsigned                                                       nof_symbol_pilots);
 
 /// \brief Interpolates two vectors.
 /// \param[out] out   Interpolation result.
@@ -113,9 +113,10 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
                                                                  unsigned      i_symbol,
                                                                  unsigned      tx_layer) const
 {
-  unsigned nof_subcarriers = static_cast<unsigned>(cfg_local.dmrs_pattern.front().rb_mask.size()) * NRE;
-  unsigned nof_symbols     = cfg_local.first_symbol + cfg_local.nof_symbols;
-  unsigned nof_layers      = cfg_local.dmrs_pattern.size();
+  unsigned nof_subcarriers =
+      static_cast<unsigned>(cfg_local.dmrs_pattern.front().rb_mask.size()) * NOF_SUBCARRIERS_PER_RB;
+  unsigned nof_symbols = cfg_local.first_symbol + cfg_local.nof_symbols;
+  unsigned nof_layers  = cfg_local.dmrs_pattern.size();
 
   ocudu_assert(symbol.size() == nof_subcarriers,
                "Symbol size mismatch: requested {} subcarriers, supported {}.",
@@ -166,10 +167,10 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   bool is_contiguous = (static_cast<unsigned>(highest_rb + 1 - lowest_rb) == rb_count);
 
   // Total number of REs with an estimated channel coefficient in the requested OFDM symbol.
-  unsigned nof_re = rb_count * NRE;
+  unsigned nof_re = rb_count * NOF_SUBCARRIERS_PER_RB;
 
   // Select the section of the output where the estimates are written.
-  span<cbf16_t> symbol_fr_resp = symbol.subspan(lowest_rb * NRE, nof_re);
+  span<cbf16_t> symbol_fr_resp = symbol.subspan(lowest_rb * NOF_SUBCARRIERS_PER_RB, nof_re);
 
   // Straight process if the allocation is contiguous.
   if (is_contiguous) {
@@ -181,7 +182,7 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
     hop_rb_mask.for_each(
         0, hop_rb_mask.size(), [&, first_symbol_ = first_symbol, last_symbol_ = last_symbol](unsigned i_prb) {
           modular_re_measurement<const cf_t, MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS> prb_freq_response(
-              freq_response, i_prb_ce * NRE, NRE);
+              freq_response, i_prb_ce * NOF_SUBCARRIERS_PER_RB, NOF_SUBCARRIERS_PER_RB);
           apply_td_domain_strategy(
               symbol_fr_resp, pattern.symbols, prb_freq_response, first_symbol_, last_symbol_, i_symbol, tx_layer);
           ++i_prb_ce;
@@ -337,9 +338,10 @@ void port_channel_estimator_average_impl::compute_hop(const ocudu::resource_grid
   // Select and resize the storage for the estimated frequency-domain channel coefficients.
   re_measurement<cf_t>& freq_response = (hop == 0) ? dynamic_cast<re_measurement<cf_t>&>(freq_response_hop0)
                                                    : dynamic_cast<re_measurement<cf_t>&>(freq_response_hop1);
-  freq_response.resize({.nof_subc    = static_cast<unsigned>(cfg_local.dmrs_pattern.front().rb_mask.count() * NRE),
-                        .nof_symbols = nof_lse_symbols,
-                        .nof_slices  = nof_tx_layers});
+  freq_response.resize(
+      {.nof_subc    = static_cast<unsigned>(cfg_local.dmrs_pattern.front().rb_mask.count() * NOF_SUBCARRIERS_PER_RB),
+       .nof_symbols = nof_lse_symbols,
+       .nof_slices  = nof_tx_layers});
 
   // Process pilot estimates in frequency and time domain for each layer.
   for (unsigned i_layer = 0; i_layer != nof_tx_layers; ++i_layer) {
@@ -653,17 +655,17 @@ static void setup_auxiliary_buffers(
                           port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS,
                           MAX_LAYERS>& enlarged_pilots_lse,
     modular_re_measurement<cf_t, port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS>&
-                                                     filtered_pilots_lse,
+                                                                   filtered_pilots_lse,
     static_re_measurement<cf_t,
                           port_channel_estimator_average_impl::MAX_NOF_PILOTS_SYMBOL,
                           port_channel_estimator_average_impl::MAX_NOF_DMRS_SYMBOLS,
-                          MAX_LAYERS>&               enlarged_filtered_pilots_lse,
-    static_re_buffer<MAX_LAYERS, MAX_RB * NRE>&      pilot_products,
-    port_channel_estimator_fd_smoothing_strategy     fd_smoothing_strategy,
-    port_channel_estimator_td_interpolation_strategy td_interpolation_strategy,
-    unsigned                                         nof_tx_layers,
-    unsigned                                         nof_dmrs_symbols,
-    unsigned                                         nof_symbol_pilots)
+                          MAX_LAYERS>&                             enlarged_filtered_pilots_lse,
+    static_re_buffer<MAX_LAYERS, MAX_RB * NOF_SUBCARRIERS_PER_RB>& pilot_products,
+    port_channel_estimator_fd_smoothing_strategy                   fd_smoothing_strategy,
+    port_channel_estimator_td_interpolation_strategy               td_interpolation_strategy,
+    unsigned                                                       nof_tx_layers,
+    unsigned                                                       nof_dmrs_symbols,
+    unsigned                                                       nof_symbol_pilots)
 {
   unsigned nof_lse_symbols = 1;
   if (td_interpolation_strategy != port_channel_estimator_td_interpolation_strategy::average) {
@@ -744,7 +746,7 @@ static float estimate_noise(const dmrs_symbol_list&                   pilots,
   // Scale channel estimates and average in time domain.
   float scaling_factor = beta / static_cast<float>(nof_lse_symbols);
 
-  static_re_buffer<max_layers, MAX_RB * NRE> scaled_estimates(estimates.size().nof_slices, nof_re);
+  static_re_buffer<max_layers, MAX_RB * NOF_SUBCARRIERS_PER_RB> scaled_estimates(estimates.size().nof_slices, nof_re);
 
   for (unsigned i_layer = start_layer; i_layer != stop_layer; ++i_layer) {
     unsigned i_helper = i_layer - start_layer;
@@ -761,8 +763,8 @@ static float estimate_noise(const dmrs_symbol_list&                   pilots,
   }
 
   // Temporary data buffers.
-  static_re_buffer<1, MAX_RB * NRE> predicted_obs_buffer(1, nof_re);
-  static_re_buffer<1, MAX_RB * NRE> noise_samples_buffer(1, nof_re);
+  static_re_buffer<1, MAX_RB * NOF_SUBCARRIERS_PER_RB> predicted_obs_buffer(1, nof_re);
+  static_re_buffer<1, MAX_RB * NOF_SUBCARRIERS_PER_RB> noise_samples_buffer(1, nof_re);
 
   // Noise energy accumulator for each OFDM symbol containing DM-RS.
   float noise_energy = 0.0F;

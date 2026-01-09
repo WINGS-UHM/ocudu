@@ -99,11 +99,12 @@ void split6_o_du_low_application_unit_impl::fill_worker_manager_config(worker_ma
   }
 }
 
-split6_o_du_low_unit
-split6_o_du_low_application_unit_impl::create_flexible_o_du_low(worker_manager&                 workers,
-                                                                app_services::metrics_notifier& metrics_notifier,
-                                                                timer_manager&                  timers,
-                                                                ocudulog::basic_logger&         logger)
+split6_o_du_low_unit split6_o_du_low_application_unit_impl::create_flexible_o_du_low(
+    worker_manager&                              workers,
+    app_services::metrics_notifier&              metrics_notifier,
+    app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+    timer_manager&                               timers,
+    ocudulog::basic_logger&                      logger)
 {
   split6_o_du_low_unit output;
 
@@ -114,8 +115,12 @@ split6_o_du_low_application_unit_impl::create_flexible_o_du_low(worker_manager& 
 
   // :TODO: 0 is hardcoded to the cell id. Difficult to add here the PCI as it is a parameter that will be readed
   // dynamically after the CONFIG.request FAPI message.
-  auto notifier = build_split6_flexible_o_du_low_metrics_config(
-      output.metrics, metrics_notifier, unit_cfg.du_low_cfg.metrics_cfg.common_metrics_cfg, {0}, symbol_duration);
+  auto* notifier = build_split6_flexible_o_du_low_metrics_config(output.metrics,
+                                                                 metrics_notifier,
+                                                                 remote_metrics_gateway,
+                                                                 unit_cfg.du_low_cfg.metrics_cfg.common_metrics_cfg,
+                                                                 {0},
+                                                                 symbol_duration);
 
   // Split 6 flexible O-DU low manager dependencies.
   split6_flexible_o_du_low_dependencies dependencies;

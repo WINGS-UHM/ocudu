@@ -16,6 +16,10 @@
 
 namespace ocudu {
 
+namespace app_services {
+class remote_server_metrics_gateway;
+} // namespace app_services
+
 struct ru_metrics;
 
 /// Log consumer for the split 6 flexible O-DU low metrics.
@@ -45,14 +49,14 @@ private:
 class split6_flexible_o_du_low_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  split6_flexible_o_du_low_metrics_consumer_json(ocudulog::log_channel&   log_chan,
-                                                 std::vector<pci_t>       pci_sector_map_,
-                                                 std::chrono::nanoseconds symbol_duration) :
+  split6_flexible_o_du_low_metrics_consumer_json(app_services::remote_server_metrics_gateway& gateway,
+                                                 std::vector<pci_t>                           pci_sector_map_,
+                                                 std::chrono::nanoseconds                     symbol_duration) :
     pci_sector_map(std::move(pci_sector_map_)),
-    odu_low_metrics_handler(log_chan),
-    ru_metrics_handler(log_chan, pci_sector_map, symbol_duration)
+    odu_low_metrics_handler(gateway),
+    ru_metrics_handler(gateway, pci_sector_map, symbol_duration)
+
   {
-    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // See interface for documentation.

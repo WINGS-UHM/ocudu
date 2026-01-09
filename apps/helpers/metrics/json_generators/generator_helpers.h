@@ -15,6 +15,9 @@
 
 namespace ocudu {
 
+/// [Implementation defined] Default indentation size for the JSON metrics.
+constexpr unsigned DEFAULT_JSON_INDENT = 2U;
+
 inline void to_json(nlohmann::json& json, slot_point slot)
 {
   json = fmt::format("{}", slot);

@@ -18,17 +18,21 @@
 
 namespace ocudu {
 
+namespace app_services {
+class remote_server_metrics_gateway;
+} // namespace app_services
+
 /// Consumer for the json CU-CP metrics.
 class cu_cp_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit cu_cp_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit cu_cp_metrics_consumer_json(app_services::remote_server_metrics_gateway& gateway_) : gateway(gateway_) {}
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override;
 
 private:
-  ocudulog::log_channel& log_chan;
+  app_services::remote_server_metrics_gateway& gateway;
 };
 
 /// Consumer for the log CU-CP metrics.

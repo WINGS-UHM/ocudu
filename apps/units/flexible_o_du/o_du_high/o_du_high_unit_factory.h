@@ -20,7 +20,8 @@ struct o_du_high_unit_config;
 
 namespace app_services {
 class metrics_notifier;
-}
+class remote_server_metrics_gateway;
+} // namespace app_services
 
 namespace odu {
 class du_high_executor_mapper;
@@ -43,6 +44,7 @@ class timer_manager;
 struct du_high_unit_config;
 struct du_high_wrapper_config;
 struct du_high_wrapper_dependencies;
+struct o_du_high_unit_config;
 using e2_du_metrics_connector_manager =
     e2_metric_connector_manager<e2_du_metrics_connector, e2_du_metrics_notifier, e2_du_metrics_interface>;
 
@@ -58,16 +60,17 @@ struct o_du_high_unit {
 
 /// O-RAN DU high unit dependencies.
 struct o_du_high_unit_dependencies {
-  odu::du_high_executor_mapper&    execution_mapper;
-  odu::f1c_connection_client&      f1c_client_handler;
-  odu::f1u_du_gateway&             f1u_gw;
-  mac_clock_controller&            timer_ctrl;
-  mac_pcap&                        mac_p;
-  rlc_pcap&                        rlc_p;
-  e2_connection_client&            e2_client_handler;
-  e2_du_metrics_connector_manager& e2_metric_connectors;
-  app_services::metrics_notifier&  metrics_notifier;
-  odu::o_du_high_dependencies      o_du_hi_dependencies;
+  odu::du_high_executor_mapper&                execution_mapper;
+  odu::f1c_connection_client&                  f1c_client_handler;
+  odu::f1u_du_gateway&                         f1u_gw;
+  mac_clock_controller&                        timer_ctrl;
+  mac_pcap&                                    mac_p;
+  rlc_pcap&                                    rlc_p;
+  e2_connection_client&                        e2_client_handler;
+  e2_du_metrics_connector_manager&             e2_metric_connectors;
+  app_services::metrics_notifier&              metrics_notifier;
+  app_services::remote_server_metrics_gateway* remote_metrics_gateway = nullptr;
+  odu::o_du_high_dependencies                  o_du_hi_dependencies;
 };
 
 /// Creates the O-RAN DU high unit with the given configuration.

@@ -27,9 +27,10 @@
 using namespace ocudu;
 
 static cu_cp_metrics_report_notifier*
-build_cu_cp_metrics_config(std::vector<app_services::metrics_config>& cu_cp_services_cfg,
-                           app_services::metrics_notifier&            metrics_notifier,
-                           const cu_cp_unit_metrics_config&           cu_cp_metrics_cfg)
+build_cu_cp_metrics_config(std::vector<app_services::metrics_config>&   cu_cp_services_cfg,
+                           app_services::metrics_notifier&              metrics_notifier,
+                           app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+                           const cu_cp_unit_metrics_config&             cu_cp_metrics_cfg)
 {
   cu_cp_metrics_report_notifier* out = nullptr;
 
@@ -42,8 +43,9 @@ build_cu_cp_metrics_config(std::vector<app_services::metrics_config>& cu_cp_serv
 
   const app_helpers::metrics_config& unit_metrics_cfg = cu_cp_metrics_cfg.common_metrics_cfg;
   if (unit_metrics_cfg.enable_json_metrics) {
-    metrics_service_cfg.consumers.push_back(
-        std::make_unique<cu_cp_metrics_consumer_json>(app_helpers::fetch_json_metrics_log_channel()));
+    report_error_if_not(remote_metrics_gateway,
+                        "Invalid remote server gateway for sending JSON metrics. Check that remote server is enabled");
+    metrics_service_cfg.consumers.push_back(std::make_unique<cu_cp_metrics_consumer_json>(*remote_metrics_gateway));
   }
   if (cu_cp_metrics_cfg.common_metrics_cfg.enable_log_metrics) {
     metrics_service_cfg.consumers.push_back(
@@ -71,8 +73,8 @@ o_cu_cp_unit ocudu::build_o_cu_cp(const o_cu_cp_unit_config& unit_cfg, o_cu_cp_u
   o_cu_cp_unit ocucp;
 
   cu_cp_cfg.metrics.metrics_report_period = std::chrono::milliseconds(unit_cfg.cucp_cfg.metrics.cu_cp_report_period);
-  cu_cp_cfg.metrics_notifier =
-      build_cu_cp_metrics_config(ocucp.metrics, *dependencies.metrics_notifier, unit_cfg.cucp_cfg.metrics);
+  cu_cp_cfg.metrics_notifier              = build_cu_cp_metrics_config(
+      ocucp.metrics, *dependencies.metrics_notifier, dependencies.remote_metrics_gateway, unit_cfg.cucp_cfg.metrics);
 
   // Create N2 Client Gateways.
   std::vector<std::unique_ptr<ocucp::n2_connection_client>> n2_clients;

@@ -10,7 +10,9 @@
 
 #include "o_du_low_metrics_consumers.h"
 #include "apps/helpers/metrics/helpers.h"
+#include "apps/helpers/metrics/json_generators/generator_helpers.h"
 #include "apps/helpers/metrics/json_generators/o_du_low.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "ocudu/du/du_low/o_du_low_metrics.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 
@@ -22,7 +24,7 @@ static constexpr unsigned str_buffer_size = 4096;
 
 void o_du_low_metrics_consumer_json::handle_metric(const odu::o_du_low_metrics& metric)
 {
-  log_chan("{}", app_helpers::json_generators::generate_string(metric, 2));
+  gateway.send(app_helpers::json_generators::generate_string(metric, DEFAULT_JSON_INDENT));
 }
 
 static void log_upper_phy_metrics_verbose(fmt::basic_memory_buffer<char, str_buffer_size>& buffer,

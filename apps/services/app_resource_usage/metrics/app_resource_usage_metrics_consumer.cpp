@@ -10,6 +10,7 @@
 
 #include "app_resource_usage_metrics_consumer.h"
 #include "apps/helpers/metrics/json_generators/resource_usage.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 
 using namespace ocudu;
@@ -18,7 +19,7 @@ void resource_usage_metrics_consumer_json::handle_metric(const app_services::met
 {
   const resource_usage_metrics& sys_metrics = static_cast<const resource_usage_metrics_impl&>(metric).get_metrics();
 
-  log_chan("{}", app_helpers::json_generators::generate_string(sys_metrics, 2));
+  gateway.send(app_helpers::json_generators::generate_string(sys_metrics, 2));
 }
 
 void resource_usage_metrics_consumer_log::handle_metric(const app_services::metrics_set& metric)

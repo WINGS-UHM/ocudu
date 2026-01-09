@@ -16,6 +16,10 @@
 
 namespace ocudu {
 
+namespace app_services {
+class remote_server_metrics_gateway;
+} // namespace app_services
+
 struct ru_dummy_metrics;
 struct ru_sdr_metrics;
 struct ru_metrics;
@@ -24,21 +28,20 @@ struct ru_metrics;
 class ru_metrics_consumer_json
 {
 public:
-  ru_metrics_consumer_json(ocudulog::log_channel&   log_chan_,
-                           span<const pci_t>        pci_sector_map_,
-                           std::chrono::nanoseconds symbol_duration_) :
-    symbol_duration(symbol_duration_), log_chan(log_chan_), pci_sector_map(pci_sector_map_)
+  ru_metrics_consumer_json(app_services::remote_server_metrics_gateway& gateway_,
+                           span<const pci_t>                            pci_sector_map_,
+                           std::chrono::nanoseconds                     symbol_duration_) :
+    symbol_duration(symbol_duration_), gateway(gateway_), pci_sector_map(pci_sector_map_)
   {
-    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
   }
 
   // Handles the O-RU metrics.
   void handle_metric(const ru_metrics& metric);
 
 private:
-  const std::chrono::nanoseconds symbol_duration;
-  ocudulog::log_channel&         log_chan;
-  span<const pci_t>              pci_sector_map;
+  const std::chrono::nanoseconds               symbol_duration;
+  app_services::remote_server_metrics_gateway& gateway;
+  span<const pci_t>                            pci_sector_map;
 };
 
 /// Logger consumer for the O-RU metrics.

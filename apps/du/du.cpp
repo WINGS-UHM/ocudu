@@ -139,9 +139,6 @@ static void register_app_logs(const du_appconfig& du_cfg, flexible_o_du_applicat
   // Metrics log channels.
   const app_helpers::metrics_config& metrics_cfg = du_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg;
   app_helpers::initialize_metrics_log_channels(metrics_cfg, log_cfg.hex_max_size);
-  if (metrics_cfg.enable_json_metrics) {
-    app_services::initialize_json_channel();
-  }
 
   auto& e2ap_logger = ocudulog::fetch_basic_logger("E2AP", false);
   e2ap_logger.set_level(log_cfg.e2ap_level);
@@ -271,11 +268,15 @@ int main(int argc, char** argv)
   // Create manager of timers for DU, which will be driven by the PHY slot ticks.
   timer_manager app_timers{256};
 
-  app_services::metrics_notifier_proxy_impl metrics_notifier_forwarder;
+  app_services::metrics_notifier_proxy_impl    metrics_notifier_forwarder;
+  std::unique_ptr<app_services::remote_server> remote_control_server =
+      app_services::create_remote_server(du_cfg.remote_control_config);
+  app_services::remote_server_metrics_gateway* remote_server_gateway =
+      remote_control_server ? remote_control_server->get_metrics_gateway() : nullptr;
 
   // Instantiate executor metrics service.
-  app_services::executor_metrics_service_and_metrics exec_metrics_service =
-      build_executor_metrics_service(metrics_notifier_forwarder, app_timers, du_cfg.metrics_cfg.executors_metrics_cfg);
+  app_services::executor_metrics_service_and_metrics exec_metrics_service = build_executor_metrics_service(
+      metrics_notifier_forwarder, app_timers, du_cfg.metrics_cfg.executors_metrics_cfg, remote_server_gateway);
   std::vector<app_services::metrics_config> app_metrics = std::move(exec_metrics_service.metrics);
 
   // Instantiate worker manager.
@@ -349,25 +350,28 @@ int main(int argc, char** argv)
                                         E2_DU_PPID));
 
   // Create app-level resource usage service and metrics.
-  auto app_resource_usage_service = app_services::build_app_resource_usage_service(
-      metrics_notifier_forwarder, du_cfg.metrics_cfg.rusage_config, ocudulog::fetch_basic_logger("GNB"));
+  auto app_resource_usage_service = app_services::build_app_resource_usage_service(metrics_notifier_forwarder,
+                                                                                   du_cfg.metrics_cfg.rusage_config,
+                                                                                   ocudulog::fetch_basic_logger("GNB"),
+                                                                                   remote_server_gateway);
 
   for (auto& metric : app_resource_usage_service.metrics) {
     app_metrics.push_back(std::move(metric));
   }
 
   buffer_pool_service.add_metrics_to_metrics_service(
-      app_metrics, du_cfg.buffer_pool_config.metrics_config, metrics_notifier_forwarder);
+      app_metrics, du_cfg.buffer_pool_config.metrics_config, metrics_notifier_forwarder, remote_server_gateway);
 
   o_du_unit_dependencies du_dependencies;
-  du_dependencies.workers            = &workers;
-  du_dependencies.f1c_client_handler = f1c_gw.get();
-  du_dependencies.f1u_gw             = du_f1u_conn.get();
-  du_dependencies.timer_ctrl         = time_ctrl.get();
-  du_dependencies.mac_p              = du_pcaps.mac.get();
-  du_dependencies.rlc_p              = du_pcaps.rlc.get();
-  du_dependencies.e2_client_handler  = e2_gw.get();
-  du_dependencies.metrics_notifier   = &metrics_notifier_forwarder;
+  du_dependencies.workers                = &workers;
+  du_dependencies.f1c_client_handler     = f1c_gw.get();
+  du_dependencies.f1u_gw                 = du_f1u_conn.get();
+  du_dependencies.timer_ctrl             = time_ctrl.get();
+  du_dependencies.mac_p                  = du_pcaps.mac.get();
+  du_dependencies.rlc_p                  = du_pcaps.rlc.get();
+  du_dependencies.e2_client_handler      = e2_gw.get();
+  du_dependencies.metrics_notifier       = &metrics_notifier_forwarder;
+  du_dependencies.remote_metrics_gateway = remote_server_gateway;
 
   auto du_inst_and_cmds = o_du_app_unit->create_flexible_o_du_unit(du_dependencies);
 
@@ -397,11 +401,14 @@ int main(int argc, char** argv)
   app_services::cmdline_command_dispatcher command_parser(
       *epoll_broker, workers.get_cmd_line_executor(), du_inst_and_cmds.commands.cmdline.commands);
 
+  // Configure the remote commands and start the service.
+  if (remote_control_server) {
+    remote_control_server->add_commands(du_inst_and_cmds.commands.remote);
+    remote_control_server->get_operation_controller().start();
+  }
+
   // Start processing.
   du_inst.get_operation_controller().start();
-
-  std::unique_ptr<app_services::remote_server> remote_control_server =
-      app_services::create_remote_server(du_cfg.remote_control_config, du_inst_and_cmds.commands.remote);
 
   metrics_mngr.start();
   {
@@ -419,7 +426,7 @@ int main(int argc, char** argv)
   metrics_mngr.stop();
 
   if (remote_control_server) {
-    remote_control_server->stop();
+    remote_control_server->get_operation_controller().stop();
   }
 
   // Stop DU activity.

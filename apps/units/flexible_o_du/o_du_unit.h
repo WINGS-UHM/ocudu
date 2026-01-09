@@ -22,6 +22,7 @@ namespace ocudu {
 
 namespace app_services {
 class metrics_notifier;
+class remote_server_metrics_gateway;
 } // namespace app_services
 
 namespace odu {
@@ -51,14 +52,15 @@ struct o_du_unit {
 
 /// O-RAN DU unit dependencies.
 struct o_du_unit_dependencies {
-  worker_manager*                 workers            = nullptr;
-  odu::f1c_connection_client*     f1c_client_handler = nullptr;
-  odu::f1u_du_gateway*            f1u_gw             = nullptr;
-  mac_clock_controller*           timer_ctrl         = nullptr;
-  mac_pcap*                       mac_p              = nullptr;
-  rlc_pcap*                       rlc_p              = nullptr;
-  e2_connection_client*           e2_client_handler  = nullptr;
-  app_services::metrics_notifier* metrics_notifier   = nullptr;
+  worker_manager*                              workers                = nullptr;
+  odu::f1c_connection_client*                  f1c_client_handler     = nullptr;
+  odu::f1u_du_gateway*                         f1u_gw                 = nullptr;
+  mac_clock_controller*                        timer_ctrl             = nullptr;
+  mac_pcap*                                    mac_p                  = nullptr;
+  rlc_pcap*                                    rlc_p                  = nullptr;
+  e2_connection_client*                        e2_client_handler      = nullptr;
+  app_services::metrics_notifier*              metrics_notifier       = nullptr;
+  app_services::remote_server_metrics_gateway* remote_metrics_gateway = nullptr;
 };
 
 } // namespace ocudu

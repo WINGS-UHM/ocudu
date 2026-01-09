@@ -10,7 +10,9 @@
 
 #include "du_metrics_consumers.h"
 #include "apps/helpers/metrics/json_generators/du_high/scheduler.h"
+#include "apps/helpers/metrics/json_generators/generator_helpers.h"
 #include "apps/helpers/metrics/json_generators/o_du_high.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "du_metrics.h"
 
 using namespace ocudu;
@@ -38,9 +40,9 @@ void du_metrics_consumer_json::handle_metric(const app_services::metrics_set& me
     return;
   }
 
-  log_chan("{}", app_helpers::json_generators::generate_string(report, 2));
+  gateway.send(app_helpers::json_generators::generate_string(report, DEFAULT_JSON_INDENT));
   if (report.mac) {
-    log_chan("{}", app_helpers::json_generators::generate_string(report.mac->sched, 2));
+    gateway.send(app_helpers::json_generators::generate_string(report.mac->sched, DEFAULT_JSON_INDENT));
   }
 }
 

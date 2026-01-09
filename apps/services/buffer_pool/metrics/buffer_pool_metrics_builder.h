@@ -22,14 +22,17 @@ namespace app_services {
 
 class buffer_pool_manager;
 class metrics_notifier;
+class remote_server_metrics_gateway;
 
 ///\brief Builds the buffer pool metrics configuration.
 ///
-/// \param notifier[in]    - Application metrics notifier interface.
-/// \param metrics_cfg[in] - Common metrics configuration.
+/// \param notifier[in]        - Application metrics notifier interface.
+/// \param metrics_cfg[in]     - Common metrics configuration.
+/// \param metrics_gateway[in] - Metrics JSON gateway.
 ///
 /// \return buffer pool metrics configuration.
 metrics_config build_buffer_pool_metrics_config(metrics_notifier&                  notifier,
-                                                const app_helpers::metrics_config& metrics_cfg);
+                                                const app_helpers::metrics_config& metrics_cfg,
+                                                remote_server_metrics_gateway*     metrics_gateway);
 } // namespace app_services
 } // namespace ocudu

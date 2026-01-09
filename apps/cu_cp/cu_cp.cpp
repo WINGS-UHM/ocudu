@@ -135,9 +135,6 @@ static void register_app_logs(const cu_cp_appconfig& cu_cp_cfg, o_cu_cp_applicat
   // Metrics log channels.
   const app_helpers::metrics_config& metrics_cfg = cu_cp_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg;
   app_helpers::initialize_metrics_log_channels(metrics_cfg, log_cfg.hex_max_size);
-  if (metrics_cfg.enable_json_metrics) {
-    app_services::initialize_json_channel();
-  }
 
   // Register units logs.
   cu_cp_app_unit.on_loggers_registration();
@@ -254,11 +251,16 @@ int main(int argc, char** argv)
   timer_manager  app_timers{256};
   timer_manager* cu_timers = &app_timers;
 
-  app_services::metrics_notifier_proxy_impl metrics_notifier_forwarder;
+  app_services::metrics_notifier_proxy_impl    metrics_notifier_forwarder;
+  std::unique_ptr<app_services::remote_server> remote_control_server =
+      app_services::create_remote_server(cu_cp_cfg.remote_control_config);
+  app_services::remote_server_metrics_gateway* remote_server_gateway =
+      remote_control_server ? remote_control_server->get_metrics_gateway() : nullptr;
 
   // Instantiate executor metrics service.
   app_services::executor_metrics_service_and_metrics exec_metrics_service = build_executor_metrics_service(
-      metrics_notifier_forwarder, app_timers, cu_cp_cfg.metrics_cfg.executors_metrics_cfg);
+      metrics_notifier_forwarder, app_timers, cu_cp_cfg.metrics_cfg.executors_metrics_cfg, remote_server_gateway);
+
   std::vector<app_services::metrics_config> metrics_configs = std::move(exec_metrics_service.metrics);
 
   // Create worker manager.
@@ -315,14 +317,14 @@ int main(int argc, char** argv)
 
   // Create app-level resource usage service and metrics.
   auto app_resource_usage_service = app_services::build_app_resource_usage_service(
-      metrics_notifier_forwarder, cu_cp_cfg.metrics_cfg.rusage_config, cu_cp_logger);
+      metrics_notifier_forwarder, cu_cp_cfg.metrics_cfg.rusage_config, cu_cp_logger, remote_server_gateway);
 
   for (auto& metric : app_resource_usage_service.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
 
   buffer_pool_service.add_metrics_to_metrics_service(
-      metrics_configs, cu_cp_cfg.buffer_pool_config.metrics_config, metrics_notifier_forwarder);
+      metrics_configs, cu_cp_cfg.buffer_pool_config.metrics_config, metrics_notifier_forwarder, remote_server_gateway);
 
   // Create O-CU-CP dependencies.
   o_cu_cp_unit_dependencies o_cucp_deps;
@@ -353,6 +355,10 @@ int main(int argc, char** argv)
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
 
+  if (remote_control_server) {
+    remote_control_server->get_operation_controller().start();
+  }
+
   // start O-CU-CP
   cu_cp_logger.info("Starting CU-CP...");
   o_cucp_obj.get_operation_controller().start();
@@ -378,9 +384,6 @@ int main(int argc, char** argv)
 
   metrics_mngr.start();
 
-  std::unique_ptr<app_services::remote_server> remote_control_server =
-      app_services::create_remote_server(cu_cp_cfg.remote_control_config, {});
-
   {
     app_services::application_message_banners app_banner(
         app_name, cu_cp_cfg.log_cfg.filename == "stdout" ? std::string_view() : cu_cp_cfg.log_cfg.filename);
@@ -397,7 +400,7 @@ int main(int argc, char** argv)
   metrics_mngr.stop();
 
   if (remote_control_server) {
-    remote_control_server->stop();
+    remote_control_server->get_operation_controller().stop();
   }
 
   // Stop O-CU-CP activity.

@@ -10,7 +10,9 @@
 
 #include "ru_metrics_consumers.h"
 #include "apps/helpers/metrics/helpers.h"
+#include "apps/helpers/metrics/json_generators/generator_helpers.h"
 #include "apps/helpers/metrics/json_generators/ru/ofh.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "ocudu/ru/ru_metrics.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 
@@ -20,18 +22,19 @@ using namespace app_helpers;
 /// Size in bytes of the buffer used to prepare the metrics before logging.
 static constexpr unsigned str_buffer_size = 2048;
 
-static void log_ru_ofh_metrics_json(ocudulog::log_channel&   log_chan,
-                                    const ofh::metrics&      metrics,
-                                    span<const pci_t>        pci_sector_map,
-                                    std::chrono::nanoseconds symbol_duration)
+static void log_ru_ofh_metrics_json(app_services::remote_server_metrics_gateway& gateway,
+                                    const ofh::metrics&                          metrics,
+                                    span<const pci_t>                            pci_sector_map,
+                                    std::chrono::nanoseconds                     symbol_duration)
 {
-  log_chan("{}", app_helpers::json_generators::generate_string(metrics, pci_sector_map, symbol_duration, 2));
+  gateway.send(
+      app_helpers::json_generators::generate_string(metrics, pci_sector_map, symbol_duration, DEFAULT_JSON_INDENT));
 }
 
 void ru_metrics_consumer_json::handle_metric(const ru_metrics& metric)
 {
   if (const auto* ofh_metrics = std::get_if<ofh::metrics>(&metric.metrics)) {
-    log_ru_ofh_metrics_json(log_chan, *ofh_metrics, pci_sector_map, symbol_duration);
+    log_ru_ofh_metrics_json(gateway, *ofh_metrics, pci_sector_map, symbol_duration);
   }
 }
 

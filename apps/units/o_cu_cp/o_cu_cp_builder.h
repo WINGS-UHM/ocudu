@@ -18,21 +18,21 @@
 #include "ocudu/e2/e2_cu_metrics_connector.h"
 
 namespace ocudu {
+
 namespace app_services {
 class metrics_notifier;
-}
+class remote_server_metrics_gateway;
+} // namespace app_services
+
+namespace ocucp {
+class n2_connection_client;
+class cu_cp_executor_mapper;
+} // namespace ocucp
 
 class dlt_pcap;
 class io_broker;
 struct o_cu_cp_unit_config;
 struct worker_manager;
-
-namespace ocucp {
-
-class n2_connection_client;
-class cu_cp_executor_mapper;
-
-} // namespace ocucp
 
 template <typename ConnectorType, typename NotifierType, typename InterfaceType>
 class e2_metric_connector_manager;
@@ -41,12 +41,13 @@ class e2_gateway_remote_connector;
 
 /// O-RAN CU-CP build dependencies.
 struct o_cu_cp_unit_dependencies {
-  ocucp::cu_cp_executor_mapper*   executor_mapper  = nullptr;
-  timer_manager*                  timers           = nullptr;
-  dlt_pcap*                       ngap_pcap        = nullptr;
-  io_broker*                      broker           = nullptr;
-  e2_connection_client*           e2_gw            = nullptr;
-  app_services::metrics_notifier* metrics_notifier = nullptr;
+  ocucp::cu_cp_executor_mapper*                executor_mapper        = nullptr;
+  timer_manager*                               timers                 = nullptr;
+  dlt_pcap*                                    ngap_pcap              = nullptr;
+  io_broker*                                   broker                 = nullptr;
+  e2_connection_client*                        e2_gw                  = nullptr;
+  app_services::metrics_notifier*              metrics_notifier       = nullptr;
+  app_services::remote_server_metrics_gateway* remote_metrics_gateway = nullptr;
 };
 
 /// O-RAN CU-CP unit.

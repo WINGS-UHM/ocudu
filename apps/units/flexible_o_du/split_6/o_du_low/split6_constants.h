@@ -15,7 +15,7 @@
 namespace ocudu {
 namespace split6_du_low {
 
-/// [Implementation defined] PRACH is always in port 0.
+/// [Implementation defined] PRACH always uses port 0.
 constexpr unsigned PRACH_PORT = 0U;
 
 /// [Implementation defined] Cell identifier for building the split.

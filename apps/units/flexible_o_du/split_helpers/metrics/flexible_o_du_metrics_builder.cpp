@@ -20,11 +20,12 @@ using namespace ocudu;
 flexible_o_du_metrics_notifier* ocudu::build_flexible_o_du_metrics_config(
     std::vector<app_services::metrics_config>& metrics,
     std::vector<std::unique_ptr<app_services::toggle_stdout_metrics_app_command::metrics_subcommand>>&
-                                       metrics_subcommands,
-    app_services::metrics_notifier&    notifier,
-    const app_helpers::metrics_config& metrics_cfg,
-    const std::vector<pci_t>&          pci_cell_map,
-    std::chrono::nanoseconds           symbol_duration)
+                                                 metrics_subcommands,
+    app_services::metrics_notifier&              notifier,
+    app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+    const app_helpers::metrics_config&           metrics_cfg,
+    const std::vector<pci_t>&                    pci_cell_map,
+    std::chrono::nanoseconds                     symbol_duration)
 {
   flexible_o_du_metrics_notifier* out_value = nullptr;
 
@@ -46,8 +47,10 @@ flexible_o_du_metrics_notifier* ocudu::build_flexible_o_du_metrics_config(
   }
 
   if (metrics_cfg.enable_json_metrics) {
-    odu_metric.consumers.push_back(std::make_unique<flexible_o_du_metrics_consumer_json>(
-        app_helpers::fetch_json_metrics_log_channel(), pci_cell_map, symbol_duration));
+    report_error_if_not(remote_metrics_gateway,
+                        "Invalid remote server gateway for sending JSON metrics. Check that remote server is enabled");
+    odu_metric.consumers.push_back(
+        std::make_unique<flexible_o_du_metrics_consumer_json>(*remote_metrics_gateway, pci_cell_map, symbol_duration));
   }
 
   return out_value;

@@ -14,24 +14,25 @@
 
 namespace ocudu {
 
+namespace app_services {
+class remote_server_metrics_gateway;
+} // namespace app_services
+
 namespace odu {
 struct o_du_low_metrics;
-}
+} // namespace odu
 
 /// JSON handler for the O-DU low metrics.
 class o_du_low_metrics_consumer_json
 {
 public:
-  explicit o_du_low_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_)
-  {
-    ocudu_assert(log_chan.enabled(), "JSON log channel is not enabled");
-  }
+  explicit o_du_low_metrics_consumer_json(app_services::remote_server_metrics_gateway& gateway_) : gateway(gateway_) {}
 
   // Handles the O-RU metrics.
   void handle_metric(const odu::o_du_low_metrics& metric);
 
 private:
-  ocudulog::log_channel& log_chan;
+  app_services::remote_server_metrics_gateway& gateway;
 };
 
 /// Logger consumer for the O-DU low metrics.

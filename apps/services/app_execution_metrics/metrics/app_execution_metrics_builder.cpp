@@ -16,9 +16,12 @@
 
 using namespace ocudu;
 
-executor_metrics_notifier& ocudu::build_app_execution_metrics_config(app_services::metrics_config&      exec_metric_cfg,
-                                                                     app_services::metrics_notifier&    notifier,
-                                                                     const app_helpers::metrics_config& metrics_cfg)
+executor_metrics_notifier&
+ocudu::build_app_execution_metrics_config(app_services::metrics_config&                exec_metric_cfg,
+                                          app_services::metrics_notifier&              notifier,
+                                          const app_helpers::metrics_config&           metrics_cfg,
+                                          app_services::remote_server_metrics_gateway* metrics_gateway)
+
 {
   auto                       producer  = std::make_unique<app_execution_metrics_producer_impl>(notifier);
   executor_metrics_notifier& out_value = *producer;
@@ -33,8 +36,9 @@ executor_metrics_notifier& ocudu::build_app_execution_metrics_config(app_service
   }
 
   if (metrics_cfg.enable_json_metrics) {
-    exec_metric_cfg.consumers.push_back(
-        std::make_unique<app_execution_metrics_consumer_json>(app_helpers::fetch_json_metrics_log_channel()));
+    report_error_if_not(metrics_gateway,
+                        "Invalid remote server gateway for sending JSON metrics. Check that remote server is enabled");
+    exec_metric_cfg.consumers.push_back(std::make_unique<app_execution_metrics_consumer_json>(*metrics_gateway));
   }
 
   return out_value;

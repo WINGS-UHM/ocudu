@@ -13,6 +13,7 @@
 #include "apps/helpers/metrics/helpers.h"
 #include "apps/services/buffer_pool/metrics/buffer_pool_metrics.h"
 #include "apps/services/metrics/metrics_consumer.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "external/nlohmann/json.hpp"
 #include "ocudu/ocudulog/log_channel.h"
 
@@ -41,7 +42,9 @@ private:
 class buffer_pool_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit buffer_pool_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit buffer_pool_metrics_consumer_json(app_services::remote_server_metrics_gateway& gateway_) : gateway(gateway_)
+  {
+  }
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override
@@ -54,11 +57,11 @@ public:
     auto& json_buffer_pool                 = json["buffer_pool"];
     json_buffer_pool["central_cache_size"] = central_cache_size;
 
-    log_chan("{}", json.dump(-1));
+    gateway.send(json.dump(-1));
   }
 
 private:
-  ocudulog::log_channel& log_chan;
+  app_services::remote_server_metrics_gateway& gateway;
 };
 
 } // namespace app_services

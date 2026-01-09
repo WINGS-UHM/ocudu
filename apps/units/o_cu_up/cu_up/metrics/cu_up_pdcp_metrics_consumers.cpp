@@ -10,6 +10,8 @@
 
 #include "cu_up_pdcp_metrics_consumers.h"
 #include "apps/helpers/metrics/json_generators/cu_up/pdcp.h"
+#include "apps/helpers/metrics/json_generators/generator_helpers.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "cu_up_pdcp_metrics.h"
 #include "ocudu/pdcp/pdcp_metrics.h"
 
@@ -20,16 +22,13 @@ void cu_up_pdcp_metrics_consumer_e2::handle_metric(const app_services::metrics_s
   notifier.report_metrics(static_cast<const cu_up_pdcp_metrics_impl&>(metric).get_metrics());
 }
 
-cu_up_pdcp_metrics_consumer_json::cu_up_pdcp_metrics_consumer_json(ocudulog::basic_logger& logger_,
-                                                                   ocudulog::log_channel&  log_chan_,
-                                                                   task_executor&          executor_,
-                                                                   unique_timer            timer_,
-                                                                   unsigned                report_period_ms_) :
-  report_period_ms(report_period_ms_),
-  logger(logger_),
-  log_chan(log_chan_),
-  executor(executor_),
-  timer(std::move(timer_))
+cu_up_pdcp_metrics_consumer_json::cu_up_pdcp_metrics_consumer_json(
+    ocudulog::basic_logger&                      logger_,
+    app_services::remote_server_metrics_gateway& gateway_,
+    task_executor&                               executor_,
+    unique_timer                                 timer_,
+    unsigned                                     report_period_ms_) :
+  report_period_ms(report_period_ms_), logger(logger_), gateway(gateway_), executor(executor_), timer(std::move(timer_))
 {
   ocudu_assert(report_period_ms > 10, "CU-UP report period is too fast to work with current JSON consumer");
   ocudu_assert(timer.is_valid(), "Invalid timer passed to metrics controller");
@@ -109,13 +108,12 @@ void cu_up_pdcp_metrics_consumer_json::print_metrics()
     return;
   }
 
-  log_chan("{}",
-           app_helpers::json_generators::generate_string(aggr_metrics.tx,
-                                                         aggr_metrics.rx,
-                                                         aggr_metrics.tx_cpu_usage,
-                                                         aggr_metrics.rx_cpu_usage,
-                                                         aggr_metrics.metrics_period,
-                                                         2));
+  gateway.send(app_helpers::json_generators::generate_string(aggr_metrics.tx,
+                                                             aggr_metrics.rx,
+                                                             aggr_metrics.tx_cpu_usage,
+                                                             aggr_metrics.rx_cpu_usage,
+                                                             aggr_metrics.metrics_period,
+                                                             DEFAULT_JSON_INDENT));
 
   // Clear metrics after printing.
   clear_metrics();

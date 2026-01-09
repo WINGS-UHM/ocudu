@@ -13,6 +13,7 @@
 #include "app_execution_metrics.h"
 #include "apps/helpers/metrics/json_generators/executors.h"
 #include "apps/services/metrics/metrics_consumer.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "ocudu/ocudulog/log_channel.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 
@@ -57,17 +58,20 @@ private:
 class app_execution_metrics_consumer_json : public app_services::metrics_consumer
 {
 public:
-  explicit app_execution_metrics_consumer_json(ocudulog::log_channel& log_chan_) : log_chan(log_chan_) {}
+  explicit app_execution_metrics_consumer_json(app_services::remote_server_metrics_gateway& gateway_) :
+    gateway(gateway_)
+  {
+  }
 
   // See interface for documentation.
   void handle_metric(const app_services::metrics_set& metric) override
   {
     const auto& metrics = static_cast<const executor_metrics_impl&>(metric).get_metrics();
-    log_chan("{}", app_helpers::json_generators::generate_string(metrics, 2));
+    gateway.send(app_helpers::json_generators::generate_string(metrics, 2));
   }
 
 private:
-  ocudulog::log_channel& log_chan;
+  app_services::remote_server_metrics_gateway& gateway;
 };
 
 } // namespace ocudu

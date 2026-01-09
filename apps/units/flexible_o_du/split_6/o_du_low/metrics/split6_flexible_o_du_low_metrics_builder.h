@@ -20,18 +20,20 @@ class split6_flexible_o_du_low_metrics_notifier;
 
 namespace app_helpers {
 struct metrics_config;
-}
+} // namespace app_helpers
 
 namespace app_services {
 class metrics_notifier;
-}
+class remote_server_metrics_gateway;
+} // namespace app_services
 
 /// Builds the split 6flexible O-DU low metrics configuration.
 split6_flexible_o_du_low_metrics_notifier*
-build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::metrics_config>& metrics,
-                                              app_services::metrics_notifier&            notifier,
-                                              const app_helpers::metrics_config&         metrics_cfg,
-                                              const std::vector<pci_t>&                  pci_cell_map,
-                                              std::chrono::nanoseconds                   symbol_duration);
+build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::metrics_config>&   metrics,
+                                              app_services::metrics_notifier&              notifier,
+                                              app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+                                              const app_helpers::metrics_config&           metrics_cfg,
+                                              const std::vector<pci_t>&                    pci_cell_map,
+                                              std::chrono::nanoseconds                     symbol_duration);
 
 } // namespace ocudu

@@ -24,7 +24,8 @@ struct worker_manager;
 
 namespace app_services {
 class metrics_notifier;
-}
+class remote_server_metrics_gateway;
+} // namespace app_services
 
 struct split6_o_du_low_unit {
   std::unique_ptr<du_operation_controller>  odu_low;
@@ -59,10 +60,11 @@ public:
   void fill_worker_manager_config(worker_manager_config& config) override;
 
   /// Creates and returns the low FAPI control adaptor of this application unit.
-  split6_o_du_low_unit create_flexible_o_du_low(worker_manager&                 workers,
-                                                app_services::metrics_notifier& metrics_notifier,
-                                                timer_manager&                  timers,
-                                                ocudulog::basic_logger&         logger);
+  split6_o_du_low_unit create_flexible_o_du_low(worker_manager&                              workers,
+                                                app_services::metrics_notifier&              metrics_notifier,
+                                                app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+                                                timer_manager&                               timers,
+                                                ocudulog::basic_logger&                      logger);
 
 private:
   split6_o_du_low_unit_config             unit_cfg;

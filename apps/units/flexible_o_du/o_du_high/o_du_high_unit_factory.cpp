@@ -105,10 +105,11 @@ static void validates_derived_du_params(span<const odu::du_cell_config> cells)
   }
 }
 
-static rlc_metrics_notifier* build_rlc_du_metrics(std::vector<app_services::metrics_config>& metrics,
-                                                  app_services::metrics_notifier&            metrics_notifier,
-                                                  const o_du_high_unit_config&               o_du_high_unit_cfg,
-                                                  e2_du_metrics_notifier&                    e2_notifier)
+static rlc_metrics_notifier* build_rlc_du_metrics(std::vector<app_services::metrics_config>&   metrics,
+                                                  app_services::metrics_notifier&              metrics_notifier,
+                                                  app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+                                                  const o_du_high_unit_config&                 o_du_high_unit_cfg,
+                                                  e2_du_metrics_notifier&                      e2_notifier)
 {
   rlc_metrics_notifier*      out       = nullptr;
   const du_high_unit_config& du_hi_cfg = o_du_high_unit_cfg.du_high_cfg.config;
@@ -135,8 +136,9 @@ static rlc_metrics_notifier* build_rlc_du_metrics(std::vector<app_services::metr
   }
 
   if (metrics_config.enable_json_metrics) {
-    rlc_metrics_cfg.consumers.push_back(
-        std::make_unique<rlc_metrics_consumer_json>(app_helpers::fetch_json_metrics_log_channel()));
+    report_error_if_not(remote_metrics_gateway,
+                        "Invalid remote server gateway for sending JSON metrics. Check that remote server is enabled");
+    rlc_metrics_cfg.consumers.push_back(std::make_unique<rlc_metrics_consumer_json>(*remote_metrics_gateway));
   }
 
   if (o_du_high_unit_cfg.e2_cfg.base_cfg.enable_unit_e2) {
@@ -149,10 +151,11 @@ static rlc_metrics_notifier* build_rlc_du_metrics(std::vector<app_services::metr
 static odu::du_metrics_notifier*
 build_du_metrics(std::vector<app_services::metrics_config>& metrics,
                  std::vector<std::unique_ptr<app_services::toggle_stdout_metrics_app_command::metrics_subcommand>>&
-                                                 metrics_subcommands,
-                 app_services::metrics_notifier& metrics_notifier,
-                 const o_du_high_unit_config&    o_du_high_unit_cfg,
-                 e2_du_metrics_notifier&         e2_notifier)
+                                                              metrics_subcommands,
+                 app_services::metrics_notifier&              metrics_notifier,
+                 app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+                 const o_du_high_unit_config&                 o_du_high_unit_cfg,
+                 e2_du_metrics_notifier&                      e2_notifier)
 {
   const du_high_unit_config& du_hi_cfg = o_du_high_unit_cfg.du_high_cfg.config;
 
@@ -184,8 +187,9 @@ build_du_metrics(std::vector<app_services::metrics_config>& metrics,
   }
 
   if (metrics_config.enable_json_metrics) {
-    du_metrics_cfg.consumers.push_back(
-        std::make_unique<du_metrics_consumer_json>(app_helpers::fetch_json_metrics_log_channel()));
+    report_error_if_not(remote_metrics_gateway,
+                        "Invalid remote server gateway for sending JSON metrics. Check that remote server is enabled");
+    du_metrics_cfg.consumers.push_back(std::make_unique<du_metrics_consumer_json>(*remote_metrics_gateway));
   }
 
   // Connect E2 agent to DU Scheduler UE metrics.
@@ -235,11 +239,13 @@ o_du_high_unit ocudu::make_o_du_high_unit(const o_du_high_unit_config&  o_du_hig
   du_hi_deps.du_notifier = build_du_metrics(odu_unit.metrics,
                                             odu_unit.commands.cmdline.metrics_subcommands,
                                             dependencies.metrics_notifier,
+                                            dependencies.remote_metrics_gateway,
                                             o_du_high_unit_cfg,
                                             dependencies.e2_metric_connectors.get_e2_metric_notifier(0));
 
   du_hi_deps.rlc_metrics_notif = build_rlc_du_metrics(odu_unit.metrics,
                                                       dependencies.metrics_notifier,
+                                                      dependencies.remote_metrics_gateway,
                                                       o_du_high_unit_cfg,
                                                       dependencies.e2_metric_connectors.get_e2_metric_notifier(0));
 

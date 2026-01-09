@@ -10,6 +10,8 @@
 
 #include "cu_cp_metrics_consumers.h"
 #include "apps/helpers/metrics/json_generators/cu_cp/cu_cp_json_helper.h"
+#include "apps/helpers/metrics/json_generators/generator_helpers.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "cu_cp_metrics.h"
 
 using namespace ocudu;
@@ -23,9 +25,7 @@ void cu_cp_metrics_consumer_json::handle_metric(const app_services::metrics_set&
     return;
   }
 
-  log_chan("{}", app_helpers::json_generators::generate_string(cp_metrics, 2));
-
-  log_chan.enabled();
+  gateway.send(app_helpers::json_generators::generate_string(cp_metrics, DEFAULT_JSON_INDENT));
 }
 
 void cu_cp_metrics_consumer_log::handle_metric(const app_services::metrics_set& metric)

@@ -22,6 +22,7 @@ namespace ocudu {
 namespace app_services {
 
 class metrics_notifier;
+class remote_server_metrics_gateway;
 
 /// \brief Executor metrics service.
 ///
@@ -188,7 +189,8 @@ struct executor_metrics_service_and_metrics {
 inline executor_metrics_service_and_metrics
 build_executor_metrics_service(app_services::metrics_notifier& metrics_notifier,
                                timer_manager&                  timers,
-                               const executor_metrics_config&  app_cfg)
+                               const executor_metrics_config&  app_cfg,
+                               remote_server_metrics_gateway*  metrics_gateway)
 {
   executor_metrics_service_and_metrics service_cfg;
   if (!app_cfg.enable_executor_metrics) {
@@ -196,8 +198,9 @@ build_executor_metrics_service(app_services::metrics_notifier& metrics_notifier,
   }
 
   // Build app metrics configuration.
-  auto& metrics  = service_cfg.metrics.emplace_back();
-  auto& notifier = build_app_execution_metrics_config(metrics, metrics_notifier, app_cfg.common_metrics_cfg);
+  auto& metrics = service_cfg.metrics.emplace_back();
+  auto& notifier =
+      build_app_execution_metrics_config(metrics, metrics_notifier, app_cfg.common_metrics_cfg, metrics_gateway);
 
   // Create executor metrics service.
   service_cfg.service = std::make_unique<app_executor_metrics_service>(timers, notifier, app_cfg.report_period_ms);

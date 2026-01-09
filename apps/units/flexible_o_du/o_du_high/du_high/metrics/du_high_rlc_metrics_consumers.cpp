@@ -10,6 +10,8 @@
 
 #include "du_high_rlc_metrics_consumers.h"
 #include "apps/helpers/metrics/json_generators/du_high/rlc.h"
+#include "apps/helpers/metrics/json_generators/generator_helpers.h"
+#include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "du_high_rlc_metrics.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 
@@ -19,7 +21,7 @@ void rlc_metrics_consumer_json::handle_metric(const app_services::metrics_set& m
 {
   const rlc_metrics& drb = static_cast<const rlc_metrics_impl&>(metric).get_metrics();
 
-  log_chan("{}", app_helpers::json_generators::generate_string(drb, 2));
+  gateway.send(app_helpers::json_generators::generate_string(drb, DEFAULT_JSON_INDENT));
 }
 
 void rlc_metrics_consumer_log::handle_metric(const app_services::metrics_set& metric)

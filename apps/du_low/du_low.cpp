@@ -118,9 +118,6 @@ static void register_app_logs(const du_low_appconfig& du_cfg, application_unit& 
   // Metrics log channels.
   const app_helpers::metrics_config& metrics_cfg = du_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg;
   app_helpers::initialize_metrics_log_channels(metrics_cfg, log_cfg.hex_max_size);
-  if (metrics_cfg.enable_json_metrics) {
-    app_services::initialize_json_channel();
-  }
 
   // Register units logs.
   du_low_app_unit.on_loggers_registration();
@@ -246,7 +243,7 @@ int main(int argc, char** argv)
 
   // Instantiate executor metrics service.
   app_services::executor_metrics_service_and_metrics exec_metrics_service = build_executor_metrics_service(
-      metrics_notifier_forwarder, app_timers, du_low_cfg.metrics_cfg.executors_metrics_cfg);
+      metrics_notifier_forwarder, app_timers, du_low_cfg.metrics_cfg.executors_metrics_cfg, nullptr);
   std::vector<app_services::metrics_config> app_metrics = std::move(exec_metrics_service.metrics);
 
   // Instantiate worker manager.
@@ -274,14 +271,14 @@ int main(int argc, char** argv)
 
   // Create app-level resource usage service and metrics.
   auto app_resource_usage_service = app_services::build_app_resource_usage_service(
-      metrics_notifier_forwarder, du_low_cfg.metrics_cfg.rusage_config, ocudulog::fetch_basic_logger("APP"));
+      metrics_notifier_forwarder, du_low_cfg.metrics_cfg.rusage_config, ocudulog::fetch_basic_logger("APP"), nullptr);
 
   for (auto& metric : app_resource_usage_service.metrics) {
     app_metrics.push_back(std::move(metric));
   }
 
   auto du = o_du_app_unit->create_flexible_o_du_low(
-      workers, metrics_notifier_forwarder, app_timers, ocudulog::fetch_basic_logger("APP"));
+      workers, metrics_notifier_forwarder, nullptr, app_timers, ocudulog::fetch_basic_logger("APP"));
 
   for (auto& metric : du.metrics) {
     app_metrics.push_back(std::move(metric));

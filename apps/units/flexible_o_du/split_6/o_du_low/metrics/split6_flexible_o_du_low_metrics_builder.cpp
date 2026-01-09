@@ -17,12 +17,14 @@
 
 using namespace ocudu;
 
-split6_flexible_o_du_low_metrics_notifier*
-ocudu::build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::metrics_config>& metrics,
-                                                     app_services::metrics_notifier&            notifier,
-                                                     const app_helpers::metrics_config&         metrics_cfg,
-                                                     const std::vector<pci_t>&                  pci_cell_map,
-                                                     std::chrono::nanoseconds                   symbol_duration)
+split6_flexible_o_du_low_metrics_notifier* ocudu::build_split6_flexible_o_du_low_metrics_config(
+    std::vector<app_services::metrics_config>&   metrics,
+    app_services::metrics_notifier&              notifier,
+    app_services::remote_server_metrics_gateway* remote_metrics_gateway,
+    const app_helpers::metrics_config&           metrics_cfg,
+    const std::vector<pci_t>&                    pci_cell_map,
+    std::chrono::nanoseconds                     symbol_duration)
+
 {
   split6_flexible_o_du_low_metrics_notifier* output = nullptr;
   if (!metrics_cfg.enabled()) {
@@ -43,7 +45,7 @@ ocudu::build_split6_flexible_o_du_low_metrics_config(std::vector<app_services::m
 
   if (metrics_cfg.enable_json_metrics) {
     odu_metric.consumers.push_back(std::make_unique<split6_flexible_o_du_low_metrics_consumer_json>(
-        app_helpers::fetch_json_metrics_log_channel(), pci_cell_map, symbol_duration));
+        *remote_metrics_gateway, pci_cell_map, symbol_duration));
   }
 
   return output;

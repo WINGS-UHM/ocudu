@@ -16,13 +16,15 @@
 #include <memory>
 
 namespace ocudu {
+
 namespace app_services {
+class remote_server_metrics_gateway;
 class metrics_notifier;
-}
+} // namespace app_services
 
 namespace ocuup {
 class e1_connection_client;
-}
+} // namespace ocuup
 
 struct o_cu_up_unit_config;
 class dlt_pcap;
@@ -33,14 +35,15 @@ class e2_connection_client;
 
 /// O-RAN CU-UP unit dependencies.
 struct o_cu_up_unit_dependencies {
-  worker_manager*                 workers;
-  e2_connection_client*           e2_gw            = nullptr;
-  app_services::metrics_notifier* metrics_notifier = nullptr;
-  ocuup::e1_connection_client*    e1ap_conn_client = nullptr;
-  f1u_cu_up_gateway*              f1u_gateway      = nullptr;
-  dlt_pcap*                       gtpu_pcap        = nullptr;
-  timer_manager*                  timers           = nullptr;
-  io_broker*                      io_brk           = nullptr;
+  worker_manager*                              workers;
+  e2_connection_client*                        e2_gw                  = nullptr;
+  app_services::metrics_notifier*              metrics_notifier       = nullptr;
+  app_services::remote_server_metrics_gateway* remote_metrics_gateway = nullptr;
+  ocuup::e1_connection_client*                 e1ap_conn_client       = nullptr;
+  f1u_cu_up_gateway*                           f1u_gateway            = nullptr;
+  dlt_pcap*                                    gtpu_pcap              = nullptr;
+  timer_manager*                               timers                 = nullptr;
+  io_broker*                                   io_brk                 = nullptr;
 };
 
 /// O-RAN CU-CP unit.

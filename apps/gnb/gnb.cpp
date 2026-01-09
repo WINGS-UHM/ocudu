@@ -156,9 +156,6 @@ static void register_app_logs(const gnb_appconfig&            gnb_cfg,
   // Metrics log channels.
   const app_helpers::metrics_config& metrics_cfg = gnb_cfg.metrics_cfg.rusage_config.metrics_consumers_cfg;
   app_helpers::initialize_metrics_log_channels(metrics_cfg, log_cfg.hex_max_size);
-  if (metrics_cfg.enable_json_metrics) {
-    app_services::initialize_json_channel();
-  }
 
   // Register units logs.
   cu_cp_app_unit.on_loggers_registration();
@@ -351,9 +348,15 @@ int main(int argc, char** argv)
 
   app_services::metrics_notifier_proxy_impl metrics_notifier_forwarder;
 
+  std::unique_ptr<app_services::remote_server> remote_control_server =
+      app_services::create_remote_server(gnb_cfg.remote_control_config);
+  app_services::remote_server_metrics_gateway* remote_server_gateway =
+      remote_control_server ? remote_control_server->get_metrics_gateway() : nullptr;
+
   // Instantiate executor metrics service.
-  app_services::executor_metrics_service_and_metrics exec_metrics_service =
-      build_executor_metrics_service(metrics_notifier_forwarder, app_timers, gnb_cfg.metrics_cfg.executors_metrics_cfg);
+  app_services::executor_metrics_service_and_metrics exec_metrics_service = build_executor_metrics_service(
+      metrics_notifier_forwarder, app_timers, gnb_cfg.metrics_cfg.executors_metrics_cfg, remote_server_gateway);
+
   std::vector<app_services::metrics_config> metrics_configs = std::move(exec_metrics_service.metrics);
 
   // Instantiate worker manager.
@@ -407,14 +410,14 @@ int main(int argc, char** argv)
 
   // Create app-level resource usage service and metrics.
   auto app_resource_usage_service = app_services::build_app_resource_usage_service(
-      metrics_notifier_forwarder, gnb_cfg.metrics_cfg.rusage_config, gnb_logger);
+      metrics_notifier_forwarder, gnb_cfg.metrics_cfg.rusage_config, gnb_logger, remote_server_gateway);
 
   for (auto& metric : app_resource_usage_service.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
 
   buffer_pool_service.add_metrics_to_metrics_service(
-      metrics_configs, gnb_cfg.buffer_pool_config.metrics_config, metrics_notifier_forwarder);
+      metrics_configs, gnb_cfg.buffer_pool_config.metrics_config, metrics_notifier_forwarder, remote_server_gateway);
 
   // Instantiate E2AP client gateways.
   std::unique_ptr<e2_connection_client> e2_gw_du = create_e2_gateway_client(
@@ -438,12 +441,13 @@ int main(int argc, char** argv)
 
   // Create O-CU-CP dependencies.
   o_cu_cp_unit_dependencies o_cucp_deps;
-  o_cucp_deps.executor_mapper  = &workers.get_cu_cp_executor_mapper();
-  o_cucp_deps.timers           = cu_timers;
-  o_cucp_deps.ngap_pcap        = cu_cp_dlt_pcaps.ngap.get();
-  o_cucp_deps.broker           = epoll_broker.get();
-  o_cucp_deps.metrics_notifier = &metrics_notifier_forwarder;
-  o_cucp_deps.e2_gw            = e2_gw_cu_cp.get();
+  o_cucp_deps.executor_mapper        = &workers.get_cu_cp_executor_mapper();
+  o_cucp_deps.timers                 = cu_timers;
+  o_cucp_deps.ngap_pcap              = cu_cp_dlt_pcaps.ngap.get();
+  o_cucp_deps.broker                 = epoll_broker.get();
+  o_cucp_deps.metrics_notifier       = &metrics_notifier_forwarder;
+  o_cucp_deps.e2_gw                  = e2_gw_cu_cp.get();
+  o_cucp_deps.remote_metrics_gateway = remote_server_gateway;
 
   // create O-CU-CP.
   auto            o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
@@ -454,14 +458,15 @@ int main(int argc, char** argv)
 
   // Create CU-UP
   o_cu_up_unit_dependencies o_cuup_unit_deps;
-  o_cuup_unit_deps.workers          = &workers;
-  o_cuup_unit_deps.e1ap_conn_client = e1_gw.get();
-  o_cuup_unit_deps.f1u_gateway      = f1u_conn->get_f1u_cu_up_gateway();
-  o_cuup_unit_deps.gtpu_pcap        = cu_up_dlt_pcaps.n3.get();
-  o_cuup_unit_deps.timers           = cu_timers;
-  o_cuup_unit_deps.io_brk           = epoll_broker.get();
-  o_cuup_unit_deps.e2_gw            = e2_gw_cu_up.get();
-  o_cuup_unit_deps.metrics_notifier = &metrics_notifier_forwarder;
+  o_cuup_unit_deps.workers                = &workers;
+  o_cuup_unit_deps.e1ap_conn_client       = e1_gw.get();
+  o_cuup_unit_deps.f1u_gateway            = f1u_conn->get_f1u_cu_up_gateway();
+  o_cuup_unit_deps.gtpu_pcap              = cu_up_dlt_pcaps.n3.get();
+  o_cuup_unit_deps.timers                 = cu_timers;
+  o_cuup_unit_deps.io_brk                 = epoll_broker.get();
+  o_cuup_unit_deps.e2_gw                  = e2_gw_cu_up.get();
+  o_cuup_unit_deps.metrics_notifier       = &metrics_notifier_forwarder;
+  o_cuup_unit_deps.remote_metrics_gateway = remote_server_gateway;
 
   auto o_cuup_obj = o_cu_up_app_unit->create_o_cu_up_unit(o_cuup_unit_deps);
   for (auto& metric : o_cuup_obj.metrics) {
@@ -469,14 +474,15 @@ int main(int argc, char** argv)
   }
   // Instantiate DU.
   o_du_unit_dependencies odu_dependencies;
-  odu_dependencies.workers            = &workers;
-  odu_dependencies.f1c_client_handler = f1c_gw.get();
-  odu_dependencies.f1u_gw             = f1u_conn->get_f1u_du_gateway();
-  odu_dependencies.timer_ctrl         = time_ctrl.get();
-  odu_dependencies.mac_p              = du_pcaps.mac.get();
-  odu_dependencies.rlc_p              = du_pcaps.rlc.get();
-  odu_dependencies.e2_client_handler  = e2_gw_du.get();
-  odu_dependencies.metrics_notifier   = &metrics_notifier_forwarder;
+  odu_dependencies.workers                = &workers;
+  odu_dependencies.f1c_client_handler     = f1c_gw.get();
+  odu_dependencies.f1u_gw                 = f1u_conn->get_f1u_du_gateway();
+  odu_dependencies.timer_ctrl             = time_ctrl.get();
+  odu_dependencies.mac_p                  = du_pcaps.mac.get();
+  odu_dependencies.rlc_p                  = du_pcaps.rlc.get();
+  odu_dependencies.e2_client_handler      = e2_gw_du.get();
+  odu_dependencies.metrics_notifier       = &metrics_notifier_forwarder;
+  odu_dependencies.remote_metrics_gateway = remote_server_gateway;
 
   auto du_inst_and_cmds = o_du_app_unit->create_flexible_o_du_unit(odu_dependencies);
 
@@ -525,6 +531,12 @@ int main(int argc, char** argv)
     report_error("CU-CP failed to connect to AMF");
   }
 
+  // Configure the remote commands and start the service.
+  if (remote_control_server) {
+    remote_control_server->add_commands(du_inst_and_cmds.commands.remote);
+    remote_control_server->get_operation_controller().start();
+  }
+
   // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
   f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
 
@@ -533,9 +545,6 @@ int main(int argc, char** argv)
   // Start processing.
   du_inst.get_operation_controller().start();
   metrics_mngr.start();
-
-  std::unique_ptr<app_services::remote_server> remote_control_server =
-      app_services::create_remote_server(gnb_cfg.remote_control_config, du_inst_and_cmds.commands.remote);
 
   {
     app_services::application_message_banners app_banner(
@@ -553,7 +562,7 @@ int main(int argc, char** argv)
   metrics_mngr.stop();
 
   if (remote_control_server) {
-    remote_control_server->stop();
+    remote_control_server->get_operation_controller().stop();
   }
 
   // Stop DU activity.

@@ -104,9 +104,10 @@ energy_snapshot app_resource_usage::energy_usage_now()
 }
 
 app_resource_usage_service
-app_services::build_app_resource_usage_service(app_services::metrics_notifier&  metrics_notifier,
+app_services::build_app_resource_usage_service(metrics_notifier&                metrics_notifier,
                                                const app_resource_usage_config& config,
-                                               ocudulog::basic_logger&          logger)
+                                               ocudulog::basic_logger&          logger,
+                                               remote_server_metrics_gateway*   metrics_gateway)
 {
   app_resource_usage_service app_res_usage;
   if (!config.enable_app_usage) {
@@ -114,9 +115,9 @@ app_services::build_app_resource_usage_service(app_services::metrics_notifier&  
   }
   app_res_usage.service = std::make_unique<app_resource_usage>(build_energy_consumption_reader(logger));
 
-  app_services::metrics_config& app_res_usage_metrics = app_res_usage.metrics.emplace_back();
-  app_res_usage_metrics.metric_name                   = resource_usage_metrics_properties_impl().name();
-  app_res_usage_metrics.callback                      = rusage_metrics_callback;
+  metrics_config& app_res_usage_metrics = app_res_usage.metrics.emplace_back();
+  app_res_usage_metrics.metric_name     = resource_usage_metrics_properties_impl().name();
+  app_res_usage_metrics.callback        = rusage_metrics_callback;
   app_res_usage_metrics.producers.emplace_back(
       std::make_unique<resource_usage_metrics_producer_impl>(metrics_notifier, *app_res_usage.service));
 
@@ -126,8 +127,9 @@ app_services::build_app_resource_usage_service(app_services::metrics_notifier&  
   }
 
   if (config.metrics_consumers_cfg.enable_json_metrics) {
-    app_res_usage_metrics.consumers.push_back(
-        std::make_unique<resource_usage_metrics_consumer_json>(app_helpers::fetch_json_metrics_log_channel()));
+    report_error_if_not(metrics_gateway,
+                        "Invalid remote server gateway for sending JSON metrics. Check that remote server is enabled");
+    app_res_usage_metrics.consumers.push_back(std::make_unique<resource_usage_metrics_consumer_json>(*metrics_gateway));
   }
 
   return app_res_usage;

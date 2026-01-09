@@ -173,7 +173,8 @@ static void autoderive_cu_up_parameters_after_parsing(cu_appconfig&            c
   // If no UPF is configured, we set the UPF configuration from the CU-CP AMF configuration.
   if (o_cu_up_cfg.cu_up_cfg.ngu_cfg.ngu_socket_cfg.empty()) {
     cu_up_unit_ngu_socket_config sock_cfg;
-    sock_cfg.bind_addr = cu_cp_cfg.amf_config.amf.bind_addr;
+    // If multiple AMF addresses are configured for SCTP multihoming, we use first address from the list.
+    sock_cfg.bind_addr = cu_cp_cfg.amf_config.amf.bind_addrs[0];
     o_cu_up_cfg.cu_up_cfg.ngu_cfg.ngu_socket_cfg.push_back(sock_cfg);
   }
   // If no F1-U socket configuration is derived, we set a default configuration.

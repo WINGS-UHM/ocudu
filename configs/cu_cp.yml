@@ -10,8 +10,8 @@
 
 cu_cp:
   amf:
-    addr: 127.0.1.100
-    bind_addr: 127.0.0.1
+    addrs: 127.0.1.100
+    bind_addrs: 127.0.0.1
     supported_tracking_areas:
       - tac: 7
         plmn_list:

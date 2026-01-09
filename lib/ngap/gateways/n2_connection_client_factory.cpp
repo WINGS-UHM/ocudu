@@ -283,9 +283,9 @@ ocudu::ocucp::create_n2_connection_client(const n2_connection_client_config& par
   ocudu::sctp_network_connector_config sctp_cfg;
   sctp_cfg.dest_name         = "AMF";
   sctp_cfg.if_name           = "N2";
-  sctp_cfg.connect_addresses = {nw_mode.amf_address};
+  sctp_cfg.connect_addresses = nw_mode.amf_addresses;
   sctp_cfg.connect_port      = nw_mode.amf_port;
-  sctp_cfg.bind_addresses    = {nw_mode.bind_address};
+  sctp_cfg.bind_addresses    = nw_mode.bind_addresses;
   sctp_cfg.bind_interface    = nw_mode.bind_interface;
   sctp_cfg.rto_initial       = nw_mode.rto_initial;
   sctp_cfg.rto_min           = nw_mode.rto_min;

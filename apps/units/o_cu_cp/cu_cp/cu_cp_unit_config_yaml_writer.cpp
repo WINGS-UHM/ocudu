@@ -57,9 +57,9 @@ static YAML::Node build_cu_cp_extra_amfs_item_section(const cu_cp_unit_amf_confi
 {
   YAML::Node node;
 
-  node["addr"]                   = config.ip_addr;
+  node["addrs"]                  = config.ip_addrs;
   node["port"]                   = config.port;
-  node["bind_addr"]              = config.bind_addr;
+  node["bind_addrs"]             = config.bind_addrs;
   node["bind_interface"]         = config.bind_interface;
   node["sctp_rto_initial"]       = config.sctp_rto_initial_ms;
   node["sctp_rto_min"]           = config.sctp_rto_min_ms;

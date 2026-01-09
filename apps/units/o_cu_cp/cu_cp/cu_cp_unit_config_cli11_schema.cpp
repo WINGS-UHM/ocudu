@@ -117,9 +117,17 @@ static void configure_cli11_supported_ta_args(CLI::App& app, cu_cp_unit_supporte
 
 static void configure_cli11_amf_item_args(CLI::App& app, cu_cp_unit_amf_config_item& config)
 {
-  add_option(app, "--addr", config.ip_addr, "AMF IP address");
+  add_option(app,
+             "--addrs",
+             config.ip_addrs,
+             "AMF addresses to be used for N2 interface. Multiple addresses can be specified for SCTP multi-homing");
   add_option(app, "--port", config.port, "AMF port")->capture_default_str()->check(CLI::Range(20000, 40000));
-  add_option(app, "--bind_addr", config.bind_addr, "Local IP address to bind for N2 interface")->check(CLI::ValidIPV4);
+  add_option(app,
+             "--bind_addrs",
+             config.bind_addrs,
+             "CU-CP bind addresses to be used for N2 interface. Multiple addresses can be specified for SCTP "
+             "multi-homing. If left empty, implicit bind is performed")
+      ->check(CLI::ValidIPV4);
   add_option(app, "--bind_interface", config.bind_interface, "Network device to bind for N2 interface")
       ->capture_default_str();
   add_option(app,

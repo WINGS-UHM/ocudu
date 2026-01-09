@@ -31,9 +31,9 @@ struct n2_connection_client_config {
   struct network {
     io_broker&                               broker;
     task_executor&                           io_rx_executor;
-    std::string                              bind_address;
+    std::vector<std::string>                 bind_addresses;
     std::string                              bind_interface;
-    std::string                              amf_address;
+    std::vector<std::string>                 amf_addresses;
     int                                      amf_port = NGAP_PORT;
     std::optional<std::chrono::milliseconds> rto_initial;
     std::optional<std::chrono::milliseconds> rto_min;

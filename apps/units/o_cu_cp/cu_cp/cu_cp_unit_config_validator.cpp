@@ -510,8 +510,23 @@ static bool validate_amf_appconfig(const cu_cp_unit_amf_config&                 
   amfs.insert(amfs.end(), extra_amfs.begin(), extra_amfs.end());
 
   for (const auto& config : amfs) {
-    // check for non-empty AMF address
-    if (config.ip_addr.empty()) {
+    // check for non-empty AMF address list
+    if (config.ip_addrs.empty()) {
+      fmt::print("AMF address list cannot be empty\n");
+      return false;
+    }
+
+    for (const auto& ip_addr : config.ip_addrs) {
+      // check for non-empty AMF address
+      if (ip_addr.empty()) {
+        fmt::print("AMF IP address cannot be empty\n");
+        return false;
+      }
+    }
+
+    if (!config.bind_interface.empty() && config.bind_interface != "auto" && config.bind_addrs.size() > 1) {
+      fmt::print("Network device to bind for N2 interface should not be set if more than one bind_addrs is specified "
+                 "for SCTP multihoming\n");
       return false;
     }
 

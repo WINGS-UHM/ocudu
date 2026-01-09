@@ -511,9 +511,9 @@ ocucp::n2_connection_client_config ocudu::generate_n2_client_config(bool        
   ngap_mode_t mode = no_core ? ngap_mode_t{no_core_mode_t{}} : ngap_mode_t{network_mode_t{broker, io_rx_executor}};
   if (not no_core) {
     network_mode_t& nw_mode = std::get<network_mode_t>(mode);
-    nw_mode.amf_address     = amf_cfg.ip_addr;
+    nw_mode.amf_addresses   = amf_cfg.ip_addrs;
     nw_mode.amf_port        = amf_cfg.port;
-    nw_mode.bind_address    = amf_cfg.bind_addr;
+    nw_mode.bind_addresses  = amf_cfg.bind_addrs;
     nw_mode.bind_interface  = amf_cfg.bind_interface;
     if (amf_cfg.sctp_rto_initial_ms >= 0) {
       nw_mode.rto_initial = std::chrono::milliseconds{amf_cfg.sctp_rto_initial_ms};

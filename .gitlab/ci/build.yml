@@ -78,7 +78,7 @@ include:
             --exclude-unreachable-branches \
             --gcov-ignore-parse-errors=negative_hits.warn_once_per_file \
             --exclude=${CI_PROJECT_DIR}/tests/* \
-            --exclude=${CI_PROJECT_DIR}/apps/examples/* \
+            --exclude=${CI_PROJECT_DIR}/apps/* \
             --exclude=${CI_PROJECT_DIR}/external/* \
             --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/e1ap/.* \
             --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/e2ap/.* \

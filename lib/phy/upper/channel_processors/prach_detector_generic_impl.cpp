@@ -124,6 +124,11 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
   if (N_cs == 0) {
     win_width = cp_prach;
   }
+  // When the window width is equal to the sequence length, reduce it slightly to avoid numerical issues. This happens
+  // with PRACH Format C2 (for which cp_prach == L_ra) and N_cs == 0.
+  if (win_width == L_ra) {
+    win_width -= 20;
+  }
   win_width = (win_width * dft_size) / L_ra;
 
   // Select window margin and threshold.

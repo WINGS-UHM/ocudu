@@ -14,6 +14,7 @@
 #include "ocudu/fapi/p5/p5_responses_notifier.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/synchronization/stop_event.h"
 
 namespace ocudu {
 
@@ -39,6 +40,8 @@ public:
     logger(logger_), transaction_manager(transaction_manager_), fapi_ctrl_executor(fapi_ctrl_executor_)
   {
   }
+
+  ~p5_responses_handler() override { stop_manager.stop(); }
 
   // See interface for documentation.
   void on_param_response(const fapi::param_response& msg) override;
@@ -71,7 +74,8 @@ private:
   ocudulog::basic_logger&         logger;
   p5_transaction_outcome_manager& transaction_manager;
   task_executor&                  fapi_ctrl_executor;
-  std::atomic<bool>               is_first_slot = {true};
+  stop_event_source               stop_manager;
+  std::atomic<bool>               slot_indication_processed{false};
 };
 
 } // namespace fapi_adaptor

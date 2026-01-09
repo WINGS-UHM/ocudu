@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2021-2025 Software Radio Systems Limited
+ * Copyright 2021-2026 Software Radio Systems Limited
  *
  * By using this file, you agree to the terms and conditions set
  * forth in the LICENSE file which can be found at the top level of
@@ -89,7 +89,7 @@ class du_high_ue_simulator::rlc_bearer_adapter : public rlc_tx_lower_layer_notif
                                                  public rlc_rx_upper_layer_data_notifier
 {
 public:
-  void on_buffer_state_update(const rlc_buffer_state& bsr) override { last_reported_dl_bo = bsr; }
+  void on_buffer_state_update(const rlc_buffer_state& bsr) override { last_reported_bo = bsr; }
 
   void on_protocol_failure() override {}
   void on_max_retx() override {}
@@ -104,8 +104,10 @@ public:
     last_dl_sdus.push_back(byte_buffer::create(pdu.begin(), pdu.end()).value());
   }
 
-  std::optional<rlc_buffer_state> last_reported_dl_bo;
+  /// Last reported buffer occupancy for this RLC entity.
+  std::optional<rlc_buffer_state> last_reported_bo;
 
+  /// Last DL SDUs received by the UE for this RLC entity.
   std::vector<byte_buffer> last_dl_sdus;
 };
 
@@ -130,7 +132,8 @@ du_high_ue_simulator::du_high_ue_simulator(const du_high_ue_simulator_config& cf
     bc.adapter = std::make_unique<rlc_bearer_adapter>();
     {
       rlc_entity_creation_message msg;
-      msg.gnb_du_id         = gnb_du_id_t::max; // Reserve max DU-ID for UE RLC entities.
+      // Reserve max DU-ID for UE RLC entities.
+      msg.gnb_du_id         = gnb_du_id_t::max;
       msg.ue_index          = to_du_ue_index(static_cast<unsigned>(cfg.crnti) % MAX_NOF_DU_UES);
       msg.rb_id             = rb_id_t{srb_id};
       msg.config            = srb_cfg.rlc;
@@ -174,16 +177,17 @@ std::optional<byte_buffer> du_high_ue_simulator::build_next_ul_mac_pdu()
 {
   byte_buffer pdu;
   for (const auto& [lcid, bearer] : bearers) {
-    while (bearer.adapter->last_reported_dl_bo.has_value() and bearer.adapter->last_reported_dl_bo->pending_bytes > 0) {
-      std::vector<uint8_t> buffer(bearer.adapter->last_reported_dl_bo->pending_bytes);
+    while (bearer.adapter->last_reported_bo.has_value() and bearer.adapter->last_reported_bo->pending_bytes > 0) {
+      // The UE RLC entity has data to transmit.
+      std::vector<uint8_t> buffer(bearer.adapter->last_reported_bo->pending_bytes);
       size_t               n = bearer.rlc->get_tx_lower_layer_interface()->pull_pdu(buffer);
       if (n == 0) {
-        // No PDU to transmit.
+        // No PDU was filled.
         break;
       }
       byte_buffer sdu_and_subhr =
           test_helpers::prepend_mac_subheader(lcid, byte_buffer::create(span<uint8_t>(buffer.data(), n)).value());
-      *bearer.adapter->last_reported_dl_bo = bearer.rlc->get_tx_lower_layer_interface()->get_buffer_state();
+      *bearer.adapter->last_reported_bo = bearer.rlc->get_tx_lower_layer_interface()->get_buffer_state();
       report_fatal_error_if_not(
           pdu.append(sdu_and_subhr), "Failed to append UL MAC SDU for LCID {} to UL MAC PDU", fmt::underlying(lcid));
     }

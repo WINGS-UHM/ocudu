@@ -42,6 +42,11 @@ static void init_loggers()
   ocudulog::init();
 }
 
+static byte_buffer make_dummy_payload()
+{
+  return byte_buffer::create({0x1, 0x2, 0x3}).value();
+}
+
 du_high_configuration odu::create_du_high_configuration(const du_high_env_sim_params& params)
 {
   du_high_configuration cfg{};
@@ -222,8 +227,7 @@ bool du_high_env_simulator::run_rrc_setup(rnti_t rnti)
   const ue_sim_context& u = it->second;
 
   // Send DL RRC Message which contains RRC Setup and await UL RRC message (containing RRC Setup).
-  f1ap_message msg = generate_dl_rrc_message_transfer(
-      *u.du_ue_id, *u.cu_ue_id, srb_id_t::srb0, byte_buffer::create({0x1, 0x2, 0x3}).value());
+  f1ap_message msg = generate_dl_rrc_message_transfer(*u.du_ue_id, *u.cu_ue_id, srb_id_t::srb0, make_dummy_payload());
   return send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg);
 }
 
@@ -249,8 +253,7 @@ bool du_high_env_simulator::run_rrc_reestablishment(rnti_t rnti, rnti_t old_rnti
   const ue_sim_context& old_u = old_it->second;
 
   // Generate DL RRC Message Transfer (containing RRC Reestablishment)
-  f1ap_message msg = generate_dl_rrc_message_transfer(
-      *u.du_ue_id, *u.cu_ue_id, srb_id_t::srb1, byte_buffer::create({0x1, 0x2, 0x3}).value());
+  f1ap_message msg = generate_dl_rrc_message_transfer(*u.du_ue_id, *u.cu_ue_id, srb_id_t::srb1, make_dummy_payload());
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->old_gnb_du_ue_f1ap_id_present = true;
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->old_gnb_du_ue_f1ap_id         = (uint64_t)old_u.du_ue_id.value();
 
@@ -281,8 +284,7 @@ bool du_high_env_simulator::run_rrc_reestablishment(rnti_t rnti, rnti_t old_rnti
   EXPECT_FALSE(resp->drbs_failed_to_be_modified_list_present);
 
   // CU-CP sends RRC Reconfiguration and awaits RRC Reconfiguration Complete.
-  msg = generate_dl_rrc_message_transfer(
-      *u.du_ue_id, *u.cu_ue_id, srb_id_t::srb1, byte_buffer::create({0x1, 0x2, 0x3}).value());
+  msg = generate_dl_rrc_message_transfer(*u.du_ue_id, *u.cu_ue_id, srb_id_t::srb1, make_dummy_payload());
   if (not send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg)) {
     return false;
   }
@@ -332,7 +334,7 @@ bool du_high_env_simulator::send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_co
 
   // UE sends UL message. Wait until F1AP forwards UL RRC Message to CU-CP.
   cu_notifier.f1ap_ul_msgs.clear();
-  u.sim->enqueue_ul_mac_sdu(ul_lcid, byte_buffer::create({0x1U, 0x2, 0x3}).value());
+  u.sim->enqueue_ul_mac_sdu(ul_lcid, make_dummy_payload());
   bool     ret       = run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
   srb_id_t ul_srb_id = int_to_srb_id(ul_lcid);
   if (not ret or not test_helpers::is_ul_rrc_msg_transfer_valid(cu_notifier.f1ap_ul_msgs.rbegin()->second, ul_srb_id)) {
@@ -418,7 +420,7 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
   // Await for Reconfiguration Complete that signals the UE config update completion.
   if (srb1_pdu_size > 0) {
     cu_notifier.f1ap_ul_msgs.clear();
-    u.sim->enqueue_ul_mac_sdu(LCID_SRB1, byte_buffer::create({0x1U, 0x2, 0x3}).value());
+    u.sim->enqueue_ul_mac_sdu(LCID_SRB1, make_dummy_payload());
     bool ret = run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
     if (not ret or
         not test_helpers::is_ul_rrc_msg_transfer_valid(cu_notifier.f1ap_ul_msgs.rbegin()->second, srb_id_t::srb1)) {
@@ -722,9 +724,7 @@ async_task<void> du_high_env_simulator::launch_rrc_setup_task(rnti_t rnti, bool 
     CORO_AWAIT_VALUE(
         bool ret,
         launch_send_dl_rrc_msg_and_await_ul_rrc_msg_task(
-            *u,
-            generate_dl_rrc_message_transfer(
-                *u->du_ue_id, *u->cu_ue_id, srb_id_t::srb0, byte_buffer::create({0x1, 0x2, 0x3}).value())));
+            *u, generate_dl_rrc_message_transfer(*u->du_ue_id, *u->cu_ue_id, srb_id_t::srb0, make_dummy_payload())));
     if (not ret) {
       EXPECT_FALSE(assert_success) << fmt::format("rnti={}: Failed RRC Setup procedure", rnti);
       CORO_EARLY_RETURN();
@@ -850,7 +850,7 @@ async_task<bool> du_high_env_simulator::launch_send_dl_rrc_msg_and_await_ul_rrc_
     }
 
     // UE sends UL message. Await until F1AP forwards UL RRC Message to CU-CP.
-    u.sim->enqueue_ul_mac_sdu(ul_lcid, byte_buffer::create({0x1U, 0x2, 0x3}).value());
+    u.sim->enqueue_ul_mac_sdu(ul_lcid, make_dummy_payload());
     ul_msg_rx = [this, ul_lcid, msgno = cu_notifier.next_ul_message_number()]() mutable -> bool {
       for (auto it = cu_notifier.f1ap_ul_msgs.lower_bound(msgno); it != cu_notifier.f1ap_ul_msgs.end(); ++it) {
         if (test_helpers::is_ul_rrc_msg_transfer_valid(it->second, int_to_srb_id(ul_lcid))) {

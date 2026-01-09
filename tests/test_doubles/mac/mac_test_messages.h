@@ -37,12 +37,12 @@ byte_buffer prepend_mac_subheader(lcid_t lcid, const byte_buffer& mac_sdu);
 
 /// \brief Generate MAC UCI PDU from PUCCH information, with all HARQ-ACKs set to ACK, SRs set as not detected and CSI
 /// set as 1s.
-mac_uci_pdu create_uci_pdu(const pucch_info& pucch);
+mac_uci_pdu create_uci_pdu(const pucch_info& pucch, bool detect_sr);
 
 /// Generate MAC UCI PDU out of a PUSCH UCI PDU indication, with all HARQ-ACKs set to ACK and CSI set as 1s.
 mac_uci_pdu create_uci_pdu(rnti_t rnti, const uci_info& pusch_uci);
 
-mac_uci_indication_message create_uci_indication(slot_point sl_rx, span<const pucch_info> pucchs);
+mac_uci_indication_message create_uci_indication(slot_point sl_rx, span<const pucch_info> pucchs, bool detect_sr);
 
 std::optional<mac_uci_indication_message> create_uci_indication(slot_point sl_rx, span<const ul_sched_info> puschs);
 

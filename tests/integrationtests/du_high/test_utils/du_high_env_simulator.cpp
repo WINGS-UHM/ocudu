@@ -536,7 +536,7 @@ void du_high_env_simulator::handle_slot_results(du_cell_index_t cell_index)
     slot_point             sl_rx  = phy_cell.last_ul_res->slot;
 
     if (not ul_res.pucchs.empty()) {
-      mac_uci_indication_message uci_ind = test_helpers::create_uci_indication(sl_rx, ul_res.pucchs);
+      mac_uci_indication_message uci_ind = test_helpers::create_uci_indication(sl_rx, ul_res.pucchs, false);
       this->du_hi->get_control_info_handler(cell_index).handle_uci(uci_ind);
     }
 

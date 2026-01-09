@@ -109,8 +109,7 @@ TEST_F(du_high_tester, when_ue_context_release_received_then_ue_gets_deleted)
   f1ap_message msg = generate_ue_context_release_command();
   this->du_hi->get_f1ap_du().handle_message(msg);
 
-  const unsigned MAX_COUNT = 1000;
-  for (unsigned i = 0; i != MAX_COUNT; ++i) {
+  for (unsigned i = 0, max_count = 1000; i != max_count; ++i) {
     this->run_slot();
 
     // Stop loop, When UE Context Release complete has been sent to CU.
@@ -156,12 +155,13 @@ TEST_F(du_high_tester,
     return find_ue_pdsch_with_lcid(rnti1, LCID_MIN_DRB, phy.cells[0].last_dl_res.value().dl_res->ue_grants) != nullptr;
   }));
 
-  // EVENT: DU receives F1AP UE Context Release Command.
+  // EVENT: DU receives F1AP UE Context Release Command (Containing RRC Release).
   cu_notifier.f1ap_ul_msgs.clear();
+  ues.at(rnti1).sim->pop_pending_dl_mac_sdus();
   f1ap_message msg = generate_ue_context_release_command();
   this->du_hi->get_f1ap_du().handle_message(msg);
 
-  // TEST CASE: Ensure that SRB1 (RRC Release) is scheduled and schedule RLC ACK.
+  // TEST CASE: Ensure that SRB1 (RRC Release) is scheduled.
   this->test_logger.info("STATUS: UEContextReleaseCommand received by DU. Waiting for rrcRelease being transmitted...");
   unsigned srb1_bytes     = msg.pdu.init_msg().value.ue_context_release_cmd()->rrc_container.size();
   auto     srb1_scheduled = [this, rnti1, &srb1_bytes]() mutable {
@@ -176,14 +176,11 @@ TEST_F(du_high_tester,
     return srb1_bytes == 0;
   };
   EXPECT_TRUE(this->run_until(srb1_scheduled));
-  this->test_logger.info("STATUS: RRC Release was scheduled");
-
-  // EVENT: DU receives RLC ACK for RRC Release.
-  du_hi->get_pdu_handler().handle_rx_data_indication(
-      test_helpers::create_pdu_with_rlc_status_ack(next_slot, rnti1, LCID_SRB1, 2));
-  // Note: We run one slot to ensure all the pending events are flushed.
-  run_slot();
-  this->test_logger.info("STATUS: DU received RLC statud PDU ACK");
+  ASSERT_TRUE(this->run_until([this, rnti1]() {
+    auto pdus = ues.at(rnti1).sim->pop_pending_dl_mac_sdus();
+    return std::any_of(pdus.begin(), pdus.end(), [](const auto& pair) { return pair.first == LCID_SRB1; });
+  }));
+  this->test_logger.info("STATUS: UE received RRC Release");
 
   // While UE Context Release Complete has not been sent...
   unsigned ue2_pdsch_count = 0;
@@ -212,8 +209,7 @@ TEST_F(du_high_tester,
       // Push SR indication to MAC. It should be ignored.
       mac_uci_indication_message uci;
       uci.sl_rx = next_slot - 1;
-      uci.ucis.push_back(test_helpers::create_uci_pdu(*pucch));
-      std::get<mac_uci_pdu::pucch_f0_or_f1_type>(uci.ucis.back().pdu).sr_info->detected = true;
+      uci.ucis.push_back(test_helpers::create_uci_pdu(*pucch, true));
       du_hi->get_control_info_handler(to_du_cell_index(0)).handle_uci(uci);
       ue1_sr_count++;
     }
@@ -330,6 +326,7 @@ TEST_F(du_high_tester, when_ue_context_modification_with_rem_drbs_is_received_th
   // Wait for DU to send F1AP UE Context Modification Response.
   this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
 
+  // Test Case: Check that the F1AP UE Context Modification Response is valid.
   const f1ap_message& f1ap_pdu = cu_notifier.f1ap_ul_msgs.rbegin()->second;
   ASSERT_EQ(f1ap_pdu.pdu.type().value, f1ap_pdu_c::types::options::successful_outcome);
   ASSERT_EQ(f1ap_pdu.pdu.successful_outcome().proc_code, ASN1_F1AP_ID_UE_CONTEXT_MOD);

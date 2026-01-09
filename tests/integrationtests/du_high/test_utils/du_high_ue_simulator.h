@@ -36,6 +36,9 @@ public:
 
   void enqueue_ul_mac_sdu(lcid_t lcid, byte_buffer ul_mac_sdu);
 
+  /// Get all received DL MAC SDUs.
+  std::vector<std::pair<lcid_t, byte_buffer>> pop_pending_dl_mac_sdus();
+
 private:
   class rlc_bearer_adapter;
 

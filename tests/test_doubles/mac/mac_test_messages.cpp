@@ -102,7 +102,7 @@ mac_crc_indication_message ocudu::test_helpers::create_crc_indication(slot_point
   return crc_ind;
 }
 
-mac_uci_pdu ocudu::test_helpers::create_uci_pdu(const pucch_info& pucch)
+mac_uci_pdu ocudu::test_helpers::create_uci_pdu(const pucch_info& pucch, bool detect_sr)
 {
   mac_uci_pdu pdu{};
 
@@ -119,7 +119,7 @@ mac_uci_pdu ocudu::test_helpers::create_uci_pdu(const pucch_info& pucch)
 
       if (pucch.uci_bits.sr_bits != sr_nof_bits::no_sr) {
         uci_f1.sr_info.emplace();
-        uci_f1.sr_info->detected = true;
+        uci_f1.sr_info->detected = detect_sr;
       }
     } break;
     case pucch_format::FORMAT_2: {
@@ -175,12 +175,13 @@ mac_uci_pdu ocudu::test_helpers::create_uci_pdu(rnti_t rnti, const uci_info& pus
   return pdu;
 }
 
-mac_uci_indication_message ocudu::test_helpers::create_uci_indication(slot_point sl_rx, span<const pucch_info> pucchs)
+mac_uci_indication_message
+ocudu::test_helpers::create_uci_indication(slot_point sl_rx, span<const pucch_info> pucchs, bool detect_sr)
 {
   mac_uci_indication_message uci_ind;
   uci_ind.sl_rx = sl_rx;
   for (const auto& pucch : pucchs) {
-    uci_ind.ucis.push_back(create_uci_pdu(pucch));
+    uci_ind.ucis.push_back(create_uci_pdu(pucch, detect_sr));
   }
   return uci_ind;
 }

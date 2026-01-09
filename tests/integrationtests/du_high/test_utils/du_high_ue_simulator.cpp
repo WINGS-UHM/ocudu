@@ -36,27 +36,38 @@ std::vector<mac_sdu> parse_mac_sdus(span<const uint8_t> pdu_buffer)
 
   size_t offset = 0;
   while (offset < pdu_buffer.size()) {
-    uint8_t subheader_byte = pdu_buffer[offset];
-    bool    F_bit          = (subheader_byte & 0x80) != 0;
-    lcid_t  lcid           = static_cast<lcid_t>(subheader_byte & 0x3F);
-    size_t  subheader_len  = 1;
+    const uint8_t       subheader_byte = pdu_buffer[offset++];
+    const bool          F_bit          = (subheader_byte & 0x40U) != 0;
+    const auto          lcid           = static_cast<lcid_t>(subheader_byte & 0x3fU);
+    const lcid_dl_sch_t lcid_sch       = lcid_dl_sch_t{lcid};
 
-    unsigned sdu_length = 0;
-    if ((subheader_byte & 0x40) != 0) {
-      // 16-bit L field
-      subheader_len += 2;
-      sdu_length = static_cast<unsigned>(pdu_buffer[offset + 1]) | (static_cast<unsigned>(pdu_buffer[offset + 2]) << 8);
-    } else {
-      // 8-bit L field
-      subheader_len += 1;
-      sdu_length = static_cast<unsigned>(pdu_buffer[offset + 1]);
-    }
-
-    offset += subheader_len;
-    if (offset + sdu_length > pdu_buffer.size()) {
-      // Invalid PDU
+    if (lcid_sch == lcid_dl_sch_t::PADDING) {
       break;
     }
+
+    if (not lcid_sch.is_sdu()) {
+      // Not an SDU subheader; skip.
+      report_fatal_error_if_not(not lcid_sch.is_var_len_ce(), "Variable length CEs not supported");
+      report_fatal_error_if_not(offset + lcid_sch.sizeof_ce() <= pdu_buffer.size(),
+                                "Invalid MAC PDU: Incomplete MAC subheader for CE");
+      offset += lcid_sch.sizeof_ce();
+      continue;
+    }
+    const unsigned L_len = F_bit ? 2 : 1;
+    report_fatal_error_if_not(offset + L_len <= pdu_buffer.size(), "Invalid MAC PDU: Incomplete MAC subheader for SDU");
+
+    // Decode L field.
+    unsigned sdu_length = 0;
+    if (F_bit) {
+      // 16-bit L field
+      sdu_length = static_cast<unsigned>(pdu_buffer[offset] << 8U) | (static_cast<unsigned>(pdu_buffer[offset + 1]));
+      offset += 2;
+    } else {
+      // 8-bit L field
+      sdu_length = static_cast<unsigned>(pdu_buffer[offset++]);
+    }
+
+    report_fatal_error_if_not(sdu_length + offset <= pdu_buffer.size(), "Invalid MAC PDU: SDU length exceeds PDU size");
 
     mac_sdu sdu;
     sdu.lcid                       = lcid;
@@ -65,10 +76,6 @@ std::vector<mac_sdu> parse_mac_sdus(span<const uint8_t> pdu_buffer)
     sdus.push_back(std::move(sdu));
 
     offset += sdu_length;
-
-    if (!F_bit) {
-      break;
-    }
   }
 
   return sdus;
@@ -92,9 +99,14 @@ public:
   void on_retransmitted_sdu(uint32_t max_retx_pdcp_sn) override {}
   void on_delivered_retransmitted_sdu(uint32_t max_deliv_retx_pdcp_sn) override {}
 
-  void on_new_sdu(byte_buffer_chain pdu) override {}
+  void on_new_sdu(byte_buffer_chain pdu) override
+  {
+    last_dl_sdus.push_back(byte_buffer::create(pdu.begin(), pdu.end()).value());
+  }
 
   std::optional<rlc_buffer_state> last_reported_dl_bo;
+
+  std::vector<byte_buffer> last_dl_sdus;
 };
 
 du_high_ue_simulator::du_high_ue_simulator(const du_high_ue_simulator_config& cfg_,
@@ -160,7 +172,7 @@ void du_high_ue_simulator::handle_dl_pdu(const mac_dl_data_result::dl_pdu& pdu)
 
 std::optional<byte_buffer> du_high_ue_simulator::build_next_ul_mac_pdu()
 {
-  std::optional<byte_buffer> pdu;
+  byte_buffer pdu;
   for (const auto& [lcid, bearer] : bearers) {
     while (bearer.adapter->last_reported_dl_bo.has_value() and bearer.adapter->last_reported_dl_bo->pending_bytes > 0) {
       std::vector<uint8_t> buffer(bearer.adapter->last_reported_dl_bo->pending_bytes);
@@ -169,9 +181,15 @@ std::optional<byte_buffer> du_high_ue_simulator::build_next_ul_mac_pdu()
         // No PDU to transmit.
         break;
       }
-      pdu = test_helpers::prepend_mac_subheader(lcid, byte_buffer::create(span<uint8_t>(buffer.data(), n)).value());
+      byte_buffer sdu_and_subhr =
+          test_helpers::prepend_mac_subheader(lcid, byte_buffer::create(span<uint8_t>(buffer.data(), n)).value());
       *bearer.adapter->last_reported_dl_bo = bearer.rlc->get_tx_lower_layer_interface()->get_buffer_state();
+      report_fatal_error_if_not(
+          pdu.append(sdu_and_subhr), "Failed to append UL MAC SDU for LCID {} to UL MAC PDU", fmt::underlying(lcid));
     }
+  }
+  if (pdu.empty()) {
+    return std::nullopt;
   }
   return pdu;
 }
@@ -181,4 +199,16 @@ void du_high_ue_simulator::enqueue_ul_mac_sdu(lcid_t lcid, byte_buffer ul_mac_sd
   auto it = bearers.find(lcid);
   report_fatal_error_if_not(it != bearers.end(), "No RLC entity for LCID {}", fmt::underlying(lcid));
   it->second.rlc->get_tx_upper_layer_data_interface()->handle_sdu(std::move(ul_mac_sdu), false);
+}
+
+std::vector<std::pair<lcid_t, byte_buffer>> du_high_ue_simulator::pop_pending_dl_mac_sdus()
+{
+  std::vector<std::pair<lcid_t, byte_buffer>> sdus;
+  for (auto& [lcid, bearer] : bearers) {
+    for (byte_buffer& sdu : bearer.adapter->last_dl_sdus) {
+      sdus.emplace_back(lcid, std::move(sdu));
+    }
+    bearer.adapter->last_dl_sdus.clear();
+  }
+  return sdus;
 }

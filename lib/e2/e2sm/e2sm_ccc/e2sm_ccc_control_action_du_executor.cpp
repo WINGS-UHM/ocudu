@@ -295,7 +295,7 @@ e2sm_ccc_control_o_rrm_policy_ratio_executor::execute_ric_control_action(const e
   return launch_async([this, &req, ctrl_config = std::move(du_ctrl_config_req)](
                           coro_context<async_task<e2sm_ric_control_response>>& ctx) {
     CORO_BEGIN(ctx);
-    odu::du_param_config_response ctrl_response = du_param_configurator.handle_operator_config_request(ctrl_config);
+    odu::du_param_config_response ctrl_response = du_param_configurator.handle_sync_operator_config(ctrl_config);
     e2sm_ric_control_response     e2_resp       = convert_to_e2sm_response(req, ctrl_config, ctrl_response);
     CORO_RETURN(e2_resp);
   });

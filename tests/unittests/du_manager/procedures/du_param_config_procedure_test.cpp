@@ -72,7 +72,7 @@ TEST_F(du_manager_du_config_update_test, when_sib1_change_required_then_mac_is_r
 {
   // Initiate procedure.
   du_param_config_request  req  = make_dummy_request(cell_cfgs);
-  du_param_config_response resp = du_mng->handle_operator_config_request(req);
+  du_param_config_response resp = du_mng->handle_sync_operator_config(req);
 
   // MAC received config request.
   ASSERT_TRUE(dependencies.mac.mac_cell.last_cell_recfg_req.has_value());
@@ -137,7 +137,7 @@ TEST_F(du_manager_du_rrm_config_update_test, when_rrm_policy_change_required_the
 {
   // Initiate procedure.
   du_param_config_request  req  = make_dummy_rrm_request();
-  du_param_config_response resp = du_mng->handle_operator_config_request(req);
+  du_param_config_response resp = du_mng->handle_sync_operator_config(req);
 
   // MAC received config request.
   ASSERT_TRUE(dependencies.mac.mac_cell.last_cell_recfg_req.has_value());

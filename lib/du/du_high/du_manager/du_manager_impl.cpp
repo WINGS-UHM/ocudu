@@ -21,9 +21,9 @@
 #include "procedures/f1c_disconnection_handling_procedure.h"
 #include "ocudu/mac/mac_pdu_handler.h"
 #include "ocudu/support/async/async_timer.h"
+#include "ocudu/support/async/execute_on_blocking.h"
+#include "ocudu/support/async/sync_await.h"
 #include "ocudu/support/executors/execute_until_success.h"
-#include <condition_variable>
-#include <future>
 #include <thread>
 
 using namespace ocudu;
@@ -216,13 +216,14 @@ void du_manager_impl::handle_ue_config_applied(du_ue_index_t ue_index)
 size_t du_manager_impl::nof_ues()
 {
   // TODO: This is temporary code.
-  std::promise<size_t> p;
-  std::future<size_t>  fut = p.get_future();
-  if (not params.services.du_mng_exec.execute([this, &p]() { p.set_value(ue_mng.nof_ues()); })) {
+  size_t     result = 0;
+  sync_event ev;
+  if (not params.services.du_mng_exec.execute(
+          [this, &result, tk = ev.get_token()]() mutable { result = ue_mng.nof_ues(); })) {
     logger.warning("Unable to compute the number of UEs active in the DU");
     return std::numeric_limits<size_t>::max();
   }
-  return fut.get();
+  return result;
 }
 
 mac_cell_time_mapper& du_manager_impl::get_time_mapper()
@@ -236,28 +237,35 @@ du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
   return launch_async<du_ue_ric_configuration_procedure>(reconf, ue_mng, params);
 }
 
-du_param_config_response du_manager_impl::handle_operator_config_request(const du_param_config_request& req)
+async_task<du_param_config_response> du_manager_impl::handle_operator_config(const du_param_config_request& req,
+                                                                             task_executor& continuation_exec)
 {
-  std::promise<du_param_config_response> p;
-  std::future<du_param_config_response>  fut = p.get_future();
+  return launch_async([this, &continuation_exec, req, resp = du_param_config_response{}](
+                          coro_context<async_task<du_param_config_response>>& ctx) mutable {
+    CORO_BEGIN(ctx);
 
-  // Switch to DU manager execution context.
-  execute_until_success(params.services.du_mng_exec, params.services.timers, [this, req, &p]() {
-    // Dispatch common task.
-    schedule_async_task(launch_async([&](coro_context<async_task<void>>& ctx) {
-      CORO_BEGIN(ctx);
+    // Move to DU manager control executor.
+    CORO_AWAIT(defer_on_blocking(params.services.du_mng_exec, params.services.timers));
 
-      // Launch config procedure.
-      CORO_AWAIT_VALUE(auto resp, launch_async<du_param_config_procedure>(req, params, cell_mng));
+    // Launch config procedure.
+    CORO_AWAIT_VALUE(resp, launch_async<du_param_config_procedure>(req, params, cell_mng));
 
-      // Signal back to caller.
-      p.set_value(resp);
+    // Move back to continuation executor.
+    CORO_AWAIT(defer_on_blocking(continuation_exec, params.services.timers));
 
-      CORO_RETURN();
-    }));
+    CORO_RETURN(resp);
   });
+}
 
-  return fut.get();
+du_param_config_response du_manager_impl::handle_sync_operator_config(const du_param_config_request& req)
+{
+  return sync_await(launch_async([this, req](coro_context<async_task<du_param_config_response>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT_VALUE(auto resp, launch_async<du_param_config_procedure>(req, params, cell_mng));
+    // Note: No need to switch back to caller executor, as the synchronization between the two executors is done inside
+    // the sync_await.
+    CORO_RETURN(resp);
+  }));
 }
 
 void du_manager_impl::handle_si_pdu_update(const du_si_pdu_update_request& req)

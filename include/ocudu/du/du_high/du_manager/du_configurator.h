@@ -18,6 +18,9 @@
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu {
+
+class task_executor;
+
 namespace odu {
 
 /// UE-level parameters of a cell MAC scheduler that need to be configured during the DU cell operation.
@@ -98,8 +101,17 @@ public:
   virtual async_task<du_mac_sched_control_config_response>
   configure_ue_mac_scheduler(du_mac_sched_control_config reconf) = 0;
 
-  /// Apply new config updates requested from outside the DU.
-  virtual du_param_config_response handle_operator_config_request(const du_param_config_request& req) = 0;
+  /// \brief Apply new config updates requested from outside the DU, in a blocking fashion.
+  ///
+  /// The caller will block until the procedure is complete.
+  /// \param[in] req Configuration Request.
+  virtual du_param_config_response handle_sync_operator_config(const du_param_config_request& req) = 0;
+
+  /// Apply new config updates requested from outside the DU, in a non-blocking fashion.
+  /// \param[in] req Configuration Request.
+  /// \param[in] continuation_exec Task executor to which the configuration procedure will move to after its completion.
+  virtual async_task<du_param_config_response> handle_operator_config(const du_param_config_request& req,
+                                                                      task_executor& continuation_exec) = 0;
 
   /// Apply new SI PDU requested from outside the DU.
   virtual void handle_si_pdu_update(const du_si_pdu_update_request& req) = 0;

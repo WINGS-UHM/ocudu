@@ -910,9 +910,17 @@ public:
       CORO_RETURN(odu::du_mac_sched_control_config_response{true, true, true});
     });
   }
-  odu::du_param_config_response handle_operator_config_request(const odu::du_param_config_request& req) override
+  odu::du_param_config_response handle_sync_operator_config(const odu::du_param_config_request& req) override
   {
     return odu::du_param_config_response{};
+  }
+  async_task<odu::du_param_config_response> handle_operator_config(const odu::du_param_config_request& req,
+                                                                   task_executor&                      exec) override
+  {
+    return launch_async([](coro_context<async_task<odu::du_param_config_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(odu::du_param_config_response{});
+    });
   }
   void handle_si_pdu_update(const odu::du_si_pdu_update_request& req) override {}
 

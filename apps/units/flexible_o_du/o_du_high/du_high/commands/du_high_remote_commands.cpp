@@ -74,7 +74,7 @@ error_type<std::string> ssb_modify_remote_command::execute(const nlohmann::json&
     req.cells.emplace_back(nr_cgi, ssb_block_power_value);
   }
 
-  if (configurator.handle_operator_config_request(req).success) {
+  if (configurator.handle_sync_operator_config(req).success) {
     return {};
   }
 
@@ -214,7 +214,7 @@ error_type<std::string> rrm_policy_ratio_remote_command::execute(const nlohmann:
 
   req.cells.emplace_back(std::nullopt, std::nullopt, std::vector<rrm_policy_ratio_group>{rrm_policy_group});
 
-  if (configurator.handle_operator_config_request(req).success) {
+  if (configurator.handle_sync_operator_config(req).success) {
     return {};
   }
 

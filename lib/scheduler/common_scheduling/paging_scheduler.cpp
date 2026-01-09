@@ -373,7 +373,9 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid
     const crb_bitmap& used_crbs      = pdsch_alloc.dl_res_grid.used_crbs(bwp_cfg, pdsch_td_cfg.symbols);
     paging_crbs                      = rb_helper::find_empty_interval_of_length(used_crbs, nof_paging_rbs);
     if (paging_crbs.length() < nof_paging_rbs) {
-      logger.warning("Not enough PDSCH space for Paging");
+      logger.warning("Dropping Paging opportunity for id={}. Cause: Not enough PDSCH space for Paging in slot={}",
+                     ue_paging_ids.front(),
+                     pdsch_alloc.slot);
       return false;
     }
   }

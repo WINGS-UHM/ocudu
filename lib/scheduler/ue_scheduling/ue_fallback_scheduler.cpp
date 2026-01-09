@@ -357,7 +357,7 @@ ue_fallback_scheduler::schedule_dl_srb(cell_resource_allocator&              res
       return dl_sched_outcome::stop_dl_scheduling;
     }
 
-    if (slots_with_no_pdxch_space[next_slot.to_uint() % FALLBACK_SCHED_RING_BUFFER_SIZE]) {
+    if (slots_with_no_pdxch_space[next_slot.count() % FALLBACK_SCHED_RING_BUFFER_SIZE]) {
       continue;
     }
 

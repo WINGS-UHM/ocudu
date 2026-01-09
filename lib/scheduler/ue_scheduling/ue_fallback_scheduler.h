@@ -192,9 +192,10 @@ private:
   const scheduler_ue_expert_config& expert_cfg;
   const cell_configuration&         cell_cfg;
   // TODO: Find proper values for these 2 parameters.
-  // Set the max number of slots the scheduler can look ahead in the resource grid (with respect to the current slot) to
-  // find PDSCH space for SRB0 or SRB1.
-  const unsigned max_dl_slots_ahead_sched = 4U;
+  // (Implementation-defined) Maximum number of slots the scheduler can look ahead in the resource grid (with respect to
+  // the current slot) to find PDSCH space for SRB0 and SRB1. We use it to increase the priority of fallback UE
+  // allocations over normal-mode UE allocations.
+  const unsigned max_dl_slots_ahead_sched = 2U;
   // Set the max number of attempts the scheduler can do while running through the nested loops over the PDSCH time
   // allocation indices and the ahead slots for all UEs. This is to avoid excessive long iterations in case many UEs.
   // NOTE: max_dl_sched_attempts = (max_dl_slots_ahead_sched + 1) * max_pdsch_time_res guarantees that at 1 UE will be

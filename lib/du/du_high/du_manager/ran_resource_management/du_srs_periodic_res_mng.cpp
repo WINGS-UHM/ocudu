@@ -8,7 +8,7 @@
  *
  */
 
-#include "du_srs_resource_manager.h"
+#include "du_srs_periodic_res_mng.h"
 #include "du_ue_resource_config.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 

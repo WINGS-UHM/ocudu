@@ -8,7 +8,7 @@
  *
  */
 
-#include "lib/du/du_high/du_manager/ran_resource_management/du_srs_resource_manager.h"
+#include "lib/du/du_high/du_manager/ran_resource_management/du_srs_periodic_res_mng.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/support/test_utils.h"

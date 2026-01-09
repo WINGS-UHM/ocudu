@@ -25,7 +25,9 @@ struct du_high_ue_simulator_config {
 class du_high_ue_simulator
 {
 public:
-  explicit du_high_ue_simulator(const du_high_ue_simulator_config& cfg, const odu::du_high_dependencies& du_hi_deps);
+  explicit du_high_ue_simulator(const du_high_ue_simulator_config& cfg,
+                                const odu::du_high_dependencies&   du_hi_deps,
+                                task_executor&                     test_exec);
   ~du_high_ue_simulator();
 
   /// Called when a UE receives a DL PDU and processes it.
@@ -48,6 +50,7 @@ private:
   };
 
   du_high_ue_simulator_config cfg;
+  task_executor&              test_exec;
 
   std::map<lcid_t, bearer_context> bearers;
 

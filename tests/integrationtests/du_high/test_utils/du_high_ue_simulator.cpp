@@ -16,14 +16,12 @@
 #include "ocudu/pcap/rlc_pcap.h"
 #include "ocudu/rlc/rlc_factory.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
-#include "ocudu/support/executors/inline_task_executor.h"
 
 using namespace ocudu;
 
 namespace {
 
-null_rlc_pcap        pcap_sink;
-inline_task_executor ue_worker;
+null_rlc_pcap pcap_sink;
 
 struct mac_sdu {
   lcid_t      lcid;
@@ -112,8 +110,9 @@ public:
 };
 
 du_high_ue_simulator::du_high_ue_simulator(const du_high_ue_simulator_config& cfg_,
-                                           const odu::du_high_dependencies&   du_hi_deps_) :
-  cfg(cfg_)
+                                           const odu::du_high_dependencies&   du_hi_deps_,
+                                           task_executor&                     test_exec_) :
+  cfg(cfg_), test_exec(test_exec_)
 {
   // Create SRB entities upfront.
   std::map<srb_id_t, odu::du_srb_config> srb_cfgs = cfg.du_high_cfg.ran.srbs;
@@ -142,8 +141,8 @@ du_high_ue_simulator::du_high_ue_simulator(const du_high_ue_simulator_config& cf
       msg.tx_upper_cn       = bc.adapter.get();
       msg.tx_lower_dn       = bc.adapter.get();
       msg.timers            = &du_hi_deps_.timer_ctrl->get_timer_manager();
-      msg.pcell_executor    = &ue_worker;
-      msg.ue_executor       = &ue_worker;
+      msg.pcell_executor    = &test_exec;
+      msg.ue_executor       = &test_exec;
       msg.rlc_metrics_notif = nullptr;
       msg.pcap_writer       = &pcap_sink;
       auto entity           = create_rlc_entity(msg);

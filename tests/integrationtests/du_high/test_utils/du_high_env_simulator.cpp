@@ -159,12 +159,13 @@ bool du_high_env_simulator::add_ue(rnti_t rnti, du_cell_index_t cell_index)
   // Create UE sim context.
   auto ret = ues.insert(std::make_pair(
       rnti,
-      ue_sim_context{.rnti        = rnti,
-                     .du_ue_id    = std::nullopt,
-                     .cu_ue_id    = std::nullopt,
-                     .pcell_index = cell_index,
-                     .sim         = std::make_unique<du_high_ue_simulator>(
-                         du_high_ue_simulator_config{rnti, cell_index, du_high_cfg}, du_hi_dependencies)}));
+      ue_sim_context{
+          .rnti        = rnti,
+          .du_ue_id    = std::nullopt,
+          .cu_ue_id    = std::nullopt,
+          .pcell_index = cell_index,
+          .sim         = std::make_unique<du_high_ue_simulator>(
+              du_high_ue_simulator_config{rnti, cell_index, du_high_cfg}, du_hi_dependencies, workers.test_worker)}));
   report_fatal_error_if_not(ret.second, "Unable to create UE sim context for rnti={}", rnti);
   ue_sim_context& ue_ctxt = ret.first->second;
 
@@ -639,7 +640,8 @@ du_high_env_simulator::launch_ue_creation_task(rnti_t rnti, du_cell_index_t cell
                                                  .pcell_index = cell_index,
                                                  .sim         = std::make_unique<du_high_ue_simulator>(
                                                      du_high_ue_simulator_config{rnti, cell_index, du_high_cfg},
-                                                     du_hi_dependencies)}))
+                                                     du_hi_dependencies,
+                                                     workers.test_worker)}))
             .second,
         "Unable to create UE sim context for rnti={}",
         rnti);

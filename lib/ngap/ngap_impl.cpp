@@ -1403,10 +1403,7 @@ void ngap_impl::schedule_error_indication(ue_index_t ue_index, ngap_cause_t caus
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
   auto*            ue      = ue_ctxt.get_cu_cp_ue();
 
-  ocudu_assert(ue != nullptr,
-               "ue={} amf_ue={}: UE for UE context doesn't exist",
-               ue_index,
-               amf_ue_id.has_value() ? "" : fmt::format("amf_ue={} ", fmt::underlying(amf_ue_id.value())));
+  ocudu_assert(ue != nullptr, "ue={} amf_ue={}: UE for UE context doesn't exist", ue_index, amf_ue_id);
 
   ue->schedule_async_task(launch_async([this, ue_index, cause, amf_ue_id](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);

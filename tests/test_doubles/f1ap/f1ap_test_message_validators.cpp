@@ -206,16 +206,37 @@ bool ocudu::test_helpers::is_valid_ue_context_setup_request_with_ue_capabilities
   return true;
 }
 
-bool ocudu::test_helpers::is_ue_context_setup_response_valid(const f1ap_message& msg)
+bool test_helpers::is_valid_ue_context_setup_response(const f1ap_message& msg)
 {
-  if (not(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome and
-          msg.pdu.successful_outcome().proc_code == ASN1_F1AP_ID_UE_CONTEXT_SETUP)) {
-    return false;
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::successful_outcome);
+  TRUE_OR_RETURN(msg.pdu.successful_outcome().proc_code == ASN1_F1AP_ID_UE_CONTEXT_SETUP);
+  const ue_context_setup_resp_s& resp = msg.pdu.successful_outcome().value.ue_context_setup_resp();
+  if (resp->c_rnti_present) {
+    TRUE_OR_RETURN(is_crnti(to_rnti(resp->c_rnti)));
   }
-  const asn1::f1ap::ue_context_setup_resp_s& resp = msg.pdu.successful_outcome().value.ue_context_setup_resp();
-  if (not resp->drbs_setup_list_present) {
-    return false;
+  TRUE_OR_RETURN(is_packable(msg));
+  return true;
+}
+
+bool test_helpers::is_valid_ue_context_setup_response(const f1ap_message& resp_msg, const f1ap_message& req_msg)
+{
+  TRUE_OR_RETURN(is_valid_ue_context_setup_request(req_msg));
+  TRUE_OR_RETURN(is_valid_ue_context_setup_response(resp_msg));
+
+  const auto& req  = req_msg.pdu.init_msg().value.ue_context_setup_request();
+  const auto& resp = resp_msg.pdu.successful_outcome().value.ue_context_setup_resp();
+  TRUE_OR_RETURN(req->gnb_cu_ue_f1ap_id == resp->gnb_cu_ue_f1ap_id);
+  if (req->gnb_du_ue_f1ap_id_present) {
+    TRUE_OR_RETURN(resp->gnb_du_ue_f1ap_id == req->gnb_du_ue_f1ap_id);
   }
+  if (not req->gnb_du_ue_f1ap_id_present) {
+    TRUE_OR_RETURN(resp->c_rnti_present);
+  }
+  if (req->drbs_to_be_setup_list.size() > 0) {
+    TRUE_OR_RETURN(resp->drbs_setup_list.size() + resp->drbs_failed_to_be_setup_list.size() ==
+                   req->drbs_to_be_setup_list.size());
+  }
+
   return true;
 }
 

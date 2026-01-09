@@ -136,8 +136,7 @@ protected:
   [[nodiscard]] bool
   await_dl_msg_sched(const ue_sim_context& u, lcid_t lcid, std::optional<unsigned> max_slot_count = std::nullopt);
 
-  [[nodiscard]] bool
-  send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_context& u, const f1ap_message& dl_msg, uint32_t rlc_ul_sn);
+  [[nodiscard]] bool send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_context& u, const f1ap_message& dl_msg);
 
   /// \brief Launch non-blocking task that on every slot checks the given condition and returns true if it is met
   /// within the given number of slots, false otherwise.
@@ -152,8 +151,7 @@ protected:
   /// \brief Launch non-blocking task to await for a DL RRC container to be sent to a UE and for the corresponding UL
   /// response to be sent by the DU to the CU-CP.
   async_task<bool> launch_send_dl_rrc_msg_and_await_ul_rrc_msg_task(const ue_sim_context& u,
-                                                                    const f1ap_message&   dl_msg,
-                                                                    uint32_t              rlc_ul_sn);
+                                                                    const f1ap_message&   dl_msg);
 
   std::unordered_map<rnti_t, ue_sim_context> ues;
 

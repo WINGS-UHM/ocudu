@@ -224,7 +224,7 @@ bool du_high_env_simulator::run_rrc_setup(rnti_t rnti)
   // Send DL RRC Message which contains RRC Setup and await UL RRC message (containing RRC Setup).
   f1ap_message msg = generate_dl_rrc_message_transfer(
       *u.du_ue_id, *u.cu_ue_id, srb_id_t::srb0, byte_buffer::create({0x1, 0x2, 0x3}).value());
-  return send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg, 0);
+  return send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg);
 }
 
 bool du_high_env_simulator::run_rrc_reject(rnti_t rnti)
@@ -255,7 +255,7 @@ bool du_high_env_simulator::run_rrc_reestablishment(rnti_t rnti, rnti_t old_rnti
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->old_gnb_du_ue_f1ap_id         = (uint64_t)old_u.du_ue_id.value();
 
   // Send RRC Reestablishment and await response.
-  if (not send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg, 0)) {
+  if (not send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg)) {
     return false;
   }
   if (stop_at == reestablishment_stage::reest_complete) {
@@ -283,7 +283,7 @@ bool du_high_env_simulator::run_rrc_reestablishment(rnti_t rnti, rnti_t old_rnti
   // CU-CP sends RRC Reconfiguration and awaits RRC Reconfiguration Complete.
   msg = generate_dl_rrc_message_transfer(
       *u.du_ue_id, *u.cu_ue_id, srb_id_t::srb1, byte_buffer::create({0x1, 0x2, 0x3}).value());
-  if (not send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg, 1)) {
+  if (not send_dl_rrc_msg_and_await_ul_rrc_msg(u, msg)) {
     return false;
   }
 
@@ -312,9 +312,7 @@ bool du_high_env_simulator::await_dl_msg_sched(const ue_sim_context&   u,
   return true;
 }
 
-bool du_high_env_simulator::send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_context& u,
-                                                                 const f1ap_message&   dl_msg,
-                                                                 uint32_t              rlc_ul_sn)
+bool du_high_env_simulator::send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_context& u, const f1ap_message& dl_msg)
 {
   lcid_t dl_lcid = uint_to_lcid(dl_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->srb_id);
   lcid_t ul_lcid = dl_lcid == LCID_SRB0 ? LCID_SRB1 : dl_lcid;
@@ -361,17 +359,11 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
       u.srbs[LCID_SRB1].next_pdcp_sn++,
       {drb_id_t::drb1},
       {plmn_identity::test_value(), nr_cell_identity::create(0).value()});
-  asn1::f1ap::ue_context_setup_request_s& cmd = msg.pdu.init_msg().value.ue_context_setup_request();
-  cmd->drbs_to_be_setup_list[0]
-      .value()
-      .drbs_to_be_setup_item()
-      .qos_info.choice_ext()
-      .value()
-      .drb_info()
-      .drb_qos.qos_characteristics.non_dyn_5qi()
-      .five_qi = 7U;
-  cmd->drbs_to_be_setup_list[0].value().drbs_to_be_setup_item().rlc_mode.value =
-      asn1::f1ap::rlc_mode_opts::rlc_um_bidirectional;
+  asn1::f1ap::ue_context_setup_request_s& cmd      = msg.pdu.init_msg().value.ue_context_setup_request();
+  auto&                                   drb_item = cmd->drbs_to_be_setup_list[0].value().drbs_to_be_setup_item();
+  auto&                                   drb_info = drb_item.qos_info.choice_ext().value().drb_info();
+  drb_info.drb_qos.qos_characteristics.non_dyn_5qi().five_qi = 7U;
+  drb_item.rlc_mode.value                                    = asn1::f1ap::rlc_mode_opts::rlc_um_bidirectional;
   // UE supports 256QAM.
   cmd->cu_to_du_rrc_info.ue_cap_rat_container_list =
       byte_buffer::create({0x10, 0xc9, 0x83, 0x40, 0x67, 0x40, 0x8e, 0x8c, 0xb4, 0x04, 0xbf, 0x1b, 0x07, 0x0a, 0x40,
@@ -410,7 +402,7 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
     test_logger.info("STATUS: No UE Context Setup Response was sent back to the CU-CP");
     return false;
   }
-  if (not test_helpers::is_ue_context_setup_response_valid(cu_notifier.f1ap_ul_msgs.rbegin()->second)) {
+  if (not test_helpers::is_valid_ue_context_setup_response(cu_notifier.f1ap_ul_msgs.rbegin()->second, msg)) {
     // Bad response.
     test_logger.error("STATUS: UE Context Setup Response sent back to the CU-CP is not valid");
     return false;
@@ -727,12 +719,12 @@ async_task<void> du_high_env_simulator::launch_rrc_setup_task(rnti_t rnti, bool 
 
     // Send DL RRC Message which contains RRC Setup and await response.
     test_logger.info("rnti={}: RRC Setup procedure starting...", rnti);
-    CORO_AWAIT_VALUE(bool ret,
-                     launch_send_dl_rrc_msg_and_await_ul_rrc_msg_task(
-                         *u,
-                         generate_dl_rrc_message_transfer(
-                             *u->du_ue_id, *u->cu_ue_id, srb_id_t::srb0, byte_buffer::create({0x1, 0x2, 0x3}).value()),
-                         0));
+    CORO_AWAIT_VALUE(
+        bool ret,
+        launch_send_dl_rrc_msg_and_await_ul_rrc_msg_task(
+            *u,
+            generate_dl_rrc_message_transfer(
+                *u->du_ue_id, *u->cu_ue_id, srb_id_t::srb0, byte_buffer::create({0x1, 0x2, 0x3}).value())));
     if (not ret) {
       EXPECT_FALSE(assert_success) << fmt::format("rnti={}: Failed RRC Setup procedure", rnti);
       CORO_EARLY_RETURN();
@@ -835,15 +827,14 @@ async_task<bool> du_high_env_simulator::launch_await_dl_msg_sched_task(const ue_
 }
 
 async_task<bool> du_high_env_simulator::launch_send_dl_rrc_msg_and_await_ul_rrc_msg_task(const ue_sim_context& u,
-                                                                                         const f1ap_message&   dl_msg,
-                                                                                         uint32_t rlc_ul_sn)
+                                                                                         const f1ap_message&   dl_msg)
 {
   ocudu_assert(test_helpers::is_valid_dl_rrc_message_transfer(dl_msg), "Expected F1AP DL RRC Message");
   lcid_t                    dl_lcid   = uint_to_lcid(dl_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->srb_id);
   lcid_t                    ul_lcid   = dl_lcid == LCID_SRB0 ? LCID_SRB1 : dl_lcid;
   static constexpr unsigned dl_msg_k1 = 4;
 
-  return launch_async([this, &u, dl_msg, dl_lcid, ul_lcid, rlc_ul_sn, i = 0U, ul_msg_rx = unique_function<bool()>{}](
+  return launch_async([this, &u, dl_msg, dl_lcid, ul_lcid, i = 0U, ul_msg_rx = unique_function<bool()>{}](
                           coro_context<async_task<bool>>& ctx) mutable {
     CORO_BEGIN(ctx);
 
@@ -859,8 +850,7 @@ async_task<bool> du_high_env_simulator::launch_send_dl_rrc_msg_and_await_ul_rrc_
     }
 
     // UE sends UL message. Await until F1AP forwards UL RRC Message to CU-CP.
-    du_hi->get_pdu_handler().handle_rx_data_indication(
-        test_helpers::create_pdu_with_sdu(next_slot, u.rnti, ul_lcid, rlc_ul_sn));
+    u.sim->enqueue_ul_mac_sdu(ul_lcid, byte_buffer::create({0x1U, 0x2, 0x3}).value());
     ul_msg_rx = [this, ul_lcid, msgno = cu_notifier.next_ul_message_number()]() mutable -> bool {
       for (auto it = cu_notifier.f1ap_ul_msgs.lower_bound(msgno); it != cu_notifier.f1ap_ul_msgs.end(); ++it) {
         if (test_helpers::is_ul_rrc_msg_transfer_valid(it->second, int_to_srb_id(ul_lcid))) {
@@ -903,7 +893,7 @@ async_task<bool> du_high_env_simulator::launch_run_until_task(unique_function<bo
 
 void du_high_env_simulator::handle_slot_preamble_tasks()
 {
-  // Handle any pending UE UL RLC PDUs.
+  // Handle any pending UE UL RLC SDUs.
   for (unsigned i = 0; i != du_high_cfg.ran.cells.size(); ++i) {
     mac_rx_data_indication rx_ind{.sl_rx = next_slot, .cell_index = to_du_cell_index(i)};
     // Only process UEs with matching PCell.

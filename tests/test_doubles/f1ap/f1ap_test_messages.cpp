@@ -312,6 +312,12 @@ static drbs_to_be_setup_item_s generate_drb_am_setup_item(drb_id_t drbid)
       qos_flow_level_qos_params_s::reflective_qos_attribute_opts::subject_to;
   drb_info.snssai.sst.from_string("01");
   drb_info.snssai.sd.from_string("0027db");
+  drb_info.flows_mapped_to_drb_list.resize(1);
+  drb_info.flows_mapped_to_drb_list[0].qos_flow_id = 1;
+  drb_info.flows_mapped_to_drb_list[0].qos_flow_level_qos_params.qos_characteristics =
+      drb_info.drb_qos.qos_characteristics;
+  drb_info.flows_mapped_to_drb_list[0].qos_flow_level_qos_params.ngra_nalloc_retention_prio =
+      drb_info.drb_qos.ngra_nalloc_retention_prio;
   drb.rlc_mode.value         = rlc_mode_opts::rlc_am;
   drb.ie_exts_present        = true;
   drb.ie_exts.dl_pdcp_sn_len = pdcp_sn_len_opts::twelve_bits;

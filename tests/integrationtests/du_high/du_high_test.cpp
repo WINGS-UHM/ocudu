@@ -31,7 +31,19 @@ using namespace odu;
 using namespace asn1::f1ap;
 
 class du_high_tester : public du_high_env_simulator, public testing::Test
-{};
+{
+protected:
+  void push_pdcp_pdus_to_all_f1u_bearers(unsigned nof_pdcp_pdus, unsigned pdcp_pdu_size)
+  {
+    for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
+      nru_dl_message f1u_pdu{.t_pdu = test_helpers::create_pdcp_pdu(
+                                 pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i & 0xffU)};
+      for (auto& bearer : cu_up_sim.bearers) {
+        bearer.second.rx_notifier->on_new_pdu(f1u_pdu);
+      }
+    }
+  }
+};
 
 TEST_F(du_high_tester, when_ccch_msg_is_received_then_ue_context_is_created)
 {
@@ -41,6 +53,7 @@ TEST_F(du_high_tester, when_ccch_msg_is_received_then_ue_context_is_created)
   // Add UE
   du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4601)));
 
+  // TEST CASE: DU sends Initial UL RRC Message
   this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
   ASSERT_EQ(cu_notifier.f1ap_ul_msgs.size(), 1);
   ASSERT_TRUE(
@@ -56,6 +69,8 @@ TEST_F(du_high_tester, when_two_concurrent_ccch_msg_are_received_then_two_ue_con
   du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4602)));
 
   this->run_until([this]() { return cu_notifier.f1ap_ul_msgs.size() >= 2; });
+
+  // TEST CASE: DU sends two Initial UL RRC Messages, one for each UE.
   ASSERT_EQ(cu_notifier.f1ap_ul_msgs.size(), 2);
   auto it = cu_notifier.f1ap_ul_msgs.begin();
   ASSERT_TRUE(test_helpers::is_init_ul_rrc_msg_transfer_valid(it->second, to_rnti(0x4601)));
@@ -71,18 +86,14 @@ TEST_F(du_high_tester, when_ue_context_setup_completes_then_drb_is_active)
   ASSERT_TRUE(run_rrc_setup(rnti));
   ASSERT_TRUE(run_ue_context_setup(rnti));
 
-  // Ensure DU<->CU-UP tunnel was created.
+  // TEST CASE: Ensure DU<->CU-UP tunnel was created.
   ASSERT_EQ(cu_up_sim.last_drb_id.value(), drb_id_t::drb1);
 
-  // Forward several DRB PDUs.
+  // Event: Forward several DRB PDUs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
+  push_pdcp_pdus_to_all_f1u_bearers(nof_pdcp_pdus, pdcp_pdu_size);
 
-  // Ensure DRB is active by verifying that the DRB PDUs are scheduled.
+  // TEST CASE: Ensure DRB is active by verifying that the DRB PDUs are scheduled.
   unsigned bytes_sched = 0;
   phy.cells[0].last_dl_data.reset();
   while (bytes_sched < nof_pdcp_pdus * pdcp_pdu_size and this->run_until([this]() {
@@ -104,7 +115,7 @@ TEST_F(du_high_tester, when_ue_context_release_received_then_ue_gets_deleted)
   // Create UE.
   ASSERT_TRUE(add_ue(to_rnti(0x4601)));
 
-  // Receive UE Context Release Command.
+  // EVENT: Receive UE Context Release Command.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = generate_ue_context_release_command();
   this->du_hi->get_f1ap_du().handle_message(msg);
@@ -117,6 +128,8 @@ TEST_F(du_high_tester, when_ue_context_release_received_then_ue_gets_deleted)
       break;
     }
   }
+
+  // TEST CASE: Ensure UE Context Release Complete is sent.
   ASSERT_EQ(cu_notifier.f1ap_ul_msgs.size(), 1);
   ASSERT_TRUE(test_helpers::is_valid_ue_context_release_complete(cu_notifier.f1ap_ul_msgs.rbegin()->second, msg));
 }
@@ -141,14 +154,7 @@ TEST_F(du_high_tester,
 
   // EVENT: CU-UP forwards many DRB PDUs to both UEs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    auto it = cu_up_sim.bearers.begin();
-    it->second.rx_notifier->on_new_pdu(f1u_pdu);
-    ++it;
-    it->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
+  push_pdcp_pdus_to_all_f1u_bearers(nof_pdcp_pdus, pdcp_pdu_size);
 
   // Sanity Check: Ensure DRB is active by verifying that some DRB PDUs are scheduled.
   EXPECT_TRUE(this->run_until([this, rnti1]() {
@@ -228,15 +234,11 @@ TEST_F(du_high_tester, when_f1ap_reset_received_then_ues_are_removed)
   ASSERT_TRUE(run_rrc_setup(rnti));
   ASSERT_TRUE(run_ue_context_setup(rnti));
 
-  // CU-UP forwards many DRB PDUs.
+  // EVENT: CU-UP forwards many DRB PDUs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
+  push_pdcp_pdus_to_all_f1u_bearers(nof_pdcp_pdus, pdcp_pdu_size);
 
-  // DU receives F1 RESET.
+  // EVENT: DU receives F1 RESET.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = test_helpers::generate_f1ap_reset_message();
   this->du_hi->get_f1ap_du().handle_message(msg);
@@ -244,16 +246,18 @@ TEST_F(du_high_tester, when_f1ap_reset_received_then_ues_are_removed)
 
   // Wait for F1 RESET ACK to be sent to the CU.
   EXPECT_TRUE(this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); }));
+
+  // TEST CASE: Ensure F1 RESET ACK is valid.
   ASSERT_TRUE(test_helpers::is_valid_f1_reset_ack(msg, cu_notifier.f1ap_ul_msgs.rbegin()->second));
 
-  // Confirm that no traffic is being sent for the reset UE.
-  const unsigned NOF_SLOT_CHECKS = 100;
+  // TEST CASE: Confirm that no traffic is being sent for the reset UE.
+  const unsigned nof_slots_check = 100;
   ASSERT_FALSE(this->run_until(
       [this, rnti]() {
         const dl_msg_alloc* pdsch = find_ue_pdsch(rnti, phy.cells[0].last_dl_res.value().dl_res->ue_grants);
         return pdsch != nullptr;
       },
-      NOF_SLOT_CHECKS));
+      nof_slots_check));
 }
 
 TEST_F(du_high_tester, when_du_high_is_stopped_then_ues_are_removed)
@@ -290,13 +294,9 @@ TEST_F(du_high_tester, when_ue_context_setup_received_for_inexistent_ue_then_ue_
   ASSERT_TRUE(this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); }));
 
   ASSERT_EQ(cu_notifier.f1ap_ul_msgs.size(), 1);
-  ASSERT_EQ(cu_notifier.f1ap_ul_msgs.rbegin()->second.pdu.type().value, f1ap_pdu_c::types::options::successful_outcome);
-  ASSERT_EQ(cu_notifier.f1ap_ul_msgs.rbegin()->second.pdu.successful_outcome().proc_code,
-            ASN1_F1AP_ID_UE_CONTEXT_SETUP);
+  ASSERT_TRUE(test_helpers::is_valid_ue_context_setup_response(cu_notifier.f1ap_ul_msgs.begin()->second, cu_cp_msg));
   auto& resp = cu_notifier.f1ap_ul_msgs.rbegin()->second.pdu.successful_outcome().value.ue_context_setup_resp();
-  ASSERT_EQ(resp->gnb_cu_ue_f1ap_id, (unsigned)cu_ue_id);
   ASSERT_TRUE(resp->c_rnti_present);
-  ASSERT_TRUE(is_crnti(to_rnti(resp->c_rnti)));
 }
 
 TEST_F(du_high_tester, when_ue_context_modification_with_rem_drbs_is_received_then_drbs_are_removed)
@@ -309,12 +309,7 @@ TEST_F(du_high_tester, when_ue_context_modification_with_rem_drbs_is_received_th
 
   // CU-UP forwards many DRB PDUs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 128;
-
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
+  push_pdcp_pdus_to_all_f1u_bearers(nof_pdcp_pdus, pdcp_pdu_size);
 
   // DU receives F1AP UE Context Modification Command.
   cu_notifier.f1ap_ul_msgs.clear();
@@ -352,11 +347,7 @@ TEST_F(du_high_tester, when_dl_rrc_message_with_old_du_ue_id_received_then_old_u
 
   // CU-UP forwards many DRB PDUs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 32;
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
+  push_pdcp_pdus_to_all_f1u_bearers(nof_pdcp_pdus, pdcp_pdu_size);
 
   // Send DL RRC Message Transfer with old gNB-DU-UE-F1AP-ID.
   rnti_t rnti2 = to_rnti(0x4602);
@@ -442,11 +433,7 @@ TEST_F(du_high_tester, when_reestablishment_takes_place_then_previous_ue_capabil
 
   // CU-UP forwards many DRB PDUs.
   const unsigned nof_pdcp_pdus = 100, pdcp_pdu_size = 32;
-  for (unsigned i = 0; i < nof_pdcp_pdus; ++i) {
-    nru_dl_message f1u_pdu{
-        .t_pdu = test_helpers::create_pdcp_pdu(pdcp_sn_size::size12bits, /* is_srb = */ false, i, pdcp_pdu_size, i)};
-    cu_up_sim.bearers.begin()->second.rx_notifier->on_new_pdu(f1u_pdu);
-  }
+  push_pdcp_pdus_to_all_f1u_bearers(nof_pdcp_pdus, pdcp_pdu_size);
 
   // Check QAM256 MCS table is used.
   const unsigned nof_slots_test = 1000;

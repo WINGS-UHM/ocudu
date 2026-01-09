@@ -20,16 +20,34 @@
 
 using namespace ocudu;
 
+/// Subscribes to a single SCTP event type.
+static bool sctp_subscribe_to_event(const unique_fd& fd, uint16_t event_type)
+{
+  struct sctp_event event = {};
+  event.se_assoc_id       = SCTP_FUTURE_ASSOC;
+  event.se_type           = event_type;
+  event.se_on             = 1;
+
+  return ::setsockopt(fd.value(), IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) == 0;
+}
+
 /// Subscribes to various SCTP events to handle association and shutdown gracefully.
 static bool sctp_subscribe_to_events(const unique_fd& fd)
 {
   ocudu_sanity_check(fd.is_open(), "Invalid FD");
-  struct sctp_event_subscribe events = {};
-  events.sctp_data_io_event          = 1;
-  events.sctp_shutdown_event         = 1;
-  events.sctp_association_event      = 1;
 
-  return ::setsockopt(fd.value(), IPPROTO_SCTP, SCTP_EVENTS, &events, sizeof(events)) == 0;
+  // Subscribe to each event individually using SCTP_EVENT socket option.
+  if (!sctp_subscribe_to_event(fd, SCTP_DATA_IO_EVENT)) {
+    return false;
+  }
+  if (!sctp_subscribe_to_event(fd, SCTP_SHUTDOWN_EVENT)) {
+    return false;
+  }
+  if (!sctp_subscribe_to_event(fd, SCTP_ASSOC_CHANGE)) {
+    return false;
+  }
+
+  return true;
 }
 
 /// \brief Modify SCTP default parameters for quicker detection of broken links.

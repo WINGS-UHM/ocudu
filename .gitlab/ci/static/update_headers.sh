@@ -41,8 +41,11 @@ find . -type f \( \
         -o -name ".gdbinit" \
         -o -name "*.tf" \
         -o -name "*.tfvars" \
+        -o -name "*.conf" \
+        -o -path "./docs/doxygen/CMakeGenerateTeXMacros.txt" \
+        -o -path "./tests/utils/gdb/pretty_printers/pretty_printer_gdb_commands.txt" \
     \) \
-    ! -path "*/build*/*" \
+    \( -path "./tests/unittests/fapi/*/builders/CMakeLists.txt" -o ! -path "*/build*/*" \) \
     ! -path "*/.tox/*" \
     ! -path "*/docker/open5gs/*" \
     ! -path "*/node_modules*/*" \
@@ -87,6 +90,7 @@ find . -type f \( \
         -o -name "*.h.in" \
         -o -name "*.js" \
         -o -name "*.proto" \
+        -o -name "*.dox" \
     \) \
     ! -path "*/external/*" \
     ! -path "*/.docusaurus/*" \
@@ -120,3 +124,12 @@ find . -type f -name "*.m" \
 %   the distribution.
 %
 /" {} \;
+
+# ============================================================================
+# Update copyright in LICENSE and doxygen header.html, which do not match
+# any of the previous patterns.
+# ============================================================================
+for FILENAME in "LICENSE" "docs/doxygen/header.html"
+do
+        perl -0777 -pi -e "s/Copyright 2021-202\d Software Radio/Copyright 2021-$(date +%Y) Software Radio/" $FILENAME
+done

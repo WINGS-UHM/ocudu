@@ -14,8 +14,6 @@
 #include "ocudu/f1ap/du/f1ap_du.h"
 #include "ocudu/f1ap/du/f1c_bearer.h"
 #include "ocudu/f1ap/f1ap_message_notifier.h"
-#include "ocudu/f1ap/f1ap_ue_id_types.h"
-#include "ocudu/ran/rnti.h"
 #include "ocudu/support/async/protocol_transaction_manager.h"
 #include "ocudu/support/memory_pool/unsync_fixed_size_memory_block_pool.h"
 #include <deque>
@@ -36,7 +34,8 @@ public:
                      f1ap_event_manager&        ev_manager_,
                      f1ap_du_configurator&      du_configurator_,
                      task_executor&             ctrl_exec_,
-                     task_executor&             ue_exec_);
+                     task_executor&             ue_exec_,
+                     timer_manager&             timers_);
 
   /// \brief Packs and forwards the initial UL RRC message transfer as per TS 38.473 section 8.4.1.
   /// \param[in] sdu contains the UL-CCCH message that is packed in the RRC container of the initial UL RRC message
@@ -64,6 +63,7 @@ private:
   f1ap_du_configurator&     du_configurator;
   task_executor&            ctrl_exec;
   task_executor&            ue_exec;
+  timer_manager&            timers;
   ocudulog::basic_logger&   logger;
 };
 

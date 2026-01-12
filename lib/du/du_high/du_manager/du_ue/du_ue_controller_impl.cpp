@@ -271,9 +271,9 @@ async_task<void> du_ue_controller_impl::handle_rb_stop_request(bool stop_srbs)
 {
   // Disable RBs
   if (stop_srbs) {
-    logger.debug("ue={}: Stopping SRB and DRB traffic...", fmt::underlying(ue_index));
+    logger.debug("ue={}: Stopping SRB and DRB traffic...", ue_index);
   } else {
-    logger.debug("ue={}: Stopping DRB traffic...", fmt::underlying(ue_index));
+    logger.debug("ue={}: Stopping DRB traffic...", ue_index);
   }
 
   // Disconnect bearers from within the UE execution context.

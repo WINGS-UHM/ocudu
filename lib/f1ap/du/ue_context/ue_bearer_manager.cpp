@@ -29,7 +29,8 @@ void ue_bearer_manager::add_srb0_f1c_bearer(f1c_rx_sdu_notifier&       f1c_rx_sd
                                                            ev_mng,
                                                            du_configurator,
                                                            ctrl_exec,
-                                                           ue_exec));
+                                                           ue_exec,
+                                                           timers));
 }
 
 void ue_bearer_manager::add_f1c_bearer(srb_id_t srb_id, f1c_rx_sdu_notifier& rx_sdu_notif)

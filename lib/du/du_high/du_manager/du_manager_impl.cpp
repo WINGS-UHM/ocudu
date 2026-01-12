@@ -22,8 +22,8 @@
 #include "ocudu/mac/mac_pdu_handler.h"
 #include "ocudu/support/async/async_timer.h"
 #include "ocudu/support/async/execute_on_blocking.h"
-#include "ocudu/support/async/sync_await.h"
 #include "ocudu/support/executors/execute_until_success.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <thread>
 
 using namespace ocudu;
@@ -240,32 +240,46 @@ du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
 async_task<du_param_config_response> du_manager_impl::handle_operator_config(const du_param_config_request& req,
                                                                              task_executor& continuation_exec)
 {
-  return launch_async([this, &continuation_exec, req, resp = du_param_config_response{}](
+  return launch_async([this, &continuation_exec, req, resp = std::optional<du_param_config_response>{}](
                           coro_context<async_task<du_param_config_response>>& ctx) mutable {
     CORO_BEGIN(ctx);
 
-    // Move to DU manager control executor.
+    // Move to DU manager execution context.
     CORO_AWAIT(defer_on_blocking(params.services.du_mng_exec, params.services.timers));
 
-    // Launch config procedure.
-    CORO_AWAIT_VALUE(resp, launch_async<du_param_config_procedure>(req, params, cell_mng));
+    // Launch procedure in the DU manager task scheduler.
+    CORO_AWAIT_VALUE(resp,
+                     when_coroutine_completed_on_task_sched(
+                         main_ctrl_loop, launch_async<du_param_config_procedure>(req, params, cell_mng)));
 
-    // Move back to continuation executor.
+    // Move back to the caller execution context.
     CORO_AWAIT(defer_on_blocking(continuation_exec, params.services.timers));
 
-    CORO_RETURN(resp);
+    CORO_RETURN(resp.value());
   });
 }
 
 du_param_config_response du_manager_impl::handle_sync_operator_config(const du_param_config_request& req)
 {
-  return sync_await(launch_async([this, req](coro_context<async_task<du_param_config_response>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_AWAIT_VALUE(auto resp, launch_async<du_param_config_procedure>(req, params, cell_mng));
-    // Note: No need to switch back to caller executor, as the synchronization between the two executors is done inside
-    // the sync_await.
-    CORO_RETURN(resp);
-  }));
+  sync_event               ev;
+  du_param_config_response resp;
+
+  // Switch to DU manager execution context.
+  execute_until_success(
+      params.services.du_mng_exec, params.services.timers, [this, &req, &resp, tk = ev.get_token()]() mutable {
+        // Dispatch procedure in DU manager task scheduler.
+        // Also, bind the lifetime of the token to the procedure completion.
+        schedule_async_task(launch_async([this, &resp, &req, tk = std::move(tk)](coro_context<async_task<void>>& ctx) {
+          CORO_BEGIN(ctx);
+          // Launch config procedure.
+          CORO_AWAIT_VALUE(resp, launch_async<du_param_config_procedure>(req, params, cell_mng));
+          CORO_RETURN();
+        }));
+      });
+
+  // Block waiting for sync event token to go out of scope.
+  ev.wait();
+  return resp;
 }
 
 void du_manager_impl::handle_si_pdu_update(const du_si_pdu_update_request& req)

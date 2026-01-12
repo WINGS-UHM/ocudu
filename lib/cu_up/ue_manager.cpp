@@ -168,11 +168,11 @@ async_task<bool> ue_manager::schedule_and_wait_ue_removal(ue_index_t ue_index)
     });
   }
 
-  auto fn = [this, ue_index](coro_context<async_task<void>>& ctx) mutable {
+  auto t = launch_async([this, ue_index](coro_context<async_task<void>>& ctx) mutable {
     CORO_BEGIN(ctx);
     CORO_AWAIT(remove_ue(ue_index));
     CORO_RETURN();
-  };
+  });
 
-  return when_coroutine_completed_on_task_sched(ue_ctx->task_sched, std::move(fn));
+  return when_coroutine_completed_on_task_sched(ue_ctx->task_sched, std::move(t));
 }

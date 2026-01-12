@@ -9,7 +9,6 @@
  */
 
 #include "ue.h"
-#include "ocudu/ocudulog/ocudulog.h"
 
 using namespace ocudu;
 
@@ -43,8 +42,11 @@ void ue::deactivate()
   // already been Tx+ACKed or an upper layer timeout has triggered.
   lc_ch_mgr.deactivate();
 
+  // Reset TA manager.
+  ta_mgr.reset();
+
   // Cancel HARQ retransmissions in all UE cells.
-  for (auto& cell : cells.du_cells) {
+  for (auto* const cell : cells.du_cells) {
     cell->deactivate();
   }
 }

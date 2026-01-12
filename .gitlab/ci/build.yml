@@ -7,6 +7,9 @@
 #
 
 include:
+  - project: ocudu/ocudu_packaging
+    ref: "init"
+    file: .gitlab/ci-shared/package.yml
   - local: .gitlab/ci-shared/build.yml
   - local: .gitlab/ci-shared/docker.yml
 
@@ -655,6 +658,65 @@ smoke rtsan:
     TEST_MODE: rtsan
     MARCH: x86-64-v3
     INFRASTRUCTURE_TAG: amd64-avx2
+
+# Packaging
+
+package:
+  extends: .deb-package
+  stage: build and unit tests
+  rules:
+    - if: $CI_DESCRIPTION =~ /Nightly/
+      when: delayed
+      start_in: 45 minutes
+    - if: $ON_MR
+  variables: &package_variables
+    PROJECT_NAME: srsran-project
+    RELEASE_VERSION: "99.9"
+    KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
+    KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
+    KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
+    KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
+    DEB_BUILD_OPTIONS: parallel=${KUBERNETES_CPU_LIMIT}
+    MAKEFLAGS: -j${KUBERNETES_CPU_LIMIT}
+    extraopts: -DMARCH=x86-64-v3
+  tags: [amd64-avx2]
+  parallel:
+    matrix:
+      - OS_VERSION: "22.04"
+      - OS_VERSION: "24.04"
+      - OS_VERSION: "25.04"
+      - OS_VERSION: "25.10"
+  needs: []
+
+install-package:
+  extends: .deb-install
+  stage: build and unit tests
+  rules:
+    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $ON_MR
+  variables:
+    PROJECT_NAME: srsran-project
+    RELEASE_VERSION: "99.9"
+  tags: [amd64-avx2]
+  script:
+    - gnb --version
+  parallel:
+    matrix:
+      - OS_VERSION: "22.04"
+      - OS_VERSION: "24.04"
+      - OS_VERSION: "25.04"
+      - OS_VERSION: "25.10"
+  needs:
+    - package
+
+check package ubuntu versions:
+  extends: .check packaging ubuntu images
+  stage: static
+  rules:
+    - if: $CI_DESCRIPTION =~ /Weekly/
+      when: delayed
+      start_in: 15 minutes
+    - if: $ON_MR
 
 # Validate export on, enabled for test vector generation
 

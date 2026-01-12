@@ -274,19 +274,17 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
     const du_cell_index_t pcell_index    = ev.next_config().pcell_common_cfg().cell_index;
     bool                  is_in_fallback = ev.get_fallback_command().has_value() and ev.get_fallback_command().value();
     ue_db.add_ue(ev.next_config(), is_in_fallback, ev.get_ul_ccch_slot_rx());
-
     const auto& added_ue = ue_db[ue_index];
-    for (unsigned i = 0, e = added_ue.nof_cells(); i != e; ++i) {
-      // Update UCI scheduler with new UE UCI resources.
-      uci_sched.add_ue(added_ue.get_cell(to_ue_cell_index(i)).cfg());
 
-      // Update SRS scheduler with new UE SRS resources.
-      srs_sched.add_ue(added_ue.get_cell(to_ue_cell_index(i)).cfg());
+    // Update UCI scheduler with new UE UCI resources.
+    uci_sched.add_ue(added_ue.get_cell(to_ue_cell_index(0)).cfg());
 
-      // Add UE to slice scheduler.
-      // Note: This action only has effect when UE is created in non-fallback mode.
-      slice_sched.add_ue(ue_index);
-    }
+    // Update SRS scheduler with new UE SRS resources.
+    srs_sched.add_ue(added_ue.get_cell(to_ue_cell_index(0)).cfg());
+
+    // Add UE to slice scheduler.
+    // Note: This action only has effect when UE is created in non-fallback mode.
+    slice_sched.add_ue(ue_index);
 
     // Log Event.
     ev_logger.enqueue(scheduler_event_logger::ue_creation_event{ue_index, crnti, pcell_index});
@@ -313,42 +311,17 @@ void ue_cell_event_manager::handle_ue_reconfiguration(ue_config_update_event ev)
     }
     auto& u = ue_db[ue_idx];
 
-    // If a UE carrier has been removed, remove the UE from the respective slice scheduler.
-    // Update UCI scheduler with cell changes.
-    for (unsigned i = 0, e = u.nof_cells(); i != e; ++i) {
-      auto& ue_cc = u.get_cell(to_ue_cell_index(i));
-      if (not ev.next_config().contains(ue_cc.cell_index)) {
-        // UE carrier is being removed.
-        // Update UE UCI resources in UCI scheduler.
-        uci_sched.rem_ue(ue_cc.cfg());
-        // Update UE SRS resources in SRS scheduler.
-        srs_sched.rem_ue(ue_cc.cfg());
-        // Schedule removal of UE in slice scheduler.
-        slice_sched.rem_ue(ue_idx);
-      } else {
-        // UE carrier is being reconfigured.
-        uci_sched.reconf_ue(ev.next_config().ue_cell_cfg(ue_cc.cell_index), ue_cc.cfg());
-        srs_sched.reconf_ue(ev.next_config().ue_cell_cfg(ue_cc.cell_index), ue_cc.cfg());
-      }
-    }
-    for (unsigned i = 0, e = ev.next_config().nof_cells(); i != e; ++i) {
-      const auto& new_ue_cc_cfg = ev.next_config().ue_cell_cfg(to_ue_cell_index(i));
-      auto*       ue_cc         = u.find_cell(new_ue_cc_cfg.cell_cfg_common.cell_index);
-      if (ue_cc == nullptr) {
-        // New UE carrier is being added.
-        uci_sched.add_ue(new_ue_cc_cfg);
-        srs_sched.add_ue(new_ue_cc_cfg);
-      }
-    }
+    // Reconfigure PCell
+    // Note: Carrier aggregation not yet supported.
+    auto& ue_cc = u.get_cell(to_ue_cell_index(0));
+    uci_sched.reconf_ue(ev.next_config().ue_cell_cfg(ue_cc.cell_index), ue_cc.cfg());
+    srs_sched.reconf_ue(ev.next_config().ue_cell_cfg(ue_cc.cell_index), ue_cc.cfg());
 
     // Configure existing UE.
     ue_db.reconfigure_ue(ev.next_config(), ev.is_reestablished());
 
     // Update slice scheduler.
-    for (unsigned i = 0, e = u.nof_cells(); i != e; ++i) {
-      // Reconfigure UE in slice scheduler.
-      slice_sched.reconf_ue(u.ue_index);
-    }
+    slice_sched.reconf_ue(u.ue_index);
 
     // Log event.
     ev_logger.enqueue(scheduler_event_logger::ue_reconf_event{ue_idx, u.crnti});
@@ -420,6 +393,9 @@ void ue_cell_event_manager::handle_ue_deactivation_request(du_cell_index_t pcell
       return event_result::invalid_ue;
     }
     auto& u = ue_db[ue_idx];
+
+    // Deactivate the UE (no more grants after this point).
+    u.deactivate();
 
     // Schedule removal of UE from slice scheduler so it doesn't get scheduled PDSCH/PUSCH.
     slice_sched.rem_ue(ue_idx);

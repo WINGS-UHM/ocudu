@@ -69,18 +69,9 @@ void ue_cell::deactivate()
   // Stop HARQ retransmissions.
   // Note: We assume that when this function is called, any RRC container (e.g. containing RRC Release) was already
   // transmitted+ACKed (ensured by F1AP).
-  for (unsigned hid = 0; hid != harqs.nof_dl_harqs(); ++hid) {
-    std::optional<dl_harq_process_handle> h_dl = harqs.dl_harq(to_harq_id(hid));
-    if (h_dl.has_value()) {
-      h_dl->cancel_retxs();
-    }
-  }
-  for (unsigned hid = 0; hid != harqs.nof_ul_harqs(); ++hid) {
-    std::optional<ul_harq_process_handle> h_ul = harqs.ul_harq(to_harq_id(hid));
-    if (h_ul.has_value()) {
-      h_ul->cancel_retxs();
-    }
-  }
+  harqs.cancel_retxs();
+
+  // Mark the UE as inactive.
   active = false;
 }
 
@@ -89,18 +80,8 @@ void ue_cell::handle_reconfiguration_request(const ue_cell_configuration& ue_cel
   ue_cfg = &ue_cell_cfg;
 
   // Cancel HARQ retxs, given that the UE may have changed some critical params (e.g. MCS tables)
-  for (unsigned i = 0; i != harqs.nof_dl_harqs(); ++i) {
-    std::optional<dl_harq_process_handle> h_dl = harqs.dl_harq(to_harq_id(i));
-    if (h_dl.has_value()) {
-      h_dl.value().cancel_retxs();
-    }
-  }
-  for (unsigned i = 0; i != harqs.nof_ul_harqs(); ++i) {
-    std::optional<ul_harq_process_handle> h_ul = harqs.ul_harq(to_harq_id(i));
-    if (h_ul.has_value()) {
-      h_ul->cancel_retxs();
-    }
-  }
+  harqs.cancel_retxs();
+
   harqs.reconfigure(ue_cell_cfg.pdsch_serving_cell_cfg()->dl_harq_feedback_disabled,
                     ue_cell_cfg.pusch_serving_cell_cfg()->ul_harq_mode);
 

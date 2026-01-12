@@ -54,3 +54,22 @@ enum class ngap_rrc_inactive_transition_report_request : uint8_t {
 };
 
 } // namespace ocudu::ocucp
+
+// AMF UE ID formatter.
+template <>
+struct fmt::formatter<ocudu::ocucp::amf_ue_id_t> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::ocucp::amf_ue_id_t& idx, FormatContext& ctx) const
+  {
+    if (idx == ocudu::ocucp::amf_ue_id_t::invalid) {
+      return format_to(ctx.out(), "invalid");
+    }
+    return format_to(ctx.out(), "{}", (unsigned)idx);
+  }
+};

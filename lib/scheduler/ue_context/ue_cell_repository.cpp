@@ -42,7 +42,7 @@ ue_cell_repository::ue_cell_repository(const cell_configuration& cell_cfg, cell_
   cell_idx(cell_cfg.cell_index),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   cell_harqs(MAX_NOF_DU_UES,
-             MAX_NOF_HARQS,
+             cell_cfg.ntn_cs_koffset > 0 ? MAX_NOF_HARQS : MAX_NOF_HARQS_NON_NTN,
              cell_metrics != nullptr ? std::make_unique<harq_manager_timeout_notifier>(*cell_metrics) : nullptr,
              cell_metrics != nullptr ? std::make_unique<harq_manager_timeout_notifier>(*cell_metrics) : nullptr,
              cell_cfg.expert_cfg.ue.dl_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),

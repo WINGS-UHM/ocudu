@@ -39,13 +39,14 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
                  ocudulog::basic_logger&      logger_) :
   ue_index(ue_index_),
   cell_index(ue_cell_cfg_.cell_cfg_common.cell_index),
-  harqs(cell_harq_pool.add_ue(
-      ue_index,
-      crnti_val,
-      ue_cell_cfg_.pdsch_serving_cell_cfg() != nullptr ? (unsigned)ue_cell_cfg_.pdsch_serving_cell_cfg()->nof_harq_proc
-                                                       : DEFAULT_NOF_DL_HARQS,
-      ue_cell_cfg_.pusch_serving_cell_cfg() != nullptr ? (unsigned)ue_cell_cfg_.pusch_serving_cell_cfg()->nof_harq_proc
-                                                       : DEFAULT_NOF_UL_HARQS)),
+  harqs(
+      cell_harq_pool.add_ue(ue_index,
+                            crnti_val,
+                            ue_cell_cfg_.pdsch_serving_cell_cfg() != nullptr
+                                ? std::min(static_cast<unsigned>(ue_cell_cfg_.pdsch_serving_cell_cfg()->nof_harq_proc),
+                                           static_cast<unsigned>(MAX_NOF_HARQS_NON_NTN))
+                                : DEFAULT_NOF_DL_HARQS,
+                            DEFAULT_NOF_UL_HARQS)),
   crnti_(crnti_val),
   cell_cfg(ue_cell_cfg_.cell_cfg_common),
   ue_cfg(&ue_cell_cfg_),
@@ -82,7 +83,17 @@ void ue_cell::handle_reconfiguration_request(const ue_cell_configuration& ue_cel
   // Cancel HARQ retxs, given that the UE may have changed some critical params (e.g. MCS tables)
   harqs.cancel_retxs();
 
-  harqs.reconfigure(ue_cell_cfg.pdsch_serving_cell_cfg()->dl_harq_feedback_disabled,
+  // Reconfigure HARQ entity and increase nof HARQ processes if needed.
+  unsigned new_dl_harqs = ue_cell_cfg.pdsch_serving_cell_cfg() != nullptr
+                              ? static_cast<unsigned>(ue_cell_cfg.pdsch_serving_cell_cfg()->nof_harq_proc)
+                              : harqs.nof_dl_harqs();
+  unsigned new_ul_harqs = ue_cell_cfg.pusch_serving_cell_cfg() != nullptr
+                              ? static_cast<unsigned>(ue_cell_cfg.pusch_serving_cell_cfg()->nof_harq_proc)
+                              : harqs.nof_ul_harqs();
+
+  harqs.reconfigure(new_dl_harqs,
+                    new_ul_harqs,
+                    ue_cell_cfg.pdsch_serving_cell_cfg()->dl_harq_feedback_disabled,
                     ue_cell_cfg.pusch_serving_cell_cfg()->ul_harq_mode);
 
   get_pusch_power_controller().reconfigure(ue_cell_cfg);

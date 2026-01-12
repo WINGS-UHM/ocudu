@@ -14,7 +14,12 @@
 namespace ocudu {
 
 /// Identification of an HARQ process.
-enum harq_id_t : uint8_t { MAX_HARQ_ID = 31, MAX_NOF_HARQS = 32, INVALID_HARQ_ID = 32 };
+enum harq_id_t : uint8_t {
+  MAX_HARQ_ID           = 31,
+  MAX_NOF_HARQS         = 32, ///< Maximum number of HARQ processes (NTN).
+  MAX_NOF_HARQS_NON_NTN = 16, ///< Maximum number of HARQ processes for non-NTN cells.
+  INVALID_HARQ_ID       = 32
+};
 
 constexpr harq_id_t to_harq_id(unsigned h_id)
 {

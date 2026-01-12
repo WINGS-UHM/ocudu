@@ -461,20 +461,19 @@ unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx
 
   nr_band band = base_cell_cfg_list[cell_idx].dl_carrier.band;
 
-  // TODO: need a better solution. Currently, HARQs created before UE caps are received.
-  // To bypass this: if no UE capabilities available yet, but NTN band, we reserve configured nof HARQs (up to 32).
-  // Better: if 32 HARQ requested in cfg, return 16 here, then if UE supports change to 32 and reserve more HARQs.
-  if (not ue_caps.has_value() and band_helper::is_ntn_band(band)) {
-    // UE capabilities have not been decoded yet, but NTN band.
-    return cell_max_nof_dl_harq_proc;
-  }
-
-  // UE capabilities have not been decoded yet, band info no available, or UE does not support NTN, return at most 16.
-  if (not ue_caps.has_value() || ue_caps->bands.count(band) == 0 || not ue_caps->ntn_supported) {
+  // UE capabilities not yet decoded, so return at most 16.
+  // Extended HARQ processes (up to 32 for NTN) require explicit UE capability confirmation.
+  if (not ue_caps.has_value()) {
     return std::min(cell_max_nof_dl_harq_proc, ue_capability_summary::default_max_harq_process_num);
   }
 
-  return std::min(cell_max_nof_dl_harq_proc, (unsigned)ue_caps->bands.at(band).max_ul_harq_process_num);
+  // UE capabilities available but band info not available, or UE does not support NTN, return at most 16.
+  if (not band_helper::is_ntn_band(band) || ue_caps->bands.count(band) == 0 || not ue_caps->ntn_supported) {
+    return std::min(cell_max_nof_dl_harq_proc, ue_capability_summary::default_max_harq_process_num);
+  }
+
+  // UE capabilities available and NTN supported.
+  return std::min(cell_max_nof_dl_harq_proc, (unsigned)ue_caps->bands.at(band).max_dl_harq_process_num);
 }
 
 unsigned ue_capability_manager::select_max_ul_nof_harqs(du_cell_index_t cell_idx) const
@@ -500,19 +499,18 @@ unsigned ue_capability_manager::select_max_ul_nof_harqs(du_cell_index_t cell_idx
 
   nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
 
-  // TODO: need a better solution. Currently, HARQs created before UE caps are received.
-  // To bypass this: if no UE capabilities available yet, but NTN band, we reserve configured nof HARQs (up to 32).
-  // Better: if 32 HARQ requested in cfg, return 16 here, then if UE supports change to 32 and reserve more HARQs.
-  if (not ue_caps.has_value() and band_helper::is_ntn_band(band)) {
-    // UE capabilities have not been decoded yet, but NTN band.
-    return cell_max_nof_ul_harq_proc;
-  }
-
-  // UE capabilities have not been decoded yet, band info no available, or UE does not support NTN, return at most 16.
-  if (not ue_caps.has_value() || ue_caps->bands.count(band) == 0 || not ue_caps->ntn_supported) {
+  // UE capabilities not yet decoded, so return at most 16.
+  // Extended HARQ processes (up to 32 for NTN) require explicit UE capability confirmation.
+  if (not ue_caps.has_value()) {
     return std::min(cell_max_nof_ul_harq_proc, ue_capability_summary::default_max_harq_process_num);
   }
 
+  // UE capabilities available but band info not available, or UE does not support NTN, return at most 16.
+  if (not band_helper::is_ntn_band(band) || ue_caps->bands.count(band) == 0 || not ue_caps->ntn_supported) {
+    return std::min(cell_max_nof_ul_harq_proc, ue_capability_summary::default_max_harq_process_num);
+  }
+
+  // UE capabilities available and NTN supported.
   return std::min(cell_max_nof_ul_harq_proc, (unsigned)ue_caps->bands.at(band).max_ul_harq_process_num);
 }
 

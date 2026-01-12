@@ -200,6 +200,7 @@ struct cell_harq_repository {
   void               set_pending_retx(harq_type& h);
   [[nodiscard]] bool handle_new_retx(harq_type& h, slot_point sl_tx, slot_point sl_ack);
   void               reserve_ue_harqs(du_ue_index_t ue_idx, rnti_t rnti, unsigned nof_harqs);
+  void               extend_ue_harqs(du_ue_index_t ue_idx, rnti_t rnti, unsigned new_nof_harqs);
   void               destroy_ue(du_ue_index_t ue_idx);
   void               cancel_retxs(harq_type& h);
   harq_type*         find_ue_harq_in_state(du_ue_index_t ue_idx, harq_utils::harq_state_t state);
@@ -527,7 +528,14 @@ public:
   unsigned nof_dl_harqs() const { return get_dl_ue().harqs.size(); }
   unsigned nof_ul_harqs() const { return get_ul_ue().harqs.size(); }
 
-  void reconfigure(const harq_dl_feedback_disabled_mask& dl_harq_feedback_disabled_mask,
+  /// \brief Reconfigure HARQ entity with new settings.
+  /// \param new_nof_dl_harqs Number of DL HARQ processes.
+  /// \param new_nof_ul_harqs Number of UL HARQ processes.
+  /// \param dl_harq_feedback_disabled_mask Bitmask for DL HARQ feedback disabled mode.
+  /// \param ul_harq_mode_mask Bitmask for UL HARQ mode (mode A vs mode B).
+  void reconfigure(unsigned                              new_nof_dl_harqs,
+                   unsigned                              new_nof_ul_harqs,
+                   const harq_dl_feedback_disabled_mask& dl_harq_feedback_disabled_mask,
                    const harq_ul_mode_mask&              ul_harq_mode_mask);
 
   /// Checks whether there are free HARQ processes.

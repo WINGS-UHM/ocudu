@@ -505,6 +505,41 @@ void cell_harq_repository<IsDl>::reserve_ue_harqs(du_ue_index_t ue_idx, rnti_t r
 }
 
 template <bool IsDl>
+void cell_harq_repository<IsDl>::extend_ue_harqs(du_ue_index_t ue_idx, rnti_t rnti, unsigned new_nof_harqs)
+{
+  auto&          ue_harqs          = ues[ue_idx];
+  const unsigned current_nof_harqs = ue_harqs.harqs.size();
+
+  ocudu_assert(new_nof_harqs >= current_nof_harqs, "Cannot shrink nof HARQs");
+  ocudu_assert(new_nof_harqs <= max_harqs_per_ue, "Cannot extend beyond max_harqs_per_ue={}", max_harqs_per_ue);
+
+  // Extend HARQ vector.
+  ue_harqs.harqs.resize(new_nof_harqs);
+
+  // Initialize new HARQ processes and add to free list.
+  for (unsigned count = current_nof_harqs; count != new_nof_harqs; ++count) {
+    harq_id_t h_id              = to_harq_id(count);
+    ue_harqs.harqs[h_id].ue_idx = ue_idx;
+    ue_harqs.harqs[h_id].rnti   = rnti;
+    ue_harqs.harqs[h_id].h_id   = h_id;
+    ue_harqs.harqs[h_id].ndi    = false;
+    ue_harqs.harqs[h_id].mode   = harq_mode_t::normal;
+  }
+
+  // Add new HARQ IDs to free list in reverse order (so lower IDs are allocated first).
+  for (unsigned count = new_nof_harqs; count != current_nof_harqs; --count) {
+    ue_harqs.free_harq_ids.push_back(to_harq_id(count - 1));
+  }
+
+  logger.debug("ue={} rnti={}: Extended {} HARQs from {} to {}",
+               fmt::underlying(ue_idx),
+               rnti,
+               IsDl ? "DL" : "UL",
+               current_nof_harqs,
+               new_nof_harqs);
+}
+
+template <bool IsDl>
 void cell_harq_repository<IsDl>::destroy_ue(du_ue_index_t ue_idx)
 {
   // Remove HARQ from list of pending retxs or timeout wheel.
@@ -901,12 +936,26 @@ unique_ue_harq_entity::~unique_ue_harq_entity()
   }
 }
 
-void unique_ue_harq_entity::reconfigure(const harq_dl_feedback_disabled_mask& dl_harq_feedback_disabled_mask,
+void unique_ue_harq_entity::reconfigure(unsigned                              new_nof_dl_harqs,
+                                        unsigned                              new_nof_ul_harqs,
+                                        const harq_dl_feedback_disabled_mask& dl_harq_feedback_disabled_mask,
                                         const harq_ul_mode_mask&              ul_harq_mode_mask)
 {
+  ocudu_assert(cell_harq_mgr, "Cell HARQ manager not available");
+  ocudu_assert(new_nof_dl_harqs >= nof_dl_harqs() and new_nof_dl_harqs > 0, "Cannot shrink nof DL HARQs");
+  ocudu_assert(new_nof_ul_harqs >= nof_ul_harqs() and new_nof_ul_harqs > 0, "Cannot shrink nof UL HARQs");
+
   if (cell_harq_mgr->ul.ntn_cs_koffset == 0) {
     // Not NTN cell, do not set DL HARQ Feedback Disabled and UL HARQ mode B.
     return;
+  }
+
+  // Extend HARQ processes if the new configuration requests more than currently available.
+  if (new_nof_dl_harqs != nof_dl_harqs()) {
+    cell_harq_mgr->dl.extend_ue_harqs(ue_index, crnti, new_nof_dl_harqs);
+  }
+  if (new_nof_ul_harqs != nof_ul_harqs()) {
+    cell_harq_mgr->ul.extend_ue_harqs(ue_index, crnti, new_nof_ul_harqs);
   }
 
   if (not dl_harq_feedback_disabled_mask.empty()) {

@@ -109,6 +109,7 @@ class base_harq_manager_test
 {
 protected:
   base_harq_manager_test(unsigned nof_ues, unsigned ntn_cs_koffset = 0, bool ul_harq_mode_b = false) :
+    max_harqs_per_ue(ntn_cs_koffset > 0 ? MAX_NOF_HARQS : MAX_NOF_HARQS_NON_NTN),
     cell_harqs(nof_ues,
                max_harqs_per_ue,
                timeout_handler.make_notifier(),
@@ -134,8 +135,8 @@ protected:
   }
 
   const unsigned             max_ack_wait_timeout  = 16;
-  const unsigned             max_harqs_per_ue      = 16;
   const unsigned             max_harq_retx_timeout = 100;
+  const unsigned             max_harqs_per_ue      = 16;
   dummy_harq_timeout_handler timeout_handler;
   ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("SCHED");
 
@@ -312,7 +313,7 @@ public:
     harq_ul_mode_mask ul_harq_mode_mask(MAX_NOF_HARQS);
     ul_harq_mode_mask.fill(false);
     ul_harq_mode_mask.fill(0, nof_normal_mode_harqs, true);
-    harq_ent.reconfigure(dl_feedback_disabled, ul_harq_mode_mask);
+    harq_ent.reconfigure(nof_harqs, nof_harqs, dl_feedback_disabled, ul_harq_mode_mask);
     h_ul = harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs, false).value();
     ul_harq_alloc_context ul_harq_ctxt{dci_ul_rnti_config_type::c_rnti_f0_0};
     pusch_info.harq_id = h_ul.id();
@@ -335,7 +336,7 @@ public:
     dl_feedback_disabled.fill(0, nof_normal_mode_harqs, false);
     harq_ul_mode_mask ul_harq_mode_mask(MAX_NOF_HARQS);
     ul_harq_mode_mask.fill(true);
-    harq_ent.reconfigure(dl_feedback_disabled, ul_harq_mode_mask);
+    harq_ent.reconfigure(nof_harqs, nof_harqs, dl_feedback_disabled, ul_harq_mode_mask);
     h_dl = harq_ent.alloc_dl_harq(current_slot, k1 + ntn_cs_koffset, max_retxs, 0, false).value();
     dl_harq_alloc_context harq_ctxt{dci_dl_rnti_config_type::c_rnti_f1_0};
     ue_pdsch.pdsch_cfg.harq_id = h_dl.id();
@@ -1102,6 +1103,103 @@ TEST_F(multi_ue_harq_manager_test, when_new_tx_occur_for_different_ues_then_ndi_
   ASSERT_NE(h_ul->ndi(), ndi_ul1);
 }
 
+// HARQ extension tests for NTN 32 HARQ support.
+
+class harq_extension_test : public base_harq_manager_test, public ::testing::Test
+{
+protected:
+  harq_extension_test() : base_harq_manager_test(1, 20) {}
+
+  const du_ue_index_t ue_index   = to_du_ue_index(0);
+  const rnti_t        rnti       = to_rnti(0x4601);
+  const unsigned      init_harqs = 16;
+  const unsigned      k1         = 4;
+  const unsigned      k2         = 6;
+  const unsigned      max_retxs  = 4;
+};
+
+TEST_F(harq_extension_test, when_reconfigure_with_more_harqs_then_nof_harqs_increases)
+{
+  unique_ue_harq_entity harq_ent = cell_harqs.add_ue(ue_index, rnti, init_harqs, init_harqs);
+
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), init_harqs);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), init_harqs);
+
+  // Extend to 32 HARQs via reconfigure.
+  const unsigned extended_harqs = 32;
+  harq_ent.reconfigure(extended_harqs, extended_harqs, {}, {});
+
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), extended_harqs);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), extended_harqs);
+}
+
+TEST_F(harq_extension_test, when_reconfigure_with_same_count_then_no_change)
+{
+  unique_ue_harq_entity harq_ent = cell_harqs.add_ue(ue_index, rnti, init_harqs, init_harqs);
+
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), init_harqs);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), init_harqs);
+
+  // Reconfiguring with same count should not change anything.
+  harq_ent.reconfigure(init_harqs, init_harqs, {}, {});
+
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), init_harqs);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), init_harqs);
+}
+
+TEST_F(harq_extension_test, when_reconfigure_extends_then_new_harqs_are_allocatable)
+{
+  unique_ue_harq_entity harq_ent = cell_harqs.add_ue(ue_index, rnti, init_harqs, init_harqs);
+
+  // Allocate all initial HARQs.
+  for (unsigned i = 0; i != init_harqs; ++i) {
+    auto h_dl = harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0);
+    auto h_ul = harq_ent.alloc_ul_harq(current_slot + k2, max_retxs);
+    ASSERT_TRUE(h_dl.has_value());
+    ASSERT_TRUE(h_ul.has_value());
+  }
+
+  // No more HARQs available.
+  ASSERT_FALSE(harq_ent.has_empty_dl_harqs());
+  ASSERT_FALSE(harq_ent.has_empty_ul_harqs());
+  ASSERT_FALSE(harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).has_value());
+  ASSERT_FALSE(harq_ent.alloc_ul_harq(current_slot + k2, max_retxs).has_value());
+
+  // Extend to 32 HARQs via reconfigure.
+  const unsigned extended_harqs = 32;
+  harq_ent.reconfigure(extended_harqs, extended_harqs, {}, {});
+
+  // Now we should have more HARQs available.
+  ASSERT_TRUE(harq_ent.has_empty_dl_harqs());
+  ASSERT_TRUE(harq_ent.has_empty_ul_harqs());
+
+  // Allocate the new HARQs (IDs 16 to 31).
+  for (unsigned i = init_harqs; i != extended_harqs; ++i) {
+    auto h_dl = harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0);
+    auto h_ul = harq_ent.alloc_ul_harq(current_slot + k2, max_retxs);
+    ASSERT_TRUE(h_dl.has_value());
+    ASSERT_TRUE(h_ul.has_value());
+    // New HARQs should have IDs >= init_harqs.
+    ASSERT_GE(h_dl->id(), to_harq_id(init_harqs));
+    ASSERT_GE(h_ul->id(), to_harq_id(init_harqs));
+  }
+
+  // Now no HARQs should be available.
+  ASSERT_FALSE(harq_ent.has_empty_dl_harqs());
+  ASSERT_FALSE(harq_ent.has_empty_ul_harqs());
+}
+
+TEST_F(harq_extension_test, when_reconfigure_extends_asymmetrically_then_dl_and_ul_differ)
+{
+  unique_ue_harq_entity harq_ent = cell_harqs.add_ue(ue_index, rnti, init_harqs, init_harqs);
+
+  // Extend DL to 32, UL to 24 via reconfigure.
+  harq_ent.reconfigure(32, 24, {}, {});
+
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), 32U);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), 24U);
+}
+
 // NTN tests.
 
 TEST_F(single_ntn_ue_harq_normal_mode_process_test, when_ntn_normal_mode_wait_rtt_for_ack)
@@ -1266,4 +1364,82 @@ TEST_F(single_ntn_ue_harq_dl_feedback_disabled_process_test, release_dl_harq_aft
     }
     run_slot();
   }
+}
+
+// Tests for HARQ count based on NTN mode.
+
+class non_ntn_harq_count_test : public base_harq_manager_test, public ::testing::Test
+{
+protected:
+  non_ntn_harq_count_test() : base_harq_manager_test(1) {}
+
+  const du_ue_index_t ue_index  = to_du_ue_index(0);
+  const rnti_t        rnti      = to_rnti(0x4601);
+  const unsigned      max_retxs = 4;
+  const unsigned      k1        = 4;
+  const unsigned      k2        = 6;
+};
+
+class ntn_harq_count_test : public base_harq_manager_test, public ::testing::Test
+{
+protected:
+  ntn_harq_count_test() : base_harq_manager_test(1, 20) {}
+
+  const du_ue_index_t ue_index  = to_du_ue_index(0);
+  const rnti_t        rnti      = to_rnti(0x4601);
+  const unsigned      max_retxs = 4;
+  const unsigned      k1        = 4;
+  const unsigned      k2        = 6;
+};
+
+TEST_F(non_ntn_harq_count_test, when_non_ntn_cell_then_max_harqs_is_16)
+{
+  // Verify the max_harqs_per_ue is 16 for non-NTN cells.
+  ASSERT_EQ(max_harqs_per_ue, MAX_NOF_HARQS_NON_NTN);
+  ASSERT_EQ(max_harqs_per_ue, 16U);
+
+  // Create UE with 16 HARQs (the maximum for non-NTN).
+  unique_ue_harq_entity harq_ent = cell_harqs.add_ue(ue_index, rnti, MAX_NOF_HARQS_NON_NTN, MAX_NOF_HARQS_NON_NTN);
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), MAX_NOF_HARQS_NON_NTN);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), MAX_NOF_HARQS_NON_NTN);
+
+  // Allocate all 16 HARQs.
+  for (unsigned i = 0; i != MAX_NOF_HARQS_NON_NTN; ++i) {
+    auto h_dl = harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0);
+    auto h_ul = harq_ent.alloc_ul_harq(current_slot + k2, max_retxs);
+    ASSERT_TRUE(h_dl.has_value());
+    ASSERT_TRUE(h_ul.has_value());
+  }
+
+  // No more HARQs available after allocating 16.
+  ASSERT_FALSE(harq_ent.has_empty_dl_harqs());
+  ASSERT_FALSE(harq_ent.has_empty_ul_harqs());
+  ASSERT_FALSE(harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).has_value());
+  ASSERT_FALSE(harq_ent.alloc_ul_harq(current_slot + k2, max_retxs).has_value());
+}
+
+TEST_F(ntn_harq_count_test, when_ntn_cell_then_max_harqs_is_32)
+{
+  // Verify the max_harqs_per_ue is 32 for NTN cells.
+  ASSERT_EQ(max_harqs_per_ue, MAX_NOF_HARQS);
+  ASSERT_EQ(max_harqs_per_ue, 32U);
+
+  // Create UE with 32 HARQs (the maximum for NTN).
+  unique_ue_harq_entity harq_ent = cell_harqs.add_ue(ue_index, rnti, MAX_NOF_HARQS, MAX_NOF_HARQS);
+  ASSERT_EQ(harq_ent.nof_dl_harqs(), MAX_NOF_HARQS);
+  ASSERT_EQ(harq_ent.nof_ul_harqs(), MAX_NOF_HARQS);
+
+  // Allocate all 32 HARQs.
+  for (unsigned i = 0; i != MAX_NOF_HARQS; ++i) {
+    auto h_dl = harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0);
+    auto h_ul = harq_ent.alloc_ul_harq(current_slot + k2, max_retxs);
+    ASSERT_TRUE(h_dl.has_value());
+    ASSERT_TRUE(h_ul.has_value());
+  }
+
+  // No more HARQs available after allocating 32.
+  ASSERT_FALSE(harq_ent.has_empty_dl_harqs());
+  ASSERT_FALSE(harq_ent.has_empty_ul_harqs());
+  ASSERT_FALSE(harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).has_value());
+  ASSERT_FALSE(harq_ent.alloc_ul_harq(current_slot + k2, max_retxs).has_value());
 }

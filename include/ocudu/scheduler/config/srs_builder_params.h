@@ -24,6 +24,8 @@ namespace ocudu {
 enum class nof_cyclic_shifts { no_cyclic_shift = 1, two = 2, three = 3, four = 4, six = 6, twelve = 12 };
 
 struct srs_builder_params {
+  /// Enables use of Sounding Reference Signals (SRS) are used.
+  bool srs_enabled = false;
   /// If present, defines the SRS period for SRS periodic resources, in slots.
   /// When not present, the SRS resources are set as aperiodic.
   std::optional<srs_periodicity> srs_period = std::nullopt;

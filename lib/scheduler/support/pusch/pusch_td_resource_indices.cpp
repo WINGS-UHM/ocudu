@@ -79,13 +79,13 @@ pusch_index_list ocudu::get_pusch_td_resource_indices(const cell_configuration& 
     if (is_dl_heavy and pusch_td_res.k2 <= min_k1) {
       // DL-heavy case.
       // [Implementation-defined] For DL heavy TDD configuration, in the PUSCH time domain resources list, we allow only
-      // entries with the same k2 value that less than or equal to minimum value of k1(s); these multiple entries can
-      // have different symbols.
+      // entries with the same k2 value that are less than or equal to minimum value of k1(s); these multiple entries
+      // can have different symbols.
       if (not result.empty() and
           std::any_of(result.begin(),
                       result.end(),
                       [candidate_k2 = pusch_td_res.k2, pusch_time_domain_list](unsigned td_idx_it) {
-                        return candidate_k2 != pusch_time_domain_list[td_idx_it].k2 ? true : false;
+                        return candidate_k2 != pusch_time_domain_list[td_idx_it].k2;
                       })) {
         break;
       }
@@ -131,9 +131,10 @@ static std::optional<unsigned> find_td_index_with_k2(span<const pusch_time_domai
                                                      span<const unsigned>                              valid_indexes,
                                                      unsigned                                          k2)
 {
-  auto* it = std::find_if(valid_indexes.begin(), valid_indexes.end(), [&pusch_res_list, k2](unsigned pusch_td_res_idx) {
-    return pusch_res_list[pusch_td_res_idx].k2 == k2;
-  });
+  const auto* it =
+      std::find_if(valid_indexes.begin(), valid_indexes.end(), [&pusch_res_list, k2](unsigned pusch_td_res_idx) {
+        return pusch_res_list[pusch_td_res_idx].k2 == k2;
+      });
   if (it == valid_indexes.end()) {
     return std::nullopt;
   }

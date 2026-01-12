@@ -236,12 +236,12 @@ async_task<bool> f1c_other_srb_du_bearer::handle_pdu_and_await_delivery(byte_buf
 
 void f1c_other_srb_du_bearer::handle_transmit_notification(uint32_t highest_pdcp_sn)
 {
-  defer_until_success(ue_exec, timers, [this, highest_pdcp_sn]() { handle_notification(highest_pdcp_sn, true); });
+  defer_until_success(ctrl_exec, timers, [this, highest_pdcp_sn]() { handle_notification(highest_pdcp_sn, true); });
 }
 
 void f1c_other_srb_du_bearer::handle_delivery_notification(uint32_t highest_pdcp_sn)
 {
-  defer_until_success(ue_exec, timers, [this, highest_pdcp_sn]() { handle_notification(highest_pdcp_sn, false); });
+  defer_until_success(ctrl_exec, timers, [this, highest_pdcp_sn]() { handle_notification(highest_pdcp_sn, false); });
 }
 
 async_task<bool> f1c_other_srb_du_bearer::handle_pdu_and_await(byte_buffer               pdu,
@@ -270,28 +270,11 @@ async_task<bool> f1c_other_srb_du_bearer::handle_pdu_and_await(byte_buffer      
     pending_rrc_delivery_status_reports.push_back(pdcp_sn.value());
   }
 
-  return launch_async([this,
-                       pdcp_sn = pdcp_sn.value(),
-                       tx_or_delivery,
-                       time_to_wait,
-                       result = event_result_type{},
-                       sdu    = std::move(pdu)](coro_context<async_task<bool>>& ctx) mutable {
-    CORO_BEGIN(ctx);
+  // Forward SDU to lower layers via UE executor.
+  defer_until_success(
+      ue_exec, timers, [this, sdu = std::move(pdu)]() mutable { sdu_notifier.on_new_sdu(std::move(sdu)); });
 
-    CORO_AWAIT(execute_on_blocking(ue_exec, timers));
-
-    // Forward SDU to lower layers.
-    sdu_notifier.on_new_sdu(std::move(sdu));
-
-    // Await SDU delivery.
-    CORO_AWAIT_VALUE(result, wait_for_notification(pdcp_sn, tx_or_delivery, time_to_wait));
-
-    // Return back to control executor.
-    CORO_AWAIT(execute_on_blocking(ctrl_exec, timers));
-
-    // True for success, false for timeout/cancel.
-    CORO_RETURN(result.index() == 0);
-  });
+  return wait_for_notification(pdcp_sn.value(), tx_or_delivery, time_to_wait);
 }
 
 void f1c_other_srb_du_bearer::handle_notification(uint32_t highest_pdcp_sn, bool tx_or_delivery)
@@ -329,10 +312,9 @@ void f1c_other_srb_du_bearer::handle_notification(uint32_t highest_pdcp_sn, bool
                        pending_events.end());
 }
 
-f1c_other_srb_du_bearer::event_observer_type&
-f1c_other_srb_du_bearer::wait_for_notification(uint32_t                  pdcp_sn,
-                                               bool                      tx_or_delivery,
-                                               std::chrono::milliseconds time_to_wait)
+async_task<bool> f1c_other_srb_du_bearer::wait_for_notification(uint32_t                  pdcp_sn,
+                                                                bool                      tx_or_delivery,
+                                                                std::chrono::milliseconds time_to_wait)
 {
   std::optional<uint32_t>& last_sn        = tx_or_delivery ? last_pdcp_sn_transmitted : last_pdcp_sn_delivered;
   auto&                    pending_events = tx_or_delivery ? pending_transmissions : pending_deliveries;
@@ -340,42 +322,42 @@ f1c_other_srb_du_bearer::wait_for_notification(uint32_t                  pdcp_sn
   // Check if the PDU has been already delivered.
   if (last_sn.has_value() and last_sn.value() >= pdcp_sn) {
     // SN already notified.
-    return always_set_event;
+    return launch_no_op_task(true);
   }
 
-  // Allocate a notification event awaitable.
+  // Allocate a slot in the event pool.
   auto event_slot = event_pool.create(pdcp_sn, du_configurator.get_timer_factory(), time_to_wait);
   if (event_slot == nullptr) {
     logger.warning("Rx PDU {}: Ignoring {} Rx PDU {} notification. Cause: Failed to allocate notification handler.",
                    ue_ctxt,
                    srb_id,
                    tx_or_delivery ? "Tx" : "delivery");
-    return always_set_event;
+    return launch_no_op_task(true);
   }
 
   // Allocation successful. Return awaitable event.
-  pending_events.emplace_back(std::move(event_slot));
-  return pending_events.back()->observer;
+  auto& ev = pending_events.emplace_back(std::move(event_slot));
+  return launch_async([&ev](coro_context<async_task<bool>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT_VALUE(auto res, ev->observer);
+    // True if there was no cancellation or timeout.
+    CORO_RETURN(res.index() == 0);
+  });
 }
 
-void f1c_other_srb_du_bearer::handle_rrc_delivery_report(uint32_t trigger_pdcp_sn, uint32_t highest_in_order_pdcp_sn)
+void f1c_other_srb_du_bearer::handle_rrc_delivery_report(uint32_t trigger_pdcp_sn,
+                                                         uint32_t highest_in_order_pdcp_sn) const
 {
-  // Send F1AP PDU to CU-CP.
-  if (not ctrl_exec.defer([this, trigger_pdcp_sn, highest_in_order_pdcp_sn]() {
-        f1ap_message msg;
-        msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_RRC_DELIVERY_REPORT);
-        asn1::f1ap::rrc_delivery_report_ies_container& report = *msg.pdu.init_msg().value.rrc_delivery_report();
+  f1ap_message msg;
+  msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_RRC_DELIVERY_REPORT);
+  asn1::f1ap::rrc_delivery_report_ies_container& report = *msg.pdu.init_msg().value.rrc_delivery_report();
 
-        report.gnb_cu_ue_f1ap_id                   = gnb_cu_ue_f1ap_id_to_uint(ue_ctxt.gnb_cu_ue_f1ap_id);
-        report.gnb_du_ue_f1ap_id                   = gnb_du_ue_f1ap_id_to_uint(ue_ctxt.gnb_du_ue_f1ap_id);
-        report.srb_id                              = srb_id_to_uint(srb_id);
-        report.rrc_delivery_status.trigger_msg     = trigger_pdcp_sn;
-        report.rrc_delivery_status.delivery_status = highest_in_order_pdcp_sn;
+  report.gnb_cu_ue_f1ap_id                   = gnb_cu_ue_f1ap_id_to_uint(ue_ctxt.gnb_cu_ue_f1ap_id);
+  report.gnb_du_ue_f1ap_id                   = gnb_du_ue_f1ap_id_to_uint(ue_ctxt.gnb_du_ue_f1ap_id);
+  report.srb_id                              = srb_id_to_uint(srb_id);
+  report.rrc_delivery_status.trigger_msg     = trigger_pdcp_sn;
+  report.rrc_delivery_status.delivery_status = highest_in_order_pdcp_sn;
 
-        f1ap_notifier.on_new_message(msg);
-      })) {
-    logger.warning("ue={} SRB{}: Discarded delivery report. Cause: The task executor queue is full.",
-                   fmt::underlying(ue_ctxt.ue_index),
-                   srb_id_to_uint(srb_id));
-  }
+  // Forward message to F1-C interface.
+  f1ap_notifier.on_new_message(msg);
 }

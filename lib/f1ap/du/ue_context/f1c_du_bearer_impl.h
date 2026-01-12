@@ -116,12 +116,11 @@ private:
                                         bool                      tx_or_delivery,
                                         bool                      report_rrc_delivery_status,
                                         std::chrono::milliseconds time_to_wait);
-  event_observer_type&
-       wait_for_notification(uint32_t pdcp_sn, bool tx_or_delivery, std::chrono::milliseconds time_to_wait);
-  void handle_notification(uint32_t highest_pdcp_sn, bool tx_or_delivery);
+  async_task<bool> wait_for_notification(uint32_t pdcp_sn, bool tx_or_delivery, std::chrono::milliseconds time_to_wait);
+  void             handle_notification(uint32_t highest_pdcp_sn, bool tx_or_delivery);
 
   /// Handle RRC Delivery Report as per TS 38.473, Section 8.4.4.
-  void handle_rrc_delivery_report(uint32_t trigger_pdcp_sn, uint32_t highest_in_order_pdcp_sn);
+  void handle_rrc_delivery_report(uint32_t trigger_pdcp_sn, uint32_t highest_in_order_pdcp_sn) const;
 
   f1ap_ue_context&        ue_ctxt;
   srb_id_t                srb_id;

@@ -10,7 +10,6 @@ add_executable(f1c_gateway_test f1c_gateway_test.cpp)
 target_link_libraries(f1c_gateway_test
         ocudu_f1c_gateway
         ocudu_gateway
-        f1ap_test_helpers
         ocudu_f1ap_common
         ocudu_support
         ocudulog

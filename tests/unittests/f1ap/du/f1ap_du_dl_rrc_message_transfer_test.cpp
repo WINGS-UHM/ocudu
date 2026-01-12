@@ -10,11 +10,16 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
-#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 using namespace ocudu::odu;
+
+static f1ap_message generate_dl_rrc_message_transfer(srb_id_t srb_id, const byte_buffer& container)
+{
+  return test_helpers::generate_dl_rrc_message_transfer(
+      int_to_gnb_du_ue_f1ap_id(0), int_to_gnb_cu_ue_f1ap_id(0), srb_id, container.copy());
+}
 
 class f1ap_du_dl_rrc_message_transfer_test : public f1ap_du_test
 {
@@ -36,7 +41,7 @@ TEST_F(f1ap_du_dl_rrc_message_transfer_test,
 {
   // Forward DL RRC Message Transfer
   byte_buffer  test_rrc_msg = test_helpers::create_dl_dcch_rrc_container(0, {0x1, 0x2, 0x3});
-  f1ap_message msg          = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
+  f1ap_message msg          = generate_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
   ASSERT_TRUE(test_ue->f1c_bearers[1].rx_sdu_notifier.last_pdu.empty());
   f1ap->handle_message(msg);
 
@@ -49,7 +54,7 @@ TEST_F(f1ap_du_dl_rrc_message_transfer_test, when_dl_rrc_message_transfer_is_rec
 {
   // Forward DL RRC Message Transfer
   byte_buffer  test_rrc_msg = test_helpers::create_dl_dcch_rrc_container(0, {0x1, 0x2, 0x3});
-  f1ap_message msg          = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
+  f1ap_message msg          = generate_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_cu_ue_f1ap_id = 5;
   // The DL RRC Message Transfer should update the gNB-CU UE F1AP ID.
   f1ap->handle_message(msg);
@@ -69,7 +74,7 @@ TEST_F(
 
   // Forward DL RRC Message Transfer
   byte_buffer         test_rrc_msg = test_helpers::create_dl_dcch_rrc_container(pdcp_sn, {0x1, 0x2, 0x3});
-  f1ap_message        msg          = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
+  f1ap_message        msg          = generate_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
   gnb_du_ue_f1ap_id_t du_ue_id =
       int_to_gnb_du_ue_f1ap_id(msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_du_ue_f1ap_id);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_delivery_status_request_present = true;
@@ -109,7 +114,7 @@ TEST_F(f1ap_du_test,
   ASSERT_NE(ue1, nullptr);
   // > run DL rrc message for UE1 that will set the gnb-cu-ue-f1ap-id.
   byte_buffer  test_rrc_msg = byte_buffer::create({0x1, 0x2, 0x3}).value();
-  f1ap_message msg          = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
+  f1ap_message msg          = generate_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_cu_ue_f1ap_id = 0;
   ASSERT_TRUE(ue1->f1c_bearers[1].rx_sdu_notifier.last_pdu.empty());
   f1ap->handle_message(msg);
@@ -144,14 +149,14 @@ TEST_F(f1ap_du_test,
   ASSERT_NE(ue1, nullptr);
   // > run DL rrc message for UE1 that will set the gnb-cu-ue-f1ap-id.
   byte_buffer  test_rrc_msg = byte_buffer::create({0x1, 0x2, 0x3}).value();
-  f1ap_message msg          = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb0, test_rrc_msg);
+  f1ap_message msg          = generate_dl_rrc_message_transfer(srb_id_t::srb0, test_rrc_msg);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_cu_ue_f1ap_id = 0;
   f1ap->handle_message(msg);
   // > create UE2
   ue_test_context* ue2 = run_f1ap_ue_create(to_du_ue_index(1));
   ASSERT_NE(ue2, nullptr);
   // > Send DL RRC Message Transfer for UE2 (containing old gNB DU UE ID).
-  msg = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
+  msg = generate_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_du_ue_f1ap_id             = 1;
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_cu_ue_f1ap_id             = 1;
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->old_gnb_du_ue_f1ap_id_present = true;
@@ -186,14 +191,14 @@ TEST_F(f1ap_du_test, when_dl_rrc_message_transfer_has_duplicate_cu_ue_id_and_old
   ASSERT_NE(ue1, nullptr);
   // > run DL rrc message for UE1 that will set the gnb-cu-ue-f1ap-id.
   byte_buffer  test_rrc_msg = byte_buffer::create({0x1, 0x2, 0x3}).value();
-  f1ap_message msg          = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb0, test_rrc_msg);
+  f1ap_message msg          = generate_dl_rrc_message_transfer(srb_id_t::srb0, test_rrc_msg);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_cu_ue_f1ap_id = 5;
   f1ap->handle_message(msg);
   // > create UE2
   ue_test_context* ue2 = run_f1ap_ue_create(to_du_ue_index(1));
   ASSERT_NE(ue2, nullptr);
   // > Send DL RRC Message Transfer for UE2 (containing old gNB DU UE ID).
-  msg = generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
+  msg = generate_dl_rrc_message_transfer(srb_id_t::srb1, test_rrc_msg);
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_du_ue_f1ap_id             = 1;
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->gnb_cu_ue_f1ap_id             = 5;
   msg.pdu.init_msg().value.dl_rrc_msg_transfer()->old_gnb_du_ue_f1ap_id_present = true;

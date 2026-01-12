@@ -53,7 +53,7 @@ void f1c_srb0_du_bearer::handle_sdu(byte_buffer_chain sdu)
   report_fatal_error_if_not(pdu.append(sdu.begin(), sdu.end()), "byte buffer with fallback allocator should not fail");
 
   // Ensure SRB tasks are handled within the control executor.
-  defer_until_success(ctrl_exec, timers, [this, pdu = std::move(pdu)]() mutable {
+  execute_until_success(ctrl_exec, timers, [this, pdu = std::move(pdu)]() mutable {
     const protocol_transaction<f1ap_transaction_response> transaction = ev_manager.transactions.create_transaction();
 
     // Pack Initial UL RRC Message Transfer as per TS38.473, Section 8.4.1.
@@ -92,7 +92,7 @@ void f1c_srb0_du_bearer::handle_delivery_notification(uint32_t highest_pdcp_sn)
 void f1c_srb0_du_bearer::handle_pdu(byte_buffer pdu, bool /* unused */)
 {
   // Change to UE execution context before forwarding the SDU to lower layers.
-  defer_until_success(
+  execute_until_success(
       ue_exec, timers, [this, sdu = std::move(pdu)]() mutable { sdu_notifier.on_new_sdu(std::move(sdu)); });
 }
 
@@ -157,7 +157,7 @@ void f1c_other_srb_du_bearer::handle_sdu(byte_buffer_chain sdu)
   report_fatal_error_if_not(pdu.append(sdu.begin(), sdu.end()), "byte buffer with fallback allocator should not fail");
 
   // Ensure SRB tasks are handled within the control executor as they involve access to the UE context.
-  defer_until_success(ctrl_exec, timers, [this, pdu = std::move(pdu)]() mutable {
+  execute_until_success(ctrl_exec, timers, [this, pdu = std::move(pdu)]() mutable {
     gnb_cu_ue_f1ap_id_t cu_ue_id = ue_ctxt.gnb_cu_ue_f1ap_id;
     if (cu_ue_id >= gnb_cu_ue_f1ap_id_t::max) {
       logger.warning("ue={} rnti={} du_ue={} SRB={}: Discarding F1AP RX SDU. Cause: GNB-CU-UE-F1AP-ID is invalid.",
@@ -214,7 +214,7 @@ void f1c_other_srb_du_bearer::handle_pdu(byte_buffer pdu, bool rrc_delivery_stat
   }
 
   // Change to UE execution context before forwarding the SDU to lower layers.
-  defer_until_success(ue_exec, timers, [this, sdu = std::move(pdu)]() mutable {
+  execute_until_success(ue_exec, timers, [this, sdu = std::move(pdu)]() mutable {
     // Forward SDU to lower layers.
     sdu_notifier.on_new_sdu(std::move(sdu));
   });

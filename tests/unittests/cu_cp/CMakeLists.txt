@@ -33,7 +33,6 @@ target_link_libraries(cu_cp_test_helpers
         ocudulog
         e1ap_test_helpers
         e1ap_test_doubles
-        f1ap_test_helpers
         f1ap_test_doubles
         ngap_test_helpers
         ngap_test_doubles

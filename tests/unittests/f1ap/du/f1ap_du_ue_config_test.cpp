@@ -9,6 +9,7 @@
  */
 
 #include "f1ap_du_test_helpers.h"
+#include "test_doubles/f1ap/f1ap_test_messages.h"
 #include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
@@ -62,7 +63,8 @@ TEST_F(f1ap_du_ue_management_tester, f1ap_created_bearers_forward_messages_to_no
   byte_buffer dl_srb_buf =
       byte_buffer::create(test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(3, 100))).value();
   ASSERT_TRUE(this->srb2_rx_sdu_notifier.last_pdu.empty());
-  f1ap->handle_message(generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb2, dl_srb_buf));
+  f1ap->handle_message(test_helpers::generate_dl_rrc_message_transfer(
+      int_to_gnb_du_ue_f1ap_id(0), int_to_gnb_cu_ue_f1ap_id(0), srb_id_t::srb2, dl_srb_buf.copy()));
   ASSERT_EQ(dl_srb_buf, this->srb2_rx_sdu_notifier.last_pdu);
 
   // Send UL data through created F1-C bearer.
@@ -89,6 +91,7 @@ TEST_F(f1ap_du_ue_management_tester, f1ap_created_bearers_do_not_forward_invalid
   byte_buffer dl_srb_buf =
       byte_buffer::create(test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(1, 2))).value();
   ASSERT_TRUE(this->srb2_rx_sdu_notifier.last_pdu.empty());
-  f1ap->handle_message(generate_f1ap_dl_rrc_message_transfer(srb_id_t::srb2, dl_srb_buf));
+  f1ap->handle_message(test_helpers::generate_dl_rrc_message_transfer(
+      int_to_gnb_du_ue_f1ap_id(0), int_to_gnb_cu_ue_f1ap_id(0), srb_id_t::srb2, dl_srb_buf.copy()));
   ASSERT_TRUE(this->srb2_rx_sdu_notifier.last_pdu.empty());
 }

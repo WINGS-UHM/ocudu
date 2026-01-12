@@ -6,13 +6,8 @@
 # the distribution.
 #
 
-add_library(f1ap_test_helpers f1ap_du_test_messages.cpp)
-target_include_directories(f1ap_test_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(f1ap_test_helpers ocudu_support f1ap_asn1 ocudulog)
-
 add_executable(f1ap_asn1_packer_test f1ap_asn1_packer_test.cpp f1ap_asn1_helpers_test.cpp)
 target_link_libraries(f1ap_asn1_packer_test
-        f1ap_test_helpers
         ocudu_f1ap_common
         f1ap_test_doubles
         ocudu_support

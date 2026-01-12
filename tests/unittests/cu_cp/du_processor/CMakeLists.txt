@@ -12,7 +12,6 @@ target_link_libraries(du_processor_test_helpers
         cu_cp_test_helpers
         ocudu_cu_cp
         e1ap_test_helpers
-        f1ap_test_helpers
         ngap_test_helpers
         rrc_ue_test_helpers
         f1ap_test_doubles

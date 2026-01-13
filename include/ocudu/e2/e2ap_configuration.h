@@ -15,6 +15,7 @@
 #include "ocudu/ran/gnb_id.h"
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace ocudu {
 
@@ -34,12 +35,12 @@ struct e2ap_configuration {
 struct e2_config {
   /// Whether to enable E2 agent.
   bool enable_unit_e2 = false;
-  /// RIC IP address.
-  std::string ip_addr = "127.0.0.1";
+  /// RIC IP addresses.
+  std::vector<std::string> ip_addrs = {"127.0.0.1"};
   /// RIC port.
   uint16_t port = 36421;
-  /// Local IP address to bind for RIC connection.
-  std::string bind_addr = "127.0.0.1";
+  /// Local IP addresses to bind for RIC connection.
+  std::vector<std::string> bind_addrs = {"127.0.0.1"};
   /// SCTP initial RTO value for RIC connection.
   int sctp_rto_initial = 120;
   /// SCTP RTO min for RIC connection.

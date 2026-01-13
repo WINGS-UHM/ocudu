@@ -20,9 +20,17 @@ static void configure_cli11_e2_args(CLI::App&          app,
                                     const std::string& option_description)
 {
   add_option(app, option_name, e2_params.enable_unit_e2, option_description)->capture_default_str();
-  add_option(app, "--addr", e2_params.ip_addr, "RIC IP address")->capture_default_str();
+  add_option(app,
+             "--addrs",
+             e2_params.ip_addrs,
+             "RIC addresses to be used for E2 interface. Multiple addresses can be specified for SCTP multi-homing")
+      ->capture_default_str();
   add_option(app, "--port", e2_params.port, "RIC port")->check(CLI::Range(20000, 40000))->capture_default_str();
-  add_option(app, "--bind_addr", e2_params.bind_addr, "Local IP address to bind for RIC connection")
+  add_option(app,
+             "--bind_addrs",
+             e2_params.bind_addrs,
+             "Local bind addresses to be used for E2 interface. Multiple addresses can be specified for SCTP "
+             "multi-homing. If left empty, implicit bind is performed")
       ->capture_default_str()
       ->check(CLI::ValidIPV4);
   add_option(app, "--sctp_rto_initial", e2_params.sctp_rto_initial, "SCTP initial RTO value")->capture_default_str();

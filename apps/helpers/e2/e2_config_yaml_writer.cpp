@@ -15,9 +15,9 @@ using namespace ocudu;
 
 void ocudu::fill_e2_config_in_yaml_schema(YAML::Node node, const e2_config& config)
 {
-  node["addr"]                   = config.ip_addr;
+  node["addrs"]                  = config.ip_addrs;
   node["port"]                   = config.port;
-  node["bind_addr"]              = config.bind_addr;
+  node["bind_addrs"]             = config.bind_addrs;
   node["sctp_rto_initial"]       = config.sctp_rto_initial;
   node["sctp_rto_min"]           = config.sctp_rto_min;
   node["sctp_rto_max"]           = config.sctp_rto_max;

@@ -45,6 +45,7 @@ add_to_exported_libs(ocudu_channel_processors
         ocudu_pucch_demodulator
         ocudu_pucch_detector
         ocudu_pucch_processor
+        ocudu_pusch_demodulator
         ocudu_pusch_processor
         ocudu_ssb_tx_processor
         ocudu_uci_decoder)

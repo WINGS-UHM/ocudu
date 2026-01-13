@@ -12,6 +12,7 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/static_vector.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/support/rb_allocation.h"
 #include "ocudu/phy/upper/dmrs_mapping.h"
 #include "ocudu/ran/pusch/pusch_context.h"

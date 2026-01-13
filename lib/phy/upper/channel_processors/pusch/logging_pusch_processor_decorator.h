@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/phy/support/support_formatters.h"
 #include "ocudu/phy/upper/channel_processors/pusch/formatters.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"

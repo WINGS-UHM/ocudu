@@ -91,7 +91,8 @@ private:
   /// \return True if there is space to allocate Paging grant, false otherwise.
   bool is_there_space_available_for_paging(const cell_resource_allocator& res_grid,
                                            unsigned                       pdsch_time_res,
-                                           unsigned                       msg_size) const;
+                                           unsigned                       msg_size,
+                                           slot_point                     pdcch_slot) const;
 
   /// \brief Allocates PDSCH and PDCCH for Paging.
   ///

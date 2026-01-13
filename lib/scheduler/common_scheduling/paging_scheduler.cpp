@@ -193,7 +193,7 @@ std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_re
         get_accumulated_paging_msg_size(group) +
         (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity ? RRC_CN_PAGING_ID_RECORD_SIZE
                                                                                       : RRC_RAN_PAGING_ID_RECORD_SIZE);
-    if (is_there_space_available_for_paging(res_grid, time_res_idx, msg_size)) {
+    if (is_there_space_available_for_paging(res_grid, time_res_idx, msg_size, pdcch_slot)) {
       return time_res_idx;
     }
   }
@@ -275,7 +275,8 @@ static bool has_space_for_pdsch(const cell_resource_allocator&                  
 
 bool paging_scheduler::is_there_space_available_for_paging(const cell_resource_allocator& res_grid,
                                                            unsigned                       pdsch_time_res,
-                                                           unsigned                       msg_size) const
+                                                           unsigned                       msg_size,
+                                                           slot_point                     pdcch_slot) const
 {
   if (not has_space_for_pdsch(res_grid, *ss_cfg, pdsch_td_alloc_list, pdsch_time_res)) {
     return false;
@@ -307,8 +308,9 @@ bool paging_scheduler::is_there_space_available_for_paging(const cell_resource_a
   crb_interval paging_crbs;
   {
     const unsigned    nof_paging_rbs = paging_prbs_tbs.nof_prbs;
-    const crb_bitmap& used_crbs      = res_grid[pdsch_td_cfg.k0].dl_res_grid.used_crbs(bwp_cfg, pdsch_td_cfg.symbols);
-    paging_crbs                      = rb_helper::find_empty_interval_of_length(used_crbs, nof_paging_rbs);
+    const crb_bitmap& used_crbs =
+        res_grid[pdcch_slot + pdsch_td_cfg.k0].dl_res_grid.used_crbs(bwp_cfg, pdsch_td_cfg.symbols);
+    paging_crbs = rb_helper::find_empty_interval_of_length(used_crbs, nof_paging_rbs);
     if (paging_crbs.length() < nof_paging_rbs) {
       return false;
     }
@@ -329,14 +331,14 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid
 
   cell_slot_resource_allocator& pdcch_alloc = res_grid[pdcch_slot];
   if (pdcch_alloc.result.dl.dl_pdcchs.full()) {
-    logger.warning("Dropping Paging opportunity for id={}. Cause: Not enough PDCCH space for Paging",
+    logger.warning("Skipping Paging opportunity for id={}. Cause: Not enough PDCCH space for Paging",
                    ue_paging_ids.front());
     return false;
   }
 
   cell_slot_resource_allocator& pdsch_alloc = res_grid[pdcch_slot + pdsch_td_alloc_list[pdsch_time_res].k0];
   if (pdsch_alloc.result.dl.paging_grants.full()) {
-    logger.warning("Dropping Paging opportunity for id={}. Cause: Not enough PDSCH space for Paging",
+    logger.warning("Skipping Paging opportunity for id={}. Cause: Not enough PDSCH space for Paging",
                    ue_paging_ids.front());
     return false;
   }
@@ -373,9 +375,12 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid
     const crb_bitmap& used_crbs      = pdsch_alloc.dl_res_grid.used_crbs(bwp_cfg, pdsch_td_cfg.symbols);
     paging_crbs                      = rb_helper::find_empty_interval_of_length(used_crbs, nof_paging_rbs);
     if (paging_crbs.length() < nof_paging_rbs) {
-      logger.warning("Dropping Paging opportunity for id={}. Cause: Not enough PDSCH space for Paging in slot={}",
+      logger.warning("Skipping Paging opportunity for id={}. Cause: Not enough RBs available for Paging PDSCH in "
+                     "slot={} ({} < {})",
                      ue_paging_ids.front(),
-                     pdsch_alloc.slot);
+                     pdsch_alloc.slot,
+                     paging_crbs.length(),
+                     nof_paging_rbs);
       return false;
     }
   }
@@ -384,7 +389,9 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid
   pdcch_dl_information* pdcch =
       pdcch_sch.alloc_dl_pdcch_common(pdcch_alloc, rnti_t::P_RNTI, ss_id, expert_cfg.pg.paging_dci_aggr_lev);
   if (pdcch == nullptr) {
-    logger.warning("Could not allocate Paging's DCI in PDCCH");
+    logger.warning("Skipping Paging opportunity for id={}. Cause: Could not allocate PDCCH in slot={}",
+                   ue_paging_ids.front(),
+                   pdsch_alloc.slot);
     return false;
   }
 

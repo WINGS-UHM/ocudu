@@ -271,7 +271,7 @@ async_task<bool> f1c_other_srb_du_bearer::handle_pdu_and_await(byte_buffer      
   }
 
   // Forward SDU to lower layers via UE executor.
-  defer_until_success(
+  execute_until_success(
       ue_exec, timers, [this, sdu = std::move(pdu)]() mutable { sdu_notifier.on_new_sdu(std::move(sdu)); });
 
   return wait_for_notification(pdcp_sn.value(), tx_or_delivery, time_to_wait);

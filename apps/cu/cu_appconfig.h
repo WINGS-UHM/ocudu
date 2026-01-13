@@ -26,8 +26,8 @@ namespace ocu {
 
 /// F1AP configuration.
 struct cu_f1ap_appconfig {
-  /// F1-C bind address.
-  std::string bind_addr = "127.0.10.1";
+  /// F1-C bind addresses.
+  std::vector<std::string> bind_addrs = {"127.0.10.1"};
 };
 
 /// Metrics report configuration.

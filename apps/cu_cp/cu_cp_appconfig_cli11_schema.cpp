@@ -28,7 +28,11 @@ static void configure_cli11_e1ap_args(CLI::App& app, ocucp::e1ap_appconfig& e1ap
 
 static void configure_cli11_f1ap_args(CLI::App& app, ocucp::f1ap_appconfig& f1ap_params)
 {
-  add_option(app, "--bind_addr", f1ap_params.bind_addr, "F1-C bind address")->capture_default_str();
+  add_option(app,
+             "--bind_addrs",
+             f1ap_params.bind_addrs,
+             "CU-CP F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
+      ->capture_default_str();
 }
 
 void ocudu::configure_cli11_with_cu_cp_appconfig_schema(CLI::App& app, cu_cp_appconfig& cu_cp_cfg)

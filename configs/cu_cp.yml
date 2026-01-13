@@ -21,7 +21,7 @@ cu_cp:
   e1ap:
     bind_addr: 127.0.20.1
   f1ap:
-    bind_addr: 127.0.10.1
+    bind_addrs: 127.0.10.1
 
 log:
   filename: /tmp/cu_cp.log

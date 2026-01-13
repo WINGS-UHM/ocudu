@@ -29,9 +29,9 @@ static void fill_cu_appconfig_remote_control_section(YAML::Node node, const remo
 
 static void fill_cu_appconfig_f1ap_section(YAML::Node node, const ocu::cu_f1ap_appconfig& config)
 {
-  YAML::Node cu_cp_node     = node["cu_cp"];
-  YAML::Node f1ap_node      = cu_cp_node["f1ap"];
-  f1ap_node["bind_address"] = config.bind_addr;
+  YAML::Node cu_cp_node   = node["cu_cp"];
+  YAML::Node f1ap_node    = cu_cp_node["f1ap"];
+  f1ap_node["bind_addrs"] = config.bind_addrs;
 }
 
 static void fill_cu_appconfig_f1u_section(YAML::Node& node, const f1u_sockets_appconfig& config)

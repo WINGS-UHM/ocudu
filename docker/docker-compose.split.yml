@@ -107,7 +107,7 @@ configs:
         e1ap:
           bind_addr: ${CU_CP_IP:-10.53.1.4}
         f1ap:
-          bind_addr: ${CU_CP_IP:-10.53.1.4}
+          bind_addrs: ${CU_CP_IP:-10.53.1.4}
   cu_up_config.yml:
     file: ${CUUP_CONFIG_PATH:-../configs/cu_up.yml}
   cu_up_compose_config.yml:

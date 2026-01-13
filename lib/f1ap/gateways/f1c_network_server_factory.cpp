@@ -114,9 +114,9 @@ public:
     // Start listening for new DU SCTP connections.
     bool result = sctp_server->listen();
     report_error_if_not(result, "Failed to start SCTP server.\n");
-    fmt::print("{}: Listening for new connections on {}:{}...\n",
+    fmt::print("{}: Listening for new connections on bind addresses {}, port {}...\n",
                params.sctp.if_name,
-               params.sctp.bind_addresses[0],
+               fmt::join(params.sctp.bind_addresses, ","),
                params.sctp.bind_port);
   }
 

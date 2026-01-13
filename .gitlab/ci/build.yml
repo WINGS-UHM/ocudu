@@ -674,7 +674,7 @@ package:
       start_in: 45 minutes
     - if: $ON_MR
   variables: &package_variables
-    PROJECT_NAME: srsran-project
+    PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
     KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
     KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
@@ -699,7 +699,7 @@ install-package:
     - if: $CI_DESCRIPTION =~ /Nightly/
     - if: $ON_MR
   variables:
-    PROJECT_NAME: srsran-project
+    PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
   tags: [amd64-avx2]
   script:

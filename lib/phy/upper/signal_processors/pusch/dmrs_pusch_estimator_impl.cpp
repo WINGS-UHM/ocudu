@@ -197,11 +197,6 @@ float dmrs_pusch_estimator_impl::get_rsrp(unsigned rx_port, unsigned tx_layer) c
   return ch_est_result[rx_port]->get_rsrp(tx_layer);
 }
 
-float dmrs_pusch_estimator_impl::get_rsrp_dB(unsigned rx_port, unsigned tx_layer) const
-{
-  return convert_power_to_dB(get_rsrp(rx_port, tx_layer));
-}
-
 static_vector<float, MAX_PORTS> dmrs_pusch_estimator_impl::get_rsrp_all_ports(unsigned tx_layer) const
 {
   ocudu_assert(tx_layer < nof_tx_layers,
@@ -223,11 +218,6 @@ float dmrs_pusch_estimator_impl::get_noise_variance(unsigned rx_port) const
 {
   ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
   return ch_est_result[rx_port]->get_noise_variance();
-}
-
-float dmrs_pusch_estimator_impl::get_noise_variance_dB(unsigned rx_port) const
-{
-  return convert_power_to_dB(get_noise_variance(rx_port));
 }
 
 float dmrs_pusch_estimator_impl::get_epre(unsigned rx_port) const

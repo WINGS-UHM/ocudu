@@ -84,16 +84,10 @@ private:
   float get_noise_variance(unsigned rx_port) const override;
 
   // See the dmrs_pusch_estimator_results interface for the documentation.
-  float get_noise_variance_dB(unsigned rx_port) const override;
-
-  // See the dmrs_pusch_estimator_results interface for the documentation.
   float get_rsrp(unsigned rx_port, unsigned tx_layer = 0) const override;
 
   // See the dmrs_pusch_estimator_results interface for the documentation.
   static_vector<float, MAX_PORTS> get_rsrp_all_ports(unsigned tx_layer = 0) const override;
-
-  // See the dmrs_pusch_estimator_results interface for the documentation.
-  float get_rsrp_dB(unsigned rx_port, unsigned tx_layer = 0) const override;
 
   // See the dmrs_pusch_estimator_results interface for the documentation.
   float get_epre(unsigned rx_port) const override;

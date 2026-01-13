@@ -21,13 +21,9 @@ class dmrs_pusch_estimator_results_dummy : public dmrs_pusch_estimator_results
 public:
   float get_noise_variance(unsigned rx_port) const override { return {}; }
 
-  float get_noise_variance_dB(unsigned rx_port) const override { return {}; }
-
   float get_rsrp(unsigned rx_port, unsigned tx_layer = 0) const override { return {}; }
 
   static_vector<float, MAX_PORTS> get_rsrp_all_ports(unsigned tx_layer = 0) const override { return {}; }
-
-  float get_rsrp_dB(unsigned rx_port, unsigned tx_layer = 0) const override { return {}; }
 
   float get_epre(unsigned rx_port) const override { return {}; }
 

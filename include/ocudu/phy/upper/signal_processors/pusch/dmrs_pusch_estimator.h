@@ -137,7 +137,7 @@ public:
   virtual float get_noise_variance(unsigned rx_port) const = 0;
 
   /// Returns the estimated noise variance for the given Rx port (dB scale).
-  virtual float get_noise_variance_dB(unsigned rx_port) const = 0;
+  float get_noise_variance_dB(unsigned rx_port) const { return convert_power_to_dB(get_noise_variance(rx_port)); }
 
   /// Returns the estimated RSRP for the path between the given Rx port and Tx layer (linear scale).
   virtual float get_rsrp(unsigned rx_port, unsigned tx_layer = 0) const = 0;
@@ -146,7 +146,10 @@ public:
   virtual static_vector<float, MAX_PORTS> get_rsrp_all_ports(unsigned tx_layer = 0) const = 0;
 
   /// Returns the estimated RSRP for the path between the given Rx port and Tx layer (dB scale).
-  virtual float get_rsrp_dB(unsigned rx_port, unsigned tx_layer = 0) const = 0;
+  float get_rsrp_dB(unsigned rx_port, unsigned tx_layer = 0) const
+  {
+    return convert_power_to_dB(get_rsrp(rx_port, tx_layer));
+  }
 
   /// \brief Returns the average EPRE for the given Rx port (linear scale).
   ///

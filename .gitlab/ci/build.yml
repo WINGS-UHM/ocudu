@@ -13,6 +13,10 @@ include:
   - local: .gitlab/ci-shared/build.yml
   - local: .gitlab/ci-shared/docker.yml
 
+variables:
+  OCUDU_PACKAGING_REGISTRY_URI: ${CI_REGISTRY}/ocudu/ocudu_packaging
+
+
 ################
 # Build caches #
 ################

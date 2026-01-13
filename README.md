@@ -23,12 +23,12 @@ Build instructions and user guides are provided in the [OCUDU User manual](https
 
 Complete project documentation including developer guideline, configuration reference, tutorials, etc. is
 hosted in [this](https://gitlab.com/ocudu/ocudu_docs) repo. The most recent version of the documentation
-is available under [docs.ocudu.org](docs.ocudu.org).
+is available [here](https://docs.ocudu.org).
 
 ## Contributing
 
-Contributions of all sorts are welcome. Please take a look at the [Developer Guide](https://docs.ocudu.org/dev_guide/contributing_guide/) with detailed instructions on how to best engange with the community.
-
+Our project welcomes contributions from any member of our community. To get started contributing,
+please take a look at the [Developer Guide](https://docs.ocudu.org/dev_guide/contributing_guide/) with detailed instructions on how to best engange with us.
 
 ## Governance
 

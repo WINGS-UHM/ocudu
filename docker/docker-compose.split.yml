@@ -105,7 +105,7 @@ configs:
           addrs: ${OPEN5GS_IP:-10.53.1.2}
           bind_addrs: ${CU_CP_IP:-10.53.1.4}
         e1ap:
-          bind_addr: ${CU_CP_IP:-10.53.1.4}
+          bind_addrs: ${CU_CP_IP:-10.53.1.4}
         f1ap:
           bind_addrs: ${CU_CP_IP:-10.53.1.4}
   cu_up_config.yml:

@@ -300,7 +300,7 @@ int main(int argc, char** argv)
   // > Create E1 config
   sctp_network_gateway_config e1_sctp_cfg{};
   e1_sctp_cfg.if_name        = "E1";
-  e1_sctp_cfg.bind_addresses = {cu_cp_cfg.e1ap_cfg.bind_addr};
+  e1_sctp_cfg.bind_addresses = cu_cp_cfg.e1ap_cfg.bind_addrs;
   e1_sctp_cfg.bind_port      = E1AP_PORT;
   e1_sctp_cfg.ppid           = E1AP_PPID;
   // > Create E1 gateway

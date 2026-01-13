@@ -23,7 +23,7 @@ using namespace ocudu;
 
 static void configure_cli11_e1ap_args(CLI::App& app, ocucp::e1ap_appconfig& e1ap_params)
 {
-  add_option(app, "--bind_addr", e1ap_params.bind_addr, "E1AP bind address")->capture_default_str();
+  add_option(app, "--bind_addrs", e1ap_params.bind_addrs, "E1 bind addresses")->capture_default_str();
 }
 
 static void configure_cli11_f1ap_args(CLI::App& app, ocucp::f1ap_appconfig& f1ap_params)

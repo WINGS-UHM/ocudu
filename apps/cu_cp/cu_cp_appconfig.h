@@ -25,8 +25,8 @@ namespace ocucp {
 
 /// E1AP configuration.
 struct e1ap_appconfig {
-  /// CU-CP E1AP bind address.
-  std::string bind_addr = "127.0.20.1";
+  /// CU-CP E1 bind addresses.
+  std::vector<std::string> bind_addrs = {"127.0.20.1"};
 };
 
 /// F1AP configuration.

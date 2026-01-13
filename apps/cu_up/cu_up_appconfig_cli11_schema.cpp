@@ -24,9 +24,15 @@ using namespace ocudu;
 
 static void configure_cli11_e1ap_args(CLI::App& app, ocuup::e1ap_appconfig& e1ap_params)
 {
-  app.add_option("--cu_cp_addr", e1ap_params.cu_cp_address, "CU-CP E1AP address to connect to")->capture_default_str();
   app.add_option(
-         "--bind_addr", e1ap_params.bind_address, "CU-UP E1AP bind address. If left empty, implicit bind is performed")
+         "--addrs",
+         e1ap_params.cu_cp_addresses,
+         "CU-CP addresses to be used for E1 interface. Multiple addresses can be specified for SCTP multi-homing")
+      ->capture_default_str();
+  app.add_option("--bind_addrs",
+                 e1ap_params.bind_addresses,
+                 "CU-UP bind addresses to be used for E1 interface. Multiple addresses can be specified for SCTP "
+                 "multi-homing. If left empty, implicit bind is performed")
       ->capture_default_str();
 }
 

@@ -114,8 +114,8 @@ configs:
     content: |
       cu_up:
         e1ap:
-          cu_cp_addr: ${CU_CP_IP:-10.53.1.4}
-          bind_addr: ${CU_UP_IP:-10.53.1.5}
+          addrs: ${CU_CP_IP:-10.53.1.4}
+          bind_addrs: ${CU_UP_IP:-10.53.1.5}
         f1u:
           socket:
             -

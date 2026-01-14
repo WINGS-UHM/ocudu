@@ -16,19 +16,6 @@
 using namespace ocudu;
 using namespace fapi;
 
-/// Validates the PDU value property of the Rx_Data.indication PDU, as per SCF-222 v4.0 section 3.4.7 in table
-/// Rx_Data.indication message body.
-static bool validate_pdu_value(span<const uint8_t> transport_block, validator_report& report)
-{
-  if (!transport_block.empty()) {
-    return true;
-  }
-
-  report.append(0, "PDU tag", message_type_id::rx_data_indication);
-
-  return false;
-}
-
 error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_data_indication& msg)
 {
   validator_report report(msg.slot);
@@ -42,9 +29,6 @@ error_type<validator_report> ocudu::fapi::validate_rx_data_indication(const rx_d
     // NOTE: Handle property will not be validated.
     success &= validate_rnti(to_value(pdu.rnti), msg_id, report);
     success &= validate_harq_id(pdu.harq_id, msg_id, report);
-    // NOTE: PDU length property will not be validated.
-    // PDUs that were not decoded successfully do not carry data.
-    success &= validate_pdu_value(pdu.transport_block, report);
   }
 
   // Build the result.

@@ -297,6 +297,37 @@ TEST_P(OcuduvecConvertFixture, OcuduvecConvertTestScaledInt16ComplexFloat16Rando
   }
 }
 
+TEST_P(OcuduvecConvertFixture, OcuduvecConvertTestComplexFloat16ComplexInt16Random)
+{
+  constexpr float scaling_factor = 1.0 / ((1 << 15) - 1);
+
+  std::uniform_int_distribution<int16_t> dist_i(-32768, 32767);
+  std::uniform_int_distribution<int16_t> dist_f(1, 128);
+
+  std::vector<ci16_t> in(size);
+  std::generate(in.begin(), in.end(), [&dist_i]() { return ci16_t(dist_i(rgen), dist_i(rgen)); });
+
+  std::vector<ci16_t>  out(size);
+  std::vector<cbf16_t> data_cbf16(size);
+
+  // Convert from 16-bit complex integer to complex BF16.
+  ocuduvec::convert(data_cbf16, in, scaling_factor);
+
+  // Convert from complex BF16 to 16-bit complex integer.
+  ocuduvec::convert(out, data_cbf16, scaling_factor);
+
+  // Assert conversion from 16-bit complex integer to complex BF16.
+  for (size_t i = 0; i != size; ++i) {
+    ASSERT_EQ(data_cbf16[i], to_cbf16(cf_t(in[i].real(), in[i].imag()) / scaling_factor));
+  }
+
+  // Assert conversion from complex BF16 to 16-bit complex integer.
+  for (size_t i = 0; i != size; ++i) {
+    float tolerance = std::abs(in[i]) / 256.0F;
+    ASSERT_LT(std::abs(in[i] - out[i]), tolerance);
+  }
+}
+
 INSTANTIATE_TEST_SUITE_P(OcuduvecConvertTest, OcuduvecConvertFixture, ::testing::Values(1, 5, 7, 19, 23, 257, 1234));
 
 } // namespace

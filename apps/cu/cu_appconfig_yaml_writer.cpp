@@ -22,9 +22,9 @@ using namespace ocudu;
 
 static void fill_cu_appconfig_remote_control_section(YAML::Node node, const remote_control_appconfig& config)
 {
-  node["enabled"]      = config.enabled;
-  node["bind_address"] = config.bind_addr;
-  node["port"]         = config.port;
+  node["enabled"]   = config.enabled;
+  node["bind_addr"] = config.bind_addr;
+  node["port"]      = config.port;
 }
 
 static void fill_cu_appconfig_f1ap_section(YAML::Node node, const ocu::cu_f1ap_appconfig& config)

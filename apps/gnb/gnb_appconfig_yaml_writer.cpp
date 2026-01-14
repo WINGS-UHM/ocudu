@@ -55,9 +55,9 @@ static void fill_gnb_appconfig_expert_execution_section(YAML::Node node, const e
 
 static void fill_gnb_appconfig_remote_control_section(YAML::Node node, const remote_control_appconfig& config)
 {
-  node["enabled"]      = config.enabled;
-  node["bind_address"] = config.bind_addr;
-  node["port"]         = config.port;
+  node["enabled"]   = config.enabled;
+  node["bind_addr"] = config.bind_addr;
+  node["port"]      = config.port;
 }
 
 void ocudu::fill_gnb_appconfig_in_yaml_schema(YAML::Node& node, const gnb_appconfig& config)

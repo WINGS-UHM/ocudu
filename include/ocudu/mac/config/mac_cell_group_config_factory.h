@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "ocudu/du/du_cell_config.h"
+#include "mac_cell_group_params.h"
 #include "ocudu/mac/mac_cell_group_config.h"
 
 namespace ocudu {
 namespace config_helpers {
 
-mac_cell_group_config make_initial_mac_cell_group_config(const odu::mac_cell_group_params& mcg_params = {});
+mac_cell_group_config make_initial_mac_cell_group_config(const mac_cell_group_params& mcg_params = {});
 
 } // namespace config_helpers
 } // namespace ocudu

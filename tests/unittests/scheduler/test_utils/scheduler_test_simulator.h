@@ -15,7 +15,6 @@
 #include "lib/scheduler/config/cell_configuration.h"
 #include "result_test_helpers.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/scheduler/scheduler_factory.h"
 
 namespace ocudu {

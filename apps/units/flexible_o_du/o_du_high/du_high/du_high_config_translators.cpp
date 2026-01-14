@@ -980,7 +980,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     // DRX params. Long cycle != 0 if enabled.
     if (base_cell.drx_cfg.long_cycle != 0) {
-      odu::drx_params& drx = out_cell.mcg_params.drx.emplace();
+      drx_params& drx      = out_cell.mcg_params.drx.emplace();
       drx.on_duration      = std::chrono::milliseconds{base_cell.drx_cfg.on_duration_timer};
       drx.long_cycle       = std::chrono::milliseconds{base_cell.drx_cfg.long_cycle};
       drx.inactivity_timer = std::chrono::milliseconds{base_cell.drx_cfg.inactivity_timer};

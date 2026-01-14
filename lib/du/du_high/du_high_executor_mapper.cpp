@@ -343,7 +343,7 @@ public:
     return *strands[idx].dl_exec;
   }
 
-  task_executor& f1c_dl_sdu_executor(du_ue_index_t ue_index) override { return *strands[ue_index].ctrl_exec; }
+  task_executor& f1c_dl_sdu_executor(du_ue_index_t ue_index) override { return ctrl_executor(ue_index); }
 
   task_executor& mac_ul_pdu_executor(du_ue_index_t ue_index) override
   {

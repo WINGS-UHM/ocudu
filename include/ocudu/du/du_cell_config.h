@@ -10,13 +10,11 @@
 
 #pragma once
 
-#include "ocudu/mac/bsr_config.h"
-#include "ocudu/mac/phr_config.h"
+#include "ocudu/mac/config/mac_cell_group_params.h"
 #include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/sib/system_info_config.h"
-#include "ocudu/ran/srs/srs_configuration.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/tac.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
@@ -34,26 +32,6 @@ struct phy_cell_group_params {
   /// \brief \c p-NR-FR1, part \c PhysicalCellGroupConfig, TS 38.331.
   /// The maximum total TX power to be used by the UE in this NR cell group across all serving cells in FR1.
   std::optional<bounded_integer<int, -30, 33>> p_nr_fr1;
-};
-
-/// Parameters that are used to generate UE DRX-Config.
-struct drx_params {
-  std::chrono::milliseconds on_duration;
-  std::chrono::milliseconds long_cycle;
-  std::chrono::milliseconds inactivity_timer;
-  unsigned                  retx_timer_dl;
-  unsigned                  retx_timer_ul;
-};
-
-/// Parameters that are used to initialize or build the \c MAC-CellGroupConfig, TS 38.331.
-struct mac_cell_group_params {
-  periodic_bsr_timer                            periodic_timer = periodic_bsr_timer::sf10;
-  retx_bsr_timer                                retx_timer     = retx_bsr_timer::sf80;
-  std::optional<logical_channel_sr_delay_timer> lc_sr_delay_timer;
-  std::optional<sr_prohib_timer>                sr_prohibit_timer;
-  sr_max_tx                                     max_tx           = sr_max_tx::n64;
-  phr_prohibit_timer                            phr_prohib_timer = phr_prohibit_timer::sf10;
-  std::optional<drx_params>                     drx;
 };
 
 /// Cell Configuration, including common and UE-dedicated configs, that the DU will use to generate other configs for

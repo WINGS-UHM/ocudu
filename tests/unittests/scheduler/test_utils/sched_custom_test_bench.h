@@ -13,14 +13,11 @@
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
-#include <random>
 
 namespace ocudu {
 

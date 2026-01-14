@@ -21,7 +21,6 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "ocudu/adt/unique_function.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/support/test_utils.h"

@@ -11,7 +11,6 @@
 #pragma once
 
 #include "../lib/du/du_high/du_manager/ran_resource_management/du_pucch_resource_manager.h"
-#include "ocudu/du/du_cell_config.h"
 
 namespace ocudu {
 

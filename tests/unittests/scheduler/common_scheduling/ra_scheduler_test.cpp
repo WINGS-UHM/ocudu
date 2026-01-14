@@ -17,9 +17,9 @@
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/adt/noop_functor.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <ostream>

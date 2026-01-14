@@ -39,7 +39,6 @@ public:
   /// parameters (e.g. PCell).
   /// \param ue_index Index of the UE.
   /// \param pcell_index Primary Cell of the new UE.
-  /// \return task executor of this UE.
   virtual void rebind_executors(du_ue_index_t ue_index, du_cell_index_t pcell_index) = 0;
 
   /// \brief Returns the executor for a given UE that handles control tasks.

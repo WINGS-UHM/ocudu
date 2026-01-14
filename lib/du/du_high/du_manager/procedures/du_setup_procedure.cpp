@@ -24,6 +24,31 @@
 using namespace ocudu;
 using namespace odu;
 
+/// Derives MAC Cell Configuration from DU Cell Configuration.
+static mac_cell_creation_request make_mac_cell_config(du_cell_index_t                                 cell_index,
+                                                      const du_cell_config&                           du_cfg,
+                                                      const byte_buffer&                              sib1,
+                                                      span<const bcch_dl_sch_payload_type>            si_messages,
+                                                      const sched_cell_configuration_request_message& sched_cell_cfg)
+{
+  mac_cell_creation_request mac_cfg{};
+  mac_cfg.cell_index       = cell_index;
+  mac_cfg.pci              = du_cfg.pci;
+  mac_cfg.scs_common       = du_cfg.scs_common;
+  mac_cfg.ssb_cfg          = du_cfg.ssb_cfg;
+  mac_cfg.dl_carrier       = du_cfg.dl_carrier;
+  mac_cfg.ul_carrier       = du_cfg.ul_carrier;
+  mac_cfg.cell_barred      = du_cfg.cell_barred;
+  mac_cfg.intra_freq_resel = du_cfg.intra_freq_resel;
+  mac_cfg.sys_info.sib1    = sib1.copy();
+  for (auto& msg : si_messages) {
+    mac_cfg.sys_info.si_messages.push_back(msg);
+  }
+  mac_cfg.sched_req = sched_cell_cfg;
+
+  return mac_cfg;
+}
+
 du_setup_procedure::du_setup_procedure(const du_proc_context_view& ctxt_, const du_start_request& request_) :
   ctxt(ctxt_),
   request(request_),

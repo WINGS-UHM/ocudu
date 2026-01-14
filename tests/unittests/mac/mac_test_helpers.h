@@ -12,7 +12,6 @@
 
 #include "lib/mac/mac_sched/mac_scheduler_adapter.h"
 #include "ocudu/adt/slotted_array.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/mac/mac_cell_result.h"
@@ -21,6 +20,8 @@
 #include "ocudu/pcap/dlt_pcap.h"
 #include "ocudu/pcap/rlc_pcap.h"
 #include "ocudu/ran/rrm.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/mac_scheduler.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include "ocudu/support/async/async_no_op_task.h"

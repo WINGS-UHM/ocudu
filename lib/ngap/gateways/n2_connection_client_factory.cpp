@@ -233,25 +233,26 @@ public:
     // Establish SCTP connection and register SCTP Rx message handler.
     logger.debug("Establishing TNL connection to {} ({}:{})...",
                  sctp_cfg.dest_name,
-                 sctp_cfg.connect_address,
+                 sctp_cfg.connect_addresses[0],
                  sctp_cfg.connect_port);
     std::unique_ptr<sctp_association_sdu_notifier> sctp_sender = sctp_gateway->connect(
         std::make_unique<sctp_to_n2_pdu_notifier>(std::move(cu_cp_rx_pdu_notifier), pcap_writer, logger));
 
     if (sctp_sender == nullptr) {
-      logger.error(
-          "Failed to establish N2 TNL connection to AMF on {}:{}.", sctp_cfg.connect_address, sctp_cfg.connect_port);
+      logger.error("Failed to establish N2 TNL connection to AMF on {}:{}.",
+                   sctp_cfg.connect_addresses[0],
+                   sctp_cfg.connect_port);
       return nullptr;
     }
     logger.info("{}: Connection to {} on {}:{} was established",
                 sctp_cfg.if_name,
                 sctp_cfg.dest_name,
-                sctp_cfg.connect_address,
+                sctp_cfg.connect_addresses[0],
                 sctp_cfg.connect_port);
     fmt::print("{}: Connection to {} on {}:{} completed\n",
                sctp_cfg.if_name,
                sctp_cfg.dest_name,
-               sctp_cfg.connect_address,
+               sctp_cfg.connect_addresses[0],
                sctp_cfg.connect_port);
 
     // Return the Tx PDU notifier to the CU-CP.
@@ -283,7 +284,7 @@ ocudu::ocucp::create_n2_connection_client(const n2_connection_client_config& par
   ocudu::sctp_network_connector_config sctp_cfg;
   sctp_cfg.dest_name         = "AMF";
   sctp_cfg.if_name           = "N2";
-  sctp_cfg.connect_address   = nw_mode.amf_address;
+  sctp_cfg.connect_addresses = {nw_mode.amf_address};
   sctp_cfg.connect_port      = nw_mode.amf_port;
   sctp_cfg.bind_address      = nw_mode.bind_address;
   sctp_cfg.bind_interface    = nw_mode.bind_interface;

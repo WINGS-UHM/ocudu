@@ -55,9 +55,9 @@ bool sctp_network_gateway_impl::create_and_connect()
     }
   }
 
-  fmt::print("Connecting to {} on {}:{}\n", config.dest_name, config.connect_address.c_str(), config.connect_port);
+  fmt::print("Connecting to {} on {}:{}\n", config.dest_name, config.connect_addresses[0].c_str(), config.connect_port);
 
-  sockaddr_searcher                                  searcher{config.connect_address, config.connect_port, logger};
+  sockaddr_searcher                                  searcher{config.connect_addresses[0], config.connect_port, logger};
   std::chrono::time_point<std::chrono::steady_clock> start  = std::chrono::steady_clock::now();
   struct addrinfo*                                   result = nullptr;
   for (result = searcher.next(); result != nullptr; result = searcher.next()) {
@@ -87,12 +87,12 @@ bool sctp_network_gateway_impl::create_and_connect()
     std::chrono::time_point<std::chrono::steady_clock> end = std::chrono::steady_clock::now();
     auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     fmt::print("Failed to connect SCTP socket to {}:{}. error=\"{}\" timeout={}ms\n",
-               config.connect_address,
+               config.connect_addresses[0],
                config.connect_port,
                ::strerror(errno),
                now_ms.count());
     logger.error("Failed to connect SCTP socket to {}:{}. error=\"{}\" timeout={}ms",
-                 config.connect_address,
+                 config.connect_addresses[0],
                  config.connect_port,
                  ::strerror(errno),
                  now_ms.count());

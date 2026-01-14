@@ -68,12 +68,12 @@ protected:
 
     // create E2 agent
     sctp_network_connector_config e2agent_config;
-    e2agent_config.dest_name       = "NearRT-RIC";
-    e2agent_config.if_name         = "E2";
-    e2agent_config.connect_address = "127.0.0.1";
-    e2agent_config.connect_port    = ric_gw_port.value();
-    e2agent_config.bind_address    = "127.0.0.101";
-    e2agent_config.bind_port       = 0;
+    e2agent_config.dest_name         = "NearRT-RIC";
+    e2agent_config.if_name           = "E2";
+    e2agent_config.connect_addresses = {"127.0.0.1"};
+    e2agent_config.connect_port      = ric_gw_port.value();
+    e2agent_config.bind_address      = "127.0.0.101";
+    e2agent_config.bind_port         = 0;
 
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;

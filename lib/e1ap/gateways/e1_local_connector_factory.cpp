@@ -114,11 +114,11 @@ public:
 
     // Create SCTP client.
     sctp_network_connector_config sctp_client;
-    sctp_client.if_name         = "E1";
-    sctp_client.dest_name       = "CU-CP";
-    sctp_client.connect_address = "127.0.0.1";
-    sctp_client.connect_port    = server->get_listen_port().value();
-    sctp_client.ppid            = E1AP_PPID;
+    sctp_client.if_name           = "E1";
+    sctp_client.dest_name         = "CU-CP";
+    sctp_client.connect_addresses = {"127.0.0.1"};
+    sctp_client.connect_port      = server->get_listen_port().value();
+    sctp_client.ppid              = E1AP_PPID;
     // Note: We only need to save the PCAPs in one side of the connection.
     client =
         create_e1_gateway_client(e1_cu_up_sctp_gateway_config{sctp_client, broker, io_rx_executor, *null_pcap_writer});

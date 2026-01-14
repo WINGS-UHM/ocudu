@@ -45,9 +45,9 @@ struct sctp_network_gateway_config : public common_network_gateway_config {
 
 /// \brief Configuration for SCTP network client
 struct sctp_network_connector_config : public sctp_network_gateway_config {
-  std::string dest_name;
-  std::string connect_address;
-  int         connect_port = 0;
+  std::string              dest_name;
+  std::vector<std::string> connect_addresses;
+  int                      connect_port = 0;
 };
 
 /// \brief Interface to inject PDUs into gateway entity.

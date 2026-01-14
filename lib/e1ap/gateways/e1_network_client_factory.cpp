@@ -112,24 +112,24 @@ public:
     ocudu_assert(cu_up_rx_pdu_notifier != nullptr, "CU-UP Rx PDU notifier is null");
 
     logger.debug(
-        "Establishing TNL connection to CU-CP ({}:{})...", sctp_params.connect_address, sctp_params.connect_port);
+        "Establishing TNL connection to CU-CP ({}:{})...", sctp_params.connect_addresses[0], sctp_params.connect_port);
     std::unique_ptr<sctp_association_sdu_notifier> sctp_sender = sctp_gateway->connect(
         std::make_unique<sctp_to_e1_pdu_notifier>(std::move(cu_up_rx_pdu_notifier), pcap_writer, logger));
     if (sctp_sender == nullptr) {
       logger.error("Failed to establish E1 TNL connection to CU-CP on {}:{}.",
-                   sctp_params.connect_address,
+                   sctp_params.connect_addresses[0],
                    sctp_params.connect_port);
       return nullptr;
     }
     logger.info("{}: TNL connection to {} on {}:{} accepted",
                 sctp_params.if_name,
                 sctp_params.dest_name,
-                sctp_params.connect_address,
+                sctp_params.connect_addresses[0],
                 sctp_params.connect_port);
     fmt::print("{}: Connection to {} on {}:{} completed\n",
                sctp_params.if_name,
                sctp_params.dest_name,
-               sctp_params.connect_address,
+               sctp_params.connect_addresses[0],
                sctp_params.connect_port);
 
     // Return the Tx PDU notifier to the CU-UP.

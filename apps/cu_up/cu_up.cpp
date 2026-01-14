@@ -344,12 +344,12 @@ int main(int argc, char** argv)
   // Instantiate E1 client gateway.
   // > Create E1 config
   sctp_network_connector_config e1_sctp{};
-  e1_sctp.if_name         = "E1";
-  e1_sctp.dest_name       = "CU-CP";
-  e1_sctp.connect_address = cu_up_cfg.e1ap_cfg.cu_cp_address;
-  e1_sctp.connect_port    = E1AP_PORT;
-  e1_sctp.ppid            = E1AP_PPID;
-  e1_sctp.bind_address    = cu_up_cfg.e1ap_cfg.bind_address;
+  e1_sctp.if_name           = "E1";
+  e1_sctp.dest_name         = "CU-CP";
+  e1_sctp.connect_addresses = {cu_up_cfg.e1ap_cfg.cu_cp_address};
+  e1_sctp.connect_port      = E1AP_PORT;
+  e1_sctp.ppid              = E1AP_PPID;
+  e1_sctp.bind_address      = cu_up_cfg.e1ap_cfg.bind_address;
   // > Create E1 gateway
   std::unique_ptr<ocuup::e1_connection_client> e1_gw = create_e1_gateway_client(e1_cu_up_sctp_gateway_config{
       e1_sctp, *epoll_broker, workers.get_cu_up_executor_mapper().e1_rx_executor(), *cu_up_dlt_pcaps.e1ap});

@@ -23,12 +23,12 @@ inline e2_sctp_gateway_config generate_e2_client_gateway_config(const e2_config&
                                                                 uint16_t         ppid)
 {
   sctp_network_connector_config e2ap_sctp{};
-  e2ap_sctp.if_name         = "E2AP";
-  e2ap_sctp.dest_name       = "Near-RT-RIC";
-  e2ap_sctp.connect_address = e2_cfg.ip_addr;
-  e2ap_sctp.connect_port    = e2_cfg.port;
-  e2ap_sctp.ppid            = ppid;
-  e2ap_sctp.bind_address    = e2_cfg.bind_addr;
+  e2ap_sctp.if_name           = "E2AP";
+  e2ap_sctp.dest_name         = "Near-RT-RIC";
+  e2ap_sctp.connect_addresses = {e2_cfg.ip_addr};
+  e2ap_sctp.connect_port      = e2_cfg.port;
+  e2ap_sctp.ppid              = ppid;
+  e2ap_sctp.bind_address      = e2_cfg.bind_addr;
 
   const std::string logger_id = (ppid == E2_DU_PPID)   ? "E2-DU"
                                 : (ppid == E2_UP_PPID) ? "E2-CU-UP"

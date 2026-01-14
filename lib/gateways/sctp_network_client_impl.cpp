@@ -168,7 +168,7 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
       // If this is not the first connection.
       logger.error("{}: Connection to {}:{} failed. Cause: Connection is already in progress",
                    node_cfg.if_name,
-                   client_cfg.connect_address,
+                   client_cfg.connect_addresses[0],
                    client_cfg.connect_port);
       return nullptr;
     }
@@ -181,7 +181,7 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
     }
   }
 
-  sockaddr_searcher searcher{client_cfg.connect_address, client_cfg.connect_port, logger};
+  sockaddr_searcher searcher{client_cfg.connect_addresses[0], client_cfg.connect_port, logger};
   auto              start = std::chrono::steady_clock::now();
   // Create SCTP socket only if not created earlier during bind. Otherwise, reuse socket.
   bool             reuse_socket = socket.is_open();
@@ -223,14 +223,14 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
     fmt::print("{}: Failed to connect to {} on {}:{}. error=\"{}\" timeout={}ms\n",
                node_cfg.if_name,
                client_cfg.dest_name,
-               client_cfg.connect_address,
+               client_cfg.connect_addresses[0],
                client_cfg.connect_port,
                cause,
                now_ms.count());
     logger.error("{}: Failed to connect to {} on {}:{}. error=\"{}\" timeout={}ms",
                  node_cfg.if_name,
                  client_cfg.dest_name,
-                 client_cfg.connect_address,
+                 client_cfg.connect_addresses[0],
                  client_cfg.connect_port,
                  cause,
                  now_ms.count());
@@ -274,7 +274,7 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
   logger.info("{}: SCTP connection to {} on {}:{} was established",
               node_cfg.if_name,
               client_cfg.dest_name,
-              client_cfg.connect_address,
+              client_cfg.connect_addresses[0],
               client_cfg.connect_port);
 
   return std::make_unique<sctp_send_notifier>(*this, addr);

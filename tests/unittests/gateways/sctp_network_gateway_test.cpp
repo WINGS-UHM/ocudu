@@ -166,7 +166,7 @@ TEST_F(sctp_network_gateway_tester, when_socket_not_exists_then_connect_fails)
   sctp_network_connector_config config;
   config.if_name           = "client";
   config.dest_name         = "server";
-  config.connect_address   = "127.0.0.1";
+  config.connect_addresses = {"127.0.0.1"};
   config.connect_port      = 0; // attempt to connect to port 0 which should always fail.
   config.non_blocking_mode = true;
   config.reuse_addr        = true;
@@ -181,7 +181,7 @@ TEST_F(sctp_network_gateway_tester, when_v6_socket_not_exists_then_connect_fails
   sctp_network_connector_config config;
   config.if_name           = "client";
   config.dest_name         = "server";
-  config.connect_address   = "::1";
+  config.connect_addresses = {"::1"};
   config.connect_port      = 0; // attempt to connect to port 0 which should always fail.
   config.non_blocking_mode = true;
   config.reuse_addr        = true;
@@ -207,7 +207,7 @@ TEST_F(sctp_network_gateway_tester, when_config_valid_then_trx_succeeds)
   sctp_network_connector_config client_config;
   client_config.if_name           = "client";
   client_config.dest_name         = "server";
-  client_config.connect_address   = server_config.bind_address;
+  client_config.connect_addresses = {server_config.bind_address};
   client_config.connect_port      = server_port.value();
   client_config.non_blocking_mode = true;
   client_config.nodelay           = true;
@@ -257,7 +257,7 @@ TEST_F(sctp_network_gateway_tester, when_v6_config_valid_then_trx_succeeds)
   sctp_network_connector_config client_config;
   client_config.if_name           = "client";
   client_config.dest_name         = "server";
-  client_config.connect_address   = server_config.bind_address;
+  client_config.connect_addresses = {server_config.bind_address};
   client_config.connect_port      = server_port.value();
   client_config.non_blocking_mode = true;
   client_config.nodelay           = true;
@@ -307,7 +307,7 @@ TEST_F(sctp_network_gateway_tester, when_hostname_resolved_then_trx_succeeds)
   sctp_network_connector_config client_config;
   client_config.if_name           = "client";
   client_config.dest_name         = "server";
-  client_config.connect_address   = server_config.bind_address;
+  client_config.connect_addresses = {server_config.bind_address};
   client_config.connect_port      = server_port.value();
   client_config.non_blocking_mode = true;
   client_config.nodelay           = true;

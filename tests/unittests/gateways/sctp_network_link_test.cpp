@@ -56,12 +56,12 @@ public:
 
       // Create client.
       sctp_network_client_config client_cfg{{}, *client_broker, rx_executor};
-      client_cfg.sctp.if_name         = fmt::format("client{}", i);
-      client_cfg.sctp.ppid            = NGAP_PPID;
-      client_cfg.sctp.dest_name       = "server";
-      client_cfg.sctp.connect_address = server_cfg.sctp.bind_address;
-      client_cfg.sctp.connect_port    = server_port;
-      ret.first->second->client       = create_sctp_network_client(client_cfg);
+      client_cfg.sctp.if_name           = fmt::format("client{}", i);
+      client_cfg.sctp.ppid              = NGAP_PPID;
+      client_cfg.sctp.dest_name         = "server";
+      client_cfg.sctp.connect_addresses = {server_cfg.sctp.bind_address};
+      client_cfg.sctp.connect_port      = server_port;
+      ret.first->second->client         = create_sctp_network_client(client_cfg);
       report_fatal_error_if_not(ret.first->second->client != nullptr, "Failed to create Client");
     }
 

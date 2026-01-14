@@ -60,12 +60,12 @@ struct formatter<pdu_log_prefix> : public basic_parser {
 
 } // namespace fmt
 
-pdu_rx_handler::pdu_rx_handler(mac_ul_ccch_notifier&            ccch_notifier_,
-                               odu::du_high_ue_executor_mapper& ue_exec_mapper_,
-                               mac_scheduler_ce_info_handler&   sched_,
-                               mac_ul_ue_manager&               ue_manager_,
-                               du_rnti_table&                   rnti_table_,
-                               mac_pcap&                        pcap_) :
+pdu_rx_handler::pdu_rx_handler(mac_ul_ccch_notifier&          ccch_notifier_,
+                               mac_ue_executor_mapper&        ue_exec_mapper_,
+                               mac_scheduler_ce_info_handler& sched_,
+                               mac_ul_ue_manager&             ue_manager_,
+                               du_rnti_table&                 rnti_table_,
+                               mac_pcap&                      pcap_) :
   ccch_notifier(ccch_notifier_),
   ue_exec_mapper(ue_exec_mapper_),
   logger(ocudulog::fetch_basic_logger("MAC")),

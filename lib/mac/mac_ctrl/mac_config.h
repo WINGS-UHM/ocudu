@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
 #include "ocudu/mac/mac.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
 namespace ocudu {
 
+class task_executor;
 class mac_metrics_notifier;
 class timer_manager;
 class mac_clock_controller;

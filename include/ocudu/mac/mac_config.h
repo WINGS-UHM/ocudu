@@ -10,9 +10,8 @@
 
 #pragma once
 
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
-#include "ocudu/du/du_high/du_test_mode_config.h"
 #include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/mac/mac_executor_mapper.h"
 #include "ocudu/mac/mac_pdu_handler.h"
 #include "ocudu/pcap/mac_pcap.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
@@ -50,15 +49,15 @@ struct mac_config {
     mac_metrics_notifier&     notifier;
   };
 
-  mac_ul_ccch_notifier&              ul_ccch_notifier;
-  odu::du_high_ue_executor_mapper&   ue_exec_mapper;
-  odu::du_high_cell_executor_mapper& cell_exec_mapper;
-  task_executor&                     ctrl_exec;
-  mac_result_notifier&               phy_notifier;
-  mac_expert_config                  mac_cfg;
-  mac_pcap&                          pcap;
-  mac_clock_controller&              timers;
-  metrics_config                     metrics;
+  mac_ul_ccch_notifier&     ul_ccch_notifier;
+  mac_ue_executor_mapper&   ue_exec_mapper;
+  mac_cell_executor_mapper& cell_exec_mapper;
+  task_executor&            ctrl_exec;
+  mac_result_notifier&      phy_notifier;
+  mac_expert_config         mac_cfg;
+  mac_pcap&                 pcap;
+  mac_clock_controller&     timers;
+  metrics_config            metrics;
   // Parameters passed to MAC scheduler.
   scheduler_expert_config sched_cfg;
 };

@@ -13,23 +13,21 @@
 #include "../mac_config_interfaces.h"
 #include "mac_ul_ue_manager.h"
 #include "pdu_rx_handler.h"
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
-#include "ocudu/mac/mac.h"
 #include "ocudu/mac/mac_config.h"
-#include "ocudu/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/mac/mac_executor_mapper.h"
 
 namespace ocudu {
 
 class timer_manager;
 
 struct mac_ul_config {
-  task_executor&                   ctrl_exec;
-  odu::du_high_ue_executor_mapper& ue_exec_mapper;
-  mac_ul_ccch_notifier&            ul_ccch_notifier;
-  mac_scheduler_ce_info_handler&   sched;
-  du_rnti_table&                   rnti_table;
-  mac_pcap&                        pcap;
-  timer_manager&                   timers;
+  task_executor&                 ctrl_exec;
+  mac_ue_executor_mapper&        ue_exec_mapper;
+  mac_ul_ccch_notifier&          ul_ccch_notifier;
+  mac_scheduler_ce_info_handler& sched;
+  du_rnti_table&                 rnti_table;
+  mac_pcap&                      pcap;
+  timer_manager&                 timers;
 };
 
 class mac_ul_processor final : public mac_ul_configurator, public mac_pdu_handler

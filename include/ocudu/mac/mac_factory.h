@@ -10,11 +10,8 @@
 
 #pragma once
 
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
 #include "ocudu/mac/mac.h"
-#include "ocudu/mac/mac_cell_result.h"
 #include "ocudu/mac/mac_config.h"
-#include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include <memory>
 
 namespace ocudu {

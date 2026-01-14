@@ -12,8 +12,8 @@
 
 #include "lib/mac/mac_config_interfaces.h"
 #include "lib/mac/mac_ctrl/mac_scheduler_configurator.h"
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
 #include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/mac/mac_executor_mapper.h"
 #include "ocudu/pcap/dlt_pcap.h"
 #include "ocudu/scheduler/scheduler_metrics.h"
 #include "ocudu/support/async/async_no_op_task.h"
@@ -102,26 +102,24 @@ public:
   mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
 };
 
-class dummy_ue_executor_mapper : public odu::du_high_ue_executor_mapper
+class dummy_ue_executor_mapper : public mac_ue_executor_mapper
 {
 public:
   dummy_ue_executor_mapper(task_executor& exec_) : exec(exec_) {}
 
   void           rebind_executors(du_ue_index_t ue_index, du_cell_index_t pcell_index) override {}
   task_executor& ctrl_executor(du_ue_index_t ue_index) override { return exec; }
-  task_executor& f1u_dl_pdu_executor(du_ue_index_t ue_index) override { return exec; }
   task_executor& mac_ul_pdu_executor(du_ue_index_t ue_index) override { return exec; }
 
   task_executor& exec;
 };
 
-class dummy_dl_executor_mapper : public odu::du_high_cell_executor_mapper
+class dummy_dl_executor_mapper : public mac_cell_executor_mapper
 {
 public:
   dummy_dl_executor_mapper(const std::initializer_list<task_executor*>& execs_) : execs(execs_.begin(), execs_.end()) {}
 
   task_executor& mac_cell_executor(du_cell_index_t cell_index) override { return *execs[cell_index % execs.size()]; }
-  task_executor& rlc_lower_executor(du_cell_index_t cell_index) override { return *execs[cell_index % execs.size()]; }
   task_executor& slot_ind_executor(du_cell_index_t cell_index) override { return *execs[cell_index % execs.size()]; }
 
   std::vector<task_executor*> execs;

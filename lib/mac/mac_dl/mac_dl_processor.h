@@ -14,7 +14,6 @@
 #include "mac_cell_processor.h"
 #include "mac_dl_ue_repository.h"
 #include "mac_scheduler_cell_info_handler.h"
-#include "ocudu/mac/mac.h"
 #include "ocudu/mac/mac_cell_result.h"
 #include "ocudu/mac/mac_config.h"
 
@@ -23,12 +22,12 @@ namespace ocudu {
 class mac_metrics_notifier;
 
 struct mac_dl_config {
-  odu::du_high_ue_executor_mapper&   ue_exec_mapper;
-  odu::du_high_cell_executor_mapper& cell_exec_mapper;
-  task_executor&                     ctrl_exec;
-  mac_result_notifier&               phy_notifier;
-  mac_pcap&                          pcap;
-  timer_manager&                     timers;
+  mac_ue_executor_mapper&   ue_exec_mapper;
+  mac_cell_executor_mapper& cell_exec_mapper;
+  task_executor&            ctrl_exec;
+  mac_result_notifier&      phy_notifier;
+  mac_pcap&                 pcap;
+  timer_manager&            timers;
 };
 
 class mac_dl_processor final : public mac_dl_configurator

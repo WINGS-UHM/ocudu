@@ -10,7 +10,6 @@
 
 #include "ocudu/mac/mac_factory.h"
 #include "mac_impl.h"
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
 
 using namespace ocudu;
 

@@ -9,6 +9,7 @@
  */
 
 #include "ngap_test_helpers.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -19,29 +20,33 @@ class ngap_paging_test : public ngap_test
 protected:
   bool was_minimal_conversion_successful() const
   {
-    // check ue paging id
-    if (cu_cp_notifier.last_paging_msg.ue_paging_id.get_amf_set_id() != 1) {
-      test_logger.error(
-          "AMF Set ID mismatch {} != {}", cu_cp_notifier.last_paging_msg.ue_paging_id.get_amf_set_id(), 1);
-      return false;
-    }
-    if (cu_cp_notifier.last_paging_msg.ue_paging_id.get_amf_pointer() != 0) {
-      test_logger.error(
-          "AMF Pointer mismatch {} != {}", cu_cp_notifier.last_paging_msg.ue_paging_id.get_amf_pointer(), 0);
-      return false;
-    }
-    if (cu_cp_notifier.last_paging_msg.ue_paging_id.get_five_g_tmsi() != 4211117727) {
-      test_logger.error(
-          "FiveG TMSI mismatch {} != {}", cu_cp_notifier.last_paging_msg.ue_paging_id.get_five_g_tmsi(), 4211117727);
+    if (!std::holds_alternative<cu_cp_five_g_s_tmsi>(cu_cp_notifier.last_paging_msg.ue_paging_id)) {
+      test_logger.error("UE Paging ID type mismatch");
       return false;
     }
 
-    // check tai list for paging
+    cu_cp_five_g_s_tmsi ue_paging_id = std::get<cu_cp_five_g_s_tmsi>(cu_cp_notifier.last_paging_msg.ue_paging_id);
+
+    // Check UE paging id.
+    if (ue_paging_id.get_amf_set_id() != 1) {
+      test_logger.error("AMF Set ID mismatch {} != {}", ue_paging_id.get_amf_set_id(), 1);
+      return false;
+    }
+    if (ue_paging_id.get_amf_pointer() != 0) {
+      test_logger.error("AMF Pointer mismatch {} != {}", ue_paging_id.get_amf_pointer(), 0);
+      return false;
+    }
+    if (ue_paging_id.get_five_g_tmsi() != 4211117727) {
+      test_logger.error("FiveG TMSI mismatch {} != {}", ue_paging_id.get_five_g_tmsi(), 4211117727);
+      return false;
+    }
+
+    // Check TAI list for paging.
     if (cu_cp_notifier.last_paging_msg.tai_list_for_paging.size() != 1) {
       return false;
     }
 
-    auto& paging_item = cu_cp_notifier.last_paging_msg.tai_list_for_paging.front();
+    const cu_cp_tai_list_for_paging_item& paging_item = cu_cp_notifier.last_paging_msg.tai_list_for_paging.front();
     if (paging_item.tai.plmn_id != plmn_identity::test_value()) {
       test_logger.error("PLMN mismatch {} != 00f110", paging_item.tai.plmn_id);
       return false;
@@ -60,7 +65,7 @@ protected:
       return false;
     }
 
-    // check paging drx
+    // Check paging DRX.
     if (!cu_cp_notifier.last_paging_msg.paging_drx.has_value()) {
       return false;
     }
@@ -69,7 +74,7 @@ protected:
       return false;
     }
 
-    // check paging prio
+    // Check paging prio.
     if (!cu_cp_notifier.last_paging_msg.paging_prio.has_value()) {
       return false;
     }
@@ -78,7 +83,7 @@ protected:
       return false;
     }
 
-    // check ue radio cap for paging
+    // Check UE radio cap for paging.
     if (!cu_cp_notifier.last_paging_msg.ue_radio_cap_for_paging.has_value()) {
       return false;
     }
@@ -90,7 +95,7 @@ protected:
       return false;
     }
 
-    // check paging origin
+    // Check paging origin.
     if (!cu_cp_notifier.last_paging_msg.paging_origin.has_value()) {
       return false;
     }
@@ -99,7 +104,7 @@ protected:
       return false;
     }
 
-    // check assist data for paging
+    // Check assist data for paging.
     if (!cu_cp_notifier.last_paging_msg.assist_data_for_paging.has_value()) {
       return false;
     }
@@ -112,9 +117,9 @@ protected:
             .recommended_cells_for_paging.recommended_cell_list.size() != 1) {
       return false;
     }
-    auto& cell_item = cu_cp_notifier.last_paging_msg.assist_data_for_paging.value()
-                          .assist_data_for_recommended_cells.value()
-                          .recommended_cells_for_paging.recommended_cell_list.front();
+    const cu_cp_recommended_cell_item& cell_item = cu_cp_notifier.last_paging_msg.assist_data_for_paging.value()
+                                                       .assist_data_for_recommended_cells.value()
+                                                       .recommended_cells_for_paging.recommended_cell_list.front();
     if (cell_item.ngran_cgi.plmn_id != plmn_identity::test_value()) {
       test_logger.error("NR CGI PLMN mismatch {} != 00f110", cell_item.ngran_cgi.plmn_id);
       return false;
@@ -180,35 +185,35 @@ protected:
   }
 };
 
-/// Test handling of valid paging message with optional fields
+/// Test handling of valid paging message with optional fields.
 TEST_F(ngap_paging_test, when_valid_paging_message_received_message_is_forwarded)
 {
-  // Inject paging message
+  // Inject paging message.
   ngap_message paging_msg = generate_valid_minimal_paging_message();
   ngap->handle_message(paging_msg);
 
-  // check that paging message has been forwarded
+  // Check that paging message has been forwarded.
   ASSERT_TRUE(was_minimal_paging_forwarded());
 }
 
-/// Test handling of valid paging message with optional fields
+/// Test handling of valid paging message with optional fields.
 TEST_F(ngap_paging_test, when_valid_paging_message_with_optional_values_received_message_is_forwarded)
 {
-  // Inject paging message
+  // Inject paging message.
   ngap_message paging_msg = generate_valid_paging_message();
   ngap->handle_message(paging_msg);
 
-  // check that paging message has been forwarded
+  // Check that paging message has been forwarded.
   ASSERT_TRUE(was_full_paging_forwarded());
 }
 
-/// Test handling of invalid paging message
+/// Test handling of invalid paging message.
 TEST_F(ngap_paging_test, when_invalid_paging_message_received_message_is_not_forwarded_and_error_indication_is_sent)
 {
-  // Inject paging message
+  // Inject paging message.
   ngap_message paging_msg = generate_invalid_paging_message();
   ngap->handle_message(paging_msg);
 
-  // Check that Error Indication has been sent to AMF
+  // Check that Error Indication has been sent to AMF.
   ASSERT_TRUE(was_error_indication_sent());
 }

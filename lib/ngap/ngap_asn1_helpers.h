@@ -851,6 +851,9 @@ inline void fill_cu_cp_paging_message(cu_cp_paging_message& paging, const asn1::
   // Fill UE paging id.
   paging.ue_paging_id = ngap_asn1_to_ue_paging_id(asn1_paging->ue_paging_id);
 
+  // UE Identity Index value is defined as: UE_ID 5G-S-TMSI mod 1024 (see TS 38.304 section 7.1).
+  paging.ue_id_idx_value = std::get<cu_cp_five_g_s_tmsi>(paging.ue_paging_id).to_number() % 1024;
+
   // Fill paging DRX.
   if (asn1_paging->paging_drx_present) {
     paging.paging_drx = asn1_paging->paging_drx.to_number();

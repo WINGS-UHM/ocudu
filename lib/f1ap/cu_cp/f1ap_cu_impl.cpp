@@ -25,6 +25,7 @@
 #include "procedures/ue_context_release_procedure.h"
 #include "procedures/ue_context_setup_procedure.h"
 #include "ocudu/adt/expected.h"
+#include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/f1ap_message.h"

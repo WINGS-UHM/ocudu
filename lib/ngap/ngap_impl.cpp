@@ -25,6 +25,7 @@
 #include "procedures/ngap_pdu_session_resource_setup_procedure.h"
 #include "procedures/ngap_ue_context_release_procedure.h"
 #include "ocudu/asn1/ngap/common.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cause/ngap_cause.h"

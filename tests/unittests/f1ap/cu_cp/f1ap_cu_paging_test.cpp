@@ -23,44 +23,49 @@ protected:
   {
     cu_cp_paging_message paging_msg;
 
-    // add ue paging id
+    // Create 5G-S-TMSI.
     bounded_bitset<48> five_g_s_tmsi(48);
     five_g_s_tmsi.from_uint64(((uint64_t)1U << 38U) + ((uint64_t)0U << 32U) + 4211117727);
+
+    // Add UE ID idx value.
+    paging_msg.ue_id_idx_value = five_g_s_tmsi.to_uint64() % 1024;
+
+    // Add UE paging ID.
     paging_msg.ue_paging_id = cu_cp_five_g_s_tmsi{five_g_s_tmsi};
 
-    // add paging drx
+    // Add paging DRX.
     paging_msg.paging_drx = 64;
 
-    // add tai list for paging
+    // Add TAI list for paging.
     cu_cp_tai_list_for_paging_item tai_item;
     tai_item.tai.plmn_id = plmn_identity::test_value();
     tai_item.tai.tac     = 7;
     paging_msg.tai_list_for_paging.push_back(tai_item);
 
-    // add paging prio
+    // Add paging prio.
     paging_msg.paging_prio = 5;
 
-    // add ue radio cap for paging
+    // Add UE radio cap for paging.
     cu_cp_ue_radio_cap_for_paging ue_radio_cap_for_paging;
     ue_radio_cap_for_paging.ue_radio_cap_for_paging_of_nr = make_byte_buffer("deadbeef").value();
     paging_msg.ue_radio_cap_for_paging                    = ue_radio_cap_for_paging;
 
-    // add paging origin
+    // Add paging origin.
     paging_msg.paging_origin = true;
 
-    // add assist data for paging
+    // Add assist data for paging.
     cu_cp_assist_data_for_paging assist_data_for_paging;
 
-    // add assist data for recommended cells
+    // Add assist data for recommended cells.
     cu_cp_assist_data_for_recommended_cells assist_data_for_recommended_cells;
 
     cu_cp_recommended_cell_item recommended_cell_item;
 
-    // add ngran cgi
+    // Add NGRAN CGI.
     recommended_cell_item.ngran_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
     recommended_cell_item.ngran_cgi.plmn_id = plmn_identity::test_value();
 
-    // add time stayed in cell
+    // Add time stayed in cell.
     recommended_cell_item.time_stayed_in_cell = 5;
 
     assist_data_for_recommended_cells.recommended_cells_for_paging.recommended_cell_list.push_back(
@@ -68,7 +73,7 @@ protected:
 
     assist_data_for_paging.assist_data_for_recommended_cells = assist_data_for_recommended_cells;
 
-    // add paging attempt info
+    // Add paging attempt info.
     cu_cp_paging_attempt_info paging_attempt_info;
 
     paging_attempt_info.paging_attempt_count         = 3;
@@ -84,9 +89,9 @@ protected:
 
   bool was_conversion_successful() const
   {
-    auto& paging_msg = f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.paging();
+    const asn1::f1ap::paging_s& paging_msg = f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.paging();
 
-    // check ue id idx value
+    // Check UE ID idx value.
     if (paging_msg->ue_id_idx_value.idx_len10().to_number() != (279089024671 % 1024)) {
       test_logger.error("UE ID idx value mismatch {} != {}",
                         paging_msg->ue_id_idx_value.idx_len10().to_number(),
@@ -94,7 +99,7 @@ protected:
       return false;
     }
 
-    // check paging id
+    // Check paging ID.
     if (paging_msg->paging_id.cn_ue_paging_id().five_g_s_tmsi().to_number() != 279089024671) {
       test_logger.error("Paging ID mismatch {} != {}",
                         paging_msg->paging_id.cn_ue_paging_id().five_g_s_tmsi().to_number(),
@@ -102,7 +107,7 @@ protected:
       return false;
     }
 
-    // check paging drx
+    // Check paging DRX.
     if (!paging_msg->paging_drx_present) {
       return false;
     }
@@ -111,7 +116,7 @@ protected:
       return false;
     }
 
-    // check paging prio
+    // Check paging prio.
     if (!paging_msg->paging_prio_present) {
       return false;
     }
@@ -120,12 +125,12 @@ protected:
       return false;
     }
 
-    // check paging cell list
+    // Check paging cell list.
     if (paging_msg->paging_cell_list.size() != 1) {
       return false;
     }
-    auto&            paging_cell_item = paging_msg->paging_cell_list[0].value().paging_cell_item();
-    nr_cell_identity nci              = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+    const asn1::f1ap::paging_cell_item_s& paging_cell_item = paging_msg->paging_cell_list[0].value().paging_cell_item();
+    nr_cell_identity                      nci              = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
     if (paging_cell_item.nr_cgi.nr_cell_id.to_number() != nci.value()) {
       test_logger.error("NR CGI NCI mismatch {} != {}}", paging_cell_item.nr_cgi.nr_cell_id.to_number(), nci);
       return false;
@@ -135,7 +140,7 @@ protected:
       return false;
     }
 
-    // check paging origin
+    // Check paging origin.
     if (!paging_msg->paging_origin_present) {
       return false;
     }
@@ -150,13 +155,13 @@ protected:
   bool was_paging_forwarded() const { return was_conversion_successful(); }
 };
 
-/// Test paging message handling
+/// Test paging message handling.
 TEST_F(f1ap_paging_test, when_paging_message_received_message_is_forwarded)
 {
-  // Inject paging message
+  // Inject paging message.
   cu_cp_paging_message paging_msg = generate_paging_message();
   f1ap->handle_paging(paging_msg);
 
-  // check that paging message has been forwarded
+  // Check that paging message has been forwarded.
   ASSERT_TRUE(was_paging_forwarded());
 }

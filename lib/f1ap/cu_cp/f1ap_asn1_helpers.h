@@ -10,17 +10,12 @@
 
 #pragma once
 
-#include "../asn1_helpers.h"
-#include "f1ap_asn1_converters.h"
 #include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
-#include "ocudu/f1ap/cu_cp/f1ap_cu_ue_context_update.h"
-#include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/ran/bcd_helper.h"
-#include "ocudu/ran/rb_id.h"
-#include "ocudu/ran/rnti.h"
+#include <variant>
 
 namespace ocudu {
 namespace ocucp {
@@ -30,14 +25,17 @@ namespace ocucp {
 /// \param[in] paging The common type Paging message.
 inline void fill_asn1_paging_message(asn1::f1ap::paging_s& asn1_paging, const cu_cp_paging_message& paging)
 {
-  // Add ue id idx value
-  uint64_t five_g_s_tmsi = paging.ue_paging_id.to_number();
+  // Add ue id idx value.
+  asn1_paging->ue_id_idx_value.set_idx_len10().from_number(paging.ue_id_idx_value);
 
-  // UE Identity Index value is defined as: UE_ID 5G-S-TMSI mod 1024  (see TS 38.304 section 7.1)
-  asn1_paging->ue_id_idx_value.set_idx_len10().from_number(five_g_s_tmsi % 1024);
-
-  // Add paging id
-  asn1_paging->paging_id.set_cn_ue_paging_id().set_five_g_s_tmsi().from_number(five_g_s_tmsi);
+  // Add paging id.
+  if (std::holds_alternative<cu_cp_five_g_s_tmsi>(paging.ue_paging_id)) {
+    cu_cp_five_g_s_tmsi five_g_s_tmsi = std::get<cu_cp_five_g_s_tmsi>(paging.ue_paging_id);
+    asn1_paging->paging_id.set_cn_ue_paging_id().set_five_g_s_tmsi().from_number(five_g_s_tmsi.to_number());
+  } else {
+    asn1_paging->paging_id.set_ran_ue_paging_id().irnti.from_number(
+        std::get<full_i_rnti_t>(paging.ue_paging_id).value());
+  }
 
   // Add paging drx
   if (paging.paging_drx.has_value()) {

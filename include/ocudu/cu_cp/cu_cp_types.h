@@ -21,6 +21,7 @@
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/gnb_constants.h"
 #include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/i_rnti.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/rb_id.h"
@@ -580,13 +581,14 @@ struct cu_cp_assist_data_for_paging {
 };
 
 struct cu_cp_paging_message {
-  cu_cp_five_g_s_tmsi                          ue_paging_id;
-  std::optional<uint16_t>                      paging_drx;
-  std::vector<cu_cp_tai_list_for_paging_item>  tai_list_for_paging;
-  std::optional<uint8_t>                       paging_prio;
-  std::optional<cu_cp_ue_radio_cap_for_paging> ue_radio_cap_for_paging;
-  std::optional<bool>                          paging_origin;
-  std::optional<cu_cp_assist_data_for_paging>  assist_data_for_paging;
+  uint64_t                                         ue_id_idx_value = 0;
+  std::variant<cu_cp_five_g_s_tmsi, full_i_rnti_t> ue_paging_id;
+  std::optional<uint16_t>                          paging_drx;
+  std::vector<cu_cp_tai_list_for_paging_item>      tai_list_for_paging;
+  std::optional<uint8_t>                           paging_prio;
+  std::optional<cu_cp_ue_radio_cap_for_paging>     ue_radio_cap_for_paging;
+  std::optional<bool>                              paging_origin;
+  std::optional<cu_cp_assist_data_for_paging>      assist_data_for_paging;
 };
 
 struct cu_cp_bearer_context_release_request {

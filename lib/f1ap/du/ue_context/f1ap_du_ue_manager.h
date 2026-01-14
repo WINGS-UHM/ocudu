@@ -11,7 +11,7 @@
 #pragma once
 
 #include "f1ap_du_ue.h"
-#include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/f1ap/du/f1ap_executor_mapper.h"
 #include <mutex>
 #include <unordered_map>
 
@@ -22,10 +22,10 @@ namespace odu {
 class f1ap_du_ue_manager
 {
 public:
-  f1ap_du_ue_manager(f1ap_du_configurator&       du_handler_,
-                     task_executor&              ctrl_exec_,
-                     du_high_ue_executor_mapper& ue_exec_mapper_,
-                     timer_manager&              timers_) :
+  f1ap_du_ue_manager(f1ap_du_configurator&    du_handler_,
+                     task_executor&           ctrl_exec_,
+                     f1ap_ue_executor_mapper& ue_exec_mapper_,
+                     timer_manager&           timers_) :
     du_handler(du_handler_), ctrl_exec(ctrl_exec_), ue_exec_mapper(ue_exec_mapper_), timers(timers_)
   {
   }
@@ -38,14 +38,14 @@ public:
     ocudu_sanity_check(f1ap_msg_notifier != nullptr, "Creating a UE before a connection to the CU-CP is established");
     ocudu_assert(not ues.contains(ue_index), "Duplicate ueId={} detected", fmt::underlying(ue_index));
 
-    gnb_du_ue_f1ap_id_t f1ap_id = static_cast<gnb_du_ue_f1ap_id_t>(next_gnb_f1ap_du_ue_id++);
+    const auto f1ap_id = static_cast<gnb_du_ue_f1ap_id_t>(next_gnb_f1ap_du_ue_id++);
     ues.emplace(ue_index,
                 ue_index,
                 f1ap_id,
                 du_handler,
                 *f1ap_msg_notifier,
                 ctrl_exec,
-                ue_exec_mapper.ctrl_executor(ue_index),
+                ue_exec_mapper.f1c_dl_sdu_executor(ue_index),
                 timers);
 
     {
@@ -109,11 +109,11 @@ public:
   size_t nof_ues() const { return ues.size(); }
 
 private:
-  f1ap_du_configurator&       du_handler;
-  f1ap_message_notifier*      f1ap_msg_notifier = nullptr;
-  task_executor&              ctrl_exec;
-  du_high_ue_executor_mapper& ue_exec_mapper;
-  timer_manager&              timers;
+  f1ap_du_configurator&    du_handler;
+  f1ap_message_notifier*   f1ap_msg_notifier = nullptr;
+  task_executor&           ctrl_exec;
+  f1ap_ue_executor_mapper& ue_exec_mapper;
+  timer_manager&           timers;
 
   uint64_t next_gnb_f1ap_du_ue_id = 0;
 

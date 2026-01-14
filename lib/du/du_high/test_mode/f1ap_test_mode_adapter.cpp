@@ -14,7 +14,9 @@
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/f1ap/du/f1ap_du_factory.h"
+#include "ocudu/f1ap/du/f1ap_executor_mapper.h"
 #include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/f1ap/gateways/f1c_connection_client.h"
 #include "ocudu/support/async/async_task.h"
 
 using namespace ocudu;
@@ -292,13 +294,13 @@ f1ap_test_mode_adapter::handle_du_connection_request(std::unique_ptr<f1ap_messag
   return std::make_unique<f1ap_to_gw_pdu_interceptor>(*this);
 }
 
-std::unique_ptr<f1ap_du> ocudu::odu::create_du_high_f1ap(f1c_connection_client&      f1c_client_handler,
-                                                         f1ap_du_configurator&       du_mng,
-                                                         task_executor&              ctrl_exec,
-                                                         du_high_ue_executor_mapper& ue_exec_mapper,
-                                                         f1ap_du_paging_notifier&    paging_notifier,
-                                                         timer_manager&              timers,
-                                                         const du_test_mode_config&  test_cfg)
+std::unique_ptr<f1ap_du> ocudu::odu::create_du_high_f1ap(f1c_connection_client&     f1c_client_handler,
+                                                         f1ap_du_configurator&      du_mng,
+                                                         task_executor&             ctrl_exec,
+                                                         f1ap_ue_executor_mapper&   ue_exec_mapper,
+                                                         f1ap_du_paging_notifier&   paging_notifier,
+                                                         timer_manager&             timers,
+                                                         const du_test_mode_config& test_cfg)
 {
   if (not test_cfg.test_ue.has_value()) {
     return create_f1ap(f1c_client_handler, du_mng, ctrl_exec, ue_exec_mapper, paging_notifier, timers);

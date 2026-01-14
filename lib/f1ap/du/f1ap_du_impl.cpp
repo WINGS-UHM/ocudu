@@ -57,12 +57,12 @@ private:
   std::unique_ptr<f1ap_message_notifier> decorated;
 };
 
-f1ap_du_impl::f1ap_du_impl(f1c_connection_client&      f1c_client_handler_,
-                           f1ap_du_configurator&       du_mng_,
-                           task_executor&              ctrl_exec_,
-                           du_high_ue_executor_mapper& ue_exec_mapper_,
-                           f1ap_du_paging_notifier&    paging_notifier_,
-                           timer_manager&              timers_) :
+f1ap_du_impl::f1ap_du_impl(f1c_connection_client&   f1c_client_handler_,
+                           f1ap_du_configurator&    du_mng_,
+                           task_executor&           ctrl_exec_,
+                           f1ap_ue_executor_mapper& ue_exec_mapper_,
+                           f1ap_du_paging_notifier& paging_notifier_,
+                           timer_manager&           timers_) :
   logger(ocudulog::fetch_basic_logger("DU-F1")),
   ctrl_exec(ctrl_exec_),
   du_mng(du_mng_),

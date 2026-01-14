@@ -286,6 +286,8 @@ public:
     return *strands[ue_index % strands.size()].dl_exec;
   }
 
+  task_executor& f1c_dl_sdu_executor(du_ue_index_t ue_index) override { return ctrl_executor(ue_index); }
+
   task_executor& mac_ul_pdu_executor(du_ue_index_t ue_index) override
   {
     ue_index = ue_index < MAX_NOF_DU_UES ? ue_index : to_du_ue_index(0);
@@ -340,6 +342,8 @@ public:
     size_t idx = ue_index < MAX_NOF_DU_UES ? ue_idx_to_exec_index[ue_index] : 0;
     return *strands[idx].dl_exec;
   }
+
+  task_executor& f1c_dl_sdu_executor(du_ue_index_t ue_index) override { return *strands[ue_index].ctrl_exec; }
 
   task_executor& mac_ul_pdu_executor(du_ue_index_t ue_index) override
   {

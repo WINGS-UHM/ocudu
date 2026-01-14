@@ -10,12 +10,10 @@
 
 #pragma once
 
+#include "ocudu/f1ap/du/f1ap_executor_mapper.h"
 #include "ocudu/mac/mac_executor_mapper.h"
 #include "ocudu/ran/du_types.h"
-#include "ocudu/support/executors/task_executor.h"
-#include <chrono>
 #include <memory>
-#include <optional>
 #include <variant>
 #include <vector>
 
@@ -37,7 +35,7 @@ public:
 };
 
 /// This interface is used to allow the DU to choose between different UE-specific task executors.
-class du_high_ue_executor_mapper : public mac_ue_executor_mapper
+class du_high_ue_executor_mapper : public mac_ue_executor_mapper, public f1ap_ue_executor_mapper
 {
 public:
   ~du_high_ue_executor_mapper() override = default;
@@ -49,7 +47,7 @@ public:
 
   /// Method to return the default executor with no associated UE index.
   /// \return task executor.
-  task_executor& executor() { return ctrl_executor(INVALID_DU_UE_INDEX); }
+  task_executor& executor() { return mac_ue_executor_mapper::ctrl_executor(INVALID_DU_UE_INDEX); }
 };
 
 /// \brief Interface used to access different executors used in the DU-High.

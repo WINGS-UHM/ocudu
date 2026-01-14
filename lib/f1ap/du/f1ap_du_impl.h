@@ -22,18 +22,19 @@
 namespace ocudu {
 namespace odu {
 
+class f1ap_ue_executor_mapper;
 class f1c_connection_client;
 class f1ap_event_manager;
 
 class f1ap_du_impl final : public f1ap_du
 {
 public:
-  f1ap_du_impl(f1c_connection_client&      f1c_client_handler_,
-               f1ap_du_configurator&       task_sched_,
-               task_executor&              ctrl_exec,
-               du_high_ue_executor_mapper& ue_exec_mapper,
-               f1ap_du_paging_notifier&    paging_notifier_,
-               timer_manager&              timers_);
+  f1ap_du_impl(f1c_connection_client&   f1c_client_handler_,
+               f1ap_du_configurator&    task_sched_,
+               task_executor&           ctrl_exec,
+               f1ap_ue_executor_mapper& ue_exec_mapper,
+               f1ap_du_paging_notifier& paging_notifier_,
+               timer_manager&           timers_);
   ~f1ap_du_impl() override;
 
   bool             connect_to_cu_cp() override;

@@ -7,6 +7,7 @@
 #
 
 include:
+  - local: .gitlab/ci-shared/gitlab_settings/.gitlab-ci.yml
   - local: .gitlab/ci-shared/workflow.yml
   - local: .gitlab/ci-shared/static.yml
   - local: .gitlab/ci/doxygen/version.yml

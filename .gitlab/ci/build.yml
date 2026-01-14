@@ -974,6 +974,7 @@ sanitizers amd64 avx2:
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
+      # TSAN tests require an ASLR config of 28 bits (instead of 32 bit as is by default on Ubuntu 24.04)
       - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: tsan
         COMPILER: [gcc, clang]

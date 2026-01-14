@@ -10,6 +10,7 @@
 
 #include "rrc_reestablishment_procedure.h"
 #include "rrc_setup_procedure.h"
+#include "ue/rrc_ue_helpers.h"
 #include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
 #include "ocudu/asn1/rrc_nr/nr_ue_variables.h"
 #include "ocudu/cu_cp/cu_cp_types.h"

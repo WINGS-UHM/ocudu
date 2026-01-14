@@ -8,6 +8,7 @@
  *
  */
 
+#include "rrc_asn1_helpers.h"
 #include "rrc_ue_helpers.h"
 #include "rrc_ue_impl.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"

@@ -10,8 +10,8 @@
 
 #include "rrc_du_impl.h"
 #include "ue/rrc_asn1_converters.h"
+#include "ue/rrc_asn1_helpers.h"
 #include "ue/rrc_measurement_types_asn1_converters.h"
-#include "ue/rrc_ue_helpers.h"
 #include "ocudu/adt/expected.h"
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"

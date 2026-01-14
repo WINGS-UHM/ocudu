@@ -9,7 +9,7 @@
  */
 
 #include "rrc_ue_impl.h"
-#include "rrc_ue_helpers.h"
+#include "rrc_asn1_helpers.h"
 #include "ocudu/asn1/rrc_nr/rrc_nr.h"
 #include "ocudu/support/cpu_architecture_info.h"
 #include "ocudu/support/ocudu_assert.h"

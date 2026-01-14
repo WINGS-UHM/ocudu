@@ -19,6 +19,19 @@
 
 namespace ocudu::ocucp {
 
+// Helper to create PDU from RRC message.
+template <class T>
+byte_buffer pack_into_pdu(const T& msg, const char* context_name)
+{
+  context_name = context_name == nullptr ? __FUNCTION__ : context_name;
+  byte_buffer   pdu{};
+  asn1::bit_ref bref{pdu};
+  if (msg.pack(bref) == asn1::OCUDUASN_ERROR_ENCODE_FAIL) {
+    ocudulog::fetch_basic_logger("RRC").error("Failed to pack message in {}. Discarding it.", context_name);
+  }
+  return pdu;
+}
+
 /// \brief Fills ASN.1 RRC Setup struct.
 /// \param[out] rrc_setup The RRC Setup ASN.1 struct to fill.
 /// \param[in] init_ul_rrc_transfer_msg The Init_UL_RRC_Transfer message received by the CU.

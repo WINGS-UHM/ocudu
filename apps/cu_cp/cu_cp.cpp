@@ -289,7 +289,7 @@ int main(int argc, char** argv)
   // Create F1-C GW (TODO cleanup port and PPID args with factory)
   sctp_network_gateway_config f1c_sctp_cfg = {};
   f1c_sctp_cfg.if_name                     = "F1-C";
-  f1c_sctp_cfg.bind_address                = cu_cp_cfg.f1ap_cfg.bind_addr;
+  f1c_sctp_cfg.bind_addresses              = {cu_cp_cfg.f1ap_cfg.bind_addr};
   f1c_sctp_cfg.bind_port                   = F1AP_PORT;
   f1c_sctp_cfg.ppid                        = F1AP_PPID;
   f1c_cu_sctp_gateway_config f1c_server_cfg(
@@ -299,10 +299,10 @@ int main(int argc, char** argv)
   // Instantiate E1 GW
   // > Create E1 config
   sctp_network_gateway_config e1_sctp_cfg{};
-  e1_sctp_cfg.if_name      = "E1";
-  e1_sctp_cfg.bind_address = cu_cp_cfg.e1ap_cfg.bind_addr;
-  e1_sctp_cfg.bind_port    = E1AP_PORT;
-  e1_sctp_cfg.ppid         = E1AP_PPID;
+  e1_sctp_cfg.if_name        = "E1";
+  e1_sctp_cfg.bind_addresses = {cu_cp_cfg.e1ap_cfg.bind_addr};
+  e1_sctp_cfg.bind_port      = E1AP_PORT;
+  e1_sctp_cfg.ppid           = E1AP_PPID;
   // > Create E1 gateway
   std::unique_ptr<ocucp::e1_connection_server> e1_gw = create_e1_gateway_server(e1_cu_cp_sctp_gateway_config{
       e1_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().e1_rx_executor(), *cu_cp_dlt_pcaps.e1ap});

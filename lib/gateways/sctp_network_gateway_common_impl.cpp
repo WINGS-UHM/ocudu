@@ -95,7 +95,7 @@ expected<sctp_socket> sctp_network_gateway_common_impl::create_socket(int ai_fam
 /// \brief Create and bind socket to given address.
 bool sctp_network_gateway_common_impl::create_and_bind_common()
 {
-  sockaddr_searcher searcher{node_cfg.bind_address, node_cfg.bind_port, logger};
+  sockaddr_searcher searcher{node_cfg.bind_addresses[0], node_cfg.bind_port, logger};
   struct addrinfo*  result = nullptr;
   for (result = searcher.next(); result != nullptr; result = searcher.next()) {
     // create SCTP socket
@@ -121,7 +121,7 @@ bool sctp_network_gateway_common_impl::create_and_bind_common()
 
   if (not socket.is_open()) {
     fmt::print("Failed to bind SCTP socket to {}:{}. Cause: {}\n",
-               node_cfg.bind_address,
+               node_cfg.bind_addresses[0],
                node_cfg.bind_port,
                ::strerror(errno));
     return false;

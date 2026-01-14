@@ -31,6 +31,9 @@ constexpr uint16_t F1AP_PORT = 38472; ///< F1AP port, see TS 38.472, section 7.
 struct sctp_network_gateway_config : public common_network_gateway_config {
   /// Name provided to the interface node.
   std::string if_name;
+  /// Bind addresses to use for the socket. If left empty, the socket can only be used with an implicit `bind()` using
+  /// `connect()`.
+  std::vector<std::string> bind_addresses;
   /// Payload Protocol Identifier
   int                                      ppid = 0;
   std::optional<std::chrono::milliseconds> rto_initial;

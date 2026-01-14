@@ -165,7 +165,7 @@ protected:
     nw_config.if_name           = "E2";
     nw_config.connect_addresses = {"127.0.0.1"};
     nw_config.connect_port      = 36421;
-    nw_config.bind_address      = "127.0.0.101";
+    nw_config.bind_addresses    = {"127.0.0.101"};
     nw_config.bind_port         = 0;
 
     adapter          = std::make_unique<dummy_e2ap_network_adapter>(nw_config);
@@ -253,7 +253,7 @@ protected:
     nw_config.if_name           = "E2";
     nw_config.connect_addresses = {"127.0.0.1"};
     nw_config.connect_port      = 36421;
-    nw_config.bind_address      = "127.0.0.101";
+    nw_config.bind_addresses    = {"127.0.0.101"};
     nw_config.bind_port         = 0;
 
     epoll_broker      = create_io_broker(io_broker_type::epoll);

@@ -48,10 +48,12 @@ std::optional<uint16_t> sctp_network_gateway_impl::get_listen_port()
 bool sctp_network_gateway_impl::create_and_connect()
 {
   // bind to address/port
-  if (not config.bind_address.empty()) {
-    if (not create_and_bind()) {
-      logger.error("Couldn't bind to address {}:{}", config.bind_address, config.bind_port);
-      return false;
+  if (not config.bind_addresses.empty()) {
+    if (not config.bind_addresses[0].empty()) {
+      if (not create_and_bind()) {
+        logger.error("Couldn't bind to address {}:{}", config.bind_addresses[0], config.bind_port);
+        return false;
+      }
     }
   }
 

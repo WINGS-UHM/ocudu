@@ -27,7 +27,7 @@ inline std::unique_ptr<odu::f1c_connection_client> create_f1c_client_gateway(con
   f1c_sctp.connect_addresses = {cu_cp_addr};
   f1c_sctp.connect_port      = F1AP_PORT;
   f1c_sctp.ppid              = F1AP_PPID;
-  f1c_sctp.bind_address      = bind_addr;
+  f1c_sctp.bind_addresses    = {bind_addr};
 
   return create_f1c_gateway_client(f1c_du_sctp_gateway_config{f1c_sctp, broker, io_rx_executor, f1ap_pcap});
 }

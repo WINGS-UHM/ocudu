@@ -106,10 +106,10 @@ private:
 TEST_F(sctp_network_gateway_tester, when_binding_on_bogus_address_then_bind_fails)
 {
   sctp_network_connector_config config;
-  config.if_name      = "server";
-  config.bind_address = "1.1.1.1";
-  config.bind_port    = 0;
-  config.reuse_addr   = true;
+  config.if_name        = "server";
+  config.bind_addresses = {"1.1.1.1"};
+  config.bind_port      = 0;
+  config.reuse_addr     = true;
   create_server(config);
   ASSERT_FALSE(bind_and_listen());
   std::optional<uint16_t> server_port = server->get_listen_port();
@@ -119,10 +119,10 @@ TEST_F(sctp_network_gateway_tester, when_binding_on_bogus_address_then_bind_fail
 TEST_F(sctp_network_gateway_tester, when_binding_on_bogus_v6_address_then_bind_fails)
 {
   sctp_network_connector_config config;
-  config.if_name      = "server";
-  config.bind_address = "1:1::";
-  config.bind_port    = 0;
-  config.reuse_addr   = true;
+  config.if_name        = "server";
+  config.bind_addresses = {"1:1::"};
+  config.bind_port      = 0;
+  config.reuse_addr     = true;
   create_server(config);
   ASSERT_FALSE(bind_and_listen());
   std::optional<uint16_t> server_port = server->get_listen_port();
@@ -132,11 +132,11 @@ TEST_F(sctp_network_gateway_tester, when_binding_on_bogus_v6_address_then_bind_f
 TEST_F(sctp_network_gateway_tester, when_binding_on_localhost_then_bind_succeeds)
 {
   sctp_network_connector_config config;
-  config.if_name      = "client";
-  config.dest_name    = "server";
-  config.bind_address = "127.0.0.1";
-  config.bind_port    = 0;
-  config.reuse_addr   = true;
+  config.if_name        = "client";
+  config.dest_name      = "server";
+  config.bind_addresses = {"127.0.0.1"};
+  config.bind_port      = 0;
+  config.reuse_addr     = true;
   create_server(config);
   ASSERT_TRUE(bind_and_listen());
   std::optional<uint16_t> server_port = server->get_listen_port();
@@ -147,11 +147,11 @@ TEST_F(sctp_network_gateway_tester, when_binding_on_localhost_then_bind_succeeds
 TEST_F(sctp_network_gateway_tester, when_binding_on_v6_localhost_then_bind_succeeds)
 {
   sctp_network_connector_config config;
-  config.if_name      = "client";
-  config.dest_name    = "server";
-  config.bind_address = "::1";
-  config.bind_port    = 0;
-  config.reuse_addr   = true;
+  config.if_name        = "client";
+  config.dest_name      = "server";
+  config.bind_addresses = {"::1"};
+  config.bind_port      = 0;
+  config.reuse_addr     = true;
   create_server(config);
   ASSERT_TRUE(bind_and_listen());
   std::optional<uint16_t> server_port = server->get_listen_port();
@@ -193,7 +193,7 @@ TEST_F(sctp_network_gateway_tester, when_config_valid_then_trx_succeeds)
 {
   sctp_network_connector_config server_config;
   server_config.if_name           = "server";
-  server_config.bind_address      = "127.0.0.1";
+  server_config.bind_addresses    = {"127.0.0.1"};
   server_config.bind_port         = 0;
   server_config.non_blocking_mode = true;
   server_config.reuse_addr        = true;
@@ -207,7 +207,7 @@ TEST_F(sctp_network_gateway_tester, when_config_valid_then_trx_succeeds)
   sctp_network_connector_config client_config;
   client_config.if_name           = "client";
   client_config.dest_name         = "server";
-  client_config.connect_addresses = {server_config.bind_address};
+  client_config.connect_addresses = {server_config.bind_addresses[0]};
   client_config.connect_port      = server_port.value();
   client_config.non_blocking_mode = true;
   client_config.nodelay           = true;
@@ -243,7 +243,7 @@ TEST_F(sctp_network_gateway_tester, when_v6_config_valid_then_trx_succeeds)
 {
   sctp_network_connector_config server_config;
   server_config.if_name           = "server";
-  server_config.bind_address      = "::1";
+  server_config.bind_addresses    = {"::1"};
   server_config.bind_port         = 0;
   server_config.non_blocking_mode = true;
   server_config.reuse_addr        = true;
@@ -257,7 +257,7 @@ TEST_F(sctp_network_gateway_tester, when_v6_config_valid_then_trx_succeeds)
   sctp_network_connector_config client_config;
   client_config.if_name           = "client";
   client_config.dest_name         = "server";
-  client_config.connect_addresses = {server_config.bind_address};
+  client_config.connect_addresses = {server_config.bind_addresses[0]};
   client_config.connect_port      = server_port.value();
   client_config.non_blocking_mode = true;
   client_config.nodelay           = true;
@@ -293,7 +293,7 @@ TEST_F(sctp_network_gateway_tester, when_hostname_resolved_then_trx_succeeds)
 {
   sctp_network_connector_config server_config;
   server_config.if_name           = "server";
-  server_config.bind_address      = "localhost";
+  server_config.bind_addresses    = {"localhost"};
   server_config.bind_port         = 0;
   server_config.non_blocking_mode = true;
   server_config.reuse_addr        = true;
@@ -307,7 +307,7 @@ TEST_F(sctp_network_gateway_tester, when_hostname_resolved_then_trx_succeeds)
   sctp_network_connector_config client_config;
   client_config.if_name           = "client";
   client_config.dest_name         = "server";
-  client_config.connect_addresses = {server_config.bind_address};
+  client_config.connect_addresses = {server_config.bind_addresses};
   client_config.connect_port      = server_port.value();
   client_config.non_blocking_mode = true;
   client_config.nodelay           = true;
@@ -347,13 +347,13 @@ TEST_F(sctp_network_gateway_tester, when_rto_is_set_then_rto_changes)
   std::chrono::milliseconds rto_max{800};
 
   sctp_network_connector_config server_config;
-  server_config.if_name      = "server";
-  server_config.bind_address = "127.0.0.1";
-  server_config.bind_port    = 0;
-  server_config.reuse_addr   = true;
-  server_config.rto_initial  = rto_init;
-  server_config.rto_min      = rto_min;
-  server_config.rto_max      = rto_max;
+  server_config.if_name        = "server";
+  server_config.bind_addresses = {"127.0.0.1"};
+  server_config.bind_port      = 0;
+  server_config.reuse_addr     = true;
+  server_config.rto_initial    = rto_init;
+  server_config.rto_min        = rto_min;
+  server_config.rto_max        = rto_max;
 
   create_server(server_config);
 
@@ -379,7 +379,7 @@ TEST_F(sctp_network_gateway_tester, when_init_msg_is_set_then_init_msg_changes)
 
   sctp_network_connector_config server_config;
   server_config.if_name           = "server";
-  server_config.bind_address      = "127.0.0.1";
+  server_config.bind_addresses    = {"127.0.0.1"};
   server_config.bind_port         = 0;
   server_config.reuse_addr        = true;
   server_config.init_max_attempts = init_max_attempts;
@@ -406,11 +406,11 @@ TEST_F(sctp_network_gateway_tester, when_assoc_is_set_then_assoc_changes)
   uint32_t assoc_max_rxt = 5;
 
   sctp_network_connector_config server_config;
-  server_config.if_name       = "server";
-  server_config.bind_address  = "127.0.0.1";
-  server_config.bind_port     = 0;
-  server_config.reuse_addr    = true;
-  server_config.assoc_max_rxt = assoc_max_rxt;
+  server_config.if_name        = "server";
+  server_config.bind_addresses = {"127.0.0.1"};
+  server_config.bind_port      = 0;
+  server_config.reuse_addr     = true;
+  server_config.assoc_max_rxt  = assoc_max_rxt;
 
   create_server(server_config);
 
@@ -432,11 +432,11 @@ TEST_F(sctp_network_gateway_tester, when_paddr_is_set_then_paddr_changes)
   std::chrono::milliseconds hb_interval{5000};
 
   sctp_network_connector_config server_config;
-  server_config.if_name      = "server";
-  server_config.bind_address = "127.0.0.1";
-  server_config.bind_port    = 0;
-  server_config.reuse_addr   = true;
-  server_config.hb_interval  = hb_interval;
+  server_config.if_name        = "server";
+  server_config.bind_addresses = {"127.0.0.1"};
+  server_config.bind_port      = 0;
+  server_config.reuse_addr     = true;
+  server_config.hb_interval    = hb_interval;
 
   create_server(server_config);
 

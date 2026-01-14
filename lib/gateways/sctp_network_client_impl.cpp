@@ -175,9 +175,11 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
   }
 
   // If a bind address is provided, create a socket here and bind it.
-  if (not node_cfg.bind_address.empty()) {
-    if (not create_and_bind_common()) {
-      return nullptr;
+  if (not node_cfg.bind_addresses.empty()) {
+    if (not node_cfg.bind_addresses[0].empty()) {
+      if (not create_and_bind_common()) {
+        return nullptr;
+      }
     }
   }
 

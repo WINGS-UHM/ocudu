@@ -33,10 +33,10 @@ public:
     assoc_factory(std::make_unique<server_assoc_handler_factory>(*this)),
     server_cfg([this]() {
       sctp_network_server_config cfg{{}, *server_broker, rx_executor, *assoc_factory};
-      cfg.sctp.if_name      = "SERVER";
-      cfg.sctp.ppid         = NGAP_PPID;
-      cfg.sctp.bind_address = "127.0.0.1";
-      cfg.sctp.bind_port    = 0;
+      cfg.sctp.if_name        = "SERVER";
+      cfg.sctp.ppid           = NGAP_PPID;
+      cfg.sctp.bind_addresses = {"127.0.0.1"};
+      cfg.sctp.bind_port      = 0;
       return cfg;
     }()),
     server(create_sctp_network_server(server_cfg))
@@ -59,7 +59,7 @@ public:
       client_cfg.sctp.if_name           = fmt::format("client{}", i);
       client_cfg.sctp.ppid              = NGAP_PPID;
       client_cfg.sctp.dest_name         = "server";
-      client_cfg.sctp.connect_addresses = {server_cfg.sctp.bind_address};
+      client_cfg.sctp.connect_addresses = {server_cfg.sctp.bind_addresses[0]};
       client_cfg.sctp.connect_port      = server_port;
       ret.first->second->client         = create_sctp_network_client(client_cfg);
       report_fatal_error_if_not(ret.first->second->client != nullptr, "Failed to create Client");

@@ -20,6 +20,9 @@ struct sockaddr_storage;
 namespace ocudu {
 
 struct udp_network_gateway_config : common_network_gateway_config {
+  /// Bind address to use for the socket. If left empty, the socket can only be used with an implicit `bind()` using
+  /// `connect()`.
+  std::string            bind_address;
   unsigned               rx_max_mmsg              = 256;
   unsigned               tx_qsize                 = 4096;
   unsigned               tx_max_mmsg              = 256;

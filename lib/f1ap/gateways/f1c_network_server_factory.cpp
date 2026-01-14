@@ -116,7 +116,7 @@ public:
     report_error_if_not(result, "Failed to start SCTP server.\n");
     fmt::print("{}: Listening for new connections on {}:{}...\n",
                params.sctp.if_name,
-               params.sctp.bind_address,
+               params.sctp.bind_addresses[0],
                params.sctp.bind_port);
   }
 

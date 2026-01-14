@@ -339,10 +339,12 @@ void sctp_network_server_impl::handle_sctp_shutdown_comp(int assoc_id)
 
 bool sctp_network_server_impl::listen()
 {
-  if (node_cfg.bind_address.empty()) {
-    logger.error("{}: Cannot listen to new SCTP associations if an address to bind to is not provided",
-                 node_cfg.if_name);
-    return false;
+  if (node_cfg.bind_addresses.empty()) {
+    if (node_cfg.bind_addresses[0].empty()) {
+      logger.error("{}: Cannot listen to new SCTP associations if an address to bind to is not provided",
+                   node_cfg.if_name);
+      return false;
+    }
   }
 
   if (not socket.listen()) {
@@ -385,7 +387,13 @@ std::unique_ptr<sctp_network_server> sctp_network_server_impl::create(const sctp
     ocudulog::fetch_basic_logger("SCTP-GW").error("Cannot create SCTP server. Cause: No name was provided");
     return nullptr;
   }
-  if (sctp_cfg.bind_address.empty()) {
+  if (sctp_cfg.bind_addresses.empty()) {
+    ocudulog::fetch_basic_logger("SCTP-GW").error("{}: Cannot create SCTP server without bind addresses",
+                                                  sctp_cfg.if_name);
+    return nullptr;
+  }
+
+  if (sctp_cfg.bind_addresses[0].empty()) {
     ocudulog::fetch_basic_logger("SCTP-GW").error("{}: Cannot create SCTP server without bind address",
                                                   sctp_cfg.if_name);
     return nullptr;

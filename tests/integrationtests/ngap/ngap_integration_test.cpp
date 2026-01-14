@@ -115,7 +115,7 @@ protected:
       nw_config.if_name           = "N2";
       nw_config.connect_addresses = {"10.12.1.105"};
       nw_config.connect_port      = 38412;
-      nw_config.bind_address      = "10.8.1.10";
+      nw_config.bind_addresses    = {"10.8.1.10"};
       nw_config.bind_port         = 0;
       nw_config.non_blocking_mode = true;
       adapter                     = std::make_unique<ngap_network_adapter>(nw_config);

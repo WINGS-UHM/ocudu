@@ -126,15 +126,16 @@ class sctp_network_server_test : public base_sctp_network_test, public ::testing
 protected:
   sctp_network_server_test()
   {
-    server_cfg.sctp.if_name      = "SERVER";
-    server_cfg.sctp.ppid         = NGAP_PPID;
-    server_cfg.sctp.bind_address = "127.0.0.1";
-    server_cfg.sctp.bind_port    = 0;
+    server_cfg.sctp.if_name        = "SERVER";
+    server_cfg.sctp.ppid           = NGAP_PPID;
+    server_cfg.sctp.bind_addresses = {"127.0.0.1"};
+    server_cfg.sctp.bind_port      = 0;
   }
 
   bool connect_client(bool broker_trigger_required = true)
   {
-    if (not client.connect(server_cfg.sctp.ppid, server_cfg.sctp.bind_address, server->get_listen_port().value())) {
+    if (not client.connect(
+            server_cfg.sctp.ppid, server_cfg.sctp.bind_addresses[0], server->get_listen_port().value())) {
       return false;
     }
     if (broker_trigger_required) {
@@ -190,8 +191,8 @@ TEST_F(sctp_network_server_test, when_bind_interface_is_invalid_then_server_is_n
 
 TEST_F(sctp_network_server_test, when_bind_address_is_empty_then_server_is_not_created)
 {
-  server_cfg.sctp.bind_address = "";
-  server                       = create_sctp_network_server(server_cfg);
+  server_cfg.sctp.bind_addresses = {""};
+  server                         = create_sctp_network_server(server_cfg);
   ASSERT_EQ(server, nullptr);
 }
 
@@ -338,7 +339,7 @@ TEST_F(sctp_network_server_test, when_multiple_clients_connect_then_multiple_ass
   // Client 2 connects.
   assoc_factory.association_created = false;
   dummy_sctp_client client2;
-  client2.connect(server_cfg.sctp.ppid, server_cfg.sctp.bind_address, server->get_listen_port().value());
+  client2.connect(server_cfg.sctp.ppid, server_cfg.sctp.bind_addresses[0], server->get_listen_port().value());
   // Handle client 2 association creation.
   trigger_broker();
   ASSERT_TRUE(assoc_factory.association_created);

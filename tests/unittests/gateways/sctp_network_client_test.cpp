@@ -139,9 +139,9 @@ protected:
 
 TEST_F(sctp_network_client_test, when_bind_address_is_valid_then_client_is_created_successfully)
 {
-  client_cfg.sctp.bind_address = "127.0.0.2";
-  client_cfg.sctp.bind_port    = server.bind_port;
-  client                       = create_sctp_network_client(client_cfg);
+  client_cfg.sctp.bind_addresses = {"127.0.0.2"};
+  client_cfg.sctp.bind_port      = server.bind_port;
+  client                         = create_sctp_network_client(client_cfg);
   ASSERT_NE(client, nullptr);
 }
 
@@ -154,11 +154,11 @@ TEST_F(sctp_network_client_test, when_bind_address_not_provided_then_client_is_c
 TEST_F(sctp_network_client_test, when_bind_interface_is_invalid_then_client_connection_fails)
 {
   client_cfg.sctp.bind_interface = "invalid";
-  client_cfg.sctp.bind_address   = "127.0.0.1";
+  client_cfg.sctp.bind_addresses = {"127.0.0.1"};
   client_cfg.sctp.bind_port      = server.bind_port;
   client                         = create_sctp_network_client(client_cfg);
   ASSERT_NE(client, nullptr);
-  ASSERT_FALSE(connect_to_server(client_cfg.sctp.bind_address, client_cfg.sctp.bind_port));
+  ASSERT_FALSE(connect_to_server(client_cfg.sctp.bind_addresses[0], client_cfg.sctp.bind_port));
 }
 
 TEST_F(sctp_network_client_test, when_server_does_not_exist_then_connection_fails)
@@ -220,7 +220,7 @@ TEST_F(sctp_network_client_test, when_server_exists_then_connection_succeeds)
 
 TEST_F(sctp_network_client_test, when_client_binds_address_then_connection_succeeds)
 {
-  client_cfg.sctp.bind_address      = "127.0.0.2";
+  client_cfg.sctp.bind_addresses    = {"127.0.0.2"};
   client_cfg.sctp.connect_addresses = {server.address};
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";

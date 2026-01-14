@@ -646,6 +646,9 @@ rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool             
         release.non_crit_ext.wait_time         = release_wait_time.value().count();
       }
       if (inactivity_context.has_value()) {
+        // Store inactivity context.
+        context.inactivity_context = inactivity_context;
+
         release.suspend_cfg_present = true;
         // Set Full-I-RNTI.
         release.suspend_cfg.full_i_rnti.from_number(inactivity_context->i_rntis.full_i_rnti.value());

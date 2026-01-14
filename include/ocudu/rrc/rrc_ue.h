@@ -468,6 +468,14 @@ public:
   /// \brief Get the cell context of the RRC UE.
   /// \returns The cell context.
   virtual rrc_cell_context get_cell_context() const = 0;
+
+  /// \brief Get the 5G-S-TMSI of the RRC UE.
+  /// \returns The 5G-S-TMSI.
+  virtual std::optional<cu_cp_five_g_s_tmsi> get_five_g_s_tmsi() const = 0;
+
+  /// \brief Get the inactivity context of the RRC UE.
+  /// \returns The inactivity context.
+  virtual std::optional<rrc_inactivity_context> get_inactivity_context() const = 0;
 };
 
 class rrc_ue_event_notifier

@@ -190,7 +190,7 @@ private:
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
 };
 
-// Configuration struct to parameterize the modification outcome
+// Configuration struct to parameterize the modification outcome.
 struct pdu_session_modified_outcome_t {
   pdu_session_id_t      psi;
   std::vector<drb_id_t> drb_added;
@@ -219,21 +219,21 @@ public:
       const std::list<unsigned>&                                                              outcome_setup_list)
   {
     for (const auto& psi : outcome_setup_list) {
-      // add only the most relevant items
+      // Add only the most relevant items.
       e1ap_pdu_session_resource_setup_modification_item res_setup_item;
       res_setup_item.pdu_session_id = uint_to_pdu_session_id(psi);
 
-      // add a single DRB with the same ID like the PDU session it belongs to
+      // Add a single DRB with the same ID like the PDU session it belongs to.
       drb_id_t                   drb_id = uint_to_drb_id(psi); // Note: we use the PDU session ID here also as DRB ID
       e1ap_drb_setup_item_ng_ran drb_item;
       drb_item.drb_id = drb_id;
 
-      // add a QoS flow
+      // Add a QoS flow.
       e1ap_qos_flow_item qos_item;
       qos_item.qos_flow_id = uint_to_qos_flow_id(psi); // Note: use the PSI again as QoS flow ID
       drb_item.flow_setup_list.emplace(qos_item.qos_flow_id, qos_item);
 
-      // add one UP transport item
+      // Add one UP transport item.
       e1ap_up_params_item up_item;
       up_item.cell_group_id = 0;
       up_item.up_tnl_info   = {transport_layer_address::create_from_string("127.0.0.1"), int_to_gtpu_teid(0x1)};
@@ -268,21 +268,21 @@ public:
       const std::list<pdu_session_modified_outcome_t>&                              outcome_modified_list)
   {
     for (const auto& modified_item : outcome_modified_list) {
-      // add only the most relevant items
+      // Add only the most relevant items.
       e1ap_pdu_session_resource_modified_item res_mod_item;
       res_mod_item.pdu_session_id = modified_item.psi;
 
       for (const auto& drb_id : modified_item.drb_added) {
-        // add a single DRB with the same ID like the PDU session it belongs to
+        // Add a single DRB with the same ID like the PDU session it belongs to.
         e1ap_drb_setup_item_ng_ran drb_item;
         drb_item.drb_id = drb_id;
 
-        // add a QoS flow
+        // Add a QoS flow.
         e1ap_qos_flow_item qos_item;
         qos_item.qos_flow_id = uint_to_qos_flow_id(drb_id_to_uint(drb_id)); // QoS flow has same ID like DRB
         drb_item.flow_setup_list.emplace(qos_item.qos_flow_id, qos_item);
 
-        // add one UP transport item
+        // Add one UP transport item.
         e1ap_up_params_item up_item;
         drb_item.ul_up_transport_params.push_back(up_item);
         res_mod_item.drb_setup_list_ng_ran.emplace(drb_id, drb_item);
@@ -306,7 +306,8 @@ public:
   {
     logger.info("Received a new bearer context setup request");
 
-    first_e1ap_request = msg; // store msg to verify content in TC
+    // Store msg to verify content in TC.
+    first_e1ap_request = msg;
 
     return launch_async([res = e1ap_bearer_context_setup_response{}, msg, this](
                             coro_context<async_task<e1ap_bearer_context_setup_response>>& ctx) mutable {
@@ -329,7 +330,7 @@ public:
   {
     logger.info("Received a new bearer context modification request");
 
-    // store msg to be verify content in TC
+    // Store msg to verify content in TC.
     if (first_e1ap_request.has_value()) {
       second_e1ap_request = msg;
     } else {
@@ -341,12 +342,12 @@ public:
       CORO_BEGIN(ctx);
 
       if (first_e1ap_response.has_value()) {
-        // first E1AP message is already a bearer modification
+        // First E1AP message is already a bearer modification.
         const auto& response = first_e1ap_response.value();
         fill_bearer_context_response(res, response);
         first_e1ap_response.reset(); // Make sure it's not consumed again.
       } else if (second_e1ap_response.has_value()) {
-        // second E1AP message is a bearer modification
+        // Second E1AP message is a bearer modification.
         const auto& response = second_e1ap_response.value();
         fill_bearer_context_response(res, response);
         second_e1ap_response.reset(); // Make sure it's not consumed again.
@@ -462,7 +463,7 @@ public:
   {
     logger.info("Received a new UE context modification request");
 
-    // store request so it can be verified in the test code
+    // Store request so it can be verified in the test code.
     make_partial_copy(ue_context_modification_request, request);
 
     return launch_async([res = f1ap_ue_context_modification_response{},
@@ -471,7 +472,7 @@ public:
 
       res.success = ue_context_modification_outcome.outcome;
       for (const auto& drb_id : ue_context_modification_outcome.drb_success_list) {
-        // add only the most relevant items
+        // Add only the most relevant items.
         f1ap_drb_setupmod drb_item;
         drb_item.drb_id = uint_to_drb_id(drb_id); // set ID
         res.drbs_setup_list.push_back(drb_item);
@@ -508,7 +509,7 @@ private:
   static void make_partial_copy(f1ap_ue_context_modification_request&       target,
                                 const f1ap_ue_context_modification_request& source)
   {
-    // only copy fields that are actually checked in unit tests
+    // Only copy fields that are actually checked in unit tests.
     target.drbs_to_be_setup_mod_list = source.drbs_to_be_setup_mod_list;
     target.drbs_to_be_released_list  = source.drbs_to_be_released_list;
   }
@@ -626,19 +627,19 @@ public:
 
   void set_transaction_id(unsigned transaction_id_) { test_transaction_id = transaction_id_; }
 
-  // RRC UE Controller
+  // RRC UE Controller.
   void stop() override {}
 
-  // RRC UL PDU handler
+  // RRC UL PDU handler.
   void handle_ul_ccch_pdu(byte_buffer pdu) override {}
   void handle_ul_dcch_pdu(const srb_id_t srb_id, byte_buffer pdu) override {}
 
-  // RRC NGAP Message handler
+  // RRC NGAP Message handler.
   void        handle_dl_nas_transport_message(byte_buffer nas_pdu) override {}
   byte_buffer get_packed_ue_radio_access_cap_info() const override { return byte_buffer{}; }
   byte_buffer get_packed_handover_preparation_message() override { return byte_buffer{}; }
 
-  // RRC UE Control Message handler
+  // RRC UE Control Message handler.
 
   rrc_ue_security_mode_command_context get_security_mode_command_context() override { return {}; }
 
@@ -709,7 +710,6 @@ public:
   {
     logger.info("Received a new request to get RRC UE release context");
     rrc_ue_release_context release_context;
-    // TODO: Add values
     return release_context;
   }
 
@@ -774,16 +774,14 @@ public:
 
   void cancel_all_transactions() override { logger.info("Cancelling all ongoing RRC UE transactions"); }
 
-  // RRC UE Setup proc notifier
+  // RRC UE Setup proc notifier.
   void on_new_dl_ccch(const asn1::rrc_nr::dl_ccch_msg_s& dl_ccch_msg) override {}
   void on_ue_release_required(const ngap_cause_t& cause) override {}
 
-  // RRC UE Security Mode Command proc notifier
+  // RRC UE Security Mode Command proc notifier.
   void on_new_dl_dcch(srb_id_t srb_id, const asn1::rrc_nr::dl_dcch_msg_s& dl_dcch_msg) override {}
 
-  // RRC UE Reconfiguration proc notifier
-
-  // RRC UE Context handler
+  // RRC UE Context handler.
   rrc_ue_reestablishment_context_response get_context() override
   {
     logger.info("Received a new request to get RRC UE reestablishment context");
@@ -798,10 +796,22 @@ public:
     return rrc_cell_context{};
   }
 
-  // RRC UE Reestablishment proc notifier
+  std::optional<cu_cp_five_g_s_tmsi> get_five_g_s_tmsi() const override
+  {
+    logger.info("Received a new request to get 5G-S-TMSI");
+    return cu_cp_five_g_s_tmsi{};
+  }
+
+  std::optional<rrc_inactivity_context> get_inactivity_context() const override
+  {
+    logger.info("Received a new request to get RRC UE inactivity context");
+    return std::nullopt;
+  }
+
+  // RRC UE Reestablishment proc notifier.
   void on_new_as_security_context() override {}
 
-  // interface functions
+  // Interface functions.
   rrc_ue_controller&              get_controller() override { return *this; }
   rrc_ul_pdu_handler&             get_ul_pdu_handler() override { return *this; }
   rrc_ngap_message_handler&       get_rrc_ngap_message_handler() override { return *this; }

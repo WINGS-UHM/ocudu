@@ -15,8 +15,10 @@
 #include "rrc_ue_logger.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/rrc/rrc_cell_context.h"
 #include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/support/ocudu_assert.h"
 
 namespace ocudu::ocucp {
 
@@ -88,6 +90,8 @@ public:
   rrc_ue_reestablishment_context_response get_context() override;
   void                                    update_c_rnti(rnti_t crnti) override;
   rrc_cell_context                        get_cell_context() const override { return context.cell; }
+  std::optional<cu_cp_five_g_s_tmsi>      get_five_g_s_tmsi() const override { return context.five_g_s_tmsi; }
+  std::optional<rrc_inactivity_context>   get_inactivity_context() const override { return context.inactivity_context; }
 
 private:
   void stop() override;

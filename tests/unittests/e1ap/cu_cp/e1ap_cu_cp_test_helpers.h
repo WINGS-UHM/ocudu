@@ -45,6 +45,11 @@ public:
     logger.info("Received an inactivity notification");
   }
 
+  void on_dl_data_notification_received(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a DL Data Notification", ue_index);
+  }
+
   async_task<void> on_ue_release_required(const cu_cp_ue_context_release_request& request) override
   {
     logger.info("ue={}: Requested a UE release", request.ue_index);
@@ -155,7 +160,7 @@ protected:
   /// \brief Helper method to run E1AP CU-CP Bearer Context Setup procedure.
   void run_bearer_context_setup(ue_index_t ue_index, gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id);
 
-  /// \brief Helper method to create a E1AP UE
+  /// \brief Helper method to create a E1AP UE.
   test_ue& create_ue();
 
   void tick();

@@ -305,6 +305,56 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
   }
 }
 
+void cu_cp_impl::handle_dl_data_notification(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+
+  std::optional<rrc_inactivity_context> inactivity_context = ue->get_rrc_ue()->get_inactivity_context();
+
+  if (!inactivity_context.has_value()) {
+    logger.warning("ue={}: Dropping DL Data Notification. Inactivity context not available", ue_index);
+    return;
+  }
+
+  if (!std::holds_alternative<std::vector<rrc_plmn_ran_area_cell_t>>(inactivity_context->ran_notification_area_info)) {
+    logger.warning("ue={}: Dropping DL Data Notification. RAN notification area info not available", ue_index);
+    return;
+  }
+
+  // Fill paging message.
+  cu_cp_paging_message cu_cp_paging_msg;
+
+  std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi = ue->get_rrc_ue()->get_five_g_s_tmsi();
+  if (five_g_s_tmsi.has_value()) {
+    // UE Identity Index value is defined as: UE_ID 5G-S-TMSI mod 1024 (see TS 38.304 section 7.1).
+    cu_cp_paging_msg.ue_id_idx_value = five_g_s_tmsi->to_number() % 1024;
+  }
+  cu_cp_paging_msg.ue_paging_id = inactivity_context->i_rntis.full_i_rnti;
+  cu_cp_paging_msg.paging_drx   = inactivity_context->ran_paging_cycle;
+  cu_cp_paging_msg.assist_data_for_paging.emplace();
+  cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells.emplace();
+
+  // Add recommended cells for paging.
+  for (const auto& ran_area_cell :
+       std::get<std::vector<rrc_plmn_ran_area_cell_t>>(inactivity_context->ran_notification_area_info)) {
+    if (!ran_area_cell.plmn_id.has_value()) {
+      logger.warning("ue={}: Dropping DL Data Notification. PLMN ID not available in RAN area cell", ue_index);
+      continue;
+    }
+
+    for (const auto& cell_id : ran_area_cell.ran_area_cells) {
+      nr_cell_global_id_t nr_cgi(ran_area_cell.plmn_id.value(), cell_id);
+
+      cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells->recommended_cells_for_paging
+          .recommended_cell_list.push_back(cu_cp_recommended_cell_item{.ngran_cgi = nr_cgi});
+    }
+  }
+
+  // Send paging message.
+  paging_handler.handle_paging_message(cu_cp_paging_msg);
+}
+
 void cu_cp_impl::handle_e1_release_request(cu_up_index_t cu_up_index)
 {
   // TODO

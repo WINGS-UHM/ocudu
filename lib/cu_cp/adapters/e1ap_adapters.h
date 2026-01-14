@@ -40,6 +40,12 @@ public:
     cu_cp_handler->handle_bearer_context_inactivity_notification(msg);
   }
 
+  void on_dl_data_notification_received(ue_index_t ue_index) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    cu_cp_handler->handle_dl_data_notification(ue_index);
+  }
+
   async_task<void> on_ue_release_required(const cu_cp_ue_context_release_request& request) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");

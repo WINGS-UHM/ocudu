@@ -150,6 +150,10 @@ public:
   /// \param[in] msg The received Bearer Context Inactivity Notification message.
   virtual void on_bearer_context_inactivity_notification_received(const cu_cp_inactivity_notification& msg) = 0;
 
+  /// \brief Notifies about the reception of a DL Data Notification message.
+  /// \param[in] ue_index The index of the UE.
+  virtual void on_dl_data_notification_received(ue_index_t ue_index) = 0;
+
   /// \brief Notify the CU-CP to release a UE.
   /// \param[in] request The release request.
   virtual async_task<void> on_ue_release_required(const cu_cp_ue_context_release_request& request) = 0;

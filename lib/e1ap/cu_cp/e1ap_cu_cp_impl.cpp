@@ -262,6 +262,9 @@ void e1ap_cu_cp_impl::handle_initiating_message(const asn1::e1ap::init_msg_s& ms
     case init_types::bearer_context_inactivity_notif: {
       handle_bearer_context_inactivity_notification(msg.value.bearer_context_inactivity_notif());
     } break;
+    case init_types::dl_data_notif: {
+      handle_dl_data_notification(msg.value.dl_data_notif());
+    } break;
     case init_types::e1_release_request: {
       // Set E1 Release in progress flag.
       e1_release_in_progress = true;
@@ -379,6 +382,22 @@ void e1ap_cu_cp_impl::handle_bearer_context_inactivity_notification(
           }))) {
     logger.warning("ue={}: Dropping InactivityNotification. UE does not exist", ue_ctxt.ue_ids.ue_index);
   }
+}
+
+void e1ap_cu_cp_impl::handle_dl_data_notification(const asn1::e1ap::dl_data_notif_s& msg)
+{
+  if (!ue_ctxt_list.contains(int_to_gnb_cu_cp_ue_e1ap_id(msg->gnb_cu_cp_ue_e1ap_id))) {
+    logger.warning("cu_cp_ue_e1ap_id={} cu_up_ue_e1ap_id={}: Dropping DLDataNotification. UE context does not exist",
+                   msg->gnb_cu_cp_ue_e1ap_id,
+                   msg->gnb_cu_up_ue_e1ap_id);
+    return;
+  }
+
+  // Get UE context.
+  e1ap_ue_context& ue_ctxt = ue_ctxt_list[int_to_gnb_cu_cp_ue_e1ap_id(msg->gnb_cu_cp_ue_e1ap_id)];
+
+  // Notify CU-CP about DL Data Notification.
+  cu_cp_notifier.on_dl_data_notification_received(ue_ctxt.ue_ids.ue_index);
 }
 
 void e1ap_cu_cp_impl::handle_successful_outcome(const asn1::e1ap::successful_outcome_s& outcome)

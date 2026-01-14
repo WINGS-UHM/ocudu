@@ -98,6 +98,10 @@ private:
   /// \param[in] msg The received Bearer Context Inactivity notification message.
   void handle_bearer_context_inactivity_notification(const asn1::e1ap::bearer_context_inactivity_notif_s& msg);
 
+  /// \brief Handle a DL Data Notification as per TS 38.483 section 8.3.7.
+  /// \param[in] msg The received DL Data Notification message.
+  void handle_dl_data_notification(const asn1::e1ap::dl_data_notif_s& msg);
+
   /// \brief Notify about the reception of an successful outcome.
   /// \param[in] msg The received successful outcome message.
   void handle_successful_outcome(const asn1::e1ap::successful_outcome_s& outcome);

@@ -187,6 +187,20 @@ void dmrs_pusch_estimator_impl::get_symbol_ch_estimate(span<cbf16_t> estimates,
   ch_est_result[rx_port]->get_symbol_ch_estimate(estimates, i_symbol, tx_layer);
 }
 
+void dmrs_pusch_estimator_impl::get_symbol_ch_estimate(span<cbf16_t>                              estimates,
+                                                       unsigned                                   i_symbol,
+                                                       unsigned                                   rx_port,
+                                                       unsigned                                   tx_layer,
+                                                       const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_mask) const
+{
+  ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);
+  ocudu_assert(tx_layer < nof_tx_layers,
+               "Invalid transmission layer {} - number of supported layers is {}.",
+               tx_layer,
+               nof_tx_layers);
+  ch_est_result[rx_port]->get_symbol_ch_estimate(estimates, i_symbol, tx_layer, re_mask);
+}
+
 float dmrs_pusch_estimator_impl::get_rsrp(unsigned rx_port, unsigned tx_layer) const
 {
   ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);

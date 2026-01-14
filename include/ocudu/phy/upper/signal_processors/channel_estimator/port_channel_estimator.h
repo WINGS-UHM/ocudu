@@ -112,6 +112,18 @@ public:
   /// in the frequency domain.
   virtual void get_symbol_ch_estimate(span<cbf16_t> symbol, unsigned i_symbol, unsigned tx_layer) const = 0;
 
+  /// \brief Gets the estimated channel coefficients for one OFDM symbol, at the REs specified by the boolean mask.
+  /// \param[out] symbol    Storage for the channel coefficients.
+  /// \param[in]  i_symbol  Index of the OFDM symbol within the slot.
+  /// \param[in]  tx_layer  Transmission layer the estimated channel refers to.
+  /// \param[in]  re_mask   Boolean mask of requested REs (only relative to the allocated RBs).
+  /// \warning The method raises an assertion if the size of \c re_mask does not match the grid size stored in the
+  /// channel estimator or if the size of \c symbol does not match the number of active REs in the mask.
+  virtual void get_symbol_ch_estimate(span<cbf16_t>                              symbol,
+                                      unsigned                                   i_symbol,
+                                      unsigned                                   tx_layer,
+                                      const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_mask) const = 0;
+
   /// Gets the estimated EPRE.
   virtual float get_epre() const = 0;
 

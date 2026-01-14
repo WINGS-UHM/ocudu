@@ -192,6 +192,60 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   }
 }
 
+void port_channel_estimator_average_impl::get_symbol_ch_estimate(
+    span<cbf16_t>                              symbol,
+    unsigned                                   i_symbol,
+    unsigned                                   tx_layer,
+    const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_mask) const
+{
+  const layer_dmrs_pattern& pattern = cfg_local.dmrs_pattern[0];
+
+  // Select hop resource block mask.
+  const auto& hop_rb_mask = pattern.rb_mask;
+
+  // Extract RB mask lowest and highest RB.
+  int      lowest_rb  = hop_rb_mask.find_lowest();
+  int      highest_rb = hop_rb_mask.find_highest();
+  unsigned rb_count   = hop_rb_mask.count();
+  ocudu_assert(highest_rb >= lowest_rb, "Invalid hop RB mask.");
+
+  unsigned nof_subcarriers = rb_count * NOF_SUBCARRIERS_PER_RB;
+
+  ocudu_assert(
+      re_mask.size() == nof_subcarriers, "Wrong RE mask size {}, expected {}.", re_mask.size(), nof_subcarriers);
+
+  unsigned nof_active = re_mask.count();
+  ocudu_assert(symbol.size() == nof_active,
+               "The output size {} does not match the number {} of active REs in the mask.",
+               symbol.size(),
+               nof_active);
+
+  int begin = re_mask.find_lowest();
+  int end   = re_mask.find_highest();
+  ocudu_assert((begin >= 0) && (end >= 0), "Invalid mask.");
+
+  // Check if the mask is contiguous.
+  if (nof_active == static_cast<unsigned>(end - begin)) {
+    get_symbol_ch_estimate(symbol, i_symbol, tx_layer);
+  } else {
+    std::array<cbf16_t, MAX_NOF_SUBCARRIERS> storage;
+    span<cbf16_t>                            storage_view = span<cbf16_t>(storage).first(nof_subcarriers);
+
+    get_symbol_ch_estimate(storage_view, i_symbol, tx_layer);
+
+    span<cbf16_t> tmp = symbol;
+    re_mask.for_each(0, re_mask.size(), [&storage_view, &tmp](unsigned i_re) {
+      // Copy RE.
+      tmp.front() = storage_view[i_re];
+
+      // Advance buffer.
+      tmp = tmp.last(tmp.size() - 1);
+    });
+
+    ocudu_assert(tmp.empty(), "Missing {} REs.", tmp.size());
+  }
+}
+
 void port_channel_estimator_average_impl::do_compute(const resource_grid_reader& grid,
                                                      unsigned                    port,
                                                      const dmrs_symbol_list&     pilots)

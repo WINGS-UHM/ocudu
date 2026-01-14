@@ -182,10 +182,18 @@ public:
   /// \brief Gets the RE channel estimates for a given OFDM symbol, Rx port and Tx layer.
   ///
   /// The values are indexed by subcarrier.
-  virtual void get_symbol_ch_estimate(span<cbf16_t> estimates,
-                                      unsigned      i_symbol,
-                                      unsigned      rx_port  = 0,
-                                      unsigned      tx_layer = 0) const = 0;
+  virtual void
+  get_symbol_ch_estimate(span<cbf16_t> estimates, unsigned i_symbol, unsigned rx_port, unsigned tx_layer) const = 0;
+
+  /// \brief Gets the RE channel estimates for a given OFDM symbol, Rx port and Tx layer, only picking the REs flagged
+  /// in the mask.
+  ///
+  /// The values are indexed by subcarrier.
+  virtual void get_symbol_ch_estimate(span<cbf16_t>                              estimates,
+                                      unsigned                                   i_symbol,
+                                      unsigned                                   rx_port,
+                                      unsigned                                   tx_layer,
+                                      const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_mask) const = 0;
 
   /// \brief Gets the general Channel State Information.
   ///

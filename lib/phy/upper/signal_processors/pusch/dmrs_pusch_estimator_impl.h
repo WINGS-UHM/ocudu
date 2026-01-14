@@ -107,8 +107,15 @@ private:
   // See the dmrs_pusch_estimator_results interface for the documentation.
   void get_symbol_ch_estimate(span<cbf16_t> estimates,
                               unsigned      i_symbol,
-                              unsigned      rx_port  = 0,
-                              unsigned      tx_layer = 0) const override;
+                              unsigned      rx_port,
+                              unsigned      tx_layer) const override;
+
+  // See the dmrs_pusch_estimator_results interface for the documentation.
+  void get_symbol_ch_estimate(span<cbf16_t>                              estimates,
+                              unsigned                                   i_symbol,
+                              unsigned                                   rx_port,
+                              unsigned                                   tx_layer,
+                              const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_mask) const override;
 
   // See the dmrs_pusch_estimator_results interface for the documentation.
   void get_channel_state_information(channel_state_information& csi) const override;

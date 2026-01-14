@@ -35,10 +35,16 @@ public:
 
   std::optional<float> get_cfo_Hz(unsigned rx_port) const override { return {}; }
 
-  void get_symbol_ch_estimate(span<cbf16_t> estimates,
-                              unsigned      i_symbol,
-                              unsigned      rx_port  = 0,
-                              unsigned      tx_layer = 0) const override
+  void
+  get_symbol_ch_estimate(span<cbf16_t> estimates, unsigned i_symbol, unsigned rx_port, unsigned tx_layer) const override
+  {
+  }
+
+  void get_symbol_ch_estimate(span<cbf16_t>                              estimates,
+                              unsigned                                   i_symbol,
+                              unsigned                                   rx_port,
+                              unsigned                                   tx_layer,
+                              const bounded_bitset<MAX_NOF_SUBCARRIERS>& re_mask) const override
   {
   }
 

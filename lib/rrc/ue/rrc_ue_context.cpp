@@ -9,6 +9,7 @@
  */
 
 #include "rrc_ue_context.h"
+#include "rrc_ue_helpers.h"
 #include "ocudu/asn1/rrc_nr/rrc_nr.h"
 
 using namespace ocudu;
@@ -18,13 +19,9 @@ rrc_ue_context_t::rrc_ue_context_t(const ue_index_t                       ue_ind
                                    const rnti_t                           c_rnti_,
                                    const rrc_cell_context&                cell_,
                                    const rrc_ue_cfg_t&                    cfg_,
-                                   std::optional<rrc_ue_transfer_context> rrc_context_) :
-  ue_index(ue_index_),
-  c_rnti(c_rnti_),
-  cell(cell_),
-  cfg(cfg_),
-  transfer_context(rrc_context_),
-  logger(ocudulog::fetch_basic_logger("RRC"))
+                                   std::optional<rrc_ue_transfer_context> rrc_context_,
+                                   rrc_ue_logger&                         logger_) :
+  ue_index(ue_index_), c_rnti(c_rnti_), cell(cell_), cfg(cfg_), transfer_context(rrc_context_), logger(logger_)
 {
   if (transfer_context.has_value()) {
     // Handle handover preparation info.
@@ -34,14 +31,22 @@ rrc_ue_context_t::rrc_ue_context_t(const ue_index_t                       ue_ind
                                          transfer_context.value().handover_preparation_info.end()});
 
       if (ho_prep.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
-        logger.error("Couldn't unpack Handover Preparation Info.");
+        logger.log_error("Couldn't unpack Handover Preparation Info");
         return;
       }
 
+      // Store packed capabilities list.
       capabilities_list = ho_prep.crit_exts.c1().ho_prep_info().ue_cap_rat_list;
-    }
 
-    // Measurement config (will be updated during Reconfiguration)
-    meas_cfg = transfer_context.value().meas_cfg;
+      // Store parsed capabilities.
+      std::optional<rrc_ue_capabilities_t> caps =
+          get_capabilities(ho_prep.crit_exts.c1().ho_prep_info().ue_cap_rat_list, logger);
+      if (caps.has_value()) {
+        capabilities = caps.value();
+      }
+
+      // Measurement config (will be updated during Reconfiguration).
+      meas_cfg = transfer_context.value().meas_cfg;
+    }
   }
 }

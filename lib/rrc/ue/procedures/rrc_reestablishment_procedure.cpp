@@ -246,6 +246,13 @@ void rrc_reestablishment_procedure::transfer_reestablishment_context_and_update_
   // Store capabilities if available.
   if (old_ue_reest_context.capabilities_list.has_value()) {
     context.capabilities_list = old_ue_reest_context.capabilities_list.value();
+
+    // Store parsed capabilities.
+    std::optional<rrc_ue_capabilities_t> caps =
+        get_capabilities(old_ue_reest_context.capabilities_list.value(), logger);
+    if (caps.has_value()) {
+      context.capabilities = caps.value();
+    }
   }
 
   // Transfer UP context from old UE.

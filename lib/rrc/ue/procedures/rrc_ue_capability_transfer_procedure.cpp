@@ -9,7 +9,8 @@
  */
 
 #include "rrc_ue_capability_transfer_procedure.h"
-#include "../rrc_asn1_helpers.h"
+#include "ue/rrc_ue_helpers.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
@@ -35,13 +36,13 @@ void rrc_ue_capability_transfer_procedure::operator()(coro_context<async_task<bo
   }
 
   logger.log_debug("\"{}\" initialized", name());
-  // create new transaction for RRCUeCapabilityEnquiry
+  // Create new transaction for RRCUeCapabilityEnquiry.
   transaction = event_mng.transactions.create_transaction(procedure_timeout);
 
-  // send RRC UE Capability Enquiry to UE
+  // Send RRC UE Capability Enquiry to UE.
   send_rrc_ue_capability_enquiry();
 
-  // Await UE response
+  // Await UE response.
   CORO_AWAIT(transaction);
 
   if (transaction.has_response()) {
@@ -63,6 +64,9 @@ void rrc_ue_capability_transfer_procedure::operator()(coro_context<async_task<bo
             ue_nr_cap.to_json(json_writer);
             logger.log_debug("UE Capabilities:\n{}", json_writer.to_string().c_str());
           }
+
+          // Store unpacked capabilities.
+          context.capabilities = get_capabilities(ue_nr_cap, logger);
 
         } else {
           logger.log_warning("Unsupported RAT type {}", fmt::underlying(ue_cap_rat_container.rat_type.value));

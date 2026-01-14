@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "rrc_ue_logger.h"
 #include "rrc_ue_srb_context.h"
 #include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
@@ -29,7 +30,8 @@ public:
                    rnti_t                                 c_rnti_,
                    const rrc_cell_context&                cell_,
                    const rrc_ue_cfg_t&                    cfg_,
-                   std::optional<rrc_ue_transfer_context> rrc_context_);
+                   std::optional<rrc_ue_transfer_context> rrc_context_,
+                   rrc_ue_logger&                         logger_);
 
   const ue_index_t                   ue_index; // UE index assigned by the DU processor
   rnti_t                             c_rnti;   // current C-RNTI
@@ -49,7 +51,7 @@ public:
   std::optional<rrc_ue_transfer_context> transfer_context; // Context of old UE when created through mobility.
   std::optional<rrc_inactivity_context>  inactivity_context;
   bool                                   reestablishment_ongoing = false;
-  ocudulog::basic_logger&                logger;
+  rrc_ue_logger&                         logger;
 };
 
 } // namespace ocudu::ocucp

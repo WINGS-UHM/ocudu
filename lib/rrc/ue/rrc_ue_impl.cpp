@@ -30,7 +30,8 @@ rrc_ue_impl::rrc_ue_impl(rrc_pdu_f1ap_notifier&                 f1ap_pdu_notifie
                          const rrc_ue_cfg_t&                    cfg_,
                          const byte_buffer                      du_to_cu_container_,
                          std::optional<rrc_ue_transfer_context> rrc_context) :
-  context(ue_index_, c_rnti_, cell_, cfg_, rrc_context),
+  logger("RRC", {ue_index_, c_rnti_}),
+  context(ue_index_, c_rnti_, cell_, cfg_, rrc_context, logger),
   f1ap_pdu_notifier(f1ap_pdu_notifier_),
   ngap_notifier(ngap_notifier_),
   cu_cp_notifier(cu_cp_notifier_),
@@ -38,7 +39,6 @@ rrc_ue_impl::rrc_ue_impl(rrc_pdu_f1ap_notifier&                 f1ap_pdu_notifie
   cu_cp_ue_notifier(cu_cp_ue_notifier_),
   metrics_notifier(metrics_notifier_),
   du_to_cu_container(du_to_cu_container_),
-  logger("RRC", {ue_index_, c_rnti_}),
   event_mng(std::make_unique<rrc_ue_event_manager>(cu_cp_ue_notifier.get_timer_factory()))
 {
   ocudu_assert(context.cell.bands.empty() == false, "Band must be present in RRC cell configuration.");
@@ -165,7 +165,7 @@ byte_buffer rrc_ue_impl::get_packed_handover_preparation_message()
   ho_prep_info_ies_s&   ies = ho_prep.crit_exts.set_c1().set_ho_prep_info();
 
   if (not context.capabilities_list.has_value()) {
-    logger.log_error("No UE capabilities stored. Handover preparation message can't be generated.");
+    logger.log_error("No UE capabilities stored. Handover preparation message can't be generated");
     // No capabilities present, return empty buffer.
     return {};
   }

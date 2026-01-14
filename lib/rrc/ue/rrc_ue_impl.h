@@ -123,6 +123,7 @@ private:
   void on_new_dl_dcch(srb_id_t srb_id, const asn1::rrc_nr::dl_dcch_msg_s& dl_dcch_msg) override;
   void on_new_as_security_context() override;
 
+  rrc_ue_logger                   logger;
   rrc_ue_context_t                context;
   rrc_pdu_f1ap_notifier&          f1ap_pdu_notifier;    // PDU notifier to the F1AP
   rrc_ue_ngap_notifier&           ngap_notifier;        // notifier to the NGAP
@@ -131,7 +132,6 @@ private:
   rrc_ue_cu_cp_ue_notifier&       cu_cp_ue_notifier;    // cu-cp ue notifier
   rrc_ue_event_notifier&          metrics_notifier;     // metrics notifier
   byte_buffer                     du_to_cu_container;   // initial RRC message from DU to CU
-  rrc_ue_logger                   logger;
 
   // RRC procedures handling
   std::unique_ptr<rrc_ue_event_manager> event_mng;

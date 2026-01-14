@@ -14,14 +14,12 @@
 #include "../rrc_ue_logger.h"
 #include "rrc_ue_event_manager.h"
 #include "ocudu/asn1/rrc_nr/rrc_nr.h"
-#include "ocudu/rrc/rrc_du.h"
 #include "ocudu/rrc/rrc_ue.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/eager_async_task.h"
 #include <chrono>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Handles the setup of UE capabilities in the RRC UE.
 class rrc_ue_capability_transfer_procedure
@@ -29,7 +27,7 @@ class rrc_ue_capability_transfer_procedure
 public:
   rrc_ue_capability_transfer_procedure(rrc_ue_context_t&                           context_,
                                        rrc_ue_security_mode_command_proc_notifier& rrc_ue_notifier_,
-                                       rrc_ue_event_manager&                       ev_mng_,
+                                       rrc_ue_event_manager&                       event_mng_,
                                        rrc_ue_logger&                              logger_);
 
   void operator()(coro_context<async_task<bool>>& ctx);
@@ -58,7 +56,7 @@ private:
 /// \param[in] rrc_transaction_id The RRC transaction id.
 inline void fill_asn1_rrc_ue_capability_enquiry(asn1::rrc_nr::ue_cap_enquiry_s& rrc_ue_cap_enquiry,
                                                 uint8_t                         rrc_transaction_id,
-                                                std::vector<nr_band>            bands)
+                                                std::vector<nr_band>&           bands)
 {
   using namespace asn1::rrc_nr;
   ue_cap_enquiry_ies_s& ue_cap_ies      = rrc_ue_cap_enquiry.crit_exts.set_ue_cap_enquiry();
@@ -82,5 +80,4 @@ inline void fill_asn1_rrc_ue_capability_enquiry(asn1::rrc_nr::ue_cap_enquiry_s& 
   ue_cap_ies.ue_cap_rat_request_list.push_back(ue_cap_rat_request);
 }
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -8,7 +8,7 @@
  *
  */
 
-#include "pusch_td_resource_indices.h"
+#include "../../../../include/ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "../../config/ue_configuration.h"
 #include "pusch_default_time_allocation.h"
 #include "ocudu/ocudulog/logger.h"
@@ -19,9 +19,9 @@ using namespace ocudu;
 using pusch_index_list = static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>;
 
 /// Get minimum value for k1 given the common and dedicated configurations.
-static unsigned get_min_k1(const cell_configuration& cell_cfg, const search_space_info* ss_info)
+static unsigned get_min_k1(span<const uint8_t> dl_data_to_ul_ack, const search_space_info* ss_info)
 {
-  unsigned min_k1 = *std::min(cell_cfg.dl_data_to_ul_ack.begin(), cell_cfg.dl_data_to_ul_ack.end());
+  unsigned min_k1 = *std::min(dl_data_to_ul_ack.begin(), dl_data_to_ul_ack.end());
   if (ss_info != nullptr) {
     min_k1 = *std::min(ss_info->get_k1_candidates().begin(), ss_info->get_k1_candidates().end());
   }
@@ -29,19 +29,18 @@ static unsigned get_min_k1(const cell_configuration& cell_cfg, const search_spac
 }
 
 static span<const pusch_time_domain_resource_allocation>
-get_pusch_time_domain_resource_table(const cell_configuration& cell_cfg, const search_space_info* ss_info)
+get_pusch_time_domain_resource_table(const pusch_config_common& pusch_cfg_common, const search_space_info* ss_info)
 {
-  return ss_info != nullptr ? ss_info->pusch_time_domain_list
-                            : cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
+  return ss_info != nullptr ? ss_info->pusch_time_domain_list : pusch_cfg_common.pusch_td_alloc_list;
 }
 
 /// Determine PUSCH TD resources for the FDD mode.
-static pusch_index_list get_fdd_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                                                          const search_space_info*  ss_info)
+static pusch_index_list get_fdd_pusch_td_resource_indices(const pusch_config_common& pusch_cfg_common,
+                                                          span<const uint8_t>        dl_data_to_ul_ack,
+                                                          const search_space_info*   ss_info)
 {
-  ocudu_sanity_check(not cell_cfg.is_tdd(), "Function expects FDD config");
-  const unsigned min_k1                 = get_min_k1(cell_cfg, ss_info);
-  auto           pusch_time_domain_list = get_pusch_time_domain_resource_table(cell_cfg, ss_info);
+  const unsigned min_k1                 = get_min_k1(dl_data_to_ul_ack, ss_info);
+  auto           pusch_time_domain_list = get_pusch_time_domain_resource_table(pusch_cfg_common, ss_info);
 
   pusch_index_list result;
   for (unsigned i = 0; i != pusch_time_domain_list.size(); ++i) {
@@ -52,27 +51,38 @@ static pusch_index_list get_fdd_pusch_td_resource_indices(const cell_configurati
   return result;
 }
 
-pusch_index_list ocudu::get_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                                                      slot_point                pdcch_slot,
-                                                      const search_space_info*  ss_info)
+static bool is_dl_enabled_slot(slot_point slot, const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common)
 {
-  if (not cell_cfg.is_tdd()) {
+  if (not tdd_cfg_common.has_value()) {
+    return true;
+  }
+
+  return has_active_tdd_dl_symbols(tdd_cfg_common.value(), slot.count());
+}
+
+pusch_index_list ocudu::get_pusch_td_resource_indices(slot_point                                    pdcch_slot,
+                                                      const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                                      const pusch_config_common&                    pusch_cfg_common,
+                                                      span<const uint8_t>                           dl_data_to_ul_ack,
+                                                      const search_space_info*                      ss_info)
+{
+  if (not tdd_cfg_common.has_value()) {
     // FDD case.
-    return get_fdd_pusch_td_resource_indices(cell_cfg, ss_info);
+    return get_fdd_pusch_td_resource_indices(pusch_cfg_common, dl_data_to_ul_ack, ss_info);
   }
 
   // TDD case.
-  const unsigned min_k1                 = get_min_k1(cell_cfg, ss_info);
-  auto           pusch_time_domain_list = get_pusch_time_domain_resource_table(cell_cfg, ss_info);
-  const unsigned nof_full_ul_slots      = nof_full_ul_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
-  const unsigned nof_full_dl_slots      = nof_dl_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
+  const unsigned min_k1                 = get_min_k1(dl_data_to_ul_ack, ss_info);
+  auto           pusch_time_domain_list = get_pusch_time_domain_resource_table(pusch_cfg_common, ss_info);
+  const unsigned nof_full_ul_slots      = nof_full_ul_slots_per_tdd_period(tdd_cfg_common.value());
+  const unsigned nof_full_dl_slots      = nof_dl_slots_per_tdd_period(tdd_cfg_common.value());
   const bool     is_dl_heavy            = nof_full_dl_slots >= nof_full_ul_slots;
 
   pusch_index_list result;
   for (unsigned td_idx = 0; td_idx != pusch_time_domain_list.size(); ++td_idx) {
     const pusch_time_domain_resource_allocation& pusch_td_res = pusch_time_domain_list[td_idx];
     // [Implementation-defined] PUSCH on partial UL slots is not supported.
-    if (is_tdd_partial_ul_slot(cell_cfg.tdd_cfg_common.value(), (pdcch_slot + pusch_td_res.k2).slot_index())) {
+    if (is_tdd_partial_ul_slot(tdd_cfg_common.value(), (pdcch_slot + pusch_td_res.k2).slot_index())) {
       continue;
     }
 
@@ -101,18 +111,21 @@ pusch_index_list ocudu::get_pusch_td_resource_indices(const cell_configuration& 
   return result;
 }
 
-std::vector<pusch_index_list> ocudu::get_pusch_td_resource_indices_per_slot(const cell_configuration& cell_cfg,
-                                                                            const search_space_info*  ss_info)
+std::vector<pusch_index_list>
+ocudu::get_pusch_td_resource_indices_per_slot(subcarrier_spacing                            scs,
+                                              const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                              const pusch_config_common&                    pusch_cfg_common,
+                                              span<const uint8_t>                           dl_data_to_ul_ack,
+                                              const search_space_info*                      ss_info)
 {
   // Note: [Implementation-defined] In case of FDD, we only consider one slot.
-  if (not cell_cfg.is_tdd()) {
-    return {get_fdd_pusch_td_resource_indices(cell_cfg, ss_info)};
+  if (not tdd_cfg_common.has_value()) {
+    return {get_fdd_pusch_td_resource_indices(pusch_cfg_common, dl_data_to_ul_ack, ss_info)};
   }
 
   // NOTE: [Implementation-defined] In case of FDD, we consider only one slot as all slots are similar unlike in TDD
   // where there can be DL/UL full or partial slots.
-  const unsigned           nof_slots = nof_slots_per_tdd_period(*cell_cfg.tdd_cfg_common);
-  const subcarrier_spacing scs       = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const unsigned nof_slots = nof_slots_per_tdd_period(tdd_cfg_common.value());
 
   // List circularly indexed by slot with the list of applicable PUSCH Time Domain resource indexes per slot.
   // NOTE: The list would be empty for UL slots.
@@ -120,8 +133,9 @@ std::vector<pusch_index_list> ocudu::get_pusch_td_resource_indices_per_slot(cons
   // Populate the initial list of applicable PUSCH time domain resources per slot.
   for (unsigned slot_idx = 0, e = nof_slots; slot_idx != e; ++slot_idx) {
     slot_point pdcch_slot{to_numerology_value(scs), slot_idx};
-    if (cell_cfg.is_dl_enabled(pdcch_slot)) {
-      pusch_td_list_per_slot[slot_idx] = get_pusch_td_resource_indices(cell_cfg, pdcch_slot);
+    if (is_dl_enabled_slot(pdcch_slot, tdd_cfg_common)) {
+      pusch_td_list_per_slot[slot_idx] =
+          get_pusch_td_resource_indices(pdcch_slot, tdd_cfg_common, pusch_cfg_common, dl_data_to_ul_ack, ss_info);
     }
   }
   return pusch_td_list_per_slot;
@@ -142,32 +156,35 @@ static std::optional<unsigned> find_td_index_with_k2(span<const pusch_time_domai
 }
 
 std::vector<pusch_index_list>
-ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                                                        const search_space_info*  ss_info)
+ocudu::get_fairly_distributed_pusch_td_resource_indices(subcarrier_spacing                            scs,
+                                                        const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                                        const pusch_config_common&                    pusch_cfg_common,
+                                                        span<const uint8_t>                           dl_data_to_ul_ack,
+                                                        const search_space_info*                      ss_info)
 {
   // List circularly indexed by slot with the list of applicable PUSCH Time Domain resource indexes per slot.
   // NOTE: The list would be empty for UL slots.
   std::vector<pusch_index_list> initial_pusch_td_list_per_slot =
-      get_pusch_td_resource_indices_per_slot(cell_cfg, ss_info);
+      get_pusch_td_resource_indices_per_slot(scs, tdd_cfg_common, pusch_cfg_common, dl_data_to_ul_ack, ss_info);
 
   // In FDD case, we do not need to proceed further.
-  if (not cell_cfg.is_tdd()) {
+  if (not tdd_cfg_common.has_value()) {
     return initial_pusch_td_list_per_slot;
   }
 
-  const unsigned nof_dl_slots      = nof_dl_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
-  const unsigned nof_full_ul_slots = nof_full_ul_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
+  const unsigned nof_dl_slots      = nof_dl_slots_per_tdd_period(tdd_cfg_common.value());
+  const unsigned nof_full_ul_slots = nof_full_ul_slots_per_tdd_period(tdd_cfg_common.value());
 
   // In DL-heavy case, we do not need to proceed further.
   if (nof_dl_slots >= nof_full_ul_slots) {
     return initial_pusch_td_list_per_slot;
   }
 
-  const unsigned nof_slots = nof_slots_per_tdd_period(*cell_cfg.tdd_cfg_common);
+  const unsigned nof_slots = nof_slots_per_tdd_period(tdd_cfg_common.value());
 
   // Fetch the relevant PUSCH time domain resource list.
   span<const pusch_time_domain_resource_allocation> pusch_time_domain_list =
-      get_pusch_time_domain_resource_table(cell_cfg, ss_info);
+      get_pusch_time_domain_resource_table(pusch_cfg_common, ss_info);
   const unsigned max_k2 = pusch_time_domain_list.back().k2;
 
   // [Implementation-defined] Fairness is achieved by computing nof. UL PDCCHs to be scheduled per each PDCCH slot.
@@ -190,7 +207,7 @@ ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration
     unsigned ul_slot_idx = nof_slots - candidate_idx;
     // Skip if it's not a UL slot.
     // TODO: Revisit when scheduling of PUSCH over partial UL slots is supported.
-    if (not is_tdd_full_ul_slot(cell_cfg.tdd_cfg_common.value(), ul_slot_idx)) {
+    if (not is_tdd_full_ul_slot(tdd_cfg_common.value(), ul_slot_idx)) {
       continue;
     }
     // Flag indicating whether a valid PDCCH slot for a given UL slot is found or not.
@@ -199,7 +216,7 @@ ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration
     for (unsigned k2 = 0; k2 <= max_k2; ++k2) {
       unsigned dl_slot_idx = (nof_slots + ul_slot_idx - k2) % nof_slots;
       // Skip if it's not a DL slot.
-      if (not has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), dl_slot_idx)) {
+      if (not has_active_tdd_dl_symbols(tdd_cfg_common.value(), dl_slot_idx)) {
         continue;
       }
       // Check whether there is a PUSCH time domain resource with required k2 value for the PDCCH slot.
@@ -243,7 +260,7 @@ ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration
       std::optional<uint8_t> candidate_required_k2;
       if (required_k2 < min_k2.value()) {
         for (const auto& pusch_time_domain : pusch_time_domain_list) {
-          if (pusch_time_domain.k2 > cell_cfg.tdd_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots) {
+          if (pusch_time_domain.k2 > tdd_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots) {
             candidate_required_k2 =
                 std::min(candidate_required_k2.value_or(pusch_time_domain.k2), pusch_time_domain.k2);
           }
@@ -276,7 +293,7 @@ ocudu::get_fairly_distributed_pusch_td_resource_indices(const cell_configuration
   // Sort PUSCH time domain resource indexes (ascending order) in the final list of PUSCH time domain resources
   // maintained per slot.
   for (unsigned slot_idx = 0, e = nof_slots; slot_idx != e; ++slot_idx) {
-    if (has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), slot_idx)) {
+    if (has_active_tdd_dl_symbols(tdd_cfg_common.value(), slot_idx)) {
       std::sort(final_pusch_td_list_per_slot[slot_idx].begin(), final_pusch_td_list_per_slot[slot_idx].end());
     }
   }

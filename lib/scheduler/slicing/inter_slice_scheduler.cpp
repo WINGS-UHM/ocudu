@@ -9,8 +9,8 @@
  */
 
 #include "inter_slice_scheduler.h"
+#include "../../../include/ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "../policy/scheduler_policy_factory.h"
-#include "../support/pusch/pusch_td_resource_indices.h"
 #include "../ue_scheduling/ue_cell_grid_allocator.h"
 #include "ocudu/ocudulog/ocudulog.h"
 
@@ -64,7 +64,12 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
   }
 
   // Generate the slot ring context.
-  auto pusch_list = get_fairly_distributed_pusch_td_resource_indices(cell_cfg);
+  ocudu_assert(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(), "Expected PUSCH config common");
+  auto pusch_list =
+      get_fairly_distributed_pusch_td_resource_indices(cell_cfg.scs_common,
+                                                       cell_cfg.tdd_cfg_common,
+                                                       cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                                       cell_cfg.dl_data_to_ul_ack);
   slot_ring.resize(pusch_list.size());
   for (unsigned i = 0, sz = pusch_list.size(); i != sz; ++i) {
     slot_ring[i].valid_pusch_td_list.assign(pusch_list[i].begin(), pusch_list[i].end());

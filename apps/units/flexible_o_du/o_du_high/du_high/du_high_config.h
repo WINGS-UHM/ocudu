@@ -37,6 +37,7 @@
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tac.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
+#include "ocudu/scheduler/config/srs_builder_params.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -507,12 +508,15 @@ struct du_high_unit_pucch_config {
 };
 
 struct du_high_unit_srs_config {
-  /// If set, enables periodic Sound Reference Signals (SRS) for the UEs within this cell. If not present, SRS are
-  /// aperiodic. The given value is the SRS period in milliseconds.
+  /// Enables and sets the Sounding Reference Signals (SRS) type to be used.
+  srs_type srs_type_enabled = srs_type::disabled;
+  /// For periodic SRS, defines the SRS period in milliseconds.
+  /// For aperiodic SRS, defines the prohibit time in milliseconds (the SRS are not transmitted more often than the
+  /// prohibit time).
   /// The available values are a subset of the values in \c SRS-PeriodicityAndOffset, \c SRS-Resource \c SRS-Config,
   /// TS 38.331, converted to millisecond.
   /// Values: {1, 2, 2.5, 4, 5, 8, 10, 16, 20, 32, 40, 64, 80, 160, 320, 640, 1280, 2560}.
-  std::optional<float> srs_period_ms = std::nullopt;
+  float srs_period_prohibit_time_ms = 20;
   /// Defines the C_SRS parameter to be used for SRS, as per \c c-SRS, \c SRS-Resource \c SRS-Config, TS 38.331.
   /// If not set, the C_SRS is computed automatically and configured to use the maximum allowed SRS bandwidth.
   /// \remark The Frequency-Hopping SRS parameters assume b-SRS = 0.

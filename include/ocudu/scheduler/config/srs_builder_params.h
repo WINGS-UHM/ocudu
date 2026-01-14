@@ -23,12 +23,16 @@ namespace ocudu {
 /// possible cyclic shifts.
 enum class nof_cyclic_shifts { no_cyclic_shift = 1, two = 2, three = 3, four = 4, six = 6, twelve = 12 };
 
+enum class srs_type { disabled = 0, periodic, aperiodic };
+
 struct srs_builder_params {
-  /// Enables use of Sounding Reference Signals (SRS) are used.
-  bool srs_enabled = false;
-  /// If present, defines the SRS period for SRS periodic resources, in slots.
-  /// When not present, the SRS resources are set as aperiodic.
-  std::optional<srs_periodicity> srs_period = std::nullopt;
+  /// Enables and sets the Sounding Reference Signals (SRS) type to be used.
+  srs_type srs_type_enabled = srs_type::disabled;
+  /// For periodic SRS, defines the SRS period for SRS periodic resources, in slots.
+  /// For aperiodic SRS, defines the prohibit time for SRS, in slots (the SRS are not transmitted more often than the
+  /// prohibit time).
+  /// \remark For aperiodic SRS, \c srs_period_prohib_time is
+  srs_periodicity srs_period_prohib_time = srs_periodicity::sl40;
   /// Defines the C_SRS parameter to be used for SRS, as per \c c-SRS, \c SRS-Resource \c SRS-Config, TS 38.331.
   /// If not set, the C_SRS is computed automatically and configured to use the maximum allowed SRS bandwidth.
   /// \remark The Frequency-Hopping SRS parameters assume b-SRS = 0.

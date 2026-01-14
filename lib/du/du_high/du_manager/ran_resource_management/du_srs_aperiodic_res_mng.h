@@ -59,14 +59,13 @@ private:
       return cell_srs_res_list.cbegin() + cell_res_id;
     }
 
-    // Returns the best SRS resource ID and offset for this UE, according to the policy defined in this class.
-    std::vector<unsigned>::const_iterator find_optimal_ue_srs_resource();
-
     void fill_srs_res_parameters(srs_config::srs_resource& res_out, const du_srs_resource& res_in) const;
 
     using srs_set_t = static_vector<srs_config::srs_resource_set, srs_config::srs_res_set_id::MAX_NOF_SRS_RES_SETS>;
 
-    void fill_srs_res_sets(srs_set_t& srs_res_set_list, srs_config::srs_res_id res_id, span<const unsigned> slot_offsets) const;
+    void fill_srs_res_sets(srs_set_t&             srs_res_set_list,
+                           srs_config::srs_res_id res_id,
+                           span<const unsigned>   slot_offsets) const;
 
     // Parameters that are common to all cell SRS resources.
     struct srs_cell_common {
@@ -88,6 +87,8 @@ private:
     std::vector<du_srs_resource> cell_srs_res_list;
     // List of SRS resource ID and offset that can be allocated to the cell's UEs.
     std::vector<unsigned> srs_res_usage;
+
+    std::vector<unsigned> slot_offsets;
   };
 
   // Contains the resources for the different cells of the DU.

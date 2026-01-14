@@ -35,7 +35,7 @@ protected:
     // Validate the input parameters
     if (GetParam().tx_comb == tx_comb_size::n2) {
       /// Cyclic shift that we can use with the n2 TX comb size.
-      const std::array<nof_cyclic_shifts, 3> css{
+      constexpr std::array<nof_cyclic_shifts, 3> css{
           nof_cyclic_shifts::no_cyclic_shift, nof_cyclic_shifts::two, nof_cyclic_shifts::four};
       ocudu_assert(std::find(css.cbegin(), css.cend(), GetParam().cyclic_shift_reuse_factor) != css.end(),
                    "Cyclic shift reuse factor set is not compatible with the TX comb size");
@@ -55,8 +55,8 @@ protected:
       du_cell_cfg.tdd_ul_dl_cfg_common.emplace(tdd_cfg);
     }
 
-    auto& srs_cfg = du_cell_cfg.srs_cfg;
-    srs_cfg.srs_period.emplace(srs_periodicity::sl20);
+    auto& srs_cfg                     = du_cell_cfg.srs_cfg;
+    srs_cfg.srs_period_prohib_time    = srs_periodicity::sl20;
     srs_cfg.tx_comb                   = GetParam().tx_comb;
     srs_cfg.nof_symbols               = GetParam().nof_symbols;
     srs_cfg.cyclic_shift_reuse_factor = GetParam().cyclic_shift_reuse_factor;

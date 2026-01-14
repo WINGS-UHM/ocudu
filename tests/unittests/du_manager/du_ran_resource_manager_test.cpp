@@ -792,7 +792,7 @@ INSTANTIATE_TEST_SUITE_P(
 // pucch_has_more_res_than_srs indicates whether the PUCCH or SRS configuration allows more resources than the other.
 // This way, we can test the allocation and de-allocation of resources when the DU rejects a UE due to lack of PUCCH or
 // SRS resources.
-static du_cell_config make_custom_pucch_odu_cell_config(bool pucch_has_more_res_than_srs)
+static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_than_srs)
 {
   du_cell_config du_cfg                 = config_helpers::make_default_du_cell_config();
   auto&          pucch_params           = du_cfg.pucch_cfg;
@@ -818,12 +818,14 @@ static du_cell_config make_custom_pucch_odu_cell_config(bool pucch_has_more_res_
   auto& srs_cfg = du_cfg.srs_cfg;
 
   // Generates a random SRS configuration.
+  srs_cfg.srs_type_enabled          = srs_type::periodic;
   srs_cfg.tx_comb                   = tx_comb_size::n2;
   srs_cfg.max_nof_symbols           = 1U;
   srs_cfg.nof_symbols               = srs_nof_symbols::n1;
   srs_cfg.cyclic_shift_reuse_factor = nof_cyclic_shifts::no_cyclic_shift;
   srs_cfg.sequence_id_reuse_factor  = 1U;
-  srs_cfg.srs_period.emplace(du_cfg.tdd_ul_dl_cfg_common.has_value() ? srs_periodicity::sl10 : srs_periodicity::sl1);
+  srs_cfg.srs_period_prohib_time =
+      du_cfg.tdd_ul_dl_cfg_common.has_value() ? srs_periodicity::sl10 : srs_periodicity::sl1;
 
   pucch_params.max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - srs_cfg.max_nof_symbols.value();
   f1_params.nof_symbols        = std::min(f1_params.nof_symbols.value(), pucch_params.max_nof_symbols.value());
@@ -836,7 +838,7 @@ class du_ran_res_mng_pucch_srs_tester : public du_ran_resource_manager_tester_ba
 {
 protected:
   explicit du_ran_res_mng_pucch_srs_tester() :
-    du_ran_resource_manager_tester_base(cell_config_builder_params{}, make_custom_pucch_odu_cell_config(GetParam()))
+    du_ran_resource_manager_tester_base(cell_config_builder_params{}, make_custom_pucch_srs_cell_config(GetParam()))
   {
     ocudu_assert(default_ue_cell_cfg.csi_meas_cfg.has_value() and
                      not default_ue_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.empty() and

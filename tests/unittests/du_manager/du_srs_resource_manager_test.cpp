@@ -99,6 +99,8 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   du_cell_config du_cfg  = config_helpers::make_default_du_cell_config(params);
   auto&          srs_cfg = du_cfg.srs_cfg;
 
+  srs_cfg.srs_type_enabled = srs_type::periodic;
+
   if (not use_max_bw) {
     const unsigned bw_nof_rbs = du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     // Get the max value of C_SRS for the given BWP size.
@@ -152,7 +154,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
                                                     srs_periodicity::sl320,
                                                     srs_periodicity::sl640,
                                                     srs_periodicity::sl1280};
-    srs_cfg.srs_period.emplace(period_values[test_rgen::uniform_int<unsigned>(0, period_values.size() - 1)]);
+    srs_cfg.srs_period_prohib_time = period_values[test_rgen::uniform_int<unsigned>(0, period_values.size() - 1)];
   } else {
     std::array<srs_periodicity, 10> period_values = {srs_periodicity::sl1,
                                                      srs_periodicity::sl2,
@@ -164,7 +166,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
                                                      srs_periodicity::sl20,
                                                      srs_periodicity::sl32,
                                                      srs_periodicity::sl40};
-    srs_cfg.srs_period.emplace(period_values[test_rgen::uniform_int<unsigned>(0, period_values.size() - 1)]);
+    srs_cfg.srs_period_prohib_time = period_values[test_rgen::uniform_int<unsigned>(0, period_values.size() - 1)];
   }
 
   return du_cfg;
@@ -199,7 +201,7 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
     if (not tdd_cfg.has_value()) {
       // In FDD, in an SRS period we can "max_nof_symbols / nof_symbols" intervals per slot.
       nof_symb_intervals = srs_cfg.max_nof_symbols.value() / static_cast<unsigned>(srs_cfg.nof_symbols) *
-                           static_cast<unsigned>(srs_cfg.srs_period.value());
+                           static_cast<unsigned>(srs_cfg.srs_period_prohib_time);
     } else {
       // In TDD, in an SRS period we can "max_nof_symbols / nof_symbols" intervals per UL slot; in addition to this, the
       // partially-UL slots can have extra symbols intervals, up to a maximum of 6U, which is the max number of symbols
@@ -207,12 +209,12 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
       nof_symb_intervals =
           (srs_cfg.max_nof_symbols.value() / static_cast<unsigned>(srs_cfg.nof_symbols)) *
           tdd_cfg->pattern1.nof_ul_slots *
-          (static_cast<unsigned>(srs_cfg.srs_period.value()) / tdd_cfg->pattern1.dl_ul_tx_period_nof_slots);
+          (static_cast<unsigned>(srs_cfg.srs_period_prohib_time) / tdd_cfg->pattern1.dl_ul_tx_period_nof_slots);
       if (tdd_cfg->pattern1.nof_ul_symbols != 0) {
         nof_symb_intervals +=
             (std::min(tdd_cfg->pattern1.nof_ul_symbols, srs_cfg.max_nof_symbols.max()) /
              static_cast<unsigned>(srs_cfg.nof_symbols)) *
-            (static_cast<unsigned>(srs_cfg.srs_period.value()) / tdd_cfg->pattern1.dl_ul_tx_period_nof_slots);
+            (static_cast<unsigned>(srs_cfg.srs_period_prohib_time) / tdd_cfg->pattern1.dl_ul_tx_period_nof_slots);
       }
     }
 
@@ -406,7 +408,7 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
     const auto& srs_res = ue_srs_config.srs_res_list[0];
     ASSERT_EQ(srs_res.id.ue_res_id, static_cast<srs_config::srs_res_id>(0U));
     ASSERT_TRUE(srs_res.periodicity_and_offset.has_value());
-    ASSERT_EQ(srs_res.periodicity_and_offset->period, srs_params.srs_period.value());
+    ASSERT_EQ(srs_res.periodicity_and_offset->period, srs_params.srs_period_prohib_time);
     ASSERT_LT(srs_res.periodicity_and_offset->offset, static_cast<unsigned>(srs_res.periodicity_and_offset->period));
     if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value()) {
       ASSERT_TRUE(is_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value()));
@@ -480,10 +482,10 @@ protected:
     nof_srs_res_per_symb_interval = static_cast<unsigned>(srs_params.tx_comb) *
                                     static_cast<unsigned>(srs_params.cyclic_shift_reuse_factor) *
                                     static_cast<unsigned>(srs_params.sequence_id_reuse_factor);
-    srs_res_tracker.reserve(static_cast<unsigned>(srs_params.srs_period.value()));
+    srs_res_tracker.reserve(static_cast<unsigned>(srs_params.srs_period_prohib_time));
 
     // Build the SRS resource tracker.
-    for (unsigned offset = 0; offset != static_cast<unsigned>(srs_params.srs_period.value()); ++offset) {
+    for (unsigned offset = 0; offset != static_cast<unsigned>(srs_params.srs_period_prohib_time); ++offset) {
       if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value()) {
         const auto& tdd_cfg = cell_cfg_list[0].tdd_ul_dl_cfg_common.value();
 

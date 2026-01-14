@@ -10,15 +10,18 @@
 
 #pragma once
 
+#include "ocudu/adt/span.h"
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
 #include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include <vector>
 
 namespace ocudu {
 
 class cell_configuration;
 struct search_space_info;
+struct pusch_config_common;
 
 /// \brief Returns the list of all applicable PUSCH Time Domain resource indexes based on cell, UE configuration and
 /// nof. symbols in PUSCH slot for a PDCCH slot.
@@ -28,9 +31,11 @@ struct search_space_info;
 /// \return List of PUSCH Time Domain resource indexes.
 /// \remark If \c ss_info is nullptr, then minimum k1 is taken from \c cell_cfg.
 static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>
-get_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                              slot_point                pdcch_slot,
-                              const search_space_info*  ss_info = nullptr);
+get_pusch_td_resource_indices(slot_point                                    pdcch_slot,
+                              const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                              const pusch_config_common&                    pusch_cfg_common,
+                              span<const uint8_t>                           dl_data_to_ul_ack,
+                              const search_space_info*                      ss_info = nullptr);
 
 /// \brief Returns the list circularly indexed by slot containing the list of all applicable PUSCH Time Domain resource
 /// indexes per slot.
@@ -46,7 +51,11 @@ get_pusch_td_resource_indices(const cell_configuration& cell_cfg,
 /// \remark In case of FDD, the list returned would contain applicable PUSCH Time Domain resource indexes for only one
 /// slot.
 std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>>
-get_pusch_td_resource_indices_per_slot(const cell_configuration& cell_cfg, const search_space_info* ss_info = nullptr);
+get_pusch_td_resource_indices_per_slot(subcarrier_spacing                            scs,
+                                       const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                       const pusch_config_common&                    pusch_cfg_common,
+                                       span<const uint8_t>                           dl_data_to_ul_ack,
+                                       const search_space_info*                      ss_info = nullptr);
 
 /// Returns the list circularly indexed by slot containing the list of applicable PUSCH Time Domain resource indexes per
 /// slot fairly distributed among all the PDCCH slots.
@@ -67,7 +76,10 @@ get_pusch_td_resource_indices_per_slot(const cell_configuration& cell_cfg, const
 /// \remark In case of FDD, the list returned would contain applicable PUSCH Time Domain resource indexes for only one
 /// slot.
 std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>>
-get_fairly_distributed_pusch_td_resource_indices(const cell_configuration& cell_cfg,
-                                                 const search_space_info*  ss_info = nullptr);
+get_fairly_distributed_pusch_td_resource_indices(subcarrier_spacing                            scs,
+                                                 const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                                 const pusch_config_common&                    pusch_cfg_common,
+                                                 span<const uint8_t>                           dl_data_to_ul_ack,
+                                                 const search_space_info*                      ss_info = nullptr);
 
 } // namespace ocudu

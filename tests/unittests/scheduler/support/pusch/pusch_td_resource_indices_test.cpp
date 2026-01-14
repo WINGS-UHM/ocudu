@@ -8,8 +8,8 @@
  *
  */
 
+#include "include/ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "lib/scheduler/support/pusch/pusch_default_time_allocation.h"
-#include "lib/scheduler/support/pusch/pusch_td_resource_indices.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
@@ -49,7 +49,12 @@ protected:
     cell_cfg = std::make_unique<cell_configuration>(expert_cfg, sched_cell_cfg_req);
 
     // Generate the list to verify.
-    pusch_td_res_indxes_list_per_slot = get_fairly_distributed_pusch_td_resource_indices(*cell_cfg);
+    ocudu_assert(cell_cfg->ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(), "PUSCH Config Common expected");
+    pusch_td_res_indxes_list_per_slot =
+        get_fairly_distributed_pusch_td_resource_indices(cell_cfg->scs_common,
+                                                         cell_cfg->tdd_cfg_common,
+                                                         cell_cfg->ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                                         cell_cfg->dl_data_to_ul_ack);
 
     // Populate slot indexes.
     if (cell_cfg->is_tdd()) {

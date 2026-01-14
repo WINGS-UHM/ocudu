@@ -557,14 +557,32 @@ static void fill_du_high_sched_expert_section(YAML::Node& node, const du_high_un
   }
 }
 
+static std::string to_string(srs_type type)
+{
+  switch (type) {
+    case srs_type::disabled:
+      return "disabled";
+    case srs_type::periodic:
+      return "periodic";
+    case srs_type::aperiodic:
+      return "aperiodic";
+    default:
+      ocudu_assertion_failure("Invalid SRS type");
+      break;
+  }
+  return {};
+}
+
 static YAML::Node build_du_high_srs_section(const du_high_unit_srs_config& config)
 {
   YAML::Node node;
 
-  if (config.srs_period_ms.has_value()) {
-    node["srs_period_ms"] = config.srs_period_ms.value();
+  node["srs_type_enabled"]          = to_string(config.srs_type_enabled);
+  node["srs_period_prohib_time_ms"] = config.srs_period_prohibit_time_ms;
+  node["srs_max_nof_sym_per_slot"]  = config.max_nof_symbols_per_slot;
+  if (config.c_srs.has_value()) {
+    node["c_srs"] = config.c_srs.value();
   }
-  node["srs_max_nof_sym_per_slot"] = config.max_nof_symbols_per_slot;
   node["srs_nof_sym_per_resource"] = config.nof_symbols;
   node["srs_tx_comb"]              = config.tx_comb;
   node["srs_cyclic_shift_reuse"]   = config.cyclic_shift_reuse_factor;

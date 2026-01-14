@@ -18,12 +18,12 @@
 #include "../support/pdsch/pdsch_resource_allocation.h"
 #include "../support/prbs_calculator.h"
 #include "../support/pucch/pucch_guardbands.h"
-#include "../support/pusch/pusch_td_resource_indices.h"
 #include "../support/rb_helper.h"
 #include "../uci_scheduling/uci_allocator.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include "ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "ocudu/scheduler/result/pusch_info.h"
 #include "ocudu/support/format/custom_formattable.h"
 #include <algorithm>
@@ -65,6 +65,10 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
     dci_1_0_k1_values.push_back(k1_value);
   }
   slots_with_no_pdxch_space.fill(false);
+
+  // NOTE: verify PUSCH Config Common has been configured.
+  ocudu_sanity_check(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(),
+                     "The Fallback scheduler requires the PUSCH Config Common");
 }
 
 void ue_fallback_scheduler::run_slot(cell_resource_allocator& res_alloc)
@@ -948,8 +952,12 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
   slot_point                          pdcch_slot  = pdcch_alloc.slot;
 
   // Fetch applicable PUSCH Time Domain resource index list.
+  // NOTE: We run cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value() sanity check in the constructor.
   static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS> pusch_td_res_index_list =
-      get_pusch_td_resource_indices(cell_cfg, pdcch_slot);
+      get_pusch_td_resource_indices(pdcch_slot,
+                                    cell_cfg.tdd_cfg_common,
+                                    cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                    cell_cfg.dl_data_to_ul_ack);
 
   if (is_retx) {
     ocudu_sanity_check(h_ul_retx->get_grant_params().dci_cfg_type == dci_ul_rnti_config_type::c_rnti_f0_0,

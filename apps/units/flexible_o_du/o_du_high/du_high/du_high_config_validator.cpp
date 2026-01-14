@@ -514,7 +514,7 @@ static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&
   // The number of symbols reserved for PUCCH depends on whether the GNB uses (periodic) Sounding Reference Signals
   // (SRS).
   const unsigned max_nof_srs_symbols =
-      config.srs_cfg.srs_period_ms.has_value() ? config.srs_cfg.max_nof_symbols_per_slot : 0U;
+      config.srs_cfg.srs_type_enabled != srs_type::disabled ? config.srs_cfg.max_nof_symbols_per_slot : 0U;
   const unsigned max_nof_pucch_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - max_nof_srs_symbols;
   unsigned       nof_f0_f1_rbs         = 0U;
   if (pucch_f0f1_format(pucch_cfg.formats) == pucch_format::FORMAT_0) {
@@ -669,23 +669,28 @@ static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
                                           unsigned                       nof_crbs,
                                           unsigned                       nof_ul_ports)
 {
-  if (config.srs_period_ms.has_value()) {
+  if (config.srs_type_enabled != srs_type::disabled) {
     const auto srs_period_slots =
-        static_cast<unsigned>(get_nof_slots_per_subframe(scs_common) * config.srs_period_ms.value());
+        static_cast<unsigned>(get_nof_slots_per_subframe(scs_common) * config.srs_period_prohibit_time_ms);
 
     // Check that the SR period in milliseconds leads to an integer number of slots.
-    if (static_cast<float>(get_nof_slots_per_subframe(scs_common) * config.srs_period_ms.value()) !=
+    if (static_cast<float>(get_nof_slots_per_subframe(scs_common) * config.srs_period_prohibit_time_ms) !=
         static_cast<float>(srs_period_slots)) {
       fmt::print(
           "SRS period (i.e., {}ms) times the number of slots per subframe (i.e., {}) must be an integer number of "
           "slots\n",
-          config.srs_period_ms.has_value(),
+          config.srs_period_prohibit_time_ms,
           get_nof_slots_per_subframe(scs_common));
       return false;
     }
 
-    if (scs_common == ocudu::subcarrier_spacing::kHz30 and config.srs_period_ms.value() > 1280) {
+    if (scs_common == ocudu::subcarrier_spacing::kHz30 and config.srs_period_prohibit_time_ms > 1280) {
       fmt::print("With 30kHz SCS the maximum SRS period is 1280ms\n");
+      return false;
+    }
+
+    if (config.srs_type_enabled == srs_type::aperiodic and config.srs_period_prohibit_time_ms < 20.0) {
+      fmt::print("For aperiodic SRS, the minimum prohibit time is set to 20ms\n");
       return false;
     }
   }

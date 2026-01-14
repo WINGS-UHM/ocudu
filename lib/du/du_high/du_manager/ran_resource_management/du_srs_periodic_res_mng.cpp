@@ -92,8 +92,11 @@ static srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
                    default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
                "DU cell config is not valid");
 
+  ocudu_assert(default_cell_cfg.srs_cfg.srs_type_enabled != srs_type::aperiodic,
+               "Request to build periodic SRS configuration, but aperiodic parameters have been provided");
+
   // If the DU is not configured for periodic SRS, we don't need to update the SRS configuration.
-  if (not default_cell_cfg.srs_cfg.srs_period.has_value()) {
+  if (default_cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
     return default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   }
 
@@ -106,7 +109,7 @@ static srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
   res.res_type                  = srs_resource_type::periodic;
   // Set offset to 0. The offset will be updated later on, when the UE is allocated the SRS resources.
   res.periodicity_and_offset.emplace(
-      srs_config::srs_periodicity_and_offset{.period = default_cell_cfg.srs_cfg.srs_period.value(), .offset = 0});
+      srs_config::srs_periodicity_and_offset{.period = default_cell_cfg.srs_cfg.srs_period_prohib_time, .offset = 0});
   // Set the SRS resource ID to 0, as there is only 1 SRS resource per UE.
   res.id.ue_res_id = static_cast<srs_config::srs_res_id>(0U);
 
@@ -128,7 +131,10 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
   cells(cell_cfg_list_.begin(), cell_cfg_list_.end())
 {
   for (auto& cell : cells) {
-    if (not cell.cell_cfg.srs_cfg.srs_period.has_value()) {
+    ocudu_assert(cell.cell_cfg.srs_cfg.srs_type_enabled != srs_type::aperiodic,
+                 "Request to build aperiodic SRS configuration, but periodic parameters have been provided");
+
+    if (cell.cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
       continue;
     }
 
@@ -156,7 +162,7 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
     // TODO: evaluate whether we need to consider the case of multiple cells.
     cell.cell_srs_res_list = generate_cell_srs_list(cell.cell_cfg);
 
-    const auto srs_period_slots = static_cast<unsigned>(cell.cell_cfg.srs_cfg.srs_period.value());
+    const auto srs_period_slots = static_cast<unsigned>(cell.cell_cfg.srs_cfg.srs_period_prohib_time);
     // Reserve the size of the vector and set the SRS counter of each offset to 0.
     cell.slot_resource_cnt.reserve(srs_period_slots);
     cell.slot_resource_cnt.assign(srs_period_slots, 0U);
@@ -218,7 +224,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
     cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
 
     // If periodic SRS is not enabled on this cell, don't allocate anything and continue to the next cell.
-    if (not ue_du_cell.cell_cfg.srs_cfg.srs_period.has_value()) {
+    if (ue_du_cell.cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
       continue;
     }
 
@@ -250,7 +256,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
     cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
 
     // If periodic SRS is not enabled on this cell, don't allocate anything and continue to the next cell.
-    if (not ue_du_cell.cell_cfg.srs_cfg.srs_period.has_value()) {
+    if (ue_du_cell.cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
       continue;
     }
 
@@ -293,7 +299,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
     only_ue_srs_res.freq_domain_shift = ue_du_cell.srs_common_params.freq_shift;
 
     only_ue_srs_res.periodicity_and_offset.emplace(srs_config::srs_periodicity_and_offset{
-        .period = ue_du_cell.cell_cfg.srs_cfg.srs_period.value(), .offset = static_cast<uint16_t>(srs_offset)});
+        .period = ue_du_cell.cell_cfg.srs_cfg.srs_period_prohib_time, .offset = static_cast<uint16_t>(srs_offset)});
 
     // Update the SRS resource set with the SRS id.
     ue_srs_cfg.srs_res_set_list.front().srs_res_id_list.front() = only_ue_srs_res.id.ue_res_id;
@@ -366,7 +372,10 @@ void du_srs_policy_max_ul_rate::dealloc_resources(cell_group_config& cell_grp_cf
     // This is the cell index inside the DU.
     auto& ue_du_cell = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
 
-    if (not ue_du_cell.cell_cfg.srs_cfg.srs_period.has_value() or
+    ocudu_assert(ue_du_cell.cell_cfg.srs_cfg.srs_type_enabled != srs_type::aperiodic,
+                 "This function is not compatible with aperiodic SRS");
+
+    if (ue_du_cell.cell_cfg.srs_cfg.srs_type_enabled != srs_type::periodic or
         not cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value()) {
       continue;
     }

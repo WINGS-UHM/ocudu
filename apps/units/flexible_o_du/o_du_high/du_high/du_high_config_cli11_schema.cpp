@@ -1267,9 +1267,24 @@ static void configure_cli11_pucch_args(CLI::App& app, du_high_unit_pucch_config&
 
 static void configure_cli11_srs_args(CLI::App& app, du_high_unit_srs_config& srs_params)
 {
+  add_option_function<std::string>(
+      app,
+      "--srs_type_enabled",
+      [&srs_params](const std::string& value) {
+        if (value == "periodic") {
+          srs_params.srs_type_enabled = srs_type::periodic;
+        } else if (value == "aperiodic") {
+          srs_params.srs_type_enabled = srs_type::periodic;
+        } else {
+          srs_params.srs_type_enabled = srs_type::disabled;
+        }
+      },
+      "SearchSpace type for UE dedicated SearchSpace#2")
+      ->default_str("disabled")
+      ->check(CLI::IsMember({"disabled", "periodic", "aperiodic"}, CLI::ignore_case));
   add_option(app,
-             "--srs_period_ms",
-             srs_params.srs_period_ms,
+             "--srs_period_prohib_time_ms",
+             srs_params.srs_period_prohibit_time_ms,
              "Enable periodic SRS with period in ms. The SRS period needs to be compatible with the subcarrier spacing")
       ->capture_default_str()
       ->check(CLI::IsMember({1.0F,

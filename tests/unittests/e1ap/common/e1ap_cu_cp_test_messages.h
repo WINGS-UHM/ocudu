@@ -12,7 +12,7 @@
 
 #include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
-#include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/rb_id.h"
 #include <map>
@@ -159,5 +159,11 @@ e1ap_message generate_bearer_context_inactivity_notification_with_pdu_session_le
 e1ap_message generate_invalid_bearer_context_inactivity_notification(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
                                                                      gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id);
 
+/// \brief Generate a dummy DL Data Notification message.
+/// \param[in] cu_cp_ue_e1ap_id The CU-CP UE E1AP ID.
+/// \param[in] cu_up_ue_e1ap_id The CU-UP UE E1AP ID.
+/// \return The DL Data Notification message.
+e1ap_message generate_dl_data_notification_message(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
+                                                   gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id);
 } // namespace ocucp
 } // namespace ocudu

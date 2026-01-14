@@ -536,3 +536,15 @@ ocudu::ocucp::generate_invalid_bearer_context_inactivity_notification(gnb_cu_cp_
 
   return inactivity_notification;
 }
+
+e1ap_message ocudu::ocucp::generate_dl_data_notification_message(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
+                                                                 gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
+{
+  e1ap_message dl_data_notification = {};
+  dl_data_notification.pdu.set_init_msg();
+  dl_data_notification.pdu.init_msg().load_info_obj(ASN1_E1AP_ID_D_L_DATA_NOTIF);
+  auto& dl_data_notif_msg                 = dl_data_notification.pdu.init_msg().value.dl_data_notif();
+  dl_data_notif_msg->gnb_cu_cp_ue_e1ap_id = gnb_cu_cp_ue_e1ap_id_to_uint(cu_cp_ue_e1ap_id);
+  dl_data_notif_msg->gnb_cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_to_uint(cu_up_ue_e1ap_id);
+  return dl_data_notification;
+}

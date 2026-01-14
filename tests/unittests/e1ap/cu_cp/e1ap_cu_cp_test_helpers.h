@@ -10,14 +10,12 @@
 
 #pragma once
 
-#include "../common/e1ap_cu_cp_test_messages.h"
 #include "../common/test_helpers.h"
 #include "e1_test_local_gateway.h"
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/e1ap/common/e1ap_common.h"
 #include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
-#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_factory.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 #include <unordered_map>

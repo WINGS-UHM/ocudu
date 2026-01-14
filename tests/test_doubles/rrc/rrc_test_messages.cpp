@@ -83,7 +83,10 @@ ul_dcch_msg_s ocudu::test_helpers::create_rrc_setup_complete(uint8_t sel_plmn_id
   rrc_setup_complete_ies_s& ies = req.crit_exts.set_rrc_setup_complete();
 
   ies.sel_plmn_id = sel_plmn_id;
-  ies.ded_nas_msg.from_string("7e004179000d0100f110f0ff000010325476092e02e0e0");
+  ies.ded_nas_msg.from_string(
+      "7e01bbf2487f037e004c140007f40040c000011b7100157e004c140007f40040c000011b4002020050020200");
+  ies.ng_5_g_s_tmsi_value_present = true;
+  ies.ng_5_g_s_tmsi_value.set_ng_5_g_s_tmsi().from_string("0040c000011b");
 
   return msg;
 }

@@ -418,6 +418,22 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool send_e1ap_dl_data_notification_and_await_f1ap_paging(unsigned               du_idx_,
+                                                                          gnb_cu_cp_ue_e1ap_id_t cu_cp_e1ap_id_,
+                                                                          gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id_)
+  {
+    report_fatal_error_if_not(not this->get_cu_up(0).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+    report_fatal_error_if_not(not this->get_du(du_idx_).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+
+    // Inject E1AP DL Data Notification and wait for F1AP Paging.
+    get_cu_up(0).push_tx_pdu(generate_dl_data_notification_message(cu_cp_e1ap_id_, cu_up_e1ap_id_));
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx_, f1ap_pdu), "Failed to receive F1AP Paging");
+    report_fatal_error_if_not(test_helpers::is_valid_paging(f1ap_pdu), "Invalid F1AP Paging");
+    return true;
+  }
+
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
 
@@ -494,6 +510,10 @@ TEST_F(cu_cp_rrc_inactive_test,
   ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
   ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
 }
+
+//----------------------------------------------------------------------------------//
+// UE initiated resume                                                              //
+//----------------------------------------------------------------------------------//
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existing_ue_is_found_and_resumed)
 {
@@ -663,4 +683,37 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_
   ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
                 establishment_resume_cause_t::mo_data),
             0);
+}
+
+//----------------------------------------------------------------------------------//
+// RAN paging                                                                       //
+//----------------------------------------------------------------------------------//
+
+TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_unknown_ue_is_received_then_no_paging_is_sent)
+{
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 0);
+
+  // Inject E1AP DL Data Notification for unknown UE.
+  get_cu_up(0).push_tx_pdu(generate_dl_data_notification_message(ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id));
+
+  // No paging should be sent.
+  ASSERT_FALSE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu)) << "Received F1AP Paging";
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_inactive_ue_is_received_then_paging_is_sent_to_du)
+{
+  // Inject Inactivity Notification and handle it.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Inject E1AP DL Data Notification and await F1AP Paging.
+  ASSERT_TRUE(
+      send_e1ap_dl_data_notification_and_await_f1ap_paging(du_idx, ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id));
 }

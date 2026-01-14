@@ -9,7 +9,9 @@
  */
 
 #include "e1ap_cu_cp_test_helpers.h"
+#include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_factory.h"
 #include "ocudu/support/async/async_test_utils.h"
 #include "ocudu/support/test_utils.h"
 

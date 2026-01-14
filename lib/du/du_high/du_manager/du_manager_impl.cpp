@@ -240,7 +240,7 @@ du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
 async_task<du_param_config_response> du_manager_impl::handle_operator_config(const du_param_config_request& req,
                                                                              task_executor& continuation_exec)
 {
-  return launch_async([this, &continuation_exec, req, resp = std::optional<du_param_config_response>{}](
+  return launch_async([this, &continuation_exec, req, resp = expected<du_param_config_response>{}](
                           coro_context<async_task<du_param_config_response>>& ctx) mutable {
     CORO_BEGIN(ctx);
 

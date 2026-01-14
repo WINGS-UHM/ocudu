@@ -157,14 +157,14 @@ void ue_manager::schedule_ue_async_task(ue_index_t ue_index, async_task<void> ta
   ue_ctx->task_sched.schedule(std::move(task));
 }
 
-async_task<bool> ue_manager::schedule_and_wait_ue_removal(ue_index_t ue_index)
+async_task<expected<>> ue_manager::schedule_and_wait_ue_removal(ue_index_t ue_index)
 {
   ue_context* ue_ctx = find_ue(ue_index);
   if (ue_ctx == nullptr) {
     logger.error("Cannot schedule UE removal, could not find UE. ue_index={}", fmt::underlying(ue_index));
-    return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
+    return launch_async([](coro_context<async_task<expected<>>>& ctx) mutable {
       CORO_BEGIN(ctx);
-      CORO_RETURN(false);
+      CORO_RETURN(make_unexpected(default_error_t{}));
     });
   }
 

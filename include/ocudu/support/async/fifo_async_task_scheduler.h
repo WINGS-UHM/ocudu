@@ -185,30 +185,35 @@ template <typename Callback,
 /// former is complete.
 ///
 /// This function is useful to synchronize two procedures running in separate task schedulers.
-/// \tparam AsyncTask     Type of the coroutine to run in the provided task scheduler.
-/// \param task_sched     Task scheduler to which switch the execution too.
-/// \param routine_to_run AsyncTask to run in the task scheduler.
-/// \return               Returns and async_task<bool>/async_task<std::optional<R>> that can be awaited on.
+/// \tparam AsyncTask  Type of the coroutine to run in the provided task scheduler.
+/// \param task_sched  Task scheduler to which switch the execution too.
+/// \param task_to_run Task to run in the task scheduler.
+/// \return            Returns and async_task<bool>/async_task<std::optional<R>> that can be awaited on.
 template <typename AsyncTask>
 [[nodiscard]] auto when_coroutine_completed_on_task_sched(fifo_async_task_scheduler& task_sched,
-                                                          AsyncTask&&                routine_to_run)
+                                                          AsyncTask&&                task_to_run)
 {
-  using return_type = detail::awaitable_result_t<AsyncTask>;
+  using task_return_type = detail::awaitable_result_t<AsyncTask>;
 
-  if constexpr (std::is_same_v<return_type, void>) {
+  if constexpr (std::is_same_v<task_return_type, void>) {
     // Return void case.
+    using return_type = async_task<expected<default_success_t>>;
+
     struct task_offloader {
       task_offloader(fifo_async_task_scheduler& task_sched_, AsyncTask&& routine_) :
         task_sched(task_sched_), task_to_run(std::forward<AsyncTask>(routine_))
       {
       }
 
-      void operator()(coro_context<async_task<bool>>& ctx)
+      void operator()(coro_context<return_type>& ctx)
       {
         CORO_BEGIN(ctx);
         task_sched.schedule(dispatched_task());
         CORO_AWAIT_VALUE(const bool result, rx);
-        CORO_RETURN(result);
+        if (result) {
+          CORO_EARLY_RETURN(default_success_t{});
+        }
+        CORO_RETURN(make_unexpected(default_error_t{}));
       }
 
     private:
@@ -227,10 +232,11 @@ template <typename AsyncTask>
       event_receiver<void>       rx;
     };
 
-    return launch_async<task_offloader>(task_sched, std::forward<AsyncTask>(routine_to_run));
+    return launch_async<task_offloader>(task_sched, std::forward<AsyncTask>(task_to_run));
 
   } else {
     // Non-void return case.
+    using return_type = async_task<expected<task_return_type>>;
 
     struct task_offloader {
       task_offloader(fifo_async_task_scheduler& task_sched_, AsyncTask&& routine_) :
@@ -238,12 +244,15 @@ template <typename AsyncTask>
       {
       }
 
-      void operator()(coro_context<async_task<std::optional<return_type>>>& ctx)
+      void operator()(coro_context<return_type>& ctx)
       {
         CORO_BEGIN(ctx);
         task_sched.schedule(dispatched_task());
         CORO_AWAIT_VALUE(auto result, rx);
-        CORO_RETURN(result);
+        if (result.has_value()) {
+          CORO_EARLY_RETURN(*result);
+        }
+        CORO_RETURN(make_unexpected(default_error_t{}));
       }
 
     private:
@@ -257,12 +266,12 @@ template <typename AsyncTask>
         });
       }
 
-      fifo_async_task_scheduler&  task_sched;
-      AsyncTask                   task_to_run;
-      event_receiver<return_type> rx;
+      fifo_async_task_scheduler&       task_sched;
+      AsyncTask                        task_to_run;
+      event_receiver<task_return_type> rx;
     };
 
-    return launch_async<task_offloader>(task_sched, std::forward<AsyncTask>(routine_to_run));
+    return launch_async<task_offloader>(task_sched, std::forward<AsyncTask>(task_to_run));
   }
 }
 

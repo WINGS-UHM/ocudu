@@ -50,6 +50,7 @@ public:
   rrc_ngap_message_handler&       get_rrc_ngap_message_handler() override { return *this; }
   rrc_ue_control_message_handler& get_rrc_ue_control_message_handler() override { return *this; }
   rrc_ue_context_handler&         get_rrc_ue_context_handler() override { return *this; }
+  rrc_ue_capability_handler&      get_rrc_ue_capability_handler() override { return *this; }
 
   // rrc_ngap_message_handler
   void        handle_dl_nas_transport_message(byte_buffer nas_pdu) override;
@@ -92,6 +93,9 @@ public:
   rrc_cell_context                        get_cell_context() const override { return context.cell; }
   std::optional<cu_cp_five_g_s_tmsi>      get_five_g_s_tmsi() const override { return context.five_g_s_tmsi; }
   std::optional<rrc_inactivity_context>   get_inactivity_context() const override { return context.inactivity_context; }
+
+  // rrc_ue_capability_handler
+  bool is_rrc_inactive_supported() const override { return context.capabilities.rrc_inactive_supported; }
 
 private:
   void stop() override;

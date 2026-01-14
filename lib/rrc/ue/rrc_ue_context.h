@@ -16,6 +16,7 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/rrc/rrc_cell_context.h"
 #include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/rrc/rrc_ue_capabilities.h"
 #include "ocudu/rrc/rrc_ue_config.h"
 
 namespace ocudu::ocucp {
@@ -44,6 +45,7 @@ public:
   establishment_resume_cause_t       connection_cause;
   std::map<srb_id_t, ue_srb_context> srbs;
   std::optional<asn1::rrc_nr::ue_cap_rat_container_list_l> capabilities_list;
+  rrc_ue_capabilities_t                                    capabilities;
   std::optional<rrc_ue_transfer_context> transfer_context; // Context of old UE when created through mobility.
   std::optional<rrc_inactivity_context>  inactivity_context;
   bool                                   reestablishment_ongoing = false;

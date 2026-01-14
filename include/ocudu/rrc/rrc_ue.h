@@ -478,6 +478,16 @@ public:
   virtual std::optional<rrc_inactivity_context> get_inactivity_context() const = 0;
 };
 
+/// Handler for UE capabilities.
+class rrc_ue_capability_handler
+{
+public:
+  virtual ~rrc_ue_capability_handler() = default;
+
+  /// \brief Check if RRC Inactive is supported by the UE.
+  virtual bool is_rrc_inactive_supported() const = 0;
+};
+
 class rrc_ue_event_notifier
 {
 public:
@@ -535,7 +545,8 @@ class rrc_ue_interface : public rrc_ul_pdu_handler,
                          public rrc_ue_security_mode_command_proc_notifier,
                          public rrc_ue_reconfiguration_proc_notifier,
                          public rrc_ue_context_handler,
-                         public rrc_ue_msg4_proc_notifier
+                         public rrc_ue_msg4_proc_notifier,
+                         public rrc_ue_capability_handler
 {
 public:
   rrc_ue_interface()          = default;
@@ -546,6 +557,7 @@ public:
   virtual rrc_ngap_message_handler&       get_rrc_ngap_message_handler()       = 0;
   virtual rrc_ue_control_message_handler& get_rrc_ue_control_message_handler() = 0;
   virtual rrc_ue_context_handler&         get_rrc_ue_context_handler()         = 0;
+  virtual rrc_ue_capability_handler&      get_rrc_ue_capability_handler()      = 0;
 };
 
 } // namespace ocudu::ocucp

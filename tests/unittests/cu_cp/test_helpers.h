@@ -627,6 +627,8 @@ public:
 
   void set_transaction_id(unsigned transaction_id_) { test_transaction_id = transaction_id_; }
 
+  void set_rrc_inactive_supported(bool supported) { rrc_inactive_supported = supported; }
+
   // RRC UE Controller.
   void stop() override {}
 
@@ -808,6 +810,9 @@ public:
     return std::nullopt;
   }
 
+  // RRC UE capability handler.
+  bool is_rrc_inactive_supported() const override { return rrc_inactive_supported; }
+
   // RRC UE Reestablishment proc notifier.
   void on_new_as_security_context() override {}
 
@@ -817,6 +822,7 @@ public:
   rrc_ngap_message_handler&       get_rrc_ngap_message_handler() override { return *this; }
   rrc_ue_control_message_handler& get_rrc_ue_control_message_handler() override { return *this; }
   rrc_ue_context_handler&         get_rrc_ue_context_handler() override { return *this; }
+  rrc_ue_capability_handler&      get_rrc_ue_capability_handler() override { return *this; }
 
   std::optional<rrc_radio_bearer_config> last_radio_bearer_cfg;
   void                                   reset() { last_radio_bearer_cfg.reset(); }
@@ -831,6 +837,7 @@ private:
   bool                                  rrc_reconfiguration_outcome = false;
   unsigned                              test_transaction_id;
   static_vector<srb_id_t, MAX_NOF_SRBS> srb_vec;
+  bool                                  rrc_inactive_supported = false;
 };
 
 } // namespace ocudu::ocucp

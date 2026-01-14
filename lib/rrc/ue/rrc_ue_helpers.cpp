@@ -72,3 +72,43 @@ template void ocudu::ocucp::log_rrc_message<asn1::rrc_nr::dl_dcch_msg_s>(rrc_ue_
                                                                          const asn1::rrc_nr::dl_dcch_msg_s& msg,
                                                                          srb_id_t                           srb_id,
                                                                          const char*                        msg_type);
+
+rrc_ue_capabilities_t ocudu::ocucp::get_capabilities(asn1::rrc_nr::ue_nr_cap_s& ue_capabilities, rrc_ue_logger& logger)
+{
+  rrc_ue_capabilities_t capabilities{};
+
+  // Set RRC Inactive support.
+  if (ue_capabilities.non_crit_ext_present and ue_capabilities.non_crit_ext.inactive_state_present) {
+    capabilities.rrc_inactive_supported = true;
+    logger.log_debug("RRC Inactive supported by UE");
+  }
+
+  return capabilities;
+}
+
+std::optional<rrc_ue_capabilities_t>
+ocudu::ocucp::get_capabilities(asn1::rrc_nr::ue_cap_rat_container_list_l& capabilities_list, rrc_ue_logger& logger)
+{
+  // Parse UE capabilities list.
+  for (const auto& asn1_ue_capability_rat_container : capabilities_list) {
+    if (asn1_ue_capability_rat_container.rat_type != asn1::rrc_nr::rat_type_opts::options::nr) {
+      logger.log_debug("Skipping non-NR RAT type in UE capabilities");
+      continue;
+    }
+
+    asn1::rrc_nr::ue_nr_cap_s asn1_ue_nr_cap;
+    {
+      asn1::cbit_ref bref(asn1_ue_capability_rat_container.ue_cap_rat_container);
+      if (asn1_ue_nr_cap.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+        logger.log_error(asn1_ue_capability_rat_container.ue_cap_rat_container.begin(),
+                         asn1_ue_capability_rat_container.ue_cap_rat_container.end(),
+                         "Failed to unpack UE Capabilitiy RAT container PDU");
+        return std::nullopt;
+      }
+    }
+
+    return get_capabilities(asn1_ue_nr_cap, logger);
+  }
+
+  return rrc_ue_capabilities_t{};
+}

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
 #include "ocudu/phy/lower/lower_phy_metrics_notifier.h"
 #include "ocudu/support/math/stats.h"
 #include <mutex>
@@ -33,14 +34,14 @@ public:
   void collect_metrics(ru_sdr_sector_metrics& metrics);
 
 private:
-  std::mutex                                   tx_mutex;
-  sample_statistics<float>                     tx_avg_power;
-  sample_statistics<float>                     tx_peak_power;
-  std::optional<std::pair<uint64_t, uint64_t>> tx_clipping;
-  std::mutex                                   rx_mutex;
-  sample_statistics<float>                     rx_avg_power;
-  sample_statistics<float>                     rx_peak_power;
-  std::optional<std::pair<uint64_t, uint64_t>> rx_clipping;
+  std::mutex                       tx_mutex;
+  sample_statistics<float>         tx_avg_power;
+  sample_statistics<float>         tx_peak_power;
+  std::optional<clipping_counters> tx_clipping;
+  std::mutex                       rx_mutex;
+  sample_statistics<float>         rx_avg_power;
+  sample_statistics<float>         rx_peak_power;
+  std::optional<clipping_counters> rx_clipping;
 };
 
 } // namespace ocudu

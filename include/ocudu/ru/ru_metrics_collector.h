@@ -20,6 +20,7 @@ class ru_metrics_collector
 public:
   virtual ~ru_metrics_collector() = default;
 
+  /// Collect the metrics of this RU.
   virtual void collect_metrics(ru_metrics& metrics) = 0;
 };
 

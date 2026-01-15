@@ -50,14 +50,14 @@ public:
   phy_time_unit() = default;
 
   /// \brief Gets the stored time unit in multiple of \f$T_c\f$.
-  const value_type to_Tc() const { return value; }
+  value_type to_Tc() const { return value; }
 
   /// \brief Gets the time in seconds.
   /// \tparam U Return type. Must be a floating point type (default: double).
   template <class U = double>
   constexpr U to_seconds() const
   {
-    static_assert(std::is_convertible<double, U>::value && std::is_floating_point<U>::value, "Invalid type.");
+    static_assert(std::is_convertible_v<double, U> && std::is_floating_point_v<U>, "Invalid type.");
     return static_cast<U>(value) * static_cast<U>(T_C);
   }
 
@@ -72,8 +72,8 @@ public:
   template <class U>
   constexpr bool is_sample_accurate(U sampling_rate_Hz_) const
   {
-    static_assert(std::is_convertible<U, value_type>::value, "Invalid type.");
-    value_type sampling_rate_Hz = static_cast<value_type>(sampling_rate_Hz_);
+    static_assert(std::is_convertible_v<U, value_type>, "Invalid type.");
+    auto sampling_rate_Hz = static_cast<value_type>(sampling_rate_Hz_);
     return ((std::abs(value) * sampling_rate_Hz) % (SCS_REF_HZ * N_F_REF * KAPPA)) == 0;
   }
 
@@ -87,8 +87,8 @@ public:
   template <typename U>
   constexpr value_type to_samples(U sampling_rate_Hz_) const
   {
-    static_assert(std::is_convertible<U, value_type>::value, "Invalid type.");
-    value_type sampling_rate_Hz = static_cast<value_type>(sampling_rate_Hz_);
+    static_assert(std::is_convertible_v<U, value_type>, "Invalid type.");
+    auto sampling_rate_Hz = static_cast<value_type>(sampling_rate_Hz_);
     ocudu_assert(is_sample_accurate(sampling_rate_Hz),
                  "Incompatible sampling rate {}.{:02} MHz with time {}.",
                  sampling_rate_Hz / 1000000,
@@ -104,8 +104,8 @@ public:
   template <typename U>
   constexpr value_type to_nearest_samples(U sampling_rate_Hz_) const
   {
-    static_assert(std::is_convertible<U, double>::value, "Invalid type.");
-    double sampling_rate_Hz = static_cast<double>(sampling_rate_Hz_);
+    static_assert(std::is_convertible_v<U, double>, "Invalid type.");
+    auto   sampling_rate_Hz = static_cast<double>(sampling_rate_Hz_);
     double nof_samples =
         static_cast<double>(value * sampling_rate_Hz) / static_cast<double>(SCS_REF_HZ * N_F_REF * KAPPA);
     return static_cast<value_type>(std::round(nof_samples));
@@ -246,7 +246,7 @@ public:
   template <typename Integer>
   static constexpr phy_time_unit from_units_of_Tc(Integer units_of_Tc)
   {
-    static_assert(std::is_integral<Integer>::value);
+    static_assert(std::is_integral_v<Integer>);
     return phy_time_unit(static_cast<value_type>(units_of_Tc));
   }
 
@@ -254,7 +254,7 @@ public:
   template <typename Integer>
   static constexpr phy_time_unit from_timing_advance(Integer units_of_Ta, subcarrier_spacing scs)
   {
-    static_assert(std::is_integral<Integer>::value);
+    static_assert(std::is_integral_v<Integer>);
     return from_units_of_Tc(static_cast<Integer>(units_of_Ta * 16U * KAPPA) /
                             static_cast<Integer>(pow2(to_numerology_value(scs))));
   }
@@ -265,7 +265,7 @@ public:
     // Convert to units of Tc.
     double tc_units_dbl = seconds / T_C;
     // Multiply by ten and convert to value_type.
-    value_type tc_units = static_cast<value_type>(tc_units_dbl * 10.0);
+    auto tc_units = static_cast<value_type>(tc_units_dbl * 10.0);
     // Round to the nearest integer avoiding using std::round.
     return phy_time_unit(tc_units / 10 + (tc_units % 10) / 5);
   }
@@ -279,7 +279,7 @@ public:
 template <typename U = double>
 constexpr U to_sampling_rate_Hz(subcarrier_spacing scs, unsigned dft_size)
 {
-  static_assert(std::is_convertible<unsigned, U>::value, "Invalid type.");
+  static_assert(std::is_convertible_v<unsigned, U>, "Invalid type.");
   return static_cast<U>(scs_to_khz(scs) * 1000 * dft_size);
 }
 

@@ -9,7 +9,6 @@
  */
 
 #include "lower_phy_sector_metrics_collector.h"
-#include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
 #include "ocudu/ru/sdr/ru_sdr_metrics.h"
 #include "ocudu/support/math/math_utils.h"
 
@@ -23,8 +22,8 @@ void lower_phy_sector_metrics_collector::on_new_transmit_metrics(const lower_phy
   if (!tx_clipping.has_value()) {
     tx_clipping = metrics.clipping;
   } else {
-    tx_clipping->first += metrics.clipping->first;
-    tx_clipping->second += metrics.clipping->second;
+    tx_clipping->nof_clipped_samples += metrics.clipping->nof_clipped_samples;
+    tx_clipping->nof_processed_samples += metrics.clipping->nof_processed_samples;
   }
 }
 
@@ -37,8 +36,8 @@ void lower_phy_sector_metrics_collector::on_new_receive_metrics(const lower_phy_
     if (!rx_clipping.has_value()) {
       rx_clipping = metrics.clipping;
     } else {
-      rx_clipping->first += metrics.clipping->first;
-      rx_clipping->second += metrics.clipping->second;
+      rx_clipping->nof_clipped_samples += metrics.clipping->nof_clipped_samples;
+      rx_clipping->nof_processed_samples += metrics.clipping->nof_processed_samples;
     }
   }
 }
@@ -51,8 +50,8 @@ void lower_phy_sector_metrics_collector::collect_metrics(ru_sdr_sector_metrics& 
     metrics.tx_peak_power_dB = convert_power_to_dB(tx_peak_power.get_max());
     metrics.tx_papr_dB       = convert_power_to_dB(tx_peak_power.get_max() / tx_avg_power.get_mean());
     if (tx_clipping.has_value()) {
-      double num               = tx_clipping.value().first;
-      double den               = tx_clipping.value().second;
+      double num               = tx_clipping->nof_clipped_samples;
+      double den               = tx_clipping->nof_processed_samples;
       metrics.tx_clipping_prob = num / den;
     }
     tx_avg_power.reset();
@@ -66,8 +65,8 @@ void lower_phy_sector_metrics_collector::collect_metrics(ru_sdr_sector_metrics& 
     metrics.rx_peak_power_dB = convert_power_to_dB(rx_peak_power.get_max());
     metrics.rx_papr_dB       = convert_power_to_dB(rx_peak_power.get_max() / rx_avg_power.get_mean());
     if (rx_clipping.has_value()) {
-      double num               = rx_clipping.value().first;
-      double den               = rx_clipping.value().second;
+      double num               = rx_clipping->nof_clipped_samples;
+      double den               = rx_clipping->nof_processed_samples;
       metrics.rx_clipping_prob = num / den;
     }
     rx_avg_power.reset();

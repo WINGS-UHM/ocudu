@@ -17,18 +17,12 @@
 #include "ocudu/radio/radio_configuration.h"
 #include "ocudu/radio/radio_event_notifier.h"
 #include "ocudu/support/synchronization/stop_event.h"
-#include <mutex>
 
 namespace ocudu {
 
 /// Implements a gateway receiver based on UHD receive stream.
 class radio_uhd_rx_stream : public uhd_exception_handler, public baseband_gateway_receiver
 {
-  /// Receive timeout in seconds.
-  static constexpr double RECEIVE_TIMEOUT_S = 0.2f;
-  /// Set to true for receiving data in a single packet.
-  static constexpr bool ONE_PACKET = false;
-
   /// Indicates if the initialization of the stream was successful.
   bool is_init_successful = false;
   /// Indicates the stream identification for notifications.

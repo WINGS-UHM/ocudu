@@ -15,7 +15,6 @@
 #include "radio_uhd_rx_stream.h"
 #include "radio_uhd_tx_stream.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/radio/radio_session.h"
 
 namespace ocudu {
 

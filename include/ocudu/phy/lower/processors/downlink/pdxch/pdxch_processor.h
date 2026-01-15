@@ -13,10 +13,9 @@
 namespace ocudu {
 
 class pdxch_processor_notifier;
-class pdxch_processor_request_handler;
 class pdxch_processor_baseband;
+class pdxch_processor_request_handler;
 class lower_phy_center_freq_controller;
-class slot_point;
 
 /// \brief PDxCH processor main interface.
 ///

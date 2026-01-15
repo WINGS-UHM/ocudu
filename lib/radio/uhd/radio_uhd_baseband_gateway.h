@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "radio_uhd_device.h"
 #include "radio_uhd_rx_stream.h"
 #include "radio_uhd_tx_stream.h"
 #include "ocudu/gateways/baseband/baseband_gateway.h"

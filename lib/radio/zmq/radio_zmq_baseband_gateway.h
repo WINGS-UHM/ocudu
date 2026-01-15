@@ -13,7 +13,6 @@
 #include "radio_zmq_rx_stream.h"
 #include "radio_zmq_tx_stream.h"
 #include "ocudu/gateways/baseband/baseband_gateway.h"
-#include <memory>
 
 namespace ocudu {
 

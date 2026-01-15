@@ -51,9 +51,6 @@ public:
     // Do nothing.
   }
 
-  /// Copy constructor.
-  channel_state_information(const channel_state_information& other) = default;
-
   /// Gets a SINR type from a string representation.
   static sinr_type sinr_type_from_string(const std::string& sinr_type_str)
   {
@@ -169,13 +166,10 @@ public:
   }
 
   /// \brief Gets the EVM per symbol.
-  span<const std::optional<float>> get_symbol_evm() const
-  {
-    return span<const std::optional<float>>(symbol_evm.begin(), symbol_evm.end());
-  }
+  span<const std::optional<float>> get_symbol_evm() const { return {symbol_evm.begin(), symbol_evm.end()}; }
 
   /// Sets the time alignment measurement in PHY time units.
-  void set_time_alignment(const phy_time_unit& time_alignment_) { time_alignment.emplace(time_alignment_); }
+  void set_time_alignment(phy_time_unit time_alignment_) { time_alignment.emplace(time_alignment_); }
 
   /// Resets the time alignment.
   void reset_time_alignment() { time_alignment.reset(); }
@@ -270,7 +264,7 @@ public:
 
   /// \brief Gets the Reference Signal Received Power (RSRP) in normalized dB units, for each receive port.
   /// \return The measured RSRP for each port, and \c NaN if not available.
-  span<const float> get_port_rsrp_dB() const { return span<const float>(port_rsrp_dB.begin(), port_rsrp_dB.end()); }
+  span<const float> get_port_rsrp_dB() const { return {port_rsrp_dB.begin(), port_rsrp_dB.end()}; }
 
   /// \brief Gets the measured Carrier Frequency Offset (CFO) in hertz.
   /// \return The measured CFO if present, \c std::nullopt otherwise.

@@ -15,6 +15,11 @@
 
 using namespace ocudu;
 
+/// Receive asynchronous message timeout in seconds.
+static constexpr double RECV_ASYNC_MSG_TIMEOUT_S = 0.001;
+/// Transmit timeout in seconds.
+static constexpr double TRANSMIT_TIMEOUT_S = 0.001;
+
 void radio_uhd_tx_stream::recv_async_msg()
 {
   uhd_exception_handler exception_handler;
@@ -103,9 +108,10 @@ bool radio_uhd_tx_stream::transmit_block(unsigned&                             n
   report_fatal_error_if_not(buffs.get_nof_channels() == nof_channels, "Number of channels does not match.");
 
   // Flatten buffers.
-  static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr(nof_channels);
+  static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr;
   for (unsigned channel = 0; channel != nof_channels; ++channel) {
-    buffs_flat_ptr[channel] = (void*)buffs[channel].subspan(buffer_offset, num_samples).data();
+    buffs_flat_ptr.emplace_back(
+        const_cast<void*>(reinterpret_cast<const void*>(buffs[channel].subspan(buffer_offset, num_samples).data())));
   }
 
   // Make UHD buffers.
@@ -333,9 +339,9 @@ void radio_uhd_tx_stream::stop()
 
     // Flatten buffers.
     std::array<cf_t, 4>                          buffer;
-    static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr(nof_channels);
+    static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr;
     for (unsigned channel = 0; channel != nof_channels; ++channel) {
-      buffs_flat_ptr[channel] = (void*)buffer.data();
+      buffs_flat_ptr.emplace_back(reinterpret_cast<void*>(buffer.data()));
     }
 
     // Make UHD buffers.

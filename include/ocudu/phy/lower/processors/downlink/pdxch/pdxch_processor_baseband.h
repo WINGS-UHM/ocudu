@@ -17,9 +17,6 @@
 
 namespace ocudu {
 
-class baseband_gateway_buffer_writer;
-struct lower_phy_rx_symbol_context;
-
 /// \brief Lower physical layer PDxCH processor - Baseband interface.
 ///
 /// Processes baseband samples with slot granularity.

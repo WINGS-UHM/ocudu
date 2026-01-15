@@ -38,7 +38,7 @@ public:
   template <typename T>
   constexpr bool is_valid(T scs_Hz) const
   {
-    static_assert(std::is_convertible<T, value_type>::value, "Invalid data type.");
+    static_assert(std::is_convertible_v<T, value_type>, "Invalid data type.");
     if (value == 0 || scs_Hz == 0) {
       return false;
     }
@@ -107,7 +107,7 @@ public:
   template <typename T>
   static sampling_rate from_Hz(T value_Hz)
   {
-    static_assert(std::is_convertible<T, value_type>::value, "Invalid data type.");
+    static_assert(std::is_convertible_v<T, value_type>, "Invalid data type.");
     return sampling_rate(static_cast<value_type>(value_Hz));
   }
 

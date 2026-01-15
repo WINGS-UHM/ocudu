@@ -12,14 +12,12 @@
 
 #include "radio_zmq_tx_channel_fsm.h"
 #include "ocudu/adt/blocking_queue.h"
-#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
+#include "ocudu/adt/complex.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/radio/radio_event_notifier.h"
-#include "ocudu/support/async/async_queue.h"
 #include "ocudu/support/executors/task_executor.h"
 #include "ocudu/support/synchronization/stop_event.h"
 #include <atomic>
-#include <set>
 #include <zmq.h>
 
 namespace ocudu {
@@ -27,13 +25,6 @@ namespace ocudu {
 /// Radio transmit channel over ZeroMQ socket.
 class radio_zmq_tx_channel
 {
-  /// Wait time after a buffer try push failed.
-  static constexpr std::chrono::microseconds circ_buffer_try_push_sleep{1};
-  /// Maximum number of trials for binding.
-  static constexpr unsigned BIND_MAX_TRIALS = 10;
-  /// Sleep time after a bind failure in seconds.
-  static constexpr unsigned BIND_FAILURE_SLEEP_SECONDS = 1;
-
   /// Indicates the stream identifier.
   unsigned stream_id;
   /// Channel identifier.

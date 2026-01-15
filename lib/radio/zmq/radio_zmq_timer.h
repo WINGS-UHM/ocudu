@@ -37,15 +37,12 @@ public:
   bool is_expired() const
   {
     // No expiration time configured.
-    if (wait_expire_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
+    if (wait_expire_time == no_time) {
       return false;
     }
 
-    // Get current time.
-    std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-
     // Check if the timer has been expired.
-    if (now < wait_expire_time) {
+    if (std::chrono::steady_clock::now() < wait_expire_time) {
       return false;
     }
 

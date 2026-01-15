@@ -13,6 +13,11 @@
 
 using namespace ocudu;
 
+/// Receive timeout in seconds.
+static constexpr double RECEIVE_TIMEOUT_S = 0.2f;
+/// Set to true for receiving data in a single packet.
+static constexpr bool ONE_PACKET = false;
+
 bool radio_uhd_rx_stream::receive_block(unsigned&                       nof_rxd_samples,
                                         baseband_gateway_buffer_writer& data,
                                         unsigned                        offset,
@@ -25,9 +30,9 @@ bool radio_uhd_rx_stream::receive_block(unsigned&                       nof_rxd_
   ocudu_assert(data.get_nof_channels() == nof_channels, "Number of channels does not match.");
 
   // Flatten buffers.
-  static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr(nof_channels);
+  static_vector<void*, RADIO_MAX_NOF_CHANNELS> buffs_flat_ptr;
   for (unsigned channel = 0; channel != nof_channels; ++channel) {
-    buffs_flat_ptr[channel] = (void*)data[channel].subspan(offset, num_samples).data();
+    buffs_flat_ptr.emplace_back(reinterpret_cast<void*>(data[channel].subspan(offset, num_samples).data()));
   }
 
   uhd::rx_streamer::buffs_type buffs_cpp(buffs_flat_ptr.data(), nof_channels);

@@ -12,7 +12,6 @@
 
 #include "ocudu/adt/complex.h"
 #include "ocudu/adt/span.h"
-#include "ocudu/support/ocudu_assert.h"
 
 namespace ocudu {
 

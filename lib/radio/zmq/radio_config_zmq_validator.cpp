@@ -9,7 +9,7 @@
  */
 
 #include "radio_config_zmq_validator.h"
-#include "fmt/format.h"
+#include "fmt/base.h"
 #include <regex>
 
 using namespace ocudu;

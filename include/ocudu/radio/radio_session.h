@@ -19,7 +19,7 @@
 namespace ocudu {
 
 /// Describes a radio baseband unit session interface.
-class radio_session : radio_base
+class radio_session : public radio_base
 {
 public:
   /// \brief Gets the management plane.

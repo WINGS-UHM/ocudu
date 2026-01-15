@@ -31,8 +31,8 @@ public:
     if (!tx_clipping.has_value()) {
       tx_clipping = metrics.clipping;
     } else {
-      tx_clipping->first += metrics.clipping->first;
-      tx_clipping->second += metrics.clipping->second;
+      tx_clipping->nof_clipped_samples += metrics.clipping->nof_clipped_samples;
+      tx_clipping->nof_processed_samples += metrics.clipping->nof_processed_samples;
     }
   }
 
@@ -46,8 +46,8 @@ public:
       if (!rx_clipping.has_value()) {
         rx_clipping = metrics.clipping;
       } else {
-        rx_clipping->first += metrics.clipping->first;
-        rx_clipping->second += metrics.clipping->second;
+        rx_clipping->nof_clipped_samples += metrics.clipping->nof_clipped_samples;
+        rx_clipping->nof_processed_samples += metrics.clipping->nof_processed_samples;
       }
     }
   }
@@ -70,8 +70,8 @@ public:
       tx_peak_power_dB = convert_power_to_dB(tx_peak_power.get_max());
       tx_papr_dB       = convert_power_to_dB(tx_peak_power.get_max() / tx_avg_power.get_mean());
       if (tx_clipping.has_value()) {
-        double num       = tx_clipping.value().first;
-        double den       = tx_clipping.value().second;
+        double num       = tx_clipping->nof_clipped_samples;
+        double den       = tx_clipping->nof_processed_samples;
         tx_clipping_prob = num / den;
       }
       tx_avg_power.reset();
@@ -89,8 +89,8 @@ public:
       rx_peak_power_dB = convert_power_to_dB(rx_peak_power.get_max());
       rx_papr_dB       = convert_power_to_dB(rx_peak_power.get_max() / rx_avg_power.get_mean());
       if (rx_clipping.has_value()) {
-        double num       = rx_clipping.value().first;
-        double den       = rx_clipping.value().second;
+        double num       = rx_clipping->nof_clipped_samples;
+        double den       = rx_clipping->nof_processed_samples;
         rx_clipping_prob = num / den;
       }
       rx_avg_power.reset();
@@ -110,14 +110,14 @@ public:
   }
 
 private:
-  std::mutex                                   tx_mutex;
-  sample_statistics<float>                     tx_avg_power;
-  sample_statistics<float>                     tx_peak_power;
-  std::optional<std::pair<uint64_t, uint64_t>> tx_clipping;
-  std::mutex                                   rx_mutex;
-  sample_statistics<float>                     rx_avg_power;
-  sample_statistics<float>                     rx_peak_power;
-  std::optional<std::pair<uint64_t, uint64_t>> rx_clipping;
+  std::mutex                       tx_mutex;
+  sample_statistics<float>         tx_avg_power;
+  sample_statistics<float>         tx_peak_power;
+  std::optional<clipping_counters> tx_clipping;
+  std::mutex                       rx_mutex;
+  sample_statistics<float>         rx_avg_power;
+  sample_statistics<float>         rx_peak_power;
+  std::optional<clipping_counters> rx_clipping;
 };
 
 } // namespace ocudu

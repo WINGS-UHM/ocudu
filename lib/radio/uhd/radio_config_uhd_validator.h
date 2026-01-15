@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "radio_uhd_device.h"
-#include "radio_uhd_multi_usrp.h"
 #include "ocudu/radio/radio_configuration.h"
 
 namespace ocudu {

@@ -9,9 +9,15 @@
  */
 
 #include "radio_zmq_rx_stream.h"
+#include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
 #include "ocudu/ocuduvec/conversion.h"
 
 using namespace ocudu;
+
+/// Scaling factor for converting from complex float to 16-bit complex integer.
+static constexpr float scaling_factor_cf_to_ci16 = std::numeric_limits<int16_t>::max();
+/// Alignment timeout. Waits this time before padding zeros.
+static constexpr std::chrono::milliseconds RECEIVE_TS_ALIGN_TIMEOUT = std::chrono::milliseconds(100);
 
 radio_zmq_rx_stream::radio_zmq_rx_stream(void*                         zmq_context,
                                          const stream_description&     config,
@@ -20,6 +26,7 @@ radio_zmq_rx_stream::radio_zmq_rx_stream(void*                         zmq_conte
                                          radio_event_notifier&         notification_handler) :
   tx_align(tx_align_), cf_buffer(config.buffer_size)
 {
+  channels.reserve(config.address.size());
   // For each channel...
   for (unsigned channel_id = 0, channel_id_end = config.address.size(); channel_id != channel_id_end; ++channel_id) {
     // Prepare configuration.

@@ -11,8 +11,6 @@
 #pragma once
 
 #include "radio_zmq_baseband_gateway.h"
-#include "radio_zmq_rx_stream.h"
-#include "radio_zmq_tx_stream.h"
 #include "ocudu/radio/radio_session.h"
 #include "ocudu/support/executors/task_executor.h"
 #include <zmq.h>
@@ -22,13 +20,6 @@ namespace ocudu {
 /// Describes a ZeroMQ radio based session.
 class radio_session_zmq_impl : public radio_session, public radio_management_plane
 {
-  /// Default sockets send and receive timeout in milliseconds.
-  static constexpr unsigned DEFAULT_TRX_TIMEOUT_MS = 10;
-  /// Default linger timeout in milliseconds.
-  static constexpr unsigned DEFAULT_LINGER_TIMEOUT_MS = 0;
-  /// Default stream buffer size in samples.
-  static constexpr unsigned DEFAULT_STREAM_BUFFER_SIZE = 614400;
-
   /// Radio session logger.
   ocudulog::basic_logger& logger;
   /// ZMQ context.

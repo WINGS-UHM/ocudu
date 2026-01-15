@@ -13,6 +13,7 @@
 #include "lower_phy_sector_metrics_collector.h"
 #include "lower_phy_sector_timing_handler.h"
 #include "ocudu/phy/lower/lower_phy.h"
+#include <memory>
 
 namespace ocudu {
 

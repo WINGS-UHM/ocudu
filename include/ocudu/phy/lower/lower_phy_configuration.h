@@ -20,7 +20,6 @@
 #include "ocudu/phy/lower/modulation/ofdm_demodulator.h"
 #include "ocudu/phy/lower/modulation/ofdm_modulator.h"
 #include "ocudu/phy/lower/sampling_rate.h"
-#include "ocudu/phy/support/resource_grid_pool.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/n_ta_offset.h"
 #include "ocudu/ran/subcarrier_spacing.h"

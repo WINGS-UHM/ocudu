@@ -10,13 +10,9 @@
 
 #pragma once
 
-#include "ocudu/ran/slot_point.h"
-
 namespace ocudu {
 
-struct lower_phy_rx_symbol_context;
 struct resource_grid_context;
-class resource_grid_reader;
 
 /// \brief Lower physical layer PDxCH processor - Notifier interface.
 ///

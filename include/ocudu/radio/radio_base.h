@@ -27,7 +27,7 @@ public:
   radio_base(const radio_base& other) = delete;
 
   /// Forbid move constructor.
-  radio_base(const radio_base&& other) = delete;
+  radio_base(radio_base&& other) = delete;
 
   /// Forbid copy assignment operator.
   radio_base& operator=(const radio_base&) = delete;

@@ -15,7 +15,6 @@
 namespace ocudu {
 
 struct prach_buffer_context;
-class resource_grid;
 struct resource_grid_context;
 class shared_resource_grid;
 

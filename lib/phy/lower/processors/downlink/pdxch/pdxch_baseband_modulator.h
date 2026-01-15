@@ -224,13 +224,14 @@ private:
       if (std::isnormal(metrics.peak_power) && std::isnormal(metrics.avg_power)) {
         peak_power.update(metrics.peak_power);
         avg_power.update(metrics.avg_power);
-        nof_clipped_samples += metrics.clipping->first;
-        total_processed_samples += metrics.clipping->second;
+        nof_clipped_samples += metrics.clipping->nof_clipped_samples;
+        total_processed_samples += metrics.clipping->nof_processed_samples;
       }
     }
     current_result.metrics.peak_power = peak_power.get_max();
     current_result.metrics.avg_power  = avg_power.get_mean();
-    current_result.metrics.clipping   = {nof_clipped_samples, total_processed_samples};
+    current_result.metrics.clipping =
+        clipping_counters{.nof_clipped_samples = nof_clipped_samples, .nof_processed_samples = total_processed_samples};
 
     // Notify completion of the OFDM modulation.
     notifier.on_modulation_completion(std::move(current_result), current_context);

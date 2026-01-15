@@ -9,11 +9,13 @@
  */
 
 #include "radio_uhd_impl.h"
-#include "radio_uhd_device.h"
 #include <thread>
 #include <uhd/utils/thread_priority.h>
 
 using namespace ocudu;
+
+/// Wait at most 1s for external clock locking.
+static constexpr std::chrono::milliseconds CLOCK_TIMEOUT{1000};
 
 bool radio_session_uhd_impl::set_time_to_gps_time()
 {
@@ -48,9 +50,11 @@ bool radio_session_uhd_impl::set_time_to_gps_time()
   return true;
 }
 
-bool radio_session_uhd_impl::wait_sensor_locked(const std::string& sensor_name, bool is_mboard, int timeout)
+bool radio_session_uhd_impl::wait_sensor_locked(const std::string&        sensor_name,
+                                                bool                      is_mboard,
+                                                std::chrono::milliseconds timeout)
 {
-  auto end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
+  auto end_time = std::chrono::steady_clock::now() + timeout;
 
   // Get sensor list.
   std::vector<std::string> sensors;
@@ -184,8 +188,7 @@ bool radio_session_uhd_impl::start_rx_stream(baseband_gateway_timestamp init_tim
 
 radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio& radio_config,
                                                task_executor&                    async_executor_,
-                                               radio_event_notifier&             notifier_) :
-  actual_sampling_rate_Hz(0.0), async_executor(async_executor_), notifier(notifier_)
+                                               radio_event_notifier&             notifier_)
 {
   // Disable fast-path (U/L/O) messages.
   ::setenv("UHD_LOG_FASTPATH_DISABLE", "1", 0);
@@ -247,7 +250,7 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
 
   // Set GPS time if GPSDO is selected.
   if (radio_config.clock.sync == radio_configuration::clock_sources::source::GPSDO) {
-    if (!wait_sensor_locked("gps_locked", true, CLOCK_TIMEOUT_MS)) {
+    if (!wait_sensor_locked("gps_locked", true, CLOCK_TIMEOUT)) {
       // It blocks until sync source is locked.
       fmt::print("Could not lock reference GPS time source.\n");
       return;
@@ -258,7 +261,7 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
   if (radio_config.clock.clock == radio_configuration::clock_sources::source::GPSDO ||
       radio_config.clock.clock == radio_configuration::clock_sources::source::EXTERNAL) {
     // It blocks until clock source is locked.
-    if (!wait_sensor_locked("ref_locked", true, CLOCK_TIMEOUT_MS)) {
+    if (!wait_sensor_locked("ref_locked", true, CLOCK_TIMEOUT)) {
       fmt::print("Could not lock reference clock source.\n");
       return;
     }
@@ -306,6 +309,7 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
   }
 
   // For each transmit stream, create stream and configure RF ports.
+  tx_stream_description_list.reserve(radio_config.tx_streams.size());
   for (unsigned stream_idx = 0, nof_streams = radio_config.tx_streams.size(); stream_idx != nof_streams; ++stream_idx) {
     // Select stream.
     const radio_configuration::stream& stream = radio_config.tx_streams[stream_idx];
@@ -359,6 +363,7 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
   }
 
   // For each receive stream, create stream and configure RF ports.
+  rx_stream_description_list.reserve(radio_config.rx_streams.size());
   for (unsigned stream_idx = 0, nof_streams = radio_config.rx_streams.size(); stream_idx != nof_streams; ++stream_idx) {
     // Select stream.
     const radio_configuration::stream& stream = radio_config.rx_streams[stream_idx];
@@ -438,9 +443,14 @@ radio_session_uhd_impl::radio_session_uhd_impl(const radio_configuration::radio&
   }
 
   // Create baseband gateways.
+  bb_gateways.reserve(radio_config.tx_streams.size());
   for (unsigned i_stream = 0, nof_streams = radio_config.tx_streams.size(); i_stream != nof_streams; ++i_stream) {
-    auto& gateway = bb_gateways.emplace_back(std::make_unique<radio_uhd_baseband_gateway>(
-        device, async_executor, notifier, tx_stream_description_list[i_stream], rx_stream_description_list[i_stream]));
+    auto& gateway =
+        bb_gateways.emplace_back(std::make_unique<radio_uhd_baseband_gateway>(device,
+                                                                              async_executor_,
+                                                                              notifier_,
+                                                                              tx_stream_description_list[i_stream],
+                                                                              rx_stream_description_list[i_stream]));
 
     // Early return if the gateway was not successfully created.
     if (!gateway->is_successful()) {

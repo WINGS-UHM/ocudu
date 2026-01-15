@@ -10,10 +10,17 @@
 
 #include "radio_zmq_tx_channel.h"
 #include "ocudu/support/synchronization/sync_event.h"
+#include <set>
 
 using namespace ocudu;
 
 static const std::set<int> VALID_SOCKET_TYPES = {ZMQ_REP};
+/// Wait time after a buffer try push failed.
+static constexpr std::chrono::microseconds circ_buffer_try_push_sleep{1};
+/// Maximum number of trials for binding.
+static constexpr unsigned BIND_MAX_TRIALS = 10;
+/// Sleep time after a bind failure in seconds.
+static constexpr unsigned BIND_FAILURE_SLEEP_SECONDS = 1;
 
 radio_zmq_tx_channel::radio_zmq_tx_channel(void*                      zmq_context,
                                            const channel_description& config,

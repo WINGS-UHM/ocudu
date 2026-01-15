@@ -252,10 +252,11 @@ void lower_phy_uplink_processor_impl::process_collecting(const baseband_gateway_
       total_processed_samples += view.size();
     }
 
-    lower_phy_baseband_metrics metrics = {
-        .avg_power  = avg_power.get_mean(),
-        .peak_power = peak_power.get_max(),
-        .clipping   = std::pair<uint64_t, uint64_t>{nof_clipped_samples, total_processed_samples}};
+    lower_phy_baseband_metrics metrics = {.avg_power  = avg_power.get_mean(),
+                                          .peak_power = peak_power.get_max(),
+                                          .clipping =
+                                              clipping_counters{.nof_clipped_samples   = nof_clipped_samples,
+                                                                .nof_processed_samples = total_processed_samples}};
     notifier->on_new_metrics(metrics);
   }
 

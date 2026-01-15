@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/phy/support/prach_buffer_context.h"
-#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 

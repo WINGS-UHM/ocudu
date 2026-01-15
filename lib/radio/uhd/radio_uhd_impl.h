@@ -23,8 +23,6 @@ namespace ocudu {
 /// Describes a radio session based on UHD that also implements the management and data plane functions.
 class radio_session_uhd_impl : public radio_session, private radio_management_plane
 {
-  /// Wait at most 1s for external clock locking.
-  static constexpr int CLOCK_TIMEOUT_MS = 1000;
   /// Maps ports to stream and channel indexes.
   using port_to_stream_channel = std::pair<unsigned, unsigned>;
 
@@ -38,11 +36,7 @@ class radio_session_uhd_impl : public radio_session, private radio_management_pl
   static_vector<port_to_stream_channel, RADIO_MAX_NOF_PORTS> rx_port_map;
   /// Baseband gateways.
   std::vector<std::unique_ptr<radio_uhd_baseband_gateway>> bb_gateways;
-  double                                                   actual_sampling_rate_Hz;
-  /// Asynchronous executor.
-  task_executor& async_executor;
-  /// Event notifier.
-  radio_event_notifier& notifier;
+  double                                                   actual_sampling_rate_Hz = 0.0;
 
   /// \brief Set the synchronization time to GPS mode.
   /// \return True if no exception is caught. Otherwise false.
@@ -53,7 +47,7 @@ class radio_session_uhd_impl : public radio_session, private radio_management_pl
   /// \param[in] is_mboard Indicates if the sensor is from the motherboard or daughterboard.
   /// \param[in] timeout Indicates the amount of time to wait.
   /// \return True if sensor is found and locked. Otherwise false.
-  bool wait_sensor_locked(const std::string& sensor_name, bool is_mboard, int timeout);
+  bool wait_sensor_locked(const std::string& sensor_name, bool is_mboard, std::chrono::milliseconds timeout);
 
   /// \brief Set transmission gain from the class itself.
   /// \param[in] port_idx Indicates the port index.

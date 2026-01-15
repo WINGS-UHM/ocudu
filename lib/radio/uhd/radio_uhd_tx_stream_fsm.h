@@ -92,6 +92,7 @@ public:
   bool on_transmit(uhd::tx_metadata_t& metadata, const uhd::time_spec_t& time_spec, bool is_empty, bool tail_padding)
   {
     std::scoped_lock lock(mutex);
+
     switch (state) {
       case states::WAIT_END_OF_BURST:
         // Do nothing if the wait for end-of-burst timeout has not expired.

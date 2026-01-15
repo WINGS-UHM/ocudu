@@ -14,7 +14,6 @@ namespace ocudu {
 
 class downlink_processor_baseband;
 class downlink_processor_notifier;
-class downlink_processor_notifier;
 class lower_phy_center_freq_controller;
 class lower_phy_cfo_controller;
 class lower_phy_tx_time_offset_controller;

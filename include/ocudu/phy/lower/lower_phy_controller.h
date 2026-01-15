@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/gateways/baseband/baseband_gateway_timestamp.h"
-#include "ocudu/support/executors/task_executor.h"
 
 namespace ocudu {
 

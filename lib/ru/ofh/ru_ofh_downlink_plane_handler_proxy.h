@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ru/ru_downlink_plane.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <algorithm>
 #include <vector>
 

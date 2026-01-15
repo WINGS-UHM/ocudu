@@ -13,15 +13,10 @@
 #include "ocudu/adt/complex.h"
 #include "ocudu/adt/span.h"
 #include "ocudu/adt/tensor.h"
-#include "ocudu/gateways/baseband/baseband_gateway_base.h"
 #include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_reader.h"
 #include "ocudu/gateways/baseband/buffer/baseband_gateway_buffer_writer.h"
-#include "ocudu/support/error_handling.h"
-#include "ocudu/support/ocudu_assert.h"
-#include <vector>
 
 namespace ocudu {
-
 namespace detail {
 
 enum class baseband_gateway_buffer_dims : unsigned { sample = 0, channel, all };
@@ -35,7 +30,7 @@ public:
                               detail::baseband_gateway_buffer_dims>;
 
   /// Creates a gateway buffer reader based on a tensor storage type.
-  baseband_gateway_buffer_reader_tensor(const storage_type& data_) : data(data_) {}
+  explicit baseband_gateway_buffer_reader_tensor(const storage_type& data_) : data(data_) {}
 
   // See interface for documentation.
   unsigned get_nof_channels() const override { return data.get_dimension_size(baseband_gateway_buffer_dims::channel); }
@@ -59,7 +54,7 @@ public:
                               detail::baseband_gateway_buffer_dims>;
 
   /// Creates a gateway buffer writer based on a tensor storage type.
-  baseband_gateway_buffer_writer_tensor(storage_type& data_) : data(data_) {}
+  explicit baseband_gateway_buffer_writer_tensor(storage_type& data_) : data(data_) {}
 
   // See interface for documentation.
   unsigned get_nof_channels() const override { return data.get_dimension_size(baseband_gateway_buffer_dims::channel); }
@@ -79,8 +74,8 @@ private:
 /// \brief Describes a baseband buffer implementation that comprises a fix number of channels that can be dynamically
 /// resized.
 ///
-/// It contains a fix get_nof_channels() number of channels that contain the same number of get_nof_samples() samples.
-/// The number of samples can be changed in runtime without re-allocating memory using resize(). The number samples
+/// It contains a fixed get_nof_channels() number of channels that contain the same number of get_nof_samples() samples.
+/// The number of samples can be changed at runtime without re-allocating memory using resize(). The number samples
 /// shall never exceed the maximum number of samples indicated in the constructor.
 class baseband_gateway_buffer_dynamic
 {
@@ -110,12 +105,6 @@ public:
   /// \param[in] max_nof_samples Indicates the maximum number of samples.
   baseband_gateway_buffer_dynamic(unsigned nof_channels, unsigned max_nof_samples) :
     data({max_nof_samples, nof_channels}), reader(data), writer(data)
-  {
-  }
-
-  /// Move constructor.
-  baseband_gateway_buffer_dynamic(baseband_gateway_buffer_dynamic&& other) :
-    data(std::move(other.data)), reader(data), writer(data)
   {
   }
 

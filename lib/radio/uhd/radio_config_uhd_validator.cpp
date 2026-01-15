@@ -9,8 +9,7 @@
  */
 
 #include "radio_config_uhd_validator.h"
-#include "radio_uhd_multi_usrp.h"
-#include "fmt/format.h"
+#include "fmt/base.h"
 #include <regex>
 #include <set>
 

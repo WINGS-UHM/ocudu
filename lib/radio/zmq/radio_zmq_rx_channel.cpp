@@ -11,11 +11,16 @@
 #include "radio_zmq_rx_channel.h"
 #include "ocudu/ocuduvec/zero.h"
 #include "ocudu/support/synchronization/sync_event.h"
+#include <set>
 
 using namespace ocudu;
 
 /// Lists the supported socket types.
 static const std::set<int> VALID_SOCKET_TYPES = {ZMQ_REQ};
+/// Wait time after a buffer try push failed.
+static constexpr std::chrono::microseconds circ_buffer_try_push_sleep{1};
+/// Wait time after a buffer try pop failed.
+static constexpr std::chrono::microseconds circ_buffer_try_pop_sleep{1};
 
 radio_zmq_rx_channel::radio_zmq_rx_channel(void*                      zmq_context,
                                            const channel_description& config,

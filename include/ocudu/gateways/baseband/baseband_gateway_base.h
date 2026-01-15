@@ -27,7 +27,7 @@ public:
   baseband_gateway_base(const baseband_gateway_base& other) = delete;
 
   /// Forbid move constructor.
-  baseband_gateway_base(const baseband_gateway_base&& other) = delete;
+  baseband_gateway_base(baseband_gateway_base&& other) = delete;
 
   /// Forbid copy assignment operator.
   baseband_gateway_base& operator=(const baseband_gateway_base&) = delete;

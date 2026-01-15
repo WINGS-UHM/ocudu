@@ -20,18 +20,12 @@
 #include "ocudu/radio/radio_event_notifier.h"
 #include "ocudu/support/executors/task_executor.h"
 #include "ocudu/support/synchronization/stop_event.h"
-#include <mutex>
 
 namespace ocudu {
 
 /// Implements a gateway transmitter based on UHD transmit stream.
 class radio_uhd_tx_stream : public baseband_gateway_transmitter, public uhd_exception_handler
 {
-  /// Receive asynchronous message timeout in seconds.
-  static constexpr double RECV_ASYNC_MSG_TIMEOUT_S = 0.001;
-  /// Transmit timeout in seconds.
-  static constexpr double TRANSMIT_TIMEOUT_S = 0.001;
-
   /// Indicates the stream identification for notifications.
   unsigned stream_id;
   /// Task executor for asynchronous messages.
@@ -48,9 +42,9 @@ class radio_uhd_tx_stream : public baseband_gateway_transmitter, public uhd_exce
   unsigned nof_channels;
   /// Indicates the current internal state.
   radio_uhd_tx_stream_fsm state_fsm;
-  /// Discontinous transmission mode flag.
+  /// Discontinuous transmission mode flag.
   bool discontinuous_tx;
-  /// Number of samples to advance the burst start to protect agains power ramping effects.
+  /// Number of samples to advance the burst start to protect against power ramping effects.
   unsigned power_ramping_nof_samples;
   /// Stores the time of the last transmitted sample.
   uhd::time_spec_t last_tx_timespec;

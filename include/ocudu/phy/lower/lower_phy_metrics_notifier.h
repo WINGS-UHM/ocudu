@@ -10,9 +10,6 @@
 
 #pragma once
 
-#include "ocudu/phy/support/prach_buffer_context.h"
-#include "ocudu/ran/slot_point.h"
-
 namespace ocudu {
 
 struct lower_phy_baseband_metrics;

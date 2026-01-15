@@ -16,7 +16,6 @@ namespace ocudu {
 
 struct lower_phy_baseband_metrics;
 struct lower_phy_timing_context;
-struct resource_grid_context;
 
 /// \brief Lower physical layer downlink processor - Notifier interface.
 ///

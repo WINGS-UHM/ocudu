@@ -20,11 +20,6 @@ namespace ocudu {
 /// Implements a gateway receiver based on ZMQ receive socket.
 class radio_zmq_rx_stream : public baseband_gateway_receiver
 {
-  /// Scaling factor for converting from complex float to 16-bit complex integer.
-  static constexpr float scaling_factor_cf_to_ci16 = std::numeric_limits<int16_t>::max();
-  /// Alignment timeout. Waits this time before padding zeros.
-  static constexpr std::chrono::milliseconds RECEIVE_TS_ALIGN_TIMEOUT = std::chrono::milliseconds(100);
-
   /// Transmitter alignment interface.
   radio_zmq_tx_align_interface& tx_align;
   /// Indicates whether the class was initialized successfully.

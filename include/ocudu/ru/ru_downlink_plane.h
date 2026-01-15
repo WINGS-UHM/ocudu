@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "ocudu/ran/slot_point.h"
-
 namespace ocudu {
 
 struct resource_grid_context;

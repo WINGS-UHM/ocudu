@@ -97,11 +97,13 @@ public:
       return false;
     }
     socket = std::move(result.value());
-    sockaddr_in addr;
-    addr.sin_family      = AF_INET;
-    addr.sin_port        = htons(server_port);
-    addr.sin_addr.s_addr = ::inet_addr(server_addr.c_str());
-    if (not socket.connect((struct sockaddr&)addr, sizeof(addr))) {
+
+    sockaddr_storage addr_storage = {};
+    auto*            addr         = reinterpret_cast<sockaddr_in*>(&addr_storage);
+    addr->sin_family              = AF_INET;
+    addr->sin_port                = htons(server_port);
+    addr->sin_addr.s_addr         = ::inet_addr(server_addr.c_str());
+    if (not socket.connectx({addr_storage})) {
       socket.close();
       return false;
     }

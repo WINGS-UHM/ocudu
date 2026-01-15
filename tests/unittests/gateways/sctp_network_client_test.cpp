@@ -53,11 +53,12 @@ public:
     report_fatal_error_if_not(result.has_value(), "Failed to create SCTP socket");
     socket = std::move(result.value());
 
-    sockaddr_in addr;
-    addr.sin_family      = AF_INET;
-    addr.sin_port        = htons(0);
-    addr.sin_addr.s_addr = ::inet_addr(address.c_str());
-    report_fatal_error_if_not(socket.bind((struct sockaddr&)addr, sizeof(addr), ""), "Failed to bind server socket");
+    sockaddr_storage addr_storage = {};
+    auto*            addr         = reinterpret_cast<sockaddr_in*>(&addr_storage);
+    addr->sin_family              = AF_INET;
+    addr->sin_port                = htons(0);
+    addr->sin_addr.s_addr         = ::inet_addr(address.c_str());
+    report_fatal_error_if_not(socket.bindx({addr_storage}, ""), "Failed to bind server socket");
     report_fatal_error_if_not(socket.listen(), "Failed to listen to new connections");
     report_fatal_error_if_not(socket.set_non_blocking(), "Failed to set as non-blocking");
     bind_port = socket.get_listen_port().value();

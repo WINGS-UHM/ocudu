@@ -317,36 +317,6 @@ bool sctp_socket::close()
   return true;
 }
 
-bool sctp_socket::bind(struct sockaddr& ai_addr, const socklen_t& ai_addrlen, const std::string& bind_interface)
-{
-  if (not is_open()) {
-    logger.error("{}: Failed to bind to {}. Cause: Socket is closed", if_name, get_nameinfo(ai_addr, ai_addrlen));
-    return false;
-  }
-
-  if (not bind_to_interface(sock_fd, bind_interface, logger)) {
-    return false;
-  }
-
-  logger.debug("{}: Binding to {}...", if_name, get_nameinfo(ai_addr, ai_addrlen));
-
-  if (::bind(fd().value(), &ai_addr, ai_addrlen) == -1) {
-    logger.error("{}: Failed to bind to {}. Cause: {}", if_name, get_nameinfo(ai_addr, ai_addrlen), ::strerror(errno));
-    return false;
-  }
-
-  logger.info("{}: Bind to {} was successful", if_name, get_nameinfo(ai_addr, ai_addrlen));
-
-  // set socket to non-blocking after bind is successful
-  if (non_blocking_mode) {
-    if (not set_non_blocking()) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 bool sctp_socket::bindx(const std::vector<sockaddr_storage>& addrs, const std::string& bind_interface)
 {
   if (addrs.empty()) {
@@ -410,29 +380,6 @@ bool sctp_socket::bindx(const std::vector<sockaddr_storage>& addrs, const std::s
 
   logger.info("{}: Bind to {} address(es) was successful", if_name, addrs.size());
   // Set socket to non-blocking after bind is successful.
-  if (non_blocking_mode) {
-    if (not set_non_blocking()) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool sctp_socket::connect(struct sockaddr& ai_addr, const socklen_t& ai_addrlen)
-{
-  logger.debug("{}: Connecting to {}...", if_name, get_nameinfo(ai_addr, ai_addrlen));
-  if (not is_open()) {
-    logger.error("Failed to connect to {}. Cause: socket is closed", get_nameinfo(ai_addr, ai_addrlen));
-    return false;
-  }
-
-  if (::connect(sock_fd.value(), &ai_addr, ai_addrlen) == -1) {
-    logger.debug("{}: Failed to connect to {} - {}", if_name, get_nameinfo(ai_addr, ai_addrlen), ::strerror(errno));
-    return false;
-  }
-
-  // set socket to non-blocking after connect is established
   if (non_blocking_mode) {
     if (not set_non_blocking()) {
       return false;

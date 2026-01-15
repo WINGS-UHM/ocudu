@@ -58,11 +58,9 @@ public:
     sock_fd = unique_fd(fd, false);
   }
 
-  [[nodiscard]] bool bind(struct sockaddr& ai_addr, const socklen_t& ai_addrlen, const std::string& bind_interface);
-  [[nodiscard]] bool connect(struct sockaddr& ai_addr, const socklen_t& ai_addrlen);
-  /// \brief Bind to multiple addresses using sctp_bindx().
+  /// \brief Bind to one or many addresses using sctp_bindx(). If binding to one address, interface can be specified.
   [[nodiscard]] bool bindx(const std::vector<sockaddr_storage>& addrs, const std::string& bind_interface);
-  /// \brief Connect to multiple peer addresses for SCTP multipath using sctp_connectx().
+  /// \brief Connect to one or many addresses using sctp_connectx().
   [[nodiscard]] bool connectx(const std::vector<sockaddr_storage>& addrs);
   /// \brief Start listening on socket.
   [[nodiscard]] bool listen();

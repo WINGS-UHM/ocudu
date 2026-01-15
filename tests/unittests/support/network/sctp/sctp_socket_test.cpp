@@ -186,8 +186,8 @@ TEST_F(sctp_socket_test, create_with_all_options)
   EXPECT_TRUE(result.value().is_open());
 }
 
-/// Test bind to loopback address with a dynamic port (when port is not set then OS picks the port number).
-TEST_F(sctp_socket_test, bind_to_loopback_with_dynamic_port)
+/// Test bindx to loopback address with a dynamic port (when port is not set then OS picks the port number).
+TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port)
 {
   sctp_socket_params params = create_default_params();
 
@@ -197,9 +197,8 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_dynamic_port)
   sctp_socket& sock = result.value();
 
   sockaddr_storage addr_storage = create_ipv4_loopback_addr(0);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  EXPECT_TRUE(sock.bind(*addr, sizeof(sockaddr_in), ""));
+  EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
   ASSERT_TRUE(sock.get_listen_port().has_value());
   EXPECT_GT(sock.get_listen_port().value(), 0);
@@ -207,8 +206,8 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_dynamic_port)
   verify_bound_address_ipv4(sock.fd().value(), std::nullopt, INADDR_LOOPBACK);
 }
 
-/// Test bind to loopback address with a specific port.
-TEST_F(sctp_socket_test, bind_to_loopback_with_specific_port)
+/// Test bindx to loopback address with a specific port.
+TEST_F(sctp_socket_test, bindx_to_loopback_with_specific_port)
 {
   sctp_socket_params params = create_default_params();
   params.reuse_addr         = true;
@@ -219,9 +218,8 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_specific_port)
   sctp_socket& sock = result.value();
 
   sockaddr_storage addr_storage = create_ipv4_loopback_addr(12345);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  EXPECT_TRUE(sock.bind(*addr, sizeof(sockaddr_in), ""));
+  EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
   ASSERT_TRUE(sock.get_listen_port().has_value());
   EXPECT_EQ(sock.get_listen_port().value(), 12345);
@@ -229,8 +227,8 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_specific_port)
   verify_bound_address_ipv4(sock.fd().value(), 12345, INADDR_LOOPBACK);
 }
 
-/// Test bind to loopback address with a dynamic port (when port is not set then OS picks the port number).
-TEST_F(sctp_socket_test, bind_to_loopback_with_dynamic_port_ipv6)
+/// Test bindx to loopback address with a dynamic port (when port is not set then OS picks the port number).
+TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port_ipv6)
 {
   sctp_socket_params params = create_default_params();
   params.ai_family          = AF_INET6;
@@ -241,9 +239,8 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_dynamic_port_ipv6)
   sctp_socket& sock = result.value();
 
   sockaddr_storage addr_storage = create_ipv6_loopback_addr(0);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  EXPECT_TRUE(sock.bind(*addr, sizeof(sockaddr_in6), ""));
+  EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
   ASSERT_TRUE(sock.get_listen_port().has_value());
   EXPECT_GT(sock.get_listen_port().value(), 0);
@@ -251,8 +248,8 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_dynamic_port_ipv6)
   verify_bound_address_ipv6(sock.fd().value(), std::nullopt, in6addr_loopback);
 }
 
-/// Test bind to loopback address with a specific port.
-TEST_F(sctp_socket_test, bind_to_loopback_with_specific_port_ipv6)
+/// Test bindx to loopback address with a specific port.
+TEST_F(sctp_socket_test, bindx_to_loopback_with_specific_port_ipv6)
 {
   sctp_socket_params params = create_default_params();
   params.ai_family          = AF_INET6;
@@ -264,31 +261,13 @@ TEST_F(sctp_socket_test, bind_to_loopback_with_specific_port_ipv6)
   sctp_socket& sock = result.value();
 
   sockaddr_storage addr_storage = create_ipv6_loopback_addr(12345);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  EXPECT_TRUE(sock.bind(*addr, sizeof(sockaddr_in6), ""));
+  EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
   ASSERT_TRUE(sock.get_listen_port().has_value());
   EXPECT_EQ(sock.get_listen_port().value(), 12345);
 
   verify_bound_address_ipv6(sock.fd().value(), 12345, in6addr_loopback);
-}
-
-/// Test bind fails on a closed socket.
-TEST_F(sctp_socket_test, bind_fails_on_closed_socket)
-{
-  sctp_socket_params params = create_default_params();
-
-  auto result = sctp_socket::create(params);
-  ASSERT_TRUE(result.has_value());
-
-  sctp_socket& sock = result.value();
-  sock.close();
-
-  sockaddr_storage addr_storage = create_ipv4_loopback_addr(0);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
-
-  EXPECT_FALSE(sock.bind(*addr, sizeof(sockaddr_in), ""));
 }
 
 /// Test listen on a bound socket.
@@ -302,9 +281,8 @@ TEST_F(sctp_socket_test, listen_on_bound_socket)
   sctp_socket& sock = result.value();
 
   sockaddr_storage addr_storage = create_ipv4_loopback_addr(0);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  ASSERT_TRUE(sock.bind(*addr, sizeof(sockaddr_in), ""));
+  ASSERT_TRUE(sock.bindx({addr_storage}, ""));
   EXPECT_TRUE(sock.listen());
 }
 
@@ -321,8 +299,8 @@ TEST_F(sctp_socket_test, listen_on_unbound_socket)
   EXPECT_TRUE(sock.listen());
 }
 
-/// Test get_listen_port returns nullopt for an unbound socket. TO-DO: Should this be allowed?
-TEST_F(sctp_socket_test, get_listen_port_returns_zero_for_unbound_socket)
+/// Test get_listen_port returns nullopt for an unbound socket.
+TEST_F(sctp_socket_test, get_listen_port_returns_nullopt_for_unbound_socket)
 {
   sctp_socket_params params = create_default_params();
 
@@ -360,9 +338,8 @@ TEST_F(sctp_socket_test, get_listen_port_returns_nullopt_for_closed_socket)
   sctp_socket& sock = result.value();
 
   sockaddr_storage addr_storage = create_ipv4_loopback_addr(0);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  ASSERT_TRUE(sock.bind(*addr, sizeof(sockaddr_in), ""));
+  ASSERT_TRUE(sock.bindx({addr_storage}, ""));
 
   EXPECT_TRUE(sock.get_listen_port().has_value());
   EXPECT_GT(sock.get_listen_port().value(), 0);
@@ -424,8 +401,8 @@ TEST_F(sctp_socket_test, bindx_fails_on_closed_socket)
   EXPECT_FALSE(sock.bindx(addrs, ""));
 }
 
-/// Test connect fails on a closed socket.
-TEST_F(sctp_socket_test, connect_fails_on_closed_socket)
+/// Test connectx fails on a closed socket.
+TEST_F(sctp_socket_test, connectx_fails_on_closed_socket)
 {
   sctp_socket_params params = create_default_params();
 
@@ -436,9 +413,8 @@ TEST_F(sctp_socket_test, connect_fails_on_closed_socket)
   sock.close();
 
   sockaddr_storage addr_storage = create_ipv4_loopback_addr(12345);
-  auto*            addr         = reinterpret_cast<sockaddr*>(&addr_storage);
 
-  EXPECT_FALSE(sock.connect(*addr, sizeof(sockaddr_in)));
+  EXPECT_FALSE(sock.connectx({addr_storage}));
 }
 
 /// Test connectx fails with an empty address list.
@@ -452,23 +428,6 @@ TEST_F(sctp_socket_test, connectx_fails_with_empty_list)
   sctp_socket& sock = result.value();
 
   std::vector<sockaddr_storage> addrs;
-  EXPECT_FALSE(sock.connectx(addrs));
-}
-
-/// Test connectx fails on a closed socket.
-TEST_F(sctp_socket_test, connectx_fails_on_closed_socket)
-{
-  sctp_socket_params params = create_default_params();
-
-  auto result = sctp_socket::create(params);
-  ASSERT_TRUE(result.has_value());
-
-  sctp_socket& sock = result.value();
-  sock.close();
-
-  std::vector<sockaddr_storage> addrs;
-  addrs.push_back(create_ipv4_loopback_addr(12345));
-
   EXPECT_FALSE(sock.connectx(addrs));
 }
 

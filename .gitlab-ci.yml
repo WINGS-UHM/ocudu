@@ -361,6 +361,12 @@ unit coverage:
       if [[ $coverage_report = "full" ]]; then
         publish_to_registry
       fi
+    - |
+      if [[ $CI_COMMIT_BRANCH == "$CI_DEFAULT_BRANCH" ]]; then
+        cd ${CI_PROJECT_DIR}
+        tar -czf coverage_html.tar.gz coverage_html
+        curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file coverage_html.tar.gz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/coverage_html/latest/coverage_html.tar.gz
+      fi
   coverage: /^\s*Line coverage:\s*\d+.\d+\%/
   artifacts: &unit_coverage_artifacts
     paths:
@@ -399,7 +405,7 @@ doxygen:
     - if: $ON_MR
       changes:
         paths:
-          - docs/doxygen/**/*
+          - docs/**/*
   script:
     - |
       rm -Rf build_doxygen
@@ -407,6 +413,12 @@ doxygen:
       cd build_doxygen || exit
       cmake -DENABLE_UHD=False -DDOXYGEN_HAVE_DOT=False -DBUILD_TESTING=False ..
       make -j $(nproc) doxygen
+    - |
+      if [[ $CI_COMMIT_BRANCH == "$CI_DEFAULT_BRANCH" ]]; then
+        cd ${CI_PROJECT_DIR}
+        tar -czf doxygen.tar.gz build_doxygen/docs/doxygen/html
+        curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file doxygen.tar.gz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/doxygen/latest/doxygen.tar.gz
+      fi
   artifacts:
     paths:
       - build_doxygen/docs/doxygen/html
@@ -415,60 +427,3 @@ doxygen:
     - job: trigger doxygen
       optional: true
       artifacts: false
-
-build docusaurus:
-  stage: documentation
-  image: node:20
-  rules:
-    - if: $ON_MR
-      changes:
-        paths:
-          - docs/docusaurus/**/*
-          - "**/*.md"
-      variables:
-        BASE_URL: /-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/
-  script:
-    # Move static HTML reports
-    - mkdir -p docs/docusaurus/static
-    - mv coverage_html docs/docusaurus/static/coverage || true
-    - mv codechecker-cppcheck-html docs/docusaurus/static/cppcheck || true
-    - mv build_doxygen/docs/doxygen/html docs/docusaurus/static/doxygen || true
-    # Build Docusaurus site
-    - cd docs/docusaurus
-    - npm install
-    - npm run build
-    - cd ${CI_PROJECT_DIR}
-    # Move built site to public folder
-    - mv docs/docusaurus/build public
-    # Report link
-    - |
-      echo "*******************************************************************************************************************************"
-      echo "https://${CI_PROJECT_NAMESPACE_SLUG}.${CI_PAGES_DOMAIN}/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
-      echo "*******************************************************************************************************************************"
-  needs:
-    - job: unit coverage
-      artifacts: true
-    - job: doxygen
-      artifacts: true
-      optional: true
-  artifacts:
-    paths:
-      - public
-    expire_in: 1 day
-
-pages:
-  extends: build docusaurus
-  environment:
-    name: pages
-    url: $CI_PAGES_URL
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: always # Even if previous stages/required jobs fail
-      allow_failure: true
-  needs:
-    - job: unit coverage dev
-      artifacts: true
-    - job: cppcheck
-      artifacts: true
-    - job: doxygen
-      artifacts: true

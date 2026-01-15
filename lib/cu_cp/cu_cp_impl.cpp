@@ -220,8 +220,7 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
       return;
     }
 
-    // TODO: Check UE capabilities for RRC inactive support.
-    if (cfg.ue.enable_rrc_inactive) {
+    if (cfg.ue.enable_rrc_inactive && ue->get_rrc_ue()->is_rrc_inactive_supported()) {
       // Set UE as inactive.
       std::optional<i_rntis_t> i_rntis = ue_mng.set_inactive(ue->get_ue_index());
       if (i_rntis.has_value()) {
@@ -282,6 +281,10 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
       }
     } else {
       // Inactivity is not possible, so the UE must be released.
+      logger.debug("ue={}: Releasing UE due to inactivity notification. RRC Inactive is not {}",
+                   msg.ue_index,
+                   cfg.ue.enable_rrc_inactive ? "supported by the UE" : "configured");
+
       cu_cp_ue_context_release_request req;
       req.ue_index = msg.ue_index;
       req.cause    = ngap_cause_radio_network_t::user_inactivity;

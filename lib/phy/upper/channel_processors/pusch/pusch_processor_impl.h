@@ -12,6 +12,7 @@
 
 #include "pusch_processor_notifier_adaptor.h"
 #include "pusch_uci_decoder_wrapper.h"
+#include "ocudu/phy/upper/channel_estimation.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
@@ -19,6 +20,7 @@
 #include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
 #include "ocudu/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 #include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <memory>
 

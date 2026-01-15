@@ -53,6 +53,7 @@ void dmrs_pusch_estimator_impl::estimate(dmrs_pusch_estimator_notifier& notifier
   est_cfg.rx_ports     = config.rx_ports;
   est_cfg.scaling      = config.scaling;
 
+  ch_est_result.resize(nof_rx_ports);
   pending_ports = nof_rx_ports;
   for (unsigned i_port = 0; i_port != nof_rx_ports; ++i_port) {
     auto estimator_callback = [this, &grid, i_port, &notifier]() {

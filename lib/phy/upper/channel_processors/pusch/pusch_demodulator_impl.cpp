@@ -15,6 +15,7 @@
 #include "ocudu/ocuduvec/simd.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
+#include "ocudu/support/transform_optional.h"
 
 #if defined(__SSE3__)
 #include <immintrin.h>
@@ -256,14 +257,14 @@ static float filter_infinite_and_accumulate(unsigned& count, span<const float> i
   return sum;
 }
 
-void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&      codeword_buffer,
-                                        pusch_demodulator_notifier& notifier,
-                                        const resource_grid_reader& grid,
-                                        const channel_estimate&     estimates,
-                                        const configuration&        config)
+void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&              codeword_buffer,
+                                        pusch_demodulator_notifier&         notifier,
+                                        const resource_grid_reader&         grid,
+                                        const dmrs_pusch_estimator_results& est_results,
+                                        const configuration&                config)
 {
   // Number of receive antenna ports.
-  unsigned nof_rx_ports = static_cast<unsigned>(config.rx_ports.size());
+  auto nof_rx_ports = static_cast<unsigned>(config.rx_ports.size());
 
   // Initialize sequence.
   unsigned c_init = config.rnti * pow2(15) + config.n_id;
@@ -315,17 +316,28 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&      codeword_buf
     span<cf_t>  eq_re         = span<cf_t>(temp_eq_re).first(nof_re_symbol * config.nof_tx_layers);
     span<float> eq_noise_vars = span<float>(temp_eq_noise_vars).first(nof_re_symbol * config.nof_tx_layers);
 
-    // Extract the data symbols and channel estimates from the resource grid.
-    const re_buffer_reader<cbf16_t>&      ch_re = get_ch_data_re(grid, i_symbol, symbol_re_mask, config.rx_ports);
-    const channel_equalizer::ch_est_list& ch_estimates =
-        get_ch_data_estimates(estimates, i_symbol, config.nof_tx_layers, symbol_re_mask, config.rx_ports);
+    // Look for DC (Direct Current) subcarrier only with transform precoding disabled. This step is skipped when
+    // transform precoding is used, as forcing the DC to zero in that case may introduce non-linear distortion after the
+    // inverse transform. The issue is particularly pronounced for narrowband PUSCH transmissions.
+    std::optional<unsigned> dc_position = config.enable_transform_precoding ? std::nullopt : config.dc_position;
+
+    // Extract channel estimates from the resource grid.
+    unsigned            ref_re = config.rb_mask.find_lowest() * NOF_SUBCARRIERS_PER_RB;
+    re_symbol_mask_type symbol_re_mask_local =
+        symbol_re_mask.slice(ref_re, (config.rb_mask.find_highest() + 1) * NOF_SUBCARRIERS_PER_RB - 1);
+    std::optional<unsigned> dc_position_local = transform_optional(dc_position, std::minus(), ref_re);
+
+    const channel_equalizer::ch_est_list& ch_estimates = get_ch_data_estimates(
+        est_results, i_symbol, config.nof_tx_layers, symbol_re_mask_local, dc_position_local, config.rx_ports);
 
     // Extract the Rx port noise variances from the channel estimation.
     for (unsigned i_port = 0; i_port != nof_rx_ports; ++i_port) {
-      noise_var_estimates[i_port] = estimates.get_noise_variance(i_port);
+      noise_var_estimates[i_port] = est_results.get_noise_variance(i_port);
     }
 
-    // Equalize channels and, for each Tx layer, combine contribution from all Rx antenna ports.
+    // Extract the data symbols, equalize channels and, for each Tx layer, combine contribution from all Rx antenna
+    // ports.
+    const re_buffer_reader<cbf16_t>& ch_re = get_ch_data_re(grid, i_symbol, symbol_re_mask, config.rx_ports);
     equalizer->equalize(
         eq_re, eq_noise_vars, ch_re, ch_estimates, span<float>(noise_var_estimates).first(nof_rx_ports), 1.0F);
 

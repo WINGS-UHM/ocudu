@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/phy/metrics/phy_metrics_notifiers.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
@@ -29,11 +30,11 @@ public:
     ocudu_assert(base, "Invalid PUSCH demodulator.");
   }
 
-  void demodulate(pusch_codeword_buffer&      codeword_buffer,
-                  pusch_demodulator_notifier& demodulator_notifier,
-                  const resource_grid_reader& grid,
-                  const channel_estimate&     estimates,
-                  const configuration&        config) override
+  void demodulate(pusch_codeword_buffer&              codeword_buffer,
+                  pusch_demodulator_notifier&         demodulator_notifier,
+                  const resource_grid_reader&         grid,
+                  const dmrs_pusch_estimator_results& est_results,
+                  const configuration&                config) override
   {
     base_buffer             = &codeword_buffer;
     elapsed_on_new_block    = {};
@@ -44,7 +45,7 @@ public:
       // Use scoped resource usage class to measure CPU usage of this block.
       resource_usage_utils::scoped_resource_usage rusage_tracker(metrics.measurements);
       // Prepare base and save the base buffer.
-      base->demodulate(*this, demodulator_notifier, grid, estimates, config);
+      base->demodulate(*this, demodulator_notifier, grid, est_results, config);
     }
     metrics.elapsed_buffer = elapsed_on_new_block + elapsed_on_end_codeword;
 

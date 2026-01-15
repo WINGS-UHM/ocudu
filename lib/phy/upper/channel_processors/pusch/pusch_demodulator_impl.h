@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include "ocudu/ocuduvec/copy.h"
 #include "ocudu/phy/generic_functions/transform_precoding/transform_precoder.h"
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/support/resource_grid_reader.h"
@@ -22,8 +21,8 @@
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
 #include "ocudu/phy/upper/equalization/channel_equalizer.h"
 #include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
-#include "ocudu/phy/upper/equalization/modular_ch_est_list.h"
 #include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
+#include "ocudu/ran/pusch/pusch_constants.h"
 
 namespace ocudu {
 
@@ -58,11 +57,11 @@ public:
     ocudu_assert(descrambler, "Invalid pointer to pseudo_random_generator object.");
   }
   // See interface for the documentation.
-  void demodulate(pusch_codeword_buffer&      data,
-                  pusch_demodulator_notifier& notifier,
-                  const resource_grid_reader& grid,
-                  const channel_estimate&     estimates,
-                  const configuration&        config) override;
+  void demodulate(pusch_codeword_buffer&              codeword_buffer,
+                  pusch_demodulator_notifier&         notifier,
+                  const resource_grid_reader&         grid,
+                  const dmrs_pusch_estimator_results& est_results,
+                  const configuration&                config) override;
 
 private:
   /// Data type for representing an RE mask within an OFDM symbol.
@@ -130,44 +129,28 @@ private:
   /// estimate. The DM-RS symbols are skipped. The extracted channel coefficients are arranged in three dimensions,
   /// i.e., resource element, receive port and transmit layer, as the channel equalizer expects.
   ///
-  /// \param[in]  channel_estimate Channel estimation object.
+  /// \param[in]  est_results   Interface to access the channel estimates for the REs allocated to the PUSCH
+  ///                           transmission.
   /// \param[in]  i_symbol      OFDM symbol index relative to the beginning of the slot.
   /// \param[in]  init_subc     Initial subcarrier index relative to Point A.
   /// \param[in]  nof_tx_layers Number of layers.
-  /// \param[in]  re_mask       Resource element mask, it selects the RE elements to extract.
+  /// \param[in]  re_mask       Resource element mask, it selects the RE elements to extract (only relative to the
+  ///                           allocated RBs).
+  /// \param[in]  dc_position   Direct current position: emtpy if not configured or with transform precoding enabled.
   /// \param[in]  rx_ports      Receive ports list.
   /// \return A reference to the PUSCH channel data estimates.
-  const channel_equalizer::ch_est_list& get_ch_data_estimates(const channel_estimate&                  channel_estimate,
+  const channel_equalizer::ch_est_list& get_ch_data_estimates(const dmrs_pusch_estimator_results&      est_results,
                                                               unsigned                                 i_symbol,
                                                               unsigned                                 nof_tx_layers,
                                                               const re_symbol_mask_type&               re_mask,
+                                                              std::optional<unsigned>                  dc_position,
                                                               const static_vector<uint8_t, MAX_PORTS>& rx_ports)
   {
     // Extract RE boundaries.
     unsigned nof_re = re_mask.count();
     int      begin  = re_mask.find_lowest();
     int      end    = re_mask.find_highest();
-    ocudu_assert(begin <= end, "Invalid mask.");
-
-    // Check if the mask is contiguous.
-    if (nof_re == static_cast<unsigned>(end + 1 - begin)) {
-      // Prepare channel estimates view.
-      ch_estimates_view.resize(nof_re, rx_ports.size(), nof_tx_layers);
-
-      // Iterate over all layers and ports.
-      for (unsigned i_layer = 0, i_layer_end = nof_tx_layers; i_layer != i_layer_end; ++i_layer) {
-        for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
-          // View of the channel estimation for an OFDM symbol.
-          span<const cbf16_t> symbol_estimates = channel_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer);
-
-          // Set the view in the channel estimates.
-          ch_estimates_view.set_channel(symbol_estimates.subspan(begin, nof_re), i_port, i_layer);
-        }
-      }
-
-      // Return the reference to the view buffer.
-      return ch_estimates_view;
-    }
+    ocudu_assert((begin >= 0) && (end >= 0), "Invalid mask.");
 
     ch_estimates_copy.resize(nof_re, rx_ports.size(), nof_tx_layers);
 
@@ -177,25 +160,25 @@ private:
         // Get a view of the channel estimates buffer for a single Rx port.
         span<cbf16_t> ch_port_buffer = ch_estimates_copy.get_channel(i_port, i_layer);
 
-        // View of the channel estimation for an OFDM symbol.
-        span<const cbf16_t> symbol_estimates = channel_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer);
+        // Check if we are using the entire bandwidth.
+        if (nof_re == re_mask.size()) {
+          // Store the entire symbol.
+          est_results.get_symbol_ch_estimate(ch_port_buffer, i_symbol, i_port, i_layer);
 
-        // Get view of the selected area of the grid.
-        symbol_estimates = symbol_estimates.first(re_mask.size());
+          if (dc_position.has_value()) {
+            ch_port_buffer[*dc_position] = 0;
+          }
+        } else {
+          // Store non-DM-RS REs.
+          est_results.get_symbol_ch_estimate(ch_port_buffer, i_symbol, i_port, i_layer, re_mask);
 
-        // Skip DM-RS estimates.
-        re_mask.for_each(0, re_mask.size(), [&symbol_estimates, &ch_port_buffer](unsigned i_re) {
-          // Copy RE.
-          ch_port_buffer.front() = to_cf(symbol_estimates[i_re]);
-
-          // Advance buffer.
-          ch_port_buffer = ch_port_buffer.last(ch_port_buffer.size() - 1);
-        });
-
-        // Verify buffer size.
-        ocudu_assert(ch_port_buffer.empty(),
-                     "Invalid number of RE read from the channel estimates. {} RE are missing.",
-                     ch_port_buffer.size());
+          if (dc_position.has_value() && re_mask.test(*dc_position)) {
+            // The number of active REs before the DC position gives the offset inside ch_port_buffer.
+            re_symbol_mask_type local_mask        = re_mask.slice(begin, *dc_position);
+            unsigned            relative_position = local_mask.count();
+            ch_port_buffer[relative_position]     = 0;
+          }
+        }
       }
     }
 
@@ -222,8 +205,6 @@ private:
   std::vector<float> temp_eq_noise_vars;
   /// Copy buffer used to transfer channel estimation coefficients from the channel estimate to the equalizer.
   dynamic_ch_est_list ch_estimates_copy;
-  /// View buffer used to transfer channel estimation coefficients from the channel estimate to the equalizer.
-  modular_ch_est_list<pusch_constants::MAX_NOF_RX_PORTS * pusch_constants::MAX_NOF_LAYERS> ch_estimates_view;
   /// Buffer used to transfer noise variance estimates from the channel estimate to the equalizer.
   std::array<float, MAX_PORTS> noise_var_estimates;
 

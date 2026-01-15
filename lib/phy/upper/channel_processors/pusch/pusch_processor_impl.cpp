@@ -213,64 +213,13 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
 {
   using namespace units::literals;
 
-  // Get channel estimates storage and fill it with the results of the DM-RS channel estimator.
-  // TODO: This won't be necessary once the demodulator takes the results interface as input.
-  // TODO: We can remove ch_estimate from the dependencies - now (a variable local to this method should be enough) or
-  // wait the end of the refactor?
-  channel_estimate& ch_estimate = dependencies->get_channel_estimate();
-
   // Get RB mask relative to Point A. According to TS38.211 Section 6.3.1.7, the VRB-to-PRB mapping for PUSCH is never
   // interleaved.
   crb_bitmap rb_mask = pdu.freq_alloc.get_crb_mask(pdu.bwp_start_rb, pdu.bwp_size_rb);
 
-  ch_estimate.resize({static_cast<unsigned>(rb_mask.size()),
-                      pdu.start_symbol_index + pdu.nof_symbols,
-                      static_cast<unsigned>(pdu.rx_ports.size()),
-                      pdu.nof_tx_layers});
-
-  for (unsigned i_port = 0, nof_ports = pdu.rx_ports.size(); i_port != nof_ports; ++i_port) {
-    for (unsigned i_layer = 0, nof_layers = pdu.nof_tx_layers; i_layer != nof_layers; ++i_layer) {
-      for (unsigned i_symbol = pdu.start_symbol_index, last_symbol = pdu.start_symbol_index + pdu.nof_symbols;
-           i_symbol != last_symbol;
-           ++i_symbol) {
-        unsigned      first_re = rb_mask.find_lowest() * NOF_SUBCARRIERS_PER_RB;
-        unsigned      nof_re   = rb_mask.count() * NOF_SUBCARRIERS_PER_RB;
-        span<cbf16_t> estimate_values =
-            ch_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer).subspan(first_re, nof_re);
-        est_results.get_symbol_ch_estimate(estimate_values, i_symbol, i_port, i_layer);
-      }
-      ch_estimate.set_time_alignment(est_results.get_time_alignment(i_port), i_port, i_layer);
-      ch_estimate.set_cfo_Hz(est_results.get_cfo_Hz(i_port), i_port, i_layer);
-      ch_estimate.set_rsrp(est_results.get_rsrp(i_port, i_layer), i_port, i_layer);
-    }
-    ch_estimate.set_epre(est_results.get_epre(i_port), i_port);
-    ch_estimate.set_noise_variance(est_results.get_noise_variance(i_port), i_port);
-    ch_estimate.set_snr(est_results.get_snr(i_port), i_port);
-  }
-
-  // Set the DC (Direct Current) subcarrier to zero if its position is within the resource grid and transform precoding
-  // is disabled. This step is skipped when transform precoding is used, as forcing the DC to zero in that case may
-  // introduce non-linear distortion after the inverse transform. The issue is particularly pronounced for narrowband
-  // PUSCH transmissions.
-  if (pdu.dc_position.has_value() && std::holds_alternative<dmrs_configuration>(pdu.dmrs)) {
-    for (unsigned i_port = 0, i_port_end = pdu.rx_ports.size(); i_port != i_port_end; ++i_port) {
-      for (unsigned i_layer = 0, i_layer_end = pdu.nof_tx_layers; i_layer != i_layer_end; ++i_layer) {
-        for (unsigned i_symbol = pdu.start_symbol_index, i_symbol_end = pdu.start_symbol_index + pdu.nof_symbols;
-             i_symbol != i_symbol_end;
-             ++i_symbol) {
-          // Extract channel estimates for the OFDM symbol, port and layer.
-          span<cbf16_t> ce = ch_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer);
-
-          // Set DC to zero.
-          ce[*pdu.dc_position] = 0;
-        }
-      }
-    }
-  }
-
   // Extract channel state information.
   channel_state_information csi(csi_sinr_calc_method);
-  ch_estimate.get_channel_state_information(csi);
+  est_results.get_channel_state_information(csi);
 
   // Number of RB used by this transmission.
   unsigned nof_rb = pdu.freq_alloc.get_nof_rb();
@@ -396,8 +345,9 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
   demod_config.nof_cdm_groups_without_data = ulsch_config.nof_cdm_groups_without_data;
   demod_config.n_id                        = pdu.n_id;
   demod_config.nof_tx_layers               = pdu.nof_tx_layers;
+  demod_config.dc_position                 = pdu.dc_position;
   demod_config.enable_transform_precoding  = enable_transform_precoding;
   demod_config.rx_ports                    = pdu.rx_ports;
   dependencies->get_demodulator().demodulate(
-      demodulator_buffer, notifier_adaptor.get_demodulator_notifier(), grid, ch_estimate, demod_config);
+      demodulator_buffer, notifier_adaptor.get_demodulator_notifier(), grid, est_results, demod_config);
 }

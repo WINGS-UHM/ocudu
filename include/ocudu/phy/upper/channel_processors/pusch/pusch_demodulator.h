@@ -13,10 +13,8 @@
 
 #pragma once
 
-#include "ocudu/phy/support/rb_allocation.h"
-#include "ocudu/phy/upper/channel_estimation.h"
 #include "ocudu/phy/upper/dmrs_mapping.h"
-#include "ocudu/phy/upper/log_likelihood_ratio.h"
+#include "ocudu/phy/upper/signal_processors/pusch/dmrs_pusch_estimator.h"
 #include "ocudu/ran/sch/modulation_scheme.h"
 
 namespace ocudu {
@@ -57,6 +55,10 @@ public:
     unsigned n_id;
     /// Number of transmit layers.
     unsigned nof_tx_layers;
+    /// \brief Direct current position.
+    ///
+    /// It may be empty if it falls outside the bandwidth or if not configured.
+    std::optional<unsigned> dc_position;
     /// Set to true for enabling transform precoding.
     bool enable_transform_precoding;
     /// Receive antenna port indices the PUSCH transmission is mapped to.
@@ -78,13 +80,14 @@ public:
   /// \param[out] codeword_buffer Codeword buffer.
   /// \param[in]  notifier        Demodulation statistics notifier.
   /// \param[in]  grid            Resource grid for the current slot.
-  /// \param[in]  estimates       Channel estimates for the REs allocated to the PUSCH transmission.
+  /// \param[in]  est_results     Interface to access the channel estimates for the REs allocated to the PUSCH
+  ///                             transmission.
   /// \param[in]  config          Configuration parameters.
-  virtual void demodulate(pusch_codeword_buffer&      codeword_buffer,
-                          pusch_demodulator_notifier& notifier,
-                          const resource_grid_reader& grid,
-                          const channel_estimate&     estimates,
-                          const configuration&        config) = 0;
+  virtual void demodulate(pusch_codeword_buffer&              codeword_buffer,
+                          pusch_demodulator_notifier&         notifier,
+                          const resource_grid_reader&         grid,
+                          const dmrs_pusch_estimator_results& est_results,
+                          const configuration&                config) = 0;
 };
 
 } // namespace ocudu

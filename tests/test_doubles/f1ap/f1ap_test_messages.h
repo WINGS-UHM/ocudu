@@ -194,11 +194,12 @@ f1ap_message generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
 
 /// \brief Generates dummy F1AP UL RRC TRANSFER message with provided RRC UL DCCH message and PDCP header with provided
 /// SN, sent by the DU to the CU, as per TS 38.473 section 8.4.3.1.
-f1ap_message generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t du_ue_id,
-                                              gnb_cu_ue_f1ap_id_t cu_ue_id,
-                                              srb_id_t            srb_id,
-                                              uint32_t            pdcp_sn,
-                                              byte_buffer         ul_dcch_msg);
+f1ap_message generate_ul_rrc_message_transfer(gnb_du_ue_f1ap_id_t    du_ue_id,
+                                              gnb_cu_ue_f1ap_id_t    cu_ue_id,
+                                              srb_id_t               srb_id,
+                                              uint32_t               pdcp_sn,
+                                              byte_buffer            ul_dcch_msg,
+                                              std::array<uint8_t, 4> mac = {0x00, 0x00, 0x00, 0x00});
 
 /// \brief Create RRC Container with PDCP header and DL-DCCH message.
 byte_buffer create_dl_dcch_rrc_container(uint32_t pdcp_sn, const std::initializer_list<uint8_t>& dl_dcch_msg);

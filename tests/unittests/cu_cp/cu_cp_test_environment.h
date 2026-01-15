@@ -119,7 +119,8 @@ public:
   /// Runs the NAS Authentication for a given UE.
   [[nodiscard]] bool authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id, amf_ue_id_t amf_ue_id);
   /// Runs the Security Mode procedure for a given UE.
-  [[nodiscard]] bool setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id);
+  [[nodiscard]] bool
+  setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id, bool rrc_inactive_supported = true);
   /// Finishes the registration for a given UE.
   [[nodiscard]] bool finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id);
   /// Requests PDU Session Resource Setup
@@ -147,7 +148,8 @@ public:
                                pdu_session_id_t       psi               = pdu_session_id_t::min,
                                drb_id_t               drb_id            = drb_id_t::drb1,
                                qos_flow_id_t          qfi               = qos_flow_id_t::min,
-                               byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value());
+                               byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
+                               bool        rrc_inactive_supported       = true);
   /// Reestablishes a UE connection, including RRC Reestablishment and RRC Reconfiguration procedures.
   /// \return True if the reestablishment was successful, false if RRC Setup/Reject was performed instead.
   [[nodiscard]] bool reestablish_ue(unsigned            du_idx,

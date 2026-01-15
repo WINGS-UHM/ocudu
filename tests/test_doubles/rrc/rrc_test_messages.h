@@ -40,6 +40,9 @@ asn1::rrc_nr::ul_dcch_msg_s create_rrc_resume_complete(uint8_t transaction_id = 
 /// \brief Generates a dummy RRC Setup Complete message.
 asn1::rrc_nr::ul_dcch_msg_s create_rrc_setup_complete(uint8_t sel_plmn_id = 1);
 
+/// \brief Generates a dummy UE Capability Info message.
+asn1::rrc_nr::ul_dcch_msg_s create_ue_capability_info(uint8_t transaction_id = 0, bool rrc_inactive_supported = true);
+
 /// \brief Generates a dummy RRC Reestablishment Complete message.
 asn1::rrc_nr::ul_dcch_msg_s create_rrc_reestablishment_complete();
 

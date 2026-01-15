@@ -521,7 +521,9 @@ bool cu_cp_test_environment::authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_
   return result;
 }
 
-bool cu_cp_test_environment::setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id)
+bool cu_cp_test_environment::setup_ue_security(unsigned            du_idx,
+                                               gnb_du_ue_f1ap_id_t du_ue_id,
+                                               bool                rrc_inactive_supported)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -574,10 +576,10 @@ bool cu_cp_test_environment::setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_i
       du_ue_id,
       ue_ctx.cu_ue_id.value(),
       srb_id_t::srb1,
-      make_byte_buffer("00044c821930680ce811d1968097e360e1480005824c5c00060fc2c00637fe002e00131401a0000000880058d006007"
-                       "a071e439f0000240400e0300000000100186c0000700809df000000000000030368000800004b2ca000a07143c001c0"
-                       "03c000000100200409028098a8660c")
-          .value()));
+      4,
+      test_helpers::pack_ul_dcch_msg(test_helpers::create_ue_capability_info(2, rrc_inactive_supported)),
+      rrc_inactive_supported ? std::array<uint8_t, 4>{0x11, 0x23, 0x53, 0x24}
+                             : std::array<uint8_t, 4>{0xb8, 0xe4, 0x13, 0x83}));
 
   // Wait for DL RRC Message Transfer (containing NAS Registration Accept).
   result = this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu);
@@ -910,7 +912,8 @@ bool cu_cp_test_environment::attach_ue(unsigned               du_idx,
                                        pdu_session_id_t       psi,
                                        drb_id_t               drb_id,
                                        qos_flow_id_t          qfi,
-                                       byte_buffer            rrc_reconfiguration_complete)
+                                       byte_buffer            rrc_reconfiguration_complete,
+                                       bool                   rrc_inactive_supported)
 {
   if (not connect_new_ue(du_idx, du_ue_id, crnti)) {
     return false;
@@ -918,7 +921,7 @@ bool cu_cp_test_environment::attach_ue(unsigned               du_idx,
   if (not authenticate_ue(du_idx, du_ue_id, amf_ue_id)) {
     return false;
   }
-  if (not setup_ue_security(du_idx, du_ue_id)) {
+  if (not setup_ue_security(du_idx, du_ue_id, rrc_inactive_supported)) {
     return false;
   }
   if (not finish_ue_registration(du_idx, cu_up_idx, du_ue_id)) {

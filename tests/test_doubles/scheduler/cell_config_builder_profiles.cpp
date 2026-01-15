@@ -58,3 +58,42 @@ cell_config_builder_profiles::create(duplex_mode mode, frequency_range fr, bs_ch
   report_error_if_not(fr == frequency_range::FR1, "FDD bands are only supported in FR1");
   return fdd(bw);
 }
+
+tdd_ul_dl_config_common cell_config_builder_profiles::create_tdd_pattern(tdd_pattern_profile_fr1_30khz pattern)
+{
+  tdd_ul_dl_config_common cfg;
+  cfg.ref_scs = subcarrier_spacing::kHz30;
+
+  switch (pattern) {
+    case tdd_pattern_profile_fr1_30khz::DDDDDDDSUU:
+      // FR1.30-1.
+      cfg.pattern1 = {10, 7, 6, 2, 4};
+      break;
+    case tdd_pattern_profile_fr1_30khz::DDDSU:
+      // FR1.30-2.
+      cfg.pattern1 = {5, 3, 10, 1, 2};
+      break;
+    case tdd_pattern_profile_fr1_30khz::DDDSUDDSUU:
+      // FR1.30-3.
+      cfg.pattern1 = {5, 3, 10, 1, 2};
+      cfg.pattern2 = {5, 2, 10, 2, 2};
+      break;
+    case tdd_pattern_profile_fr1_30khz::DDDSUUDDDD:
+      // FR1.30-4.
+      cfg.pattern1 = {6, 3, 6, 2, 4};
+      cfg.pattern2 = {4, 4, 0, 0, 0};
+      break;
+    case tdd_pattern_profile_fr1_30khz::DSUU:
+      // FR1.30-5.
+      cfg.pattern1 = {4, 1, 12, 2, 0};
+      break;
+    case tdd_pattern_profile_fr1_30khz::DSSU:
+      // FR1.30-6.
+      cfg.pattern1 = {2, 1, 10, 0, 2};
+      cfg.pattern2 = {2, 0, 12, 1, 0};
+      break;
+    default:
+      report_fatal_error("Unrecognized pattern profile");
+  }
+  return cfg;
+}

@@ -18,9 +18,9 @@
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
 #include <gtest/gtest.h>
-#include <ostream>
 
 using namespace ocudu;
+using namespace cell_config_builder_profiles;
 
 struct tdd_test_params {
   bool                    csi_rs_enabled;
@@ -148,22 +148,26 @@ TEST_P(scheduler_ul_tdd_tester, all_ul_slots_are_scheduled)
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    scheduler_tdd_test,
-    scheduler_dl_tdd_tester,
-    testing::Values(
-        // clang-format off
-// csi_enabled, {ref_scs, pattern1={slot_period, DL_slots, DL_symbols, UL_slots, UL_symbols}, pattern2={...}, min_k}
+INSTANTIATE_TEST_SUITE_P(scheduler_tdd_test,
+                         scheduler_dl_tdd_tester,
+                         testing::Values(
+                             // clang-format off
+  // csi_enabled, {ref_scs, pattern1={slot_period, DL_slots, DL_symbols, UL_slots, UL_symbols}, pattern2={...}, min_k}
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 6, 5, 3, 4}}}, // DDDDDDSUUU
-  tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 7, 5, 2, 4}}}, // DDDDDDDSUU
-  tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 7, 5, 2, 4}}, 1},
+  // > TS 38.101-4, Table A.1.2-2: TDD UL-DL configuration for SCS 30kHz.
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDDDDDSUU)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDDDDDSUU), 2},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSU)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSU), 2},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSUDDSUU)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSUUDDDD)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DSUU)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DSSU)},
+  // > Other DL-heavy patterns.
   tdd_test_params{false, {subcarrier_spacing::kHz30, {10, 8, 0, 1, 0}}},
   tdd_test_params{false, {subcarrier_spacing::kHz30, {10, 8, 0, 1, 0}}, 1},
-  tdd_test_params{false, {subcarrier_spacing::kHz30, {6,  3, 5, 2, 0}, tdd_ul_dl_pattern{4, 4, 0, 0, 0}}},
-  // DDDSUUDDDD, TS 38.101-4, Table A.1.2-2, Configuration FR1.30-4.
-  tdd_test_params{false, {subcarrier_spacing::kHz30, {6,  3, 6, 2, 4}, tdd_ul_dl_pattern{4, 4, 0, 0, 0}}},
-  tdd_test_params{true,  {subcarrier_spacing::kHz30, {5,  3, 9, 1, 0}}},
-  tdd_test_params{true,  {subcarrier_spacing::kHz30, {5,  3, 9, 1, 0}}, 1},
+  // >> DDDSUUUUDD
+  tdd_test_params{true, {subcarrier_spacing::kHz30, {8,  3, 6, 4, 4}, tdd_ul_dl_pattern{2, 2, 0, 0, 0}}},
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {4,  2, 9, 1, 0}}},
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {4,  2, 9, 1, 0}}, 1},
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 6, 13, 3, 0}}, 4} // DDDDDDSUUU, with 13 DL symbols in special slot
@@ -179,13 +183,20 @@ INSTANTIATE_TEST_SUITE_P(
     scheduler_ul_tdd_tester,
     testing::Values(
         // clang-format off
-// csi_enabled, {ref_scs, pattern1={slot_period, DL_slots, DL_symbols, UL_slots, UL_symbols}, pattern2={...}}
+  // csi_enabled, {ref_scs, pattern1={slot_period, DL_slots, DL_symbols, UL_slots, UL_symbols}, pattern2={...}}
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 6, 5, 3, 4}}}, // DDDDDDSUUU
-  tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 7, 5, 2, 4}}}, // DDDDDDDSUU
+  // > TS 38.101-4, Table A.1.2-2: TDD UL-DL configuration for SCS 30kHz.
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDDDDDSUU)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDDDDDSUU), 2},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSU)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSUDDSUU), 2},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSUUDDDD)},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DSUU), 2},
+  tdd_test_params{true, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DSSU)},
+  // > Other DL heavy patterns
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 8, 5, 1, 4}}}, // DDDDDDDDSU
-  tdd_test_params{false, {subcarrier_spacing::kHz30, {6,  3, 5, 2, 0}, tdd_ul_dl_pattern{4, 4, 0, 0, 0}}},
-  // DDDSUUDDDD, TS 38.101-4, Table A.1.2-2, Configuration FR1.30-4.
-  tdd_test_params{false, {subcarrier_spacing::kHz30, {6,  3, 6, 2, 4}, tdd_ul_dl_pattern{4, 4, 0, 0, 0}}},
+  // >> DDDSUUUUDD
+  tdd_test_params{true, {subcarrier_spacing::kHz30, {8,  3, 6, 4, 4}, tdd_ul_dl_pattern{2, 2, 0, 0, 0}}},
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {4,  2, 9, 1, 0}}},  // DDSU
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 4, 5, 5, 0}}, 5}, // DDDDSUUUUU
   tdd_test_params{true,  {subcarrier_spacing::kHz30, {10, 6, 13, 3, 0}}, 4}, // DDDDDDSUUU, with 13 DL symbols in special slot

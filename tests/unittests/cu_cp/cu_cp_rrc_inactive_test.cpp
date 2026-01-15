@@ -49,11 +49,46 @@ public:
     EXPECT_TRUE(ret.has_value());
     cu_up_idx = ret.value();
     EXPECT_TRUE(this->run_e1_setup(cu_up_idx));
+  }
 
-    // Connect UE 0x4601.
-    EXPECT_TRUE(attach_ue(du_idx, cu_up_idx, du_ue_id, crnti, amf_ue_id, cu_up_e1ap_id, psi, drb_id_t::drb1, qfi));
+  void connect_ue_with_rrc_inactive_support()
+  {
+    // Connect UE 0x4601 with RRC inactive support.
+    report_fatal_error_if_not(attach_ue(du_idx,
+                                        cu_up_idx,
+                                        du_ue_id,
+                                        crnti,
+                                        amf_ue_id,
+                                        cu_up_e1ap_id,
+                                        psi,
+                                        drb_id_t::drb1,
+                                        qfi,
+                                        make_byte_buffer("00070e00cc6fcda5").value(),
+                                        true),
+                              "Failed to attach UE with RRC Inactive support");
     ue_ctx = this->find_ue_context(du_idx, du_ue_id);
-    EXPECT_NE(ue_ctx, nullptr);
+    report_fatal_error_if_not(ue_ctx != nullptr,
+                              "Failed to find UE context after attaching UE with RRC Inactive support");
+  }
+
+  void connect_ue_without_rrc_inactive_support()
+  {
+    // Connect UE 0x4601 without RRC inactive support.
+    report_fatal_error_if_not(attach_ue(du_idx,
+                                        cu_up_idx,
+                                        du_ue_id,
+                                        crnti,
+                                        amf_ue_id,
+                                        cu_up_e1ap_id,
+                                        psi,
+                                        drb_id_t::drb1,
+                                        qfi,
+                                        make_byte_buffer("00070e00cc6fcda5").value(),
+                                        false),
+                              "Failed to attach UE without RRC Inactive support");
+    ue_ctx = this->find_ue_context(du_idx, du_ue_id);
+    report_fatal_error_if_not(ue_ctx != nullptr,
+                              "Failed to find UE context after attaching UE with RRC Inactive support");
   }
 
   [[nodiscard]] bool send_bearer_context_inactivity_notification(const e1ap_message& inactivity_notification)
@@ -65,6 +100,24 @@ public:
 
     // Inject inactivity notification.
     get_cu_up(cu_up_idx).push_tx_pdu(inactivity_notification);
+    return true;
+  }
+
+  [[nodiscard]] bool send_ue_level_bearer_context_inactivity_notification_and_await_ue_context_release_request()
+  {
+    report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
+                              "there are still NGAP messages to pop from AMF");
+    report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+
+    // Inject inactivity notification and wait for UE Context Release Request.
+    if (!send_bearer_context_inactivity_notification(generate_bearer_context_inactivity_notification_with_ue_level(
+            ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id))) {
+      return false;
+    }
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive UE Context Release Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_request(ngap_pdu),
+                              "Invalid UE Context Release Request");
     return true;
   }
 
@@ -445,7 +498,7 @@ public:
   gnb_du_ue_f1ap_id_t du_ue_id_2 = int_to_gnb_du_ue_f1ap_id(1);
   rnti_t              crnti_2    = to_rnti(0x4602);
 
-  const ue_context* ue_ctx = nullptr;
+  const cu_cp_test_environment::ue_context* ue_ctx = nullptr;
 
   pdu_session_id_t psi  = uint_to_pdu_session_id(1);
   pdu_session_id_t psi2 = uint_to_pdu_session_id(2);
@@ -457,8 +510,29 @@ public:
   ngap_message ngap_pdu;
 };
 
+//----------------------------------------------------------------------------------//
+// UE without RRC Inactive support                                                  //
+//----------------------------------------------------------------------------------//
+
+TEST_F(cu_cp_rrc_inactive_test,
+       when_ue_level_inactivity_message_received_and_rrc_inactive_not_supported_then_ue_is_released)
+{
+  // Connect UE without RRC Inactive support.
+  connect_ue_without_rrc_inactive_support();
+
+  // Inject Inactivity Notification and await UE Context Release Request.
+  ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_ue_context_release_request());
+}
+
+//----------------------------------------------------------------------------------//
+// UE with RRC Inactive support                                                     //
+//----------------------------------------------------------------------------------//
+
 TEST_F(cu_cp_rrc_inactive_test, when_ue_level_inactivity_message_received_then_ue_is_set_to_rrc_inactive)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Inject Inactivity Notification and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
 
@@ -477,6 +551,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_level_inactivity_message_received_then_u
 TEST_F(cu_cp_rrc_inactive_test,
        when_drb_level_inactivity_message_with_inactivity_for_all_drbs_received_then_ue_is_set_to_rrc_inactive)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Inject Inactivity Notification and await Bearer Context Modification Request.
   ASSERT_TRUE(send_drb_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
 
@@ -495,6 +572,9 @@ TEST_F(cu_cp_rrc_inactive_test,
 TEST_F(cu_cp_rrc_inactive_test,
        when_pdu_session_level_inactivity_message_with_inactivity_for_all_drbs_received_then_ue_is_set_to_rrc_inactive)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Inject Inactivity Notification and await Bearer Context Modification Request.
   ASSERT_TRUE(
       send_pdu_session_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
@@ -517,6 +597,9 @@ TEST_F(cu_cp_rrc_inactive_test,
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existing_ue_is_found_and_resumed)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Check metrics for active RRC UE.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
@@ -561,6 +644,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
 
 TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resume_is_successful_again)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // First Active -> Inactive -> Resume cycle.
 
   // Check metrics for active RRC UE.
@@ -621,6 +707,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resum
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_unknown_ue_is_received_then_fallback_succeeds)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Check metrics for RRC inactive transition.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 0);
@@ -648,6 +737,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_unknown_ue_is_receiv
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_mac_is_received_then_release_is_sent)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Inject Inactivity Notification and handle it.
   ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
 
@@ -691,6 +783,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_
 
 TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_unknown_ue_is_received_then_no_paging_is_sent)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Check metrics for RRC inactive transition.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 0);
@@ -705,6 +800,9 @@ TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_unknown_ue_is_rece
 
 TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_inactive_ue_is_received_then_paging_is_sent_to_du)
 {
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
   // Inject Inactivity Notification and handle it.
   ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
 

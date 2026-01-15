@@ -9,10 +9,8 @@
  */
 
 #include "pdsch.h"
-#include "ocudu/asn1/rrc_nr/bwp_cfg.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
 #include "ocudu/mac/mac_cell_result.h"
-#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/ran/sch/sch_constants.h"
 #include "ocudu/ran/sch/tbs_calculator.h"

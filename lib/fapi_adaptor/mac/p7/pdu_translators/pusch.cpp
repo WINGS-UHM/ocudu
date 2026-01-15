@@ -10,7 +10,6 @@
 
 #include "pusch.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_mapper.h"
-#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 #include "ocudu/ran/sch/sch_constants.h"
 #include "ocudu/scheduler/result/pusch_info.h"
 

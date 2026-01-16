@@ -126,10 +126,65 @@ find . -type f -name "*.m" \
 /" {} \;
 
 # ============================================================================
-# Update copyright in LICENSE and doxygen header.html, which do not match
+# Update headers for YANG files (// comment style)
+# ============================================================================
+find . -type f -name "*.yang" \
+    ! -path "*/external/*" \
+    ! -path "*/node_modules/*" \
+    $ADDITIONAL_IGNORE \
+    -print0 | while IFS= read -r -d '' file; do
+
+    # Check header format
+    found_header=false
+    while IFS= read -r line; do
+        if [ -z "$line" ] && [ "$found_header" = false ]; then
+            continue  # Ignore empty lines before first comment block
+        elif [[ "$line" =~ ^//.*$ ]]; then
+            found_header=true
+            continue  # Line starts with //, keep reading
+        elif [[ -z "$line" ]]; then
+            break  # Empty line after header block - format is valid
+        else
+            echo "$file: Header (or empty line after it) is missing."
+            exit 1
+        fi
+    done <"$file"
+
+    # Replace header
+    perl -0777 -pi -e "s{//[\s\S]*?(?=\n\n)}{//
+// Copyright 2021-$(date +%Y) Software Radio Systems Limited
+//
+// By using this file, you agree to the terms and conditions set
+// forth in the LICENSE file which can be found at the top level of
+// the distribution.
+//}s" "$file"
+
+done
+
+# ============================================================================
+# Update headers for XML files (<!-- --> comment style)
+# ============================================================================
+find . -type f -name "*.xml" \
+    -o -name "*.html" \
+    ! -path "*/external/*" \
+    ! -path "*/node_modules/*" \
+    ! -path "*/build/*" \
+    $ADDITIONAL_IGNORE \
+    -exec perl -0777 -pi -e "s{<!--[\s\S]*?-->}{<!--
+ Copyright 2021-$(date +%Y) Software Radio Systems Limited
+
+ By using this file, you agree to the terms and conditions set
+ forth in the LICENSE file which can be found at the top level of
+ the distribution.
+-->}s" {} \;
+
+# ============================================================================
+# Update copyright in LICENSE and other that do not match
 # any of the previous patterns.
 # ============================================================================
-for FILENAME in "LICENSE" "docs/doxygen/header.html"
+for FILENAME in "LICENSE"
 do
+    if [ -f "$FILENAME" ]; then
         perl -0777 -pi -e "s/Copyright 2021-202\d Software Radio/Copyright 2021-$(date +%Y) Software Radio/" $FILENAME
+    fi
 done

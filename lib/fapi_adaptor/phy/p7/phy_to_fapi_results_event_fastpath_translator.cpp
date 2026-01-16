@@ -216,7 +216,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
     timing_advance_offset_ns = static_cast<int>(timing_advance.value().to_seconds() * 1e9);
   }
 
-  builder_pdu.set_metrics_parameters(sinr_dB, {}, timing_advance_offset_ns, {}, {});
+  builder_pdu.set_metrics_parameters(sinr_dB, timing_advance, std::nullopt, std::nullopt);
 
   unsigned uci_length = get_uci_payload_length(result);
 
@@ -404,7 +404,7 @@ static void add_format_0_1_pucch_pdu(fapi::uci_indication_builder& builder, cons
     timing_advance_offset_ns = static_cast<int>(timing_advance.value().to_seconds() * 1e9);
   }
 
-  builder_format01.set_metrics_parameters(sinr_dB, {}, timing_advance_offset_ns, {}, {});
+  builder_format01.set_metrics_parameters(sinr_dB, timing_advance, std::nullopt, std::nullopt);
 
   // Fill SR parameters.
   fill_format_0_1_sr(builder_format01, result);

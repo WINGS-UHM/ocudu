@@ -144,7 +144,7 @@ bool paging_slot_helper::is_paging_slot_in_search_space0(slot_point pdcch_slot, 
     // TODO: Support multi-beam operations. As per TS 38.304, clause 7.1, In multi-beam operations, the same paging
     //  message are repeated in all transmitted beams.
 
-    if (pdcch_slot.to_uint() % paging_period_slots == type0_pdcch_css_slots[ssb_idx].to_uint()) {
+    if (pdcch_slot.count() % paging_period_slots == type0_pdcch_css_slots[ssb_idx].count()) {
       // All conditions are satisfied.
       return true;
     }

@@ -16,6 +16,7 @@
 #include "ocudu/adt/flat_map.h"
 #include "ocudu/adt/mpmc_queue.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/scheduler/scheduler_paging_handler.h"
@@ -65,8 +66,10 @@ public:
 
 private:
   struct ue_paging_info {
-    sched_paging_information  info;
-    paging_retries_count_type retry_count;
+    sched_paging_information request;
+    /// slot point right after the PTW.
+    std::optional<slot_point_extended> ptw_slot_end;
+    paging_retries_count_type          retry_count;
   };
 
   using paging_info_queue = concurrent_queue<sched_paging_information, concurrent_queue_policy::lockfree_mpmc>;
@@ -74,9 +77,8 @@ private:
   /// \brief Processes pending Paging requests from upper layers.
   void handle_pending_paging_requests();
 
-  std::optional<unsigned> find_pdsch_time_resource(const cell_resource_allocator&  res_grid,
-                                                   const sched_paging_information& pg_info,
-                                                   slot_point                      pdcch_slot) const;
+  std::optional<unsigned>
+  find_pdsch_time_resource(const cell_resource_allocator& res_grid, ue_paging_info& pg_info, slot_point pdcch_slot);
 
   /// \brief Helper function to get sum of paging payload size of each UE scheduled at a particular slot.
   /// \param[in] ue_paging_ids List of UE scheduled at a particular slot for Paging.
@@ -123,6 +125,11 @@ private:
                          const std::vector<ue_paging_id>& ues_paging_ids,
                          const dmrs_information&          dmrs_info,
                          unsigned                         tbs);
+
+  /// Determine whether the current slot is a paging opportunity for the given Paging information.
+  /// \param[in] pdcch_slot PDCCH slot point.
+  /// \param[in] UE paging information context
+  bool is_paging_opportunity(slot_point_extended pdcch_slot, ue_paging_info& pg_info) const;
 
   // Args.
   const scheduler_expert_config& expert_cfg;

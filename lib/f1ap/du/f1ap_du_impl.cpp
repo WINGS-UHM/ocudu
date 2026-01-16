@@ -566,7 +566,7 @@ void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
     if (not paging_drx.has_value()) {
       logger.error("DRX value {} is not supported", msg->paging_drx.to_string());
     } else {
-      info.paging_drx = paging_drx.value();
+      info.paging_drx = radio_frames{paging_drx.value()};
     }
   }
   if (msg->paging_prio_present) {
@@ -597,10 +597,12 @@ void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
   }
   if (msg->nr_paginge_drx_info_present) {
     // eDRX info enabled.
-    auto& edrx      = info.edrx.emplace();
-    edrx.cycle_idle = msg->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle.to_number();
+    auto& edrx = info.edrx.emplace();
+    // Convert number of HSFNs to radio frames.
+    edrx.cycle_idle = radio_frames{
+        static_cast<int64_t>(std::round(msg->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle.to_number() * NOF_SFNS))};
     if (msg->nr_paginge_drx_info.nrpaging_time_win_present) {
-      edrx.ptw = msg->nr_paginge_drx_info.nrpaging_time_win.to_number();
+      edrx.ptw_len = std::chrono::seconds{msg->nr_paginge_drx_info.nrpaging_time_win.to_number()};
     }
   }
 

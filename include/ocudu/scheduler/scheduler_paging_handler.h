@@ -12,6 +12,7 @@
 
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/paging_information.h"
+#include "ocudu/ran/time/radio_frame.h"
 
 namespace ocudu {
 
@@ -26,8 +27,10 @@ struct sched_paging_information {
   /// UE_ID: 5G-S-TMSI mod 1024. Used by the paging scheduler to calculate the Paging Frame.
   /// \remark See TS 38.304, clause 7.1.
   unsigned ue_identity_index_value;
-  /// Paging DRX cycle in radio frames.
-  std::optional<unsigned> paging_drx;
+  /// Paging DRX cycle in radio frames, if provided by upper layers.
+  std::optional<radio_frames> paging_drx;
+  /// Paging eDRX cycle in radio frames.
+  std::optional<paging_edrx_information> edrx;
 };
 
 /// Scheduler interface to handle paging a UE.

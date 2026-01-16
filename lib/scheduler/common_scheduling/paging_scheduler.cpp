@@ -15,6 +15,7 @@
 #include "../support/prbs_calculator.h"
 #include "../support/sch_pdu_builder.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/slot_point_extended.h"
 
 using namespace ocudu;
 
@@ -103,8 +104,7 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
 
   // Group pending paging opportunities based on their PDSCH time resource index.
   for (const auto& pg_it : paging_pending_ues) {
-    const auto& pg_info = pg_it.second.info;
-    if (std::optional<unsigned> time_res_idx = find_pdsch_time_resource(res_grid, pg_info, pdcch_slot);
+    if (std::optional<unsigned> time_res_idx = find_pdsch_time_resource(res_grid, pg_it.second, pdcch_slot);
         time_res_idx.has_value()) {
       // A suitable PDSCH time resource found for this UE.
       pdsch_time_res_idx_to_scheduled_ues_lookup[*time_res_idx].push_back(pg_it.first);
@@ -151,34 +151,118 @@ void paging_scheduler::handle_pending_paging_requests()
                      new_pg_info.paging_identity);
       return;
     }
-    paging_pending_ues.emplace(new_pg_info.paging_identity, ue_paging_info{.info = new_pg_info, .retry_count = 0});
+    paging_pending_ues.emplace(new_pg_info.paging_identity, ue_paging_info{.request = new_pg_info, .retry_count = 0});
   }
 }
 
-std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_resource_allocator&  res_grid,
-                                                                   const sched_paging_information& pg_info,
-                                                                   slot_point                      pdcch_slot) const
+/// Helper function to determine the parameter T, as per TS 38.304, 7.1.
+static unsigned compute_paging_T(const sched_paging_information& pg_info, radio_frames default_paging_cycle)
 {
-  // Use DRX cycle if provided by higher layers.
-  const unsigned drx_cycle = pg_info.paging_drx.has_value() ? pg_info.paging_drx.value() : default_paging_cycle;
+  if (pg_info.edrx.has_value()) {
+    // UE is operating in eDRX and eDRX is configured by upper layers.
+    if (pg_info.edrx->cycle_idle <= hyper_frames{1}) {
+      // If T_{eDRX,CN} is no longer than 1024 radio frames.
+      return pg_info.edrx->cycle_idle.count();
+    }
+  }
 
-  // N value used in equation found at TS 38.304, clause 7.1.
-  const unsigned N           = drx_cycle / nof_pf_per_drx_cycle;
-  const unsigned t_div_n     = drx_cycle / N;
-  const unsigned ue_id_mod_n = pg_info.ue_identity_index_value % N;
+  // T is determined by the shortest between the UE specific DRX values and the default DRX value broadcast in SI.
+  if (pg_info.paging_drx.has_value()) {
+    return std::min(default_paging_cycle, pg_info.paging_drx.value()).count();
+  }
+  return default_paging_cycle.count();
+}
 
-  // Check for paging frame.
+/// Helper to determine the UE_ID as per TS 38.304.
+static unsigned compute_UE_ID(const sched_paging_information& pg_info)
+{
+  // If the UE operates in eDRX, use 5G-S-TMSI mod 4096 (12 bits).
+  if (pg_info.edrx.has_value()) {
+    return pg_info.edrx->extended_ue_identity_index_value % 4096;
+  }
+  // else, use 5G-S-TMSI mod 1024 (10 bits)
+  return pg_info.ue_identity_index_value;
+}
+
+bool paging_scheduler::is_paging_opportunity(slot_point_extended pdcch_slot, ue_paging_info& pg_info) const
+{
+  const auto& req = pg_info.request;
+
+  // Compute parameters specified in TS 38.304, clause 7.1.
+  const unsigned T           = compute_paging_T(req, radio_frames{default_paging_cycle});
+  const unsigned UE_ID       = compute_UE_ID(req);
+  const unsigned N           = T / nof_pf_per_drx_cycle;
+  const unsigned t_div_n     = T / N;
+  const unsigned ue_id_mod_n = UE_ID % N;
+
+  // Check if slot Tx is inside the paging frame (PF) for this UE.
   // (SFN + PF_offset) mod T = (T div N)*(UE_ID mod N). See TS 38.304, clause 7.1.
-  if (((pdcch_slot.sfn() + paging_frame_offset) % drx_cycle) != (t_div_n * ue_id_mod_n)) {
-    return std::nullopt;
+  if (((pdcch_slot.sfn() + paging_frame_offset) % T) != (t_div_n * ue_id_mod_n)) {
+    // Not inside PF.
+    return false;
+  }
+
+  // Check if UE is inside the Paging Time Window (PTW).
+  // Note: PTWs only apply in case eDRX is enabled and DRX cycle is longer than 1024 radio frames, as per
+  // TS 38.304, 7.4.
+  if (req.edrx.has_value() and req.edrx->cycle_idle > hyper_frames{1}) {
+    if (pg_info.ptw_slot_end.has_value() and pdcch_slot >= *pg_info.ptw_slot_end) {
+      // The UE was inside a PTW but it expired.
+      pg_info.ptw_slot_end.reset();
+    }
+
+    if (not pg_info.ptw_slot_end.has_value()) {
+      // Check if the UE is about to enter a new PTW.
+      ocudu_assert(req.edrx->ptw_len.has_value(),
+                   "If eDRX cycle is longer than 1024 radio frames, Paging Time Window needs to be provided");
+
+      // Determine if the UE is within Paging Time Window.
+      const unsigned     UE_ID_H = req.edrx->hashed_ue_identity_index_value;
+      const unsigned     hsfn    = pdcch_slot.hyper_sfn();
+      const hyper_frames Tedrxcn = req.edrx->cycle_idle;
+
+      if ((hsfn % Tedrxcn.count()) != (UE_ID_H % Tedrxcn.count())) {
+        // It is not a PH for CN-initiated eDRX for this UE.
+        return false;
+      }
+      const unsigned     iedrxcn = (UE_ID_H / Tedrxcn.count()) % 8U;
+      const radio_frames L       = *req.edrx->ptw_len;
+      const radio_frames ptw_start{128 * iedrxcn};
+
+      if (pdcch_slot.sfn() != ptw_start.count()) {
+        // Radio frame does not match the start of the PTW. This means that the UE is outside of the PTW.
+        return false;
+      }
+
+      // The UE just entered the PTW. Compute the end of the PTW.
+      // Note: ptw_stop is not PTW_end of the TS. The latter corresponds to the last SFN (inclusive) of the PTW, while
+      // ptw_stop is the SFN right after.
+      const radio_frames ptw_stop = ptw_start + L;
+      pg_info.ptw_slot_end        = slot_point_extended{pdcch_slot.scs(),
+                                                 static_cast<uint32_t>(hsfn + (ptw_stop.count() / NOF_SFNS)),
+                                                 static_cast<uint32_t>(ptw_stop.count() % NOF_SFNS),
+                                                 0};
+    }
   }
 
   // Index (i_s), indicating the index of the PO.
   // i_s = floor (UE_ID/N) mod Ns.
-  const unsigned i_s = (pg_info.ue_identity_index_value / N) % nof_po_per_pf;
+  const unsigned i_s = (UE_ID / N) % nof_po_per_pf;
 
-  if (not slot_helper.is_paging_slot(pdcch_slot, i_s)) {
+  if (not slot_helper.is_paging_slot(pdcch_slot.without_hyper_sfn(), i_s)) {
     // Not a paging slot for this UE.
+    return false;
+  }
+
+  return true;
+}
+
+std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_resource_allocator& res_grid,
+                                                                   ue_paging_info&                pg_info,
+                                                                   slot_point                     pdcch_slot)
+{
+  if (not is_paging_opportunity(pdcch_slot, pg_info)) {
+    // Not a paging opportunity for this UE.
     return std::nullopt;
   }
 
@@ -189,10 +273,10 @@ std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_re
       continue;
     }
 
-    const unsigned msg_size =
-        get_accumulated_paging_msg_size(group) +
-        (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity ? RRC_CN_PAGING_ID_RECORD_SIZE
-                                                                                      : RRC_RAN_PAGING_ID_RECORD_SIZE);
+    const unsigned msg_size = get_accumulated_paging_msg_size(group) +
+                              (pg_info.request.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
+                                   ? RRC_CN_PAGING_ID_RECORD_SIZE
+                                   : RRC_RAN_PAGING_ID_RECORD_SIZE);
     if (is_there_space_available_for_paging(res_grid, time_res_idx, msg_size, pdcch_slot)) {
       return time_res_idx;
     }
@@ -208,7 +292,7 @@ unsigned paging_scheduler::get_accumulated_paging_msg_size(const std::vector<ue_
 
   unsigned payload_size = 0;
   for (ue_paging_id pg_id : ue_paging_ids) {
-    const auto& pg_info = paging_pending_ues.at(pg_id).info;
+    const auto& pg_info = paging_pending_ues.at(pg_id).request;
     if (pg_info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity) {
       payload_size += RRC_CN_PAGING_ID_RECORD_SIZE;
     } else {
@@ -222,8 +306,8 @@ unsigned paging_scheduler::get_accumulated_paging_msg_size(const std::vector<ue_
 void paging_scheduler::handle_paging_information(const sched_paging_information& paging_info)
 {
   if (not new_paging_notifications.try_push(paging_info)) {
-    logger.warning("Discarding paging information for ue ID={}. Cause: Event queue is full",
-                   paging_info.ue_identity_index_value);
+    logger.warning("Discarding paging information for UE ID={}. Cause: Event queue is full",
+                   compute_UE_ID(paging_info));
   }
 }
 
@@ -428,7 +512,7 @@ void paging_scheduler::fill_paging_grant(dl_paging_allocation&            pg_gra
     const auto& pg_info = paging_pending_ues.at(pg_id);
     pg_grant.paging_ue_list.emplace_back();
     pg_grant.paging_ue_list.back().paging_type_indicator =
-        pg_info.info.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
+        pg_info.request.paging_type_indicator == paging_identity_type::cn_ue_paging_identity
             ? paging_ue_info::cn_ue_paging_identity
             : paging_ue_info::ran_ue_paging_identity;
     pg_grant.paging_ue_list.back().paging_identity = pg_id;

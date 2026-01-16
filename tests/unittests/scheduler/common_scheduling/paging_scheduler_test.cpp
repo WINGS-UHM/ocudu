@@ -161,7 +161,7 @@ public:
     const sched_paging_information info{.paging_type_indicator   = paging_identity_type::cn_ue_paging_identity,
                                         .paging_identity         = s_tmsi,
                                         .ue_identity_index_value = ue_id,
-                                        .paging_drx              = paging_drx_};
+                                        .paging_drx              = radio_frames{paging_drx_}};
 
     bench->pg_sch.handle_paging_information(info);
   }

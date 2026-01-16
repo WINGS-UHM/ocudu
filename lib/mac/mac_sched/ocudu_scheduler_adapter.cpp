@@ -344,6 +344,7 @@ void ocudu_scheduler_adapter::handle_paging_information(const paging_information
   // Convert MAC paging information to scheduler notification.
   sched_paging_information pg_info{};
   pg_info.paging_drx              = msg.paging_drx;
+  pg_info.edrx                    = msg.edrx;
   pg_info.paging_identity         = msg.paging_identity;
   pg_info.paging_type_indicator   = msg.paging_type_indicator;
   pg_info.ue_identity_index_value = msg.ue_identity_index_value;

@@ -331,7 +331,7 @@ TEST_P(LDPCChainFixture, LDPCChainTest)
     // Convert to LLR (BPSK modulation, even if this is not the configured modulation).
     std::vector<log_likelihood_ratio> llr(codeword_tx.size());
     std::transform(codeword_tx.begin(), codeword_tx.end(), llr.begin(), [](uint8_t b) {
-      return ((b == ldpc::FILLER_BIT) ? LLRS_AMPL : log_likelihood_ratio::copysign(LLRS_AMPL, 1 - 2 * b));
+      return log_likelihood_ratio::copysign(LLRS_AMPL, 1 - 2 * b);
     });
 
     // Segment the received codeword.

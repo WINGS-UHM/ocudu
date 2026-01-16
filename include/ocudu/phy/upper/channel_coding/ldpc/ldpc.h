@@ -91,9 +91,6 @@ constexpr std::array<lifting_size_t, NOF_LIFTING_SIZES> all_lifting_sizes = {
     LS48,  LS52,  LS56,  LS60,  LS64,  LS72,  LS80,  LS88,  LS96,  LS104, LS112, LS120, LS128,
     LS144, LS160, LS176, LS192, LS208, LS224, LS240, LS256, LS288, LS320, LS352, LS384};
 
-/// Filler bit identifier
-constexpr uint8_t FILLER_BIT = 254;
-
 /// Maximum LDPC message size in bits.
 constexpr unsigned MAX_MESSAGE_SIZE = all_lifting_sizes.back() * 22;
 

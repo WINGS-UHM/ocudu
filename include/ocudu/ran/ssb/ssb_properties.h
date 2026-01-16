@@ -11,11 +11,19 @@
 #pragma once
 
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 
 namespace ocudu {
 
+/// Defines the SSB bandwidth in Resource Blocks (RBs).
 const unsigned NOF_SSB_PRBS = 20;
+
+/// Defines the SSB bandwidth in Resource Elements (REs).
+constexpr unsigned SSB_BW_RE = NOF_SUBCARRIERS_PER_RB * NOF_SSB_PRBS;
+
+/// SS/PBCH Block duration in OFDM symbols.
+constexpr unsigned NOF_SSB_SYMB = 4;
 
 /// \brief SSB periodicity in milliseconds as per TS38.331 Section 6.3.2 IE ssb-periodicityServingCell.
 enum class ssb_periodicity { ms5 = 5, ms10 = 10, ms20 = 20, ms40 = 40, ms80 = 80, ms160 = 160 };

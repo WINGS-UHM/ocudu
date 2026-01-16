@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/frequency_range.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"

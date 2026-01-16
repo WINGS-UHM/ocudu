@@ -111,7 +111,7 @@ public:
                                pdu.subcarrier_offset.value() * kssb_scs_kHz) /
                               scs_to_khz(pdu.common_scs);
     // SSB bandwidth expressed in SSB SCS number of subcarriers.
-    unsigned ssb_bw_subc = SSB_BW_RB * NOF_SUBCARRIERS_PER_RB;
+    unsigned ssb_bw_subc = NOF_SSB_PRBS * NOF_SUBCARRIERS_PER_RB;
 
     // If using mixed numerology, use the SCS ratio to convert the SSB bandwidth to common SCS subcarriers.
     if (OCUDU_UNLIKELY(ssb_scs != pdu.common_scs)) {

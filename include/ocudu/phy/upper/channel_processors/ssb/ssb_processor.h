@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
+#include "ocudu/phy/constants.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"

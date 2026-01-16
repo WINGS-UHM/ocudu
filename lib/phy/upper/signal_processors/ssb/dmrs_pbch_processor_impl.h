@@ -14,6 +14,7 @@
 #include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 #include "ocudu/phy/upper/signal_processors/ssb/dmrs_pbch_processor.h"
+#include "ocudu/ran/ssb/ssb_properties.h"
 
 namespace ocudu {
 
@@ -25,7 +26,7 @@ private:
   /// Number of PBCH DM-RS per resource block.
   static constexpr unsigned nof_dmrs_prb = NOF_SUBCARRIERS_PER_RB / stride;
   /// Number of PBCH DM-RS contained in a full SS/PBCH block OFDM symbol.
-  static constexpr unsigned nof_dmrs_full_symbol = SSB_BW_RB * nof_dmrs_prb;
+  static constexpr unsigned nof_dmrs_full_symbol = NOF_SSB_PRBS * nof_dmrs_prb;
   /// Number of PBCH DM-RS contained in one edge SS/PBCH block OFDM symbol.
   static constexpr unsigned nof_dmrs_edge_symbol = 4 * nof_dmrs_prb;
   /// Total number of resource elements for PBCH DM-RS in a SS/PBCH block.

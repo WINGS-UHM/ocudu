@@ -12,6 +12,7 @@
 #include "ocudu/ocuduvec/bit.h"
 #include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/resource_grid_writer.h"
+#include "ocudu/ran/ssb/ssb_properties.h"
 
 using namespace ocudu;
 
@@ -52,11 +53,11 @@ void pbch_modulator_impl::map(span<const cf_t> d_pbch, resource_grid_writer& gri
   re_mask.reset(v + 8);
 
   // Full SS/PBCH block bandwidth resource blocks.
-  bounded_bitset<MAX_NOF_PRBS>        rb_full_mask = ~bounded_bitset<MAX_NOF_PRBS>(SSB_BW_RB);
+  bounded_bitset<MAX_NOF_PRBS>        rb_full_mask = ~bounded_bitset<MAX_NOF_PRBS>(NOF_SSB_PRBS);
   bounded_bitset<MAX_NOF_SUBCARRIERS> full_mask    = rb_full_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(re_mask);
 
   // Edges SS/PBCH block bandwidth resource blocks.
-  bounded_bitset<MAX_NOF_PRBS> rb_edge_mask(SSB_BW_RB);
+  bounded_bitset<MAX_NOF_PRBS> rb_edge_mask(NOF_SSB_PRBS);
   rb_edge_mask.fill(0, 4);
   rb_edge_mask.fill(16, 20);
   bounded_bitset<MAX_NOF_SUBCARRIERS> edge_mask = rb_edge_mask.kronecker_product<NOF_SUBCARRIERS_PER_RB>(re_mask);

@@ -655,7 +655,7 @@ int main(int argc, char** argv)
   // Frequency of Point A in Hz.
   double dl_pointA_freq_Hz = dl_center_freq - scs_Hz * NOF_SUBCARRIERS_PER_RB * bw_rb / 2;
   // Frequency of the lowest SS/PBCH block subcarrier.
-  double ssb_lowest_freq_Hz = ssb_center_freq - (scs_Hz * NOF_SUBCARRIERS_PER_RB * SSB_BW_RB / 2);
+  double ssb_lowest_freq_Hz = ssb_center_freq - (scs_Hz * NOF_SUBCARRIERS_PER_RB * NOF_SSB_PRBS / 2);
   // Frequency offset from Point A to the lowest SS/PBCH block subcarrier in Hz.
   double ssb_offset_pointA_Hz = ssb_lowest_freq_Hz - dl_pointA_freq_Hz;
   // Frequency offset from Point A to the lowest SS/PBCH block subcarrier in 15kHz subcarriers (only valid for FR1).

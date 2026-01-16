@@ -14,15 +14,6 @@
 
 namespace ocudu {
 
-/// Defines the SSB bandwidth in Resource Blocks (RBs)
-constexpr unsigned SSB_BW_RB = 20;
-
-/// SS/PBCH Block duration in OFDM symbols.
-constexpr unsigned SSB_DURATION_NSYMB = 4;
-
-/// Defines the SSB bandwidth in Resource Elements
-constexpr unsigned SSB_BW_RE = NOF_SUBCARRIERS_PER_RB * SSB_BW_RB;
-
 /// Defines the maximum number of ports for any channel transmission
 constexpr unsigned MAX_PORTS = 16;
 

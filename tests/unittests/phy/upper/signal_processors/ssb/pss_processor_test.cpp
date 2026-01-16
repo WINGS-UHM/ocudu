@@ -11,6 +11,7 @@
 #include "../../../support/resource_grid_test_doubles.h"
 #include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/signal_processors/ssb/factories.h"
+#include "ocudu/ran/ssb/ssb_properties.h"
 #include <random>
 
 using namespace ocudu;
@@ -47,8 +48,8 @@ static void test_case(pss_processor& pss, const pss_processor::config_t& pss_arg
 {
   // Create resource grid.
   resource_grid_writer_spy grid(MAX_PORTS,
-                                pss_args.ssb_first_symbol + SSB_DURATION_NSYMB,
-                                pss_args.ssb_first_subcarrier / NOF_SUBCARRIERS_PER_RB + SSB_BW_RB);
+                                pss_args.ssb_first_symbol + NOF_SSB_SYMB,
+                                pss_args.ssb_first_subcarrier / NOF_SUBCARRIERS_PER_RB + NOF_SSB_PRBS);
 
   // Map PSS.
   pss.map(grid, pss_args);

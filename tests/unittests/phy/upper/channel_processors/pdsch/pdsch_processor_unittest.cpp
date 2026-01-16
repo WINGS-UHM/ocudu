@@ -18,6 +18,7 @@
 #include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
 #include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
 #include "ocudu/ran/precoding/precoding_codebooks.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 #include <random>
@@ -219,7 +220,7 @@ TEST_P(PdschProcessorFixture, UnitTest)
   {
     // Calculate rate match buffer size.
     units::bits Nref = ldpc::compute_N_ref(
-        pdu.tbs_lbrm, ldpc::compute_nof_codeblocks(units::bytes(data.size()).to_bits(), pdu.ldpc_base_graph));
+        pdu.tbs_lbrm, compute_nof_codeblocks(units::bytes(data.size()).to_bits(), pdu.ldpc_base_graph));
 
     ASSERT_EQ(encoder_spy->get_nof_entries(), nof_codewords);
     const auto& entries = encoder_spy->get_entries();

@@ -432,7 +432,7 @@ TEST_P(PuschProcessorFixture, PuschProcessorUnittest)
 
   // Assert decoder inputs only if the codeword is present.
   if (pdu.codeword.has_value()) {
-    unsigned    nof_cb        = ldpc::compute_nof_codeblocks(ulsch_config.tbs, pdu.codeword->ldpc_base_graph);
+    unsigned    nof_cb        = compute_nof_codeblocks(ulsch_config.tbs, pdu.codeword->ldpc_base_graph);
     units::bits expected_Nref = ldpc::compute_N_ref(pdu.tbs_lbrm, nof_cb);
 
     ASSERT_EQ(1, decoder_spy->get_entries().size());

@@ -22,6 +22,7 @@
 #include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/sch/sch_dmrs_power.h"
 #include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/support/executors/task_worker_pool.h"
 #include <condition_variable>
@@ -262,7 +263,7 @@ private:
     rx_grid = grid_factory->create(nof_rx_ports, MAX_NSYMB_PER_SLOT, MAX_NOF_SUBCARRIERS);
 
     // Calculate number of codeblocks.
-    nof_codeblocks = ldpc::compute_nof_codeblocks(units::bits(tbs), ldpc_base_graph);
+    nof_codeblocks = compute_nof_codeblocks(units::bits(tbs), ldpc_base_graph);
 
     // Prepare receive soft buffer pool.
     rx_buffer_pool_config buffer_pool_config;

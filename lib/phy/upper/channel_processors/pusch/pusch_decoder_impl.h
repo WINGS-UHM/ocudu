@@ -23,12 +23,6 @@
 
 namespace ocudu {
 
-/// Number of bits in one byte.
-constexpr unsigned BITS_PER_BYTE = 8;
-
-/// Maximum TBS that implies a 16-bit CRC.
-constexpr unsigned MAX_BITS_CRC16 = 3824;
-
 /// Implementation of the PUSCH decoder.
 class pusch_decoder_impl : public pusch_decoder, private pusch_decoder_buffer
 {

@@ -20,6 +20,7 @@
 #include "ocudu/phy/upper/rx_buffer_pool.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
 #include "ocudu/ran/resource_block.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/support/test_utils.h"
 #ifdef DPDK_FOUND
@@ -389,7 +390,7 @@ int main(int argc, char** argv)
     // Get the number of PRB.
     unsigned nof_prb = std::get<3>(test_case);
 
-    unsigned nof_codeblocks = ldpc::compute_nof_codeblocks(units::bits(tbs), cfg.base_graph);
+    unsigned nof_codeblocks = compute_nof_codeblocks(units::bits(tbs), cfg.base_graph);
 
     // Prepare receive data buffer.
     std::vector<uint8_t> data(tbs / 8);

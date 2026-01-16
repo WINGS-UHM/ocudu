@@ -12,6 +12,7 @@
 #include "pdsch_processor_helpers.h"
 #include "pdsch_processor_validator_impl.h"
 #include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 
 using namespace ocudu;
 
@@ -93,7 +94,7 @@ const bit_buffer& pdsch_processor_impl::encode(span<const uint8_t> data,
 
   // Calculate rate match buffer size.
   units::bits Nref = ldpc::compute_N_ref(
-      pdu.tbs_lbrm, ldpc::compute_nof_codeblocks(units::bytes(data.size()).to_bits(), pdu.ldpc_base_graph));
+      pdu.tbs_lbrm, compute_nof_codeblocks(units::bytes(data.size()).to_bits(), pdu.ldpc_base_graph));
 
   // Prepare encoder configuration.
   pdsch_encoder::configuration encoder_config;

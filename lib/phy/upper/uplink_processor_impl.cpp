@@ -11,12 +11,10 @@
 #include "uplink_processor_impl.h"
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/instrumentation/traces/du_traces.h"
-#include "ocudu/phy/support/prach_buffer.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
-#include "ocudu/phy/support/shared_resource_grid.h"
-#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
 #include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/support/rtsan.h"
 
 using namespace ocudu;
@@ -279,7 +277,7 @@ void uplink_processor_impl::process_pusch(const uplink_pdu_slot_repository::pusc
   trx_buffer_identifier id(proc_pdu.rnti, pdu.harq_id);
 
   // Determine the number of codeblocks from the TBS and base graph.
-  unsigned nof_codeblocks = ldpc::compute_nof_codeblocks(pdu.tb_size.to_bits(), proc_pdu.codeword->ldpc_base_graph);
+  unsigned nof_codeblocks = compute_nof_codeblocks(pdu.tb_size.to_bits(), proc_pdu.codeword->ldpc_base_graph);
 
   // Extract new data flag.
   bool new_data = proc_pdu.codeword->new_data;

@@ -16,8 +16,15 @@
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
 #include "ocudu/phy/upper/rx_buffer.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 
 using namespace ocudu;
+
+/// Number of bits in one byte.
+static constexpr unsigned BITS_PER_BYTE = 8;
+
+/// Maximum TBS that implies a 16-bit CRC.
+static constexpr unsigned MAX_BITS_CRC16 = 3824;
 
 // Select the CRC for the decoder based on the TBS and the number of codeblocks.
 static crc_calculator* select_crc(pusch_decoder_impl::sch_crc& crcs, unsigned tbs, unsigned nof_blocks)
@@ -104,7 +111,7 @@ pusch_decoder_buffer& pusch_decoder_impl::new_data(span<uint8_t>                
 
   // Set the CB counters.
   unsigned tb_size     = transport_block.size() * BITS_PER_BYTE;
-  nof_codeblocks       = ldpc::compute_nof_codeblocks(units::bits(tb_size), segmentation_config.base_graph);
+  nof_codeblocks       = compute_nof_codeblocks(units::bits(tb_size), segmentation_config.base_graph);
   cb_task_counter      = nof_codeblocks;
   available_cb_counter = 0;
 
@@ -303,7 +310,9 @@ void pusch_decoder_impl::fork_codeblock_task(unsigned cb_id)
 
     // Get codeblock length, without rate matching, the message length and the number of data bits (no CRC, no filler
     // bits - may contain zero-padding).
-    unsigned cb_length = 0, msg_length = 0, nof_data_bits = 0;
+    unsigned cb_length                             = 0;
+    unsigned msg_length                            = 0;
+    unsigned nof_data_bits                         = 0;
     std::tie(cb_length, msg_length, nof_data_bits) = get_cblk_bit_breakdown(cb_meta);
 
     // Get data bits from previous transmissions, if any.
@@ -462,7 +471,9 @@ unsigned pusch_decoder_impl::concatenate_codeblocks()
 
     // Get codeblock length, without rate matching, the message length and the number of data bits (no CRC, no filler
     // bits - may contain zero-padding).
-    unsigned cb_length = 0, msg_length = 0, nof_data_bits = 0;
+    unsigned cb_length                             = 0;
+    unsigned msg_length                            = 0;
+    unsigned nof_data_bits                         = 0;
     std::tie(cb_length, msg_length, nof_data_bits) = get_cblk_bit_breakdown(cb_meta);
 
     // Number of TB bits still "empty".

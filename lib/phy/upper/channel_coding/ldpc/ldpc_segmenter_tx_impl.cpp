@@ -10,9 +10,8 @@
 
 #include "ldpc_segmenter_tx_impl.h"
 #include "ocudu/ocuduvec/bit.h"
-#include "ocudu/ocuduvec/copy.h"
-#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 #include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"
 
@@ -59,7 +58,7 @@ ldpc_segmenter_buffer& ldpc_segmenter_tx_impl::new_transmission(span<const uint8
 
   params.nof_tb_bits_in = nof_tb_bits_tmp + params.nof_tb_crc_bits;
 
-  params.nof_segments    = ldpc::compute_nof_codeblocks(nof_tb_bits_tmp, params.base_graph);
+  params.nof_segments    = compute_nof_codeblocks(nof_tb_bits_tmp, params.base_graph);
   params.nof_tb_bits_out = params.nof_tb_bits_in;
   if (params.nof_segments > 1) {
     params.nof_tb_bits_out += units::bits(params.nof_segments * SEG_CRC_LENGTH.value());

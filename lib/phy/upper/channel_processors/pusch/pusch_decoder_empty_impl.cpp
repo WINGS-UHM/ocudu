@@ -10,10 +10,9 @@
 
 #include "pusch_decoder_empty_impl.h"
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/upper/channel_coding/ldpc/ldpc.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_notifier.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
-#include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 
 using namespace ocudu;
 
@@ -52,11 +51,11 @@ void pusch_decoder_empty_impl::decoder_buffer_impl::new_data(span<uint8_t>      
   notifier       = &notifier_;
   is_new_data    = cfg.new_data;
   softbits_count = 0;
-  nof_codeblocks = ldpc::compute_nof_codeblocks(tb_size.to_bits(), cfg.base_graph);
+  nof_codeblocks = compute_nof_codeblocks(tb_size.to_bits(), cfg.base_graph);
 
   // Calculate full code block size.
-  unsigned lifting_size = ldpc::compute_lifting_size(tb_size.to_bits(), cfg.base_graph, nof_codeblocks);
-  codeblock_size        = ldpc::compute_codeblock_size(cfg.base_graph, lifting_size);
+  unsigned lifting_size = compute_lifting_size(tb_size.to_bits(), cfg.base_graph, nof_codeblocks);
+  codeblock_size        = compute_codeblock_size(cfg.base_graph, lifting_size);
 }
 
 span<log_likelihood_ratio> pusch_decoder_empty_impl::decoder_buffer_impl::get_next_block_view(unsigned block_size)

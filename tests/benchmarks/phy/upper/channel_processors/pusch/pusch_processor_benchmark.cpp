@@ -15,6 +15,7 @@
 #include "ocudu/phy/upper/channel_processors/pusch/factories.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/support/benchmark_utils.h"
 #include "ocudu/support/executors/inline_task_executor.h"
@@ -671,7 +672,7 @@ static void thread_process(pusch_processor&              proc,
                            const resource_grid_reader&   grid)
 {
   // Compute the number of codeblocks.
-  unsigned nof_codeblocks = ldpc::compute_nof_codeblocks(units::bits(tbs), config.codeword.value().ldpc_base_graph);
+  unsigned nof_codeblocks = compute_nof_codeblocks(units::bits(tbs), config.codeword.value().ldpc_base_graph);
 
   // Buffer pool configuration.
   rx_buffer_pool_config buffer_pool_config = {};

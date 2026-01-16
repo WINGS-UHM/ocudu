@@ -13,7 +13,7 @@
 #include "pdsch_processor_validator_impl.h"
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/instrumentation/traces/du_traces.h"
-#include "ocudu/ran/ptrs/ptrs_pattern.h"
+#include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/support/rtsan.h"
 #include "ocudu/support/tracing/event_tracing.h"
 
@@ -144,7 +144,7 @@ void pdsch_processor_flexible_impl::initialize_new_transmission(
   units::bits tbs = units::bytes(data.get_buffer().size()).to_bits();
 
   // Calculate number of codeblocks.
-  nof_cb = ldpc::compute_nof_codeblocks(tbs, config.ldpc_base_graph);
+  nof_cb = compute_nof_codeblocks(tbs, config.ldpc_base_graph);
 
   modulation_scheme modulation = config.codewords.front().modulation;
 

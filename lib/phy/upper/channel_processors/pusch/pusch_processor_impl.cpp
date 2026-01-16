@@ -337,7 +337,7 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
 
   if (has_sch_data) {
     units::bits tbs            = units::bytes(data.size()).to_bits();
-    unsigned    nof_codeblocks = ldpc::compute_nof_codeblocks(tbs, pdu.codeword->ldpc_base_graph);
+    unsigned    nof_codeblocks = compute_nof_codeblocks(tbs, pdu.codeword->ldpc_base_graph);
     units::bits Nref           = ldpc::compute_N_ref(pdu.tbs_lbrm, nof_codeblocks);
 
     // Prepare decoder configuration.

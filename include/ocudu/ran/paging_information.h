@@ -18,6 +18,13 @@ namespace ocudu {
 enum class paging_identity_type { ran_ue_paging_identity, cn_ue_paging_identity };
 
 struct paging_information {
+  struct edrx_info {
+    /// Number of HFNs of the eDRX cycle in idle.
+    float cycle_idle;
+    /// Paging time window for eDRX.
+    std::optional<unsigned> ptw;
+  };
+
   /// Cells at which to perform Paging of UE.
   std::vector<du_cell_index_t> paging_cells;
   paging_identity_type         paging_type_indicator;
@@ -29,6 +36,8 @@ struct paging_information {
   unsigned ue_identity_index_value;
   /// Paging DRX cycle in radio frames.
   std::optional<unsigned> paging_drx;
+  /// Paging eDRX information.
+  std::optional<edrx_info> edrx;
   /// Values {1,...,8}. Lower value indicates higher priority.
   std::optional<unsigned> paging_priority;
   bool                    is_paging_origin_non_3gpp_access{false};

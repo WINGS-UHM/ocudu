@@ -595,6 +595,16 @@ void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
     }
     info.paging_cells.push_back(cell_same_cgi->cell_index);
   }
+  if (msg->nr_paginge_drx_info_present) {
+    // eDRX info enabled.
+    auto& edrx      = info.edrx.emplace();
+    edrx.cycle_idle = msg->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle.to_number();
+    if (msg->nr_paginge_drx_info.nrpaging_time_win_present) {
+      edrx.ptw = msg->nr_paginge_drx_info.nrpaging_time_win.to_number();
+    }
+  }
+
+  // Forward paging information to lower layers.
   paging_notifier.on_paging_received(info);
 }
 

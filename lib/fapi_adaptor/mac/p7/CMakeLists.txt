@@ -21,7 +21,7 @@ set(SOURCES
 )
 
 add_library(ocudu_fapi_to_mac_p7_fastpath_translator STATIC ${SOURCES})
-target_link_libraries(ocudu_fapi_to_mac_p7_fastpath_translator PRIVATE ocuduvec ocudu_support ocudu_fapi_message_validator_helpers)
+target_link_libraries(ocudu_fapi_to_mac_p7_fastpath_translator PRIVATE ocuduvec ocudu_support)
 
 add_library(ocudu_mac_to_fapi_p7_sector_fastpath_adaptor STATIC mac_fapi_p7_sector_fastpath_adaptor_impl.cpp
         mac_fapi_p7_sector_fastpath_adaptor_factory_impl.cpp)

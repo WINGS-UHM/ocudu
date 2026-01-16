@@ -14,12 +14,6 @@
 #include "ocudu/fapi/p7/builders/rx_data_indication_builder.h"
 #include "ocudu/fapi/p7/builders/srs_indication_builder.h"
 #include "ocudu/fapi/p7/builders/uci_indication_builder.h"
-#include "ocudu/fapi/p7/validators/crc_indication_message_validator.h"
-#include "ocudu/fapi/p7/validators/rach_indication_message_validator.h"
-#include "ocudu/fapi/p7/validators/rx_data_indication_message_validator.h"
-#include "ocudu/fapi/p7/validators/srs_indication_message_validator.h"
-#include "ocudu/fapi/p7/validators/uci_indication_message_validator.h"
-#include "ocudu/fapi/validator_report_logger.h"
 #include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/units.h"
 
@@ -124,12 +118,6 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
                                         MIN_PREAMBLE_POWER_VALUE,
                                         MAX_PREAMBLE_POWER_VALUE),
                              {});
-  }
-
-  error_type<fapi::validator_report> validation_result = validate_rach_indication(msg);
-  if (!validation_result) {
-    log_validator_report(validation_result.error(), logger, sector_id);
-    return;
   }
 
   p7_notifier->on_rach_indication(msg);
@@ -252,12 +240,6 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
                                              : bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>());
   }
 
-  error_type<fapi::validator_report> validation_result = validate_uci_indication(msg);
-  if (!validation_result) {
-    log_validator_report(validation_result.error(), logger, sector_id);
-    return;
-  }
-
   p7_notifier->on_uci_indication(msg);
 }
 
@@ -306,12 +288,6 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
                   rsrp,
                   false);
 
-  error_type<fapi::validator_report> validation_result = validate_crc_indication(msg);
-  if (!validation_result) {
-    log_validator_report(validation_result.error(), logger, sector_id);
-    return;
-  }
-
   p7_notifier->on_crc_indication(msg);
 }
 
@@ -326,12 +302,6 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
   unsigned handle = 0;
   // TODO: Remove the to_harq_id call once it is changed in the PHY layer.
   builder.add_pdu(handle, result.rnti, to_harq_id(result.harq_id), result.payload);
-
-  error_type<fapi::validator_report> validation_result = validate_rx_data_indication(msg);
-  if (!validation_result) {
-    log_validator_report(validation_result.error(), logger, sector_id);
-    return;
-  }
 
   p7_notifier->on_rx_data_indication(msg);
 }
@@ -544,12 +514,6 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_pucch_results(const u
       ocudu_assert(0, "Unexpected PUCCH format {}", fmt::underlying(context.format));
   }
 
-  error_type<fapi::validator_report> validation_result = validate_uci_indication(msg);
-  if (!validation_result) {
-    log_validator_report(validation_result.error(), logger, sector_id);
-    return;
-  }
-
   p7_notifier->on_uci_indication(msg);
 }
 
@@ -590,12 +554,6 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
 
     srs_pdu_builder.set_positioning_report_parameters(
         {phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment)}, {}, {}, rsrp);
-  }
-
-  error_type<fapi::validator_report> validation_result = validate_srs_indication(msg);
-  if (!validation_result) {
-    log_validator_report(validation_result.error(), logger, sector_id);
-    return;
   }
 
   p7_notifier->on_srs_indication(msg);

@@ -21,7 +21,7 @@ set(SOURCES
         phy_to_fapi_time_event_fastpath_translator.cpp)
 
 add_library(ocudu_phy_to_fapi_p7_fastpath_translator STATIC ${SOURCES})
-target_link_libraries(ocudu_phy_to_fapi_p7_fastpath_translator PRIVATE ocudulog ocudu_fapi_message_validator_helpers)
+target_link_libraries(ocudu_phy_to_fapi_p7_fastpath_translator PRIVATE ocudulog)
 
 add_library(ocudu_phy_to_fapi_p7_sector_fastpath_adaptor STATIC phy_fapi_p7_sector_fastpath_adaptor_impl.cpp)
 target_link_libraries(ocudu_phy_to_fapi_p7_sector_fastpath_adaptor PRIVATE ocudu_phy_to_fapi_p7_fastpath_translator

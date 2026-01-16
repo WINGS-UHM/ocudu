@@ -30,14 +30,10 @@ namespace fapi_adaptor {
 struct mac_to_fapi_fastpath_translator_config {
   /// Cell number of PRBs.
   unsigned cell_nof_prbs;
-  /// Radio sector identifier.
-  unsigned sector_id;
 };
 
 /// MAC-to-FAPI fastpath translator dependencies.
 struct mac_to_fapi_fastpath_translator_dependencies {
-  /// Logger.
-  ocudulog::basic_logger& logger;
   /// FAPI P7 gateway.
   fapi::p7_requests_gateway& p7_gateway;
   /// FAPI slot last message gateway.
@@ -85,12 +81,8 @@ private:
   handle_ul_dci_request(span<const pdcch_ul_information> pdcch_info, span<const dci_payload> payloads, slot_point slot);
 
 private:
-  /// Radio sector identifier.
-  const unsigned sector_id;
   /// Cell number of resource blocks.
   const unsigned cell_nof_prbs;
-  /// FAPI logger.
-  ocudulog::basic_logger& logger;
   /// FAPI P7 gateway.
   fapi::p7_requests_gateway& p7_gateway;
   /// P7 last requests notifier.

@@ -121,12 +121,8 @@ protected:
   mac_to_fapi_fastpath_translator translator;
 
   mac_to_fapi_translator_fixture() :
-    translator({0, nof_prbs},
-               {ocudulog::fetch_basic_logger("FAPI"),
-                gateway_spy,
-                notifier_spy,
-                std::move(std::get<0>(pm_tools)),
-                std::move(std::get<0>(uci_part2_tools))})
+    translator({nof_prbs},
+               {gateway_spy, notifier_spy, std::move(std::get<0>(pm_tools)), std::move(std::get<0>(uci_part2_tools))})
   {
   }
 
@@ -156,55 +152,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
-TEST_F(mac_to_fapi_translator_fixture, invalid_dl_sched_results_with_no_mac_slot_handler_aborts)
-{
-  ASSERT_FALSE(gateway_spy.has_dl_tti_request_method_called());
-
-  unittests::mac_dl_sched_result_test_helper result_test = unittests::build_valid_mac_dl_sched_result();
-  mac_dl_sched_result&                       result      = result_test.result;
-  result.ssb_pdus.front().pci                            = INVALID_PCI;
-
-  ASSERT_DEATH(
-      { translator.on_new_downlink_scheduler_results(result); },
-      "OCUDU ERROR: Dummy MAC cell slot handler cannot handle error indication");
-}
-
-TEST_F(mac_to_fapi_translator_fixture, invalid_ssb_in_dl_sched_results_reports_error)
-{
-  configure_handler();
-  ASSERT_FALSE(gateway_spy.has_dl_tti_request_method_called());
-
-  unittests::mac_dl_sched_result_test_helper result_test = unittests::build_valid_mac_dl_sched_result();
-  mac_dl_sched_result&                       result      = result_test.result;
-  result.ssb_pdus.front().pci                            = INVALID_PCI;
-
-  translator.on_new_downlink_scheduler_results(result);
-
-  ASSERT_TRUE(slot_handler_spy.has_error_been_notified());
-  const auto& error = slot_handler_spy.get_error();
-  ASSERT_TRUE(error.pdcch_discarded);
-  ASSERT_TRUE(error.pdsch_discarded);
-  ASSERT_FALSE(error.pusch_and_pucch_discarded);
-}
-
-TEST_F(mac_to_fapi_translator_fixture, invalid_ul_pdcch_in_dl_sched_results_reports_error)
-{
-  configure_handler();
-  ASSERT_FALSE(gateway_spy.has_dl_tti_request_method_called());
-
-  unittests::mac_dl_sched_result_test_helper result_test = unittests::build_valid_mac_dl_sched_result();
-  const mac_dl_sched_result&                 result      = result_test.result;
-  result_test.sched_result.ul_pdcchs.front().ctx.rnti    = rnti_t::INVALID_RNTI;
-
-  translator.on_new_downlink_scheduler_results(result);
-
-  ASSERT_TRUE(slot_handler_spy.has_error_been_notified());
-  const auto& error = slot_handler_spy.get_error();
-  ASSERT_TRUE(error.pdcch_discarded);
-  ASSERT_FALSE(error.pdsch_discarded);
-  ASSERT_FALSE(error.pusch_and_pucch_discarded);
-}
-
 TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_ul_tti_request)
 {
   ASSERT_FALSE(gateway_spy.has_ul_tti_request_method_called());
@@ -223,25 +170,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_u
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
-TEST_F(mac_to_fapi_translator_fixture, invalid_ul_sched_results_reports_error)
-{
-  configure_handler();
-  ASSERT_FALSE(gateway_spy.has_ul_tti_request_method_called());
-
-  unittests::mac_ul_sched_result_test_helper result_test = unittests::build_valid_mac_ul_sched_result();
-  const mac_ul_sched_result&                 result      = result_test.result;
-  result_test.sched_result.pucchs.front().crnti          = rnti_t::INVALID_RNTI;
-
-  translator.on_new_uplink_scheduler_results(result);
-
-  ASSERT_TRUE(gateway_spy.has_ul_tti_request_method_called());
-  ASSERT_TRUE(slot_handler_spy.has_error_been_notified());
-  const auto& error = slot_handler_spy.get_error();
-  ASSERT_FALSE(error.pdcch_discarded);
-  ASSERT_FALSE(error.pdsch_discarded);
-  ASSERT_TRUE(error.pusch_and_pucch_discarded);
-}
-
 TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx_data_request)
 {
   ASSERT_FALSE(gateway_spy.has_tx_data_request_method_called());
@@ -256,28 +184,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx
   const fapi::tx_data_request& msg = gateway_spy.tx_data_request_msg();
   ASSERT_EQ(msg.pdus.size(), 1);
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
-}
-
-TEST_F(mac_to_fapi_translator_fixture, invalid_dl_data_results_report_error)
-{
-  configure_handler();
-  ASSERT_FALSE(gateway_spy.has_tx_data_request_method_called());
-
-  const unittests::mac_dl_sched_result_test_helper& result_test = unittests::build_valid_mac_dl_sched_result();
-  const mac_dl_sched_result&                        result      = result_test.result;
-  translator.on_new_downlink_scheduler_results(result);
-
-  unittests::mac_dl_data_result_test_helper data_result = unittests::build_valid_mac_data_result();
-  data_result.result.si_pdus.clear();
-  data_result.result.si_pdus.push_back({1, {}});
-  translator.on_new_downlink_data(data_result.result);
-
-  ASSERT_TRUE(gateway_spy.has_tx_data_request_method_called());
-  ASSERT_TRUE(slot_handler_spy.has_error_been_notified());
-  const auto& error = slot_handler_spy.get_error();
-  ASSERT_FALSE(error.pdcch_discarded);
-  ASSERT_TRUE(error.pdsch_discarded);
-  ASSERT_FALSE(error.pusch_and_pucch_discarded);
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_ul_dci_request)

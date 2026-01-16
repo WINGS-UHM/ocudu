@@ -22,11 +22,6 @@
 #include "ocudu/fapi/p7/builders/ul_tti_request_builder.h"
 #include "ocudu/fapi/p7/p7_last_request_notifier.h"
 #include "ocudu/fapi/p7/p7_requests_gateway.h"
-#include "ocudu/fapi/p7/validators/dl_tti_request_message_validator.h"
-#include "ocudu/fapi/p7/validators/tx_data_request_message_validator.h"
-#include "ocudu/fapi/p7/validators/ul_dci_request_message_validator.h"
-#include "ocudu/fapi/p7/validators/ul_tti_request_message_validator.h"
-#include "ocudu/fapi/validator_report_logger.h"
 #include "ocudu/ran/bwp/bwp_configuration.h"
 #include "ocudu/scheduler/result/sched_result.h"
 
@@ -78,9 +73,7 @@ static mac_cell_slot_handler_dummy dummy_cell_handler;
 mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
     const mac_to_fapi_fastpath_translator_config& config,
     mac_to_fapi_fastpath_translator_dependencies  dependencies) :
-  sector_id(config.sector_id),
   cell_nof_prbs(config.cell_nof_prbs),
-  logger(dependencies.logger),
   p7_gateway(dependencies.p7_gateway),
   p7_last_req_notifier(dependencies.p7_last_req_notifier),
   pm_mapper(std::move(dependencies.pm_mapper)),
@@ -202,13 +195,6 @@ static void add_pdsch_pdus_to_dl_request(fapi::dl_tti_request_builder&    builde
   }
 }
 
-/// Clears the PDUs in the given DL_TTI.request message.
-static void clear_dl_tti_pdus(fapi::dl_tti_request& msg)
-{
-  msg.pdus.clear();
-  msg.num_pdus_of_each_type = {};
-}
-
 void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const mac_dl_sched_result& dl_res)
 {
   stop_event_token token = stop_manager.get_token();
@@ -245,22 +231,6 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
                                dl_res.dl_res->csi_rs.size(),
                                *pm_mapper,
                                cell_nof_prbs);
-
-  // Validate the DL_TTI.request message.
-  error_type<fapi::validator_report> result = validate_dl_tti_request(msg);
-
-  if (!result) {
-    log_validator_report(result.error(), logger, sector_id);
-
-    clear_dl_tti_pdus(msg);
-
-    mac_cell_slot_handler::error_event error;
-    error.pdcch_discarded           = true;
-    error.pdsch_discarded           = true;
-    error.pusch_and_pucch_discarded = false;
-
-    mac_slot_handler->handle_error_indication(dl_res.slot, error);
-  }
 
   // Send the message.
   p7_gateway.send_dl_tti_request(msg);
@@ -322,32 +292,8 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
     }
   }
 
-  // Validate the Tx_Data.request message.
-  error_type<fapi::validator_report> result = fapi::validate_tx_data_request(msg);
-
-  if (!result) {
-    log_validator_report(result.error(), logger, sector_id);
-
-    // Clear the PDUs on validation failure.
-    msg.pdus.clear();
-
-    mac_cell_slot_handler::error_event error;
-    error.pdcch_discarded           = false;
-    error.pdsch_discarded           = true;
-    error.pusch_and_pucch_discarded = false;
-
-    mac_slot_handler->handle_error_indication(dl_data.slot, error);
-  }
-
   // Send the message.
   p7_gateway.send_tx_data_request(msg);
-}
-
-/// Clears the PDUs of the given UL_TTI.request message.
-static void clear_ul_tti_pdus(fapi::ul_tti_request& msg)
-{
-  msg.pdus.clear();
-  msg.num_pdus_of_each_type = {};
 }
 
 void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_ul_sched_result& ul_res)
@@ -387,22 +333,6 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
     convert_srs_mac_to_fapi(pdu_builder, pdu);
   }
 
-  // Validate the UL_TTI.request message.
-  error_type<fapi::validator_report> result = validate_ul_tti_request(msg);
-
-  if (!result) {
-    log_validator_report(result.error(), logger, sector_id);
-
-    clear_ul_tti_pdus(msg);
-
-    mac_cell_slot_handler::error_event error;
-    error.pdcch_discarded           = false;
-    error.pdsch_discarded           = false;
-    error.pusch_and_pucch_discarded = true;
-
-    mac_slot_handler->handle_error_indication(ul_res.slot, error);
-  }
-
   // Send the message.
   p7_gateway.send_ul_tti_request(msg);
 }
@@ -421,21 +351,6 @@ void mac_to_fapi_fastpath_translator::handle_ul_dci_request(span<const pdcch_ul_
 
   builder.set_basic_parameters(slot);
   add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs);
-
-  // Validate the UL_DCI.request message.
-  error_type<fapi::validator_report> result = validate_ul_dci_request(msg);
-  if (!result) {
-    log_validator_report(result.error(), logger, sector_id);
-
-    mac_cell_slot_handler::error_event error;
-    error.pdcch_discarded           = true;
-    error.pdsch_discarded           = false;
-    error.pusch_and_pucch_discarded = false;
-
-    mac_slot_handler->handle_error_indication(slot, error);
-
-    return;
-  }
 
   // Send the message.
   p7_gateway.send_ul_dci_request(msg);

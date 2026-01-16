@@ -17,14 +17,13 @@ using namespace fapi_adaptor;
 static mac_to_fapi_fastpath_translator_config
 generate_translator_config(const mac_fapi_p7_sector_fastpath_adaptor_config& config)
 {
-  return {.cell_nof_prbs = config.cell_nof_prbs, .sector_id = config.sector_id};
+  return {.cell_nof_prbs = config.cell_nof_prbs};
 }
 
 static mac_to_fapi_fastpath_translator_dependencies
 generate_translator_dependencies(mac_fapi_p7_sector_fastpath_adaptor_dependencies dependencies)
 {
-  return {.logger               = ocudulog::fetch_basic_logger("FAPI"),
-          .p7_gateway           = dependencies.p7_gateway,
+  return {.p7_gateway           = dependencies.p7_gateway,
           .p7_last_req_notifier = dependencies.p7_last_req_notifier,
           .pm_mapper            = std::move(dependencies.pm_mapper),
           .part2_mapper         = std::move(dependencies.part2_mapper)};

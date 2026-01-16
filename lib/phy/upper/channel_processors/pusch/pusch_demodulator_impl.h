@@ -27,7 +27,6 @@
 namespace ocudu {
 
 /// PUSCH demodulator implementation.
-// todo(david): Evaluate whether it is worth delegating the private methods to specialized subcomponent classes.
 class pusch_demodulator_impl : public pusch_demodulator
 {
 public:
@@ -80,48 +79,7 @@ private:
   const re_buffer_reader<cbf16_t>& get_ch_data_re(const resource_grid_reader&              grid,
                                                   unsigned                                 i_symbol,
                                                   const re_symbol_mask_type&               re_mask,
-                                                  const static_vector<uint8_t, MAX_PORTS>& rx_ports)
-  {
-    // Extract RE boundaries.
-    unsigned nof_re = re_mask.count();
-    int      begin  = re_mask.find_lowest();
-    int      end    = re_mask.find_highest();
-    ocudu_assert(begin <= end, "Invalid mask.");
-
-    // Check if the mask is contiguous.
-    if (nof_re == static_cast<unsigned>(end + 1 - begin)) {
-      // Prepare channel estimates view.
-      ch_re_view.resize(rx_ports.size(), nof_re);
-
-      // Iterate over all layers and ports.
-      for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
-        // View of the channel estimation for an OFDM symbol.
-        span<const cbf16_t> ch_data_re = grid.get_view(i_port, i_symbol);
-
-        // Set the view in the channel estimates.
-        ch_re_view.set_slice(i_port, ch_data_re.subspan(begin, nof_re));
-      }
-      return ch_re_view;
-    }
-
-    // Prepare channel estimates copy destination.
-    ch_re_copy.resize(rx_ports.size(), nof_re);
-
-    // Extract RE for each port and symbol.
-    for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
-      // Get a view of the port data RE.
-      span<cbf16_t> re_port_buffer = ch_re_copy.get_slice(i_port);
-
-      // Copy grid data resource elements into the buffer.
-      re_port_buffer = grid.get(re_port_buffer, rx_ports[i_port], i_symbol, 0, re_mask);
-
-      // Verify buffer size.
-      ocudu_assert(
-          re_port_buffer.empty(), "Invalid number of RE read from the grid. {} RE are missing.", re_port_buffer.size());
-    }
-
-    return ch_re_copy;
-  }
+                                                  const static_vector<uint8_t, MAX_PORTS>& rx_ports);
 
   /// \brief Gets channel data estimates.
   ///
@@ -136,7 +94,8 @@ private:
   /// \param[in]  nof_tx_layers Number of layers.
   /// \param[in]  re_mask       Resource element mask, it selects the RE elements to extract (only relative to the
   ///                           allocated RBs).
-  /// \param[in]  dc_position   Direct current position: emtpy if not configured or with transform precoding enabled.
+  /// \param[in]  dc_position   Direct current position, relative to the first allocated RE: emtpy if not configured or
+  ///                           with transform precoding enabled.
   /// \param[in]  rx_ports      Receive ports list.
   /// \return A reference to the PUSCH channel data estimates.
   const channel_equalizer::ch_est_list& get_ch_data_estimates(const dmrs_pusch_estimator_results&      est_results,
@@ -144,46 +103,7 @@ private:
                                                               unsigned                                 nof_tx_layers,
                                                               const re_symbol_mask_type&               re_mask,
                                                               std::optional<unsigned>                  dc_position,
-                                                              const static_vector<uint8_t, MAX_PORTS>& rx_ports)
-  {
-    // Extract RE boundaries.
-    unsigned nof_re = re_mask.count();
-    int      begin  = re_mask.find_lowest();
-    int      end    = re_mask.find_highest();
-    ocudu_assert((begin >= 0) && (end >= 0), "Invalid mask.");
-
-    ch_estimates_copy.resize(nof_re, rx_ports.size(), nof_tx_layers);
-
-    // Extract data RE coefficients from the channel estimation.
-    for (unsigned i_layer = 0, i_layer_end = nof_tx_layers; i_layer != i_layer_end; ++i_layer) {
-      for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
-        // Get a view of the channel estimates buffer for a single Rx port.
-        span<cbf16_t> ch_port_buffer = ch_estimates_copy.get_channel(i_port, i_layer);
-
-        // Check if we are using the entire bandwidth.
-        if (nof_re == re_mask.size()) {
-          // Store the entire symbol.
-          est_results.get_symbol_ch_estimate(ch_port_buffer, i_symbol, i_port, i_layer);
-
-          if (dc_position.has_value()) {
-            ch_port_buffer[*dc_position] = 0;
-          }
-        } else {
-          // Store non-DM-RS REs.
-          est_results.get_symbol_ch_estimate(ch_port_buffer, i_symbol, i_port, i_layer, re_mask);
-
-          if (dc_position.has_value() && re_mask.test(*dc_position)) {
-            // The number of active REs before the DC position gives the offset inside ch_port_buffer.
-            re_symbol_mask_type local_mask        = re_mask.slice(begin, *dc_position);
-            unsigned            relative_position = local_mask.count();
-            ch_port_buffer[relative_position]     = 0;
-          }
-        }
-      }
-    }
-
-    return ch_estimates_copy;
-  }
+                                                              const static_vector<uint8_t, MAX_PORTS>& rx_ports);
 
   /// Channel equalization component, also in charge of combining contributions of all receive antenna ports.
   std::unique_ptr<channel_equalizer> equalizer;

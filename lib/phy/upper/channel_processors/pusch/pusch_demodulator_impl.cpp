@@ -322,10 +322,13 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&              code
     std::optional<unsigned> dc_position = config.enable_transform_precoding ? std::nullopt : config.dc_position;
 
     // Extract channel estimates from the resource grid.
-    unsigned            ref_re = config.rb_mask.find_lowest() * NOF_SUBCARRIERS_PER_RB;
-    re_symbol_mask_type symbol_re_mask_local =
-        symbol_re_mask.slice(ref_re, (config.rb_mask.find_highest() + 1) * NOF_SUBCARRIERS_PER_RB - 1);
-    std::optional<unsigned> dc_position_local = transform_optional(dc_position, std::minus(), ref_re);
+    interval<unsigned>      re_interval(config.rb_mask.find_lowest() * NOF_SUBCARRIERS_PER_RB,
+                                   (config.rb_mask.find_highest() + 1) * NOF_SUBCARRIERS_PER_RB);
+    re_symbol_mask_type     symbol_re_mask_local = symbol_re_mask.slice(re_interval.start(), re_interval.stop());
+    std::optional<unsigned> dc_position_local    = std::nullopt;
+    if (dc_position.has_value() && (re_interval.contains(*dc_position))) {
+      dc_position_local = *dc_position - re_interval.start();
+    }
 
     const channel_equalizer::ch_est_list& ch_estimates = get_ch_data_estimates(
         est_results, i_symbol, config.nof_tx_layers, symbol_re_mask_local, dc_position_local, config.rx_ports);
@@ -441,4 +444,88 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&              code
 
   notifier.on_end_stats(stats);
   codeword_buffer.on_end_codeword();
+}
+
+const re_buffer_reader<cbf16_t>&
+pusch_demodulator_impl::get_ch_data_re(const resource_grid_reader&              grid,
+                                       unsigned                                 i_symbol,
+                                       const re_symbol_mask_type&               re_mask,
+                                       const static_vector<uint8_t, MAX_PORTS>& rx_ports)
+{
+  // Extract RE boundaries.
+  unsigned nof_re = re_mask.count();
+  int      begin  = re_mask.find_lowest();
+  int      end    = re_mask.find_highest();
+  ocudu_assert(begin <= end, "Invalid mask.");
+
+  // Check if the mask is contiguous.
+  if (nof_re == static_cast<unsigned>(end + 1 - begin)) {
+    // Prepare channel estimates view.
+    ch_re_view.resize(rx_ports.size(), nof_re);
+
+    // Iterate over all layers and ports.
+    for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
+      // View of the channel estimation for an OFDM symbol.
+      span<const cbf16_t> ch_data_re = grid.get_view(i_port, i_symbol);
+
+      // Set the view in the channel estimates.
+      ch_re_view.set_slice(i_port, ch_data_re.subspan(begin, nof_re));
+    }
+    return ch_re_view;
+  }
+
+  // Prepare channel estimates copy destination.
+  ch_re_copy.resize(rx_ports.size(), nof_re);
+
+  // Extract RE for each port and symbol.
+  for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
+    // Get a view of the port data RE.
+    span<cbf16_t> re_port_buffer = ch_re_copy.get_slice(i_port);
+
+    // Copy grid data resource elements into the buffer.
+    re_port_buffer = grid.get(re_port_buffer, rx_ports[i_port], i_symbol, 0, re_mask);
+
+    // Verify buffer size.
+    ocudu_assert(
+        re_port_buffer.empty(), "Invalid number of RE read from the grid. {} RE are missing.", re_port_buffer.size());
+  }
+
+  return ch_re_copy;
+}
+
+const channel_equalizer::ch_est_list&
+pusch_demodulator_impl::get_ch_data_estimates(const dmrs_pusch_estimator_results&      est_results,
+                                              unsigned                                 i_symbol,
+                                              unsigned                                 nof_tx_layers,
+                                              const re_symbol_mask_type&               re_mask,
+                                              std::optional<unsigned>                  dc_position,
+                                              const static_vector<uint8_t, MAX_PORTS>& rx_ports)
+{
+  // Extract RE boundaries.
+  unsigned nof_re = re_mask.count();
+  int      begin  = re_mask.find_lowest();
+  int      end    = re_mask.find_highest();
+  ocudu_assert((begin >= 0) && (end >= 0), "Invalid mask.");
+
+  ch_estimates_copy.resize(nof_re, rx_ports.size(), nof_tx_layers);
+
+  // Extract data RE coefficients from the channel estimation.
+  for (unsigned i_layer = 0, i_layer_end = nof_tx_layers; i_layer != i_layer_end; ++i_layer) {
+    for (unsigned i_port = 0, i_port_end = rx_ports.size(); i_port != i_port_end; ++i_port) {
+      // Get a view of the channel estimates buffer for a single Rx port.
+      span<cbf16_t> ch_port_buffer = ch_estimates_copy.get_channel(i_port, i_layer);
+
+      // Store non-DM-RS REs.
+      est_results.get_symbol_ch_estimate(ch_port_buffer, i_symbol, i_port, i_layer, re_mask);
+
+      if (dc_position.has_value() && re_mask.test(*dc_position)) {
+        // The number of active REs before the DC position gives the offset inside ch_port_buffer.
+        re_symbol_mask_type local_mask        = re_mask.slice(begin, *dc_position);
+        unsigned            relative_position = local_mask.count();
+        ch_port_buffer[relative_position]     = 0;
+      }
+    }
+  }
+
+  return ch_estimates_copy;
 }

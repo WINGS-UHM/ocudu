@@ -14,7 +14,6 @@
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
 #include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
-#include "ocudu/phy/upper/channel_estimation.h"
 #include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
@@ -102,7 +101,7 @@ struct pusch_processor_factory_sw_configuration {
   std::shared_ptr<ulsch_demultiplex_factory>    demux_factory;
   std::shared_ptr<pusch_decoder_factory>        decoder_factory;
   std::shared_ptr<uci_decoder_factory>          uci_dec_factory;
-  channel_estimate::channel_estimate_dimensions ch_estimate_dimensions;
+  pusch_processor::channel_size                 ch_estimate_dimensions;
   unsigned                                      dec_nof_iterations    = 10;
   bool                                          dec_enable_early_stop = true;
   unsigned                                      max_nof_concurrent_threads;

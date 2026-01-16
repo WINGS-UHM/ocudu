@@ -155,6 +155,20 @@ public:
     std::optional<unsigned> dc_position;
   };
 
+  /// \brief Channel size as seen by the PUSCH channel estimator.
+  ///
+  /// Coincides with the maximum PDU size.
+  struct channel_size {
+    /// Number of contiguous PRBs considered for channel estimation.
+    unsigned nof_prb;
+    /// Number of contiguous OFDM symbols considered for channel estimation.
+    unsigned nof_symbols;
+    /// Number of receive ports.
+    unsigned nof_rx_ports;
+    /// Number of transmit layers.
+    unsigned nof_tx_layers;
+  };
+
   /// Default destructor.
   virtual ~pusch_processor() = default;
 

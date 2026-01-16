@@ -181,6 +181,7 @@ public:
     config.dec_nof_iterations    = dec_nof_iterations;
     config.dec_enable_early_stop = dec_enable_early_stop;
     config.csi_sinr_calc_method  = csi_sinr_calc_method;
+    config.ce_dims               = ch_estimate_dimensions;
     return std::make_unique<pusch_processor_impl>(config);
   }
 
@@ -196,7 +197,7 @@ private:
   std::shared_ptr<ulsch_demultiplex_factory>                               demux_factory;
   std::shared_ptr<pusch_decoder_factory>                                   decoder_factory;
   std::shared_ptr<uci_decoder_factory>                                     uci_dec_factory;
-  channel_estimate::channel_estimate_dimensions                            ch_estimate_dimensions;
+  pusch_processor::channel_size                                            ch_estimate_dimensions;
   unsigned                                                                 dec_nof_iterations;
   bool                                                                     dec_enable_early_stop;
   channel_state_information::sinr_type                                     csi_sinr_calc_method;

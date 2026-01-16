@@ -12,7 +12,6 @@
 
 #include "pusch_processor_notifier_adaptor.h"
 #include "pusch_uci_decoder_wrapper.h"
-#include "ocudu/phy/upper/channel_estimation.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
@@ -38,16 +37,15 @@ public:
   {
   public:
     /// Creates the dependencies instance.
-    concurrent_dependencies(std::unique_ptr<dmrs_pusch_estimator>         estimator_,
-                            std::unique_ptr<pusch_demodulator>            demodulator_,
-                            std::unique_ptr<ulsch_demultiplex>            demultiplex_,
-                            std::unique_ptr<uci_decoder>                  uci_dec_,
-                            channel_estimate::channel_estimate_dimensions ce_dims) :
+    concurrent_dependencies(std::unique_ptr<dmrs_pusch_estimator> estimator_,
+                            std::unique_ptr<pusch_demodulator>    demodulator_,
+                            std::unique_ptr<ulsch_demultiplex>    demultiplex_,
+                            std::unique_ptr<uci_decoder>          uci_dec_,
+                            channel_size                          ce_dims) :
       estimator(std::move(estimator_)),
       demodulator(std::move(demodulator_)),
       demultiplex(std::move(demultiplex_)),
       uci_dec(std::move(uci_dec_)),
-      ch_estimate(ce_dims),
       harq_ack_decoder(*uci_dec,
                        pusch_constants::get_max_codeword_size(ce_dims.nof_prb, ce_dims.nof_tx_layers).value()),
       csi_part1_decoder(*uci_dec,
@@ -68,7 +66,6 @@ public:
     pusch_uci_decoder_wrapper& get_harq_ack_decoder() { return harq_ack_decoder; }
     pusch_uci_decoder_wrapper& get_csi_part1_decoder() { return csi_part1_decoder; }
     pusch_uci_decoder_wrapper& get_csi_part2_decoder() { return csi_part2_decoder; }
-    channel_estimate&          get_channel_estimate() { return ch_estimate; }
 
   private:
     /// Channel estimator instance.
@@ -79,8 +76,6 @@ public:
     std::unique_ptr<ulsch_demultiplex> demultiplex;
     /// UCI Decoder instance.
     std::unique_ptr<uci_decoder> uci_dec;
-    /// Temporal channel estimate.
-    channel_estimate ch_estimate;
     /// HARQ-ACK decoder wrapper.
     pusch_uci_decoder_wrapper harq_ack_decoder;
     /// CSI Part 1 decoder wrapper.
@@ -106,6 +101,8 @@ public:
     bool dec_force_decoding;
     /// PUSCH SINR calculation method for CSI reporting.
     channel_state_information::sinr_type csi_sinr_calc_method;
+    /// Channel size as seen by the PUSCH channel estimator.
+    channel_size ce_dims;
   };
 
   /// \brief Constructs a generic software PUSCH processor.
@@ -234,6 +231,10 @@ private:
   bool force_decoding;
   /// Enables LDPC decoder early stop if the CRC matches before completing \c ldpc_nof_iterations iterations.
   bool dec_enable_early_stop;
+  /// \brief Channel size as seen by the PUSCH channel estimator.
+  ///
+  /// Coincides with the maximum PDU size.
+  channel_size ce_dims;
   /// Selects the PUSCH SINR calculation method.
   channel_state_information::sinr_type csi_sinr_calc_method;
   /// Notifier adaptor.

@@ -112,6 +112,7 @@ pusch_processor_impl::pusch_processor_impl(configuration& config) :
   dec_nof_iterations(config.dec_nof_iterations),
   force_decoding(config.dec_force_decoding),
   dec_enable_early_stop(config.dec_enable_early_stop),
+  ce_dims(config.ce_dims),
   csi_sinr_calc_method(config.csi_sinr_calc_method)
 {
   ocudu_assert(dependencies_pool, "Invalid dependency pool.");
@@ -147,12 +148,9 @@ void pusch_processor_impl::process(span<uint8_t>                    data,
     return;
   }
 
-  // Get channel estimates.
-  channel_estimate& ch_estimate = dependencies->get_channel_estimate();
-
   // Assert PDU.
   [[maybe_unused]] std::string msg;
-  ocudu_assert(handle_validation(msg, pusch_processor_validator_impl(ch_estimate.capacity()).is_valid(pdu)), "{}", msg);
+  ocudu_assert(handle_validation(msg, pusch_processor_validator_impl(ce_dims).is_valid(pdu)), "{}", msg);
 
   // Get RB mask relative to Point A. It assumes PUSCH is never interleaved.
   crb_bitmap rb_mask = pdu.freq_alloc.get_crb_mask(pdu.bwp_start_rb, pdu.bwp_size_rb);

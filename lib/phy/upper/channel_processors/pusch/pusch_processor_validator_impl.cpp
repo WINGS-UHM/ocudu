@@ -15,8 +15,7 @@
 
 using namespace ocudu;
 
-pusch_processor_validator_impl::pusch_processor_validator_impl(
-    const channel_estimate::channel_estimate_dimensions& ce_dims_) :
+pusch_processor_validator_impl::pusch_processor_validator_impl(const pusch_processor::channel_size& ce_dims_) :
   ce_dims(ce_dims_)
 {
   static constexpr interval<unsigned, true> nof_tx_layers_range(1, pusch_processor_impl::max_nof_layers);

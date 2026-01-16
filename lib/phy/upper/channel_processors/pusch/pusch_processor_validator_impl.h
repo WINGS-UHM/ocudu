@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/adt/expected.h"
-#include "ocudu/phy/upper/channel_estimation.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
 
 namespace ocudu {
@@ -26,13 +25,13 @@ public:
   /// transmit layers.
   ///
   /// \param[in] ce_dims_ Provides the channel estimates dimensions.
-  explicit pusch_processor_validator_impl(const channel_estimate::channel_estimate_dimensions& ce_dims_);
+  explicit pusch_processor_validator_impl(const pusch_processor::channel_size& ce_dims_);
 
   // See interface for documentation.
   error_type<std::string> is_valid(const pusch_processor::pdu_t& pdu) const override;
 
 private:
-  channel_estimate::channel_estimate_dimensions ce_dims;
+  pusch_processor::channel_size ce_dims;
 };
 
 } // namespace ocudu

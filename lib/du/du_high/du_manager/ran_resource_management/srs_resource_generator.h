@@ -36,6 +36,7 @@ struct du_srs_resource {
 /// resource list.
 /// \param[in] du_cell_cfg Cell configuration parameters.
 /// \return List of orthogonal SRS resources.
-std::vector<du_srs_resource> generate_cell_srs_list(const du_cell_config& du_cell_cfg);
+std::vector<du_srs_resource> generate_cell_srs_list(const du_cell_config& du_cell_cfg,
+                                                    bool                  use_special_slot_only = false);
 
 } // namespace ocudu::odu

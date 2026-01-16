@@ -1285,7 +1285,7 @@ static void configure_cli11_srs_args(CLI::App& app, du_high_unit_srs_config& srs
   add_option(app,
              "--srs_period_prohib_time_ms",
              srs_params.srs_period_prohibit_time_ms,
-             "Enable periodic SRS with period in ms. The SRS period needs to be compatible with the subcarrier spacing")
+             "SRS period/prohibit time in ms. The SRS period needs to be compatible with the subcarrier spacing")
       ->capture_default_str()
       ->check(CLI::IsMember({1.0F,
                              2.0F,

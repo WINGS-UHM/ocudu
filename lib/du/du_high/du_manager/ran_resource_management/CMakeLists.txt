@@ -16,7 +16,6 @@ add_library(du_resource_manager
         du_drx_resource_manager.cpp
         du_meas_config_manager.cpp
         ra_resource_manager.cpp
-        du_srs_aperiodic_res_mng.h
         du_srs_aperiodic_res_mng.cpp
 )
 target_link_libraries(

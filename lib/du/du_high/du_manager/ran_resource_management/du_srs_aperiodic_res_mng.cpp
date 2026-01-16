@@ -119,6 +119,15 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
 
   const auto& pusch_td_alloc_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
 
+  fmt::print("\n List of k2 per DL slot idx");
+  for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
+    const auto& dl_td_res_vec = pusch_td_list_per_slot[dl_sl_idx];
+    fmt::print("\n DL slot idx = {} - List of k2s = ", dl_sl_idx);
+    for (const auto td_res_idx : dl_td_res_vec) {
+      fmt::print("{} \t ", static_cast<unsigned>(pusch_td_alloc_list[td_res_idx].k2));
+    }
+  }
+
   unsigned max_used_k2 = 0;
   for (const auto& dl_td_res_vec : pusch_td_list_per_slot) {
     for (const auto td_res_idx : dl_td_res_vec) {
@@ -147,7 +156,8 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
   if (tdd_cfg.pattern1.nof_dl_symbols != 0) {
     target_ul_slots_idx.emplace_back(tdd_cfg.pattern1.nof_dl_slots);
   }
-  if (tdd_cfg.pattern2.has_value() and tdd_cfg.pattern2.value().nof_ul_slots != 0) {
+  if (tdd_cfg.pattern2.has_value() and tdd_cfg.pattern2.value().nof_ul_slots != 0 and
+      tdd_cfg.pattern2.value().nof_dl_symbols != 0) {
     target_ul_slots_idx.emplace_back(tdd_cfg.pattern1.dl_ul_tx_period_nof_slots +
                                      tdd_cfg.pattern2.value().nof_dl_slots);
   }
@@ -210,8 +220,14 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     }
   }
 
+  fmt::print("\n List of candidate offsets");
+  for (auto& asd : candidate_slot_offsets) {
+    fmt::print("\n Tuple=<{}, {}, {}>", std::get<0>(asd), std::get<1>(asd), std::get<2>(asd));
+  }
+
   std::vector<dl_sl_idx_sl_offset_is_dl_tuple> optimal_tuples;
-  auto weight_function = [&optimal_tuples, &tdd_cfg](const dl_sl_idx_sl_offset_is_dl_tuple& offset) {
+  auto weight_function = [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](
+                             const dl_sl_idx_sl_offset_is_dl_tuple& offset) {
     // The logic of this function can be summarized as follows:
     // - Provide 1 UL slot offset and 1 DL slot offset.
     // - If a third one is required, then provide an extra UL(DL) slot offset for UL(DL)-heavy configuration.
@@ -231,41 +247,76 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
                                                            [offset](const dl_sl_idx_sl_offset_is_dl_tuple& tuple) {
                                                              return std::get<0>(tuple) == std::get<0>(offset);
                                                            }) != optimal_tuples.end()
-                                                  ? srs_constants::MAX_SRS_SLOT_OFFSET
+                                                  ? 2 * srs_constants::MAX_SRS_SLOT_OFFSET
                                                   : 0U;
+    const unsigned existing_offset_penalty  = std::find_if(optimal_tuples.begin(),
+                                                          optimal_tuples.end(),
+                                                          [offset](const dl_sl_idx_sl_offset_is_dl_tuple& tuple) {
+                                                            return std::get<1>(tuple) == std::get<1>(offset);
+                                                          }) != optimal_tuples.end()
+                                                  ? exclude_element_penalty
+                                                  : 0U;
+    const unsigned same_target_ul_slot_penalty =
+        target_ul_slots_idx.size() == 2 and
+                std::find_if(optimal_tuples.begin(),
+                             optimal_tuples.end(),
+                             [offset, tdd_period_slots](const dl_sl_idx_sl_offset_is_dl_tuple& tuple) {
+                               return (std::get<0>(tuple) + std::get<1>(tuple)) % tdd_period_slots ==
+                                      (std::get<0>(offset) + std::get<1>(offset)) % tdd_period_slots;
+                             }) != optimal_tuples.end()
+            ? srs_constants::MAX_SRS_SLOT_OFFSET
+            : 0U;
     // Choose a DL slot offset as second value.
     if (optimal_tuples.size() == 1) {
       const unsigned is_ul_penalty = std::get<2>(offset) ? 0U : exclude_element_penalty;
-      return std::get<1>(offset) + existing_dl_slot_penalty + is_ul_penalty;
+      const unsigned weight = std::get<1>(offset) + existing_dl_slot_penalty + existing_offset_penalty + is_ul_penalty +
+                              same_target_ul_slot_penalty;
+      // fmt::print("\n Weight={}", weight);
+      return weight;
     }
     // Choose a DL/UL slot offset as second value, depending on DL-UL heavy config.
     if (optimal_tuples.size() == 2) {
       // If UL heavy then we add a penalty for DL slots offsets. If DL heavy, we add a penalty for UL.
-      const unsigned dl_ul_penalty = exclude_element_penalty * static_cast<unsigned>(ul_heavy != std::get<0>(offset));
-      return std::get<1>(offset) + dl_ul_penalty + existing_dl_slot_penalty;
+      const unsigned dl_ul_penalty = exclude_element_penalty * static_cast<unsigned>(ul_heavy != std::get<2>(offset));
+      const unsigned weight = std::get<1>(offset) + dl_ul_penalty + existing_dl_slot_penalty + existing_offset_penalty +
+                              same_target_ul_slot_penalty;
+      // fmt::print("\n Weight={} ", weight);
+      return weight;
     }
 
     return 0U;
   };
 
+  fmt::print("\n List of candidate offsets");
+
   // We consider 3 slots offsets, as many as the possible activation states defined in Table 7.3.1.1.2-24, TS 38.212.
   // NOTE, if the TDD configuration only has 2 DL slot, then the 3rd slot offset wouldn't be used.
   const unsigned nof_slot_offset = std::min(3U, nof_dl_slots_per_tdd_period(tdd_cfg));
   for (unsigned n = 0; n != nof_slot_offset; ++n) {
+    fmt::print("\n Iteration n={}", n);
     auto min_it = std::min_element(
-        optimal_tuples.begin(),
-        optimal_tuples.end(),
+        candidate_slot_offsets.begin(),
+        candidate_slot_offsets.end(),
         [&weight_function](const dl_sl_idx_sl_offset_is_dl_tuple& lhs, const dl_sl_idx_sl_offset_is_dl_tuple& rhs) {
+          const unsigned w_lhs = weight_function(lhs);
+          const unsigned w_rhs = weight_function(rhs);
+          fmt::print(
+              "\n Processing LHS_Tuple=<{}, {}, {}> w={}", std::get<0>(lhs), std::get<1>(lhs), std::get<2>(lhs), w_lhs);
+          fmt::print(
+              "\t Processing RHS_Tuple=<{}, {}, {}> w={}", std::get<0>(rhs), std::get<1>(rhs), std::get<2>(rhs), w_rhs);
           return weight_function(lhs) < weight_function(rhs);
         });
     ocudu_assert(min_it != optimal_tuples.end(), "");
     optimal_tuples.emplace_back(*min_it);
   }
 
+  fmt::print("\n Optinal tuples");
   std::vector<unsigned> slot_offsets;
   for (const auto& tuple : optimal_tuples) {
+    fmt::print("\t Tuple=<{}, {}, {}>", std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
     slot_offsets.emplace_back(std::get<1>(tuple));
   }
+  std::sort(slot_offsets.begin(), slot_offsets.end());
   return slot_offsets;
 }
 
@@ -313,7 +364,11 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
     cell.srs_common_params.p0 = cell_cfg.srs_cfg.p0;
 
     // TODO: evaluate whether we need to consider the case of multiple cells.
-    cell.cell_srs_res_list = generate_cell_srs_list(cell_cfg);
+    // NOTE: If there is pattern2, then we expect pattern 2 to have the same number of symbols in the special slot as
+    // pattern1.
+    const bool use_special_slot_only = cell_cfg.tdd_ul_dl_cfg_common.has_value() and
+                                       (cell_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0);
+    cell.cell_srs_res_list = generate_cell_srs_list(cell_cfg, use_special_slot_only);
 
     // Reserve the size of the vector and set the SRS counter of each offset to 0.
     cell.srs_res_usage.reserve(cell.cell_srs_res_list.size());
@@ -402,12 +457,11 @@ void du_srs_aperiodic_res_mng::cell_context::fill_srs_res_sets(srs_set_t&       
                                                                srs_config::srs_res_id res_id,
                                                                span<const unsigned>   slot_offset_values) const
 {
-  ocudu_assert(slot_offset_values.size() == 3, "Invalid number of slot_offsets");
+  ocudu_assert(slot_offset_values.size() == 2U or slot_offset_values.size() == 3U, "Invalid number of slot_offsets");
 
   // Update the parameters.
   auto& srs_res_set = srs_res_set_list.front();
   srs_res_set.p0    = srs_common_params.p0;
-  srs_res_set_list.emplace_back(srs_res_set);
 
   // The basic config has 1 SRS resource set; we expand it to (max) 3 element, by copying the first one and then
   // updating the res set ID, slot_offset and code trigger.

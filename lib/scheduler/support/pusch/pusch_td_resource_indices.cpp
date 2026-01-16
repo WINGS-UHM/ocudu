@@ -82,7 +82,7 @@ pusch_index_list ocudu::get_pusch_td_resource_indices(slot_point                
   for (unsigned td_idx = 0; td_idx != pusch_time_domain_list.size(); ++td_idx) {
     const pusch_time_domain_resource_allocation& pusch_td_res = pusch_time_domain_list[td_idx];
     // [Implementation-defined] PUSCH on partial UL slots is not supported.
-    if (is_tdd_partial_ul_slot(tdd_cfg_common.value(), (pdcch_slot + pusch_td_res.k2).slot_index())) {
+    if (not is_tdd_full_ul_slot(tdd_cfg_common.value(), (pdcch_slot + pusch_td_res.k2).slot_index())) {
       continue;
     }
 

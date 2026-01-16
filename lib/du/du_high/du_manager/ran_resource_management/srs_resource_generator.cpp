@@ -13,7 +13,8 @@
 using namespace ocudu;
 using namespace odu;
 
-std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_config& du_cell_cfg)
+std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_config& du_cell_cfg,
+                                                                bool                  use_special_slot_only)
 {
   std::vector<du_srs_resource> srs_res_list;
   // TX comb offsets values, depending on the TX comb value, as per TS 38.331, \c transmissionComb, \c SRS-Resource,
@@ -44,23 +45,34 @@ std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_co
     seq_id_values.push_back((static_cast<unsigned>(du_cell_cfg.pci) + seq_id) % nof_sequence_ids);
   }
 
-  // At this point, the SRS resource is not assigned to a given slot, and we need to consider all possible UL symbols
-  // where the SRS can be placed. The viable symbols for SRS are defined by the user configuration, through \c
-  // max_nof_symbols for fully-UL slots, or by the number of UL symbols for partially-UL slots. We take the min of
-  // these 2 values as starting symbol, and we cap it to the 6th last symbol, which is sey by the standard, as per
-  // TS 38.211, Section 6.4.1.4.1.
-  unsigned starting_sym = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_cell_cfg.srs_cfg.max_nof_symbols.value();
-  if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-    const auto& tdd_cfg = du_cell_cfg.tdd_ul_dl_cfg_common.value();
-    starting_sym        = std::min(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern1.nof_ul_symbols);
-    if (tdd_cfg.pattern2.has_value()) {
-      starting_sym = std::min(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern2.value().nof_ul_symbols);
+  unsigned    starting_sym = 0;
+  const auto& tdd_cfg      = du_cell_cfg.tdd_ul_dl_cfg_common.value();
+  if (use_special_slot_only) {
+    // For special slot allocation only, we only consider the allocation on the special slot.
+    starting_sym = std::max(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern1.nof_ul_symbols);
+    if (tdd_cfg.pattern2.has_value() and (tdd_cfg.pattern2.value().nof_ul_symbols != 0)) {
+      starting_sym = std::max(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern2.value().nof_ul_symbols);
+    }
+  } else {
+    // At this point, the SRS resource is not assigned to a given slot, and we need to consider all possible UL symbols
+    // where the SRS can be placed. The viable symbols for SRS are defined by the user configuration, through \c
+    // max_nof_symbols for fully-UL slots, or by the number of UL symbols for partially-UL slots. We take the min of
+    // these 2 values as starting symbol, and we cap it to the 6th last symbol, which is sey by the standard, as per
+    // TS 38.211, Section 6.4.1.4.1.
+    // NOTE: not all SRS resources are compatible with all slots; the DU SRS periodic manager will check which resource
+    // can be allocated to a given UE as a function of the offset of the periodic resource.
+    starting_sym = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_cell_cfg.srs_cfg.max_nof_symbols.value();
+    if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+      starting_sym = std::min(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern1.nof_ul_symbols);
+      if (tdd_cfg.pattern2.has_value()) {
+        starting_sym =
+            std::min(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern2.value().nof_ul_symbols);
+      }
     }
   }
   // Cap the starting symbol to the 6th last symbol of the slot (\c du_cell_cfg.srs_cfg.max_nof_symbols.max()), as per
   // TS 38.211, Section 6.4.1.4.1.
   starting_sym = std::max(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_cell_cfg.srs_cfg.max_nof_symbols.max());
-
   // We use the counter to define the cell resource ID.
   unsigned srs_res_cnt = 0;
   for (unsigned sym_start = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - static_cast<unsigned>(du_cell_cfg.srs_cfg.nof_symbols);

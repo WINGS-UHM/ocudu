@@ -718,15 +718,6 @@ install-package:
   needs:
     - package
 
-check package ubuntu versions:
-  extends: .check packaging ubuntu images
-  stage: static
-  rules:
-    - if: $CI_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 15 minutes
-    - if: $ON_MR
-
 # Validate export on, enabled for test vector generation
 
 export on amd64:

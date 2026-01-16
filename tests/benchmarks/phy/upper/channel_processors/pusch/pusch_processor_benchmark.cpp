@@ -414,7 +414,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
           config.nof_symbols        = profile.nof_symbols;
           config.tbs_lbrm           = tbs_lbrm_default;
 
-          test_case_set.emplace_back(std::tuple<pusch_processor::pdu_t, unsigned>(config, tbs));
+          test_case_set.emplace_back(config, tbs);
         }
       }
     }
@@ -766,7 +766,7 @@ int main(int argc, char** argv)
 
   // Inform of the benchmark configuration.
   if (benchmark_mode != benchmark_modes::silent) {
-    std::string hwacc_verbose = "";
+    std::string hwacc_verbose;
     if (ldpc_decoder_type == "acc100") {
       hwacc_verbose = fmt::format(" ({} VFs)", nof_threads + nof_pusch_decoder_threads + 1);
     }
@@ -847,7 +847,7 @@ int main(int argc, char** argv)
 
       // Create thread.
       thread = unique_thread("thread_" + std::to_string(thread_id), [&proc = *processor, &config, &tbs, &grid] {
-        thread_process(proc, config, tbs, grid.get()->get_reader());
+        thread_process(proc, config, tbs, grid->get_reader());
       });
     }
 

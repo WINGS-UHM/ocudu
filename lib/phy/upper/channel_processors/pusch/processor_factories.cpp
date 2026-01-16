@@ -102,9 +102,7 @@ class pusch_decoder_factory_hw : public pusch_decoder_factory
 {
 public:
   explicit pusch_decoder_factory_hw(const pusch_decoder_factory_hw_configuration& config) :
-    segmenter_factory(std::move(config.segmenter_factory)),
-    crc_factory(std::move(config.crc_factory)),
-    executor(config.executor)
+    segmenter_factory(config.segmenter_factory), crc_factory(config.crc_factory), executor(config.executor)
   {
     ocudu_assert(segmenter_factory, "Invalid LDPC segmenter factory.");
     ocudu_assert(crc_factory, "Invalid CRC factory.");

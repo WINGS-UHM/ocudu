@@ -149,14 +149,14 @@ private:
                                              unsigned                               cdm_)
     {
       // Set new PUSCH reception parameters. Use exchange for verifying that previous receptions are not overwritten.
-      [[maybe_unused]] auto prev_data         = std::exchange(data, data_);
-      [[maybe_unused]] auto prev_rm_buffer    = std::exchange(rm_buffer, std::move(rm_buffer_));
-      [[maybe_unused]] auto prev_notifier     = std::exchange(notifier, &notifier_);
-      [[maybe_unused]] auto prev_dependencies = std::exchange(dependencies, std::move(dependencies_));
-      [[maybe_unused]] auto prev_grid         = std::exchange(grid, &grid_);
-      [[maybe_unused]] auto prev_pdu          = std::exchange(pdu, &pdu_);
-      used_dmrs_type                          = dmrs_type_;
-      nof_cdm_groups_without_data             = cdm_;
+      [[maybe_unused]] auto        prev_data         = std::exchange(data, data_);
+      [[maybe_unused]] auto        prev_rm_buffer    = std::exchange(rm_buffer, std::move(rm_buffer_));
+      [[maybe_unused]] auto*       prev_notifier     = std::exchange(notifier, &notifier_);
+      [[maybe_unused]] auto        prev_dependencies = std::exchange(dependencies, std::move(dependencies_));
+      [[maybe_unused]] const auto* prev_grid         = std::exchange(grid, &grid_);
+      [[maybe_unused]] const auto* prev_pdu          = std::exchange(pdu, &pdu_);
+      used_dmrs_type                                 = dmrs_type_;
+      nof_cdm_groups_without_data                    = cdm_;
 
       // Ensure that no parameter was overwritten.
       ocudu_assert(prev_data.data() == nullptr, "Detected data overwrite.");
@@ -201,11 +201,11 @@ private:
     /// Reference to the PUSCH processor waiting for notification.
     pusch_processor_impl& notified_processor;
     /// Pointer to the dependencies object assigned to the PUSCH processor.
-    concurrent_dependencies_pool_type::ptr dependencies = {};
+    concurrent_dependencies_pool_type::ptr dependencies;
     /// Buffer to store retrieved data.
-    span<uint8_t> data = {};
+    span<uint8_t> data;
     /// Rate matcher buffer.
-    unique_rx_buffer rm_buffer = unique_rx_buffer();
+    unique_rx_buffer rm_buffer;
     /// Pointer to the PUSCH processor notifier passed to the notified processor.
     pusch_processor_result_notifier* notifier = nullptr;
     /// Pointer to the reader of the resource grid containing the PUSCH transmission.

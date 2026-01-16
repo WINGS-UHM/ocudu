@@ -11,6 +11,7 @@
 #include "du_high_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "du_high_config.h"
+#include "ntn/du_high_ntn_config_translators.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/du/du_cell_config_validation.h"
 #include "ocudu/du/du_high/du_high_configuration.h"
@@ -1016,45 +1017,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
   }
 
   return out_cfg;
-}
-
-static void ntn_augment_rlc_config(const ntn_config& ntn_cfg, rlc_config& rlc)
-{
-  if (ntn_cfg.cell_specific_koffset.count() > 1000) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 4000);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 800) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 2000);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 500) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 2000);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 300) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 1000);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 200) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 800);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 100) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 400);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 50) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 200);
-  } else if (ntn_cfg.cell_specific_koffset.count() > 10) {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 100);
-  } else {
-    rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 50);
-  }
-}
-
-static void ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id_t, odu::du_srb_config>& srb_cfgs)
-{
-  // NTN is enabled, so we need to augment the RLC parameters for the NTN cell.
-  for (auto& srb : srb_cfgs) {
-    ntn_augment_rlc_config(ntn_cfg, srb.second.rlc);
-  }
-}
-
-static void ntn_augment_du_qos_config(const ntn_config& ntn_cfg, std::map<five_qi_t, odu::du_qos_config>& qos_cfgs)
-{
-  // NTN is enabled, so we need to augment the QoS parameters for the NTN cell.
-  for (auto& qos : qos_cfgs) {
-    ntn_augment_rlc_config(ntn_cfg, qos.second.rlc);
-  }
 }
 
 static rlc_am_config generate_du_rlc_am_config(const du_high_unit_rlc_am_config& in_cfg)

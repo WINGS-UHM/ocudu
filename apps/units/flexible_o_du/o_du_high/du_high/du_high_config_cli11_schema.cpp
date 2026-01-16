@@ -12,7 +12,7 @@
 #include "apps/helpers/logger/logger_appconfig_cli11_utils.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "du_high_config.h"
-#include "du_high_config_cli11_ntn_schema.h"
+#include "ntn/du_high_ntn_config_cli11_schema.h"
 #include "ocudu/adt/ranges/transform.h"
 #include "ocudu/ran/drx_config.h"
 #include "ocudu/ran/du_types.h"
@@ -116,6 +116,7 @@ static void configure_cli11_log_args(CLI::App& app, du_high_unit_logger_config& 
   app_helpers::add_log_option(app, log_params.f1ap_level, "--f1ap_level", "F1AP log level");
   app_helpers::add_log_option(app, log_params.f1u_level, "--f1u_level", "F1-U log level");
   app_helpers::add_log_option(app, log_params.gtpu_level, "--gtpu_level", "GTPU log level");
+  app_helpers::add_log_option(app, log_params.ntn_level, "--ntn_level", "NTN log level");
   app_helpers::add_log_option(app, log_params.du_level, "--du_level", "Log level for the DU");
 
   add_option(app,
@@ -2192,6 +2193,9 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
   };
   add_option_cell(app, "--slicing", slicing_lambda, "Network slicing configuration");
 
+  // NTN configuration.
+  configure_cli11_cell_ntn_args(app, cell_params.ntn_cfg);
+
   // Radio Link Monitoring configuration.
   CLI::App* rlm_subcmd = add_subcommand(app, "rlm", "Radio Link Monitoring parameters");
   configure_cli11_rlm_args(*rlm_subcmd, cell_params.rlm_cfg);
@@ -2439,30 +2443,6 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
   CLI::App* expert_subcmd = add_subcommand(app, "expert_execution", "Expert execution configuration")->configurable();
   configure_cli11_expert_execution_args(*expert_subcmd, parsed_cfg.config.expert_execution_cfg);
 
-  // NTN section.
-  static ntn_config ntn_cfg;
-  CLI::App*         ntn_subcmd = add_subcommand(app, "ntn", "Default NTN configuration")->configurable();
-  configure_cli11_ntn_args(*ntn_subcmd, ntn_cfg);
-  ntn_subcmd->parse_complete_callback([&]() {
-    CLI::App* ntn_sub_cmd = app.get_subcommand("ntn");
-    if (ntn_sub_cmd->count() != 0) {
-      parsed_cfg.common_cell_cfg.ntn_cfg.emplace(ntn_cfg);
-      for (auto& cell : parsed_cfg.config.cells_cfg) {
-        cell.cell.ntn_cfg.emplace(ntn_cfg);
-      }
-      // Run the callback again for the cells if the option callback is already run once.
-      if (app.get_option("--cells")->get_callback_run()) {
-        app.get_option("--cells")->run_callback();
-      }
-    } else {
-      for (auto& cell : parsed_cfg.config.cells_cfg) {
-        cell.cell.ntn_cfg.reset();
-      }
-      // As NTN configuration is optional, disable the command when it is not present in the configuration.
-      ntn_sub_cmd->disabled();
-    };
-  });
-
   // Cell section.
   add_option_cell(
       app,
@@ -2480,7 +2460,6 @@ void ocudu::configure_cli11_with_du_high_config_schema(CLI::App& app, du_high_pa
           subapp.config_formatter(create_yaml_config_parser());
           subapp.allow_config_extras(CLI::config_extras_mode::capture);
           configure_cli11_cells_args(subapp, parsed_cfg.config.cells_cfg[i]);
-          configure_cli11_cell_ntn_args(subapp, parsed_cfg.config.cells_cfg[i].cell.ntn_cfg);
           std::istringstream ss(values[i]);
           subapp.parse_from_stream(ss);
         }

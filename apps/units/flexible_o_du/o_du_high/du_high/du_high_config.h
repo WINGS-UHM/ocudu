@@ -50,6 +50,7 @@ struct du_high_unit_logger_config {
   ocudulog::basic_levels f1ap_level = ocudulog::basic_levels::warning;
   ocudulog::basic_levels f1u_level  = ocudulog::basic_levels::warning;
   ocudulog::basic_levels gtpu_level = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels ntn_level  = ocudulog::basic_levels::warning;
 
   /// Maximum number of bytes to write when dumping hex arrays.
   int hex_max_size = 0;

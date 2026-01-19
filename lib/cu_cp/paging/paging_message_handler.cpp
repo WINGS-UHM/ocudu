@@ -94,7 +94,7 @@ bool paging_message_handler::handle_du_paging_message(du_index_t du_index, const
     }
 
     // If tai_list_for_paging is empty, this is a RAN paging.
-    // TODO: Support RAC based paging.
+    // TODO: Support RANAC based paging.
     if (!msg_filtered.tai_list_for_paging.empty()) {
       if (not is_tac_in_list(msg_filtered.tai_list_for_paging, cell.tac)) {
         continue;

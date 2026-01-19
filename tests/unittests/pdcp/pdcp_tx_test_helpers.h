@@ -11,6 +11,7 @@
 #pragma once
 
 #include "lib/pdcp/pdcp_entity_tx.h"
+#include "pdcp_rohc_test_helpers.h"
 #include "pdcp_test_vectors.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_entity.h"
@@ -22,6 +23,20 @@
 #include <queue>
 
 namespace ocudu {
+
+struct rohc_test_params {
+  const char*                      name;
+  std::optional<rohc::rohc_config> config;
+};
+
+rohc_test_params cfg_rohc_disabled{.name = "rohc_disabled", .config = std::nullopt};
+rohc_test_params cfg_rohc_uncompressed{.name = "rohc_uncompressed", .config = rohc::rohc_config{}};
+rohc_test_params cfg_rohc_compressed{
+    .name   = "rohc_v1_RTP_UDP_IP_v1_UDP_IP_v1_IP",
+    .config = rohc::rohc_config{.profiles = rohc::rohc_profile_config()
+                                                .set_profile(rohc::rohc_profile::profile0x0001, true)
+                                                .set_profile(rohc::rohc_profile::profile0x0002, true)
+                                                .set_profile(rohc::rohc_profile::profile0x0004, true)}};
 
 /// Helper class to verify the state of the PDCP entity when the order of the PDU's crypto processing
 /// is non-deterministic.
@@ -110,26 +125,29 @@ protected:
 
   /// \brief Initializes fixture according to size sequence number size
   /// \param sn_size_ size of the sequence number
-  void init(std::tuple<pdcp_sn_size, unsigned> cfg_tuple,
-            pdcp_rb_type                       rb_type_      = pdcp_rb_type::drb,
-            pdcp_rlc_mode                      rlc_mode_     = pdcp_rlc_mode::am,
-            pdcp_discard_timer                 discard_timer = pdcp_discard_timer::ms10,
+  void init(std::tuple<pdcp_sn_size, unsigned, rohc_test_params> cfg_tuple,
+            pdcp_rb_type                                         rb_type_      = pdcp_rb_type::drb,
+            pdcp_rlc_mode                                        rlc_mode_     = pdcp_rlc_mode::am,
+            pdcp_discard_timer                                   discard_timer = pdcp_discard_timer::ms10,
             pdcp_max_count max_count = {pdcp_tx_default_max_count_notify, pdcp_tx_default_max_count_hard})
   {
-    logger.info("Creating PDCP TX ({} bit, NIA{}, NEA{})",
+    logger.info("Creating PDCP TX ({} bit, NIA{}, NEA{}, {})",
                 pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(cfg_tuple)),
                 std::get<unsigned>(cfg_tuple),
-                std::get<unsigned>(cfg_tuple));
+                std::get<unsigned>(cfg_tuple),
+                std::get<rohc_test_params>(cfg_tuple).config);
 
-    sn_size     = std::get<pdcp_sn_size>(cfg_tuple);
-    algo        = std::get<unsigned>(cfg_tuple);
-    pdu_hdr_len = pdcp_data_pdu_header_size(sn_size); // Round up division
+    sn_size            = std::get<pdcp_sn_size>(cfg_tuple);
+    algo               = std::get<unsigned>(cfg_tuple);
+    header_compression = std::get<rohc_test_params>(cfg_tuple).config;
+    pdu_hdr_len        = pdcp_data_pdu_header_size(sn_size); // Round up division
 
     // Set TX config
     config.sn_size                = sn_size;
     config.rb_type                = rb_type_;
     config.rlc_mode               = rlc_mode_;
     config.direction              = pdcp_security_direction::downlink;
+    config.header_compression     = header_compression;
     config.discard_timer          = discard_timer;
     config.custom.max_count       = max_count;
     config.status_report_required = true;
@@ -160,7 +178,7 @@ protected:
 
     metrics_agg =
         std::make_unique<pdcp_metrics_aggregator>(0, rb_id, timer_duration{100}, &metrics_notif, worker, false);
-    pdcp_rohc_factory = rohc::create_rohc_factory();
+    pdcp_rohc_factory = std::make_unique<rohc::dummy_rohc_factory>();
     // Create PDCP entity
     pdcp_tx = std::make_unique<pdcp_entity_tx>(0,
                                                rb_id,
@@ -197,13 +215,14 @@ protected:
 
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 
-  pdcp_sn_size       sn_size = {};
-  unsigned           algo    = {};
-  uint32_t           pdu_hdr_len;
-  uint32_t           mac_hdr_len = 4;
-  pdcp_tx_config     config      = {};
-  timer_manager      timers;
-  pdcp_tx_test_frame test_frame = {};
+  pdcp_sn_size                     sn_size            = {};
+  unsigned                         algo               = {};
+  std::optional<rohc::rohc_config> header_compression = {};
+  uint32_t                         pdu_hdr_len;
+  uint32_t                         mac_hdr_len = 4;
+  pdcp_tx_config                   config      = {};
+  timer_manager                    timers;
+  pdcp_tx_test_frame               test_frame = {};
 
   uint32_t rlc_sdu_queue_size = 20 * (1 << 20);
   // Security configuration

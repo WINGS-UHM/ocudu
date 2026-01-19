@@ -9,10 +9,8 @@
  */
 
 #include "pdcp_test_vectors.h"
-#include "pdcp_tx_test.h"
-#include "ocudu/pdcp/pdcp_config.h"
+#include "tests/unittests/pdcp/pdcp_tx_test_helpers.h"
 #include <gtest/gtest.h>
-#include <queue>
 
 using namespace ocudu;
 
@@ -20,9 +18,10 @@ constexpr uint32_t pool_size = 128;
 
 /// Fixture class for PDCP TX tests
 /// It requires TEST_P() and INSTANTIATE_TEST_SUITE_P() to create/spawn tests for each supported SN size
-class pdcp_tx_empty_pool_test : public pdcp_tx_test_helper_default_crypto,
-                                public ::testing::Test,
-                                public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned>>
+class pdcp_tx_empty_pool_test
+  : public pdcp_tx_test_helper_default_crypto,
+    public ::testing::Test,
+    public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>
 {
 protected:
   void SetUp() override
@@ -74,17 +73,22 @@ TEST_P(pdcp_tx_empty_pool_test, empty_pool)
 ///////////////////////////////////////////////////////////////////
 // Finally, instantiate all testcases for each supported SN size //
 ///////////////////////////////////////////////////////////////////
-std::string test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned>>& info)
+static std::string
+test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>& info)
 {
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "{}bit", pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(info.param)));
+  fmt::format_to(std::back_inserter(buffer),
+                 "{}bit_{}",
+                 pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(info.param)),
+                 std::get<rohc_test_params>(info.param).name);
   return fmt::to_string(buffer);
 }
 
 INSTANTIATE_TEST_SUITE_P(pdcp_tx_empty_pool_test_all_sn_sizes,
                          pdcp_tx_empty_pool_test,
                          ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
-                                            ::testing::Values(1)),
+                                            ::testing::Values(1),
+                                            ::testing::Values(cfg_rohc_disabled)),
                          test_param_info_to_string);
 
 int main(int argc, char** argv)

@@ -144,7 +144,8 @@ TEST_P(pdcp_tx_reestablish_test, when_drb_am_reestablish_then_pdus_retx)
 ///////////////////////////////////////////////////////////////////
 // Finally, instantiate all testcases for each supported SN size //
 ///////////////////////////////////////////////////////////////////
-std::string test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned>>& info)
+static std::string
+test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>& info)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer), "{}bit", pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(info.param)));
@@ -154,7 +155,8 @@ std::string test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<
 INSTANTIATE_TEST_SUITE_P(pdcp_tx_test_all_sn_sizes,
                          pdcp_tx_reestablish_test,
                          ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
-                                            ::testing::Values(1)),
+                                            ::testing::Values(1),
+                                            ::testing::Values(cfg_rohc_disabled)),
                          test_param_info_to_string);
 
 int main(int argc, char** argv)

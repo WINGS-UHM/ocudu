@@ -158,10 +158,10 @@ public:
     // UE_ID: 5G-S-TMSI mod 1024. See TS 38.304, clause 7.1.
     const unsigned ue_id = s_tmsi % 1024;
 
-    const sched_paging_information info{.paging_type_indicator   = paging_identity_type::cn_ue_paging_identity,
-                                        .paging_identity         = s_tmsi,
-                                        .ue_identity_index_value = ue_id,
-                                        .paging_drx              = radio_frames{paging_drx_}};
+    const sched_paging_information info{.paging_type_indicator = paging_identity_type::cn_ue_paging_identity,
+                                        .paging_identity       = s_tmsi,
+                                        .ue_identity           = ue_id,
+                                        .paging_drx            = radio_frames{paging_drx_}};
 
     bench->pg_sch.handle_paging_information(info);
   }

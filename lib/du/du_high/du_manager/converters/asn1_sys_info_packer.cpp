@@ -479,6 +479,16 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t319, du_cfg.ue_timers_and_constants.t319.count());
   ocudu_assert(ret, "Invalid value for T319: {}", du_cfg.ue_timers_and_constants.t319.count());
 
+  if (du_cfg.edrx_enabled) {
+    sib1.non_crit_ext_present                           = true;
+    sib1.non_crit_ext.non_crit_ext_present              = true;
+    sib1.non_crit_ext.non_crit_ext.non_crit_ext_present = true;
+    // Fill dummy hyperSFN value.
+    sib1.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17_present = true;
+    sib1.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.from_number(0);
+    sib1.non_crit_ext.non_crit_ext.non_crit_ext.edrx_allowed_idle_r17_present = true;
+  }
+
   return sib1;
 }
 

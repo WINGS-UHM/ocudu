@@ -24,11 +24,8 @@ struct paging_edrx_information {
   radio_frames cycle_idle;
   /// Paging time window (PTW) length for eDRX.
   std::optional<std::chrono::seconds> ptw_len;
-  /// \brief UE_ID of 16 bits specified in TS 38.413 and TS 38.473, and used for eDRX as per TS 38.304.
-  /// As per TS 38.304, 12 bits are used for PF and PO calculation and 13/15 bits are used for subgrouping.
-  unsigned extended_ue_identity_index_value;
   /// \brief UE_ID_H of 13 bits specified in TS 38.413 and TS 38.473, and used for eDRX as per TS 38.304.
-  unsigned hashed_ue_identity_index_value;
+  uint32_t hashed_ue_identity;
 };
 
 struct paging_information {
@@ -38,9 +35,10 @@ struct paging_information {
   /// Paging identity assigned to UE. Possible values are \c I-RNTI-Value (Bit string of size 40) and \c NG-5G-S-TMSI
   /// (Bit string of size 48). See TS 38.331.
   uint64_t paging_identity;
-  /// UE_ID: 5G-S-TMSI mod 1024. Used by the paging scheduler to calculate the Paging Frame.
+  /// UE_ID: 5G-S-TMSI mod 1024 if eDRX not enabled, and 5G-S-TMSI mod 4096, if enabled. Used by the paging scheduler
+  /// to calculate the Paging Frame and Paging Occasion.
   /// \remark See TS 38.304, clause 7.1.
-  unsigned ue_identity_index_value;
+  unsigned ue_identity;
   /// Paging DRX cycle specified by upper layers.
   std::optional<radio_frames> paging_drx;
   /// Paging eDRX information, if available.

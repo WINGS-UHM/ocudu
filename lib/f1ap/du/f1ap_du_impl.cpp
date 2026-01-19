@@ -29,6 +29,7 @@
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/pcch/paging_helper.h"
 #include "ocudu/support/async/coroutine.h"
 
 using namespace ocudu;
@@ -544,7 +545,7 @@ void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
                  msg->ue_id_idx_value.type().to_string());
     return;
   }
-  info.ue_identity_index_value = ue_identity_index_value.value();
+  info.ue_identity = ue_identity_index_value.value();
 
   expected<paging_identity_type> paging_type_indicator = get_paging_identity_type(msg);
   expected<uint64_t>             paging_identity       = get_paging_identity(msg);
@@ -604,6 +605,12 @@ void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
     if (msg->nr_paginge_drx_info.nrpaging_time_win_present) {
       edrx.ptw_len = std::chrono::seconds{msg->nr_paginge_drx_info.nrpaging_time_win.to_number()};
     }
+    // Compute UE_ID and UE_ID_H as per TS 38.304, 7.1 and 7.4.
+    ocudu_assert(msg->paging_id.type().value == paging_id_c::types_opts::cn_ue_paging_id,
+                 "Only CN paging supported for eDRX");
+    auto& stmsi                   = msg->paging_id.cn_ue_paging_id().five_g_s_tmsi();
+    info.ue_identity              = stmsi.to_number() % 4096;
+    info.edrx->hashed_ue_identity = paging_helper::compute_UE_ID_H(stmsi.to_number());
   }
 
   // Forward paging information to lower layers.

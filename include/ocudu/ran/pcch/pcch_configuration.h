@@ -60,7 +60,7 @@ struct pcch_config {
   nof_po_per_pf ns;
 
   /// See TS 38.331, firstPDCCH-MonitoringOccasionOfPO.
-  tiny_optional<first_pdcch_monitoring_occasion_of_po_type> first_pdcch_mo_of_po_type;
+  std::optional<first_pdcch_monitoring_occasion_of_po_type> first_pdcch_mo_of_po_type;
   static_vector<unsigned, MAX_PO_PER_PF>                    first_pdcch_monitoring_occasion_of_po_value;
 };
 

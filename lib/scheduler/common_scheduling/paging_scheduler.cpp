@@ -173,24 +173,13 @@ static unsigned compute_paging_T(const sched_paging_information& pg_info, radio_
   return default_paging_cycle.count();
 }
 
-/// Helper to determine the UE_ID as per TS 38.304.
-static unsigned compute_UE_ID(const sched_paging_information& pg_info)
-{
-  // If the UE operates in eDRX, use 5G-S-TMSI mod 4096 (12 bits).
-  if (pg_info.edrx.has_value()) {
-    return pg_info.edrx->extended_ue_identity_index_value % 4096;
-  }
-  // else, use 5G-S-TMSI mod 1024 (10 bits)
-  return pg_info.ue_identity_index_value;
-}
-
 bool paging_scheduler::is_paging_opportunity(slot_point_extended pdcch_slot, ue_paging_info& pg_info) const
 {
   const auto& req = pg_info.request;
 
   // Compute parameters specified in TS 38.304, clause 7.1.
   const unsigned T           = compute_paging_T(req, radio_frames{default_paging_cycle});
-  const unsigned UE_ID       = compute_UE_ID(req);
+  const unsigned UE_ID       = req.ue_identity;
   const unsigned N           = T / nof_pf_per_drx_cycle;
   const unsigned t_div_n     = T / N;
   const unsigned ue_id_mod_n = UE_ID % N;
@@ -217,7 +206,7 @@ bool paging_scheduler::is_paging_opportunity(slot_point_extended pdcch_slot, ue_
                    "If eDRX cycle is longer than 1024 radio frames, Paging Time Window needs to be provided");
 
       // Determine if the UE is within Paging Time Window.
-      const unsigned     UE_ID_H = req.edrx->hashed_ue_identity_index_value;
+      const unsigned     UE_ID_H = req.edrx->hashed_ue_identity;
       const unsigned     hsfn    = pdcch_slot.hyper_sfn();
       const hyper_frames Tedrxcn = req.edrx->cycle_idle;
 
@@ -306,8 +295,7 @@ unsigned paging_scheduler::get_accumulated_paging_msg_size(const std::vector<ue_
 void paging_scheduler::handle_paging_information(const sched_paging_information& paging_info)
 {
   if (not new_paging_notifications.try_push(paging_info)) {
-    logger.warning("Discarding paging information for UE ID={}. Cause: Event queue is full",
-                   compute_UE_ID(paging_info));
+    logger.warning("Discarding paging information for UE ID={}. Cause: Event queue is full", paging_info.ue_identity);
   }
 }
 

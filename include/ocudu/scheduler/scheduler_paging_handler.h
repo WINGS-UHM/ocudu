@@ -24,9 +24,10 @@ struct sched_paging_information {
   uint64_t paging_identity;
   /// Cells at which to perform Paging of UE.
   static_vector<du_cell_index_t, MAX_NOF_DU_CELLS> paging_cells;
-  /// UE_ID: 5G-S-TMSI mod 1024. Used by the paging scheduler to calculate the Paging Frame.
+  /// \brief UE_ID: 5G-S-TMSI mod 1024 for non eDRX and 5G-S-TMSI mode 4096 for eDRX.
+  /// Used by the paging scheduler to calculate the Paging Frame.
   /// \remark See TS 38.304, clause 7.1.
-  unsigned ue_identity_index_value;
+  uint32_t ue_identity;
   /// Paging DRX cycle in radio frames, if provided by upper layers.
   std::optional<radio_frames> paging_drx;
   /// Paging eDRX cycle in radio frames.

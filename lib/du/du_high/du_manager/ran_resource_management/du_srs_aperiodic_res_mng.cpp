@@ -15,11 +15,16 @@
 #include "ocudu/ran/srs/srs_configuration.h"
 #include "ocudu/ran/srs/srs_constants.h"
 #include "ocudu/scheduler/config/pusch_td_resource_indices.h"
-#include <set>
 
 using namespace ocudu;
 using namespace odu;
 
+// Helper that computes the slot offsets that can be used for the activation of the SRS resource sets (ref. to
+// Section 6.2.1, TS 38.214).
+// These offsets are chosen:
+// - So that the scheduler can trigger the aperiodic SRS transmission for the UE with both DCI 0_1 and 1_1; this way,
+// the scheduler can take advantage of both DL and UL allocation to scheduler an SRS.
+// - To be bigger than the maximum k2, so that the SRS will be allocated before the PUSCH.
 static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg)
 {
   const auto& dl_data_to_ul_ack =
@@ -33,15 +38,7 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
 
   const auto& pusch_td_alloc_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
 
-  fmt::print("\n List of k2 per DL slot idx");
-  for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
-    const auto& dl_td_res_vec = pusch_td_list_per_slot[dl_sl_idx];
-    fmt::print("\n DL slot idx = {} - List of k2s = ", dl_sl_idx);
-    for (const auto td_res_idx : dl_td_res_vec) {
-      fmt::print("{} \t ", static_cast<unsigned>(pusch_td_alloc_list[td_res_idx].k2));
-    }
-  }
-
+  // Find the maximum k2 used for UL scheduling.
   unsigned max_used_k2 = 0;
   for (const auto& dl_td_res_vec : pusch_td_list_per_slot) {
     for (const auto td_res_idx : dl_td_res_vec) {
@@ -49,8 +46,13 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     }
   }
 
+  // [Implementation-defined] Take the max between min_k1 and k2; this way we ensure that:
+  // - The slot offset is larger than the min_k1; if we assume the UE's SRS latency requirement is not worse than the
+  // PUCCH one, a slot offset > min_k1 should be ok for the UE to decode the DCI and transmit the SRS.
+  // - If at a given slot we allocate a SRS for slot + slot_offset, in that resulting slot there won't be any PUSCH
+  // already allocated.
   const auto* min_k1_it = std::min_element(dl_data_to_ul_ack.begin(), dl_data_to_ul_ack.end());
-  ocudu_assert(min_k1_it != dl_data_to_ul_ack.end(), "Min k1 cannot must exist");
+  ocudu_assert(min_k1_it != dl_data_to_ul_ack.end(), "Min k1 must exist");
   const unsigned min_k1                  = *min_k1_it;
   const int      slot_offset_lower_bound = static_cast<int>(std::max(min_k1, max_used_k2));
 
@@ -134,11 +136,6 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     }
   }
 
-  fmt::print("\n List of candidate offsets");
-  for (auto& asd : candidate_slot_offsets) {
-    fmt::print("\n Tuple=<{}, {}, {}>", std::get<0>(asd), std::get<1>(asd), std::get<2>(asd));
-  }
-
   std::vector<dl_sl_idx_sl_offset_is_dl_tuple> optimal_tuples;
   auto weight_function = [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](
                              const dl_sl_idx_sl_offset_is_dl_tuple& offset) {
@@ -147,6 +144,9 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     // - If a third one is required, then provide an extra UL(DL) slot offset for UL(DL)-heavy configuration.
     // - If possible, provide a slot offset that reaches the UL target slot from different DL slot (if another slot
     // offset exits).
+    // - Don't consider an offset that has already been chosen, even if the metric is good; the goal is to provide a
+    // list of offsets that are different, so the scheduler has more option when it comes to find a possible DL slot for
+    // the DCI that triggers the SRS transmission.
     const bool         ul_heavy = nof_dl_slots_per_tdd_period(tdd_cfg) > nof_full_ul_slots_per_tdd_period(tdd_cfg);
     constexpr unsigned exclude_element_penalty = 1000;
     // Always start the search from an UL slot offset, first, as in DL-heavy the search space for UL slot offset is
@@ -185,7 +185,6 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
       const unsigned is_ul_penalty = std::get<2>(offset) ? 0U : exclude_element_penalty;
       const unsigned weight = std::get<1>(offset) + existing_dl_slot_penalty + existing_offset_penalty + is_ul_penalty +
                               same_target_ul_slot_penalty;
-      // fmt::print("\n Weight={}", weight);
       return weight;
     }
     // Choose a DL/UL slot offset as second value, depending on DL-UL heavy config.
@@ -194,40 +193,28 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
       const unsigned dl_ul_penalty = exclude_element_penalty * static_cast<unsigned>(ul_heavy != std::get<2>(offset));
       const unsigned weight = std::get<1>(offset) + dl_ul_penalty + existing_dl_slot_penalty + existing_offset_penalty +
                               same_target_ul_slot_penalty;
-      // fmt::print("\n Weight={} ", weight);
       return weight;
     }
 
     return 0U;
   };
 
-  // fmt::print("\n List of candidate offsets");
-
-  // We consider 3 slots offsets, as many as the possible activation states defined in Table 7.3.1.1.2-24, TS 38.212.
-  // NOTE, if the TDD configuration only has 2 DL slot, then the 3rd slot offset wouldn't be used.
+  // We consider max 3 slots offsets, as many as the possible activation states defined in Table 7.3.1.1.2-24,
+  // TS 38.212. NOTE, if the TDD configuration only has 2 DL slot, then the 3rd slot offset wouldn't be used.
   const unsigned nof_slot_offset = std::min(3U, nof_dl_slots_per_tdd_period(tdd_cfg));
   for (unsigned n = 0; n != nof_slot_offset; ++n) {
-    fmt::print("\n Iteration n={}", n);
     auto min_it = std::min_element(
         candidate_slot_offsets.begin(),
         candidate_slot_offsets.end(),
         [&weight_function](const dl_sl_idx_sl_offset_is_dl_tuple& lhs, const dl_sl_idx_sl_offset_is_dl_tuple& rhs) {
-          const unsigned w_lhs = weight_function(lhs);
-          const unsigned w_rhs = weight_function(rhs);
-          fmt::print(
-              "\n Processing LHS_Tuple=<{}, {}, {}> w={}", std::get<0>(lhs), std::get<1>(lhs), std::get<2>(lhs), w_lhs);
-          fmt::print(
-              "\t Processing RHS_Tuple=<{}, {}, {}> w={}", std::get<0>(rhs), std::get<1>(rhs), std::get<2>(rhs), w_rhs);
           return weight_function(lhs) < weight_function(rhs);
         });
     ocudu_assert(min_it != optimal_tuples.end(), "");
     optimal_tuples.emplace_back(*min_it);
   }
 
-  // fmt::print("\n Optinal tuples");
   std::vector<unsigned> slot_offsets;
   for (const auto& tuple : optimal_tuples) {
-    fmt::print("\t Tuple=<{}, {}, {}>", std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
     slot_offsets.emplace_back(std::get<1>(tuple));
   }
   std::sort(slot_offsets.begin(), slot_offsets.end());
@@ -316,7 +303,7 @@ bool du_srs_aperiodic_res_mng::alloc_resources(cell_group_config& cell_grp_cfg)
 
     srs_config& ue_srs_cfg = cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
 
-    // Find the best resource ID and offset for this UE, according to the class policy.
+    // Find the best resource ID this UE, according to the class policy.
     const auto opt_srs_res_it = std::min_element(ue_du_cell.srs_res_usage.begin(),
                                                  ue_du_cell.srs_res_usage.end(),
                                                  [](const unsigned lhs, const unsigned rhs) { return lhs < rhs; });

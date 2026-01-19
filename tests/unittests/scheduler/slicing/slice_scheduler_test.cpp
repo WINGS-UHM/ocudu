@@ -231,8 +231,8 @@ TEST_F(default_slice_scheduler_test, returns_only_ul_pending_bytes_of_bearers_be
   constexpr unsigned      drb_pending_bytes{5000};
   constexpr du_ue_index_t ue_idx{to_du_ue_index(0)};
 
-  const lcg_id_t srb_lcg_id = config_helpers::create_default_logical_channel_config(lcid_t::LCID_SRB1).lc_group;
-  const lcg_id_t drb_lcg_id = config_helpers::create_default_logical_channel_config(lcid_t::LCID_MIN_DRB).lc_group;
+  constexpr lcg_id_t srb_lcg_id = config_helpers::create_default_logical_channel_config(lcid_t::LCID_SRB1).lc_group;
+  constexpr lcg_id_t drb_lcg_id = config_helpers::create_default_logical_channel_config(lcid_t::LCID_MIN_DRB).lc_group;
 
   ASSERT_NE(this->add_ue(ue_idx), nullptr);
   // Push UL BSR for DRB.
@@ -534,26 +534,35 @@ TEST_F(prioritised_slice_scheduler_test, when_drb_slice_with_min_rb_has_ues_then
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
     const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
     if (is_pdcch_active) {
       auto next_dl_slice = slice_sched.get_next_dl_candidate();
-      auto next_ul_slice = slice_sched.get_next_ul_candidate();
       // Default SRB slice has very high priority. We ignore it as candidate for this test.
       ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
-      ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      next_ul_slice = slice_sched.get_next_ul_candidate();
       // slice 1 (DRB2) is scheduled before slice 2 (DRB3) or default DRB slice because it has MIN_RB > 0.
       ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
-      ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb3_slice_id);
-      ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb1_slice_id);
+    }
+    if (dl_slot_has_k2_values) {
+      auto next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
+      // Default SRB slice has very high priority. We ignore it as candidate for this test.
+      ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      // slice 1 (DRB2) is scheduled before slice 2 (DRB3) or default DRB slice because it has MIN_RB > 0.
+      ASSERT_TRUE(next_ul_slice.has_value());
+      ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
+      ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), drb1_slice_id);
     }
     auto next_dl_slice = slice_sched.get_next_dl_candidate();
@@ -608,33 +617,43 @@ TEST_F(dedicated_slice_scheduler_test, when_dedicated_resources_not_filled_then_
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
     const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
     if (is_pdcch_active) {
       auto next_dl_slice = slice_sched.get_next_dl_candidate();
-      auto next_ul_slice = slice_sched.get_next_ul_candidate();
       // Default SRB slice has very high priority. We ignore it as candidate for this test.
       ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
-      ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
       ASSERT_EQ(next_dl_slice->remaining_rbs(), max_prbs);
-      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs);
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      next_ul_slice = slice_sched.get_next_ul_candidate();
       // Slice with prioritised and dedicated resources gets scheduled.
       ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
-      ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
       next_dl_slice->store_grant(DED_SLICE_RB - grant_rbs);
-      next_ul_slice->store_grant(DED_SLICE_RB - grant_rbs);
       // Other slices get scheduled.
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb3_slice_id);
-      ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
       ASSERT_EQ(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
-      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb1_slice_id);
+    }
+    if (dl_slot_has_k2_values) {
+      auto next_ul_slice = slice_sched.get_next_ul_candidate();
+      // Default SRB slice has very high priority. We ignore it as candidate for this test.
+      ASSERT_TRUE(next_ul_slice.has_value());
+      ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
+      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
+      // Slice with prioritised and dedicated resources gets scheduled.
+      ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
+      next_ul_slice->store_grant(DED_SLICE_RB - grant_rbs);
+      // Other slices get scheduled.
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
+      ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
+      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), drb1_slice_id);
     }
     auto next_dl_slice = slice_sched.get_next_dl_candidate();

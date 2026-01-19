@@ -807,6 +807,19 @@ byte_buffer ocudu::test_helpers::extract_dl_dcch_msg(const byte_buffer& rrc_cont
   return pdu;
 }
 
+f1ap_message ocudu::test_helpers::generate_f1ap_paging_message(uint64_t tmsi48)
+{
+  f1ap_message msg;
+
+  msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_PAGING);
+  paging_s& paging = msg.pdu.init_msg().value.paging();
+
+  paging->ue_id_idx_value.set_idx_len10().from_number(tmsi48 % 1024);
+  paging->paging_id.set_cn_ue_paging_id().set_five_g_s_tmsi().from_number(tmsi48);
+
+  return msg;
+}
+
 f1ap_message ocudu::test_helpers::generate_trp_information_request()
 {
   f1ap_message msg;

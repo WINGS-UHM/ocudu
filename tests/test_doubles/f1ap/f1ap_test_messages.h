@@ -208,6 +208,9 @@ byte_buffer create_dl_dcch_rrc_container(uint32_t pdcp_sn, const byte_buffer& dl
 /// \brief Remove PDCP header from DL-DCCH message.
 byte_buffer extract_dl_dcch_msg(const byte_buffer& rrc_container);
 
+/// \brief Generate F1AP paging message.
+f1ap_message generate_f1ap_paging_message(uint64_t tmsi48);
+
 /// \brief Generates dummy F1AP TRP INFORMATION REQUEST message, sent by the CU to the DU, as per
 /// TS 38.473 section 8.13.8.2.
 f1ap_message generate_trp_information_request();

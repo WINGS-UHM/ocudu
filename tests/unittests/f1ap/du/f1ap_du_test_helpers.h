@@ -242,12 +242,20 @@ public:
 class dummy_mac_f1ap_paging_handler : public f1ap_du_paging_notifier
 {
 public:
+  std::optional<paging_information> last_paging_info;
+
   void connect(mac_paging_information_handler& mac_) { mac = &mac_; }
 
-  void on_paging_received(const paging_information& msg) override { mac->handle_paging_information(msg); }
+  void on_paging_received(const paging_information& msg) override
+  {
+    if (mac != nullptr) {
+      mac->handle_paging_information(msg);
+    }
+    last_paging_info = msg;
+  }
 
 private:
-  mac_paging_information_handler* mac;
+  mac_paging_information_handler* mac = nullptr;
 };
 
 /// Fixture class for F1AP

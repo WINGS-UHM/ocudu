@@ -24,8 +24,8 @@ RUN install_dependencies.sh && pacman -Syu --noconfirm \
   python-pip
 RUN pip install --break-system-packages gcovr==5.0
 
-ADD builder.sh /usr/local/bin
-RUN chmod +x /usr/local/bin/builder.sh
+ADD builder.sh get_available_cores.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/builder.sh /usr/local/bin/get_available_cores.sh
 
 RUN python -m venv /usr/local/builder_tools
 RUN /usr/local/builder_tools/bin/pip install "pandas < 3" "psutil < 6"

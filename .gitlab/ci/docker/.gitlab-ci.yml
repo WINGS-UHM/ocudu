@@ -108,6 +108,12 @@ telegraf version changed:
         fi
         sleep 1
       done
+    - |
+      CPU_JOBS="$(/usr/local/bin/get_available_cores.sh 2>/dev/null || ${CI_PROJECT_DIR}/.gitlab/ci/builders/get_available_cores.sh)"
+      if [ -z "${CPU_JOBS}" ] || [ "${CPU_JOBS}" -lt 1 ]; then
+        CPU_JOBS=1
+      fi
+      export CPU_JOBS
 
 gnb docker compose:
   extends: .docker compose
@@ -127,7 +133,7 @@ gnb docker compose:
   before_script:
     - *docker_setup
   script:
-    - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${KUBERNETES_CPU_LIMIT} --build-arg UHD_VERSION=${DOCKER_UHD_VERSION} --build-arg DPDK_VERSION=${DOCKER_DPDK_VERSION} gnb
+    - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${CPU_JOBS} --build-arg UHD_VERSION=${DOCKER_UHD_VERSION} --build-arg DPDK_VERSION=${DOCKER_DPDK_VERSION} gnb
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which ocu"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which ocucp"
     - sh -c "docker compose -f docker/docker-compose.yml run --no-deps gnb which ocuup"
@@ -153,7 +159,7 @@ gnb docker compose:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       interruptible: false
   script:
-    - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${KUBERNETES_CPU_LIMIT} 5gc
+    - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${CPU_JOBS} 5gc
     - docker compose -f docker/docker-compose.yml run 5gc 5gc -v
 
 grafana docker compose:

@@ -38,10 +38,13 @@ ocudu image:
   before_script:
     # Set variables
     - |
-      export CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export CPU_JOBS="$(/usr/local/bin/get_available_cores.sh 2>/dev/null || ${CI_PROJECT_DIR}/.gitlab/ci/builders/get_available_cores.sh)"
+      if [ -z "${CPU_JOBS}" ] || [ "${CPU_JOBS}" -lt 1 ]; then
+        CPU_JOBS=1
+      fi
       export NAME="ocudu_nightly_${SUFFIX}"
       export VERSION="$(date +%Y%m%d)_${CI_COMMIT_SHORT_SHA}"
-      export BUILD_ARGS="UHD_VERSION=${DOCKER_UHD_VERSION};DPDK_VERSION=${DOCKER_DPDK_VERSION};MARCH=${MARCH};NUM_JOBS=${KUBERNETES_CPU_LIMIT};EXTRA_CMAKE_ARGS=\"${EXTRA_CMAKE_ARGS}\""
+      export BUILD_ARGS="UHD_VERSION=${DOCKER_UHD_VERSION};DPDK_VERSION=${DOCKER_DPDK_VERSION};MARCH=${MARCH};NUM_JOBS=${CPU_JOBS};EXTRA_CMAKE_ARGS=\"${EXTRA_CMAKE_ARGS}\""
   parallel: &matrix-ocudu-image-variants
     matrix:
       # AMD AVX2

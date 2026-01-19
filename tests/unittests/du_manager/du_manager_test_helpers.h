@@ -17,6 +17,7 @@
 #include "ocudu/mac/mac_manager.h"
 #include "ocudu/mac/mac_paging_information_handler.h"
 #include "ocudu/mac/mac_positioning_measurement_handler.h"
+#include "ocudu/mac/mac_subframe_time_mapper.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/async_test_utils.h"
@@ -294,8 +295,23 @@ public:
     std::optional<slot_point> get_slot_point(time_point time) const override { return std::nullopt; }
   };
 
-  mac_cell_dummy             mac_cell;
-  mac_cell_dummy_time_mapper time_mapper;
+  class mac_dummy_subframe_time_mapper final : public mac_subframe_time_mapper
+  {
+  public:
+    std::optional<mac_slot_time_info> get_last_mapping(subcarrier_spacing scs) const override
+    {
+      return mac_slot_time_info{slot_point(to_numerology_value(scs), 1), std::chrono::system_clock::now()};
+    }
+    std::optional<time_point> get_time_point(slot_point slot) const override { return std::nullopt; }
+    std::optional<slot_point> get_slot_point(time_point time, subcarrier_spacing scs) const override
+    {
+      return std::nullopt;
+    }
+  };
+
+  mac_cell_dummy                 mac_cell;
+  mac_cell_dummy_time_mapper     time_mapper;
+  mac_dummy_subframe_time_mapper sfn_time_mapper;
 
   std::optional<mac_ue_create_request>                      last_ue_create_msg{};
   std::optional<mac_ue_reconfiguration_request>             last_ue_reconf_msg{};
@@ -312,10 +328,11 @@ public:
   mac_ue_configurator&                 get_ue_configurator() override { return *this; }
   mac_positioning_measurement_handler& get_positioning_handler() override { return *this; }
 
-  mac_cell_controller&  add_cell(const mac_cell_creation_request& cell_cfg) override { return mac_cell; }
-  void                  remove_cell(du_cell_index_t cell_index) override {}
-  mac_cell_controller&  get_cell_controller(du_cell_index_t cell_index) override { return mac_cell; }
-  mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
+  mac_cell_controller&      add_cell(const mac_cell_creation_request& cell_cfg) override { return mac_cell; }
+  void                      remove_cell(du_cell_index_t cell_index) override {}
+  mac_cell_controller&      get_cell_controller(du_cell_index_t cell_index) override { return mac_cell; }
+  mac_subframe_time_mapper& get_subframe_time_mapper() override { return sfn_time_mapper; }
+  mac_cell_time_mapper&     get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
 
   async_task<mac_ue_create_response> handle_ue_create_request(const mac_ue_create_request& msg) override
   {

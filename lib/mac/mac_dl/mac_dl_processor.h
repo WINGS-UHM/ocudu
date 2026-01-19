@@ -20,6 +20,7 @@
 namespace ocudu {
 
 class mac_metrics_notifier;
+class mac_slot_time_handler;
 
 struct mac_dl_config {
   mac_ue_executor_mapper&   ue_exec_mapper;
@@ -47,6 +48,8 @@ public:
   void remove_cell(du_cell_index_t cell_index) override;
 
   mac_cell_controller& get_cell_controller(du_cell_index_t cell_index) override { return *cells[cell_index]; }
+
+  mac_subframe_time_mapper& get_subframe_time_mapper() override { return sfn_time_mapper; }
 
   mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) override
   {
@@ -78,6 +81,9 @@ private:
 
   /// \brief Reference to MAC scheduler interface used by the MAC DL processor.
   mac_scheduler_cell_info_handler& sched;
+
+  /// DU-wide Subframe time mapper that aggregates timing from all cells.
+  mac_subframe_time_mapper_impl sfn_time_mapper;
 };
 
 } // namespace ocudu

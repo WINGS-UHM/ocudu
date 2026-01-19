@@ -70,6 +70,11 @@ void mac_controller::remove_cell(du_cell_index_t cell_index)
   metrics.rem_cell(cell_index);
 }
 
+mac_subframe_time_mapper& mac_controller::get_subframe_time_mapper()
+{
+  return dl_unit.get_subframe_time_mapper();
+}
+
 mac_cell_time_mapper& mac_controller::get_time_mapper(du_cell_index_t cell_index)
 {
   return dl_unit.get_time_mapper(cell_index);

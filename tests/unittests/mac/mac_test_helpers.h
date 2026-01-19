@@ -16,6 +16,7 @@
 #include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/mac/mac_cell_result.h"
 #include "ocudu/mac/mac_clock_controller.h"
+#include "ocudu/mac/mac_subframe_time_mapper.h"
 #include "ocudu/mac/mac_ue_configurator.h"
 #include "ocudu/pcap/dlt_pcap.h"
 #include "ocudu/pcap/rlc_pcap.h"
@@ -119,6 +120,26 @@ public:
   void handle_positioning_measurement_request(const positioning_measurement_request& req) override {}
   void handle_positioning_measurement_stop(const positioning_measurement_stop_request& req) override {}
   void handle_slice_reconfiguration_request(const du_cell_slice_reconfig_request& req) override {}
+};
+
+class dummy_mac_sfn_time_mapper : public mac_subframe_time_mapper
+{
+public:
+  std::optional<mac_slot_time_info> get_last_mapping(subcarrier_spacing scs) const override
+  {
+    return mac_slot_time_info{slot_point(to_numerology_value(scs), 1), std::chrono::system_clock::now()};
+  }
+  std::optional<time_point> get_time_point(slot_point slot) const override { return std::nullopt; }
+  std::optional<slot_point> get_slot_point(time_point time, subcarrier_spacing scs) const override
+  {
+    return std::nullopt;
+  }
+};
+
+class dummy_mac_sfn_time_adapter : public mac_slot_time_handler
+{
+public:
+  void handle_slot_indication(const mac_cell_timing_context& context) override {}
 };
 
 class dummy_mac_scheduler_adapter : public mac_scheduler_cell_info_handler

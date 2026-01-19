@@ -522,6 +522,11 @@ mac_cell_controller& mac_test_mode_adapter::get_cell_controller(du_cell_index_t 
   return mac_adapted->get_cell_manager().get_cell_controller(cell_index);
 }
 
+mac_subframe_time_mapper& mac_test_mode_adapter::get_subframe_time_mapper()
+{
+  return mac_adapted->get_subframe_time_mapper();
+}
+
 mac_cell_time_mapper& mac_test_mode_adapter::get_time_mapper(du_cell_index_t cell_index)
 {
   return mac_adapted->get_cell_manager().get_time_mapper(cell_index);

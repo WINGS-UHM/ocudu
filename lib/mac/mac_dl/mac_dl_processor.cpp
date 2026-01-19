@@ -9,6 +9,7 @@
  */
 
 #include "mac_dl_processor.h"
+#include "ocudu/mac/mac_subframe_time_mapper.h"
 #include "ocudu/support/async/async_no_op_task.h"
 
 using namespace ocudu;
@@ -34,6 +35,7 @@ mac_cell_controller& mac_dl_processor::add_cell(const mac_cell_creation_request&
   cells[cell_cfg_req.cell_index] =
       std::make_unique<mac_cell_processor>(cell_cfg_req,
                                            sched,
+                                           sfn_time_mapper,
                                            rnti_table,
                                            cfg.phy_notifier.get_cell(cell_cfg_req.cell_index),
                                            cfg.cell_exec_mapper.mac_cell_executor(cell_cfg_req.cell_index),

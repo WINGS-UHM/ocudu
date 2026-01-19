@@ -16,6 +16,7 @@
 #include "mac_dl_metric_handler.h"
 #include "mac_dl_ue_repository.h"
 #include "mac_scheduler_cell_info_handler.h"
+#include "mac_subframe_time_mapper_impl.h"
 #include "paging_pdu_assembler.h"
 #include "rar_pdu_assembler.h"
 #include "sib_pdu_assembler.h"
@@ -32,6 +33,7 @@ class mac_cell_processor final : public mac_cell_slot_handler, public mac_cell_c
 public:
   mac_cell_processor(const mac_cell_creation_request& cell_cfg_req,
                      mac_scheduler_cell_info_handler& sched,
+                     mac_slot_time_handler&           sfn_time_mapper_,
                      du_rnti_table&                   rnti_table,
                      mac_cell_result_notifier&        phy_notifier,
                      task_executor&                   cell_exec,
@@ -130,6 +132,9 @@ private:
   mac_pcap& pcap;
 
   mac_cell_time_mapper_impl slot_time_mapper;
+
+  /// Reference to the subframe time mapper shared across all cells.
+  mac_slot_time_handler& sfn_time_mapper;
 
   unsigned                              sib1_pcap_dumped_version;
   std::array<unsigned, MAX_SI_MESSAGES> si_pcap_dumped_version;

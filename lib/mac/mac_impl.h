@@ -56,6 +56,8 @@ public:
     return mac_sched->get_positioning_handler();
   }
 
+  mac_subframe_time_mapper& get_subframe_time_mapper() override { return dl_unit.get_subframe_time_mapper(); }
+
 private:
   /// Used to allocate new TC-RNTIs and convert from C-RNTI to UE index.
   rnti_manager rnti_table;

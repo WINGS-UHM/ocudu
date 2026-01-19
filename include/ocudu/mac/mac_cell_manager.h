@@ -18,6 +18,7 @@
 
 namespace ocudu {
 
+class mac_subframe_time_mapper;
 class mac_positioning_measurement_handler;
 
 /// Start configured cell.
@@ -123,6 +124,9 @@ public:
 
   /// Fetch MAC cell state controller.
   virtual mac_cell_controller& get_cell_controller(du_cell_index_t cell_index) = 0;
+
+  /// Fetch MAC subframe-time mapper.
+  virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 
   /// Fetch MAC cell time-slot mapper.
   virtual mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) = 0;

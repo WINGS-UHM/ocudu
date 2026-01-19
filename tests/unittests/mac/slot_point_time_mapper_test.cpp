@@ -9,8 +9,12 @@
  */
 
 #include "lib/mac/mac_dl/mac_cell_time_mapper_impl.h"
+#include "lib/mac/mac_dl/mac_subframe_time_mapper_impl.h"
 #include "ocudu/support/test_utils.h"
+#include <atomic>
 #include <gtest/gtest.h>
+#include <thread>
+#include <vector>
 
 using namespace ocudu;
 
@@ -272,6 +276,238 @@ TEST_P(atomic_sfn_time_mapper_test, when_truncated_timestamp_wraps_around_load_c
   ASSERT_EQ(mapping.time_point, before_wraparound_tp);
 }
 
+// Test suite for atomic_subframe_time_mapper (multi-cell, lock-free mapper).
+class atomic_subframe_time_mapper_test : public ::testing::TestWithParam<unsigned>
+{
+protected:
+  using time_point = std::chrono::time_point<std::chrono::system_clock>;
+
+  const std::chrono::milliseconds frame_dur{10};
+  unsigned                        numerology{GetParam()};
+  atomic_subframe_time_mapper     atomic_mapper;
+  slot_point                      next_point{numerology, 0, 0};
+};
+
+TEST_P(atomic_subframe_time_mapper_test, store_and_load)
+{
+  const slot_point report_slot       = {numerology, 11, 0};
+  const time_point report_time_point = std::chrono::system_clock::now();
+
+  const auto no_mapping = atomic_mapper.load(numerology);
+  ASSERT_EQ(no_mapping.sl_tx.valid(), false);
+
+  ASSERT_TRUE(atomic_mapper.store(report_slot, report_time_point));
+  const auto mapping = atomic_mapper.load(numerology);
+  ASSERT_EQ(mapping.sl_tx, report_slot);
+  ASSERT_EQ(mapping.time_point, report_time_point);
+}
+
+TEST_P(atomic_subframe_time_mapper_test, store_rejects_non_subframe_boundary)
+{
+  const slot_point report_slot       = {numerology, 11, 1};
+  const time_point report_time_point = std::chrono::system_clock::now();
+
+  // For numerology 0, there is only 1 slot per subframe, so every slot is at a subframe boundary.
+  // For other numerologies, slot index 1 is not at a subframe boundary.
+  if (numerology == 0) {
+    // For numerology 0, slot index 1 is at subframe boundary (subframe 1, slot 0 within subframe).
+    // First store should succeed.
+    ASSERT_TRUE(atomic_mapper.store(report_slot, report_time_point));
+  } else {
+    // For other numerologies, slot index 1 is not at subframe boundary.
+    ASSERT_FALSE(atomic_mapper.store(report_slot, report_time_point));
+  }
+}
+
+TEST_P(atomic_subframe_time_mapper_test, monotonic_advancement)
+{
+  const time_point base_time = std::chrono::system_clock::now();
+
+  // Store initial mapping for SFN 10.
+  slot_point slot1 = {numerology, 10, 0};
+  ASSERT_TRUE(atomic_mapper.store(slot1, base_time));
+
+  // Try to store an older SFN 5. It should be rejected.
+  slot_point slot2 = {numerology, 5, 0};
+  ASSERT_FALSE(atomic_mapper.store(slot2, base_time + std::chrono::milliseconds(1)));
+
+  // Try to store the same SFN 10. It should be rejected.
+  ASSERT_FALSE(atomic_mapper.store(slot1, base_time + std::chrono::milliseconds(2)));
+
+  // Store a newer SFN 15. It should succeed.
+  slot_point slot3 = {numerology, 15, 0};
+  ASSERT_TRUE(atomic_mapper.store(slot3, base_time + std::chrono::milliseconds(5)));
+
+  // Verify the mapping is for SFN 15.
+  const auto mapping = atomic_mapper.load(numerology);
+  ASSERT_EQ(mapping.sl_tx, slot3);
+}
+
+TEST_P(atomic_subframe_time_mapper_test, sfn_wraparound)
+{
+  const time_point base_time = std::chrono::system_clock::now();
+
+  // Store mapping for SFN 1023 (max SFN).
+  slot_point slot_max = {numerology, 1023, 0};
+  ASSERT_TRUE(atomic_mapper.store(slot_max, base_time));
+
+  // Store mapping for SFN 0 (wraparound). It should succeed (0 > 1023 with wraparound).
+  slot_point slot_zero = {numerology, 0, 0};
+  ASSERT_TRUE(atomic_mapper.store(slot_zero, base_time + std::chrono::milliseconds(10)));
+
+  // Verify the mapping is for SFN 0.
+  const auto mapping = atomic_mapper.load(numerology);
+  ASSERT_EQ(mapping.sl_tx, slot_zero);
+
+  // Try to store SFN 1020 (older than 0 with wraparound). It should be rejected.
+  slot_point slot_old = {numerology, 1020, 0};
+  ASSERT_FALSE(atomic_mapper.store(slot_old, base_time + std::chrono::milliseconds(15)));
+}
+
+TEST_P(atomic_subframe_time_mapper_test, multi_threaded_race_condition)
+{
+  const unsigned   num_threads   = 4;
+  const slot_point target_slot   = {numerology, 100, 0};
+  const time_point base_time     = std::chrono::system_clock::now();
+  std::atomic<int> success_count = {0};
+  std::atomic<int> failure_count = {0};
+
+  std::vector<std::thread> threads;
+  std::atomic<bool>        start_flag = {false};
+
+  // Launch multiple threads that all try to store the same subframe.
+  for (unsigned i = 0; i < num_threads; i++) {
+    threads.emplace_back([&, i]() {
+      // Wait for all threads to be ready
+      while (!start_flag.load(std::memory_order_acquire)) {
+        std::this_thread::yield();
+      }
+
+      // Each thread tries to store the same slot with a different timestamp.
+      time_point thread_time = base_time + std::chrono::nanoseconds(i * 100);
+      bool       result      = atomic_mapper.store(target_slot, thread_time);
+
+      if (result) {
+        success_count.fetch_add(1, std::memory_order_relaxed);
+      } else {
+        failure_count.fetch_add(1, std::memory_order_relaxed);
+      }
+    });
+  }
+
+  // Signal all threads to start simultaneously.
+  start_flag.store(true, std::memory_order_release);
+
+  // Wait for all threads to complete.
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  // Verify that exactly one thread succeeded.
+  ASSERT_EQ(success_count.load(), 1);
+  ASSERT_EQ(failure_count.load(), num_threads - 1);
+
+  // Verify the mapping was stored.
+  const auto mapping = atomic_mapper.load(numerology);
+  ASSERT_EQ(mapping.sl_tx, target_slot);
+}
+
+TEST_P(atomic_subframe_time_mapper_test, multi_threaded_monotonic_updates)
+{
+  const unsigned           num_threads = 4;
+  const time_point         base_time   = std::chrono::system_clock::now();
+  std::vector<std::thread> threads;
+  std::atomic<bool>        start_flag = {false};
+
+  // Each thread tries to store progressively newer SFNs.
+  for (unsigned i = 0; i < num_threads; i++) {
+    threads.emplace_back([&, i]() {
+      // Wait for all threads to be ready.
+      while (!start_flag.load(std::memory_order_acquire)) {
+        std::this_thread::yield();
+      }
+
+      // Each thread stores multiple slots in sequence.
+      for (unsigned j = 0; j < 10; j++) {
+        slot_point slot = {numerology, i * 10 + j, 0};
+        time_point time = base_time + std::chrono::milliseconds(i * 10 + j);
+        atomic_mapper.store(slot, time);
+      }
+    });
+  }
+
+  // Signal all threads to start.
+  start_flag.store(true, std::memory_order_release);
+
+  // Wait for all threads to complete.
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  // Verify the final mapping is one of the latest slots (monotonic guarantee).
+  const auto mapping          = atomic_mapper.load(numerology);
+  unsigned   expected_min_sfn = (num_threads - 1) * 10; // Last thread's starting SFN
+  ASSERT_GE(mapping.sl_tx.sfn(), expected_min_sfn);
+}
+
+TEST_P(atomic_subframe_time_mapper_test, multi_threaded_different_numerologies)
+{
+  // Test concurrent updates from cells with different numerologies.
+  // The mapper stores SFN+subframe but not numerology, so different numerologies
+  // should be able to coexist as long as they represent the same SFN/subframe.
+  const unsigned           num_threads = 5;
+  const time_point         base_time   = std::chrono::system_clock::now();
+  std::vector<std::thread> threads;
+  std::atomic<bool>        start_flag = {false};
+  std::atomic<int>         store_successes{0};
+  const unsigned           sfn_start = 100;
+  const unsigned           sfn_stop  = 120;
+  // Each thread uses a different numerology but stores the same SFN.
+  for (unsigned thread_numerology = 0; thread_numerology < num_threads; thread_numerology++) {
+    threads.emplace_back([&, thread_numerology]() {
+      // Wait for all threads to be ready.
+      while (!start_flag.load(std::memory_order_acquire)) {
+        std::this_thread::yield();
+      }
+
+      // Each thread stores slots for its numerology.
+      // All threads target the same SFN range to create contention.
+      for (unsigned sfn = sfn_start; sfn <= sfn_stop; sfn++) {
+        slot_point slot = {thread_numerology, sfn, 0};
+        time_point time = base_time + std::chrono::milliseconds(sfn);
+        if (atomic_mapper.store(slot, time)) {
+          store_successes.fetch_add(1, std::memory_order_relaxed);
+        }
+      }
+    });
+  }
+
+  // Signal all threads to start.
+  start_flag.store(true, std::memory_order_release);
+
+  // Wait for all threads to complete.
+  for (auto& t : threads) {
+    t.join();
+  }
+
+  // Verify that some stores succeeded.
+  ASSERT_GT(store_successes.load(), 0);
+
+  // Verify we can load the mapping with any numerology and get consistent SFN.
+  // The stored SFN should be the same regardless of which numerology we use to load.
+  unsigned stored_sfn = atomic_mapper.load(0).sl_tx.sfn();
+
+  for (unsigned load_numerology = 1; load_numerology < 5; load_numerology++) {
+    auto mapping = atomic_mapper.load(load_numerology);
+    ASSERT_TRUE(mapping.sl_tx.valid());
+    ASSERT_EQ(mapping.sl_tx.sfn(), stored_sfn);
+  }
+
+  // Verify the final SFN equals sfn_stop.
+  ASSERT_EQ(stored_sfn, sfn_stop);
+}
+
 // Instantiate the test suite with different numerology values
 INSTANTIATE_TEST_SUITE_P(NumerologyTests, slot_time_point_mapper_test, ::testing::Values(0, 1, 2, 3, 4));
 INSTANTIATE_TEST_SUITE_P(NumerologyTests, atomic_sfn_time_mapper_test, ::testing::Values(0, 1, 2, 3, 4));
+INSTANTIATE_TEST_SUITE_P(NumerologyTests, atomic_subframe_time_mapper_test, ::testing::Values(0, 1, 2, 3, 4));

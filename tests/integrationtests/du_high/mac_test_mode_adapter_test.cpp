@@ -92,6 +92,7 @@ public:
   mac_cell_controller&               add_cell(const mac_cell_creation_request& cell_cfg) override { return *this; }
   void                               remove_cell(du_cell_index_t cell_index) override {}
   mac_cell_controller&               get_cell_controller(du_cell_index_t cell_index) override { return *this; }
+  mac_subframe_time_mapper&          get_subframe_time_mapper() override { return sfn_time_mapper; }
   mac_cell_time_mapper&              get_time_mapper(du_cell_index_t cell_index) override { return *this; }
   async_task<mac_ue_create_response> handle_ue_create_request(const mac_ue_create_request& cfg) override
   {
@@ -128,6 +129,8 @@ public:
   {
     return launch_no_op_task(mac_positioning_measurement_response{});
   }
+
+  test_helpers::dummy_mac_sfn_time_mapper sfn_time_mapper;
 };
 
 struct test_params {

@@ -23,6 +23,7 @@ public:
   base_mac_cell_processor_test() :
     mac_cell(test_helpers::make_default_mac_cell_config(builder_params),
              sched_adapter,
+             sfn_time_adapter,
              rnti_table,
              phy_notifier,
              task_worker,
@@ -43,6 +44,7 @@ public:
   }
 
   test_helpers::dummy_mac_scheduler_adapter    sched_adapter;
+  test_helpers::dummy_mac_sfn_time_adapter     sfn_time_adapter;
   du_rnti_table                                rnti_table;
   test_helpers::dummy_mac_cell_result_notifier phy_notifier;
   manual_task_worker                           task_worker{128};

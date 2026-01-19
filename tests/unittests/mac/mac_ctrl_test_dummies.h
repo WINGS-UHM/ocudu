@@ -12,6 +12,7 @@
 
 #include "lib/mac/mac_config_interfaces.h"
 #include "lib/mac/mac_ctrl/mac_scheduler_configurator.h"
+#include "mac_test_helpers.h"
 #include "ocudu/mac/mac_cell_result.h"
 #include "ocudu/mac/mac_executor_mapper.h"
 #include "ocudu/pcap/dlt_pcap.h"
@@ -84,6 +85,7 @@ public:
   std::optional<std::pair<du_ue_index_t, std::vector<lcid_t>>>                     last_ue_bearers_rem;
   mac_cell_dummy_controller                                                        cell_ctrl;
   mac_cell_dummy_time_mapper                                                       time_mapper;
+  test_helpers::dummy_mac_sfn_time_mapper                                          sfn_time_mapper;
 
   async_task<bool> add_ue(const mac_ue_create_request& msg) override;
   async_task<void> remove_ue(const mac_ue_delete_request& msg) override;
@@ -97,9 +99,10 @@ public:
   {
     return cell_ctrl;
   }
-  void                  remove_cell(du_cell_index_t cell_index) override {}
-  mac_cell_controller&  get_cell_controller(du_cell_index_t cell_index) override { return cell_ctrl; }
-  mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
+  void                      remove_cell(du_cell_index_t cell_index) override {}
+  mac_cell_controller&      get_cell_controller(du_cell_index_t cell_index) override { return cell_ctrl; }
+  mac_cell_time_mapper&     get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
+  mac_subframe_time_mapper& get_subframe_time_mapper() override { return sfn_time_mapper; }
 };
 
 class dummy_ue_executor_mapper : public mac_ue_executor_mapper

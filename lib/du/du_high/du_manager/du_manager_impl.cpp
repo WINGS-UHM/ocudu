@@ -226,6 +226,11 @@ size_t du_manager_impl::nof_ues()
   return result;
 }
 
+mac_subframe_time_mapper& du_manager_impl::get_subframe_time_mapper()
+{
+  return params.mac.mgr.get_subframe_time_mapper();
+}
+
 mac_cell_time_mapper& du_manager_impl::get_time_mapper()
 {
   return params.mac.mgr.get_cell_manager().get_time_mapper(to_du_cell_index(0));

@@ -54,6 +54,9 @@ public:
 
   /// Fetch MAC cell time-slot mapper.
   virtual mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) = 0;
+
+  /// Fetch MAC cell time-slot mapper.
+  virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 };
 
 class mac_ctrl_configurator

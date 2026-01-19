@@ -15,6 +15,7 @@ namespace ocudu {
 class mac_cell_manager;
 class mac_ue_configurator;
 class mac_positioning_measurement_handler;
+class mac_subframe_time_mapper;
 
 /// Interface used by the management plane of the DU.
 class mac_manager
@@ -30,6 +31,11 @@ public:
 
   /// Fetch positioning measurement handler.
   virtual mac_positioning_measurement_handler& get_positioning_handler() = 0;
+
+  /// Get the DU-wide subframe-time mapper that aggregates timing from all cells.
+  /// This mapper receives slot indications from all cells but only stores
+  /// the first indication for each new subframe.
+  virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 };
 
 } // namespace ocudu

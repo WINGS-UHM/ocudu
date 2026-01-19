@@ -128,6 +128,9 @@ public:
     return *this;
   }
 
+  /// Equals operator
+  bool operator==(const rohc_profile_config& other) const { return profile_bitmap == other.profile_bitmap; }
+
 private:
   /// Bitmap that specifies which ROHC profiles are enabled (1) or disabled (0). Offsets are defined in \c rohc_profile.
   ///
@@ -156,6 +159,13 @@ struct rohc_config {
   rohc_profile_config profiles = {};
   /// Continue ROHC.
   bool continue_rohc = false;
+
+  /// Equals operator
+  bool operator==(const rohc_config& other) const
+  {
+    return rohc_type == other.rohc_type && max_cid == other.max_cid && profiles == other.profiles &&
+           continue_rohc == other.continue_rohc;
+  }
 };
 
 } // namespace ocudu::rohc

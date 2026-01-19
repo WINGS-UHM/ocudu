@@ -215,9 +215,9 @@ protected:
 
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
 
-  pdcp_sn_size                     sn_size            = {};
-  unsigned                         algo               = {};
-  std::optional<rohc::rohc_config> header_compression = {};
+  pdcp_sn_size                     sn_size = {};
+  unsigned                         algo    = {};
+  std::optional<rohc::rohc_config> header_compression;
   uint32_t                         pdu_hdr_len;
   uint32_t                         mac_hdr_len = 4;
   pdcp_tx_config                   config      = {};

@@ -24,6 +24,7 @@ TEST_P(pdcp_tx_test, create_new_entity)
   unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
   EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
   EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_last_compressor_config(), header_compression);
 
   ASSERT_NE(pdcp_tx, nullptr);
 }

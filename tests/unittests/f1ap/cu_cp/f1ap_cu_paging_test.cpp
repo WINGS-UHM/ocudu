@@ -15,6 +15,15 @@
 using namespace ocudu;
 using namespace ocucp;
 
+static constexpr uint64_t AMF_SET_ID    = 1;
+static constexpr uint64_t AMF_POINTER   = 0;
+static constexpr uint64_t FIVE_G_TMSI   = 4211117727;
+static constexpr uint64_t FIVE_G_S_TMSI = 279089024671;
+
+static constexpr uint32_t GNB_ID           = 411;
+static constexpr uint8_t  GNB_ID_BITLENGTH = 22;
+static constexpr uint16_t CELL_SECTOR_ID   = 0;
+
 class f1ap_paging_test : public f1ap_cu_test
 {
 protected:
@@ -25,7 +34,7 @@ protected:
 
     // Create 5G-S-TMSI.
     bounded_bitset<48> five_g_s_tmsi(48);
-    five_g_s_tmsi.from_uint64(((uint64_t)1U << 38U) + ((uint64_t)0U << 32U) + 4211117727);
+    five_g_s_tmsi.from_uint64(((uint64_t)AMF_SET_ID << 38U) + ((uint64_t)AMF_POINTER << 32U) + FIVE_G_TMSI);
 
     // Add UE ID idx value.
     paging_msg.ue_id_idx_value = five_g_s_tmsi.to_uint64() % 1024;
@@ -62,7 +71,8 @@ protected:
     cu_cp_recommended_cell_item recommended_cell_item;
 
     // Add NGRAN CGI.
-    recommended_cell_item.ngran_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+    recommended_cell_item.ngran_cgi.nci =
+        nr_cell_identity::create(gnb_id_t{GNB_ID, GNB_ID_BITLENGTH}, CELL_SECTOR_ID).value();
     recommended_cell_item.ngran_cgi.plmn_id = plmn_identity::test_value();
 
     // Add time stayed in cell.
@@ -92,18 +102,18 @@ protected:
     const asn1::f1ap::paging_s& paging_msg = f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.paging();
 
     // Check UE ID idx value.
-    if (paging_msg->ue_id_idx_value.idx_len10().to_number() != (279089024671 % 1024)) {
+    if (paging_msg->ue_id_idx_value.idx_len10().to_number() != (FIVE_G_S_TMSI % 1024)) {
       test_logger.error("UE ID idx value mismatch {} != {}",
                         paging_msg->ue_id_idx_value.idx_len10().to_number(),
-                        (279089024671 % 1024));
+                        (FIVE_G_S_TMSI % 1024));
       return false;
     }
 
     // Check paging ID.
-    if (paging_msg->paging_id.cn_ue_paging_id().five_g_s_tmsi().to_number() != 279089024671) {
+    if (paging_msg->paging_id.cn_ue_paging_id().five_g_s_tmsi().to_number() != FIVE_G_S_TMSI) {
       test_logger.error("Paging ID mismatch {} != {}",
                         paging_msg->paging_id.cn_ue_paging_id().five_g_s_tmsi().to_number(),
-                        279089024671);
+                        FIVE_G_S_TMSI);
       return false;
     }
 
@@ -130,7 +140,7 @@ protected:
       return false;
     }
     const asn1::f1ap::paging_cell_item_s& paging_cell_item = paging_msg->paging_cell_list[0].value().paging_cell_item();
-    nr_cell_identity                      nci              = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+    nr_cell_identity nci = nr_cell_identity::create(gnb_id_t{GNB_ID, GNB_ID_BITLENGTH}, CELL_SECTOR_ID).value();
     if (paging_cell_item.nr_cgi.nr_cell_id.to_number() != nci.value()) {
       test_logger.error("NR CGI NCI mismatch {} != {}}", paging_cell_item.nr_cgi.nr_cell_id.to_number(), nci);
       return false;

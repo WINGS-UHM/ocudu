@@ -15,6 +15,14 @@
 using namespace ocudu;
 using namespace ocucp;
 
+static constexpr uint64_t AMF_SET_ID  = 1;
+static constexpr uint64_t AMF_POINTER = 0;
+static constexpr uint64_t FIVE_G_TMSI = 4211117727;
+
+static constexpr uint32_t GNB_ID           = 411;
+static constexpr uint8_t  GNB_ID_BITLENGTH = 22;
+static constexpr uint16_t CELL_SECTOR_ID   = 0;
+
 class ngap_paging_test : public ngap_test
 {
 protected:
@@ -28,16 +36,16 @@ protected:
     cu_cp_five_g_s_tmsi ue_paging_id = std::get<cu_cp_five_g_s_tmsi>(cu_cp_notifier.last_paging_msg.ue_paging_id);
 
     // Check UE paging id.
-    if (ue_paging_id.get_amf_set_id() != 1) {
-      test_logger.error("AMF Set ID mismatch {} != {}", ue_paging_id.get_amf_set_id(), 1);
+    if (ue_paging_id.get_amf_set_id() != AMF_SET_ID) {
+      test_logger.error("AMF Set ID mismatch {} != {}", ue_paging_id.get_amf_set_id(), AMF_SET_ID);
       return false;
     }
-    if (ue_paging_id.get_amf_pointer() != 0) {
-      test_logger.error("AMF Pointer mismatch {} != {}", ue_paging_id.get_amf_pointer(), 0);
+    if (ue_paging_id.get_amf_pointer() != AMF_POINTER) {
+      test_logger.error("AMF Pointer mismatch {} != {}", ue_paging_id.get_amf_pointer(), AMF_POINTER);
       return false;
     }
-    if (ue_paging_id.get_five_g_tmsi() != 4211117727) {
-      test_logger.error("FiveG TMSI mismatch {} != {}", ue_paging_id.get_five_g_tmsi(), 4211117727);
+    if (ue_paging_id.get_five_g_tmsi() != FIVE_G_TMSI) {
+      test_logger.error("FiveG TMSI mismatch {} != {}", ue_paging_id.get_five_g_tmsi(), FIVE_G_TMSI);
       return false;
     }
 
@@ -124,7 +132,7 @@ protected:
       test_logger.error("NR CGI PLMN mismatch {} != 00f110", cell_item.ngran_cgi.plmn_id);
       return false;
     }
-    nr_cell_identity nci = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+    nr_cell_identity nci = nr_cell_identity::create(gnb_id_t{GNB_ID, GNB_ID_BITLENGTH}, CELL_SECTOR_ID).value();
     if (cell_item.ngran_cgi.nci != nci) {
       test_logger.error("NR CGI NCI mismatch {} != {}", cell_item.ngran_cgi.nci, nci);
       return false;

@@ -62,6 +62,9 @@ protected:
 TEST_P(pdcp_tx_suspend_test, when_suspend_called_state_is_reset)
 {
   init(GetParam(), pdcp_rb_type::drb);
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   // Set state of PDCP entity.
   pdcp_tx_state st = {0, 0, 0, 0, 0};
@@ -101,6 +104,9 @@ TEST_P(pdcp_tx_suspend_test, when_suspend_called_state_is_reset)
 
   FLUSH_AND_ASSERT_EQ(5, pdcp_tx->nof_pdus_in_window());
   FLUSH_AND_ASSERT_EQ(1, test_frame.nof_resume_required);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);

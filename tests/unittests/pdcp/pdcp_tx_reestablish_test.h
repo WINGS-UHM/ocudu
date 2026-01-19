@@ -40,4 +40,8 @@ protected:
     ocudulog::flush();
   }
 };
+
+class pdcp_tx_reestablish_test_srb : public pdcp_tx_reestablish_test
+{};
+
 } // namespace ocudu

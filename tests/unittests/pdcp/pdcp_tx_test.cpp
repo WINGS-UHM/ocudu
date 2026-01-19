@@ -21,6 +21,9 @@ using namespace ocudu;
 TEST_P(pdcp_tx_test, create_new_entity)
 {
   init(GetParam());
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   ASSERT_NE(pdcp_tx, nullptr);
 }
@@ -29,6 +32,9 @@ TEST_P(pdcp_tx_test, create_new_entity)
 TEST_P(pdcp_tx_test, sn_pack)
 {
   init(GetParam());
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_hdr_writer = [this](uint32_t sn) {
     // Prepare header
@@ -56,12 +62,18 @@ TEST_P(pdcp_tx_test, sn_pack)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// \brief Test correct generation of PDCP PDUs
 TEST_P(pdcp_tx_test, pdu_gen)
 {
   init(GetParam());
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
     ocudu::test_delimit_logger delimiter("TX PDU generation. SN_SIZE={} COUNT={}", sn_size, tx_next);
@@ -104,12 +116,18 @@ TEST_P(pdcp_tx_test, pdu_gen)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// \brief Test correct stalling of PDCP if RLC SDU queue is full; then continue via delivery notification
 TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_notif)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::infinity);
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_pdu_gen = [this](uint32_t tx_next, uint32_t qsize = 16) {
     ocudu::test_delimit_logger delimiter(
@@ -201,12 +219,18 @@ TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_notif)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// \brief Test correct stalling of PDCP if RLC SDU queue is full; then continue via delivery retransmitted notification
 TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_retx_notif)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::infinity);
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
     ocudu::test_delimit_logger delimiter(
@@ -282,6 +306,9 @@ TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_retx_notif)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// Test correct start of PDCP discard timers
@@ -289,6 +316,9 @@ TEST_P(pdcp_tx_test, pdu_stall_then_continue_via_deliv_retx_notif)
 TEST_P(pdcp_tx_test, discard_timer_and_expiry)
 {
   init(GetParam());
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_discard_timer_expiry = [this](uint32_t tx_next) {
     // Set state of PDCP entiy
@@ -361,12 +391,18 @@ TEST_P(pdcp_tx_test, discard_timer_and_expiry)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// Test correct start of PDCP discard timers and stop from lower layers
 TEST_P(pdcp_tx_test, discard_timer_and_stop)
 {
   init(GetParam());
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_discard_timer_stop = [this](pdcp_tx_state st) {
     // Set state of PDCP entiy
@@ -466,12 +502,18 @@ TEST_P(pdcp_tx_test, discard_timer_and_stop)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// \brief Test correct generation of PDCP PDUs
 TEST_P(pdcp_tx_test, pdu_stall_with_discard)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am);
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_pdu_gen = [this](uint32_t tx_next) {
     ocudu::test_delimit_logger delimiter("TX PDU stall with discard. SN_SIZE={} COUNT={}", sn_size, tx_next);
@@ -578,6 +620,9 @@ TEST_P(pdcp_tx_test, pdu_stall_with_discard)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// Test COUNT wrap-around protection systems
@@ -589,6 +634,9 @@ TEST_P(pdcp_tx_test, count_wraparound)
   uint32_t       n_sdus         = 20;
   pdcp_max_count max_count{tx_next_notify, tx_next_max};
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_discard_timer::ms10, max_count);
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   auto test_max_count = [this, n_sdus](uint32_t tx_next) {
     // Set state of PDCP entiy
@@ -619,6 +667,9 @@ TEST_P(pdcp_tx_test, count_wraparound)
   } else {
     FAIL();
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// Test TX SDU buffering.
@@ -627,6 +678,9 @@ TEST_P(pdcp_tx_test, tx_buffer)
   uint32_t n_no_buffer_sdus = 5;
   uint32_t n_buffer_sdus    = 5;
   init(GetParam());
+  unsigned exp_nof_compressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 
   // Set state of PDCP entiy.
   pdcp_tx_state st = {0, 0, 0, 0, 0};
@@ -660,8 +714,16 @@ TEST_P(pdcp_tx_test, tx_buffer)
     worker.run_pending_tasks();
   }
 
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
+
   FLUSH_AND_ASSERT_EQ(0, test_frame.pdu_queue.size());
   pdcp_tx->reestablish(sec_cfg);
+
+  exp_nof_compressors = header_compression.has_value() ? 2 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
+
   wait_pending_crypto();
   worker.run_pending_tasks();
   pdcp_tx->end_buffering();
@@ -669,6 +731,9 @@ TEST_P(pdcp_tx_test, tx_buffer)
   worker.run_pending_tasks();
   FLUSH_AND_ASSERT_EQ(5, test_frame.retx_queue.size());
   FLUSH_AND_ASSERT_EQ(5, test_frame.pdu_queue.size());
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), exp_nof_compressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 ///////////////////////////////////////////////////////////////////

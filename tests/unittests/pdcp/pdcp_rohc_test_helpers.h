@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/rohc/rohc_compressor.h"
+#include "ocudu/rohc/rohc_config.h"
 #include "ocudu/rohc/rohc_decompressor.h"
 #include "ocudu/rohc/rohc_factory.h"
 
@@ -44,8 +45,10 @@ public:
 class dummy_rohc_factory : public rohc_factory
 {
 private:
-  mutable unsigned nof_compressors   = 0;
-  mutable unsigned nof_decompressors = 0;
+  mutable unsigned    nof_compressors          = 0;
+  mutable unsigned    nof_decompressors        = 0;
+  mutable rohc_config last_compressor_config   = {};
+  mutable rohc_config last_decompressor_config = {};
 
 public:
   dummy_rohc_factory()  = default;
@@ -54,17 +57,21 @@ public:
   std::unique_ptr<rohc_compressor> create_rohc_compressor(const rohc_config& cfg) const override
   {
     nof_compressors++;
+    last_compressor_config = cfg;
     return std::make_unique<dummy_rohc_compressor>();
   }
 
   std::unique_ptr<rohc_decompressor> create_rohc_decompressor(const rohc_config& cfg) const override
   {
     nof_decompressors++;
+    last_decompressor_config = cfg;
     return std::make_unique<dummy_rohc_decompressor>();
   }
 
-  unsigned get_nof_compressors() { return nof_compressors; }
-  unsigned get_nof_decompressors() { return nof_decompressors; }
+  unsigned           get_nof_compressors() { return nof_compressors; }
+  unsigned           get_nof_decompressors() { return nof_decompressors; }
+  const rohc_config& get_last_compressor_config() { return last_compressor_config; }
+  const rohc_config& get_last_decompressor_config() { return last_decompressor_config; }
 };
 
 } // namespace ocudu::rohc

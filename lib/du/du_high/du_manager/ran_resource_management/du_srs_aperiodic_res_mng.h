@@ -20,21 +20,21 @@ namespace odu {
 
 struct cell_group_config;
 
-/// This class implements the MAX UL throughput policy for the SRS allocation. The SRS resources are allocated with the
-/// objective to minimize the number of slots and symbols that contain the SRS resources, to reduce as much as possible
-/// the slots and symbols resources taken from the PUSCH. The drawback of this policy is that it can increase the
-/// inter-slot SRS interference among different UEs.
+/// \brief This class implements the DU SRS manager for aperiodic SRS-resources.
+/// It computes:
+/// - The list of cell SRS resources.
+/// - The \c slot_offset (as per \c slotOffset, SRS-Config, TS 38.331) values that are used to build the SRS-Config for
+///   a given UE.
+/// and it allocates an SRS resource to any new UE that are added to the DU.
 class du_srs_aperiodic_res_mng : public du_srs_resource_manager
 {
 public:
   explicit du_srs_aperiodic_res_mng(span<const du_cell_config> cell_cfg_list_);
 
   /// The SRS resources are allocate according to the following policy:
-  /// - Give priority to resources that are placed on partially-UL slots, first.
-  /// - Then, give priority to SRS resources that is placed on the symbol interval (i.e, the symbols interval used by an
-  /// SRS resource) closest to the end of the slot.
-  /// - If a symbol interval on a particular slot is already used and not completely full, then give priority to this
-  /// symbol interval over any other symbol intervals on the same or on different slots.
+  /// - Allocate an SRS resource that has not been allocated to any UE.
+  /// - If all SRS resources have been allocated to at least a UE, allocates the one that has been assigned to the
+  /// smaller number of UEs.
   bool alloc_resources(cell_group_config& cell_grp_cfg) override;
 
   void dealloc_resources(cell_group_config& cell_grp_cfg) override;
@@ -59,10 +59,12 @@ private:
       return cell_srs_res_list.cbegin() + cell_res_id;
     }
 
+    // Fills the unique SRS resource in SRS resource list for a UE SRS-Config.
     void fill_srs_res_parameters(srs_config::srs_resource& res_out, const du_srs_resource& res_in) const;
 
     using srs_set_t = static_vector<srs_config::srs_resource_set, srs_config::srs_res_set_id::MAX_NOF_SRS_RES_SETS>;
 
+    // Fills the SRS resource set list for a UE SRS-Config.
     void fill_srs_res_sets(srs_set_t&             srs_res_set_list,
                            srs_config::srs_res_id res_id,
                            span<const unsigned>   slot_offsets) const;
@@ -82,12 +84,12 @@ private:
     // Default SRS configuration for the cell.
     const srs_config default_srs_cfg;
     srs_cell_common  srs_common_params;
-    // List of all SRS resources available to the cell; these resources can be allocated over to different UEs over
-    // different offsets.
+    // List of all SRS resources available to the cell; these resources can be allocated to different UEs.
     std::vector<du_srs_resource> cell_srs_res_list;
-    // List of SRS resource ID and offset that can be allocated to the cell's UEs.
+    // Keeps the count (i.e, \ref srs_res_usage[cell_res_id]) of how many UEs have been assigned the resource ID
+    // \ref cell_res_id.
     std::vector<unsigned> srs_res_usage;
-
+    // List of slot_offsets used to build the SRS-Config for aperiodic SRS.
     std::vector<unsigned> slot_offsets;
   };
 

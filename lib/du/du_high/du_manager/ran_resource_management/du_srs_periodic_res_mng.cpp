@@ -9,63 +9,12 @@
  */
 
 #include "du_srs_periodic_res_mng.h"
+#include "du_srs_manager_helpers.h"
 #include "du_ue_resource_config.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 
 using namespace ocudu;
 using namespace odu;
-
-// Helper that computes the SRS bandwidth parameter \f$C_{SRS}\f$ based on the number of UL BWP RBs.
-static std::optional<unsigned> compute_c_srs(unsigned nof_ul_bwp_rbs)
-{
-  // Iterate over Table 6.4.1.4.3-1, TS 38.211, and find the minimum \f$C_{SRS}\f$ value that maximizes \f$m_{SRS,0}\f$
-  // under the constraint \f$m_{SRS,0}\f$ <= UL RBs.
-
-  // As per Table 6.4.1.4.3-1, TS 38.211, the maximum value of \f$C_{SRS}\f$ is 63.
-  constexpr unsigned max_non_valid_c_srs = 64;
-  // Defines the pair of C_SRS and m_SRS values.
-  using pair_c_srs_m_srs                          = std::pair<unsigned, unsigned>;
-  std::optional<pair_c_srs_m_srs> candidate_c_srs = std::nullopt;
-  for (uint8_t c_srs = 0; c_srs != max_non_valid_c_srs; ++c_srs) {
-    // As per Table 6.4.1.4.3-1, TS 38.211, we do not consider frequency hopping.
-    constexpr uint8_t b_srs_0    = 0;
-    auto              srs_params = srs_configuration_get(c_srs, b_srs_0);
-
-    if (not srs_params.has_value()) {
-      ocudu_assertion_failure("C_SRS is not compatible with the current BW configuration");
-      return std::nullopt;
-    }
-
-    // If there is no candidate C_SRS value, we set the first valid C_SRS value as the candidate.
-    if (not candidate_c_srs.has_value()) {
-      candidate_c_srs = pair_c_srs_m_srs{c_srs, srs_params.value().m_srs};
-    }
-    // NOTE: the condition srs_params.value().m_srs > candidate_c_srs->second is used to find the minimum C_SRS value
-    // that maximizes m_SRS.
-    else if (srs_params.value().m_srs <= nof_ul_bwp_rbs and srs_params.value().m_srs > candidate_c_srs->second) {
-      candidate_c_srs = pair_c_srs_m_srs{c_srs, srs_params.value().m_srs};
-    }
-    // If we reach this point, no need to keep looking for a valid C_SRS value.
-    if (srs_params.value().m_srs > nof_ul_bwp_rbs) {
-      break;
-    }
-  }
-  return candidate_c_srs.value().first;
-}
-
-// Helper that returns the PRB start value for the SRS within the UP BWP; the value is computed in such a way that the
-// SRS resources are placed at the center of the BWP.
-static unsigned compute_srs_rb_start(unsigned c_srs, unsigned nof_ul_bwp_rbs)
-{
-  // As per Section 6.4.1.4.3, the parameter \f$m_{SRS}\f$ = 0 is an index that, along with \f$C_{SRS}\f$, maps to the
-  // bandwidth of the SRS resources.
-  constexpr uint8_t                      b_srs_0    = 0;
-  const std::optional<srs_configuration> srs_params = srs_configuration_get(c_srs, b_srs_0);
-  ocudu_sanity_check(srs_params.has_value() and nof_ul_bwp_rbs >= srs_params.value().m_srs,
-                     "The SRS configuration is not valid");
-
-  return (nof_ul_bwp_rbs - srs_params.value().m_srs) / 2;
-}
 
 static bool is_ul_slot(unsigned offset, const std::optional<tdd_ul_dl_config_common>& tdd_cfg)
 {
@@ -85,45 +34,10 @@ static bool is_partially_ul_slot(unsigned offset, const std::optional<tdd_ul_dl_
   return is_tdd_partial_ul_slot(tdd_cfg.value(), slot_index);
 }
 
-// Helper that updates the starting SRS config with user-defined parameters.
-static srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
-{
-  ocudu_assert(default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
-                   default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
-               "DU cell config is not valid");
-
-  ocudu_assert(default_cell_cfg.srs_cfg.srs_type_enabled != srs_type::aperiodic,
-               "Request to build periodic SRS configuration, but aperiodic parameters have been provided");
-
-  // If the DU is not configured for periodic SRS, we don't need to update the SRS configuration.
-  if (default_cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
-    return default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
-  }
-
-  auto srs_cfg = default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
-
-  ocudu_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
-               "The SRS resource list and the SRS resource set list are expected to have a single element");
-
-  srs_config::srs_resource& res = srs_cfg.srs_res_list.back();
-  res.res_type                  = srs_resource_type::periodic;
-  // Set offset to 0. The offset will be updated later on, when the UE is allocated the SRS resources.
-  res.periodicity_and_offset.emplace(
-      srs_config::srs_periodicity_and_offset{.period = default_cell_cfg.srs_cfg.srs_period_prohib_time, .offset = 0});
-  // Set the SRS resource ID to 0, as there is only 1 SRS resource per UE.
-  res.id.ue_res_id = static_cast<srs_config::srs_res_id>(0U);
-
-  srs_config::srs_resource_set& res_set = srs_cfg.srs_res_set_list.back();
-  res_set.res_type.emplace<srs_config::srs_resource_set::periodic_resource_type>(
-      srs_config::srs_resource_set::periodic_resource_type{});
-  // Set the SRS resource set ID to 0, as there is only 1 SRS resource set per UE.
-  res_set.id = static_cast<srs_config::srs_res_set_id>(0U);
-
-  return srs_cfg;
-}
-
 du_srs_policy_max_ul_rate::cell_context::cell_context(const du_cell_config& cfg) :
-  cell_cfg(cfg), tdd_ul_dl_cfg_common(cfg.tdd_ul_dl_cfg_common), default_srs_cfg(build_default_srs_cfg(cfg))
+  cell_cfg(cfg),
+  tdd_ul_dl_cfg_common(cfg.tdd_ul_dl_cfg_common),
+  default_srs_cfg(du_srs_mng_details::build_default_srs_cfg<true>(cfg))
 {
 }
 
@@ -145,7 +59,7 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
       cell.srs_common_params.freq_shift = cell.cell_cfg.srs_cfg.freq_domain_shift.value();
     } else {
       const std::optional<unsigned> c_srs =
-          compute_c_srs(cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+          du_srs_mng_details::compute_c_srs(cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
       ocudu_assert(c_srs.has_value(), "SRS parameters didn't provide a valid C_SRS value");
       cell.srs_common_params.c_srs = c_srs.value();
       // When computed automatically, \c freqDomainShift is set so that the SRS is placed at the center of the UL BWP.
@@ -153,7 +67,8 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
       // subcarriers is the CRB idx 0, else it's the BWP_RB_start; in here, we implicitly assume \f$n_{shift} >=
       // BWP_RB_start\f$.
       cell.srs_common_params.freq_shift =
-          compute_srs_rb_start(c_srs.value(), cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()) +
+          du_srs_mng_details::compute_srs_rb_start(
+              c_srs.value(), cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()) +
           cell.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start();
     }
 

@@ -32,8 +32,8 @@ struct mac_cell_sys_info_config {
   static_vector<bcch_dl_sch_payload_type, MAX_SI_MESSAGES> si_messages;
   /// SI scheduling configuration to provide to MAC scheduler.
   si_scheduling_update_request si_sched_cfg;
-  /// Whether eDRX is enabled for the cell (and hyperSFNs need to be encoded in the SIB1).
-  bool edrx_enabled = false;
+  /// Whether HyperSFN is stored in SIB1 and needs to be updated periodically.
+  bool sib1_contains_hypersfn = false;
 };
 
 /// Request to create Cell in MAC and Scheduler.

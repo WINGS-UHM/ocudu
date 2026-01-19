@@ -71,18 +71,20 @@ public:
         asn1::cbit_ref bref{buffer};
         auto           err = current_unpacked.unpack(bref);
         report_fatal_error_if_not(err == asn1::OCUDUASN_SUCCESS, "Failed to unpack SIB1 for HyperSFN-aware encoder.");
+        report_fatal_error_if_not(current_unpacked.msg.type().value ==
+                                          asn1::rrc_nr::bcch_dl_sch_msg_type_c::types_opts::c1 and
+                                      current_unpacked.msg.c1().type().value ==
+                                          asn1::rrc_nr::bcch_dl_sch_msg_type_c::c1_c_::types_opts::sib_type1,
+                                  "SIB1 message is not of expected type for HyperSFN-aware encoder.");
       }
 
-      // Ensure eDRX is enabled in SIB1.
-      const auto& sib1msg = current_unpacked.msg.c1().sib_type1();
-      report_fatal_error_if_not(sib1msg.non_crit_ext_present and sib1msg.non_crit_ext.non_crit_ext_present and
-                                    sib1msg.non_crit_ext.non_crit_ext.non_crit_ext_present and
-                                    sib1msg.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17_present,
-                                "eDRX not enabled in SIB1, cannot create HyperSFN-aware encoder.");
-
-      // Store initial HyperSFN.
-      current_hyper_sfn =
-          current_unpacked.msg.c1().sib_type1().non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.to_number();
+      // Ensure HyperSFN is encoded in SIB1 and its value matches the member current_hyper_sfn.
+      auto& sib1msg                                                        = current_unpacked.msg.c1().sib_type1();
+      sib1msg.non_crit_ext_present                                         = true;
+      sib1msg.non_crit_ext.non_crit_ext_present                            = true;
+      sib1msg.non_crit_ext.non_crit_ext.non_crit_ext_present               = true;
+      sib1msg.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17_present = true;
+      sib1msg.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.from_number(0);
     }
 
     expected<span<const uint8_t>, units::bytes> encode(slot_point_extended sl_tx, units::bytes tbs) override
@@ -124,18 +126,17 @@ public:
     uint32_t                        current_hyper_sfn = 0;
   };
 
-  sib1_assembler(bool edrx_enabled_) : edrx_enabled(edrx_enabled_) {}
-
-  std::shared_ptr<bcch_dl_sch_msg_encoder> handle_si_change_request(const byte_buffer& new_sib1)
+  std::shared_ptr<bcch_dl_sch_msg_encoder> handle_si_change_request(const byte_buffer& new_sib1, bool contains_hypersfn)
   {
-    if (last_sib1 == new_sib1) {
-      // No change in SIB1 payload. Reuse previous buffer/encoder.
+    if (last_sib1 == new_sib1 and last_hypersfn_enabled == contains_hypersfn) {
+      // No change in SIB1 payload. Reuse previous encoder.
       return last_encoder;
     }
-    last_sib1 = new_sib1.copy();
+    last_hypersfn_enabled = contains_hypersfn;
+    last_sib1             = new_sib1.copy();
 
     // Create a new encoder.
-    if (edrx_enabled) {
+    if (contains_hypersfn) {
       // Use HyperSFN-aware encoder.
       last_encoder = std::make_shared<hypersfn_msg_encoder>(new_sib1);
     } else {
@@ -147,8 +148,7 @@ public:
   }
 
 private:
-  /// Whether eDRX is enabled (i.e., HyperSFN updates are needed).
-  const bool edrx_enabled;
+  bool last_hypersfn_enabled = false;
 
   /// Last BCCH-DL-SCH SIB1 payload received.
   byte_buffer last_sib1;
@@ -158,7 +158,7 @@ private:
 };
 
 sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) :
-  logger(ocudulog::fetch_basic_logger("MAC")), sib1_hdlr(std::make_unique<sib1_assembler>(req.edrx_enabled))
+  logger(ocudulog::fetch_basic_logger("MAC")), sib1_hdlr(std::make_unique<sib1_assembler>())
 {
   // Version starts at 0.
   last_cfg_buffers.version = 0;
@@ -198,7 +198,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
   // as they are overdimensioned to account for padding.
 
   // Generate SIB1 encoder.
-  last_cfg_buffers.sib1 = sib1_hdlr->handle_si_change_request(req.sib1);
+  last_cfg_buffers.sib1 = sib1_hdlr->handle_si_change_request(req.sib1, req.sib1_contains_hypersfn);
 
   // Check if SI messages have changed.
   last_cfg_buffers.si_msg_buffers.resize(req.si_messages.size());

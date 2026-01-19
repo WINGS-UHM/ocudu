@@ -71,12 +71,13 @@ void du_cell_manager::add_cell(const du_cell_config& cell_cfg)
   fill_si_scheduler_config(si_sched_req, cell_cfg, sib1, si_messages);
 
   // Save config.
-  auto& cell       = *cells.emplace_back(std::make_unique<du_cell_context>());
-  cell.cfg         = cell_cfg;
-  cell.state       = du_cell_context::state_t::inactive;
-  cell.si_cfg.sib1 = sib1.copy();
+  du_cell_context& cell = *cells.emplace_back(std::make_unique<du_cell_context>());
+  cell.cfg              = cell_cfg;
+  cell.state            = du_cell_context::state_t::inactive;
+  cell.si_cfg.sib1      = sib1.copy();
   cell.si_cfg.si_messages.assign(si_messages.begin(), si_messages.end());
-  cell.si_cfg.si_sched_cfg = std::move(si_sched_req);
+  cell.si_cfg.si_sched_cfg           = std::move(si_sched_req);
+  cell.si_cfg.sib1_contains_hypersfn = cell_cfg.edrx_enabled;
 }
 
 expected<du_cell_reconfig_result>

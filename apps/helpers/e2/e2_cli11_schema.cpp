@@ -31,8 +31,7 @@ static void configure_cli11_e2_args(CLI::App&          app,
              e2_params.bind_addrs,
              "Local bind addresses to be used for E2 interface. Multiple addresses can be specified for SCTP "
              "multi-homing. If left empty, implicit bind is performed")
-      ->capture_default_str()
-      ->check(CLI::ValidIPV4);
+      ->capture_default_str();
   add_option(app, "--sctp_rto_initial", e2_params.sctp_rto_initial, "SCTP initial RTO value")->capture_default_str();
   add_option(app, "--sctp_rto_min", e2_params.sctp_rto_min, "SCTP RTO min")->capture_default_str();
   add_option(app, "--sctp_rto_max", e2_params.sctp_rto_max, "SCTP RTO max")->capture_default_str();

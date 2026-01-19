@@ -126,8 +126,7 @@ static void configure_cli11_amf_item_args(CLI::App& app, cu_cp_unit_amf_config_i
              "--bind_addrs",
              config.bind_addrs,
              "CU-CP bind addresses to be used for N2 interface. Multiple addresses can be specified for SCTP "
-             "multi-homing. If left empty, implicit bind is performed")
-      ->check(CLI::ValidIPV4);
+             "multi-homing. If left empty, implicit bind is performed");
   add_option(app, "--bind_interface", config.bind_interface, "Network device to bind for N2 interface")
       ->capture_default_str();
   add_option(app,

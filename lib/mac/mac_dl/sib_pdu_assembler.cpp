@@ -9,7 +9,10 @@
  */
 
 #include "sib_pdu_assembler.h"
+#include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
+#include "ocudu/asn1/rrc_nr/sys_info.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/support/units.h"
 
 using namespace ocudu;
@@ -17,19 +20,157 @@ using namespace ocudu;
 // Max SI Message PDU size. This value is implementation-defined.
 static constexpr unsigned MAX_BCCH_DL_SCH_PDU_SIZE = 2048;
 
-// Payload of zeros sent to when an error occurs.
+// Payload of zeros sent to lower layers when an error occurs.
 static const std::vector<uint8_t> zeros_payload(MAX_BCCH_DL_SCH_PDU_SIZE, 0);
 
-sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) : logger(ocudulog::fetch_basic_logger("MAC"))
+/// Helper to convert byte buffer into a linear array buffer (lower layers work with linearized buffers).
+static std::shared_ptr<std::vector<uint8_t>> make_linear_buffer(const byte_buffer& pdu)
+{
+  // Note: We overallocate the SI message buffer to account for padding.
+  // Note: After this point, resizing the vector is not possible as it would invalidate the spans passed to lower
+  // layers.
+  auto vec = std::make_shared<std::vector<uint8_t>>(MAX_BCCH_DL_SCH_PDU_SIZE, 0);
+  copy_segments(pdu, span<uint8_t>(vec->data(), vec->size()));
+  return vec;
+}
+
+/// Handler of SIB1 buffer generation.
+class sib_pdu_assembler::sib1_assembler
+{
+public:
+  /// Encoder for static BCCH-DL-SCH SIB1 buffers.
+  class static_msg_encoder final : public sib_pdu_assembler::bcch_dl_sch_msg_encoder
+  {
+  public:
+    static_msg_encoder(const byte_buffer& buffer) : len(buffer.length()), current_payload(MAX_BCCH_DL_SCH_PDU_SIZE, 0)
+    {
+      copy_segments(buffer, current_payload);
+    }
+
+    expected<span<const uint8_t>, units::bytes> encode(slot_point_extended /*sl_tx*/, units::bytes tbs) override
+    {
+      if (OCUDU_LIKELY(tbs >= len)) {
+        return span<const uint8_t>(current_payload.data(), tbs.value());
+      }
+      return make_unexpected(len);
+    }
+
+  private:
+    units::bytes         len;
+    std::vector<uint8_t> current_payload;
+  };
+
+  /// BCCH-DL-SCH SIB1 Buffer that gets hyperSFN auto-updated, when eDRX is enabled.
+  class hypersfn_msg_encoder final : public sib_pdu_assembler::bcch_dl_sch_msg_encoder
+  {
+  public:
+    hypersfn_msg_encoder(const byte_buffer& buffer) : current_payload(MAX_BCCH_DL_SCH_PDU_SIZE, 0)
+    {
+      // Unpack initial SIB1.
+      {
+        asn1::cbit_ref bref{buffer};
+        auto           err = current_unpacked.unpack(bref);
+        report_fatal_error_if_not(err == asn1::OCUDUASN_SUCCESS, "Failed to unpack SIB1 for HyperSFN-aware encoder.");
+      }
+
+      // Ensure eDRX is enabled in SIB1.
+      const auto& sib1msg = current_unpacked.msg.c1().sib_type1();
+      report_fatal_error_if_not(sib1msg.non_crit_ext_present and sib1msg.non_crit_ext.non_crit_ext_present and
+                                    sib1msg.non_crit_ext.non_crit_ext.non_crit_ext_present and
+                                    sib1msg.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17_present,
+                                "eDRX not enabled in SIB1, cannot create HyperSFN-aware encoder.");
+
+      // Store initial HyperSFN.
+      current_hyper_sfn =
+          current_unpacked.msg.c1().sib_type1().non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.to_number();
+    }
+
+    expected<span<const uint8_t>, units::bytes> encode(slot_point_extended sl_tx, units::bytes tbs) override
+    {
+      if (OCUDU_UNLIKELY(tbs < current_len)) {
+        return make_unexpected(current_len);
+      }
+
+      const uint32_t new_hyper_sfn = sl_tx.hyper_sfn();
+      if (current_hyper_sfn != new_hyper_sfn) {
+        // HyperSFN has changed, re-encode payload.
+        build_bcch_dl_sch_payload(new_hyper_sfn);
+      }
+      return current_payload;
+    }
+
+  private:
+    void build_bcch_dl_sch_payload(uint32_t hyper_sfn)
+    {
+      // Update HyperSFN.
+      current_hyper_sfn = hyper_sfn;
+
+      // Update HyperSFN in unpacked SIB1.
+      current_unpacked.msg.c1().sib_type1().non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.from_number(hyper_sfn);
+
+      // Re-encode.
+      byte_buffer   buf;
+      asn1::bit_ref bref{buf};
+      auto          ret = current_unpacked.pack(bref);
+      ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack SIB1 with updated HyperSFN.");
+      size_t n = copy_segments(buf, current_payload);
+      ocudu_assert(n <= current_payload.size(), "Encoded SIB1 payload exceeds maximum size.");
+      current_len = units::bytes{static_cast<unsigned>(n)};
+    }
+
+    asn1::rrc_nr::bcch_dl_sch_msg_s current_unpacked;
+    std::vector<uint8_t>            current_payload;
+    units::bytes                    current_len{0};
+    uint32_t                        current_hyper_sfn = 0;
+  };
+
+  sib1_assembler(bool edrx_enabled_) : edrx_enabled(edrx_enabled_) {}
+
+  std::shared_ptr<bcch_dl_sch_msg_encoder> handle_si_change_request(const byte_buffer& new_sib1)
+  {
+    if (last_sib1 == new_sib1) {
+      // No change in SIB1 payload. Reuse previous buffer/encoder.
+      return last_encoder;
+    }
+    last_sib1 = new_sib1.copy();
+
+    // Create a new encoder.
+    if (edrx_enabled) {
+      // Use HyperSFN-aware encoder.
+      last_encoder = std::make_shared<hypersfn_msg_encoder>(new_sib1);
+    } else {
+      // eDRX not enabled, use static buffer.
+      last_encoder = std::make_shared<static_msg_encoder>(new_sib1);
+    }
+
+    return last_encoder;
+  }
+
+private:
+  /// Whether eDRX is enabled (i.e., HyperSFN updates are needed).
+  const bool edrx_enabled;
+
+  /// Last BCCH-DL-SCH SIB1 payload received.
+  byte_buffer last_sib1;
+
+  /// Last generated SIB1 encoder.
+  std::shared_ptr<bcch_dl_sch_msg_encoder> last_encoder;
+};
+
+sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) :
+  logger(ocudulog::fetch_basic_logger("MAC")), sib1_hdlr(std::make_unique<sib1_assembler>(req.edrx_enabled))
 {
   // Version starts at 0.
-  last_cfg_buffers.version  = 0;
-  last_cfg_buffers.sib1_len = units::bytes{0};
+  last_cfg_buffers.version = 0;
   save_buffers(0, req);
+  // No need to go through pendign buffer, yet, as there are no race conditions at this point.
   current_buffers = last_cfg_buffers;
 
+  // Create SI message extension handler if needed.
   message_ext_handler = create_si_message_extension_handler(req);
 }
+
+sib_pdu_assembler::~sib_pdu_assembler() {}
 
 void sib_pdu_assembler::handle_si_change_request(const mac_cell_sys_info_config& req)
 {
@@ -50,44 +191,30 @@ bool sib_pdu_assembler::enqueue_si_message_pdu_updates(const mac_cell_sys_info_p
   return false;
 }
 
-static std::shared_ptr<const std::vector<uint8_t>> make_linear_buffer(const byte_buffer& pdu)
-{
-  // Note: We overallocate the SI message buffer to account for padding.
-  // Note: After this point, resizing the vector is not possible as it would invalidate the spans passed to lower
-  // layers.
-  auto vec = std::make_shared<std::vector<uint8_t>>(MAX_BCCH_DL_SCH_PDU_SIZE, 0);
-  copy_segments(pdu, span<uint8_t>(vec->data(), vec->size()));
-  return vec;
-}
-
 void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_sys_info_config& req)
 {
   // Note: In case the SIB1/SI message does not change, the comparison between the respective byte_buffers should be
   // fast (as they will point to the same memory location). Avoid at all costs the operator== for the stored vectors
   // as they are overdimensioned to account for padding.
 
-  // Check if SIB1 has changed.
-  if (last_si_cfg.sib1 != req.sib1) {
-    last_si_cfg.sib1             = req.sib1.copy();
-    last_cfg_buffers.sib1_len    = units::bytes{static_cast<unsigned>(req.sib1.length())};
-    last_cfg_buffers.sib1_buffer = make_linear_buffer(req.sib1);
-  }
+  // Generate SIB1 encoder.
+  last_cfg_buffers.sib1 = sib1_hdlr->handle_si_change_request(req.sib1);
 
   // Check if SI messages have changed.
   last_cfg_buffers.si_msg_buffers.resize(req.si_messages.size());
   for (unsigned i = 0, e = req.si_messages.size(); i != e; ++i) {
-    if (last_si_cfg.si_messages.size() <= i) {
-      last_si_cfg.si_messages.resize(i + 1);
+    if (last_si_messages.size() <= i) {
+      last_si_messages.resize(i + 1);
     }
-    if (req.si_messages[i] != last_si_cfg.si_messages[i]) {
+    if (req.si_messages[i] != last_si_messages[i]) {
       // Resize according to the number of message segments in the new SI message.
-      last_si_cfg.si_messages[i].resize(req.si_messages[i].size());
+      last_si_messages[i].resize(req.si_messages[i].size());
       // Check if the request contains a segmented SI message.
       if (req.si_messages[i].size() > 1) {
         const auto& new_si_cfg = req.si_messages[i];
 
         // Copy the last configuration request (perform a shallow copy of each segment).
-        auto& last_si_cfg_buf = last_si_cfg.si_messages[i];
+        auto& last_si_cfg_buf = last_si_messages[i];
         last_si_cfg_buf.resize(new_si_cfg.size());
         for (unsigned i_segment = 0, nof_segments = new_si_cfg.size(); i_segment != nof_segments; ++i_segment) {
           last_si_cfg_buf[i_segment] = new_si_cfg[i_segment].copy();
@@ -110,7 +237,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
 
       } else {
         // Do the same for a configuration request carrying a single SI message segment.
-        auto&       last_si_cfg_buf               = last_si_cfg.si_messages[i].front();
+        auto&       last_si_cfg_buf               = last_si_messages[i].front();
         const auto& new_si_cfg                    = req.si_messages[i].front();
         last_si_cfg_buf                           = new_si_cfg.copy();
         last_cfg_buffers.si_msg_buffers[i].first  = units::bytes{static_cast<unsigned>(new_si_cfg.length())};
@@ -119,6 +246,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
     }
   }
 
+  // Bump version.
   last_cfg_buffers.version = si_version;
 }
 
@@ -139,13 +267,14 @@ span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point sl_tx, const sib
   }
 
   if (si_info.si_indicator == sib_information::si_indicator_type::sib1) {
-    if (current_buffers.sib1_len.value() > tbs) {
-      logger.warning("Failed to encode SIB1 PDSCH. Cause: PDSCH TB size {} is smaller than the SIB1 length {}",
-                     tbs,
-                     current_buffers.sib1_len);
+    auto payload = current_buffers.sib1->encode(slot_point_extended{sl_tx}, units::bytes{tbs});
+    if (not payload.has_value()) {
+      units::bytes sib1_len = payload.error();
+      logger.warning(
+          "Failed to encode SIB1 PDSCH. Cause: PDSCH TB size {} is smaller than the SIB1 length {}", tbs, sib1_len);
       return span<const uint8_t>{zeros_payload}.first(tbs);
     }
-    return span<const uint8_t>(current_buffers.sib1_buffer->data(), tbs);
+    return payload.value();
   }
 
   ocudu_assert(si_info.si_msg_index.has_value(), "Invalid SI message index");

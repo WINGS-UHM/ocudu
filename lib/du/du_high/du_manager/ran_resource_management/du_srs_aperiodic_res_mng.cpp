@@ -119,14 +119,14 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
 
   const auto& pusch_td_alloc_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
 
-  fmt::print("\n List of k2 per DL slot idx");
-  for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
-    const auto& dl_td_res_vec = pusch_td_list_per_slot[dl_sl_idx];
-    fmt::print("\n DL slot idx = {} - List of k2s = ", dl_sl_idx);
-    for (const auto td_res_idx : dl_td_res_vec) {
-      fmt::print("{} \t ", static_cast<unsigned>(pusch_td_alloc_list[td_res_idx].k2));
-    }
-  }
+  // fmt::print("\n List of k2 per DL slot idx");
+  // for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
+  //   const auto& dl_td_res_vec = pusch_td_list_per_slot[dl_sl_idx];
+  //   fmt::print("\n DL slot idx = {} - List of k2s = ", dl_sl_idx);
+  //   for (const auto td_res_idx : dl_td_res_vec) {
+  //     fmt::print("{} \t ", static_cast<unsigned>(pusch_td_alloc_list[td_res_idx].k2));
+  //   }
+  // }
 
   unsigned max_used_k2 = 0;
   for (const auto& dl_td_res_vec : pusch_td_list_per_slot) {
@@ -220,10 +220,10 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     }
   }
 
-  fmt::print("\n List of candidate offsets");
-  for (auto& asd : candidate_slot_offsets) {
-    fmt::print("\n Tuple=<{}, {}, {}>", std::get<0>(asd), std::get<1>(asd), std::get<2>(asd));
-  }
+  // fmt::print("\n List of candidate offsets");
+  // for (auto& asd : candidate_slot_offsets) {
+  //   fmt::print("\n Tuple=<{}, {}, {}>", std::get<0>(asd), std::get<1>(asd), std::get<2>(asd));
+  // }
 
   std::vector<dl_sl_idx_sl_offset_is_dl_tuple> optimal_tuples;
   auto weight_function = [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](
@@ -287,7 +287,7 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     return 0U;
   };
 
-  fmt::print("\n List of candidate offsets");
+  // fmt::print("\n List of candidate offsets");
 
   // We consider 3 slots offsets, as many as the possible activation states defined in Table 7.3.1.1.2-24, TS 38.212.
   // NOTE, if the TDD configuration only has 2 DL slot, then the 3rd slot offset wouldn't be used.
@@ -298,22 +298,22 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
         candidate_slot_offsets.begin(),
         candidate_slot_offsets.end(),
         [&weight_function](const dl_sl_idx_sl_offset_is_dl_tuple& lhs, const dl_sl_idx_sl_offset_is_dl_tuple& rhs) {
-          const unsigned w_lhs = weight_function(lhs);
-          const unsigned w_rhs = weight_function(rhs);
-          fmt::print(
-              "\n Processing LHS_Tuple=<{}, {}, {}> w={}", std::get<0>(lhs), std::get<1>(lhs), std::get<2>(lhs), w_lhs);
-          fmt::print(
-              "\t Processing RHS_Tuple=<{}, {}, {}> w={}", std::get<0>(rhs), std::get<1>(rhs), std::get<2>(rhs), w_rhs);
+          // const unsigned w_lhs = weight_function(lhs);
+          // const unsigned w_rhs = weight_function(rhs);
+          // fmt::print(
+          //     "\n Processing LHS_Tuple=<{}, {}, {}> w={}", std::get<0>(lhs), std::get<1>(lhs), std::get<2>(lhs), w_lhs);
+          // fmt::print(
+          //     "\t Processing RHS_Tuple=<{}, {}, {}> w={}", std::get<0>(rhs), std::get<1>(rhs), std::get<2>(rhs), w_rhs);
           return weight_function(lhs) < weight_function(rhs);
         });
     ocudu_assert(min_it != optimal_tuples.end(), "");
     optimal_tuples.emplace_back(*min_it);
   }
 
-  fmt::print("\n Optinal tuples");
+  // fmt::print("\n Optinal tuples");
   std::vector<unsigned> slot_offsets;
   for (const auto& tuple : optimal_tuples) {
-    fmt::print("\t Tuple=<{}, {}, {}>", std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+    // fmt::print("\t Tuple=<{}, {}, {}>", std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
     slot_offsets.emplace_back(std::get<1>(tuple));
   }
   std::sort(slot_offsets.begin(), slot_offsets.end());
@@ -501,7 +501,7 @@ void du_srs_aperiodic_res_mng::dealloc_resources(cell_group_config& cell_grp_cfg
     for (const auto& srs_res : ue_srs_cfg.srs_res_list) {
       const unsigned res_id_to_deallocate = srs_res.id.cell_res_id;
 
-      ocudu_assert(ue_du_cell.srs_res_usage[res_id_to_deallocate] < ue_du_cell.srs_res_usage.size(),
+      ocudu_assert(res_id_to_deallocate < ue_du_cell.srs_res_usage.size(),
                    "The slot resource counter is expected to be non-zero");
       // Update the used_not_full slot vector.gnb
       ocudu_assert(ue_du_cell.srs_res_usage[res_id_to_deallocate] != 0,

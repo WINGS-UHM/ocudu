@@ -13,6 +13,7 @@
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -45,6 +46,11 @@ protected:
     }()),
     ues(cell_cfg.expert_cfg.ue)
   {
+    pusch_td_list_per_slot =
+        get_fairly_distributed_pusch_td_resource_indices(cell_cfg.scs_common,
+                                                         cell_cfg.tdd_cfg_common,
+                                                         cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                                         cell_cfg.dl_data_to_ul_ack);
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 
@@ -74,8 +80,9 @@ protected:
 
   ue_repository ues;
 
-  cell_resource_allocator dummy_alloc{cell_cfg};
-  inter_slice_scheduler   slice_sched{cell_cfg, ues};
+  cell_resource_allocator                                                            dummy_alloc{cell_cfg};
+  inter_slice_scheduler                                                              slice_sched{cell_cfg, ues};
+  std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>> pusch_td_list_per_slot;
 
 public:
   slot_point next_slot{to_numerology_value(cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list.back().scs), 0};
@@ -115,24 +122,27 @@ TEST_F(default_slice_scheduler_test, when_lcid_is_part_of_default_slice_then_def
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
-    bool is_dl_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool is_dl_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
     auto next_dl_slice = slice_sched.get_next_dl_candidate();
-    auto next_ul_slice = slice_sched.get_next_ul_candidate();
-
     if (is_dl_active) {
       ASSERT_TRUE(next_dl_slice.has_value());
       ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
       ASSERT_TRUE(next_dl_slice->is_candidate(to_du_ue_index(0)));
       ASSERT_TRUE(next_dl_slice->is_candidate(to_du_ue_index(0), lcid_t::LCID_SRB1));
+    } else {
+      ASSERT_FALSE(next_dl_slice.has_value());
+    }
 
+    auto next_ul_slice = slice_sched.get_next_ul_candidate();
+    if (dl_slot_has_k2_values) {
       ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
       ASSERT_TRUE(next_ul_slice->is_candidate(to_du_ue_index(0)));
       ASSERT_TRUE(next_ul_slice->is_candidate(to_du_ue_index(0), lcid_t::LCID_SRB1));
     } else {
-      ASSERT_FALSE(next_dl_slice.has_value());
       ASSERT_FALSE(next_ul_slice.has_value());
     }
   }

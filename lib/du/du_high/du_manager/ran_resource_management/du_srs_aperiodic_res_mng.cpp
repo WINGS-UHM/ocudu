@@ -119,14 +119,14 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
 
   const auto& pusch_td_alloc_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
 
-  // fmt::print("\n List of k2 per DL slot idx");
-  // for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
-  //   const auto& dl_td_res_vec = pusch_td_list_per_slot[dl_sl_idx];
-  //   fmt::print("\n DL slot idx = {} - List of k2s = ", dl_sl_idx);
-  //   for (const auto td_res_idx : dl_td_res_vec) {
-  //     fmt::print("{} \t ", static_cast<unsigned>(pusch_td_alloc_list[td_res_idx].k2));
-  //   }
-  // }
+  fmt::print("\n List of k2 per DL slot idx");
+  for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
+    const auto& dl_td_res_vec = pusch_td_list_per_slot[dl_sl_idx];
+    fmt::print("\n DL slot idx = {} - List of k2s = ", dl_sl_idx);
+    for (const auto td_res_idx : dl_td_res_vec) {
+      fmt::print("{} \t ", static_cast<unsigned>(pusch_td_alloc_list[td_res_idx].k2));
+    }
+  }
 
   unsigned max_used_k2 = 0;
   for (const auto& dl_td_res_vec : pusch_td_list_per_slot) {
@@ -153,7 +153,7 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
   // Get the target UL slot indices, i.e., the slots in which we aim at allocating the SRS. If present, we consider the
   // special slots, else the first UL slot.
   std::vector<unsigned> target_ul_slots_idx;
-  if (tdd_cfg.pattern1.nof_dl_symbols != 0) {
+  if (tdd_cfg.pattern1.nof_ul_symbols != 0) {
     target_ul_slots_idx.emplace_back(tdd_cfg.pattern1.nof_dl_slots);
   }
   if (tdd_cfg.pattern2.has_value() and tdd_cfg.pattern2.value().nof_ul_slots != 0 and
@@ -220,10 +220,10 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     }
   }
 
-  // fmt::print("\n List of candidate offsets");
-  // for (auto& asd : candidate_slot_offsets) {
-  //   fmt::print("\n Tuple=<{}, {}, {}>", std::get<0>(asd), std::get<1>(asd), std::get<2>(asd));
-  // }
+  fmt::print("\n List of candidate offsets");
+  for (auto& asd : candidate_slot_offsets) {
+    fmt::print("\n Tuple=<{}, {}, {}>", std::get<0>(asd), std::get<1>(asd), std::get<2>(asd));
+  }
 
   std::vector<dl_sl_idx_sl_offset_is_dl_tuple> optimal_tuples;
   auto weight_function = [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](
@@ -298,12 +298,12 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
         candidate_slot_offsets.begin(),
         candidate_slot_offsets.end(),
         [&weight_function](const dl_sl_idx_sl_offset_is_dl_tuple& lhs, const dl_sl_idx_sl_offset_is_dl_tuple& rhs) {
-          // const unsigned w_lhs = weight_function(lhs);
-          // const unsigned w_rhs = weight_function(rhs);
-          // fmt::print(
-          //     "\n Processing LHS_Tuple=<{}, {}, {}> w={}", std::get<0>(lhs), std::get<1>(lhs), std::get<2>(lhs), w_lhs);
-          // fmt::print(
-          //     "\t Processing RHS_Tuple=<{}, {}, {}> w={}", std::get<0>(rhs), std::get<1>(rhs), std::get<2>(rhs), w_rhs);
+          const unsigned w_lhs = weight_function(lhs);
+          const unsigned w_rhs = weight_function(rhs);
+          fmt::print(
+              "\n Processing LHS_Tuple=<{}, {}, {}> w={}", std::get<0>(lhs), std::get<1>(lhs), std::get<2>(lhs), w_lhs);
+          fmt::print(
+              "\t Processing RHS_Tuple=<{}, {}, {}> w={}", std::get<0>(rhs), std::get<1>(rhs), std::get<2>(rhs), w_rhs);
           return weight_function(lhs) < weight_function(rhs);
         });
     ocudu_assert(min_it != optimal_tuples.end(), "");
@@ -313,7 +313,7 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
   // fmt::print("\n Optinal tuples");
   std::vector<unsigned> slot_offsets;
   for (const auto& tuple : optimal_tuples) {
-    // fmt::print("\t Tuple=<{}, {}, {}>", std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+    fmt::print("\t Tuple=<{}, {}, {}>", std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
     slot_offsets.emplace_back(std::get<1>(tuple));
   }
   std::sort(slot_offsets.begin(), slot_offsets.end());
@@ -380,7 +380,9 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
                  "The SRS aperiodic configuration generation requires PUSCH Config Common, UL Config and PUCCH Confid");
 
     cell.slot_offsets = compute_slot_offsets(cell_cfg);
-    ocudu_assert(cell.slot_offsets.size() >= 2, "At least 2 SRS slot offset values expected");
+    ocudu_assert((cell_cfg.tdd_ul_dl_cfg_common.has_value() and cell.slot_offsets.size() >= 2) or
+                     cell.slot_offsets.size() == 1,
+                 "At least 2 SRS slot offset values expected for TDD, only 1 for FDD");
   }
 }
 
@@ -457,7 +459,7 @@ void du_srs_aperiodic_res_mng::cell_context::fill_srs_res_sets(srs_set_t&       
                                                                srs_config::srs_res_id res_id,
                                                                span<const unsigned>   slot_offset_values) const
 {
-  ocudu_assert(slot_offset_values.size() == 2U or slot_offset_values.size() == 3U, "Invalid number of slot_offsets");
+  ocudu_assert(not slot_offset_values.empty() and slot_offset_values.size() <= 3U, "Invalid number of slot_offsets");
 
   // Update the parameters.
   auto& srs_res_set = srs_res_set_list.front();

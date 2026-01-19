@@ -46,8 +46,8 @@ std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_co
   }
 
   unsigned    starting_sym = 0;
-  const auto& tdd_cfg      = du_cell_cfg.tdd_ul_dl_cfg_common.value();
-  if (use_special_slot_only) {
+  if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value() and use_special_slot_only) {
+    const auto& tdd_cfg      = du_cell_cfg.tdd_ul_dl_cfg_common.value();
     // For special slot allocation only, we only consider the allocation on the special slot.
     starting_sym = std::max(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern1.nof_ul_symbols);
     if (tdd_cfg.pattern2.has_value() and (tdd_cfg.pattern2.value().nof_ul_symbols != 0)) {
@@ -63,6 +63,7 @@ std::vector<du_srs_resource> ocudu::odu::generate_cell_srs_list(const du_cell_co
     // can be allocated to a given UE as a function of the offset of the periodic resource.
     starting_sym = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - du_cell_cfg.srs_cfg.max_nof_symbols.value();
     if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+      const auto& tdd_cfg      = du_cell_cfg.tdd_ul_dl_cfg_common.value();
       starting_sym = std::min(starting_sym, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - tdd_cfg.pattern1.nof_ul_symbols);
       if (tdd_cfg.pattern2.has_value()) {
         starting_sym =

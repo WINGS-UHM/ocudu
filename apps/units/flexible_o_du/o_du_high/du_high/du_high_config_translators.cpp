@@ -587,7 +587,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id =
         to_search_space_id(base_cell.paging_cfg.paging_search_space_id);
     out_cell.dl_cfg_common.pcch_cfg = generate_pcch_config(base_cell);
-    out_cell.edrx_enabled           = base_cell.paging_cfg.edrx_enabled;
 
     // Parameters for PUSCH-ConfigCommon.
     if (not out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {

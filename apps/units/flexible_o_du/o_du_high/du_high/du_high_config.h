@@ -587,8 +587,6 @@ struct du_high_unit_paging_config {
   unsigned pf_offset = 0;
   /// Number of paging occasions per paging frame. Values {1, 2, 4}.
   unsigned nof_po_per_pf = 1;
-  /// Whether to enable eDRX.
-  bool edrx_enabled = false;
 };
 
 /// PDCCH Common configuration.

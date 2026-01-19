@@ -591,7 +591,6 @@ static YAML::Node build_du_high_paging_section(const du_high_unit_paging_config&
   node["nof_pf_per_paging_cycle"] = to_string(config.nof_pf);
   node["pf_offset"]               = config.pf_offset;
   node["nof_po_per_pf"]           = config.nof_po_per_pf;
-  node["edrx_enabled"]            = config.edrx_enabled;
 
   return node;
 }

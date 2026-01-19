@@ -184,7 +184,7 @@ static bool operator==(const tx_data_req_pdu& lhs, const tx_data_req_pdu& rhs)
 
 static bool operator==(const tx_data_request& lhs, const tx_data_request& rhs)
 {
-  return lhs.slot == rhs.slot && lhs.control_length == rhs.control_length && lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.pdus == rhs.pdus;
 }
 
 } // namespace fapi

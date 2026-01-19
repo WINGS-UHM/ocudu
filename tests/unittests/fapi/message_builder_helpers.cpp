@@ -1216,10 +1216,6 @@ tx_data_request unittest::build_valid_tx_data_request()
   unsigned sfn        = generate_sfn();
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
-  msg.control_length  = generate_uint16();
-
-  // NOTE: Set to 0 temporarily.
-  msg.control_length = 0U;
 
   msg.pdus.emplace_back();
   tx_data_req_pdu& pdu = msg.pdus.back();
@@ -1273,16 +1269,12 @@ srs_indication unittest::build_valid_srs_indication()
   unsigned sfn        = generate_sfn();
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
-  msg.control_length  = 0;
 
   msg.pdus.emplace_back();
-  auto& pdu                             = msg.pdus.back();
-  pdu.handle                            = generate_handle();
-  pdu.rnti                              = generate_rnti();
-  pdu.timing_advance_offset             = generate_timing_advance_offset();
-  pdu.usage                             = srs_usage::codebook;
-  pdu.report_type                       = srs_report_type::normalized_channel_iq_matrix;
-  pdu.positioning.coordinate_system_aoa = srs_coordinate_system_ul_aoa::local;
+  auto& pdu                 = msg.pdus.back();
+  pdu.handle                = generate_handle();
+  pdu.rnti                  = generate_rnti();
+  pdu.timing_advance_offset = generate_timing_advance_offset();
 
   return msg;
 }

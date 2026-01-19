@@ -40,10 +40,9 @@ TEST(ul_tti_request_builder, add_pucch_f0_pdu_passes)
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
-  uint32_t     handle = 3214;
   pucch_format format = pucch_format::FORMAT_0;
 
-  builder.add_pucch_pdu(rnti, handle, format);
+  builder.add_pucch_pdu(rnti, format);
 
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
@@ -51,7 +50,7 @@ TEST(ul_tti_request_builder, add_pucch_f0_pdu_passes)
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(format, pdu.format_type);
 }
 
@@ -65,10 +64,9 @@ TEST(ul_tti_request_builder, add_pucch_f1_pdu_passes)
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
-  uint32_t     handle = 3214;
   pucch_format format = pucch_format::FORMAT_1;
 
-  builder.add_pucch_pdu(rnti, handle, format);
+  builder.add_pucch_pdu(rnti, format);
 
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
@@ -76,7 +74,7 @@ TEST(ul_tti_request_builder, add_pucch_f1_pdu_passes)
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(format, pdu.format_type);
 }
 
@@ -90,10 +88,9 @@ TEST(ul_tti_request_builder, add_pucch_f2_pdu_passes)
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
-  uint32_t     handle = 3214;
   pucch_format format = pucch_format::FORMAT_2;
 
-  builder.add_pucch_pdu(rnti, handle, format);
+  builder.add_pucch_pdu(rnti, format);
 
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
@@ -101,7 +98,7 @@ TEST(ul_tti_request_builder, add_pucch_f2_pdu_passes)
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(format, pdu.format_type);
 }
 
@@ -115,10 +112,9 @@ TEST(ul_tti_request_builder, add_pucch_f3_pdu_passes)
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
-  uint32_t     handle = 3214;
   pucch_format format = pucch_format::FORMAT_3;
 
-  builder.add_pucch_pdu(rnti, handle, format);
+  builder.add_pucch_pdu(rnti, format);
 
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
@@ -126,7 +122,7 @@ TEST(ul_tti_request_builder, add_pucch_f3_pdu_passes)
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(format, pdu.format_type);
 }
 
@@ -140,10 +136,9 @@ TEST(ul_tti_request_builder, add_pucch_f4_pdu_passes)
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
 
   rnti_t       rnti   = to_rnti(3);
-  uint32_t     handle = 3214;
   pucch_format format = pucch_format::FORMAT_4;
 
-  builder.add_pucch_pdu(rnti, handle, format);
+  builder.add_pucch_pdu(rnti, format);
 
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)]);
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)]);
@@ -151,7 +146,7 @@ TEST(ul_tti_request_builder, add_pucch_f4_pdu_passes)
   ASSERT_EQ(ul_pdu_type::PUCCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pucch_pdu;
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(format, pdu.format_type);
 }
 
@@ -163,15 +158,14 @@ TEST(ul_tti_request_builder, add_pusch_pdu_passes)
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_pdu_type::PUSCH)]);
 
-  rnti_t   rnti   = to_rnti(3);
-  uint32_t handle = 3214;
+  rnti_t rnti = to_rnti(3);
 
-  builder.add_pusch_pdu(rnti, handle);
+  builder.add_pusch_pdu(rnti);
 
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_pdu_type::PUSCH)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(ul_pdu_type::PUSCH, msg.pdus.back().pdu_type);
   const auto& pdu = msg.pdus.back().pusch_pdu;
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
 }

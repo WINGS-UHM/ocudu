@@ -15,28 +15,25 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// Tx_Data.request message builder that helps to fill in the parameters specified in SCF-222 v4.0 section 3.4.6.
 class tx_data_request_builder
 {
 public:
   explicit tx_data_request_builder(tx_data_request& msg_) : msg(msg_) {}
 
-  /// Sets the Tx_Data.request basic parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.6 in table Tx_Data.request message body.
+  /// \brief Sets the Tx_Data.request basic parameters and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.6 in table Tx_Data.request message body.
   tx_data_request_builder& set_basic_parameters(slot_point slot)
   {
     msg.slot = slot;
 
-    // NOTE: Set to 0 temporarily.
-    msg.control_length = 0U;
-
     return *this;
   }
 
-  /// Adds a new PDU to the Tx_Data.request message and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.6 in table Tx_Data.request message body.
+  /// \brief Adds a new PDU to the Tx_Data.request message and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.6 in table Tx_Data.request message body.
   tx_data_request_builder& add_pdu(uint16_t pdu_index, uint8_t cw_index, const shared_transport_block& payload)
   {
     msg.pdus.emplace_back(pdu_index, cw_index, payload);

@@ -12,7 +12,6 @@
 
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/fapi/common/base_message.h"
-#include "ocudu/fapi/p7/messages/srs_pdu_report_type.h"
 #include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
@@ -24,107 +23,25 @@
 namespace ocudu {
 namespace fapi {
 
-/// Encodes the PRGs.
-struct srs_prg {
-  uint8_t rb_snr;
-};
-
-/// Encodes the reported symbols for the beamforming report.
-struct srs_reported_symbols {
-  /// Maximum number of PRGs.
-  static constexpr unsigned MAX_NUM_PRGS = 273;
-
-  uint16_t                          num_prg;
-  std::array<srs_prg, MAX_NUM_PRGS> prgs;
-};
-
-/// Encodes the beamforming report.
-struct srs_beamforming_report {
-  /// Maximum number of reported symbols.
-  static constexpr unsigned MAX_NUM_REP_SYMBOLS = 4;
-
-  uint16_t                                              prg_size;
-  uint8_t                                               num_symbols;
-  uint8_t                                               wideband_snr;
-  uint8_t                                               num_reported_symbols;
-  std::array<srs_reported_symbols, MAX_NUM_REP_SYMBOLS> rep_symbols;
-};
-
-/// Encodes the normalized IQ representation.
-enum class normalized_iq_representation : uint8_t { normal, extended };
-
-/// Encodes the normalized channel IQ matrix report.
-struct srs_normalized_channel_iq_matrix {
-  // :TODO: The real value is way too big to represent it ~4M.
-  static constexpr unsigned MAX_MATRIX_H_SIZE = 1024;
-
-  normalized_iq_representation           iq_representation;
-  uint16_t                               num_gnb_antenna_elements;
-  uint16_t                               num_ue_srs_ports;
-  uint16_t                               prg_size;
-  uint16_t                               num_prgs;
-  std::array<uint8_t, MAX_MATRIX_H_SIZE> channel_matrix_h;
-};
-
-/// Encodes the SVD array for each PRG.
-struct srs_svd_prg {
-  static constexpr unsigned MAX_SIZE_LEFT_EIGENVECTOR  = 256;
-  static constexpr unsigned MAX_SIZE_SINGULAR_MATRIX   = 32;
-  static constexpr unsigned MAX_SIZE_RIGHT_EIGENVECTOR = 8736;
-
-  std::array<uint8_t, MAX_SIZE_LEFT_EIGENVECTOR>  left_eigenvectors;
-  std::array<uint8_t, MAX_SIZE_SINGULAR_MATRIX>   singular_matrix;
-  std::array<uint8_t, MAX_SIZE_RIGHT_EIGENVECTOR> right_eigenvectors;
-};
-
-/// Encodes the normalized singular representation.
-enum class normalized_singular_representation : uint8_t { normal, extended };
-
-/// Encodes the channel svd representation.
-struct srs_channel_svd_representation {
-  /// Maximum number of PRGs.
-  static constexpr unsigned NUM_MAX_PRG = 273;
-
-  normalized_iq_representation         iq_representation;
-  normalized_singular_representation   singular_representation;
-  int8_t                               singular_value_scaling;
-  uint16_t                             num_gnb_antenna_elements;
-  uint8_t                              num_ue_srs_ports;
-  uint16_t                             prg_size;
-  uint16_t                             num_prgs;
-  std::array<srs_svd_prg, NUM_MAX_PRG> svd_prg;
-};
-
-/// Describes the coordinate system for uplink Angle Of Arrival.
-enum class srs_coordinate_system_ul_aoa : uint8_t { local = 0, global = 1 };
-
 /// Encodes SRS positioning report.
 struct srs_positioning_report {
-  /// TUL-RTOA as recorded in TS 38.215 on section 5.1.
+  /// TUL-RTOA as defined in TS 38.215 on section 5.1.
   std::optional<phy_time_unit> ul_relative_toa;
-  std::optional<uint32_t>      gnb_rx_tx_difference;
-  srs_coordinate_system_ul_aoa coordinate_system_aoa;
-  std::optional<float>         ul_aoa;
   std::optional<float>         rsrp;
 };
 
 /// SRS indication pdu.
 struct srs_indication_pdu {
-  uint32_t                     handle;
-  rnti_t                       rnti;
-  std::optional<phy_time_unit> timing_advance_offset;
-  /// \remark The enum doesn't contain the \c reserved value defined in the FAPI spec. This is because the value is
-  /// currently not used anywhere.
-  srs_usage              usage;
-  srs_report_type        report_type; // TODO: Can we delete the srs_report_type type and just use a bool?
-  srs_channel_matrix     matrix;
-  srs_positioning_report positioning;
+  uint32_t                              handle = 0;
+  rnti_t                                rnti;
+  std::optional<phy_time_unit>          timing_advance_offset;
+  std::optional<srs_channel_matrix>     matrix;
+  std::optional<srs_positioning_report> positioning;
 };
 
 /// SRS indication message.
 struct srs_indication : public base_message {
   slot_point                                                  slot;
-  uint16_t                                                    control_length;
   static_vector<srs_indication_pdu, MAX_SRS_PDUS_PER_SRS_IND> pdus;
 };
 

@@ -28,7 +28,7 @@ struct ul_pucch_maintenance_v3 {
 /// Encodes PUCCH pdu.
 struct ul_pucch_pdu {
   rnti_t                   rnti;
-  uint32_t                 handle;
+  uint32_t                 handle = 0;
   uint16_t                 bwp_size;
   uint16_t                 bwp_start;
   subcarrier_spacing       scs;

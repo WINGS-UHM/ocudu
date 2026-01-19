@@ -23,13 +23,11 @@ class ul_srs_pdu_builder
 public:
   explicit ul_srs_pdu_builder(ul_srs_pdu& pdu_) : pdu(pdu_) {}
 
-  /// \brief Sets the SRS PDU basic parameters and returns a reference to the builder.
-  ///
-  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
-  ul_srs_pdu_builder& set_basic_parameters(rnti_t rnti, uint32_t handle)
+  /// Sets the SRS PDU UE specific parameters and returns a reference to the builder.
+  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
+  ul_srs_pdu_builder& set_ue_specific_parameters(rnti_t rnti)
   {
-    pdu.rnti   = rnti;
-    pdu.handle = handle;
+    pdu.rnti = rnti;
 
     return *this;
   }

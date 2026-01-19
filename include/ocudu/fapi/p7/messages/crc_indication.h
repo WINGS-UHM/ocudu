@@ -24,7 +24,7 @@ namespace fapi {
 
 /// Reception data indication PDU information.
 struct crc_ind_pdu {
-  uint32_t                     handle;
+  uint32_t                     handle = 0;
   rnti_t                       rnti;
   harq_id_t                    harq_id;
   bool                         tb_crc_status_ok;

@@ -26,15 +26,13 @@ public:
 
   /// Sets the basic parameters of the \e RACH.indication PDU and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_pdu_builder& set_basic_params(uint16_t             handle,
-                                                uint8_t              symbol_index,
+  rach_indication_pdu_builder& set_basic_params(uint8_t              symbol_index,
                                                 uint8_t              slot_index,
                                                 uint8_t              ra_index,
                                                 std::optional<float> avg_rssi_dB,
                                                 std::optional<float> avg_snr_dB)
 
   {
-    pdu.handle       = handle;
     pdu.symbol_index = symbol_index;
     pdu.slot_index   = slot_index;
     pdu.ra_index     = ra_index;
@@ -106,8 +104,7 @@ public:
 
   /// Adds a PDU to the \e RACH.indication message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_pdu_builder add_pdu(uint16_t             handle,
-                                      uint8_t              symbol_index,
+  rach_indication_pdu_builder add_pdu(uint8_t              symbol_index,
                                       uint8_t              slot_index,
                                       uint8_t              ra_index,
                                       std::optional<float> avg_rssi,
@@ -117,7 +114,7 @@ public:
 
     rach_indication_pdu_builder builder(pdu);
 
-    builder.set_basic_params(handle, symbol_index, slot_index, ra_index, avg_rssi, avg_snr);
+    builder.set_basic_params(symbol_index, slot_index, ra_index, avg_rssi, avg_snr);
 
     return builder;
   }

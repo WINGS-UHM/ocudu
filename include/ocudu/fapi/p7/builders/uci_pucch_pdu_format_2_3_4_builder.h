@@ -31,10 +31,9 @@ public:
   /// \brief Sets the UCI PUCCH Format 2, Format 3 and Format 4 PDU basic parameters and returns a reference to the
   /// builder. \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
   /// 3 or Format 4 PDU.
-  uci_pucch_pdu_format_2_3_4_builder& set_basic_parameters(uint32_t handle, rnti_t rnti, pucch_format type)
+  uci_pucch_pdu_format_2_3_4_builder& set_basic_parameters(rnti_t rnti, pucch_format type)
   {
-    pdu.handle = handle;
-    pdu.rnti   = to_value(rnti);
+    pdu.rnti = to_value(rnti);
     switch (type) {
       case pucch_format::FORMAT_2:
         pdu.pucch_format = uci_pucch_pdu_format_2_3_4::format_type::format_2;

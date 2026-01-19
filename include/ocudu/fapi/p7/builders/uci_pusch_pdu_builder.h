@@ -25,12 +25,11 @@ class uci_pusch_pdu_builder
 public:
   explicit uci_pusch_pdu_builder(uci_pusch_pdu& pdu_) : pdu(pdu_) { pdu.pdu_bitmap = 0; }
 
-  /// \brief Sets the UCI PUSCH PDU basic parameters and returns a reference to the builder.
+  /// \brief Sets the UCI PUSCH PDU UE specific parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.1 in Table UCI PUSCH PDU.
-  uci_pusch_pdu_builder& set_basic_parameters(uint32_t handle, rnti_t rnti)
+  uci_pusch_pdu_builder& set_ue_specific_parameters(rnti_t rnti)
   {
-    pdu.handle = handle;
-    pdu.rnti   = to_value(rnti);
+    pdu.rnti = to_value(rnti);
 
     return *this;
   }

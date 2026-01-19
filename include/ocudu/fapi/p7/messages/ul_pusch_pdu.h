@@ -109,7 +109,7 @@ struct ul_pusch_pdu {
 
   std::bitset<BITMAP_SIZE>                     pdu_bitmap;
   rnti_t                                       rnti;
-  uint32_t                                     handle;
+  uint32_t                                     handle = 0;
   uint16_t                                     bwp_size;
   uint16_t                                     bwp_start;
   subcarrier_spacing                           scs;

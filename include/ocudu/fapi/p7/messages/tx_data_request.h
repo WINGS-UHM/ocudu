@@ -35,7 +35,6 @@ struct tx_data_req_pdu {
 /// Transmission request message.
 struct tx_data_request : public base_message {
   slot_point                                              slot;
-  uint16_t                                                control_length;
   static_vector<tx_data_req_pdu, MAX_PDSCH_PDUS_PER_SLOT> pdus;
 };
 

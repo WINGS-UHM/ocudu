@@ -77,10 +77,10 @@ public:
 
   /// Adds a PUCCH PDU to the message and returns a builder that helps to fill the parameters.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
-  ul_pucch_pdu_builder add_pucch_pdu(rnti_t rnti, uint32_t handle, pucch_format format_type)
+  ul_pucch_pdu_builder add_pucch_pdu(rnti_t rnti, pucch_format format_type)
   {
     ul_pucch_pdu_builder builder = add_pucch_pdu(format_type);
-    builder.set_basic_parameters(rnti, handle);
+    builder.set_ue_specific_parameters(rnti);
 
     return builder;
   }
@@ -101,10 +101,10 @@ public:
 
   /// Adds a PUSCH PDU to the message and returns a builder that helps to fill the parameters.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
-  ul_pusch_pdu_builder add_pusch_pdu(rnti_t rnti, uint32_t handle)
+  ul_pusch_pdu_builder add_pusch_pdu(rnti_t rnti)
   {
     ul_pusch_pdu_builder builder = add_pusch_pdu();
-    builder.set_basic_parameters(rnti, handle);
+    builder.set_ue_specific_parameters(rnti);
 
     return builder;
   }

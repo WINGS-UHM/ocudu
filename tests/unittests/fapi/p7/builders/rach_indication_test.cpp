@@ -23,7 +23,6 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
   unsigned             sfn        = 13;
   unsigned             slot_index = 12;
   auto                 slot       = slot_point(scs, sfn, slot_index);
-  unsigned             handle     = 14;
   unsigned             symb_id    = 3;
   unsigned             slot_id    = 45;
   unsigned             ra_id_d    = 4;
@@ -32,7 +31,7 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
   std::optional<float> snr = 10;
 
   builder.set_basic_parameters(slot);
-  auto pdu_builder = builder.add_pdu(handle, symb_id, slot_id, ra_id_d, rssi, snr);
+  auto pdu_builder = builder.add_pdu(symb_id, slot_id, ra_id_d, rssi, snr);
 
   std::optional<phy_time_unit> timing         = phy_time_unit::from_seconds(0);
   std::optional<float>         preamble_power = 0;
@@ -44,7 +43,7 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
   ASSERT_EQ(1, msg.pdus.size());
 
   const auto& pdu = msg.pdus.back();
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(symb_id, pdu.symbol_index);
   ASSERT_EQ(slot_id, pdu.slot_index);
   ASSERT_EQ(ra_id_d, pdu.ra_index);

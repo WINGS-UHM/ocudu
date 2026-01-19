@@ -326,17 +326,16 @@ TEST(uci_indication_builder, add_pusch_pdu_passes)
   uci_indication         msg;
   uci_indication_builder builder(msg);
 
-  unsigned handle = 8;
-  rnti_t   rnti   = to_rnti(9);
+  rnti_t rnti = to_rnti(9);
 
-  builder.add_pusch_pdu(handle, rnti);
+  builder.add_pusch_pdu(rnti);
 
   ASSERT_EQ(1, msg.pdus.size());
   ASSERT_EQ(uci_pdu_type::PUSCH, msg.pdus.back().pdu_type);
 
   const auto& pdu = msg.pdus.back().pusch_pdu;
   ASSERT_EQ(to_value(rnti), pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
 }
 
 TEST(uci_indication_builder, add_pucch_f01_passes)
@@ -344,18 +343,17 @@ TEST(uci_indication_builder, add_pucch_f01_passes)
   uci_indication         msg;
   uci_indication_builder builder(msg);
 
-  unsigned     handle = 4;
   rnti_t       rnti   = to_rnti(5);
   pucch_format format = static_cast<pucch_format>(0);
 
-  builder.add_format_0_1_pucch_pdu(handle, rnti, format);
+  builder.add_format_0_1_pucch_pdu(rnti, format);
 
   ASSERT_EQ(1, msg.pdus.size());
   ASSERT_EQ(uci_pdu_type::PUCCH_format_0_1, msg.pdus.back().pdu_type);
 
   const auto& pdu = msg.pdus.back().pucch_pdu_f01;
   ASSERT_EQ(to_value(rnti), pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ((format == ocudu::pucch_format::FORMAT_0) ? uci_pucch_pdu_format_0_1::format_type::format_0
                                                       : uci_pucch_pdu_format_0_1::format_type::format_1,
             pdu.pucch_format);
@@ -366,17 +364,16 @@ TEST(uci_indication_builder, add_pucch_f234_passes)
   uci_indication         msg;
   uci_indication_builder builder(msg);
 
-  unsigned     handle = 3;
   rnti_t       rnti   = to_rnti(4);
   pucch_format format = static_cast<pucch_format>(3);
 
-  builder.add_format_2_3_4_pucch_pdu(handle, rnti, format);
+  builder.add_format_2_3_4_pucch_pdu(rnti, format);
 
   ASSERT_EQ(1, msg.pdus.size());
   ASSERT_EQ(uci_pdu_type::PUCCH_format_2_3_4, msg.pdus.back().pdu_type);
 
   const auto& pdu = msg.pdus.back().pucch_pdu_f234;
   ASSERT_EQ(to_value(rnti), pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ((static_cast<unsigned>(format) - 2U), static_cast<unsigned>(pdu.pucch_format));
 }

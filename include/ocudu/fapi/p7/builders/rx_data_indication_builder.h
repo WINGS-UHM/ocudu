@@ -36,12 +36,10 @@ public:
 
   /// Adds a PDU to the message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
-  rx_data_indication_builder&
-  add_pdu(uint32_t handle, rnti_t rnti, harq_id_t harq_id, span<const uint8_t> transport_block)
+  rx_data_indication_builder& add_pdu(rnti_t rnti, harq_id_t harq_id, span<const uint8_t> transport_block)
   {
     auto& pdu = msg.pdus.emplace_back();
 
-    pdu.handle          = handle;
     pdu.rnti            = rnti;
     pdu.harq_id         = harq_id;
     pdu.transport_block = transport_block;

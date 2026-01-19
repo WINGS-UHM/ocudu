@@ -33,17 +33,16 @@ TEST(rx_data_indication_builder, add_custom_pdu_passes)
 {
   static_vector<uint8_t, 18> transport_block = {1, 2, 3, 4, 5};
 
-  unsigned  handle = 765;
-  rnti_t    rnti   = to_rnti(29);
-  harq_id_t harq   = to_harq_id(14);
+  rnti_t    rnti = to_rnti(29);
+  harq_id_t harq = to_harq_id(14);
 
   rx_data_indication         msg;
   rx_data_indication_builder builder(msg);
 
-  builder.add_pdu(handle, rnti, harq, {transport_block});
+  builder.add_pdu(rnti, harq, {transport_block});
 
   const auto& pdu = msg.pdus.back();
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(rnti, pdu.rnti);
   ASSERT_EQ(harq, pdu.harq_id);
   ASSERT_EQ(transport_block.size(), pdu.transport_block.size());

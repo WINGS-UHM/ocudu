@@ -43,7 +43,7 @@ struct uci_pucch_pdu_format_0_1 {
   enum class format_type : uint8_t { format_0, format_1 };
 
   std::bitset<BITMAP_SIZE>     pdu_bitmap;
-  uint32_t                     handle;
+  uint32_t                     handle = 0;
   uint16_t                     rnti;
   format_type                  pucch_format;
   int16_t                      ul_sinr_metric;

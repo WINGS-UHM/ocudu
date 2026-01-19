@@ -302,16 +302,13 @@ void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::
     mac_srs_pdu& mac_pdu        = mac_msg.srss.emplace_back();
     mac_pdu.rnti                = pdu.rnti;
     mac_pdu.time_advance_offset = pdu.timing_advance_offset;
-    switch (pdu.report_type) {
-      case fapi::srs_report_type::normalized_channel_iq_matrix:
-        mac_pdu.report = mac_srs_pdu::normalized_channel_iq_matrix{pdu.matrix};
-        break;
-      case fapi::srs_report_type::positioning:
-        mac_pdu.report = mac_srs_pdu::positioning_report{pdu.positioning.ul_relative_toa, pdu.positioning.rsrp};
-        break;
-      default:
-        ocudu_assert(0, "Unsupported SRS report type '{}'", fapi::to_value(pdu.report_type));
-        break;
+
+    if (pdu.matrix) {
+      mac_pdu.report = mac_srs_pdu::normalized_channel_iq_matrix{*pdu.matrix};
+    }
+
+    if (pdu.positioning) {
+      mac_pdu.report = mac_srs_pdu::positioning_report{pdu.positioning->ul_relative_toa, pdu.positioning->rsrp};
     }
   }
 

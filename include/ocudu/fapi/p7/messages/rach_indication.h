@@ -31,7 +31,7 @@ struct rach_indication_pdu_preamble {
 
 /// RACH indication pdu.
 struct rach_indication_pdu {
-  uint32_t                                                                      handle;
+  uint32_t                                                                      handle = 0;
   uint8_t                                                                       symbol_index;
   uint8_t                                                                       slot_index;
   uint8_t                                                                       ra_index;

@@ -71,10 +71,7 @@ void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder& 
                                                     uci_part2_correspondence_mapper& part2_mapper)
 {
   const pusch_information& pusch_pdu = mac_pdu.pusch_cfg;
-  // :TODO: check this handle. It will be better to pass it from the translator, as the adaptor doesn't know how many
-  // PDUs are expected.
-  unsigned handle = 0;
-  builder.set_basic_parameters(pusch_pdu.rnti, handle);
+  builder.set_ue_specific_parameters(pusch_pdu.rnti);
 
   const bwp_configuration& bwp_cfg = *pusch_pdu.bwp_cfg;
   builder.set_bwp_parameters(bwp_cfg.crbs.length(), bwp_cfg.crbs.start(), bwp_cfg.scs, bwp_cfg.cp);

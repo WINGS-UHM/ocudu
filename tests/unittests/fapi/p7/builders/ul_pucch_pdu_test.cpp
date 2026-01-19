@@ -16,16 +16,15 @@ using namespace fapi;
 
 TEST(ul_pucch_pdu_builder, valid_basic_parameters_passes)
 {
-  rnti_t   rnti   = to_rnti(14);
-  uint32_t handle = 192;
+  rnti_t rnti = to_rnti(14);
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_basic_parameters(rnti, handle);
+  builder.set_ue_specific_parameters(rnti);
 
   ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
 }
 
 TEST(ul_pucch_pdu_builder, valid_format_common_parameters_passes)

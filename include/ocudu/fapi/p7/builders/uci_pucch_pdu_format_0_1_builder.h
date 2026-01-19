@@ -32,10 +32,9 @@ public:
 
   /// \brief Sets the UCI PUCCH PDU Format 0 and Format 1 basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.2 in Table UCI PUCCH Format 0 or Format 1 PDU.
-  uci_pucch_pdu_format_0_1_builder& set_basic_parameters(uint32_t handle, rnti_t rnti, pucch_format type)
+  uci_pucch_pdu_format_0_1_builder& set_basic_parameters(rnti_t rnti, pucch_format type)
   {
-    pdu.handle = handle;
-    pdu.rnti   = to_value(rnti);
+    pdu.rnti = to_value(rnti);
     switch (type) {
       case pucch_format::FORMAT_0:
         pdu.pucch_format = uci_pucch_pdu_format_0_1::format_type::format_0;

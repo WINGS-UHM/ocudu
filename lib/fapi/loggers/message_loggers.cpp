@@ -418,9 +418,16 @@ void ocudu::fapi::log_srs_indication(const srs_indication& msg, unsigned sector_
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer), "\n\t-  rnti={}", pdu.rnti);
     append_time_advance(buffer, pdu.timing_advance_offset, msg.slot.scs());
-    fmt::format_to(std::back_inserter(buffer), " report_type={}", to_string(pdu.report_type));
-    if (pdu.report_type == srs_report_type::positioning && pdu.positioning.ul_relative_toa) {
-      fmt::format_to(std::back_inserter(buffer), " RTOA_s={}", pdu.positioning.ul_relative_toa.value().to_seconds());
+
+    if (!pdu.positioning.has_value()) {
+      continue;
+    }
+
+    if (pdu.positioning->ul_relative_toa) {
+      fmt::format_to(std::back_inserter(buffer), " RTOA_s={}", *pdu.positioning->rsrp);
+    }
+    if (pdu.positioning->rsrp) {
+      fmt::format_to(std::back_inserter(buffer), " RSRP={}", *pdu.positioning->rsrp);
     }
   }
 

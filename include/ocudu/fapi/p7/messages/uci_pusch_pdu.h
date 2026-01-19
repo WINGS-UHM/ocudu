@@ -27,7 +27,7 @@ struct uci_pusch_pdu {
   static constexpr unsigned CSI_PART2_BIT = 3U;
 
   std::bitset<BITMAP_SIZE>     pdu_bitmap;
-  uint32_t                     handle;
+  uint32_t                     handle = 0;
   uint16_t                     rnti;
   int16_t                      ul_sinr_metric;
   std::optional<phy_time_unit> timing_advance_offset;

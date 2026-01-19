@@ -26,12 +26,11 @@ class ul_pucch_pdu_builder
 public:
   explicit ul_pucch_pdu_builder(ul_pucch_pdu& pdu_) : pdu(pdu_) {}
 
-  /// Sets the PUCCH PDU basic parameters and returns a reference to the builder.
+  /// Sets the PUCCH PDU UE specific parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
-  ul_pucch_pdu_builder& set_basic_parameters(rnti_t rnti, uint32_t handle)
+  ul_pucch_pdu_builder& set_ue_specific_parameters(rnti_t rnti)
   {
-    pdu.rnti   = rnti;
-    pdu.handle = handle;
+    pdu.rnti = rnti;
 
     return *this;
   }

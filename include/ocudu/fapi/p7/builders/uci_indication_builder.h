@@ -38,10 +38,10 @@ public:
   }
 
   /// Adds a PUSCH PDU to the \e UCI.indication message and returns a PUSCH PDU builder.
-  uci_pusch_pdu_builder add_pusch_pdu(uint32_t handle, rnti_t rnti)
+  uci_pusch_pdu_builder add_pusch_pdu(rnti_t rnti)
   {
     uci_pusch_pdu_builder builder = add_pusch_pdu();
-    builder.set_basic_parameters(handle, rnti);
+    builder.set_ue_specific_parameters(rnti);
 
     return builder;
   }
@@ -60,10 +60,10 @@ public:
 
   /// Adds a PUCCH Format 0 and Format 1 PDU to the \e UCI.indication message and returns a PUCCH Format 0 and Format 1
   /// PDU builder.
-  uci_pucch_pdu_format_0_1_builder add_format_0_1_pucch_pdu(uint32_t handle, rnti_t rnti, pucch_format type)
+  uci_pucch_pdu_format_0_1_builder add_format_0_1_pucch_pdu(rnti_t rnti, pucch_format type)
   {
     uci_pucch_pdu_format_0_1_builder builder = add_format_0_1_pucch_pdu();
-    builder.set_basic_parameters(handle, rnti, type);
+    builder.set_basic_parameters(rnti, type);
 
     return builder;
   }
@@ -83,10 +83,10 @@ public:
 
   /// Adds a PUCCH Format 2, Format 3 and Format 4  PDU to the \e UCI.indication message and returns a PUCCH Format 2,
   /// Format 3 and Format 4 PDU builder.
-  uci_pucch_pdu_format_2_3_4_builder add_format_2_3_4_pucch_pdu(uint32_t handle, rnti_t rnti, pucch_format type)
+  uci_pucch_pdu_format_2_3_4_builder add_format_2_3_4_pucch_pdu(rnti_t rnti, pucch_format type)
   {
     uci_pucch_pdu_format_2_3_4_builder builder = add_format_2_3_4_pucch_pdu();
-    builder.set_basic_parameters(handle, rnti, type);
+    builder.set_basic_parameters(rnti, type);
 
     return builder;
   }

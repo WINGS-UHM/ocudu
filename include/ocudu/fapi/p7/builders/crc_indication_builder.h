@@ -35,8 +35,7 @@ public:
 
   /// Adds a \e CRC.indication PDU to the message and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
-  crc_indication_builder& add_pdu(uint32_t                     handle,
-                                  rnti_t                       rnti,
+  crc_indication_builder& add_pdu(rnti_t                       rnti,
                                   harq_id_t                    harq_id,
                                   bool                         tb_crc_status_ok,
                                   std::optional<float>         ul_sinr_dB,
@@ -47,7 +46,6 @@ public:
   {
     auto& pdu = msg.pdus.emplace_back();
 
-    pdu.handle                = handle;
     pdu.rnti                  = rnti;
     pdu.harq_id               = harq_id;
     pdu.tb_crc_status_ok      = tb_crc_status_ok;

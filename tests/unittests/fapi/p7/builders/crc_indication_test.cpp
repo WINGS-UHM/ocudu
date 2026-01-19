@@ -27,7 +27,6 @@ TEST(crc_indication_builder, valid_indication_passes)
 
     builder.set_basic_parameters(slot);
 
-    uint32_t  handle        = 34U;
     rnti_t    rnti          = to_rnti(10);
     harq_id_t harq_id       = to_harq_id(0);
     uint8_t   tb_crc_status = 0;
@@ -45,12 +44,12 @@ TEST(crc_indication_builder, valid_indication_passes)
     rsrp_dB.emplace(-100);
     bool use_dB = i;
 
-    builder.add_pdu(handle, rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB, use_dB);
+    builder.add_pdu(rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB, use_dB);
 
     ASSERT_EQ(slot, msg.slot);
 
     const crc_ind_pdu& pdu = msg.pdus.back();
-    ASSERT_EQ(handle, pdu.handle);
+    ASSERT_EQ(0, pdu.handle);
     ASSERT_EQ(harq_id, pdu.harq_id);
     ASSERT_EQ(rnti, pdu.rnti);
     ASSERT_EQ(tb_crc_status, pdu.tb_crc_status_ok);
@@ -73,7 +72,6 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
 
   builder.set_basic_parameters(slot);
 
-  uint32_t  handle        = 34U;
   rnti_t    rnti          = to_rnti(10);
   harq_id_t harq_id       = to_harq_id(0);
   uint8_t   tb_crc_status = 0;
@@ -83,12 +81,12 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
   std::optional<float>         rssi_dB;
   std::optional<float>         rsrp_dB;
 
-  builder.add_pdu(handle, rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB);
+  builder.add_pdu(rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB);
 
   ASSERT_EQ(slot, msg.slot);
 
   const crc_ind_pdu& pdu = msg.pdus.back();
-  ASSERT_EQ(handle, pdu.handle);
+  ASSERT_EQ(0, pdu.handle);
   ASSERT_EQ(harq_id, pdu.harq_id);
   ASSERT_EQ(rnti, pdu.rnti);
   ASSERT_EQ(tb_crc_status, pdu.tb_crc_status_ok);

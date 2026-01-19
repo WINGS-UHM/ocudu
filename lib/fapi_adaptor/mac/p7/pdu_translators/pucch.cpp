@@ -225,9 +225,7 @@ static void fill_custom_parameters(fapi::ul_pucch_pdu_builder& builder, const pu
 
 void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
 {
-  // Handle is not supported.
-  static const unsigned handle = 0;
-  builder.set_basic_parameters(mac_pdu.crnti, handle);
+  builder.set_ue_specific_parameters(mac_pdu.crnti);
 
   const bwp_configuration& bwp_cfg = *mac_pdu.bwp_cfg;
   builder.set_bwp_parameters(bwp_cfg.crbs.length(), bwp_cfg.crbs.start(), bwp_cfg.scs, bwp_cfg.cp);

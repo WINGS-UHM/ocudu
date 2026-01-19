@@ -81,15 +81,12 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
 
   builder.set_basic_parameters(slot);
 
-  // NOTE: Currently not managing handle.
-  static constexpr unsigned handle = 0U;
   // NOTE: Currently not supporting PRACH multiplexed in frequency domain.
   static constexpr unsigned fd_ra_index = 0U;
   // NOTE: Clamp values defined in SCF-222 v4.0 Section 3.4.11 Table RACH.indication message body.
   static constexpr float            MIN_AVG_RSSI_VALUE = -140.F;
   static constexpr float            MAX_AVG_RSSI_VALUE = 30.F;
   fapi::rach_indication_pdu_builder builder_pdu        = builder.add_pdu(
-      handle,
       result.context.start_symbol,
       slot.slot_index(),
       fd_ra_index,
@@ -183,9 +180,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
 
   builder.set_basic_parameters(result.slot);
 
-  // Do not manage handle.
-  static constexpr unsigned   handle      = 0;
-  fapi::uci_pusch_pdu_builder builder_pdu = builder.add_pusch_pdu(handle, result.rnti);
+  fapi::uci_pusch_pdu_builder builder_pdu = builder.add_pusch_pdu(result.rnti);
 
   const channel_state_information& csi_info = result.csi;
 
@@ -250,9 +245,6 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
 
   builder.set_basic_parameters(result.slot);
 
-  // Handle is not supported for now.
-  unsigned handle = 0;
-
   // NOTE: Clamp values defined in SCF-222 v4.0 Section 3.4.8 Table CRC.indication message body.
   static constexpr float MIN_UL_SINR_VALUE = -65.534;
   static constexpr float MAX_UL_SINR_VALUE = 65.534;
@@ -278,8 +270,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
   }
 
   // TODO: Remove to_harq_id once this type has been changed in the PHY layer
-  builder.add_pdu(handle,
-                  result.rnti,
+  builder.add_pdu(result.rnti,
                   to_harq_id(result.harq_id),
                   result.decoder_result.tb_crc_ok,
                   sinr_dB,
@@ -298,10 +289,8 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
 
   builder.set_basic_parameters(result.slot);
 
-  // Handle is not supported for now.
-  unsigned handle = 0;
   // TODO: Remove the to_harq_id call once it is changed in the PHY layer.
-  builder.add_pdu(handle, result.rnti, to_harq_id(result.harq_id), result.payload);
+  builder.add_pdu(result.rnti, to_harq_id(result.harq_id), result.payload);
 
   p7_notifier->on_rx_data_indication(msg);
 }
@@ -349,11 +338,9 @@ static void fill_format_0_1_harq(fapi::uci_pucch_pdu_format_0_1_builder& builder
 /// Adds a PUCCH Format 0 or Format 1 PDU to the given builder using the data provided by result.
 static void add_format_0_1_pucch_pdu(fapi::uci_indication_builder& builder, const ul_pucch_results& result)
 {
-  // Do not use the handle for now.
-  static const unsigned                  handle  = 0;
   const ul_pucch_context&                context = result.context;
   fapi::uci_pucch_pdu_format_0_1_builder builder_format01 =
-      builder.add_format_0_1_pucch_pdu(handle, context.rnti, context.format);
+      builder.add_format_0_1_pucch_pdu(context.rnti, context.format);
 
   const channel_state_information& csi_info = result.processor_result.csi;
 
@@ -456,10 +443,8 @@ static void fill_format_2_3_4_csi_part1(fapi::uci_pucch_pdu_format_2_3_4_builder
 /// Adds a PUCCH Format 2, Format 3 or Format 4 PDU to the given builder using the data provided by result.
 static void add_format_2_3_4_pucch_pdu(fapi::uci_indication_builder& builder, const ul_pucch_results& result)
 {
-  // Do not use the handle for now.
-  static const unsigned                    handle = 0;
   fapi::uci_pucch_pdu_format_2_3_4_builder builder_format234 =
-      builder.add_format_2_3_4_pucch_pdu(handle, result.context.rnti, result.context.format);
+      builder.add_format_2_3_4_pucch_pdu(result.context.rnti, result.context.format);
 
   const channel_state_information& csi_info = result.processor_result.csi;
 
@@ -526,18 +511,14 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
   builder.set_basic_parameters(context.slot);
 
   if (context.is_normalized_channel_iq_matrix_report_requested) {
-    // Do not use the handle for now.
-    static const unsigned            handle          = 0;
-    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(handle, context.rnti);
+    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(context.rnti);
     srs_pdu_builder.set_metrics_parameters(
         phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment));
     srs_pdu_builder.set_codebook_report_matrix(result.processor_result.channel_matrix);
   }
 
   if (context.is_positioning_report_requested) {
-    // Do not use the handle for now.
-    static const unsigned            handle          = 0;
-    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(handle, context.rnti);
+    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(context.rnti);
     srs_pdu_builder.set_metrics_parameters(
         phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment));
 
@@ -553,7 +534,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
     }
 
     srs_pdu_builder.set_positioning_report_parameters(
-        {phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment)}, {}, {}, rsrp);
+        std::make_optional(phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment)), rsrp);
   }
 
   p7_notifier->on_srs_indication(msg);

@@ -78,9 +78,9 @@ void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer),
-                   "\n\t- CRC rnti={:x} harq_id={} tb_status={}",
+                   "\n\t- CRC rnti={} harq_id={} tb_status={}",
                    pdu.rnti,
-                   static_cast<uint8_t>(pdu.harq_id),
+                   fmt::underlying(pdu.harq_id),
                    pdu.tb_crc_status_ok ? "OK" : "KO");
     append_time_advance(buffer, pdu.timing_advance_offset, msg.slot.scs());
     if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
@@ -114,11 +114,11 @@ static void log_ssb_pdu(const dl_ssb_pdu& pdu, fmt::memory_buffer& buffer)
       std::back_inserter(buffer),
       "\n\t- SSB pci={} beta_pss_profile={} ssb_block_index={} k_SSB={} pointA={} ssb_pattern_case={} scs={} L_max={}",
       pdu.phys_cell_id,
-      static_cast<uint8_t>(pdu.beta_pss_profile_nr),
-      static_cast<uint8_t>(pdu.ssb_block_index),
+      fmt::underlying(pdu.beta_pss_profile_nr),
+      fmt::underlying(pdu.ssb_block_index),
       pdu.subcarrier_offset.value(),
       pdu.ssb_offset_pointA.value(),
-      static_cast<uint8_t>(pdu.case_type),
+      to_string(pdu.case_type),
       to_string(pdu.scs),
       pdu.L_max);
 }
@@ -167,10 +167,10 @@ static void log_prs_pdu(const dl_prs_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
                  "\n\t- PRS comb_size={} comb_offset={} symb={}:{} RBs={}:{} n_id={}",
-                 static_cast<unsigned>(pdu.comb_size),
+                 fmt::underlying(pdu.comb_size),
                  pdu.comb_offset,
                  pdu.first_symbol,
-                 static_cast<unsigned>(pdu.num_symbols),
+                 fmt::underlying(pdu.num_symbols),
                  pdu.start_rb,
                  pdu.num_rbs,
                  pdu.nid_prs);
@@ -270,9 +270,9 @@ void ocudu::fapi::log_rx_data_indication(const rx_data_indication& msg,
 
   for (const auto& pdu : msg.pdus) {
     fmt::format_to(std::back_inserter(buffer),
-                   "\n\t- PDU rnti={:x} harq_id={} tbs={}",
+                   "\n\t- PDU rnti={} harq_id={} tbs={}",
                    pdu.rnti,
-                   static_cast<uint8_t>(pdu.harq_id),
+                   fmt::underlying(pdu.harq_id),
                    pdu.transport_block.size());
   }
 
@@ -301,7 +301,7 @@ log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, subcarrier_spacing 
 {
   fmt::format_to(std::back_inserter(buffer),
                  "\n\t- UCI PUCCH format 0/1 format={} rnti={}",
-                 static_cast<unsigned>(pdu.pucch_format),
+                 fmt::underlying(pdu.pucch_format),
                  pdu.rnti);
 
   if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
@@ -334,7 +334,7 @@ log_uci_pucch_f234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, subcarrier_spacing
 {
   fmt::format_to(std::back_inserter(buffer),
                  "\n\t- UCI PUCCH format 2/3/4 format={} rnti={}",
-                 static_cast<unsigned>(pdu.pucch_format) + 2,
+                 fmt::underlying(pdu.pucch_format) + 2,
                  pdu.rnti);
 
   if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
@@ -507,7 +507,7 @@ static void log_srs_pdu(const ul_srs_pdu& pdu, fmt::memory_buffer& buffer)
       pdu.time_start_position,
       pdu.num_symbols,
       pdu.config_index,
-      static_cast<uint8_t>(pdu.comb_size),
+      fmt::underlying(pdu.comb_size),
       pdu.comb_offset,
       pdu.cyclic_shift,
       pdu.frequency_shift,
@@ -536,7 +536,7 @@ void ocudu::fapi::log_ul_tti_request(const ul_tti_request& msg, unsigned sector_
         log_srs_pdu(pdu.srs_pdu, buffer);
         break;
       default:
-        ocudu_assert(0, "UL_TTI.request PDU type value ({}) not recognized.", static_cast<unsigned>(pdu.pdu_type));
+        ocudu_assert(0, "UL_TTI.request PDU type value ({}) not recognized.", get_ul_tti_pdu_type_string(pdu.pdu_type));
     }
   }
 
@@ -560,7 +560,7 @@ void ocudu::fapi::log_ul_dci_request(const ul_dci_request& msg, unsigned sector_
         log_pdcch_pdu(pdu.pdu, buffer);
         break;
       default:
-        ocudu_assert(0, "UL_DCI.request PDU type value ({}) not recognized.", static_cast<unsigned>(pdu.pdu_type));
+        ocudu_assert(0, "UL_DCI.request PDU type value ({}) not recognized.", fmt::underlying(pdu.pdu_type));
     }
   }
 

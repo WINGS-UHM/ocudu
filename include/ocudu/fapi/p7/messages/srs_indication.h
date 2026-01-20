@@ -116,7 +116,7 @@ struct srs_indication_pdu {
   /// \remark The enum doesn't contain the \c reserved value defined in the FAPI spec. This is because the value is
   /// currently not used anywhere.
   srs_usage              usage;
-  srs_report_type        report_type;
+  srs_report_type        report_type; // TODO: Can we delete the srs_report_type type and just use a bool?
   srs_channel_matrix     matrix;
   srs_positioning_report positioning;
 };

@@ -505,17 +505,17 @@ static void log_srs_pdu(const ul_srs_pdu& pdu, fmt::memory_buffer& buffer)
       pdu.rnti,
       pdu.bwp_start,
       pdu.bwp_size,
-      pdu.num_ant_ports,
+      fmt::underlying(pdu.num_ant_ports),
       pdu.time_start_position,
-      pdu.num_symbols,
+      pdu.ofdm_symbols.length(),
       pdu.config_index,
       fmt::underlying(pdu.comb_size),
       pdu.comb_offset,
       pdu.cyclic_shift,
       pdu.frequency_shift,
       to_string(pdu.resource_type),
-      pdu.srs_params_v4.report_type.test(to_value(srs_report_type::normalized_channel_iq_matrix)),
-      pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
+      pdu.enable_normalized_iq_matrix_report ? "enabled" : "disabled",
+      pdu.enable_positioning_report ? "enabled" : "disabled");
 }
 
 void ocudu::fapi::log_ul_tti_request(const ul_tti_request& msg, unsigned sector_id, ocudulog::basic_logger& logger)

@@ -20,21 +20,19 @@ void ocudu::fapi_adaptor::convert_srs_fapi_to_phy(uplink_pdu_slot_repository::sr
                                                   slot_point                           slot)
 {
   // Fill main context fields.
-  ul_srs_context& context = pdu.context;
-  context.slot            = slot;
-  context.rnti            = fapi_pdu.rnti;
-  context.is_normalized_channel_iq_matrix_report_requested =
-      fapi_pdu.srs_params_v4.report_type.test(to_value(fapi::srs_report_type::normalized_channel_iq_matrix));
-  context.is_positioning_report_requested =
-      fapi_pdu.srs_params_v4.report_type.test(to_value(fapi::srs_report_type::positioning));
+  ul_srs_context& context                                  = pdu.context;
+  context.slot                                             = slot;
+  context.rnti                                             = fapi_pdu.rnti;
+  context.is_normalized_channel_iq_matrix_report_requested = fapi_pdu.enable_normalized_iq_matrix_report;
+  context.is_positioning_report_requested                  = fapi_pdu.enable_positioning_report;
 
   // Fill SRS resource configuration.
-  pdu.config.context = srs_context(sector_id, fapi_pdu.rnti);
-  pdu.config.slot    = slot;
-  pdu.config.resource.nof_antenna_ports =
-      static_cast<srs_resource_configuration::one_two_four_enum>(fapi_pdu.num_ant_ports);
-  pdu.config.resource.nof_symbols  = static_cast<srs_resource_configuration::one_two_four_enum>(fapi_pdu.num_symbols);
-  pdu.config.resource.start_symbol = fapi_pdu.time_start_position;
+  pdu.config.context                    = srs_context(sector_id, fapi_pdu.rnti);
+  pdu.config.slot                       = slot;
+  pdu.config.resource.nof_antenna_ports = fapi_pdu.num_ant_ports;
+  pdu.config.resource.nof_symbols =
+      static_cast<srs_resource_configuration::one_two_four_enum>(fapi_pdu.ofdm_symbols.length());
+  pdu.config.resource.start_symbol        = fapi_pdu.time_start_position;
   pdu.config.resource.configuration_index = fapi_pdu.config_index;
   pdu.config.resource.sequence_id         = fapi_pdu.sequence_id;
   pdu.config.resource.bandwidth_index     = fapi_pdu.bandwidth_index;

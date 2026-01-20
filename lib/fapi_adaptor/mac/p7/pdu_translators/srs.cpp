@@ -43,8 +43,8 @@ void fapi_adaptor::convert_srs_mac_to_fapi(fapi::ul_srs_pdu_builder& builder, co
   builder.set_timing_params(mac_pdu.symbols.start(), mac_pdu.t_srs_period, mac_pdu.t_offset);
 
   // Rest of the parameters.
-  builder.set_srs_params(mac_pdu.nof_antenna_ports,
-                         mac_pdu.symbols.length(),
+  builder.set_srs_params(static_cast<srs_resource_configuration::one_two_four_enum>(mac_pdu.nof_antenna_ports),
+                         mac_pdu.symbols,
                          mac_pdu.nof_repetitions,
                          mac_pdu.config_index,
                          mac_pdu.sequence_id,

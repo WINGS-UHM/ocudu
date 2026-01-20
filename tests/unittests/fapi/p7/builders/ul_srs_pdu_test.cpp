@@ -99,57 +99,41 @@ TEST(ul_srs_pdu_builder, request_normalized_channel_iq_report_passes)
   ul_srs_pdu         pdu;
   ul_srs_pdu_builder builder(pdu);
 
-  ASSERT_FALSE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::normalized_channel_iq_matrix)));
+  ASSERT_FALSE(pdu.enable_normalized_iq_matrix_report);
+  ASSERT_FALSE(pdu.enable_positioning_report);
 
   builder.set_report_params(true, false);
 
-  ASSERT_FALSE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
-  ASSERT_TRUE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::normalized_channel_iq_matrix)));
-}
-
-TEST(ul_srs_pdu_builder, request_positioning_report_passes)
-{
-  ul_srs_pdu         pdu;
-  ul_srs_pdu_builder builder(pdu);
-
-  ASSERT_FALSE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
+  ASSERT_TRUE(pdu.enable_normalized_iq_matrix_report);
+  ASSERT_FALSE(pdu.enable_positioning_report);
 
   builder.set_report_params(false, true);
 
-  ASSERT_TRUE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
-  ASSERT_FALSE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::normalized_channel_iq_matrix)));
-}
-
-TEST(ul_srs_pdu_builder, request_positioning_and_channel_iq_matrix_reports_passes)
-{
-  ul_srs_pdu         pdu;
-  ul_srs_pdu_builder builder(pdu);
-
-  ASSERT_FALSE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
-  ASSERT_FALSE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::normalized_channel_iq_matrix)));
+  ASSERT_FALSE(pdu.enable_normalized_iq_matrix_report);
+  ASSERT_TRUE(pdu.enable_positioning_report);
 
   builder.set_report_params(true, true);
 
-  ASSERT_TRUE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::positioning)));
-  ASSERT_TRUE(pdu.srs_params_v4.report_type.test(to_value(srs_report_type::normalized_channel_iq_matrix)));
+  ASSERT_TRUE(pdu.enable_normalized_iq_matrix_report);
+  ASSERT_TRUE(pdu.enable_positioning_report);
 }
 
 TEST(ul_srs_pdu_builder, valid_srs_parameters_passes)
 {
-  unsigned          nof_antenna_ports = 4;
-  unsigned          nof_symbols       = 3;
-  srs_nof_symbols   nof_repetitions   = n1;
-  unsigned          config_index      = 2;
-  unsigned          sequence_id       = 5;
-  unsigned          bandwidth_index   = 6;
-  unsigned          cyclic_shift      = 7;
-  srs_resource_type resource_type     = srs_resource_type::aperiodic;
+  auto              nof_antenna_ports = srs_resource_configuration::one_two_four_enum::four;
+  ofdm_symbol_range ofdm_symbols;
+  srs_nof_symbols   nof_repetitions = n1;
+  unsigned          config_index    = 2;
+  unsigned          sequence_id     = 5;
+  unsigned          bandwidth_index = 6;
+  unsigned          cyclic_shift    = 7;
+  srs_resource_type resource_type   = srs_resource_type::aperiodic;
 
   ul_srs_pdu         pdu;
   ul_srs_pdu_builder builder(pdu);
 
   builder.set_srs_params(nof_antenna_ports,
-                         nof_symbols,
+                         ofdm_symbols,
                          nof_repetitions,
                          config_index,
                          sequence_id,
@@ -158,7 +142,7 @@ TEST(ul_srs_pdu_builder, valid_srs_parameters_passes)
                          resource_type);
 
   ASSERT_EQ(nof_antenna_ports, pdu.num_ant_ports);
-  ASSERT_EQ(nof_symbols, pdu.num_symbols);
+  ASSERT_EQ(ofdm_symbols, pdu.ofdm_symbols);
   ASSERT_EQ(nof_repetitions, pdu.num_repetitions);
   ASSERT_EQ(config_index, pdu.config_index);
   ASSERT_EQ(sequence_id, pdu.sequence_id);

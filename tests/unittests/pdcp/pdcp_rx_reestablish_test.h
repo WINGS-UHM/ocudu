@@ -17,9 +17,10 @@ namespace ocudu {
 
 /// Fixture class for PDCP tests
 /// It requires TEST_P() and INSTANTIATE_TEST_SUITE_P() to create/spawn tests for each supported SN size
-class pdcp_rx_reestablish_test : public pdcp_rx_test_helper_default_crypto,
-                                 public ::testing::Test,
-                                 public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned>>
+class pdcp_rx_reestablish_test
+  : public pdcp_rx_test_helper_default_crypto,
+    public ::testing::Test,
+    public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>
 {
 protected:
   void SetUp() override
@@ -39,4 +40,8 @@ protected:
     ocudulog::flush();
   }
 };
+
+class pdcp_rx_reestablish_test_srb : public pdcp_rx_reestablish_test
+{};
+
 } // namespace ocudu

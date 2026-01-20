@@ -19,7 +19,7 @@ namespace ocudu {
 /// It requires TEST_P() and INSTANTIATE_TEST_SUITE_P() to create/spawn tests for each supported SN size
 class pdcp_rx_stop_test : public pdcp_rx_test_helper_manual_crypto,
                           public ::testing::Test,
-                          public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned>>
+                          public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>
 {
 protected:
   void SetUp() override

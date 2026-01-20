@@ -304,22 +304,26 @@ TEST_P(pdcp_rx_metrics_test, rx_reordering_timer)
 ///////////////////////////////////////////////////////////////////
 // Finally, instantiate all testcases for each supported SN size //
 ///////////////////////////////////////////////////////////////////
-std::string test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned>>& info)
+std::string
+test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>& info)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer),
-                 "{}bit_nia{}_nea{}",
+                 "{}bit_nia{}_nea{}_{}",
                  pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(info.param)),
                  std::get<unsigned>(info.param),
-                 std::get<unsigned>(info.param));
+                 std::get<unsigned>(info.param),
+                 std::get<rohc_test_params>(info.param).name);
   return fmt::to_string(buffer);
 }
 
-INSTANTIATE_TEST_SUITE_P(pdcp_rx_test_all_sn_sizes,
-                         pdcp_rx_metrics_test,
-                         ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
-                                            ::testing::Values(1)),
-                         test_param_info_to_string);
+INSTANTIATE_TEST_SUITE_P(
+    pdcp_rx_test_all_sn_sizes,
+    pdcp_rx_metrics_test,
+    ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
+                       ::testing::Values(1),
+                       ::testing::Values(cfg_rohc_disabled, cfg_rohc_uncompressed, cfg_rohc_compressed)),
+    test_param_info_to_string);
 
 int main(int argc, char** argv)
 {

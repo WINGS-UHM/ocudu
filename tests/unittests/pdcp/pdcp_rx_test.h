@@ -35,7 +35,7 @@ ocudu::log_sink_spy& test_spy = []() -> ocudu::log_sink_spy& {
 /// It requires TEST_P() and INSTANTIATE_TEST_SUITE_P() to create/spawn tests for each supported SN size
 class pdcp_rx_test : public pdcp_rx_test_helper_default_crypto,
                      public ::testing::Test,
-                     public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned>>
+                     public ::testing::WithParamInterface<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>
 {
 protected:
   void SetUp() override

@@ -12,6 +12,7 @@
 
 #include "lib/pdcp/pdcp_entity_rx.h"
 #include "lib/pdcp/pdcp_interconnect.h"
+#include "pdcp_rohc_test_helpers.h"
 #include "pdcp_test_vectors.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_entity.h"
@@ -23,6 +24,20 @@
 #include <queue>
 
 namespace ocudu {
+
+struct rohc_test_params {
+  const char*                      name;
+  std::optional<rohc::rohc_config> config;
+};
+
+rohc_test_params cfg_rohc_disabled{.name = "rohc_disabled", .config = std::nullopt};
+rohc_test_params cfg_rohc_uncompressed{.name = "rohc_uncompressed", .config = rohc::rohc_config{}};
+rohc_test_params cfg_rohc_compressed{
+    .name   = "rohc_v1_RTP_UDP_IP_v1_UDP_IP_v1_IP",
+    .config = rohc::rohc_config{.profiles = rohc::rohc_profile_config()
+                                                .set_profile(rohc::rohc_profile::profile0x0001, true)
+                                                .set_profile(rohc::rohc_profile::profile0x0002, true)
+                                                .set_profile(rohc::rohc_profile::profile0x0004, true)}};
 
 /// Helper class to verify the state of the PDCP entity when the order of the PDU's crypto processing
 /// is non-deterministic.
@@ -98,21 +113,24 @@ protected:
 
   /// \brief Initializes fixture according to size sequence number size
   /// \param sn_size_ size of the sequence number
-  void init(std::tuple<pdcp_sn_size, unsigned> cfg_param,
-            pdcp_rb_type                       rb_type_     = pdcp_rb_type::drb,
-            pdcp_rlc_mode                      rlc_mode_    = pdcp_rlc_mode::am,
-            pdcp_t_reordering                  t_reordering = pdcp_t_reordering::ms10,
+  void init(std::tuple<pdcp_sn_size, unsigned, rohc_test_params> cfg_param,
+            pdcp_rb_type                                         rb_type_     = pdcp_rb_type::drb,
+            pdcp_rlc_mode                                        rlc_mode_    = pdcp_rlc_mode::am,
+            pdcp_t_reordering                                    t_reordering = pdcp_t_reordering::ms10,
             pdcp_max_count max_count = {pdcp_rx_default_max_count_notify, pdcp_rx_default_max_count_hard})
   {
-    sn_size = std::get<pdcp_sn_size>(cfg_param);
-    algo    = std::get<unsigned>(cfg_param);
-    logger.info("Creating PDCP RX ({} bit nia={} nea={})", pdcp_sn_size_to_uint(sn_size), algo, algo);
+    sn_size            = std::get<pdcp_sn_size>(cfg_param);
+    algo               = std::get<unsigned>(cfg_param);
+    header_compression = std::get<rohc_test_params>(cfg_param).config;
+    logger.info(
+        "Creating PDCP RX ({} bit nia={} nea={}, {})", pdcp_sn_size_to_uint(sn_size), algo, algo, header_compression);
 
     // Set Rx config
     config.rb_type               = rb_type_;
     config.rlc_mode              = rlc_mode_;
     config.sn_size               = sn_size;
     config.direction             = pdcp_security_direction::downlink;
+    config.header_compression    = header_compression;
     config.out_of_order_delivery = false;
     config.t_reordering          = t_reordering;
     config.custom.max_count      = max_count;
@@ -142,7 +160,7 @@ protected:
     test_frame = std::make_unique<pdcp_rx_test_frame>();
     metrics_agg =
         std::make_unique<pdcp_metrics_aggregator>(0, rb_id, timer_duration{100}, &metrics_notif, worker, false);
-    pdcp_rohc_factory = rohc::create_rohc_factory();
+    pdcp_rohc_factory = std::make_unique<rohc::dummy_rohc_factory>();
     pdcp_rx           = std::make_unique<pdcp_entity_rx>(0,
                                                rb_id,
                                                config,
@@ -195,7 +213,8 @@ protected:
 
   pdcp_sn_size                        sn_size = {};
   unsigned                            algo    = {};
-  pdcp_rx_config                      config  = {};
+  std::optional<rohc::rohc_config>    header_compression;
+  pdcp_rx_config                      config = {};
   timer_manager                       timers;
   std::unique_ptr<pdcp_rx_test_frame> test_frame;
 
@@ -205,12 +224,12 @@ protected:
   manual_task_worker& worker;
   task_executor&      crypto_exec;
 
-  security::sec_128_as_config              sec_cfg;
-  std::unique_ptr<pdcp_metrics_aggregator> metrics_agg;
-  std::unique_ptr<rohc::rohc_factory>      pdcp_rohc_factory;
-  std::unique_ptr<pdcp_entity_rx>          pdcp_rx;
-  mock_pdcp_metrics_notifier               metrics_notif;
-  pdcp_rx_lower_interface*                 pdcp_rx_lower = nullptr;
+  security::sec_128_as_config               sec_cfg;
+  std::unique_ptr<pdcp_metrics_aggregator>  metrics_agg;
+  std::unique_ptr<rohc::dummy_rohc_factory> pdcp_rohc_factory;
+  std::unique_ptr<pdcp_entity_rx>           pdcp_rx;
+  mock_pdcp_metrics_notifier                metrics_notif;
+  pdcp_rx_lower_interface*                  pdcp_rx_lower = nullptr;
 };
 
 /// Fixture class for PDCP tests

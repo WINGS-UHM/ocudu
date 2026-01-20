@@ -22,6 +22,10 @@ TEST_P(pdcp_rx_test, create_new_entity)
 {
   init(GetParam());
   ocudu::test_delimit_logger delimiter("Entity creation test. SN_SIZE={} ", sn_size);
+  unsigned                   exp_nof_deompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_deompressors);
+  EXPECT_EQ(pdcp_rohc_factory->get_last_decompressor_config(), header_compression);
 
   ASSERT_NE(pdcp_rx, nullptr);
   ASSERT_NE(test_frame, nullptr);
@@ -35,6 +39,10 @@ TEST_P(pdcp_rx_test, create_new_entity)
 TEST_P(pdcp_rx_test, sn_unpack)
 {
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_hdr_reader = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter("Header reader test. SN_SIZE={} COUNT={}", sn_size, count);
     // Get PDU to test
@@ -62,12 +70,19 @@ TEST_P(pdcp_rx_test, sn_unpack)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test in-order reception of PDCP PDUs
 TEST_P(pdcp_rx_test, rx_in_order)
 {
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_in_order = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter("RX in order test. SN_SIZE={} COUNT={}", sn_size, count);
 
@@ -107,6 +122,9 @@ TEST_P(pdcp_rx_test, rx_in_order)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test out of order reception of PDUs.
@@ -114,6 +132,10 @@ TEST_P(pdcp_rx_test, rx_in_order)
 TEST_P(pdcp_rx_test, rx_out_of_order)
 {
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_out_of_order = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, no t-Reordering. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
@@ -176,12 +198,19 @@ TEST_P(pdcp_rx_test, rx_out_of_order)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test reception of duplicate PDCP PDUs
 TEST_P(pdcp_rx_test, rx_duplicate)
 {
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_out_of_order = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter("RX duplicate test. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
 
@@ -256,6 +285,9 @@ TEST_P(pdcp_rx_test, rx_duplicate)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test out of order reception of PDUs.
@@ -263,6 +295,10 @@ TEST_P(pdcp_rx_test, rx_duplicate)
 TEST_P(pdcp_rx_test, rx_reordering_timer)
 {
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_t_reorder = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, t-Reordering expires. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
@@ -309,6 +345,9 @@ TEST_P(pdcp_rx_test, rx_reordering_timer)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test out of order reception of PDUs.
@@ -316,6 +355,10 @@ TEST_P(pdcp_rx_test, rx_reordering_timer)
 TEST_P(pdcp_rx_test, rx_reordering_timer_0ms)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_t_reordering::ms0);
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_t_reorder = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, t-Reordering is set to 0. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
@@ -360,6 +403,9 @@ TEST_P(pdcp_rx_test, rx_reordering_timer_0ms)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test out of order reception of PDUs.
@@ -368,6 +414,10 @@ TEST_P(pdcp_rx_test, rx_reordering_timer_0ms)
 TEST_P(pdcp_rx_test, rx_reordering_timer_infinite)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_t_reordering::infinity);
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_t_reorder = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter(
         "RX out-of-order test, t-Reordering is set to infinity. SN_SIZE={} COUNT=[{}, {}]", sn_size, count + 1, count);
@@ -414,6 +464,9 @@ TEST_P(pdcp_rx_test, rx_reordering_timer_infinite)
   // One warning but no errors
   EXPECT_EQ(test_spy.get_warning_counter(), 1);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test reception of PDUs with bad integrity checks.
@@ -421,6 +474,10 @@ TEST_P(pdcp_rx_test, rx_reordering_timer_infinite)
 TEST_P(pdcp_rx_test, rx_integrity_fail)
 {
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   auto test_rx_integrity_fail = [this](uint32_t count) {
     ocudu::test_delimit_logger delimiter("RX PDU with bad integrity. SN_SIZE={} COUNT={}", sn_size, count);
 
@@ -456,6 +513,9 @@ TEST_P(pdcp_rx_test, rx_integrity_fail)
   // Three warnings but no errors
   EXPECT_EQ(test_spy.get_warning_counter(), 3);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test count wrap-around protection for PDCP RX
@@ -469,6 +529,9 @@ TEST_P(pdcp_rx_test, count_wraparound)
   uint32_t       n_sdus         = 6;
   pdcp_max_count max_count{rx_next_notify, rx_next_max};
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am, pdcp_t_reordering::ms10, max_count);
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 
   auto test_max_count = [this, n_sdus](uint32_t count) {
     // Set state of PDCP entiy
@@ -499,6 +562,9 @@ TEST_P(pdcp_rx_test, count_wraparound)
   // One warning and one error
   EXPECT_EQ(test_spy.get_warning_counter(), 1);
   EXPECT_EQ(test_spy.get_error_counter(), 1);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test TX SDU buffering.
@@ -507,6 +573,9 @@ TEST_P(pdcp_rx_test, rx_buffer)
   uint32_t n_no_buffer_pdus = 1;
   uint32_t n_buffer_pdus    = 2;
   init(GetParam());
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 
   pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
 
@@ -540,27 +609,34 @@ TEST_P(pdcp_rx_test, rx_buffer)
   // No warnings or errors
   EXPECT_EQ(test_spy.get_warning_counter(), 0);
   EXPECT_EQ(test_spy.get_error_counter(), 0);
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 ///////////////////////////////////////////////////////////////////
 // Finally, instantiate all testcases for each supported SN size //
 ///////////////////////////////////////////////////////////////////
-std::string test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned>>& info)
+static std::string
+test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>& info)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer),
-                 "{}bit_nia{}_nea{}",
+                 "{}bit_nia{}_nea{}_{}",
                  pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(info.param)),
                  std::get<unsigned>(info.param),
-                 std::get<unsigned>(info.param));
+                 std::get<unsigned>(info.param),
+                 std::get<rohc_test_params>(info.param).name);
   return fmt::to_string(buffer);
 }
 
-INSTANTIATE_TEST_SUITE_P(pdcp_rx_test_all_sn_sizes,
-                         pdcp_rx_test,
-                         ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
-                                            ::testing::Values(1, 2, 3)),
-                         test_param_info_to_string);
+INSTANTIATE_TEST_SUITE_P(
+    pdcp_rx_test_all_sn_sizes,
+    pdcp_rx_test,
+    ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
+                       ::testing::Values(1, 2, 3),
+                       ::testing::Values(cfg_rohc_disabled, cfg_rohc_uncompressed, cfg_rohc_compressed)),
+    test_param_info_to_string);
 
 int main(int argc, char** argv)
 {

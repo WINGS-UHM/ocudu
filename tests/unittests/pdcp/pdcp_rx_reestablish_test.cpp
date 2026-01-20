@@ -16,9 +16,11 @@
 using namespace ocudu;
 
 /// Test SRB reestablishment
-TEST_P(pdcp_rx_reestablish_test, when_srb_reestablish_then_sdus_dropped)
+TEST_P(pdcp_rx_reestablish_test_srb, when_srb_reestablish_then_sdus_dropped)
 {
   init(GetParam(), pdcp_rb_type::srb);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
   uint32_t count = 0;
 
   security::sec_128_as_config reest_sec_cfg = sec_cfg;
@@ -56,6 +58,7 @@ TEST_P(pdcp_rx_reestablish_test, when_srb_reestablish_then_sdus_dropped)
     pdcp_rx_state st = pdcp_rx->get_state();
     ASSERT_EQ(st.rx_next, 3);
   }
+
   // Re-establish entity.
   pdcp_rx->reestablish(reest_sec_cfg);
 
@@ -76,12 +79,18 @@ TEST_P(pdcp_rx_reestablish_test, when_srb_reestablish_then_sdus_dropped)
   wait_pending_crypto();
   worker.run_pending_tasks();
   ASSERT_EQ(1, test_frame->sdu_queue.size());
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), 0);
 }
 
 /// Test DRB UM reestablishment
 TEST_P(pdcp_rx_reestablish_test, when_drb_um_reestablish_then_pdus_forwared)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::um);
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
   uint32_t count = 0;
 
   pdcp_rx->configure_security(sec_cfg, security::integrity_enabled::on, security::ciphering_enabled::on);
@@ -116,6 +125,10 @@ TEST_P(pdcp_rx_reestablish_test, when_drb_um_reestablish_then_pdus_forwared)
     ASSERT_EQ(st.rx_next, 3);
     ASSERT_EQ(true, pdcp_rx->is_reordering_timer_running());
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   // Re-establish entity.
   pdcp_rx->reestablish(sec_cfg);
 
@@ -129,12 +142,19 @@ TEST_P(pdcp_rx_reestablish_test, when_drb_um_reestablish_then_pdus_forwared)
 
   // Check re-ordering timer was stopped
   ASSERT_EQ(false, pdcp_rx->is_reordering_timer_running());
+
+  exp_nof_decompressors = header_compression.has_value() ? 2 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 /// Test DRB AM reestablishment
 TEST_P(pdcp_rx_reestablish_test, when_drb_am_reestablish_then_state_preserved)
 {
   init(GetParam(), pdcp_rb_type::drb, pdcp_rlc_mode::am);
+  unsigned exp_nof_decompressors = header_compression.has_value() ? 1 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 
   uint32_t                    count         = 0;
   security::sec_128_as_config reest_sec_cfg = sec_cfg;
@@ -171,6 +191,10 @@ TEST_P(pdcp_rx_reestablish_test, when_drb_am_reestablish_then_state_preserved)
     ASSERT_EQ(st.rx_next, 3);
     ASSERT_EQ(true, pdcp_rx->is_reordering_timer_running());
   }
+
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
+
   // Re-establish entity.
   pdcp_rx->reestablish(reest_sec_cfg);
 
@@ -192,27 +216,42 @@ TEST_P(pdcp_rx_reestablish_test, when_drb_am_reestablish_then_state_preserved)
   wait_pending_crypto();
   worker.run_pending_tasks();
   ASSERT_EQ(3, test_frame->sdu_queue.size());
+
+  exp_nof_decompressors = header_compression.has_value() ? 2 : 0;
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_compressors(), 0);
+  EXPECT_EQ(pdcp_rohc_factory->get_nof_decompressors(), exp_nof_decompressors);
 }
 
 ///////////////////////////////////////////////////////////////////
 // Finally, instantiate all testcases for each supported SN size //
 ///////////////////////////////////////////////////////////////////
-static std::string test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned>>& info)
+static std::string
+test_param_info_to_string(const ::testing::TestParamInfo<std::tuple<pdcp_sn_size, unsigned, rohc_test_params>>& info)
 {
   fmt::memory_buffer buffer;
   fmt::format_to(std::back_inserter(buffer),
-                 "{}bit_nia{}_nea{}",
+                 "{}bit_nia{}_nea{}_{}",
                  pdcp_sn_size_to_uint(std::get<pdcp_sn_size>(info.param)),
                  std::get<unsigned>(info.param),
-                 std::get<unsigned>(info.param));
+                 std::get<unsigned>(info.param),
+                 std::get<rohc_test_params>(info.param).name);
   return fmt::to_string(buffer);
 }
 
 INSTANTIATE_TEST_SUITE_P(pdcp_rx_test_all_sn_sizes,
-                         pdcp_rx_reestablish_test,
+                         pdcp_rx_reestablish_test_srb,
                          ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
-                                            ::testing::Values(1)),
+                                            ::testing::Values(1),
+                                            ::testing::Values(cfg_rohc_disabled)),
                          test_param_info_to_string);
+
+INSTANTIATE_TEST_SUITE_P(
+    pdcp_rx_test_all_sn_sizes,
+    pdcp_rx_reestablish_test,
+    ::testing::Combine(::testing::Values(pdcp_sn_size::size12bits, pdcp_sn_size::size18bits),
+                       ::testing::Values(1),
+                       ::testing::Values(cfg_rohc_disabled, cfg_rohc_uncompressed, cfg_rohc_compressed)),
+    test_param_info_to_string);
 
 int main(int argc, char** argv)
 {

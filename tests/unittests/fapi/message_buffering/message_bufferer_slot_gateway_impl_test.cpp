@@ -60,7 +60,7 @@ static bool operator==(const dl_pdsch_pdu& lhs, const dl_pdsch_pdu& rhs)
 
 static bool operator==(const dl_csi_rs_pdu& lhs, const dl_csi_rs_pdu& rhs)
 {
-  return lhs.freq_domain == rhs.freq_domain && lhs.precoding_and_beamforming == rhs.precoding_and_beamforming;
+  return lhs.freq_domain == rhs.freq_domain;
 }
 
 static bool operator==(const dl_ssb_pdu& lhs, const dl_ssb_pdu& rhs)

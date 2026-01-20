@@ -25,6 +25,21 @@ enum class csi_rs_type : uint8_t {
   CSI_RS_ZP
 };
 
+/// Converts a CSI-RS type to a string representation.
+inline const char* to_string(csi_rs_type value)
+{
+  switch (value) {
+    case csi_rs_type::TRS:
+      return "TRS";
+    case csi_rs_type::CSI_RS_NZP:
+      return "CSI_RS_NZP";
+    case csi_rs_type::CSI_RS_ZP:
+      return "CSI_RS_ZP";
+    default:
+      return "";
+  }
+}
+
 /// Code-Division Multiplexing (CDM) strategies for CSI-RS.
 enum class csi_rs_cdm_type {
   /// No CDM, i.e. CDM group of size 1.

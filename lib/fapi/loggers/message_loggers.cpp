@@ -141,12 +141,17 @@ static void log_csi_rs_pdu(const dl_csi_rs_pdu& pdu, fmt::memory_buffer& buffer)
 {
   if (pdu.type == csi_rs_type::CSI_RS_NZP) {
     fmt::format_to(std::back_inserter(buffer),
-                   "\n\t- NZP-CSI-RS crbs={}:{} row={} symbL0={} symbL1={} scramb_id={}",
+                   "\n\t- NZP-CSI-RS crbs={}:{} type={} freq_domain={} row={} symbL0={} symbL1={} cdm_type={} "
+                   "freq_density={} scramb_id={}",
                    pdu.start_rb,
                    pdu.num_rbs,
+                   to_string(pdu.type),
+                   pdu.freq_domain,
                    pdu.row,
                    pdu.symb_L0,
                    pdu.symb_L1,
+                   to_string(pdu.cdm_type),
+                   to_string(pdu.freq_density),
                    pdu.scramb_id);
     return;
   }

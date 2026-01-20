@@ -253,7 +253,6 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
   pdu.scs              = subcarrier_spacing::kHz240;
   pdu.cp               = cyclic_prefix::NORMAL;
   pdu.nid_prs          = 1;
-  pdu.pdu_index        = 0;
   pdu.comb_size        = prs_comb_size::two;
   pdu.comb_offset      = 0;
   pdu.num_symbols      = prs_num_symbols::four;
@@ -262,12 +261,6 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
   pdu.start_rb         = 24;
   pdu.prs_power_offset = -13.3;
 
-  // Precoding.
-  pdu.precoding_and_beamforming.prg_size = 276;
-  auto& prg                              = pdu.precoding_and_beamforming.prgs.emplace_back();
-  // Use identity matrix
-  prg.pm_index = 0;
-
   return pdu;
 }
 
@@ -275,24 +268,22 @@ dl_csi_rs_pdu unittest::build_valid_dl_csi_pdu()
 {
   dl_csi_rs_pdu pdu;
 
-  pdu.scs                                    = subcarrier_spacing::kHz15;
-  pdu.cp                                     = cyclic_prefix::NORMAL;
-  pdu.start_rb                               = 23;
-  pdu.num_rbs                                = 28;
-  pdu.type                                   = csi_rs_type::CSI_RS_NZP;
-  pdu.row                                    = 1;
-  pdu.freq_domain                            = {1, 0, 0, 0, 0, 0};
-  pdu.symb_L0                                = 8;
-  pdu.symb_L1                                = 7;
-  pdu.cdm_type                               = csi_rs_cdm_type::no_CDM;
-  pdu.freq_density                           = csi_rs_freq_density_type::three;
-  pdu.scramb_id                              = 123;
-  pdu.power_control_offset_profile_nr        = 0;
-  pdu.power_control_offset_ss_profile_nr     = power_control_offset_ss::dB0;
-  pdu.csi_rs_maintenance_v3.csi_rs_pdu_index = 0;
-  pdu.precoding_and_beamforming              = build_valid_tx_precoding_and_beamforming_pdu();
-  pdu.bwp_size                               = 56U;
-  pdu.bwp_start                              = 60U;
+  pdu.scs                                = subcarrier_spacing::kHz15;
+  pdu.cp                                 = cyclic_prefix::NORMAL;
+  pdu.start_rb                           = 23;
+  pdu.num_rbs                            = 28;
+  pdu.type                               = csi_rs_type::CSI_RS_NZP;
+  pdu.row                                = 1;
+  pdu.freq_domain                        = {1, 0, 0, 0, 0, 0};
+  pdu.symb_L0                            = 8;
+  pdu.symb_L1                            = 7;
+  pdu.cdm_type                           = csi_rs_cdm_type::no_CDM;
+  pdu.freq_density                       = csi_rs_freq_density_type::three;
+  pdu.scramb_id                          = 123;
+  pdu.power_control_offset_profile_nr    = 0;
+  pdu.power_control_offset_ss_profile_nr = power_control_offset_ss::dB0;
+  pdu.bwp_size                           = 56U;
+  pdu.bwp_start                          = 60U;
 
   return pdu;
 }

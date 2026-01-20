@@ -21,7 +21,7 @@ TEST(dl_prs_pdu_builder, valid_basic_parameters_passes)
 
   subcarrier_spacing scs = subcarrier_spacing::kHz30;
   cyclic_prefix      cp  = cyclic_prefix::NORMAL;
-  builder.set_basic_parameters(scs, cp);
+  builder.set_bwp_parameters(scs, cp);
 
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cp, pdu.cp);

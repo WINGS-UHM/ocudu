@@ -94,23 +94,13 @@ public:
   }
 
   /// Adds a CSI-RS PDU to the message and returns a CSI-RS PDU builder.
-  dl_csi_rs_pdu_builder add_csi_rs_pdu(uint16_t                         start_rb,
-                                       uint16_t                         nof_rbs,
-                                       csi_rs_type                      type,
-                                       uint8_t                          row,
-                                       const bounded_bitset<12, false>& freq_domain,
-                                       uint8_t                          symb_l0,
-                                       uint8_t                          symb_l1,
-                                       csi_rs_cdm_type                  cdm_type,
-                                       csi_rs_freq_density_type         freq_density,
-                                       uint16_t                         scrambling_id)
+  dl_csi_rs_pdu_builder add_csi_rs_pdu()
   {
     // Add a new PDU.
     dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
 
     // Fill the CSI PDU index value. The index value will be the index of the PDU in the array of CSI PDUs.
     auto& num_csi_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::CSI_RS)];
-    pdu.csi_rs_pdu.csi_rs_maintenance_v3.csi_rs_pdu_index = num_csi_pdu;
 
     // Increase the number of CSI PDU.
     ++num_csi_pdu;
@@ -118,9 +108,6 @@ public:
     pdu.pdu_type = dl_pdu_type::CSI_RS;
 
     dl_csi_rs_pdu_builder builder(pdu.csi_rs_pdu);
-
-    builder.set_basic_parameters(
-        start_rb, nof_rbs, type, row, freq_domain, symb_l0, symb_l1, cdm_type, freq_density, scrambling_id);
 
     return builder;
   }
@@ -151,7 +138,6 @@ public:
     // Fill the PRS PDU index value. The index value will be the index of the PDU in the array of PRS PDUs.
     dl_prs_pdu& info        = pdu.prs_pdu;
     auto&       num_prs_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::PRS)];
-    info.pdu_index          = num_prs_pdu;
 
     // Increase the number of SSB PDUs in the request.
     ++num_prs_pdu;
@@ -162,9 +148,6 @@ public:
 
     return builder;
   }
-
-  //: TODO: PDU groups array
-  //: TODO: top level rate match patterns
 
 private:
   dl_tti_request& msg;

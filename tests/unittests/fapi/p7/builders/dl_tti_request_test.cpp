@@ -97,8 +97,12 @@ TEST(dl_ssb_pdu_builder, add_csi_pdu_passes)
   csi_rs_freq_density_type  freq_density  = csi_rs_freq_density_type::dot5_even_RB;
   uint16_t                  scrambling_id = 56;
 
-  builder.add_csi_rs_pdu(
-      start_rb, nof_rbs, type, row, freq_domain, symb_l0, symb_l1, cdm_type, freq_density, scrambling_id);
+  auto csi_builder = builder.add_csi_rs_pdu();
+
+  csi_builder.set_csi_resource_config_parameters(type, row, cdm_type, scrambling_id)
+      .set_frequency_domain_parameters(freq_domain, freq_density)
+      .set_time_domain_parameters(symb_l0, symb_l1)
+      .set_resource_block_parameters(start_rb, nof_rbs);
 
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::CSI_RS)]);
   ASSERT_EQ(1U, msg.pdus.size());

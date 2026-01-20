@@ -1,0 +1,33 @@
+/*
+ *
+ * Copyright 2021-2026 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#include "csi_rs.h"
+
+using namespace ocudu;
+using namespace fapi_adaptor;
+
+void ocudu::fapi_adaptor::convert_csi_rs_mac_to_fapi(fapi::dl_tti_request_builder& builder,
+                                                     const csi_rs_info&            csi_rs_pdu)
+{
+  fapi::dl_csi_rs_pdu_builder csi_builder = builder.add_csi_rs_pdu();
+
+  csi_builder
+      .set_csi_resource_config_parameters(
+          csi_rs_pdu.type, csi_rs_pdu.row, csi_rs_pdu.cdm_type, csi_rs_pdu.scrambling_id)
+      .set_frequency_domain_parameters(csi_rs_pdu.freq_domain, csi_rs_pdu.freq_density)
+      .set_time_domain_parameters(csi_rs_pdu.symbol0, csi_rs_pdu.symbol1)
+      .set_resource_block_parameters(csi_rs_pdu.crbs.start(), csi_rs_pdu.crbs.length())
+      .set_bwp_parameters(csi_rs_pdu.bwp_cfg->scs,
+                          csi_rs_pdu.bwp_cfg->cp,
+                          csi_rs_pdu.bwp_cfg->crbs.length(),
+                          csi_rs_pdu.bwp_cfg->crbs.start())
+      .set_tx_power_info_parameters(csi_rs_pdu.power_ctrl_offset,
+                                    fapi::to_power_control_offset_ss(csi_rs_pdu.power_ctrl_offset_ss));
+}

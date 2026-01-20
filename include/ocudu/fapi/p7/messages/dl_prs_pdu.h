@@ -24,7 +24,6 @@ struct dl_prs_pdu {
   subcarrier_spacing               scs;
   cyclic_prefix                    cp;
   uint16_t                         nid_prs;
-  uint16_t                         pdu_index;
   prs_comb_size                    comb_size;
   uint8_t                          comb_offset;
   prs_num_symbols                  num_symbols;
@@ -33,7 +32,6 @@ struct dl_prs_pdu {
   uint16_t                         start_rb;
   std::optional<float>             prs_power_offset;
   tx_precoding_and_beamforming_pdu precoding_and_beamforming;
-  // :TODO: Puncturing, spatial stream and backward compatible extension.
 };
 
 } // namespace fapi

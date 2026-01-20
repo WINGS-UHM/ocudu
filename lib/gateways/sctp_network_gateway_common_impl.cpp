@@ -10,6 +10,8 @@
 
 #include "sctp_network_gateway_common_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/io/sockets.h"
+#include <algorithm>
 #include <netdb.h>
 #include <netinet/sctp.h>
 #include <sys/socket.h>
@@ -95,10 +97,9 @@ expected<sctp_socket> sctp_network_gateway_common_impl::create_socket(int ai_fam
 /// \brief Create and bind socket to given address.
 bool sctp_network_gateway_common_impl::create_and_bind_common()
 {
-  // Resolve all bind addresses and determine required socket family.
+  // Resolve all bind addresses, remove duplicates and determine required socket family.
   bool                          has_ipv6_bind_addr = false;
   std::vector<sockaddr_storage> resolved_addrs;
-  // TO-DO: this should be a std::set to guarantee deduplication and avoid possible address-in-use errors
 
   for (const auto& addr : node_cfg.bind_addresses) {
     sockaddr_searcher searcher{addr, node_cfg.bind_port, logger};
@@ -113,6 +114,10 @@ bool sctp_network_gateway_common_impl::create_and_bind_common()
       }
     }
   }
+
+  std::sort(resolved_addrs.begin(), resolved_addrs.end(), sockaddr_storage_less{});
+  auto last = std::unique(resolved_addrs.begin(), resolved_addrs.end(), sockaddr_storage_equal);
+  resolved_addrs.erase(last, resolved_addrs.end());
 
   if (resolved_addrs.empty()) {
     logger.error("Failed to resolve any bind addresses");

@@ -11,6 +11,7 @@
 #include "sctp_network_client_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/io/sockets.h"
+#include <algorithm>
 #include <netinet/sctp.h>
 
 using namespace ocudu;
@@ -187,13 +188,11 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
   // Create SCTP socket only if not created earlier during bind. Otherwise, reuse socket.
   bool reuse_socket = socket.is_open();
 
-  // Resolve all destination addresses and determine required socket family.
+  // Resolve all destination addresses, remove duplicates and determine required socket family.
   // If socket was already created during bind, its family is already set and cannot be changed.
   // If socket family determined from destination addresses is different - in that case IPv6 paths won't work.
-  bool has_ipv6_dest_addr = false;
-
+  bool                          has_ipv6_dest_addr = false;
   std::vector<sockaddr_storage> resolved_addrs;
-  // TO-DO: this should be a std::set to guarantee deduplication and avoid possible address-in-use errors?
 
   for (const auto& addr : client_cfg.connect_addresses) {
     sockaddr_searcher searcher{addr, client_cfg.connect_port, logger};
@@ -208,6 +207,10 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
       }
     }
   }
+
+  std::sort(resolved_addrs.begin(), resolved_addrs.end(), sockaddr_storage_less{});
+  auto last = std::unique(resolved_addrs.begin(), resolved_addrs.end(), sockaddr_storage_equal);
+  resolved_addrs.erase(last, resolved_addrs.end());
 
   if (not reuse_socket) {
     // Create SCTP socket only if not created earlier through bind or another connection.

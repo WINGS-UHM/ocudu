@@ -39,6 +39,12 @@ bool sockaddr_to_ip_str(const sockaddr* addr, std::string& ip_address, ocudulog:
 
 uint16_t sockaddr_to_port(const sockaddr* addr, ocudulog::basic_logger& logger);
 
+bool sockaddr_storage_equal(const sockaddr_storage& a, const sockaddr_storage& b);
+
+struct sockaddr_storage_less {
+  bool operator()(const sockaddr_storage& a, const sockaddr_storage& b) const;
+};
+
 /// Set a receive timeout for a socket.
 bool set_receive_timeout(const unique_fd& fd, std::chrono::seconds rx_timeout, ocudulog::basic_logger& logger);
 

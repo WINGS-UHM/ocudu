@@ -164,3 +164,61 @@ std::string ocudu::sock_type_to_str(int type)
   }
   return "unknown type";
 }
+
+bool ocudu::sockaddr_storage_equal(const sockaddr_storage& a, const sockaddr_storage& b)
+{
+  const auto* sa_a = reinterpret_cast<const sockaddr*>(&a);
+  const auto* sa_b = reinterpret_cast<const sockaddr*>(&b);
+
+  if (sa_a->sa_family != sa_b->sa_family) {
+    return false;
+  }
+
+  if (sa_a->sa_family == AF_INET) {
+    const auto* in_a = reinterpret_cast<const sockaddr_in*>(&a);
+    const auto* in_b = reinterpret_cast<const sockaddr_in*>(&b);
+    return in_a->sin_port == in_b->sin_port && in_a->sin_addr.s_addr == in_b->sin_addr.s_addr;
+  }
+  if (sa_a->sa_family == AF_INET6) {
+    const auto* in6_a = reinterpret_cast<const sockaddr_in6*>(&a);
+    const auto* in6_b = reinterpret_cast<const sockaddr_in6*>(&b);
+    return in6_a->sin6_port == in6_b->sin6_port &&
+           std::memcmp(&in6_a->sin6_addr, &in6_b->sin6_addr, sizeof(in6_addr)) == 0 &&
+           in6_a->sin6_scope_id == in6_b->sin6_scope_id;
+  }
+  return false;
+}
+
+bool ocudu::sockaddr_storage_less::operator()(const sockaddr_storage& a, const sockaddr_storage& b) const
+{
+  const auto* sa_a = reinterpret_cast<const sockaddr*>(&a);
+  const auto* sa_b = reinterpret_cast<const sockaddr*>(&b);
+
+  // Compare family first
+  if (sa_a->sa_family != sa_b->sa_family) {
+    return sa_a->sa_family < sa_b->sa_family;
+  }
+
+  // Compare based on family type, then port, then address, then scope_id for IPv6 only
+  if (sa_a->sa_family == AF_INET) {
+    const auto* in_a = reinterpret_cast<const sockaddr_in*>(&a);
+    const auto* in_b = reinterpret_cast<const sockaddr_in*>(&b);
+    if (in_a->sin_port != in_b->sin_port) {
+      return in_a->sin_port < in_b->sin_port;
+    }
+    return in_a->sin_addr.s_addr < in_b->sin_addr.s_addr;
+  }
+  if (sa_a->sa_family == AF_INET6) {
+    const auto* in6_a = reinterpret_cast<const sockaddr_in6*>(&a);
+    const auto* in6_b = reinterpret_cast<const sockaddr_in6*>(&b);
+    if (in6_a->sin6_port != in6_b->sin6_port) {
+      return in6_a->sin6_port < in6_b->sin6_port;
+    }
+    int addr_cmp = std::memcmp(&in6_a->sin6_addr, &in6_b->sin6_addr, sizeof(in6_addr));
+    if (addr_cmp != 0) {
+      return addr_cmp < 0;
+    }
+    return in6_a->sin6_scope_id < in6_b->sin6_scope_id;
+  }
+  return false;
+}

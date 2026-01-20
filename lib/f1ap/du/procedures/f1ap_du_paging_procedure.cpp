@@ -105,7 +105,9 @@ bool odu::handle_paging_request(const paging_s&          msg,
         static_cast<int64_t>(std::round(msg->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle.to_number() * NOF_SFNS))};
 
     if (msg->nr_paginge_drx_info.nrpaging_time_win_present) {
-      edrx.ptw_len = std::chrono::seconds{msg->nr_paginge_drx_info.nrpaging_time_win.to_number()};
+      // The PTW length is given in multiples of 1.28 seconds.
+      auto ptw     = msg->nr_paginge_drx_info.nrpaging_time_win.to_number() * std::chrono::milliseconds{1280};
+      edrx.ptw_len = std::chrono::duration_cast<radio_frames>(ptw);
     }
 
     // Compute UE_ID and UE_ID_H as per TS 38.304, 7.1 and 7.4.

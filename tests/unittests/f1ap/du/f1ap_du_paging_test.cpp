@@ -81,5 +81,5 @@ TEST_F(f1ap_du_paging_test, when_f1ap_paging_message_received_with_edrx_then_the
   ASSERT_TRUE(paging_info.edrx.has_value());
   ASSERT_EQ(paging_info.edrx->hashed_ue_identity, paging_helper::compute_UE_ID_H(tmsi));
   ASSERT_EQ(paging_info.edrx->cycle_idle.count(), NOF_SFNS * 2);
-  ASSERT_EQ(paging_info.edrx->ptw_len, std::chrono::seconds(4));
+  ASSERT_EQ(paging_info.edrx->ptw_len, radio_frames{(int)std::round(4 * 1.28 * 100)});
 }

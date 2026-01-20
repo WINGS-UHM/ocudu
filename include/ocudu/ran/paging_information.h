@@ -22,8 +22,8 @@ enum class paging_identity_type { ran_ue_paging_identity, cn_ue_paging_identity 
 struct paging_edrx_information {
   /// Number of radio frames of the eDRX cycle in idle.
   radio_frames cycle_idle;
-  /// Paging time window (PTW) length for eDRX.
-  std::optional<std::chrono::seconds> ptw_len;
+  /// Paging time window (PTW) length for eDRX, in multiples of 1.28 seconds as per TS 38.473.
+  std::optional<radio_frames> ptw_len;
   /// \brief UE_ID_H of 13 bits specified in TS 38.413 and TS 38.473, and used for eDRX as per TS 38.304.
   uint32_t hashed_ue_identity;
 };

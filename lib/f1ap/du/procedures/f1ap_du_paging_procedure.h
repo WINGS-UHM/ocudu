@@ -17,7 +17,7 @@ namespace ocudu {
 namespace odu {
 
 class f1ap_du_paging_notifier;
-class f1ap_du_context;
+struct f1ap_du_context;
 
 /// Handles a Paging Request message as per TS38.473, Section 8.7.
 bool handle_paging_request(const asn1::f1ap::paging_s& msg,

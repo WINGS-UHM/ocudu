@@ -35,6 +35,8 @@ struct du_srs_resource {
 /// different slots. Note that this function does not allocate the resources to the UEs, it only creates the cell
 /// resource list.
 /// \param[in] du_cell_cfg Cell configuration parameters.
+/// \param[in] use_special_slot_only If true, use the special slot only to derive the symbols for SRS resources. Only
+/// applicable for aperiodic SRS.
 /// \return List of orthogonal SRS resources.
 std::vector<du_srs_resource> generate_cell_srs_list(const du_cell_config& du_cell_cfg,
                                                     bool                  use_special_slot_only = false);

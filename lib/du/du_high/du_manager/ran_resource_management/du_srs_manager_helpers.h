@@ -20,31 +20,40 @@ namespace odu {
 namespace du_srs_mng_details {
 
 /// Helper that computes the SRS bandwidth parameter \f$C_{SRS}\f$ based on the number of UL BWP RBs.
+/// /// \param [in] nof_ul_bwp_rbs Number of RBs in the UL BWP.
 std::optional<unsigned> compute_c_srs(unsigned nof_ul_bwp_rbs);
 
-/// Helper that returns the PRB start value for the SRS within the UP BWP; the value is computed in such a way that the
-/// SRS resources are placed at the center of the BWP.
+/// \brief Helper that returns the PRB start value for the SRS within the UP BWP.
+/// \param[in] c_srs \f$C_{SRS}\f$ value, as per Section 6.4.1.4, TS 38.211.
+/// \param[in] nof_ul_bwp_rbs Number of RBs in the UL BWP.
+/// \return The PRB start value for the SRS within the UP BWP; this value is computed in such a way that the SRS
+///         resources are placed at the center of the BWP.
 unsigned compute_srs_rb_start(unsigned c_srs, unsigned nof_ul_bwp_rbs);
 
-/// Helper that updates the starting SRS config with user-defined parameters.
+/// \brief Helper that updates the starting SRS config with user-defined parameters.
+/// This is not the UE-specific SRS configuration, but a default template with user-defined parameters that is used to
+/// build the UE-specific SRS-Config.
+/// \param[in] IsPeriodic If true, indicates whether the function is used for periodic SRS (aperiodic if false).
+/// \param[in] cell_cfg DU Cell configuration.
+/// \return The default SRS configuration (not yet UE-specific) later used to build the UE-specific SRS-Config.
 template <bool IsPeriodic>
-srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
+srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
 {
-  ocudu_assert(default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
-                   default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
+  ocudu_assert(cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
+                   cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
                "DU cell config is not valid");
 
-  ocudu_assert(default_cell_cfg.srs_cfg.srs_type_enabled != (IsPeriodic ? srs_type::aperiodic : srs_type::periodic),
+  ocudu_assert(cell_cfg.srs_cfg.srs_type_enabled != (IsPeriodic ? srs_type::aperiodic : srs_type::periodic),
                "Request to build {} SRS configuration, but {} parameters have been provided",
                IsPeriodic ? "periodic" : "aperiodic",
                IsPeriodic ? "aperiodic" : "periodic");
 
   // If SRS is not enabled, we don't need to update its configuration.
-  if (default_cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
-    return default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
+  if (cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
+    return cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   }
 
-  auto srs_cfg = default_cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
+  auto srs_cfg = cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
 
   ocudu_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
                "The SRS resource list and the SRS resource set list are expected to have a single element");
@@ -58,7 +67,7 @@ srs_config build_default_srs_cfg(const du_cell_config& default_cell_cfg)
     res.res_type = srs_resource_type::periodic;
     // Set offset to 0. The offset will be updated later on, when the UE is allocated the SRS resources.
     res.periodicity_and_offset.emplace(
-        srs_config::srs_periodicity_and_offset{.period = default_cell_cfg.srs_cfg.srs_period_prohib_time, .offset = 0});
+        srs_config::srs_periodicity_and_offset{.period = cell_cfg.srs_cfg.srs_period_prohib_time, .offset = 0});
     res_set.res_type.emplace<srs_config::srs_resource_set::periodic_resource_type>(
         srs_config::srs_resource_set::periodic_resource_type{});
     // Set the SRS resource set ID to 0, as there is only 1 SRS resource set per UE.

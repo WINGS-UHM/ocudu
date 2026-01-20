@@ -511,7 +511,7 @@ struct du_high_unit_srs_config {
   /// Enables and sets the Sounding Reference Signals (SRS) type to be used.
   srs_type srs_type_enabled = srs_type::disabled;
   /// For periodic SRS, defines the SRS period in milliseconds.
-  /// For aperiodic SRS, defines the prohibit time in milliseconds (the SRS are not transmitted more often than the
+  /// For aperiodic SRS, defines the prohibit time in milliseconds (the SRS is not transmitted more often than the
   /// prohibit time).
   /// The available values are a subset of the values in \c SRS-PeriodicityAndOffset, \c SRS-Resource \c SRS-Config,
   /// TS 38.331, converted to millisecond.

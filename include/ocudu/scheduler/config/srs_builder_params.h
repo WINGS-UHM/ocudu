@@ -29,7 +29,7 @@ struct srs_builder_params {
   /// Enables and sets the Sounding Reference Signals (SRS) type to be used.
   srs_type srs_type_enabled = srs_type::disabled;
   /// For periodic SRS, defines the SRS period for SRS periodic resources, in slots.
-  /// For aperiodic SRS, defines the prohibit time for SRS, in slots (the SRS are not transmitted more often than the
+  /// For aperiodic SRS, defines the prohibit time for SRS, in slots (the SRS is not transmitted more often than the
   /// prohibit time).
   /// \remark For aperiodic SRS, \c srs_period_prohib_time is
   srs_periodicity srs_period_prohib_time = srs_periodicity::sl40;

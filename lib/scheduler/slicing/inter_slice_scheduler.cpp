@@ -9,10 +9,10 @@
  */
 
 #include "inter_slice_scheduler.h"
-#include "../../../include/ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "../policy/scheduler_policy_factory.h"
 #include "../ue_scheduling/ue_cell_grid_allocator.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/config/pusch_td_resource_indices.h"
 
 using namespace ocudu;
 

@@ -25,8 +25,10 @@ struct pusch_config_common;
 
 /// \brief Returns the list of all applicable PUSCH Time Domain resource indexes based on cell, UE configuration and
 /// nof. symbols in PUSCH slot for a PDCCH slot.
-/// \param[in] cell_cfg Cell configuration.
 /// \param[in] pdcch_slot Slot at which the PDCCH is supposed to be scheduled.
+/// \param[in] tdd_cfg_common TDD configuration, if present.
+/// \param[in] pusch_cfg_common PUSCH common configuration.
+/// \param[in] dl_data_to_ul_ack List of viable k1 values.
 /// \param[in] ss_info SearchSpace information.
 /// \return List of PUSCH Time Domain resource indexes.
 /// \remark If \c ss_info is nullptr, then minimum k1 is taken from \c cell_cfg.
@@ -39,7 +41,10 @@ get_pusch_td_resource_indices(slot_point                                    pdcc
 
 /// \brief Returns the list circularly indexed by slot containing the list of all applicable PUSCH Time Domain resource
 /// indexes per slot.
-/// \param[in] cell_cfg Cell configuration.
+/// \param[in] scs SCS common value.
+/// \param[in] tdd_cfg_common TDD configuration, if present.
+/// \param[in] pusch_cfg_common PUSCH common configuration.
+/// \param[in] dl_data_to_ul_ack List of viable k1 values.
 /// \param[in] ss_info SearchSpace information.
 /// \return A list circularly indexed by slot containing the list of all applicable PUSCH Time Domain resource indexes
 /// per slot.
@@ -64,7 +69,10 @@ get_pusch_td_resource_indices_per_slot(subcarrier_spacing                       
 /// distributed across DL slots in a TDD configuration. In all other scenarios (FDD or DL heavy TDD pattern), the
 /// function behaves similar to \c get_pusch_td_resource_indices_per_slot().
 ///
-/// \param[in] cell_cfg Cell configuration.
+/// \param[in] scs SCS common value.
+/// \param[in] tdd_cfg_common TDD configuration, if present.
+/// \param[in] pusch_cfg_common PUSCH common configuration.
+/// \param[in] dl_data_to_ul_ack List of viable k1 values.
 /// \param[in] ss_info SearchSpace information.
 /// \return A list circularly indexed by slot containing the list of applicable PUSCH Time Domain resource indexes per
 /// slot.

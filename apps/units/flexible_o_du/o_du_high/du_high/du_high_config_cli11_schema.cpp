@@ -1279,7 +1279,7 @@ static void configure_cli11_srs_args(CLI::App& app, du_high_unit_srs_config& srs
           srs_params.srs_type_enabled = srs_type::disabled;
         }
       },
-      "SearchSpace type for UE dedicated SearchSpace#2")
+      "Enable/disable SRS and set resource type")
       ->default_str("disabled")
       ->check(CLI::IsMember({"disabled", "periodic", "aperiodic"}, CLI::ignore_case));
   add_option(app,

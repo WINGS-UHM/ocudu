@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <cstdint>
 #include "ocudu/adt/bounded_bitset.h"
+#include <cstdint>
 
 namespace ocudu {
 

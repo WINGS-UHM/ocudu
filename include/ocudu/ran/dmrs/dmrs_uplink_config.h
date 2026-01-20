@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <optional>
 #include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/ptrs.h"
+#include <optional>
 
 namespace ocudu {
 
@@ -86,5 +86,4 @@ struct dmrs_uplink_config {
   bool operator!=(const dmrs_uplink_config& rhs) const { return !(rhs == *this); }
 };
 
-
-}
+} // namespace ocudu

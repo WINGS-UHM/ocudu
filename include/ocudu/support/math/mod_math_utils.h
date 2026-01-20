@@ -63,4 +63,17 @@ constexpr auto modular_max(Integer lhs, Integer rhs, Integer N)
   return signed_modular_difference(lhs, rhs, N) > 0 ? lhs : rhs;
 }
 
+/// \brief Checks whether a point is inside a periodic window.
+/// \remark Signed integers are used to avoid issues with unsigned integer wrap-around if point < window_offset.
+constexpr bool is_inside_periodic_window(int64_t period, int64_t window_offset, int64_t window_len, int64_t point)
+{
+  // Compute (point - window_offset) mod period.
+  int64_t diff = (point - window_offset) % period;
+  // Note: % is not a true mod, so we need to handle negative values manually to place them inside [0, T).
+  if (diff < 0) {
+    diff += period;
+  }
+  return diff < window_len;
+}
+
 } // namespace ocudu

@@ -18,6 +18,7 @@
 #include "log_helpers.h"
 #include "procedures/f1ap_du_gnbdu_config_update_procedure.h"
 #include "procedures/f1ap_du_initiated_reset_procedure.h"
+#include "procedures/f1ap_du_paging_procedure.h"
 #include "procedures/f1ap_du_removal_procedure.h"
 #include "procedures/f1ap_du_reset_procedure.h"
 #include "procedures/f1ap_du_setup_procedure.h"
@@ -30,7 +31,6 @@
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pcch/paging_helper.h"
-#include "ocudu/support/async/coroutine.h"
 
 using namespace ocudu;
 using namespace asn1::f1ap;
@@ -538,83 +538,12 @@ void f1ap_du_impl::send_error_indication(const asn1::f1ap::cause_c&         caus
 
 void f1ap_du_impl::handle_paging_request(const asn1::f1ap::paging_s& msg)
 {
-  paging_information info{};
-  expected<unsigned> ue_identity_index_value = get_paging_ue_identity_index_value(msg);
-  if (not ue_identity_index_value.has_value()) {
-    logger.error("Discarding Paging message. Cause=Paging UE Identity index type {} is not supported",
-                 msg->ue_id_idx_value.type().to_string());
-    return;
+  if (not odu::handle_paging_request(msg, paging_notifier, ctxt, logger)) {
+    // Failed to handle paging request. Send error indication.
+    asn1::f1ap::cause_c cause;
+    cause.set_misc().value = asn1::f1ap::cause_misc_opts::unspecified;
+    send_error_indication(cause, std::nullopt, std::nullopt, std::nullopt);
   }
-  info.ue_identity = ue_identity_index_value.value();
-
-  expected<paging_identity_type> paging_type_indicator = get_paging_identity_type(msg);
-  expected<uint64_t>             paging_identity       = get_paging_identity(msg);
-  if (not paging_type_indicator.has_value()) {
-    logger.error("Discarding Paging message. Cause=Paging Identity type {} is not supported",
-                 msg->paging_id.type().to_string());
-    return;
-  }
-  info.paging_type_indicator = paging_type_indicator.value();
-  if (not paging_identity.has_value()) {
-    logger.error("Discarding Paging message. Cause=Paging Identity type {} is not supported",
-                 msg->paging_id.type().to_string());
-    return;
-  }
-  info.paging_identity = paging_identity.value();
-
-  if (msg->paging_drx_present) {
-    expected<unsigned> paging_drx = get_paging_drx_in_nof_rf(msg);
-    if (not paging_drx.has_value()) {
-      logger.error("DRX value {} is not supported", msg->paging_drx.to_string());
-    } else {
-      info.paging_drx = radio_frames{paging_drx.value()};
-    }
-  }
-  if (msg->paging_prio_present) {
-    expected<unsigned> paging_priority = get_paging_priority(msg);
-    if (not paging_priority.has_value()) {
-      logger.error("Paging priority value {} is not supported", msg->paging_prio.to_string());
-    } else {
-      info.paging_priority = paging_priority.value();
-    }
-  }
-  if (msg->paging_origin_present and msg->paging_origin.value == paging_origin_e::non_neg3gpp) {
-    info.is_paging_origin_non_3gpp_access = true;
-  }
-  for (const auto& asn_nr_cgi : msg->paging_cell_list) {
-    const auto ret = cgi_from_asn1(asn_nr_cgi->paging_cell_item().nr_cgi);
-    if (not ret.has_value()) {
-      logger.error("Invalid CGI in paging cell list");
-      continue;
-    }
-    auto                        paging_cell_cgi = ret.value();
-    const f1ap_du_cell_context* cell_same_cgi   = ctxt.find_cell(paging_cell_cgi);
-    if (cell_same_cgi == nullptr) {
-      // Cell not served by this DU.
-      logger.error("Cell with PLMN={} and NCI={} not handled by DU", paging_cell_cgi.plmn_id, paging_cell_cgi.nci);
-      continue;
-    }
-    info.paging_cells.push_back(cell_same_cgi->cell_index);
-  }
-  if (msg->nr_paginge_drx_info_present) {
-    // eDRX info enabled.
-    auto& edrx = info.edrx.emplace();
-    // Convert number of HSFNs to radio frames.
-    edrx.cycle_idle = radio_frames{
-        static_cast<int64_t>(std::round(msg->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle.to_number() * NOF_SFNS))};
-    if (msg->nr_paginge_drx_info.nrpaging_time_win_present) {
-      edrx.ptw_len = std::chrono::seconds{msg->nr_paginge_drx_info.nrpaging_time_win.to_number()};
-    }
-    // Compute UE_ID and UE_ID_H as per TS 38.304, 7.1 and 7.4.
-    ocudu_assert(msg->paging_id.type().value == paging_id_c::types_opts::cn_ue_paging_id,
-                 "Only CN paging supported for eDRX");
-    auto& stmsi                   = msg->paging_id.cn_ue_paging_id().five_g_s_tmsi();
-    info.ue_identity              = stmsi.to_number() % 4096;
-    info.edrx->hashed_ue_identity = paging_helper::compute_UE_ID_H(stmsi.to_number());
-  }
-
-  // Forward paging information to lower layers.
-  paging_notifier.on_paging_received(info);
 }
 
 void f1ap_du_impl::handle_positioning_measurement_request(const positioning_meas_request_s& msg)

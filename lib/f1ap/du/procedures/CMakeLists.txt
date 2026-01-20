@@ -19,6 +19,7 @@ set(SOURCES
         f1ap_du_positioning_information_exchange_procedure.cpp
         f1ap_du_trp_information_exchange_procedure.cpp
         f1ap_du_positioning_measurement_procedure.cpp
+        f1ap_du_paging_procedure.cpp
 )
 
 add_library(ocudu_f1ap_du_procedures STATIC ${SOURCES})

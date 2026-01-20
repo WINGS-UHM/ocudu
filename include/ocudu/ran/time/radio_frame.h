@@ -21,6 +21,6 @@ using subframes = std::chrono::milliseconds;
 using radio_frames = std::chrono::duration<std::chrono::milliseconds::rep, std::ratio<1, 100>>;
 
 /// Time unit of hyper system frames. One hyper frame is 10 * 1024 = 10240 milliseconds.
-using hyper_frames = std::chrono::duration<std::chrono::milliseconds::rep, std::ratio<1, 100 * 1024>>;
+using hyper_frames = std::chrono::duration<std::chrono::milliseconds::rep, std::ratio<1024, 100>>;
 
 } // namespace ocudu

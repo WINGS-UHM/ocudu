@@ -31,7 +31,8 @@ struct paging_edrx_information {
 struct paging_information {
   /// Cells at which to perform Paging of UE.
   std::vector<du_cell_index_t> paging_cells;
-  paging_identity_type         paging_type_indicator;
+  /// Type of Paging Identity assigned to UE.
+  paging_identity_type paging_type_indicator;
   /// Paging identity assigned to UE. Possible values are \c I-RNTI-Value (Bit string of size 40) and \c NG-5G-S-TMSI
   /// (Bit string of size 48). See TS 38.331.
   uint64_t paging_identity;

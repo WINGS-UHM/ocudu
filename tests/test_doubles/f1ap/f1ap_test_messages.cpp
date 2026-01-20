@@ -814,6 +814,7 @@ f1ap_message ocudu::test_helpers::generate_f1ap_paging_message(uint64_t tmsi48)
   msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_PAGING);
   paging_s& paging = msg.pdu.init_msg().value.paging();
 
+  // As per TS 38.304, UE ID is 5G-S-TMSI mod 1024 when eDRX is inactive.
   paging->ue_id_idx_value.set_idx_len10().from_number(tmsi48 % 1024);
   paging->paging_id.set_cn_ue_paging_id().set_five_g_s_tmsi().from_number(tmsi48);
 

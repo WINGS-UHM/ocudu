@@ -208,7 +208,7 @@ bool paging_scheduler::is_paging_opportunity(slot_point_extended pdcch_slot, ue_
       // Determine if the UE is within Paging Time Window.
       const unsigned     UE_ID_H = req.edrx->hashed_ue_identity;
       const unsigned     hsfn    = pdcch_slot.hyper_sfn();
-      const hyper_frames Tedrxcn = req.edrx->cycle_idle;
+      const hyper_frames Tedrxcn = std::chrono::duration_cast<hyper_frames>(req.edrx->cycle_idle);
 
       if ((hsfn % Tedrxcn.count()) != (UE_ID_H % Tedrxcn.count())) {
         // It is not a PH for CN-initiated eDRX for this UE.

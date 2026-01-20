@@ -37,6 +37,7 @@ inline uint32_t compute_hashed_ID(uint64_t tmsi48)
   const uint64_t            Y3     = (tmsi48 & (mask_lsb_ones<uint64_t>(32))) << static_cast<uint64_t>(32U);
   // 1<<32 + 1<<26 + 1<<23 + ... + 1.
   const uint64_t Y2 = gf2_mod(Y3, crc32c);
+  // Ones complement of the sum (modulo 2) of Y1 and Y2.
   return static_cast<uint32_t>((~(Y1 ^ Y2)) & mask_lsb_ones<uint64_t>(32U));
 }
 
@@ -44,7 +45,7 @@ inline uint32_t compute_hashed_ID(uint64_t tmsi48)
 
 /// Compute UE_ID_H according to TS 38.304, 7.4.
 /// \param[in] tmsi48 5G-S-TMSI of 48 bits.
-/// \return Value fo UE_ID_H which contains the 13 MSBs of the Hashed ID.
+/// \return Value of UE_ID_H which contains the 13 MSBs of the Hashed ID.
 inline uint32_t compute_UE_ID_H(uint64_t tmsi48)
 {
   return detail::compute_hashed_ID(tmsi48) >> (32U - 13U);

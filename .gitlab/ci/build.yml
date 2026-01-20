@@ -8,7 +8,7 @@
 
 include:
   - project: ocudu/ocudu_packaging
-    ref: "init"
+    ref: "main"
     file: .gitlab/ci-shared/package.yml
   - local: .gitlab/ci-shared/build.yml
   - local: .gitlab/ci-shared/docker.yml
@@ -672,7 +672,6 @@ package:
     - if: $CI_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
-    - if: $ON_MR
   variables: &package_variables
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
@@ -700,7 +699,6 @@ install-package:
   stage: build and unit tests
   rules:
     - if: $CI_DESCRIPTION =~ /Nightly/
-    - if: $ON_MR
   variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"

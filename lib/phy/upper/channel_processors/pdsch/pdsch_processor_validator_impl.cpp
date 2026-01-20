@@ -9,7 +9,7 @@
  */
 
 #include "pdsch_processor_validator_impl.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 
 using namespace ocudu;
 

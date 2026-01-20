@@ -13,11 +13,10 @@
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/interval.h"
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/ptrs/ptrs.h"
 #include "ocudu/ran/ptrs/ptrs_constants.h"
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
-#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/rnti.h"
 
 namespace ocudu {

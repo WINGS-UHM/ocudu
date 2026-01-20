@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/phy/constants.h"
+#include "ocudu/ran/pdcch/coreset.h"
 #include <cstdint>
 
 namespace ocudu {

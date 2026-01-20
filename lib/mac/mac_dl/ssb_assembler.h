@@ -11,9 +11,9 @@
 #pragma once
 
 #include "ocudu/mac/cell_configuration.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
-#include "ocudu/scheduler/config/dmrs.h"
 #include <cstddef>
 
 namespace ocudu {

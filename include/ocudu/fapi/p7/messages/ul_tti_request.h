@@ -17,6 +17,7 @@
 #include "ocudu/fapi/p7/messages/ul_pusch_pdu.h"
 #include "ocudu/fapi/p7/messages/ul_srs_pdu.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
 namespace fapi {

@@ -11,9 +11,8 @@
 #pragma once
 
 #include "ocudu/adt/bounded_bitset.h"
-#include "ocudu/adt/bounded_integer.h"
 #include "ocudu/adt/expected.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pdcch/pdcch_constants.h"
 #include "ocudu/ran/physical_cell_group.h"
 #include "ocudu/ran/pusch/tx_scheme_configuration.h"

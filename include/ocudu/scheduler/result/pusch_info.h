@@ -11,10 +11,12 @@
 #pragma once
 
 #include "ocudu/ran/csi_report/csi_report_configuration.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/pusch/pusch_mcs.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/uci/uci_configuration.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
 

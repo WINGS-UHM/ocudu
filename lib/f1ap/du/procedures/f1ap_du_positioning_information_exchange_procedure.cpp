@@ -16,6 +16,7 @@
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
 #include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/resource_allocation/sliv.h"
 #include "ocudu/ran/resource_block.h"
 
 using namespace ocudu;

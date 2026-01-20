@@ -12,11 +12,12 @@
 
 #include "ocudu/ran/alpha.h"
 #include "ocudu/ran/csi_rs/csi_rs_id.h"
+#include "ocudu/ran/dmrs/dmrs_uplink_config.h"
 #include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/pusch/pusch_time_domain_resource.h"
 #include "ocudu/ran/pusch/tx_scheme_configuration.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/uci/uci_configuration.h"
-#include "ocudu/scheduler/config/dmrs.h"
 #include <optional>
 
 namespace ocudu {

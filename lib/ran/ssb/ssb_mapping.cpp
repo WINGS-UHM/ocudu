@@ -10,7 +10,6 @@
 
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/ran/band_helper.h"
-#include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/error_handling.h"
 
 using namespace ocudu;

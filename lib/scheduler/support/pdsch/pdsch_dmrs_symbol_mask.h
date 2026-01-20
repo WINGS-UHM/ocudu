@@ -10,7 +10,8 @@
 
 #pragma once
 
-#include "ocudu/scheduler/config/dmrs.h"
+#include "ocudu/adt/bounded_integer.h"
+#include "ocudu/ran/dmrs/dmrs_downlink_config.h"
 
 namespace ocudu {
 

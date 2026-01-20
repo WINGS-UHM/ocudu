@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ocudu/adt/bounded_bitset.h"
 
 namespace ocudu {
 
@@ -52,5 +53,10 @@ constexpr unsigned get_max_nof_cdm_groups_without_data(dmrs_config_type type)
 {
   return type == dmrs_config_type::type1 ? 2 : 3;
 }
+
+/// \brief Data type used to represent a DMRS symbol mask for PDSCH and PUSCH transmissions.
+///
+/// Each bit set in the bitset represents a symbol within the slot. The first bit corresponds to the first symbol.
+using dmrs_symbol_mask = bounded_bitset<14>;
 
 } // namespace ocudu

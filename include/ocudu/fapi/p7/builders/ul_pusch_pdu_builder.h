@@ -12,7 +12,7 @@
 
 #include "ocudu/adt/span.h"
 #include "ocudu/fapi/p7/messages/ul_pusch_pdu.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/ptrs/ptrs.h"
 
 namespace ocudu {

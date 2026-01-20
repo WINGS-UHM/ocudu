@@ -13,8 +13,6 @@
 #include "ocudu/ran/csi_rs/csi_rs_id.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
-#include "ocudu/scheduler/config/bwp_configuration.h"
-#include <cstdint>
 
 namespace ocudu {
 

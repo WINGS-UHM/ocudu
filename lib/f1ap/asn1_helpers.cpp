@@ -13,6 +13,7 @@
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_ies.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
+#include "ocudu/ran/resource_allocation/sliv.h"
 #include "ocudu/ran/srs/srs_configuration.h"
 
 using namespace ocudu;

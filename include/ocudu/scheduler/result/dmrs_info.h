@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/scheduler/config/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 
 namespace ocudu {
 

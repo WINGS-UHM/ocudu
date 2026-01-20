@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/fapi/p7/messages/dl_ssb_pdu.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 
 namespace ocudu {
 namespace fapi {

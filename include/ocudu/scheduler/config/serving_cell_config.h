@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
+#include "ocudu/ran/dmrs/dmrs_downlink_config.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/pdcch/downlink_preemption.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"

@@ -13,7 +13,7 @@
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/zero.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_buffer.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
 
 using namespace ocudu;

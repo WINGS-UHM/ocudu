@@ -15,7 +15,7 @@
 #include "ocudu/fapi/p7/messages/dl_pdsch_pdu.h"
 #include "ocudu/fapi/p7/messages/power_control_offset_ss.h"
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 
 namespace ocudu {

@@ -13,6 +13,8 @@
 #include "ocudu/ran/csi_rs/codebook_config.h"
 #include "ocudu/ran/csi_rs/csi_resource_config.h"
 #include "ocudu/ran/csi_rs/csi_rs_constants.h"
+#include "ocudu/ran/du_types.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/pusch/pusch_configuration.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
 #include <variant>

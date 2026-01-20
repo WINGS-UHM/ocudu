@@ -12,9 +12,8 @@
 
 #include "../config/cell_configuration.h"
 #include "pdsch/pdsch_dmrs_symbol_mask.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pdsch/pdsch_antenna_ports_mapping.h"
-#include "ocudu/scheduler/config/dmrs.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/support/error_handling.h"
 

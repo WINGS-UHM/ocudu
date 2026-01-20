@@ -12,7 +12,7 @@
 
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/prach/prach_format_type.h"
 #include "ocudu/ran/prach/prach_subcarrier_spacing.h"
 #include "ocudu/ran/prach/restricted_set_config.h"

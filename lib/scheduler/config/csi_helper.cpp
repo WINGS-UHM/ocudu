@@ -9,6 +9,7 @@
  */
 
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/ran/slot_point.h"
 #include "ocudu/scheduler/config/pucch_builder_params.h"
 
 using namespace ocudu;

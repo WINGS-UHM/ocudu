@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/nrppa/nrppa_ue_ids.h"
+#include "ocudu/ran/arfcn.h"
 #include "ocudu/ran/cause/nrppa_cause.h"
 #include "ocudu/ran/crit_diagnostics.h"
 #include "ocudu/ran/nr_cgi.h"

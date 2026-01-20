@@ -9,6 +9,7 @@
  */
 
 #include "lib/scheduler/support/pusch/pusch_default_time_allocation.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 

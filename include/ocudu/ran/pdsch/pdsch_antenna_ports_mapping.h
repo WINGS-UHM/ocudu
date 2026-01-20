@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/span.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include <vector>
 
 namespace ocudu {

@@ -15,10 +15,11 @@
 #include "ocudu/ran/pcch/pcch_configuration.h"
 #include "ocudu/ran/pdcch/coreset.h"
 #include "ocudu/ran/pdcch/search_space.h"
+#include "ocudu/ran/pdsch/pdsch_time_domain_resource.h"
 #include "ocudu/ran/prach/rach_config_common.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pusch/pusch_time_domain_resource.h"
 #include "ocudu/ran/scs_specific_carrier.h"
-#include "ocudu/scheduler/config/pxsch_time_domain_resource.h"
 #include <optional>
 
 namespace ocudu {
@@ -45,16 +46,6 @@ struct pdcch_config_common {
            paging_search_space_id == other.paging_search_space_id and ra_search_space_id == other.ra_search_space_id;
   }
 };
-
-/// BWP-Id used to identify a BWP from the perspective of a UE.
-/// \remark See TS 38.331, "BWP-Id" and "maxNrofBWPs".
-enum bwp_id_t : uint8_t { MIN_BWP_ID = 0, MAX_BWP_ID = 3, MAX_NOF_BWPS = 4 };
-
-/// Converts integer value to BWP-Id".
-constexpr bwp_id_t to_bwp_id(std::underlying_type_t<bwp_id_t> value)
-{
-  return static_cast<bwp_id_t>(value);
-}
 
 struct pdsch_config_common {
   /// PDSCH time domain resource allocations. Size: (0..maxNrofDL-Allocations=16).

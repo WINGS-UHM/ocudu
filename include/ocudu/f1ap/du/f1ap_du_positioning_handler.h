@@ -10,12 +10,14 @@
 
 #pragma once
 
+#include "ocudu/ran/arfcn.h"
 #include "ocudu/ran/bwp/bwp_configuration.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/positioning/positioning_ids.h"
 #include "ocudu/ran/scs_specific_carrier.h"
+#include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/srs/srs_configuration.h"
 #include "ocudu/support/async/async_task.h"
 

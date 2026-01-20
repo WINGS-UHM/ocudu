@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/csi_report/csi_report_data.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
 #include "ocudu/ran/pdcch/dci_format.h"

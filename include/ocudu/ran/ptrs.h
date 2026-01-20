@@ -11,10 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/ran/du_types.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
-#include "ocudu/scheduler/config/bwp_configuration.h"
-#include <cstdint>
 
 namespace ocudu {
 

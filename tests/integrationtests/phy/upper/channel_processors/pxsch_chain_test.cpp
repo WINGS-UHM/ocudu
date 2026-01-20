@@ -18,6 +18,7 @@
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
 #include "ocudu/phy/upper/rx_buffer_pool.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pdsch/dlsch_info.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
@@ -37,7 +38,7 @@ using namespace ocudu;
 static constexpr pdsch_mcs_table mcs_table           = pdsch_mcs_table::qam64;
 static constexpr unsigned        nof_layers          = 1;
 static constexpr unsigned        nof_ofdm_symbols    = 14;
-static const symbol_slot_mask    dmrs_symbol_mask    = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0};
+static const symbol_slot_mask    dmrs_symbols        = {0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0};
 static const float               noise_var           = convert_dB_to_power(-30);
 static constexpr unsigned        nof_ldpc_iterations = 6;
 static constexpr uint64_t        seed_begin          = 0;
@@ -192,7 +193,7 @@ TEST_P(PxschChainFixture, Ideal)
   // Calculate TBS.
   tbs_calculator_configuration tbs_params;
   tbs_params.nof_symb_sh      = nof_ofdm_symbols;
-  tbs_params.nof_dmrs_prb     = NOF_SUBCARRIERS_PER_RB * dmrs_symbol_mask.count();
+  tbs_params.nof_dmrs_prb     = NOF_SUBCARRIERS_PER_RB * dmrs_symbols.count();
   tbs_params.nof_oh_prb       = 0;
   tbs_params.mcs_descr        = mcs_descr;
   tbs_params.nof_layers       = nof_layers;
@@ -208,7 +209,7 @@ TEST_P(PxschChainFixture, Ideal)
   dlsch_params.start_symbol_index          = 0;
   dlsch_params.nof_symbols                 = nof_ofdm_symbols;
   dlsch_params.dmrs_type                   = dmrs_config_type::type1;
-  dlsch_params.dmrs_symbol_mask            = dmrs_symbol_mask;
+  dlsch_params.dmrs_symbol_mask            = dmrs_symbols;
   dlsch_params.nof_cdm_groups_without_data = 2;
   dlsch_params.nof_layers                  = nof_layers;
   dlsch_params.contains_dc                 = true;

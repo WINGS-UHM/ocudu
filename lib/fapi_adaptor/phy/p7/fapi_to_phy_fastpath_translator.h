@@ -24,6 +24,7 @@
 #include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
 #include "ocudu/phy/upper/downlink_processor.h"
 #include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
+#include "ocudu/ran/prach/rach_config_common.h"
 #include <atomic>
 
 namespace ocudu {

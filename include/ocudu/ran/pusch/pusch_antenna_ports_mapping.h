@@ -10,9 +10,8 @@
 
 #pragma once
 
-#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/srs/srs_resource_configuration.h"
-#include "ocudu/scheduler/config/dmrs.h"
 
 namespace ocudu {
 

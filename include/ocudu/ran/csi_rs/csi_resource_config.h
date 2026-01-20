@@ -11,9 +11,9 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/bwp/bwp_id.h"
 #include "ocudu/ran/csi_rs/csi_rs_constants.h"
 #include "ocudu/ran/csi_rs/csi_rs_id.h"
-#include "ocudu/scheduler/config/bwp_configuration.h"
 #include <variant>
 
 namespace ocudu {

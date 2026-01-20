@@ -10,6 +10,7 @@
 
 #include "prach.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
+#include "ocudu/ran/prach/rach_config_common.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;

@@ -17,6 +17,7 @@
 #include "ocudu/ran/csi_rs/csi_rs_pattern.h"
 #include "ocudu/ran/csi_rs/csi_rs_types.h"
 #include "ocudu/ran/csi_rs/frequency_allocation_type.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/tci.h"
 #include <variant>
 

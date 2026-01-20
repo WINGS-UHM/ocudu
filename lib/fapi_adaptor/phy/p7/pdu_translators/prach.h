@@ -16,6 +16,7 @@
 namespace ocudu {
 
 struct prach_buffer_context;
+struct rach_config_common;
 
 namespace fapi_adaptor {
 

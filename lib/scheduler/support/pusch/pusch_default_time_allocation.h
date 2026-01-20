@@ -11,8 +11,8 @@
 #pragma once
 
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/scheduler/config/dmrs.h"
-#include "ocudu/scheduler/config/pxsch_time_domain_resource.h"
+#include "ocudu/ran/pdcch/coreset.h"
+#include "ocudu/ran/pusch/pusch_time_domain_resource.h"
 
 namespace ocudu {
 

@@ -17,7 +17,7 @@
 #include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
 #include "ocudu/phy/upper/signal_processors/pdsch/dmrs_pdsch_processor.h"
 #include "ocudu/phy/upper/signal_processors/ptrs/ptrs_pdsch_generator.h"
-#include "ocudu/ran/dmrs.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/ptrs/ptrs_pattern.h"
 #include "ocudu/support/tracing/event_tracing.h"
 

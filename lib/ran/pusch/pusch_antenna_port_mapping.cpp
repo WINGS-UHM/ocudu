@@ -8,6 +8,7 @@
  *
  */
 
+#include "ocudu/adt/interval.h"
 #include "ocudu/ran/pusch/pusch_antenna_ports_mapping.h"
 
 using namespace ocudu;

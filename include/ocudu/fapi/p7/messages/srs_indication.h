@@ -16,6 +16,7 @@
 #include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
 #include "ocudu/ran/srs/srs_configuration.h"
 #include <optional>

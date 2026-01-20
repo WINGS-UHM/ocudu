@@ -12,8 +12,8 @@
 
 #include "ocudu/adt/span.h"
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/ran/dmrs.h"
-#include "ocudu/scheduler/config/pxsch_time_domain_resource.h"
+#include "ocudu/ran/dmrs/dmrs.h"
+#include "ocudu/ran/pdsch/pdsch_time_domain_resource.h"
 
 namespace ocudu {
 

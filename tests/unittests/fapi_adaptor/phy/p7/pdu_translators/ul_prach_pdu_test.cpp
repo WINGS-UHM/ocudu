@@ -24,8 +24,7 @@ TEST(FapiPhyUlPrachPduAdaptorTest, valid_pdu_pass)
   fapi::ul_prach_pdu fapi_pdu = build_valid_ul_prach_pdu();
 
   // As it's only one PRACH config TLV with one Fd occassion, modify the values from the PRACH FAPI PDU.
-  fapi_pdu.index_fd_ra                           = 0;
-  fapi_pdu.maintenance_v3.prach_res_config_index = 0;
+  fapi_pdu.index_fd_ra = 0;
 
   subcarrier_spacing scs_common = subcarrier_spacing::kHz15;
 
@@ -58,10 +57,9 @@ TEST(FapiPhyUlPrachPduAdaptorTest, valid_pdu_pass)
   ASSERT_EQ(static_cast<unsigned>(fapi_pdu.prach_format), static_cast<unsigned>(context.format));
   ASSERT_EQ(fapi_pdu.prach_start_symbol, context.start_symbol);
   ASSERT_EQ(fapi_pdu.num_prach_ocas, context.nof_td_occasions);
-  const fapi::ul_prach_maintenance_v3& v3 = fapi_pdu.maintenance_v3;
-  ASSERT_EQ(v3.num_fd_ra, context.nof_fd_occasions);
-  ASSERT_EQ(v3.start_preamble_index, context.start_preamble_index);
-  ASSERT_EQ(v3.num_preamble_indices, context.nof_preamble_indices);
+  ASSERT_EQ(fapi_pdu.num_fd_ra, context.nof_fd_occasions);
+  ASSERT_EQ(fapi_pdu.start_preamble_index, context.start_preamble_index);
+  ASSERT_EQ(fapi_pdu.num_preamble_indices, context.nof_preamble_indices);
   ASSERT_EQ(static_cast<unsigned>(prach.restricted_set), static_cast<unsigned>(context.restricted_set));
   ASSERT_EQ(static_cast<unsigned>(scs_common), static_cast<unsigned>(context.pusch_scs));
   ASSERT_EQ(prach.prach_root_seq_index, context.root_sequence_index);

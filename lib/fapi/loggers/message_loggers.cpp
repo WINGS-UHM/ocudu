@@ -430,14 +430,16 @@ void ocudu::fapi::log_srs_indication(const srs_indication& msg, unsigned sector_
 static void log_prach_pdu(const ul_prach_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PRACH pci={} format={} fd_ra={}:{} symb={} z_corr={} res_config_idx={}",
-                 pdu.phys_cell_id,
+                 "\n\t- PRACH num_prach_ocas={} format={} fd_ra={}:{} symb={} z_corr={} start_preamble_index={} "
+                 "num_preamble_indices={}",
+                 pdu.num_prach_ocas,
                  to_string(pdu.prach_format),
                  pdu.index_fd_ra,
-                 pdu.maintenance_v3.num_fd_ra,
+                 pdu.num_fd_ra,
                  pdu.prach_start_symbol,
                  pdu.num_cs,
-                 pdu.maintenance_v3.prach_res_config_index);
+                 pdu.start_preamble_index,
+                 pdu.num_preamble_indices);
 }
 
 static void log_pusch_pdu(const ul_pusch_pdu& pdu, fmt::memory_buffer& buffer)

@@ -101,8 +101,7 @@ static bool operator==(const dl_tti_request& lhs, const dl_tti_request& rhs)
 
 static bool operator==(const ul_prach_pdu& lhs, const ul_prach_pdu& rhs)
 {
-  return lhs.phys_cell_id == rhs.phys_cell_id && lhs.prach_format == rhs.prach_format &&
-         lhs.has_msg_a_pusch_beamforming == rhs.has_msg_a_pusch_beamforming;
+  return lhs.prach_format == rhs.prach_format;
 }
 
 static bool operator==(const uci_part1_to_part2_correspondence_v3::part2_info& lhs,

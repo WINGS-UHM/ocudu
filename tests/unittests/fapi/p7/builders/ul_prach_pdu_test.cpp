@@ -14,55 +14,58 @@
 using namespace ocudu;
 using namespace fapi;
 
-TEST(ul_prach_pdu_builder, valid_basic_parameters_passes)
+TEST(ul_prach_pdu_builder, valid_preamble_parameters_passes)
 {
-  pci_t             pci                = 3;
-  uint8_t           num_occasions      = 4;
-  prach_format_type format_type        = prach_format_type::one;
-  uint8_t           index_fd_ra        = 5;
-  uint8_t           prach_start_symbol = 5;
-  uint16_t          num_cs             = 15;
+  uint8_t start_preamble_index = 12;
+  uint8_t num_preamble_indices = 13;
 
   ul_prach_pdu         pdu;
   ul_prach_pdu_builder builder(pdu);
 
-  builder.set_basic_parameters(pci, num_occasions, format_type, index_fd_ra, prach_start_symbol, num_cs);
+  builder.set_preamble_parameters(start_preamble_index, num_preamble_indices);
 
-  ASSERT_EQ(pci, pdu.phys_cell_id);
-  ASSERT_EQ(format_type, pdu.prach_format);
-  ASSERT_EQ(num_occasions, pdu.num_prach_ocas);
-  ASSERT_EQ(index_fd_ra, pdu.index_fd_ra);
-  ASSERT_EQ(prach_start_symbol, pdu.prach_start_symbol);
-  ASSERT_EQ(num_cs, pdu.num_cs);
-  ASSERT_EQ(0, pdu.is_msg_a_prach);
-  ASSERT_TRUE(!pdu.has_msg_a_pusch_beamforming);
+  ASSERT_EQ(start_preamble_index, pdu.start_preamble_index);
+  ASSERT_EQ(num_preamble_indices, pdu.num_preamble_indices);
 }
 
-TEST(ul_prach_pdu_builder, valid_maintenance_v3_basic_parameters_passes)
+TEST(ul_prach_pdu_builder, valid_prach_parameters_passes)
 {
-  for (unsigned i = 0, e = 2; i != e; ++i) {
-    uint32_t                handle                 = 123456;
-    prach_config_scope_type prach_config_scope     = prach_config_scope_type::phy_context;
-    uint16_t                prach_res_config_index = 1023;
-    uint8_t                 num_fd_ra              = 23;
-    uint8_t                 num_preambles_indices  = 13;
-    std::optional<uint8_t>  start_preamble_index;
-    if (i) {
-      start_preamble_index.emplace(12);
-    }
+  uint8_t           num_prach_ocas = 4;
+  uint16_t          num_cs         = 15;
+  prach_format_type prach_format   = prach_format_type::one;
 
-    ul_prach_pdu         pdu;
-    ul_prach_pdu_builder builder(pdu);
+  ul_prach_pdu         pdu;
+  ul_prach_pdu_builder builder(pdu);
 
-    builder.set_maintenance_v3_basic_parameters(
-        handle, prach_config_scope, prach_res_config_index, num_fd_ra, start_preamble_index, num_preambles_indices);
+  builder.set_prach_parameters(num_prach_ocas, num_cs, prach_format);
 
-    const auto& v3 = pdu.maintenance_v3;
-    ASSERT_EQ(handle, v3.handle);
-    ASSERT_EQ(prach_config_scope, v3.prach_config_scope);
-    ASSERT_EQ(prach_res_config_index, v3.prach_res_config_index);
-    ASSERT_EQ(num_fd_ra, v3.num_fd_ra);
-    ASSERT_EQ(start_preamble_index ? start_preamble_index.value() : 255U, v3.start_preamble_index);
-    ASSERT_EQ(num_preambles_indices, v3.num_preamble_indices);
-  }
+  ASSERT_EQ(num_prach_ocas, pdu.num_prach_ocas);
+  ASSERT_EQ(num_cs, pdu.num_cs);
+  ASSERT_EQ(prach_format, pdu.prach_format);
+}
+
+TEST(ul_prach_pdu_builder, valid_frequency_domain_parameters_passes)
+{
+  uint8_t index_fd_ra = 5;
+  uint8_t num_fd_ra   = 23;
+
+  ul_prach_pdu         pdu;
+  ul_prach_pdu_builder builder(pdu);
+
+  builder.set_frequency_domain_parameters(index_fd_ra, num_fd_ra);
+
+  ASSERT_EQ(index_fd_ra, pdu.index_fd_ra);
+  ASSERT_EQ(num_fd_ra, pdu.num_fd_ra);
+}
+
+TEST(ul_prach_pdu_builder, valid_time_domain_parameters_passes)
+{
+  uint8_t prach_start_symbol = 5;
+
+  ul_prach_pdu         pdu;
+  ul_prach_pdu_builder builder(pdu);
+
+  builder.set_time_domain_parameters(prach_start_symbol);
+
+  ASSERT_EQ(prach_start_symbol, pdu.prach_start_symbol);
 }

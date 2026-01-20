@@ -505,13 +505,6 @@ static uint8_t generate_num_cs()
   return dist(gen);
 }
 
-static uint8_t generate_is_msga_prach()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 2);
-
-  return dist(gen);
-}
-
 static prach_format_type generate_prach_format()
 {
   std::uniform_int_distribution<unsigned> dist(0, 3);
@@ -537,21 +530,14 @@ ul_prach_pdu unittest::build_valid_ul_prach_pdu()
 {
   ul_prach_pdu pdu;
 
-  pdu.phys_cell_id                = generate_pci();
-  pdu.num_prach_ocas              = 1;
-  pdu.prach_format                = generate_prach_format();
-  pdu.index_fd_ra                 = generate_index_fd_ra();
-  pdu.prach_start_symbol          = generate_prach_start_symbol();
-  pdu.num_cs                      = generate_num_cs();
-  pdu.is_msg_a_prach              = generate_is_msga_prach();
-  pdu.has_msg_a_pusch_beamforming = generate_is_msga_prach();
-
-  // Maintenance v3 parameters.
-  auto& v3                = pdu.maintenance_v3;
-  v3.prach_config_scope   = prach_config_scope_type::phy_context;
-  v3.num_fd_ra            = generate_index_fd_ra() + 1U;
-  v3.start_preamble_index = generate_start_preamble();
-  v3.num_preamble_indices = generate_num_preambles_indices();
+  pdu.num_prach_ocas       = 1;
+  pdu.prach_format         = generate_prach_format();
+  pdu.index_fd_ra          = generate_index_fd_ra();
+  pdu.prach_start_symbol   = generate_prach_start_symbol();
+  pdu.num_cs               = generate_num_cs();
+  pdu.num_fd_ra            = generate_index_fd_ra() + 1U;
+  pdu.start_preamble_index = generate_start_preamble();
+  pdu.num_preamble_indices = generate_num_preambles_indices();
 
   return pdu;
 }

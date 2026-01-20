@@ -44,21 +44,6 @@ public:
 
   /// Adds a PRACH PDU to the message and returns a builder that helps to fill the parameters.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.1 in table PRACH PDU.
-  ul_prach_pdu_builder add_prach_pdu(pci_t             pci,
-                                     uint8_t           num_occasions,
-                                     prach_format_type format_type,
-                                     uint8_t           index_fd_ra,
-                                     uint8_t           prach_start_symbol,
-                                     uint16_t          num_cs)
-  {
-    ul_prach_pdu_builder builder = add_prach_pdu();
-    builder.set_basic_parameters(pci, num_occasions, format_type, index_fd_ra, prach_start_symbol, num_cs);
-
-    return builder;
-  }
-
-  /// Adds a PRACH PDU to the message and returns a builder that helps to fill the parameters.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.1 in table PRACH PDU.
   ul_prach_pdu_builder add_prach_pdu()
   {
     auto& pdu    = msg.pdus.emplace_back();

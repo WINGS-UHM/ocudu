@@ -30,38 +30,6 @@ TEST(ul_tti_request_builder, valid_basic_parameters_passes)
   ASSERT_TRUE(msg.pdus.empty());
 }
 
-TEST(ul_tti_request_builder, add_prach_pdu_passes)
-{
-  ul_tti_request         msg;
-  ul_tti_request_builder builder(msg);
-
-  ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_pdu_type::PRACH)]);
-
-  pci_t             pci                = 3;
-  uint8_t           num_occasions      = 4;
-  prach_format_type format_type        = prach_format_type::one;
-  uint8_t           index_fd_ra        = 5;
-  uint8_t           prach_start_symbol = 5;
-  uint16_t          num_cs             = 15;
-
-  builder.add_prach_pdu(pci, num_occasions, format_type, index_fd_ra, prach_start_symbol, num_cs);
-
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_pdu_type::PRACH)]);
-  ASSERT_EQ(1U, msg.pdus.size());
-  ASSERT_EQ(ul_pdu_type::PRACH, msg.pdus.back().pdu_type);
-
-  const auto& pdu = msg.pdus.back().prach_pdu;
-  ASSERT_EQ(pci, pdu.phys_cell_id);
-  ASSERT_EQ(format_type, pdu.prach_format);
-  ASSERT_EQ(num_occasions, pdu.num_prach_ocas);
-  ASSERT_EQ(index_fd_ra, pdu.index_fd_ra);
-  ASSERT_EQ(prach_start_symbol, pdu.prach_start_symbol);
-  ASSERT_EQ(num_cs, pdu.num_cs);
-  ASSERT_EQ(0, pdu.is_msg_a_prach);
-  ASSERT_FALSE(pdu.has_msg_a_pusch_beamforming);
-}
-
 TEST(ul_tti_request_builder, add_pucch_f0_pdu_passes)
 {
   ul_tti_request         msg;

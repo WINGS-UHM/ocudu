@@ -23,20 +23,16 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
                                                     slot_point                  slot,
                                                     unsigned                    sector_id)
 {
-  ocudu_assert(fapi_pdu.maintenance_v3.prach_config_scope == fapi::prach_config_scope_type::phy_context,
-               "Common context not supported.");
-  ocudu_assert(fapi_pdu.maintenance_v3.prach_res_config_index == 0,
-               "Only PRACH resource configuration index 0 supported.");
   ocudu_assert(fapi_pdu.index_fd_ra == 0, "Only one FD occasion supported.");
 
   context.slot                 = slot;
   context.sector               = sector_id;
   context.format               = fapi_pdu.prach_format;
   context.nof_td_occasions     = fapi_pdu.num_prach_ocas;
-  context.nof_fd_occasions     = fapi_pdu.maintenance_v3.num_fd_ra;
+  context.nof_fd_occasions     = fapi_pdu.num_fd_ra;
   context.start_symbol         = fapi_pdu.prach_start_symbol;
-  context.start_preamble_index = fapi_pdu.maintenance_v3.start_preamble_index;
-  context.nof_preamble_indices = fapi_pdu.maintenance_v3.num_preamble_indices;
+  context.start_preamble_index = fapi_pdu.start_preamble_index;
+  context.nof_preamble_indices = fapi_pdu.num_preamble_indices;
 
   context.pusch_scs       = slot.scs();
   context.restricted_set  = prach_cfg.restricted_set;

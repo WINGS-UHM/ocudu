@@ -200,8 +200,8 @@ TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port)
 
   EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
-  ASSERT_TRUE(sock.get_listen_port().has_value());
-  EXPECT_GT(sock.get_listen_port().value(), 0);
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_GT(sock.get_bound_port().value(), 0);
 
   verify_bound_address_ipv4(sock.fd().value(), std::nullopt, INADDR_LOOPBACK);
 }
@@ -221,8 +221,8 @@ TEST_F(sctp_socket_test, bindx_to_loopback_with_specific_port)
 
   EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
-  ASSERT_TRUE(sock.get_listen_port().has_value());
-  EXPECT_EQ(sock.get_listen_port().value(), 12345);
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_EQ(sock.get_bound_port().value(), 12345);
 
   verify_bound_address_ipv4(sock.fd().value(), 12345, INADDR_LOOPBACK);
 }
@@ -242,8 +242,8 @@ TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port_ipv6)
 
   EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
-  ASSERT_TRUE(sock.get_listen_port().has_value());
-  EXPECT_GT(sock.get_listen_port().value(), 0);
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_GT(sock.get_bound_port().value(), 0);
 
   verify_bound_address_ipv6(sock.fd().value(), std::nullopt, in6addr_loopback);
 }
@@ -264,8 +264,8 @@ TEST_F(sctp_socket_test, bindx_to_loopback_with_specific_port_ipv6)
 
   EXPECT_TRUE(sock.bindx({addr_storage}, ""));
 
-  ASSERT_TRUE(sock.get_listen_port().has_value());
-  EXPECT_EQ(sock.get_listen_port().value(), 12345);
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_EQ(sock.get_bound_port().value(), 12345);
 
   verify_bound_address_ipv6(sock.fd().value(), 12345, in6addr_loopback);
 }
@@ -286,8 +286,8 @@ TEST_F(sctp_socket_test, listen_on_bound_socket)
   EXPECT_TRUE(sock.listen());
 }
 
-/// Test listen on an unbound socket. TO-DO: Should this be allowed?!
-TEST_F(sctp_socket_test, listen_on_unbound_socket)
+/// Test listen on an unbound socket fails.
+TEST_F(sctp_socket_test, listen_on_unbound_socket_fails)
 {
   sctp_socket_params params = create_default_params();
 
@@ -296,11 +296,11 @@ TEST_F(sctp_socket_test, listen_on_unbound_socket)
 
   sctp_socket& sock = result.value();
 
-  EXPECT_TRUE(sock.listen());
+  EXPECT_FALSE(sock.listen());
 }
 
-/// Test get_listen_port returns nullopt for an unbound socket.
-TEST_F(sctp_socket_test, get_listen_port_returns_nullopt_for_unbound_socket)
+/// Test get_bound_port returns 0 for an unbound socket.
+TEST_F(sctp_socket_test, get_bound_port_returns_zero_for_unbound_socket)
 {
   sctp_socket_params params = create_default_params();
 
@@ -309,8 +309,8 @@ TEST_F(sctp_socket_test, get_listen_port_returns_nullopt_for_unbound_socket)
 
   sctp_socket& sock = result.value();
 
-  ASSERT_TRUE(sock.get_listen_port().has_value());
-  EXPECT_EQ(sock.get_listen_port().value(), 0);
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_EQ(sock.get_bound_port().value(), 0);
 }
 
 /// Test listen fails on a closed socket.
@@ -327,8 +327,8 @@ TEST_F(sctp_socket_test, listen_fails_on_closed_socket)
   EXPECT_FALSE(sock.listen());
 }
 
-/// Test get_listen_port returns nullopt for a closed socket.
-TEST_F(sctp_socket_test, get_listen_port_returns_nullopt_for_closed_socket)
+/// Test get_bound_port returns nullopt for a closed socket.
+TEST_F(sctp_socket_test, get_bound_port_returns_nullopt_for_closed_socket)
 {
   sctp_socket_params params = create_default_params();
 
@@ -341,12 +341,12 @@ TEST_F(sctp_socket_test, get_listen_port_returns_nullopt_for_closed_socket)
 
   ASSERT_TRUE(sock.bindx({addr_storage}, ""));
 
-  EXPECT_TRUE(sock.get_listen_port().has_value());
-  EXPECT_GT(sock.get_listen_port().value(), 0);
+  EXPECT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_GT(sock.get_bound_port().value(), 0);
 
   sock.close();
 
-  EXPECT_FALSE(sock.get_listen_port().has_value());
+  EXPECT_FALSE(sock.get_bound_port().has_value());
 }
 
 /// Test bindx with an empty address list (should succeed/skip). TO-DO: Should this be allowed?!

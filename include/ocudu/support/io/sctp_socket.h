@@ -70,11 +70,9 @@ public:
   [[nodiscard]] bool listen();
   [[nodiscard]] bool set_non_blocking();
 
-  /// \brief Return the port on which the socket is listening.
-  ///
-  /// In case the gateway was configured to listen on port 0, i.e. the operating system shall pick a random free port,
-  /// this function can be used to get the actual port number.
-  std::optional<uint16_t> get_listen_port() const;
+  /// \brief Return the local port the socket is bound to (0 if not yet bound, std::nullopt if socket closed).
+  /// This can be used to check if socket is bound and to get the port number if dynamic port number was used.
+  std::optional<uint16_t> get_bound_port() const;
 
 private:
   bool set_sockopts(const sctp_socket_params& params);

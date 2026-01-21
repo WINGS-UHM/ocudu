@@ -61,7 +61,7 @@ public:
     report_fatal_error_if_not(socket.bindx({addr_storage}, ""), "Failed to bind server socket");
     report_fatal_error_if_not(socket.listen(), "Failed to listen to new connections");
     report_fatal_error_if_not(socket.set_non_blocking(), "Failed to set as non-blocking");
-    bind_port = socket.get_listen_port().value();
+    bind_port = socket.get_bound_port().value();
   }
 
   const std::string address   = "127.0.0.1";

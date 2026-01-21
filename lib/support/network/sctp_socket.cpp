@@ -462,6 +462,13 @@ bool sctp_socket::listen()
     logger.error("{}: Failed to listen for new SCTP connections. Cause: socket is closed", if_name);
     return false;
   }
+
+  auto port = get_bound_port();
+  if (not port.has_value() || port.value() == 0) {
+    logger.error("{}: Failed to listen for new SCTP connections. Cause: server needs to be bound to a port", if_name);
+    return false;
+  }
+
   // Listen for connections
   int ret = ::listen(sock_fd.value(), SOMAXCONN);
   if (ret != 0) {
@@ -470,8 +477,7 @@ bool sctp_socket::listen()
   }
   if (logger.info.enabled()) {
     // Note: avoid computing the listen_port if log channel is disabled.
-    uint16_t port = get_listen_port().value();
-    logger.info("{}: Listening for new SCTP connections on port {}...", if_name, port);
+    logger.info("{}: Listening for new SCTP connections on port {}...", if_name, port.value());
   }
   return true;
 }
@@ -539,7 +545,7 @@ bool sctp_socket::set_sockopts(const sctp_socket_params& params)
   return true;
 }
 
-std::optional<uint16_t> sctp_socket::get_listen_port() const
+std::optional<uint16_t> sctp_socket::get_bound_port() const
 {
   if (not sock_fd.is_open()) {
     logger.error("Socket of SCTP network gateway not created.");
@@ -559,11 +565,11 @@ std::optional<uint16_t> sctp_socket::get_listen_port() const
     return {};
   }
 
-  uint16_t gw_listen_port;
+  uint16_t gw_bound_port;
   if (gw_addr->sa_family == AF_INET) {
-    gw_listen_port = ntohs(((sockaddr_in*)gw_addr)->sin_port);
+    gw_bound_port = ntohs(((sockaddr_in*)gw_addr)->sin_port);
   } else if (gw_addr->sa_family == AF_INET6) {
-    gw_listen_port = ntohs(((sockaddr_in6*)gw_addr)->sin6_port);
+    gw_bound_port = ntohs(((sockaddr_in6*)gw_addr)->sin6_port);
   } else {
     logger.error("{}: Unhandled address family in SCTP network gateway with sock_fd={} family={}",
                  if_name,
@@ -572,5 +578,5 @@ std::optional<uint16_t> sctp_socket::get_listen_port() const
     return {};
   }
 
-  return gw_listen_port;
+  return gw_bound_port;
 }

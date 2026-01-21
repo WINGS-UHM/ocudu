@@ -360,7 +360,7 @@ bool sctp_network_server_impl::listen()
 
 std::optional<uint16_t> sctp_network_server_impl::get_listen_port()
 {
-  return socket.get_listen_port();
+  return socket.get_bound_port();
 }
 
 bool sctp_network_server_impl::subscribe_to_broker()

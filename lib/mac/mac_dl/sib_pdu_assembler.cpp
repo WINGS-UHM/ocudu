@@ -163,14 +163,14 @@ sib_pdu_assembler::sib_pdu_assembler(const mac_cell_sys_info_config& req) :
   // Version starts at 0.
   last_cfg_buffers.version = 0;
   save_buffers(0, req);
-  // No need to go through pendign buffer, yet, as there are no race conditions at this point.
+  // No need to go through pending buffer yet, as there are no race conditions at this point.
   current_buffers = last_cfg_buffers;
 
   // Create SI message extension handler if needed.
   message_ext_handler = create_si_message_extension_handler(req);
 }
 
-sib_pdu_assembler::~sib_pdu_assembler() {}
+sib_pdu_assembler::~sib_pdu_assembler() = default;
 
 void sib_pdu_assembler::handle_si_change_request(const mac_cell_sys_info_config& req)
 {

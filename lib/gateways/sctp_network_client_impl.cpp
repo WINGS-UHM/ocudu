@@ -221,32 +221,32 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
     }
   }
 
-  bool connection_success = socket.connectx(resolved_addrs);
-  if (not connection_success) {
-    // Connection failed, make sure the just created socket is deleted.
+  sctp_assoc_t assoc_id           = 0;
+  bool         connection_success = socket.connectx(resolved_addrs, assoc_id);
+
+  if (not connection_success or assoc_id == 0) {
     if (not reuse_socket) {
+      // Connection failed, make sure the just created socket is deleted.
       socket.close();
     }
-  }
 
-  if (not connection_success) {
     auto        end    = std::chrono::steady_clock::now();
     auto        now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::string cause  = ::strerror(errno);
     if (errno == 0) {
       cause = "IO broker could not register socket";
     }
-    fmt::print("{}: Failed to connect to {} on {}:{}. error=\"{}\" timeout={}ms\n",
+    fmt::print("{}: Failed to connect to {} on [{}]:{}. error=\"{}\" timeout={}ms\n",
                node_cfg.if_name,
                client_cfg.dest_name,
-               client_cfg.connect_addresses[0],
+               fmt::join(client_cfg.connect_addresses, ", "),
                client_cfg.connect_port,
                cause,
                now_ms.count());
-    logger.error("{}: Failed to connect to {} on {}:{}. error=\"{}\" timeout={}ms",
+    logger.error("{}: Failed to connect to {} on [{}]:{}. error=\"{}\" timeout={}ms",
                  node_cfg.if_name,
                  client_cfg.dest_name,
-                 client_cfg.connect_addresses[0],
+                 fmt::join(client_cfg.connect_addresses, ", "),
                  client_cfg.connect_port,
                  cause,
                  now_ms.count());
@@ -256,17 +256,59 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
   // Create objects representing state of the client.
   recv_handler = std::move(recv_handler_);
 
-  // Use the first resolved destination address as the peer address.
-  // TO-DO: this should use sctp_getpaddrs to get the actual connected address?
-  const sockaddr_storage& peer_storage = resolved_addrs[0];
-  sa_family_t             family       = reinterpret_cast<const sockaddr*>(&peer_storage)->sa_family;
-  socklen_t               peer_len     = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
-  auto addr = transport_layer_address::create_from_sockaddr(reinterpret_cast<const sockaddr&>(peer_storage), peer_len);
+  // Determine actual connected peer addresses via sctp_getpaddrs.
+  std::vector<transport_layer_address> peer_addrs;
+  struct sockaddr*                     paddrs = nullptr;
+
+  int paddr_count = ::sctp_getpaddrs(socket.fd().value(), assoc_id, &paddrs);
+  if (paddr_count > 0 && paddrs != nullptr) {
+    const sockaddr* current = paddrs;
+    for (int i = 0; i < paddr_count; ++i) {
+      if (current->sa_family != AF_INET && current->sa_family != AF_INET6) {
+        break;
+      }
+      socklen_t peer_len = (current->sa_family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+      peer_addrs.push_back(transport_layer_address::create_from_sockaddr(*current, peer_len));
+      current = reinterpret_cast<const sockaddr*>(reinterpret_cast<const uint8_t*>(current) + peer_len);
+    }
+    ::sctp_freepaddrs(paddrs);
+  }
+
+  if (peer_addrs.empty()) {
+    fmt::print("{}: Failed to connect to {} on [{}]:{}. Failed to get peer addresses.\n",
+               node_cfg.if_name,
+               client_cfg.dest_name,
+               fmt::join(client_cfg.connect_addresses, ", "),
+               client_cfg.connect_port);
+    logger.error("{}: Failed to connect to {} on [{}]:{}. Failed to get peer addresses.",
+                 node_cfg.if_name,
+                 client_cfg.dest_name,
+                 fmt::join(client_cfg.connect_addresses, ", "),
+                 client_cfg.connect_port);
+    return nullptr;
+  }
+
   {
     // Save server address and create a shutdown context flag.
     std::unique_lock<std::mutex> lock(connection_mutex);
-    server_addr       = addr;
+    server_addr       = peer_addrs[0];
     shutdown_received = std::make_shared<std::atomic<bool>>(false);
+  }
+
+  // Log configured and established addresses.
+  {
+    std::vector<std::string> established_addrs;
+    established_addrs.reserve(peer_addrs.size());
+    for (const auto& peer_addr : peer_addrs) {
+      established_addrs.push_back(peer_addr.to_string());
+    }
+
+    logger.info("{}: SCTP connection to {} established. Configured: [{}]:{}, established: [{}]",
+                node_cfg.if_name,
+                client_cfg.dest_name,
+                fmt::join(client_cfg.connect_addresses, ", "),
+                client_cfg.connect_port,
+                fmt::join(established_addrs, ", "));
   }
 
   // Register the socket in the IO broker.
@@ -293,13 +335,7 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
     return nullptr;
   }
 
-  logger.info("{}: SCTP connection to {} on {}:{} was established",
-              node_cfg.if_name,
-              client_cfg.dest_name,
-              client_cfg.connect_addresses[0],
-              client_cfg.connect_port);
-
-  return std::make_unique<sctp_send_notifier>(*this, addr);
+  return std::make_unique<sctp_send_notifier>(*this, peer_addrs[0]);
 }
 
 void sctp_network_client_impl::receive()

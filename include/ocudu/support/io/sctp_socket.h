@@ -16,6 +16,8 @@
 #include "fmt/std.h"
 #include <chrono>
 #include <cstdint>
+#include <netinet/in.h>
+#include <netinet/sctp.h>
 #include <sys/socket.h>
 
 namespace ocudu {
@@ -61,7 +63,9 @@ public:
   /// \brief Bind to one or many addresses using sctp_bindx(). If binding to one address, interface can be specified.
   [[nodiscard]] bool bindx(const std::vector<sockaddr_storage>& addrs, const std::string& bind_interface);
   /// \brief Connect to one or many addresses using sctp_connectx().
-  [[nodiscard]] bool connectx(const std::vector<sockaddr_storage>& addrs);
+  /// \param addrs List of addresses to connect to.
+  /// \param assoc_id Reference to receive the association ID returned by sctp_connectx.
+  [[nodiscard]] bool connectx(const std::vector<sockaddr_storage>& addrs, sctp_assoc_t& assoc_id);
   /// \brief Start listening on socket.
   [[nodiscard]] bool listen();
   [[nodiscard]] bool set_non_blocking();

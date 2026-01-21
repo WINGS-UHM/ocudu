@@ -390,7 +390,7 @@ bool sctp_socket::bindx(const std::vector<sockaddr_storage>& addrs, const std::s
   return true;
 }
 
-bool sctp_socket::connectx(const std::vector<sockaddr_storage>& addrs)
+bool sctp_socket::connectx(const std::vector<sockaddr_storage>& addrs, sctp_assoc_t& assoc_id)
 {
   if (addrs.empty()) {
     logger.error("{}: Failed to connect with sctp_connectx(). Cause: can't connect with empty address list", if_name);
@@ -430,8 +430,7 @@ bool sctp_socket::connectx(const std::vector<sockaddr_storage>& addrs)
     offset += addr_size;
   }
 
-  sctp_assoc_t assoc_id = 0;
-  int          result =
+  int result =
       sctp_connectx(sock_fd.value(), reinterpret_cast<sockaddr*>(packed_addrs.data()), addrs.size(), &assoc_id);
 
   if (result < 0) {
@@ -444,7 +443,10 @@ bool sctp_socket::connectx(const std::vector<sockaddr_storage>& addrs)
 
   logger.info("{}: Successfully connected to {} address(es) using sctp_connectx()", if_name, addrs.size());
 
-  // Set socket to non-blocking after connect is established.
+  // Set socket to non-blocking after sctp_connectx() finishes.
+  // TODO: for more than one client association per socket we will need to do sctp_connectx() in a non-blocking way:
+  // - handle EINPROGRESS,
+  // - wait for SCTP_ASSOC_CHANGE/SCTP_COMM_UP event.
   if (non_blocking_mode) {
     if (not set_non_blocking()) {
       return false;

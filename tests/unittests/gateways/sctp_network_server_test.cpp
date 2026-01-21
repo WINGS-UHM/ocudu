@@ -103,7 +103,8 @@ public:
     addr->sin_family              = AF_INET;
     addr->sin_port                = htons(server_port);
     addr->sin_addr.s_addr         = ::inet_addr(server_addr.c_str());
-    if (not socket.connectx({addr_storage})) {
+    sctp_assoc_t assoc_id         = 0;
+    if (not socket.connectx({addr_storage}, assoc_id)) {
       socket.close();
       return false;
     }

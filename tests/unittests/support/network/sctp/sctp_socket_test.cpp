@@ -413,8 +413,9 @@ TEST_F(sctp_socket_test, connectx_fails_on_closed_socket)
   sock.close();
 
   sockaddr_storage addr_storage = create_ipv4_loopback_addr(12345);
+  sctp_assoc_t     assoc_id     = 0;
 
-  EXPECT_FALSE(sock.connectx({addr_storage}));
+  EXPECT_FALSE(sock.connectx({addr_storage}, assoc_id));
 }
 
 /// Test connectx fails with an empty address list.
@@ -428,7 +429,8 @@ TEST_F(sctp_socket_test, connectx_fails_with_empty_list)
   sctp_socket& sock = result.value();
 
   std::vector<sockaddr_storage> addrs;
-  EXPECT_FALSE(sock.connectx(addrs));
+  sctp_assoc_t                  assoc_id = 0;
+  EXPECT_FALSE(sock.connectx(addrs, assoc_id));
 }
 
 /// TO-DO:

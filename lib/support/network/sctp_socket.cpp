@@ -298,8 +298,9 @@ expected<sctp_socket> sctp_socket::create(const sctp_socket_params& params)
 
 sctp_socket& sctp_socket::operator=(sctp_socket&& other) noexcept
 {
-  sock_fd = std::move(other.sock_fd);
-  if_name = std::move(other.if_name);
+  sock_fd           = std::move(other.sock_fd);
+  if_name           = std::move(other.if_name);
+  non_blocking_mode = other.non_blocking_mode;
   return *this;
 }
 

@@ -36,18 +36,19 @@ protected:
     return params;
   }
 
-  /// Create an IPv4 loopback address with the given port
-  static sockaddr_storage create_ipv4_loopback_addr(uint16_t port)
+  /// Create an IPv4 loopback address with the given port and offset (127.0.0.x)
+  static sockaddr_storage create_ipv4_loopback_addr(uint16_t port, uint8_t offset = 1)
   {
     sockaddr_storage addr_storage = {};
     auto*            addr_in      = reinterpret_cast<sockaddr_in*>(&addr_storage);
     addr_in->sin_family           = AF_INET;
     addr_in->sin_port             = htons(port);
-    addr_in->sin_addr.s_addr      = htonl(INADDR_LOOPBACK);
+    // 127.0.0.x where x is the offset (defaults to 1 for standard loopback)
+    addr_in->sin_addr.s_addr = htonl((127 << 24) | offset);
     return addr_storage;
   }
 
-  /// Create an IPv6 loopback address with the given port
+  /// Create an IPv6 loopback address (::1) with the given port.
   static sockaddr_storage create_ipv6_loopback_addr(uint16_t port)
   {
     sockaddr_storage addr_storage = {};
@@ -98,6 +99,91 @@ protected:
     EXPECT_EQ(std::memcmp(&sin6->sin6_addr, &expected_addr, sizeof(expected_addr)), 0);
 
     sctp_freeladdrs(addrs);
+  }
+
+  /// Verify multiple bound addresses using sctp_getladdrs.
+  static void verify_multiple_bound_addresses(int                     fd,
+                                              std::optional<uint16_t> expected_port,
+                                              int                     expected_ipv4_count,
+                                              int                     expected_ipv6_count)
+  {
+    sockaddr* addrs = nullptr;
+    int       count = sctp_getladdrs(fd, 0, &addrs);
+    ASSERT_GT(count, 0) << "Expected at least one bound address";
+
+    // Count addresses by family using offset-based parsing
+    int    ipv4_count = 0;
+    int    ipv6_count = 0;
+    size_t offset     = 0;
+
+    // Verify port for all addresses if specified
+    for (int i = 0; i < count; ++i) {
+      sockaddr* current = reinterpret_cast<sockaddr*>(reinterpret_cast<char*>(addrs) + offset);
+      if (current->sa_family == AF_INET) {
+        ipv4_count++;
+        auto* sin = reinterpret_cast<sockaddr_in*>(current);
+        if (expected_port.has_value()) {
+          EXPECT_EQ(ntohs(sin->sin_port), expected_port.value());
+        }
+      } else if (current->sa_family == AF_INET6) {
+        ipv6_count++;
+        auto* sin6 = reinterpret_cast<sockaddr_in6*>(current);
+        if (expected_port.has_value()) {
+          EXPECT_EQ(ntohs(sin6->sin6_port), expected_port.value());
+        }
+      }
+      size_t addr_size = (current->sa_family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+      offset += addr_size;
+    }
+
+    // Check exact address counts
+    EXPECT_EQ(ipv4_count, expected_ipv4_count);
+    EXPECT_EQ(ipv6_count, expected_ipv6_count);
+
+    sctp_freeladdrs(addrs);
+  }
+
+  /// Verify multiple peer addresses using sctp_getpaddrs.
+  static void verify_multiple_peer_addresses(int                     fd,
+                                             sctp_assoc_t            assoc_id,
+                                             std::optional<uint16_t> expected_port,
+                                             int                     expected_ipv4_count,
+                                             int                     expected_ipv6_count)
+  {
+    sockaddr* addrs = nullptr;
+    int       count = sctp_getpaddrs(fd, assoc_id, &addrs);
+    ASSERT_GT(count, 0) << "Expected at least one peer address";
+
+    // Count addresses by family using offset-based parsing
+    int    ipv4_count = 0;
+    int    ipv6_count = 0;
+    size_t offset     = 0;
+
+    // Verify port for all addresses if specified
+    for (int i = 0; i < count; ++i) {
+      sockaddr* current = reinterpret_cast<sockaddr*>(reinterpret_cast<char*>(addrs) + offset);
+      if (current->sa_family == AF_INET) {
+        ipv4_count++;
+        auto* sin = reinterpret_cast<sockaddr_in*>(current);
+        if (expected_port.has_value()) {
+          EXPECT_EQ(ntohs(sin->sin_port), expected_port.value());
+        }
+      } else if (current->sa_family == AF_INET6) {
+        ipv6_count++;
+        auto* sin6 = reinterpret_cast<sockaddr_in6*>(current);
+        if (expected_port.has_value()) {
+          EXPECT_EQ(ntohs(sin6->sin6_port), expected_port.value());
+        }
+      }
+      size_t addr_size = (current->sa_family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+      offset += addr_size;
+    }
+
+    // Check exact address counts
+    EXPECT_EQ(ipv4_count, expected_ipv4_count);
+    EXPECT_EQ(ipv6_count, expected_ipv6_count);
+
+    sctp_freepaddrs(addrs);
   }
 };
 
@@ -433,6 +519,235 @@ TEST_F(sctp_socket_test, connectx_fails_with_empty_list)
   EXPECT_FALSE(sock.connectx(addrs, assoc_id));
 }
 
-/// TO-DO:
-/// Tests for sctp_connectx() and bindx() with multiple addresses are needed, but this is not possible as long as we are
-/// limited to localhost in unittests.
+/// Test bindx with multiple IPv4 loopback addresses.
+TEST_F(sctp_socket_test, bindx_with_multiple_ipv4_addresses)
+{
+  sctp_socket_params params = create_default_params();
+  params.reuse_addr         = true;
+
+  auto result = sctp_socket::create(params);
+  ASSERT_TRUE(result.has_value());
+
+  sctp_socket& sock = result.value();
+
+  std::vector<sockaddr_storage> addrs;
+  addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  addrs.push_back(create_ipv4_loopback_addr(0, 2)); // 127.0.0.2
+  addrs.push_back(create_ipv4_loopback_addr(0, 3)); // 127.0.0.3
+
+  EXPECT_TRUE(sock.bindx(addrs, ""));
+
+  // Verify socket is bound and has a port assigned
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_GT(sock.get_bound_port().value(), 0);
+
+  // Verify all 3 IPv4 addresses are bound
+  verify_multiple_bound_addresses(sock.fd().value(), std::nullopt, 3, 0);
+}
+
+// Note: bindx with multiple IPv6 addresses is not tested here because it would require
+// system configuration (e.g., ULA addresses fd00::1, fd00::2, etc. must be added to the system).
+// IPv6 is tested with single ::1 address and in mixed IPv4+IPv6 scenarios below.
+
+/// Test bindx with mixed IPv4 and IPv6 addresses.
+TEST_F(sctp_socket_test, bindx_with_mixed_ipv4_and_ipv6_addresses)
+{
+  sctp_socket_params params = create_default_params();
+  params.ai_family          = AF_INET6;
+  params.reuse_addr         = true;
+
+  auto result = sctp_socket::create(params);
+  ASSERT_TRUE(result.has_value());
+
+  sctp_socket& sock = result.value();
+
+  std::vector<sockaddr_storage> addrs;
+  addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  addrs.push_back(create_ipv6_loopback_addr(0));    // ::1
+  addrs.push_back(create_ipv4_loopback_addr(0, 2)); // 127.0.0.2
+
+  EXPECT_TRUE(sock.bindx(addrs, ""));
+
+  // Verify socket is bound and has a port assigned
+  ASSERT_TRUE(sock.get_bound_port().has_value());
+  EXPECT_GT(sock.get_bound_port().value(), 0);
+
+  // Verify all 3 addresses are bound (2 IPv4 + 1 IPv6)
+  // Note: IPv6 socket converts IPv4 addresses to IPv4-mapped IPv6 addresses
+  verify_multiple_bound_addresses(sock.fd().value(), std::nullopt, 0, 3);
+
+  sock.close();
+}
+
+/// Test connectx with multiple IPv4 loopback addresses.
+TEST_F(sctp_socket_test, connectx_with_multiple_ipv4_addresses)
+{
+  // Create and bind server socket
+  sctp_socket_params server_params = create_default_params();
+  server_params.reuse_addr         = true;
+
+  auto server_result = sctp_socket::create(server_params);
+  ASSERT_TRUE(server_result.has_value());
+
+  sctp_socket& server_sock = server_result.value();
+
+  std::vector<sockaddr_storage> server_addrs;
+  server_addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  server_addrs.push_back(create_ipv4_loopback_addr(0, 2)); // 127.0.0.2
+
+  ASSERT_TRUE(server_sock.bindx(server_addrs, ""));
+  ASSERT_TRUE(server_sock.listen());
+
+  uint16_t server_port = server_sock.get_bound_port().value();
+
+  // Create client socket
+  sctp_socket_params client_params = create_default_params();
+  auto               client_result = sctp_socket::create(client_params);
+  ASSERT_TRUE(client_result.has_value());
+
+  sctp_socket& client_sock = client_result.value();
+
+  std::vector<sockaddr_storage> client_addrs;
+  client_addrs.push_back(create_ipv4_loopback_addr(server_port, 1)); // 127.0.0.1
+  client_addrs.push_back(create_ipv4_loopback_addr(server_port, 2)); // 127.0.0.2
+
+  sctp_assoc_t assoc_id = 0;
+  EXPECT_TRUE(client_sock.connectx(client_addrs, assoc_id));
+  EXPECT_GT(assoc_id, 0);
+
+  // Verify server's 2 IPv4 peer addresses are visible to client
+  verify_multiple_peer_addresses(client_sock.fd().value(), assoc_id, server_port, 2, 0);
+
+  // Verify client is bound to different addresses than server
+  ASSERT_TRUE(client_sock.get_bound_port().has_value());
+  uint16_t client_port = client_sock.get_bound_port().value();
+  EXPECT_NE(client_port, server_port);
+
+  client_sock.close();
+  server_sock.close();
+}
+
+// Note: connectx with multiple IPv6 addresses is not tested here because it would require
+// system configuration (e.g., ULA addresses fd00::1, fd00::2, etc. must be added to the system).
+// IPv6 is tested with single ::1 address and in mixed IPv4+IPv6 scenarios below.
+
+/// Test connectx with mixed IPv4 and IPv6 addresses.
+TEST_F(sctp_socket_test, connectx_with_mixed_ipv4_and_ipv6_addresses)
+{
+  // Create and bind server socket
+  sctp_socket_params server_params = create_default_params();
+  server_params.ai_family          = AF_INET6;
+  server_params.reuse_addr         = true;
+
+  auto server_result = sctp_socket::create(server_params);
+  ASSERT_TRUE(server_result.has_value());
+
+  sctp_socket& server_sock = server_result.value();
+
+  std::vector<sockaddr_storage> server_addrs;
+  server_addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  server_addrs.push_back(create_ipv6_loopback_addr(0));    // ::1
+
+  ASSERT_TRUE(server_sock.bindx(server_addrs, ""));
+  ASSERT_TRUE(server_sock.listen());
+
+  uint16_t server_port = server_sock.get_bound_port().value();
+
+  // Create client socket
+  sctp_socket_params client_params = create_default_params();
+  client_params.ai_family          = AF_INET6;
+  auto client_result               = sctp_socket::create(client_params);
+  ASSERT_TRUE(client_result.has_value());
+
+  sctp_socket& client_sock = client_result.value();
+
+  // Explicitly bind client to specific addresses before connecting
+  std::vector<sockaddr_storage> client_bind_addrs;
+  client_bind_addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  client_bind_addrs.push_back(create_ipv6_loopback_addr(0));    // ::1
+  ASSERT_TRUE(client_sock.bindx(client_bind_addrs, ""));
+
+  std::vector<sockaddr_storage> client_addrs;
+  client_addrs.push_back(create_ipv4_loopback_addr(server_port, 1)); // 127.0.0.1
+  client_addrs.push_back(create_ipv6_loopback_addr(server_port));    // ::1
+
+  sctp_assoc_t assoc_id = 0;
+  EXPECT_TRUE(client_sock.connectx(client_addrs, assoc_id));
+  EXPECT_GT(assoc_id, 0);
+
+  // Verify server's 2 peer addresses (1 IPv4 + 1 IPv6) are visible to client
+  // Note: When connecting to an IPv6 socket, IPv4 addresses become IPv4-mapped IPv6
+  verify_multiple_peer_addresses(client_sock.fd().value(), assoc_id, server_port, 0, 2);
+
+  // Verify client is bound to different addresses than server
+  ASSERT_TRUE(client_sock.get_bound_port().has_value());
+  uint16_t client_port = client_sock.get_bound_port().value();
+  EXPECT_NE(client_port, server_port);
+
+  // Verify client's 2 bound addresses (mixed IPv4 and IPv6)
+  // Note: IPv6 socket converts IPv4 addresses to IPv4-mapped IPv6 addresses
+  verify_multiple_bound_addresses(client_sock.fd().value(), std::nullopt, 0, 2);
+
+  client_sock.close();
+  server_sock.close();
+}
+
+/// Test connectx with different number of addresses on server and client.
+TEST_F(sctp_socket_test, connectx_with_different_address_counts)
+{
+  // Create and bind server socket with 2 addresses
+  sctp_socket_params server_params = create_default_params();
+  server_params.reuse_addr         = true;
+
+  auto server_result = sctp_socket::create(server_params);
+  ASSERT_TRUE(server_result.has_value());
+
+  sctp_socket& server_sock = server_result.value();
+
+  std::vector<sockaddr_storage> server_addrs;
+  server_addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  server_addrs.push_back(create_ipv4_loopback_addr(0, 2)); // 127.0.0.2
+
+  ASSERT_TRUE(server_sock.bindx(server_addrs, ""));
+  ASSERT_TRUE(server_sock.listen());
+
+  uint16_t server_port = server_sock.get_bound_port().value();
+
+  // Create client socket with 3 addresses
+  sctp_socket_params client_params = create_default_params();
+  auto               client_result = sctp_socket::create(client_params);
+  ASSERT_TRUE(client_result.has_value());
+
+  sctp_socket& client_sock = client_result.value();
+
+  // Explicitly bind client to specific addresses before connecting
+  std::vector<sockaddr_storage> client_bind_addrs;
+  client_bind_addrs.push_back(create_ipv4_loopback_addr(0, 1)); // 127.0.0.1
+  client_bind_addrs.push_back(create_ipv4_loopback_addr(0, 2)); // 127.0.0.2
+  client_bind_addrs.push_back(create_ipv4_loopback_addr(0, 3)); // 127.0.0.3
+  ASSERT_TRUE(client_sock.bindx(client_bind_addrs, ""));
+
+  std::vector<sockaddr_storage> client_addrs;
+  client_addrs.push_back(create_ipv4_loopback_addr(server_port, 1)); // 127.0.0.1
+  client_addrs.push_back(create_ipv4_loopback_addr(server_port, 2)); // 127.0.0.2
+  client_addrs.push_back(create_ipv4_loopback_addr(server_port, 3)); // 127.0.0.3
+
+  sctp_assoc_t assoc_id = 0;
+  // connectx should succeed even with different address counts
+  EXPECT_TRUE(client_sock.connectx(client_addrs, assoc_id));
+  EXPECT_GT(assoc_id, 0);
+
+  // Server has 2 IPv4 addresses, verify peer addresses
+  verify_multiple_peer_addresses(client_sock.fd().value(), assoc_id, server_port, 2, 0);
+
+  // Verify client is bound to different addresses than server
+  ASSERT_TRUE(client_sock.get_bound_port().has_value());
+  uint16_t client_port = client_sock.get_bound_port().value();
+  EXPECT_NE(client_port, server_port);
+
+  // Client bound to 3 IPv4 addresses
+  verify_multiple_bound_addresses(client_sock.fd().value(), client_port, 3, 0);
+
+  client_sock.close();
+  server_sock.close();
+}

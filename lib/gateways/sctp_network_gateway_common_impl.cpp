@@ -18,6 +18,117 @@
 
 using namespace ocudu;
 
+template <>
+struct fmt::formatter<sctp_sac_state> : fmt::formatter<std::string_view> {
+  auto format(sctp_sac_state v, fmt::format_context& ctx) const
+  {
+    std::string_view name = "UNKNOWN";
+    switch (v) {
+      case SCTP_COMM_UP:
+        name = "SCTP_COMM_UP";
+        break;
+      case SCTP_COMM_LOST:
+        name = "SCTP_COMM_LOST";
+        break;
+      case SCTP_RESTART:
+        name = "SCTP_RESTART";
+        break;
+      case SCTP_SHUTDOWN_COMP:
+        name = "SCTP_SHUTDOWN_COMP";
+        break;
+      case SCTP_CANT_STR_ASSOC:
+        name = "SCTP_CANT_STR_ASSOC";
+        break;
+    }
+    return fmt::formatter<std::string_view>::format(name, ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<sctp_sn_error> : fmt::formatter<std::string_view> {
+  auto format(sctp_sn_error v, fmt::format_context& ctx) const
+  {
+    std::string_view name = "UNKNOWN";
+    switch (v) {
+      case SCTP_FAILED_THRESHOLD:
+        name = "SCTP_FAILED_THRESHOLD";
+        break;
+      case SCTP_RECEIVED_SACK:
+        name = "SCTP_RECEIVED_SACK";
+        break;
+      case SCTP_HEARTBEAT_SUCCESS:
+        name = "SCTP_HEARTBEAT_SUCCESS";
+        break;
+      case SCTP_RESPONSE_TO_USER_REQ:
+        name = "SCTP_RESPONSE_TO_USER_REQ";
+        break;
+      case SCTP_INTERNAL_ERROR:
+        name = "SCTP_INTERNAL_ERROR";
+        break;
+      case SCTP_SHUTDOWN_GUARD_EXPIRES:
+        name = "SCTP_SHUTDOWN_GUARD_EXPIRES";
+        break;
+      case SCTP_PEER_FAULTY:
+        name = "SCTP_PEER_FAULTY";
+        break;
+    }
+    return fmt::formatter<std::string_view>::format(name, ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<sctp_sn_type> : fmt::formatter<std::string_view> {
+  auto format(sctp_sn_type v, fmt::format_context& ctx) const
+  {
+    std::string_view name = "UNKNOWN";
+    switch (v) {
+      case SCTP_DATA_IO_EVENT:
+        name = "SCTP_DATA_IO_EVENT";
+        break;
+      case SCTP_ASSOC_CHANGE:
+        name = "SCTP_ASSOC_CHANGE";
+        break;
+      case SCTP_PEER_ADDR_CHANGE:
+        name = "SCTP_PEER_ADDR_CHANGE";
+        break;
+      case SCTP_SEND_FAILED:
+        name = "SCTP_SEND_FAILED";
+        break;
+      case SCTP_REMOTE_ERROR:
+        name = "SCTP_REMOTE_ERROR";
+        break;
+      case SCTP_SHUTDOWN_EVENT:
+        name = "SCTP_SHUTDOWN_EVENT";
+        break;
+      case SCTP_PARTIAL_DELIVERY_EVENT:
+        name = "SCTP_PARTIAL_DELIVERY_EVENT";
+        break;
+      case SCTP_ADAPTATION_INDICATION:
+        name = "SCTP_ADAPTATION_INDICATION";
+        break;
+      case SCTP_AUTHENTICATION_EVENT:
+        name = "SCTP_AUTHENTICATION_EVENT";
+        break;
+      case SCTP_SENDER_DRY_EVENT:
+        name = "SCTP_SENDER_DRY_EVENT";
+        break;
+      case SCTP_STREAM_RESET_EVENT:
+        name = "SCTP_STREAM_RESET_EVENT";
+        break;
+      case SCTP_ASSOC_RESET_EVENT:
+        name = "SCTP_ASSOC_RESET_EVENT";
+        break;
+      case SCTP_STREAM_CHANGE_EVENT:
+        name = "SCTP_STREAM_CHANGE_EVENT";
+        break;
+      case SCTP_SEND_FAILED_EVENT:
+        name = "SCTP_SEND_FAILED_EVENT";
+        break;
+    }
+    return fmt::formatter<std::string_view>::format(name, ctx);
+  }
+};
+
 sockaddr_searcher::sockaddr_searcher(const std::string& address, int port, ocudulog::basic_logger& logger)
 {
   struct addrinfo hints {};
@@ -153,31 +264,12 @@ bool sctp_network_gateway_common_impl::create_and_bind_common()
   return true;
 }
 
-static const char* sctp_assoc_change_name(sctp_sac_state state)
-{
-  switch (state) {
-    case SCTP_COMM_UP:
-      return "SCTP_COMM_UP";
-    case SCTP_COMM_LOST:
-      return "SCTP_COMM_LOST";
-    case SCTP_RESTART:
-      return "SCTP_RESTART";
-    case SCTP_SHUTDOWN_COMP:
-      return "SCTP_SHUTDOWN_COMP";
-    case SCTP_CANT_STR_ASSOC:
-      return "SCTP_CANT_STR_ASSOC";
-    default:
-      break;
-  }
-  return "UNKNOWN";
-}
-
 bool sctp_network_gateway_common_impl::validate_and_log_sctp_notification(span<const uint8_t> payload) const
 {
   const auto* notif             = reinterpret_cast<const union sctp_notification*>(payload.data());
   uint32_t    notif_header_size = sizeof(notif->sn_header);
   if (notif_header_size > payload.size_bytes()) {
-    logger.error("{}: SCTP Notification msg size ({} B) is smaller than notification header size ({} B)",
+    logger.error("{}: Received SCTP notification size ({} B) is smaller than required notification header size ({} B)",
                  node_cfg.if_name,
                  payload.size_bytes(),
                  notif_header_size);
@@ -187,34 +279,37 @@ bool sctp_network_gateway_common_impl::validate_and_log_sctp_notification(span<c
   switch (notif->sn_header.sn_type) {
     case SCTP_ASSOC_CHANGE: {
       if (sizeof(struct sctp_assoc_change) > payload.size_bytes()) {
-        logger.error("{}: Notification msg size ({} B) is smaller than struct sctp_assoc_change size ({} B)",
+        logger.error("{}: Received SCTP notification SCTP_ASSOC_CHANGE size ({} B) is smaller than required struct "
+                     "sctp_assoc_change size ({} B)",
                      node_cfg.if_name,
                      payload.size_bytes(),
                      sizeof(struct sctp_assoc_change));
         return false;
       }
 
-      const struct sctp_assoc_change* n     = &notif->sn_assoc_change;
-      const char*                     state = sctp_assoc_change_name(static_cast<sctp_sac_state>(n->sac_state));
-      logger.debug("{}: Rx SCTP_ASSOC_CHANGE: state={} error={} outbound_streams={} inbound_streams={} assoc={}",
+      const struct sctp_assoc_change* n = &notif->sn_assoc_change;
+      logger.debug("{}: Rx SCTP_ASSOC_CHANGE: sac_state={} sac_error={} sac_assoc_id={}",
                    node_cfg.if_name,
-                   state,
-                   n->sac_error,
-                   n->sac_outbound_streams,
-                   n->sac_inbound_streams,
+                   static_cast<sctp_sac_state>(n->sac_state),
+                   static_cast<sctp_sn_error>(n->sac_error),
                    n->sac_assoc_id);
     } break;
     case SCTP_SHUTDOWN_EVENT: {
       if (sizeof(struct sctp_shutdown_event) > payload.size_bytes()) {
-        logger.error("{}: Error notification msg size is smaller than struct sctp_shutdown_event size",
-                     node_cfg.if_name);
+        logger.error("{}: Received SCTP notification SHUTDOWN_EVENT payload ({} B) is smaller than required struct "
+                     "sctp_shutdown_event size ({} B)",
+                     node_cfg.if_name,
+                     payload.size_bytes(),
+                     sizeof(struct sctp_shutdown_event));
         return false;
       }
       const struct sctp_shutdown_event* n = &notif->sn_shutdown_event;
       logger.debug("{}: Rx SCTP_SHUTDOWN_EVENT: assoc={}", node_cfg.if_name, n->sse_assoc_id);
     } break;
     default:
-      logger.warning("{}: Unhandled notification type {}", node_cfg.if_name, notif->sn_header.sn_type);
+      logger.warning("{}: Received SCTP notification of type {} was not handled, ignoring",
+                     node_cfg.if_name,
+                     static_cast<sctp_sn_type>(notif->sn_header.sn_type));
       return false;
   }
 

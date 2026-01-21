@@ -280,6 +280,17 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool send_ue_context_setup_failure_and_await_ngap_ue_context_release_request()
+  {
+    // Inject UE Context Setup Failure and wait for NGAP UE Context Release Request.
+    get_du(du_idx).push_ul_pdu(test_helpers::generate_ue_context_setup_failure(ue_ctx->cu_ue_id.value(), du_ue_id_2));
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu),
+                              "Failed to receive NGAP UE Context Release Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_request(ngap_pdu),
+                              "Invalid NGAP UE Context Release Request");
+    return true;
+  }
+
   [[nodiscard]] bool send_ue_context_setup_response_and_await_bearer_context_modification_request()
   {
     // Inject UE Context Setup Response and wait for Bearer Context Modification Request.
@@ -303,6 +314,18 @@ public:
                               "Failed to receive Bearer Context Modification Request");
     report_fatal_error_if_not(test_helpers::is_valid_bearer_context_modification_request(e1ap_pdu),
                               "Invalid Bearer Context Modification Request");
+    return true;
+  }
+
+  [[nodiscard]] bool send_bearer_context_modification_failure_and_await_ngap_ue_context_release_request()
+  {
+    // Inject Bearer Context Modification Failure and wait for NGAP UE Context Release Request.
+    get_cu_up(cu_up_idx).push_tx_pdu(
+        generate_bearer_context_modification_failure(ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id));
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu),
+                              "Failed to receive NGAP UE Context Release Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_request(ngap_pdu),
+                              "Invalid NGAP UE Context Release Request");
     return true;
   }
 
@@ -444,6 +467,17 @@ public:
                               "Failed to receive Bearer Context Release Command");
     report_fatal_error_if_not(test_helpers::is_valid_bearer_context_release_command(e1ap_pdu),
                               "Invalid Bearer Context Release Command");
+    return true;
+  }
+
+  [[nodiscard]] bool send_bearer_context_release_complete_and_await_ngap_ue_context_release_complete()
+  {
+    // Inject Bearer Context Release Complete and wait for NGAP UE Context Release Complete.
+    get_cu_up(cu_up_idx).push_tx_pdu(
+        generate_bearer_context_release_complete(ue_ctx->cu_cp_e1ap_id.value(), ue_ctx->cu_up_e1ap_id.value()));
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive UE Context Release Complete");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_complete(ngap_pdu),
+                              "Invalid UE Context Release Complete");
     return true;
   }
 
@@ -751,6 +785,126 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_
   // Send Initial UL RRC Message containing RRC Resume Request with invalid ResumeMAC-I and await NGAP UE Context
   // Release Request.
   ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_ngap_ue_context_release_request(0x36000, "0000000000000000"));
+
+  // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
+  ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command());
+
+  // Inject Bearer Context Release Complete and await F1AP UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command());
+
+  // Inject F1AP UE Context Release Complete and await NGAP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete());
+
+  // STATUS: UE should be removed at this stage.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
+  // Check metrics for RRC resume.
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(
+                establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
+                establishment_resume_cause_t::mo_data),
+            0);
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_ue_context_setup_for_rrc_resume_fails_then_release_is_sent)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Check metrics for active RRC UE.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
+  // Inject Inactivity Notification and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
+
+  // Send Bearer Context Modification Response and await UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_release_command());
+
+  // Send F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Send Initial UL RRC Message containing RRC Resume Request.
+  ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_ue_context_setup_request());
+
+  // Check metrics for attempted RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+
+  // Send UE Context Setup Response and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_context_setup_failure_and_await_ngap_ue_context_release_request());
+
+  // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
+  ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command());
+
+  // Inject Bearer Context Release Complete and await NGAP UE Context Release Complete.
+  ASSERT_TRUE(send_bearer_context_release_complete_and_await_ngap_ue_context_release_complete());
+
+  // STATUS: UE should be removed at this stage.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
+  // Check metrics for RRC resume.
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(
+                establishment_resume_cause_t::mo_data),
+            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
+                establishment_resume_cause_t::mo_data),
+            0);
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_bearer_context_modification_for_rrc_resume_fails_then_release_is_sent)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Check metrics for active RRC UE.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
+  // Inject Inactivity Notification and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
+
+  // Send Bearer Context Modification Response and await UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_release_command());
+
+  // Send F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Send Initial UL RRC Message containing RRC Resume Request.
+  ASSERT_TRUE(send_init_ul_rrc_message_transfer_and_await_ue_context_setup_request());
+
+  // Check metrics for attempted RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+            1);
+
+  // Send UE Context Setup Response and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_context_setup_response_and_await_bearer_context_modification_request());
+
+  // Send Bearer Context Modification Failure and await NGAP UE Context Release Request.
+  ASSERT_TRUE(send_bearer_context_modification_failure_and_await_ngap_ue_context_release_request());
 
   // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
   ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command());

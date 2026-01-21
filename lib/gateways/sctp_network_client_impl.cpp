@@ -315,7 +315,7 @@ void sctp_network_client_impl::receive()
   int rx_bytes = ::sctp_recvmsg(socket.fd().value(),
                                 temp_recv_buffer.data(),
                                 temp_recv_buffer.size(),
-                                (struct sockaddr*)&msg_src_addr,
+                                reinterpret_cast<sockaddr*>(&msg_src_addr),
                                 &msg_src_addrlen,
                                 &sri,
                                 &msg_flags);
@@ -324,7 +324,7 @@ void sctp_network_client_impl::receive()
   if (rx_bytes == -1) {
     if (errno != EAGAIN) {
       std::string cause = fmt::format("Error reading from SCTP socket: {}", ::strerror(errno));
-      handle_connection_terminated(cause.c_str());
+      handle_connection_terminated(cause);
     } else {
       if (!node_cfg.non_blocking_mode) {
         logger.debug("{}: Socket timeout reached", node_cfg.if_name);
@@ -335,7 +335,7 @@ void sctp_network_client_impl::receive()
 
   span<const uint8_t> payload(temp_recv_buffer.data(), rx_bytes);
   if (msg_flags & MSG_NOTIFICATION) {
-    handle_notification(payload, sri, (const sockaddr&)msg_src_addr, msg_src_addrlen);
+    handle_notification(payload, sri, *reinterpret_cast<const sockaddr*>(&msg_src_addr), msg_src_addrlen);
   } else {
     handle_data(payload);
   }

@@ -303,12 +303,13 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
       established_addrs.push_back(peer_addr.to_string());
     }
 
+    // fmt::format of fmt::join view is required before passing to the logger, otherwise TSAN may report use-after-free.
     logger.info("{}: SCTP connection to {} established. Configured: [{}]:{}, established: [{}]",
                 node_cfg.if_name,
                 client_cfg.dest_name,
-                fmt::join(client_cfg.connect_addresses, ", "),
+                fmt::format("{}", fmt::join(client_cfg.connect_addresses, ", ")),
                 client_cfg.connect_port,
-                fmt::join(established_addrs, ", "));
+                fmt::format("{}", fmt::join(established_addrs, ", ")));
   }
 
   // Register the socket in the IO broker.

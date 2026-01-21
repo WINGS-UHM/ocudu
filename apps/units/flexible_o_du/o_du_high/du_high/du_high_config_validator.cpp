@@ -434,17 +434,23 @@ static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&
                                             unsigned                             nof_crbs)
 {
   const du_high_unit_pucch_config& pucch_cfg = config.pucch_cfg;
-  if (not config.csi_cfg.csi_rs_enabled and pucch_cfg.nof_cell_csi_resources > 0) {
-    fmt::print(
-        "Number of PUCCH Format 2/3/4 cell resources for CSI must be zero when CSI-RS and CSI report are disabled.\n");
-    return false;
-  }
-
-  if (config.csi_cfg.csi_rs_enabled and pucch_cfg.nof_cell_csi_resources == 0) {
-    fmt::print(
-        "Number of PUCCH Format 2/3/4 cell resources for CSI must be greater than 0 when CSI-RS and CSI report are "
-        "enabled.\n");
-    return false;
+  const du_high_unit_csi_config&   csi_cfg   = config.csi_cfg;
+  if (csi_cfg.csi_rs_enabled) {
+    if (csi_cfg.report_type == csi_report_type::periodic and pucch_cfg.nof_cell_csi_resources == 0) {
+      fmt::print("Number of PUCCH Format 2/3/4 cell resources for CSI must be greater than 0 when CSI is enabled and "
+                 "CSI report type is periodic.\n");
+      return false;
+    }
+    if (csi_cfg.report_type == csi_report_type::aperiodic and pucch_cfg.nof_cell_csi_resources > 0) {
+      fmt::print("Number of PUCCH Format 2/3/4 cell resources for CSI must be zero when CSI is enabled and CSI "
+                 "report type is aperiodic.\n");
+      return false;
+    }
+  } else {
+    if (pucch_cfg.nof_cell_csi_resources > 0) {
+      fmt::print("Number of PUCCH Format 2/3/4 cell resources for CSI must be zero when CSI is disabled.\n");
+      return false;
+    }
   }
 
   // See \c periodicityAndOffset in \c SchedulingRequestResourceConfig of TS 38.331.

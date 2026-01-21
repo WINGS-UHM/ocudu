@@ -16,7 +16,6 @@
 #include "ocudu/adt/interval.h"
 #include "ocudu/ran/direct_current_offset.h"
 #include "ocudu/ran/pdcch/aggregation_level.h"
-#include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/sch/sch_mcs.h"

@@ -9,17 +9,17 @@
  */
 
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
-#include "cell_configuration.h"
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/config/validator_helpers.h"
-#include "fmt/std.h"
 #include <numeric>
 
 using namespace ocudu;
@@ -120,7 +120,7 @@ static validator_result validate_zp_csi_rs(const serving_cell_config& ue_cell_cf
     VERIFY(found,
            "CSI-IM does not overlap with ZP-CSI-RS. CSI-IM: {{period={} offset={} band={} symbol={}}}",
            csi_im.csi_res_period ? fmt::to_string(fmt::underlying(*csi_im.csi_res_period)) : "none",
-           csi_im.csi_res_offset,
+           csi_im.csi_res_offset ? fmt::to_string(*csi_im.csi_res_offset) : "none",
            csi_im.freq_band_rbs,
            csi_im.csi_im_res_element_pattern->symbol_location);
   }
@@ -347,7 +347,7 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
   }
 
   // Verify that the PUCCH setting used for CSI report have been configured properly.
-  if (ue_cell_cfg.csi_meas_cfg.has_value()) {
+  if (ue_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*ue_cell_cfg.csi_meas_cfg)) {
     const auto& csi_cfg = ue_cell_cfg.csi_meas_cfg.value();
     VERIFY(not csi_cfg.csi_report_cfg_list.empty() and
                std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
@@ -649,7 +649,8 @@ config_validators::validate_nzp_csi_rs_list(span<const nzp_csi_rs_resource>     
 }
 
 validator_result config_validators::validate_csi_meas_cfg(const serving_cell_config&                    ue_cell_cfg,
-                                                          const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common)
+                                                          const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                                          const ul_config_common&                       ul_cfg_common)
 {
   if (not ue_cell_cfg.csi_meas_cfg.has_value()) {
     return {};
@@ -721,7 +722,7 @@ validator_result config_validators::validate_csi_meas_cfg(const serving_cell_con
     VERIFY_ID_EXISTS(
         [res_for_channel_meas](const csi_resource_config& rhs) { return rhs.res_cfg_id == res_for_channel_meas; },
         csi_meas_cfg.csi_res_cfg_list,
-        "CSI Recourse Config id={} does not exist",
+        "CSI Resource Config id={} does not exist",
         fmt::underlying(res_for_channel_meas));
 
     if (rep_cfg.csi_im_res_for_interference.has_value()) {
@@ -757,6 +758,23 @@ validator_result config_validators::validate_csi_meas_cfg(const serving_cell_con
                          pucch_resources,
                          "PUCCH resource id={} does not exist",
                          pucch_res_id.cell_res_id);
+      }
+    } else if (std::holds_alternative<csi_report_config::aperiodic_report>(rep_cfg.report_cfg_type)) {
+      const auto& aperiodic_csi = std::get<csi_report_config::aperiodic_report>(rep_cfg.report_cfg_type);
+      if (not ue_cell_cfg.ul_config->init_ul_bwp.pusch_cfg->pusch_td_alloc_list.empty()) {
+        VERIFY(ue_cell_cfg.ul_config->init_ul_bwp.pusch_cfg->pusch_td_alloc_list.size() ==
+                   aperiodic_csi.report_slot_offset_list.size(),
+               "The number of PUSCH time domain allocations ({}) does not match the number of CSI report slot offsets "
+               "({})",
+               ue_cell_cfg.ul_config->init_ul_bwp.pusch_cfg->pusch_td_alloc_list.size(),
+               aperiodic_csi.report_slot_offset_list.size());
+      } else {
+        VERIFY(ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list.size() ==
+                   aperiodic_csi.report_slot_offset_list.size(),
+               "The number of PUSCH time domain allocations ({}) does not match the number of CSI report slot offsets "
+               "({})",
+               ue_cell_cfg.ul_config->init_ul_bwp.pusch_cfg->pusch_td_alloc_list.size(),
+               ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list.size());
       }
     }
   }

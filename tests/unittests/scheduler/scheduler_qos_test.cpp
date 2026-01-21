@@ -8,8 +8,6 @@
  *
  */
 
-#include "test_utils/indication_generators.h"
-#include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"

@@ -17,6 +17,7 @@
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/pdsch/pdsch_prb_bundling.h"
 #include "ocudu/ran/pdsch/pdsch_rate_match_pattern.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_tpc.h"
 #include "ocudu/ran/pucch/srs_tpc.h"
 #include "ocudu/ran/pusch/pusch_configuration.h"

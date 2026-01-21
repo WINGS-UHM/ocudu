@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/support/config/validator_result.h"
 
@@ -60,7 +61,8 @@ validator_result validate_nzp_csi_rs_list(span<const nzp_csi_rs_resource>       
 /// \param[in] tdd_cfg_common TDD configuration, if any.
 /// \return In case an invalid parameter is detected, returns a string containing an error message.
 validator_result validate_csi_meas_cfg(const serving_cell_config&                    ue_cell_cfg,
-                                       const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common);
+                                       const std::optional<tdd_ul_dl_config_common>& tdd_cfg_common,
+                                       const ul_config_common&                       ul_cfg_common);
 
 } // namespace config_validators
 } // namespace ocudu

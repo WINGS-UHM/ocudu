@@ -46,8 +46,10 @@ struct csi_builder_params {
   unsigned tracking_csi_slot_offset = 12;
   /// Slot offset for zp-CSI-RS resources. Note: Should avoid collisions with SSB and SIB1.
   unsigned zp_csi_slot_offset = 2;
-  /// Report slot offset.
-  unsigned csi_report_slot_offset = 9;
+  /// Report slot offset for periodic CSI reports.
+  std::optional<unsigned> csi_report_slot_offset = 9;
+  /// Whether to configure aperiodic CSI reports.
+  bool enable_aperiodic_report = false;
   /// Maximum number of DL layers.
   unsigned max_nof_layers = 1;
 };
@@ -99,7 +101,8 @@ zp_csi_rs_resource_set make_periodic_zp_csi_rs_resource_set(const csi_builder_pa
 std::vector<nzp_csi_rs_resource> make_nzp_csi_rs_resource_list(const csi_builder_params& params);
 
 /// \brief Generate CSI-MeasConfig.
-csi_meas_config make_csi_meas_config(const csi_builder_params& params);
+csi_meas_config make_csi_meas_config(const csi_builder_params&                                 params,
+                                     const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list);
 
 } // namespace csi_helper
 } // namespace ocudu

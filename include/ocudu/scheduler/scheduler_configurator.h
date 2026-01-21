@@ -16,6 +16,7 @@
 #include "ocudu/ran/meas_gap_config.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/phy_time_unit.h"
+#include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/rrm.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"

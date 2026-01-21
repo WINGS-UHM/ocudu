@@ -62,7 +62,7 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
           validate_pusch_cfg(cell.serv_cell_cfg.ul_config.value(), cell.serv_cell_cfg.csi_meas_cfg.has_value()));
     }
 
-    HANDLE_ERROR(validate_csi_meas_cfg(cell.serv_cell_cfg, cell_cfg.tdd_cfg_common));
+    HANDLE_ERROR(validate_csi_meas_cfg(cell.serv_cell_cfg, cell_cfg.tdd_cfg_common, cell_cfg.ul_cfg_common));
 
     // At the moment, we only support the situation where all UEs have the same NZP-CSI-RS list.
     if (cell.serv_cell_cfg.csi_meas_cfg.has_value() and

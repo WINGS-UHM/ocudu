@@ -783,7 +783,8 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
       cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
       pucch_cfg.max_nof_symbols));
   HANDLE_ERROR(check_prach_config(cell_cfg));
-  HANDLE_ERROR(config_validators::validate_csi_meas_cfg(cell_cfg.ue_ded_serv_cell_cfg, cell_cfg.tdd_ul_dl_cfg_common));
+  HANDLE_ERROR(config_validators::validate_csi_meas_cfg(
+      cell_cfg.ue_ded_serv_cell_cfg, cell_cfg.tdd_ul_dl_cfg_common, cell_cfg.ul_cfg_common));
   HANDLE_ERROR(check_dl_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ul_config_dedicated(cell_cfg));
   // TODO: Remaining.

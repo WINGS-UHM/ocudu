@@ -12,19 +12,17 @@
 
 #include "du_high_config.h"
 #include "ocudu/du/du_cell_config.h"
-#include "ocudu/du/du_high/du_srb_config.h"
-#include <map>
 
 namespace ocudu {
 
 namespace odu {
 struct du_high_configuration;
-}
+} // namespace odu
 
 struct du_high_unit_config;
 struct worker_manager_config;
 
-/// Converts and returns the given gnb application configuration to a DU cell configuration.
+/// Converts and returns the given gNB application configuration to a DU cell configuration.
 std::vector<odu::du_cell_config> generate_du_cell_config(const du_high_unit_config& config);
 
 /// Generates and fills the given DU high configuration from the given DU high unit configuration.

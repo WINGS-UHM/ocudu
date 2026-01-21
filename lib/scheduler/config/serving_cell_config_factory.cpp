@@ -727,7 +727,8 @@ csi_meas_config ocudu::config_helpers::make_csi_meas_config(const cell_config_bu
   const csi_helper::csi_builder_params csi_params = make_default_csi_builder_params(params);
 
   // Generate CSI resources.
-  return csi_helper::make_csi_meas_config(csi_params);
+  // Note: Since by default we use periodic CSI, we pass an empty PUSCH TD allocation list.
+  return csi_helper::make_csi_meas_config(csi_params, {});
 }
 
 serving_cell_config

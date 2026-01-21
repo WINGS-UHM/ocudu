@@ -15,6 +15,7 @@
 #include "../support/pdsch/pdsch_default_time_allocation.h"
 #include "../support/pdsch/pdsch_resource_allocation.h"
 #include "../support/prbs_calculator.h"
+#include "../support/rb_helper.h"
 #include "../support/sch_pdu_builder.h"
 #include "ocudu/ocudulog/ocudulog.h"
 

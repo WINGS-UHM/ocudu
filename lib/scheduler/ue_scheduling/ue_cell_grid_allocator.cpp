@@ -459,7 +459,7 @@ ue_cell_grid_allocator::allocate_ul_grant(const ue_newtx_ul_grant_request& reque
   }
 
   // Setup a UL grant.
-  auto result = setup_ul_grant_builder(request.user, sched_ctxt.value(), std::nullopt);
+  auto result = setup_ul_grant_builder(request.user, *sched_ctxt, std::nullopt);
   if (not result.has_value()) {
     return make_unexpected(result.error());
   }
@@ -724,7 +724,10 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
                             dai,
                             pusch_cfg.nof_layers,
                             ue_cc.channel_state_manager().get_recommended_pusch_tpmi(pusch_cfg.nof_layers),
-                            tpc_command);
+                            tpc_command,
+                            grant.cfg.pusch_cfg.aperiodic_csi
+                                ? std::optional<bool>(grant.cfg.pusch_cfg.nof_csi_part1_bits != 0)
+                                : std::nullopt);
       break;
     default:
       report_fatal_error("Unsupported PDCCH UL DCI format");
@@ -778,7 +781,8 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   }
 
   // Check if there is any UCI grant allocated on the PUCCH that can be moved to the PUSCH.
-  uci_alloc.multiplex_uci_on_pusch(msg, pusch_alloc, ue_cell_cfg, u.crnti);
+  uci_alloc.multiplex_uci_on_pusch(
+      msg, pusch_alloc, ue_cell_cfg, u.crnti, pusch_cfg.aperiodic_csi and pusch_cfg.nof_csi_part1_bits != 0);
 
   // Save set PDCCH and PUSCH PDU parameters in HARQ process.
   ul_harq_alloc_context pusch_sched_ctx;
@@ -799,6 +803,11 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
 
   // Update the number of PRBs used in the PUSCH allocation.
   ue_cc.get_pusch_power_controller().update_pusch_pw_ctrl_state(pusch_alloc.slot, vrbs.length());
+
+  if (pusch_cfg.aperiodic_csi and pusch_cfg.nof_csi_part1_bits != 0) {
+    // Notify the channel state manager about the scheduled PUSCH for aperiodic CSI reporting.
+    ue_cc.channel_state_manager().on_scheduled_aperiodic_csi_pusch(pusch_alloc.slot);
+  }
 }
 
 void ue_cell_grid_allocator::post_process_results()

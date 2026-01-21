@@ -15,7 +15,6 @@
 #include "ocudu/ran/pdcch/search_space.h"
 #include "ocudu/ran/pdsch/pdsch_antenna_ports_mapping.h"
 #include "ocudu/ran/pusch/pusch_antenna_ports_mapping.h"
-#include "ocudu/ran/pusch/pusch_configuration.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include <algorithm>
 
@@ -387,7 +386,8 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
                                   unsigned                      dai,
                                   unsigned                      nof_layers,
                                   unsigned                      tpmi,
-                                  uint8_t                       tpc_command)
+                                  uint8_t                       tpc_command,
+                                  std::optional<bool>           csi_request)
 {
   const search_space_info& ss_info = ue_cell_cfg.search_space(ss_id);
   ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
@@ -437,4 +437,8 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
   // DAI is set based on TS 38.213, clause 9.1.3.2.
   f0_1.first_dl_assignment_index = dai;
   f0_1.ul_sch_indicator          = 1;
+  if (csi_request.has_value()) {
+    // CSI request value of 1 corresponds to the first entry in aperiodicTriggerStateList.
+    f0_1.csi_request = *csi_request ? 1 : 0;
+  }
 }

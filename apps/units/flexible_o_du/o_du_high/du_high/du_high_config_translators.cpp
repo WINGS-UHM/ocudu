@@ -240,7 +240,9 @@ static unsigned get_nof_rbs(const du_high_unit_base_cell_config& cell_cfg)
       cell_cfg.channel_bw_mhz, cell_cfg.common_scs, band_helper::get_freq_range(*cell_cfg.band));
 }
 
-static void fill_csi_resources(serving_cell_config& out_cell, const du_high_unit_base_cell_config& cell_cfg)
+static void fill_csi_resources(serving_cell_config&                                      out_cell,
+                               const du_high_unit_base_cell_config&                      cell_cfg,
+                               const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
   const auto& csi_cfg = cell_cfg.csi_cfg;
 
@@ -251,6 +253,10 @@ static void fill_csi_resources(serving_cell_config& out_cell, const du_high_unit
   csi_params.max_nof_layers = cell_cfg.pdsch_cfg.max_rank.value_or(cell_cfg.nof_antennas_dl);
   csi_params.csi_rs_period  = static_cast<csi_resource_periodicity>(csi_cfg.csi_rs_period_msec *
                                                                    get_nof_slots_per_subframe(cell_cfg.common_scs));
+  if (cell_cfg.csi_cfg.report_type == csi_report_type::aperiodic) {
+    csi_params.csi_report_slot_offset  = std::nullopt;
+    csi_params.enable_aperiodic_report = true;
+  }
 
   // [Implementation-defined] The default CSI symbols are in symbols 4 and 8, the DM-RS for PDSCH might collide in
   // symbol index 8 when the number of DM-RS additional positions is 3.
@@ -285,7 +291,7 @@ static void fill_csi_resources(serving_cell_config& out_cell, const du_high_unit
   }
 
   // Generate basic csiMeasConfig.
-  out_cell.csi_meas_cfg = csi_helper::make_csi_meas_config(csi_params);
+  out_cell.csi_meas_cfg = csi_helper::make_csi_meas_config(csi_params, pusch_td_alloc_list);
 
   // Set power control offset for all nzp-CSI-RS resources.
   for (auto& nzp_csi_res : out_cell.csi_meas_cfg->nzp_csi_rs_res_list) {
@@ -773,11 +779,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         break;
     }
 
-    // Parameters for csiMeasConfig.
-    if (param.csi_rs_enabled) {
-      fill_csi_resources(out_cell.ue_ded_serv_cell_cfg, base_cell);
-    }
-
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
     pucch_builder_params&            du_pucch_cfg                  = out_cell.pucch_cfg;
     const du_high_unit_pucch_config& user_pucch_cfg_pre_processing = base_cell.pucch_cfg;
@@ -985,6 +986,14 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
           du_srs_cfg,
           out_cell.tdd_ul_dl_cfg_common);
     }
+
+    // Parameters for csiMeasConfig.
+    if (param.csi_rs_enabled) {
+      fill_csi_resources(out_cell.ue_ded_serv_cell_cfg,
+                         base_cell,
+                         out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
+    }
+
     if (update_msg1_frequency_start) {
       rach_cfg.rach_cfg_generic.msg1_frequency_start = config_helpers::compute_prach_frequency_start(
           du_pucch_cfg, out_cell.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), is_long_prach);

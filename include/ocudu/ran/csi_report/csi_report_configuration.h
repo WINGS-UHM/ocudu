@@ -15,6 +15,9 @@
 
 namespace ocudu {
 
+/// CSI reporting configuration type.
+enum class csi_report_type { periodic, aperiodic };
+
 /// \brief CSI Rank Indicator restriction type.
 ///
 /// The RI restriction field is described in TS38.331 Section 6.3.2, Information Element \e CodebookConfig. The

@@ -116,7 +116,8 @@ public:
   void multiplex_uci_on_pusch(ul_sched_info&                pusch_grant,
                               cell_slot_resource_allocator& slot_alloc,
                               const ue_cell_configuration&  ue_cell_cfg,
-                              rnti_t                        crnti) override
+                              rnti_t                        crnti,
+                              bool                          aperiodic_csi_request) override
   {
   }
 

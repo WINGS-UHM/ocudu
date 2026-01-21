@@ -32,6 +32,7 @@ struct pusch_config_params {
   /// Number of HARQ-ACK bits allocated as part of PUCCH in the UL slot where the PUSCH is going to be allocated.
   unsigned nof_harq_ack_bits{0};
   unsigned nof_csi_part1_bits{0};
+  bool     aperiodic_csi{false};
   unsigned max_nof_csi_part2_bits{0};
 };
 
@@ -48,7 +49,7 @@ pusch_config_params get_pusch_config_f0_0_c_rnti(const cell_configuration&      
                                                  const ue_cell_configuration*                 ue_cell_cfg,
                                                  const bwp_uplink_common&                     ul_bwp,
                                                  const pusch_time_domain_resource_allocation& pusch_td_cfg,
-                                                 const unsigned                               nof_harq_ack_bits,
+                                                 unsigned                                     nof_harq_ack_bits,
                                                  bool                                         is_csi_report_slot);
 
 /// \brief Fetches the PUSCH parameters needed for PUSCH PDU for DCI format 0_1, scrambled by C-RNTI.
@@ -57,7 +58,7 @@ pusch_config_params get_pusch_config_f0_0_c_rnti(const cell_configuration&      
 pusch_config_params get_pusch_config_f0_1_c_rnti(const ue_cell_configuration&                 ue_cell_cfg,
                                                  const pusch_time_domain_resource_allocation& pusch_td_cfg,
                                                  unsigned                                     nof_layers,
-                                                 const unsigned                               nof_harq_ack_bits,
+                                                 unsigned                                     nof_harq_ack_bits,
                                                  bool                                         is_csi_report_slot);
 
 /// \brief Builds PDSCH PDU for DCI format 1_0, scrambled by SI-RNTI.

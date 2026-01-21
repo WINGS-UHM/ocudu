@@ -14,6 +14,7 @@
 #include "du_high_config.h"
 #include "ntn/du_high_ntn_config_cli11_schema.h"
 #include "ocudu/adt/ranges/transform.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
 #include "ocudu/ran/drx_config.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/duplex_mode.h"
@@ -611,6 +612,15 @@ static void configure_cli11_csi_args(CLI::App& app, du_high_unit_csi_config& csi
   add_option(app, "--csi_rs_period", csi_params.csi_rs_period_msec, "CSI-RS period in milliseconds")
       ->capture_default_str()
       ->check(CLI::IsMember({10, 20, 40, 80}));
+  add_option_function<std::string>(
+      app,
+      "--report_type",
+      [&csi_params](const std::string& value) {
+        csi_params.report_type = value == "periodic" ? csi_report_type::periodic : csi_report_type::aperiodic;
+      },
+      "Type of CSI reporting configuration to use")
+      ->default_str("periodic")
+      ->check(CLI::IsMember({"periodic", "aperiodic"}, CLI::ignore_case));
   add_option(app,
              "--meas_csi_rs_slot_offset",
              csi_params.meas_csi_slot_offset,

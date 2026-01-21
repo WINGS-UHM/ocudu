@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/ocuduvec/bit.h"
 #include "ocudu/phy/support/support_formatters.h"
 #include "ocudu/phy/upper/channel_processors/pdcch/formatters.h"

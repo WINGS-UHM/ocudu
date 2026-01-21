@@ -15,7 +15,7 @@
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/pucch_scheduling/pucch_allocator_impl.h"
 #include "lib/scheduler/slicing/ran_slice_instance.h"
-#include "lib/scheduler/support/bwp_helpers.h"
+#include "lib/scheduler/support/rb_helper.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
@@ -80,7 +80,7 @@ protected:
     return next_slot;
   }
 
-  void slot_indication(std::function<void()> on_each_slot = []() {})
+  void slot_indication(const std::function<void()>& on_each_slot = []() {})
   {
     ++current_slot;
     logger.set_context(current_slot.sfn(), current_slot.slot_index());
@@ -113,7 +113,7 @@ protected:
     res_logger.on_scheduler_result(res_grid[0].result);
   }
 
-  bool run_until(std::function<void()> to_run, unique_function<bool()> until, unsigned max_slot_count = 1000)
+  bool run_until(const std::function<void()>& to_run, unique_function<bool()> until, unsigned max_slot_count = 1000)
   {
     if (until()) {
       return true;

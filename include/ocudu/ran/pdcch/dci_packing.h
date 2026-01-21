@@ -919,7 +919,7 @@ struct dci_0_1_configuration {
   /// \brief CSI request - 0 to 6 bits.
   ///
   /// Required if the higher layer parameter \e reportTriggerSize (see dci_size_config::report_trigger_size) is not 0.
-  std::optional<unsigned> csi_request;
+  std::optional<uint8_t> csi_request;
   /// \brief CBG Transmission Information (CBGTI) - 0, 2, 4, 6 or 8 bits.
   ///
   /// Number of bits determined by the higher layer parameter \e maxCodeBlockGroupsPerTransportBlock (see \ref

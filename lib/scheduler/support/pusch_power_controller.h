@@ -13,6 +13,8 @@
 #include "../ue_context/ue_channel_state_manager.h"
 #include "ocudu/adt/circular_array.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/logical_channel/phr_report.h"
+#include "ocudu/ran/pusch/pusch_configuration.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 
 namespace ocudu {

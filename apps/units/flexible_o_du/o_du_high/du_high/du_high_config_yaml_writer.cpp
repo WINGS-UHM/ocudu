@@ -518,6 +518,17 @@ static YAML::Node build_du_high_csi_section(const du_high_unit_csi_config& confi
   node["csi_rs_enabled"]  = config.csi_rs_enabled;
   node["csi_rs_period"]   = config.csi_rs_period_msec;
   node["pwr_ctrl_offset"] = config.pwr_ctrl_offset;
+  switch (config.report_type) {
+    case csi_report_type::aperiodic:
+      node["report_type"] = "aperiodic";
+      break;
+    case csi_report_type::periodic:
+      node["report_type"] = "periodic";
+      break;
+    default:
+      ocudu_assertion_failure("Invalid CSI report type");
+      break;
+  }
   if (config.meas_csi_slot_offset.has_value()) {
     node["meas_csi_slot_offset"] = config.meas_csi_slot_offset.value();
   }

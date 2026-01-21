@@ -159,27 +159,27 @@ void ue_scheduler_impl::update_harq_pucch_counter(cell_resource_allocator& cell_
   return true;
 }
 
-void ue_scheduler_impl::run_slot_impl(slot_point slot_tx)
+void ue_scheduler_impl::run_slot_impl(slot_point sl_tx)
 {
   std::unique_lock<std::mutex> lock(cell_group_mutex, std::defer_lock);
   if (cells.size() > 1) {
     // Only mutex if the cell group has more than one cell (Carrier Aggregation case).
     lock.lock();
   }
-  if (last_sl_ind == slot_tx) {
+  if (last_sl_ind == sl_tx) {
     // This slot has already been processed by a cell of the same cell group.
     return;
   }
-  last_sl_ind = slot_tx;
+  last_sl_ind = sl_tx;
 
   for (auto& group_cell : cells) {
     du_cell_index_t cell_index = group_cell.cell_res_alloc->cfg.cell_index;
 
     // Process any pending events that are directed at UEs.
-    group_cell.ev_mng->run_slot(slot_tx);
+    group_cell.ev_mng->run_slot(sl_tx);
 
     // Update all UEs state.
-    ue_db.slot_indication(slot_tx);
+    ue_db.slot_indication(sl_tx);
 
     // Schedule periodic UCI (SR and CSI) before any UL grants.
     group_cell.uci_sched.run_slot(*group_cell.cell_res_alloc);
@@ -191,10 +191,10 @@ void ue_scheduler_impl::run_slot_impl(slot_point slot_tx)
     group_cell.fallback_sched.run_slot(*group_cell.cell_res_alloc);
 
     // Update slice context and compute slice priorities.
-    group_cell.slice_sched.slot_indication(slot_tx, *group_cell.cell_res_alloc);
+    group_cell.slice_sched.slot_indication(sl_tx, *group_cell.cell_res_alloc);
 
     // Update intra-slice scheduler context.
-    group_cell.intra_slice_sched.slot_indication(slot_tx);
+    group_cell.intra_slice_sched.slot_indication(sl_tx);
 
     // Run slice scheduler policies.
     run_sched_strategy(cell_index);

@@ -12,7 +12,6 @@
 
 #include "../cell/cell_harq_manager.h"
 #include "../config/ue_configuration.h"
-#include "../support/bwp_helpers.h"
 #include "../support/pucch_power_controller.h"
 #include "../support/pusch_power_controller.h"
 #include "ue_channel_state_manager.h"

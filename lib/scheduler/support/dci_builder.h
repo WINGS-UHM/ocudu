@@ -118,6 +118,7 @@ void build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
                            unsigned                      total_dai,
                            unsigned                      nof_layers,
                            unsigned                      tpmi,
-                           uint8_t                       tpc_command);
+                           uint8_t                       tpc_command,
+                           std::optional<bool>           csi_request);
 
 } // namespace ocudu

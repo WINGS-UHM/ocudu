@@ -68,7 +68,7 @@ du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> 
                               user_defined_pucch_cfg)),
   default_csi_report_cfg([&cell_cfg_list_]() -> std::optional<csi_report_config> {
     const auto& csi_meas = cell_cfg_list_[0].ue_ded_serv_cell_cfg.csi_meas_cfg;
-    if (csi_meas.has_value() and not csi_meas->csi_report_cfg_list.empty()) {
+    if (csi_meas.has_value() and not is_pusch_configured(*csi_meas)) {
       return csi_meas->csi_report_cfg_list[0];
     }
     return std::nullopt;
@@ -320,7 +320,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
   // Set the offsets for SR and CSI.
   out_cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().offset =
       sr_res_offset.value().second;
-  if (out_cell_cfg.serv_cell_cfg.csi_meas_cfg.has_value()) {
+  if (out_cell_cfg.serv_cell_cfg.csi_meas_cfg.has_value() and
+      not is_pusch_configured(*out_cell_cfg.serv_cell_cfg.csi_meas_cfg)) {
     std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         out_cell_cfg.serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
         .report_slot_offset = csi_res_offset.value().second;
@@ -398,7 +399,7 @@ void du_pucch_resource_manager::dealloc_resources(cell_group_config& cell_grp_cf
       pucch_res_idx_to_sr_du_res_idx(sr_to_deallocate.pucch_res_id.cell_res_id), sr_to_deallocate.offset);
 
   unsigned csi_offset = 0;
-  if (out_cell_cfg.csi_meas_cfg.has_value()) {
+  if (out_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*out_cell_cfg.csi_meas_cfg)) {
     auto& target_csi_cfg = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         out_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type);
     csi_offset = target_csi_cfg.report_slot_offset;
@@ -553,7 +554,7 @@ void du_pucch_resource_manager::disable_pucch_cfg(cell_group_config& cell_grp_cf
   auto& serv_cell = cell_grp_cfg.cells[PCELL_INDEX].serv_cell_cfg;
 
   serv_cell.ul_config->init_ul_bwp.pucch_cfg.reset();
-  if (serv_cell.csi_meas_cfg.has_value()) {
+  if (default_csi_report_cfg.has_value()) {
     serv_cell.csi_meas_cfg.value().csi_report_cfg_list.clear();
   }
 }

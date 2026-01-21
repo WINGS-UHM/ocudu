@@ -11,11 +11,9 @@
 #pragma once
 
 #include "ocudu/ran/csi_report/csi_report_data.h"
-#include "ocudu/ran/logical_channel/phr_report.h"
 #include "ocudu/ran/pusch/pusch_tpmi_select.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
-#include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/support/math/exponential_averager.h"
 
@@ -75,6 +73,19 @@ public:
   /// Update UE with the latest Sounding Reference Signal (SRS) channel matrix.
   void update_srs_channel_matrix(const srs_channel_matrix& channel_matrix, tx_scheme_codebook codebook_cfg);
 
+  /// Checks if an aperiodic CSI report can be scheduled in the given PUSCH slot.
+  bool is_aperiodic_csi_allowed(slot_point pusch_slot, unsigned aperiodic_csi_prohibit_time_slots) const
+  {
+    if (not last_aperiodic_slot.valid()) {
+      return true;
+    }
+    return pusch_slot > last_aperiodic_slot and
+           (pusch_slot - last_aperiodic_slot) >= static_cast<int>(aperiodic_csi_prohibit_time_slots);
+  }
+
+  /// Records the slot of the latest scheduled aperiodic CSI report.
+  void on_scheduled_aperiodic_csi_pusch(slot_point pusch_slot) { last_aperiodic_slot = pusch_slot; }
+
 private:
   /// \brief Number of indexes -> nof_layers for precoding (Options: 1, 2, 3, 4 layers).
   static constexpr size_t NOF_LAYER_CHOICES = 4;
@@ -104,6 +115,9 @@ private:
 
   /// Latest CSI report received from the UE.
   std::optional<csi_report_data> latest_csi_report;
+
+  /// Slot of the latest aperiodic CSI report scheduled.
+  slot_point last_aperiodic_slot;
 
   /// \brief Latest PUSCH Transmit Precoding Matrix Indication (TPMI) information.
   ///

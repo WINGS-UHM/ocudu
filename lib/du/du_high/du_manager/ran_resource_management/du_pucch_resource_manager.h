@@ -11,7 +11,6 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
-#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include <set>
 
 namespace ocudu {
@@ -20,6 +19,7 @@ namespace odu {
 /// \brief This class manages the allocation of RAN PUCCH Resources to DU UEs. For instance, this class ensures that
 /// UEs do not collide in the usage of the PUCCH for SRs and CSI. For HARQ-ACKs, we rely on the MAC scheduler to ensure
 /// no collisions take place in the PUCCH.
+/// \remark No PUCCH resources for CSI will be managed for cells configured with aperiodic CSI reporting.
 class du_pucch_resource_manager
 {
 public:
@@ -96,9 +96,10 @@ private:
   void disable_pucch_cfg(cell_group_config& cell_grp_cfg);
 
   // Parameters for PUCCH configuration passed by the user.
-  const pucch_builder_params             user_defined_pucch_cfg;
-  const std::vector<pucch_resource>      default_pucch_res_list;
-  const pucch_config                     default_pucch_cfg;
+  const pucch_builder_params        user_defined_pucch_cfg;
+  const std::vector<pucch_resource> default_pucch_res_list;
+  const pucch_config                default_pucch_cfg;
+  // Default CSI report configuration. Only set if periodic CSI reporting is configured.
   const std::optional<csi_report_config> default_csi_report_cfg;
   const unsigned                         max_pucch_grants_per_slot;
   unsigned                               lcm_csi_sr_period;

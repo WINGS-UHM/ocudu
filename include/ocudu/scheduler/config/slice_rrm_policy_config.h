@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/rrm.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 

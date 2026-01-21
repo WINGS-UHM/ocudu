@@ -14,6 +14,7 @@
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/bs_channel_bandwidth.h"
+#include "ocudu/ran/csi_report/csi_report_configuration.h"
 #include "ocudu/ran/direct_current_offset.h"
 #include "ocudu/ran/gnb_du_id.h"
 #include "ocudu/ran/gnb_id.h"
@@ -857,6 +858,8 @@ struct du_high_unit_csi_config {
   /// \brief \c powerControlOffset, part of \c NZP-CSI-RS-Resource, as per TS 38.331.
   /// Power offset of PDSCH RE to NZP CSI-RS RE. Value in dB {-8,...,15}.
   int pwr_ctrl_offset = 0;
+  /// \brief Type of CSI reporting configuration to use.
+  csi_report_type report_type = csi_report_type::periodic;
 };
 
 /// MAC Buffer Status Report application configuration.

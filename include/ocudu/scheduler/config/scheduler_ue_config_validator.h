@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/adt/expected.h"
-#include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
 namespace ocudu {

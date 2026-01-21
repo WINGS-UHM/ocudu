@@ -12,7 +12,6 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_validator.h"
 #include <string>
 
 namespace ocudu {

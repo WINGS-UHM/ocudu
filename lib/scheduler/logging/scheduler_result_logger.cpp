@@ -91,6 +91,7 @@ static auto make_ul_dci_log_entry(const dci_ul_info& dci)
   std::optional<uint8_t> dai;
   int8_t                 nof_layers = 1;
   int8_t                 ant        = 1;
+  std::optional<uint8_t> csi_request;
 
   switch (dci.type) {
     case dci_ul_rnti_config_type::c_rnti_f0_0: {
@@ -119,15 +120,19 @@ static auto make_ul_dci_log_entry(const dci_ul_info& dci)
       dai                = dci0_1.first_dl_assignment_index;
       nof_layers         = dci0_1.precoding_info_nof_layers;
       ant                = dci0_1.antenna_ports;
+      csi_request        = dci0_1.csi_request;
     } break;
     default:
       report_fatal_error("Invalid UL DCI format");
   }
 
-  return make_formattable([h_id, ndi, rv, mcs, tpc_cmd, dai, nof_layers, ant](auto& ctx) {
+  return make_formattable([h_id, ndi, rv, mcs, tpc_cmd, dai, nof_layers, ant, csi_request](auto& ctx) {
     fmt::format_to(ctx.out(), "dci: h_id={} ndi={} rv={} mcs={} tpc={}", h_id, ndi ? 1 : 0, rv, mcs, tpc_cmd);
     if (dai.has_value()) {
       fmt::format_to(ctx.out(), " dai={} mimo={} ant={}", *dai, nof_layers, ant);
+    }
+    if (csi_request.has_value()) {
+      fmt::format_to(ctx.out(), " csi_req={}", *csi_request);
     }
     return ctx.out();
   });

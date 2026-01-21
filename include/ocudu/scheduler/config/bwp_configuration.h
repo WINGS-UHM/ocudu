@@ -17,7 +17,7 @@
 #include "ocudu/ran/pdcch/search_space.h"
 #include "ocudu/ran/pdsch/pdsch_time_domain_resource.h"
 #include "ocudu/ran/prach/rach_config_common.h"
-#include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/pusch/pusch_time_domain_resource.h"
 #include "ocudu/ran/scs_specific_carrier.h"
 #include <optional>

@@ -13,7 +13,6 @@
 #include "ocudu/adt/bounded_integer.h"
 #include "ocudu/ran/srs/srs_configuration.h"
 #include <optional>
-#include <variant>
 
 namespace ocudu {
 

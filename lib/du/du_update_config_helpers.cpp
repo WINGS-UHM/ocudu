@@ -10,7 +10,6 @@
 
 #include "ocudu/du/du_update_config_helpers.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
-#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 

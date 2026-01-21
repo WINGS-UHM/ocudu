@@ -12,8 +12,6 @@
 
 #include "../config/cell_configuration.h"
 #include "../support/bwp_helpers.h"
-#include "../support/rb_helper.h"
-#include "ocudu/adt/circular_array.h"
 #include "ocudu/adt/circular_vector.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/scheduler/resource_grid_util.h"

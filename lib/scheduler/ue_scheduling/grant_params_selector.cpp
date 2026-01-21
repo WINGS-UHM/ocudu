@@ -15,7 +15,9 @@
 #include "../support/prbs_calculator.h"
 #include "../support/rb_helper.h"
 #include "../ue_context/ue_cell.h"
+#include "ocudu/ran/csi_rs/csi_report_config.h"
 #include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
+#include <variant>
 
 using namespace ocudu;
 using namespace sched_helper;
@@ -411,16 +413,29 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
     sch_mcs_index       mcs;
     pusch_config_params pusch_cfg;
     unsigned            nof_rbs;
-    const bool          is_csi_report_slot = ue_cell_cfg.csi_meas_cfg() != nullptr and
-                                    csi_helper::is_csi_reporting_slot(*ue_cell_cfg.csi_meas_cfg(), pusch_slot);
+
+    bool include_csi = false;
+    if (ue_cell_cfg.csi_meas_cfg() != nullptr) {
+      // TODO: pass this through the scheduler config instead.
+      auto aperiodic_csi_prohibit_time_slots =
+          static_cast<unsigned>(ue_cell_cfg.csi_meas_cfg()->nzp_csi_rs_res_list[0].csi_res_period.value());
+      if (std::holds_alternative<csi_report_config::aperiodic_report>(
+              ue_cell_cfg.csi_meas_cfg()->csi_report_cfg_list[0].report_cfg_type) and
+          ue_cc.channel_state_manager().is_aperiodic_csi_allowed(pusch_slot, aperiodic_csi_prohibit_time_slots)) {
+        include_csi = true;
+      } else if (std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
+                     ue_cell_cfg.csi_meas_cfg()->csi_report_cfg_list[0].report_cfg_type) and
+                 csi_helper::is_csi_reporting_slot(*ue_cell_cfg.csi_meas_cfg(), pusch_slot)) {
+        include_csi = true;
+      }
+    }
     if (h_ul == nullptr) {
       // NewTx Case.
       dci_ul_rnti_config_type dci_type = ss.get_ul_dci_format() == dci_ul_format::f0_0
                                              ? dci_ul_rnti_config_type::c_rnti_f0_0
                                              : dci_ul_rnti_config_type::c_rnti_f0_1;
       // Note: We assume k2 <= k1, which means that all the HARQ bits are set at this point for this UL slot and UE.
-      pusch_cfg =
-          compute_newtx_pusch_config_params(ue_cc, dci_type, pusch_td_res, uci_nof_harq_bits, is_csi_report_slot);
+      pusch_cfg = compute_newtx_pusch_config_params(ue_cc, dci_type, pusch_td_res, uci_nof_harq_bits, include_csi);
       auto mcs_prbs_sel = compute_newtx_required_mcs_and_prbs(pusch_cfg, ue_cc, pending_bytes, nof_rb_lims);
       if (not mcs_prbs_sel.has_value()) {
         return std::nullopt;
@@ -434,7 +449,7 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
       if (nof_rbs > nof_rb_lims.stop()) {
         continue;
       }
-      pusch_cfg = compute_retx_pusch_config_params(ue_cc, *h_ul, pusch_td_res, uci_nof_harq_bits, is_csi_report_slot);
+      pusch_cfg = compute_retx_pusch_config_params(ue_cc, *h_ul, pusch_td_res, uci_nof_harq_bits, include_csi);
 
       // Compute if effective code rate does not go over the limit for this reTx, for instance, due to presence of UCI.
       // Note: We take the conservative approach of assuming the reTx will intersect the DC.

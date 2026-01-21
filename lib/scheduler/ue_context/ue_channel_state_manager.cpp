@@ -9,7 +9,6 @@
  */
 
 #include "ue_channel_state_manager.h"
-#include "ocudu/ocudulog/ocudulog.h"
 
 using namespace ocudu;
 
@@ -62,7 +61,7 @@ bool ue_channel_state_manager::handle_csi_report(const csi_report_data& csi_repo
 void ue_channel_state_manager::update_pusch_snr(float snr_db)
 {
   pusch_snr_db = snr_db;
-  average_pusch_sinr_dB.push(static_cast<float>(snr_db));
+  average_pusch_sinr_dB.push(snr_db);
 }
 
 void ue_channel_state_manager::update_srs_channel_matrix(const srs_channel_matrix& channel_matrix,

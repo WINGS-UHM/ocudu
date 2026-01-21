@@ -197,7 +197,7 @@ std::optional<uci_allocation> uci_allocator_impl::alloc_harq_ack(cell_resource_a
     const auto&    pucch_cfg               = ue_cell_cfg.init_bwp().ul_ded.value().pucch_cfg.value();
     unsigned       nof_available_harq_bits = 0U;
 
-    if (ue_cell_cfg.csi_meas_cfg() != nullptr and
+    if (ue_cell_cfg.csi_meas_cfg() != nullptr and not is_pusch_configured(*ue_cell_cfg.csi_meas_cfg()) and
         csi_helper::is_csi_reporting_slot(*ue_cell_cfg.csi_meas_cfg(), uci_slot)) {
       // TODO: Remove this when the PUCCH allocator handle properly more than 2 HARQ-ACK bits + CSI.
       const auto     csi_report_cfg  = create_csi_report_configuration(*ue_cell_cfg.csi_meas_cfg());
@@ -290,13 +290,14 @@ void uci_allocator_impl::alloc_csi_opportunity(cell_slot_resource_allocator& slo
 void uci_allocator_impl::multiplex_uci_on_pusch(ul_sched_info&                pusch_grant,
                                                 cell_slot_resource_allocator& slot_alloc,
                                                 const ue_cell_configuration&  ue_cell_cfg,
-                                                rnti_t                        crnti)
+                                                rnti_t                        crnti,
+                                                bool                          include_aperiodic_csi)
 {
   // Move the bits that are carried by the PUCCH into the PUSCH.
   const pucch_uci_bits pucch_uci = pucch_alloc.remove_ue_uci_from_pucch(slot_alloc, crnti, ue_cell_cfg);
 
-  // In case there are no UCI bits from PUCCH, then there is no UCI to be multiplexed on the PUSCH.
-  if (pucch_uci.harq_ack_nof_bits == 0 and pucch_uci.csi_part1_nof_bits == 0) {
+  // If there are no UCI bits from PUCCH and no aperiodic CSI, then there is no UCI to be multiplexed on the PUSCH.
+  if (not include_aperiodic_csi and pucch_uci.harq_ack_nof_bits + pucch_uci.csi_part1_nof_bits == 0) {
     return;
   }
 
@@ -304,16 +305,15 @@ void uci_allocator_impl::multiplex_uci_on_pusch(ul_sched_info&                pu
   uci_info& uci = pusch_grant.uci.emplace();
   uci.alpha     = ue_cell_cfg.init_bwp().ul_ded->pusch_cfg.value().uci_cfg.value().scaling;
 
-  if (pucch_uci.csi_part1_nof_bits != 0) {
+  if (pucch_uci.csi_part1_nof_bits != 0 or include_aperiodic_csi) {
     // The number of bits is computed based on the CSI report configuration.
     add_csi_to_uci_on_pusch(uci.csi.emplace(uci_info::csi_info()), ue_cell_cfg);
   }
 
   if (pucch_uci.harq_ack_nof_bits != 0) {
     uci.harq.emplace(uci_info::harq_info());
-    uci.harq.value().harq_ack_nof_bits = pucch_uci.harq_ack_nof_bits;
-    update_uci_on_pusch_harq_offsets(uci.harq.value(),
-                                     ue_cell_cfg.init_bwp().ul_ded->pusch_cfg.value().uci_cfg.value());
+    uci.harq->harq_ack_nof_bits = pucch_uci.harq_ack_nof_bits;
+    update_uci_on_pusch_harq_offsets(*uci.harq, ue_cell_cfg.init_bwp().ul_ded->pusch_cfg.value().uci_cfg.value());
   }
 }
 

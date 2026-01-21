@@ -9,6 +9,7 @@
  */
 
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
@@ -1118,6 +1119,8 @@ bool config_helpers::ue_pucch_config_builder(
   // - SR_F2 is a F2 resource in Resource Set ID 1 that overlaps in symbols with the SR (F0) resource.
   const bool is_f0_and_f2 = cell_res_list[set_0_cell_idx_offset].format == pucch_format::FORMAT_0 and
                             cell_res_list[set_1_cell_idx_offset].format == pucch_format::FORMAT_2;
+  const bool is_periodic_csi =
+      serv_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*serv_cell_cfg.csi_meas_cfg);
 
   // Used to represent the cell resource ID of resources that do not exist in the gNB cell resource list.
   static constexpr unsigned invalid_cell_res_id = std::numeric_limits<unsigned>::max();
@@ -1144,7 +1147,7 @@ bool config_helpers::ue_pucch_config_builder(
     ++current_ue_res_id;
   }
 
-  if (is_f0_and_f2 and serv_cell_cfg.csi_meas_cfg.has_value()) {
+  if (is_f0_and_f2 and is_periodic_csi) {
     // Add CSI_F0 resource to both the PUCCH resource list and Resource Set ID 0.
     const unsigned csi_cell_res_idx =
         tot_nof_cell_f0_f1_res + nof_ue_pucch_f2_f3_f4_res_harq.value() * nof_harq_pucch_sets + cell_csi_res_idx;
@@ -1205,7 +1208,7 @@ bool config_helpers::ue_pucch_config_builder(
     ++current_ue_res_id;
   }
 
-  if (serv_cell_cfg.csi_meas_cfg.has_value()) {
+  if (is_periodic_csi) {
     // Add CSI resource to both the PUCCH resource list and the CSI resource list.
     const unsigned csi_res_cell_list_idx =
         tot_nof_cell_f0_f1_res + nof_ue_pucch_f2_f3_f4_res_harq.value() * nof_harq_pucch_sets + cell_csi_res_idx;

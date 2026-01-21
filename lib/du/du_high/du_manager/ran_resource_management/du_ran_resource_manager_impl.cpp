@@ -11,7 +11,7 @@
 #include "du_ran_resource_manager_impl.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -54,7 +54,7 @@ static void reset_serv_cell_cfg(serving_cell_config& serv_cell_cfg)
                "UL configuration in Serving cell config not configured");
 
   serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.reset();
-  if (serv_cell_cfg.csi_meas_cfg.has_value()) {
+  if (serv_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*serv_cell_cfg.csi_meas_cfg)) {
     serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.clear();
   }
 
@@ -63,14 +63,14 @@ static void reset_serv_cell_cfg(serving_cell_config& serv_cell_cfg)
 
 du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_config>                cell_cfg_list_,
                                                            const scheduler_expert_config&            scheduler_cfg,
-                                                           const std::map<srb_id_t, du_srb_config>&  srb_config,
-                                                           const std::map<five_qi_t, du_qos_config>& qos_config,
+                                                           const std::map<srb_id_t, du_srb_config>&  srbs,
+                                                           const std::map<five_qi_t, du_qos_config>& qos,
                                                            const du_test_mode_config&                test_cfg_) :
   cell_cfg_list(cell_cfg_list_),
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
   test_cfg(test_cfg_),
   pucch_res_mng(cell_cfg_list, scheduler_cfg.ue.max_pucchs_per_slot),
-  bearer_res_mng(srb_config, qos_config, logger),
+  bearer_res_mng(srbs, qos, logger),
   srs_res_mng(std::make_unique<du_srs_policy_max_ul_rate>(cell_cfg_list)),
   meas_cfg_mng(cell_cfg_list),
   drx_res_mng(cell_cfg_list),
@@ -83,7 +83,8 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
     unsigned              srs_limit = 0;
 
     unsigned max_nof_ues = sr_limit;
-    if (cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
+    if (cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value() and
+        not is_pusch_configured(*cell.ue_ded_serv_cell_cfg.csi_meas_cfg)) {
       csi_limit   = pucch_res_mng.get_nof_csi_free_res_offsets(cell_idx);
       max_nof_ues = std::min(max_nof_ues, csi_limit);
     }
@@ -99,7 +100,10 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
                 fmt::underlying(cell_idx),
                 max_nof_ues,
                 sr_limit,
-                cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value() ? fmt::to_string(csi_limit) : "n/a",
+                cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value() and
+                        not is_pusch_configured(*cell.ue_ded_serv_cell_cfg.csi_meas_cfg)
+                    ? fmt::to_string(csi_limit)
+                    : "n/a",
                 cell.srs_cfg.srs_period.has_value() ? fmt::to_string(srs_limit) : "n/a");
   }
 }

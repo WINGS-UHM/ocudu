@@ -73,10 +73,12 @@ public:
   /// \param[out,in] slot_alloc struct with scheduling results.
   /// \param[in] ue_cell_cfg user configuration.
   /// \param[in] crnti C-RNTI of the UE.
+  /// \param[in] include_aperiodic_csi Whether to include an aperiodic CSI report in the PUSCH.
   virtual void multiplex_uci_on_pusch(ul_sched_info&                pusch_grant,
                                       cell_slot_resource_allocator& slot_alloc,
                                       const ue_cell_configuration&  ue_cell_cfg,
-                                      rnti_t                        crnti) = 0;
+                                      rnti_t                        crnti,
+                                      bool                          include_aperiodic_csi) = 0;
 
   /// Get the number of PDSCHs currently scheduled for a given UE UCI.
   /// \param[in] uci_slot UCI slot of the respective PDSCHs.

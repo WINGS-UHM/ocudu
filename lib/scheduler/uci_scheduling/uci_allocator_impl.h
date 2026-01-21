@@ -47,7 +47,8 @@ public:
   void multiplex_uci_on_pusch(ul_sched_info&                pusch_grant,
                               cell_slot_resource_allocator& slot_alloc,
                               const ue_cell_configuration&  ue_cell_cfg,
-                              rnti_t                        crnti) override;
+                              rnti_t                        crnti,
+                              bool                          include_aperiodic_csi) override;
 
   uint8_t get_scheduled_pdsch_counter_in_ue_uci(slot_point uci_slot, rnti_t crnti) override;
 

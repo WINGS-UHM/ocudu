@@ -326,7 +326,8 @@ TEST_F(uci_alloc_test, uci_mplexing_on_pusch_with_no_pucch_grants)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
@@ -348,7 +349,8 @@ TEST_F(uci_alloc_test, uci_mplexing_harq_on_pusch)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
@@ -374,7 +376,8 @@ TEST_F(uci_alloc_test, uci_mplexing_3_bit_harq_on_pusch)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
@@ -402,7 +405,8 @@ TEST_F(uci_alloc_test, uci_mplexing_harq_sr_on_pusch)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
@@ -429,7 +433,8 @@ TEST_F(uci_alloc_test, uci_multiplexing_3_bit_harq_sr_on_pusch)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
@@ -457,7 +462,8 @@ TEST_F(uci_alloc_test, uci_multiplexing_3_bit_harq_sr_csi_on_pusch)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());
@@ -588,7 +594,8 @@ TEST_F(uci_alloc_mimo_4x4_test, uci_mplex_csi_part2_over_existing_pusch)
   t_bench.uci_alloc.multiplex_uci_on_pusch(slot_grid.result.ul.puschs.back(),
                                            slot_grid,
                                            t_bench.get_main_ue().get_pcell().cfg(),
-                                           t_bench.get_main_ue().crnti);
+                                           t_bench.get_main_ue().crnti,
+                                           false);
 
   // No grants expected on PUCCH.
   ASSERT_EQ(0, slot_grid.result.ul.pucchs.size());

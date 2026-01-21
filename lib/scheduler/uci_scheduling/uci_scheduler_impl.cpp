@@ -13,6 +13,8 @@
 #include "../support/sched_result_helpers.h"
 #include "uci_allocator.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
+#include <variant>
 
 using namespace ocudu;
 
@@ -136,7 +138,7 @@ void uci_scheduler_impl::add_ue_to_grid(const ue_cell_configuration& ue_cfg, boo
     add_resource(ue_cfg.crnti, sr_res.offset, period_slots, true);
   }
 
-  if (ue_cfg.csi_meas_cfg() != nullptr) {
+  if (ue_cfg.csi_meas_cfg() != nullptr and not is_pusch_configured(*ue_cfg.csi_meas_cfg())) {
     // We assume we only use the first CSI report configuration.
     const unsigned csi_report_cfg_idx = 0;
     const auto&    csi_report_cfg     = ue_cfg.csi_meas_cfg()->csi_report_cfg_list[csi_report_cfg_idx];
@@ -193,7 +195,7 @@ void uci_scheduler_impl::rem_ue(const ue_cell_configuration& ue_cfg)
     rem_resource(ue_cfg.crnti, sr_res.offset, period_slots, true);
   }
 
-  if (ue_cfg.csi_meas_cfg() != nullptr) {
+  if (ue_cfg.csi_meas_cfg() != nullptr and not is_pusch_configured(*ue_cfg.csi_meas_cfg())) {
     // We assume we only use the first CSI report configuration.
     const unsigned csi_report_cfg_idx = 0;
     const auto&    csi_report_cfg     = ue_cfg.csi_meas_cfg()->csi_report_cfg_list[csi_report_cfg_idx];

@@ -9,6 +9,7 @@
  */
 
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/ran/csi_rs/csi_meas_config.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/scheduler/config/pucch_builder_params.h"
 
@@ -497,8 +498,15 @@ static std::vector<csi_resource_config> make_csi_resource_configs()
   return res_cfgs;
 }
 
-static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_params& params)
+static std::vector<csi_report_config>
+make_csi_report_configs(const csi_builder_params&                                 params,
+                        const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
+  ocudu_assert(params.csi_report_slot_offset.has_value() or params.enable_aperiodic_report,
+               "At least one of periodic or aperiodic CSI reporting must be enabled");
+  // TODO: support both periodic and aperiodic reporting simultaneously.
+  ocudu_assert(not(params.csi_report_slot_offset.has_value() and params.enable_aperiodic_report),
+               "Simultaneous periodic and aperiodic CSI reporting is not supported");
   std::vector<csi_report_config> reps(1);
 
   reps[0].report_cfg_id               = static_cast<csi_report_config_id_t>(0);
@@ -506,12 +514,12 @@ static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_
   reps[0].csi_im_res_for_interference = static_cast<csi_res_config_id_t>(1);
 
   // Set Report Config.
-  {
+  if (params.csi_report_slot_offset.has_value()) {
     csi_report_config::periodic_or_semi_persistent_report_on_pucch report_cfg_type{};
     report_cfg_type.report_type =
         csi_report_config::periodic_or_semi_persistent_report_on_pucch::report_type_t::periodic;
     report_cfg_type.report_slot_period = convert_csi_resource_period_to_report_period(params.csi_rs_period);
-    report_cfg_type.report_slot_offset = params.csi_report_slot_offset;
+    report_cfg_type.report_slot_offset = *params.csi_report_slot_offset;
     pucch_builder_params pucch_builder_params{};
     const unsigned       cell_res_id =
         ((pucch_builder_params.res_set_0_size.value() + pucch_builder_params.res_set_1_size.value()) *
@@ -524,6 +532,15 @@ static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_
     report_cfg_type.pucch_csi_res_list = {csi_report_config::pucch_csi_resource{
         .ul_bwp = to_bwp_id(0), .pucch_res_id = pucch_res_id_t{cell_res_id, ue_res_id}}};
     reps[0].report_cfg_type            = report_cfg_type;
+  }
+  if (params.enable_aperiodic_report) {
+    csi_report_config::aperiodic_report report_cfg_type{};
+    // K2 values for CSI PUSCHs. We set them to be the same as the PUSCH time domain allocations K2 values.
+    report_cfg_type.report_slot_offset_list.resize(pusch_td_alloc_list.size());
+    for (unsigned i = 0; i < pusch_td_alloc_list.size(); ++i) {
+      report_cfg_type.report_slot_offset_list[i] = pusch_td_alloc_list[i].k2;
+    }
+    reps[0].report_cfg_type = report_cfg_type;
   }
 
   reps[0].report_qty_type = csi_report_config::report_quantity_type_t::cri_ri_pmi_cqi;
@@ -576,7 +593,9 @@ static std::vector<csi_report_config> make_csi_report_configs(const csi_builder_
   return reps;
 }
 
-csi_meas_config ocudu::csi_helper::make_csi_meas_config(const csi_builder_params& params)
+csi_meas_config
+ocudu::csi_helper::make_csi_meas_config(const csi_builder_params&                                 params,
+                                        const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
   csi_meas_config csi_meas{};
 
@@ -596,7 +615,20 @@ csi_meas_config ocudu::csi_helper::make_csi_meas_config(const csi_builder_params
   csi_meas.csi_res_cfg_list = make_csi_resource_configs();
 
   // CSI-ReportConfig.
-  csi_meas.csi_report_cfg_list = make_csi_report_configs(params);
+  csi_meas.csi_report_cfg_list = make_csi_report_configs(params, pusch_td_alloc_list);
+
+  if (params.enable_aperiodic_report) {
+    csi_aperiodic_trigger_state       ts;
+    csi_associated_report_config_info report_cfg_info;
+    // [Implementation-defined] We have only one report config.
+    report_cfg_info.report_cfg_id = static_cast<csi_report_config_id_t>(0);
+    report_cfg_info.res_for_channel.emplace<csi_associated_report_config_info::nzp_csi_rs>(
+        csi_associated_report_config_info::nzp_csi_rs{.resource_set = 1});
+    report_cfg_info.csi_im_resources_for_interference = 1;
+    ts.associated_report_cfg_info_list.push_back(report_cfg_info);
+    csi_meas.aperiodic_trigger_state_list.push_back(ts);
+    csi_meas.report_trigger_size = 1;
+  }
 
   return csi_meas;
 }

@@ -68,6 +68,102 @@ public:
   int               bind_port = -1;
 };
 
+class dummy_sctp_server_ipv6 : public dummy_sctp_node
+{
+public:
+  dummy_sctp_server_ipv6() : dummy_sctp_node("SERVER_IPV6")
+  {
+    auto result = sctp_socket::create(sctp_socket_params{"SERVER_IPV6", AF_INET6, SOCK_SEQPACKET});
+    report_fatal_error_if_not(result.has_value(), "Failed to create SCTP socket");
+    socket = std::move(result.value());
+
+    sockaddr_storage addr_storage = {};
+    auto*            addr6        = reinterpret_cast<sockaddr_in6*>(&addr_storage);
+    addr6->sin6_family            = AF_INET6;
+    addr6->sin6_port              = htons(0);
+    addr6->sin6_addr              = in6addr_loopback;
+    report_fatal_error_if_not(socket.bindx({addr_storage}, ""), "Failed to bind server socket");
+    report_fatal_error_if_not(socket.listen(), "Failed to listen to new connections");
+    report_fatal_error_if_not(socket.set_non_blocking(), "Failed to set as non-blocking");
+    bind_port = socket.get_bound_port().value();
+  }
+
+  const std::string address   = "::1";
+  int               bind_port = -1;
+};
+
+class dummy_sctp_server_multihomed_ipv4 : public dummy_sctp_node
+{
+public:
+  dummy_sctp_server_multihomed_ipv4() : dummy_sctp_node("SERVER_MULTIHOMED_IPV4")
+  {
+    auto result = sctp_socket::create(sctp_socket_params{"SERVER_MULTIHOMED_IPV4", AF_INET, SOCK_SEQPACKET});
+    report_fatal_error_if_not(result.has_value(), "Failed to create SCTP socket");
+    socket = std::move(result.value());
+
+    std::vector<sockaddr_storage> addrs;
+
+    // Add multiple IPv4 loopback addresses
+    sockaddr_storage addr4_storage = {};
+    auto*            addr4         = reinterpret_cast<sockaddr_in*>(&addr4_storage);
+    addr4->sin_family              = AF_INET;
+    addr4->sin_port                = htons(0);
+    addr4->sin_addr.s_addr         = ::inet_addr("127.0.0.1");
+    addrs.push_back(addr4_storage);
+
+    report_fatal_error_if_not(socket.bindx(addrs, ""), "Failed to bind server socket");
+    report_fatal_error_if_not(socket.listen(), "Failed to listen to new connections");
+    report_fatal_error_if_not(socket.set_non_blocking(), "Failed to set as non-blocking");
+    bind_port = socket.get_bound_port().value();
+  }
+
+  const std::vector<std::string> addresses = {"127.0.0.1", "127.0.0.2", "127.0.0.3"};
+  int                            bind_port = -1;
+};
+
+class dummy_sctp_server_mixed : public dummy_sctp_node
+{
+public:
+  dummy_sctp_server_mixed() : dummy_sctp_node("SERVER_MULTIHOMED_IPV4_IPV6")
+  {
+    auto result = sctp_socket::create(sctp_socket_params{"SERVER_MULTIHOMED_IPV4_IPV6", AF_INET6, SOCK_SEQPACKET});
+    report_fatal_error_if_not(result.has_value(), "Failed to create SCTP socket");
+    socket = std::move(result.value());
+
+    std::vector<sockaddr_storage> addrs;
+
+    // Add IPv4 loopback address
+    sockaddr_storage addr4_storage = {};
+    auto*            addr4         = reinterpret_cast<sockaddr_in*>(&addr4_storage);
+    addr4->sin_family              = AF_INET;
+    addr4->sin_port                = htons(0);
+    addr4->sin_addr.s_addr         = ::inet_addr("127.0.0.1");
+    addrs.push_back(addr4_storage);
+
+    addr4->sin_addr.s_addr = ::inet_addr("127.0.0.2");
+    addrs.push_back(addr4_storage);
+
+    addr4->sin_addr.s_addr = ::inet_addr("127.0.0.3");
+    addrs.push_back(addr4_storage);
+
+    // Add IPv6 loopback address
+    sockaddr_storage addr6_storage = {};
+    auto*            addr6         = reinterpret_cast<sockaddr_in6*>(&addr6_storage);
+    addr6->sin6_family             = AF_INET6;
+    addr6->sin6_port               = htons(0);
+    addr6->sin6_addr               = in6addr_loopback;
+    addrs.push_back(addr6_storage);
+
+    report_fatal_error_if_not(socket.bindx(addrs, ""), "Failed to bind server socket");
+    report_fatal_error_if_not(socket.listen(), "Failed to listen to new connections");
+    report_fatal_error_if_not(socket.set_non_blocking(), "Failed to set as non-blocking");
+    bind_port = socket.get_bound_port().value();
+  }
+
+  const std::vector<std::string> addresses = {"127.0.0.1", "::1"};
+  int                            bind_port = -1;
+};
+
 } // namespace
 
 class sctp_network_client_test : public ::testing::Test
@@ -109,7 +205,7 @@ public:
 
   void trigger_broker() { broker.handle_receive(); }
 
-  bool connect_to_server(const std::string& server_addr, int server_port)
+  bool connect_to_server()
   {
     auto sender = client->connect(recv_notifier_factory.create());
     if (sender != nullptr) {
@@ -159,7 +255,7 @@ TEST_F(sctp_network_client_test, when_bind_interface_is_invalid_then_client_conn
   client_cfg.sctp.bind_port      = server.bind_port;
   client                         = create_sctp_network_client(client_cfg);
   ASSERT_NE(client, nullptr);
-  ASSERT_FALSE(connect_to_server(client_cfg.sctp.bind_addresses[0], client_cfg.sctp.bind_port));
+  ASSERT_FALSE(connect_to_server());
 }
 
 TEST_F(sctp_network_client_test, when_server_does_not_exist_then_connection_fails)
@@ -167,7 +263,7 @@ TEST_F(sctp_network_client_test, when_server_does_not_exist_then_connection_fail
   client_cfg.sctp.connect_addresses = {"127.0.0.1"};
   client                            = create_sctp_network_client(client_cfg);
 
-  ASSERT_FALSE(connect_to_server("127.0.0.2", server.bind_port));
+  ASSERT_FALSE(connect_to_server());
   ASSERT_EQ(broker.last_registered_fd.value(), -1);
   ASSERT_EQ(client_sender, nullptr);
   ASSERT_EQ(broker.last_unregistered_fd, -1);
@@ -181,7 +277,7 @@ TEST_F(sctp_network_client_test, when_broker_rejects_subscriber_then_connect_fai
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
 
-  ASSERT_FALSE(connect_to_server(server.address, server.bind_port));
+  ASSERT_FALSE(connect_to_server());
   ASSERT_GE(broker.last_registered_fd.value(), 0);
   ASSERT_EQ(broker.last_unregistered_fd, -1) << "If the subscription fails, no deregister should be called";
 }
@@ -193,7 +289,7 @@ TEST_F(sctp_network_client_test, when_server_exists_then_connection_succeeds)
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
 
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
   ASSERT_EQ(broker.last_registered_fd.value(), client->get_socket_fd());
   ASSERT_NE(client_sender, nullptr);
   ASSERT_EQ(broker.last_unregistered_fd, -1);
@@ -226,7 +322,7 @@ TEST_F(sctp_network_client_test, when_client_binds_address_then_connection_succe
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
 }
 
 TEST_F(sctp_network_client_test, when_client_sends_data_then_server_receives_it)
@@ -235,8 +331,7 @@ TEST_F(sctp_network_client_test, when_client_sends_data_then_server_receives_it)
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
-
+  ASSERT_TRUE(connect_to_server());
   std::vector<uint8_t> sent_data = {0x1, 0x2, 0x3};
   ASSERT_TRUE(send_data(sent_data));
 
@@ -257,7 +352,7 @@ TEST_F(sctp_network_client_test, when_server_sends_data_then_client_receives_it)
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
 
   // Server receives SCTP COMM UP
   auto server_recv = server.receive();
@@ -284,7 +379,7 @@ TEST_F(sctp_network_client_test, when_client_sender_is_destroyed_then_client_sen
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
 
   // Client processes SCTP COMM UP
   trigger_broker();
@@ -315,7 +410,7 @@ TEST_F(sctp_network_client_test, when_client_is_destroyed_then_server_gets_eof)
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
   // Client processes SCTP COMM UP
   trigger_broker();
   // Server receives SCTP COMM UP
@@ -339,7 +434,7 @@ TEST_F(sctp_network_client_test, when_server_is_destroyed_then_client_receives_s
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
   // Client processes SCTP COMM UP
   trigger_broker();
   // Server receives SCTP COMM UP
@@ -363,7 +458,7 @@ TEST_F(sctp_network_client_test, when_server_sends_eof_then_client_receives_sctp
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
   // Client processes SCTP COMM UP
   trigger_broker();
   // Server receives SCTP COMM UP
@@ -393,7 +488,7 @@ TEST_F(sctp_network_client_test, when_client_sends_eof_before_processing_incomin
   client_cfg.sctp.connect_port      = server.bind_port;
   client_cfg.sctp.dest_name         = "server";
   client                            = create_sctp_network_client(client_cfg);
-  ASSERT_TRUE(connect_to_server(server.address, server.bind_port));
+  ASSERT_TRUE(connect_to_server());
   // Client processes SCTP COMM UP
   trigger_broker();
   // Server receives SCTP COMM UP
@@ -420,4 +515,143 @@ TEST_F(sctp_network_client_test, when_client_sends_eof_before_processing_incomin
   ASSERT_EQ(server_recv.value().sctp_assoc_change().sac_state, SCTP_SHUTDOWN_COMP);
 }
 
-// TO-DO: Add IPv6 tests
+TEST_F(sctp_network_client_test, when_server_is_ipv6_and_connection_succeeds_then_data_exchange_works)
+{
+  dummy_sctp_server_ipv6 server_ipv6;
+
+  client_cfg.sctp.connect_addresses = {server_ipv6.address};
+  client_cfg.sctp.connect_port      = server_ipv6.bind_port;
+  client_cfg.sctp.dest_name         = "server_ipv6";
+  client                            = create_sctp_network_client(client_cfg);
+  ASSERT_TRUE(connect_to_server());
+
+  std::vector<uint8_t> sent_data = {0x1, 0x2, 0x3};
+  ASSERT_TRUE(send_data(sent_data));
+
+  // Server receives SCTP COMM UP
+  auto server_recv = server_ipv6.receive();
+  ASSERT_EQ(server_recv.value().sctp_assoc_change().sac_state, SCTP_COMM_UP);
+
+  // Server receives data.
+  server_recv = server_ipv6.receive();
+  ASSERT_TRUE(server_recv.has_value());
+  ASSERT_TRUE(server_recv.value().has_data());
+  ASSERT_EQ(server_recv.value().data, sent_data);
+
+  // Server sends data to client
+  ASSERT_TRUE(server_ipv6.send_data(sent_data,
+                                    client_cfg.sctp.ppid,
+                                    (const struct sockaddr&)server_recv->msg_src_addr,
+                                    server_recv->msg_src_addrlen));
+
+  // Client receives SCTP_COMM_UP
+  trigger_broker();
+  ASSERT_FALSE(recv_notifier_factory.destroyed);
+
+  // Client receives data
+  trigger_broker();
+  ASSERT_FALSE(recv_notifier_factory.destroyed);
+  ASSERT_EQ(recv_notifier_factory.last_sdu, sent_data);
+
+  // Client sends EOF
+  client_sender.reset();
+
+  // Process shutdown events
+  trigger_broker();
+  ASSERT_TRUE(recv_notifier_factory.destroyed);
+}
+
+TEST_F(sctp_network_client_test, when_server_has_multihomed_ipv4_addresses_then_data_exchange_works)
+{
+  dummy_sctp_server_multihomed_ipv4 server_multihomed;
+
+  client_cfg.sctp.connect_addresses = server_multihomed.addresses;
+  client_cfg.sctp.connect_port      = server_multihomed.bind_port;
+  client_cfg.sctp.bind_addresses    = {"127.0.0.4", "127.0.0.5"};
+  client_cfg.sctp.dest_name         = "server_multihomed";
+  client                            = create_sctp_network_client(client_cfg);
+  ASSERT_TRUE(connect_to_server());
+  std::vector<uint8_t> sent_data = {0x7, 0x8, 0x9};
+  ASSERT_TRUE(send_data(sent_data));
+
+  // Server receives SCTP COMM UP
+  auto server_recv = server_multihomed.receive();
+  ASSERT_EQ(server_recv.value().sctp_assoc_change().sac_state, SCTP_COMM_UP);
+
+  // Server receives data.
+  server_recv = server_multihomed.receive();
+  ASSERT_TRUE(server_recv.has_value());
+  ASSERT_TRUE(server_recv.value().has_data());
+  ASSERT_EQ(server_recv.value().data, sent_data);
+
+  // Server sends data to client
+  ASSERT_TRUE(server_multihomed.send_data(sent_data,
+                                          client_cfg.sctp.ppid,
+                                          (const struct sockaddr&)server_recv->msg_src_addr,
+                                          server_recv->msg_src_addrlen));
+
+  // Client receives SCTP_COMM_UP
+  trigger_broker();
+  ASSERT_FALSE(recv_notifier_factory.destroyed);
+
+  // Client receives data
+  trigger_broker();
+  ASSERT_FALSE(recv_notifier_factory.destroyed);
+  ASSERT_EQ(recv_notifier_factory.last_sdu, sent_data);
+
+  // Client sends EOF
+  client_sender.reset();
+
+  // Process shutdown events
+  trigger_broker();
+  ASSERT_TRUE(recv_notifier_factory.destroyed);
+}
+
+TEST_F(sctp_network_client_test, when_server_has_multihomed_mixed_ipv4_and_ipv6_addresses_then_data_exchange_works)
+{
+  dummy_sctp_server_mixed server_mixed;
+
+  client_cfg.sctp.connect_addresses = server_mixed.addresses;
+  client_cfg.sctp.connect_port      = server_mixed.bind_port;
+  client_cfg.sctp.dest_name         = "server_mixed";
+  // Bind client to both IPv4 and IPv6 for multihoming
+  // Bind client to loopback addresses available by default
+  client_cfg.sctp.bind_addresses = {"127.0.0.4", "::1"};
+  client                         = create_sctp_network_client(client_cfg);
+  ASSERT_TRUE(connect_to_server());
+
+  std::vector<uint8_t> sent_data = {0x4, 0x5, 0x6};
+  ASSERT_TRUE(send_data(sent_data));
+
+  // Server receives SCTP COMM UP
+  auto server_recv = server_mixed.receive();
+  ASSERT_EQ(server_recv.value().sctp_assoc_change().sac_state, SCTP_COMM_UP);
+
+  // Server receives data.
+  server_recv = server_mixed.receive();
+  ASSERT_TRUE(server_recv.has_value());
+  ASSERT_TRUE(server_recv.value().has_data());
+  ASSERT_EQ(server_recv.value().data, sent_data);
+
+  // Server sends data to client
+  ASSERT_TRUE(server_mixed.send_data(sent_data,
+                                     client_cfg.sctp.ppid,
+                                     (const struct sockaddr&)server_recv->msg_src_addr,
+                                     server_recv->msg_src_addrlen));
+
+  // Client receives SCTP_COMM_UP
+  trigger_broker();
+  ASSERT_FALSE(recv_notifier_factory.destroyed);
+
+  // Client receives data
+  trigger_broker();
+  ASSERT_FALSE(recv_notifier_factory.destroyed);
+  ASSERT_EQ(recv_notifier_factory.last_sdu, sent_data);
+
+  // Client sends EOF
+  client_sender.reset();
+
+  // Process shutdown events
+  trigger_broker();
+  ASSERT_TRUE(recv_notifier_factory.destroyed);
+}

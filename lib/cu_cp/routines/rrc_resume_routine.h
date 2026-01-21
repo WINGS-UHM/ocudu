@@ -24,7 +24,6 @@ public:
   rrc_resume_routine(const cu_cp_rrc_resume_request& request_,
                      f1ap_ue_context_manager&        du_f1ap_ue_ctxt_mng_,
                      e1ap_bearer_context_manager&    e1ap_bearer_ctxt_mng_,
-                     cu_cp_impl_interface&           cu_cp_handler_,
                      ue_manager&                     ue_mng_,
                      ocudulog::basic_logger&         logger_);
 
@@ -58,7 +57,6 @@ private:
 
   f1ap_ue_context_manager&     du_f1ap_ue_ctxt_mng;  // to trigger UE context modification at source DU
   e1ap_bearer_context_manager& e1ap_bearer_ctxt_mng; // to trigger bearer context modification at CU-UP
-  cu_cp_impl_interface&        cu_cp_handler;        // to trigger UE context transfer (if sucessful)
   ue_manager&                  ue_mng;               // to remove UE context from source DU processor
   up_config_update             next_config;
   ocudulog::basic_logger&      logger;

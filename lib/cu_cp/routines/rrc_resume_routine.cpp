@@ -36,13 +36,11 @@ static bool verify_rrc_resume_request(const cu_cp_rrc_resume_request& request,
 rrc_resume_routine::rrc_resume_routine(const cu_cp_rrc_resume_request& request_,
                                        f1ap_ue_context_manager&        du_f1ap_ue_ctxt_mng_,
                                        e1ap_bearer_context_manager&    e1ap_bearer_ctxt_mng_,
-                                       cu_cp_impl_interface&           cu_cp_handler_,
                                        ue_manager&                     ue_mng_,
                                        ocudulog::basic_logger&         logger_) :
   request(request_),
   du_f1ap_ue_ctxt_mng(du_f1ap_ue_ctxt_mng_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
-  cu_cp_handler(cu_cp_handler_),
   ue_mng(ue_mng_),
   logger(logger_)
 {
@@ -83,7 +81,6 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
     // Handle UE Context Setup Response.
     if (!handle_ue_context_setup_response()) {
       logger.warning("ue={}: \"{}\" failed to create UE context at DU", request.ue_index, name());
-      CORO_AWAIT(cu_cp_handler.handle_ue_removal_request(ue_context_setup_request.ue_index));
       // Note: From this point the UE is removed and only the stored context can be accessed.
       CORO_EARLY_RETURN(response_msg);
     }

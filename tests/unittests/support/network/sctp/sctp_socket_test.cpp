@@ -349,7 +349,7 @@ TEST_F(sctp_socket_test, get_bound_port_returns_nullopt_for_closed_socket)
   EXPECT_FALSE(sock.get_bound_port().has_value());
 }
 
-/// Test bindx with an empty address list (should succeed/skip). TO-DO: Should this be allowed?!
+/// Test bindx with an empty address list.
 TEST_F(sctp_socket_test, bindx_with_empty_list)
 {
   sctp_socket_params params = create_default_params();
@@ -361,7 +361,7 @@ TEST_F(sctp_socket_test, bindx_with_empty_list)
   sctp_socket& sock = result.value();
 
   std::vector<sockaddr_storage> addrs;
-  EXPECT_TRUE(sock.bindx(addrs, ""));
+  EXPECT_FALSE(sock.bindx(addrs, ""));
 }
 
 /// Test bindx with a single address.

@@ -321,8 +321,8 @@ bool sctp_socket::close()
 bool sctp_socket::bindx(const std::vector<sockaddr_storage>& addrs, const std::string& bind_interface)
 {
   if (addrs.empty()) {
-    logger.info("{}: Bind to {} address(es) was skipped", if_name, addrs.size());
-    return true; // Nothing to do
+    logger.info("{}: Failed to bind {} address(es). Cause: Empty list was provided", if_name, addrs.size());
+    return false;
   }
 
   if (not is_open()) {

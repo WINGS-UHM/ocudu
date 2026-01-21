@@ -86,7 +86,7 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
     }
   }
 
-  {
+  if (ue_context_setup_response.c_rnti.has_value()) {
     // Update UE context with new C-RNTI.
     ue->get_ue_context().crnti = ue_context_setup_response.c_rnti.value();
     ue->get_rrc_ue()->update_c_rnti(ue_context_setup_response.c_rnti.value());
@@ -205,8 +205,7 @@ bool rrc_resume_routine::handle_ue_context_setup_response()
   }
 
   if (!ue_context_setup_response.c_rnti.has_value()) {
-    logger.warning("No C-RNTI present in UE context setup response");
-    return false;
+    logger.debug("No C-RNTI present in UE context setup response");
   }
 
   // Create bearer context mod request.

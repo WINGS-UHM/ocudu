@@ -15,6 +15,7 @@
 #include "ocudu/ran/prach/restricted_set_config.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>
+#include <optional>
 
 namespace ocudu {
 
@@ -53,6 +54,23 @@ struct rach_config_generic {
   }
 };
 
+/// Parameters to configure prioritized random access.
+struct ra_prioritization {
+  enum power_ramp_step_high_priority : uint8_t { db0 = 0, db2 = 2, db4 = 4, db6 = 6 };
+  enum scaling_factor_bi { zero, dot25, dot5, dot75 };
+
+  /// Power ramping step applied for the prioritized RA procedure.
+  power_ramp_step_high_priority pwr_ramp_step_hi_prio;
+  /// Scaling factor for the backoff indicator (BI) for the prioritized RA procedure.
+  std::optional<scaling_factor_bi> scaling_bi;
+};
+
+/// Information relative to RA prioritization for slicing.
+struct ra_prioritization_slice_info {
+  std::vector<uint8_t> nsag_id_list;
+  ra_prioritization    prio;
+};
+
 /// Used to specify the cell-specific random-access parameters as per TS 38.331, "RACH-ConfigCommon".
 struct rach_config_common {
   rach_config_generic rach_cfg_generic;
@@ -80,6 +98,8 @@ struct rach_config_common {
   /// \c ssb-perRACH-OccasionAndCB-PreamblesPerSSB.
   /// \remark Values of \c cb_preambles_per_ssb depends on value of \c ssb_per_ro.
   uint8_t nof_cb_preambles_per_ssb = 4;
+  /// List of slice-specific RACH configurations.
+  std::vector<ra_prioritization_slice_info> ra_prio_slice_info_list;
 
   bool operator==(const rach_config_common& other) const
   {

@@ -747,6 +747,66 @@ static asn1::rrc_nr::rach_cfg_generic_s make_asn1_rach_cfg_generic(const rach_co
   return out;
 }
 
+static rach_cfg_common_s make_asn1_rach_cfg_common(const rach_config_common& cfg)
+{
+  rach_cfg_common_s out;
+  out.rach_cfg_generic = make_asn1_rach_cfg_generic(cfg.rach_cfg_generic);
+  if (cfg.total_nof_ra_preambles != MAX_NOF_RA_PREAMBLES_PER_OCCASION) {
+    out.total_nof_ra_preambs_present = true;
+    out.total_nof_ra_preambs         = cfg.total_nof_ra_preambles;
+  }
+  ssb_per_rach_occasion_and_cb_preambles_per_ssb_to_asn1(
+      ssb_per_rach_occ_to_float(cfg.nof_ssb_per_ro), cfg.nof_cb_preambles_per_ssb, out);
+  bool success = asn1::number_to_enum(out.ra_contention_resolution_timer, cfg.ra_con_res_timer.count());
+  ocudu_assert(success, "Invalid ra-ContentionResolutionTimer");
+  if (cfg.msg3_transform_precoder) {
+    out.msg3_transform_precoder_present = true;
+  }
+  if (cfg.is_prach_root_seq_index_l839) {
+    out.prach_root_seq_idx.set_l839() = cfg.prach_root_seq_index;
+  } else {
+    out.prach_root_seq_idx.set_l139() = cfg.prach_root_seq_index;
+  }
+  if (cfg.msg1_scs != subcarrier_spacing::invalid) {
+    out.msg1_subcarrier_spacing_present = true;
+    out.msg1_subcarrier_spacing         = get_asn1_scs(cfg.msg1_scs);
+  }
+  switch (cfg.restricted_set) {
+    case restricted_set_config::UNRESTRICTED:
+      out.restricted_set_cfg.value = rach_cfg_common_s::restricted_set_cfg_opts::unrestricted_set;
+      break;
+    case restricted_set_config::TYPE_A:
+      out.restricted_set_cfg.value = rach_cfg_common_s::restricted_set_cfg_opts::restricted_set_type_a;
+      break;
+    case restricted_set_config::TYPE_B:
+      out.restricted_set_cfg.value = rach_cfg_common_s::restricted_set_cfg_opts::restricted_set_type_b;
+      break;
+    default:
+      report_fatal_error("Invalid restricted set");
+  }
+
+  if (not cfg.ra_prio_slice_info_list.empty()) {
+    out.ext = true;
+    out.ra_prioritization_for_slicing_r17.set_present();
+    auto& out_list = out.ra_prioritization_for_slicing_r17->ra_prioritization_slice_info_list_r17;
+    out_list.reserve(cfg.ra_prio_slice_info_list.size());
+    for (const auto& slice_cfg : cfg.ra_prio_slice_info_list) {
+      ra_prioritization_slice_info_r17_s out_slice;
+      success = asn1::number_to_enum(out_slice.ra_prioritization_r17.pwr_ramp_step_high_prio,
+                                     slice_cfg.prio.pwr_ramp_step_hi_prio);
+      ocudu_assert(success, "Invalid pwr ramp step hi prio");
+      if (slice_cfg.prio.scaling_bi.has_value()) {
+        out_slice.ra_prioritization_r17.scaling_factor_bi_present = true;
+        out_slice.ra_prioritization_r17.scaling_factor_bi.value =
+            static_cast<ra_prioritization_s::scaling_factor_bi_opts::options>(*slice_cfg.prio.scaling_bi);
+      }
+      out_list.push_back(out_slice);
+    }
+  }
+
+  return out;
+}
+
 asn1::rrc_nr::bwp_ul_common_s ocudu::odu::make_asn1_rrc_initial_up_bwp(const ul_config_common& cfg)
 {
   asn1::rrc_nr::bwp_ul_common_s init_ul_bwp;
@@ -760,40 +820,7 @@ asn1::rrc_nr::bwp_ul_common_s ocudu::odu::make_asn1_rrc_initial_up_bwp(const ul_
   const rach_config_common& rach_cfg  = *cfg.init_ul_bwp.rach_cfg_common;
   init_ul_bwp.rach_cfg_common_present = true;
   rach_cfg_common_s& rach             = init_ul_bwp.rach_cfg_common.set_setup();
-  rach.rach_cfg_generic               = make_asn1_rach_cfg_generic(rach_cfg.rach_cfg_generic);
-  if (rach_cfg.total_nof_ra_preambles != MAX_NOF_RA_PREAMBLES_PER_OCCASION) {
-    rach.total_nof_ra_preambs_present = true;
-    rach.total_nof_ra_preambs         = rach_cfg.total_nof_ra_preambles;
-  }
-  ssb_per_rach_occasion_and_cb_preambles_per_ssb_to_asn1(
-      ssb_per_rach_occ_to_float(rach_cfg.nof_ssb_per_ro), rach_cfg.nof_cb_preambles_per_ssb, rach);
-  bool success = asn1::number_to_enum(rach.ra_contention_resolution_timer, rach_cfg.ra_con_res_timer.count());
-  ocudu_assert(success, "Invalid ra-ContentionResolutionTimer");
-  if (rach_cfg.msg3_transform_precoder) {
-    rach.msg3_transform_precoder_present = true;
-  }
-  if (rach_cfg.is_prach_root_seq_index_l839) {
-    rach.prach_root_seq_idx.set_l839() = rach_cfg.prach_root_seq_index;
-  } else {
-    rach.prach_root_seq_idx.set_l139() = rach_cfg.prach_root_seq_index;
-  }
-  if (rach_cfg.msg1_scs != subcarrier_spacing::invalid) {
-    rach.msg1_subcarrier_spacing_present = true;
-    rach.msg1_subcarrier_spacing         = get_asn1_scs(rach_cfg.msg1_scs);
-  }
-  switch (rach_cfg.restricted_set) {
-    case restricted_set_config::UNRESTRICTED:
-      rach.restricted_set_cfg.value = rach_cfg_common_s::restricted_set_cfg_opts::unrestricted_set;
-      break;
-    case restricted_set_config::TYPE_A:
-      rach.restricted_set_cfg.value = rach_cfg_common_s::restricted_set_cfg_opts::restricted_set_type_a;
-      break;
-    case restricted_set_config::TYPE_B:
-      rach.restricted_set_cfg.value = rach_cfg_common_s::restricted_set_cfg_opts::restricted_set_type_b;
-      break;
-    default:
-      report_fatal_error("Invalid restricted set");
-  }
+  rach                                = make_asn1_rach_cfg_common(rach_cfg);
 
   // pusch-ConfigCommon SetupRelease { PUSCH-ConfigCommon } OPTIONAL, -- Need M
   const pusch_config_common& pusch_cfg = cfg.init_ul_bwp.pusch_cfg_common.value();

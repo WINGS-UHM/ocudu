@@ -167,8 +167,7 @@ include-guards:
 .codechecker:
   image: ${CI_REGISTRY_IMAGE}/codechecker:${DOCKER_BUILDER_VERSION}
   stage: static
-  tags:
-    - amd64
+  tags: [saas-linux-large-amd64]
   needs:
     - job: trigger builder
       optional: true
@@ -249,6 +248,7 @@ clang-tidy incremental:
     - if: $ON_MR
       when: manual
       allow_failure: false
+  tags: [saas-linux-medium-amd64]
   variables:
     CCACHE_MAXSIZE: 3G
     CACHE_COMPRESSION_LEVEL: slowest

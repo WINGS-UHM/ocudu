@@ -11,12 +11,12 @@ variables:
 
 .docker-builder:
   tags:
-    - ${PLATFORM}
+    - saas-linux-medium-${PLATFORM}
   variables:
     NAME: ""
     CONTEXT: ""
     DOCKERFILE: ""
-    PLATFORM: "amd64"
+    PLATFORM: "amd64" # arm64 or amd64
     VERSION: ""
     BUILD_ARGS: "" # ; separated
     BUILD_SECRETS: "" # ; separated, format id=secret_name,src=secret_file
@@ -116,8 +116,6 @@ variables:
 .docker manifest:
   stage: publish
   image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION
-  tags:
-    - untagged
   rules:
     - if: $ON_DEFAULT_BRANCH
     - if: $ON_MR
@@ -138,7 +136,7 @@ variables:
       echo "Image ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION} pushed"
 
 .check image exists for all supported ubuntu versions:
-  extends: .docker-builder
+  image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION
   variables:
     VERSIONS_TO_IGNORE: ""
   before_script:

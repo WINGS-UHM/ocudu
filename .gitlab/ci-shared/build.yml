@@ -47,7 +47,6 @@ include:
     # CI
     OCUDU_DIR: ${CI_PROJECT_DIR}
     OCUDU_BUILD_DIR: build
-    INFRASTRUCTURE_TAG: amd64-avx2
     TRANSFER_METER_FREQUENCY: 5s
     ARTIFACT_COMPRESSION_LEVEL: slowest
     CACHE_COMPRESSION_LEVEL: slowest
@@ -60,7 +59,7 @@ include:
     KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "40G"
     KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "40G"
   tags:
-    - ${INFRASTRUCTURE_TAG}
+    - saas-linux-medium-amd64
   before_script:
     - |
       for var in \
@@ -119,7 +118,6 @@ include:
           ;;
       esac
     - |
-      echo "INFRASTRUCTURE_TAG=${INFRASTRUCTURE_TAG}"
       echo "OS=${OS}"
       echo "OCUDU_TARGET=${OCUDU_TARGET}"
       echo "COMPILER=${COMPILER}"

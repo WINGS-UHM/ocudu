@@ -20,11 +20,6 @@ variables:
 # Build caches #
 ################
 
-.cache_build_set: &cache_build_set
-  - key: ${OS}-${COMPILER}-${CMAKE_BUILD_TYPE}-${MARCH}
-    paths: [ccache]
-    policy: push
-
 .cache_build_get: &cache_build_get
   - key: ${OS}-${COMPILER}-${CMAKE_BUILD_TYPE}-${MARCH}
     paths: [ccache]
@@ -157,7 +152,7 @@ variables:
     ENABLE_GCOV: "True"
     MARCH: x86-64-v3
     LINKER: mold
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 .smoke relwithdeb:
   extends: .build_and_unit
@@ -170,7 +165,7 @@ variables:
     TEST_MODE: default
     MARCH: x86-64-v3
     LINKER: mold
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 .smoke tsan:
   extends: .build_and_unit
@@ -184,7 +179,7 @@ variables:
     TEST_MODE: tsan
     MARCH: x86-64-v3
     LINKER: mold
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 .smoke archlinux:
   extends: .build_and_unit
@@ -197,7 +192,7 @@ variables:
     ENABLE_FFTW: "True"
     TEST_MODE: default
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 .smoke dpdk:
   extends: .build_and_unit
@@ -213,7 +208,7 @@ variables:
     DPDK_VERSION: "24.11.2_avx2"
     MARCH: x86-64-v3
     LINKER: mold
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 .smoke valgrind:
   extends: .build_and_unit
@@ -226,7 +221,7 @@ variables:
     TEST_MODE: valgrind
     MARCH: x86-64-v3
     LINKER: lld
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 .smoke printers:
   extends: .build_and_unit
@@ -240,7 +235,7 @@ variables:
     TEST_GDB_PRINTERS: "True"
     TEST_MODE: pretty_printers
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-medium-amd64]
 
 # Combinations to use in schedules matrix
 
@@ -430,62 +425,6 @@ intermediate commits clean:
 # Build Nightly #
 #################
 
-# Update cache for MR jobs
-
-smoke release update cache:
-  extends: .smoke release
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  retry: 2
-  interruptible: false
-  cache:
-    - *cache_build_set
-
-smoke relwithdeb update cache:
-  extends: .smoke relwithdeb
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  retry: 2
-  interruptible: false
-  cache:
-    - *cache_build_set
-
-smoke tsan update cache:
-  extends: .smoke tsan
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  interruptible: false
-  retry: 2
-  cache:
-    - *cache_build_set
-
-smoke archlinux update cache:
-  extends: .smoke archlinux
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  retry: 2
-  interruptible: false
-  cache:
-    - *cache_build_set
-
-smoke dpdk update cache:
-  extends: .smoke dpdk
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  retry: 2
-  interruptible: false
-  cache:
-    - *cache_build_set
-
-smoke valgrind update cache:
-  extends: .smoke valgrind
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  interruptible: false
-  retry: 2
-  cache:
-    - *cache_build_set
-
 smoke asan:
   extends: .build_and_unit
   rules:
@@ -497,7 +436,7 @@ smoke asan:
     ASSERT_LEVEL: PARANOID
     ENABLE_ASAN: "True"
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
 
 smoke rtsan:
   extends: .build_and_unit
@@ -512,7 +451,7 @@ smoke rtsan:
     ENABLE_WERROR: "False"
     TEST_MODE: rtsan
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
 
 # Packaging
 
@@ -523,7 +462,7 @@ package:
     - if: $CI_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
-  variables: &package_variables
+  variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
     KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
@@ -533,7 +472,7 @@ package:
     DEB_BUILD_OPTIONS: parallel=${KUBERNETES_CPU_LIMIT}
     MAKEFLAGS: -j${KUBERNETES_CPU_LIMIT}
     extraopts: -DMARCH=x86-64-v3
-  tags: [amd64-avx2]
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - OS_VERSION: "22.04"
@@ -553,7 +492,7 @@ install-package:
   variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
-  tags: [amd64-avx2]
+  tags: [saas-linux-medium-amd64]
   script:
     - gnb --version
   parallel:
@@ -578,7 +517,7 @@ export on amd64:
     COMPILER: gcc
     TEST_MODE: none
     ENABLE_EXPORT: "True"
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
@@ -588,8 +527,8 @@ export on amd64:
 export on amd64 avx512:
   extends: export on amd64
   variables:
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
@@ -607,7 +546,7 @@ ubuntu-25.04 amd64 avx2:
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -622,7 +561,7 @@ ubuntu-25.10 amd64 avx2:
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -637,7 +576,7 @@ ubuntu-24.04 amd64 avx2:
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -655,8 +594,8 @@ ubuntu-24.04 amd64 avx512:
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -674,7 +613,7 @@ ubuntu-22.04 amd64 avx2:
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -691,7 +630,7 @@ ubuntu-24.04 arm neon:
   variables:
     OS: ubuntu-24.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
-    INFRASTRUCTURE_TAG: arm64
+  tags: [saas-linux-large-arm64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -714,7 +653,7 @@ ubuntu dpdk:
     ENABLE_DPDK: "True"
     ASSERT_LEVEL: PARANOID
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - OS: ubuntu-25.10
@@ -746,9 +685,7 @@ ubsan avx2:
     ENABLE_UBSAN: "True"
     TEST_MODE: default
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2-docker
-    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
-    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
+  tags: [saas-linux-large-amd64]
   timeout: 2 hours
 
 ###################
@@ -765,7 +702,7 @@ archlinux amd64 avx2:
     OS: archlinux-latest
     ENABLE_WERROR: "False"
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -779,8 +716,8 @@ archlinux amd64 avx512:
     OS: archlinux-latest
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -796,7 +733,7 @@ debian 12 amd64 avx2:
     OS: debian-12
     ENABLE_WERROR: "False"
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -812,8 +749,8 @@ debian 12 amd64 avx512:
     OS: debian-12
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -829,7 +766,7 @@ debian 13 amd64 avx2:
     OS: debian-13
     ENABLE_WERROR: "False"
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -845,8 +782,8 @@ debian 13 amd64 avx512:
     OS: debian-13
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -884,7 +821,7 @@ sanitizers amd64 avx2:
   extends: .weekly sanitizers
   variables:
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
@@ -908,15 +845,12 @@ sanitizers amd64 avx2:
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
         TEST_MODE: default
-        INFRASTRUCTURE_TAG: amd64-avx2-docker
-        KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
-        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
 
 sanitizers amd64 avx512:
   extends: .weekly sanitizers
   variables:
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
@@ -936,14 +870,11 @@ sanitizers amd64 avx512:
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
         TEST_MODE: full
-        INFRASTRUCTURE_TAG: amd64-avx2-avx512-docker
-        KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
-        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
 
 sanitizers arm neon:
   extends: .weekly sanitizers
+  tags: [saas-linux-large-arm64]
   variables:
-    INFRASTRUCTURE_TAG: arm64
     MARCH: armv8.2-a+crypto+fp16+dotprod
   parallel:
     matrix:
@@ -967,9 +898,6 @@ sanitizers arm neon:
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
         TEST_MODE: default
-        INFRASTRUCTURE_TAG: arm64-docker
-        KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
-        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
 
 # UHD Alternatives
 
@@ -984,7 +912,7 @@ build uhd alt:
     TEST_MODE: none
     ASSERT_LEVEL: PARANOID
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - OS: [ubuntu-25.10]
@@ -1012,6 +940,7 @@ gdb pretty printers:
   interruptible: false
   variables:
     <<: *gdb_printers_variables
+  tags: [saas-linux-large-amd64]
 
 # Build + unit tests combinations
 
@@ -1025,8 +954,8 @@ ubuntu-25.04 amd64 avx512:
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1041,7 +970,7 @@ ubuntu-25.04 arm neon:
   variables:
     OS: ubuntu-25.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
-    INFRASTRUCTURE_TAG: arm64
+  tags: [saas-linux-large-arm64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1055,7 +984,7 @@ ubuntu-25.10 amd64 native:
   interruptible: false
   variables:
     OS: ubuntu-25.10
-    INFRASTRUCTURE_TAG: amd64
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1070,8 +999,8 @@ ubuntu-25.10 amd64 avx512:
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1085,7 +1014,7 @@ ubuntu-25.10 arm native:
   interruptible: false
   variables:
     OS: ubuntu-25.10
-    INFRASTRUCTURE_TAG: arm64
+  tags: [saas-linux-large-arm64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1100,7 +1029,7 @@ ubuntu-25.10 arm neon:
   variables:
     OS: ubuntu-25.10
     MARCH: armv8.2-a+crypto+fp16+dotprod
-    INFRASTRUCTURE_TAG: arm64
+  tags: [saas-linux-large-arm64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1114,7 +1043,7 @@ ubuntu-24.04 amd64 native:
   interruptible: false
   variables:
     OS: ubuntu-24.04
-    INFRASTRUCTURE_TAG: amd64
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1132,7 +1061,7 @@ ubuntu-24.04 amd64 avx:
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v2
-    INFRASTRUCTURE_TAG: amd64
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1150,9 +1079,9 @@ ubuntu-24.04 amd64 avx512 TRACE:
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     CXXFLAGS: -D OCUDU_L2_TRACE -D OCUDU_L1_TRACE -D OCUDU_L2_LATE_TRACE -D OCUDU_OFH_TRACE -D OCUDU_UP_TRACE
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1169,7 +1098,7 @@ ubuntu-24.04 arm native:
   interruptible: false
   variables:
     OS: ubuntu-24.04
-    INFRASTRUCTURE_TAG: arm64
+  tags: [saas-linux-large-arm64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1187,8 +1116,8 @@ ubuntu-22.04 amd64 avx512:
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1203,7 +1132,7 @@ ubuntu-22.04 arm neon:
   variables:
     OS: ubuntu-22.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
-    INFRASTRUCTURE_TAG: arm64
+  tags: [saas-linux-large-arm64]
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1227,7 +1156,7 @@ ubuntu-22.04 amd64 avx2 dpdk:
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1243,8 +1172,8 @@ ubuntu-22.04 amd64 avx512 dpdk:
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1260,7 +1189,7 @@ ubuntu-24.04 amd64 avx2 dpdk:
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1286,8 +1215,8 @@ ubuntu-24.04 amd64 avx512 dpdk:
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1313,7 +1242,7 @@ ubuntu-25.10 amd64 avx2 dpdk:
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1329,8 +1258,8 @@ ubuntu-25.10 amd64 avx512 dpdk:
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1346,7 +1275,7 @@ ubuntu-25.04 amd64 avx2 dpdk:
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
-    INFRASTRUCTURE_TAG: amd64-avx2
+  tags: [saas-linux-large-amd64]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1362,8 +1291,8 @@ ubuntu-25.04 amd64 avx512 dpdk:
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
     TEST_MODE: full
+  tags: [saas-linux-large-amd64, avx512, sctp]
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk

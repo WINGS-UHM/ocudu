@@ -122,16 +122,14 @@ builder version increased:
 
 ubuntu-rohc-builder avx2:
   extends: .ubuntu-rohc-builder
-  tags:
-    - amd64-avx2
+  tags: [saas-linux-medium-amd64]
   variables:
     arch_name: amd64
     target_arch: x86-64-v3
 
 ubuntu-rohc-builder arm64:
   extends: .ubuntu-rohc-builder
-  tags:
-    - arm64
+  tags: [saas-linux-medium-arm64]
   variables:
     arch_name: arm64
     target_arch: armv8.2-a+crypto+fp16+dotprod
@@ -214,16 +212,14 @@ ubuntu-rohc-builder arm64:
 
 ubuntu-uhd-builder avx2:
   extends: .ubuntu-uhd-builder
-  tags:
-    - amd64-avx2
+  tags: [saas-linux-medium-amd64]
   variables:
     arch_name: amd64
     target_arch: x86-64-v3
 
 ubuntu-uhd-builder arm64:
   extends: .ubuntu-uhd-builder
-  tags:
-    - arm64
+  tags: [saas-linux-medium-arm64]
   variables:
     arch_name: arm64
     target_arch: armv8.2-a+crypto+fp16+dotprod
@@ -316,8 +312,7 @@ ubuntu-uhd-builder arm64:
 
 ubuntu-dpdk-builder no isa:
   extends: .ubuntu-dpdk-builder
-  tags:
-    - amd64-avx2
+  tags: [saas-linux-medium-amd64]
   variables:
     arch_name: amd64
     target_arch: x86-64
@@ -327,8 +322,7 @@ ubuntu-dpdk-builder no isa:
 
 ubuntu-dpdk-builder avx2:
   extends: .ubuntu-dpdk-builder
-  tags:
-    - amd64-avx2
+  tags: [saas-linux-medium-amd64]
   variables:
     arch_name: amd64
     extra_arch_name: _avx2
@@ -342,8 +336,7 @@ ubuntu-dpdk-builder avx2:
 
 ubuntu-dpdk-builder avx512:
   extends: .ubuntu-dpdk-builder
-  tags:
-    - amd64-avx2-avx512
+  tags: [saas-linux-medium-amd64]
   variables:
     arch_name: amd64
     extra_arch_name: _avx512
@@ -357,8 +350,7 @@ ubuntu-dpdk-builder avx512:
 
 ubuntu-dpdk-builder arm64:
   extends: .ubuntu-dpdk-builder
-  tags:
-    - arm64
+  tags: [saas-linux-medium-arm64]
   variables:
     arch_name: arm64
     target_arch: armv8.2-a+crypto+fp16+dotprod
@@ -375,10 +367,9 @@ ubuntu-dpdk-builder arm64:
     OS_VERSION: none
     MULTI_ARCH_BUILD: "true"
     MODE: publish
-    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "75G"
-    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "75G"
   tags:
-    - ${PLATFORM}-docker
+    - saas-linux-medium-${PLATFORM}
+  timeout: 2 hours
   rules:
     - if: $ON_MR
   before_script:
@@ -418,8 +409,6 @@ image-build-publish [codechecker]:
     MULTI_ARCH_BUILD: ""
     PLATFORM: amd64
     MODE: publish
-  tags:
-    - $PLATFORM
   rules:
     - if: $ON_MR
   before_script:
@@ -582,10 +571,6 @@ image-build-publish [ubuntu, 24.04-rtsan, amd64]:
     OS_NAME: ubuntu
     OS_VERSION: "24.04-rtsan"
     PLATFORM: amd64
-    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "80G"
-    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "80G"
-  tags:
-    - ${PLATFORM}-docker
   needs:
     - job: ubuntu-rohc-builder avx2
       parallel:

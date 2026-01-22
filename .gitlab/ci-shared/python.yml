@@ -58,8 +58,6 @@
   # Gitlab Integration: https://cibuildwheel.readthedocs.io/en/stable/setup/#gitlab-ci
   extends: .python_publish
   image: ubuntu:22.04
-  tags:
-    - untagged
   variables:
     CIBW_ENVIRONMENT_PASS_LINUX: ""
     TWINE_PASSWORD: $CI_JOB_TOKEN

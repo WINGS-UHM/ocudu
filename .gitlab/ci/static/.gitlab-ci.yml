@@ -27,8 +27,6 @@ static version increased:
 build-and-publish:
   stage: publish
   extends: .docker-builder
-  tags:
-    - $PLATFORM
   rules:
     - if: $ON_MR
   variables: &image_variables

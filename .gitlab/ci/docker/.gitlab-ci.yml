@@ -77,8 +77,7 @@ telegraf version changed:
 .docker compose:
   stage: compose
   image: docker:24.0.7-dind
-  tags:
-    - amd64-avx2
+  tags: [saas-linux-medium-amd64]
   timeout: 2h
   retry: 2
   variables:

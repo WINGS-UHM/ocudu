@@ -59,6 +59,8 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
   // Select SSB case with reference to TS 38.213, Section 4.1.
   switch (cell_cfg.ssb_case) {
     case ssb_pattern_case::A:
+      ssb_alloc_case_A_C(ssb_list, CUTOFF_FREQ_ARFCN_CASE_A_B_C, sl_point_mod);
+      break;
     case ssb_pattern_case::C: {
       const arfcn_t ssb_cut_off_freq =
           cell_cfg.paired_spectrum ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;

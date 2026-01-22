@@ -94,6 +94,7 @@ o_cu_up_unit ocudu::build_o_cu_up(const o_cu_up_unit_config& unit_cfg, const o_c
       n3_udp_cfg.pool_occupancy_threshold   = sock_cfg.udp_config.pool_threshold;
       n3_udp_cfg.reuse_addr                 = sock_cfg.udp_config.reuse_addr;
       n3_udp_cfg.dscp                       = sock_cfg.udp_config.dscp;
+      n3_udp_cfg.warn_on_drop               = unit_cfg.cu_up_cfg.warn_on_drop;
 
       std::unique_ptr<gtpu_gateway> ngu_gw =
           create_udp_gtpu_gateway(n3_udp_cfg,

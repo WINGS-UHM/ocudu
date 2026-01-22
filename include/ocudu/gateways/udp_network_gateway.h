@@ -27,6 +27,7 @@ struct udp_network_gateway_config : common_network_gateway_config {
   float                  pool_occupancy_threshold = 0.9;
   std::optional<uint8_t> dscp;
   std::string            ext_bind_addr = "auto";
+  bool                   warn_on_drop  = true; ///< Log a warning instead of an info message whenever a PDU is dropped.
 };
 
 /// Interface to inject PDUs into gateway entity.

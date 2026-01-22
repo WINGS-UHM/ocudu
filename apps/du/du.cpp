@@ -327,7 +327,8 @@ int main(int argc, char** argv)
     f1u_gw_config.pool_occupancy_threshold   = sock_cfg.udp_config.pool_threshold;
     f1u_gw_config.rx_max_mmsg                = sock_cfg.udp_config.rx_max_msgs;
     f1u_gw_config.dscp                       = sock_cfg.udp_config.dscp;
-    std::unique_ptr<gtpu_gateway> f1u_gw     = create_udp_gtpu_gateway(
+    f1u_gw_config.warn_on_drop           = o_du_app_unit->get_o_du_high_unit_config().du_high_cfg.config.warn_on_drop;
+    std::unique_ptr<gtpu_gateway> f1u_gw = create_udp_gtpu_gateway(
         f1u_gw_config,
         *epoll_broker,
         workers.get_du_high_executor_mapper().ue_mapper().mac_ul_pdu_executor(to_du_ue_index(0)),

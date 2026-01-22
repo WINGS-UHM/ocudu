@@ -369,6 +369,7 @@ int main(int argc, char** argv)
     cu_f1u_gw_config.pool_occupancy_threshold   = sock_cfg.udp_config.pool_threshold;
     cu_f1u_gw_config.rx_max_mmsg                = sock_cfg.udp_config.rx_max_msgs;
     cu_f1u_gw_config.dscp                       = sock_cfg.udp_config.dscp;
+    cu_f1u_gw_config.warn_on_drop               = o_cu_up_app_unit->get_o_cu_up_unit_config().cu_up_cfg.warn_on_drop;
     std::unique_ptr<gtpu_gateway> cu_f1u_gw =
         create_udp_gtpu_gateway(cu_f1u_gw_config,
                                 *epoll_broker,

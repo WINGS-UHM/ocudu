@@ -111,9 +111,6 @@ private:
   std::optional<float> get_cfo_Hz(unsigned rx_port) const override;
 
   // See the dmrs_pusch_estimator_results interface for the documentation.
-  void get_path_ch_estimate(span<cbf16_t> estimates, unsigned rx_port, unsigned tx_layer = 0) const override;
-
-  // See the dmrs_pusch_estimator_results interface for the documentation.
   void get_symbol_ch_estimate(span<cbf16_t> estimates,
                               unsigned      i_symbol,
                               unsigned      rx_port  = 0,

@@ -176,11 +176,6 @@ public:
   /// \remark The CFO estimation may be emtpy depending on the DM-RS configuration.
   virtual std::optional<float> get_cfo_Hz(unsigned rx_port) const = 0;
 
-  /// \brief Gets the RE channel estimates of the path between the given Rx port and Tx layer.
-  ///
-  /// The values are indexed by i) subcarriers and ii) OFDM symbols.
-  virtual void get_path_ch_estimate(span<cbf16_t> estimates, unsigned rx_port, unsigned tx_layer = 0) const = 0;
-
   /// \brief Gets the RE channel estimates for a given OFDM symbol, Rx port and Tx layer.
   ///
   /// The values are indexed by subcarrier.

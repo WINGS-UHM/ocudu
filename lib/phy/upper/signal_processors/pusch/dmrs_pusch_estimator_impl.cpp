@@ -187,24 +187,6 @@ void dmrs_pusch_estimator_impl::get_symbol_ch_estimate(span<cbf16_t> estimates,
   ch_est_result[rx_port]->get_symbol_ch_estimate(estimates, i_symbol, tx_layer);
 }
 
-void dmrs_pusch_estimator_impl::get_path_ch_estimate(span<cbf16_t> estimates, unsigned rx_port, unsigned tx_layer) const
-{
-  unsigned view_size = ofdm_symbols.length() * nof_re;
-  ocudu_assert(estimates.size() == view_size,
-               "Requested path has {} REs, configured {} ({} x {}).",
-               estimates.size(),
-               view_size,
-               nof_re,
-               ofdm_symbols.length());
-
-  span<cbf16_t> out = estimates;
-
-  for (unsigned i_symbol = ofdm_symbols.start(), last = ofdm_symbols.stop(); i_symbol != last; ++i_symbol) {
-    get_symbol_ch_estimate(out.first(nof_re), i_symbol, rx_port, tx_layer);
-    out = out.last(out.size() - nof_re);
-  }
-}
-
 float dmrs_pusch_estimator_impl::get_rsrp(unsigned rx_port, unsigned tx_layer) const
 {
   ocudu_assert(ch_est_result[rx_port], "Invalid channel estimator results for port {}.", rx_port);

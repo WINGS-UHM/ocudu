@@ -233,8 +233,11 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
       for (unsigned i_symbol = pdu.start_symbol_index, last_symbol = pdu.start_symbol_index + pdu.nof_symbols;
            i_symbol != last_symbol;
            ++i_symbol) {
-        est_results.get_symbol_ch_estimate(
-            ch_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer), i_symbol, i_port, i_layer);
+        unsigned      first_re = rb_mask.find_lowest() * NOF_SUBCARRIERS_PER_RB;
+        unsigned      nof_re   = rb_mask.count() * NOF_SUBCARRIERS_PER_RB;
+        span<cbf16_t> estimate_values =
+            ch_estimate.get_symbol_ch_estimate(i_symbol, i_port, i_layer).subspan(first_re, nof_re);
+        est_results.get_symbol_ch_estimate(estimate_values, i_symbol, i_port, i_layer);
       }
       ch_estimate.set_time_alignment(est_results.get_time_alignment(i_port), i_port, i_layer);
       ch_estimate.set_cfo_Hz(est_results.get_cfo_Hz(i_port), i_port, i_layer);

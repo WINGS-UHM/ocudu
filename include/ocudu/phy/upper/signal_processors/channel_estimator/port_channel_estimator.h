@@ -108,8 +108,8 @@ public:
   /// \param[out] symbol    Storage for the channel coefficients.
   /// \param[in]  i_symbol  Index of the OFDM symbol within the slot.
   /// \param[in]  tx_layer  Transmission layer the estimated channel refers to.
-  /// \warning The method raises an assertion if the size of \c symbol does not match the grid size stored in the
-  /// channel estimator.
+  /// \warning The method raises an assertion if the size of \c symbol does not match the size of the estimated channel
+  /// in the frequency domain.
   virtual void get_symbol_ch_estimate(span<cbf16_t> symbol, unsigned i_symbol, unsigned tx_layer) const = 0;
 
   /// Gets the estimated EPRE.

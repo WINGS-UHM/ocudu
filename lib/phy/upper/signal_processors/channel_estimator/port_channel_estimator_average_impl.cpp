@@ -112,15 +112,9 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
                                                                  unsigned      i_symbol,
                                                                  unsigned      tx_layer) const
 {
-  unsigned nof_subcarriers =
-      static_cast<unsigned>(cfg_local.dmrs_pattern.front().rb_mask.size()) * NOF_SUBCARRIERS_PER_RB;
   unsigned nof_symbols = cfg_local.first_symbol + cfg_local.nof_symbols;
   unsigned nof_layers  = cfg_local.dmrs_pattern.size();
 
-  ocudu_assert(symbol.size() == nof_subcarriers,
-               "Symbol size mismatch: requested {} subcarriers, supported {}.",
-               symbol.size(),
-               nof_subcarriers);
   ocudu_assert(i_symbol >= cfg_local.first_symbol,
                "Symbol index {} is lower than the minimum supported index {}.",
                i_symbol,
@@ -168,14 +162,17 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   // Total number of REs with an estimated channel coefficient in the requested OFDM symbol.
   unsigned nof_re = rb_count * NOF_SUBCARRIERS_PER_RB;
 
-  // Select the section of the output where the estimates are written.
-  span<cbf16_t> symbol_fr_resp = symbol.subspan(lowest_rb * NOF_SUBCARRIERS_PER_RB, nof_re);
+  // Check the output container has the proper size.
+  ocudu_assert(
+      symbol.size() == nof_re, "Symbol size mismatch: requested {} subcarriers, supported {}.", symbol.size(), nof_re);
 
   // Straight process if the allocation is contiguous.
   if (is_contiguous) {
-    apply_td_domain_strategy(
-        symbol_fr_resp, pattern.symbols, freq_response, first_symbol, last_symbol, i_symbol, tx_layer);
+    apply_td_domain_strategy(symbol, pattern.symbols, freq_response, first_symbol, last_symbol, i_symbol, tx_layer);
   } else {
+    // TODO(david): This section needs to be double-checked. Most likely, the do_compute method also needs some changes
+    // to correctly support the non-contiguous case.
+
     // Otherwise copy each PRB.
     unsigned i_prb_ce = 0;
     hop_rb_mask.for_each(
@@ -183,7 +180,7 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
           modular_re_measurement<const cf_t, MAX_NOF_DMRS_SYMBOLS, MAX_LAYERS> prb_freq_response(
               freq_response, i_prb_ce * NOF_SUBCARRIERS_PER_RB, NOF_SUBCARRIERS_PER_RB);
           apply_td_domain_strategy(
-              symbol_fr_resp, pattern.symbols, prb_freq_response, first_symbol_, last_symbol_, i_symbol, tx_layer);
+              symbol, pattern.symbols, prb_freq_response, first_symbol_, last_symbol_, i_symbol, tx_layer);
           ++i_prb_ce;
         });
   }
@@ -191,7 +188,7 @@ void port_channel_estimator_average_impl::get_symbol_ch_estimate(span<cbf16_t> s
   if (compensate_cfo && cfo_normalized.has_value()) {
     // Apply CFO to the estimated channel.
     float cfo = *cfo_normalized;
-    ocuduvec::sc_prod(symbol_fr_resp, symbol_fr_resp, std::polar(1.0F, TWOPI * symbol_start_epochs[i_symbol] * cfo));
+    ocuduvec::sc_prod(symbol, symbol, std::polar(1.0F, TWOPI * symbol_start_epochs[i_symbol] * cfo));
   }
 }
 

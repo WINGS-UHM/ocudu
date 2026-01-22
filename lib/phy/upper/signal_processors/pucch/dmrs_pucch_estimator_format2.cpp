@@ -119,8 +119,15 @@ void dmrs_pucch_estimator_format2::estimate(channel_estimate&                   
     for (unsigned i_symbol = est_cfg.first_symbol, last_symbol = est_cfg.first_symbol + est_cfg.nof_symbols;
          i_symbol != last_symbol;
          ++i_symbol) {
-      ch_est_results.get_symbol_ch_estimate(
-          estimate.get_symbol_ch_estimate(i_symbol, i_port), i_symbol, /*tx_layer=*/0);
+      const layer_dmrs_pattern& dmrs_pattern = est_cfg.dmrs_pattern[0];
+      const crb_bitmap&         rb_mask =
+          ((dmrs_pattern.hopping_symbol_index.has_value()) && (i_symbol >= *dmrs_pattern.hopping_symbol_index))
+                      ? dmrs_pattern.rb_mask2
+                      : dmrs_pattern.rb_mask;
+      unsigned      first_re        = rb_mask.find_lowest() * NOF_SUBCARRIERS_PER_RB;
+      unsigned      nof_re          = rb_mask.count() * NOF_SUBCARRIERS_PER_RB;
+      span<cbf16_t> estimate_values = estimate.get_symbol_ch_estimate(i_symbol, i_port).subspan(first_re, nof_re);
+      ch_est_results.get_symbol_ch_estimate(estimate_values, i_symbol, /*tx_layer=*/0);
     }
     estimate.set_rsrp(ch_est_results.get_rsrp(/*tx_layer=*/0), i_port);
     estimate.set_time_alignment(ch_est_results.get_time_alignment(), i_port);

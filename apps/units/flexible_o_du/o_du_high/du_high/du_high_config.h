@@ -901,6 +901,16 @@ struct du_high_unit_mac_cell_group_config {
 
 /// PRACH application configuration.
 struct du_high_unit_prach_config {
+  struct ra_prioritization_slice_info {
+    /// List of NSAG IDs with the provided RA prioritization slice information.
+    std::vector<uint8_t> nsag_ids;
+    /// Power ramping step applied for the prioritized RA procedure. Possible values: {0, 2, 4, 6}.
+    unsigned power_ramp_step_high_priority = 0;
+    /// Scaling factor applied to the number of preamble transmissions for the prioritized RA procedure. Possible
+    /// values: {0, 0.25, 0.5, 0.75}.
+    std::optional<float> scaling_factor_bi;
+  };
+
   /// PRACH configuration index. If not specified, it is automatically derived to fit in an UL slot.
   std::optional<unsigned> prach_config_index;
   /// PRACH root sequence index.
@@ -942,6 +952,8 @@ struct du_high_unit_prach_config {
   /// Number of RBs that are used as guardband on each side of the PRACH RBs dedicated interval for short PRACH
   /// formats.
   unsigned nof_prach_guardbands_rbs = 3;
+  /// Configuration of slice-specific RACH configurations.
+  std::vector<ra_prioritization_slice_info> ra_prio_slice_info_list;
 };
 
 /// Slice scheduling configuration for a cell.

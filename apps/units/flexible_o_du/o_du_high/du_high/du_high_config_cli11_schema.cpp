@@ -1346,6 +1346,24 @@ static void configure_cli11_si_sched_info(CLI::App& app, du_high_unit_sib_config
       ->check(CLI::Range(1, 256));
 }
 
+static void configure_cli11_ra_prioritization_info(CLI::App&                                                app,
+                                                   du_high_unit_prach_config::ra_prioritization_slice_info& ra_info)
+{
+  add_option(app,
+             "--power_ramp_step_high_priority [dB]",
+             ra_info.power_ramp_step_high_priority,
+             "Power ramping step applied for prioritized random access procedure.")
+      ->capture_default_str()
+      ->check(CLI::IsMember({0, 2, 4, 6}));
+  add_option(app,
+             "--scaling_factor_bi",
+             ra_info.scaling_factor_bi,
+             "Scaling factor for backoff indicator (BI) for the prioritized RA procedure.")
+      ->capture_default_str()
+      ->check(CLI::IsMember({0.0, 0.25, 0.5, 0.75}));
+  add_option(app, "--nsag_ids", ra_info.nsag_ids, "NSAGs associated with this prioritized RA configuration.");
+}
+
 static void configure_cli11_prach_args(CLI::App& app, du_high_unit_prach_config& prach_params)
 {
   add_option(app,
@@ -1439,6 +1457,25 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_prach_config&
              "Number of RBs that are used as guardband on each side of the PRACH RBs interval for short PRACH formats.")
       ->capture_default_str()
       ->check(CLI::Range(1U, 10U));
+  add_option_cell(
+      app,
+      "--slice_based_ra_prioritization",
+      [&prach_params](const std::vector<std::string>& values) {
+        // Prepare the slices and its configuration.
+        prach_params.ra_prio_slice_info_list.resize(values.size());
+
+        // Format every sliced-based RA priority setting.
+        for (unsigned i = 0, e = values.size(); i != e; ++i) {
+          CLI::App subapp("Slice-based RA priority section",
+                          "Slice-based RA priority section, item #" + std::to_string(i));
+          subapp.config_formatter(create_yaml_config_parser());
+          subapp.allow_config_extras(CLI::config_extras_mode::capture);
+          configure_cli11_ra_prioritization_info(subapp, prach_params.ra_prio_slice_info_list[i]);
+          std::istringstream ss(values[i]);
+          subapp.parse_from_stream(ss);
+        }
+      },
+      "List of configurations for slice-based RA prioritization");
 }
 
 static void configure_cli11_sib2_config_args(CLI::App& app, du_high_unit_sib_config::sib2_config& sib2_cfg)

@@ -564,7 +564,18 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     rach_cfg.total_nof_ra_preambles   = base_cell.prach_cfg.total_nof_ra_preambles;
     rach_cfg.nof_ssb_per_ro           = base_cell.prach_cfg.nof_ssb_per_ro;
     rach_cfg.nof_cb_preambles_per_ssb = base_cell.prach_cfg.nof_cb_preambles_per_ssb;
-    out_cell.cfra_enabled             = base_cell.prach_cfg.cfra_enabled;
+    rach_cfg.ra_prio_slice_info_list.resize(base_cell.prach_cfg.ra_prio_slice_info_list.size());
+    for (unsigned i = 0, e = base_cell.prach_cfg.ra_prio_slice_info_list.size(); i != e; ++i) {
+      const auto& clifield                             = base_cell.prach_cfg.ra_prio_slice_info_list[i];
+      rach_cfg.ra_prio_slice_info_list[i].nsag_id_list = clifield.nsag_ids;
+      rach_cfg.ra_prio_slice_info_list[i].prio.pwr_ramp_step_hi_prio =
+          static_cast<ra_prioritization::power_ramp_step_high_priority>(clifield.power_ramp_step_high_priority);
+      if (clifield.scaling_factor_bi.has_value()) {
+        rach_cfg.ra_prio_slice_info_list[i].prio.scaling_bi =
+            static_cast<ra_prioritization::scaling_factor_bi>(clifield.scaling_factor_bi.value());
+      }
+    }
+    out_cell.cfra_enabled = base_cell.prach_cfg.cfra_enabled;
 
     // PhysicalCellGroup Config parameters.
     if (base_cell.pcg_cfg.p_nr_fr1.has_value()) {

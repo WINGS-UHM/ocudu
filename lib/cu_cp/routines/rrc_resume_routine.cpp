@@ -106,7 +106,8 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
 
   {
     // Prepare E1AP Bearer Context Modification Request and call E1AP notifier.
-    bearer_context_modification_request.ue_index = request.ue_index;
+    bearer_context_modification_request.ue_index                     = request.ue_index;
+    bearer_context_modification_request.bearer_context_status_change = e1ap_bearer_context_status_change::resume;
 
     CORO_AWAIT_VALUE(
         bearer_context_modification_response,

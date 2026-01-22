@@ -35,6 +35,8 @@ void cu_up_bearer_context_modification_routine::operator()(
     // Handle bearer context suspension request.
     if (*msg.bearer_context_status_change == e1ap_bearer_context_status_change::suspend) {
       if (ue_ctxt.is_suspended()) {
+        ue_ctxt.get_logger().log_warning("Suspend requested for bearer context that is already suspended");
+        response.cause = cause_protocol_t::msg_not_compatible_with_receiver_state;
         CORO_EARLY_RETURN(response);
       }
       ue_ctxt.get_logger().log_debug("Processing bearer conetxt status suspend indication");
@@ -47,13 +49,16 @@ void cu_up_bearer_context_modification_routine::operator()(
       ue_ctxt.get_logger().log_debug("Processing bearer context status suspend indication finished");
     } else if (*msg.bearer_context_status_change == e1ap_bearer_context_status_change::resume) {
       if (not ue_ctxt.is_suspended()) {
+        ue_ctxt.get_logger().log_warning("Resume requested for bearer context that is already active");
+        response.cause = cause_protocol_t::msg_not_compatible_with_receiver_state;
         CORO_EARLY_RETURN(response);
       }
-      ue_ctxt.get_logger().log_debug("Processing bearer conetxt status resume indication");
+      ue_ctxt.get_logger().log_debug("Processing bearer context status resume indication");
       ue_ctxt.resume();
-      ue_ctxt.get_logger().log_debug("Processing bearer conetxt status resume indication finished");
+      ue_ctxt.get_logger().log_debug("Processing bearer context status resume indication finished");
     } else {
       // Unhandled Bearer Context Status change.
+      ue_ctxt.get_logger().log_warning("Unhandled bearer context status change. Change is neither resume or suspend");
       CORO_EARLY_RETURN(response);
     }
   }

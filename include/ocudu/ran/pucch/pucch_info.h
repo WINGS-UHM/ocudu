@@ -12,9 +12,9 @@
 
 #include "ocudu/adt/bounded_integer.h"
 #include "ocudu/adt/to_array.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/uci/uci_info.h"
 
 namespace ocudu {

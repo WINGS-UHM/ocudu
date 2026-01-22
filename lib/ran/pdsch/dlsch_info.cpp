@@ -9,7 +9,7 @@
  */
 
 #include "ocudu/ran/pdsch/dlsch_info.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/ran/resource_block.h"
 
 using namespace ocudu;
 

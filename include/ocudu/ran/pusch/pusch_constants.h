@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/support/units.h"
 
 namespace ocudu {

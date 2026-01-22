@@ -13,6 +13,7 @@
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/frequency_range.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/ssb/ssb_properties.h"
 #include "ocudu/ran/subcarrier_spacing.h"

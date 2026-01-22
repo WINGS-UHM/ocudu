@@ -9,7 +9,7 @@
  */
 
 #include "ocudu/ran/pusch/ulsch_info.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/sch/sch_segmentation.h"
 #include "ocudu/ran/uci/uci_info.h"
 

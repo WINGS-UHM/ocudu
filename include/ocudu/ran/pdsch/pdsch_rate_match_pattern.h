@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/pdcch/coreset.h"
+#include "ocudu/ran/resource_block.h"
 #include <cstdint>
 
 namespace ocudu {

@@ -228,45 +228,6 @@ variables:
     LINKER: lld
     INFRASTRUCTURE_TAG: amd64-avx2
 
-.smoke avx512:
-  extends: .build_and_unit
-  variables:
-    OS: ubuntu-24.04
-    COMPILER: gcc
-    CMAKE_BUILD_TYPE: Release
-    ASSERT_LEVEL: PARANOID
-    ENABLE_FFTW: "True"
-    TEST_MODE: default
-    MARCH: x86-64-v4
-    LINKER: mold
-    INFRASTRUCTURE_TAG: amd64-avx2-avx512
-
-.smoke arm:
-  extends: .build_and_unit
-  variables:
-    OS: ubuntu-24.04
-    COMPILER: gcc
-    CMAKE_BUILD_TYPE: Release
-    ASSERT_LEVEL: PARANOID
-    ENABLE_FFTW: "True"
-    TEST_MODE: default
-    MARCH: armv8-a
-    LINKER: mold
-    INFRASTRUCTURE_TAG: arm64
-
-.smoke arm neon:
-  extends: .build_and_unit
-  variables:
-    OS: ubuntu-24.04
-    COMPILER: gcc
-    CMAKE_BUILD_TYPE: Release
-    ASSERT_LEVEL: PARANOID
-    ENABLE_FFTW: "True"
-    TEST_MODE: default
-    MARCH: armv8.2-a+crypto+fp16+dotprod
-    LINKER: mold
-    INFRASTRUCTURE_TAG: arm64
-
 .smoke printers:
   extends: .build_and_unit
   variables: &gdb_printers_variables
@@ -346,67 +307,6 @@ smoke dpdk cached:
   cache:
     - *cache_build_get
 
-.infra_path_changes:
-  - changes: &instruction_set_changes
-      paths:
-        - include/ocudu/phy/**/*
-        - lib/phy/**/*
-        - tests/unittests/phy/**/*
-
-smoke avx512 cached:
-  extends: .smoke avx512
-  stage: manual
-  timeout: 1 hour
-  rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-      when: never
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
-      changes:
-        <<: *instruction_set_changes
-    - if: $ON_MR
-      changes:
-        <<: *instruction_set_changes
-      when: manual
-      allow_failure: false
-  cache:
-    - *cache_build_get
-
-smoke arm cached:
-  extends: .smoke arm
-  stage: manual
-  timeout: 1 hour
-  rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-      when: never
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
-      changes:
-        <<: *instruction_set_changes
-    - if: $ON_MR
-      changes:
-        <<: *instruction_set_changes
-      when: manual
-      allow_failure: false
-  cache:
-    - *cache_build_get
-
-smoke arm neon cached:
-  extends: .smoke arm neon
-  stage: manual
-  timeout: 1 hour
-  rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-      when: never
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
-      changes:
-        <<: *instruction_set_changes
-    - if: $ON_MR
-      changes:
-        <<: *instruction_set_changes
-      when: manual
-      allow_failure: false
-  cache:
-    - *cache_build_get
-
 smoke pretty printers cached:
   extends: .smoke printers
   stage: manual
@@ -447,27 +347,6 @@ smoke dpdk clean:
   extends: .smoke dpdk
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-
-smoke avx512 clean:
-  extends: .smoke avx512
-  rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-      changes:
-        <<: *instruction_set_changes
-
-smoke arm clean:
-  extends: .smoke arm
-  rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-      changes:
-        <<: *instruction_set_changes
-
-smoke arm neon clean:
-  extends: .smoke arm neon
-  rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
-      changes:
-        <<: *instruction_set_changes
 
 smoke pretty printers clean:
   extends: .smoke printers
@@ -604,33 +483,6 @@ smoke valgrind update cache:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   interruptible: false
   retry: 2
-  cache:
-    - *cache_build_set
-
-smoke avx512 update cache:
-  extends: .smoke avx512
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  interruptible: false
-  retry: 2
-  cache:
-    - *cache_build_set
-
-smoke arm update cache:
-  extends: .smoke arm
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  retry: 2
-  interruptible: false
-  cache:
-    - *cache_build_set
-
-smoke arm neon update cache:
-  extends: .smoke arm neon
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  retry: 2
-  interruptible: false
   cache:
     - *cache_build_set
 

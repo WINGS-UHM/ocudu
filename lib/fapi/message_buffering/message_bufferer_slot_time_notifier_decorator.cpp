@@ -46,12 +46,12 @@ message_bufferer_slot_time_notifier_decorator::message_bufferer_slot_time_notifi
 void message_bufferer_slot_time_notifier_decorator::on_slot_indication(const slot_indication& msg)
 {
   // First update the current slot of the gateway task dispatcher.
-  gateway_task_dispatcher.update_current_slot(msg.slot);
+  gateway_task_dispatcher.update_current_slot(msg.slot.without_hyper_sfn());
 
   // Notify the upper layers.
-  slot_point delayed_slot = msg.slot + l2_nof_slots_ahead;
+  slot_point delayed_slot = msg.slot.without_hyper_sfn() + l2_nof_slots_ahead;
   notifier.get().on_slot_indication(build_slot_indication(delayed_slot, msg.time_point + l2_nof_slots_ahead_ns));
 
   // Forward cached messages.
-  gateway_task_dispatcher.forward_cached_messages(msg.slot);
+  gateway_task_dispatcher.forward_cached_messages(msg.slot.without_hyper_sfn());
 }

@@ -18,7 +18,9 @@ namespace ofh {
 
 /// Slot symbol time point context.
 struct slot_symbol_point_context {
-  slot_symbol_point                                  symbol_point;
+  slot_symbol_point symbol_point;
+  /// Hyperframe number.
+  unsigned                                           hfn;
   std::chrono::time_point<std::chrono::system_clock> time_point;
 };
 

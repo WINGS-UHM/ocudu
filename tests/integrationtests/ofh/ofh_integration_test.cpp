@@ -414,7 +414,7 @@ public:
   void on_tti_boundary(const tti_boundary_context& slot_context) override
   {
     if (!slot_synchronized) {
-      slot_val          = (slot_context.slot + processing_delay_slots).to_uint();
+      slot_val          = (slot_context.slot.without_hyper_sfn() + processing_delay_slots).to_uint();
       slot_synchronized = true;
       fmt::print("Initial slot set to {}\n", slot_point(slot_context.slot.numerology(), slot_val));
     }

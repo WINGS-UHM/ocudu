@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/fapi/common/base_message.h"
-#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include <chrono>
 
 namespace ocudu {
@@ -19,7 +19,7 @@ namespace fapi {
 
 /// Slot indication message.
 struct slot_indication : public base_message {
-  slot_point slot;
+  slot_point_extended slot;
   /// Vendor specific properties.
   std::chrono::time_point<std::chrono::system_clock> time_point;
 };

@@ -13,6 +13,7 @@
 #include "../support/metrics_helpers.h"
 #include "ocudu/instrumentation/traces/ofh_traces.h"
 #include "ocudu/ofh/timing/ofh_ota_symbol_boundary_notifier.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/support/rtsan.h"
 #include "ocudu/support/synchronization/sync_event.h"
 #include <thread>
@@ -107,18 +108,22 @@ static unsigned circular_distance(unsigned cur, unsigned prev, unsigned size)
   return (cur >= prev) ? (cur - prev) : (size + cur - prev);
 }
 
-/// Calculates the current slot point given the GPS time.
-static slot_point
-calculate_slot_point(subcarrier_spacing scs, uint64_t gps_seconds, uint32_t fractional_us, uint32_t slot_duration_us)
+/// Calculates the current extended slot point given the GPS time.
+static slot_point_extended calculate_slot_point_extended(subcarrier_spacing scs,
+                                                         uint64_t           gps_seconds,
+                                                         uint32_t           fractional_us,
+                                                         uint32_t           slot_duration_us)
 {
   unsigned subframe_index      = (fractional_us / (SUBFRAME_DURATION_MSEC * 1000)) % NOF_SUBFRAMES_PER_FRAME;
   unsigned slot_subframe_index = (fractional_us / slot_duration_us) % get_nof_slots_per_subframe(scs);
 
   static constexpr unsigned NUM_FRAMES_PER_SEC = 100;
   static constexpr unsigned FRAME_DURATION_US  = SUBFRAME_DURATION_MSEC * NOF_SUBFRAMES_PER_FRAME * 1000;
-  unsigned                  sfn = (gps_seconds * NUM_FRAMES_PER_SEC + (fractional_us / FRAME_DURATION_US)) % NOF_SFNS;
+  uint64_t nof_sfns_since_epoch                = gps_seconds * NUM_FRAMES_PER_SEC + (fractional_us / FRAME_DURATION_US);
+  unsigned sfn                                 = nof_sfns_since_epoch % NOF_SFNS;
+  unsigned hfn                                 = (nof_sfns_since_epoch / NOF_SFNS) % NOF_HYPER_SFNS;
 
-  return {to_numerology_value(scs), sfn, subframe_index, slot_subframe_index};
+  return {scs, hfn, sfn, subframe_index * get_nof_slots_per_subframe(scs) + slot_subframe_index};
 }
 
 void realtime_timing_worker::poll()
@@ -182,18 +187,21 @@ void realtime_timing_worker::poll()
         delta);
   }
 
+  slot_point_extended slot =
+      calculate_slot_point_extended(scs,
+                                    std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count(),
+                                    std::chrono::duration_cast<std::chrono::microseconds>(ns_fraction).count(),
+                                    1000 / get_nof_slots_per_subframe(scs));
+
   slot_symbol_point symbol_point(
-      calculate_slot_point(scs,
-                           std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count(),
-                           std::chrono::duration_cast<std::chrono::microseconds>(ns_fraction).count(),
-                           1000 / get_nof_slots_per_subframe(scs)),
-      current_symbol_index % nof_symbols_per_slot,
-      nof_symbols_per_slot);
+      slot.without_hyper_sfn(), current_symbol_index % nof_symbols_per_slot, nof_symbols_per_slot);
 
   for (unsigned i = 0; i != delta; ++i) {
     unsigned skipped_symbol_id = delta - 1 - i;
     // Notify pending symbols from oldest to newest.
-    notify_slot_symbol_point({symbol_point - skipped_symbol_id, std::chrono::system_clock::now()});
+    notify_slot_symbol_point(slot_symbol_point_context{.symbol_point = symbol_point - skipped_symbol_id,
+                                                       .hfn          = slot.hyper_sfn(),
+                                                       .time_point   = std::chrono::system_clock::now()});
   }
 }
 

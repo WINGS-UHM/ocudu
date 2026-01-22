@@ -19,7 +19,7 @@ TEST(slot_indication_builder, valid_basic_parameters_passes)
   auto                                               scs        = subcarrier_spacing::kHz30;
   unsigned                                           sfn        = 419;
   unsigned                                           slot_index = 12;
-  auto                                               slot       = slot_point(scs, sfn, slot_index);
+  auto                                               slot       = slot_point_extended(slot_point{scs, sfn, slot_index});
   std::chrono::time_point<std::chrono::system_clock> time_point = std::chrono::system_clock::now();
 
   const auto& msg = build_slot_indication(slot, time_point);

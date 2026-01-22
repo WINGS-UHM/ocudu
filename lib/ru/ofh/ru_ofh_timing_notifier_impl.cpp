@@ -38,11 +38,9 @@ void ru_ofh_timing_notifier_impl::on_new_symbol(const ofh::slot_symbol_point_con
 
   // New slots start on symbol index 0.
   if (symbol_point_context.symbol_point.get_symbol_index() == 0) {
-    // Create the context.
-    tti_boundary_context context;
-    context.slot       = symbol_point_context.symbol_point.get_slot() + nof_slot_offset_du_ru;
-    context.time_point = symbol_point_context.time_point + nof_slots_offset_du_ru_ns;
-
-    timing_notifier.on_tti_boundary(context);
+    timing_notifier.on_tti_boundary(tti_boundary_context{
+        .slot = slot_point_extended(symbol_point_context.symbol_point.get_slot(), symbol_point_context.hfn) +
+                nof_slot_offset_du_ru,
+        .time_point = symbol_point_context.time_point + nof_slots_offset_du_ru_ns});
   }
 }

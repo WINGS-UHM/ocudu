@@ -131,10 +131,10 @@ public:
     if (enable_ul_processing) {
       resource_grid_context rx_symb_context;
       rx_symb_context.sector = 0;
-      rx_symb_context.slot   = context.slot;
+      rx_symb_context.slot   = context.slot.without_hyper_sfn();
 
       // Try to allocate a resource grid.
-      shared_resource_grid rg = ul_rg_pool->allocate_resource_grid(context.slot);
+      shared_resource_grid rg = ul_rg_pool->allocate_resource_grid(context.slot.without_hyper_sfn());
 
       // If the resource grid allocation fails, it aborts the slot request.
       if (rg) {
@@ -146,7 +146,7 @@ public:
     if (enable_prach_processing && (context.slot.subframe_index() == 0)) {
       prach_buffer_context prach_context;
       prach_context.sector                = 0;
-      prach_context.slot                  = context.slot;
+      prach_context.slot                  = context.slot.without_hyper_sfn();
       prach_context.ports                 = {0};
       prach_context.start_symbol          = 0;
       prach_context.format                = prach_format_type::A1;
@@ -170,7 +170,7 @@ public:
     }
 
     // Get a resource grid from the pool.
-    shared_resource_grid rg = dl_rg_pool->allocate_resource_grid(context.slot);
+    shared_resource_grid rg = dl_rg_pool->allocate_resource_grid(context.slot.without_hyper_sfn());
 
     // Abort slot processing if the grid is not valid.
     if (!rg) {
@@ -201,7 +201,7 @@ public:
         }
 
         ssb_processor::pdu_t pdu;
-        pdu.slot              = context.slot;
+        pdu.slot              = context.slot.without_hyper_sfn();
         pdu.phys_cell_id      = ssb_config.phys_cell_id;
         pdu.beta_pss          = ssb_config.beta_pss_dB;
         pdu.ssb_idx           = ssb_idx;
@@ -248,7 +248,7 @@ public:
 
     resource_grid_context rg_context;
     rg_context.sector = 0;
-    rg_context.slot   = context.slot;
+    rg_context.slot   = context.slot.without_hyper_sfn();
     gateway->send(rg_context, std::move(rg));
 
     // Raise TTI boundary and notify.

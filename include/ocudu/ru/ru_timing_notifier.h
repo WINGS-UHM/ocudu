@@ -10,14 +10,14 @@
 
 #pragma once
 
-#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 
 namespace ocudu {
 
 /// TTI boundary context.
 struct tti_boundary_context {
   /// Slot point associated with the time point.
-  slot_point slot;
+  slot_point_extended slot;
   /// Time point associated to the slot point.
   std::chrono::time_point<std::chrono::system_clock> time_point;
 };

@@ -16,7 +16,6 @@ include:
 variables:
   OCUDU_PACKAGING_REGISTRY_URI: ${CI_REGISTRY}/ocudu/ocudu_packaging
 
-
 ################
 # Build caches #
 ################
@@ -738,6 +737,7 @@ export on amd64 avx512:
   extends: export on amd64
   variables:
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
@@ -804,6 +804,7 @@ ubuntu-24.04 amd64 avx512:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -927,6 +928,7 @@ archlinux amd64 avx512:
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -959,6 +961,7 @@ debian 12 amd64 avx512:
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -991,6 +994,7 @@ debian 13 amd64 avx512:
     ENABLE_WERROR: "False"
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1068,18 +1072,18 @@ sanitizers amd64 avx512:
         SANITIZER: tsan
         COMPILER: [gcc, clang]
         ENABLE_TSAN: "True"
-        TEST_MODE: default
+        TEST_MODE: full
       - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: asan
         COMPILER: clang
         ENABLE_ASAN: "True"
-        TEST_MODE: default
+        TEST_MODE: full
       # Valgrind doesn't support AVX512 instruction set
       - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
-        TEST_MODE: default
+        TEST_MODE: full
         INFRASTRUCTURE_TAG: amd64-avx2-avx512-docker
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "60G"
         KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "60G"
@@ -1170,6 +1174,7 @@ ubuntu-25.04 amd64 avx512:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1214,6 +1219,7 @@ ubuntu-25.10 amd64 avx512:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1294,6 +1300,7 @@ ubuntu-24.04 amd64 avx512 TRACE:
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
     CXXFLAGS: -D OCUDU_L2_TRACE -D OCUDU_L1_TRACE -D OCUDU_L2_LATE_TRACE -D OCUDU_OFH_TRACE -D OCUDU_UP_TRACE
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1329,6 +1336,7 @@ ubuntu-22.04 amd64 avx512:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations
@@ -1384,6 +1392,7 @@ ubuntu-22.04 amd64 avx512 dpdk:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1426,6 +1435,7 @@ ubuntu-24.04 amd64 avx512 dpdk:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1468,6 +1478,7 @@ ubuntu-25.10 amd64 avx512 dpdk:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
@@ -1500,6 +1511,7 @@ ubuntu-25.04 amd64 avx512 dpdk:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
     INFRASTRUCTURE_TAG: amd64-avx2-avx512
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk

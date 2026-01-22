@@ -106,9 +106,12 @@ include:
           # Default timeout per test is 1500 (25 min)
           export CTEST_TIMEOUT=3600
           export CTEST_TEST_TIMEOUT=${CTEST_TIMEOUT}
-          CTEST_ARGS="-T memcheck -LE NO_MEMCHECK --timeout ${CTEST_TIMEOUT}"
+          CTEST_ARGS="-T memcheck -LE 'NO_MEMCHECK|sctp' --timeout ${CTEST_TIMEOUT}"
           ;;
         default|coverage)
+          CTEST_ARGS="-LE sctp"
+          ;;
+        full)
           CTEST_ARGS=""
           ;;
         *)

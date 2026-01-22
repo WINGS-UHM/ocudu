@@ -17,3 +17,4 @@ target_link_libraries(f1c_gateway_test
         gtest
         gtest_main)
 add_test(f1c_gateway_test f1c_gateway_test)
+set_tests_properties(f1c_gateway_test PROPERTIES LABELS "sctp")

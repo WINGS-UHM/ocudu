@@ -18,3 +18,4 @@ target_link_libraries(e1_gateway_test
         gtest
         gtest_main)
 add_test(e1_gateway_test e1_gateway_test)
+set_tests_properties(e1_gateway_test PROPERTIES LABELS "sctp")

@@ -66,7 +66,7 @@ variables:
           fi
         fi
         echo "Using LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-        CTEST_CMD="ctest -j${KUBERNETES_CPU_REQUEST} ${CTEST_SUBSET_CMD} $CTEST_ARGS --schedule-random --output-on-failure --output-junit xunit.xml"
+        CTEST_CMD="ctest -j${CPU_JOBS} ${CTEST_SUBSET_CMD} $CTEST_ARGS --schedule-random --output-on-failure --output-junit xunit.xml"
         echo "+ ${CTEST_CMD}"
 
         status_file=$(mktemp)
@@ -75,7 +75,7 @@ variables:
           && ret=$(cat ${status_file}) || ret=124
 
         if [[ $TEST_MODE = "coverage" ]]; then
-          common_options="-j${KUBERNETES_CPU_REQUEST} \
+          common_options="-j${CPU_JOBS} \
             --exclude-unreachable-branches \
             --gcov-ignore-parse-errors=negative_hits.warn_once_per_file \
             --exclude=${CI_PROJECT_DIR}/tests/* \
@@ -252,7 +252,7 @@ variables:
 
 smoke relwithdeb cached:
   extends: .smoke relwithdeb
-  timeout: 1 hour
+  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -263,7 +263,7 @@ smoke relwithdeb cached:
 smoke tsan cached:
   extends: .smoke tsan
   stage: manual
-  timeout: 1 hour
+  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -277,7 +277,7 @@ smoke tsan cached:
 smoke archlinux cached:
   extends: .smoke archlinux
   stage: manual
-  timeout: 1 hour
+  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -291,7 +291,7 @@ smoke archlinux cached:
 smoke dpdk cached:
   extends: .smoke dpdk
   stage: manual
-  timeout: 1 hour
+  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -305,7 +305,7 @@ smoke dpdk cached:
 smoke pretty printers cached:
   extends: .smoke printers
   stage: manual
-  timeout: 1 hour
+  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never

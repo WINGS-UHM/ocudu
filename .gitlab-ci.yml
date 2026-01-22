@@ -183,6 +183,9 @@ include-guards:
     CHECK_PER_FILE_TIMEOUT: 600
   before_script:
     - |
+      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export CPU_JOBS
+    - |
       echo "
       -/usr/lib
       -*CMakeTmp
@@ -218,7 +221,7 @@ include-guards:
       export -f monitor_child_process
   script: &codechecker_script
     - nohup bash -c monitor_child_process &
-    - static-analyzer.sh -i /tmp/codechecker_skip --jobs ${KUBERNETES_CPU_REQUEST} --analyzers ${ANALYZER} ${ANALYZER_ARGS} $CI_PROJECT_DIR
+    - static-analyzer.sh -i /tmp/codechecker_skip --jobs ${CPU_JOBS} --analyzers ${ANALYZER} ${ANALYZER_ARGS} $CI_PROJECT_DIR
   after_script:
     - mv codechecker_html codechecker-${ANALYZER}-html
   artifacts: &codechecker_artifacts
@@ -262,7 +265,7 @@ clang-tidy incremental:
     - |
       for rev in $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME; do
         git checkout $rev
-        CodeChecker log -o ${CI_PROJECT_DIR}/build/compile_commands.json --build "builder.sh -m -j${KUBERNETES_CPU_REQUEST} -c clang -DMARCH=x86-64-v3 -DENABLE_ARMPL=False -DENABLE_MKL=False -DENABLE_FFTW=True -DASSERT_LEVEL=PARANOID -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=False $CI_PROJECT_DIR"
+        CodeChecker log -o ${CI_PROJECT_DIR}/build/compile_commands.json --build "builder.sh -m -j${CPU_JOBS} -c clang -DMARCH=x86-64-v3 -DENABLE_ARMPL=False -DENABLE_MKL=False -DENABLE_FFTW=True -DASSERT_LEVEL=PARANOID -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=False $CI_PROJECT_DIR"
       done
     - *codechecker_script
   cache:

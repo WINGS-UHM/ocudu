@@ -126,9 +126,11 @@ include:
       echo "BUILD_ARGS=${BUILD_ARGS}"
       echo "TEST_MODE=${TEST_MODE}"
     - |
+      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+    - |
       build_ocudu() {
         set -x
-        builder.sh -b "${OCUDU_BUILD_DIR}" -m "-j${KUBERNETES_CPU_REQUEST} ${OCUDU_TARGET}" ${BUILD_CMD} ${OCUDU_DIR}
+        builder.sh -b "${OCUDU_BUILD_DIR}" -m "-j${CPU_JOBS} ${OCUDU_TARGET}" ${BUILD_CMD} ${OCUDU_DIR}
         { set +x; } 2>/dev/null
       }
     - |
@@ -136,7 +138,7 @@ include:
         cd ${OCUDU_DIR}/${OCUDU_BUILD_DIR}
         echo "Using LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
         set -x
-        ctest -j${KUBERNETES_CPU_REQUEST} --schedule-random --output-on-failure --output-junit xunit.xml $CTEST_ARGS
+        ctest -j${CPU_JOBS} --schedule-random --output-on-failure --output-junit xunit.xml $CTEST_ARGS
         { set +x; } 2>/dev/null
         grep -l "ERROR SUMMARY: 0 errors" Testing/Temporary/MemoryChecker.*.log | xargs rm || true
       }

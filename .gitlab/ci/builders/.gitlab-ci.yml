@@ -67,8 +67,10 @@ builder version increased:
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
   before_script:
+    - |
+      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export CPU_JOBS
     - TZ=Europe/Madrid && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
     # Download existing package in the registry, if exists
     - |
       download_from_registry() {
@@ -88,7 +90,7 @@ builder version increased:
     - |
       build_rohc() {
         docker/scripts/install_rohc_dependencies.sh build
-        docker/scripts/build_rohc.sh ${target_arch} ${KUBERNETES_CPU_REQUEST}
+        docker/scripts/build_rohc.sh ${target_arch} ${CPU_JOBS}
         mkdir -p ${CI_PROJECT_DIR}/.gitlab/ci/builders
         cp -r /opt/rohc ${CI_PROJECT_DIR}/.gitlab/ci/builders
       }
@@ -153,8 +155,10 @@ ubuntu-rohc-builder arm64:
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
   before_script:
+    - |
+      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export CPU_JOBS
     - TZ=Europe/Madrid && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
     # Download existing package in the registry, if exists
     - |
       download_from_registry() {
@@ -174,7 +178,7 @@ ubuntu-rohc-builder arm64:
     - |
       build_uhd() {
         docker/scripts/install_uhd_dependencies.sh build
-        docker/scripts/build_uhd.sh ${uhd_version} ${target_arch} ${KUBERNETES_CPU_REQUEST}
+        docker/scripts/build_uhd.sh ${uhd_version} ${target_arch} ${CPU_JOBS}
         mkdir -p ${CI_PROJECT_DIR}/.gitlab/ci/builders/uhd
         cp -r /opt/uhd/${uhd_version} ${CI_PROJECT_DIR}/.gitlab/ci/builders/uhd/${uhd_version}
       }
@@ -244,8 +248,10 @@ ubuntu-uhd-builder arm64:
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
   before_script:
+    - |
+      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export CPU_JOBS
     - TZ=Europe/Madrid && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
     # Download existing package in the registry, if exists
     - |
       download_from_registry() {
@@ -267,7 +273,7 @@ ubuntu-uhd-builder arm64:
         unset PIP_EXTRA_INDEX_URL
         unset PIP_INDEX_URL
         docker/scripts/install_dpdk_dependencies.sh build
-        docker/scripts/build_dpdk.sh ${dpdk_version} ${target_arch} ${KUBERNETES_CPU_REQUEST}
+        docker/scripts/build_dpdk.sh ${dpdk_version} ${target_arch} ${CPU_JOBS}
         mkdir -p ${CI_PROJECT_DIR}/.gitlab/ci/builders/dpdk
         cp -r /opt/dpdk/${dpdk_version} ${CI_PROJECT_DIR}/.gitlab/ci/builders/dpdk/${dpdk_version}${extra_arch_name}
       }

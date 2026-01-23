@@ -30,7 +30,7 @@ FROM ubuntu:$OS_VERSION AS builder-base
 # Adding the complete repo to the context, in /src folder
 ADD . /src
 # An alternative could be to download the repo
-# RUN apt update && apt-get install -y --no-install-recommends git git-lfs ca-certificates
+# RUN apt update && apt-get install -y --no-install-recommends git ca-certificates
 # RUN git clone https://github.com/ocudu/OCUDU_Project.git /src
 
 # Install OCUDU build dependencies

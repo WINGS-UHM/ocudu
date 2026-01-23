@@ -35,6 +35,8 @@ main() {
     cmake --build . -- -j"${ncores}"
     cmake --install .
 
+    rm -Rf /tmp/uhd*"${uhd_version}"
+
 }
 
 main "$@"

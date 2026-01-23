@@ -87,11 +87,19 @@ telegraf version changed:
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
   before_script: &docker_setup
-    - dockerd-entrypoint.sh &
     - |
-      while ! ( nc -zv localhost 2376 2>&1 >/dev/null )
-      do
-          sleep 1
+      export DOCKER_HOST=unix:///var/run/docker.sock
+      export DOCKER_TLS_CERTDIR=""
+      dockerd-entrypoint.sh --host=${DOCKER_HOST} --tls=false 2>&1 &
+    - |
+      i=0
+      while ! docker info >/dev/null 2>&1; do
+        i=$((i+1))
+        if [ "$i" -ge 60 ]; then
+          echo "ERROR: dockerd not ready after 60s"
+          exit 1
+        fi
+        sleep 1
       done
 
 gnb docker compose:

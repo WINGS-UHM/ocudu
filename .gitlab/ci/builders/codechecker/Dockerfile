@@ -33,5 +33,5 @@ ADD install_dependencies.sh builder.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && install_dependencies.sh \
-  && apt-get install -y --no-install-recommends git \
+  && apt-get update && apt-get install -y --no-install-recommends git \
   && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*

@@ -15,13 +15,12 @@ RUN TZ=Europe/Madrid && \
     echo $TZ > /etc/timezone && \
     dnf update -y && \
     dnf install -y \
-    which git git-lfs \
+    which git \
     clang llvm \
     ccache gcovr valgrind \
     python3-devel python3-virtualenv && \
     dnf install -y libstdc++-static && \
-    dnf autoremove -y && dnf clean all && rm -rf /var/cache/dnf && \
-    git lfs install
+    dnf autoremove -y && dnf clean all && rm -rf /var/cache/dnf
 
 ADD install_dependencies.sh builder.sh changed_tests.py /usr/local/bin/
 RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py && \

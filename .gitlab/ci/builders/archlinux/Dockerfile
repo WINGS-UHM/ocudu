@@ -18,11 +18,11 @@ RUN pacman-key --init \
   && pacman-key --populate archlinux \
   && pacman -Syu --noconfirm
 RUN install_dependencies.sh && pacman -Syu --noconfirm \
-  git git-lfs \
+  git \
   clang \
   ccache valgrind \
   python-pip
-RUN git lfs install && pip install --break-system-packages gcovr==5.0
+RUN pip install --break-system-packages gcovr==5.0
 
 ADD builder.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/builder.sh

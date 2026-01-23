@@ -40,8 +40,8 @@ main() {
     make install
     ldconfig
     popd
-    rm -Rf /tmp/rohc-2.3.1
-    rm /tmp/rohc-2.3.1.tar.xz
+    
+    rm -Rf /tmp/rohc-"${rohc_version}"*
 
 }
 

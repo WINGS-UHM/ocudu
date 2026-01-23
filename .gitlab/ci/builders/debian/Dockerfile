@@ -15,20 +15,19 @@ RUN TZ=Europe/Madrid && \
     echo $TZ > /etc/timezone && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    git git-lfs gdb \
+    git gdb \
     clang llvm lld mold \
     ccache gcovr valgrind \
     python3-dev python3-venv && \
     (apt-get install -y --no-install-recommends libclang-rt-dev || true) && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    git lfs install
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ADD install_dependencies.sh builder.sh changed_tests.py /usr/local/bin/
 RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py && \
     /usr/local/bin/install_dependencies.sh && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     python3 -m venv /usr/local/builder_tools && \
-    /usr/local/builder_tools/bin/pip install "pandas<3" "psutil"
+    /usr/local/builder_tools/bin/pip install --no-cache-dir "pandas<3" "psutil"
 
 ADD lib /opt/lib
 ADD rohc /opt/rohc

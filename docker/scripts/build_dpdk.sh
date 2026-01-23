@@ -27,6 +27,9 @@ main() {
     meson setup build --prefix "/opt/dpdk/${dpdk_version}" -Dcpu_instruction_set="${arch}"
     meson compile -j "${ncores}" -C build
     meson install -C build
+
+    rm -Rf /tmp/dpdk*"${dpdk_version}"
+    rm -Rf /opt/dpdk/"${dpdk_version}"/bin/*  # Remove binaries due to their size ~250MB
 }
 
 main "$@"

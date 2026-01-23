@@ -6,25 +6,24 @@
 # the distribution.
 #
 
-FROM realtimesanitizer/rtsan-clang
+FROM ubuntu:24.04
+
 RUN TZ=Europe/Madrid && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    git git-lfs \
-    ccache gcovr valgrind \
-    python3-dev python3-venv && \
-    (apt-get install -y --no-install-recommends libclang-rt-dev || true) && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    git lfs install
+    git gdb \
+    clang-20 libclang-rt-20-dev llvm-20 lld mold \
+    ccache && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-20 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 100
 
-ADD install_dependencies.sh builder.sh changed_tests.py /usr/local/bin/
-RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh /usr/local/bin/changed_tests.py && \
+ADD install_dependencies.sh builder.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/install_dependencies.sh /usr/local/bin/builder.sh && \
     /usr/local/bin/install_dependencies.sh && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    python3 -m venv /usr/local/builder_tools && \
-    /usr/local/builder_tools/bin/pip install "pandas<3" "psutil"
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ADD lib /opt/lib
 ADD rohc /opt/rohc

@@ -107,20 +107,90 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
       if (!cell.gnb_id_bit_length.has_value() || !cell.pci.has_value() || !cell.band.has_value() ||
           !cell.ssb_arfcn.has_value() || !cell.ssb_scs.has_value() || !cell.ssb_period.has_value() ||
           !cell.ssb_offset.has_value() || !cell.ssb_duration.has_value()) {
-        fmt::print("cell={:#x}: For external cells, the gnb_id_bit_length, pci, band, ssb_arfcn, ssb_scs, ssb_period, "
-                   "ssb_offset and "
-                   "ssb_duration must be configured in the mobility config\n",
-                   cell.nr_cell_id);
+        // Collect internal and external cells to help the user diagnose misconfiguration.
+        std::vector<std::string> internal_cells;
+        std::vector<std::string> external_cells;
+        for (const auto& c : config.cells) {
+          nr_cell_identity c_nci = nr_cell_identity::create(c.nr_cell_id).value();
+          if (c_nci.gnb_id(gnb_id.bit_length) == gnb_id) {
+            internal_cells.push_back(fmt::format("{:#x}", c.nr_cell_id));
+          } else {
+            external_cells.push_back(fmt::format("{:#x}", c.nr_cell_id));
+          }
+        }
+        fmt::print("cell={:#x} is detected as external because its gnb_id part of nr_cell_id differs from this "
+                   "CU-CP's gnb_id={:#x}, but some parameters required for external cells are missing.\n"
+                   "If this cell is correctly assigned to a different CU-CP - fix the missing parameters:\n"
+                   "  - gnb_id_bit_length: {}\n"
+                   "  - pci: {}\n"
+                   "  - band: {}\n"
+                   "  - ssb_arfcn: {}\n"
+                   "  - ssb_scs: {}\n"
+                   "  - ssb_period: {}\n"
+                   "  - ssb_offset: {}\n"
+                   "  - ssb_duration: {}\n"
+                   "If this cell should be within the same CU-CP - fix the nr_cell_id to match gnb_id={:#x} and "
+                   "gnb_id_bit_length={}.\n"
+                   "  - Internal cells (within this CU-CP): {}\n"
+                   "  - External cells (in other CU-CPs): {}\n",
+                   cell.nr_cell_id,
+                   gnb_id.id,
+                   cell.gnb_id_bit_length.has_value() ? fmt::format("{}", cell.gnb_id_bit_length.value()) : "[MISSING]",
+                   cell.pci.has_value() ? fmt::format("{}", cell.pci.value()) : "[MISSING]",
+                   cell.band.has_value() ? fmt::format("n{}", static_cast<unsigned>(cell.band.value())) : "[MISSING]",
+                   cell.ssb_arfcn.has_value() ? fmt::format("{}", cell.ssb_arfcn.value()) : "[MISSING]",
+                   cell.ssb_scs.has_value() ? fmt::format("{}", cell.ssb_scs.value()) : "[MISSING]",
+                   cell.ssb_period.has_value() ? fmt::format("{}", cell.ssb_period.value()) : "[MISSING]",
+                   cell.ssb_offset.has_value() ? fmt::format("{}", cell.ssb_offset.value()) : "[MISSING]",
+                   cell.ssb_duration.has_value() ? fmt::format("{}", cell.ssb_duration.value()) : "[MISSING]",
+                   gnb_id.id,
+                   gnb_id.bit_length,
+                   fmt::join(internal_cells, ", "),
+                   fmt::join(external_cells, ", "));
         return false;
       }
     } else {
       if (cell.pci.has_value() || cell.band.has_value() || cell.ssb_arfcn.has_value() || cell.ssb_scs.has_value() ||
           cell.ssb_period.has_value() || cell.ssb_offset.has_value() || cell.ssb_duration.has_value()) {
-        fmt::print("cell={:#x}: For cells managed by the CU-CP the gnb_id_bit_length, pci, band, ssb_arfcn, ssb_scs, "
-                   "ssb_period, "
-                   "ssb_offset and "
-                   "ssb_duration must not be configured in the mobility config\n",
-                   cell.nr_cell_id);
+        // Collect internal and external cells to help the user diagnose misconfiguration.
+        std::vector<std::string> internal_cells;
+        std::vector<std::string> external_cells;
+        for (const auto& c : config.cells) {
+          nr_cell_identity c_nci = nr_cell_identity::create(c.nr_cell_id).value();
+          if (c_nci.gnb_id(gnb_id.bit_length) == gnb_id) {
+            internal_cells.push_back(fmt::format("{:#x}", c.nr_cell_id));
+          } else {
+            external_cells.push_back(fmt::format("{:#x}", c.nr_cell_id));
+          }
+        }
+        fmt::print("cell={:#x} is detected as internal because its gnb_id part of nr_cell_id matches this "
+                   "CU-CP's gnb_id={:#x}, but some parameters that are only valid for external cells are configured.\n"
+                   "If this cell is correctly assigned to this CU-CP - remove the following parameters:\n"
+                   "  - pci: {}\n"
+                   "  - band: {}\n"
+                   "  - ssb_arfcn: {}\n"
+                   "  - ssb_scs: {}\n"
+                   "  - ssb_period: {}\n"
+                   "  - ssb_offset: {}\n"
+                   "  - ssb_duration: {}\n"
+                   "If this cell should be within a different CU-CP - fix the nr_cell_id so that it does not match "
+                   "this CU-CP gnb_id={:#x} (gnb_id_bit_length={}).\n"
+                   "  - Internal cells (within this CU-CP): {}\n"
+                   "  - External cells (in other CU-CPs): {}\n",
+                   cell.nr_cell_id,
+                   gnb_id.id,
+                   cell.pci.has_value() ? fmt::format("{} [REMOVE]", cell.pci.value()) : "not set",
+                   cell.band.has_value() ? fmt::format("n{} [REMOVE]", static_cast<unsigned>(cell.band.value()))
+                                         : "not set",
+                   cell.ssb_arfcn.has_value() ? fmt::format("{} [REMOVE]", cell.ssb_arfcn.value()) : "not set",
+                   cell.ssb_scs.has_value() ? fmt::format("{} [REMOVE]", cell.ssb_scs.value()) : "not set",
+                   cell.ssb_period.has_value() ? fmt::format("{} [REMOVE]", cell.ssb_period.value()) : "not set",
+                   cell.ssb_offset.has_value() ? fmt::format("{} [REMOVE]", cell.ssb_offset.value()) : "not set",
+                   cell.ssb_duration.has_value() ? fmt::format("{} [REMOVE]", cell.ssb_duration.value()) : "not set",
+                   gnb_id.id,
+                   gnb_id.bit_length,
+                   fmt::join(internal_cells, ", "),
+                   fmt::join(external_cells, ", "));
         return false;
       }
     }

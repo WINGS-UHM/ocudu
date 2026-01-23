@@ -1350,9 +1350,9 @@ static void configure_cli11_ra_prioritization_info(CLI::App&                    
                                                    du_high_unit_prach_config::ra_prioritization_slice_info& ra_info)
 {
   add_option(app,
-             "--power_ramp_step_high_priority [dB]",
+             "--power_ramp_step_high_priority",
              ra_info.power_ramp_step_high_priority,
-             "Power ramping step applied for prioritized random access procedure.")
+             "Power ramping step applied for prioritized random access procedure [dB].")
       ->capture_default_str()
       ->check(CLI::IsMember({0, 2, 4, 6}));
   add_option(app,

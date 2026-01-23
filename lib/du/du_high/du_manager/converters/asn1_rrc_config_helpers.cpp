@@ -800,6 +800,10 @@ static rach_cfg_common_s make_asn1_rach_cfg_common(const rach_config_common& cfg
         out_slice.ra_prioritization_r17.scaling_factor_bi.value =
             static_cast<ra_prioritization_s::scaling_factor_bi_opts::options>(*slice_cfg.prio.scaling_bi);
       }
+      out_slice.nsag_id_list_r17.resize(slice_cfg.nsag_id_list.size());
+      for (unsigned j = 0, je = slice_cfg.nsag_id_list.size(); j != je; ++j) {
+        out_slice.nsag_id_list_r17[j].from_number(slice_cfg.nsag_id_list[j]);
+      }
       out_list.push_back(out_slice);
     }
   }

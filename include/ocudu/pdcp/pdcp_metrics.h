@@ -19,7 +19,7 @@ namespace ocudu {
 
 struct pdcp_metrics_container;
 
-/// \brief Notifier interface used to report RLC metrics.
+/// \brief Notifier interface used to report PDCP metrics.
 class pdcp_metrics_notifier
 {
 public:

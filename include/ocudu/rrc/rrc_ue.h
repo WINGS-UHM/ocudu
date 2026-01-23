@@ -476,6 +476,13 @@ public:
   /// \brief Get the inactivity context of the RRC UE.
   /// \returns The inactivity context.
   virtual std::optional<rrc_inactivity_context> get_inactivity_context() const = 0;
+
+  /// \brief Update the packed RRC cell group config.
+  /// \param[in] cell_group_config The new packed RRC cell group config.
+  virtual void update_cell_group_config(byte_buffer cell_group_config) = 0;
+
+  /// \brief Get the packed RRC cell group config.
+  virtual byte_buffer& get_cell_group_config() = 0;
 };
 
 /// Handler for UE capabilities.

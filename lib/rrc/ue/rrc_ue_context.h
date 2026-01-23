@@ -50,6 +50,7 @@ public:
   rrc_ue_capabilities_t                                    capabilities;
   std::optional<rrc_ue_transfer_context> transfer_context; // Context of old UE when created through mobility.
   std::optional<rrc_inactivity_context>  inactivity_context;
+  byte_buffer                            cell_group_config;
   bool                                   reestablishment_ongoing = false;
   rrc_ue_logger&                         logger;
 };

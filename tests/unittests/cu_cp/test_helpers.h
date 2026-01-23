@@ -810,6 +810,18 @@ public:
     return std::nullopt;
   }
 
+  void update_cell_group_config(byte_buffer cell_group_config) override
+  {
+    logger.info("Received a new request to update packed cell group config");
+    cell_group_cfg = cell_group_config.copy();
+  }
+
+  byte_buffer& get_cell_group_config() override
+  {
+    logger.info("Received a new request to get packed cell group config");
+    return cell_group_cfg;
+  }
+
   // RRC UE capability handler.
   bool is_rrc_inactive_supported() const override { return rrc_inactive_supported; }
 
@@ -838,6 +850,7 @@ private:
   unsigned                              test_transaction_id;
   static_vector<srb_id_t, MAX_NOF_SRBS> srb_vec;
   bool                                  rrc_inactive_supported = false;
+  byte_buffer                           cell_group_cfg;
 };
 
 } // namespace ocudu::ocucp

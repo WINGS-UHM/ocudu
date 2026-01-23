@@ -134,6 +134,11 @@ void rrc_ue_impl::update_c_rnti(rnti_t crnti)
   logger.set_prefix(rrc_ue_log_prefix{context.ue_index, crnti});
 }
 
+void rrc_ue_impl::update_cell_group_config(byte_buffer cell_group_config)
+{
+  context.cell_group_config = std::move(cell_group_config);
+}
+
 void rrc_ue_impl::on_new_dl_ccch(const asn1::rrc_nr::dl_ccch_msg_s& dl_ccch_msg)
 {
   send_dl_ccch(dl_ccch_msg);

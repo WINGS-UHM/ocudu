@@ -25,6 +25,7 @@ namespace ocuup {
 /// This struct will hold relevant metrics for the F1-U RX
 struct f1u_rx_metrics_container {
   // TODO: add fields
+  unsigned counter;
 };
 
 inline std::string format_f1u_rx_metrics(timer_duration metrics_period, const f1u_rx_metrics_container& m)

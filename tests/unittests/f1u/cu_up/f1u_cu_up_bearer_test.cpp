@@ -116,7 +116,9 @@ protected:
         *tester,
         *tester,
         ue_timer_factory,
+        ue_timer_factory,
         ue_inactivity_timer,
+        ue_worker,
         ue_worker,
         ue_worker);
   }

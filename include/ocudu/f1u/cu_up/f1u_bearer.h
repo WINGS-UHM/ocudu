@@ -22,7 +22,7 @@ namespace ocudu::ocuup {
 
 struct f1u_metrics_container {
   uint32_t                 ue_index;
-  rb_id_t                  rb_id;
+  drb_id_t                 drb_id;
   f1u_tx_metrics_container tx;
   f1u_rx_metrics_container rx;
   timer_duration           metrics_period;
@@ -70,9 +70,9 @@ struct formatter<ocudu::ocuup::f1u_metrics_container> {
   auto format(const ocudu::ocuup::f1u_metrics_container& m, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
-                     "ue={} rb={} tx=[{}] rx=[{}]",
+                     "ue={} drb={} tx=[{}] rx=[{}]",
                      m.ue_index,
-                     m.rb_id,
+                     m.drb_id,
                      ocudu::ocuup::format_f1u_tx_metrics(m.metrics_period, m.tx),
                      ocudu::ocuup::format_f1u_rx_metrics(m.metrics_period, m.rx));
   }

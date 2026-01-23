@@ -130,6 +130,10 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
   target_ue = ue_mng.find_du_ue(target_ue_context_setup_response.ue_index);
   ocudu_assert(target_ue != nullptr, "Couldn't find ue={} in target DU", target_ue_context_setup_response.ue_index);
 
+  // Store updated cell group config.
+  target_ue->get_rrc_ue()->update_cell_group_config(
+      target_ue_context_setup_response.du_to_cu_rrc_info.cell_group_cfg.copy());
+
   // Setup SRB1 and initialize security context in RRC.
   {
     for (const auto& srb_id : source_rrc_context.srbs) {

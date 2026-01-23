@@ -157,6 +157,13 @@ void inter_cu_handover_target_routine::operator()(
 
   // Target UE object exists from this point on.
 
+  // Store updated cell group config.
+  {
+    ue_mng.find_du_ue(request.ue_index)
+        ->get_rrc_ue()
+        ->update_cell_group_config(ue_context_setup_response.du_to_cu_rrc_info.cell_group_cfg.copy());
+  }
+
   // Forward HandoverPreparationInformation to RRC.
   {
     if (!ue_mng.find_du_ue(request.ue_index)

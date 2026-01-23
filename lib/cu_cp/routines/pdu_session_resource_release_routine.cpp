@@ -114,6 +114,9 @@ void pdu_session_resource_release_routine::operator()(
     if (not ue_context_modification_response.success) {
       logger.warning("ue={}: \"{}\" failed to release bearer(s) at DU", release_cmd.ue_index, name());
     }
+
+    // Store updated cell group config.
+    rrc_ue->update_cell_group_config(ue_context_modification_response.du_to_cu_rrc_info.cell_group_cfg.copy());
   }
 
   {

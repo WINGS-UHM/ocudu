@@ -86,6 +86,9 @@ void handover_reconfiguration_routine::operator()(coro_context<async_task<bool>>
     CORO_EARLY_RETURN(false);
   }
 
+  // Store updated cell group config.
+  source_ue.get_rrc_ue()->update_cell_group_config(ue_context_mod_response.du_to_cu_rrc_info.cell_group_cfg.copy());
+
   // Initialize UE release timer for source UE.
   initialize_handover_ue_release_timer(source_ue.get_ue_index());
 

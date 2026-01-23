@@ -129,6 +129,9 @@ void pdu_session_resource_modification_routine::operator()(
       logger.warning("ue={}: \"{}\" failed to modify UE context at DU", modify_request.ue_index, name());
       CORO_EARLY_RETURN(generate_pdu_session_resource_modify_response(false));
     }
+
+    // Store updated cell group config.
+    rrc_ue->update_cell_group_config(ue_context_modification_response.du_to_cu_rrc_info.cell_group_cfg.copy());
   }
 
   // If needed, inform CU-UP about the new TEID for UL F1u traffic.

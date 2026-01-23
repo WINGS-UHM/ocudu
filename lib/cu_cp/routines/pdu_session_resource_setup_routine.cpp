@@ -192,6 +192,9 @@ void pdu_session_resource_setup_routine::operator()(
       CORO_EARLY_RETURN(
           handle_pdu_session_resource_setup_result(false, cause_protocol_t::msg_not_compatible_with_receiver_state));
     }
+
+    // Store updated cell group config.
+    rrc_ue->update_cell_group_config(ue_context_modification_response.du_to_cu_rrc_info.cell_group_cfg.copy());
   }
 
   // Inform CU-UP about the new TEID for UL F1u traffic.

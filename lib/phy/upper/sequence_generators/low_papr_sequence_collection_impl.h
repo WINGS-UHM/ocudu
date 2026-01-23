@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/adt/tensor.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
 #include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"
 

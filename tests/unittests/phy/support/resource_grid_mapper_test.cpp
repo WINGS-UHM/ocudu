@@ -9,7 +9,6 @@
  */
 
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
 #include "ocudu/phy/support/re_pattern.h"
 #include "ocudu/phy/support/resource_grid.h"

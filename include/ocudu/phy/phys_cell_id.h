@@ -10,13 +10,7 @@
 
 #pragma once
 
-#include "ocudu/ran/resource_block.h"
-
 namespace ocudu {
-
-/// Defines the maximum number of ports for any channel transmission
-constexpr unsigned MAX_PORTS = 16;
-
 namespace phys_cell_id {
 
 /// Number of NR N_id_1 Physical Cell Identifier (PCI) as described in TS38.211 Section 7.4.2.1 Physical-layer cell

@@ -9,7 +9,6 @@
  */
 
 #include "ocudu/ocuduvec/bit.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
 #include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
 #include "ocudu/phy/upper/channel_processors/pusch/factories.h"

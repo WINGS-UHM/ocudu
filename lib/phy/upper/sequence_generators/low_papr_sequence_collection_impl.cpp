@@ -9,6 +9,7 @@
  */
 
 #include "low_papr_sequence_collection_impl.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/support/math/math_utils.h"
 
 using namespace ocudu;

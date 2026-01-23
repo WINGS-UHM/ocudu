@@ -16,7 +16,7 @@
 #include "ocudu/ocuduvec/fill.h"
 #include "ocudu/ocuduvec/simd.h"
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/antenna_ports.h"
 
 namespace ocudu {
 

@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/adt/complex.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/sequence_generators/pss_sequence_generator.h"
 #include "ocudu/phy/upper/signal_processors/ssb/pss_processor.h"
 

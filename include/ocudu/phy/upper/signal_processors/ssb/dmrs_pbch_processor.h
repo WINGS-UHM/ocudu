@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/ran/pci.h"
 
 namespace ocudu {

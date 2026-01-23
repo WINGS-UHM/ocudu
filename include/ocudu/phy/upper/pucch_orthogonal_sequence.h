@@ -15,7 +15,6 @@
 
 #include "ocudu/adt/complex.h"
 #include "ocudu/adt/span.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_assert.h"

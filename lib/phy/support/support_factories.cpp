@@ -13,6 +13,7 @@
 #include "prach_buffer_impl.h"
 #include "resource_grid_impl.h"
 #include "resource_grid_pool_impl.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
 #include "ocudu/ran/prach/prach_constants.h"
 #include <utility>

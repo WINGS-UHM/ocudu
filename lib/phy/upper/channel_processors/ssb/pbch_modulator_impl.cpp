@@ -10,7 +10,6 @@
 
 #include "pbch_modulator_impl.h"
 #include "ocudu/ocuduvec/bit.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/resource_grid_writer.h"
 #include "ocudu/ran/ssb/ssb_properties.h"
 

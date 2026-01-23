@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
 #include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/support/error_handling.h"
 

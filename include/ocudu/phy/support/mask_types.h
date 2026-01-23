@@ -11,8 +11,8 @@
 #pragma once
 
 #include "ocudu/adt/bounded_bitset.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/resource_block.h"
 
 namespace ocudu {
 

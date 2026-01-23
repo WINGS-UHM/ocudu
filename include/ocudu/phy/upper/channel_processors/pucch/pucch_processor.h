@@ -12,7 +12,6 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/channel_processors/pucch/pucch_format1_map.h"
 #include "ocudu/phy/upper/channel_processors/pucch/pucch_processor_result.h"
 #include "ocudu/ran/cyclic_prefix.h"

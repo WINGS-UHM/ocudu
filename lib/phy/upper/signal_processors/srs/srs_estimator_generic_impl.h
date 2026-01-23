@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/complex_exponential_table.h"
 #include "ocudu/phy/support/time_alignment_estimator/time_alignment_estimator.h"
 #include "ocudu/phy/upper/sequence_generators/low_papr_sequence_generator.h"

@@ -16,7 +16,6 @@
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/span.h"
 #include "ocudu/adt/tensor.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/channel_state_information.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/pusch/pusch_constants.h"

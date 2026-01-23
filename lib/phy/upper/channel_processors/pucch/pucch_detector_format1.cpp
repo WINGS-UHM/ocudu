@@ -23,7 +23,6 @@
 #include "ocudu/ocuduvec/prod.h"
 #include "ocudu/ocuduvec/sc_prod.h"
 #include "ocudu/ocuduvec/subtract.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/upper/channel_processors/pucch/pucch_detector.h"
 #include "ocudu/phy/upper/channel_processors/uci/uci_status.h"
 #include "ocudu/phy/upper/pucch_orthogonal_sequence.h"

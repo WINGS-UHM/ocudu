@@ -10,7 +10,6 @@
 
 #include "ocudu/phy/generic_functions/transform_precoding/transform_precoding_factories.h"
 #include "transform_precoder_dft_impl.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
 
 using namespace ocudu;

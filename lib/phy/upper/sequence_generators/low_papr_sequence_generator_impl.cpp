@@ -12,7 +12,6 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ocuduvec/prod.h"
 #include "ocudu/ocuduvec/sc_prod.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/support/error_handling.h"
 #include "ocudu/support/math/math_utils.h"
 

@@ -13,7 +13,6 @@
 #include "ocudu/ocuduvec/prod.h"
 #include "ocudu/ocuduvec/sc_prod.h"
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/resource_grid_writer.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/support/error_handling.h"

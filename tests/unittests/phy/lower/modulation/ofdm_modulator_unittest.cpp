@@ -13,6 +13,7 @@
 #include "ocudu/ocuduvec/compare.h"
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/lower/modulation/modulation_factories.h"
 #include "ocudu/support/test_utils.h"
 #include <random>

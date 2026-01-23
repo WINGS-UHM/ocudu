@@ -13,7 +13,6 @@
 #include "ocudu/adt/interval.h"
 #include "ocudu/adt/span.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/mask_types.h"
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
 

@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/support/re_pattern.h"
 #include "ocudu/phy/support/resource_grid_mapper.h"

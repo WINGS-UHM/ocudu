@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/generic_functions/precoding/channel_precoder.h"
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"

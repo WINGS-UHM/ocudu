@@ -9,7 +9,7 @@
  */
 
 #include "../../../support/resource_grid_test_doubles.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/phys_cell_id.h"
 #include "ocudu/phy/upper/signal_processors/ssb/factories.h"
 #include "ocudu/ran/ssb/ssb_properties.h"
 #include <random>

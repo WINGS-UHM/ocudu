@@ -21,6 +21,7 @@
 #include "ocudu/ocuduvec/conversion.h"
 #include "ocudu/ocuduvec/dot_prod.h"
 #include "ocudu/ocuduvec/zero.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/lower/amplitude_controller/amplitude_controller.h"
 #include "ocudu/phy/lower/lower_phy_baseband_metrics.h"
 #include "ocudu/phy/lower/modulation/ofdm_modulator.h"

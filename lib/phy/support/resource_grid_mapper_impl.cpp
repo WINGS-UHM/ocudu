@@ -10,6 +10,7 @@
 
 #include "resource_grid_mapper_impl.h"
 #include "ocudu/ocuduvec/sc_prod.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/support/precoding_configuration.h"
 #include "ocudu/phy/support/re_pattern.h"
 

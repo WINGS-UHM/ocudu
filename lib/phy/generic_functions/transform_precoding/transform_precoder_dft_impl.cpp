@@ -11,7 +11,6 @@
 #include "transform_precoder_dft_impl.h"
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/sc_prod.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/transform_precoding/transform_precoding_helpers.h"
 #include <numeric>
 

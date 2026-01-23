@@ -8,11 +8,11 @@
  *
  */
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/upper/equalization/dynamic_ch_est_list.h"
 #include "ocudu/phy/upper/equalization/equalization_factories.h"
 #include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/support/benchmark_utils.h"
 #include "ocudu/support/math/math_utils.h"
 #include "ocudu/support/ocudu_test.h"

@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/ocudulog/logger.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/phy/support/resource_grid_context.h"
 #include "ocudu/phy/support/shared_resource_grid.h"

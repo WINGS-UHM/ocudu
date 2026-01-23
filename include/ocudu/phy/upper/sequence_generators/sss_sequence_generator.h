@@ -14,7 +14,7 @@
 #include "ocudu/adt/span.h"
 #include "ocudu/ocuduvec/prod.h"
 #include "ocudu/ocuduvec/sc_prod.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/phys_cell_id.h"
 #include "ocudu/ran/pci.h"
 
 namespace ocudu {

@@ -11,9 +11,9 @@
 #include "ofdm_prach_demodulator_impl.h"
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/sc_prod.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/resource_block.h"
 
 using namespace ocudu;
 

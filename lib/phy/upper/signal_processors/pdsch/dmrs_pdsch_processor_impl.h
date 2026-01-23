@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/complex.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/support/resource_grid_mapper.h"
 #include "ocudu/phy/support/resource_grid_writer.h"

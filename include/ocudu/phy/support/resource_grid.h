@@ -13,7 +13,6 @@
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/complex.h"
 #include "ocudu/adt/span.h"
-#include "ocudu/phy/constants.h"
 
 namespace ocudu {
 

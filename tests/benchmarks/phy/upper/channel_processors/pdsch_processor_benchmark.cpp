@@ -9,6 +9,7 @@
  */
 
 #include "../../../../unittests/phy/upper/channel_processors/pdsch/pdsch_processor_test_doubles.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/phy/support/support_factories.h"
 #include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
 #include "ocudu/ran/precoding/precoding_codebooks.h"

@@ -8,7 +8,6 @@
  *
  */
 
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/generic_functions/precoding/precoding_factories.h"
 #include "ocudu/support/benchmark_utils.h"
 #include "ocudu/support/ocudu_test.h"

@@ -15,7 +15,6 @@
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/fill.h"
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/resource_grid.h"
 #include "ocudu/phy/support/resource_grid_mapper.h"
 #include "ocudu/phy/support/resource_grid_reader.h"

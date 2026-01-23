@@ -19,7 +19,6 @@
 #include "ocudu/ocuduvec/simd.h"
 #include "ocudu/ocuduvec/subtract.h"
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/support/resource_grid_reader.h"
 #include "ocudu/support/transform_optional.h"

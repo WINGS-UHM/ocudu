@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/ran/prach/prach_format_type.h"
 #include "ocudu/ran/prach/restricted_set_config.h"
 #include "ocudu/ran/slot_point.h"

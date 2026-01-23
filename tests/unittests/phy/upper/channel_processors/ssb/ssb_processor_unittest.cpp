@@ -15,6 +15,7 @@
 #include "pbch_encoder_doubles.h"
 #include "pbch_modulator_doubles.h"
 #include "ocudu/ocuduvec/compare.h"
+#include "ocudu/phy/phys_cell_id.h"
 #include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include <random>

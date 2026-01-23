@@ -10,7 +10,6 @@
 
 #include "pxsch_bler_test_channel_emulator.h"
 #include "pxsch_bler_test_factories.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/resource_grid.h"
 #include "ocudu/phy/support/support_factories.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"

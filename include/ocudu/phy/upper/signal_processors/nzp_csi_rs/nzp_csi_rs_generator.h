@@ -12,7 +12,6 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/constants.h"
 #include "ocudu/phy/support/precoding_configuration.h"
 #include "ocudu/ran/csi_rs/csi_rs_types.h"
 #include "ocudu/ran/cyclic_prefix.h"

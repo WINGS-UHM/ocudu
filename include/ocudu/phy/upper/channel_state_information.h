@@ -12,7 +12,7 @@
 
 #include "ocudu/adt/span.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/phy/constants.h"
+#include "ocudu/phy/antenna_ports.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/phy_time_unit.h"
 #include <cmath>

@@ -11,8 +11,8 @@
 #include "ue_context_modification_procedure.h"
 #include "../f1ap_asn1_converters.h"
 #include "asn1_helpers.h"
+#include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/f1ap/f1ap_message.h"
-#include "ocudu/ran/cause/ngap_cause.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;

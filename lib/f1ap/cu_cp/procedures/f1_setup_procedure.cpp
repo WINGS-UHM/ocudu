@@ -12,11 +12,11 @@
 #include "../f1ap_asn1_converters.h"
 #include "asn1_helpers.h"
 #include "ocudu/adt/expected.h"
+#include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/f1ap/cu_cp/du_setup_notifier.h"
 #include "ocudu/f1ap/cu_cp/f1ap_du_context.h"
 #include "ocudu/f1ap/f1ap_message.h"
-#include "ocudu/ran/bcd_helper.h"
 #include "ocudu/ran/cause/f1ap_cause.h"
 
 using namespace ocudu;

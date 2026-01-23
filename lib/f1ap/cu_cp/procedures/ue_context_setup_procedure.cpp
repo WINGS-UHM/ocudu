@@ -10,7 +10,9 @@
 
 #include "ue_context_setup_procedure.h"
 #include "../f1ap_asn1_converters.h"
+#include "asn1_helpers.h"
 #include "f1ap_asn1_utils.h"
+#include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/f1ap/f1ap_message.h"
 
 using namespace ocudu;

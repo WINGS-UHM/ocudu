@@ -34,7 +34,8 @@ public:
 private:
   bool generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,
                                          const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
-                                         const rrc_ue_transfer_context&               transfer_context);
+                                         const rrc_ue_transfer_context&               transfer_context,
+                                         byte_buffer&                                 cell_group_config);
 
   bool handle_ue_context_setup_response();
 

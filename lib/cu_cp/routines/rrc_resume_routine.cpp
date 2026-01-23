@@ -67,7 +67,10 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
 
   {
     // Prepare F1AP UE Context Setup Command and call F1AP notifier.
-    if (!generate_ue_context_setup_request(ue_context_setup_request, ue->get_rrc_ue()->get_srbs(), rrc_context)) {
+    if (!generate_ue_context_setup_request(ue_context_setup_request,
+                                           ue->get_rrc_ue()->get_srbs(),
+                                           rrc_context,
+                                           ue->get_rrc_ue()->get_cell_group_config())) {
       logger.warning("ue={}: \"{}\" failed to generate UeContextSetupRequest", request.ue_index, name());
       CORO_EARLY_RETURN(response_msg);
     }
@@ -84,6 +87,9 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
       // Note: From this point the UE is removed and only the stored context can be accessed.
       CORO_EARLY_RETURN(response_msg);
     }
+
+    // Store updated cell group config.
+    ue->get_rrc_ue()->update_cell_group_config(ue_context_setup_response.du_to_cu_rrc_info.cell_group_cfg.copy());
   }
 
   if (ue_context_setup_response.c_rnti.has_value()) {
@@ -143,7 +149,8 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
 
 bool rrc_resume_routine::generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,
                                                            const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
-                                                           const rrc_ue_transfer_context& transfer_context)
+                                                           const rrc_ue_transfer_context& transfer_context,
+                                                           byte_buffer&                   cell_group_config)
 {
   setup_request.serv_cell_idx = 0; // TODO: Remove hardcoded value
   setup_request.sp_cell_id    = request.cgi;
@@ -153,6 +160,9 @@ bool rrc_resume_routine::generate_ue_context_setup_request(f1ap_ue_context_setup
   }
 
   setup_request.cu_to_du_rrc_info.ue_cap_rat_container_list = transfer_context.ue_cap_rat_container_list.copy();
+  // Add cell group config IE, so the DU will request RLC reestablishment from the UE.
+  setup_request.cu_to_du_rrc_info.ie_exts.emplace();
+  setup_request.cu_to_du_rrc_info.ie_exts->cell_group_cfg = cell_group_config.copy();
 
   for (const auto& srb_id : srbs) {
     f1ap_srb_to_setup srb_item;

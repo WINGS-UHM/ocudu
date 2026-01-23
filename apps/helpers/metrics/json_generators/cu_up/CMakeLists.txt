@@ -7,6 +7,7 @@
 #
 
 set(SOURCES
+        f1u.cpp
         pdcp.cpp)
 
 add_library(ocudu_cu_up_metrics_json_generators_helpers STATIC ${SOURCES})

@@ -12,6 +12,7 @@
 
 #include "ocudu/adt/span.h"
 #include "ocudu/e2/e2_cu.h"
+#include "ocudu/f1u/cu_up/f1u_metrics.h"
 #include "ocudu/pdcp/pdcp_metrics.h"
 #include <deque>
 
@@ -28,6 +29,8 @@ public:
   ~e2_cu_metrics_connector() = default;
 
   void report_metrics(const pdcp_metrics_container& metrics) override;
+
+  void report_metrics(const ocuup::f1u_metrics_container& metrics) override;
 
   void connect_e2_cu_meas_provider(std::unique_ptr<e2_cu_metrics_notifier> meas_provider) override;
 

@@ -12,15 +12,17 @@
 
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/e2/e2.h"
+#include "ocudu/f1u/cu_up/f1u_metrics.h"
 #include "ocudu/pdcp/pdcp_metrics.h"
 
 namespace ocudu {
 
-class e2_cu_metrics_notifier : public pdcp_metrics_notifier
+class e2_cu_metrics_notifier : public pdcp_metrics_notifier, public ocuup::f1u_metrics_notifier
 {
 public:
   virtual ~e2_cu_metrics_notifier() = default;
 
+  using ocuup::f1u_metrics_notifier::report_metrics;
   using pdcp_metrics_notifier::report_metrics;
 };
 

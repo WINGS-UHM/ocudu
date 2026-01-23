@@ -17,6 +17,7 @@
 #include "ocudu/e2/e2_cu.h"
 #include "ocudu/e2/e2sm/e2sm.h"
 #include "ocudu/e2/e2sm/e2sm_kpm.h"
+#include "ocudu/f1u/cu_up/f1u_bearer.h"
 #include "ocudu/pdcp/pdcp_entity.h"
 #include <deque>
 #include <map>
@@ -33,6 +34,8 @@ public:
   ~e2sm_kpm_cu_meas_provider_impl() = default;
 
   void report_metrics(const pdcp_metrics_container& metrics) override;
+
+  void report_metrics(const ocuup::f1u_metrics_container& metrics) override;
 
   /// e2sm_kpm_meas_provider functions.
   std::vector<std::string> get_supported_metric_names(e2sm_kpm_metric_level_enum level) override;
@@ -90,9 +93,11 @@ protected:
 
   ocudulog::basic_logger& logger;
 
-  std::map<std::string, e2sm_kpm_supported_metric_t>     supported_metrics;
-  std::map<uint32_t, std::deque<pdcp_metrics_container>> ue_aggr_pdcp_metrics;
-  const uint32_t                                         max_pdcp_metrics = 10;
+  std::map<std::string, e2sm_kpm_supported_metric_t>           supported_metrics;
+  std::map<uint32_t, std::deque<pdcp_metrics_container>>       ue_aggr_pdcp_metrics;
+  std::map<uint32_t, std::deque<ocuup::f1u_metrics_container>> ue_aggr_f1u_metrics;
+  const uint32_t                                               max_pdcp_metrics = 10;
+  const uint32_t                                               max_f1u_metrics  = 10;
 };
 
 class e2sm_kpm_cu_cp_meas_provider_impl : public e2sm_kpm_cu_meas_provider_impl

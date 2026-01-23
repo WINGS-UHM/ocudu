@@ -1,0 +1,59 @@
+/*
+ *
+ * Copyright 2021-2026 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#include "f1u.h"
+#include "helpers.h"
+#include "ocudu/f1u/cu_up/f1u_bearer.h"
+
+using namespace ocudu;
+using namespace app_helpers;
+using namespace json_generators;
+
+static nlohmann::json generate_f1u_tx(const ocuup::f1u_tx_metrics_container& metrics, unsigned period)
+{
+  nlohmann::json json;
+
+  // TODO: fill json fields
+
+  return json;
+}
+
+static nlohmann::json generate_f1u_rx(const ocuup::f1u_rx_metrics_container& metrics, unsigned period)
+{
+  nlohmann::json json;
+
+  // TODO: fill json fields
+
+  return json;
+}
+
+nlohmann::json ocudu::app_helpers::json_generators::generate(const ocuup::f1u_tx_metrics_container& tx,
+                                                             const ocuup::f1u_rx_metrics_container& rx,
+                                                             timer_duration                         metrics_period)
+{
+  nlohmann::json json;
+
+  json["timestamp"]          = get_time_stamp();
+  nlohmann::json& cu_up_json = json["cu-up"];
+  nlohmann::json& f1u_json   = cu_up_json["f1u"];
+
+  f1u_json["dl"] = generate_f1u_tx(tx, metrics_period.count());
+  f1u_json["ul"] = generate_f1u_rx(rx, metrics_period.count());
+
+  return json;
+}
+
+std::string ocudu::app_helpers::json_generators::generate_string(const ocuup::f1u_tx_metrics_container& tx,
+                                                                 const ocuup::f1u_rx_metrics_container& rx,
+                                                                 timer_duration                         metrics_period,
+                                                                 int                                    indent)
+{
+  return generate(tx, rx, metrics_period).dump(indent);
+}

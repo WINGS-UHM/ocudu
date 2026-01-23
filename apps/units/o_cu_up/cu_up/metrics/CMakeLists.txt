@@ -7,6 +7,8 @@
 #
 
 set(SOURCES
+        cu_up_f1u_metrics_producer.cpp
+        cu_up_f1u_metrics_consumers.cpp
         cu_up_pdcp_metrics_producer.cpp
         cu_up_pdcp_metrics_consumers.cpp)
 

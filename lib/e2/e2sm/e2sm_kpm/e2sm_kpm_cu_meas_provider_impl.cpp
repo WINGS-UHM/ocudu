@@ -168,6 +168,14 @@ void e2sm_kpm_cu_meas_provider_impl::report_metrics(const pdcp_metrics_container
   }
 }
 
+void e2sm_kpm_cu_meas_provider_impl::report_metrics(const ocuup::f1u_metrics_container& metrics)
+{
+  ue_aggr_f1u_metrics[metrics.ue_index].push_back(metrics);
+  if (ue_aggr_f1u_metrics[metrics.ue_index].size() > max_f1u_metrics) {
+    ue_aggr_f1u_metrics[metrics.ue_index].pop_front();
+  }
+}
+
 e2sm_kpm_cu_up_meas_provider_impl::e2sm_kpm_cu_up_meas_provider_impl() : e2sm_kpm_cu_meas_provider_impl()
 {
   supported_metrics.emplace(

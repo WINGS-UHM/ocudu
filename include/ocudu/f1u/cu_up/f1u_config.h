@@ -10,11 +10,14 @@
 
 #pragma once
 
+#include "ocudu/support/timers.h"
 #include "fmt/format.h"
 #include <chrono>
 
 namespace ocudu {
 namespace ocuup {
+
+class f1u_metrics_notifier;
 
 /// \brief Configurable parameters of the F1-U bearer in the CU-UP
 struct f1u_config {
@@ -24,6 +27,9 @@ struct f1u_config {
   std::chrono::milliseconds dl_t_notif_timer{5};
   uint32_t                  queue_size = 8192;
   uint32_t                  batch_size = 256;
+
+  timer_duration        metrics_period;
+  f1u_metrics_notifier* metrics_notifier = nullptr;
 };
 
 } // namespace ocuup

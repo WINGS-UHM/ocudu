@@ -11,6 +11,8 @@
 #pragma once
 
 #include "f1u_metrics_aggregator.h"
+#include "f1u_rx_metrics_impl.h"
+#include "f1u_tx_metrics_impl.h"
 #include "ocudu/adt/batched_dispatch_queue.h"
 #include "ocudu/f1u/cu_up/f1u_bearer.h"
 #include "ocudu/f1u/cu_up/f1u_bearer_logger.h"
@@ -76,6 +78,8 @@ private:
   timer_duration         metrics_period;
   unique_timer           metrics_timer;
   f1u_metrics_aggregator metrics_agg;
+  f1u_tx_metrics         tx_metrics;
+  f1u_rx_metrics         rx_metrics;
 
   /// Config storage
   const f1u_config cfg;

@@ -30,6 +30,8 @@ f1u_bearer_impl::f1u_bearer_impl(uint32_t                       ue_index,
   metrics_period(config.metrics_period),
   metrics_timer(ue_ctrl_timer_factory.create_timer()),
   metrics_agg(ue_index, drb_id_, ul_tnl_info_, metrics_period, config.metrics_notifier, ctrl_exec_),
+  tx_metrics(metrics_agg.get_metrics_period().count()),
+  rx_metrics(metrics_agg.get_metrics_period().count()),
   cfg(config),
   tx_pdu_notifier(tx_pdu_notifier_),
   rx_delivery_notifier(rx_delivery_notifier_),
@@ -60,6 +62,7 @@ void f1u_bearer_impl::handle_pdu(nru_ul_message msg)
     if (!cfg.warn_on_drop) {
       logger.log_info("Dropped F1-U PDU, queue is full.");
     } else {
+      rx_metrics.add_dropped_pdus(1);
       logger.log_warning("Dropped F1-U PDU, queue is full.");
     }
   }
@@ -70,23 +73,28 @@ void f1u_bearer_impl::handle_pdu_impl(nru_ul_message msg)
   if (stopped) {
     return;
   }
+
+  rx_metrics.add_pdus(1);
   logger.log_debug("F1-U bearer received PDU");
 
   // handle T-PDU
   if (msg.t_pdu.has_value() && !msg.t_pdu->empty()) {
     ue_inactivity_timer.run(); // restart inactivity timer due to UL PDU
+    rx_metrics.add_sdus(1, msg.t_pdu->length());
     logger.log_debug("Delivering T-PDU of size={}", msg.t_pdu->length());
     rx_sdu_notifier.on_new_sdu(std::move(*msg.t_pdu));
   }
 
-  // handle transmit notifications
+  // handle data delivery status (transmit notifications)
   if (msg.data_delivery_status.has_value()) {
-    nru_dl_data_delivery_status& status = msg.data_delivery_status.value();
+    rx_metrics.add_dds(1);
+    nru_dl_data_delivery_status& status = *msg.data_delivery_status;
 
     // Desired buffer size
     if (not dl_exec.defer([this, status]() {
           rx_delivery_notifier.on_desired_buffer_size_notification(status.desired_buffer_size_for_drb);
         })) {
+      rx_metrics.add_dds_failures(1);
       logger.log_warning("Could not pass desired buffer size notification to PDCP");
     }
 
@@ -98,6 +106,7 @@ void f1u_bearer_impl::handle_pdu_impl(nru_ul_message msg)
         logger.log_debug("Notifying highest transmitted pdcp_sn={}", pdcp_sn);
         notif_highest_transmitted_pdcp_sn = pdcp_sn;
         if (not dl_exec.defer([this, pdcp_sn]() { rx_delivery_notifier.on_transmit_notification(pdcp_sn); })) {
+          rx_metrics.add_dds_failures(1);
           logger.log_warning("Could not pass desired buffer size notification to PDCP");
         }
       } else {
@@ -111,6 +120,7 @@ void f1u_bearer_impl::handle_pdu_impl(nru_ul_message msg)
         logger.log_debug("Notifying highest successfully delivered pdcp_sn={}", pdcp_sn);
         notif_highest_delivered_pdcp_sn = pdcp_sn;
         if (not dl_exec.defer([this, pdcp_sn]() { rx_delivery_notifier.on_delivery_notification(pdcp_sn); })) {
+          rx_metrics.add_dds_failures(1);
           logger.log_warning("Could not pass highest delivered notification to PDCP");
         }
       } else {
@@ -122,6 +132,7 @@ void f1u_bearer_impl::handle_pdu_impl(nru_ul_message msg)
       uint32_t pdcp_sn = status.highest_retransmitted_pdcp_sn.value();
       logger.log_debug("Notifying highest retransmitted pdcp_sn={}", pdcp_sn);
       if (not dl_exec.defer([this, pdcp_sn]() { rx_delivery_notifier.on_retransmit_notification(pdcp_sn); })) {
+        rx_metrics.add_dds_failures(1);
         logger.log_warning("Could not pass highest retransmitted notification to PDCP");
       }
     }
@@ -131,6 +142,7 @@ void f1u_bearer_impl::handle_pdu_impl(nru_ul_message msg)
       logger.log_debug("Notifying highest successfully delivered retransmitted pdcp_sn={}", pdcp_sn);
       if (not dl_exec.defer(
               [this, pdcp_sn]() { rx_delivery_notifier.on_delivery_retransmitted_notification(pdcp_sn); })) {
+        rx_metrics.add_dds_failures(1);
         logger.log_warning("Could not pass highest retransmitted notification to PDCP");
       }
     }
@@ -143,6 +155,7 @@ void f1u_bearer_impl::handle_sdu(byte_buffer sdu, bool is_retx)
     return;
   }
 
+  tx_metrics.add_sdus(1, sdu.length());
   logger.log_debug("F1-U bearer received SDU. size={} is_retx={}", sdu.length(), is_retx);
   nru_dl_message msg = {};
 
@@ -158,11 +171,13 @@ void f1u_bearer_impl::handle_sdu(byte_buffer sdu, bool is_retx)
   // stop backoff timer
   dl_notif_timer.stop();
 
+  tx_metrics.add_pdus(1);
   tx_pdu_notifier.on_new_pdu(std::move(msg));
 }
 
 void f1u_bearer_impl::discard_sdu(uint32_t pdcp_sn)
 {
+  tx_metrics.add_sdu_discards(1);
   // start backoff timer
   if (!dl_notif_timer.is_running()) {
     dl_notif_timer.run();
@@ -224,6 +239,7 @@ void f1u_bearer_impl::flush_discard_blocks()
 
   if (msg.dl_user_data.discard_blocks.has_value()) {
     logger.log_debug("Sending discard blocks");
+    tx_metrics.add_pdus(1);
     tx_pdu_notifier.on_new_pdu(std::move(msg));
   }
 }

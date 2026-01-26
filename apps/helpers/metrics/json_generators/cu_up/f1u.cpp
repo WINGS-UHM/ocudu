@@ -10,7 +10,6 @@
 
 #include "f1u.h"
 #include "helpers.h"
-#include "ocudu/f1u/cu_up/f1u_bearer.h"
 
 using namespace ocudu;
 using namespace app_helpers;

@@ -32,7 +32,6 @@ error_type<std::string> ocudu::validate_prach_detector_phy(prach_format_type    
   th_params.scs                   = scs;
   th_params.format                = format;
   th_params.zero_correlation_zone = zero_correlation_zone;
-  th_params.combine_symbols       = true;
 
   auto flag = detail::get_threshold_flag(th_params);
 

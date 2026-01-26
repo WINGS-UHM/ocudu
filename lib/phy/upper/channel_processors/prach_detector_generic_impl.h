@@ -37,13 +37,11 @@ public:
   /// \param[in] idft_long_       Inverse DFT processor for long preambles.
   /// \param[in] idft_short_      Inverse DFT processor for short preambles.
   /// \param[in] generator_       PRACH frequency-domain sequence generator.
-  /// \param[in] combine_symbols_ Set to true for combining PRACH symbols for each port.
   /// \remark Assertions are triggered if the IDFT sizes are smaller than their sequences or greater than \ref
   /// MAX_IDFT_SIZE.
   prach_detector_generic_impl(std::unique_ptr<dft_processor>   idft_long_,
                               std::unique_ptr<dft_processor>   idft_short_,
-                              std::unique_ptr<prach_generator> generator_,
-                              bool                             combine_symbols_);
+                              std::unique_ptr<prach_generator> generator_);
 
   // See interface for documentation.
   prach_detection_result detect(const prach_buffer& input, const configuration& config) override;
@@ -97,9 +95,6 @@ private:
   std::unique_ptr<dft_processor>   idft_long;
   std::unique_ptr<dft_processor>   idft_short;
   std::unique_ptr<prach_generator> generator;
-
-  /// Set to true for combining PRACH symbols for each port.
-  bool combine_symbols;
 };
 
 } // namespace ocudu

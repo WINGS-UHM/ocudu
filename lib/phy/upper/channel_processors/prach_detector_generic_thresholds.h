@@ -38,17 +38,15 @@ struct threshold_params {
   prach_format_type format = prach_format_type::invalid;
   /// Zero correlation zone.
   unsigned zero_correlation_zone = 0;
-  /// Flag to activate non-coherent combining of PRACH symbols.
-  bool combine_symbols = false;
 };
 
-/// Pairs the PRACH detector threshold and margin.
-using threshold_and_margin_type = std::pair<float, unsigned>;
+/// Pairs the PRACH detector threshold, combine-symbol flag and margin.
+using threshold_and_margin_type = std::tuple<float, bool, unsigned>;
 
 /// Checks the quality flag of the threshold for the given configurations.
 threshold_flag get_threshold_flag(const threshold_params& params);
 
-/// Retrieves the (threshold, margin) pair corresponding to the given configuration.
+/// Retrieves the (threshold, combine-symbol flag, margin) tuple corresponding to the given configuration.
 threshold_and_margin_type get_threshold_and_margin(const threshold_params& params);
 
 } // namespace ocudu::detail

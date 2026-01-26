@@ -36,14 +36,12 @@ error_type<std::string> prach_detector_validator_impl::is_valid(const prach_dete
 
 prach_detector_generic_impl::prach_detector_generic_impl(std::unique_ptr<dft_processor>   idft_long_,
                                                          std::unique_ptr<dft_processor>   idft_short_,
-                                                         std::unique_ptr<prach_generator> generator_,
-                                                         bool                             combine_symbols_) :
+                                                         std::unique_ptr<prach_generator> generator_) :
   temp(),
   temp2(),
   idft_long(std::move(idft_long_)),
   idft_short(std::move(idft_short_)),
-  generator(std::move(generator_)),
-  combine_symbols(combine_symbols_)
+  generator(std::move(generator_))
 {
   static constexpr interval<unsigned, true> idft_long_sz_range(prach_constants::LONG_SEQUENCE_LENGTH, MAX_IDFT_SIZE);
   static constexpr interval<unsigned, true> idft_short_sz_range(prach_constants::SHORT_SEQUENCE_LENGTH, MAX_IDFT_SIZE);
@@ -117,7 +115,7 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
   double cp_duration = preamble_info.cp_length.to_seconds();
 
   // Calculate cyclic prefix duration in the same units as Ncs.
-  unsigned cp_prach = static_cast<unsigned>(std::floor(cp_duration * L_ra * ra_scs_to_Hz(preamble_info.scs)));
+  auto cp_prach = static_cast<unsigned>(std::floor(cp_duration * L_ra * ra_scs_to_Hz(preamble_info.scs)));
 
   // Calculate the window width for each shift and convert it to the correlation sampling rate.
   unsigned win_width = std::min(N_cs, cp_prach);
@@ -137,11 +135,13 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
   th_params.scs                   = config.ra_scs;
   th_params.format                = config.format;
   th_params.zero_correlation_zone = config.zero_correlation_zone;
-  th_params.combine_symbols       = combine_symbols;
 
-  auto     th_and_margin = detail::get_threshold_and_margin(th_params);
-  float    threshold     = std::get<0>(th_and_margin);
-  unsigned win_margin    = std::get<1>(th_and_margin);
+  // float    threshold         - detection threshold;
+  // bool     combine_symbols   - boolean flag specifying whether the symbols in the preamble are combined together
+  //                              (thus ignoring CFO) or not;
+  // unsigned win_margin        - number of samples in the detection window guard band.
+  auto [threshold, combine_symbols, win_margin] = detail::get_threshold_and_margin(th_params);
+
   ocudu_assert((win_margin > 0) && (threshold > 0.0),
                "Window margin and threshold are not selected for the number of ports (i.e., {}) and the preamble "
                "format (i.e., {}).",
@@ -170,9 +170,9 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
   // Prepare results.
   prach_detection_result result;
   result.rssi_dB         = convert_power_to_dB(rssi);
-  result.time_resolution = phy_time_unit::from_seconds(1.0 / static_cast<double>(sampling_rate_Hz));
+  result.time_resolution = phy_time_unit::from_seconds(1.0 / sampling_rate_Hz);
   result.time_advance_max =
-      phy_time_unit::from_seconds(static_cast<double>(max_delay_samples) * 0.8 / static_cast<double>(sampling_rate_Hz));
+      phy_time_unit::from_seconds(static_cast<double>(max_delay_samples) * 0.8 / sampling_rate_Hz);
   result.preambles.clear();
 
   // Early stop if the RSSI is zero.
@@ -329,8 +329,7 @@ prach_detection_result prach_detector_generic_impl::detect(const prach_buffer& i
           (delay < static_cast<float>(max_delay_samples) * 0.8)) {
         prach_detection_result::preamble_indication& info = result.preambles.emplace_back();
         info.preamble_index                               = preamble_index;
-        info.time_advance =
-            phy_time_unit::from_seconds(static_cast<double>(delay) / static_cast<double>(sampling_rate_Hz));
+        info.time_advance = phy_time_unit::from_seconds(static_cast<double>(delay) / sampling_rate_Hz);
         // Normalize the detection metric with respect to the threshold.
         info.detection_metric = peak / threshold;
 

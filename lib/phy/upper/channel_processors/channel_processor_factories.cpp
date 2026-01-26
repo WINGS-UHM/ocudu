@@ -12,12 +12,8 @@
 #include "prach_detector_generic_impl.h"
 #include "prach_detector_pool.h"
 #include "prach_generator_impl.h"
-#include "ocudu/ocuduvec/bit.h"
-#include "ocudu/ocuduvec/zero.h"
 #include "ocudu/phy/support/support_formatters.h"
-#include "ocudu/phy/upper/channel_modulation/channel_modulation_factories.h"
 #include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
-#include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
 
 using namespace ocudu;
 
@@ -30,7 +26,6 @@ private:
   std::shared_ptr<prach_generator_factory> prach_gen_factory;
   unsigned                                 idft_long_size;
   unsigned                                 idft_short_size;
-  bool                                     combine_symbols;
 
 public:
   prach_detector_factory_sw(std::shared_ptr<dft_processor_factory>         dft_factory_,
@@ -39,8 +34,7 @@ public:
     dft_factory(std::move(dft_factory_)),
     prach_gen_factory(std::move(prach_gen_factory_)),
     idft_long_size(config.idft_long_size),
-    idft_short_size(config.idft_short_size),
-    combine_symbols(config.combine_symbols)
+    idft_short_size(config.idft_short_size)
   {
     ocudu_assert(dft_factory, "Invalid DFT factory.");
     ocudu_assert(prach_gen_factory, "Invalid PRACH generator factory.");
@@ -54,10 +48,8 @@ public:
     dft_processor::configuration idft_short_config;
     idft_short_config.size = idft_short_size;
     idft_short_config.dir  = dft_processor::direction::INVERSE;
-    return std::make_unique<prach_detector_generic_impl>(dft_factory->create(idft_long_config),
-                                                         dft_factory->create(idft_short_config),
-                                                         prach_gen_factory->create(),
-                                                         combine_symbols);
+    return std::make_unique<prach_detector_generic_impl>(
+        dft_factory->create(idft_long_config), dft_factory->create(idft_short_config), prach_gen_factory->create());
   }
 
   std::unique_ptr<prach_detector_validator> create_validator() override

@@ -33,7 +33,6 @@ public:
 struct prach_detector_factory_sw_configuration {
   unsigned idft_long_size  = 1024;
   unsigned idft_short_size = 256;
-  bool     combine_symbols = true;
 };
 
 std::shared_ptr<prach_detector_factory>

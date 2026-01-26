@@ -26,6 +26,7 @@ make_default_cu_up_custom_cfg_item(bool warn_on_drop, timer_duration metrics_per
   cfg.pdcp_custom_cfg.tx.test_mode    = test_mode;
 
   cfg.f1u_cfg = ocuup::f1u_config{}; // defaults are configured as member-initialization within the struct.
+  cfg.f1u_cfg.metrics_period = metrics_period;
 
   return cfg;
 }

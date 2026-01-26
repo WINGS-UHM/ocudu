@@ -42,6 +42,19 @@ f1u_bearer_impl::f1u_bearer_impl(uint32_t                       ue_index,
   dl_notif_timer(ue_dl_timer_factory.create_timer()),
   ue_inactivity_timer(ue_inactivity_timer_)
 {
+  if (metrics_agg.get_metrics_period().count()) {
+    metrics_timer = ue_ctrl_timer_factory.create_timer();
+    metrics_timer.set(std::chrono::milliseconds(metrics_agg.get_metrics_period().count()), [this](timer_id_t tid) {
+      if (stopped) {
+        return;
+      }
+      metrics_agg.push_tx_metrics(tx_metrics.get_metrics_and_reset());
+      metrics_agg.push_rx_metrics(rx_metrics.get_metrics_and_reset());
+      metrics_timer.run();
+    });
+    metrics_timer.run();
+  }
+
   dl_notif_timer.set(std::chrono::milliseconds(config.dl_t_notif_timer),
                      [this](timer_id_t tid) { on_expired_dl_notif_timer(); });
 

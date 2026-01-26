@@ -464,7 +464,7 @@ package:
   extends: .deb-package
   stage: build and unit tests
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 45 minutes
   variables:
@@ -493,7 +493,7 @@ install-package:
   extends: .deb-install
   stage: build and unit tests
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"

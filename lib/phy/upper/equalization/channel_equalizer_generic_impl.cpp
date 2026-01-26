@@ -380,64 +380,114 @@ static void equalize_mmse_mxn(span<cf_t>                            eq_symbols,
   interleave_layers_generic<NofLayers>(noise_vars.subspan(i_re * NofLayers, nof_re * NofLayers), noise_vars_re);
 }
 
-void channel_equalizer_generic_impl::equalize_zf_3x4(span<cf_t>                            eq_symbols,
-                                                     span<float>                           noise_vars,
-                                                     const re_buffer_reader<cbf16_t>&      ch_symbols,
-                                                     const channel_equalizer::ch_est_list& ch_estimates,
-                                                     float                                 noise_var_est,
-                                                     float                                 tx_scaling)
+static void equalize_zf_3x4(span<cf_t>                            eq_symbols,
+                            span<float>                           noise_vars,
+                            const re_buffer_reader<cbf16_t>&      ch_symbols,
+                            const channel_equalizer::ch_est_list& ch_estimates,
+                            float                                 noise_var_est,
+                            float                                 tx_scaling)
 {
   equalize_zf_mxn<3, 4>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
 }
 
-void channel_equalizer_generic_impl::equalize_zf_4x4(span<cf_t>                            eq_symbols,
-                                                     span<float>                           noise_vars,
-                                                     const re_buffer_reader<cbf16_t>&      ch_symbols,
-                                                     const channel_equalizer::ch_est_list& ch_estimates,
-                                                     float                                 noise_var_est,
-                                                     float                                 tx_scaling)
+static void equalize_zf_4x4(span<cf_t>                            eq_symbols,
+                            span<float>                           noise_vars,
+                            const re_buffer_reader<cbf16_t>&      ch_symbols,
+                            const channel_equalizer::ch_est_list& ch_estimates,
+                            float                                 noise_var_est,
+                            float                                 tx_scaling)
 {
   equalize_zf_mxn<4, 4>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_2x2(span<cf_t>                            eq_symbols,
-                                                       span<float>                           noise_vars,
-                                                       const re_buffer_reader<cbf16_t>&      ch_symbols,
-                                                       const channel_equalizer::ch_est_list& ch_estimates,
-                                                       float                                 noise_var_est,
-                                                       float                                 tx_scaling)
+static void equalize_zf_3x8(span<cf_t>                            eq_symbols,
+                            span<float>                           noise_vars,
+                            const re_buffer_reader<cbf16_t>&      ch_symbols,
+                            const channel_equalizer::ch_est_list& ch_estimates,
+                            float                                 noise_var_est,
+                            float                                 tx_scaling)
+{
+  equalize_zf_mxn<3, 8>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
+}
+
+static void equalize_zf_4x8(span<cf_t>                            eq_symbols,
+                            span<float>                           noise_vars,
+                            const re_buffer_reader<cbf16_t>&      ch_symbols,
+                            const channel_equalizer::ch_est_list& ch_estimates,
+                            float                                 noise_var_est,
+                            float                                 tx_scaling)
+{
+  equalize_zf_mxn<4, 8>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
+}
+
+static void equalize_mmse_2x2(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
 {
   equalize_mmse_mxn<2, 2>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_2x4(span<cf_t>                            eq_symbols,
-                                                       span<float>                           noise_vars,
-                                                       const re_buffer_reader<cbf16_t>&      ch_symbols,
-                                                       const channel_equalizer::ch_est_list& ch_estimates,
-                                                       float                                 noise_var_est,
-                                                       float                                 tx_scaling)
+static void equalize_mmse_2x4(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
 {
   equalize_mmse_mxn<2, 4>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_3x4(span<cf_t>                            eq_symbols,
-                                                       span<float>                           noise_vars,
-                                                       const re_buffer_reader<cbf16_t>&      ch_symbols,
-                                                       const channel_equalizer::ch_est_list& ch_estimates,
-                                                       float                                 noise_var_est,
-                                                       float                                 tx_scaling)
+static void equalize_mmse_3x4(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
 {
   equalize_mmse_mxn<3, 4>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
 }
 
-void channel_equalizer_generic_impl::equalize_mmse_4x4(span<cf_t>                            eq_symbols,
-                                                       span<float>                           noise_vars,
-                                                       const re_buffer_reader<cbf16_t>&      ch_symbols,
-                                                       const channel_equalizer::ch_est_list& ch_estimates,
-                                                       float                                 noise_var_est,
-                                                       float                                 tx_scaling)
+static void equalize_mmse_4x4(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
 {
   equalize_mmse_mxn<4, 4>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
+}
+
+static void equalize_mmse_2x8(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
+{
+  equalize_mmse_mxn<2, 8>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
+}
+
+static void equalize_mmse_3x8(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
+{
+  equalize_mmse_mxn<3, 8>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
+}
+
+static void equalize_mmse_4x8(span<cf_t>                            eq_symbols,
+                              span<float>                           noise_vars,
+                              const re_buffer_reader<cbf16_t>&      ch_symbols,
+                              const channel_equalizer::ch_est_list& ch_estimates,
+                              float                                 noise_var_est,
+                              float                                 tx_scaling)
+{
+  equalize_mmse_mxn<4, 8>(eq_symbols, noise_vars, ch_symbols, ch_estimates, noise_var_est, tx_scaling);
 }
 
 bool channel_equalizer_generic_impl::is_supported(channel_equalizer_algorithm_type algorithm,
@@ -445,7 +495,7 @@ bool channel_equalizer_generic_impl::is_supported(channel_equalizer_algorithm_ty
                                                   unsigned                         nof_layers)
 {
   // Only one, two and four ports are currently supported.
-  if ((nof_ports != 1) && (nof_ports != 2) && (nof_ports != 4)) {
+  if ((nof_ports != 1) && (nof_ports != 2) && (nof_ports != 4) && (nof_ports != 8)) {
     return false;
   }
 
@@ -498,22 +548,46 @@ void channel_equalizer_generic_impl::equalize(span<cf_t>                       e
       return;
     }
 
-    // Two transmit layers and four receive ports.
-    if ((nof_rx_ports == 4) && (nof_tx_layers == 2)) {
-      equalize_zf_2xn<4>(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
-      return;
+    // Four receive ports.
+    if (nof_rx_ports == 4) {
+      // Two transmit layers.
+      if (nof_tx_layers == 2) {
+        equalize_zf_2xn<4>(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
+
+      // Three transmit layers.
+      if (nof_tx_layers == 3) {
+        equalize_zf_3x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
+
+      // Four transmit layer.
+      if (nof_tx_layers == 4) {
+        equalize_zf_4x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
     }
 
-    // Three transmit layers and four receive ports.
-    if ((nof_rx_ports == 4) && (nof_tx_layers == 3)) {
-      equalize_zf_3x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
-      return;
-    }
+    // Eight receive ports.
+    if (nof_rx_ports == 8) {
+      // Two transmit layers.
+      if (nof_tx_layers == 2) {
+        equalize_zf_2xn<8>(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
 
-    // Four transmit layer and four receive ports.
-    if ((nof_rx_ports == 4) && (nof_tx_layers == 4)) {
-      equalize_zf_4x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
-      return;
+      // Three transmit layers.
+      if (nof_tx_layers == 3) {
+        equalize_zf_3x8(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
+
+      // Four transmit layer.
+      if (nof_tx_layers == 4) {
+        equalize_zf_4x8(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
     }
   }
 
@@ -534,22 +608,46 @@ void channel_equalizer_generic_impl::equalize(span<cf_t>                       e
       return;
     }
 
-    // Two transmit layers and four receive ports.
-    if ((nof_rx_ports == 4) && (nof_tx_layers == 2)) {
-      equalize_mmse_2x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
-      return;
+    // Four receive ports.
+    if (nof_rx_ports == 4) {
+      // Two transmit layers.
+      if (nof_tx_layers == 2) {
+        equalize_mmse_2x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
+
+      // Three transmit layers.
+      if (nof_tx_layers == 3) {
+        equalize_mmse_3x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
+
+      // Four transmit layer.
+      if (nof_tx_layers == 4) {
+        equalize_mmse_4x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
     }
 
-    // Three transmit layers and four receive ports.
-    if ((nof_rx_ports == 4) && (nof_tx_layers == 3)) {
-      equalize_mmse_3x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
-      return;
-    }
+    // Eight receive ports.
+    if (nof_rx_ports == 8) {
+      // Two transmit layers.
+      if (nof_tx_layers == 2) {
+        equalize_mmse_2x8(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
 
-    // Four transmit layers and four receive ports.
-    if ((nof_rx_ports == 4) && (nof_tx_layers == 4)) {
-      equalize_mmse_4x4(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
-      return;
+      // Three transmit layers.
+      if (nof_tx_layers == 3) {
+        equalize_mmse_3x8(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
+
+      // Four transmit layer.
+      if (nof_tx_layers == 4) {
+        equalize_mmse_4x8(eq_symbols, eq_noise_vars, ch_symbols, ch_estimates, noise_var, tx_scaling);
+        return;
+      }
     }
   }
 

@@ -24,11 +24,10 @@ using namespace ocudu;
 // Random generator.
 static std::mt19937 rgen(0);
 
-static unsigned                         nof_repetitions   = 1000;
-static unsigned                         nof_prb           = 106;
-static unsigned                         max_simo_rx_ports = 4;
-static bool                             silent            = false;
-static channel_equalizer_algorithm_type equalizer_type    = channel_equalizer_algorithm_type::zf;
+static unsigned                         nof_repetitions = 1000;
+static unsigned                         nof_prb         = 106;
+static bool                             silent          = false;
+static channel_equalizer_algorithm_type equalizer_type  = channel_equalizer_algorithm_type::zf;
 
 static void usage(const char* prog)
 {
@@ -95,15 +94,19 @@ int main(int argc, char** argv)
   std::vector<std::pair<unsigned, unsigned>> channel_topologies;
 
   // 1xN channels: single transmit layer and one or multiple receive ports.
-  for (unsigned i_rx_port = 1; i_rx_port <= max_simo_rx_ports; ++i_rx_port) {
-    channel_topologies.emplace_back(std::make_pair(i_rx_port, 1));
-  }
+  channel_topologies.emplace_back(std::make_pair(1, 1));
+  channel_topologies.emplace_back(std::make_pair(2, 1));
+  channel_topologies.emplace_back(std::make_pair(4, 1));
+  channel_topologies.emplace_back(std::make_pair(8, 1));
 
   // Add multi-layer MIMO topologies that could be supported.
   channel_topologies.emplace_back(std::make_pair(2, 2));
   channel_topologies.emplace_back(std::make_pair(4, 2));
   channel_topologies.emplace_back(std::make_pair(4, 3));
   channel_topologies.emplace_back(std::make_pair(4, 4));
+  channel_topologies.emplace_back(std::make_pair(8, 2));
+  channel_topologies.emplace_back(std::make_pair(8, 3));
+  channel_topologies.emplace_back(std::make_pair(8, 4));
 
   for (auto topology : channel_topologies) {
     // Get dimensions.

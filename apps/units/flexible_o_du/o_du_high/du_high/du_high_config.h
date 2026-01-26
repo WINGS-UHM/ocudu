@@ -731,6 +731,31 @@ struct du_high_unit_sib_config {
     std::vector<carrier_freq_eutra_config> carrier_freq_list_eutra;
   };
 
+  struct sib16_config {
+    struct slice_info_config {
+      /// NSAG ID. Values: {0, ..., 255}.
+      unsigned nsag_id = 0;
+      /// Whether the list of cells in this slice_info are allowed or excluded.
+      bool allowed = true;
+      /// Priority associated with this cell reselection slice. Values: {0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, ..., 7.8}.
+      float reselection_priority = 0.0F;
+      /// List of PCI ranges for this frequency and NSAG. If empty, all cells are allowed. Max list size is 16.
+      std::vector<pci_range_config> cells;
+    };
+
+    struct freq_priority_slicing_config {
+      /// Indicates the downlink carrier frequency to which the slice info list is associated with. Frequency 0
+      /// corresponds to the serving cell downlink carrier frequency. Frequencies 1, 2, ... correspond to the
+      /// frequencies of the inter-frequency carrier frequencies in SIB4. Values: {0, ..., 8}.
+      unsigned dl_implicit_carrier_freq = 0;
+      /// List of slice information for this frequency priority. Max list size is 8.
+      std::vector<slice_info_config> slice_info_list;
+    };
+
+    /// Indicates the cell reselection priorities for slicing. Max list size is 9.
+    std::vector<freq_priority_slicing_config> freq_prio_list_slicing;
+  };
+
   /// \brief Earthquake and Tsunami Warning System (ETWS) message parameters.
   ///
   /// ETWS messages are broadcasted over SIB 6 and SIB 7. SIB 6 carries the ETWS primary notification, while SIB-7
@@ -833,6 +858,8 @@ struct du_high_unit_sib_config {
   std::optional<sib4_config> sib4_cfg;
   /// SIB5 configuration parameters.
   std::optional<sib5_config> sib5_cfg;
+  /// SIB16 configuration parameters.
+  std::optional<sib16_config> sib16_cfg;
   /// Parameters of the SIB19.
   sib19_info sib19;
   /// ETWS configuration parameters.

@@ -533,6 +533,20 @@ bool number_to_enum(EnumType& e, NumberType val)
   }
   return false;
 }
+template <class EnumType, class NumberType>
+bool float_number_to_enum(EnumType& e, NumberType val, NumberType precision)
+{
+  static_assert(std::is_floating_point_v<NumberType>, "Expected float or double");
+  static_assert(std::is_floating_point_v<decltype(std::declval<EnumType>().to_number())>,
+                "Expected float or double to_number()");
+  for (uint32_t i = 0; i < e.nof_types; ++i) {
+    e = (typename EnumType::options)i;
+    if (std::abs(e.to_number() - val) < precision) {
+      return true;
+    }
+  }
+  return false;
+}
 template <class EnumType>
 bool number_string_to_enum(EnumType& e, const std::string& val)
 {

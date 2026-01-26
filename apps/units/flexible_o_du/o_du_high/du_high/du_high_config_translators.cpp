@@ -217,6 +217,32 @@ static sib8_info create_sib8_info(const du_high_unit_sib_config::cmas_config& cm
   return sib8;
 }
 
+static sib16_info create_sib16_info(const du_high_unit_sib_config::sib16_config& sib16_cfg)
+{
+  sib16_info sib16;
+
+  for (const auto& freq_cfg : sib16_cfg.freq_prio_list_slicing) {
+    sib16_info::freq_priority_slicing freq_info;
+    freq_info.dl_implicit_carrier_freq = freq_cfg.dl_implicit_carrier_freq;
+    for (const auto& slice_cfg : freq_cfg.slice_info_list) {
+      sib16_info::slice_info slice_info;
+      slice_info.nsag_id              = static_cast<uint8_t>(slice_cfg.nsag_id);
+      slice_info.allowed              = slice_cfg.allowed;
+      slice_info.reselection_priority = slice_cfg.reselection_priority;
+      for (const auto& cell_cfg : slice_cfg.cells) {
+        pci_range_t range;
+        range.start = cell_cfg.start;
+        range.size  = static_cast<pci_range_t::range_t>(cell_cfg.size);
+        slice_info.cells_allowed.push_back(range);
+      }
+      freq_info.slice_info_list.push_back(slice_info);
+    }
+    sib16.freq_prio_list_slicing.push_back(freq_info);
+  }
+
+  return sib16;
+}
+
 static sib19_info create_sib19_info(const ntn_config& config)
 {
   sib19_info sib19;
@@ -504,6 +530,14 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                            "the si_sched_info list");
             }
             item = create_sib8_info(base_cell.sib_cfg.cmas_cfg.value());
+          } break;
+          case 16: {
+            if (!base_cell.sib_cfg.sib16_cfg.has_value()) {
+              report_error(
+                  "SIB-16 cannot be scheduled without SIB16 config. Set the SIB16 config or remove SIB-16 from "
+                  "the si_sched_info list");
+            }
+            item = create_sib16_info(base_cell.sib_cfg.sib16_cfg.value());
           } break;
           case 19: {
             if (!base_cell.ntn_cfg.has_value()) {

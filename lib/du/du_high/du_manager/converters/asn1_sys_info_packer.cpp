@@ -596,6 +596,42 @@ static asn1::rrc_nr::sib6_s make_asn1_rrc_cell_sib6(const sib6_info& sib6_params
   return sib6;
 }
 
+static asn1::rrc_nr::sib16_r17_s make_asn1_rrc_cell_sib16(const sib16_info& sib16_params)
+{
+  using namespace asn1::rrc_nr;
+  sib16_r17_s sib16;
+  sib16.freq_prio_list_slicing_r17.resize(sib16_params.freq_prio_list_slicing.size());
+  for (unsigned i = 0, e = sib16_params.freq_prio_list_slicing.size(); i != e; ++i) {
+    auto&       out_freq                  = sib16.freq_prio_list_slicing_r17[i];
+    const auto& in_freq                   = sib16_params.freq_prio_list_slicing[i];
+    out_freq.dl_implicit_carrier_freq_r17 = in_freq.dl_implicit_carrier_freq;
+    out_freq.slice_info_list_r17.resize(in_freq.slice_info_list.size());
+    for (unsigned j = 0, je = in_freq.slice_info_list.size(); j != je; ++j) {
+      const auto& slice    = in_freq.slice_info_list[j];
+      auto&       outslice = out_freq.slice_info_list_r17[j];
+      outslice.nsag_id_info_r17.nsag_id_r17.from_number(slice.nsag_id);
+      outslice.nsag_cell_resel_prio_r17_present = true;
+      outslice.nsag_cell_resel_prio_r17         = std::floor(slice.reselection_priority);
+      const float fractional_part               = slice.reselection_priority - outslice.nsag_cell_resel_prio_r17;
+      if (fractional_part > 0.1) {
+        outslice.nsag_cell_resel_sub_prio_r17_present = true;
+        bool success = asn1::float_number_to_enum(outslice.nsag_cell_resel_sub_prio_r17, fractional_part, 0.1f);
+        ocudu_assert(success, "Failed to convert NSAG sub-priority {}", slice.reselection_priority);
+      }
+      if (not slice.cells_allowed.empty()) {
+        outslice.slice_cell_list_nr_r17_present = true;
+        auto& out_lst = slice.allowed ? outslice.slice_cell_list_nr_r17.set_slice_allowed_cell_list_nr_r17()
+                                      : outslice.slice_cell_list_nr_r17.set_slice_excluded_cell_list_nr_r17();
+        out_lst.resize(slice.cells_allowed.size());
+        for (unsigned k = 0, ke = out_lst.size(); k != ke; ++k) {
+          out_lst[k] = asn1_utils::make_asn1_rrc_pci_range(slice.cells_allowed[k]);
+        }
+      }
+    }
+  }
+  return sib16;
+}
+
 static std::vector<uint8_t> encode_warning_message(const std::string& warning_message, unsigned data_coding_scheme)
 {
   // Encode the warning message.
@@ -862,6 +898,12 @@ static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make
         }
       }
 
+      break;
+    }
+    case sib_type::sib16: {
+      const auto&  cfg     = std::get<sib16_info>(sib);
+      sib16_r17_s& out_sib = ret.front().set_sib16_v1700();
+      out_sib              = make_asn1_rrc_cell_sib16(cfg);
       break;
     }
     case sib_type::sib19: {

@@ -42,6 +42,7 @@ enum class sib_type : uint8_t {
   sib6        = 6,
   sib7        = 7,
   sib8        = 8,
+  sib16       = 16,
   sib19       = 19,
   sib_invalid = 255
 };
@@ -177,6 +178,30 @@ struct sib8_info {
   unsigned data_coding_scheme;
 };
 
+/// SIB with configuration for slice-based cell reselection, as per TS 38.331, "SIB16-r17".
+struct sib16_info {
+  struct slice_info {
+    uint8_t nsag_id;
+    /// Whether the list of cells in this slice_info are allowed or excluded.
+    bool allowed;
+    /// Priority associated with this cell reselection slice. Values: {0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, ..., 7.8}.
+    float reselection_priority;
+    /// \brief List of PCI ranges for this frequency and NSAG. If empty, all cells are allowed. Max list size is 16.
+    std::vector<pci_range_t> cells_allowed;
+  };
+  struct freq_priority_slicing {
+    /// Indicates the downlink carrier frequency to which the slice info list is associated with. Frequency 0
+    /// corresponds to the serving cell downlink carrier frequency. Frequencies 1, 2, ... correspond to the frequencies
+    /// of the inter-frequency carrier frequencies in SIB4.
+    unsigned dl_implicit_carrier_freq;
+    /// List of slice information for this frequency priority.
+    std::vector<slice_info> slice_info_list;
+  };
+
+  /// Indicates the cell reselection priorities for slicing.
+  std::vector<freq_priority_slicing> freq_prio_list_slicing;
+};
+
 struct sib19_info {
   // This user provided constructor is added here to fix a Clang compilation error related to the use of nested types
   // with std::optional.
@@ -196,7 +221,8 @@ struct sib19_info {
 };
 
 /// \brief Variant type that can hold different types of SIBs that go in a SI message.
-using sib_info = std::variant<sib2_info, sib3_info, sib4_info, sib5_info, sib6_info, sib7_info, sib8_info, sib19_info>;
+using sib_info =
+    std::variant<sib2_info, sib3_info, sib4_info, sib5_info, sib6_info, sib7_info, sib8_info, sib16_info, sib19_info>;
 
 inline sib_type get_sib_info_type(const sib_info& sib)
 {
@@ -220,6 +246,9 @@ inline sib_type get_sib_info_type(const sib_info& sib)
   }
   if (std::holds_alternative<sib8_info>(sib)) {
     return sib_type::sib8;
+  }
+  if (std::holds_alternative<sib16_info>(sib)) {
+    return sib_type::sib16;
   }
   if (std::holds_alternative<sib19_info>(sib)) {
     return sib_type::sib19;

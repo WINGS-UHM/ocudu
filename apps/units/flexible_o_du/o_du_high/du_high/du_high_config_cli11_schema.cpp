@@ -27,6 +27,7 @@
 #include "ocudu/support/format/fmt_to_c_str.h"
 #include "CLI/CLI11.hpp"
 #include <charconv>
+#include <cmath>
 
 using namespace ocudu;
 
@@ -1771,6 +1772,98 @@ static void configure_cli11_sib5_config_args(CLI::App& app, du_high_unit_sib_con
       app, "--carrier_freq_list_eutra", inter_freq_carrier_freq_list_lambda, "EUTRA carrier frequency list");
 }
 
+static void configure_cli11_sib16_slice_info_args(CLI::App&                                                 app,
+                                                  du_high_unit_sib_config::sib16_config::slice_info_config& slice)
+{
+  add_option(app, "--nsag_id", slice.nsag_id, "NSAG ID")->capture_default_str()->check(CLI::Range(0, 255));
+  add_option(app,
+             "--allowed",
+             slice.allowed,
+             "Whether the list of cells in this slice info is allowed (true) or excluded (false)")
+      ->capture_default_str();
+  add_option(
+      app, "--reselection_priority", slice.reselection_priority, "Priority associated with this cell reselection slice")
+      ->capture_default_str()
+      ->check([](const std::string& value) -> std::string {
+        float v = std::stof(value);
+        if (v < 0.0F || v > 7.8F) {
+          return "Must be within [0, 7.8]";
+        }
+        float scaled  = v * 10.0F;
+        float rounded = std::round(scaled);
+        if (std::fabs(scaled - rounded) > 1e-3F || (static_cast<int>(rounded) % 2 != 0)) {
+          return "Must be in steps of 0.2 within [0, 7.8]";
+        }
+        return "";
+      });
+
+  // Slice cell list entries.
+  auto parse_cells = [&slice](const std::vector<std::string>& values) {
+    // Prepare the list.
+    slice.cells.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("Slice cell list", "Slice cell list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_pci_range_args(subapp, slice.cells[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(app, "--cells_allowed", parse_cells, "Slice cell list entries");
+}
+
+static void configure_cli11_sib16_freq_prio_slicing_args(
+    CLI::App&                                                            app,
+    du_high_unit_sib_config::sib16_config::freq_priority_slicing_config& freq_cfg)
+{
+  add_option(app,
+             "--dl_implicit_carrier_freq",
+             freq_cfg.dl_implicit_carrier_freq,
+             "DL implicit carrier frequency index for this slicing entry")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 8));
+
+  // Slice info list.
+  auto slice_info_list_lambda = [&freq_cfg](const std::vector<std::string>& values) {
+    // Prepare the list.
+    freq_cfg.slice_info_list.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("Slice info list", "Slice info list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_sib16_slice_info_args(subapp, freq_cfg.slice_info_list[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(app, "--slice_info_list", slice_info_list_lambda, "Slice info list entries");
+}
+
+static void configure_cli11_sib16_config_args(CLI::App& app, du_high_unit_sib_config::sib16_config& sib16_cfg)
+{
+  auto parse_freq_prio_list_slicing = [&sib16_cfg](const std::vector<std::string>& values) {
+    // Prepare the list.
+    sib16_cfg.freq_prio_list_slicing.resize(values.size());
+
+    // Parse each entry.
+    for (unsigned i = 0, e = values.size(); i != e; ++i) {
+      CLI::App subapp("Frequency priority slicing list", "Frequency priority slicing list, item #" + std::to_string(i));
+      subapp.config_formatter(create_yaml_config_parser());
+      subapp.allow_config_extras(CLI::config_extras_mode::capture);
+      configure_cli11_sib16_freq_prio_slicing_args(subapp, sib16_cfg.freq_prio_list_slicing[i]);
+      std::istringstream ss(values[i]);
+      subapp.parse_from_stream(ss);
+    }
+  };
+  add_option_cell(
+      app, "--freq_prio_list_slicing", parse_freq_prio_list_slicing, "Frequency priority slicing list entries");
+}
+
 static void configure_cli11_etws_args(CLI::App& app, du_high_unit_sib_config::etws_config& sib_params)
 {
   add_option(app, "--message_id", sib_params.message_id, "ETWS message ID.")
@@ -1897,6 +1990,19 @@ static void configure_cli11_sib_args(CLI::App& app, du_high_unit_sib_config& sib
     }
   };
   sib5_subcmd->parse_complete_callback(sib5_verify_callback);
+
+  CLI::App*                                    sib16_subcmd = add_subcommand(app, "sib16", "SIB16 parameters");
+  static du_high_unit_sib_config::sib16_config sib16_cfg;
+  configure_cli11_sib16_config_args(*sib16_subcmd, sib16_cfg);
+  auto sib16_verify_callback = [&]() {
+    CLI::App* sib16_sub_cmd = app.get_subcommand("sib16");
+    if (sib16_sub_cmd->count() != 0) {
+      sib_params.sib16_cfg.emplace(sib16_cfg);
+    } else {
+      sib16_subcmd->disabled();
+    }
+  };
+  sib16_subcmd->parse_complete_callback(sib16_verify_callback);
 
   CLI::App* etws_subcmd = add_subcommand(app, "etws", "ETWS configuration parameters");
   static du_high_unit_sib_config::etws_config etws_cfg;

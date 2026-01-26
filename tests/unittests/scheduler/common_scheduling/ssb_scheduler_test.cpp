@@ -8,650 +8,356 @@
  *
  */
 
+#include "../test_utils/sched_custom_test_bench.h"
 #include "lib/scheduler/cell/resource_grid.h"
 #include "lib/scheduler/common_scheduling/ssb_scheduler.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
-#include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/test_utils.h"
+#include "fmt/ostream.h"
 #include <gtest/gtest.h>
-
-/// This will be removed once we can get this value from the slot object.
-#define TEST_HARQ_ASSERT_MSG(SLOT, PERIODICITY, CASE)                                                                  \
-  "Failed at slot: '{}', periodicity '{}', case '{}'", SLOT, PERIODICITY, ssb_case_to_str(CASE)
 
 using namespace ocudu;
 
-/// Helper function to print the SSB CASE.
-const char* ssb_case_to_str(ssb_pattern_case ssb_case)
-{
-  switch (ssb_case) {
-    case ssb_pattern_case::A:
-      return "SSB case A";
-    case ocudu::ssb_pattern_case::B:
-      return "SSB case B";
-    case ocudu::ssb_pattern_case::C:
-      return "SSB case C - paired spectrum";
-    default:
-      return "SSB case invalid";
-  }
-}
-
-/// Helper struct to test HARQs and update loggers slot context.
-struct ssb_test_bench {
-  ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
-  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
-
-  ssb_test_bench(ssb_periodicity     ssb_period,
-                 arfcn_t             freq_arfcn,
-                 uint16_t            offset_to_point_A,
-                 const ssb_bitmap_t& in_burst_bitmap,
-                 subcarrier_spacing  ssb_scs,
-                 uint8_t             k_ssb) :
-    cfg(sched_cfg,
-        make_cell_cfg_req_for_sib_sched(ssb_period, freq_arfcn, offset_to_point_A, in_burst_bitmap, ssb_scs, k_ssb)),
-    cell_res_grid(cfg)
-  {
-    // Set numerology for slot_point depending on the SSB case.
-    uint8_t numerology = 0;
-    switch (cfg.ssb_case) {
-      case ssb_pattern_case::A:
-        numerology = 0;
-        break;
-      case ssb_pattern_case::B:
-      case ssb_pattern_case::C:
-        numerology = 1;
-        break;
-      default:
-        ocudu_assert(cfg.ssb_case < ssb_pattern_case::invalid, "Invalid SSB case. Only case A, B, and C are supported");
-    }
-    test_logger.set_context(0, 0);
-    mac_logger.set_context(0, 0);
-    t = slot_point(numerology, 0);
-    cell_res_grid.slot_indication(t);
-  }
-
-  void new_slot()
-  {
-    t++;
-    cell_res_grid.slot_indication(t);
-    test_logger.set_context(t.sfn(), t.slot_index());
-    mac_logger.set_context(t.sfn(), t.slot_index());
-  }
-
-  cell_slot_resource_allocator& get_slot_allocator() { return cell_res_grid; }
-  const cell_configuration&     get_cell_sched_config() { return cfg; }
-
-  slot_point slot_tx() { return t; }
-
-private:
-  slot_point                    t;
-  const scheduler_expert_config sched_cfg = config_helpers::make_default_scheduler_expert_config();
-  const cell_configuration      cfg;
-  cell_slot_resource_allocator  cell_res_grid;
-
-  // Create default configuration and change specific parameters based on input args.
-  sched_cell_configuration_request_message make_cell_cfg_req_for_sib_sched(ssb_periodicity     ssb_period,
-                                                                           arfcn_t             freq_arfcn,
-                                                                           uint16_t            offset_to_point_A,
-                                                                           const ssb_bitmap_t& in_burst_bitmap,
-                                                                           subcarrier_spacing  init_bwp_scs,
-                                                                           uint8_t             k_ssb)
-  {
-    sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
-    msg.dl_carrier.arfcn_f_ref                   = freq_arfcn;
-    msg.dl_carrier.band                          = band_helper::get_band_from_dl_arfcn(freq_arfcn);
-    msg.dl_cfg_common.freq_info_dl.offset_to_point_a = offset_to_point_A;
-    msg.dl_cfg_common.init_dl_bwp.generic_params.scs = init_bwp_scs;
-    msg.ssb_config.scs                               = init_bwp_scs;
-    msg.scs_common                                   = init_bwp_scs;
-    msg.ssb_config.ssb_bitmap                        = in_burst_bitmap;
-    msg.ssb_config.ssb_period                        = ssb_period;
-    msg.ssb_config.offset_to_point_A                 = ssb_offset_to_pointA{offset_to_point_A};
-    msg.ssb_config.k_ssb                             = k_ssb;
-    // Change Carrier parameters when SCS is 15kHz.
-    if (init_bwp_scs == subcarrier_spacing::kHz15) {
-      msg.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 106;
-      msg.dl_cfg_common.init_dl_bwp.generic_params.crbs =
-          crb_interval{0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
-    }
-    // Change Carrier parameters when SCS is 30kHz.
-    else if (init_bwp_scs == subcarrier_spacing::kHz30) {
-      msg.dl_cfg_common.freq_info_dl.scs_carrier_list.emplace_back(
-          scs_specific_carrier{0, subcarrier_spacing::kHz30, 52});
-      msg.dl_cfg_common.init_dl_bwp.generic_params.crbs = {
-          0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list[1].carrier_bandwidth};
-    }
-    msg.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
-    msg.dl_carrier.nof_ant    = 1;
-
-    return msg;
-  }
+namespace {
+struct ssb_params {
+  ssb_periodicity    periodicity = ssb_periodicity::ms5;
+  nr_band            band        = nr_band::n3;
+  arfcn_t            freq_arfcn  = 536020;
+  uint8_t            L_max       = 4U;
+  subcarrier_spacing ssb_scs     = subcarrier_spacing::kHz15;
+  // Parameters that are either taken as default or generated randomly.
+  ssb_bitmap_t ssb_bitmap;
+  unsigned     offset_to_point_A = 14;
+  uint8_t      k_ssb             = 0;
 };
 
-// Helper function to test the SSB symbols and CRBs are correctly registered in the resource grid.
-void test_ssb_grid_allocation(const cell_slot_resource_grid& res_grid,
-                              subcarrier_spacing             scs,
-                              ssb_offset_to_pointA           offset_pA,
-                              unsigned                       nof_CRBs,
-                              ssb_subcarrier_offset          k_ssb,
-                              const ofdm_symbol_range&       ssb_symbols,
-                              const crb_interval&            ssb_crbs)
+std::ostream& operator<<(std::ostream& os, const ssb_params& params)
 {
-  unsigned ssb_crb_start = scs == subcarrier_spacing::kHz15 ? offset_pA.value() : offset_pA.value() / 2;
-  unsigned ssb_crb_stop  = k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
+  os << "p_" << ssb_periodicity_to_value(params.periodicity);
+  os << "_n" << fmt::underlying(params.band);
+  os << "_arfnc_" << params.freq_arfcn.value();
+  // Apply cast to avoid fmt:: complains.
+  os << "_L_max_" << static_cast<unsigned>(params.L_max);
+  os << "_scs_" << to_string(params.ssb_scs);
+  if (params.L_max == 4) {
+    os << "_ssb_bmap_" << fmt::format("{:#06b}", params.ssb_bitmap.to_uint64());
+  } else {
+    os << "_ssb_bmap_" << fmt::format("{:#010b}", params.ssb_bitmap.to_uint64());
+  }
+  os << "_off_pA_" << fmt::format("{}", params.offset_to_point_A);
+  // Apply cast to avoid fmt:: complains.
+  os << "_k_SSB_" << fmt::format("{}", static_cast<unsigned>(params.k_ssb));
 
-  // Verify resources on the left-side of SSB (lower CRBs) are unused.
-  grant_info empty_space{scs, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}, {0, ssb_crb_start}};
-  TESTASSERT(not res_grid.collides(empty_space),
-             "PRBs {} over symbols {} should be empty",
-             empty_space.crbs,
-             empty_space.symbols);
-
-  // Verify resources on the left-side of SSB (lower CRBs) are unused.
-  TESTASSERT(ssb_crb_stop <= nof_CRBs, "SSB falls outside the BWP");
-  empty_space.crbs = {ssb_crb_stop, nof_CRBs};
-  TESTASSERT(not res_grid.collides(empty_space),
-             "PRBs {} over symbols {} should be empty",
-             empty_space.crbs,
-             empty_space.symbols);
-
-  // Verify resources for SSB in the grid are set.
-  grant_info ssb_resources{scs, ssb_symbols, ssb_crbs};
-  TESTASSERT(res_grid.all_set(ssb_resources),
-             "PRBs {} over symbols {} should be set",
-             ssb_resources.crbs,
-             ssb_resources.symbols);
+  return os;
 }
 
-// Helper function to test the symbols and CRBs in the SSB information struct.
-void test_ssb_information(uint8_t                expected_sym,
-                          uint32_t               expected_slot_shift,
-                          crb_interval           expected_crbs,
-                          const ssb_information& ssb_info)
+} // namespace
+
+template <>
+struct fmt::formatter<ssb_params> : ostream_formatter {};
+
+static ssb_params gen_ssb_params_with_rnd_bitmap(const ssb_params& params)
 {
-  // Check OFDM symbols and frequency allocation in the ssb_information struct.
-  // con
-  unsigned slot_symbol_start =
-      (expected_sym + expected_slot_shift * NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) % NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
-  TESTASSERT_EQ(slot_symbol_start, ssb_info.symbols.start(), "Start symbol check failed in SSB information");
-  unsigned slot_symbol_stop =
-      (expected_sym + expected_slot_shift * NOF_OFDM_SYM_PER_SLOT_NORMAL_CP + 4) % NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
-  TESTASSERT_EQ(slot_symbol_stop, ssb_info.symbols.stop(), "Stop symbol check failed in SSB information");
-  TESTASSERT_EQ(expected_crbs.start(), ssb_info.crbs.start(), "Start CRB check failed in SSB information");
-  TESTASSERT_EQ(expected_crbs.stop(), ssb_info.crbs.stop(), "Stop CRB check failed in SSB information");
+  ssb_params derived_params = params;
+
+  derived_params.ssb_bitmap =
+      ssb_bitmap_t(test_rgen::uniform_int<uint8_t>(1, params.L_max * params.L_max - 1), params.L_max);
+
+  return derived_params;
 }
 
-/// This function tests SSB case A and C (both paired and unpaired spectrum).
-void test_ssb_case_A_C(slot_point                          slot_tx,
-                       arfcn_t                             freq_cutoff,
-                       const cell_configuration&           cell_cfg,
-                       const cell_slot_resource_allocator& slot_alloc)
+static ssb_params gen_random_ssb_freq_params(const ssb_params& params)
 {
-  const ssb_configuration& ssb_cfg = cell_cfg.ssb_cfg;
-
-  // Use ssb_bitmap with 8 bits, to simplify the code (L_max 64 is not used at the moment).
-  const auto in_burst_bitmap = ssb_cfg.ssb_bitmap.slice<8U>(0, 8U);
-
-  if (cell_cfg.dl_carrier.arfcn_f_ref <= freq_cutoff) {
-    // For frequencies lower than the cutoff, there should only be at most 4 SSB opportunities (4 left-most bits in
-    // in_burst_bitmap).
-    TESTASSERT(in_burst_bitmap.extract(4U, 4U) == 0,
-               TEST_HARQ_ASSERT_MSG(slot_tx.count(), fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
-  }
-
-  uint32_t sl_point_mod =
-      slot_tx.count() % (ssb_periodicity_to_value(ssb_cfg.ssb_period) * slot_tx.nof_slots_per_subframe());
-
-  // Get the size of the SSB list from the in_burst_bitmap.
-  size_t             ssb_list_size          = 0;
-  constexpr unsigned NOF_SSB_BEAMS_PER_SLOT = 2U;
-  // Starting position of the SSB index within sl_point_mod slot.
-  const unsigned start_pos = sl_point_mod * 2U;
-  // In SSB case A and C, only the first 4 slots in the SSB burst can be used.
-  if (sl_point_mod <= 3) {
-    ocudu_assert(start_pos + NOF_SSB_BEAMS_PER_SLOT <= in_burst_bitmap.size(), "Index out of range");
-    ssb_list_size =
-        in_burst_bitmap.slice<NOF_SSB_BEAMS_PER_SLOT>(start_pos, start_pos + NOF_SSB_BEAMS_PER_SLOT).count();
-  }
-
-  const ssb_information_list& ssb_list = slot_alloc.result.dl.bc.ssb_info;
-  // Check the SSB list size.
-  TESTASSERT_EQ(ssb_list_size,
-                ssb_list.size(),
-                TEST_HARQ_ASSERT_MSG(sl_point_mod, fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
-
-  // In SSB case A and C, only the first 4 slots in the SSB burst can be used.
-  if (sl_point_mod <= 3) {
-    unsigned                         expected_ssb_per_slot = 0;
-    constexpr std::array<uint8_t, 2> ofdm_symbols          = {2, 8};
-    auto                             it                    = ssb_list.begin();
-
-    // Check if, for each OFDM symbols in the bitmap, there is a corresponding SSB from the list.
-    for (uint8_t n = 0, sz = ofdm_symbols.size(); n != sz; ++n) {
-      const uint32_t ssb_idx = n + sl_point_mod * 2U;
-      if (in_burst_bitmap.test(ssb_idx)) {
-        auto ssb_item = *it;
-        ++expected_ssb_per_slot;
-
-        unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
-                                     ? ssb_cfg.offset_to_point_A.value()
-                                     : ssb_cfg.offset_to_point_A.value() / 2;
-        unsigned ssb_crb_stop =
-            ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
-        test_ssb_information(ofdm_symbols[n], sl_point_mod, crb_interval{ssb_crb_start, ssb_crb_stop}, ssb_item);
-
-        // Verify there is no collision in the SSB
-        test_ssb_grid_allocation(slot_alloc.dl_res_grid,
-                                 ssb_cfg.scs,
-                                 ssb_cfg.offset_to_point_A,
-                                 cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth,
-                                 ssb_cfg.k_ssb,
-                                 ssb_item.symbols,
-                                 ssb_item.crbs);
-
-        it++;
-      }
-    }
-
-    // Verify that the grid of symbols/PRBs is empty in the slots when SSBs are not expected.
-    if (expected_ssb_per_slot == 0) {
-      grant_info empty_space{slot_alloc.cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
-                             {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
-                             {0, slot_alloc.cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth}};
-      TESTASSERT(not slot_alloc.dl_res_grid.collides(empty_space), "PRBs {} should be empty", empty_space.crbs);
-    }
-  }
-}
-
-/// This function tests SSB case B.
-void test_ssb_case_B(slot_point                          slot_tx,
-                     const cell_configuration&           cell_cfg,
-                     const cell_slot_resource_allocator& slot_alloc)
-{
-  const ssb_configuration& ssb_cfg = cell_cfg.ssb_cfg;
-
-  // Use ssb_bitmap with 8 bits, to simplify the code (L_max 64 is not used at the moment).
-  const auto in_burst_bitmap = ssb_cfg.ssb_bitmap.slice<8U>(0, 8U);
-
-  if (cell_cfg.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_A_B_C) {
-    // For frequencies lower than the cutoff, there should only be at most 4 SSB opportunities (4 left-most bits in
-    // in_burst_bitmap).
-    TESTASSERT(in_burst_bitmap.extract(4U, 4U) == 0,
-               TEST_HARQ_ASSERT_MSG(slot_tx.count(), fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
-  }
-
-  uint32_t sl_point_mod =
-      slot_tx.count() % (ssb_periodicity_to_value(ssb_cfg.ssb_period) * slot_tx.nof_slots_per_subframe());
-
-  // Get the size of the SSB list from the in_burst_bitmap.
-  size_t             ssb_list_size          = 0;
-  constexpr unsigned NOF_SSB_BEAMS_PER_SLOT = 2U;
-  // Starting position of the SSB index within sl_point_mod slot.
-  const unsigned start_pos = sl_point_mod * 2U;
-  // In SSB case A and C, only the first 4 slots in the SSB burst can be used.
-  if (sl_point_mod <= 3) {
-    ssb_list_size =
-        in_burst_bitmap.slice<NOF_SSB_BEAMS_PER_SLOT>(start_pos, start_pos + NOF_SSB_BEAMS_PER_SLOT).count();
-  }
-
-  const ssb_information_list& ssb_list = slot_alloc.result.dl.bc.ssb_info;
-  // Check the SSB list size
-  TESTASSERT_EQ(ssb_list_size,
-                ssb_list.size(),
-                TEST_HARQ_ASSERT_MSG(sl_point_mod, fmt::underlying(ssb_cfg.ssb_period), cell_cfg.ssb_case));
-
-  unsigned expected_ssb_per_slot;
-  // This block targets SSB occasions at ssb_burst_ofdm_symbols = {4, 8, 32, 36}.
-  if (sl_point_mod == 0 or sl_point_mod == 2) {
-    expected_ssb_per_slot = 0;
-    // For frequency less than the CUTOFF freq, list cannot have more than 4 elements.
-    constexpr std::array<uint8_t, 2> ssb_burst_ofdm_symb = {4, 8};
-    auto                             it                  = ssb_list.begin();
-
-    // Check if, for each OFDM symbols in the bitmap, there is a corresponding SSB from the list.
-    for (uint8_t n = 0, sz = ssb_burst_ofdm_symb.size(); n != sz; ++n) {
-      const uint32_t ssb_idx = n + sl_point_mod * 2U;
-      if (in_burst_bitmap.test(ssb_idx)) {
-        auto ssb_item = *it;
-        ++expected_ssb_per_slot;
-
-        // Check OFDM symbols and frequency allocation in the ssb_information struct.
-        unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
-                                     ? ssb_cfg.offset_to_point_A.value()
-                                     : ssb_cfg.offset_to_point_A.value() / 2;
-        unsigned ssb_crb_stop =
-            ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
-        test_ssb_information(ssb_burst_ofdm_symb[n], sl_point_mod, crb_interval{ssb_crb_start, ssb_crb_stop}, ssb_item);
-
-        // Verify there is no collision in the SSB
-        test_ssb_grid_allocation(slot_alloc.dl_res_grid,
-                                 ssb_cfg.scs,
-                                 ssb_cfg.offset_to_point_A,
-                                 cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth,
-                                 ssb_cfg.k_ssb,
-                                 ssb_item.symbols,
-                                 ssb_item.crbs);
-
-        it++;
-      }
-    }
-
-    // Verify that the grid of symbols/PRBs is empty in the slots when SSBs are not expected.
-    if (expected_ssb_per_slot == 0) {
-      grant_info empty_space{slot_alloc.cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
-                             {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
-                             {0, slot_alloc.cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth}};
-      TESTASSERT(not slot_alloc.dl_res_grid.collides(empty_space), "PRBs {} should be empty", empty_space.crbs);
-    }
-  }
-
-  // This block targets SSB occasions at ssb_burst_ofdm_symbols = {16, 20, 44, 48}.
-  if (sl_point_mod == 1 or sl_point_mod == 3) {
-    expected_ssb_per_slot = 0;
-    // For frequency less than the CUTOFF freq, list cannot have more than 4 elements
-    constexpr std::array<uint8_t, 2> ssb_burst_ofdm_symb = {16, 20};
-    auto                             it                  = ssb_list.begin();
-
-    // Check if, for each OFDM symbols in the bitmap, there is a corresponding SSB from the list.
-    for (uint8_t n = 0; n < ssb_burst_ofdm_symb.size(); n++) {
-      const uint32_t ssb_idx = n + sl_point_mod * 2U;
-      if (in_burst_bitmap.test(ssb_idx)) {
-        auto ssb_item = *it;
-        ++expected_ssb_per_slot;
-
-        // Check OFDM symbols and frequency allocation in the ssb_information struct.
-        unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
-                                     ? ssb_cfg.offset_to_point_A.value()
-                                     : ssb_cfg.offset_to_point_A.value() / 2;
-        unsigned ssb_crb_stop =
-            ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
-        test_ssb_information(
-            ssb_burst_ofdm_symb[n], sl_point_mod - 1, crb_interval{ssb_crb_start, ssb_crb_stop}, ssb_item);
-
-        // Verify there is no collision in the SSB
-        test_ssb_grid_allocation(slot_alloc.dl_res_grid,
-                                 ssb_cfg.scs,
-                                 ssb_cfg.offset_to_point_A,
-                                 cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth,
-                                 ssb_cfg.k_ssb,
-                                 ssb_item.symbols,
-                                 ssb_item.crbs);
-
-        it++;
-      }
-    }
-
-    // Verify that the grid of symbols/PRBs is empty in the slots when SSBs are not expected.
-    if (expected_ssb_per_slot == 0) {
-      grant_info empty_space{slot_alloc.cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
-                             {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
-                             {0, slot_alloc.cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth}};
-      TESTASSERT(not slot_alloc.dl_res_grid.collides(empty_space), "PRBs {} should be empty", empty_space.crbs);
-    }
-  }
-}
-
-void test_ssb_allocation(ssb_periodicity     ssb_period,
-                         arfcn_t             freq_arfcn,
-                         uint16_t            offset_to_point_A,
-                         const ssb_bitmap_t& in_burst_bitmap,
-                         subcarrier_spacing  ssb_scs,
-                         uint8_t             k_ssb)
-{
-  constexpr size_t NUM_OF_TEST_SLOTS = 1000;
-
-  ssb_test_bench bench{ssb_period, freq_arfcn, offset_to_point_A, in_burst_bitmap, ssb_scs, k_ssb};
-  ssb_scheduler  ssb_sch{bench.get_cell_sched_config()};
-
-  bench.new_slot();
-
-  // in_burst_bitmap is not used by the function for the time being.
-
-  // Run test for a given number of slots.
-  for (size_t slot_count = 0; slot_count != NUM_OF_TEST_SLOTS; ++slot_count, bench.new_slot()) {
-    // Clear the SSB list of it is not empty.
-    auto& ssb_list = bench.get_slot_allocator().result.dl.bc.ssb_info;
-    if (ssb_list.size() > 0) {
-      ssb_list.clear();
-    }
-
-    // Schedule the SSB.
-    ssb_sch.schedule_ssb(bench.get_slot_allocator());
-
-    // Select SSB case with reference to TS 38.213, Section 4.1.
-    ssb_pattern_case ssb_case = bench.get_cell_sched_config().ssb_case;
+  auto get_max_offset_to_point_A = [](ssb_pattern_case ssb_case) {
     switch (ssb_case) {
       case ssb_pattern_case::A:
-        test_ssb_case_A_C(
-            bench.slot_tx(), CUTOFF_FREQ_ARFCN_CASE_A_B_C, bench.get_cell_sched_config(), bench.get_slot_allocator());
-        break;
+        // For case A (20MHz, SCS 15kHz), there are 106 within the Initial DL BWP.
+        return 106U - NOF_SSB_PRBS - 1;
       case ssb_pattern_case::B:
-        test_ssb_case_B(bench.slot_tx(), bench.get_cell_sched_config(), bench.get_slot_allocator());
-        break;
-      case ssb_pattern_case::C: {
-        const arfcn_t f_cutoff_arfnc = bench.get_cell_sched_config().paired_spectrum
-                                           ? CUTOFF_FREQ_ARFCN_CASE_A_B_C
-                                           : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
-        test_ssb_case_A_C(bench.slot_tx(), f_cutoff_arfnc, bench.get_cell_sched_config(), bench.get_slot_allocator());
-      } break;
+      case ssb_pattern_case::C:
+        // For case B and C (20MHz, SCS 30kHz), there are 52 within the Initial DL BWP.
+        return 52 - NOF_SSB_PRBS - 1;
       default:
-        ocudu_assert(ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
+        ocudu_assertion_failure("Only SSB cases A, B, C are supported in this test");
+        return 0U;
     }
+  };
+
+  auto get_max_k_SSB = [](ssb_pattern_case ssb_case) {
+    switch (ssb_case) {
+      case ssb_pattern_case::A:
+        return 11U;
+      case ssb_pattern_case::B:
+      case ssb_pattern_case::C:
+        return 23U;
+      default:
+        ocudu_assertion_failure("Only SSB cases A, B, C are supported in this test");
+        return 0U;
+    }
+  };
+
+  const ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(params.band, params.ssb_scs);
+
+  ssb_params derived_params = params;
+
+  derived_params.offset_to_point_A = test_rgen::uniform_int<unsigned>(0, get_max_offset_to_point_A(ssb_case) - 1);
+  if (ssb_case == ssb_pattern_case::B or ssb_case == ssb_pattern_case::C) {
+    // With case B and C, offset_to_point_A must be an even number.
+    derived_params.offset_to_point_A = (derived_params.offset_to_point_A / 2) * 2;
   }
+
+  derived_params.k_ssb = test_rgen::uniform_int<unsigned>(0, get_max_k_SSB(ssb_case) - 1);
+
+  derived_params.ssb_bitmap =
+      ssb_bitmap_t(test_rgen::uniform_int<uint8_t>(1, params.L_max * params.L_max - 1), params.L_max);
+
+  return derived_params;
 }
 
-// This tests the SSB scheduling for different SSB periods and bursts.
-TEST(ssb_scheduler_test, test_time_domain_ssb_scheduling)
+static sched_cell_configuration_request_message make_cell_cfg_req_msg(const ssb_params& params)
 {
-  // ##########################################################
-  //                   TEST CASE A
-  // ##########################################################
-  // TEST Case A, frequency < 3GHz.
-  arfcn_t freq_arfcn = 536020;
-  //
-  // uint64_t           in_burst_bitmap = static_cast<uint64_t>(0b01100000U) << static_cast<uint64_t>(56U);
-  uint8_t            L_max   = 4U;
-  subcarrier_spacing ssb_scs = subcarrier_spacing::kHz15;
+  sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
+  msg.dl_carrier.arfcn_f_ref                   = params.freq_arfcn;
+  msg.dl_carrier.band                          = params.band;
+  msg.dl_cfg_common.freq_info_dl.offset_to_point_a = params.offset_to_point_A;
+  msg.dl_cfg_common.init_dl_bwp.generic_params.scs = params.ssb_scs;
+  msg.ssb_config.scs                               = params.ssb_scs;
+  msg.scs_common                                   = params.ssb_scs;
 
-  // TEST Different periodicity with Case A.
-  ssb_periodicity    periodicity       = ssb_periodicity::ms5;
-  constexpr uint8_t  k_ssb             = 0;
-  constexpr uint16_t offset_to_point_A = 14;
-  ssb_bitmap_t(0b0110, L_max);
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
+  // Generate a random
+  msg.ssb_config.ssb_bitmap        = ssb_bitmap_t(test_rgen::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);
+  msg.ssb_config.ssb_period        = params.periodicity;
+  msg.ssb_config.offset_to_point_A = params.offset_to_point_A;
+  msg.ssb_config.k_ssb             = params.k_ssb;
+  // Change Carrier parameters when SCS is 15kHz.
+  if (params.ssb_scs == subcarrier_spacing::kHz15) {
+    msg.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 106;
+    msg.dl_cfg_common.init_dl_bwp.generic_params.crbs =
+        crb_interval{0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
+  }
+  // Change Carrier parameters when SCS is 30kHz.
+  else if (params.ssb_scs == subcarrier_spacing::kHz30) {
+    msg.dl_cfg_common.freq_info_dl.scs_carrier_list.emplace_back(
+        scs_specific_carrier{0, subcarrier_spacing::kHz30, 52});
+    msg.dl_cfg_common.init_dl_bwp.generic_params.crbs = {
+        0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list[1].carrier_bandwidth};
+  }
+  msg.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
+  msg.dl_carrier.nof_ant    = 1;
 
-  periodicity = ssb_periodicity::ms10;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms20;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms40;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms80;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  // TEST Case A, frequency < 3GHz, different inBurst bitmaps.
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1000, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1101, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1111, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b01110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0001, L_max), ssb_scs, k_ssb);
-
-  // NOTE: We do not test CASE A for frequency > 3GHz. Although TS 38.213, Section 4.1 defines SSB case A for
-  // frequency > 3GHz, there are no current NR bands available that fall into this category.
-
-  // ##########################################################
-  //                   TEST CASE B
-  // ##########################################################
-  // TEST Case B, frequency < 3GHz.
-  ssb_scs    = subcarrier_spacing::kHz30;
-  freq_arfcn = 176000;
-
-  // TEST Different periodicity with Case B
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms10;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms20;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms40;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms80;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  // TEST Case B, frequency < 3GHz, different inBurst bitmaps.
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1000, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms10;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1101, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1111, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0111, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0001, L_max), ssb_scs, k_ssb);
-
-  // NOTE: We do not test CASE B for frequency > 3GHz. Although TS 38.213, Section 4.1 defines SSB case B for
-  // frequency > 3GHz, there are no current NR bands available that fall into this category.
-
-  // ##########################################################
-  //                   TEST CASE C
-  // ##########################################################
-  // TEST CASE C - unpaired spectrum, freq. < 1.88GHz.
-  ssb_scs = subcarrier_spacing::kHz30;
-  // This corresponds to band 50, which is the only case C band below 1.88GHz.
-  freq_arfcn  = 292000;
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms10;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms20;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms40;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  periodicity = ssb_periodicity::ms80;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0110, L_max), ssb_scs, k_ssb);
-
-  // TEST CASE C - unpaired spectrum, freq. < 1.88GHz, different inBurst bitmaps.
-  periodicity = ssb_periodicity::ms5;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1000, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1101, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1111, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b01110, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b0001, L_max), ssb_scs, k_ssb);
-
-  // TEST CASE C - unpaired spectrum, freq. > 1.88GHz, different inBurst bitmaps.
-  // This corresponds to band 50, which is the only case C band below 1.88GHz.
-  freq_arfcn = 518000;
-  L_max      = 8U;
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b01101001U, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b11111111U, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b01111101U, L_max), ssb_scs, k_ssb);
-
-  test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b10011110U, L_max), ssb_scs, k_ssb);
+  return msg;
 }
 
-// This tests the SSB scheduling for different offsetToPointA and k_SSB.
-TEST(ssb_scheduler_test, test_freq_domain_ssb_scheduling)
+class ssb_sched_test_bench : public sched_basic_custom_test_bench
 {
-  // ##########################################################
-  //                   TEST CASE A
-  // ##########################################################
-  // TEST Case A, frequency < 3GHz.
-  arfcn_t freq_arfcn = 536020;
-  uint8_t L_max      = 4U;
-
-  subcarrier_spacing ssb_scs     = subcarrier_spacing::kHz15;
-  ssb_periodicity    periodicity = ssb_periodicity::ms10;
-
-  // Test different offset_to_point_A and different k_SSB.
-  periodicity = ssb_periodicity::ms10;
-  // For case A (20MHz, SCS 15kHz), there are 106 within the Initial DL BWP.
-  unsigned max_offset_to_point_A = 106 - NOF_SSB_PRBS;
-  for (uint16_t offset_to_point_A = 0; offset_to_point_A < max_offset_to_point_A; offset_to_point_A++) {
-    for (uint8_t k_ssb_val = 0; k_ssb_val < 12; k_ssb_val++) {
-      test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1111, L_max), ssb_scs, k_ssb_val);
-    }
+protected:
+  ssb_sched_test_bench(const sched_cell_configuration_request_message& sched_cell_cfg_req) :
+    sched_basic_custom_test_bench(config_helpers::make_default_scheduler_expert_config(), sched_cell_cfg_req),
+    cutoff_freq(compute_cutoff_freq(cell_cfg.ssb_case, cell_cfg.dl_carrier.band)),
+    sl_idx_with_ssb_case_A_B_C{0, 1, 2, 3},
+    ssb_sched(cell_cfg)
+  {
+    ocudulog::init();
   }
 
-  // ##########################################################
-  //                   TEST CASE B
-  // ##########################################################
-  // TEST Case B, frequency < 3GHz.
-  freq_arfcn = 176000;
-  ssb_scs    = subcarrier_spacing::kHz30;
-
-  // Test different offset_to_point_A and different k_SSB.
-  periodicity = ssb_periodicity::ms10;
-  // For case B (20MHz, SCS 30kHz), there are 52 within the Initial DL BWP.
-  max_offset_to_point_A = 52 - NOF_SSB_PRBS;
-  for (uint16_t offset_to_point_A = 0; offset_to_point_A < 28; offset_to_point_A += 2) {
-    for (uint8_t k_ssb_val = 0; k_ssb_val < 24; k_ssb_val++) {
-      test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1111, L_max), ssb_scs, k_ssb_val);
+  static arfcn_t compute_cutoff_freq(ssb_pattern_case ssb_case, nr_band band)
+  {
+    ocudu_assert(ssb_case < ssb_pattern_case::D, "Only case A, B and C supported in this test");
+    if (ssb_case == ssb_pattern_case::C and not band_helper::is_paired_spectrum(band)) {
+      return CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
     }
+    return CUTOFF_FREQ_ARFCN_CASE_A_B_C;
   }
 
-  // ##########################################################
-  //                   TEST CASE C
-  // ##########################################################
-  // TEST Case C, Unpaired spectrum, frequency < 1.88GHz.
-  freq_arfcn = 292000;
+  void run_slot() { ssb_sched.run_slot(res_grid, current_sl_tx); }
 
-  // Test different offset_to_point_A and different k_SSB.
-  periodicity = ssb_periodicity::ms10;
-  // For case C (20MHz, SCS 30kHz), there are 52 within the Initial DL BWP.
-  max_offset_to_point_A = 52 - NOF_SSB_PRBS;
-  for (uint16_t offset_to_point_A = 0; offset_to_point_A < max_offset_to_point_A; offset_to_point_A += 2) {
-    for (uint8_t k_ssb_val = 0; k_ssb_val < 24; k_ssb_val++) {
-      test_ssb_allocation(periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b1111, L_max), ssb_scs, k_ssb_val);
+  void slot_indication() { sched_basic_custom_test_bench::slot_indication(++current_sl_tx); }
+
+  // Returns the possible starting OFDM symbols for SSB.
+  std::array<uint8_t, 2> get_starting_ofdm_symbols(slot_point sl) const
+  {
+    if (cell_cfg.ssb_case == ssb_pattern_case::A or cell_cfg.ssb_case == ssb_pattern_case::C) {
+      return {2, 8};
     }
+    return sl.count() % 2U == 0 ? std::array<uint8_t, 2>{4, 8} : std::array<uint8_t, 2>{2, 6};
   }
 
-  // ##########################################################
-  //                   TEST CASE C
-  // ##########################################################
-  // TEST Case C, Unpaired spectrum, frequency > 1.88GHz.
-  freq_arfcn = 518000;
-  L_max      = 8U;
+  crb_interval get_ssb_crbs() const
+  {
+    const unsigned ssb_crb_start = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs == subcarrier_spacing::kHz15
+                                       ? cell_cfg.ssb_cfg.offset_to_point_A.value()
+                                       : cell_cfg.ssb_cfg.offset_to_point_A.value() / 2;
+    const unsigned ssb_crb_stop =
+        cell_cfg.ssb_cfg.k_ssb.value() > 0 ? ssb_crb_start + NOF_SSB_PRBS + 1 : ssb_crb_start + NOF_SSB_PRBS;
 
-  // Test different offset_to_point_A and different k_SSB.
-  periodicity = ssb_periodicity::ms10;
-  for (uint16_t offset_to_point_A = 0; offset_to_point_A < max_offset_to_point_A; offset_to_point_A += 2) {
-    for (uint8_t k_ssb_val = 0; k_ssb_val < 24; k_ssb_val++) {
-      test_ssb_allocation(
-          periodicity, freq_arfcn, offset_to_point_A, ssb_bitmap_t(0b11111111, L_max), ssb_scs, k_ssb_val);
+    return crb_interval(ssb_crb_start, ssb_crb_stop);
+  }
+
+  // Helper function to test the symbols and CRBs in the SSB information struct.
+  void test_ssb_information(uint8_t expected_sym, const ssb_information& ssb_info) const
+  {
+    // Check OFDM symbols and frequency allocation in the ssb_information struct.
+    // con
+    const crb_interval expected_ssb_crbs = get_ssb_crbs();
+    ASSERT_EQ(expected_ssb_crbs, ssb_info.crbs);
+    ASSERT_EQ(ofdm_symbol_range(expected_sym, expected_sym + NOF_SYMB_PER_SSB), ssb_info.symbols);
+  }
+
+  void test_ssb_grid_allocation(const cell_slot_resource_grid& slot_res_grid, const ssb_information& ssb_info) const
+  {
+    // Verify resources on the left-side of SSB (lower CRBs) are unused.
+    grant_info empty_space{cell_cfg.ssb_cfg.scs, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}, {0, ssb_info.crbs.start()}};
+    ASSERT_FALSE(slot_res_grid.collides(empty_space))
+        << fmt::format("PRBs {} over symbols {} should be empty", empty_space.crbs, empty_space.symbols);
+
+    // Verify resources on the left-side of SSB (lower CRBs) are unused.
+    ASSERT_TRUE(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.contains(ssb_info.crbs))
+        << "SSB falls outside the BWP";
+
+    // Verify resources on the right-side of SSB (lower CRBs) are unused.
+    ASSERT_FALSE(slot_res_grid.collides(empty_space))
+        << fmt::format("PRBs {} over symbols {} should be empty", empty_space.crbs, empty_space.symbols);
+
+    grant_info ssb_resources{cell_cfg.ssb_cfg.scs, ssb_info.symbols, ssb_info.crbs};
+    ASSERT_TRUE(slot_res_grid.all_set(ssb_resources))
+        << fmt::format("PRBs {} over symbols {} should be set", ssb_resources.crbs, ssb_resources.symbols);
+  }
+
+  const arfcn_t cutoff_freq;
+  // Indices of slots (within the half-system frame) which can contains SSBs.
+  std::array<unsigned, 4>   sl_idx_with_ssb_case_A_B_C;
+  static constexpr unsigned NOF_SYMB_PER_SSB = 4U;
+
+private:
+  ssb_scheduler ssb_sched;
+};
+
+class ssb_sched_tester : public ssb_sched_test_bench, public ::testing::TestWithParam<ssb_params>
+{
+protected:
+  ssb_sched_tester() : ssb_sched_test_bench(make_cell_cfg_req_msg(GetParam())) {}
+};
+
+TEST_P(ssb_sched_tester, test_time_dom_allocation)
+{
+  test_logger.info("{}", GetParam());
+
+  // Get the SSB period in half radio frames
+  const unsigned ssb_period_half_sfn = ssb_periodicity_to_value(cell_cfg.ssb_cfg.ssb_period) * 2U / 10U;
+
+  for (; current_sl_tx.count() != 1000U; slot_indication()) {
+    run_slot();
+
+    if (const bool is_ssb_half_sfn = current_sl_tx.half_sfn() % ssb_period_half_sfn == 0U; is_ssb_half_sfn) {
+      // Check whether the L_max matches the ssb_bitmap length.
+      const uint8_t expected_l_max = cell_cfg.dl_carrier.arfcn_f_ref <= cutoff_freq ? 4U : 8U;
+      ASSERT_EQ(cell_cfg.ssb_cfg.ssb_bitmap.get_L_max(), expected_l_max);
+
+      const bool is_ssb_slot = cell_cfg.dl_carrier.arfcn_f_ref <= cutoff_freq ? current_sl_tx.hrf_slot_index() <= 1U
+                                                                              : current_sl_tx.hrf_slot_index() <= 3U;
+      if (is_ssb_slot) {
+        constexpr unsigned NOF_SSB_BEAMS_PER_SLOT_FR1 = 2U;
+        const auto         slot_bitmap                = cell_cfg.ssb_cfg.ssb_bitmap.slice<NOF_SSB_BEAMS_PER_SLOT_FR1>(
+            current_sl_tx.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1,
+            current_sl_tx.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1 + NOF_SSB_BEAMS_PER_SLOT_FR1);
+
+        ASSERT_EQ(res_grid[0].result.dl.bc.ssb_info.size(), slot_bitmap.count())
+            << fmt::format("Number of SSB PDUs not as expected at slot={}", current_sl_tx);
+
+        const auto starting_symbs = get_starting_ofdm_symbols(current_sl_tx);
+        auto       ssb_pdu_it     = res_grid[0].result.dl.bc.ssb_info.begin();
+        for (unsigned i = 0, sz = slot_bitmap.size(); i != sz; ++i) {
+          if (not slot_bitmap.test(i)) {
+            continue;
+          }
+          // Test the correctness of SSB PDU fields.
+          const ssb_information ssb_info = *ssb_pdu_it;
+          ASSERT_EQ(ssb_info.ssb_index, current_sl_tx.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1 + i);
+          const crb_interval expected_ssb_crbs = get_ssb_crbs();
+          ASSERT_EQ(expected_ssb_crbs, ssb_info.crbs);
+          ASSERT_EQ(ofdm_symbol_range(starting_symbs[i], starting_symbs[i] + NOF_SYMB_PER_SSB), ssb_info.symbols);
+          // Test whether the DL grid allocation matches the information in the SSB PDU.
+          test_ssb_grid_allocation(res_grid[0].dl_res_grid, ssb_info);
+          ++ssb_pdu_it;
+        }
+      } else {
+        ASSERT_TRUE(res_grid[0].result.dl.bc.ssb_info.empty())
+            << fmt::format("At slot={} the SSB info list is expected to be empty", current_sl_tx);
+
+        grant_info empty_space{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                               {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
+                               {0, cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].carrier_bandwidth}};
+        ASSERT_FALSE(res_grid[0].dl_res_grid.collides(empty_space))
+            << fmt::format("PRBs {} should be empty", empty_space.crbs);
+      }
     }
   }
 }
+
+// In this macro, we pass some basic parameters and we use gen_ssb_params_with_rnd_bitmap() to generate a full set of
+// test parameters with a random SSB bitmap.
+INSTANTIATE_TEST_SUITE_P(
+    test_ssb_allocation_time_domain_allocation,
+    ssb_sched_tester,
+    ::testing::Values(
+        // clang-format off
+    // FDD.
+    // Test case A.
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms5, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms10, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms20, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms40, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms80, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    // Test case B. NOTE: the full scheduler doesn't support these configs yet, as it requires 15kHz for SRS common and 30kHz SSB SCS.
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms5, .band = nr_band::n5, .freq_arfcn = 176000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n5, .freq_arfcn = 176000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms20, .band = nr_band::n5, .freq_arfcn = 176000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms40, .band = nr_band::n5, .freq_arfcn = 176000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms80, .band = nr_band::n5, .freq_arfcn = 176000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    // TDD.
+    // Test case A - freq. < cutoff_freq.
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms5, .band = nr_band::n41, .freq_arfcn = 512001, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n41, .freq_arfcn = 512001, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms20, .band = nr_band::n41, .freq_arfcn = 512001, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms40, .band = nr_band::n41, .freq_arfcn = 512001, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms80, .band = nr_band::n41, .freq_arfcn = 512001, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    // Test case C.
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms5, .band = nr_band::n50, .freq_arfcn = 292000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n50, .freq_arfcn = 292000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms20, .band = nr_band::n50, .freq_arfcn = 292000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms40, .band = nr_band::n50, .freq_arfcn = 292000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms80, .band = nr_band::n50, .freq_arfcn = 292000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    // Test case C - freq. > cutoff_freq.
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms5, .band = nr_band::n41, .freq_arfcn = 512004, .L_max = 8, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n41, .freq_arfcn = 512004, .L_max = 8, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms20, .band = nr_band::n41, .freq_arfcn = 512004, .L_max = 8, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms40, .band = nr_band::n41, .freq_arfcn = 512004, .L_max = 8, .ssb_scs = subcarrier_spacing::kHz30}),
+    gen_ssb_params_with_rnd_bitmap(ssb_params{.periodicity = ssb_periodicity::ms80, .band = nr_band::n41, .freq_arfcn = 512004, .L_max = 8, .ssb_scs = subcarrier_spacing::kHz30})
+
+        // clang-format on
+        ),
+    [](const testing::TestParamInfo<ssb_params>& params_item) { return fmt::format("{}", params_item.param); });
+
+// In this macro, we pass some basic parameters and we use gen_random_ssb_freq_params() to generate a full set of
+// test parameters with a random SSB bitmap, random offset_to_pointA and k_SSB.
+INSTANTIATE_TEST_SUITE_P(test_freq_domain_allocation_for_ssb,
+                         ssb_sched_tester,
+                         ::testing::Values(
+                             // clang-format off
+    // Test case A.
+    gen_random_ssb_freq_params(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n7, .freq_arfcn = 536020, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz15}),
+    // Test case B.
+    gen_random_ssb_freq_params(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n5, .freq_arfcn = 176000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    // Test case C, Unpaired spectrum, frequency <= 1.88GHz.
+    gen_random_ssb_freq_params(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n50, .freq_arfcn = 292000, .L_max = 4, .ssb_scs = subcarrier_spacing::kHz30}),
+    // Test case C, Unpaired spectrum, frequency > 1.88GHz.
+    gen_random_ssb_freq_params(ssb_params{.periodicity = ssb_periodicity::ms10, .band = nr_band::n41, .freq_arfcn = 518000, .L_max = 8, .ssb_scs = subcarrier_spacing::kHz30})
+
+                             // clang-format on
+                             ),
+                         [](const testing::TestParamInfo<ssb_params>& params_item) {
+                           return fmt::format("{}", params_item.param);
+                         });

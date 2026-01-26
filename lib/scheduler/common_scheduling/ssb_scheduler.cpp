@@ -25,9 +25,8 @@ ssb_scheduler::ssb_scheduler(const cell_configuration& cfg_) :
 void ssb_scheduler::run_slot(cell_resource_allocator& res_alloc, slot_point sl_point)
 {
   if (first_run_slot) {
-    const unsigned ssb_period_slots = ssb_period * sl_point.nof_slots_per_subframe();
     // First call to run_slot. Schedule SSBs when relevant across cell resource grid.
-    for (unsigned i = 0; i < res_alloc.max_dl_slot_alloc_delay + 1; i += ssb_period_slots) {
+    for (unsigned i = 0; i != res_alloc.max_dl_slot_alloc_delay + 1; ++i) {
       schedule_ssb(res_alloc[i]);
     }
     first_run_slot = false;
@@ -54,7 +53,8 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
 
   // Perform mod operation of slot index by ssb_periodicity;
   // "ssb_periodicity * nof_slots_per_subframe" gives the number of slots in 1 ssb_periodicity time interval.
-  slot_point sl_point_mod(sl_point.numerology(), sl_point.to_uint() % (ssb_period * sl_point.nof_slots_per_subframe()));
+  const slot_point sl_point_mod(sl_point.numerology(),
+                                sl_point.to_uint() % (ssb_period * sl_point.nof_slots_per_subframe()));
 
   // Select SSB case with reference to TS 38.213, Section 4.1.
   switch (cell_cfg.ssb_case) {

@@ -49,6 +49,14 @@ public:
     ocudulog::init();
   }
 
+  // This constructor uses default cell_config_builder_params parameters, which will be overwritten by those in
+  // sched_cell_cfg_req.
+  sched_basic_custom_test_bench(const scheduler_expert_config&                  sched_exp_cfg,
+                                const sched_cell_configuration_request_message& sched_cell_cfg_req) :
+    sched_basic_custom_test_bench(sched_exp_cfg, cell_config_builder_params{}, sched_cell_cfg_req)
+  {
+  }
+
   // Class members.
   scheduler_expert_config                 expert_cfg;
   test_helpers::test_sched_config_manager cfg_mng;

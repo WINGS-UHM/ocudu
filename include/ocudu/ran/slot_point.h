@@ -132,6 +132,12 @@ public:
   /// Get MOD(slot index, Nof slots in Half Frame).
   constexpr uint32_t hrf_slot_index() const { return static_cast<uint32_t>(count_val) % nof_hrf_slots(); }
 
+  /// Half Radio Frame Number. Value: (0..2047).
+  constexpr uint32_t half_sfn() const
+  {
+    return static_cast<uint32_t>((count_val * 2U / nof_slots_per_frame()) % (NOF_SFNS * 2));
+  }
+
   /// Get MOD(slot index, Nof slots in a subframe).
   constexpr uint32_t subframe_slot_index() const { return static_cast<uint32_t>(count_val) % nof_slots_per_subframe(); }
 

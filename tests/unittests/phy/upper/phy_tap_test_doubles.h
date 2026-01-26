@@ -26,6 +26,12 @@ public:
   }
 
   // See the phy_tap interface for documentation.
+  void handle_prach_window(prach_buffer& buffer, const prach_buffer_context& context) override
+  {
+    ++handle_prach_window_count;
+  }
+
+  // See the phy_tap interface for documentation.
   void handle_quiet_grid(const resource_grid_reader& grid_reader, slot_point slot) override
   {
     ++handle_quiet_grid_count;
@@ -34,12 +40,17 @@ public:
   /// Gets the number of times handle_ul_symbol() is invoked.
   unsigned get_handle_ul_symbol_count() const { return handle_ul_symbol_count; }
 
+  /// Gets the number of times handle_prach_window() is invoked.
+  unsigned get_handle_prach_window_count() const { return handle_prach_window_count; }
+
   /// Gets the number of times handle_quiet_grid() is invoked.
   unsigned get_handle_quiet_grid_count() const { return handle_quiet_grid_count; }
 
 private:
   /// Counts the number of times \ref handle_ul_symbol() is invoked.
   unsigned handle_ul_symbol_count = 0;
+  /// Counts the number of times \ref handle_prach_window() is invoked.
+  unsigned handle_prach_window_count = 0;
   /// Counts the number of times \ref handle_quiet_grid() is invoked.
   unsigned handle_quiet_grid_count = 0;
 };

@@ -233,6 +233,11 @@ void uplink_processor_impl::process_prach(shared_prach_buffer buffer, const prac
     return;
   }
 
+  // If the phy tap is configured, send the PRACH symbols through the tap interface.
+  if (ul_tap) {
+    ul_tap->handle_prach_window(*buffer, context_);
+  }
+
   bool success = task_executors.prach_executor.execute(
       [this, buffer_ = std::move(buffer), context_]() noexcept OCUDU_RTSAN_NONBLOCKING {
         trace_point tp = l1_ul_tracer.now();

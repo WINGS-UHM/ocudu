@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "ocudu/phy/support/prach_buffer.h"
+#include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
 
 namespace ocudu {
@@ -55,6 +57,28 @@ public:
                                 span<const uplink_pdu_slot_repository::pucch_pdu>         pucch_pdus,
                                 span<const pucch_processor::format1_common_configuration> pucch_f1_pdus,
                                 span<const uplink_pdu_slot_repository::srs_pdu>           srs_pdus) = 0;
+
+  /// \brief Exposes the received PRACH symbols to any external processing unit.
+  ///
+  /// This method is called every time a new PRACH buffer becomes available to the upper physical layer for detection.
+  /// It provides access to the PRACH symbols for all ports, time-domain and frequency-domain occasions, which can be
+  /// accessed via the PRACH buffer interface. The associated PRACH buffer context contains all the PRACH parameters
+  /// used by the physical layer to demodulate and detect the PRACH sequences.
+  ///
+  /// \param[in,out] buffer  PRACH buffer containing the received symbols.
+  /// \param[in]     context PRACH parameters required for demodulation and detection.
+  ///
+  /// \remark The method implementation may assume that the physical layer does not consume the PRACH symbols until this
+  /// method returns. This means that the symbols can be processed and returned to the physical layer before any
+  /// further processing takes place.
+  ///
+  /// \warning The contents of the PRACH buffer shall not be modified after the call that passed the buffer returns.
+  /// Modifying the contents of the resource grid belonging to a buffer that was passed in the past may lead to
+  /// undefined behavior.
+  ///
+  /// \warning This method is called from the RU UL execution context. Performing heavy processing tasks synchronously
+  /// in this method may lead to realtime errors.
+  virtual void handle_prach_window(prach_buffer& buffer, const prach_buffer_context& context) = 0;
 
   /// \brief Exposes the received uplink resource grid without any associated request to an external
   /// processing unit.
